@@ -1,0 +1,17 @@
+{
+  "name": "Bubble Wallpaper",
+  "short_name": "Bubbles",
+  "description": "An interactive bubble wallpaper with tap-to-pop bubbles, sound, palettes, and fullscreen mode.",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#071017",
+  "theme_color": "#071017",
+  "icons": [
+    {
+      "src": "assets/bubble-wallpaper-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

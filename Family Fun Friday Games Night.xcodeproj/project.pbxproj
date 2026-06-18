@@ -1,0 +1,979 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 51;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		8B02F43D26D190E10096B35B /* sites﹖buildTime=1424377651.css in Resources */ = {isa = PBXBuildFile; fileRef = 8B02F43C26D190E10096B35B /* sites﹖buildTime=1424377651.css */; };
+		8BBB8BBE26D1920400DBBD3C /* fancybox.css in Resources */ = {isa = PBXBuildFile; fileRef = 8BBB8BBD26D1920400DBBD3C /* fancybox.css */; };
+		8BEE624826EAB7BA006609B2 /* main.js in Resources */ = {isa = PBXBuildFile; fileRef = 8BEE624726EAB7BA006609B2 /* main.js */; };
+		8BEE624A26EAB7CE006609B2 /* jquery.min.js in Resources */ = {isa = PBXBuildFile; fileRef = 8BEE624926EAB7CE006609B2 /* jquery.min.js */; };
+		8BEE624C26EABA72006609B2 /* sites.css in Resources */ = {isa = PBXBuildFile; fileRef = 8BEE624B26EABA72006609B2 /* sites.css */; };
+		E039426C2252E0D300F57BD4 /* pong-game.html in Resources */ = {isa = PBXBuildFile; fileRef = E039421F2252E0C800F57BD4 /* pong-game.html */; };
+		E039426D2252E0D300F57BD4 /* sign-on-sheet.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942202252E0C800F57BD4 /* sign-on-sheet.html */; };
+		E039426E2252E0D300F57BD4 /* top-12-games.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942212252E0C800F57BD4 /* top-12-games.html */; };
+		E039426F2252E0D300F57BD4 /* epic.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942222252E0C800F57BD4 /* epic.html */; };
+		E03942702252E0D300F57BD4 /* cancellations.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942232252E0C800F57BD4 /* cancellations.html */; };
+		E03942712252E0D300F57BD4 /* help.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942242252E0C800F57BD4 /* help.html */; };
+		E03942722252E0D300F57BD4 /* other-games.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942252252E0C800F57BD4 /* other-games.html */; };
+		E03942732252E0D300F57BD4 /* purple-rain-drop-game.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942262252E0C900F57BD4 /* purple-rain-drop-game.html */; };
+		E03942742252E0D300F57BD4 /* snow-man-animation.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942272252E0C900F57BD4 /* snow-man-animation.html */; };
+		E03942752252E0D300F57BD4 /* storm-chasers.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942282252E0C900F57BD4 /* storm-chasers.html */; };
+		E03942762252E0D300F57BD4 /* popular.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942292252E0C900F57BD4 /* popular.html */; };
+		E03942772252E0D300F57BD4 /* space-game.html in Resources */ = {isa = PBXBuildFile; fileRef = E039422A2252E0C900F57BD4 /* space-game.html */; };
+		E03942782252E0D300F57BD4 /* game-finder.html in Resources */ = {isa = PBXBuildFile; fileRef = E039422B2252E0C900F57BD4 /* game-finder.html */; };
+		E03942792252E0D300F57BD4 /* safety--security.html in Resources */ = {isa = PBXBuildFile; fileRef = E039422C2252E0C900F57BD4 /* safety--security.html */; };
+		E039427A2252E0D300F57BD4 /* _downloads.html in Resources */ = {isa = PBXBuildFile; fileRef = E039422D2252E0C900F57BD4 /* _downloads.html */; };
+		E039427B2252E0D300F57BD4 /* social.html in Resources */ = {isa = PBXBuildFile; fileRef = E039422E2252E0C900F57BD4 /* social.html */; };
+		E039427C2252E0D300F57BD4 /* top-games-of-all-time.html in Resources */ = {isa = PBXBuildFile; fileRef = E039422F2252E0CA00F57BD4 /* top-games-of-all-time.html */; };
+		E039427D2252E0D300F57BD4 /* top-50-games.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942302252E0CA00F57BD4 /* top-50-games.html */; };
+		E039427E2252E0D300F57BD4 /* tattoo-artist.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942312252E0CA00F57BD4 /* tattoo-artist.html */; };
+		E039427F2252E0D300F57BD4 /* about.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942322252E0CA00F57BD4 /* about.html */; };
+		E03942802252E0D300F57BD4 /* leaf-game.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942332252E0CA00F57BD4 /* leaf-game.html */; };
+		E03942812252E0D300F57BD4 /* 2 in Resources */ = {isa = PBXBuildFile; fileRef = E03942342252E0CA00F57BD4 /* 2 */; };
+		E03942822252E0D300F57BD4 /* shared-games.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942352252E0CB00F57BD4 /* shared-games.html */; };
+		E03942832252E0D300F57BD4 /* heart-game.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942362252E0CB00F57BD4 /* heart-game.html */; };
+		E03942842252E0D300F57BD4 /* love-test.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942372252E0CB00F57BD4 /* love-test.html */; };
+		E03942852252E0D300F57BD4 /* flake-generator.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942382252E0CB00F57BD4 /* flake-generator.html */; };
+		E03942862252E0D300F57BD4 /* search.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942392252E0CB00F57BD4 /* search.html */; };
+		E03942872252E0D300F57BD4 /* blog in Resources */ = {isa = PBXBuildFile; fileRef = E039423A2252E0CB00F57BD4 /* blog */; };
+		E03942882252E0D300F57BD4 /* chat-noir.html in Resources */ = {isa = PBXBuildFile; fileRef = E039423B2252E0CC00F57BD4 /* chat-noir.html */; };
+		E03942892252E0D300F57BD4 /* files in Resources */ = {isa = PBXBuildFile; fileRef = E039423C2252E0CC00F57BD4 /* files */; };
+		E039428A2252E0D300F57BD4 /* top-100-games.html in Resources */ = {isa = PBXBuildFile; fileRef = E039423D2252E0CC00F57BD4 /* top-100-games.html */; };
+		E039428B2252E0D300F57BD4 /* feedback.html in Resources */ = {isa = PBXBuildFile; fileRef = E039423E2252E0CC00F57BD4 /* feedback.html */; };
+		E039428C2252E0D300F57BD4 /* index.html in Resources */ = {isa = PBXBuildFile; fileRef = E039423F2252E0CC00F57BD4 /* index.html */; };
+		E039428D2252E0D300F57BD4 /* incredibots-2.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942402252E0CC00F57BD4 /* incredibots-2.html */; };
+		E039428E2252E0D300F57BD4 /* more-games.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942412252E0CC00F57BD4 /* more-games.html */; };
+		E039428F2252E0D300F57BD4 /* halloween-game.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942422252E0CD00F57BD4 /* halloween-game.html */; };
+		E03942902252E0D300F57BD4 /* a-year-in-review.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942432252E0CD00F57BD4 /* a-year-in-review.html */; };
+		E03942912252E0D300F57BD4 /* egg-catch.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942442252E0CD00F57BD4 /* egg-catch.html */; };
+		E03942922252E0D300F57BD4 /* adult-games.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942452252E0CD00F57BD4 /* adult-games.html */; };
+		E03942932252E0D300F57BD4 /* trap-the-tiger.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942462252E0CD00F57BD4 /* trap-the-tiger.html */; };
+		E03942942252E0D300F57BD4 /* oasis-mobile-inc.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942472252E0CD00F57BD4 /* oasis-mobile-inc.html */; };
+		E03942952252E0D300F57BD4 /* catch-flappy-bird.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942482252E0CE00F57BD4 /* catch-flappy-bird.html */; };
+		E03942962252E0D300F57BD4 /* report.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942492252E0CE00F57BD4 /* report.html */; };
+		E03942972252E0D300F57BD4 /* robots.ssl.txt in Resources */ = {isa = PBXBuildFile; fileRef = E039424A2252E0CE00F57BD4 /* robots.ssl.txt */; };
+		E03942982252E0D300F57BD4 /* timer.html in Resources */ = {isa = PBXBuildFile; fileRef = E039424B2252E0CE00F57BD4 /* timer.html */; };
+		E03942992252E0D300F57BD4 /* winter-wonderland.html in Resources */ = {isa = PBXBuildFile; fileRef = E039424C2252E0CE00F57BD4 /* winter-wonderland.html */; };
+		E039429B2252E0D300F57BD4 /* kids-games.html in Resources */ = {isa = PBXBuildFile; fileRef = E039424E2252E0CE00F57BD4 /* kids-games.html */; };
+		E039429C2252E0D300F57BD4 /* flappy-dot-2.html in Resources */ = {isa = PBXBuildFile; fileRef = E039424F2252E0CF00F57BD4 /* flappy-dot-2.html */; };
+		E039429D2252E0D300F57BD4 /* crazy-mustang.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942502252E0CF00F57BD4 /* crazy-mustang.html */; };
+		E039429E2252E0D300F57BD4 /* top-trending-games-over-the-last-few-years.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942512252E0CF00F57BD4 /* top-trending-games-over-the-last-few-years.html */; };
+		E039429F2252E0D300F57BD4 /* credits.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942522252E0CF00F57BD4 /* credits.html */; };
+		E03942A02252E0D300F57BD4 /* joke-of-the-month.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942532252E0CF00F57BD4 /* joke-of-the-month.html */; };
+		E03942A12252E0D300F57BD4 /* teen-games.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942542252E0CF00F57BD4 /* teen-games.html */; };
+		E03942A22252E0D300F57BD4 /* survey.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942552252E0CF00F57BD4 /* survey.html */; };
+		E03942A32252E0D300F57BD4 /* polls.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942562252E0D000F57BD4 /* polls.html */; };
+		E03942A42252E0D300F57BD4 /* free-rider-2.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942572252E0D000F57BD4 /* free-rider-2.html */; };
+		E03942A52252E0D300F57BD4 /* privacy.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942582252E0D000F57BD4 /* privacy.html */; };
+		E03942A62252E0D300F57BD4 /* qas.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942592252E0D000F57BD4 /* qas.html */; };
+		E03942A72252E0D300F57BD4 /* aswell-design.html in Resources */ = {isa = PBXBuildFile; fileRef = E039425A2252E0D000F57BD4 /* aswell-design.html */; };
+		E03942A82252E0D300F57BD4 /* submit.html in Resources */ = {isa = PBXBuildFile; fileRef = E039425B2252E0D000F57BD4 /* submit.html */; };
+		E03942A92252E0D300F57BD4 /* flappy-dot.html in Resources */ = {isa = PBXBuildFile; fileRef = E039425C2252E0D000F57BD4 /* flappy-dot.html */; };
+		E03942AA2252E0D300F57BD4 /* blog.html in Resources */ = {isa = PBXBuildFile; fileRef = E039425D2252E0D100F57BD4 /* blog.html */; };
+		E03942AB2252E0D300F57BD4 /* another-year-review.html in Resources */ = {isa = PBXBuildFile; fileRef = E039425E2252E0D100F57BD4 /* another-year-review.html */; };
+		E03942AC2252E0D300F57BD4 /* birthday-game.html in Resources */ = {isa = PBXBuildFile; fileRef = E039425F2252E0D100F57BD4 /* birthday-game.html */; };
+		E03942AD2252E0D300F57BD4 /* minion-skittles.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942602252E0D100F57BD4 /* minion-skittles.html */; };
+		E03942AE2252E0D300F57BD4 /* learning-games.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942612252E0D100F57BD4 /* learning-games.html */; };
+		E03942AF2252E0D300F57BD4 /* park-my-big-rig-2.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942622252E0D100F57BD4 /* park-my-big-rig-2.html */; };
+		E03942B02252E0D300F57BD4 /* new--discovered.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942632252E0D200F57BD4 /* new--discovered.html */; };
+		E03942B12252E0D300F57BD4 /* top-25-games.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942642252E0D200F57BD4 /* top-25-games.html */; };
+		E03942B22252E0D300F57BD4 /* top-200-games.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942652252E0D200F57BD4 /* top-200-games.html */; };
+		E03942B32252E0D300F57BD4 /* uploads in Resources */ = {isa = PBXBuildFile; fileRef = E03942662252E0D200F57BD4 /* uploads */; };
+		E03942B42252E0D300F57BD4 /* gdpr in Resources */ = {isa = PBXBuildFile; fileRef = E03942672252E0D200F57BD4 /* gdpr */; };
+		E03942B52252E0D300F57BD4 /* most-wanted.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942682252E0D200F57BD4 /* most-wanted.html */; };
+		E03942B62252E0D300F57BD4 /* interactive-buddy.html in Resources */ = {isa = PBXBuildFile; fileRef = E03942692252E0D300F57BD4 /* interactive-buddy.html */; };
+		E03942B72252E0D300F57BD4 /* rain-drop-game.html in Resources */ = {isa = PBXBuildFile; fileRef = E039426A2252E0D300F57BD4 /* rain-drop-game.html */; };
+		E03942B82252E0D300F57BD4 /* games-for-all-ages.html in Resources */ = {isa = PBXBuildFile; fileRef = E039426B2252E0D300F57BD4 /* games-for-all-ages.html */; };
+		E0781A2D1FE98B1F00E48C77 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0781A2C1FE98B1F00E48C77 /* AppDelegate.swift */; };
+		E0781A2F1FE98B1F00E48C77 /* Home.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0781A2E1FE98B1F00E48C77 /* Home.swift */; };
+		E0781A321FE98B1F00E48C77 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E0781A301FE98B1F00E48C77 /* Main.storyboard */; };
+		E0781A351FE98B1F00E48C77 /* Family Fun Friday Games Night.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = E0781A331FE98B1F00E48C77 /* Family Fun Friday Games Night.xcdatamodeld */; };
+		E0781A371FE98B2000E48C77 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E0781A361FE98B2000E48C77 /* Assets.xcassets */; };
+		E0781A3A1FE98B2000E48C77 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E0781A381FE98B2000E48C77 /* LaunchScreen.storyboard */; };
+		E0781A451FE98B2000E48C77 /* Family Fun Friday Games NightTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0781A441FE98B2000E48C77 /* Family Fun Friday Games NightTests.swift */; };
+		E0781A501FE98B2000E48C77 /* Family Fun Friday Games NightUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0781A4F1FE98B2000E48C77 /* Family Fun Friday Games NightUITests.swift */; };
+		E08B73E5234332F100DD7D22 /* volunteers.html in Resources */ = {isa = PBXBuildFile; fileRef = E08B73E4234332F100DD7D22 /* volunteers.html */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		E0781A411FE98B2000E48C77 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E0781A211FE98B1E00E48C77 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E0781A281FE98B1E00E48C77;
+			remoteInfo = "The Deceased";
+		};
+		E0781A4C1FE98B2000E48C77 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E0781A211FE98B1E00E48C77 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E0781A281FE98B1E00E48C77;
+			remoteInfo = "The Deceased";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		8B02F43C26D190E10096B35B /* sites﹖buildTime=1424377651.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = "sites﹖buildTime=1424377651.css"; sourceTree = "<group>"; };
+		8B28F0F426D1C5E1008D6162 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.3.sdk/System/iOSSupport/System/Library/Frameworks/WebKit.framework; sourceTree = DEVELOPER_DIR; };
+		8BBB8BBD26D1920400DBBD3C /* fancybox.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = fancybox.css; sourceTree = "<group>"; };
+		8BEE624726EAB7BA006609B2 /* main.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = main.js; sourceTree = "<group>"; };
+		8BEE624926EAB7CE006609B2 /* jquery.min.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = jquery.min.js; sourceTree = "<group>"; };
+		8BEE624B26EABA72006609B2 /* sites.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = sites.css; sourceTree = "<group>"; };
+		E039421F2252E0C800F57BD4 /* pong-game.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "pong-game.html"; sourceTree = "<group>"; };
+		E03942202252E0C800F57BD4 /* sign-on-sheet.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "sign-on-sheet.html"; sourceTree = "<group>"; };
+		E03942212252E0C800F57BD4 /* top-12-games.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "top-12-games.html"; sourceTree = "<group>"; };
+		E03942222252E0C800F57BD4 /* epic.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = epic.html; sourceTree = "<group>"; };
+		E03942232252E0C800F57BD4 /* cancellations.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = cancellations.html; sourceTree = "<group>"; };
+		E03942242252E0C800F57BD4 /* help.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = help.html; sourceTree = "<group>"; };
+		E03942252252E0C800F57BD4 /* other-games.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "other-games.html"; sourceTree = "<group>"; };
+		E03942262252E0C900F57BD4 /* purple-rain-drop-game.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "purple-rain-drop-game.html"; sourceTree = "<group>"; };
+		E03942272252E0C900F57BD4 /* snow-man-animation.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "snow-man-animation.html"; sourceTree = "<group>"; };
+		E03942282252E0C900F57BD4 /* storm-chasers.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "storm-chasers.html"; sourceTree = "<group>"; };
+		E03942292252E0C900F57BD4 /* popular.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = popular.html; sourceTree = "<group>"; };
+		E039422A2252E0C900F57BD4 /* space-game.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "space-game.html"; sourceTree = "<group>"; };
+		E039422B2252E0C900F57BD4 /* game-finder.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "game-finder.html"; sourceTree = "<group>"; };
+		E039422C2252E0C900F57BD4 /* safety--security.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "safety--security.html"; sourceTree = "<group>"; };
+		E039422D2252E0C900F57BD4 /* _downloads.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = _downloads.html; sourceTree = "<group>"; };
+		E039422E2252E0C900F57BD4 /* social.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = social.html; sourceTree = "<group>"; };
+		E039422F2252E0CA00F57BD4 /* top-games-of-all-time.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "top-games-of-all-time.html"; sourceTree = "<group>"; };
+		E03942302252E0CA00F57BD4 /* top-50-games.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "top-50-games.html"; sourceTree = "<group>"; };
+		E03942312252E0CA00F57BD4 /* tattoo-artist.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "tattoo-artist.html"; sourceTree = "<group>"; };
+		E03942322252E0CA00F57BD4 /* about.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = about.html; sourceTree = "<group>"; };
+		E03942332252E0CA00F57BD4 /* leaf-game.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "leaf-game.html"; sourceTree = "<group>"; };
+		E03942342252E0CA00F57BD4 /* 2 */ = {isa = PBXFileReference; lastKnownFileType = folder; path = 2; sourceTree = "<group>"; };
+		E03942352252E0CB00F57BD4 /* shared-games.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "shared-games.html"; sourceTree = "<group>"; };
+		E03942362252E0CB00F57BD4 /* heart-game.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "heart-game.html"; sourceTree = "<group>"; };
+		E03942372252E0CB00F57BD4 /* love-test.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "love-test.html"; sourceTree = "<group>"; };
+		E03942382252E0CB00F57BD4 /* flake-generator.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "flake-generator.html"; sourceTree = "<group>"; };
+		E03942392252E0CB00F57BD4 /* search.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = search.html; sourceTree = "<group>"; };
+		E039423A2252E0CB00F57BD4 /* blog */ = {isa = PBXFileReference; lastKnownFileType = folder; path = blog; sourceTree = "<group>"; };
+		E039423B2252E0CC00F57BD4 /* chat-noir.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "chat-noir.html"; sourceTree = "<group>"; };
+		E039423C2252E0CC00F57BD4 /* files */ = {isa = PBXFileReference; lastKnownFileType = folder; path = files; sourceTree = "<group>"; };
+		E039423D2252E0CC00F57BD4 /* top-100-games.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "top-100-games.html"; sourceTree = "<group>"; };
+		E039423E2252E0CC00F57BD4 /* feedback.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = feedback.html; sourceTree = "<group>"; };
+		E039423F2252E0CC00F57BD4 /* index.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = index.html; sourceTree = "<group>"; };
+		E03942402252E0CC00F57BD4 /* incredibots-2.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "incredibots-2.html"; sourceTree = "<group>"; };
+		E03942412252E0CC00F57BD4 /* more-games.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "more-games.html"; sourceTree = "<group>"; };
+		E03942422252E0CD00F57BD4 /* halloween-game.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "halloween-game.html"; sourceTree = "<group>"; };
+		E03942432252E0CD00F57BD4 /* a-year-in-review.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "a-year-in-review.html"; sourceTree = "<group>"; };
+		E03942442252E0CD00F57BD4 /* egg-catch.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "egg-catch.html"; sourceTree = "<group>"; };
+		E03942452252E0CD00F57BD4 /* adult-games.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "adult-games.html"; sourceTree = "<group>"; };
+		E03942462252E0CD00F57BD4 /* trap-the-tiger.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "trap-the-tiger.html"; sourceTree = "<group>"; };
+		E03942472252E0CD00F57BD4 /* oasis-mobile-inc.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "oasis-mobile-inc.html"; sourceTree = "<group>"; };
+		E03942482252E0CE00F57BD4 /* catch-flappy-bird.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "catch-flappy-bird.html"; sourceTree = "<group>"; };
+		E03942492252E0CE00F57BD4 /* report.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = report.html; sourceTree = "<group>"; };
+		E039424A2252E0CE00F57BD4 /* robots.ssl.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = robots.ssl.txt; sourceTree = "<group>"; };
+		E039424B2252E0CE00F57BD4 /* timer.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = timer.html; sourceTree = "<group>"; };
+		E039424C2252E0CE00F57BD4 /* winter-wonderland.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "winter-wonderland.html"; sourceTree = "<group>"; };
+		E039424E2252E0CE00F57BD4 /* kids-games.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "kids-games.html"; sourceTree = "<group>"; };
+		E039424F2252E0CF00F57BD4 /* flappy-dot-2.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "flappy-dot-2.html"; sourceTree = "<group>"; };
+		E03942502252E0CF00F57BD4 /* crazy-mustang.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "crazy-mustang.html"; sourceTree = "<group>"; };
+		E03942512252E0CF00F57BD4 /* top-trending-games-over-the-last-few-years.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "top-trending-games-over-the-last-few-years.html"; sourceTree = "<group>"; };
+		E03942522252E0CF00F57BD4 /* credits.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = credits.html; sourceTree = "<group>"; };
+		E03942532252E0CF00F57BD4 /* joke-of-the-month.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "joke-of-the-month.html"; sourceTree = "<group>"; };
+		E03942542252E0CF00F57BD4 /* teen-games.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "teen-games.html"; sourceTree = "<group>"; };
+		E03942552252E0CF00F57BD4 /* survey.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = survey.html; sourceTree = "<group>"; };
+		E03942562252E0D000F57BD4 /* polls.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = polls.html; sourceTree = "<group>"; };
+		E03942572252E0D000F57BD4 /* free-rider-2.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "free-rider-2.html"; sourceTree = "<group>"; };
+		E03942582252E0D000F57BD4 /* privacy.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = privacy.html; sourceTree = "<group>"; };
+		E03942592252E0D000F57BD4 /* qas.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = qas.html; sourceTree = "<group>"; };
+		E039425A2252E0D000F57BD4 /* aswell-design.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "aswell-design.html"; sourceTree = "<group>"; };
+		E039425B2252E0D000F57BD4 /* submit.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = submit.html; sourceTree = "<group>"; };
+		E039425C2252E0D000F57BD4 /* flappy-dot.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "flappy-dot.html"; sourceTree = "<group>"; };
+		E039425D2252E0D100F57BD4 /* blog.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = blog.html; sourceTree = "<group>"; };
+		E039425E2252E0D100F57BD4 /* another-year-review.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "another-year-review.html"; sourceTree = "<group>"; };
+		E039425F2252E0D100F57BD4 /* birthday-game.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "birthday-game.html"; sourceTree = "<group>"; };
+		E03942602252E0D100F57BD4 /* minion-skittles.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "minion-skittles.html"; sourceTree = "<group>"; };
+		E03942612252E0D100F57BD4 /* learning-games.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "learning-games.html"; sourceTree = "<group>"; };
+		E03942622252E0D100F57BD4 /* park-my-big-rig-2.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "park-my-big-rig-2.html"; sourceTree = "<group>"; };
+		E03942632252E0D200F57BD4 /* new--discovered.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "new--discovered.html"; sourceTree = "<group>"; };
+		E03942642252E0D200F57BD4 /* top-25-games.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "top-25-games.html"; sourceTree = "<group>"; };
+		E03942652252E0D200F57BD4 /* top-200-games.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "top-200-games.html"; sourceTree = "<group>"; };
+		E03942662252E0D200F57BD4 /* uploads */ = {isa = PBXFileReference; lastKnownFileType = folder; path = uploads; sourceTree = "<group>"; };
+		E03942672252E0D200F57BD4 /* gdpr */ = {isa = PBXFileReference; lastKnownFileType = folder; path = gdpr; sourceTree = "<group>"; };
+		E03942682252E0D200F57BD4 /* most-wanted.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "most-wanted.html"; sourceTree = "<group>"; };
+		E03942692252E0D300F57BD4 /* interactive-buddy.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "interactive-buddy.html"; sourceTree = "<group>"; };
+		E039426A2252E0D300F57BD4 /* rain-drop-game.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "rain-drop-game.html"; sourceTree = "<group>"; };
+		E039426B2252E0D300F57BD4 /* games-for-all-ages.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = "games-for-all-ages.html"; sourceTree = "<group>"; };
+		E051936024A429D800118770 /* Family Fun Friday Games Night.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Family Fun Friday Games Night.entitlements"; sourceTree = "<group>"; };
+		E0781A291FE98B1E00E48C77 /* Family Fun Friday Games Night.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Family Fun Friday Games Night.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E0781A2C1FE98B1F00E48C77 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		E0781A2E1FE98B1F00E48C77 /* Home.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Home.swift; sourceTree = "<group>"; };
+		E0781A311FE98B1F00E48C77 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		E0781A341FE98B1F00E48C77 /* Family Fun Friday Games Night.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Family Fun Friday Games Night.xcdatamodel"; sourceTree = "<group>"; };
+		E0781A361FE98B2000E48C77 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		E0781A391FE98B2000E48C77 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		E0781A3B1FE98B2000E48C77 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E0781A401FE98B2000E48C77 /* Family Fun Friday Games NightTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Family Fun Friday Games NightTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E0781A441FE98B2000E48C77 /* Family Fun Friday Games NightTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Family Fun Friday Games NightTests.swift"; sourceTree = "<group>"; };
+		E0781A461FE98B2000E48C77 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E0781A4B1FE98B2000E48C77 /* Family Fun Friday Games NightUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Family Fun Friday Games NightUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E0781A4F1FE98B2000E48C77 /* Family Fun Friday Games NightUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Family Fun Friday Games NightUITests.swift"; sourceTree = "<group>"; };
+		E0781A511FE98B2100E48C77 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E08B73E4234332F100DD7D22 /* volunteers.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = volunteers.html; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		E0781A261FE98B1E00E48C77 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E0781A3D1FE98B2000E48C77 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E0781A481FE98B2000E48C77 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		8B28F0F326D1C5E1008D6162 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				8B28F0F426D1C5E1008D6162 /* WebKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		E0781A201FE98B1E00E48C77 = {
+			isa = PBXGroup;
+			children = (
+				E0781A2B1FE98B1E00E48C77 /* Family Fun Friday Games Night */,
+				E0781A431FE98B2000E48C77 /* Family Fun Friday Games NightTests */,
+				E0781A4E1FE98B2000E48C77 /* Family Fun Friday Games NightUITests */,
+				E0781A2A1FE98B1E00E48C77 /* Products */,
+				8B28F0F326D1C5E1008D6162 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		E0781A2A1FE98B1E00E48C77 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E0781A291FE98B1E00E48C77 /* Family Fun Friday Games Night.app */,
+				E0781A401FE98B2000E48C77 /* Family Fun Friday Games NightTests.xctest */,
+				E0781A4B1FE98B2000E48C77 /* Family Fun Friday Games NightUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E0781A2B1FE98B1E00E48C77 /* Family Fun Friday Games Night */ = {
+			isa = PBXGroup;
+			children = (
+				E051936024A429D800118770 /* Family Fun Friday Games Night.entitlements */,
+				E0781A2C1FE98B1F00E48C77 /* AppDelegate.swift */,
+				E0781A2E1FE98B1F00E48C77 /* Home.swift */,
+				8BEE624B26EABA72006609B2 /* sites.css */,
+				8BEE624726EAB7BA006609B2 /* main.js */,
+				8BEE624926EAB7CE006609B2 /* jquery.min.js */,
+				E0781A301FE98B1F00E48C77 /* Main.storyboard */,
+				E0781A361FE98B2000E48C77 /* Assets.xcassets */,
+				E0781A381FE98B2000E48C77 /* LaunchScreen.storyboard */,
+				E0781A3B1FE98B2000E48C77 /* Info.plist */,
+				E0781A331FE98B1F00E48C77 /* Family Fun Friday Games Night.xcdatamodeld */,
+				E039422D2252E0C900F57BD4 /* _downloads.html */,
+				8BBB8BBD26D1920400DBBD3C /* fancybox.css */,
+				E03942342252E0CA00F57BD4 /* 2 */,
+				E03942432252E0CD00F57BD4 /* a-year-in-review.html */,
+				E03942322252E0CA00F57BD4 /* about.html */,
+				E03942452252E0CD00F57BD4 /* adult-games.html */,
+				E039425E2252E0D100F57BD4 /* another-year-review.html */,
+				E039425A2252E0D000F57BD4 /* aswell-design.html */,
+				E039425F2252E0D100F57BD4 /* birthday-game.html */,
+				E039423A2252E0CB00F57BD4 /* blog */,
+				E039425D2252E0D100F57BD4 /* blog.html */,
+				E03942232252E0C800F57BD4 /* cancellations.html */,
+				E03942482252E0CE00F57BD4 /* catch-flappy-bird.html */,
+				E039423B2252E0CC00F57BD4 /* chat-noir.html */,
+				E03942502252E0CF00F57BD4 /* crazy-mustang.html */,
+				E03942522252E0CF00F57BD4 /* credits.html */,
+				E03942442252E0CD00F57BD4 /* egg-catch.html */,
+				E03942222252E0C800F57BD4 /* epic.html */,
+				E039423E2252E0CC00F57BD4 /* feedback.html */,
+				E039423C2252E0CC00F57BD4 /* files */,
+				E03942382252E0CB00F57BD4 /* flake-generator.html */,
+				E039424F2252E0CF00F57BD4 /* flappy-dot-2.html */,
+				E039425C2252E0D000F57BD4 /* flappy-dot.html */,
+				E03942572252E0D000F57BD4 /* free-rider-2.html */,
+				E039422B2252E0C900F57BD4 /* game-finder.html */,
+				E039426B2252E0D300F57BD4 /* games-for-all-ages.html */,
+				E03942672252E0D200F57BD4 /* gdpr */,
+				E03942422252E0CD00F57BD4 /* halloween-game.html */,
+				E03942362252E0CB00F57BD4 /* heart-game.html */,
+				E03942242252E0C800F57BD4 /* help.html */,
+				E03942402252E0CC00F57BD4 /* incredibots-2.html */,
+				8B02F43C26D190E10096B35B /* sites﹖buildTime=1424377651.css */,
+				E039423F2252E0CC00F57BD4 /* index.html */,
+				E03942692252E0D300F57BD4 /* interactive-buddy.html */,
+				E03942532252E0CF00F57BD4 /* joke-of-the-month.html */,
+				E039424E2252E0CE00F57BD4 /* kids-games.html */,
+				E03942332252E0CA00F57BD4 /* leaf-game.html */,
+				E03942612252E0D100F57BD4 /* learning-games.html */,
+				E03942372252E0CB00F57BD4 /* love-test.html */,
+				E03942602252E0D100F57BD4 /* minion-skittles.html */,
+				E03942412252E0CC00F57BD4 /* more-games.html */,
+				E03942682252E0D200F57BD4 /* most-wanted.html */,
+				E03942632252E0D200F57BD4 /* new--discovered.html */,
+				E03942472252E0CD00F57BD4 /* oasis-mobile-inc.html */,
+				E03942252252E0C800F57BD4 /* other-games.html */,
+				E03942622252E0D100F57BD4 /* park-my-big-rig-2.html */,
+				E03942562252E0D000F57BD4 /* polls.html */,
+				E039421F2252E0C800F57BD4 /* pong-game.html */,
+				E03942292252E0C900F57BD4 /* popular.html */,
+				E03942582252E0D000F57BD4 /* privacy.html */,
+				E03942262252E0C900F57BD4 /* purple-rain-drop-game.html */,
+				E03942592252E0D000F57BD4 /* qas.html */,
+				E039426A2252E0D300F57BD4 /* rain-drop-game.html */,
+				E03942492252E0CE00F57BD4 /* report.html */,
+				E039424A2252E0CE00F57BD4 /* robots.ssl.txt */,
+				E039422C2252E0C900F57BD4 /* safety--security.html */,
+				E03942392252E0CB00F57BD4 /* search.html */,
+				E03942352252E0CB00F57BD4 /* shared-games.html */,
+				E03942202252E0C800F57BD4 /* sign-on-sheet.html */,
+				E03942272252E0C900F57BD4 /* snow-man-animation.html */,
+				E039422E2252E0C900F57BD4 /* social.html */,
+				E039422A2252E0C900F57BD4 /* space-game.html */,
+				E03942282252E0C900F57BD4 /* storm-chasers.html */,
+				E039425B2252E0D000F57BD4 /* submit.html */,
+				E03942552252E0CF00F57BD4 /* survey.html */,
+				E03942312252E0CA00F57BD4 /* tattoo-artist.html */,
+				E03942542252E0CF00F57BD4 /* teen-games.html */,
+				E039424B2252E0CE00F57BD4 /* timer.html */,
+				E03942212252E0C800F57BD4 /* top-12-games.html */,
+				E03942642252E0D200F57BD4 /* top-25-games.html */,
+				E03942302252E0CA00F57BD4 /* top-50-games.html */,
+				E039423D2252E0CC00F57BD4 /* top-100-games.html */,
+				E03942652252E0D200F57BD4 /* top-200-games.html */,
+				E039422F2252E0CA00F57BD4 /* top-games-of-all-time.html */,
+				E03942512252E0CF00F57BD4 /* top-trending-games-over-the-last-few-years.html */,
+				E03942462252E0CD00F57BD4 /* trap-the-tiger.html */,
+				E03942662252E0D200F57BD4 /* uploads */,
+				E08B73E4234332F100DD7D22 /* volunteers.html */,
+				E039424C2252E0CE00F57BD4 /* winter-wonderland.html */,
+			);
+			path = "Family Fun Friday Games Night";
+			sourceTree = "<group>";
+		};
+		E0781A431FE98B2000E48C77 /* Family Fun Friday Games NightTests */ = {
+			isa = PBXGroup;
+			children = (
+				E0781A441FE98B2000E48C77 /* Family Fun Friday Games NightTests.swift */,
+				E0781A461FE98B2000E48C77 /* Info.plist */,
+			);
+			path = "Family Fun Friday Games NightTests";
+			sourceTree = "<group>";
+		};
+		E0781A4E1FE98B2000E48C77 /* Family Fun Friday Games NightUITests */ = {
+			isa = PBXGroup;
+			children = (
+				E0781A4F1FE98B2000E48C77 /* Family Fun Friday Games NightUITests.swift */,
+				E0781A511FE98B2100E48C77 /* Info.plist */,
+			);
+			path = "Family Fun Friday Games NightUITests";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		E0781A281FE98B1E00E48C77 /* Family Fun Friday Games Night */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E0781A541FE98B2100E48C77 /* Build configuration list for PBXNativeTarget "Family Fun Friday Games Night" */;
+			buildPhases = (
+				E0781A251FE98B1E00E48C77 /* Sources */,
+				E0781A261FE98B1E00E48C77 /* Frameworks */,
+				E0781A271FE98B1E00E48C77 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Family Fun Friday Games Night";
+			productName = "The Deceased";
+			productReference = E0781A291FE98B1E00E48C77 /* Family Fun Friday Games Night.app */;
+			productType = "com.apple.product-type.application";
+		};
+		E0781A3F1FE98B2000E48C77 /* Family Fun Friday Games NightTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E0781A571FE98B2100E48C77 /* Build configuration list for PBXNativeTarget "Family Fun Friday Games NightTests" */;
+			buildPhases = (
+				E0781A3C1FE98B2000E48C77 /* Sources */,
+				E0781A3D1FE98B2000E48C77 /* Frameworks */,
+				E0781A3E1FE98B2000E48C77 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E0781A421FE98B2000E48C77 /* PBXTargetDependency */,
+			);
+			name = "Family Fun Friday Games NightTests";
+			productName = "The DeceasedTests";
+			productReference = E0781A401FE98B2000E48C77 /* Family Fun Friday Games NightTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		E0781A4A1FE98B2000E48C77 /* Family Fun Friday Games NightUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E0781A5A1FE98B2100E48C77 /* Build configuration list for PBXNativeTarget "Family Fun Friday Games NightUITests" */;
+			buildPhases = (
+				E0781A471FE98B2000E48C77 /* Sources */,
+				E0781A481FE98B2000E48C77 /* Frameworks */,
+				E0781A491FE98B2000E48C77 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E0781A4D1FE98B2000E48C77 /* PBXTargetDependency */,
+			);
+			name = "Family Fun Friday Games NightUITests";
+			productName = "The DeceasedUITests";
+			productReference = E0781A4B1FE98B2000E48C77 /* Family Fun Friday Games NightUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E0781A211FE98B1E00E48C77 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 0910;
+				LastUpgradeCheck = 1200;
+				ORGANIZATIONNAME = "Elliot Williams";
+				TargetAttributes = {
+					E0781A281FE98B1E00E48C77 = {
+						CreatedOnToolsVersion = 9.1;
+						LastSwiftMigration = 1020;
+						ProvisioningStyle = Automatic;
+					};
+					E0781A3F1FE98B2000E48C77 = {
+						CreatedOnToolsVersion = 9.1;
+						LastSwiftMigration = 1020;
+						ProvisioningStyle = Automatic;
+						TestTargetID = E0781A281FE98B1E00E48C77;
+					};
+					E0781A4A1FE98B2000E48C77 = {
+						CreatedOnToolsVersion = 9.1;
+						LastSwiftMigration = 1020;
+						ProvisioningStyle = Automatic;
+						TestTargetID = E0781A281FE98B1E00E48C77;
+					};
+				};
+			};
+			buildConfigurationList = E0781A241FE98B1E00E48C77 /* Build configuration list for PBXProject "Family Fun Friday Games Night" */;
+			compatibilityVersion = "Xcode 10.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = E0781A201FE98B1E00E48C77;
+			productRefGroup = E0781A2A1FE98B1E00E48C77 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E0781A281FE98B1E00E48C77 /* Family Fun Friday Games Night */,
+				E0781A3F1FE98B2000E48C77 /* Family Fun Friday Games NightTests */,
+				E0781A4A1FE98B2000E48C77 /* Family Fun Friday Games NightUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		E0781A271FE98B1E00E48C77 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E03942892252E0D300F57BD4 /* files in Resources */,
+				E03942862252E0D300F57BD4 /* search.html in Resources */,
+				E03942A82252E0D300F57BD4 /* submit.html in Resources */,
+				E03942902252E0D300F57BD4 /* a-year-in-review.html in Resources */,
+				E03942A12252E0D300F57BD4 /* teen-games.html in Resources */,
+				E039426F2252E0D300F57BD4 /* epic.html in Resources */,
+				E03942792252E0D300F57BD4 /* safety--security.html in Resources */,
+				E039429F2252E0D300F57BD4 /* credits.html in Resources */,
+				E03942752252E0D300F57BD4 /* storm-chasers.html in Resources */,
+				E08B73E5234332F100DD7D22 /* volunteers.html in Resources */,
+				E03942B32252E0D300F57BD4 /* uploads in Resources */,
+				E03942782252E0D300F57BD4 /* game-finder.html in Resources */,
+				E03942712252E0D300F57BD4 /* help.html in Resources */,
+				E03942772252E0D300F57BD4 /* space-game.html in Resources */,
+				E03942AF2252E0D300F57BD4 /* park-my-big-rig-2.html in Resources */,
+				E03942B82252E0D300F57BD4 /* games-for-all-ages.html in Resources */,
+				E039428A2252E0D300F57BD4 /* top-100-games.html in Resources */,
+				E039427F2252E0D300F57BD4 /* about.html in Resources */,
+				E039427A2252E0D300F57BD4 /* _downloads.html in Resources */,
+				E03942802252E0D300F57BD4 /* leaf-game.html in Resources */,
+				E039426D2252E0D300F57BD4 /* sign-on-sheet.html in Resources */,
+				E03942982252E0D300F57BD4 /* timer.html in Resources */,
+				E039428F2252E0D300F57BD4 /* halloween-game.html in Resources */,
+				8B02F43D26D190E10096B35B /* sites﹖buildTime=1424377651.css in Resources */,
+				E03942A62252E0D300F57BD4 /* qas.html in Resources */,
+				E03942762252E0D300F57BD4 /* popular.html in Resources */,
+				E03942952252E0D300F57BD4 /* catch-flappy-bird.html in Resources */,
+				E03942732252E0D300F57BD4 /* purple-rain-drop-game.html in Resources */,
+				E03942AD2252E0D300F57BD4 /* minion-skittles.html in Resources */,
+				E039427B2252E0D300F57BD4 /* social.html in Resources */,
+				E039426C2252E0D300F57BD4 /* pong-game.html in Resources */,
+				E03942942252E0D300F57BD4 /* oasis-mobile-inc.html in Resources */,
+				E0781A3A1FE98B2000E48C77 /* LaunchScreen.storyboard in Resources */,
+				E03942B52252E0D300F57BD4 /* most-wanted.html in Resources */,
+				E039429B2252E0D300F57BD4 /* kids-games.html in Resources */,
+				E03942992252E0D300F57BD4 /* winter-wonderland.html in Resources */,
+				E03942B12252E0D300F57BD4 /* top-25-games.html in Resources */,
+				E03942B22252E0D300F57BD4 /* top-200-games.html in Resources */,
+				E03942A42252E0D300F57BD4 /* free-rider-2.html in Resources */,
+				E039426E2252E0D300F57BD4 /* top-12-games.html in Resources */,
+				E03942852252E0D300F57BD4 /* flake-generator.html in Resources */,
+				8BBB8BBE26D1920400DBBD3C /* fancybox.css in Resources */,
+				E03942962252E0D300F57BD4 /* report.html in Resources */,
+				E03942A72252E0D300F57BD4 /* aswell-design.html in Resources */,
+				E03942AE2252E0D300F57BD4 /* learning-games.html in Resources */,
+				E03942872252E0D300F57BD4 /* blog in Resources */,
+				E03942922252E0D300F57BD4 /* adult-games.html in Resources */,
+				E039428C2252E0D300F57BD4 /* index.html in Resources */,
+				E039427C2252E0D300F57BD4 /* top-games-of-all-time.html in Resources */,
+				E03942B42252E0D300F57BD4 /* gdpr in Resources */,
+				E03942702252E0D300F57BD4 /* cancellations.html in Resources */,
+				E03942912252E0D300F57BD4 /* egg-catch.html in Resources */,
+				E039429E2252E0D300F57BD4 /* top-trending-games-over-the-last-few-years.html in Resources */,
+				E03942A02252E0D300F57BD4 /* joke-of-the-month.html in Resources */,
+				E039429D2252E0D300F57BD4 /* crazy-mustang.html in Resources */,
+				E03942A22252E0D300F57BD4 /* survey.html in Resources */,
+				E039429C2252E0D300F57BD4 /* flappy-dot-2.html in Resources */,
+				E039427E2252E0D300F57BD4 /* tattoo-artist.html in Resources */,
+				8BEE624A26EAB7CE006609B2 /* jquery.min.js in Resources */,
+				E03942AC2252E0D300F57BD4 /* birthday-game.html in Resources */,
+				E03942882252E0D300F57BD4 /* chat-noir.html in Resources */,
+				E03942A52252E0D300F57BD4 /* privacy.html in Resources */,
+				E03942932252E0D300F57BD4 /* trap-the-tiger.html in Resources */,
+				E03942722252E0D300F57BD4 /* other-games.html in Resources */,
+				8BEE624826EAB7BA006609B2 /* main.js in Resources */,
+				E03942842252E0D300F57BD4 /* love-test.html in Resources */,
+				E0781A371FE98B2000E48C77 /* Assets.xcassets in Resources */,
+				E03942B72252E0D300F57BD4 /* rain-drop-game.html in Resources */,
+				E039428D2252E0D300F57BD4 /* incredibots-2.html in Resources */,
+				E03942812252E0D300F57BD4 /* 2 in Resources */,
+				E039428B2252E0D300F57BD4 /* feedback.html in Resources */,
+				E03942AA2252E0D300F57BD4 /* blog.html in Resources */,
+				E03942B62252E0D300F57BD4 /* interactive-buddy.html in Resources */,
+				E039427D2252E0D300F57BD4 /* top-50-games.html in Resources */,
+				8BEE624C26EABA72006609B2 /* sites.css in Resources */,
+				E03942832252E0D300F57BD4 /* heart-game.html in Resources */,
+				E03942AB2252E0D300F57BD4 /* another-year-review.html in Resources */,
+				E0781A321FE98B1F00E48C77 /* Main.storyboard in Resources */,
+				E03942742252E0D300F57BD4 /* snow-man-animation.html in Resources */,
+				E03942A92252E0D300F57BD4 /* flappy-dot.html in Resources */,
+				E03942B02252E0D300F57BD4 /* new--discovered.html in Resources */,
+				E03942972252E0D300F57BD4 /* robots.ssl.txt in Resources */,
+				E03942822252E0D300F57BD4 /* shared-games.html in Resources */,
+				E03942A32252E0D300F57BD4 /* polls.html in Resources */,
+				E039428E2252E0D300F57BD4 /* more-games.html in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E0781A3E1FE98B2000E48C77 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E0781A491FE98B2000E48C77 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		E0781A251FE98B1E00E48C77 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E0781A2F1FE98B1F00E48C77 /* Home.swift in Sources */,
+				E0781A2D1FE98B1F00E48C77 /* AppDelegate.swift in Sources */,
+				E0781A351FE98B1F00E48C77 /* Family Fun Friday Games Night.xcdatamodeld in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E0781A3C1FE98B2000E48C77 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E0781A451FE98B2000E48C77 /* Family Fun Friday Games NightTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E0781A471FE98B2000E48C77 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E0781A501FE98B2000E48C77 /* Family Fun Friday Games NightUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		E0781A421FE98B2000E48C77 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E0781A281FE98B1E00E48C77 /* Family Fun Friday Games Night */;
+			targetProxy = E0781A411FE98B2000E48C77 /* PBXContainerItemProxy */;
+		};
+		E0781A4D1FE98B2000E48C77 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E0781A281FE98B1E00E48C77 /* Family Fun Friday Games Night */;
+			targetProxy = E0781A4C1FE98B2000E48C77 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		E0781A301FE98B1F00E48C77 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				E0781A311FE98B1F00E48C77 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		E0781A381FE98B2000E48C77 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				E0781A391FE98B2000E48C77 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		E0781A521FE98B2100E48C77 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_OPTIMIZATION = space;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = z;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-Osize";
+			};
+			name = Debug;
+		};
+		E0781A531FE98B2100E48C77 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_OPTIMIZATION = space;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = z;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-Osize";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		E0781A551FE98B2100E48C77 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_ENTITLEMENTS = "Family Fun Friday Games Night/Family Fun Friday Games Night.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
+				CURRENT_PROJECT_VERSION = 9;
+				DEVELOPMENT_TEAM = TWHE8V8GUK;
+				INFOPLIST_FILE = "Family Fun Friday Games Night/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.elliotwilliams.Family-Fun-Friday-Games-Night";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTS_MACCATALYST = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-Osize";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		E0781A561FE98B2100E48C77 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_ENTITLEMENTS = "Family Fun Friday Games Night/Family Fun Friday Games Night.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
+				CURRENT_PROJECT_VERSION = 9;
+				DEVELOPMENT_TEAM = TWHE8V8GUK;
+				INFOPLIST_FILE = "Family Fun Friday Games Night/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.elliotwilliams.Family-Fun-Friday-Games-Night";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTS_MACCATALYST = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Osize";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		E0781A581FE98B2100E48C77 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = TWHE8V8GUK;
+				INFOPLIST_FILE = "Family Fun Friday Games NightTests/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.elliotwilliams.Family-Fun-Friday-Games-NightTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Family Fun Friday Games Night.app/Family Fun Friday Games Night";
+			};
+			name = Debug;
+		};
+		E0781A591FE98B2100E48C77 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = TWHE8V8GUK;
+				INFOPLIST_FILE = "Family Fun Friday Games NightTests/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.elliotwilliams.Family-Fun-Friday-Games-NightTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Family Fun Friday Games Night.app/Family Fun Friday Games Night";
+			};
+			name = Release;
+		};
+		E0781A5B1FE98B2100E48C77 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = TWHE8V8GUK;
+				INFOPLIST_FILE = "Family Fun Friday Games NightUITests/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.elliotwilliams.Family-Fun-Friday-Games-NightUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "The Deceased";
+			};
+			name = Debug;
+		};
+		E0781A5C1FE98B2100E48C77 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = TWHE8V8GUK;
+				INFOPLIST_FILE = "Family Fun Friday Games NightUITests/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.elliotwilliams.Family-Fun-Friday-Games-NightUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "The Deceased";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		E0781A241FE98B1E00E48C77 /* Build configuration list for PBXProject "Family Fun Friday Games Night" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E0781A521FE98B2100E48C77 /* Debug */,
+				E0781A531FE98B2100E48C77 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E0781A541FE98B2100E48C77 /* Build configuration list for PBXNativeTarget "Family Fun Friday Games Night" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E0781A551FE98B2100E48C77 /* Debug */,
+				E0781A561FE98B2100E48C77 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E0781A571FE98B2100E48C77 /* Build configuration list for PBXNativeTarget "Family Fun Friday Games NightTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E0781A581FE98B2100E48C77 /* Debug */,
+				E0781A591FE98B2100E48C77 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E0781A5A1FE98B2100E48C77 /* Build configuration list for PBXNativeTarget "Family Fun Friday Games NightUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E0781A5B1FE98B2100E48C77 /* Debug */,
+				E0781A5C1FE98B2100E48C77 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		E0781A331FE98B1F00E48C77 /* Family Fun Friday Games Night.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				E0781A341FE98B1F00E48C77 /* Family Fun Friday Games Night.xcdatamodel */,
+			);
+			currentVersion = E0781A341FE98B1F00E48C77 /* Family Fun Friday Games Night.xcdatamodel */;
+			path = "Family Fun Friday Games Night.xcdatamodeld";
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
+	};
+	rootObject = E0781A211FE98B1E00E48C77 /* Project object */;
+}

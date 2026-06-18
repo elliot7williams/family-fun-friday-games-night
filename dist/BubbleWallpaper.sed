@@ -1,0 +1,45 @@
+[Version]
+Class=IEXPRESS
+SEDVersion=3
+[Options]
+PackagePurpose=InstallApp
+ShowInstallProgramWindow=0
+HideExtractAnimation=1
+UseLongFileName=1
+InsideCompressed=0
+CAB_FixedSize=0
+CAB_ResvCodeSigning=0
+RebootMode=N
+InstallPrompt=%InstallPrompt%
+DisplayLicense=%DisplayLicense%
+FinishMessage=%FinishMessage%
+TargetName=%TargetName%
+FriendlyName=%FriendlyName%
+AppLaunched=%AppLaunched%
+PostInstallCmd=<None>
+AdminQuietInstCmd=
+UserQuietInstCmd=
+SourceFiles=SourceFiles
+[SourceFiles]
+SourceFiles0=%SourcePath%
+[SourceFiles0]
+%FILE0%=
+%FILE1%=
+%FILE2%=
+%FILE3%=
+%FILE4%=
+%FILE5%=
+[Strings]
+InstallPrompt=
+DisplayLicense=
+FinishMessage=
+TargetName=C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\dist\Bubble Wallpaper.exe
+FriendlyName=Bubble Wallpaper
+AppLaunched=BubbleWallpaperLauncher.cmd
+SourcePath=C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\dist\iexpress-source\
+FILE0="BubbleWallpaperLauncher.cmd"
+FILE1="index.html"
+FILE2="styles.css"
+FILE3="app.js"
+FILE4="manifest.webmanifest"
+FILE5="bubble-wallpaper-icon.png"

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Lea browser icon">
+  <defs>
+    <linearGradient id="bg" x1="38" y1="24" x2="218" y2="232" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#14b8a6"/>
+      <stop offset="0.55" stop-color="#0f766e"/>
+      <stop offset="1" stop-color="#164e63"/>
+    </linearGradient>
+    <linearGradient id="page" x1="74" y1="52" x2="178" y2="192" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#dff7f4"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="56" fill="url(#bg)"/>
+  <path d="M74 60c0-8 6-14 14-14h64l38 38v112c0 8-6 14-14 14H88c-8 0-14-6-14-14V60z" fill="url(#page)" opacity="0.96"/>
+  <path d="M152 47v36c0 5 4 9 9 9h30" fill="#b7eee7"/>
+  <path d="M103 84h28v82h49v25h-77V84z" fill="#0f766e"/>
+  <path d="M102 64h36" stroke="#0f766e" stroke-width="10" stroke-linecap="round" opacity="0.22"/>
+  <path d="M207 52l5 14 14 5-14 5-5 14-5-14-14-5 14-5 5-14z" fill="#facc15"/>
+  <path d="M46 180c24 20 56 30 93 28 29-2 55-11 76-27" fill="none" stroke="#99f6e4" stroke-width="10" stroke-linecap="round" opacity="0.6"/>
+</svg>

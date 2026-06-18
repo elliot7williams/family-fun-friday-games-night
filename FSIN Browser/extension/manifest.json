@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "FSIN Hover Technology",
+  "version": "1.0.0",
+  "description": "Full Screen Internet hover controls for navigation and search.",
+  "permissions": ["windows"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["fsin-hover.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icon-16.png",
+    "32": "icon-32.png",
+    "48": "icon-48.png",
+    "128": "icon-128.png"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Family Fun Friday Games Night Back Button",
+  "version": "1.0.0",
+  "description": "Adds the Games Night hover back button to pages opened inside the app.",
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "games-night-back.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icon-16.png",
+    "32": "icon-32.png",
+    "48": "icon-48.png",
+    "128": "icon-128.png"
+  }
+}

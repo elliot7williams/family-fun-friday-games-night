@@ -1,0 +1,166 @@
+:root {
+  color-scheme: dark;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #071017;
+  color: #f5fbff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow: hidden;
+}
+
+button,
+select,
+input {
+  font: inherit;
+}
+
+.app-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  width: 100vw;
+  height: 100vh;
+}
+
+.wallpaper-stage {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  background: #071017;
+}
+
+#bubbleCanvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.wallpaper-title {
+  position: absolute;
+  left: 32px;
+  bottom: 28px;
+  max-width: min(520px, calc(100% - 64px));
+  pointer-events: none;
+  text-shadow: 0 2px 22px rgba(0, 0, 0, 0.5);
+}
+
+.wallpaper-title h1 {
+  margin: 0 0 8px;
+  font-size: clamp(38px, 7vw, 92px);
+  line-height: 0.9;
+  letter-spacing: 0;
+}
+
+.wallpaper-title p {
+  margin: 0;
+  color: rgba(245, 251, 255, 0.78);
+  font-size: 18px;
+}
+
+.wallpaper-title.is-hidden {
+  display: none;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 22px;
+  background: #10161b;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: -12px 0 28px rgba(0, 0, 0, 0.22);
+  overflow-y: auto;
+}
+
+.control-row {
+  display: grid;
+  gap: 8px;
+}
+
+.control-row label {
+  color: rgba(245, 251, 255, 0.72);
+  font-size: 13px;
+}
+
+select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  color: #f5fbff;
+  background: #19242b;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: #48c8dc;
+}
+
+.button-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: auto;
+}
+
+button {
+  min-height: 42px;
+  color: #f5fbff;
+  background: #1d2a32;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #263843;
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+@media (max-width: 760px) {
+  body {
+    overflow: auto;
+  }
+
+  .app-shell {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .wallpaper-stage {
+    min-height: 66vh;
+  }
+
+  .wallpaper-title {
+    left: 18px;
+    bottom: 18px;
+    max-width: calc(100% - 36px);
+  }
+
+  .wallpaper-title p {
+    font-size: 15px;
+  }
+
+  .controls {
+    border-left: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 -10px 24px rgba(0, 0, 0, 0.2);
+  }
+}

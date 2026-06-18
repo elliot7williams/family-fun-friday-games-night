@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bubble Wallpaper</title>
+  <meta name="theme-color" content="#071017">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" href="assets/bubble-wallpaper-icon.png">
+  <link rel="apple-touch-icon" href="assets/bubble-wallpaper-icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <section class="wallpaper-stage" aria-label="Animated bubble wallpaper">
+      <canvas id="bubbleCanvas"></canvas>
+      <div class="wallpaper-title">
+        <h1>Bubble Wallpaper</h1>
+        <p>Tap bubbles to pop them.</p>
+      </div>
+    </section>
+
+    <aside class="controls" aria-label="Wallpaper controls">
+      <div class="control-row">
+        <label for="palette">Palette</label>
+        <select id="palette">
+          <option value="candy">Candy</option>
+          <option value="lagoon">Lagoon</option>
+          <option value="sunset">Sunset</option>
+          <option value="midnight">Midnight</option>
+        </select>
+      </div>
+
+      <div class="control-row">
+        <label for="density">Bubbles</label>
+        <input id="density" type="range" min="12" max="52" value="28">
+      </div>
+
+      <div class="control-row">
+        <label for="speed">Float Speed</label>
+        <input id="speed" type="range" min="40" max="180" value="100">
+      </div>
+
+      <div class="control-row">
+        <label for="size">Bubble Size</label>
+        <input id="size" type="range" min="60" max="180" value="112">
+      </div>
+
+      <div class="button-grid">
+        <button id="shuffleButton" type="button">Shuffle</button>
+        <button id="soundButton" type="button" aria-pressed="true">Sound On</button>
+        <button id="textButton" type="button" aria-pressed="true">Text On</button>
+        <button id="downloadButton" type="button">Save PNG</button>
+        <button id="fullscreenButton" type="button">Fullscreen</button>
+      </div>
+    </aside>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

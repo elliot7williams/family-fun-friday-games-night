@@ -1,0 +1,74 @@
+2026-05-21T20:38:15 Starting app
+2026-05-21T20:38:15 Using app path: C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\dist\Family Fun Friday Games Night\index.html
+2026-05-21T20:38:16 Native wrapper failed: System.NotSupportedException: Event MouseMove is not valid on this ActiveX control.
+   at System.Windows.Forms.WebBrowserBase.add_MouseMove(MouseEventHandler value)
+   at FamilyFunFridayGamesNightNative.GamesNightForm..ctor()
+   at FamilyFunFridayGamesNightNative.Program.Main()
+2026-05-21T20:40:55 Starting native app
+2026-05-21T20:40:55 Using app path: C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\dist\Family Fun Friday Games Night\index.html
+2026-05-21T20:44:56 App closed normally
+2026-05-21T20:46:19 Starting native app
+2026-05-21T20:46:19 Using app path: C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\dist\Family Fun Friday Games Night\index.html
+2026-05-21T20:46:19 Navigating: file:///C:/Users/Elliot/Documents/Family Fun Friday Games Night copy/dist/Family Fun Friday Games Night/index.html
+2026-05-21T20:47:05 Loaded: file:///C:/Users/Elliot/Documents/Family Fun Friday Games Night copy/dist/Family Fun Friday Games Night/index.html
+2026-05-21T20:47:47 Navigating: file:///C:/Users/Elliot/Documents/Family Fun Friday Games Night copy/dist/Family Fun Friday Games Night/index.html
+2026-05-21T20:48:31 Starting native app
+2026-05-21T20:48:31 Using app path: C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\dist\Family Fun Friday Games Night\index.html
+2026-05-21T20:48:31 Navigating: file:///C:/Users/Elliot/Documents/Family Fun Friday Games Night copy/dist/Family Fun Friday Games Night/index.html
+2026-05-21T20:55:05 Starting native app
+2026-05-21T20:55:05 Using app path: C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\dist\Family Fun Friday Games Night\index.html
+2026-05-21T20:55:06 Navigating: file:///C:/Users/Elliot/Documents/Family Fun Friday Games Night copy/dist/Family Fun Friday Games Night/index.html
+2026-05-21T20:57:44 Starting Edge app-mode launcher
+2026-05-21T20:57:44 Using app path: C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\dist\Family Fun Friday Games Night\index.html
+2026-05-21T20:57:44 Launched browser app mode: C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe
+2026-05-21T21:01:04 Starting Edge app-mode launcher
+2026-05-21T21:01:04 Using app path: C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\dist\Family Fun Friday Games Night\index.html
+2026-05-21T21:01:04 Launched browser app mode: C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe
+2026-05-21T21:03:01 Starting Edge app-mode launcher
+2026-05-21T21:03:01 Using app path: C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\dist\Family Fun Friday Games Night\index.html
+2026-05-21T21:03:01 Launched browser app mode: C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe
+2026-05-21T21:07:07 Starting Edge app-mode launcher
+2026-05-21T21:07:07 Using app path: C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\dist\Family Fun Friday Games Night\index.html
+2026-05-21T21:07:07 Launched browser app mode: C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe
+2026-05-21T21:08:44 Starting Edge app-mode launcher
+2026-05-21T21:08:44 Using app path: C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\dist\Family Fun Friday Games Night\index.html
+2026-05-21T21:08:44 Launched browser app mode: C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe
+2026-05-21T21:09:59 Starting Edge app-mode launcher
+2026-05-21T21:09:59 Using app path: C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\dist\Family Fun Friday Games Night\index.html
+2026-05-21T21:09:59 Launched browser app mode: C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe
+2026-05-21T21:14:36 Starting Edge app-mode launcher
+2026-05-21T21:14:36 Using app path: C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\dist\Family Fun Friday Games Night\index.html
+2026-05-21T21:14:36 Launched browser app mode: C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe
+2026-05-21T21:15:04 Starting Edge app-mode launcher
+2026-05-21T21:15:04 Using app path: C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\dist\Family Fun Friday Games Night\index.html
+2026-05-21T21:15:04 Launched browser app mode: C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe
+2026-05-21T21:19:15 Starting Edge app-mode launcher
+2026-05-21T21:19:15 Using app path: C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\dist\Family Fun Friday Games Night\index.html
+2026-05-21T21:19:15 Launched browser app mode: C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe
+2026-05-21T21:23:02 Starting Edge app-mode launcher
+2026-05-21T21:23:02 Using app path: C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\dist\Family Fun Friday Games Night\index.html
+2026-05-21T21:23:02 Using extension path: C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\dist\games-night-back-extension
+2026-05-21T21:23:02 Launched browser app mode: C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe
+2026-05-21T21:29:40 Starting Edge app-mode launcher
+2026-05-21T21:29:40 Using app path: C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\dist\Family Fun Friday Games Night\index.html
+2026-05-21T21:29:40 Using extension path: C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\dist\games-night-back-extension
+2026-05-21T21:29:40 Launched browser app mode: C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe
+2026-05-21T21:35:52 Starting Edge app-mode launcher
+2026-05-21T21:35:52 Using app path: C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\dist\Family Fun Friday Games Night\index.html
+2026-05-21T21:35:52 Using extension path: C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\dist\games-night-back-extension
+2026-05-21T21:35:52 Launched browser app mode: C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe
+2026-05-21T21:41:13 Starting Edge app-mode launcher
+2026-05-21T21:41:13 Using app path: C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\dist\Family Fun Friday Games Night\index.html
+2026-05-21T21:41:13 Using extension path: C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\dist\games-night-back-extension
+2026-05-21T21:41:13 Serving local app at: http://127.0.0.1:52766/index.html?app=639149964735492430
+2026-05-21T21:41:13 Launched browser app mode: C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe
+2026-05-21T21:44:21 Starting Edge app-mode launcher
+2026-05-21T21:44:21 Using app path: C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\dist\Family Fun Friday Games Night\index.html
+2026-05-21T21:44:21 Using extension path: C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\dist\games-night-back-extension
+2026-05-21T21:44:21 Serving local app at: http://127.0.0.1:52813/index.html
+2026-05-21T21:44:21 Launched browser app mode: C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe
+2026-05-21T21:49:29 Starting Edge app-mode launcher
+2026-05-21T21:49:29 Using app path: C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\dist\Family Fun Friday Games Night\index.html
+2026-05-21T21:49:29 Using extension path: C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\dist\games-night-back-extension
+2026-05-21T21:49:29 Serving local app at: http://127.0.0.1:52911/index.html
+2026-05-21T21:49:29 Launched browser app mode: C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe

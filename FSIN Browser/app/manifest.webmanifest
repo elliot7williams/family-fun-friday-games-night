@@ -1,0 +1,20 @@
+{
+  "name": "FSIN",
+  "short_name": "FSIN",
+  "start_url": "index.html",
+  "display": "fullscreen",
+  "background_color": "#081018",
+  "theme_color": "#081018",
+  "icons": [
+    {
+      "src": "assets/fsin-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/fsin-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
