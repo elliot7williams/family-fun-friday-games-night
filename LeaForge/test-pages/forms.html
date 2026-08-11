@@ -7,7 +7,7 @@
     body { color: #20242a; background: #f7f8fa; padding: 8px; }
     h1 { color: #0a5f84; }
     label { color: #30363d; margin-top: 8px; }
-    input, textarea { background: #ffffff; margin-bottom: 6px; padding: 3px; }
+    input, textarea, select { background: #ffffff; margin-bottom: 6px; padding: 3px; }
     button { background: #e8f2f7; margin-right: 6px; padding: 4px; }
   </style>
 </head>
@@ -21,6 +21,12 @@
     <input id="secret" name="secret" type="password" placeholder="Hidden text">
     <label for="notes">Notes</label>
     <textarea id="notes" name="notes" placeholder="Write a note">Small and fast.</textarea>
+    <label for="theme">Theme</label>
+    <select id="theme" name="theme">
+      <option value="light">Light</option>
+      <option value="lea" selected>Lea green</option>
+      <option value="legacy" disabled>Legacy</option>
+    </select>
     <input type="checkbox" name="updates" value="yes" checked aria-label="Include updates">
     <input type="radio" name="size" value="tiny" checked aria-label="Tiny size">
     <input type="radio" name="size" value="full" aria-label="Full size">

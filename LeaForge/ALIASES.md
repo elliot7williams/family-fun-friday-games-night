@@ -56,5 +56,10 @@ hold reset defaults. Pages expose fields through `P.Fs`, while `B.I` links a
 paint block to its field. The WinForms view raises `Ed` for edits and `Sb` for
 form actions.
 
+Select fields expose options through `Fi.Os`; each compact `O` has `V` (value),
+`T` (text), and `Ds` (disabled). `Si` is the selected index and `Di` is its
+reset default.
+
 Hosts can call `Rs(field)` to reset a form and `Sm(field)` or `SmA(field)` to
-submit a supported GET form synchronously or asynchronously.
+submit a supported GET or URL-encoded POST form. `E.Po`/`PoA` and `V.Po`/`PoA`
+provide direct POST navigation aliases.

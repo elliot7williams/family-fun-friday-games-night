@@ -60,9 +60,10 @@ WinForms mouse-wheel internals. `Rb(index)` and `Rc(index)` expose deterministic
 outer-border and content rectangles for layout tests and host diagnostics.
 
 Basic fields are exposed through `P.Fs`. The view paints inactive controls on
-the Lea surface, reuses one editor for focused text, and provides `Rs`, `Sm`,
-and `SmA` for reset and supported GET submission. `P.Q` preserves query text on
-both web and local pages.
+the Lea surface, reuses one editor for focused text, opens native choice menus
+for single-select fields, and provides `Rs`, `Sm`, and `SmA` for reset and
+URL-encoded GET/POST submission. Direct engine and view POST navigation use
+`Po`/`PoA`. `P.Q` preserves query text on both web and local pages.
 
 ## Experimental Firespider tab
 

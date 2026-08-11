@@ -47,6 +47,7 @@ fs      font size
 2. Build a lightweight document tree with elements, text, attributes, and parent links. (`N` now provides kind, text, attributes, and children; parent links remain.)
 3. Support the useful base tags first: `html`, `head`, `body`, headings, paragraphs,
    lists, links, images, buttons, forms, tables, sections, and code blocks.
+   (Single-select controls and URL-encoded GET/POST forms are active.)
 4. Preserve unknown tags safely so pages can still display their text.
 5. Add malformed-markup tests and local fixture pages for every supported tag.
 
@@ -65,6 +66,7 @@ predictable rendering pass.
 ## 5. Network and resources
 
 - HTTP and HTTPS loading through a small request layer.
+- URL-encoded POST navigation with synchronous and asynchronous `Po` aliases.
 - Redirects, response status, content type, content encoding, and character encoding. (Final response URL and compact page metadata are active.)
 - GZip/Deflate response decompression. (Both are decoded transparently and covered by loopback tests.)
 - Image loading for PNG, JPEG, GIF, and ICO where the platform supports them. (Basic async image loading and bounded memory cache added.)
@@ -194,6 +196,6 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add select controls and supported POST form submission. Lea now records response
-status, media type, content encoding, charset, decoded size, and cache origin;
-decodes GZip/Deflate; and keeps a bounded LRU payload cache that reload bypasses.
+Add typed load errors and cache freshness rules. Lea now parses single-select
+options, paints a native choice menu, restores selected defaults, and submits
+successful controls through URL-encoded synchronous or asynchronous GET/POST.

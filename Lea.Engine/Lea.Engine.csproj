@@ -32,6 +32,7 @@
     <Compile Include="Fi.cs" />
     <Compile Include="Ln.cs" />
     <Compile Include="N.cs" />
+    <Compile Include="O.cs" />
     <Compile Include="P.cs" />
     <Compile Include="S.cs" />
   </ItemGroup>

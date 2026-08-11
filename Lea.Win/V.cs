@@ -31,6 +31,7 @@ namespace Lea.Win
         private Font editFont;
         private string editStart = "";
         private bool editLock;
+        private ContextMenuStrip choices;
 
         public event EventHandler Done;
         public event EventHandler Changed;
@@ -83,6 +84,13 @@ namespace Lea.Win
             finally { Cursor = Cursors.Default; }
         }
 
+        public P Po(Uri url, string data)
+        {
+            Cursor = Cursors.WaitCursor;
+            try { return Show(e.Po(url, data), true); }
+            finally { Cursor = Cursors.Default; }
+        }
+
         public async Task<P> GoA(string input)
         {
             Cursor = Cursors.WaitCursor;
@@ -106,6 +114,22 @@ namespace Lea.Win
             try
             {
                 var page = Show(await e.GoA(url), false);
+                await PicsA(page);
+                Dirty();
+                Invalidate();
+                if (Done != null) Done(this, EventArgs.Empty);
+                return page;
+            }
+            finally { Cursor = Cursors.Default; }
+        }
+
+        public async Task<P> PoA(Uri url, string data)
+        {
+            Cursor = Cursors.WaitCursor;
+            picStop = false;
+            try
+            {
+                var page = Show(await e.PoA(url, data), false);
                 await PicsA(page);
                 Dirty();
                 Invalidate();
@@ -140,6 +164,7 @@ namespace Lea.Win
 
         private P Show(P page, bool done)
         {
+            CloseChoices();
             EndEdit(false);
             sy = 0;
             Dirty();
@@ -418,15 +443,22 @@ namespace Lea.Win
             using (var brush = new SolidBrush(background)) graphics.FillRectangle(brush, rect);
             using (var pen = new Pen(box.K == "button" ? Color.FromArgb(145, 145, 145) : Color.FromArgb(165, 165, 165))) graphics.DrawRectangle(pen, rect.X, rect.Y, rect.Width - 1, rect.Height - 1);
 
-            var text = field.V ?? "";
+            var text = field.K == "select" ? OptionText(field) : field.V ?? "";
             var placeholder = text.Length == 0 && field.P.Length > 0;
             if (placeholder) text = field.P;
             if (field.K == "password" && !placeholder) text = new string('*', text.Length);
             var textColor = placeholder ? Color.FromArgb(130, 130, 130) : foreground;
             var flags = box.K == "button" ? TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding : TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak | TextFormatFlags.NoPadding;
             var pad = box.K == "button" ? 2 : 7;
+            var reserve = field.K == "select" ? 24 : 0;
+            if (field.K == "select")
+            {
+                var middle = rect.Top + rect.Height / 2;
+                var arrow = new Point[] { new Point(rect.Right - 17, middle - 2), new Point(rect.Right - 7, middle - 2), new Point(rect.Right - 12, middle + 4) };
+                using (var brush = new SolidBrush(foreground)) graphics.FillPolygon(brush, arrow);
+            }
             using (var font = BoxFont(box.K, field.S, false))
-                TextRenderer.DrawText(graphics, box.K == "button" ? box.X : text, font, new Rectangle(rect.X + pad, rect.Y + 3, Math.Max(1, rect.Width - (pad * 2)), Math.Max(1, rect.Height - 6)), textColor, flags);
+                TextRenderer.DrawText(graphics, box.K == "button" ? box.X : text, font, new Rectangle(rect.X + pad, rect.Y + 3, Math.Max(1, rect.Width - (pad * 2) - reserve), Math.Max(1, rect.Height - 6)), textColor, flags);
         }
 
         private async Task PicsA(P page)
@@ -540,6 +572,7 @@ namespace Lea.Win
                 field.C = true;
                 OnEdited();
             }
+            else if (field.K == "select") ShowChoices(field, box);
             else if (field.K == "reset") Rs(field);
             else if (field.K == "submit") await SmA(field);
             else if (field.K == "button" && Sb != null) Sb(this, EventArgs.Empty);
@@ -548,7 +581,67 @@ namespace Lea.Win
 
         private static bool CanEdit(Fi field)
         {
-            return field != null && field.K != "checkbox" && field.K != "radio" && field.K != "submit" && field.K != "reset" && field.K != "button" && field.K != "file";
+            return field != null && field.K != "checkbox" && field.K != "radio" && field.K != "select" && field.K != "submit" && field.K != "reset" && field.K != "button" && field.K != "file";
+        }
+
+        private void ShowChoices(Fi field, Bx box)
+        {
+            CloseChoices();
+            if (field.Os.Count == 0) return;
+            var menu = new ContextMenuStrip();
+            choices = menu;
+            for (var i = 0; i < field.Os.Count; i++)
+            {
+                var index = i;
+                var option = field.Os[i];
+                var label = option.T.Length == 0 ? option.V.Length == 0 ? "(empty)" : option.V : option.T;
+                var item = new ToolStripMenuItem(label);
+                item.Enabled = !option.Ds;
+                item.Checked = index == OptionIndex(field);
+                item.Click += delegate { Choose(field, index); };
+                menu.Items.Add(item);
+            }
+            menu.Closed += delegate
+            {
+                if (Object.ReferenceEquals(choices, menu)) choices = null;
+                menu.Dispose();
+            };
+            var rect = box.C;
+            rect.Offset(0, -sy);
+            menu.Show(this, new Point(rect.Left, rect.Bottom));
+        }
+
+        private void Choose(Fi field, int index)
+        {
+            if (field == null || index < 0 || index >= field.Os.Count || field.Os[index].Ds) return;
+            field.Si = index;
+            field.V = field.Os[index].V;
+            OnEdited();
+            Invalidate();
+        }
+
+        private void CloseChoices()
+        {
+            var menu = choices;
+            choices = null;
+            if (menu == null) return;
+            try { if (!menu.IsDisposed) menu.Close(); }
+            catch (ObjectDisposedException) { }
+            try { if (!menu.IsDisposed) menu.Dispose(); }
+            catch (ObjectDisposedException) { }
+        }
+
+        private static int OptionIndex(Fi field)
+        {
+            if (field.Si >= 0 && field.Si < field.Os.Count && field.Os[field.Si].V == field.V) return field.Si;
+            for (var i = 0; i < field.Os.Count; i++) if (field.Os[i].V == field.V) return i;
+            return -1;
+        }
+
+        private static string OptionText(Fi field)
+        {
+            var index = OptionIndex(field);
+            return index < 0 ? field.V ?? "" : field.Os[index].T;
         }
 
         private void StartEdit(Fi field)
@@ -634,6 +727,7 @@ namespace Lea.Win
                 if (!Object.ReferenceEquals(field.F, button.F)) continue;
                 field.V = field.D;
                 field.C = field.Dc;
+                field.Si = field.Di;
             }
             OnEdited();
         }
@@ -641,35 +735,58 @@ namespace Lea.Win
         public P Sm(Fi button)
         {
             if (Sb != null) Sb(this, EventArgs.Empty);
-            var target = FormUri(button);
-            return target == null ? At : Go(target);
+            var data = FormData(button);
+            if (data == null) return At;
+            if (button.M == "get") return Go(FormUri(button, data));
+            return button.M == "post" && CanPost(button.U) ? Po(button.U, data) : At;
         }
 
         public async Task<P> SmA(Fi button)
         {
             if (Sb != null) Sb(this, EventArgs.Empty);
-            var target = FormUri(button);
-            return target == null ? At : await GoA(target);
+            var data = FormData(button);
+            if (data == null) return At;
+            if (button.M == "get") return await GoA(FormUri(button, data));
+            return button.M == "post" && CanPost(button.U) ? await PoA(button.U, data) : At;
         }
 
-        private Uri FormUri(Fi button)
+        private string FormData(Fi button)
         {
-            if (At == null || button == null || button.F == null || button.M != "get" || button.U == null) return null;
+            if (At == null || button == null || button.F == null || button.U == null || (button.M != "get" && button.M != "post")) return null;
 
             var values = new List<string>();
             foreach (var field in At.Fs)
             {
                 if (!Object.ReferenceEquals(field.F, button.F) || field.Ds || field.N.Length == 0) continue;
                 if ((field.K == "checkbox" || field.K == "radio") && !field.C) continue;
+                if (field.K == "select")
+                {
+                    var index = OptionIndex(field);
+                    if (index >= 0 && field.Os[index].Ds) continue;
+                }
                 if (field.K == "reset" || field.K == "button" || (field.K == "submit" && field != button)) continue;
-                values.Add(Uri.EscapeDataString(field.N) + "=" + Uri.EscapeDataString(field.V ?? ""));
+                values.Add(FormEncode(field.N) + "=" + FormEncode(field.V ?? ""));
             }
+            return String.Join("&", values.ToArray());
+        }
 
+        private static Uri FormUri(Fi button, string data)
+        {
             var target = new UriBuilder(button.U);
             var query = target.Query.TrimStart('?');
-            if (query.Length > 0 && values.Count > 0) query += "&";
-            target.Query = query + String.Join("&", values.ToArray());
+            if (query.Length > 0 && data.Length > 0) query += "&";
+            target.Query = query + data;
             return target.Uri;
+        }
+
+        private static string FormEncode(string value)
+        {
+            return Uri.EscapeDataString(value ?? "").Replace("%20", "+");
+        }
+
+        private static bool CanPost(Uri url)
+        {
+            return url != null && (url.Scheme == Uri.UriSchemeHttp || url.Scheme == Uri.UriSchemeHttps);
         }
 
         private void OnEdited()
@@ -699,6 +816,7 @@ namespace Lea.Win
         {
             if (disposing)
             {
+                CloseChoices();
                 picWeb.Dispose();
                 if (editFont != null) editFont.Dispose();
                 foreach (var image in pics.Values) if (image != null) image.Dispose();

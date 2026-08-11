@@ -54,6 +54,19 @@ namespace Lea.Engine
             return p;
         }
 
+        public P Po(string input, string data)
+        {
+            return Po(ToUri(input, At == null ? null : At.U), data);
+        }
+
+        public P Po(Uri url, string data)
+        {
+            if (url == null) throw new ArgumentNullException("url");
+            var p = Post(url, data);
+            Push(p);
+            return p;
+        }
+
         public async Task<P> GoA(string input)
         {
             return await GoA(ToUri(input, At == null ? null : At.U));
@@ -63,6 +76,19 @@ namespace Lea.Engine
         {
             if (url == null) throw new ArgumentNullException("url");
             var p = await ReadA(url);
+            Push(p);
+            return p;
+        }
+
+        public async Task<P> PoA(string input, string data)
+        {
+            return await PoA(ToUri(input, At == null ? null : At.U), data);
+        }
+
+        public async Task<P> PoA(Uri url, string data)
+        {
+            if (url == null) throw new ArgumentNullException("url");
+            var p = await PostA(url, data);
             Push(p);
             return p;
         }
@@ -142,6 +168,44 @@ namespace Lea.Engine
             finally
             {
                 busy = false;
+            }
+        }
+
+        private P Post(Uri url, string data)
+        {
+            if (url.Scheme != Uri.UriSchemeHttp && url.Scheme != Uri.UriSchemeHttps)
+                throw new NotSupportedException("Lea POST requires an HTTP or HTTPS address.");
+            DropCache(url);
+            web.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded; charset=utf-8";
+            try
+            {
+                var bytes = web.UploadData(url, "POST", Encoding.UTF8.GetBytes(data ?? ""));
+                var reply = ReadWeb(url, bytes);
+                DropCache(reply.U);
+                return Parse(reply, false);
+            }
+            finally { web.Headers.Remove(HttpRequestHeader.ContentType); }
+        }
+
+        private async Task<P> PostA(Uri url, string data)
+        {
+            if (url.Scheme != Uri.UriSchemeHttp && url.Scheme != Uri.UriSchemeHttps)
+                throw new NotSupportedException("Lea POST requires an HTTP or HTTPS address.");
+            if (busy) throw new InvalidOperationException("Lea is already loading a page.");
+            busy = true;
+            try
+            {
+                DropCache(url);
+                web.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded; charset=utf-8";
+                var bytes = await web.UploadDataTaskAsync(url, "POST", Encoding.UTF8.GetBytes(data ?? ""));
+                var reply = ReadWeb(url, bytes);
+                DropCache(reply.U);
+                return Parse(reply, false);
+            }
+            finally
+            {
+                busy = false;
+                web.Headers.Remove(HttpRequestHeader.ContentType);
             }
         }
 
@@ -508,7 +572,7 @@ namespace Lea.Engine
                 if (source.Length > 0 && Uri.TryCreate(baseUrl, source, out image))
                     page.Bs.Add(new B { K = kind, X = node.Av("alt"), U = image, S = style });
             }
-            else if (kind == "input" || kind == "textarea" || kind == "button")
+            else if (kind == "input" || kind == "textarea" || kind == "button" || kind == "select")
             {
                 AddField(page, node, baseUrl, style);
             }
@@ -523,7 +587,7 @@ namespace Lea.Engine
 
         private static void AddField(P page, N node, Uri baseUrl, S style)
         {
-            var kind = node.K == "textarea" ? "textarea" : node.K == "button" ? FieldKind(node, "submit") : FieldKind(node, "text");
+            var kind = node.K == "textarea" ? "textarea" : node.K == "select" ? "select" : node.K == "button" ? FieldKind(node, "submit") : FieldKind(node, "text");
             if (kind == "hidden") return;
 
             var buttonText = node.K == "button" ? Clean(NodeText(node)) : "";
@@ -550,15 +614,53 @@ namespace Lea.Engine
                 Mx = Int32.TryParse(node.Av("maxlength"), out max) ? Math.Max(0, Math.Min(max, 32767)) : 0,
                 F = form,
                 U = action,
-                M = form == null || form.Av("method").Length == 0 ? "get" : form.Av("method").ToLowerInvariant(),
+                M = form == null || form.Av("method").Length == 0 ? "get" : form.Av("method").Trim().ToLowerInvariant(),
                 S = style
             };
+            if (kind == "select") AddOptions(field, node);
             page.Fs.Add(field);
 
             var blockKind = node.K == "button" || kind == "submit" || kind == "reset" || kind == "button" ? "button" : node.K;
             var text = node.K == "button" && buttonText.Length > 0 ? buttonText : blockKind == "button" ? value : node.Av("aria-label");
             if (blockKind == "button" && text.Length == 0) text = kind == "reset" ? "Reset" : kind == "submit" ? "Submit" : "Button";
             page.Bs.Add(new B { K = blockKind, X = text, S = style, I = field });
+        }
+
+        private static void AddOptions(Fi field, N select)
+        {
+            var nodes = new List<N>();
+            FindAll(select, "option", nodes);
+            O first = null;
+            O chosen = null;
+            var chosenIndex = -1;
+            var index = 0;
+            foreach (var node in nodes)
+            {
+                var text = Clean(NodeText(node));
+                var option = new O
+                {
+                    V = node.A.ContainsKey("value") ? node.Av("value") : text,
+                    T = text,
+                    Ds = node.A.ContainsKey("disabled") || (node.Up != null && node.Up.K == "optgroup" && node.Up.A.ContainsKey("disabled"))
+                };
+                field.Os.Add(option);
+                if (first == null) first = option;
+                if (chosen == null && node.A.ContainsKey("selected"))
+                {
+                    chosen = option;
+                    chosenIndex = index;
+                }
+                index++;
+            }
+            if (chosen == null)
+            {
+                chosen = first;
+                chosenIndex = first == null ? -1 : 0;
+            }
+            field.V = chosen == null ? "" : chosen.V;
+            field.D = field.V;
+            field.Si = chosenIndex;
+            field.Di = chosenIndex;
         }
 
         private static string FieldKind(N node, string fallback)
@@ -608,6 +710,14 @@ namespace Lea.Engine
                 lru.RemoveAt(0);
                 cache.Remove(key);
             }
+        }
+
+        private void DropCache(Uri url)
+        {
+            if (url == null) return;
+            var key = CacheKey(url);
+            cache.Remove(key);
+            lru.Remove(key);
         }
 
         private static string CacheKey(Uri url)
