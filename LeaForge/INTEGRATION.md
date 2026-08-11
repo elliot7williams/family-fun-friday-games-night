@@ -82,12 +82,19 @@ inside Firespider's existing tab control. Back, forward, home, go, search,
 reload, and stop dispatch to Lea while that tab is selected and delegate to the
 original handlers for legacy tabs.
 
+Close Tab (`Ctrl+W`), the tab-strip close target, and middle-click now dispatch
+through Lea-aware close handling. Page Source (`Ctrl+U`) fills Firespider's
+existing source window from `V.H`. Lea sessions use a separate bounded file at
+`%LocalAppData%\Firespider Internet\Lea.session`; private mode removes it, and
+legacy tabs continue using Firespider's existing settings collections.
+
 Firespider imports one `Lea/FirespiderLea.targets` file. The import supplies the
 two DLL references, partial VB adapter, and bundled local start page. Debug and
 Release builds pass `Smoke.cs`, which verifies tab creation, start-page loading,
-host Back-button routing, and timer status updates without loading another
-browser engine. The adapter removes the legacy timer handler's unconditional
-`WebBrowser` cast and delegates by active tab type.
+host navigation, timer status, close routing, page source, and save/restore
+across two host forms without loading another browser engine or touching the
+user's real session. The adapter removes unconditional `WebBrowser` casts from
+the paths it owns and delegates by active tab type.
 
 ## Integration rules
 

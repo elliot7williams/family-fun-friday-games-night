@@ -201,6 +201,6 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Expand the Firespider adapter with Lea tab closing, session restoration, and
-page-source viewing. The engine now parses tables into compact `Tb`, `Tr`, and
-`Tc` records and lays out captions, shared-height rows, styled cells, and spans.
+Add conditional cache revalidation with ETag and Last-Modified. Firespider now
+routes its Close Tab command, tab-strip close gestures, and Page Source window
+to Lea, and restores up to 12 Lea tabs from an isolated private-mode-aware file.

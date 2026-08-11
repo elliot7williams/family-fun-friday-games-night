@@ -165,5 +165,11 @@ Release host smoke tests. It also replaces the status timer's unconditional
 `WebBrowser` cast with type-aware routing, so selecting a Lea tab cannot trigger
 an `InvalidCastException` on `Timer.Tick`.
 
-The next integration expansion is tab closing through Firespider's own close
-button, session persistence, source viewing, and more capability-aware commands.
+Phase B routes Firespider's Close Tab command, tab-strip close target, and
+middle-click through Lea-aware handlers. The existing Page Source command opens
+Lea's raw HTML, and a bounded isolated session file restores Lea tabs without
+mixing engine markers into Firespider's legacy URL settings. Private mode clears
+the Lea session file. Debug and Release host smoke tests cover these paths.
+
+The next integration expansion is more capability-aware commands, including
+save-page, send-link, find, and downloads.

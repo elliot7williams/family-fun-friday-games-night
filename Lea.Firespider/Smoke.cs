@@ -11,11 +11,15 @@ namespace Lea.Firespider
         [STAThread]
         private static int Main(string[] args)
         {
+            var oldSession = Environment.GetEnvironmentVariable("LEA_FIRESPIDER_SESSION");
+            var session = Path.Combine(Path.GetTempPath(), "lea-firespider-smoke-" + Guid.NewGuid().ToString("N") + ".txt");
             try
             {
+                Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", session);
                 var root = args.Length > 0 ? args[0] : AppDomain.CurrentDomain.BaseDirectory;
                 var assembly = Assembly.LoadFrom(Path.Combine(root, "Firespider Internet 19.exe"));
                 var type = assembly.GetType("Firespider_Internet.j", true);
+                string savedUrl;
                 using (var form = (Form)Activator.CreateInstance(type, true))
                 {
                     form.CreateControl();
@@ -47,9 +51,59 @@ namespace Lea.Firespider
                     Check(host.CanBk, "Lea history before host Back");
                     Member<ToolStripItem>(form, "b").PerformClick();
                     Check(host.CanFw, "Firespider Back routed to Lea");
+
+                    if (tabs.TabCount == 1)
+                    {
+                        var leaTab = tabs.SelectedTab;
+                        var legacyTab = new TabPage("Legacy");
+                        legacyTab.Controls.Add(new WebBrowser { Dock = DockStyle.Fill });
+                        tabs.TabPages.Add(legacyTab);
+                        tabs.SelectedTab = leaTab;
+                    }
+                    var beforeClose = tabs.TabCount;
+                    var closeTab = Member<ToolStripMenuItem>(form, "CT");
+                    typeof(ToolStripItem).GetMethod("OnClick", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(closeTab, new object[] { EventArgs.Empty });
+                    Check(tabs.TabCount == beforeClose - 1 && FindLea(tabs) == null, "Firespider Close Tab routed to Lea");
+
+                    open.Invoke(form, new object[] { form, EventArgs.Empty });
+                    host = FindLea(tabs);
+                    Check(host != null && host.At != null, "replacement Lea tab");
+                    var source = (string)type.GetMethod("qleaSourceText", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(form, null);
+                    Check(source == host.H && source.Contains("Lea in Firespider"), "Lea source text");
+                    Member<ToolStripMenuItem>(form, "pt").PerformClick();
+                    Application.DoEvents();
+                    var sourceForm = OpenForm("F3");
+                    Check(sourceForm != null && Member<Control>(sourceForm, "RN").Text == host.H, "Firespider Page Source routed to Lea");
+                    sourceForm.Close();
+
+                    type.GetMethod("qleaSaveSession", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(form, null);
+                    var saved = File.ReadAllLines(session);
+                    Check(saved.Length == 1 && saved[0] == host.U.AbsoluteUri, "Lea session saved");
+                    savedUrl = saved[0];
                 }
 
-                Console.WriteLine("Firespider Lea smoke passed: menu, tab, timer, start page, and host navigation.");
+                type.GetField("qleaSessionRestored", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, false);
+                using (var restoredForm = (Form)Activator.CreateInstance(type, true))
+                {
+                    restoredForm.CreateControl();
+                    type.GetMethod("qleaInit", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(restoredForm, new object[] { restoredForm, EventArgs.Empty });
+                    var restoredTabs = Member<TabControl>(restoredForm, "k");
+                    var restored = FindLea(restoredTabs);
+                    Check(restored != null && restored.U != null && restored.U.AbsoluteUri == savedUrl, "Lea session restored");
+                    if (restoredTabs.TabCount == 1)
+                    {
+                        var leaTab = restoredTabs.SelectedTab;
+                        var legacyTab = new TabPage("Legacy");
+                        legacyTab.Controls.Add(new WebBrowser { Dock = DockStyle.Fill });
+                        restoredTabs.TabPages.Add(legacyTab);
+                        restoredTabs.SelectedTab = leaTab;
+                    }
+                    var beforeMiddle = restoredTabs.TabCount;
+                    type.GetMethod("qleaTabMouseDown", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(restoredForm, new object[] { restoredTabs, new MouseEventArgs(MouseButtons.Middle, 1, 0, 0, 0) });
+                    Check(restoredTabs.TabCount == beforeMiddle - 1 && FindLea(restoredTabs) == null, "middle-click Lea tab close");
+                }
+
+                Console.WriteLine("Firespider Lea smoke passed: close routing, sessions, source, menu, timer, start page, and navigation.");
                 return 0;
             }
             catch (Exception error)
@@ -57,6 +111,25 @@ namespace Lea.Firespider
                 Console.Error.WriteLine("Firespider Lea smoke failed: " + error);
                 return 1;
             }
+            finally
+            {
+                Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", oldSession);
+                if (File.Exists(session)) File.Delete(session);
+            }
+        }
+
+        private static V FindLea(TabControl tabs)
+        {
+            foreach (TabPage tab in tabs.TabPages)
+                if (tab.Controls.Count > 0 && tab.Controls[0] is V) return (V)tab.Controls[0];
+            return null;
+        }
+
+        private static Form OpenForm(string name)
+        {
+            foreach (Form form in Application.OpenForms)
+                if (form.GetType().Name == name) return form;
+            return null;
         }
 
         private static T Member<T>(object target, string name) where T : class

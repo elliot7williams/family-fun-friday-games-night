@@ -1,9 +1,12 @@
 Imports System.IO
+Imports System.Collections.Generic
 
 Partial Class j
     Private qleaMenu As ToolStripMenuItem
+    Private Shared qleaSessionRestored As Boolean
 
     Private Sub qleaInit(ByVal sender As Object, ByVal e As EventArgs) Handles Me.Load
+        If qleaMenu IsNot Nothing Then Return
         qleaMenu = New ToolStripMenuItem("New Lea Tab")
         qleaMenu.Image = My.Resources.F9
         qleaMenu.BackColor = Color.White
@@ -13,6 +16,10 @@ Partial Class j
         AddHandler qleaMenu.Click, AddressOf qleaNewClick
         fl.DropDownItems.Insert(Math.Min(1, fl.DropDownItems.Count), qleaMenu)
         qleaWire()
+        If Not qleaSessionRestored Then
+            qleaSessionRestored = True
+            qleaRestoreSession()
+        End If
     End Sub
 
     Private Sub qleaWire()
@@ -39,6 +46,10 @@ Partial Class j
         RemoveHandler st.Click, AddressOf i5
         RemoveHandler st.MouseHover, AddressOf i6
         RemoveHandler t.Tick, AddressOf tk
+        RemoveHandler CT.Click, AddressOf h5
+        RemoveHandler pt.Click, AddressOf e9
+        RemoveHandler pt.MouseHover, AddressOf g1
+        RemoveHandler Me.FormClosing, AddressOf q9
 
         AddHandler b.Click, AddressOf qleaBackClick
         AddHandler b.MouseHover, AddressOf qleaBackHover
@@ -63,11 +74,21 @@ Partial Class j
         AddHandler st.Click, AddressOf qleaStopClick
         AddHandler st.MouseHover, AddressOf qleaStopHover
         AddHandler t.Tick, AddressOf qleaTick
+        AddHandler CT.Click, AddressOf qleaCloseMenuClick
+        AddHandler pt.Click, AddressOf qleaSourceClick
+        AddHandler pt.MouseHover, AddressOf qleaSourceHover
+        AddHandler k.MouseDown, AddressOf qleaTabMouseDown
+        AddHandler Me.FormClosing, AddressOf qleaClosing
     End Sub
 
     Private Function qleaAt() As Global.Lea.Win.V
         If k.SelectedTab Is Nothing OrElse k.SelectedTab.Controls.Count = 0 Then Return Nothing
         Return TryCast(k.SelectedTab.Controls(0), Global.Lea.Win.V)
+    End Function
+
+    Private Function qleaHost(ByVal tab As TabPage) As Global.Lea.Win.V
+        If tab Is Nothing OrElse tab.Controls.Count = 0 Then Return Nothing
+        Return TryCast(tab.Controls(0), Global.Lea.Win.V)
     End Function
 
     Private Function qleaDo(ByVal command As String, Optional ByVal value As String = "") As Boolean
@@ -100,6 +121,10 @@ Partial Class j
     End Function
 
     Private Sub qleaNewClick(ByVal sender As Object, ByVal e As EventArgs)
+        qleaNew(qleaStart())
+    End Sub
+
+    Private Function qleaNew(ByVal target As String) As Global.Lea.Win.V
         Dim tab As New TabPage("Lea")
         Dim host As New Global.Lea.Win.V()
         host.Dock = DockStyle.Fill
@@ -116,8 +141,10 @@ Partial Class j
         AddHandler closeItem.Click, Sub() qleaClose(tab)
         closeMenu.Items.Add(closeItem)
         host.ContextMenuStrip = closeMenu
-        If Visible Then qleaLoad(host, qleaStart()) Else host.Go(qleaStart())
-    End Sub
+        If String.IsNullOrWhiteSpace(target) Then target = qleaStart()
+        If Visible Then qleaLoad(host, target) Else host.Go(target)
+        Return host
+    End Function
 
     Private Function qleaStart() As String
         Dim localPage = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Lea", "start.html")
@@ -219,11 +246,147 @@ Partial Class j
         End If
     End Sub
 
+    Private Sub qleaCloseMenuClick(ByVal sender As Object, ByVal e As EventArgs)
+        If qleaAt() Is Nothing Then
+            h5(sender, e)
+            Return
+        End If
+        qleaClose(k.SelectedTab)
+    End Sub
+
+    Private Sub qleaTabMouseDown(ByVal sender As Object, ByVal e As MouseEventArgs)
+        If qleaAt() Is Nothing Then Return
+        If e.Button = MouseButtons.Middle Then
+            qleaClose(k.SelectedTab)
+            Return
+        End If
+        If e.Button <> MouseButtons.Left OrElse k.SelectedIndex < 0 Then Return
+        Dim tabRect = k.GetTabRect(k.SelectedIndex)
+        Dim closeRect As New RectangleF(tabRect.Left + tm, tabRect.Top + tm, tabRect.Width - 4 * tm, tabRect.Height - 4 * tm)
+        If e.X >= closeRect.Right - mx AndAlso e.X <= closeRect.Right AndAlso e.Y >= closeRect.Top AndAlso e.Y <= closeRect.Top + mx Then qleaClose(k.SelectedTab)
+    End Sub
+
+    Private Function qleaSourceText() As String
+        Dim host = qleaAt()
+        If host Is Nothing OrElse host.At Is Nothing Then Return ""
+        Return If(host.H, "")
+    End Function
+
+    Private Sub qleaSourceClick(ByVal sender As Object, ByVal e As EventArgs)
+        If qleaAt() Is Nothing Then
+            e9(sender, e)
+            Return
+        End If
+        Dim source = qleaSourceText()
+        If source.Length = 0 Then
+            su.Visible = True
+            su.Text = "No Lea page source to show"
+            Return
+        End If
+        F3.Show()
+        F3.RN.Text = source
+        su.Visible = True
+        su.Text = "Lea page source opened"
+    End Sub
+
+    Private Sub qleaSourceHover(ByVal sender As Object, ByVal e As EventArgs)
+        If qleaAt() Is Nothing Then
+            g1(sender, e)
+        ElseIf My.Settings.t = "e" Then
+            qleaSourceClick(sender, e)
+        End If
+    End Sub
+
+    Private Function qleaSessionPath() As String
+        Dim custom = Environment.GetEnvironmentVariable("LEA_FIRESPIDER_SESSION")
+        If Not String.IsNullOrWhiteSpace(custom) Then Return custom
+        Dim folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Firespider Internet")
+        Return Path.Combine(folder, "Lea.session")
+    End Function
+
+    Private Sub qleaSaveSession()
+        Dim sessionFile = qleaSessionPath()
+        If pv Then
+            If File.Exists(sessionFile) Then File.Delete(sessionFile)
+            Return
+        End If
+        Dim urls As New List(Of String)()
+        For Each tab As TabPage In k.TabPages
+            Dim host = qleaHost(tab)
+            If host IsNot Nothing AndAlso host.U IsNot Nothing Then urls.Add(host.U.AbsoluteUri)
+        Next
+        If urls.Count = 0 Then
+            If File.Exists(sessionFile) Then File.Delete(sessionFile)
+            Return
+        End If
+        Dim folder = System.IO.Path.GetDirectoryName(sessionFile)
+        If Not String.IsNullOrWhiteSpace(folder) Then Directory.CreateDirectory(folder)
+        File.WriteAllLines(sessionFile, urls.ToArray(), New System.Text.UTF8Encoding(False))
+    End Sub
+
+    Private Sub qleaRestoreSession()
+        If pv Then Return
+        Dim path = qleaSessionPath()
+        If Not File.Exists(path) Then Return
+        Dim restored = 0
+        For Each line In File.ReadAllLines(path)
+            If restored >= 12 Then Exit For
+            Dim target = If(line, "").Trim()
+            Dim address As Uri = Nothing
+            If Not Uri.TryCreate(target, UriKind.Absolute, address) Then Continue For
+            If address.Scheme <> Uri.UriSchemeHttp AndAlso address.Scheme <> Uri.UriSchemeHttps AndAlso address.Scheme <> Uri.UriSchemeFile Then Continue For
+            qleaNew(address.AbsoluteUri)
+            restored += 1
+        Next
+        If restored > 0 Then
+            su.Visible = True
+            su.Text = "Restored " & restored.ToString() & " Lea tab(s)"
+        End If
+    End Sub
+
+    Private Sub qleaClosing(ByVal sender As Object, ByVal e As FormClosingEventArgs)
+        Try
+            qleaSaveSession()
+            qfeatureclosing()
+            If pv = False Then
+                My.Settings.ls.Clear()
+                My.Settings.lcw.Clear()
+                For Each tab As TabPage In k.TabPages
+                    If tab.Controls.Count = 0 Then Continue For
+                    Dim browser = TryCast(tab.Controls(0), WebBrowser)
+                    If browser Is Nothing Then Continue For
+                    Dim savedUrl As String = qpersistedtaburl(tab, browser)
+                    If savedUrl <> "" Then
+                        My.Settings.ls.Add(savedUrl)
+                        My.Settings.lcw.Add(savedUrl)
+                    End If
+                Next
+            End If
+            If My.Settings.rws = "e" And FormBorderStyle <> FormBorderStyle.None Then
+                Dim savedBounds As Rectangle = If(WindowState = FormWindowState.Normal, Bounds, RestoreBounds)
+                My.Settings.wl = savedBounds.Left.ToString()
+                My.Settings.wt = savedBounds.Top.ToString()
+                My.Settings.ww = savedBounds.Width.ToString()
+                My.Settings.wh = savedBounds.Height.ToString()
+                My.Settings.ws = If(WindowState = FormWindowState.Maximized, "Maximized", "Normal")
+            End If
+            qclearonexit()
+            My.Settings.Save()
+        Catch ex As Exception
+            qlog(ex)
+        End Try
+    End Sub
+
     Private Sub qleaClose(ByVal tab As TabPage)
         If tab Is Nothing OrElse Not k.TabPages.Contains(tab) Then Return
+        If k.TabCount = 1 Then
+            Close()
+            Return
+        End If
         k.TabPages.Remove(tab)
         tab.Dispose()
         I = Math.Max(0, I - 1)
+        qleaTabChanged(k, EventArgs.Empty)
     End Sub
 
     Private Sub qleaBackClick(ByVal s As Object, ByVal e As EventArgs)
