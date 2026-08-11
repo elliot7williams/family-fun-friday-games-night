@@ -66,7 +66,7 @@ predictable rendering pass.
 - HTTP and HTTPS loading through a small request layer.
 - Redirects, response status, content type, content encoding, and character encoding.
 - GZip/Deflate response decompression.
-- Image loading for PNG, JPEG, GIF, and ICO where the platform supports them.
+- Image loading for PNG, JPEG, GIF, and ICO where the platform supports them. (Basic async image loading and bounded memory cache added.)
 - A small memory and disk cache with explicit size limits.
 - Basic cookies and a clear permission boundary for local files and scripts.
 

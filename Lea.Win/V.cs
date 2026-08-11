@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Lea.Engine;
@@ -12,7 +15,12 @@ namespace Lea.Win
     {
         private readonly E e = new E();
         private readonly List<Hit> hits = new List<Hit>();
+        private readonly WebClient picWeb = new WebClient();
+        private readonly Dictionary<string, Image> pics = new Dictionary<string, Image>(StringComparer.OrdinalIgnoreCase);
+        private readonly Queue<string> picOrder = new Queue<string>();
+        private const int PicLimit = 24;
         private int sy;
+        private bool picBusy;
 
         public event EventHandler Done;
         public event EventHandler Changed;
@@ -33,7 +41,7 @@ namespace Lea.Win
         public string H { get { return At == null ? "" : At.H; } }
         public bool CanBk { get { return e.CanBk; } }
         public bool CanFw { get { return e.CanFw; } }
-        public bool Busy { get { return e.Busy; } }
+        public bool Busy { get { return e.Busy || picBusy; } }
 
         public P Go(string input)
         {
@@ -61,6 +69,8 @@ namespace Lea.Win
                 var p = await e.GoA(input);
                 sy = 0;
                 OnChanged();
+                Invalidate();
+                await PicsA(p);
                 Invalidate();
                 if (Done != null) Done(this, EventArgs.Empty);
                 return p;
@@ -104,6 +114,8 @@ namespace Lea.Win
             sy = 0;
             OnChanged();
             Invalidate();
+            await PicsA(p);
+            Invalidate();
             if (Done != null) Done(this, EventArgs.Empty);
             return p;
         }
@@ -111,6 +123,7 @@ namespace Lea.Win
         public void St()
         {
             e.St();
+            picWeb.CancelAsync();
             Cursor = Cursors.Default;
         }
 
@@ -142,6 +155,12 @@ namespace Lea.Win
             {
                 foreach (var block in At.Bs)
                 {
+                    if (block.K == "img")
+                    {
+                        y += DrawPic(pe.Graphics, block, 20, y, width, pageColor, pageBackground) + 10;
+                        continue;
+                    }
+
                     var fontName = block.K == "pre" || block.K == "code" ? "Consolas" : Font.FontFamily.Name;
                     var fontSize = block.K == "h1" ? 18F : block.K == "h2" ? 15F : block.K == "h3" ? 12F : Font.Size;
                     if (block.S != null && block.S.Fs > 0) fontSize = block.S.Fs;
@@ -173,6 +192,81 @@ namespace Lea.Win
                     }
                 }
             }
+        }
+
+        private async Task PicsA(P page)
+        {
+            if (page == null) return;
+            picBusy = true;
+            try
+            {
+                foreach (var block in page.Bs)
+                {
+                    if (block.K != "img" || block.U == null) continue;
+                    var key = block.U.AbsoluteUri;
+                    if (pics.ContainsKey(key)) continue;
+                    Image image = null;
+                    try
+                    {
+                        byte[] data;
+                        if (block.U.IsFile)
+                        {
+                            var path = block.U.LocalPath;
+                            data = await Task.Factory.StartNew(delegate { return File.ReadAllBytes(path); });
+                        }
+                        else
+                        {
+                            picWeb.Headers[HttpRequestHeader.UserAgent] = "Lea/0.2";
+                            data = await picWeb.DownloadDataTaskAsync(block.U);
+                        }
+                        using (var stream = new MemoryStream(data))
+                        using (var loaded = Image.FromStream(stream)) image = new Bitmap(loaded);
+                    }
+                    catch
+                    {
+                        image = null;
+                    }
+                    StorePic(key, image);
+                }
+            }
+            finally
+            {
+                picBusy = false;
+            }
+        }
+
+        private void StorePic(string key, Image image)
+        {
+            pics[key] = image;
+            picOrder.Enqueue(key);
+            while (picOrder.Count > PicLimit)
+            {
+                var old = picOrder.Dequeue();
+                Image removed;
+                if (!pics.TryGetValue(old, out removed)) continue;
+                pics.Remove(old);
+                if (removed != null) removed.Dispose();
+            }
+        }
+
+        private int DrawPic(Graphics graphics, B block, int x, int y, int width, Color color, Color background)
+        {
+            Image image;
+            if (block.U != null && pics.TryGetValue(block.U.AbsoluteUri, out image) && image != null)
+            {
+                var scale = Math.Min(1F, Math.Min((float)width / image.Width, 360F / image.Height));
+                var drawWidth = Math.Max(1, (int)(image.Width * scale));
+                var drawHeight = Math.Max(1, (int)(image.Height * scale));
+                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                graphics.DrawImage(image, new Rectangle(x, y, drawWidth, drawHeight));
+                return drawHeight;
+            }
+
+            var height = 72;
+            using (var brush = new SolidBrush(Color.FromArgb(20, color))) graphics.FillRectangle(brush, x, y, width, height);
+            using (var pen = new Pen(Color.FromArgb(80, color))) graphics.DrawRectangle(pen, x, y, width - 1, height - 1);
+            TextRenderer.DrawText(graphics, block.X.Length == 0 ? "Image unavailable" : block.X, Font, new Rectangle(x + 8, y + 8, width - 16, height - 16), color, TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak);
+            return height;
         }
 
         protected override void OnMouseWheel(MouseEventArgs e)
@@ -224,6 +318,17 @@ namespace Lea.Win
         private void OnChanged()
         {
             if (Changed != null) Changed(this, EventArgs.Empty);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                picWeb.Dispose();
+                foreach (var image in pics.Values) if (image != null) image.Dispose();
+                pics.Clear();
+            }
+            base.Dispose(disposing);
         }
 
         private sealed class Hit

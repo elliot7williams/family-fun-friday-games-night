@@ -345,6 +345,13 @@ namespace Lea.Engine
                     page.Bs.Add(new B { K = kind, X = text.Length == 0 ? link.ToString() : text, U = link, S = style });
                 }
             }
+            else if (kind == "img")
+            {
+                Uri image;
+                var source = node.Av("src");
+                if (source.Length > 0 && Uri.TryCreate(baseUrl, source, out image))
+                    page.Bs.Add(new B { K = kind, X = node.Av("alt"), U = image, S = style });
+            }
             else if (kind == "h1" || kind == "h2" || kind == "h3" || kind == "p" || kind == "li" || kind == "pre" || kind == "code" || kind == "button")
             {
                 var text = Clean(NodeText(node));

@@ -4,6 +4,7 @@ This is the new Codex work area for continuing LeaForge.
 
 The full staged roadmap is in [ENGINE_PLAN.md](ENGINE_PLAN.md).
 Visual Studio embedding details are in [INTEGRATION.md](INTEGRATION.md).
+Weighted completion is tracked in [PROGRESS.md](PROGRESS.md).
 
 ## Goal
 
