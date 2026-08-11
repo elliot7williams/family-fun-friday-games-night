@@ -117,7 +117,9 @@ namespace Lea.Engine
             var body = Find(p.D, "body") ?? p.D;
             p.X = Clean(NodeText(body));
             p.N = Count(p.D);
-            Blocks(p, body, url);
+            var rules = Css(p.D);
+            p.S = Style(body, new S(), rules);
+            foreach (var child in body.C) Blocks(p, child, url, rules, p.S);
 
             return p;
         }
@@ -161,7 +163,6 @@ namespace Lea.Engine
                 }
 
                 var parent = stack[stack.Count - 1];
-                if (parent.K == "script" || parent.K == "style" || parent.K == "noscript") continue;
                 if (value.Length > 0) parent.C.Add(new N("#text") { X = WebUtility.HtmlDecode(value) });
             }
 
@@ -232,10 +233,107 @@ namespace Lea.Engine
             foreach (var child in node.C) AddText(child, text);
         }
 
-        private static void Blocks(P page, N node, Uri baseUrl)
+        private static List<R> Css(N root)
+        {
+            var rules = new List<R>();
+            var styles = new List<N>();
+            FindAll(root, "style", styles);
+            var order = 0;
+            foreach (var style in styles)
+            {
+                foreach (Match match in Regex.Matches(RawText(style), "(?<q>[^{}]+)\\{(?<v>[^{}]*)\\}", RegexOptions.Singleline))
+                {
+                    foreach (var selector in match.Groups["q"].Value.Split(','))
+                    {
+                        var query = selector.Trim();
+                        if (query.Length > 0) rules.Add(new R(query, match.Groups["v"].Value, Spec(query), order++));
+                    }
+                }
+            }
+            rules.Sort(delegate(R a, R b) { var byWeight = a.W.CompareTo(b.W); return byWeight != 0 ? byWeight : a.O.CompareTo(b.O); });
+            return rules;
+        }
+
+        private static void FindAll(N node, string kind, List<N> found)
+        {
+            if (node.K == kind) found.Add(node);
+            foreach (var child in node.C) FindAll(child, kind, found);
+        }
+
+        private static string RawText(N node)
+        {
+            var text = new StringBuilder();
+            RawText(node, text);
+            return text.ToString();
+        }
+
+        private static void RawText(N node, StringBuilder text)
+        {
+            if (node.K == "#text") { text.Append(node.X); return; }
+            foreach (var child in node.C) RawText(child, text);
+        }
+
+        private static int Spec(string selector)
+        {
+            var score = 0;
+            if (Regex.IsMatch(selector, "#[a-z0-9_-]+", RegexOptions.IgnoreCase)) score += 100;
+            score += Regex.Matches(selector, "\\.[a-z0-9_-]+", RegexOptions.IgnoreCase).Count * 10;
+            if (Regex.IsMatch(selector, "^[a-z][a-z0-9-]*", RegexOptions.IgnoreCase)) score++;
+            return score;
+        }
+
+        private static bool MatchCss(N node, string selector)
+        {
+            selector = selector.Trim();
+            if (selector.Contains(" ")) return false;
+            var match = Regex.Match(selector, "^(?<tag>[a-z][a-z0-9-]*)?(?<id>#[a-z0-9_-]+)?(?<classes>(?:\\.[a-z0-9_-]+)*)$", RegexOptions.IgnoreCase);
+            if (!match.Success) return false;
+            var tag = match.Groups["tag"].Value;
+            if (tag.Length > 0 && node.K != tag.ToLowerInvariant()) return false;
+            var id = match.Groups["id"].Value.TrimStart('#');
+            if (id.Length > 0 && !node.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase)) return false;
+
+            var classes = new HashSet<string>((node.Av("class") ?? "").Split(new char[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries), StringComparer.OrdinalIgnoreCase);
+            foreach (Match item in Regex.Matches(match.Groups["classes"].Value, "\\.([a-z0-9_-]+)", RegexOptions.IgnoreCase))
+                if (!classes.Contains(item.Groups[1].Value)) return false;
+            return true;
+        }
+
+        private static S Style(N node, S inherited, List<R> rules)
+        {
+            var style = inherited == null ? new S() : inherited.Inherit();
+            foreach (var rule in rules) if (MatchCss(node, rule.Q)) Decls(style, rule.V);
+            Decls(style, node.Av("style"));
+            return style;
+        }
+
+        private static void Decls(S style, string declarations)
+        {
+            foreach (var declaration in (declarations ?? "").Split(';'))
+            {
+                var split = declaration.IndexOf(':');
+                if (split < 1) continue;
+                var name = declaration.Substring(0, split).Trim().ToLowerInvariant();
+                var value = declaration.Substring(split + 1).Trim();
+                if (name == "color") style.F = value;
+                else if (name == "background" || name == "background-color") style.Bg = value;
+                else if (name == "font-weight") style.B = value.Equals("bold", StringComparison.OrdinalIgnoreCase) || value == "700" || value == "800" || value == "900";
+                else if (name == "display") style.D = value.ToLowerInvariant();
+                else if (name == "font-size")
+                {
+                    var size = Regex.Match(value, "(?<n>[0-9]{1,3})(?:px)?", RegexOptions.IgnoreCase);
+                    int number;
+                    if (size.Success && int.TryParse(size.Groups["n"].Value, out number) && number > 0 && number < 200) style.Fs = number;
+                }
+            }
+        }
+
+        private static void Blocks(P page, N node, Uri baseUrl, List<R> rules, S inherited)
         {
             if (node == null) return;
             var kind = node.K;
+            var style = Style(node, inherited, rules);
+            if (style.D == "none") return;
             if (kind == "a")
             {
                 Uri link;
@@ -244,16 +342,32 @@ namespace Lea.Engine
                 if (href.Length > 0 && Uri.TryCreate(baseUrl, href, out link))
                 {
                     page.Ls.Add(new Ln { U = link, T = text });
-                    page.Bs.Add(new B { K = kind, X = text.Length == 0 ? link.ToString() : text, U = link });
+                    page.Bs.Add(new B { K = kind, X = text.Length == 0 ? link.ToString() : text, U = link, S = style });
                 }
             }
             else if (kind == "h1" || kind == "h2" || kind == "h3" || kind == "p" || kind == "li" || kind == "pre" || kind == "code" || kind == "button")
             {
                 var text = Clean(NodeText(node));
-                if (text.Length > 0) page.Bs.Add(new B { K = kind, X = text });
+                if (text.Length > 0) page.Bs.Add(new B { K = kind, X = text, S = style });
             }
 
-            foreach (var child in node.C) Blocks(page, child, baseUrl);
+            foreach (var child in node.C) Blocks(page, child, baseUrl, rules, style);
+        }
+
+        private sealed class R
+        {
+            public readonly string Q;
+            public readonly string V;
+            public readonly int W;
+            public readonly int O;
+
+            public R(string query, string values, int weight, int order)
+            {
+                Q = query;
+                V = values;
+                W = weight;
+                O = order;
+            }
         }
 
         private static Uri ToUri(string input, Uri baseUrl)

@@ -18,6 +18,7 @@ namespace Lea.Engine
         public IList<Ln> Ls { get; private set; }
         public IList<B> Bs { get; private set; }
         public N D { get; internal set; }
+        public S S { get; internal set; }
         public int N { get; internal set; }
     }
 }

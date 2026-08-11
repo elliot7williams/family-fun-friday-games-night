@@ -1,0 +1,19 @@
+<!doctype html>
+<html>
+<head>
+  <title>Lea CSS Test</title>
+  <style>
+    body { background: #f0fff4; color: #111827; font-size: 13px; }
+    p { color: #b91c1c; font-size: 12px; }
+    .note { color: #1d4ed8; font-weight: bold; }
+    #target { color: #15803d; font-size: 18px; }
+    .gone { display: none; }
+  </style>
+</head>
+<body>
+  <h1>CSS Cascade</h1>
+  <p class="note">Class beats tag.</p>
+  <p id="target" class="note" style="color:#7e22ce;background:#f3e8ff">Inline beats id, id beats class.</p>
+  <p class="gone">This block must not render.</p>
+</body>
+</html>

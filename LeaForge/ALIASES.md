@@ -28,3 +28,6 @@ an active network request. The shorter synchronous forms remain useful for tests
 
 `P.D` is the document root. Each node uses `K` (kind), `X` (text), `A`
 (attributes), `C` (children), and `Av(name)` for a short attribute lookup.
+
+Computed style uses `S`: `F` is foreground color, `Bg` is background, `Fs` is
+font size, `B` is bold, and `D` is display behavior.

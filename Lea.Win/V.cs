@@ -124,35 +124,39 @@ namespace Lea.Win
                 return;
             }
 
+            var pageColor = CssColor(At.S == null ? "" : At.S.F, ForeColor);
+            var pageBackground = CssColor(At.S == null ? "" : At.S.Bg, BackColor);
+            pe.Graphics.Clear(pageBackground);
             var width = Math.Max(120, ClientSize.Width - 40);
             var y = 18 - sy;
             using (var titleFont = new Font(Font.FontFamily, 20F, FontStyle.Bold))
             {
-                y += Draw(pe.Graphics, At.T, titleFont, ForeColor, 20, y, width) + 14;
+                y += Draw(pe.Graphics, At.T, titleFont, pageColor, null, 20, y, width) + 14;
             }
 
             if (At.Bs.Count == 0)
             {
-                y += Draw(pe.Graphics, At.X, Font, ForeColor, 20, y, width) + 18;
+                y += Draw(pe.Graphics, At.X, Font, pageColor, null, 20, y, width) + 18;
             }
             else
             {
                 foreach (var block in At.Bs)
                 {
-                    Font blockFont = Font;
-                    Color blockColor = ForeColor;
-                    var ownFont = false;
-                    if (block.K == "h1") { blockFont = new Font(Font.FontFamily, 18F, FontStyle.Bold); ownFont = true; }
-                    else if (block.K == "h2") { blockFont = new Font(Font.FontFamily, 15F, FontStyle.Bold); ownFont = true; }
-                    else if (block.K == "h3") { blockFont = new Font(Font.FontFamily, 12F, FontStyle.Bold); ownFont = true; }
-                    else if (block.K == "pre" || block.K == "code") { blockFont = new Font("Consolas", 10F); ownFont = true; }
-                    else if (block.K == "a") { blockFont = new Font(Font, FontStyle.Underline); blockColor = Color.FromArgb(0, 102, 204); ownFont = true; }
+                    var fontName = block.K == "pre" || block.K == "code" ? "Consolas" : Font.FontFamily.Name;
+                    var fontSize = block.K == "h1" ? 18F : block.K == "h2" ? 15F : block.K == "h3" ? 12F : Font.Size;
+                    if (block.S != null && block.S.Fs > 0) fontSize = block.S.Fs;
+                    var fontStyle = block.K.StartsWith("h") || (block.S != null && block.S.B) ? FontStyle.Bold : FontStyle.Regular;
+                    if (block.K == "a") fontStyle |= FontStyle.Underline;
+                    var blockFont = new Font(fontName, fontSize, fontStyle);
+                    var blockColor = block.K == "a" ? Color.FromArgb(0, 102, 204) : pageColor;
+                    if (block.S != null) blockColor = CssColor(block.S.F, blockColor);
+                    Color? blockBackground = block.S != null && block.S.Bg.Length > 0 ? CssColor(block.S.Bg, pageBackground) : (Color?)null;
 
                     var text = block.K == "li" ? "- " + block.X : block.X;
-                    var h = Draw(pe.Graphics, text, blockFont, blockColor, 20, y, width);
+                    var h = Draw(pe.Graphics, text, blockFont, blockColor, blockBackground, 20, y, width);
                     if (block.U != null) hits.Add(new Hit(new Rectangle(20, y, width, h), block.U));
                     y += h + (block.K.StartsWith("h") ? 12 : 8);
-                    if (ownFont) blockFont.Dispose();
+                    blockFont.Dispose();
                 }
             }
 
@@ -163,7 +167,7 @@ namespace Lea.Win
                     foreach (var link in At.Ls)
                     {
                         var text = link.T.Length == 0 ? link.U.ToString() : link.T;
-                        var h = Draw(pe.Graphics, text, linkFont, Color.FromArgb(0, 102, 204), 20, y, width);
+                        var h = Draw(pe.Graphics, text, linkFont, Color.FromArgb(0, 102, 204), null, 20, y, width);
                         hits.Add(new Hit(new Rectangle(20, y, width, h), link.U));
                         y += h + 8;
                     }
@@ -197,11 +201,24 @@ namespace Lea.Win
             return null;
         }
 
-        private static int Draw(Graphics g, string text, Font font, Color color, int x, int y, int width)
+        private static int Draw(Graphics g, string text, Font font, Color color, Color? background, int x, int y, int width)
         {
             var size = TextRenderer.MeasureText(g, text ?? "", font, new Size(width, int.MaxValue), TextFormatFlags.WordBreak | TextFormatFlags.NoPadding);
-            TextRenderer.DrawText(g, text ?? "", font, new Rectangle(x, y, width, Math.Max(font.Height, size.Height)), color, TextFormatFlags.WordBreak | TextFormatFlags.NoPadding);
-            return Math.Max(font.Height, size.Height);
+            var height = Math.Max(font.Height, size.Height);
+            var rect = new Rectangle(x, y, width, height);
+            if (background.HasValue)
+            {
+                using (var brush = new SolidBrush(background.Value)) g.FillRectangle(brush, rect);
+            }
+            TextRenderer.DrawText(g, text ?? "", font, rect, color, TextFormatFlags.WordBreak | TextFormatFlags.NoPadding);
+            return height;
+        }
+
+        private static Color CssColor(string value, Color fallback)
+        {
+            if (String.IsNullOrWhiteSpace(value)) return fallback;
+            try { return ColorTranslator.FromHtml(value.Trim()); }
+            catch { return fallback; }
         }
 
         private void OnChanged()
