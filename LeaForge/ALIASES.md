@@ -31,3 +31,6 @@ an active network request. The shorter synchronous forms remain useful for tests
 
 Computed style uses `S`: `F` is foreground color, `Bg` is background, `Fs` is
 font size, `B` is bold, and `D` is display behavior.
+
+Box spacing stays compact: `Mt/Mr/Mb/Ml` are margins and `Pt/Pr/Pb/Pl` are
+padding. `N.Up` links a document node to its parent for descendant selectors.

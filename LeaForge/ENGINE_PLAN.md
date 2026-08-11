@@ -51,9 +51,9 @@ fs      font size
 
 ## 4. CSS and layout
 
-1. Add selectors for tag, class, id, descendant, and inline styles. (Tag, class, id, and inline are now supported; descendant remains.)
+1. Add selectors for tag, class, id, descendant, and inline styles. (First version complete.)
 2. Implement the cascade and inheritance with a small priority model. (First specificity/source-order cascade added.)
-3. Add colors, fonts, spacing, borders, width, height, display, and overflow. (Colors, font size/weight, backgrounds, and `display:none` started.)
+3. Add colors, fonts, spacing, borders, width, height, display, and overflow. (Colors, fonts, margins, padding, backgrounds, and `display:none` started.)
 4. Replace one-WinForms-control-per-node rendering with lightweight layout boxes.
 5. Paint text, backgrounds, borders, links, controls, and images onto one surface.
 6. Add scrolling and hit testing from layout boxes.

@@ -157,13 +157,14 @@ namespace Lea.Engine
                     if (tag == "li" || tag == "p") CloseOpen(stack, tag);
                     var node = new N(tag);
                     Attrs(node, open.Groups["attrs"].Value);
+                    node.Up = stack[stack.Count - 1];
                     stack[stack.Count - 1].C.Add(node);
                     if (!value.TrimEnd().EndsWith("/>") && !Void(tag)) stack.Add(node);
                     continue;
                 }
 
                 var parent = stack[stack.Count - 1];
-                if (value.Length > 0) parent.C.Add(new N("#text") { X = WebUtility.HtmlDecode(value) });
+                if (value.Length > 0) parent.C.Add(new N("#text") { X = WebUtility.HtmlDecode(value), Up = parent });
             }
 
             return root;
@@ -275,17 +276,28 @@ namespace Lea.Engine
 
         private static int Spec(string selector)
         {
-            var score = 0;
-            if (Regex.IsMatch(selector, "#[a-z0-9_-]+", RegexOptions.IgnoreCase)) score += 100;
+            var score = Regex.Matches(selector, "#[a-z0-9_-]+", RegexOptions.IgnoreCase).Count * 100;
             score += Regex.Matches(selector, "\\.[a-z0-9_-]+", RegexOptions.IgnoreCase).Count * 10;
-            if (Regex.IsMatch(selector, "^[a-z][a-z0-9-]*", RegexOptions.IgnoreCase)) score++;
+            score += Regex.Matches(selector, "(?:^|\\s)[a-z][a-z0-9-]*", RegexOptions.IgnoreCase).Count;
             return score;
         }
 
         private static bool MatchCss(N node, string selector)
         {
-            selector = selector.Trim();
-            if (selector.Contains(" ")) return false;
+            var parts = Regex.Split(selector.Trim(), "\\s+");
+            if (parts.Length == 0 || !MatchPart(node, parts[parts.Length - 1])) return false;
+            var parent = node.Up;
+            for (var i = parts.Length - 2; i >= 0; i--)
+            {
+                while (parent != null && !MatchPart(parent, parts[i])) parent = parent.Up;
+                if (parent == null) return false;
+                parent = parent.Up;
+            }
+            return true;
+        }
+
+        private static bool MatchPart(N node, string selector)
+        {
             var match = Regex.Match(selector, "^(?<tag>[a-z][a-z0-9-]*)?(?<id>#[a-z0-9_-]+)?(?<classes>(?:\\.[a-z0-9_-]+)*)$", RegexOptions.IgnoreCase);
             if (!match.Success) return false;
             var tag = match.Groups["tag"].Value;
@@ -319,6 +331,16 @@ namespace Lea.Engine
                 else if (name == "background" || name == "background-color") style.Bg = value;
                 else if (name == "font-weight") style.B = value.Equals("bold", StringComparison.OrdinalIgnoreCase) || value == "700" || value == "800" || value == "900";
                 else if (name == "display") style.D = value.ToLowerInvariant();
+                else if (name == "margin") Box(style, value, true);
+                else if (name == "padding") Box(style, value, false);
+                else if (name == "margin-top") style.Mt = Px(value);
+                else if (name == "margin-right") style.Mr = Px(value);
+                else if (name == "margin-bottom") style.Mb = Px(value);
+                else if (name == "margin-left") style.Ml = Px(value);
+                else if (name == "padding-top") style.Pt = Px(value);
+                else if (name == "padding-right") style.Pr = Px(value);
+                else if (name == "padding-bottom") style.Pb = Px(value);
+                else if (name == "padding-left") style.Pl = Px(value);
                 else if (name == "font-size")
                 {
                     var size = Regex.Match(value, "(?<n>[0-9]{1,3})(?:px)?", RegexOptions.IgnoreCase);
@@ -326,6 +348,26 @@ namespace Lea.Engine
                     if (size.Success && int.TryParse(size.Groups["n"].Value, out number) && number > 0 && number < 200) style.Fs = number;
                 }
             }
+        }
+
+        private static void Box(S style, string value, bool margin)
+        {
+            var parts = Regex.Split(value.Trim(), "\\s+");
+            if (parts.Length < 1 || parts.Length > 4) return;
+            var top = Px(parts[0]);
+            var right = parts.Length > 1 ? Px(parts[1]) : top;
+            var bottom = parts.Length > 2 ? Px(parts[2]) : top;
+            var left = parts.Length > 3 ? Px(parts[3]) : right;
+            if (parts.Length == 2) bottom = top;
+            if (margin) { style.Mt = top; style.Mr = right; style.Mb = bottom; style.Ml = left; }
+            else { style.Pt = top; style.Pr = right; style.Pb = bottom; style.Pl = left; }
+        }
+
+        private static int Px(string value)
+        {
+            var match = Regex.Match(value ?? "", "^(?<n>[0-9]{1,4})(?:px)?$", RegexOptions.IgnoreCase);
+            int number;
+            return match.Success && int.TryParse(match.Groups["n"].Value, out number) ? Math.Min(number, 2000) : 0;
         }
 
         private static void Blocks(P page, N node, Uri baseUrl, List<R> rules, S inherited)

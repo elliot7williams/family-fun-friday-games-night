@@ -140,24 +140,30 @@ namespace Lea.Win
             var pageColor = CssColor(At.S == null ? "" : At.S.F, ForeColor);
             var pageBackground = CssColor(At.S == null ? "" : At.S.Bg, BackColor);
             pe.Graphics.Clear(pageBackground);
-            var width = Math.Max(120, ClientSize.Width - 40);
-            var y = 18 - sy;
+            var pageLeft = At.S == null ? 0 : At.S.Ml + At.S.Pl;
+            var pageRight = At.S == null ? 0 : At.S.Mr + At.S.Pr;
+            var x = 20 + pageLeft;
+            var width = Math.Max(120, ClientSize.Width - x - 20 - pageRight);
+            var y = 18 - sy + (At.S == null ? 0 : At.S.Mt + At.S.Pt);
             using (var titleFont = new Font(Font.FontFamily, 20F, FontStyle.Bold))
             {
-                y += Draw(pe.Graphics, At.T, titleFont, pageColor, null, 20, y, width) + 14;
+                y += Draw(pe.Graphics, At.T, titleFont, pageColor, null, x, y, width) + 14;
             }
 
             if (At.Bs.Count == 0)
             {
-                y += Draw(pe.Graphics, At.X, Font, pageColor, null, 20, y, width) + 18;
+                y += Draw(pe.Graphics, At.X, Font, pageColor, null, x, y, width) + 18;
             }
             else
             {
                 foreach (var block in At.Bs)
                 {
+                    var blockX = x + (block.S == null ? 0 : block.S.Ml + block.S.Pl);
+                    var blockWidth = Math.Max(40, width - (block.S == null ? 0 : block.S.Ml + block.S.Mr + block.S.Pl + block.S.Pr));
+                    y += block.S == null ? 0 : block.S.Mt + block.S.Pt;
                     if (block.K == "img")
                     {
-                        y += DrawPic(pe.Graphics, block, 20, y, width, pageColor, pageBackground) + 10;
+                        y += DrawPic(pe.Graphics, block, blockX, y, blockWidth, pageColor, pageBackground) + 10 + (block.S == null ? 0 : block.S.Pb + block.S.Mb);
                         continue;
                     }
 
@@ -172,9 +178,9 @@ namespace Lea.Win
                     Color? blockBackground = block.S != null && block.S.Bg.Length > 0 ? CssColor(block.S.Bg, pageBackground) : (Color?)null;
 
                     var text = block.K == "li" ? "- " + block.X : block.X;
-                    var h = Draw(pe.Graphics, text, blockFont, blockColor, blockBackground, 20, y, width);
-                    if (block.U != null) hits.Add(new Hit(new Rectangle(20, y, width, h), block.U));
-                    y += h + (block.K.StartsWith("h") ? 12 : 8);
+                    var h = Draw(pe.Graphics, text, blockFont, blockColor, blockBackground, blockX, y, blockWidth);
+                    if (block.U != null) hits.Add(new Hit(new Rectangle(blockX, y, blockWidth, h), block.U));
+                    y += h + (block.K.StartsWith("h") ? 12 : 8) + (block.S == null ? 0 : block.S.Pb + block.S.Mb);
                     blockFont.Dispose();
                 }
             }
@@ -186,8 +192,8 @@ namespace Lea.Win
                     foreach (var link in At.Ls)
                     {
                         var text = link.T.Length == 0 ? link.U.ToString() : link.T;
-                        var h = Draw(pe.Graphics, text, linkFont, Color.FromArgb(0, 102, 204), null, 20, y, width);
-                        hits.Add(new Hit(new Rectangle(20, y, width, h), link.U));
+                        var h = Draw(pe.Graphics, text, linkFont, Color.FromArgb(0, 102, 204), null, x, y, width);
+                        hits.Add(new Hit(new Rectangle(x, y, width, h), link.U));
                         y += h + 8;
                     }
                 }
