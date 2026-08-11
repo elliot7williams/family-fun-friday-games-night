@@ -17,13 +17,12 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-1. Add CSS borders, width, and height to the cached layout boxes.
-2. Add response metadata, decompression, and bounded page caching.
-3. Expand the Firespider adapter to tab closing, sessions, and source viewing.
-4. Add select controls and supported POST form submission.
-5. Add a small JavaScript interpreter layer or bridge.
-6. Add downloads and find-in-page.
-7. Add a developer tools panel for parsed nodes, CSS rules, network events, and console messages.
+1. Add response metadata, decompression, and bounded page caching.
+2. Expand the Firespider adapter to tab closing, sessions, and source viewing.
+3. Add select controls and supported POST form submission.
+4. Add a small JavaScript interpreter layer or bridge.
+5. Add downloads and find-in-page.
+6. Add a developer tools panel for parsed nodes, CSS rules, network events, and console messages.
 
 ## Rules For Future Codex Work
 

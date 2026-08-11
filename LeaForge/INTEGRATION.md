@@ -49,7 +49,8 @@ should use that tree instead of expecting the legacy COM `HtmlDocument` object.
 
 The `V` host control now performs cached layout and bounded scrolling. Firespider
 can read `Dh`, `Sy`, and `Bc`, and can call `Sc(delta)` without depending on
-WinForms mouse-wheel internals.
+WinForms mouse-wheel internals. `Rb(index)` and `Rc(index)` expose deterministic
+outer-border and content rectangles for layout tests and host diagnostics.
 
 Basic fields are exposed through `P.Fs`. The view paints inactive controls on
 the Lea surface, reuses one editor for focused text, and provides `Rs`, `Sm`,
@@ -67,7 +68,9 @@ original handlers for legacy tabs.
 Firespider imports one `Lea/FirespiderLea.targets` file. The import supplies the
 two DLL references, partial VB adapter, and bundled local start page. Debug and
 Release builds pass `Smoke.cs`, which verifies tab creation, start-page loading,
-and host Back-button routing without loading another browser engine.
+host Back-button routing, and timer status updates without loading another
+browser engine. The adapter removes the legacy timer handler's unconditional
+`WebBrowser` cast and delegates by active tab type.
 
 ## Integration rules
 

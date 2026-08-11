@@ -4,7 +4,8 @@
 Firespider host. It adds **File > New Lea Tab** (`Ctrl+Alt+L`) and routes the
 existing back, forward, home, go, search, reload, and stop controls to Lea only
 while a Lea tab is selected. Legacy tabs delegate to Firespider's original
-handlers.
+handlers. Its timer status handler is also routed safely so it never casts a
+Lea view to the legacy `WebBrowser` type.
 
 The host project imports `Lea/FirespiderLea.targets`, which adds the two DLL
 references, compiles `FirespiderLea.vb`, and copies `start.html` to the output

@@ -53,9 +53,9 @@ fs      font size
 
 1. Add selectors for tag, class, id, descendant, and inline styles. (First version complete.)
 2. Implement the cascade and inheritance with a small priority model. (First specificity/source-order cascade added.)
-3. Add colors, fonts, spacing, borders, width, height, display, and overflow. (Colors, fonts, margins, padding, backgrounds, and `display:none` started.)
+3. Add colors, fonts, spacing, borders, width, height, display, and overflow. (Colors, fonts, margins, padding, backgrounds, `display:none`, borders, and pixel width/height are active.)
 4. Replace one-WinForms-control-per-node rendering with lightweight layout boxes. (Reusable `Bx` layout pass added.)
-5. Paint text, backgrounds, borders, links, controls, and images onto one surface. (Text, backgrounds, links, images, and basic form controls active; borders remain.)
+5. Paint text, backgrounds, borders, links, controls, and images onto one surface. (Text, backgrounds, solid/dashed/dotted borders, links, images, and basic form controls are active.)
 6. Add scrolling and hit testing from layout boxes. (Visible-box painting and bounded vertical scrolling added.)
 
 This is the largest speed milestone: fewer controls, less UI overhead, and one
@@ -193,7 +193,7 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add CSS borders, width, and height to Lea's cached layout boxes. The experimental
-Firespider adapter now provides a real Lea-backed tab while preserving legacy
-tabs, and its host smoke test protects menu creation, page loading, and Back
-navigation through Firespider's existing controls.
+Add response metadata, decompression, and a bounded page cache. Lea's cached
+layout boxes now support pixel width/height and per-side solid, dashed, or dotted
+borders. The experimental Firespider adapter preserves legacy tabs and safely
+routes status timer ticks for both legacy `WebBrowser` and Lea-backed tabs.

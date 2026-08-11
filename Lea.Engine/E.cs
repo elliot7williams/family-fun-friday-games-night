@@ -354,6 +354,20 @@ namespace Lea.Engine
                 else if (name == "padding-right") style.Pr = Px(value);
                 else if (name == "padding-bottom") style.Pb = Px(value);
                 else if (name == "padding-left") style.Pl = Px(value);
+                else if (name == "width") style.W = Px(value);
+                else if (name == "height") style.H = Px(value);
+                else if (name == "border") Border(style, value, 0);
+                else if (name == "border-top") Border(style, value, 1);
+                else if (name == "border-right") Border(style, value, 2);
+                else if (name == "border-bottom") Border(style, value, 3);
+                else if (name == "border-left") Border(style, value, 4);
+                else if (name == "border-width") BorderWidths(style, value);
+                else if (name == "border-top-width") style.Bt = Px(value);
+                else if (name == "border-right-width") style.Br = Px(value);
+                else if (name == "border-bottom-width") style.Bb = Px(value);
+                else if (name == "border-left-width") style.Bl = Px(value);
+                else if (name == "border-color") style.Bc = value;
+                else if (name == "border-style") style.Bs = value.ToLowerInvariant();
                 else if (name == "font-size")
                 {
                     var size = Regex.Match(value, "(?<n>[0-9]{1,3})(?:px)?", RegexOptions.IgnoreCase);
@@ -381,6 +395,58 @@ namespace Lea.Engine
             var match = Regex.Match(value ?? "", "^(?<n>[0-9]{1,4})(?:px)?$", RegexOptions.IgnoreCase);
             int number;
             return match.Success && int.TryParse(match.Groups["n"].Value, out number) ? Math.Min(number, 2000) : 0;
+        }
+
+        private static void Border(S style, string value, int side)
+        {
+            var width = -1;
+            var borderStyle = "";
+            var color = "";
+            foreach (var token in Regex.Split((value ?? "").Trim(), "\\s+"))
+            {
+                var lower = token.ToLowerInvariant();
+                var size = BorderPx(lower);
+                if (size >= 0) width = size;
+                else if (lower == "none" || lower == "hidden" || lower == "solid" || lower == "dashed" || lower == "dotted" || lower == "double") borderStyle = lower;
+                else if (token.Length > 0) color = token;
+            }
+            if (width < 0 && borderStyle.Length > 0 && borderStyle != "none" && borderStyle != "hidden") width = 3;
+            if (width >= 0) SetBorder(style, side, width);
+            if (borderStyle.Length > 0) style.Bs = borderStyle;
+            if (color.Length > 0) style.Bc = color;
+        }
+
+        private static void BorderWidths(S style, string value)
+        {
+            var parts = Regex.Split((value ?? "").Trim(), "\\s+");
+            if (parts.Length < 1 || parts.Length > 4) return;
+            var top = Math.Max(0, BorderPx(parts[0]));
+            var right = parts.Length > 1 ? Math.Max(0, BorderPx(parts[1])) : top;
+            var bottom = parts.Length > 2 ? Math.Max(0, BorderPx(parts[2])) : top;
+            var left = parts.Length > 3 ? Math.Max(0, BorderPx(parts[3])) : right;
+            if (parts.Length == 2) bottom = top;
+            style.Bt = top;
+            style.Br = right;
+            style.Bb = bottom;
+            style.Bl = left;
+        }
+
+        private static int BorderPx(string value)
+        {
+            if (value == "thin") return 1;
+            if (value == "medium") return 3;
+            if (value == "thick") return 5;
+            var match = Regex.Match(value ?? "", "^(?<n>[0-9]{1,3})(?:px)?$", RegexOptions.IgnoreCase);
+            int number;
+            return match.Success && int.TryParse(match.Groups["n"].Value, out number) ? Math.Min(number, 100) : -1;
+        }
+
+        private static void SetBorder(S style, int side, int width)
+        {
+            if (side == 0 || side == 1) style.Bt = width;
+            if (side == 0 || side == 2) style.Br = width;
+            if (side == 0 || side == 3) style.Bb = width;
+            if (side == 0 || side == 4) style.Bl = width;
         }
 
         private static void Blocks(P page, N node, Uri baseUrl, List<R> rules, S inherited)

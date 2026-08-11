@@ -161,7 +161,9 @@ Phase A now has a working opt-in path. `Lea.Firespider/FirespiderLea.vb` adds a
 New Lea Tab command and routes Firespider's primary navigation controls through
 `Lea.Win.V` only for that tab. Legacy tabs retain their original handlers. The
 adapter is included through one reversible MSBuild import and passes Debug and
-Release host smoke tests.
+Release host smoke tests. It also replaces the status timer's unconditional
+`WebBrowser` cast with type-aware routing, so selecting a Lea tab cannot trigger
+an `InvalidCastException` on `Timer.Tick`.
 
 The next integration expansion is tab closing through Firespider's own close
 button, session persistence, source viewing, and more capability-aware commands.

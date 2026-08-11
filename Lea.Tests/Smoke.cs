@@ -58,6 +58,28 @@ namespace Lea.Tests
                     Check(view, root, "css.html", 3, 4);
                     Check(view, root, "images.html", 5, 6);
                     Check(view, root, "layout.html", 3, 4);
+                    var boxes = Path.Combine(root, "LeaForge", "test-pages", "boxes.html");
+                    var boxPage = engine.Go(boxes);
+                    Eq(4, boxPage.Bs.Count, "box-model blocks");
+                    Eq(280, boxPage.Bs[1].S.W, "CSS width");
+                    Eq(4, boxPage.Bs[1].S.Bt, "border shorthand width");
+                    Eq("solid", boxPage.Bs[1].S.Bs, "border shorthand style");
+                    Eq("#18734b", boxPage.Bs[1].S.Bc, "border shorthand color");
+                    Eq(360, boxPage.Bs[2].S.W, "fixed width");
+                    Eq(54, boxPage.Bs[2].S.H, "fixed height");
+                    Eq(5, boxPage.Bs[3].S.Bt, "top border width");
+                    Eq(2, boxPage.Bs[3].S.Br, "right border width");
+                    Eq(3, boxPage.Bs[3].S.Bb, "bottom border width");
+                    Eq(1, boxPage.Bs[3].S.Bl, "left border width");
+                    view.Go(boxes);
+                    Paint(view);
+                    Eq(5, view.Bc, "box-model boxes");
+                    Eq(280, view.Rc(2).Width, "solid content width");
+                    Eq(308, view.Rb(2).Width, "solid border-box width");
+                    Eq(54, view.Rc(3).Height, "fixed content height");
+                    Eq(76, view.Rb(3).Height, "fixed border-box height");
+                    Eq(320, view.Rc(4).Width, "sided content width");
+                    Eq(347, view.Rb(4).Width, "sided border-box width");
                     view.Go(Path.Combine(root, "LeaForge", "test-pages", "scroll.html"));
                     Paint(view);
                     Eq(16, view.Bc, "scroll boxes");
@@ -65,7 +87,7 @@ namespace Lea.Tests
                     Eq(Math.Max(0, view.Dh - view.Height), view.Sy, "bounded scroll");
                 }
 
-                Console.WriteLine("Lea smoke passed: forms, sync/async GET, CSS, images, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: forms, GET, CSS boxes, images, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)

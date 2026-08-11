@@ -16,12 +16,22 @@ namespace Lea.Engine
         public int Pr { get; internal set; }
         public int Pb { get; internal set; }
         public int Pl { get; internal set; }
+        public int W { get; internal set; }
+        public int H { get; internal set; }
+        public int Bt { get; internal set; }
+        public int Br { get; internal set; }
+        public int Bb { get; internal set; }
+        public int Bl { get; internal set; }
+        public string Bc { get; internal set; }
+        public string Bs { get; internal set; }
 
         internal S()
         {
             F = "";
             Bg = "";
             D = "";
+            Bc = "";
+            Bs = "";
         }
 
         internal S Inherit()

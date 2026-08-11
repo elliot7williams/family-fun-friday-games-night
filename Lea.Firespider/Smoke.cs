@@ -38,6 +38,10 @@ namespace Lea.Firespider
 
                     Check(host != null, "Lea view in selected tab");
                     Check(host.At != null && host.T == "Lea in Firespider", "bundled Lea start page");
+                    var timer = Member<Timer>(form, "t");
+                    var tick = typeof(Timer).GetMethod("OnTick", BindingFlags.Instance | BindingFlags.NonPublic);
+                    Check(tick != null, "Firespider timer tick");
+                    tick.Invoke(timer, new object[] { EventArgs.Empty });
                     var start = Path.Combine(root, "Lea", "start.html");
                     host.Go(start);
                     Check(host.CanBk, "Lea history before host Back");
@@ -45,7 +49,7 @@ namespace Lea.Firespider
                     Check(host.CanFw, "Firespider Back routed to Lea");
                 }
 
-                Console.WriteLine("Firespider Lea smoke passed: menu, tab, start page, and host navigation.");
+                Console.WriteLine("Firespider Lea smoke passed: menu, tab, timer, start page, and host navigation.");
                 return 0;
             }
             catch (Exception error)

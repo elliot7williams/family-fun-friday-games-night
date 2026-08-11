@@ -66,6 +66,8 @@ namespace Lea.Win
         public int Dh { get { return docHeight; } }
         public int Sy { get { return sy; } }
         public int Bc { get { return boxes.Count; } }
+        public Rectangle Rb(int index) { return index < 0 || index >= boxes.Count ? Rectangle.Empty : boxes[index].R; }
+        public Rectangle Rc(int index) { return index < 0 || index >= boxes.Count ? Rectangle.Empty : boxes[index].C; }
 
         public P Go(string input)
         {
@@ -179,15 +181,18 @@ namespace Lea.Win
             {
                 var rect = box.R;
                 rect.Offset(0, -sy);
+                var content = box.C;
+                content.Offset(0, -sy);
                 if (rect.Bottom < 0 || rect.Top > ClientSize.Height) continue;
+                if (!box.Title) PaintBox(pe.Graphics, rect, box.S, pageBackground, pageColor);
                 if (box.K == "img")
                 {
-                    PaintPic(pe.Graphics, box, rect, pageColor);
+                    PaintPic(pe.Graphics, box, content, pageColor);
                     continue;
                 }
                 if (box.B != null && box.B.I != null)
                 {
-                    PaintField(pe.Graphics, box, rect, pageColor);
+                    PaintField(pe.Graphics, box, content, pageColor);
                     hits.Add(new Hit(rect, null, box));
                     continue;
                 }
@@ -196,11 +201,7 @@ namespace Lea.Win
                 {
                     var color = box.K == "a" ? Color.FromArgb(0, 102, 204) : pageColor;
                     if (box.S != null) color = CssColor(box.S.F, color);
-                    if (box.S != null && box.S.Bg.Length > 0)
-                    {
-                        using (var brush = new SolidBrush(CssColor(box.S.Bg, pageBackground))) pe.Graphics.FillRectangle(brush, rect);
-                    }
-                    TextRenderer.DrawText(pe.Graphics, box.X, font, rect, color, TextFormatFlags.WordBreak | TextFormatFlags.NoPadding);
+                    TextRenderer.DrawText(pe.Graphics, box.X, font, content, color, TextFormatFlags.WordBreak | TextFormatFlags.NoPadding);
                 }
 
                 if (box.U != null) hits.Add(new Hit(rect, box.U, null));
@@ -212,11 +213,12 @@ namespace Lea.Win
             boxes.Clear();
             if (At == null) return;
             var style = At.S;
-            var left = style == null ? 0 : style.Ml + style.Pl;
-            var right = style == null ? 0 : style.Mr + style.Pr;
+            var left = style == null ? 0 : style.Ml + style.Pl + BorderWidth(style, style.Bl);
+            var right = style == null ? 0 : style.Mr + style.Pr + BorderWidth(style, style.Br);
             var x = 20 + left;
             var width = Math.Max(120, ClientSize.Width - x - 20 - right);
-            var y = 18 + (style == null ? 0 : style.Mt + style.Pt);
+            if (style != null && style.W > 0) width = Math.Min(width, style.W);
+            var y = 18 + (style == null ? 0 : style.Mt + style.Pt + BorderWidth(style, style.Bt));
 
             using (var titleFont = BoxFont("#title", style, true))
             {
@@ -239,9 +241,21 @@ namespace Lea.Win
                 foreach (var block in At.Bs)
                 {
                     var bs = block.S;
-                    y += bs == null ? 0 : bs.Mt + bs.Pt;
-                    var bx = x + (bs == null ? 0 : bs.Ml + bs.Pl);
-                    var bw = Math.Max(40, width - (bs == null ? 0 : bs.Ml + bs.Mr + bs.Pl + bs.Pr));
+                    var bt = bs == null ? 0 : BorderWidth(bs, bs.Bt);
+                    var br = bs == null ? 0 : BorderWidth(bs, bs.Br);
+                    var bb = bs == null ? 0 : BorderWidth(bs, bs.Bb);
+                    var bl = bs == null ? 0 : BorderWidth(bs, bs.Bl);
+                    var pt = bs == null ? 0 : bs.Pt;
+                    var pr = bs == null ? 0 : bs.Pr;
+                    var pb = bs == null ? 0 : bs.Pb;
+                    var pl = bs == null ? 0 : bs.Pl;
+                    var ml = bs == null ? 0 : bs.Ml;
+                    var mr = bs == null ? 0 : bs.Mr;
+                    y += bs == null ? 0 : bs.Mt;
+                    var bx = x + ml;
+                    var outerAvailable = Math.Max(40, width - ml - mr);
+                    var bw = Math.Max(1, outerAvailable - bl - br - pl - pr);
+                    if (bs != null && bs.W > 0) bw = Math.Min(bw, bs.W);
                     int height;
                     if (block.K == "img") height = PicSize(block, bw).Height;
                     else if (block.I != null)
@@ -252,7 +266,7 @@ namespace Lea.Win
                             if (block.K == "button")
                             {
                                 var buttonWidth = TextRenderer.MeasureText(graphics, block.X, font, Size.Empty, TextFormatFlags.NoPadding).Width + 28;
-                                bw = Math.Min(bw, Math.Max(88, buttonWidth));
+                                if (bs == null || bs.W == 0) bw = Math.Min(bw, Math.Max(88, buttonWidth));
                             }
                         }
                     }
@@ -260,14 +274,18 @@ namespace Lea.Win
                     {
                         using (var font = BoxFont(block.K, bs, false)) height = Measure(graphics, block.K == "li" ? "- " + block.X : block.X, font, bw);
                     }
+                    if (bs != null && bs.H > 0) height = bs.H;
                     var text = block.K == "li" ? "- " + block.X : block.X;
                     var link = block.K == "a" ? block.U : null;
-                    boxes.Add(new Bx(block.K, text, link, bs, new Rectangle(bx, y, bw, height), false, block));
-                    y += height + (block.K.StartsWith("h") ? 12 : 8) + (bs == null ? 0 : bs.Pb + bs.Mb);
+                    var outer = new Rectangle(bx, y, bw + pl + pr + bl + br, height + pt + pb + bt + bb);
+                    var content = new Rectangle(bx + bl + pl, y + bt + pt, bw, height);
+                    boxes.Add(new Bx(block.K, text, link, bs, outer, content, false, block));
+                    y += outer.Height + (block.K.StartsWith("h") ? 12 : 8) + (bs == null ? 0 : bs.Mb);
                 }
             }
 
-            docHeight = y + 20 + (style == null ? 0 : style.Pb + style.Mb);
+            docHeight = y + 20 + (style == null ? 0 : style.Pb + BorderWidth(style, style.Bb) + style.Mb);
+            if (style != null && style.H > 0) docHeight = Math.Max(docHeight, 18 + style.Mt + style.H + style.Pt + style.Pb + BorderWidth(style, style.Bt) + BorderWidth(style, style.Bb) + style.Mb);
             layoutWidth = ClientSize.Width;
             layoutDirty = false;
             sy = Math.Min(sy, MaxScroll());
@@ -277,6 +295,11 @@ namespace Lea.Win
         {
             var size = TextRenderer.MeasureText(graphics, text ?? "", font, new Size(width, int.MaxValue), TextFormatFlags.WordBreak | TextFormatFlags.NoPadding);
             return Math.Max(font.Height, size.Height);
+        }
+
+        private static int BorderWidth(S style, int width)
+        {
+            return style == null || style.Bs == "" || style.Bs == "none" || style.Bs == "hidden" ? 0 : width;
         }
 
         private Font BoxFont(string kind, S style, bool title)
@@ -298,6 +321,48 @@ namespace Lea.Win
                 return new Size(Math.Max(1, (int)(image.Width * scale)), Math.Max(1, (int)(image.Height * scale)));
             }
             return new Size(width, 72);
+        }
+
+        private static void PaintBox(Graphics graphics, Rectangle rect, S style, Color pageBackground, Color pageColor)
+        {
+            if (style == null) return;
+            if (style.Bg.Length > 0)
+                using (var brush = new SolidBrush(CssColor(style.Bg, pageBackground))) graphics.FillRectangle(brush, rect);
+
+            var top = BorderWidth(style, style.Bt);
+            var right = BorderWidth(style, style.Br);
+            var bottom = BorderWidth(style, style.Bb);
+            var left = BorderWidth(style, style.Bl);
+            if (top + right + bottom + left == 0) return;
+            var color = CssColor(style.Bc, CssColor(style.F, pageColor));
+            PaintBorder(graphics, rect, top, 0, color, style.Bs);
+            PaintBorder(graphics, rect, right, 1, color, style.Bs);
+            PaintBorder(graphics, rect, bottom, 2, color, style.Bs);
+            PaintBorder(graphics, rect, left, 3, color, style.Bs);
+        }
+
+        private static void PaintBorder(Graphics graphics, Rectangle rect, int width, int side, Color color, string style)
+        {
+            if (width < 1) return;
+            if (style == "dashed" || style == "dotted")
+            {
+                using (var pen = new Pen(color, width))
+                {
+                    pen.DashStyle = style == "dashed" ? DashStyle.Dash : DashStyle.Dot;
+                    if (side == 0) graphics.DrawLine(pen, rect.Left, rect.Top + width / 2, rect.Right, rect.Top + width / 2);
+                    else if (side == 1) graphics.DrawLine(pen, rect.Right - width / 2 - 1, rect.Top, rect.Right - width / 2 - 1, rect.Bottom);
+                    else if (side == 2) graphics.DrawLine(pen, rect.Left, rect.Bottom - width / 2 - 1, rect.Right, rect.Bottom - width / 2 - 1);
+                    else graphics.DrawLine(pen, rect.Left + width / 2, rect.Top, rect.Left + width / 2, rect.Bottom);
+                }
+                return;
+            }
+
+            Rectangle border;
+            if (side == 0) border = new Rectangle(rect.Left, rect.Top, rect.Width, width);
+            else if (side == 1) border = new Rectangle(rect.Right - width, rect.Top, width, rect.Height);
+            else if (side == 2) border = new Rectangle(rect.Left, rect.Bottom - width, rect.Width, width);
+            else border = new Rectangle(rect.Left, rect.Top, width, rect.Height);
+            using (var brush = new SolidBrush(color)) graphics.FillRectangle(brush, border);
         }
 
         private void PaintPic(Graphics graphics, Bx box, Rectangle rect, Color color)
@@ -547,7 +612,7 @@ namespace Lea.Win
             foreach (var box in boxes)
             {
                 if (box.B == null || box.B.I != edit) continue;
-                var rect = box.R;
+                var rect = box.C;
                 rect.Offset(0, -sy);
                 if (rect.Bottom <= 0 || rect.Top >= ClientSize.Height)
                 {
@@ -649,16 +714,23 @@ namespace Lea.Win
             public readonly Uri U;
             public readonly S S;
             public readonly Rectangle R;
+            public readonly Rectangle C;
             public readonly bool Title;
             public readonly B B;
 
             public Bx(string kind, string text, Uri url, S style, Rectangle rect, bool title, B block = null)
+                : this(kind, text, url, style, rect, rect, title, block)
+            {
+            }
+
+            public Bx(string kind, string text, Uri url, S style, Rectangle rect, Rectangle content, bool title, B block = null)
             {
                 K = kind;
                 X = text ?? "";
                 U = url;
                 S = style;
                 R = rect;
+                C = content;
                 Title = title;
                 B = block;
             }

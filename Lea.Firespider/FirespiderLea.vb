@@ -38,6 +38,7 @@ Partial Class j
         RemoveHandler re.MouseHover, AddressOf i4
         RemoveHandler st.Click, AddressOf i5
         RemoveHandler st.MouseHover, AddressOf i6
+        RemoveHandler t.Tick, AddressOf tk
 
         AddHandler b.Click, AddressOf qleaBackClick
         AddHandler b.MouseHover, AddressOf qleaBackHover
@@ -61,6 +62,7 @@ Partial Class j
         AddHandler re.MouseHover, AddressOf qleaReloadMenuHover
         AddHandler st.Click, AddressOf qleaStopClick
         AddHandler st.MouseHover, AddressOf qleaStopHover
+        AddHandler t.Tick, AddressOf qleaTick
     End Sub
 
     Private Function qleaAt() As Global.Lea.Win.V
@@ -205,6 +207,16 @@ Partial Class j
         BT.Enabled = browser.CanGoBack
         f.Enabled = browser.CanGoForward
         FT.Enabled = browser.CanGoForward
+    End Sub
+
+    Private Sub qleaTick(ByVal sender As Object, ByVal e As EventArgs)
+        Dim host = qleaAt()
+        If host Is Nothing Then
+            tk(sender, e)
+        Else
+            su.Text = If(host.Busy, "Lea loading", "Lea ready")
+            qleaState(host)
+        End If
     End Sub
 
     Private Sub qleaClose(ByVal tab As TabPage)
