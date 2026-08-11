@@ -7,7 +7,7 @@ read and quick to write.
 
 - Core objects use one letter: `L` is the entry point, `E` is the engine, `P` is a page.
 - Actions use two or three letters: `Go`, `GoA`, `Bk`, `Fw`, `Rl`, `RlA`, `St`, and `At`.
-- Page values use one or two letters: `U`, `T`, `H`, `N`, and `Ls`.
+- Page values use one or two letters: `U`, `T`, `H`, `D`, `N`, `Bs`, and `Ls`.
 - Page commands use one or two letters: `t`, `a`, `bg`, `fg`, and `fs`.
 - New public aliases should be no more than three letters.
 - Longer names may remain inside the engine when they make the implementation safer to maintain.
@@ -25,3 +25,6 @@ are the implementation underneath it.
 
 `GoA` and `RlA` are the asynchronous forms used by browser windows. `St` cancels
 an active network request. The shorter synchronous forms remain useful for tests.
+
+`P.D` is the document root. Each node uses `K` (kind), `X` (text), `A`
+(attributes), `C` (children), and `Av(name)` for a short attribute lookup.

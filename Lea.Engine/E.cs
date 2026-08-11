@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -108,30 +109,151 @@ namespace Lea.Engine
             var p = new P();
             p.U = url;
             p.H = html;
-            p.T = Clean(First(html, "title"));
+            p.D = Tree(html);
+            var title = Find(p.D, "title");
+            p.T = Clean(NodeText(title));
             if (p.T.Length == 0) p.T = url.IsFile ? Path.GetFileName(url.LocalPath) : url.Host;
 
-            var body = Regex.Replace(html, "<(script|style|noscript)[^>]*>.*?</\\1>|<!--.*?-->", " ", RegexOptions.IgnoreCase | RegexOptions.Singleline);
-            body = Regex.Replace(body, "<[^>]+>", " ");
-            p.X = Clean(body);
-            p.N = Regex.Matches(html, "<(?<tag>[a-z][a-z0-9]*)\\b", RegexOptions.IgnoreCase).Count;
-
-            foreach (Match m in Regex.Matches(html, "<(?<tag>h1|h2|h3|p|li|pre|code|button)(?:\\s+[^>]*)?>(?<body>.*?)</\\k<tag>>", RegexOptions.IgnoreCase | RegexOptions.Singleline))
-            {
-                var text = Clean(Regex.Replace(m.Groups["body"].Value, "<[^>]+>", " "));
-                if (text.Length > 0) p.Bs.Add(new B { K = m.Groups["tag"].Value.ToLowerInvariant(), X = text });
-            }
-
-            foreach (Match m in Regex.Matches(html, "<a\\s+[^>]*href\\s*=\\s*[\"']?(?<href>[^\"'\\s>]+)[\"']?[^>]*>(?<body>.*?)</a>", RegexOptions.IgnoreCase | RegexOptions.Singleline))
-            {
-                Uri link;
-                if (!Uri.TryCreate(url, WebUtility.HtmlDecode(m.Groups["href"].Value), out link)) continue;
-                var text = Clean(Regex.Replace(m.Groups["body"].Value, "<[^>]+>", " "));
-                p.Ls.Add(new Ln { U = link, T = text });
-                p.Bs.Add(new B { K = "a", X = text, U = link });
-            }
+            var body = Find(p.D, "body") ?? p.D;
+            p.X = Clean(NodeText(body));
+            p.N = Count(p.D);
+            Blocks(p, body, url);
 
             return p;
+        }
+
+        private static N Tree(string html)
+        {
+            var root = new N("#doc");
+            var stack = new List<N>();
+            stack.Add(root);
+
+            foreach (Match token in Regex.Matches(html ?? "", "<!--.*?-->|<![^>]*>|</?\\s*[a-z][^>]*>|[^<]+|<", RegexOptions.IgnoreCase | RegexOptions.Singleline))
+            {
+                var value = token.Value;
+                if (value.StartsWith("<!--") || value.StartsWith("<!")) continue;
+
+                if (value.StartsWith("</"))
+                {
+                    var close = Regex.Match(value, "^</\\s*(?<tag>[a-z][a-z0-9:-]*)", RegexOptions.IgnoreCase);
+                    if (!close.Success) continue;
+                    var tag = close.Groups["tag"].Value.ToLowerInvariant();
+                    for (var i = stack.Count - 1; i > 0; i--)
+                    {
+                        if (stack[i].K != tag) continue;
+                        stack.RemoveRange(i, stack.Count - i);
+                        break;
+                    }
+                    continue;
+                }
+
+                if (value.StartsWith("<"))
+                {
+                    var open = Regex.Match(value, "^<\\s*(?<tag>[a-z][a-z0-9:-]*)(?<attrs>[^>]*)>", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+                    if (!open.Success) continue;
+                    var tag = open.Groups["tag"].Value.ToLowerInvariant();
+                    if (tag == "li" || tag == "p") CloseOpen(stack, tag);
+                    var node = new N(tag);
+                    Attrs(node, open.Groups["attrs"].Value);
+                    stack[stack.Count - 1].C.Add(node);
+                    if (!value.TrimEnd().EndsWith("/>") && !Void(tag)) stack.Add(node);
+                    continue;
+                }
+
+                var parent = stack[stack.Count - 1];
+                if (parent.K == "script" || parent.K == "style" || parent.K == "noscript") continue;
+                if (value.Length > 0) parent.C.Add(new N("#text") { X = WebUtility.HtmlDecode(value) });
+            }
+
+            return root;
+        }
+
+        private static void CloseOpen(List<N> stack, string tag)
+        {
+            for (var i = stack.Count - 1; i > 0; i--)
+            {
+                if (stack[i].K != tag) continue;
+                stack.RemoveRange(i, stack.Count - i);
+                return;
+            }
+        }
+
+        private static void Attrs(N node, string attrs)
+        {
+            const string pattern = "(?<n>[a-z_:][a-z0-9_:.\\-]*)(?:\\s*=\\s*(?:\"(?<d>[^\"]*)\"|'(?<s>[^']*)'|(?<b>[^\\s\"'=<>]+)))?";
+            foreach (Match match in Regex.Matches(attrs ?? "", pattern, RegexOptions.IgnoreCase))
+            {
+                var value = match.Groups["d"].Success ? match.Groups["d"].Value : match.Groups["s"].Success ? match.Groups["s"].Value : match.Groups["b"].Value;
+                node.A[match.Groups["n"].Value] = WebUtility.HtmlDecode(value);
+            }
+        }
+
+        private static bool Void(string tag)
+        {
+            return tag == "area" || tag == "base" || tag == "br" || tag == "col" || tag == "embed" || tag == "hr" || tag == "img" || tag == "input" || tag == "link" || tag == "meta" || tag == "param" || tag == "source" || tag == "track" || tag == "wbr";
+        }
+
+        private static N Find(N node, string kind)
+        {
+            if (node == null) return null;
+            if (node.K == kind) return node;
+            foreach (var child in node.C)
+            {
+                var found = Find(child, kind);
+                if (found != null) return found;
+            }
+            return null;
+        }
+
+        private static int Count(N node)
+        {
+            if (node == null) return 0;
+            var count = node.K.StartsWith("#") ? 0 : 1;
+            foreach (var child in node.C) count += Count(child);
+            return count;
+        }
+
+        private static string NodeText(N node)
+        {
+            if (node == null) return "";
+            var text = new StringBuilder();
+            AddText(node, text);
+            return text.ToString();
+        }
+
+        private static void AddText(N node, StringBuilder text)
+        {
+            if (node.K == "#text")
+            {
+                text.Append(node.X).Append(' ');
+                return;
+            }
+            if (node.K == "script" || node.K == "style" || node.K == "noscript") return;
+            foreach (var child in node.C) AddText(child, text);
+        }
+
+        private static void Blocks(P page, N node, Uri baseUrl)
+        {
+            if (node == null) return;
+            var kind = node.K;
+            if (kind == "a")
+            {
+                Uri link;
+                var href = node.Av("href");
+                var text = Clean(NodeText(node));
+                if (href.Length > 0 && Uri.TryCreate(baseUrl, href, out link))
+                {
+                    page.Ls.Add(new Ln { U = link, T = text });
+                    page.Bs.Add(new B { K = kind, X = text.Length == 0 ? link.ToString() : text, U = link });
+                }
+            }
+            else if (kind == "h1" || kind == "h2" || kind == "h3" || kind == "p" || kind == "li" || kind == "pre" || kind == "code" || kind == "button")
+            {
+                var text = Clean(NodeText(node));
+                if (text.Length > 0) page.Bs.Add(new B { K = kind, X = text });
+            }
+
+            foreach (var child in node.C) Blocks(page, child, baseUrl);
         }
 
         private static Uri ToUri(string input, Uri baseUrl)
@@ -142,12 +264,6 @@ namespace Lea.Engine
             if (baseUrl != null && Uri.TryCreate(baseUrl, input, out u)) return u;
             if (File.Exists(input)) return new Uri(Path.GetFullPath(input));
             return new Uri("https://" + input);
-        }
-
-        private static string First(string html, string tag)
-        {
-            var m = Regex.Match(html, "<" + tag + "[^>]*>(.*?)</" + tag + ">", RegexOptions.IgnoreCase | RegexOptions.Singleline);
-            return m.Success ? m.Groups[1].Value : "";
         }
 
         private static string Clean(string text)

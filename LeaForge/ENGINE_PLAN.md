@@ -42,8 +42,8 @@ fs      font size
 
 ## 3. HTML and document tree
 
-1. Replace regular-expression-only page parsing with a small tolerant tokenizer.
-2. Build a lightweight document tree with elements, text, attributes, and parent links.
+1. Replace regular-expression-only page parsing with a small tolerant tokenizer. (First stack-based tokenizer added.)
+2. Build a lightweight document tree with elements, text, attributes, and parent links. (`N` now provides kind, text, attributes, and children; parent links remain.)
 3. Support the useful base tags first: `html`, `head`, `body`, headings, paragraphs,
    lists, links, images, buttons, forms, tables, sections, and code blocks.
 4. Preserve unknown tags safely so pages can still display their text.

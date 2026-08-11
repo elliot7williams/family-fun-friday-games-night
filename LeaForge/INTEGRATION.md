@@ -44,6 +44,9 @@ Browser UI code should use `GoA` and `RlA` so network waits do not freeze the
 window. `St` cancels the active request. The synchronous `Go` and `Rl` aliases
 remain available for small tools and deterministic local tests.
 
+Pages now expose a lightweight tree through `P.D`. Firespider integrations
+should use that tree instead of expecting the legacy COM `HtmlDocument` object.
+
 ## Integration rules
 
 - Reference the core engine, not the test browser shell, when embedding Lea.
