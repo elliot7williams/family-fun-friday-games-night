@@ -1,0 +1,18 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Reference Include="Lea.Engine">
+      <HintPath>$(MSBuildThisFileDirectory)Lea.Engine.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Lea.Win">
+      <HintPath>$(MSBuildThisFileDirectory)Lea.Win.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Compile Include="$(MSBuildThisFileDirectory)..\FirespiderLea.vb" />
+    <Content Include="$(MSBuildThisFileDirectory)start.html">
+      <Link>Lea\start.html</Link>
+      <TargetPath>Lea\start.html</TargetPath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+</Project>

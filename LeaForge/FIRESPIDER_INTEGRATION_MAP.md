@@ -154,3 +154,14 @@ basic scrolling
 
 Once that works in the real Firespider window, the rest of the port has a clear
 home and can proceed feature by feature.
+
+## Experimental tab status
+
+Phase A now has a working opt-in path. `Lea.Firespider/FirespiderLea.vb` adds a
+New Lea Tab command and routes Firespider's primary navigation controls through
+`Lea.Win.V` only for that tab. Legacy tabs retain their original handlers. The
+adapter is included through one reversible MSBuild import and passes Debug and
+Release host smoke tests.
+
+The next integration expansion is tab closing through Firespider's own close
+button, session persistence, source viewing, and more capability-aware commands.

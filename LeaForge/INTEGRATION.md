@@ -56,6 +56,19 @@ the Lea surface, reuses one editor for focused text, and provides `Rs`, `Sm`,
 and `SmA` for reset and supported GET submission. `P.Q` preserves query text on
 both web and local pages.
 
+## Experimental Firespider tab
+
+The source in `../Lea.Firespider` now powers a real experimental tab in the
+Firespider project. **File > New Lea Tab** or `Ctrl+Alt+L` creates a `Lea.Win.V`
+inside Firespider's existing tab control. Back, forward, home, go, search,
+reload, and stop dispatch to Lea while that tab is selected and delegate to the
+original handlers for legacy tabs.
+
+Firespider imports one `Lea/FirespiderLea.targets` file. The import supplies the
+two DLL references, partial VB adapter, and bundled local start page. Debug and
+Release builds pass `Smoke.cs`, which verifies tab creation, start-page loading,
+and host Back-button routing without loading another browser engine.
+
 ## Integration rules
 
 - Reference the core engine, not the test browser shell, when embedding Lea.

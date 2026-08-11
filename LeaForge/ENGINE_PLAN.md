@@ -193,6 +193,7 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add an experimental Lea-backed tab to Firespider behind a small adapter while
-keeping the legacy tab path available. The standalone `Lea.Tests` smoke runner
-now protects forms, sync/async GET submission, CSS, images, layout, and scrolling.
+Add CSS borders, width, and height to Lea's cached layout boxes. The experimental
+Firespider adapter now provides a real Lea-backed tab while preserving legacy
+tabs, and its host smoke test protects menu creation, page loading, and Back
+navigation through Firespider's existing controls.
