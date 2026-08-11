@@ -40,6 +40,10 @@ The final integration API will keep this compact surface while the internal
 engine is split into clear modules. A UI adapter will let a user's own WinForms
 or WPF window host Lea's layout and paint output.
 
+Browser UI code should use `GoA` and `RlA` so network waits do not freeze the
+window. `St` cancels the active request. The synchronous `Go` and `Rl` aliases
+remain available for small tools and deterministic local tests.
+
 ## Integration rules
 
 - Reference the core engine, not the test browser shell, when embedding Lea.

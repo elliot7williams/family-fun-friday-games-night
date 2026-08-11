@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Lea.Win;
 
@@ -12,6 +13,7 @@ namespace Lea.Win.Test
         private readonly Button bk = new Button();
         private readonly Button fw = new Button();
         private readonly Button rl = new Button();
+        private readonly Button stp = new Button();
         private readonly Button go = new Button();
         private readonly Label st = new Label();
 
@@ -25,7 +27,8 @@ namespace Lea.Win.Test
             var top = new TableLayoutPanel();
             top.Dock = DockStyle.Top;
             top.Height = 38;
-            top.ColumnCount = 5;
+            top.ColumnCount = 6;
+            top.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 38));
             top.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 38));
             top.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 38));
             top.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 38));
@@ -34,20 +37,22 @@ namespace Lea.Win.Test
 
             SetButton(bk, "<", delegate { v.Bk(); });
             SetButton(fw, ">", delegate { v.Fw(); });
-            SetButton(rl, "R", delegate { TryGo(delegate { v.Rl(); }); });
-            SetButton(go, "Go", delegate { TryGo(delegate { v.Go(u.Text); }); });
+            SetButton(rl, "R", async delegate { await TryGoA(delegate { return v.RlA(); }); });
+            SetButton(stp, "X", delegate { v.St(); st.Text = "Stopped"; });
+            SetButton(go, "Go", async delegate { await TryGoA(delegate { return v.GoA(u.Text); }); });
             u.Dock = DockStyle.Fill;
             u.Margin = new Padding(4, 7, 4, 4);
-            u.KeyDown += delegate(object sender, KeyEventArgs e)
+            u.KeyDown += async delegate(object sender, KeyEventArgs e)
             {
-                if (e.KeyCode == Keys.Enter) { TryGo(delegate { v.Go(u.Text); }); e.SuppressKeyPress = true; }
+                if (e.KeyCode == Keys.Enter) { await TryGoA(delegate { return v.GoA(u.Text); }); e.SuppressKeyPress = true; }
             };
 
             top.Controls.Add(bk, 0, 0);
             top.Controls.Add(fw, 1, 0);
             top.Controls.Add(rl, 2, 0);
-            top.Controls.Add(u, 3, 0);
-            top.Controls.Add(go, 4, 0);
+            top.Controls.Add(stp, 3, 0);
+            top.Controls.Add(u, 4, 0);
+            top.Controls.Add(go, 5, 0);
 
             st.Dock = DockStyle.Bottom;
             st.Height = 24;
@@ -76,9 +81,10 @@ namespace Lea.Win.Test
             button.Click += action;
         }
 
-        private void TryGo(Action action)
+        private async Task TryGoA(Func<Task> action)
         {
-            try { action(); }
+            st.Text = "Loading...";
+            try { await action(); }
             catch (Exception ex) { st.Text = ex.Message; }
         }
     }

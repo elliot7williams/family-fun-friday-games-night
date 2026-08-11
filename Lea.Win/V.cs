@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Lea.Engine;
 
@@ -32,6 +33,7 @@ namespace Lea.Win
         public string H { get { return At == null ? "" : At.H; } }
         public bool CanBk { get { return e.CanBk; } }
         public bool CanFw { get { return e.CanFw; } }
+        public bool Busy { get { return e.Busy; } }
 
         public P Go(string input)
         {
@@ -39,6 +41,24 @@ namespace Lea.Win
             try
             {
                 var p = e.Go(input);
+                sy = 0;
+                OnChanged();
+                Invalidate();
+                if (Done != null) Done(this, EventArgs.Empty);
+                return p;
+            }
+            finally
+            {
+                Cursor = Cursors.Default;
+            }
+        }
+
+        public async Task<P> GoA(string input)
+        {
+            Cursor = Cursors.WaitCursor;
+            try
+            {
+                var p = await e.GoA(input);
                 sy = 0;
                 OnChanged();
                 Invalidate();
@@ -76,6 +96,22 @@ namespace Lea.Win
             OnChanged();
             Invalidate();
             return p;
+        }
+
+        public async Task<P> RlA()
+        {
+            var p = await e.RlA();
+            sy = 0;
+            OnChanged();
+            Invalidate();
+            if (Done != null) Done(this, EventArgs.Empty);
+            return p;
+        }
+
+        public void St()
+        {
+            e.St();
+            Cursor = Cursors.Default;
         }
 
         protected override void OnPaint(PaintEventArgs pe)

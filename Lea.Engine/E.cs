@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace Lea.Engine
 {
@@ -12,18 +13,32 @@ namespace Lea.Engine
         private readonly WebClient web = new WebClient();
         private readonly List<P> hs = new List<P>();
         private int at = -1;
+        private bool busy;
 
         public P At { get { return at >= 0 && at < hs.Count ? hs[at] : null; } }
         public bool CanBk { get { return at > 0; } }
         public bool CanFw { get { return at < hs.Count - 1; } }
+        public bool Busy { get { return busy; } }
 
         public P Go(string input)
         {
             var p = Read(ToUri(input, At == null ? null : At.U));
+            Push(p);
+            return p;
+        }
+
+        public async Task<P> GoA(string input)
+        {
+            var p = await ReadA(ToUri(input, At == null ? null : At.U));
+            Push(p);
+            return p;
+        }
+
+        private void Push(P p)
+        {
             if (at < hs.Count - 1) hs.RemoveRange(at + 1, hs.Count - at - 1);
             hs.Add(p);
             at = hs.Count - 1;
-            return p;
         }
 
         public P Bk()
@@ -46,11 +61,46 @@ namespace Lea.Engine
             return p;
         }
 
+        public async Task<P> RlA()
+        {
+            if (At == null) return null;
+            var p = await ReadA(At.U);
+            hs[at] = p;
+            return p;
+        }
+
+        public void St()
+        {
+            if (busy) web.CancelAsync();
+        }
+
         private P Read(Uri url)
         {
             web.Headers[HttpRequestHeader.UserAgent] = "Lea/0.1";
             var html = url.IsFile ? File.ReadAllText(url.LocalPath) : web.DownloadString(url);
             return Parse(url, html);
+        }
+
+        private async Task<P> ReadA(Uri url)
+        {
+            if (busy) throw new InvalidOperationException("Lea is already loading a page.");
+            busy = true;
+            try
+            {
+                if (url.IsFile)
+                {
+                    var path = url.LocalPath;
+                    return await Task.Factory.StartNew(delegate { return Parse(url, File.ReadAllText(path)); });
+                }
+
+                web.Headers[HttpRequestHeader.UserAgent] = "Lea/0.2";
+                var html = await web.DownloadStringTaskAsync(url);
+                return Parse(url, html);
+            }
+            finally
+            {
+                busy = false;
+            }
         }
 
         private static P Parse(Uri url, string html)

@@ -38,6 +38,7 @@ fs      font size
    redirects, UTF-8, and common content types.
 4. Use bounded caches for pages, images, stylesheets, and decoded resources.
 5. Add cancellation and timeouts so a slow page cannot freeze the browser.
+   (`GoA`, `RlA`, and `St` are now available in the compatibility engine.)
 
 ## 3. HTML and document tree
 

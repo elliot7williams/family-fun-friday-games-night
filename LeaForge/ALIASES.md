@@ -6,7 +6,7 @@ read and quick to write.
 ## Naming rules
 
 - Core objects use one letter: `L` is the entry point, `E` is the engine, `P` is a page.
-- Actions use two letters: `Go`, `Bk`, `Fw`, `Rl`, and `At`.
+- Actions use two or three letters: `Go`, `GoA`, `Bk`, `Fw`, `Rl`, `RlA`, `St`, and `At`.
 - Page values use one or two letters: `U`, `T`, `H`, `N`, and `Ls`.
 - Page commands use one or two letters: `t`, `a`, `bg`, `fg`, and `fs`.
 - New public aliases should be no more than three letters.
@@ -22,3 +22,6 @@ Console.WriteLine(p.T);
 
 The aliases are the small public language of Lea. The readable internal classes
 are the implementation underneath it.
+
+`GoA` and `RlA` are the asynchronous forms used by browser windows. `St` cancels
+an active network request. The shorter synchronous forms remain useful for tests.
