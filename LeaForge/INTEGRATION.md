@@ -52,7 +52,12 @@ Pages now expose a lightweight tree through `P.D`. Firespider integrations
 should use that tree instead of expecting the legacy COM `HtmlDocument` object.
 `P.St`, `Ct`, `Ce`, `Ch`, `Sz`, and `Ca` expose compact response diagnostics.
 `E.Cm`, `Cc`, `Ch`, and `Cl()` configure or inspect Lea's bounded decoded-page
-payload cache; `Rl` and `RlA` deliberately fetch a fresh response.
+payload cache; `Cs` sets default freshness seconds, while HTTP freshness headers
+can override it. `Rl` and `RlA` deliberately fetch a fresh response.
+
+Hosts can catch `Lea.Engine.Er` and inspect `K`, `U`, `St`, and `Rt` to present
+specific URL, local-file, HTTP, network, timeout, cancellation, or decoding
+failures without parsing exception text.
 
 The `V` host control now performs cached layout and bounded scrolling. Firespider
 can read `Dh`, `Sy`, and `Bc`, and can call `Sc(delta)` without depending on

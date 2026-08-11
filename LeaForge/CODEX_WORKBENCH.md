@@ -17,9 +17,9 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-1. Add typed load errors and cache freshness rules.
+1. Add table parsing and compact row/cell layout.
 2. Expand the Firespider adapter to tab closing, sessions, and source viewing.
-3. Add table parsing and compact row/cell layout.
+3. Add conditional cache revalidation with ETag and Last-Modified.
 4. Add a small JavaScript interpreter layer or bridge.
 5. Add downloads and find-in-page.
 6. Add a developer tools panel for parsed nodes, CSS rules, network events, and console messages.

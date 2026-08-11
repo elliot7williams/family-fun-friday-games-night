@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
@@ -21,6 +22,7 @@ namespace Lea.Engine
         private int at = -1;
         private bool busy;
         private int cm = 8;
+        private int cs = 60;
         private int ch;
 
         public P At { get { return at >= 0 && at < hs.Count ? hs[at] : null; } }
@@ -34,6 +36,11 @@ namespace Lea.Engine
         }
         public int Cc { get { return cache.Count; } }
         public int Ch { get { return ch; } }
+        public int Cs
+        {
+            get { return cs; }
+            set { cs = Math.Max(0, Math.Min(86400, value)); Cl(); }
+        }
 
         public void Cl()
         {
@@ -135,16 +142,25 @@ namespace Lea.Engine
 
         private P Read(Uri url, bool fresh = false)
         {
-            Cr reply;
-            if (!url.IsFile && !fresh && GetCache(url, out reply)) return Parse(reply, true);
-            if (url.IsFile) reply = ReadFile(url);
-            else
+            try
             {
-                var bytes = web.DownloadData(url);
-                reply = ReadWeb(url, bytes);
-                PutCache(url, reply);
+                Cr reply;
+                if (!url.IsFile && !fresh && GetCache(url, out reply)) return Parse(reply, true);
+                if (url.IsFile) reply = ReadFile(url);
+                else
+                {
+                    var bytes = web.DownloadData(url);
+                    reply = ReadWeb(url, bytes);
+                    PutCache(url, reply);
+                }
+                return Parse(reply, false);
             }
-            return Parse(reply, false);
+            catch (Exception error)
+            {
+                var typed = LoadError(error, url);
+                if (typed == null) throw;
+                throw typed;
+            }
         }
 
         private async Task<P> ReadA(Uri url, bool fresh = false)
@@ -165,6 +181,12 @@ namespace Lea.Engine
                 PutCache(url, reply);
                 return Parse(reply, false);
             }
+            catch (Exception error)
+            {
+                var typed = LoadError(error, url);
+                if (typed == null) throw;
+                throw typed;
+            }
             finally
             {
                 busy = false;
@@ -174,15 +196,21 @@ namespace Lea.Engine
         private P Post(Uri url, string data)
         {
             if (url.Scheme != Uri.UriSchemeHttp && url.Scheme != Uri.UriSchemeHttps)
-                throw new NotSupportedException("Lea POST requires an HTTP or HTTPS address.");
-            DropCache(url);
-            web.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded; charset=utf-8";
+                throw new Er("url", url, 0, false, "Lea POST requires an HTTP or HTTPS address.", null);
             try
             {
+                DropCache(url);
+                web.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded; charset=utf-8";
                 var bytes = web.UploadData(url, "POST", Encoding.UTF8.GetBytes(data ?? ""));
                 var reply = ReadWeb(url, bytes);
                 DropCache(reply.U);
                 return Parse(reply, false);
+            }
+            catch (Exception error)
+            {
+                var typed = LoadError(error, url);
+                if (typed == null) throw;
+                throw typed;
             }
             finally { web.Headers.Remove(HttpRequestHeader.ContentType); }
         }
@@ -190,7 +218,7 @@ namespace Lea.Engine
         private async Task<P> PostA(Uri url, string data)
         {
             if (url.Scheme != Uri.UriSchemeHttp && url.Scheme != Uri.UriSchemeHttps)
-                throw new NotSupportedException("Lea POST requires an HTTP or HTTPS address.");
+                throw new Er("url", url, 0, false, "Lea POST requires an HTTP or HTTPS address.", null);
             if (busy) throw new InvalidOperationException("Lea is already loading a page.");
             busy = true;
             try
@@ -201,6 +229,12 @@ namespace Lea.Engine
                 var reply = ReadWeb(url, bytes);
                 DropCache(reply.U);
                 return Parse(reply, false);
+            }
+            catch (Exception error)
+            {
+                var typed = LoadError(error, url);
+                if (typed == null) throw;
+                throw typed;
             }
             finally
             {
@@ -676,11 +710,55 @@ namespace Lea.Engine
             return parent;
         }
 
+        private static Er LoadError(Exception error, Uri url)
+        {
+            var typed = error as Er;
+            if (typed != null) return typed;
+            if (error is InvalidDataException || error is DecoderFallbackException)
+                return new Er("decode", url, 0, false, "Lea could not decode the response" + ErrorAt(url) + ".", error);
+            if (error is UriFormatException || error is NotSupportedException)
+                return new Er("url", url, 0, false, "Lea could not use the address" + ErrorAt(url) + ".", error);
+            var webError = error as WebException;
+            if (webError != null)
+            {
+                var response = webError.Response as HttpWebResponse;
+                if (response != null)
+                {
+                    var status = (int)response.StatusCode;
+                    var retryable = status == 408 || status == 429 || status >= 500;
+                    return new Er("http", response.ResponseUri ?? url, status, retryable, "Lea received HTTP " + status + ErrorAt(response.ResponseUri ?? url) + ".", error);
+                }
+                if (webError.Status == WebExceptionStatus.Timeout)
+                    return new Er("timeout", url, 0, true, "Lea timed out while loading" + ErrorAt(url) + ".", error);
+                if (webError.Status == WebExceptionStatus.RequestCanceled)
+                    return new Er("cancel", url, 0, false, "Lea stopped loading" + ErrorAt(url) + ".", error);
+                return new Er("net", url, 0, true, "Lea could not reach" + ErrorAt(url) + ".", error);
+            }
+            if (error is OperationCanceledException)
+                return new Er("cancel", url, 0, false, "Lea stopped loading" + ErrorAt(url) + ".", error);
+            if (error is FileNotFoundException || error is DirectoryNotFoundException || error is UnauthorizedAccessException || (error is IOException && url != null && url.IsFile))
+                return new Er("file", url, 0, false, "Lea could not read the local file" + ErrorAt(url) + ".", error);
+            if (error is IOException)
+                return new Er("net", url, 0, true, "Lea could not read the response" + ErrorAt(url) + ".", error);
+            return null;
+        }
+
+        private static string ErrorAt(Uri url)
+        {
+            return url == null ? "" : " " + url;
+        }
+
         private bool GetCache(Uri url, out Cr reply)
         {
             var key = CacheKey(url);
             reply = null;
             if (cm == 0 || !cache.TryGetValue(key, out reply)) return false;
+            if (reply.Fr <= DateTime.UtcNow)
+            {
+                DropCache(url);
+                reply = null;
+                return false;
+            }
             lru.Remove(key);
             lru.Add(key);
             ch++;
@@ -690,7 +768,7 @@ namespace Lea.Engine
         private void PutCache(Uri url, Cr reply)
         {
             var key = CacheKey(url);
-            if (cm == 0 || reply.Ns || reply.St < 200 || reply.St >= 300 || reply.Sz > MaxCachePage)
+            if (cm == 0 || reply.Ns || reply.Fr <= DateTime.UtcNow || reply.St < 200 || reply.St >= 300 || reply.Sz > MaxCachePage)
             {
                 cache.Remove(key);
                 lru.Remove(key);
@@ -734,7 +812,7 @@ namespace Lea.Engine
             var bytes = File.ReadAllBytes(path);
             string charset;
             var html = Decode(bytes, "", out charset);
-            return new Cr(url, html, 200, FileType(path), "", charset, bytes.Length, true);
+            return new Cr(url, html, 200, FileType(path), "", charset, bytes.Length, true, DateTime.MinValue);
         }
 
         private Cr ReadWeb(Uri url, byte[] bytes)
@@ -742,7 +820,20 @@ namespace Lea.Engine
             var body = Expand(bytes, web.Ce);
             string charset;
             var html = Decode(body, Charset(web.Ct), out charset);
-            return new Cr(web.U ?? url, html, web.St == 0 ? 200 : web.St, MediaType(web.Ct), web.Ce, charset, body.Length, web.Ns);
+            return new Cr(web.U ?? url, html, web.St == 0 ? 200 : web.St, MediaType(web.Ct), web.Ce, charset, body.Length, web.Ns, FreshUntil(web.Cc, web.Ex));
+        }
+
+        private DateTime FreshUntil(string cacheControl, string expires)
+        {
+            var control = cacheControl ?? "";
+            if (Regex.IsMatch(control, "(?:^|,)\\s*(?:no-store|no-cache)\\b", RegexOptions.IgnoreCase)) return DateTime.MinValue;
+            var age = Regex.Match(control, "(?:^|,)\\s*max-age\\s*=\\s*\"?(?<n>[0-9]+)", RegexOptions.IgnoreCase);
+            long seconds;
+            if (age.Success && Int64.TryParse(age.Groups["n"].Value, out seconds))
+                return DateTime.UtcNow.AddSeconds(Math.Min(604800L, seconds));
+            DateTimeOffset expiry;
+            if (DateTimeOffset.TryParse(expires ?? "", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out expiry)) return expiry.UtcDateTime;
+            return DateTime.UtcNow.AddSeconds(cs);
         }
 
         private static byte[] Expand(byte[] bytes, string contentEncoding)
@@ -824,8 +915,9 @@ namespace Lea.Engine
             public readonly string Ch;
             public readonly int Sz;
             public readonly bool Ns;
+            public readonly DateTime Fr;
 
-            public Cr(Uri url, string html, int status, string contentType, string contentEncoding, string charset, int size, bool noStore)
+            public Cr(Uri url, string html, int status, string contentType, string contentEncoding, string charset, int size, bool noStore, DateTime freshUntil)
             {
                 U = url;
                 H = html ?? "";
@@ -835,6 +927,7 @@ namespace Lea.Engine
                 Ch = charset ?? "";
                 Sz = size;
                 Ns = noStore;
+                Fr = freshUntil;
             }
         }
 
@@ -845,6 +938,8 @@ namespace Lea.Engine
             public string Ct { get; private set; }
             public string Ce { get; private set; }
             public bool Ns { get; private set; }
+            public string Cc { get; private set; }
+            public string Ex { get; private set; }
 
             protected override WebRequest GetWebRequest(Uri address)
             {
@@ -853,6 +948,8 @@ namespace Lea.Engine
                 Ct = "";
                 Ce = "";
                 Ns = false;
+                Cc = "";
+                Ex = "";
                 var request = base.GetWebRequest(address);
                 var http = request as HttpWebRequest;
                 if (http != null)
@@ -884,8 +981,9 @@ namespace Lea.Engine
                 St = (int)http.StatusCode;
                 Ct = http.ContentType ?? "";
                 Ce = http.Headers[HttpResponseHeader.ContentEncoding] ?? "";
-                var control = http.Headers[HttpResponseHeader.CacheControl] ?? "";
-                Ns = control.IndexOf("no-store", StringComparison.OrdinalIgnoreCase) >= 0;
+                Cc = http.Headers[HttpResponseHeader.CacheControl] ?? "";
+                Ex = http.Headers[HttpResponseHeader.Expires] ?? "";
+                Ns = Cc.IndexOf("no-store", StringComparison.OrdinalIgnoreCase) >= 0;
                 return response;
             }
         }
@@ -897,7 +995,8 @@ namespace Lea.Engine
             if (Uri.TryCreate(input, UriKind.Absolute, out u)) return u;
             if (baseUrl != null && Uri.TryCreate(baseUrl, input, out u)) return u;
             if (File.Exists(input)) return new Uri(Path.GetFullPath(input));
-            return new Uri("https://" + input);
+            try { return new Uri("https://" + input); }
+            catch (UriFormatException error) { throw new Er("url", null, 0, false, "Lea could not understand that address.", error); }
         }
 
         private static string Local(Uri url)

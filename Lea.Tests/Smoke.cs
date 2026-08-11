@@ -145,11 +145,41 @@ namespace Lea.Tests
                     var noStore = net.Go(noStoreUrl);
                     Ok(!noStore.Ca, "no-store response bypasses cache");
                     Eq(8, server.Hits, "no-store network requests");
+                    var noCacheUrl = new Uri(server.U, "?no-cache=1");
+                    net.Go(noCacheUrl);
+                    var noCache = net.Go(noCacheUrl);
+                    Ok(!noCache.Ca, "no-cache response bypasses reuse");
+                    Eq(10, server.Hits, "no-cache network requests");
+
+                    net.Cs = 0;
+                    Eq(0, net.Cs, "default freshness setting");
+                    var defaultStaleUrl = new Uri(server.U, "?default-stale=1");
+                    net.Go(defaultStaleUrl);
+                    var defaultStale = net.Go(defaultStaleUrl);
+                    Ok(!defaultStale.Ca, "zero default freshness reloads");
+                    Eq(12, server.Hits, "default-stale response requests");
+                    var freshUrl = new Uri(server.U, "?max-age=60");
+                    net.Go(freshUrl);
+                    var fresh = net.Go(freshUrl);
+                    Ok(fresh.Ca, "server max-age overrides default freshness");
+                    Eq(13, server.Hits, "fresh response cache hit");
+                    var expiresUrl = new Uri(server.U, "?expires=future");
+                    net.Go(expiresUrl);
+                    var expiresFresh = net.Go(expiresUrl);
+                    Ok(expiresFresh.Ca, "Expires header controls freshness");
+                    Eq(14, server.Hits, "Expires response cache hit");
+                    var staleUrl = new Uri(server.U, "?max-age=0");
+                    net.Go(staleUrl);
+                    var stale = net.Go(staleUrl);
+                    Ok(!stale.Ca, "expired response reloads");
+                    Eq(16, server.Hits, "expired response requests");
+
+                    net.Cs = 60;
                     net.Cl();
                     var redirected = net.Go(new Uri(server.U, "?redirect=1"));
                     Eq(200, redirected.St, "redirect final status");
                     Ok(redirected.U.Query.Contains("redirected=1"), "redirect final URL");
-                    Eq(10, server.Hits, "redirect request chain");
+                    Eq(18, server.Hits, "redirect request chain");
 
                     using (var postView = new V())
                     {
@@ -183,10 +213,27 @@ namespace Lea.Tests
                         Eq("Lea POST", asyncPost.T, "async POST result");
                         Ok(server.LastBody.Contains("flavor=mint") && server.LastBody.Contains("q=async+engine"), "async POST body: " + server.LastBody);
                     }
-                    Eq(13, server.Hits, "form and POST request count");
+                    Eq(21, server.Hits, "form and POST request count");
+
+                    var unavailable = Fails(delegate { net.Go(new Uri(server.U, "?status=503")); }, "HTTP 503");
+                    Eq("http", unavailable.K, "HTTP error kind");
+                    Eq(503, unavailable.St, "HTTP error status");
+                    Ok(unavailable.Rt, "HTTP 503 retryable");
+                    var missingHttp = Fails(delegate { net.GoA(new Uri(server.U, "?status=404")).GetAwaiter().GetResult(); }, "async HTTP 404");
+                    Eq("http", missingHttp.K, "async HTTP error kind");
+                    Eq(404, missingHttp.St, "async HTTP error status");
+                    Ok(!missingHttp.Rt, "HTTP 404 not retryable");
+                    var decode = Fails(delegate { net.Go(new Uri(server.U, "?bad-gzip=1")); }, "bad GZip");
+                    Eq("decode", decode.K, "decode error kind");
+                    var missingFile = new Uri(Path.Combine(root, "LeaForge", "test-pages", "missing-lea-page.html"));
+                    var fileError = Fails(delegate { net.Go(missingFile); }, "missing file");
+                    Eq("file", fileError.K, "file error kind");
+                    Ok(!fileError.Rt, "file error not retryable");
+                    var urlError = Fails(delegate { new E().Go(""); }, "bad URL");
+                    Eq("url", urlError.K, "URL error kind");
                 }
 
-                Console.WriteLine("Lea smoke passed: selects, POST, network cache, compression, forms, CSS boxes, images, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: typed errors, fresh cache, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -225,6 +272,13 @@ namespace Lea.Tests
         private static void Ok(bool value, string name)
         {
             if (!value) throw new InvalidOperationException(name);
+        }
+
+        private static Er Fails(Action action, string name)
+        {
+            try { action(); }
+            catch (Er error) { return error; }
+            throw new InvalidOperationException(name + ": expected Lea.Engine.Er");
         }
 
         private sealed class CompressedServer : IDisposable
@@ -307,6 +361,14 @@ namespace Lea.Tests
                             stream.Write(redirect, 0, redirect.Length);
                             continue;
                         }
+                        if (request.IndexOf("status=503", StringComparison.OrdinalIgnoreCase) >= 0 || request.IndexOf("status=404", StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            var unavailable = request.IndexOf("status=503", StringComparison.OrdinalIgnoreCase) >= 0;
+                            var status = unavailable ? "503 Service Unavailable" : "404 Not Found";
+                            var failure = Encoding.ASCII.GetBytes("HTTP/1.1 " + status + "\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
+                            stream.Write(failure, 0, failure.Length);
+                            continue;
+                        }
                         var deflate = request.IndexOf("encoding=deflate", StringComparison.OrdinalIgnoreCase) >= 0;
                         string html;
                         if (request.IndexOf("form=1", StringComparison.OrdinalIgnoreCase) >= 0)
@@ -324,10 +386,15 @@ namespace Lea.Tests
                             html = "<html><head><title>" + title + "</title></head><body><p>Compressed Lea response.</p></body></html>";
                         }
                         var source = Encoding.UTF8.GetBytes(html);
-                        var body = Compress(source, deflate);
+                        var badGzip = request.IndexOf("bad-gzip=1", StringComparison.OrdinalIgnoreCase) >= 0;
+                        var body = badGzip ? Encoding.ASCII.GetBytes("not a gzip stream") : Compress(source, deflate);
                         var noStore = request.IndexOf("no-store=1", StringComparison.OrdinalIgnoreCase) >= 0;
+                        var noCache = request.IndexOf("no-cache=1", StringComparison.OrdinalIgnoreCase) >= 0;
+                        var maxAge = request.IndexOf("max-age=60", StringComparison.OrdinalIgnoreCase) >= 0 ? "Cache-Control: max-age=60\r\n" :
+                            request.IndexOf("max-age=0", StringComparison.OrdinalIgnoreCase) >= 0 ? "Cache-Control: max-age=0\r\n" : "";
+                        var expires = request.IndexOf("expires=future", StringComparison.OrdinalIgnoreCase) >= 0 ? "Expires: " + DateTime.UtcNow.AddMinutes(5).ToString("R") + "\r\n" : "";
                         var headers = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Encoding: " + (deflate ? "deflate" : "gzip") + "\r\n" +
-                            (noStore ? "Cache-Control: no-store\r\n" : "") + "Content-Length: " + body.Length + "\r\nConnection: close\r\n\r\n";
+                            (noStore ? "Cache-Control: no-store\r\n" : noCache ? "Cache-Control: no-cache\r\n" : maxAge + expires) + "Content-Length: " + body.Length + "\r\nConnection: close\r\n\r\n";
                         var head = Encoding.ASCII.GetBytes(headers);
                         stream.Write(head, 0, head.Length);
                         stream.Write(body, 0, body.Length);

@@ -71,6 +71,8 @@ predictable rendering pass.
 - GZip/Deflate response decompression. (Both are decoded transparently and covered by loopback tests.)
 - Image loading for PNG, JPEG, GIF, and ICO where the platform supports them. (Basic async image loading and bounded memory cache added.)
 - A small memory and disk cache with explicit size limits. (Bounded memory payload cache active; disk cache remains.)
+- Cache freshness from `max-age`, `Expires`, `no-cache`, `no-store`, and a configurable default. (Active.)
+- Compact typed `Er` failures for URL, file, HTTP, network, timeout, cancellation, and decoding problems. (Active.)
 - Basic cookies and a clear permission boundary for local files and scripts.
 
 ## 6. Lea scripting
@@ -196,6 +198,6 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add typed load errors and cache freshness rules. Lea now parses single-select
-options, paints a native choice menu, restores selected defaults, and submits
-successful controls through URL-encoded synchronous or asynchronous GET/POST.
+Add table parsing and compact row/cell layout. Lea now reports typed `Er`
+failures and expires cached payloads using `max-age`, `Expires`, `no-cache`,
+`no-store`, or the configurable `E.Cs` default freshness window.

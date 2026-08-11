@@ -47,7 +47,11 @@ the bounded scroll position.
 Response metadata stays short: `P.St` is status, `Ct` is media type, `Ce` is
 content encoding, `Ch` is charset, `Sz` is decoded size, and `Ca` reports a
 cache hit. The engine exposes `Cm` (cache maximum), `Cc` (count), `Ch` (hits),
-and `Cl()` (clear). Reload always bypasses this cache.
+`Cs` (default freshness seconds), and `Cl()` (clear). Reload always bypasses
+this cache.
+
+Loading failures use `Er`: `K` is the failure kind, `U` is the address, `St` is
+an HTTP status when available, and `Rt` reports whether retrying may help.
 
 Forms use `Fi`: `K` is field kind, `N` is name, `V` is the editable value, `P`
 is placeholder text, `C` is checked, and `Ds`/`Ro` are disabled/read-only.
