@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+<head>
+  <title>Lea Scroll Test</title>
+  <style>
+    body { background: #ffffff; color: #172033; margin: 10px; padding: 8px; }
+    p { margin: 8px 4px; padding: 4px; background: #f8fafc; }
+  </style>
+</head>
+<body>
+  <h1>Reusable Layout Boxes</h1>
+  <p>One. Lea measures this paragraph during the layout pass and reuses its rectangle while painting.</p>
+  <p>Two. Narrowing the browser window should wrap this sentence and increase the measured document height.</p>
+  <p>Three. The paint pass skips boxes that are fully above or below the visible browser viewport.</p>
+  <p>Four. Mouse wheel movement is clamped between zero and the bottom of the measured document.</p>
+  <p>Five. Link hit rectangles are translated from document coordinates into visible screen coordinates.</p>
+  <p>Six. Images keep their measured aspect ratio while missing resources retain a predictable placeholder height.</p>
+  <p>Seven. Page and block margins contribute to layout without being inherited by child elements.</p>
+  <p>Eight. Padding changes the content origin and the width available for text wrapping.</p>
+  <p>Nine. Reflow runs again when the control width changes and remains cached at the new width.</p>
+  <p>Ten. The renderer has one WinForms control regardless of how many document blocks the page contains.</p>
+  <p>Eleven. This keeps control creation overhead low and prepares Lea for larger pages.</p>
+  <p>Twelve. Future borders, width rules, forms, and inline layout can build on these boxes.</p>
+  <p>Thirteen. The current layout remains intentionally small and focused on vertical document flow.</p>
+  <p>Fourteen. Reaching this final paragraph proves that bounded scrolling can reach the real document bottom.</p>
+</body>
+</html>

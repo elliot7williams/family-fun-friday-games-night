@@ -47,6 +47,10 @@ remain available for small tools and deterministic local tests.
 Pages now expose a lightweight tree through `P.D`. Firespider integrations
 should use that tree instead of expecting the legacy COM `HtmlDocument` object.
 
+The `V` host control now performs cached layout and bounded scrolling. Firespider
+can read `Dh`, `Sy`, and `Bc`, and can call `Sc(delta)` without depending on
+WinForms mouse-wheel internals.
+
 ## Integration rules
 
 - Reference the core engine, not the test browser shell, when embedding Lea.

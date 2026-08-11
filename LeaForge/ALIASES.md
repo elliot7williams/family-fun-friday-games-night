@@ -34,3 +34,7 @@ font size, `B` is bold, and `D` is display behavior.
 
 Box spacing stays compact: `Mt/Mr/Mb/Ml` are margins and `Pt/Pr/Pb/Pl` are
 padding. `N.Up` links a document node to its parent for descendant selectors.
+
+The WinForms view exposes `Dh` (document height), `Sy` (scroll position), and
+`Bc` (cached layout-box count) for compact host diagnostics. `Sc(delta)` moves
+the bounded scroll position.
