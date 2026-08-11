@@ -47,7 +47,8 @@ fs      font size
 2. Build a lightweight document tree with elements, text, attributes, and parent links. (`N` now provides kind, text, attributes, and children; parent links remain.)
 3. Support the useful base tags first: `html`, `head`, `body`, headings, paragraphs,
    lists, links, images, buttons, forms, tables, sections, and code blocks.
-   (Single-select controls and URL-encoded GET/POST forms are active.)
+   (Single-select controls, URL-encoded GET/POST forms, and structured table rows,
+   cells, captions, headers, and column spans are active.)
 4. Preserve unknown tags safely so pages can still display their text.
 5. Add malformed-markup tests and local fixture pages for every supported tag.
 
@@ -59,6 +60,8 @@ fs      font size
 4. Replace one-WinForms-control-per-node rendering with lightweight layout boxes. (Reusable `Bx` layout pass added.)
 5. Paint text, backgrounds, borders, links, controls, and images onto one surface. (Text, backgrounds, solid/dashed/dotted borders, links, images, and basic form controls are active.)
 6. Add scrolling and hit testing from layout boxes. (Visible-box painting and bounded vertical scrolling added.)
+7. Add compact table row/cell layout. (Equal columns, wrapped text, CSS boxes,
+   bounded `colspan`, malformed-markup recovery, and narrow-view reflow are active.)
 
 This is the largest speed milestone: fewer controls, less UI overhead, and one
 predictable rendering pass.
@@ -198,6 +201,6 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add table parsing and compact row/cell layout. Lea now reports typed `Er`
-failures and expires cached payloads using `max-age`, `Expires`, `no-cache`,
-`no-store`, or the configurable `E.Cs` default freshness window.
+Expand the Firespider adapter with Lea tab closing, session restoration, and
+page-source viewing. The engine now parses tables into compact `Tb`, `Tr`, and
+`Tc` records and lays out captions, shared-height rows, styled cells, and spans.

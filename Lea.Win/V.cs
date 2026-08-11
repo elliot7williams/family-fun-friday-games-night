@@ -266,6 +266,11 @@ namespace Lea.Win
                 foreach (var block in At.Bs)
                 {
                     var bs = block.S;
+                    if (block.K == "table" && block.Tb != null)
+                    {
+                        y = LayTable(graphics, block, x, width, y);
+                        continue;
+                    }
                     var bt = bs == null ? 0 : BorderWidth(bs, bs.Bt);
                     var br = bs == null ? 0 : BorderWidth(bs, bs.Br);
                     var bb = bs == null ? 0 : BorderWidth(bs, bs.Bb);
@@ -316,6 +321,100 @@ namespace Lea.Win
             sy = Math.Min(sy, MaxScroll());
         }
 
+        private int LayTable(Graphics graphics, B block, int x, int width, int y)
+        {
+            var style = block.S;
+            var bt = style == null ? 0 : BorderWidth(style, style.Bt);
+            var br = style == null ? 0 : BorderWidth(style, style.Br);
+            var bb = style == null ? 0 : BorderWidth(style, style.Bb);
+            var bl = style == null ? 0 : BorderWidth(style, style.Bl);
+            var pt = style == null ? 0 : style.Pt;
+            var pr = style == null ? 0 : style.Pr;
+            var pb = style == null ? 0 : style.Pb;
+            var pl = style == null ? 0 : style.Pl;
+            var ml = style == null ? 0 : style.Ml;
+            var mr = style == null ? 0 : style.Mr;
+            y += style == null ? 0 : style.Mt;
+            var bx = x + ml;
+            var available = Math.Max(40, width - ml - mr);
+            var tableWidth = Math.Max(1, available - bl - br - pl - pr);
+            if (style != null && style.W > 0) tableWidth = Math.Min(tableWidth, style.W);
+            var contentX = bx + bl + pl;
+            var contentY = y + bt + pt;
+            var rowY = contentY;
+            var first = boxes.Count;
+
+            if (block.Tb.Cp.Length > 0)
+            {
+                using (var font = BoxFont("caption", style, false))
+                {
+                    var height = Measure(graphics, block.Tb.Cp, font, tableWidth);
+                    boxes.Add(new Bx("caption", block.Tb.Cp, null, null, new Rectangle(contentX, rowY, tableWidth, height), false, block));
+                    rowY += height + 8;
+                }
+            }
+
+            var columns = Math.Max(1, block.Tb.Cs);
+            foreach (var row in block.Tb.Rs)
+            {
+                var rowHeight = 1;
+                var column = 0;
+                foreach (var cell in row.Cs)
+                {
+                    var span = Math.Max(1, Math.Min(cell.Sp, columns - Math.Min(column, columns - 1)));
+                    var rightColumn = Math.Min(columns, column + span);
+                    var cellLeft = contentX + tableWidth * column / columns;
+                    var cellRight = contentX + tableWidth * rightColumn / columns;
+                    var cellWidth = Math.Max(1, cellRight - cellLeft);
+                    var cellBox = CellBox(cell.S, cellWidth);
+                    using (var font = BoxFont(cell.H ? "th" : "td", cell.S, false))
+                    {
+                        var height = Measure(graphics, cell.X, font, cellBox.Width);
+                        if (cell.S != null && cell.S.H > 0) height = cell.S.H;
+                        rowHeight = Math.Max(rowHeight, height + cellBox.Height);
+                    }
+                    column = rightColumn;
+                }
+
+                column = 0;
+                foreach (var cell in row.Cs)
+                {
+                    var span = Math.Max(1, Math.Min(cell.Sp, columns - Math.Min(column, columns - 1)));
+                    var rightColumn = Math.Min(columns, column + span);
+                    var cellLeft = contentX + tableWidth * column / columns;
+                    var cellRight = contentX + tableWidth * rightColumn / columns;
+                    var cellWidth = Math.Max(1, cellRight - cellLeft);
+                    var inset = CellInset(cell.S);
+                    var outer = new Rectangle(cellLeft, rowY, cellWidth, rowHeight);
+                    var content = new Rectangle(cellLeft + inset.Left, rowY + inset.Top, Math.Max(1, cellWidth - inset.Left - inset.Right), Math.Max(1, rowHeight - inset.Top - inset.Bottom));
+                    boxes.Add(new Bx(cell.H ? "th" : "td", cell.X, null, cell.S, outer, content, false, block));
+                    column = rightColumn;
+                }
+                rowY += rowHeight;
+            }
+
+            var contentHeight = Math.Max(rowY - contentY, style == null ? 0 : style.H);
+            var outerTable = new Rectangle(bx, y, tableWidth + pl + pr + bl + br, contentHeight + pt + pb + bt + bb);
+            boxes.Insert(first, new Bx("table", "", null, style, outerTable, new Rectangle(contentX, contentY, tableWidth, contentHeight), false, block));
+            return y + outerTable.Height + 8 + (style == null ? 0 : style.Mb);
+        }
+
+        private static Size CellBox(S style, int width)
+        {
+            var inset = CellInset(style);
+            return new Size(Math.Max(1, width - inset.Left - inset.Right), inset.Top + inset.Bottom);
+        }
+
+        private static Padding CellInset(S style)
+        {
+            var top = style == null ? 0 : BorderWidth(style, style.Bt) + style.Pt;
+            var right = style == null ? 0 : BorderWidth(style, style.Br) + style.Pr;
+            var bottom = style == null ? 0 : BorderWidth(style, style.Bb) + style.Pb;
+            var left = style == null ? 0 : BorderWidth(style, style.Bl) + style.Pl;
+            if (top + right + bottom + left == 0) return new Padding(6);
+            return new Padding(left, top, right, bottom);
+        }
+
         private static int Measure(Graphics graphics, string text, Font font, int width)
         {
             var size = TextRenderer.MeasureText(graphics, text ?? "", font, new Size(width, int.MaxValue), TextFormatFlags.WordBreak | TextFormatFlags.NoPadding);
@@ -332,7 +431,7 @@ namespace Lea.Win
             var name = kind == "pre" || kind == "code" ? "Consolas" : Font.FontFamily.Name;
             var size = title ? 20F : kind == "h1" ? 18F : kind == "h2" ? 15F : kind == "h3" ? 12F : Font.Size;
             if (!title && style != null && style.Fs > 0) size = style.Fs;
-            var fontStyle = title || kind.StartsWith("h") || (style != null && style.B) ? FontStyle.Bold : FontStyle.Regular;
+            var fontStyle = title || kind.StartsWith("h") || kind == "caption" || (style != null && style.B) ? FontStyle.Bold : FontStyle.Regular;
             if (kind == "a") fontStyle |= FontStyle.Underline;
             return new Font(name, size, fontStyle);
         }

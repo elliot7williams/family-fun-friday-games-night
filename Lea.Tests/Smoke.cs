@@ -35,6 +35,22 @@ namespace Lea.Tests
                 Ok(page.Fs[3].Os[2].Ds, "disabled option");
                 Ok(page.Fs[4].C && page.Fs[5].C && !page.Fs[6].C, "choice defaults");
 
+                var tablePage = engine.Go(Path.Combine(root, "LeaForge", "test-pages", "tables.html"));
+                Eq(3, tablePage.Bs.Count, "table page blocks");
+                Eq("table", tablePage.Bs[1].K, "table block kind");
+                var table = tablePage.Bs[1].Tb;
+                Ok(table != null, "parsed table model");
+                Eq("Lea engine commands", table.Cp, "table caption");
+                Eq(3, table.Rs.Count, "table row count");
+                Eq(3, table.Cs, "table column count");
+                Eq(3, table.Rs[0].Cs.Count, "header cell count");
+                Ok(table.Rs[0].Cs[0].H, "header cell kind");
+                Eq("Alias", table.Rs[0].Cs[0].X, "header cell text");
+                Eq(2, table.Rs[2].Cs[0].Sp, "cell column span");
+                Eq(480, tablePage.Bs[1].S.W, "table CSS width");
+                Eq(1, table.Rs[1].Cs[0].S.Bt, "cell CSS border");
+                Eq(6, table.Rs[1].Cs[0].S.Pl, "cell CSS padding");
+
                 using (var view = new V())
                 {
                     view.Size = new Size(720, 760);
@@ -96,6 +112,20 @@ namespace Lea.Tests
                     Eq(76, view.Rb(3).Height, "fixed border-box height");
                     Eq(320, view.Rc(4).Width, "sided content width");
                     Eq(347, view.Rb(4).Width, "sided border-box width");
+                    view.Go(Path.Combine(root, "LeaForge", "test-pages", "tables.html"));
+                    Paint(view);
+                    Eq(13, view.Bc, "table layout boxes");
+                    Eq(480, view.Rc(2).Width, "table content width");
+                    Eq(484, view.Rb(2).Width, "table border-box width");
+                    Eq(view.Rb(4).Y, view.Rb(5).Y, "header cells share a row");
+                    Eq(160, view.Rb(4).Width, "equal table column width");
+                    Eq(320, view.Rb(10).Width, "spanning cell width");
+                    Eq(160, view.Rb(11).Width, "cell after span width");
+                    view.Size = new Size(420, 760);
+                    Paint(view);
+                    Ok(view.Rb(2).Width < 484, "table reflows to narrow view");
+                    Eq(view.Rb(4).Y, view.Rb(5).Y, "narrow header row alignment");
+                    view.Size = new Size(720, 760);
                     view.Go(Path.Combine(root, "LeaForge", "test-pages", "scroll.html"));
                     Paint(view);
                     Eq(16, view.Bc, "scroll boxes");
@@ -233,7 +263,7 @@ namespace Lea.Tests
                     Eq("url", urlError.K, "URL error kind");
                 }
 
-                Console.WriteLine("Lea smoke passed: typed errors, fresh cache, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: tables, typed errors, fresh cache, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)

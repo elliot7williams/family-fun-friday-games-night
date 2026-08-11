@@ -67,3 +67,8 @@ reset default.
 Hosts can call `Rs(field)` to reset a form and `Sm(field)` or `SmA(field)` to
 submit a supported GET or URL-encoded POST form. `E.Po`/`PoA` and `V.Po`/`PoA`
 provide direct POST navigation aliases.
+
+Table blocks expose `B.Tb`. `Tb.Cp` is the caption, `Rs` contains compact
+`Tr` rows, and `Cs` is the computed column count. Each row exposes cells through
+`Tr.Cs`; a `Tc` cell uses `X` for text, `S` for computed style, `H` for a header,
+and `Sp` for its bounded column span.

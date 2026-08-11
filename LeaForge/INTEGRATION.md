@@ -64,6 +64,10 @@ can read `Dh`, `Sy`, and `Bc`, and can call `Sc(delta)` without depending on
 WinForms mouse-wheel internals. `Rb(index)` and `Rc(index)` expose deterministic
 outer-border and content rectangles for layout tests and host diagnostics.
 
+Parsed table blocks expose `B.Tb`, with `Tb.Rs`, `Tr.Cs`, and compact `Tc` cell
+records. `V` paints these on the same lightweight surface with shared row
+heights, CSS cell boxes, wrapped text, bounded column spans, and resize reflow.
+
 Basic fields are exposed through `P.Fs`. The view paints inactive controls on
 the Lea surface, reuses one editor for focused text, opens native choice menus
 for single-select fields, and provides `Rs`, `Sm`, and `SmA` for reset and

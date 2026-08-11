@@ -1,6 +1,6 @@
 # Lea 1.0 Progress
 
-Current completion: **48%**
+Current completion: **50%**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -11,13 +11,13 @@ modern web platform.
 | --- | ---: | ---: | --- |
 | Core and alias API | 10% | 8% | Compact API, history, projects, backups |
 | Networking | 10% | 6% | Typed errors, HTTP freshness, metadata, compression, bounded LRU cache |
-| HTML and document tree | 20% | 6% | Tolerant nodes, text, attributes, basic blocks |
+| HTML and document tree | 20% | 7% | Tolerant nodes, text, attributes, blocks, structured tables |
 | CSS | 15% | 5% | Cascade, descendants, inheritance, colors, fonts, display, borders, pixel sizing |
-| Layout and painting | 20% | 10% | Border/content boxes, fixed sizing, reflow, visible painting, bounded scrolling |
+| Layout and painting | 20% | 11% | Border/content boxes, table rows/cells, fixed sizing, reflow, painting, scrolling |
 | Resources, forms, and media | 10% | 7% | Images, painted fields, native select menus, reset, GET/POST submit |
 | Lea scripting | 5% | 1% | Early compact commands in LeaForge |
 | Firespider integration and reliability | 10% | 5% | Experimental Lea tab, host navigation adapter, Debug/Release smoke tests |
-| **Total** | **100%** | **48%** | |
+| **Total** | **100%** | **50%** | |
 
 ## Updating the percentage
 
@@ -29,4 +29,4 @@ modern web platform.
 ## Next gains
 
 - Firespider tab closing, sessions, and source viewing: +2%
-- Table parsing and compact row/cell layout: +2%
+- Conditional cache revalidation with ETag and Last-Modified: +1%

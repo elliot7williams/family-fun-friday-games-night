@@ -20,7 +20,7 @@ LeaForge is where we can grow the more full-featured browser.
 - local HTML file loading
 - basic HTTP page loading
 - bounded in-memory page cache for faster repeat navigation
-- basic HTML rendering for headings, paragraphs, lists, links, buttons, images, code, and pre blocks
+- basic HTML rendering for headings, paragraphs, lists, links, buttons, images, code, pre blocks, and structured tables
 - simple CSS for body color/background/font-size and inline styles
 - tiny script handling for `alert("...")` and `document.title = "..."`
 

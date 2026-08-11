@@ -301,6 +301,9 @@ namespace Lea.Engine
                     if (!open.Success) continue;
                     var tag = open.Groups["tag"].Value.ToLowerInvariant();
                     if (tag == "li" || tag == "p") CloseOpen(stack, tag);
+                    else if (tag == "td" || tag == "th") CloseOpen(stack, "td", "th");
+                    else if (tag == "tr") CloseOpen(stack, "tr");
+                    else if (tag == "thead" || tag == "tbody" || tag == "tfoot") CloseOpen(stack, "thead", "tbody", "tfoot");
                     var node = new N(tag);
                     Attrs(node, open.Groups["attrs"].Value);
                     node.Up = stack[stack.Count - 1];
@@ -316,11 +319,13 @@ namespace Lea.Engine
             return root;
         }
 
-        private static void CloseOpen(List<N> stack, string tag)
+        private static void CloseOpen(List<N> stack, params string[] tags)
         {
             for (var i = stack.Count - 1; i > 0; i--)
             {
-                if (stack[i].K != tag) continue;
+                var close = false;
+                foreach (var tag in tags) if (stack[i].K == tag) { close = true; break; }
+                if (!close) continue;
                 stack.RemoveRange(i, stack.Count - i);
                 return;
             }
@@ -588,6 +593,11 @@ namespace Lea.Engine
             var kind = node.K;
             var style = Style(node, inherited, rules);
             if (style.D == "none") return;
+            if (kind == "table")
+            {
+                AddTable(page, node, rules, style);
+                return;
+            }
             if (kind == "a")
             {
                 Uri link;
@@ -617,6 +627,48 @@ namespace Lea.Engine
             }
 
             foreach (var child in node.C) Blocks(page, child, baseUrl, rules, style);
+        }
+
+        private static void AddTable(P page, N node, List<R> rules, S style)
+        {
+            var table = new Tb();
+            foreach (var child in node.C)
+            {
+                if (child.K == "caption" && table.Cp.Length == 0) table.Cp = Clean(NodeText(child));
+                else AddTableRows(table, child, rules, style);
+            }
+            if (table.Rs.Count > 0) page.Bs.Add(new B { K = "table", X = table.Cp, S = style, Tb = table });
+        }
+
+        private static void AddTableRows(Tb table, N node, List<R> rules, S inherited)
+        {
+            if (node.K == "table") return;
+            var style = Style(node, inherited, rules);
+            if (style.D == "none") return;
+            if (node.K == "tr")
+            {
+                var row = new Tr();
+                var columns = 0;
+                foreach (var child in node.C)
+                {
+                    if (child.K != "td" && child.K != "th") continue;
+                    var cellStyle = Style(child, style, rules);
+                    if (cellStyle.D == "none") continue;
+                    int span;
+                    if (!Int32.TryParse(child.Av("colspan"), out span)) span = 1;
+                    span = Math.Max(1, Math.Min(16, span));
+                    row.Cs.Add(new Tc { X = Clean(NodeText(child)), S = cellStyle, H = child.K == "th", Sp = span });
+                    columns += span;
+                }
+                if (row.Cs.Count > 0)
+                {
+                    table.Rs.Add(row);
+                    table.Cs = Math.Max(table.Cs, columns);
+                }
+                return;
+            }
+            if (node.K != "thead" && node.K != "tbody" && node.K != "tfoot") return;
+            foreach (var child in node.C) AddTableRows(table, child, rules, style);
         }
 
         private static void AddField(P page, N node, Uri baseUrl, S style)

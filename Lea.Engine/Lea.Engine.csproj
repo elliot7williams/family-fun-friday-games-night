@@ -36,6 +36,9 @@
     <Compile Include="O.cs" />
     <Compile Include="P.cs" />
     <Compile Include="S.cs" />
+    <Compile Include="Tb.cs" />
+    <Compile Include="Tc.cs" />
+    <Compile Include="Tr.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
