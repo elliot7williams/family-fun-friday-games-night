@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+  <title>LeaForge Test Lab</title>
+  <style>
+    body {
+      background: #f6fbfc;
+      color: #1f2937;
+      font-size: 11px;
+    }
+  </style>
+  <script>
+    document.title = "LeaForge Lab";
+  </script>
+</head>
+<body>
+  <h1 style="color:#0f766e">LeaForge Lab</h1>
+  <p>This page is for testing the bigger Lea browser engine experiment.</p>
+  <h2>What This Tests</h2>
+  <p>HTML headings, paragraphs, links, buttons, inline CSS, body CSS, source view, tabs, and bookmarks.</p>
+  <p><a href="second.html">Open the second local test page</a></p>
+  <p><a href="https://example.com">Open example.com</a></p>
+  <button onclick="alert('LeaForge tiny script is working!')">Run alert script</button>
+  <button onclick="document.title='Changed by LeaForge Script'">Change page title</button>
+  <pre style="background:#e0f2fe;color:#075985;font-size:12px">lea.engine.mode = "forge"
+features = ["html", "css", "tiny-js", "tabs"]</pre>
+</body>
+</html>

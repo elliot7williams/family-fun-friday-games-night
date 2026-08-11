@@ -13,6 +13,7 @@ They are .NET Framework executables:
 - `LeaMicro.exe`
 - `LeaBrowser.exe`
 - `LeaPlus.exe`
+- `LeaForge.exe`
 
 Each exe is compiled with `../assets/lea.ico` embedded as its Windows icon.
 
@@ -23,3 +24,6 @@ The cleaner source projects are still:
 - `LeaBrowser`
 - `Lea.Micro`
 - `LeaPlus`
+- `LeaForge`
+
+`LeaForge.exe` is compiled directly from `../LeaForge/Program.cs` because that file is intentionally compatible with the older Windows C# compiler.

@@ -19,6 +19,7 @@ Open `../Lea.sln` in Visual Studio.
 - Run `LeaBrowser` to test the engine in a small browser window.
 - Run `Lea.Micro` to test the compressed one-file experiment.
 - Run `LeaPlus` to test more HTML, CSS, and tiny JavaScript-style support.
+- Run `LeaForge` to work on the bigger full-featured browser experiment.
 
 ## Icon
 
