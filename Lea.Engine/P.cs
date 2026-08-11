@@ -17,6 +17,12 @@ namespace Lea.Engine
         public string H { get; internal set; }
         public string X { get; internal set; }
         public string Q { get; internal set; }
+        public int St { get; internal set; }
+        public string Ct { get; internal set; }
+        public string Ce { get; internal set; }
+        public string Ch { get; internal set; }
+        public int Sz { get; internal set; }
+        public bool Ca { get; internal set; }
         public IList<Ln> Ls { get; private set; }
         public IList<B> Bs { get; private set; }
         public IList<Fi> Fs { get; private set; }

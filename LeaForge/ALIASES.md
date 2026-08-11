@@ -44,6 +44,11 @@ The WinForms view exposes `Dh` (document height), `Sy` (scroll position), and
 `Bc` (cached layout-box count) for compact host diagnostics. `Sc(delta)` moves
 the bounded scroll position.
 
+Response metadata stays short: `P.St` is status, `Ct` is media type, `Ce` is
+content encoding, `Ch` is charset, `Sz` is decoded size, and `Ca` reports a
+cache hit. The engine exposes `Cm` (cache maximum), `Cc` (count), `Ch` (hits),
+and `Cl()` (clear). Reload always bypasses this cache.
+
 Forms use `Fi`: `K` is field kind, `N` is name, `V` is the editable value, `P`
 is placeholder text, `C` is checked, and `Ds`/`Ro` are disabled/read-only.
 `F`, `U`, and `M` identify the owning form, action URL, and method. `D` and `Dc`

@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Net;
+using System.Net.Cache;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -11,15 +13,33 @@ namespace Lea.Engine
     // Lea's .NET Framework-compatible engine surface.
     public sealed class E
     {
-        private readonly WebClient web = new WebClient();
+        private const int MaxCachePage = 2 * 1024 * 1024;
+        private readonly W web = new W();
         private readonly List<P> hs = new List<P>();
+        private readonly Dictionary<string, Cr> cache = new Dictionary<string, Cr>(StringComparer.OrdinalIgnoreCase);
+        private readonly List<string> lru = new List<string>();
         private int at = -1;
         private bool busy;
+        private int cm = 8;
+        private int ch;
 
         public P At { get { return at >= 0 && at < hs.Count ? hs[at] : null; } }
         public bool CanBk { get { return at > 0; } }
         public bool CanFw { get { return at < hs.Count - 1; } }
         public bool Busy { get { return busy; } }
+        public int Cm
+        {
+            get { return cm; }
+            set { cm = Math.Max(0, Math.Min(16, value)); TrimCache(); }
+        }
+        public int Cc { get { return cache.Count; } }
+        public int Ch { get { return ch; } }
+
+        public void Cl()
+        {
+            cache.Clear();
+            lru.Clear();
+        }
 
         public P Go(string input)
         {
@@ -69,7 +89,7 @@ namespace Lea.Engine
         public P Rl()
         {
             if (At == null) return null;
-            var p = Read(At.U);
+            var p = Read(At.U, true);
             hs[at] = p;
             return p;
         }
@@ -77,7 +97,7 @@ namespace Lea.Engine
         public async Task<P> RlA()
         {
             if (At == null) return null;
-            var p = await ReadA(At.U);
+            var p = await ReadA(At.U, true);
             hs[at] = p;
             return p;
         }
@@ -87,28 +107,37 @@ namespace Lea.Engine
             if (busy) web.CancelAsync();
         }
 
-        private P Read(Uri url)
+        private P Read(Uri url, bool fresh = false)
         {
-            web.Headers[HttpRequestHeader.UserAgent] = "Lea/0.1";
-            var html = url.IsFile ? File.ReadAllText(Local(url)) : web.DownloadString(url);
-            return Parse(url, html);
+            Cr reply;
+            if (!url.IsFile && !fresh && GetCache(url, out reply)) return Parse(reply, true);
+            if (url.IsFile) reply = ReadFile(url);
+            else
+            {
+                var bytes = web.DownloadData(url);
+                reply = ReadWeb(url, bytes);
+                PutCache(url, reply);
+            }
+            return Parse(reply, false);
         }
 
-        private async Task<P> ReadA(Uri url)
+        private async Task<P> ReadA(Uri url, bool fresh = false)
         {
+            Cr cached;
+            if (!url.IsFile && !fresh && GetCache(url, out cached)) return Parse(cached, true);
             if (busy) throw new InvalidOperationException("Lea is already loading a page.");
             busy = true;
             try
             {
                 if (url.IsFile)
                 {
-                    var path = Local(url);
-                    return await Task.Factory.StartNew(delegate { return Parse(url, File.ReadAllText(path)); });
+                    return await Task.Factory.StartNew(delegate { return Parse(ReadFile(url), false); });
                 }
 
-                web.Headers[HttpRequestHeader.UserAgent] = "Lea/0.2";
-                var html = await web.DownloadStringTaskAsync(url);
-                return Parse(url, html);
+                var bytes = await web.DownloadDataTaskAsync(url);
+                var reply = ReadWeb(url, bytes);
+                PutCache(url, reply);
+                return Parse(reply, false);
             }
             finally
             {
@@ -116,23 +145,29 @@ namespace Lea.Engine
             }
         }
 
-        private static P Parse(Uri url, string html)
+        private static P Parse(Cr reply, bool cached)
         {
             var p = new P();
-            p.U = url;
-            p.Q = Query(url);
-            p.H = html;
-            p.D = Tree(html);
+            p.U = reply.U;
+            p.Q = Query(reply.U);
+            p.H = reply.H;
+            p.St = reply.St;
+            p.Ct = reply.Ct;
+            p.Ce = reply.Ce;
+            p.Ch = reply.Ch;
+            p.Sz = reply.Sz;
+            p.Ca = cached;
+            p.D = Tree(reply.H);
             var title = Find(p.D, "title");
             p.T = Clean(NodeText(title));
-            if (p.T.Length == 0) p.T = url.IsFile ? Path.GetFileName(url.LocalPath) : url.Host;
+            if (p.T.Length == 0) p.T = reply.U.IsFile ? Path.GetFileName(reply.U.LocalPath) : reply.U.Host;
 
             var body = Find(p.D, "body") ?? p.D;
             p.X = Clean(NodeText(body));
             p.N = Count(p.D);
             var rules = Css(p.D);
             p.S = Style(body, new S(), rules);
-            foreach (var child in body.C) Blocks(p, child, url, rules, p.S);
+            foreach (var child in body.C) Blocks(p, child, reply.U, rules, p.S);
 
             return p;
         }
@@ -539,6 +574,120 @@ namespace Lea.Engine
             return parent;
         }
 
+        private bool GetCache(Uri url, out Cr reply)
+        {
+            var key = CacheKey(url);
+            reply = null;
+            if (cm == 0 || !cache.TryGetValue(key, out reply)) return false;
+            lru.Remove(key);
+            lru.Add(key);
+            ch++;
+            return true;
+        }
+
+        private void PutCache(Uri url, Cr reply)
+        {
+            var key = CacheKey(url);
+            if (cm == 0 || reply.Ns || reply.St < 200 || reply.St >= 300 || reply.Sz > MaxCachePage)
+            {
+                cache.Remove(key);
+                lru.Remove(key);
+                return;
+            }
+            cache[key] = reply;
+            lru.Remove(key);
+            lru.Add(key);
+            TrimCache();
+        }
+
+        private void TrimCache()
+        {
+            while (lru.Count > cm)
+            {
+                var key = lru[0];
+                lru.RemoveAt(0);
+                cache.Remove(key);
+            }
+        }
+
+        private static string CacheKey(Uri url)
+        {
+            if (url.Fragment.Length == 0) return url.AbsoluteUri;
+            var clean = new UriBuilder(url);
+            clean.Fragment = "";
+            return clean.Uri.AbsoluteUri;
+        }
+
+        private static Cr ReadFile(Uri url)
+        {
+            var path = Local(url);
+            var bytes = File.ReadAllBytes(path);
+            string charset;
+            var html = Decode(bytes, "", out charset);
+            return new Cr(url, html, 200, FileType(path), "", charset, bytes.Length, true);
+        }
+
+        private Cr ReadWeb(Uri url, byte[] bytes)
+        {
+            var body = Expand(bytes, web.Ce);
+            string charset;
+            var html = Decode(body, Charset(web.Ct), out charset);
+            return new Cr(web.U ?? url, html, web.St == 0 ? 200 : web.St, MediaType(web.Ct), web.Ce, charset, body.Length, web.Ns);
+        }
+
+        private static byte[] Expand(byte[] bytes, string contentEncoding)
+        {
+            var encoding = (contentEncoding ?? "").Trim().ToLowerInvariant();
+            if (encoding != "gzip" && encoding != "deflate") return bytes;
+            using (var input = new MemoryStream(bytes))
+            using (Stream zip = encoding == "gzip" ? (Stream)new GZipStream(input, CompressionMode.Decompress) : new DeflateStream(input, CompressionMode.Decompress))
+            using (var output = new MemoryStream())
+            {
+                zip.CopyTo(output);
+                return output.ToArray();
+            }
+        }
+
+        private static string FileType(string path)
+        {
+            var extension = Path.GetExtension(path).ToLowerInvariant();
+            if (extension == ".htm" || extension == ".html") return "text/html";
+            if (extension == ".txt") return "text/plain";
+            if (extension == ".css") return "text/css";
+            return "application/octet-stream";
+        }
+
+        private static string MediaType(string contentType)
+        {
+            var split = (contentType ?? "").IndexOf(';');
+            return (split < 0 ? contentType ?? "" : contentType.Substring(0, split)).Trim().ToLowerInvariant();
+        }
+
+        private static string Charset(string contentType)
+        {
+            var match = Regex.Match(contentType ?? "", "(?:^|;)\\s*charset\\s*=\\s*[\"']?(?<c>[^;\\s\"']+)", RegexOptions.IgnoreCase);
+            return match.Success ? match.Groups["c"].Value.Trim() : "";
+        }
+
+        private static string Decode(byte[] bytes, string charset, out string used)
+        {
+            Encoding encoding = null;
+            if (bytes.Length >= 4 && bytes[0] == 0 && bytes[1] == 0 && bytes[2] == 254 && bytes[3] == 255) encoding = new UTF32Encoding(true, true);
+            else if (bytes.Length >= 4 && bytes[0] == 255 && bytes[1] == 254 && bytes[2] == 0 && bytes[3] == 0) encoding = Encoding.UTF32;
+            else if (bytes.Length >= 3 && bytes[0] == 239 && bytes[1] == 187 && bytes[2] == 191) encoding = Encoding.UTF8;
+            else if (bytes.Length >= 2 && bytes[0] == 254 && bytes[1] == 255) encoding = Encoding.BigEndianUnicode;
+            else if (bytes.Length >= 2 && bytes[0] == 255 && bytes[1] == 254) encoding = Encoding.Unicode;
+            if (encoding == null && charset.Length > 0)
+            {
+                try { encoding = Encoding.GetEncoding(charset); }
+                catch (ArgumentException) { }
+            }
+            if (encoding == null) encoding = Encoding.UTF8;
+            used = encoding.WebName.ToLowerInvariant();
+            using (var stream = new MemoryStream(bytes))
+            using (var reader = new StreamReader(stream, encoding, true)) return reader.ReadToEnd();
+        }
+
         private sealed class R
         {
             public readonly string Q;
@@ -552,6 +701,82 @@ namespace Lea.Engine
                 V = values;
                 W = weight;
                 O = order;
+            }
+        }
+
+        private sealed class Cr
+        {
+            public readonly Uri U;
+            public readonly string H;
+            public readonly int St;
+            public readonly string Ct;
+            public readonly string Ce;
+            public readonly string Ch;
+            public readonly int Sz;
+            public readonly bool Ns;
+
+            public Cr(Uri url, string html, int status, string contentType, string contentEncoding, string charset, int size, bool noStore)
+            {
+                U = url;
+                H = html ?? "";
+                St = status;
+                Ct = contentType ?? "";
+                Ce = (contentEncoding ?? "").Trim().ToLowerInvariant();
+                Ch = charset ?? "";
+                Sz = size;
+                Ns = noStore;
+            }
+        }
+
+        private sealed class W : WebClient
+        {
+            public Uri U { get; private set; }
+            public int St { get; private set; }
+            public string Ct { get; private set; }
+            public string Ce { get; private set; }
+            public bool Ns { get; private set; }
+
+            protected override WebRequest GetWebRequest(Uri address)
+            {
+                U = null;
+                St = 0;
+                Ct = "";
+                Ce = "";
+                Ns = false;
+                var request = base.GetWebRequest(address);
+                var http = request as HttpWebRequest;
+                if (http != null)
+                {
+                    http.Headers[HttpRequestHeader.AcceptEncoding] = "gzip, deflate";
+                    http.CachePolicy = new RequestCachePolicy(RequestCacheLevel.BypassCache);
+                    http.UserAgent = "Lea/0.3";
+                    http.Timeout = 15000;
+                    http.ReadWriteTimeout = 15000;
+                }
+                return request;
+            }
+
+            protected override WebResponse GetWebResponse(WebRequest request)
+            {
+                return Capture(base.GetWebResponse(request));
+            }
+
+            protected override WebResponse GetWebResponse(WebRequest request, IAsyncResult result)
+            {
+                return Capture(base.GetWebResponse(request, result));
+            }
+
+            private WebResponse Capture(WebResponse response)
+            {
+                var http = response as HttpWebResponse;
+                if (http == null) return response;
+                U = http.ResponseUri;
+                St = (int)http.StatusCode;
+                Ct = http.ContentType ?? "";
+                Ce = http.Headers[HttpResponseHeader.ContentEncoding] ?? "";
+                var control = http.Headers[HttpResponseHeader.CacheControl] ?? "";
+                Ns = control.IndexOf("no-store", StringComparison.OrdinalIgnoreCase) >= 0;
+                return response;
             }
         }
 

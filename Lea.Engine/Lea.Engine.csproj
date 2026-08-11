@@ -35,4 +35,5 @@
     <Compile Include="P.cs" />
     <Compile Include="S.cs" />
   </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

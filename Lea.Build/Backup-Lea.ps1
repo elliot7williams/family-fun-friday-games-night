@@ -9,7 +9,8 @@ $zip = Join-Path $Out ("Lea-source-$stamp.zip")
 $stage = Join-Path ([IO.Path]::GetTempPath()) ("Lea-source-$([Guid]::NewGuid().ToString('N'))")
 $names = @(
     'assets', 'Lea', 'Lea.Build', 'Lea.Core', 'Lea.Engine', 'Lea.Firespider',
-    'Lea.Micro', 'Lea.Win', 'Lea.Win.Test', 'LeaBrowser', 'LeaForge', 'LeaPlus'
+    'Lea.Micro', 'Lea.Tests', 'Lea.Win', 'Lea.Win.Test', 'LeaBrowser',
+    'LeaForge', 'LeaPlus'
 )
 
 New-Item -ItemType Directory -Path $Out -Force | Out-Null

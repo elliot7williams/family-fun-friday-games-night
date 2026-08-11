@@ -1,6 +1,10 @@
 using System;
 using System.Drawing;
 using System.IO;
+using System.IO.Compression;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using Lea.Engine;
@@ -19,6 +23,10 @@ namespace Lea.Tests
                 var forms = Path.Combine(root, "LeaForge", "test-pages", "forms.html");
                 var engine = new E();
                 var page = engine.Go(forms);
+                Eq(200, page.St, "local status");
+                Eq("text/html", page.Ct, "local content type");
+                Eq("utf-8", page.Ch, "local charset");
+                Ok(page.Sz > 0 && !page.Ca, "local response metadata");
                 Eq(8, page.Fs.Count, "field count");
                 Eq("text,password,textarea,checkbox,radio,radio,reset,submit", Kinds(page), "field kinds");
                 Ok(page.Fs[3].C && page.Fs[4].C && !page.Fs[5].C, "choice defaults");
@@ -87,7 +95,56 @@ namespace Lea.Tests
                     Eq(Math.Max(0, view.Dh - view.Height), view.Sy, "bounded scroll");
                 }
 
-                Console.WriteLine("Lea smoke passed: forms, GET, CSS boxes, images, layout, and scrolling.");
+                using (var server = new CompressedServer())
+                {
+                    var net = new E();
+                    net.Cm = 2;
+                    var gzip = new Uri(server.U, "?encoding=gzip");
+                    var first = net.Go(gzip);
+                    Eq(200, first.St, "HTTP status");
+                    Eq("text/html", first.Ct, "HTTP content type");
+                    Eq("gzip", first.Ce, "GZip response encoding");
+                    Eq("utf-8", first.Ch, "HTTP charset");
+                    Eq("Lea gzip", first.T, "GZip decoded page");
+                    Ok(first.Sz > 0 && !first.Ca, "network response metadata");
+                    Eq(1, server.Hits, "first network request");
+
+                    var cached = net.Go(gzip);
+                    Ok(cached.Ca && !Object.ReferenceEquals(first, cached), "cached payload creates a fresh page");
+                    Eq(1, server.Hits, "cache avoids network");
+                    Eq(1, net.Ch, "cache hit count");
+
+                    var deflate = net.Go(new Uri(server.U, "?encoding=deflate"));
+                    Eq("deflate", deflate.Ce, "Deflate response encoding");
+                    Eq("Lea deflate", deflate.T, "Deflate decoded page");
+                    net.Go(new Uri(server.U, "?page=third"));
+                    Eq(2, net.Cc, "bounded cache count");
+                    var evicted = net.Go(gzip);
+                    Ok(!evicted.Ca, "least-recently-used eviction");
+                    Eq(4, server.Hits, "evicted page reload");
+
+                    var reloaded = net.Rl();
+                    Ok(!reloaded.Ca, "reload bypasses cache");
+                    Eq(5, server.Hits, "reload network request");
+                    net.Cl();
+                    Eq(0, net.Cc, "clear cache");
+
+                    var asyncPage = net.GoA(new Uri(server.U, "?encoding=deflate&async=1")).GetAwaiter().GetResult();
+                    Eq("deflate", asyncPage.Ce, "async response encoding");
+                    Eq("Lea deflate", asyncPage.T, "async decoded page");
+                    var noStoreUrl = new Uri(server.U, "?no-store=1");
+                    net.Go(noStoreUrl);
+                    var noStore = net.Go(noStoreUrl);
+                    Ok(!noStore.Ca, "no-store response bypasses cache");
+                    Eq(8, server.Hits, "no-store network requests");
+                    net.Cl();
+                    var redirected = net.Go(new Uri(server.U, "?redirect=1"));
+                    Eq(200, redirected.St, "redirect final status");
+                    Ok(redirected.U.Query.Contains("redirected=1"), "redirect final URL");
+                    Eq(10, server.Hits, "redirect request chain");
+                }
+
+                Console.WriteLine("Lea smoke passed: network cache, compression, metadata, forms, CSS boxes, images, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -126,6 +183,85 @@ namespace Lea.Tests
         private static void Ok(bool value, string name)
         {
             if (!value) throw new InvalidOperationException(name);
+        }
+
+        private sealed class CompressedServer : IDisposable
+        {
+            private readonly TcpListener listener;
+            private readonly Thread thread;
+            private int hits;
+            private volatile bool stopping;
+
+            public Uri U { get; private set; }
+            public int Hits { get { return Interlocked.CompareExchange(ref hits, 0, 0); } }
+
+            public CompressedServer()
+            {
+                listener = new TcpListener(IPAddress.Loopback, 0);
+                listener.Start();
+                var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+                U = new Uri("http://127.0.0.1:" + port + "/page");
+                thread = new Thread(Serve);
+                thread.IsBackground = true;
+                thread.Start();
+            }
+
+            private void Serve()
+            {
+                while (!stopping)
+                {
+                    TcpClient client;
+                    try { client = listener.AcceptTcpClient(); }
+                    catch (SocketException) { if (stopping) return; throw; }
+                    catch (ObjectDisposedException) { return; }
+                    using (client)
+                    using (var stream = client.GetStream())
+                    {
+                        string request;
+                        using (var reader = new StreamReader(stream, Encoding.ASCII, false, 1024, true))
+                        {
+                            request = reader.ReadLine() ?? "";
+                            string line;
+                            while ((line = reader.ReadLine()) != null && line.Length > 0) { }
+                        }
+
+                        Interlocked.Increment(ref hits);
+                        if (request.IndexOf("redirect=1", StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            var redirect = Encoding.ASCII.GetBytes("HTTP/1.1 302 Found\r\nLocation: /page?encoding=gzip&redirected=1\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
+                            stream.Write(redirect, 0, redirect.Length);
+                            continue;
+                        }
+                        var deflate = request.IndexOf("encoding=deflate", StringComparison.OrdinalIgnoreCase) >= 0;
+                        var title = deflate ? "Lea deflate" : "Lea gzip";
+                        var source = Encoding.UTF8.GetBytes("<html><head><title>" + title + "</title></head><body><p>Compressed Lea response.</p></body></html>");
+                        var body = Compress(source, deflate);
+                        var noStore = request.IndexOf("no-store=1", StringComparison.OrdinalIgnoreCase) >= 0;
+                        var headers = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Encoding: " + (deflate ? "deflate" : "gzip") + "\r\n" +
+                            (noStore ? "Cache-Control: no-store\r\n" : "") + "Content-Length: " + body.Length + "\r\nConnection: close\r\n\r\n";
+                        var head = Encoding.ASCII.GetBytes(headers);
+                        stream.Write(head, 0, head.Length);
+                        stream.Write(body, 0, body.Length);
+                    }
+                }
+            }
+
+            private static byte[] Compress(byte[] source, bool deflate)
+            {
+                using (var output = new MemoryStream())
+                {
+                    using (Stream zip = deflate ? (Stream)new DeflateStream(output, CompressionMode.Compress, true) : new GZipStream(output, CompressionMode.Compress, true))
+                        zip.Write(source, 0, source.Length);
+                    return output.ToArray();
+                }
+            }
+
+            public void Dispose()
+            {
+                stopping = true;
+                listener.Stop();
+                thread.Join(2000);
+            }
         }
     }
 }

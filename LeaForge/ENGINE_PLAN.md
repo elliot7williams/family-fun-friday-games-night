@@ -37,6 +37,7 @@ fs      font size
 3. Add a `Uri` and encoding utility that handles local files, HTTP, relative URLs,
    redirects, UTF-8, and common content types.
 4. Use bounded caches for pages, images, stylesheets, and decoded resources.
+   (An eight-entry LRU decoded-payload cache with a 2 MB per-page ceiling is active.)
 5. Add cancellation and timeouts so a slow page cannot freeze the browser.
    (`GoA`, `RlA`, and `St` are now available in the compatibility engine.)
 
@@ -64,10 +65,10 @@ predictable rendering pass.
 ## 5. Network and resources
 
 - HTTP and HTTPS loading through a small request layer.
-- Redirects, response status, content type, content encoding, and character encoding.
-- GZip/Deflate response decompression.
+- Redirects, response status, content type, content encoding, and character encoding. (Final response URL and compact page metadata are active.)
+- GZip/Deflate response decompression. (Both are decoded transparently and covered by loopback tests.)
 - Image loading for PNG, JPEG, GIF, and ICO where the platform supports them. (Basic async image loading and bounded memory cache added.)
-- A small memory and disk cache with explicit size limits.
+- A small memory and disk cache with explicit size limits. (Bounded memory payload cache active; disk cache remains.)
 - Basic cookies and a clear permission boundary for local files and scripts.
 
 ## 6. Lea scripting
@@ -193,7 +194,6 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add response metadata, decompression, and a bounded page cache. Lea's cached
-layout boxes now support pixel width/height and per-side solid, dashed, or dotted
-borders. The experimental Firespider adapter preserves legacy tabs and safely
-routes status timer ticks for both legacy `WebBrowser` and Lea-backed tabs.
+Add select controls and supported POST form submission. Lea now records response
+status, media type, content encoding, charset, decoded size, and cache origin;
+decodes GZip/Deflate; and keeps a bounded LRU payload cache that reload bypasses.

@@ -35,4 +35,5 @@
   <ItemGroup>
     <Compile Include="Smoke.cs" />
   </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -23,6 +23,10 @@ During development, add the Lea engine project to the same solution and use a
 Project Reference. This gives the browser project source-level debugging and
 lets both projects evolve together.
 
+The .NET Framework project files import the standard C# build targets and pass
+Release `Rebuild` through MSBuild, so Visual Studio can compile the engine,
+WinForms adapter, tests, and test browser directly.
+
 ```xml
 <ItemGroup>
   <ProjectReference Include="..\Lea.Engine\Lea.Engine.csproj" />
@@ -46,6 +50,9 @@ remain available for small tools and deterministic local tests.
 
 Pages now expose a lightweight tree through `P.D`. Firespider integrations
 should use that tree instead of expecting the legacy COM `HtmlDocument` object.
+`P.St`, `Ct`, `Ce`, `Ch`, `Sz`, and `Ca` expose compact response diagnostics.
+`E.Cm`, `Cc`, `Ch`, and `Cl()` configure or inspect Lea's bounded decoded-page
+payload cache; `Rl` and `RlA` deliberately fetch a fresh response.
 
 The `V` host control now performs cached layout and bounded scrolling. Firespider
 can read `Dh`, `Sy`, and `Bc`, and can call `Sc(delta)` without depending on
