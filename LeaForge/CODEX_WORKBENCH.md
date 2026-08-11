@@ -17,15 +17,13 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-1. Split `Program.cs` into engine, parser, renderer, and UI files.
-2. Add a real CSS cascade: tag selectors, class selectors, id selectors, and inline style priority.
-3. Add layout boxes instead of one-control-per-node rendering.
-4. Add image downloading and bitmap display.
+1. Add an experimental Lea tab to Firespider behind an adapter boundary.
+2. Add CSS borders, width, and height to the cached layout boxes.
+3. Add response metadata, decompression, and bounded page caching.
+4. Add select controls and supported POST form submission.
 5. Add a small JavaScript interpreter layer or bridge.
-6. Add cache storage for pages and images. (Page cache started: bounded 12-page memory cache.)
-7. Add bookmarks saved to a JSON file.
-8. Add downloads.
-9. Add developer tools panel for parsed nodes, CSS rules, network events, and console messages.
+6. Add downloads and find-in-page.
+7. Add a developer tools panel for parsed nodes, CSS rules, network events, and console messages.
 
 ## Rules For Future Codex Work
 

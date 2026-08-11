@@ -19,6 +19,7 @@ namespace Lea.Win
         private readonly WebClient picWeb = new WebClient();
         private readonly Dictionary<string, Image> pics = new Dictionary<string, Image>(StringComparer.OrdinalIgnoreCase);
         private readonly Queue<string> picOrder = new Queue<string>();
+        private readonly TextBox ed = new TextBox();
         private const int PicLimit = 24;
         private int sy;
         private int docHeight;
@@ -26,9 +27,15 @@ namespace Lea.Win
         private bool layoutDirty = true;
         private bool picBusy;
         private bool picStop;
+        private Fi edit;
+        private Font editFont;
+        private string editStart = "";
+        private bool editLock;
 
         public event EventHandler Done;
         public event EventHandler Changed;
+        public event EventHandler Ed;
+        public event EventHandler Sb;
 
         public V()
         {
@@ -38,12 +45,21 @@ namespace Lea.Win
             Font = new Font("Segoe UI", 10F);
             Dock = DockStyle.Fill;
             TabStop = true;
+
+            ed.Visible = false;
+            ed.BorderStyle = BorderStyle.FixedSingle;
+            ed.TextChanged += EditChanged;
+            ed.KeyDown += EditKeyDown;
+            ed.LostFocus += delegate { EndEdit(false); };
+            ed.MouseWheel += delegate(object sender, MouseEventArgs args) { Sc(-Math.Sign(args.Delta) * 72); };
+            Controls.Add(ed);
         }
 
         public P At { get { return e.At; } }
         public Uri U { get { return At == null ? null : At.U; } }
         public string T { get { return At == null ? "" : At.T; } }
         public string H { get { return At == null ? "" : At.H; } }
+        public string Q { get { return At == null ? "" : At.Q; } }
         public bool CanBk { get { return e.CanBk; } }
         public bool CanFw { get { return e.CanFw; } }
         public bool Busy { get { return e.Busy || picBusy; } }
@@ -58,6 +74,13 @@ namespace Lea.Win
             finally { Cursor = Cursors.Default; }
         }
 
+        public P Go(Uri url)
+        {
+            Cursor = Cursors.WaitCursor;
+            try { return Show(e.Go(url), true); }
+            finally { Cursor = Cursors.Default; }
+        }
+
         public async Task<P> GoA(string input)
         {
             Cursor = Cursors.WaitCursor;
@@ -65,6 +88,22 @@ namespace Lea.Win
             try
             {
                 var page = Show(await e.GoA(input), false);
+                await PicsA(page);
+                Dirty();
+                Invalidate();
+                if (Done != null) Done(this, EventArgs.Empty);
+                return page;
+            }
+            finally { Cursor = Cursors.Default; }
+        }
+
+        public async Task<P> GoA(Uri url)
+        {
+            Cursor = Cursors.WaitCursor;
+            picStop = false;
+            try
+            {
+                var page = Show(await e.GoA(url), false);
                 await PicsA(page);
                 Dirty();
                 Invalidate();
@@ -99,6 +138,7 @@ namespace Lea.Win
 
         private P Show(P page, bool done)
         {
+            EndEdit(false);
             sy = 0;
             Dirty();
             OnChanged();
@@ -133,6 +173,7 @@ namespace Lea.Win
             var pageBackground = CssColor(At.S == null ? "" : At.S.Bg, BackColor);
             pe.Graphics.Clear(pageBackground);
             if (layoutDirty || layoutWidth != ClientSize.Width) Lay(pe.Graphics);
+            PlaceEditor();
 
             foreach (var box in boxes)
             {
@@ -142,6 +183,12 @@ namespace Lea.Win
                 if (box.K == "img")
                 {
                     PaintPic(pe.Graphics, box, rect, pageColor);
+                    continue;
+                }
+                if (box.B != null && box.B.I != null)
+                {
+                    PaintField(pe.Graphics, box, rect, pageColor);
+                    hits.Add(new Hit(rect, null, box));
                     continue;
                 }
 
@@ -156,7 +203,7 @@ namespace Lea.Win
                     TextRenderer.DrawText(pe.Graphics, box.X, font, rect, color, TextFormatFlags.WordBreak | TextFormatFlags.NoPadding);
                 }
 
-                if (box.U != null) hits.Add(new Hit(rect, box.U));
+                if (box.U != null) hits.Add(new Hit(rect, box.U, null));
             }
         }
 
@@ -197,6 +244,18 @@ namespace Lea.Win
                     var bw = Math.Max(40, width - (bs == null ? 0 : bs.Ml + bs.Mr + bs.Pl + bs.Pr));
                     int height;
                     if (block.K == "img") height = PicSize(block, bw).Height;
+                    else if (block.I != null)
+                    {
+                        using (var font = BoxFont(block.K, bs, false))
+                        {
+                            height = block.K == "textarea" ? Math.Max(84, font.Height * 3 + 12) : block.I.K == "checkbox" || block.I.K == "radio" ? Math.Max(24, font.Height + 4) : Math.Max(32, font.Height + 12);
+                            if (block.K == "button")
+                            {
+                                var buttonWidth = TextRenderer.MeasureText(graphics, block.X, font, Size.Empty, TextFormatFlags.NoPadding).Width + 28;
+                                bw = Math.Min(bw, Math.Max(88, buttonWidth));
+                            }
+                        }
+                    }
                     else
                     {
                         using (var font = BoxFont(block.K, bs, false)) height = Measure(graphics, block.K == "li" ? "- " + block.X : block.X, font, bw);
@@ -255,6 +314,54 @@ namespace Lea.Win
             using (var brush = new SolidBrush(Color.FromArgb(20, color))) graphics.FillRectangle(brush, rect);
             using (var pen = new Pen(Color.FromArgb(80, color))) graphics.DrawRectangle(pen, rect.X, rect.Y, rect.Width - 1, rect.Height - 1);
             TextRenderer.DrawText(graphics, box.X.Length == 0 ? "Image unavailable" : box.X, Font, new Rectangle(rect.X + 8, rect.Y + 8, rect.Width - 16, rect.Height - 16), color, TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak);
+        }
+
+        private void PaintField(Graphics graphics, Bx box, Rectangle rect, Color color)
+        {
+            var field = box.B.I;
+            var disabled = field.Ds;
+            var background = disabled ? Color.FromArgb(238, 238, 238) : Color.White;
+            if (field.S != null && field.S.Bg.Length > 0) background = CssColor(field.S.Bg, background);
+            var foreground = disabled ? Color.FromArgb(130, 130, 130) : field.S == null ? color : CssColor(field.S.F, color);
+
+            if (field.K == "checkbox" || field.K == "radio")
+            {
+                var mark = new Rectangle(rect.X, rect.Y + 3, 17, 17);
+                using (var brush = new SolidBrush(background)) graphics.FillRectangle(brush, mark);
+                using (var pen = new Pen(Color.FromArgb(120, 120, 120)))
+                {
+                    if (field.K == "radio") graphics.DrawEllipse(pen, mark);
+                    else graphics.DrawRectangle(pen, mark);
+                }
+                if (field.C)
+                {
+                    using (var pen = new Pen(disabled ? Color.Gray : Color.FromArgb(0, 102, 204), 2F))
+                    {
+                        if (field.K == "radio") graphics.FillEllipse(pen.Brush, new Rectangle(mark.X + 4, mark.Y + 4, 9, 9));
+                        else
+                        {
+                            graphics.DrawLine(pen, mark.X + 3, mark.Y + 8, mark.X + 7, mark.Y + 13);
+                            graphics.DrawLine(pen, mark.X + 7, mark.Y + 13, mark.X + 14, mark.Y + 4);
+                        }
+                    }
+                }
+                using (var font = BoxFont(box.K, field.S, false))
+                    TextRenderer.DrawText(graphics, box.X, font, new Rectangle(rect.X + 24, rect.Y, Math.Max(1, rect.Width - 24), rect.Height), foreground, TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding);
+                return;
+            }
+
+            using (var brush = new SolidBrush(background)) graphics.FillRectangle(brush, rect);
+            using (var pen = new Pen(box.K == "button" ? Color.FromArgb(145, 145, 145) : Color.FromArgb(165, 165, 165))) graphics.DrawRectangle(pen, rect.X, rect.Y, rect.Width - 1, rect.Height - 1);
+
+            var text = field.V ?? "";
+            var placeholder = text.Length == 0 && field.P.Length > 0;
+            if (placeholder) text = field.P;
+            if (field.K == "password" && !placeholder) text = new string('*', text.Length);
+            var textColor = placeholder ? Color.FromArgb(130, 130, 130) : foreground;
+            var flags = box.K == "button" ? TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding : TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak | TextFormatFlags.NoPadding;
+            var pad = box.K == "button" ? 2 : 7;
+            using (var font = BoxFont(box.K, field.S, false))
+                TextRenderer.DrawText(graphics, box.K == "button" ? box.X : text, font, new Rectangle(rect.X + pad, rect.Y + 3, Math.Max(1, rect.Width - (pad * 2)), Math.Max(1, rect.Height - 6)), textColor, flags);
         }
 
         private async Task PicsA(P page)
@@ -316,6 +423,7 @@ namespace Lea.Win
         public void Sc(int delta)
         {
             sy = Math.Max(0, Math.Min(MaxScroll(), sy + delta));
+            PlaceEditor();
             Invalidate();
         }
 
@@ -327,7 +435,8 @@ namespace Lea.Win
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);
-            Cursor = HitAt(e.Location) == null ? Cursors.Default : Cursors.Hand;
+            var hit = HitAt(e.Location);
+            Cursor = hit == null ? Cursors.Default : hit.B != null && CanEdit(hit.B.B.I) ? Cursors.IBeam : Cursors.Hand;
         }
 
         protected override async void OnMouseClick(MouseEventArgs e)
@@ -335,8 +444,172 @@ namespace Lea.Win
             base.OnMouseClick(e);
             var hit = HitAt(e.Location);
             if (hit == null) return;
-            try { await GoA(hit.U.ToString()); }
+            try
+            {
+                if (hit.B != null) await FieldClickA(hit.B);
+                else if (hit.U != null) await GoA(hit.U.ToString());
+            }
             catch { Cursor = Cursors.Default; }
+        }
+
+        private async Task FieldClickA(Bx box)
+        {
+            var field = box.B.I;
+            if (field == null || field.Ds) return;
+            if (CanEdit(field))
+            {
+                StartEdit(field);
+                return;
+            }
+
+            EndEdit(false);
+            if (field.K == "checkbox")
+            {
+                field.C = !field.C;
+                OnEdited();
+            }
+            else if (field.K == "radio")
+            {
+                foreach (var item in At.Fs)
+                    if (item.K == "radio" && Object.ReferenceEquals(item.F, field.F) && item.N == field.N) item.C = false;
+                field.C = true;
+                OnEdited();
+            }
+            else if (field.K == "reset") Rs(field);
+            else if (field.K == "submit") await SmA(field);
+            else if (field.K == "button" && Sb != null) Sb(this, EventArgs.Empty);
+            Invalidate();
+        }
+
+        private static bool CanEdit(Fi field)
+        {
+            return field != null && field.K != "checkbox" && field.K != "radio" && field.K != "submit" && field.K != "reset" && field.K != "button" && field.K != "file";
+        }
+
+        private void StartEdit(Fi field)
+        {
+            if (edit != field) EndEdit(false);
+            edit = field;
+            editStart = field.V;
+            editLock = true;
+            ed.Multiline = field.K == "textarea";
+            ed.AcceptsReturn = ed.Multiline;
+            ed.ScrollBars = ed.Multiline ? ScrollBars.Vertical : ScrollBars.None;
+            ed.ReadOnly = field.Ro;
+            ed.MaxLength = field.Mx > 0 ? field.Mx : 32767;
+            ed.PasswordChar = field.K == "password" ? '*' : '\0';
+            var oldFont = editFont;
+            editFont = BoxFont(field.K, field.S, false);
+            ed.Font = editFont;
+            if (oldFont != null) oldFont.Dispose();
+            ed.Text = field.V;
+            editLock = false;
+            PlaceEditor();
+            ed.Visible = true;
+            ed.Focus();
+            ed.SelectAll();
+        }
+
+        private void EndEdit(bool restore)
+        {
+            if (edit == null) return;
+            if (restore) edit.V = editStart;
+            edit = null;
+            ed.Visible = false;
+            Invalidate();
+        }
+
+        private void EditChanged(object sender, EventArgs args)
+        {
+            if (editLock || edit == null) return;
+            edit.V = ed.Text;
+            OnEdited();
+            Invalidate();
+        }
+
+        private void EditKeyDown(object sender, KeyEventArgs args)
+        {
+            if (args.KeyCode == Keys.Escape)
+            {
+                EndEdit(true);
+                args.SuppressKeyPress = true;
+            }
+            else if (args.KeyCode == Keys.Enter && !ed.Multiline)
+            {
+                EndEdit(false);
+                args.SuppressKeyPress = true;
+            }
+        }
+
+        private void PlaceEditor()
+        {
+            if (edit == null) return;
+            foreach (var box in boxes)
+            {
+                if (box.B == null || box.B.I != edit) continue;
+                var rect = box.R;
+                rect.Offset(0, -sy);
+                if (rect.Bottom <= 0 || rect.Top >= ClientSize.Height)
+                {
+                    ed.Visible = false;
+                    return;
+                }
+                ed.Bounds = new Rectangle(rect.X + 1, rect.Y + 1, Math.Max(1, rect.Width - 2), Math.Max(1, rect.Height - 2));
+                ed.Visible = true;
+                return;
+            }
+            ed.Visible = false;
+        }
+
+        public void Rs(Fi button)
+        {
+            if (At == null || button == null || button.F == null) return;
+            foreach (var field in At.Fs)
+            {
+                if (!Object.ReferenceEquals(field.F, button.F)) continue;
+                field.V = field.D;
+                field.C = field.Dc;
+            }
+            OnEdited();
+        }
+
+        public P Sm(Fi button)
+        {
+            if (Sb != null) Sb(this, EventArgs.Empty);
+            var target = FormUri(button);
+            return target == null ? At : Go(target);
+        }
+
+        public async Task<P> SmA(Fi button)
+        {
+            if (Sb != null) Sb(this, EventArgs.Empty);
+            var target = FormUri(button);
+            return target == null ? At : await GoA(target);
+        }
+
+        private Uri FormUri(Fi button)
+        {
+            if (At == null || button == null || button.F == null || button.M != "get" || button.U == null) return null;
+
+            var values = new List<string>();
+            foreach (var field in At.Fs)
+            {
+                if (!Object.ReferenceEquals(field.F, button.F) || field.Ds || field.N.Length == 0) continue;
+                if ((field.K == "checkbox" || field.K == "radio") && !field.C) continue;
+                if (field.K == "reset" || field.K == "button" || (field.K == "submit" && field != button)) continue;
+                values.Add(Uri.EscapeDataString(field.N) + "=" + Uri.EscapeDataString(field.V ?? ""));
+            }
+
+            var target = new UriBuilder(button.U);
+            var query = target.Query.TrimStart('?');
+            if (query.Length > 0 && values.Count > 0) query += "&";
+            target.Query = query + String.Join("&", values.ToArray());
+            return target.Uri;
+        }
+
+        private void OnEdited()
+        {
+            if (Ed != null) Ed(this, EventArgs.Empty);
         }
 
         private Hit HitAt(Point point)
@@ -362,6 +635,7 @@ namespace Lea.Win
             if (disposing)
             {
                 picWeb.Dispose();
+                if (editFont != null) editFont.Dispose();
                 foreach (var image in pics.Values) if (image != null) image.Dispose();
                 pics.Clear();
             }
@@ -394,11 +668,13 @@ namespace Lea.Win
         {
             public readonly Rectangle R;
             public readonly Uri U;
+            public readonly Bx B;
 
-            public Hit(Rectangle rect, Uri url)
+            public Hit(Rectangle rect, Uri url, Bx box)
             {
                 R = rect;
                 U = url;
+                B = box;
             }
         }
     }

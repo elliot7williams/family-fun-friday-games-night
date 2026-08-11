@@ -23,14 +23,26 @@ namespace Lea.Engine
 
         public P Go(string input)
         {
-            var p = Read(ToUri(input, At == null ? null : At.U));
+            return Go(ToUri(input, At == null ? null : At.U));
+        }
+
+        public P Go(Uri url)
+        {
+            if (url == null) throw new ArgumentNullException("url");
+            var p = Read(url);
             Push(p);
             return p;
         }
 
         public async Task<P> GoA(string input)
         {
-            var p = await ReadA(ToUri(input, At == null ? null : At.U));
+            return await GoA(ToUri(input, At == null ? null : At.U));
+        }
+
+        public async Task<P> GoA(Uri url)
+        {
+            if (url == null) throw new ArgumentNullException("url");
+            var p = await ReadA(url);
             Push(p);
             return p;
         }
@@ -78,7 +90,7 @@ namespace Lea.Engine
         private P Read(Uri url)
         {
             web.Headers[HttpRequestHeader.UserAgent] = "Lea/0.1";
-            var html = url.IsFile ? File.ReadAllText(url.LocalPath) : web.DownloadString(url);
+            var html = url.IsFile ? File.ReadAllText(Local(url)) : web.DownloadString(url);
             return Parse(url, html);
         }
 
@@ -90,7 +102,7 @@ namespace Lea.Engine
             {
                 if (url.IsFile)
                 {
-                    var path = url.LocalPath;
+                    var path = Local(url);
                     return await Task.Factory.StartNew(delegate { return Parse(url, File.ReadAllText(path)); });
                 }
 
@@ -108,6 +120,7 @@ namespace Lea.Engine
         {
             var p = new P();
             p.U = url;
+            p.Q = Query(url);
             p.H = html;
             p.D = Tree(html);
             var title = Find(p.D, "title");
@@ -394,13 +407,70 @@ namespace Lea.Engine
                 if (source.Length > 0 && Uri.TryCreate(baseUrl, source, out image))
                     page.Bs.Add(new B { K = kind, X = node.Av("alt"), U = image, S = style });
             }
-            else if (kind == "h1" || kind == "h2" || kind == "h3" || kind == "p" || kind == "li" || kind == "pre" || kind == "code" || kind == "button")
+            else if (kind == "input" || kind == "textarea" || kind == "button")
+            {
+                AddField(page, node, baseUrl, style);
+            }
+            else if (kind == "h1" || kind == "h2" || kind == "h3" || kind == "p" || kind == "li" || kind == "pre" || kind == "code" || kind == "label")
             {
                 var text = Clean(NodeText(node));
                 if (text.Length > 0) page.Bs.Add(new B { K = kind, X = text, S = style });
             }
 
             foreach (var child in node.C) Blocks(page, child, baseUrl, rules, style);
+        }
+
+        private static void AddField(P page, N node, Uri baseUrl, S style)
+        {
+            var kind = node.K == "textarea" ? "textarea" : node.K == "button" ? FieldKind(node, "submit") : FieldKind(node, "text");
+            if (kind == "hidden") return;
+
+            var buttonText = node.K == "button" ? Clean(NodeText(node)) : "";
+            var value = node.K == "textarea" ? RawText(node).Trim() : node.Av("value");
+            if (node.K == "button" && value.Length == 0) value = buttonText;
+            if ((kind == "checkbox" || kind == "radio") && value.Length == 0) value = "on";
+
+            var form = Parent(node, "form");
+            Uri action = baseUrl;
+            Uri formAction;
+            if (form != null && form.Av("action").Length > 0 && Uri.TryCreate(baseUrl, form.Av("action"), out formAction)) action = formAction;
+            int max;
+            var field = new Fi
+            {
+                K = kind,
+                N = node.Av("name"),
+                V = value,
+                D = value,
+                P = node.Av("placeholder"),
+                C = node.A.ContainsKey("checked"),
+                Dc = node.A.ContainsKey("checked"),
+                Ds = node.A.ContainsKey("disabled"),
+                Ro = node.A.ContainsKey("readonly"),
+                Mx = Int32.TryParse(node.Av("maxlength"), out max) ? Math.Max(0, Math.Min(max, 32767)) : 0,
+                F = form,
+                U = action,
+                M = form == null || form.Av("method").Length == 0 ? "get" : form.Av("method").ToLowerInvariant(),
+                S = style
+            };
+            page.Fs.Add(field);
+
+            var blockKind = node.K == "button" || kind == "submit" || kind == "reset" || kind == "button" ? "button" : node.K;
+            var text = node.K == "button" && buttonText.Length > 0 ? buttonText : blockKind == "button" ? value : node.Av("aria-label");
+            if (blockKind == "button" && text.Length == 0) text = kind == "reset" ? "Reset" : kind == "submit" ? "Submit" : "Button";
+            page.Bs.Add(new B { K = blockKind, X = text, S = style, I = field });
+        }
+
+        private static string FieldKind(N node, string fallback)
+        {
+            var kind = node.Av("type").Trim().ToLowerInvariant();
+            return kind.Length == 0 ? fallback : kind;
+        }
+
+        private static N Parent(N node, string kind)
+        {
+            var parent = node.Up;
+            while (parent != null && parent.K != kind) parent = parent.Up;
+            return parent;
         }
 
         private sealed class R
@@ -427,6 +497,28 @@ namespace Lea.Engine
             if (baseUrl != null && Uri.TryCreate(baseUrl, input, out u)) return u;
             if (File.Exists(input)) return new Uri(Path.GetFullPath(input));
             return new Uri("https://" + input);
+        }
+
+        private static string Local(Uri url)
+        {
+            var path = url.LocalPath;
+            var query = path.IndexOf('?');
+            return query < 0 ? path : path.Substring(0, query);
+        }
+
+        private static string Query(Uri url)
+        {
+            var text = url.AbsoluteUri;
+            var start = text.IndexOf('?');
+            var mark = 1;
+            if (start < 0 && url.IsFile)
+            {
+                start = text.IndexOf("%3F", StringComparison.OrdinalIgnoreCase);
+                mark = 3;
+            }
+            if (start < 0) return "";
+            var end = text.IndexOf('#', start);
+            return end < 0 ? text.Substring(start + mark) : text.Substring(start + mark, end - start - mark);
         }
 
         private static string Clean(string text)

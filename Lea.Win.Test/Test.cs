@@ -65,7 +65,7 @@ namespace Lea.Win.Test
                 Text = (v.T.Length == 0 ? "Lea Win Test" : v.T + " - Lea Win Test");
                 bk.Enabled = v.CanBk;
                 fw.Enabled = v.CanFw;
-                st.Text = v.At == null ? "Lea ready" : v.At.N + " nodes, " + v.At.Ls.Count + " links";
+                st.Text = v.At == null ? "Lea ready" : v.At.N + " nodes, " + v.At.Ls.Count + " links, " + v.At.Fs.Count + " fields";
             };
 
             Controls.Add(v);

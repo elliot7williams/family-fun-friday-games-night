@@ -55,7 +55,7 @@ fs      font size
 2. Implement the cascade and inheritance with a small priority model. (First specificity/source-order cascade added.)
 3. Add colors, fonts, spacing, borders, width, height, display, and overflow. (Colors, fonts, margins, padding, backgrounds, and `display:none` started.)
 4. Replace one-WinForms-control-per-node rendering with lightweight layout boxes. (Reusable `Bx` layout pass added.)
-5. Paint text, backgrounds, borders, links, controls, and images onto one surface. (Text, backgrounds, links, and images active; borders and controls remain.)
+5. Paint text, backgrounds, borders, links, controls, and images onto one surface. (Text, backgrounds, links, images, and basic form controls active; borders remain.)
 6. Add scrolling and hit testing from layout boxes. (Visible-box painting and bounded vertical scrolling added.)
 
 This is the largest speed milestone: fewer controls, less UI overhead, and one
@@ -193,8 +193,6 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Split `Program.cs` into engine, parser, renderer, and browser-shell files while
-creating the `Lea.Engine` boundary. Then replace the current control-per-node
-renderer with layout boxes and one paint surface. That gives Lea its first major
-real-world performance improvement and makes it ready to embed in a larger
-Visual Studio browser project.
+Add an experimental Lea-backed tab to Firespider behind a small adapter while
+keeping the legacy tab path available. The standalone `Lea.Tests` smoke runner
+now protects forms, sync/async GET submission, CSS, images, layout, and scrolling.

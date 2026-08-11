@@ -51,6 +51,11 @@ The `V` host control now performs cached layout and bounded scrolling. Firespide
 can read `Dh`, `Sy`, and `Bc`, and can call `Sc(delta)` without depending on
 WinForms mouse-wheel internals.
 
+Basic fields are exposed through `P.Fs`. The view paints inactive controls on
+the Lea surface, reuses one editor for focused text, and provides `Rs`, `Sm`,
+and `SmA` for reset and supported GET submission. `P.Q` preserves query text on
+both web and local pages.
+
 ## Integration rules
 
 - Reference the core engine, not the test browser shell, when embedding Lea.
