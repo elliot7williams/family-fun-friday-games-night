@@ -17,8 +17,8 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-1. Extend positioning to absolute/fixed layout and clipping contexts.
-2. Add file inputs, multipart submission, and richer form widgets.
+1. Add file inputs, multipart submission, and richer form widgets.
+2. Add nested positioned containing blocks and stacking contexts.
 3. Route more Firespider commands through Lea capability checks.
 4. Add a small JavaScript interpreter layer or bridge.
 5. Add downloads and find-in-page.

@@ -31,6 +31,7 @@ LeaForge is where we can grow the more full-featured browser.
 - inherited visibility and effective opacity across text, boxes, controls, and images
 - responsive `<picture>`/`srcset` selection and bounded base64 embedded images
 - compact CSS cascade for colors, fonts, boxes, overflow, and inline styles
+- root-level relative, absolute, and fixed positioning with z-index and clipping
 - tiny script handling for `alert("...")` and `document.title = "..."`
 
 ## Lea Short Commands

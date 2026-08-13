@@ -209,7 +209,7 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add absolute/fixed positioning and clipping contexts.
+Add file inputs, multipart submission, and richer form widgets.
 
 Form fields now parse compact `Rq/Mn/Mx/Pa/Lo/Hi/Nv` constraints and expose
 `Ok/Vm` results. `V.Vf` and both submit paths validate required controls,
@@ -218,11 +218,13 @@ numbers, and ISO dates. Invalid forms remain on-page, receive visible state and
 `:invalid` CSS, and suppress submit events; `novalidate` remains an explicit
 bypass. Select, textarea, and button child text no longer paints twice.
 
-Relative positioning now uses compact `S.Pn/Tp/Rt/Bm/Lt/Zi` fields. Signed
-pixel offsets move top-level blocks and tables while their original normal-flow
-slot stays intact. A stable z-index sort controls painting, hover selection,
-and overlap clicks; static elements ignore offsets and stacking values. Full
-absolute/fixed layout and nested stacking contexts remain later milestones.
+Positioning uses compact `S.Pn/Tp/Rt/Bm/Lt/Zi` fields. Relative top-level blocks
+and tables move while preserving their normal-flow slot. Absolute and fixed
+boxes leave flow; root absolute boxes scroll with the page while fixed boxes
+remain in viewport coordinates. Fixed paint and hits clip to the viewport, and
+overflow-clipped positioned tables constrain their descendants. A stable
+z-index sort controls painting, hover selection, and overlap clicks. Nested
+positioned containing blocks and full CSS stacking contexts remain later work.
 
 Responsive images now select compact `srcset` width or density candidates and
 screen-compatible `<picture>` sources before falling back to `<img src>`.

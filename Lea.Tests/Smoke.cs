@@ -228,6 +228,20 @@ namespace Lea.Tests
                 var positioningPage = engine.Go(positioningPath);
                 Eq(6, positioningPage.Bs.Count, "positioning block count");
                 Eq(4, positioningPage.Ls.Count, "positioning link count");
+                var contextsPath = Path.Combine(root, "LeaForge", "test-pages", "position-contexts.html");
+                var contextsPage = engine.Go(contextsPath);
+                Eq(13, contextsPage.Bs.Count, "position context block count");
+                Eq(3, contextsPage.Ls.Count, "position context link count");
+                Eq("a", contextsPage.Bs[2].S.Pn, "absolute position alias");
+                Eq(118, contextsPage.Bs[2].S.Tp, "absolute top offset");
+                Eq(330, contextsPage.Bs[2].S.Lt, "absolute left offset");
+                Eq("a", contextsPage.Bs[4].S.Pn, "absolute table position alias");
+                Eq("a", contextsPage.Bs[11].S.Pn, "right anchored absolute alias");
+                Eq(35, contextsPage.Bs[11].S.Rt, "absolute right offset");
+                Eq(80, contextsPage.Bs[11].S.Bm, "absolute bottom offset");
+                Eq("f", contextsPage.Bs[12].S.Pn, "fixed position alias");
+                Eq(-70, contextsPage.Bs[12].S.Rt, "negative fixed right offset");
+                Eq(18, contextsPage.Bs[12].S.Bm, "fixed bottom offset");
                 var backLayer = positioningPage.Bs[1].S;
                 var frontLayer = positioningPage.Bs[2].S;
                 var rightLayer = positioningPage.Bs[3].S;
@@ -738,6 +752,46 @@ namespace Lea.Tests
                         Click(view, new Rectangle(overlap.Right - 12, overlap.Bottom - 12, 4, 4));
                     }
                     WaitFor(delegate { return view.T == "Lea Dynamic State"; }, "topmost overlap link navigation");
+                    view.Size = new Size(720, 500);
+                    view.Go(contextsPath);
+                    using (var contextPaint = Render(view))
+                    {
+                        Eq(16, view.Bc, "absolute and fixed layout boxes");
+                        Eq(3, HitCount(view, false), "clipped position link hits");
+                        var flowA = BlockRect(view, view.At.Bs[1]);
+                        var absolute = BlockRect(view, view.At.Bs[2]);
+                        var flowB = BlockRect(view, view.At.Bs[3]);
+                        var croppedTable = BlockRect(view, view.At.Bs[4]);
+                        var absoluteRight = BlockRect(view, view.At.Bs[11]);
+                        var fixedBox = BlockRect(view, view.At.Bs[12]);
+                        Eq(flowA.Bottom + 28, flowB.Top, "absolute block leaves no flow slot");
+                        Eq(358, absolute.Left, "absolute left anchors to page content");
+                        Eq(144, absolute.Top, "absolute top anchors to initial content context");
+                        Eq(658, absoluteRight.Right, "absolute right anchors to page content");
+                        Eq(413, absoluteRight.Bottom, "absolute bottom anchors to viewport");
+                        Eq(542, fixedBox.Left, "fixed right anchor with negative offset");
+                        Eq(474, fixedBox.Bottom, "fixed bottom viewport anchor");
+                        Eq(croppedTable, OwnedClip(view, view.At.Bs[4], "td"), "table children inherit positioned overflow clip");
+                        Ok(fixedBox.Right > view.ClientSize.Width, "fixed layout can extend beyond viewport");
+                        var fixedHit = HitRect(view, "dynamic-state.html");
+                        Eq(view.ClientSize.Width, fixedHit.Right, "fixed link hit clips to viewport");
+                        Ok(ColorDistance(CenterPixel(contextPaint, absolute), Color.FromArgb(185, 28, 28)) < 4, "absolute layer paint");
+                        var fixedVisible = Rectangle.Intersect(fixedBox, view.ClientRectangle);
+                        Ok(ColorDistance(CenterPixel(contextPaint, fixedVisible), Color.FromArgb(29, 78, 216)) < 4, "fixed layer paint");
+                    }
+                    var fixedBeforeScroll = BlockRect(view, view.At.Bs[12]);
+                    view.Sc(210);
+                    using (var scrolledContextPaint = Render(view))
+                    {
+                        Eq(210, view.Sy, "position context scroll amount");
+                        Eq(fixedBeforeScroll, BlockRect(view, view.At.Bs[12]), "fixed layout stays in viewport coordinates");
+                        var fixedVisible = Rectangle.Intersect(fixedBeforeScroll, view.ClientRectangle);
+                        Ok(ColorDistance(CenterPixel(scrolledContextPaint, fixedVisible), Color.FromArgb(29, 78, 216)) < 4, "fixed layer remains painted after scroll");
+                        var absolute = BlockRect(view, view.At.Bs[2]);
+                        Ok(ColorDistance(scrolledContextPaint.GetPixel(absolute.Left + absolute.Width / 2, absolute.Top + absolute.Height / 2), Color.FromArgb(185, 28, 28)) > 40, "absolute layer scrolls with document");
+                        Click(view, HitRect(view, "dynamic-state.html"));
+                    }
+                    WaitFor(delegate { return view.T == "Lea Dynamic State"; }, "fixed clipped link navigation after scroll");
                     view.Go(textStylePath);
                     Paint(view);
                     Eq(8, view.At.Bs.Count, "text style render blocks");
@@ -987,7 +1041,7 @@ namespace Lea.Tests
                     Eq("url", urlError.K, "URL error kind");
                 }
 
-                Console.WriteLine("Lea smoke passed: form validation and typed inputs, relative positioning and z-index stacking, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, font families, text decoration, child and adjacent CSS selectors, white-space modes, overflow clipping, malformed HTML recovery, semantic blocks, nested lists, text alignment, line height, inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, relative positioning and z-index stacking, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, font families, text decoration, child and adjacent CSS selectors, white-space modes, overflow clipping, malformed HTML recovery, semantic blocks, nested lists, text alignment, line height, inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -1155,6 +1209,33 @@ namespace Lea.Tests
                 if (!Object.ReferenceEquals(type.GetField("B").GetValue(value), block) || !(bool)type.GetField("Inline").GetValue(value)) continue;
                 var clip = (Rectangle)type.GetField("Clip").GetValue(value);
                 if (!clip.IsEmpty) return clip;
+            }
+            return Rectangle.Empty;
+        }
+
+        private static Rectangle OwnedClip(V view, B block, string kind)
+        {
+            foreach (var value in LayoutBoxes(view))
+            {
+                var type = value.GetType();
+                if (!Object.ReferenceEquals(type.GetField("B").GetValue(value), block) || (string)type.GetField("K").GetValue(value) != kind) continue;
+                var clip = (Rectangle)type.GetField("Clip").GetValue(value);
+                if (!clip.IsEmpty) return clip;
+            }
+            return Rectangle.Empty;
+        }
+
+        private static Rectangle HitRect(V view, string file)
+        {
+            var member = typeof(V).GetField("hits", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = member == null ? null : member.GetValue(view) as System.Collections.IEnumerable;
+            if (values == null) throw new InvalidOperationException("hit values unavailable");
+            foreach (var value in values)
+            {
+                var type = value.GetType();
+                var url = type.GetField("U").GetValue(value) as Uri;
+                if (url != null && Path.GetFileName(url.LocalPath).Equals(file, StringComparison.OrdinalIgnoreCase))
+                    return (Rectangle)type.GetField("R").GetValue(value);
             }
             return Rectangle.Empty;
         }

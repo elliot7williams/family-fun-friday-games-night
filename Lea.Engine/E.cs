@@ -1137,6 +1137,8 @@ namespace Lea.Engine
         {
             var mode = (value ?? "").Trim().ToLowerInvariant();
             if (mode == "relative") style.Pn = "r";
+            else if (mode == "absolute") style.Pn = "a";
+            else if (mode == "fixed") style.Pn = "f";
             else if (mode == "static" || mode == "initial" || mode == "unset" || mode == "revert") style.Pn = "s";
         }
 
