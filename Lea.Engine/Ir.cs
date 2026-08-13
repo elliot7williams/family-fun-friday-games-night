@@ -9,5 +9,6 @@ namespace Lea.Engine
         public string X { get; internal set; }
         public Uri U { get; internal set; }
         public S S { get; internal set; }
+        public N El { get; internal set; }
     }
 }

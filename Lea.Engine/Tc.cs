@@ -14,6 +14,7 @@ namespace Lea.Engine
         public S S { get; internal set; }
         public bool H { get; internal set; }
         public int Sp { get; internal set; }
+        public N El { get; internal set; }
         public IList<B> Bs { get; private set; }
     }
 }

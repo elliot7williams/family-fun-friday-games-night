@@ -55,8 +55,10 @@ Box spacing stays compact: `Mt/Mr/Mb/Ml` are margins and `Pt/Pr/Pb/Pl` are
 padding. `N.Up` links a document node to its parent for descendant and child
 selectors; `N.A` holds the attributes used by compiled attribute selectors;
 adjacent and general sibling selectors use earlier element siblings and ignore
-text. Negation and other pseudo selectors use the existing compiled tree and
-field state, so they need no new public API.
+text. `El` links blocks, inline runs, fields, and table cells back to their
+element. `E.Dy(page, hover, focus)` reapplies the page's compiled CSS for
+`:hover` and `:focus` without reloading it; mutable field values are preserved.
+The WinForms `V` calls this automatically from pointer and field events.
 Pixel dimensions use `S.W` and `S.H`; positive bounds use `Wn/Wx` for minimum
 and maximum width and `Hn/Hx` for minimum and maximum height. Borders use
 `Bt/Br/Bb/Bl` for side widths and `Bc/Bs` for color and style. `V.Rb(index)`

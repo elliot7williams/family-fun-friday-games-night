@@ -29,5 +29,6 @@ namespace Lea.Engine
         public string D { get; internal set; }
         public bool Dc { get; internal set; }
         public int Di { get; internal set; }
+        public Lea.Engine.N El { get; internal set; }
     }
 }

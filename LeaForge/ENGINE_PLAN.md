@@ -209,7 +209,12 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add dynamic hover and focus restyling.
+Add more HTML media and embedded content.
+
+Dynamic `:hover` and `:focus` selectors are compiled with the static selector
+set. Paint blocks and runs retain a compact `El` element reference, allowing
+`E.Dy` and the WinForms view to reapply styles without loading or reparsing the
+page. Form objects are reused so edits, checks, and selections survive restyles.
 
 `S.Vi` stores inherited `v/h/c` visibility. Hidden and collapsed boxes retain
 layout but skip every paint, hit-registration, and native-editor path; a child
@@ -236,9 +241,9 @@ break-word, anywhere/break-all, and keep-all behavior. `word-break`,
 Lea compiles every simple selector once when its stylesheet loads. Attribute
 presence plus `=`, `~=`, `|=`, `^=`, `$=`, and `*=` matching are active, as
 are root, empty, link, fixed/odd/even child and type positions, only/first/last
-positions, and initial checked/disabled/enabled/required/read-only/read-write
-form states. Dynamic hover and focus states remain part of a later interaction
-restyle milestone.
+positions, initial checked/disabled/enabled/required/read-only/read-write form
+states, and live hover/focus state. Hover follows the pointed element and its
+ancestors; focus follows the active form element.
 
 Lea now supports inherited
 left, center, right, and basic justified text plus pixel, percentage, and

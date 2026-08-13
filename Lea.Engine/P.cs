@@ -31,5 +31,9 @@ namespace Lea.Engine
         public N D { get; internal set; }
         public S S { get; internal set; }
         public int N { get; internal set; }
+        internal object R { get; set; }
+        internal N Hv { get; set; }
+        internal N Fc { get; set; }
+        internal IDictionary<N, Fi> Fr { get; set; }
     }
 }

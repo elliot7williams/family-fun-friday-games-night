@@ -37,6 +37,8 @@ namespace Lea.Win
         private string editStart = "";
         private bool editLock;
         private ContextMenuStrip choices;
+        private N hover;
+        private N focus;
 
         public event EventHandler Done;
         public event EventHandler Changed;
@@ -175,7 +177,10 @@ namespace Lea.Win
         private P Show(P page, bool done)
         {
             CloseChoices();
+            hover = null;
+            focus = null;
             EndEdit(false);
+            e.Dy(page, null, null);
             sy = 0;
             Dirty();
             OnChanged();
@@ -437,10 +442,10 @@ namespace Lea.Win
                     var outer = new Rectangle(cellLeft, rowY, cellWidth, rowHeight);
                     var content = new Rectangle(cellLeft + inset.Left, rowY + inset.Top, Math.Max(1, cellWidth - inset.Left - inset.Right), Math.Max(1, rowHeight - inset.Top - inset.Bottom));
                     var simple = SimpleCellBlock(cell);
-                    if (simple != null && !NeedsFlow(simple)) boxes.Add(new Bx(cell.H ? "th" : "td", cell.X, null, cell.S, outer, content, false, block));
+                    if (simple != null && !NeedsFlow(simple)) boxes.Add(new Bx(cell.H ? "th" : "td", cell.X, null, cell.S, outer, content, false, block, false, Rectangle.Empty, cell.El));
                     else
                     {
-                        boxes.Add(new Bx(cell.H ? "th" : "td", "", null, cell.S, outer, content, false, block));
+                        boxes.Add(new Bx(cell.H ? "th" : "td", "", null, cell.S, outer, content, false, block, false, Rectangle.Empty, cell.El));
                         if (simple != null)
                         {
                             int flowHeight;
@@ -598,13 +603,13 @@ namespace Lea.Win
 
             if (block.K == "li")
             {
-                AddInlineWord(graphics, lines, ref line, ref pending, InlineAtom(graphics, "li", "-", null, block.S, block.K), width, baseHeight, wrap, block.S == null ? "" : block.S.Wb);
-                pending = InlineAtom(graphics, "li", " ", null, block.S, block.K);
+                AddInlineWord(graphics, lines, ref line, ref pending, InlineAtom(graphics, "li", "-", null, block.S, block.K, block.El), width, baseHeight, wrap, block.S == null ? "" : block.S.Wb);
+                pending = InlineAtom(graphics, "li", " ", null, block.S, block.K, block.El);
             }
 
             if (block.Is.Count == 0)
             {
-                AddInlineText(graphics, lines, ref line, ref pending, block.K, block.X, block.U, block.S, block.K, width, baseHeight, space, wrap, ref endedWithBreak);
+                AddInlineText(graphics, lines, ref line, ref pending, block.K, block.X, block.U, block.S, block.K, block.El, width, baseHeight, space, wrap, ref endedWithBreak);
             }
             else
             {
@@ -617,7 +622,7 @@ namespace Lea.Win
                         endedWithBreak = true;
                         continue;
                     }
-                    AddInlineText(graphics, lines, ref line, ref pending, run.K, run.X, run.U, run.S, block.K, width, baseHeight, space, wrap, ref endedWithBreak);
+                    AddInlineText(graphics, lines, ref line, ref pending, run.K, run.X, run.U, run.S, block.K, run.El, width, baseHeight, space, wrap, ref endedWithBreak);
                 }
             }
 
@@ -645,7 +650,7 @@ namespace Lea.Win
                         if (remainder-- > 0) atomWidth++;
                     }
                     var rect = new Rectangle(x, y + Math.Max(0, (current.H - atom.H) / 2), atomWidth, atom.H);
-                    layout.Add(new Ix(atom.K, atom.X, atom.U, atom.S, rect));
+                    layout.Add(new Ix(atom.K, atom.X, atom.U, atom.S, rect, atom.El));
                     x += atomWidth;
                 }
                 y += current.H;
@@ -654,12 +659,12 @@ namespace Lea.Win
             return layout;
         }
 
-        private void AddInlineText(Graphics graphics, List<Il> lines, ref Il line, ref Ia pending, string kind, string value, Uri url, S style, string baseKind, int width, int baseHeight, string space, bool wrap, ref bool endedWithBreak)
+        private void AddInlineText(Graphics graphics, List<Il> lines, ref Il line, ref Ia pending, string kind, string value, Uri url, S style, string baseKind, N element, int width, int baseHeight, string space, bool wrap, ref bool endedWithBreak)
         {
             value = value ?? "";
             if (space == "p" || space == "pw")
             {
-                AddPreservedText(graphics, lines, ref line, ref pending, kind, value, url, style, baseKind, width, baseHeight, wrap, ref endedWithBreak);
+                AddPreservedText(graphics, lines, ref line, ref pending, kind, value, url, style, baseKind, element, width, baseHeight, wrap, ref endedWithBreak);
                 return;
             }
 
@@ -678,19 +683,19 @@ namespace Lea.Win
                 if (Char.IsWhiteSpace(value[index]))
                 {
                     while (index < value.Length && Char.IsWhiteSpace(value[index]) && (space != "pl" || LineBreak(value, index) == 0)) index++;
-                    pending = InlineAtom(graphics, kind, " ", null, style, baseKind);
+                    pending = InlineAtom(graphics, kind, " ", null, style, baseKind, element);
                     continue;
                 }
 
                 var start = index;
                 while (index < value.Length && !Char.IsWhiteSpace(value[index])) index++;
-                var word = InlineAtom(graphics, kind, value.Substring(start, index - start), url, style, baseKind);
+                var word = InlineAtom(graphics, kind, value.Substring(start, index - start), url, style, baseKind, element);
                 AddInlineWord(graphics, lines, ref line, ref pending, word, width, baseHeight, wrap, style == null ? "" : style.Wb);
                 endedWithBreak = false;
             }
         }
 
-        private void AddPreservedText(Graphics graphics, List<Il> lines, ref Il line, ref Ia pending, string kind, string value, Uri url, S style, string baseKind, int width, int baseHeight, bool wrap, ref bool endedWithBreak)
+        private void AddPreservedText(Graphics graphics, List<Il> lines, ref Il line, ref Ia pending, string kind, string value, Uri url, S style, string baseKind, N element, int width, int baseHeight, bool wrap, ref bool endedWithBreak)
         {
             var index = 0;
             while (index < value.Length)
@@ -712,7 +717,7 @@ namespace Lea.Win
                     text.Append(value[index] == '\t' ? "    " : value[index].ToString());
                     index++;
                 }
-                var atom = InlineAtom(graphics, kind, text.ToString(), url, style, baseKind);
+                var atom = InlineAtom(graphics, kind, text.ToString(), url, style, baseKind, element);
                 AddInlineWord(graphics, lines, ref line, ref pending, atom, width, baseHeight, wrap, style == null ? "" : style.Wb);
                 endedWithBreak = false;
             }
@@ -778,10 +783,10 @@ namespace Lea.Win
             while (elements.MoveNext())
             {
                 var text = elements.GetTextElement();
-                var character = InlineAtom(graphics, word.K, text, word.U, word.S, word.Z);
+                var character = InlineAtom(graphics, word.K, text, word.U, word.S, word.Z, word.El);
                 if (piece.Length > 0 && line.W + pieceWidth + character.W > width)
                 {
-                    AddInlineAtom(line, InlineAtom(graphics, word.K, piece.ToString(), word.U, word.S, word.Z));
+                    AddInlineAtom(line, InlineAtom(graphics, word.K, piece.ToString(), word.U, word.S, word.Z, word.El));
                     FinishInlineLine(lines, ref line, baseHeight, false);
                     piece.Clear();
                     pieceWidth = 0;
@@ -791,15 +796,15 @@ namespace Lea.Win
                 piece.Append(text);
                 pieceWidth += character.W;
             }
-            if (piece.Length > 0) AddInlineAtom(line, InlineAtom(graphics, word.K, piece.ToString(), word.U, word.S, word.Z));
+            if (piece.Length > 0) AddInlineAtom(line, InlineAtom(graphics, word.K, piece.ToString(), word.U, word.S, word.Z, word.El));
         }
 
-        private Ia InlineAtom(Graphics graphics, string kind, string text, Uri url, S style, string baseKind)
+        private Ia InlineAtom(Graphics graphics, string kind, string text, Uri url, S style, string baseKind, N element)
         {
             using (var font = BoxFont(kind, style, false, url != null, baseKind))
             {
                 var width = TextRenderer.MeasureText(graphics, text, font, Size.Empty, TextFormatFlags.SingleLine | TextFormatFlags.NoPadding).Width;
-                return new Ia(kind, text, url, style, baseKind, Math.Max(1, width), font.Height, CssLineHeight(style, font.Height));
+                return new Ia(kind, text, url, style, baseKind, Math.Max(1, width), font.Height, CssLineHeight(style, font.Height), element);
             }
         }
 
@@ -842,7 +847,7 @@ namespace Lea.Win
             {
                 var rect = part.R;
                 rect.Offset(content.X, content.Y);
-                boxes.Add(new Bx(part.K, part.X, part.U, part.S, rect, false, block, true, clip));
+                boxes.Add(new Bx(part.K, part.X, part.U, part.S, rect, false, block, true, clip, part.El));
             }
         }
 
@@ -1092,19 +1097,39 @@ namespace Lea.Win
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);
-            var hit = HitAt(e.Location);
-            Cursor = hit == null ? Cursors.Default : hit.B != null && CanEdit(hit.B.B.I) ? Cursors.IBeam : Cursors.Hand;
+            var box = BoxAt(e.Location);
+            SetHover(box == null ? null : box.El);
+            Cursor = box == null || (box.U == null && (box.B == null || box.B.I == null))
+                ? Cursors.Default
+                : box.B != null && CanEdit(box.B.I) ? Cursors.IBeam : Cursors.Hand;
+        }
+
+        protected override void OnMouseLeave(EventArgs e)
+        {
+            base.OnMouseLeave(e);
+            if (edit != null && ed.Visible && ed.Bounds.Contains(PointToClient(Control.MousePosition))) SetHover(edit.El);
+            else SetHover(null);
         }
 
         protected override async void OnMouseClick(MouseEventArgs e)
         {
             base.OnMouseClick(e);
             var hit = HitAt(e.Location);
-            if (hit == null) return;
+            if (hit == null)
+            {
+                EndEdit(false);
+                SetFocus(null);
+                return;
+            }
             try
             {
                 if (hit.B != null) await FieldClickA(hit.B);
-                else if (hit.U != null) await GoA(hit.U.ToString());
+                else if (hit.U != null)
+                {
+                    EndEdit(false);
+                    SetFocus(null);
+                    await GoA(hit.U.ToString());
+                }
             }
             catch { Cursor = Cursors.Default; }
         }
@@ -1120,6 +1145,7 @@ namespace Lea.Win
             }
 
             EndEdit(false);
+            SetFocus(field.El);
             if (field.K == "checkbox")
             {
                 field.C = !field.C;
@@ -1208,6 +1234,7 @@ namespace Lea.Win
         {
             if (edit != field) EndEdit(false);
             edit = field;
+            SetFocus(field.El);
             editStart = field.V;
             editLock = true;
             ed.Multiline = field.K == "textarea";
@@ -1234,6 +1261,7 @@ namespace Lea.Win
             if (restore) edit.V = editStart;
             edit = null;
             ed.Visible = false;
+            SetFocus(null);
             Invalidate();
         }
 
@@ -1365,6 +1393,41 @@ namespace Lea.Win
             return null;
         }
 
+        private Bx BoxAt(Point point)
+        {
+            point.Offset(0, sy);
+            for (var i = boxes.Count - 1; i >= 0; i--)
+            {
+                var box = boxes[i];
+                if (box.El == null || Hidden(box.S)) continue;
+                var rect = VisibleRect(box.R, box.Clip);
+                if (rect.Contains(point)) return box;
+            }
+            return null;
+        }
+
+        private void SetHover(N node)
+        {
+            if (Object.ReferenceEquals(hover, node)) return;
+            hover = node;
+            Restyle();
+        }
+
+        private void SetFocus(N node)
+        {
+            if (Object.ReferenceEquals(focus, node)) return;
+            focus = node;
+            Restyle();
+        }
+
+        private void Restyle()
+        {
+            if (At == null) return;
+            e.Dy(At, hover, focus);
+            Dirty();
+            Invalidate();
+        }
+
         private static bool Hidden(S style)
         {
             return style != null && (style.Vi == "h" || style.Vi == "c");
@@ -1445,13 +1508,14 @@ namespace Lea.Win
             public readonly B B;
             public readonly bool Inline;
             public readonly Rectangle Clip;
+            public readonly N El;
 
-            public Bx(string kind, string text, Uri url, S style, Rectangle rect, bool title, B block = null, bool inline = false, Rectangle clip = default(Rectangle))
-                : this(kind, text, url, style, rect, rect, title, block, inline, clip)
+            public Bx(string kind, string text, Uri url, S style, Rectangle rect, bool title, B block = null, bool inline = false, Rectangle clip = default(Rectangle), N element = null)
+                : this(kind, text, url, style, rect, rect, title, block, inline, clip, element)
             {
             }
 
-            public Bx(string kind, string text, Uri url, S style, Rectangle rect, Rectangle content, bool title, B block = null, bool inline = false, Rectangle clip = default(Rectangle))
+            public Bx(string kind, string text, Uri url, S style, Rectangle rect, Rectangle content, bool title, B block = null, bool inline = false, Rectangle clip = default(Rectangle), N element = null)
             {
                 K = kind;
                 X = text ?? "";
@@ -1463,6 +1527,7 @@ namespace Lea.Win
                 B = block;
                 Inline = inline;
                 Clip = clip;
+                El = element ?? (block == null ? null : block.El);
             }
         }
 
@@ -1476,8 +1541,9 @@ namespace Lea.Win
             public readonly int W;
             public readonly int H;
             public readonly int L;
+            public readonly N El;
 
-            public Ia(string kind, string text, Uri url, S style, string baseKind, int width, int height, int lineHeight)
+            public Ia(string kind, string text, Uri url, S style, string baseKind, int width, int height, int lineHeight, N element)
             {
                 K = kind;
                 X = text;
@@ -1487,6 +1553,7 @@ namespace Lea.Win
                 W = width;
                 H = height;
                 L = lineHeight;
+                El = element;
             }
         }
 
@@ -1505,14 +1572,16 @@ namespace Lea.Win
             public readonly Uri U;
             public readonly S S;
             public readonly Rectangle R;
+            public readonly N El;
 
-            public Ix(string kind, string text, Uri url, S style, Rectangle rect)
+            public Ix(string kind, string text, Uri url, S style, Rectangle rect, N element)
             {
                 K = kind;
                 X = text;
                 U = url;
                 S = style;
                 R = rect;
+                El = element;
             }
         }
 

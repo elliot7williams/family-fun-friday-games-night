@@ -68,6 +68,28 @@ namespace Lea.Engine
             Cl();
         }
 
+        // Dy reapplies compiled CSS for compact dynamic selector state.
+        public P Dy(P page, N hover, N focus)
+        {
+            if (page == null) throw new ArgumentNullException("page");
+            var rules = page.R as List<R>;
+            if (rules == null) return page;
+            if (!Owns(page.D, hover)) hover = null;
+            if (!Owns(page.D, focus)) focus = null;
+            if (Object.ReferenceEquals(page.Hv, hover) && Object.ReferenceEquals(page.Fc, focus)) return page;
+
+            ClearState(page.D);
+            for (var node = hover; node != null; node = node.Up) node.Hv = true;
+            if (focus != null) focus.Fc = true;
+            page.Hv = hover;
+            page.Fc = focus;
+
+            var fields = new Dictionary<N, Fi>();
+            foreach (var field in page.Fs) if (field.El != null) fields[field.El] = field;
+            Rebuild(page, rules, fields);
+            return page;
+        }
+
         public P Go(string input)
         {
             return Go(ToUri(input, At == null ? null : At.U));
@@ -337,6 +359,16 @@ namespace Lea.Engine
 
         private static void Complete(P p, List<R> rules)
         {
+            p.R = rules;
+            Rebuild(p, rules, null);
+        }
+
+        private static void Rebuild(P p, List<R> rules, IDictionary<N, Fi> fields)
+        {
+            p.Ls.Clear();
+            p.Bs.Clear();
+            p.Fs.Clear();
+            p.Fr = fields;
             var body = Find(p.D, "body") ?? p.D;
             p.X = Clean(NodeText(body));
             p.N = Count(p.D);
@@ -346,6 +378,23 @@ namespace Lea.Engine
             for (var i = ancestors.Count - 1; i >= 0; i--) inherited = Style(ancestors[i], inherited, rules);
             p.S = Style(body, inherited, rules);
             foreach (var child in body.C) Blocks(p, child, p.U, rules, p.S);
+            p.Fr = null;
+        }
+
+        private static bool Owns(N root, N node)
+        {
+            if (node == null) return true;
+            for (var current = node; current != null; current = current.Up)
+                if (Object.ReferenceEquals(current, root)) return true;
+            return false;
+        }
+
+        private static void ClearState(N node)
+        {
+            if (node == null) return;
+            node.Hv = false;
+            node.Fc = false;
+            foreach (var child in node.C) ClearState(child);
         }
 
         private static N Tree(string html)
@@ -852,7 +901,7 @@ namespace Lea.Engine
                     }
                     match = Regex.Match(tail, "^:(?<n>nth-child|nth-of-type)\\(\\s*(?<v>odd|even|[1-9][0-9]{0,3})\\s*\\)", RegexOptions.IgnoreCase);
                     if (!match.Success)
-                        match = Regex.Match(tail, "^:(?<n>first-child|last-child|only-child|first-of-type|last-of-type|only-of-type|empty|root|link|checked|disabled|enabled|required|read-only|read-write)\\b", RegexOptions.IgnoreCase);
+                        match = Regex.Match(tail, "^:(?<n>first-child|last-child|only-child|first-of-type|last-of-type|only-of-type|empty|root|link|checked|disabled|enabled|required|read-only|read-write|hover|focus)\\b", RegexOptions.IgnoreCase);
                     if (!match.Success) return null;
                     pseudos.Add(new Ps(match.Groups["n"].Value.ToLowerInvariant(), match.Groups["v"].Value.ToLowerInvariant()));
                     weight += 10;
@@ -950,6 +999,8 @@ namespace Lea.Engine
         private static bool MatchPseudo(N node, Ps pseudo)
         {
             if (pseudo.N == "not") return pseudo.S != null && !MatchPart(node, pseudo.S);
+            if (pseudo.N == "hover") return node.Hv;
+            if (pseudo.N == "focus") return node.Fc;
             if (pseudo.N == "root") return node.Up != null && node.Up.K == "#doc";
             if (pseudo.N == "empty") return node.C.Count == 0;
             if (pseudo.N == "link") return (node.K == "a" || node.K == "area") && node.A.ContainsKey("href");
@@ -1278,7 +1329,7 @@ namespace Lea.Engine
             if (kind == "#text")
             {
                 var loose = Clean(node.X);
-                if (loose.Length > 0) page.Bs.Add(new B { K = "p", X = loose, S = inherited });
+                if (loose.Length > 0) page.Bs.Add(new B { K = "p", X = loose, S = inherited, El = node.Up });
                 return;
             }
             if (kind == "head" || kind == "script" || kind == "style" || kind == "noscript" || kind == "template") return;
@@ -1292,7 +1343,7 @@ namespace Lea.Engine
             }
             if (kind == "hr")
             {
-                page.Bs.Add(new B { K = kind, X = "", S = style });
+                page.Bs.Add(new B { K = kind, X = "", S = style, El = node });
                 return;
             }
             if (kind == "a")
@@ -1303,7 +1354,7 @@ namespace Lea.Engine
                 if (href.Length > 0 && Uri.TryCreate(baseUrl, href, out link))
                 {
                     page.Ls.Add(new Ln { U = link, T = Clean(text) });
-                    page.Bs.Add(new B { K = kind, X = text.Length == 0 ? link.ToString() : text, U = link, S = style });
+                    page.Bs.Add(new B { K = kind, X = text.Length == 0 ? link.ToString() : text, U = link, S = style, El = node });
                 }
                 return;
             }
@@ -1312,7 +1363,7 @@ namespace Lea.Engine
                 Uri image;
                 var source = node.Av("src");
                 if (source.Length > 0 && Uri.TryCreate(baseUrl, source, out image))
-                    page.Bs.Add(new B { K = kind, X = node.Av("alt"), U = image, S = style });
+                    page.Bs.Add(new B { K = kind, X = node.Av("alt"), U = image, S = style, El = node });
             }
             else if (kind == "input" || kind == "textarea" || kind == "button" || kind == "select")
             {
@@ -1321,7 +1372,7 @@ namespace Lea.Engine
             else if (IsTextBlock(kind) || IsContainerBlock(kind))
             {
                 var text = TextValue(BlockText(node, PreservesLines(style)), style);
-                var block = new B { K = kind, X = text, S = style };
+                var block = new B { K = kind, X = text, S = style, El = node };
                 if (HasInlineStructure(node))
                 {
                     var inlineStyle = style.Inherit();
@@ -1408,7 +1459,7 @@ namespace Lea.Engine
         {
             if (node.K == "#text")
             {
-                if (node.X.Length > 0) block.Is.Add(new Ir { K = inheritedKind, X = node.X, U = activeLink, S = inherited });
+                if (node.X.Length > 0) block.Is.Add(new Ir { K = inheritedKind, X = node.X, U = activeLink, S = inherited, El = node.Up });
                 return;
             }
             if (node.K == "script" || node.K == "style" || node.K == "noscript" || node.K == "template") return;
@@ -1418,7 +1469,7 @@ namespace Lea.Engine
             if (style.D == "none") return;
             if (node.K == "br")
             {
-                block.Is.Add(new Ir { K = "br", X = "", U = activeLink, S = style });
+                block.Is.Add(new Ir { K = "br", X = "", U = activeLink, S = style, El = node });
                 return;
             }
 
@@ -1438,7 +1489,7 @@ namespace Lea.Engine
             var first = block.Is.Count;
             if (node.K != "img") foreach (var child in node.C) AddInline(page, block, child, baseUrl, rules, style, link, kind);
             if (node.K == "a" && link != null && block.Is.Count == first)
-                block.Is.Add(new Ir { K = "a", X = link.ToString(), U = link, S = style });
+                block.Is.Add(new Ir { K = "a", X = link.ToString(), U = link, S = style, El = node });
         }
 
         private static void NormalizeInlines(B block)
@@ -1451,7 +1502,7 @@ namespace Lea.Engine
                     if (run.K != "br") run.X = TextValue(WebUtility.HtmlDecode(run.X ?? ""), block.S);
                     if (run.K != "br" && run.X.Length == 0) continue;
                     var previous = clean.Count == 0 ? null : clean[clean.Count - 1];
-                    if (previous != null && previous.K != "br" && previous.K == run.K && previous.U == run.U && Object.ReferenceEquals(previous.S, run.S)) previous.X += run.X;
+                    if (previous != null && previous.K != "br" && previous.K == run.K && previous.U == run.U && Object.ReferenceEquals(previous.S, run.S) && Object.ReferenceEquals(previous.El, run.El)) previous.X += run.X;
                     else clean.Add(run);
                 }
                 block.Is.Clear();
@@ -1491,7 +1542,7 @@ namespace Lea.Engine
                 if (text.Length == 0) continue;
                 run.X = text.ToString();
                 var previous = clean.Count == 0 ? null : clean[clean.Count - 1];
-                if (previous != null && previous.K != "br" && previous.K == run.K && previous.U == run.U && Object.ReferenceEquals(previous.S, run.S)) previous.X += run.X;
+                if (previous != null && previous.K != "br" && previous.K == run.K && previous.U == run.U && Object.ReferenceEquals(previous.S, run.S) && Object.ReferenceEquals(previous.El, run.El)) previous.X += run.X;
                 else clean.Add(run);
             }
             block.Is.Clear();
@@ -1522,7 +1573,7 @@ namespace Lea.Engine
                 if (child.K == "caption" && table.Cp.Length == 0) table.Cp = Clean(NodeText(child));
                 else AddTableRows(page, table, child, baseUrl, rules, style);
             }
-            if (table.Rs.Count > 0) page.Bs.Add(new B { K = "table", X = table.Cp, S = style, Tb = table });
+            if (table.Rs.Count > 0) page.Bs.Add(new B { K = "table", X = table.Cp, S = style, Tb = table, El = node });
         }
 
         private static void AddTableRows(P page, Tb table, N node, Uri baseUrl, List<R> rules, S inherited)
@@ -1542,9 +1593,9 @@ namespace Lea.Engine
                     int span;
                     if (!Int32.TryParse(child.Av("colspan"), out span)) span = 1;
                     span = Math.Max(1, Math.Min(16, span));
-                    var cell = new Tc { X = TextValue(RawText(child), cellStyle), S = cellStyle, H = child.K == "th", Sp = span };
+                    var cell = new Tc { X = TextValue(RawText(child), cellStyle), S = cellStyle, H = child.K == "th", Sp = span, El = child };
                     AddCellBlocks(page, cell, child, baseUrl, rules, cellStyle, child.K);
-                    if (cell.Bs.Count == 0 && cell.X.Length > 0) cell.Bs.Add(new B { K = child.K, X = cell.X, S = cellStyle });
+                    if (cell.Bs.Count == 0 && cell.X.Length > 0) cell.Bs.Add(new B { K = child.K, X = cell.X, S = cellStyle, El = child });
                     row.Cs.Add(cell);
                     columns += span;
                 }
@@ -1566,7 +1617,7 @@ namespace Lea.Engine
                 if (child.K == "#text")
                 {
                     var text = TextValue(child.X, inherited);
-                    if (text.Length > 0) cell.Bs.Add(new B { K = fallback, X = text, S = inherited });
+                    if (text.Length > 0) cell.Bs.Add(new B { K = fallback, X = text, S = inherited, El = child.Up });
                     continue;
                 }
 
@@ -1575,7 +1626,7 @@ namespace Lea.Engine
                 if (style.D == "none" || child.K == "script" || child.K == "style" || child.K == "noscript" || child.K == "template") continue;
                 if (child.K == "br")
                 {
-                    cell.Bs.Add(new B { K = "br", X = "", S = style });
+                    cell.Bs.Add(new B { K = "br", X = "", S = style, El = child });
                     continue;
                 }
                 if (child.K == "a")
@@ -1587,7 +1638,7 @@ namespace Lea.Engine
                     {
                         if (text.Length == 0) text = link.ToString();
                         page.Ls.Add(new Ln { U = link, T = Clean(text) });
-                        cell.Bs.Add(new B { K = "a", X = text, U = link, S = style });
+                        cell.Bs.Add(new B { K = "a", X = text, U = link, S = style, El = child });
                     }
                     continue;
                 }
@@ -1596,7 +1647,7 @@ namespace Lea.Engine
                 if (!nested)
                 {
                     var text = TextValue(RawText(child), style);
-                    if (text.Length > 0) cell.Bs.Add(new B { K = CellKind(child.K, fallback), X = text, S = style });
+                    if (text.Length > 0) cell.Bs.Add(new B { K = CellKind(child.K, fallback), X = text, S = style, El = child });
                     continue;
                 }
                 AddCellBlocks(page, cell, child, baseUrl, rules, style, CellKind(child.K, fallback));
@@ -1660,15 +1711,48 @@ namespace Lea.Engine
                 F = form,
                 U = action,
                 M = form == null || form.Av("method").Length == 0 ? "get" : form.Av("method").Trim().ToLowerInvariant(),
-                S = style
+                S = style,
+                El = node
             };
             if (kind == "select") AddOptions(field, node);
+            Fi current;
+            if (page.Fr != null && page.Fr.TryGetValue(node, out current))
+            {
+                var currentValue = current.V;
+                var currentChecked = current.C;
+                var currentIndex = current.Si;
+                CopyField(current, field);
+                current.V = currentValue;
+                current.C = currentChecked;
+                current.Si = currentIndex;
+                field = current;
+            }
             page.Fs.Add(field);
 
             var blockKind = node.K == "button" || kind == "submit" || kind == "reset" || kind == "button" ? "button" : node.K;
             var text = node.K == "button" && buttonText.Length > 0 ? buttonText : blockKind == "button" ? value : node.Av("aria-label");
             if (blockKind == "button" && text.Length == 0) text = kind == "reset" ? "Reset" : kind == "submit" ? "Submit" : "Button";
-            page.Bs.Add(new B { K = blockKind, X = text, S = style, I = field });
+            page.Bs.Add(new B { K = blockKind, X = text, S = style, I = field, El = node });
+        }
+
+        private static void CopyField(Fi target, Fi source)
+        {
+            target.K = source.K;
+            target.N = source.N;
+            target.P = source.P;
+            target.Ds = source.Ds;
+            target.Ro = source.Ro;
+            target.Mx = source.Mx;
+            target.F = source.F;
+            target.U = source.U;
+            target.M = source.M;
+            target.S = source.S;
+            target.D = source.D;
+            target.Dc = source.Dc;
+            target.Di = source.Di;
+            target.El = source.El;
+            target.Os.Clear();
+            foreach (var option in source.Os) target.Os.Add(option);
         }
 
         private static void AddOptions(Fi field, N select)

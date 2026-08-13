@@ -162,6 +162,40 @@ namespace Lea.Tests
                 Eq(50, visibilityPage.Bs[14].S.Op, "table effective opacity");
                 Eq(25, visibilityPage.Bs[14].Tb.Rs[0].Cs[0].S.Op, "table-cell effective opacity");
 
+                var dynamicPath = Path.Combine(root, "LeaForge", "test-pages", "dynamic-state.html");
+                var dynamicPage = engine.Go(dynamicPath);
+                Eq(6, dynamicPage.Bs.Count, "dynamic state block count");
+                Eq(2, dynamicPage.Fs.Count, "dynamic state field count");
+                Eq(6, dynamicPage.Bs[1].S.Pl, "non-hover card padding");
+                Eq("Consolas|m", dynamicPage.Bs[1].S.Ff, "negated hover baseline");
+                Eq("Consolas|m", dynamicPage.Fs[0].S.Ff, "negated focus baseline");
+                var cardNode = ById(dynamicPage.D, "card");
+                var nestedNode = ById(dynamicPage.D, "nested");
+                var fieldNode = ById(dynamicPage.D, "field");
+                var linkNode = ById(dynamicPage.D, "state-link");
+                var cellNode = ById(dynamicPage.D, "cell");
+                Ok(cardNode != null && nestedNode != null && fieldNode != null && linkNode != null && cellNode != null, "dynamic fixture nodes");
+                var savedField = dynamicPage.Fs[0];
+                savedField.V = "Edited value";
+                engine.Dy(dynamicPage, nestedNode, fieldNode);
+                Eq(18, dynamicPage.Bs[1].S.Pl, "ancestor hover card padding");
+                Eq("#fff4d6", dynamicPage.Bs[1].S.Bg, "ancestor hover background");
+                Ok(Run(dynamicPage.Bs[1], "strong").S.I, "hover descendant selector");
+                Eq("Georgia|s", dynamicPage.Fs[0].S.Ff, "focus font");
+                Eq("#176b4d", dynamicPage.Fs[0].S.Bg, "focus background");
+                Eq(16, dynamicPage.Fs[0].S.Pl, "focus layout style");
+                Ok(Object.ReferenceEquals(savedField, dynamicPage.Fs[0]) && dynamicPage.Fs[0].V == "Edited value", "dynamic restyle preserves field state");
+                engine.Dy(dynamicPage, linkNode, null);
+                var dynamicLink = Run(dynamicPage.Bs[1], "a");
+                Eq("#7e22ce", dynamicLink.S.F, "inline link hover color");
+                Ok(dynamicLink.S.B && dynamicLink.S.Td == "n", "inline link hover text style");
+                engine.Dy(dynamicPage, cellNode, null);
+                Eq(20, dynamicPage.Bs[5].Tb.Rs[0].Cs[0].S.Pl, "table cell hover padding");
+                engine.Dy(dynamicPage, null, null);
+                Eq(6, dynamicPage.Bs[1].S.Pl, "hover reset padding");
+                Eq("Consolas|m", dynamicPage.Fs[0].S.Ff, "focus reset font");
+                Ok(Object.ReferenceEquals(savedField, dynamicPage.Fs[0]) && dynamicPage.Fs[0].V == "Edited value", "dynamic reset preserves field state");
+
                 var selectorPath = Path.Combine(root, "LeaForge", "test-pages", "selectors.html");
                 var selectorPage = engine.Go(selectorPath);
                 Eq(12, selectorPage.Bs.Count, "relationship selector block count");
@@ -501,6 +535,38 @@ namespace Lea.Tests
                     using (var stateSerifFont = RenderFont(view, "p", view.At.Bs[2].S)) Eq("Georgia", stateSerifFont.FontFamily.Name, "nth-of-type rendered font");
                     using (var stateMonoFont = RenderFont(view, "input", view.At.Fs[0].S)) Eq("Consolas", stateMonoFont.FontFamily.Name, "empty field rendered font");
                     using (var stateLinkFont = RenderFont(view, "a", view.At.Bs[7].Is[0].S, true, "p")) Ok(!HasFontStyle(stateLinkFont, FontStyle.Underline), "link pseudo rendered decoration");
+                    view.Go(dynamicPath);
+                    Paint(view);
+                    var liveField = view.At.Fs[0];
+                    liveField.V = "Live edited value";
+                    Move(view, BlockRect(view, view.At.Bs[1]));
+                    Paint(view);
+                    Eq(18, view.At.Bs[1].S.Pl, "live ancestor hover layout");
+                    Eq("#fff4d6", view.At.Bs[1].S.Bg, "live ancestor hover paint");
+                    Ok(Run(view.At.Bs[1], "strong").S.I, "live hover descendant style");
+                    var liveLinkRect = LinkRect(view, "second.html");
+                    Move(view, liveLinkRect);
+                    Paint(view);
+                    var liveLink = Run(view.At.Bs[1], "a");
+                    Eq("#7e22ce", liveLink.S.F, "live inline hover color");
+                    Ok(liveLink.S.B && liveLink.S.Td == "n", "live inline hover decoration");
+                    var liveFieldRect = BlockRect(view, view.At.Bs[2]);
+                    Move(view, liveFieldRect);
+                    Paint(view);
+                    liveFieldRect = BlockRect(view, view.At.Bs[2]);
+                    Click(view, liveFieldRect);
+                    Paint(view);
+                    Eq("Georgia|s", view.At.Fs[0].S.Ff, "live field focus font");
+                    Eq("#176b4d", view.At.Fs[0].S.Bg, "live field focus paint");
+                    Eq(16, view.At.Fs[0].S.Pl, "live field focus layout");
+                    Ok(Object.ReferenceEquals(liveField, view.At.Fs[0]) && view.At.Fs[0].V == "Live edited value", "live restyle preserves editor field");
+                    Move(view, new Point(-10, -10));
+                    Paint(view);
+                    Eq(6, view.At.Bs[1].S.Pl, "live hover clears outside view");
+                    Click(view, new Rectangle(0, 0, 2, 2));
+                    Paint(view);
+                    Eq("Consolas|m", view.At.Fs[0].S.Ff, "live focus clears on background click");
+                    Ok(Object.ReferenceEquals(liveField, view.At.Fs[0]) && view.At.Fs[0].V == "Live edited value", "live blur preserves field value");
                     view.Go(textStylePath);
                     Paint(view);
                     Eq(8, view.At.Bs.Count, "text style render blocks");
@@ -750,7 +816,7 @@ namespace Lea.Tests
                     Eq("url", urlError.K, "URL error kind");
                 }
 
-                Console.WriteLine("Lea smoke passed: visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, font families, text decoration, child and adjacent CSS selectors, white-space modes, overflow clipping, malformed HTML recovery, semantic blocks, nested lists, text alignment, line height, inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, font families, text decoration, child and adjacent CSS selectors, white-space modes, overflow clipping, malformed HTML recovery, semantic blocks, nested lists, text alignment, line height, inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -815,11 +881,41 @@ namespace Lea.Tests
             foreach (var child in node.C) AddNodes(child, kind, found);
         }
 
+        private static N ById(N node, string id)
+        {
+            if (node == null) return null;
+            if (node.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase)) return node;
+            foreach (var child in node.C)
+            {
+                var found = ById(child, id);
+                if (found != null) return found;
+            }
+            return null;
+        }
+
+        private static Ir Run(B block, string kind)
+        {
+            foreach (var run in block.Is) if (run.K == kind) return run;
+            throw new InvalidOperationException("inline run unavailable: " + kind);
+        }
+
         private static void Click(V view, Rectangle rect)
         {
             var method = typeof(V).GetMethod("OnMouseClick", BindingFlags.Instance | BindingFlags.NonPublic);
             if (method == null) throw new InvalidOperationException("mouse click method unavailable");
             method.Invoke(view, new object[] { new MouseEventArgs(MouseButtons.Left, 1, rect.Left + rect.Width / 2, rect.Top + rect.Height / 2, 0) });
+        }
+
+        private static void Move(V view, Rectangle rect)
+        {
+            Move(view, new Point(rect.Left + rect.Width / 2, rect.Top + rect.Height / 2));
+        }
+
+        private static void Move(V view, Point point)
+        {
+            var method = typeof(V).GetMethod("OnMouseMove", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (method == null) throw new InvalidOperationException("mouse move method unavailable");
+            method.Invoke(view, new object[] { new MouseEventArgs(MouseButtons.None, 0, point.X, point.Y, 0) });
         }
 
         private static Rectangle LinkRect(V view, string file)

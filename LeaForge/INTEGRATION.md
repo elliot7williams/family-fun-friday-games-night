@@ -79,6 +79,10 @@ styled nested content through `B.Is`. Each compact `Ir` run carries `K`, `X`,
 an optional link `U`, and computed style `S`. `V` wraps mixed bold/italic text,
 styled spans, and links together, with a hit region for each linked fragment.
 Blocks without nested inline markup stay on the original one-box layout path.
+`B.El`, `Ir.El`, `Fi.El`, and `Tc.El` retain the originating document element.
+`E.Dy(page, hover, focus)` uses those references to reapply the already-compiled
+`:hover` and `:focus` rules while retaining mutable form values. `V` drives the
+state automatically for nested inline content, fields, and table cells.
 
 The tolerant tree builder applies scoped implied closing for paragraphs,
 headings, list and definition entries, table rows/cells, options, links, and
@@ -123,8 +127,9 @@ ID, class, attribute presence and the six common attribute-value operators,
 plus basic structural, link, and initial form-state pseudo-classes. Structural
 positions count element siblings and include type-aware fixed, odd, and even
 matching. `:not(...)` compiles one simple-selector argument and uses that
-argument's specificity; complex arguments and dynamic pointer/focus states are
-not yet exposed.
+argument's specificity; complex arguments remain a later extension. Dynamic
+`:hover` and `:focus` use the same compiled selector path and are driven by
+compact `El` references in the WinForms hit-test model.
 
 `S.Ff` carries up to eight CSS font-family fallbacks; `V` resolves and caches
 the first installed Windows family with a 32-entry bound. `S.Td` uses compact
