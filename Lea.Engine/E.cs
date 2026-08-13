@@ -644,6 +644,7 @@ namespace Lea.Engine
                 if (name == "color") style.F = value;
                 else if (name == "background" || name == "background-color") style.Bg = value;
                 else if (name == "font-weight") style.B = value.Equals("bold", StringComparison.OrdinalIgnoreCase) || value == "700" || value == "800" || value == "900";
+                else if (name == "font-style") style.I = value.Equals("italic", StringComparison.OrdinalIgnoreCase) || value.Equals("oblique", StringComparison.OrdinalIgnoreCase);
                 else if (name == "display") style.D = value.ToLowerInvariant();
                 else if (name == "margin") Box(style, value, true);
                 else if (name == "padding") Box(style, value, false);
@@ -771,6 +772,7 @@ namespace Lea.Engine
                     page.Ls.Add(new Ln { U = link, T = text });
                     page.Bs.Add(new B { K = kind, X = text.Length == 0 ? link.ToString() : text, U = link, S = style });
                 }
+                return;
             }
             else if (kind == "img")
             {
@@ -786,10 +788,136 @@ namespace Lea.Engine
             else if (kind == "h1" || kind == "h2" || kind == "h3" || kind == "p" || kind == "li" || kind == "pre" || kind == "code" || kind == "label")
             {
                 var text = Clean(NodeText(node));
-                if (text.Length > 0) page.Bs.Add(new B { K = kind, X = text, S = style });
+                var block = new B { K = kind, X = text, S = style };
+                if (HasInlineStructure(node))
+                {
+                    var inlineStyle = style.Inherit();
+                    if (kind.StartsWith("h")) inlineStyle.B = true;
+                    foreach (var child in node.C) AddInline(page, block, child, baseUrl, rules, inlineStyle, null, kind);
+                    NormalizeInlines(block);
+                    block.X = InlineText(block);
+                }
+                if (block.X.Length > 0 || block.Is.Count > 0) page.Bs.Add(block);
+                AddNestedBlocks(page, node, baseUrl, rules, style);
+                return;
             }
 
             foreach (var child in node.C) Blocks(page, child, baseUrl, rules, style);
+        }
+
+        private static void AddNestedBlocks(P page, N node, Uri baseUrl, List<R> rules, S inherited)
+        {
+            foreach (var child in node.C)
+            {
+                if (child.K == "#text") continue;
+                if (child.K == "img" || child.K == "input" || child.K == "textarea" || child.K == "button" || child.K == "select" || child.K == "table")
+                {
+                    Blocks(page, child, baseUrl, rules, inherited);
+                    continue;
+                }
+                var style = Style(child, inherited, rules);
+                if (style.D != "none") AddNestedBlocks(page, child, baseUrl, rules, style);
+            }
+        }
+
+        private static bool HasInlineStructure(N node)
+        {
+            foreach (var child in node.C) if (child.K != "#text") return true;
+            return false;
+        }
+
+        private static void AddInline(P page, B block, N node, Uri baseUrl, List<R> rules, S inherited, Uri activeLink, string inheritedKind)
+        {
+            if (node.K == "#text")
+            {
+                if (node.X.Length > 0) block.Is.Add(new Ir { K = inheritedKind, X = node.X, U = activeLink, S = inherited });
+                return;
+            }
+            if (node.K == "script" || node.K == "style" || node.K == "noscript") return;
+
+            var style = Style(node, inherited, rules);
+            if (style.D == "none") return;
+            if (node.K == "strong" || node.K == "b") style.B = true;
+            if (node.K == "em" || node.K == "i") style.I = true;
+            if (node.K == "br")
+            {
+                block.Is.Add(new Ir { K = "br", X = "", U = activeLink, S = style });
+                return;
+            }
+
+            var link = activeLink;
+            var kind = node.K;
+            if (node.K == "a")
+            {
+                Uri target;
+                var href = node.Av("href");
+                if (href.Length > 0 && Uri.TryCreate(baseUrl, href, out target))
+                {
+                    link = target;
+                    page.Ls.Add(new Ln { U = link, T = Clean(NodeText(node)) });
+                }
+            }
+
+            var first = block.Is.Count;
+            if (node.K != "img") foreach (var child in node.C) AddInline(page, block, child, baseUrl, rules, style, link, kind);
+            if (node.K == "a" && link != null && block.Is.Count == first)
+                block.Is.Add(new Ir { K = "a", X = link.ToString(), U = link, S = style });
+        }
+
+        private static void NormalizeInlines(B block)
+        {
+            var clean = new List<Ir>();
+            var pendingSpace = false;
+            var lineHasText = false;
+            foreach (var run in block.Is)
+            {
+                if (run.K == "br")
+                {
+                    clean.Add(run);
+                    pendingSpace = false;
+                    lineHasText = false;
+                    continue;
+                }
+
+                var value = WebUtility.HtmlDecode(run.X ?? "");
+                var text = new StringBuilder();
+                foreach (var ch in value)
+                {
+                    if (Char.IsWhiteSpace(ch))
+                    {
+                        if (lineHasText) pendingSpace = true;
+                        continue;
+                    }
+                    if (pendingSpace)
+                    {
+                        text.Append(' ');
+                        pendingSpace = false;
+                    }
+                    text.Append(ch);
+                    lineHasText = true;
+                }
+                if (text.Length == 0) continue;
+                run.X = text.ToString();
+                var previous = clean.Count == 0 ? null : clean[clean.Count - 1];
+                if (previous != null && previous.K != "br" && previous.K == run.K && previous.U == run.U && Object.ReferenceEquals(previous.S, run.S)) previous.X += run.X;
+                else clean.Add(run);
+            }
+            block.Is.Clear();
+            foreach (var run in clean) block.Is.Add(run);
+        }
+
+        private static string InlineText(B block)
+        {
+            var text = new StringBuilder();
+            foreach (var run in block.Is)
+            {
+                if (run.K == "br")
+                {
+                    if (text.Length > 0 && text[text.Length - 1] != ' ') text.Append(' ');
+                }
+                else text.Append(run.X);
+            }
+            return text.ToString().Trim();
         }
 
         private static void AddTable(P page, N node, Uri baseUrl, List<R> rules, S style)
@@ -851,6 +979,7 @@ namespace Lea.Engine
                 var style = Style(child, inherited, rules);
                 if (style.D == "none" || child.K == "script" || child.K == "style" || child.K == "noscript") continue;
                 if (child.K == "strong" || child.K == "b") style.B = true;
+                if (child.K == "em" || child.K == "i") style.I = true;
                 if (child.K == "br")
                 {
                     cell.Bs.Add(new B { K = "br", X = "", S = style });

@@ -74,6 +74,12 @@ heights, CSS cell boxes, wrapped text, bounded column spans, and resize reflow.
 `Tc.Bs` carries structured cell content; nested links join `P.Ls` and use the
 same lightweight hit-testing and navigation path as links outside tables.
 
+Normal text blocks keep their compatible flattened value in `B.X` and expose
+styled nested content through `B.Is`. Each compact `Ir` run carries `K`, `X`,
+an optional link `U`, and computed style `S`. `V` wraps mixed bold/italic text,
+styled spans, and links together, with a hit region for each linked fragment.
+Blocks without nested inline markup stay on the original one-box layout path.
+
 `E` and `V` expose the same cookie aliases: `Kc`, `Km`, `Kcl()`, and `Pv`.
 Cookies remain in memory and are bounded to 64 entries. Firespider maps its
 existing `pv` flag to each active Lea view, so private mode receives a fresh

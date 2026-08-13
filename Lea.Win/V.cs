@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Lea.Engine;
@@ -227,11 +228,12 @@ namespace Lea.Win
                     continue;
                 }
 
-                using (var font = BoxFont(box.K, box.S, box.Title))
+                using (var font = BoxFont(box.K, box.S, box.Title, box.U != null, box.Inline && box.B != null ? box.B.K : null))
                 {
-                    var color = box.K == "a" ? Color.FromArgb(0, 102, 204) : pageColor;
+                    var color = box.U != null ? Color.FromArgb(0, 102, 204) : pageColor;
                     if (box.S != null) color = CssColor(box.S.F, color);
-                    TextRenderer.DrawText(pe.Graphics, box.X, font, content, color, TextFormatFlags.WordBreak | TextFormatFlags.NoPadding);
+                    var flags = box.Inline ? TextFormatFlags.SingleLine | TextFormatFlags.NoPadding : TextFormatFlags.WordBreak | TextFormatFlags.NoPadding;
+                    TextRenderer.DrawText(pe.Graphics, box.X, font, content, color, flags);
                 }
 
                 if (box.U != null) hits.Add(new Hit(rect, box.U, null));
@@ -292,6 +294,7 @@ namespace Lea.Win
                     var bw = Math.Max(1, outerAvailable - bl - br - pl - pr);
                     if (bs != null && bs.W > 0) bw = Math.Min(bw, bs.W);
                     int height;
+                    List<Ix> inline = null;
                     if (block.K == "img") height = PicSize(block, bw).Height;
                     else if (block.I != null)
                     {
@@ -305,16 +308,26 @@ namespace Lea.Win
                             }
                         }
                     }
+                    else if (block.Is.Count > 0) inline = InlineLayout(graphics, block, bw, out height);
                     else
                     {
                         using (var font = BoxFont(block.K, bs, false)) height = Measure(graphics, block.K == "li" ? "- " + block.X : block.X, font, bw);
                     }
-                    if (bs != null && bs.H > 0) height = bs.H;
+                    if (bs != null && bs.H > 0) height = inline == null ? bs.H : Math.Max(height, bs.H);
                     var text = block.K == "li" ? "- " + block.X : block.X;
                     var link = block.K == "a" ? block.U : null;
                     var outer = new Rectangle(bx, y, bw + pl + pr + bl + br, height + pt + pb + bt + bb);
                     var content = new Rectangle(bx + bl + pl, y + bt + pt, bw, height);
-                    boxes.Add(new Bx(block.K, text, link, bs, outer, content, false, block));
+                    boxes.Add(new Bx(block.K, inline == null ? text : "", link, bs, outer, content, false, block));
+                    if (inline != null)
+                    {
+                        foreach (var part in inline)
+                        {
+                            var rect = part.R;
+                            rect.Offset(content.X, content.Y);
+                            boxes.Add(new Bx(part.K, part.X, part.U, part.S, rect, false, block, true));
+                        }
+                    }
                     y += outer.Height + (block.K.StartsWith("h") ? 12 : 8) + (bs == null ? 0 : bs.Mb);
                 }
             }
@@ -501,18 +514,145 @@ namespace Lea.Win
             return Math.Max(font.Height, size.Height);
         }
 
+        private List<Ix> InlineLayout(Graphics graphics, B block, int width, out int height)
+        {
+            int baseHeight;
+            using (var font = BoxFont(block.K, block.S, false)) baseHeight = font.Height;
+            var lines = new List<Il>();
+            var line = new Il();
+            Ia pending = null;
+            var endedWithBreak = false;
+
+            if (block.K == "li")
+            {
+                AddInlineWord(graphics, lines, ref line, ref pending, InlineAtom(graphics, "li", "-", null, block.S, block.K), width, baseHeight);
+                pending = InlineAtom(graphics, "li", " ", null, block.S, block.K);
+            }
+
+            foreach (var run in block.Is)
+            {
+                if (run.K == "br")
+                {
+                    FinishInlineLine(lines, ref line, baseHeight, true);
+                    pending = null;
+                    endedWithBreak = true;
+                    continue;
+                }
+
+                var value = run.X ?? "";
+                var index = 0;
+                while (index < value.Length)
+                {
+                    if (Char.IsWhiteSpace(value[index]))
+                    {
+                        while (index < value.Length && Char.IsWhiteSpace(value[index])) index++;
+                        pending = InlineAtom(graphics, run.K, " ", null, run.S, block.K);
+                        continue;
+                    }
+
+                    var start = index;
+                    while (index < value.Length && !Char.IsWhiteSpace(value[index])) index++;
+                    var word = InlineAtom(graphics, run.K, value.Substring(start, index - start), run.U, run.S, block.K);
+                    AddInlineWord(graphics, lines, ref line, ref pending, word, width, baseHeight);
+                    endedWithBreak = false;
+                }
+            }
+
+            if (line.As.Count > 0 || lines.Count == 0 || endedWithBreak) FinishInlineLine(lines, ref line, baseHeight, true);
+
+            var layout = new List<Ix>();
+            var y = 0;
+            foreach (var current in lines)
+            {
+                var x = 0;
+                foreach (var atom in current.As)
+                {
+                    var rect = new Rectangle(x, y + current.H - atom.H, atom.W, atom.H);
+                    layout.Add(new Ix(atom.K, atom.X, atom.U, atom.S, rect));
+                    x += atom.W;
+                }
+                y += current.H;
+            }
+            height = Math.Max(baseHeight, y);
+            return layout;
+        }
+
+        private void AddInlineWord(Graphics graphics, List<Il> lines, ref Il line, ref Ia pending, Ia word, int width, int baseHeight)
+        {
+            if (word.W <= width)
+            {
+                var gap = line.As.Count > 0 && pending != null ? pending.W : 0;
+                if (line.As.Count > 0 && line.W + gap + word.W > width)
+                {
+                    FinishInlineLine(lines, ref line, baseHeight, false);
+                    pending = null;
+                }
+                if (line.As.Count > 0 && pending != null) AddInlineAtom(line, pending);
+                AddInlineAtom(line, word);
+                pending = null;
+                return;
+            }
+
+            if (line.As.Count > 0) FinishInlineLine(lines, ref line, baseHeight, false);
+            pending = null;
+            var piece = new StringBuilder();
+            var pieceWidth = 0;
+            foreach (var ch in word.X)
+            {
+                var character = InlineAtom(graphics, word.K, ch.ToString(), word.U, word.S, word.Z);
+                if (piece.Length > 0 && pieceWidth + character.W > width)
+                {
+                    AddInlineAtom(line, InlineAtom(graphics, word.K, piece.ToString(), word.U, word.S, word.Z));
+                    FinishInlineLine(lines, ref line, baseHeight, false);
+                    piece.Clear();
+                    pieceWidth = 0;
+                }
+                piece.Append(ch);
+                pieceWidth += character.W;
+            }
+            if (piece.Length > 0) AddInlineAtom(line, InlineAtom(graphics, word.K, piece.ToString(), word.U, word.S, word.Z));
+        }
+
+        private Ia InlineAtom(Graphics graphics, string kind, string text, Uri url, S style, string baseKind)
+        {
+            using (var font = BoxFont(kind, style, false, url != null, baseKind))
+            {
+                var width = TextRenderer.MeasureText(graphics, text, font, Size.Empty, TextFormatFlags.SingleLine | TextFormatFlags.NoPadding).Width;
+                return new Ia(kind, text, url, style, baseKind, Math.Max(1, width), font.Height);
+            }
+        }
+
+        private static void AddInlineAtom(Il line, Ia atom)
+        {
+            line.As.Add(atom);
+            line.W += atom.W;
+            line.H = Math.Max(line.H, atom.H);
+        }
+
+        private static void FinishInlineLine(List<Il> lines, ref Il line, int baseHeight, bool force)
+        {
+            if (line.As.Count > 0 || force)
+            {
+                line.H = Math.Max(baseHeight, line.H);
+                lines.Add(line);
+            }
+            line = new Il();
+        }
+
         private static int BorderWidth(S style, int width)
         {
             return style == null || style.Bs == "" || style.Bs == "none" || style.Bs == "hidden" ? 0 : width;
         }
 
-        private Font BoxFont(string kind, S style, bool title)
+        private Font BoxFont(string kind, S style, bool title, bool link = false, string baseKind = null)
         {
-            var name = kind == "pre" || kind == "code" ? "Consolas" : Font.FontFamily.Name;
-            var size = title ? 20F : kind == "h1" ? 18F : kind == "h2" ? 15F : kind == "h3" ? 12F : Font.Size;
+            var sizeKind = baseKind ?? kind;
+            var name = kind == "pre" || kind == "code" || sizeKind == "pre" || sizeKind == "code" ? "Consolas" : Font.FontFamily.Name;
+            var size = title ? 20F : sizeKind == "h1" ? 18F : sizeKind == "h2" ? 15F : sizeKind == "h3" ? 12F : Font.Size;
             if (!title && style != null && style.Fs > 0) size = style.Fs;
             var fontStyle = title || kind.StartsWith("h") || kind == "caption" || kind == "th" || kind == "strong" || kind == "b" || (style != null && style.B) ? FontStyle.Bold : FontStyle.Regular;
-            if (kind == "a") fontStyle |= FontStyle.Underline;
+            if (style != null && style.I) fontStyle |= FontStyle.Italic;
+            if (kind == "a" || link) fontStyle |= FontStyle.Underline;
             return new Font(name, size, fontStyle);
         }
 
@@ -1014,13 +1154,14 @@ namespace Lea.Win
             public readonly Rectangle C;
             public readonly bool Title;
             public readonly B B;
+            public readonly bool Inline;
 
-            public Bx(string kind, string text, Uri url, S style, Rectangle rect, bool title, B block = null)
-                : this(kind, text, url, style, rect, rect, title, block)
+            public Bx(string kind, string text, Uri url, S style, Rectangle rect, bool title, B block = null, bool inline = false)
+                : this(kind, text, url, style, rect, rect, title, block, inline)
             {
             }
 
-            public Bx(string kind, string text, Uri url, S style, Rectangle rect, Rectangle content, bool title, B block = null)
+            public Bx(string kind, string text, Uri url, S style, Rectangle rect, Rectangle content, bool title, B block = null, bool inline = false)
             {
                 K = kind;
                 X = text ?? "";
@@ -1030,6 +1171,54 @@ namespace Lea.Win
                 C = content;
                 Title = title;
                 B = block;
+                Inline = inline;
+            }
+        }
+
+        private sealed class Ia
+        {
+            public readonly string K;
+            public readonly string X;
+            public readonly Uri U;
+            public readonly S S;
+            public readonly string Z;
+            public readonly int W;
+            public readonly int H;
+
+            public Ia(string kind, string text, Uri url, S style, string baseKind, int width, int height)
+            {
+                K = kind;
+                X = text;
+                U = url;
+                S = style;
+                Z = baseKind;
+                W = width;
+                H = height;
+            }
+        }
+
+        private sealed class Il
+        {
+            public readonly List<Ia> As = new List<Ia>();
+            public int W;
+            public int H;
+        }
+
+        private sealed class Ix
+        {
+            public readonly string K;
+            public readonly string X;
+            public readonly Uri U;
+            public readonly S S;
+            public readonly Rectangle R;
+
+            public Ix(string kind, string text, Uri url, S style, Rectangle rect)
+            {
+                K = kind;
+                X = text;
+                U = url;
+                S = style;
+                R = rect;
             }
         }
 

@@ -70,6 +70,24 @@ namespace Lea.Tests
                 Eq("#a13b18", externalPage.Bs[2].S.F, "external class color");
                 Eq("Lea External CSS", new E().GoA(externalPath).GetAwaiter().GetResult().T, "async local external CSS");
 
+                var inlinePath = Path.Combine(root, "LeaForge", "test-pages", "inline.html");
+                var inlinePage = engine.Go(inlinePath);
+                Eq(3, inlinePage.Bs.Count, "inline page avoids duplicate link block");
+                Eq(1, inlinePage.Ls.Count, "inline link count");
+                Eq(2, inlinePage.Bs[0].Is.Count, "heading inline runs");
+                Ok(inlinePage.Bs[0].Is[1].S.B, "heading emphasis crosses neutral span");
+                var inline = inlinePage.Bs[1];
+                Eq("A bold and italic line with one linked phrase and color. Next line.", inline.X, "inline compatibility text");
+                Eq(11, inline.Is.Count, "compact inline run count");
+                Eq("#f1f5f9", inline.S.Bg, "inline block background");
+                Eq("", inline.Is[0].S.Bg, "block box style does not leak into text runs");
+                Ok(inline.Is[1].S.B, "strong run is bold");
+                Ok(inline.Is[2].S.B && inline.Is[2].S.I, "nested emphasis inherits bold and italic");
+                Ok(inline.Is[4].U != null && inline.Is[5].U != null && inline.Is[5].S.B, "nested link runs retain target and emphasis");
+                Eq("#a13b18", inline.Is[7].S.F, "inline class color");
+                Eq("br", inline.Is[9].K, "inline line break");
+                Eq(0, inlinePage.Bs[2].Is.Count, "plain text fast path");
+
                 using (var view = new V())
                 {
                     view.Size = new Size(720, 760);
@@ -149,6 +167,19 @@ namespace Lea.Tests
                     Paint(view);
                     Click(view, view.Rb(15));
                     WaitFor(delegate { return view.T == "LeaForge Second Page"; }, "table cell link navigation");
+                    view.Size = new Size(300, 520);
+                    view.Go(inlinePath);
+                    Paint(view);
+                    Ok(view.Bc > inlinePage.Bs.Count + 1, "inline runs create paint boxes");
+                    var inlineBlock = BlockRect(view, view.At.Bs[1]);
+                    Ok(inlineBlock.Height > 40, "inline text wraps and honors line break");
+                    Ok(SameInlineHeights(view, view.At.Bs[0]), "heading inline runs retain heading size");
+                    var inlineLink = LinkRect(view, "second.html");
+                    Ok(!inlineLink.IsEmpty && inlineBlock.Contains(new Point(inlineLink.Left, inlineLink.Top)), "inline link stays inside paragraph");
+                    Eq(3, LinkBoxes(view, "second.html"), "only inline link words are clickable");
+                    Click(view, inlineLink);
+                    WaitFor(delegate { return view.T == "LeaForge Second Page"; }, "inline link navigation");
+                    view.Size = new Size(720, 760);
                     view.Go(Path.Combine(root, "LeaForge", "test-pages", "scroll.html"));
                     Paint(view);
                     Eq(16, view.Bc, "scroll boxes");
@@ -375,7 +406,7 @@ namespace Lea.Tests
                     Eq("url", urlError.K, "URL error kind");
                 }
 
-                Console.WriteLine("Lea smoke passed: external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -418,6 +449,66 @@ namespace Lea.Tests
             var method = typeof(V).GetMethod("OnMouseClick", BindingFlags.Instance | BindingFlags.NonPublic);
             if (method == null) throw new InvalidOperationException("mouse click method unavailable");
             method.Invoke(view, new object[] { new MouseEventArgs(MouseButtons.Left, 1, rect.Left + rect.Width / 2, rect.Top + rect.Height / 2, 0) });
+        }
+
+        private static Rectangle LinkRect(V view, string file)
+        {
+            foreach (var value in LayoutBoxes(view))
+            {
+                var type = value.GetType();
+                var url = type.GetField("U").GetValue(value) as Uri;
+                if (url == null || !Path.GetFileName(url.LocalPath).Equals(file, StringComparison.OrdinalIgnoreCase)) continue;
+                return (Rectangle)type.GetField("R").GetValue(value);
+            }
+            return Rectangle.Empty;
+        }
+
+        private static int LinkBoxes(V view, string file)
+        {
+            var count = 0;
+            foreach (var value in LayoutBoxes(view))
+            {
+                var type = value.GetType();
+                var url = type.GetField("U").GetValue(value) as Uri;
+                if (url != null && Path.GetFileName(url.LocalPath).Equals(file, StringComparison.OrdinalIgnoreCase)) count++;
+            }
+            return count;
+        }
+
+        private static Rectangle BlockRect(V view, B block)
+        {
+            foreach (var value in LayoutBoxes(view))
+            {
+                var type = value.GetType();
+                if (!Object.ReferenceEquals(type.GetField("B").GetValue(value), block) || (bool)type.GetField("Inline").GetValue(value)) continue;
+                return (Rectangle)type.GetField("C").GetValue(value);
+            }
+            return Rectangle.Empty;
+        }
+
+        private static bool SameInlineHeights(V view, B block)
+        {
+            var height = 0;
+            var count = 0;
+            foreach (var value in LayoutBoxes(view))
+            {
+                var type = value.GetType();
+                if (!Object.ReferenceEquals(type.GetField("B").GetValue(value), block) || !(bool)type.GetField("Inline").GetValue(value)) continue;
+                var current = ((Rectangle)type.GetField("R").GetValue(value)).Height;
+                if (height > 0 && current != height) return false;
+                height = current;
+                count++;
+            }
+            return count >= 2;
+        }
+
+        private static System.Collections.IEnumerable LayoutBoxes(V view)
+        {
+            var field = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (field == null) throw new InvalidOperationException("layout boxes unavailable");
+            var values = field.GetValue(view) as System.Collections.IEnumerable;
+            if (values == null) throw new InvalidOperationException("layout box values unavailable");
+            return values;
         }
 
         private static void WaitFor(Func<bool> ready, string name)

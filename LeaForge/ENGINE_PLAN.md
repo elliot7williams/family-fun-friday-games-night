@@ -60,7 +60,7 @@ fs      font size
    together; linked CSS uses cookies, compression, validators, and shared LRU caching.)
 3. Add colors, fonts, spacing, borders, width, height, display, and overflow. (Colors, fonts, margins, padding, backgrounds, `display:none`, borders, and pixel width/height are active.)
 4. Replace one-WinForms-control-per-node rendering with lightweight layout boxes. (Reusable `Bx` layout pass added.)
-5. Paint text, backgrounds, borders, links, controls, and images onto one surface. (Text, backgrounds, solid/dashed/dotted borders, links, images, and basic form controls are active.)
+5. Paint text, backgrounds, borders, links, controls, and images onto one surface. (Text, nested bold/italic inline runs, backgrounds, solid/dashed/dotted borders, links, images, and basic form controls are active.)
 6. Add scrolling and hit testing from layout boxes. (Visible-box painting and bounded vertical scrolling added.)
 7. Add compact table row/cell layout. (Equal columns, wrapped text, CSS boxes,
    bounded `colspan`, nested blocks, clickable links, malformed-markup recovery,
@@ -209,7 +209,6 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Improve inline text flow across nested emphasis and links. Lea now loads up to
-eight external stylesheets per page, ignores failed or non-CSS responses,
-rejects decoded CSS above 256 KB, and shares the existing bounded LRU rather
-than adding a separate resource cache.
+Add CSS text alignment and basic line-height. Lea now keeps nested emphasis,
+styled spans, line breaks, and links inside one wrapped block; link hit regions
+follow only their inline words, while plain text keeps the original fast path.

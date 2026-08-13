@@ -32,7 +32,12 @@ an active network request. The shorter synchronous forms remain useful for tests
 .NET Framework URI parsing does not expose it through `Uri.Query`.
 
 Computed style uses `S`: `F` is foreground color, `Bg` is background, `Fs` is
-font size, `B` is bold, and `D` is display behavior.
+font size, `B` is bold, `I` is italic, and `D` is display behavior.
+
+Text blocks keep compatible flattened text in `B.X`. When nested markup needs
+separate painting, `B.Is` exposes compact `Ir` inline runs; each run uses `K`
+(kind), `X` (text), `U` (optional link), and `S` (computed style). Plain text
+leaves `Is` empty and stays on the original one-box layout path.
 
 Box spacing stays compact: `Mt/Mr/Mb/Ml` are margins and `Pt/Pr/Pb/Pl` are
 padding. `N.Up` links a document node to its parent for descendant selectors.
