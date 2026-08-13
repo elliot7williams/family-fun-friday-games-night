@@ -104,6 +104,11 @@ selectors. Compact chains such as `main>p+p` work without required spaces, and
 adjacent matching ignores formatting whitespace between HTML elements. Lea
 tokenizes these chains once per CSS rule and reuses them during tree matching.
 
+`S.Ff` carries up to eight CSS font-family fallbacks; `V` resolves and caches
+the first installed Windows family with a 32-entry bound. `S.Td` uses compact
+`n/u/s/us` decoration modes. Underline, line-through, native decoration tags,
+and explicit removal of a link underline all use the same `BoxFont` path.
+
 `E` and `V` expose the same cookie aliases: `Kc`, `Km`, `Kcl()`, and `Pv`.
 Cookies remain in memory and are bounded to 64 entries. Firespider maps its
 existing `pv` flag to each active Lea view, so private mode receives a fresh

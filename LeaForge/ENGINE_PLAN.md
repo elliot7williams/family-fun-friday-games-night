@@ -58,7 +58,7 @@ fs      font size
 2. Implement the cascade and inheritance with a small priority model. (First specificity/source-order cascade added.)
    (`link rel=stylesheet` and inline `style` blocks now enter that source order
    together; linked CSS uses cookies, compression, validators, and shared LRU caching.)
-3. Add colors, fonts, spacing, borders, width, height, display, and overflow. (Colors, fonts, margins, padding, backgrounds, `display:none`, borders, pixel width/height, text alignment, line height, white-space modes, and clipped overflow are active.)
+3. Add colors, fonts, spacing, borders, width, height, display, and overflow. (Colors, fallback font families, underline/strike decorations, margins, padding, backgrounds, `display:none`, borders, pixel width/height, text alignment, line height, white-space modes, and clipped overflow are active.)
 4. Replace one-WinForms-control-per-node rendering with lightweight layout boxes. (Reusable `Bx` layout pass added.)
 5. Paint text, backgrounds, borders, links, controls, and images onto one surface. (Text, nested bold/italic inline runs, backgrounds, solid/dashed/dotted borders, links, images, and basic form controls are active.)
 6. Add scrolling and hit testing from layout boxes. (Visible-box painting and bounded vertical scrolling added.)
@@ -209,10 +209,15 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add font families and text decoration. Lea now supports inherited
+Add attribute selectors and basic pseudo-classes. Lea now supports inherited
 left, center, right, and basic justified text plus pixel, percentage, and
 unitless line heights in normal blocks and table cells. Default text still uses
 the original one-box path; only requested text flow enters the word-line pass.
+
+`S.Ff` stores a bounded, compact font fallback list with generic aliases, and
+`V` caches up to 32 resolved Windows families. `S.Td` uses `n/u/s/us` for none,
+underline, strike, or both. CSS `text-decoration`/`text-decoration-line`, plain
+link overrides, and native `u/s/strike/del` tags share the same paint path.
 
 CSS relationship matching supports descendant, direct-child (`>`), and
 adjacent-element (`+`) combinators with or without spaces. Matching runs from

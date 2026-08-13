@@ -139,6 +139,25 @@ namespace Lea.Tests
                 Ok(selectorPage.Bs[9].S.I, "heading adjacent selector");
                 Ok(!selectorPage.Bs[11].S.I, "adjacent selector respects separator");
 
+                var textStylePath = Path.Combine(root, "LeaForge", "test-pages", "text-style.html");
+                var textStylePage = engine.Go(textStylePath);
+                Eq(8, textStylePage.Bs.Count, "text style block count");
+                Eq("Georgia|s", textStylePage.Bs[0].S.Ff, "heading font family list");
+                Eq("No Such Lea Font|Segoe UI|ss", textStylePage.Bs[1].S.Ff, "inherited font family list");
+                Eq("Missing Serif|Georgia|s", textStylePage.Bs[2].S.Ff, "font fallback list");
+                Eq("m", textStylePage.Bs[3].S.Ff, "monospace family alias");
+                Eq("u", textStylePage.Bs[4].Is[0].S.Td, "underline decoration alias");
+                Eq("s", textStylePage.Bs[4].Is[1].S.Td, "strike decoration alias");
+                Eq("us", textStylePage.Bs[4].Is[2].S.Td, "combined decoration alias");
+                Eq("u", textStylePage.Bs[5].Is[0].S.Td, "native underline tag");
+                Eq("s", textStylePage.Bs[5].Is[2].S.Td, "native deletion tag");
+                Eq("n", textStylePage.Bs[5].Is[3].S.Td, "native decoration cascade override");
+                Eq("n", textStylePage.Bs[6].Is[0].S.Td, "plain link decoration override");
+                Eq("", textStylePage.Bs[6].Is[1].S.Td, "default link decoration state");
+                var styledCell = textStylePage.Bs[7].Tb.Rs[0].Cs[0];
+                Eq("Times New Roman|s", styledCell.S.Ff, "table cell font family");
+                Eq("u", styledCell.S.Td, "table cell decoration");
+
                 var recoveryPath = Path.Combine(root, "LeaForge", "test-pages", "recovery.html");
                 var recoveryPage = engine.Go(recoveryPath);
                 Eq(23, recoveryPage.Bs.Count, "recovered block count");
@@ -316,6 +335,19 @@ namespace Lea.Tests
                     var thirdCard = BlockRect(view, view.At.Bs[7]);
                     Eq(firstCard.Left + 18, secondCard.Left, "adjacent selector second-card layout");
                     Eq(firstCard.Left + 18, thirdCard.Left, "adjacent selector third-card layout");
+                    view.Go(textStylePath);
+                    Paint(view);
+                    Eq(8, view.At.Bs.Count, "text style render blocks");
+                    using (var inheritedFont = RenderFont(view, "p", view.At.Bs[1].S)) Eq("Segoe UI", inheritedFont.FontFamily.Name, "installed inherited font");
+                    using (var serifFont = RenderFont(view, "p", view.At.Bs[2].S)) Eq("Georgia", serifFont.FontFamily.Name, "installed fallback font");
+                    using (var monoFont = RenderFont(view, "p", view.At.Bs[3].S)) Eq("Consolas", monoFont.FontFamily.Name, "installed generic font");
+                    using (var underlineFont = RenderFont(view, "span", view.At.Bs[4].Is[0].S, false, "p")) Ok(HasFontStyle(underlineFont, FontStyle.Underline) && !HasFontStyle(underlineFont, FontStyle.Strikeout), "painted underline style");
+                    using (var strikeFont = RenderFont(view, "span", view.At.Bs[4].Is[1].S, false, "p")) Ok(HasFontStyle(strikeFont, FontStyle.Strikeout) && !HasFontStyle(strikeFont, FontStyle.Underline), "painted strike style");
+                    using (var bothFont = RenderFont(view, "span", view.At.Bs[4].Is[2].S, false, "p")) Ok(HasFontStyle(bothFont, FontStyle.Underline) && HasFontStyle(bothFont, FontStyle.Strikeout), "painted combined decoration");
+                    using (var plainNativeFont = RenderFont(view, "u", view.At.Bs[5].Is[3].S, false, "p")) Ok(!HasFontStyle(plainNativeFont, FontStyle.Underline), "native underline cascade override");
+                    using (var plainLinkFont = RenderFont(view, "a", view.At.Bs[6].Is[0].S, true, "p")) Ok(!HasFontStyle(plainLinkFont, FontStyle.Underline), "plain link removes underline");
+                    using (var defaultLinkFont = RenderFont(view, "a", view.At.Bs[6].Is[1].S, true, "p")) Ok(HasFontStyle(defaultLinkFont, FontStyle.Underline), "default link keeps underline");
+                    Ok(FontCacheCount(view) > 0 && FontCacheCount(view) <= 32, "bounded font family cache");
                     view.Go(recoveryPath);
                     Paint(view);
                     Eq(23, view.At.Bs.Count, "recovery render blocks");
@@ -552,7 +584,7 @@ namespace Lea.Tests
                     Eq("url", urlError.K, "URL error kind");
                 }
 
-                Console.WriteLine("Lea smoke passed: child and adjacent CSS selectors, white-space modes, overflow clipping, malformed HTML recovery, semantic blocks, nested lists, text alignment, line height, inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: font families, text decoration, child and adjacent CSS selectors, white-space modes, overflow clipping, malformed HTML recovery, semantic blocks, nested lists, text alignment, line height, inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -726,6 +758,26 @@ namespace Lea.Tests
                 count++;
             }
             return count >= 2;
+        }
+
+        private static Font RenderFont(V view, string kind, S style, bool link = false, string baseKind = null)
+        {
+            var method = typeof(V).GetMethod("BoxFont", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (method == null) throw new InvalidOperationException("font renderer unavailable");
+            return (Font)method.Invoke(view, new object[] { kind, style, false, link, baseKind });
+        }
+
+        private static bool HasFontStyle(Font font, FontStyle style)
+        {
+            return (font.Style & style) == style;
+        }
+
+        private static int FontCacheCount(V view)
+        {
+            var field = typeof(V).GetField("fontNames", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = field == null ? null : field.GetValue(view) as System.Collections.IDictionary;
+            if (values == null) throw new InvalidOperationException("font cache unavailable");
+            return values.Count;
         }
 
         private static System.Collections.IEnumerable LayoutBoxes(V view)

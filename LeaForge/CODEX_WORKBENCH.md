@@ -17,8 +17,8 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-1. Add font families and text decoration.
-2. Add attribute selectors and basic pseudo-classes.
+1. Add attribute selectors and basic pseudo-classes.
+2. Add min/max sizing and word breaking.
 3. Route more Firespider commands through Lea capability checks.
 4. Add a small JavaScript interpreter layer or bridge.
 5. Add downloads and find-in-page.

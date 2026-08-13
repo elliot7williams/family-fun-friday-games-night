@@ -19,9 +19,11 @@ namespace Lea.Win
         private readonly List<Bx> boxes = new List<Bx>();
         private readonly WebClient picWeb = new WebClient();
         private readonly Dictionary<string, Image> pics = new Dictionary<string, Image>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, string> fontNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly Queue<string> picOrder = new Queue<string>();
         private readonly TextBox ed = new TextBox();
         private const int PicLimit = 24;
+        private const int FontLimit = 32;
         private int sy;
         private int docHeight;
         private int layoutWidth = -1;
@@ -188,6 +190,14 @@ namespace Lea.Win
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
+            Dirty();
+            Invalidate();
+        }
+
+        protected override void OnFontChanged(EventArgs e)
+        {
+            base.OnFontChanged(e);
+            if (fontNames != null) fontNames.Clear();
             Dirty();
             Invalidate();
         }
@@ -807,13 +817,36 @@ namespace Lea.Win
         private Font BoxFont(string kind, S style, bool title, bool link = false, string baseKind = null)
         {
             var sizeKind = baseKind ?? kind;
-            var name = kind == "pre" || kind == "code" || sizeKind == "pre" || sizeKind == "code" ? "Consolas" : Font.FontFamily.Name;
+            var name = title ? Font.FontFamily.Name : FontName(kind, style, sizeKind);
             var size = title ? 20F : sizeKind == "h1" ? 18F : sizeKind == "h2" ? 15F : sizeKind == "h3" ? 12F : sizeKind == "h4" ? 11F : sizeKind == "h5" ? 10F : sizeKind == "h6" ? 9F : Font.Size;
             if (!title && style != null && style.Fs > 0) size = style.Fs;
             var fontStyle = title || HeadingKind(kind) || kind == "caption" || kind == "th" || kind == "dt" || kind == "legend" || kind == "summary" || kind == "strong" || kind == "b" || (style != null && style.B) ? FontStyle.Bold : FontStyle.Regular;
             if (style != null && style.I) fontStyle |= FontStyle.Italic;
-            if (kind == "a" || link) fontStyle |= FontStyle.Underline;
+            var decoration = style == null ? "" : style.Td;
+            if (decoration.IndexOf('u') >= 0 || ((kind == "a" || link) && decoration.Length == 0)) fontStyle |= FontStyle.Underline;
+            if (decoration.IndexOf('s') >= 0) fontStyle |= FontStyle.Strikeout;
             return new Font(name, size, fontStyle);
+        }
+
+        private string FontName(string kind, S style, string sizeKind)
+        {
+            var fallback = kind == "pre" || kind == "code" || sizeKind == "pre" || sizeKind == "code" ? "Consolas" : Font.FontFamily.Name;
+            if (style == null || style.Ff.Length == 0) return fallback;
+            string found;
+            if (fontNames.TryGetValue(style.Ff, out found)) return found;
+
+            foreach (var value in style.Ff.Split('|'))
+            {
+                var name = value == "ss" || value == "ui" ? Font.FontFamily.Name : value == "s" ? "Times New Roman" : value == "m" ? "Consolas" : value == "c" ? "Segoe Script" : value == "f" ? "Impact" : value;
+                try
+                {
+                    using (var family = new FontFamily(name)) found = family.Name;
+                    if (fontNames.Count < FontLimit) fontNames[style.Ff] = found;
+                    return found;
+                }
+                catch (ArgumentException) { }
+            }
+            return fallback;
         }
 
         private static bool HeadingKind(string kind)

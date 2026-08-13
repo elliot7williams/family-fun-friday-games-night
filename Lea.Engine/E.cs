@@ -727,6 +727,7 @@ namespace Lea.Engine
         private static S Style(N node, S inherited, List<R> rules)
         {
             var style = inherited == null ? new S() : inherited.Inherit();
+            TagStyle(style, node.K);
             foreach (var rule in rules) if (MatchCss(node, rule)) Decls(style, rule.V);
             Decls(style, node.Av("style"));
             return style;
@@ -742,8 +743,10 @@ namespace Lea.Engine
                 var value = declaration.Substring(split + 1).Trim();
                 if (name == "color") style.F = value;
                 else if (name == "background" || name == "background-color") style.Bg = value;
+                else if (name == "font-family") FontFamily(style, value);
                 else if (name == "font-weight") style.B = value.Equals("bold", StringComparison.OrdinalIgnoreCase) || value == "700" || value == "800" || value == "900";
                 else if (name == "font-style") style.I = value.Equals("italic", StringComparison.OrdinalIgnoreCase) || value.Equals("oblique", StringComparison.OrdinalIgnoreCase);
+                else if (name == "text-decoration" || name == "text-decoration-line") TextDecoration(style, value);
                 else if (name == "text-align") TextAlign(style, value);
                 else if (name == "line-height") LineHeight(style, value);
                 else if (name == "white-space") WhiteSpace(style, value);
@@ -780,6 +783,44 @@ namespace Lea.Engine
                     if (size.Success && int.TryParse(size.Groups["n"].Value, out number) && number > 0 && number < 200) style.Fs = number;
                 }
             }
+        }
+
+        private static void FontFamily(S style, string value)
+        {
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            if (lower == "inherit") return;
+            if (lower == "initial" || lower == "unset" || lower == "revert") { style.Ff = ""; return; }
+            if (source.Length == 0 || source.Length > 512) return;
+
+            var names = new List<string>();
+            foreach (var item in source.Split(','))
+            {
+                var name = Regex.Replace(item.Trim(), "\\s+", " ");
+                if (name.Length >= 2 && ((name[0] == '\"' && name[name.Length - 1] == '\"') || (name[0] == '\'' && name[name.Length - 1] == '\'')))
+                    name = name.Substring(1, name.Length - 2).Trim();
+                lower = name.ToLowerInvariant();
+                if (lower == "sans-serif") name = "ss";
+                else if (lower == "serif") name = "s";
+                else if (lower == "monospace") name = "m";
+                else if (lower == "cursive") name = "c";
+                else if (lower == "fantasy") name = "f";
+                else if (lower == "system-ui" || lower == "ui-sans-serif") name = "ui";
+                else if (!Regex.IsMatch(name, "^[a-z0-9 _-]{1,64}$", RegexOptions.IgnoreCase)) continue;
+                names.Add(name);
+                if (names.Count == 8) break;
+            }
+            if (names.Count > 0) style.Ff = String.Join("|", names.ToArray());
+        }
+
+        private static void TextDecoration(S style, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "inherit") return;
+            if (source == "none" || source == "initial" || source == "unset" || source == "revert") { style.Td = "n"; return; }
+            var underline = Regex.IsMatch(source, "(?:^|\\s)underline(?:\\s|$)");
+            var strike = Regex.IsMatch(source, "(?:^|\\s)line-through(?:\\s|$)");
+            if (underline || strike) style.Td = underline ? strike ? "us" : "u" : "s";
         }
 
         private static void TextAlign(S style, string value)
@@ -926,8 +967,6 @@ namespace Lea.Engine
             var style = Style(node, inherited, rules);
             if (kind == "pre" && style.Ws.Length == 0) style.Ws = "p";
             if (style.D == "none") return;
-            if (kind == "strong" || kind == "b") style.B = true;
-            if (kind == "em" || kind == "i") style.I = true;
             if (kind == "table")
             {
                 AddTable(page, node, baseUrl, rules, style);
@@ -1059,8 +1098,6 @@ namespace Lea.Engine
 
             var style = Style(node, inherited, rules);
             if (style.D == "none") return;
-            if (node.K == "strong" || node.K == "b") style.B = true;
-            if (node.K == "em" || node.K == "i") style.I = true;
             if (node.K == "br")
             {
                 block.Is.Add(new Ir { K = "br", X = "", U = activeLink, S = style });
@@ -1218,8 +1255,6 @@ namespace Lea.Engine
                 var style = Style(child, inherited, rules);
                 if (child.K == "pre" && style.Ws.Length == 0) style.Ws = "p";
                 if (style.D == "none" || child.K == "script" || child.K == "style" || child.K == "noscript" || child.K == "template") continue;
-                if (child.K == "strong" || child.K == "b") style.B = true;
-                if (child.K == "em" || child.K == "i") style.I = true;
                 if (child.K == "br")
                 {
                     cell.Bs.Add(new B { K = "br", X = "", S = style });
@@ -1259,6 +1294,22 @@ namespace Lea.Engine
         private static string CellKind(string kind, string fallback)
         {
             return IsTextBlock(kind) || kind == "strong" || kind == "b" ? kind : fallback;
+        }
+
+        private static void TagStyle(S style, string kind)
+        {
+            if (kind == "strong" || kind == "b") style.B = true;
+            if (kind == "em" || kind == "i") style.I = true;
+            if (kind == "u") AddDecoration(style, 'u');
+            if (kind == "s" || kind == "strike" || kind == "del") AddDecoration(style, 's');
+        }
+
+        private static void AddDecoration(S style, char value)
+        {
+            if (style.Td == "n") style.Td = "";
+            var underline = value == 'u' || style.Td.IndexOf('u') >= 0;
+            var strike = value == 's' || style.Td.IndexOf('s') >= 0;
+            style.Td = underline ? strike ? "us" : "u" : strike ? "s" : "";
         }
 
         private static void AddField(P page, N node, Uri baseUrl, S style)

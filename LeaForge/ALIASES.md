@@ -32,7 +32,10 @@ an active network request. The shorter synchronous forms remain useful for tests
 .NET Framework URI parsing does not expose it through `Uri.Query`.
 
 Computed style uses `S`: `F` is foreground color, `Bg` is background, `Fs` is
-font size, `B` is bold, `I` is italic, and `D` is display behavior. `Ta` is
+font size, `Ff` is a font fallback list, `B` is bold, `I` is italic, and `D` is
+display behavior. `Td` is decoration using `n/u/s/us` for none, underline,
+strike, or both. Generic `Ff` entries use `ss/s/m/c/f/ui` for sans-serif,
+serif, monospace, cursive, fantasy, and system UI. `Ta` is
 text alignment using `l/c/r/j`; `Lh` is pixel line height and `Lm` is a bounded
 percentage multiplier. Lea accepts CSS pixel, percentage, and unitless line
 heights, then keeps each painted line tall enough for its largest font.
