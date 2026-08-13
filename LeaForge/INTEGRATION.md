@@ -164,6 +164,12 @@ for single-select fields, and provides `Rs`, `Sm`, and `SmA` for reset and
 URL-encoded GET/POST submission. Direct engine and view POST navigation use
 `Po`/`PoA`. `P.Q` preserves query text on both web and local pages.
 
+`Fi.Rq/Mn/Mx/Pa/Lo/Hi` expose parsed constraints; `Ok/Vm` report validity and
+`Nv` records validation bypass. Hosts may call `V.Vf(button)`, while `Sm/SmA`
+validate automatically and keep invalid pages in place without raising `Sb`.
+Required choices, lengths, safe patterns, email/URL syntax, numbers, and ISO
+dates are supported, together with CSS `:valid` and `:invalid` state.
+
 ## Experimental Firespider tab
 
 The source in `../Lea.Firespider` now powers a real experimental tab in the

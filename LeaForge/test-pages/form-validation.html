@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Form Validation</title>
+  <style>
+    body { color: #26313b; background: #ffffff; font-family: Segoe UI, sans-serif; }
+    h1 { color: #176b4d; }
+    input, select { display: block; width: 280px; margin: 5px 0; padding: 5px; border: 1px solid #687684; }
+    input:invalid, select:invalid { color: #7f1d1d; background: #fff1f2; border: 3px solid #b91c1c; }
+    input:valid, select:valid { border-color: #176b4d; }
+    button { margin: 7px 5px 10px 0; padding: 5px; }
+  </style>
+</head>
+<body>
+  <h1>Form validation</h1>
+  <p>Compact constraints for common browser forms.</p>
+  <form id="guarded" action="form-result.html" method="get">
+    <input type="search" name="q" required minlength="3" maxlength="12" pattern="[A-Za-z ]+" placeholder="Search words">
+    <input type="email" name="email" required value="not-an-email" aria-label="Email">
+    <input type="url" name="site" required value="not-a-url" aria-label="Website">
+    <input type="number" name="count" required min="10" max="20" value="5" aria-label="Count">
+    <input type="date" name="day" min="2026-01-01" max="2026-12-31" value="2025-12-31" aria-label="Day">
+    <input type="checkbox" name="terms" value="yes" required aria-label="Accept terms">
+    <input type="radio" name="mode" value="lite" required aria-label="Lite mode">
+    <input type="radio" name="mode" value="full" aria-label="Full mode">
+    <select name="theme" required aria-label="Theme">
+      <option value="" selected>Choose a theme</option>
+      <option value="lea">Lea green</option>
+    </select>
+    <button type="submit" name="send" value="yes">Validate and open</button>
+  </form>
+  <form id="bypass" action="form-result.html" method="get" novalidate>
+    <input name="skip" required aria-label="Skipped requirement">
+    <button type="submit" name="bypass" value="yes">Open without validation</button>
+  </form>
+</body>
+</html>

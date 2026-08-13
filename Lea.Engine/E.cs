@@ -901,7 +901,7 @@ namespace Lea.Engine
                     }
                     match = Regex.Match(tail, "^:(?<n>nth-child|nth-of-type)\\(\\s*(?<v>odd|even|[1-9][0-9]{0,3})\\s*\\)", RegexOptions.IgnoreCase);
                     if (!match.Success)
-                        match = Regex.Match(tail, "^:(?<n>first-child|last-child|only-child|first-of-type|last-of-type|only-of-type|empty|root|link|checked|disabled|enabled|required|read-only|read-write|hover|focus)\\b", RegexOptions.IgnoreCase);
+                        match = Regex.Match(tail, "^:(?<n>first-child|last-child|only-child|first-of-type|last-of-type|only-of-type|empty|root|link|checked|disabled|enabled|required|read-only|read-write|valid|invalid|hover|focus)\\b", RegexOptions.IgnoreCase);
                     if (!match.Success) return null;
                     pseudos.Add(new Ps(match.Groups["n"].Value.ToLowerInvariant(), match.Groups["v"].Value.ToLowerInvariant()));
                     weight += 10;
@@ -1010,6 +1010,8 @@ namespace Lea.Engine
             if (pseudo.N == "required") return RequiredNode(node) && node.A.ContainsKey("required");
             if (pseudo.N == "read-only") return EditNode(node) && node.A.ContainsKey("readonly");
             if (pseudo.N == "read-write") return EditNode(node) && !node.A.ContainsKey("readonly") && !node.A.ContainsKey("disabled");
+            if (pseudo.N == "invalid") return RequiredNode(node) && node.A.ContainsKey("data-lea-invalid");
+            if (pseudo.N == "valid") return RequiredNode(node) && !node.A.ContainsKey("data-lea-invalid");
 
             var type = pseudo.N.IndexOf("of-type", StringComparison.Ordinal) >= 0;
             int count;
@@ -1417,6 +1419,7 @@ namespace Lea.Engine
             else if (kind == "input" || kind == "textarea" || kind == "button" || kind == "select")
             {
                 AddField(page, node, baseUrl, style);
+                return;
             }
             else if (IsTextBlock(kind) || IsContainerBlock(kind))
             {
@@ -1863,7 +1866,10 @@ namespace Lea.Engine
             Uri action = baseUrl;
             Uri formAction;
             if (form != null && form.Av("action").Length > 0 && Uri.TryCreate(baseUrl, form.Av("action"), out formAction)) action = formAction;
+            int min;
             int max;
+            var pattern = node.Av("pattern");
+            if (pattern.Length > 512) pattern = pattern.Substring(0, 512);
             var field = new Fi
             {
                 K = kind,
@@ -1875,7 +1881,13 @@ namespace Lea.Engine
                 Dc = node.A.ContainsKey("checked"),
                 Ds = node.A.ContainsKey("disabled"),
                 Ro = node.A.ContainsKey("readonly"),
+                Rq = node.A.ContainsKey("required"),
+                Mn = Int32.TryParse(node.Av("minlength"), out min) ? Math.Max(0, Math.Min(min, 32767)) : 0,
                 Mx = Int32.TryParse(node.Av("maxlength"), out max) ? Math.Max(0, Math.Min(max, 32767)) : 0,
+                Pa = pattern,
+                Lo = node.Av("min"),
+                Hi = node.Av("max"),
+                Nv = node.A.ContainsKey("formnovalidate") || (form != null && form.A.ContainsKey("novalidate")),
                 F = form,
                 U = action,
                 M = form == null || form.Av("method").Length == 0 ? "get" : form.Av("method").Trim().ToLowerInvariant(),
@@ -1889,10 +1901,14 @@ namespace Lea.Engine
                 var currentValue = current.V;
                 var currentChecked = current.C;
                 var currentIndex = current.Si;
+                var currentValid = current.Ok;
+                var currentMessage = current.Vm;
                 CopyField(current, field);
                 current.V = currentValue;
                 current.C = currentChecked;
                 current.Si = currentIndex;
+                current.Ok = currentValid;
+                current.Vm = currentMessage;
                 field = current;
             }
             page.Fs.Add(field);
@@ -1910,7 +1926,15 @@ namespace Lea.Engine
             target.P = source.P;
             target.Ds = source.Ds;
             target.Ro = source.Ro;
+            target.Rq = source.Rq;
+            target.Mn = source.Mn;
             target.Mx = source.Mx;
+            target.Pa = source.Pa;
+            target.Lo = source.Lo;
+            target.Hi = source.Hi;
+            target.Nv = source.Nv;
+            target.Ok = source.Ok;
+            target.Vm = source.Vm;
             target.F = source.F;
             target.U = source.U;
             target.M = source.M;
@@ -1963,7 +1987,8 @@ namespace Lea.Engine
         private static string FieldKind(N node, string fallback)
         {
             var kind = node.Av("type").Trim().ToLowerInvariant();
-            return kind.Length == 0 ? fallback : kind;
+            if (kind.Length == 0) return fallback;
+            return Regex.IsMatch(kind, "^(?:text|password|search|email|url|tel|number|date|checkbox|radio|file|submit|reset|button|hidden)$") ? kind : fallback;
         }
 
         private static N Parent(N node, string kind)

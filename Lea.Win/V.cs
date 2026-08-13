@@ -7,6 +7,7 @@ using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Lea.Engine;
@@ -1059,7 +1060,7 @@ namespace Lea.Win
         {
             var field = box.B.I;
             var disabled = field.Ds;
-            var background = disabled ? Color.FromArgb(238, 238, 238) : Color.White;
+            var background = disabled ? Color.FromArgb(238, 238, 238) : field.Ok ? Color.White : Color.FromArgb(255, 241, 242);
             if (field.S != null && field.S.Bg.Length > 0) background = CssColor(field.S.Bg, background);
             var foreground = disabled ? Color.FromArgb(130, 130, 130) : field.S == null ? color : CssColor(field.S.F, color);
             background = PaintColor(background, opacity);
@@ -1068,7 +1069,7 @@ namespace Lea.Win
             {
                 var mark = new Rectangle(rect.X, rect.Y + 3, 17, 17);
                 using (var brush = new SolidBrush(background)) graphics.FillRectangle(brush, mark);
-                using (var pen = new Pen(PaintColor(Color.FromArgb(120, 120, 120), opacity)))
+                using (var pen = new Pen(PaintColor(field.Ok ? Color.FromArgb(120, 120, 120) : Color.FromArgb(185, 28, 28), opacity), field.Ok ? 1F : 2F))
                 {
                     if (field.K == "radio") graphics.DrawEllipse(pen, mark);
                     else graphics.DrawRectangle(pen, mark);
@@ -1091,7 +1092,8 @@ namespace Lea.Win
             }
 
             using (var brush = new SolidBrush(background)) graphics.FillRectangle(brush, rect);
-            using (var pen = new Pen(PaintColor(box.K == "button" ? Color.FromArgb(145, 145, 145) : Color.FromArgb(165, 165, 165), opacity))) graphics.DrawRectangle(pen, rect.X, rect.Y, rect.Width - 1, rect.Height - 1);
+            var border = !field.Ok ? Color.FromArgb(185, 28, 28) : box.K == "button" ? Color.FromArgb(145, 145, 145) : Color.FromArgb(165, 165, 165);
+            using (var pen = new Pen(PaintColor(border, opacity), field.Ok ? 1F : 2F)) graphics.DrawRectangle(pen, rect.X + (field.Ok ? 0 : 1), rect.Y + (field.Ok ? 0 : 1), rect.Width - (field.Ok ? 1 : 3), rect.Height - (field.Ok ? 1 : 3));
 
             var text = field.K == "select" ? OptionText(field) : field.V ?? "";
             var placeholder = text.Length == 0 && field.P.Length > 0;
@@ -1250,15 +1252,21 @@ namespace Lea.Win
 
             EndEdit(false);
             SetFocus(field.El);
+            var restyle = false;
             if (field.K == "checkbox")
             {
                 field.C = !field.C;
+                restyle = ClearValidity(field);
                 OnEdited();
             }
             else if (field.K == "radio")
             {
                 foreach (var item in At.Fs)
-                    if (item.K == "radio" && Object.ReferenceEquals(item.F, field.F) && item.N == field.N) item.C = false;
+                    if (item.K == "radio" && Object.ReferenceEquals(item.F, field.F) && item.N == field.N)
+                    {
+                        item.C = false;
+                        restyle = ClearValidity(item) || restyle;
+                    }
                 field.C = true;
                 OnEdited();
             }
@@ -1266,7 +1274,7 @@ namespace Lea.Win
             else if (field.K == "reset") Rs(field);
             else if (field.K == "submit") await SmA(field);
             else if (field.K == "button" && Sb != null) Sb(this, EventArgs.Empty);
-            Invalidate();
+            if (restyle) Restyle(); else Invalidate();
         }
 
         private static bool CanEdit(Fi field)
@@ -1306,8 +1314,9 @@ namespace Lea.Win
             if (field == null || index < 0 || index >= field.Os.Count || field.Os[index].Ds) return;
             field.Si = index;
             field.V = field.Os[index].V;
+            var restyle = ClearValidity(field);
             OnEdited();
-            Invalidate();
+            if (restyle) Restyle(); else Invalidate();
         }
 
         private void CloseChoices()
@@ -1347,6 +1356,7 @@ namespace Lea.Win
             ed.ReadOnly = field.Ro;
             ed.MaxLength = field.Mx > 0 ? field.Mx : 32767;
             ed.PasswordChar = field.K == "password" ? '*' : '\0';
+            ed.BackColor = field.Ok ? Color.White : Color.FromArgb(255, 241, 242);
             var oldFont = editFont;
             editFont = BoxFont(field.K, field.S, false);
             ed.Font = editFont;
@@ -1373,8 +1383,9 @@ namespace Lea.Win
         {
             if (editLock || edit == null) return;
             edit.V = ed.Text;
+            var restyle = ClearValidity(edit);
             OnEdited();
-            Invalidate();
+            if (restyle) Restyle(); else Invalidate();
         }
 
         private void EditKeyDown(object sender, KeyEventArgs args)
@@ -1425,26 +1436,120 @@ namespace Lea.Win
                 field.V = field.D;
                 field.C = field.Dc;
                 field.Si = field.Di;
+                SetValidity(field, "");
             }
             OnEdited();
+            Restyle();
         }
 
         public P Sm(Fi button)
         {
-            if (Sb != null) Sb(this, EventArgs.Empty);
+            EndEdit(false);
+            if (button == null || (!button.Nv && !Vf(button))) return At;
             var data = FormData(button);
             if (data == null) return At;
+            if (Sb != null) Sb(this, EventArgs.Empty);
             if (button.M == "get") return Go(FormUri(button, data));
             return button.M == "post" && CanPost(button.U) ? Po(button.U, data) : At;
         }
 
         public async Task<P> SmA(Fi button)
         {
-            if (Sb != null) Sb(this, EventArgs.Empty);
+            EndEdit(false);
+            if (button == null || (!button.Nv && !Vf(button))) return At;
             var data = FormData(button);
             if (data == null) return At;
+            if (Sb != null) Sb(this, EventArgs.Empty);
             if (button.M == "get") return await GoA(FormUri(button, data));
             return button.M == "post" && CanPost(button.U) ? await PoA(button.U, data) : At;
+        }
+
+        public bool Vf(Fi button)
+        {
+            if (At == null || button == null || button.F == null) return false;
+            Fi first = null;
+            foreach (var field in At.Fs)
+            {
+                if (!Object.ReferenceEquals(field.F, button.F)) continue;
+                var message = FieldError(field);
+                SetValidity(field, message);
+                if (message.Length > 0 && first == null) first = field;
+            }
+            if (first != null) focus = first.El;
+            Restyle();
+            return first == null;
+        }
+
+        private string FieldError(Fi field)
+        {
+            if (field == null || field.Ds || field.Ro || field.K == "submit" || field.K == "reset" || field.K == "button" || field.K == "file") return "";
+            var value = field.V ?? "";
+            if (field.Rq)
+            {
+                if (field.K == "checkbox" && !field.C) return "required";
+                if (field.K == "radio")
+                {
+                    var selected = false;
+                    foreach (var item in At.Fs)
+                        if (item.K == "radio" && !item.Ds && Object.ReferenceEquals(item.F, field.F) && item.N == field.N && item.C) { selected = true; break; }
+                    if (!selected) return "required";
+                }
+                else if (value.Length == 0) return "required";
+            }
+            if (value.Length == 0 || field.K == "checkbox" || field.K == "radio" || field.K == "select") return "";
+            if (field.K == "email" && !SafeMatch(value, "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) return "email";
+            Uri address;
+            if (field.K == "url" && !Uri.TryCreate(value, UriKind.Absolute, out address)) return "url";
+            if (field.Mn > 0 && value.Length < field.Mn) return "short";
+            if (field.Mx > 0 && value.Length > field.Mx) return "long";
+            if (field.Pa.Length > 0 && !SafeMatch(value, "^(?:" + field.Pa + ")$", true)) return "pattern";
+            if (field.K == "number") return NumberError(field, value);
+            if (field.K == "date") return DateError(field, value);
+            return "";
+        }
+
+        private static string NumberError(Fi field, string value)
+        {
+            decimal number;
+            if (!Decimal.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out number)) return "number";
+            decimal bound;
+            if (Decimal.TryParse(field.Lo, NumberStyles.Float, CultureInfo.InvariantCulture, out bound) && number < bound) return "min";
+            if (Decimal.TryParse(field.Hi, NumberStyles.Float, CultureInfo.InvariantCulture, out bound) && number > bound) return "max";
+            return "";
+        }
+
+        private static string DateError(Fi field, string value)
+        {
+            DateTime date;
+            if (!DateTime.TryParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out date)) return "date";
+            DateTime bound;
+            if (DateTime.TryParseExact(field.Lo, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out bound) && date < bound) return "min";
+            if (DateTime.TryParseExact(field.Hi, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out bound) && date > bound) return "max";
+            return "";
+        }
+
+        private static bool SafeMatch(string value, string pattern, bool invalidPatternPasses = false)
+        {
+            try { return Regex.IsMatch(value ?? "", pattern, RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(50)); }
+            catch (ArgumentException) { return invalidPatternPasses; }
+            catch (RegexMatchTimeoutException) { return false; }
+        }
+
+        private static void SetValidity(Fi field, string message)
+        {
+            if (field == null) return;
+            field.Vm = message ?? "";
+            field.Ok = field.Vm.Length == 0;
+            if (field.El == null) return;
+            if (field.Ok) field.El.A.Remove("data-lea-invalid");
+            else field.El.A["data-lea-invalid"] = field.Vm;
+        }
+
+        private static bool ClearValidity(Fi field)
+        {
+            if (field == null || (field.Ok && (field.El == null || !field.El.A.ContainsKey("data-lea-invalid")))) return false;
+            SetValidity(field, "");
+            return true;
         }
 
         private string FormData(Fi button)

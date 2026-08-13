@@ -37,6 +37,21 @@ namespace Lea.Tests
                 Ok(page.Fs[3].Os[2].Ds, "disabled option");
                 Ok(page.Fs[4].C && page.Fs[5].C && !page.Fs[6].C, "choice defaults");
 
+                var validationPath = Path.Combine(root, "LeaForge", "test-pages", "form-validation.html");
+                var validationPage = engine.Go(validationPath);
+                Eq(12, validationPage.Fs.Count, "validation field count");
+                Eq("search,email,url,number,date,checkbox,radio,radio,select,submit,text,submit", Kinds(validationPage), "validation field kinds");
+                Ok(validationPage.Fs[0].Rq, "required alias");
+                Eq(3, validationPage.Fs[0].Mn, "minimum length alias");
+                Eq(12, validationPage.Fs[0].Mx, "maximum length alias");
+                Eq("[A-Za-z ]+", validationPage.Fs[0].Pa, "pattern alias");
+                Eq("10", validationPage.Fs[3].Lo, "number minimum alias");
+                Eq("20", validationPage.Fs[3].Hi, "number maximum alias");
+                Eq("2026-01-01", validationPage.Fs[4].Lo, "date minimum alias");
+                Ok(validationPage.Fs[10].Nv && validationPage.Fs[11].Nv, "form novalidate alias");
+                Ok(validationPage.Fs[0].Ok && validationPage.Fs[0].Vm.Length == 0, "initial validation state");
+                Eq("#176b4d", validationPage.Fs[0].S.Bc, "initial valid pseudo selector");
+
                 var tablePage = engine.Go(Path.Combine(root, "LeaForge", "test-pages", "tables.html"));
                 Eq(3, tablePage.Bs.Count, "table page blocks");
                 Eq("table", tablePage.Bs[1].K, "table block kind");
@@ -164,7 +179,7 @@ namespace Lea.Tests
 
                 var dynamicPath = Path.Combine(root, "LeaForge", "test-pages", "dynamic-state.html");
                 var dynamicPage = engine.Go(dynamicPath);
-                Eq(6, dynamicPage.Bs.Count, "dynamic state block count");
+                Eq(5, dynamicPage.Bs.Count, "dynamic state block count");
                 Eq(2, dynamicPage.Fs.Count, "dynamic state field count");
                 Eq(6, dynamicPage.Bs[1].S.Pl, "non-hover card padding");
                 Eq("Consolas|m", dynamicPage.Bs[1].S.Ff, "negated hover baseline");
@@ -190,7 +205,7 @@ namespace Lea.Tests
                 Eq("#7e22ce", dynamicLink.S.F, "inline link hover color");
                 Ok(dynamicLink.S.B && dynamicLink.S.Td == "n", "inline link hover text style");
                 engine.Dy(dynamicPage, cellNode, null);
-                Eq(20, dynamicPage.Bs[5].Tb.Rs[0].Cs[0].S.Pl, "table cell hover padding");
+                Eq(20, dynamicPage.Bs[4].Tb.Rs[0].Cs[0].S.Pl, "table cell hover padding");
                 engine.Dy(dynamicPage, null, null);
                 Eq(6, dynamicPage.Bs[1].S.Pl, "hover reset padding");
                 Eq("Consolas|m", dynamicPage.Fs[0].S.Ff, "focus reset font");
@@ -377,6 +392,76 @@ namespace Lea.Tests
                     submit.GetAwaiter().GetResult();
                     Eq("Lea Form Result", view.T, "async GET result");
                     Ok(view.Q.Contains("q=async+engine"), "async GET values");
+
+                    var submitEvents = 0;
+                    view.Sb += delegate { submitEvents++; };
+                    view.Go(validationPath);
+                    Paint(view);
+                    var guardedSubmit = view.At.Fs[9];
+                    var guardedUrl = view.U.AbsoluteUri;
+                    Ok(!view.Vf(guardedSubmit), "invalid guarded form");
+                    Eq("required", view.At.Fs[0].Vm, "required validation message");
+                    Eq("email", view.At.Fs[1].Vm, "email validation message");
+                    Eq("url", view.At.Fs[2].Vm, "URL validation message");
+                    Eq("min", view.At.Fs[3].Vm, "number minimum validation message");
+                    Eq("min", view.At.Fs[4].Vm, "date minimum validation message");
+                    Eq("required", view.At.Fs[5].Vm, "checkbox validation message");
+                    Eq("required", view.At.Fs[6].Vm, "radio-group validation message");
+                    Eq("required", view.At.Fs[8].Vm, "select validation message");
+                    Eq("#fff1f2", view.At.Fs[0].S.Bg, "invalid pseudo background");
+                    using (var invalidPaint = Render(view))
+                    {
+                        var invalidBox = BlockRect(view, FieldBlock(view.At, view.At.Fs[0]));
+                        Ok(ColorDistance(BoxPixel(invalidPaint, invalidBox), Color.FromArgb(255, 241, 242)) < 4, "invalid field painting");
+                    }
+                    view.Sm(guardedSubmit);
+                    Eq(guardedUrl, view.U.AbsoluteUri, "invalid submit blocks navigation");
+                    Eq(0, submitEvents, "invalid submit event suppression");
+
+                    view.At.Fs[0].V = "ab";
+                    Ok(!view.Vf(guardedSubmit), "minimum length rejects short value");
+                    Eq("short", view.At.Fs[0].Vm, "minimum length validation message");
+                    view.At.Fs[0].V = "abcdefghijklmnop";
+                    Ok(!view.Vf(guardedSubmit), "maximum length rejects long value");
+                    Eq("long", view.At.Fs[0].Vm, "maximum length validation message");
+
+                    view.At.Fs[0].V = "Lea search";
+                    view.At.Fs[1].V = "lea@example.com";
+                    view.At.Fs[2].V = "https://example.com";
+                    view.At.Fs[3].V = "many";
+                    view.At.Fs[4].V = "June";
+                    view.At.Fs[5].C = true;
+                    view.At.Fs[7].C = true;
+                    view.At.Fs[8].V = "lea";
+                    view.At.Fs[8].Si = 1;
+                    Ok(!view.Vf(guardedSubmit), "typed values reject malformed input");
+                    Eq("number", view.At.Fs[3].Vm, "number syntax validation message");
+                    Eq("date", view.At.Fs[4].Vm, "date syntax validation message");
+                    view.At.Fs[3].V = "21";
+                    view.At.Fs[4].V = "2027-01-01";
+                    Ok(!view.Vf(guardedSubmit), "maximum bounds reject high values");
+                    Eq("max", view.At.Fs[3].Vm, "number maximum validation message");
+                    Eq("max", view.At.Fs[4].Vm, "date maximum validation message");
+                    view.At.Fs[0].V = "123";
+                    view.At.Fs[3].V = "15";
+                    view.At.Fs[4].V = "2026-06-15";
+                    Ok(!view.Vf(guardedSubmit), "pattern rejects otherwise valid form");
+                    Eq("pattern", view.At.Fs[0].Vm, "pattern validation message");
+                    view.At.Fs[0].V = "Lea search";
+                    Ok(view.Vf(guardedSubmit), "corrected guarded form");
+                    Ok(view.At.Fs[0].Ok && view.At.Fs[0].Vm.Length == 0 && !view.At.Fs[0].El.A.ContainsKey("data-lea-invalid"), "validity marker clears");
+                    view.Sm(guardedSubmit);
+                    Eq("Lea Form Result", view.T, "validated GET result");
+                    Ok(view.Q.Contains("q=Lea+search") && view.Q.Contains("email=lea%40example.com") && view.Q.Contains("count=15") && view.Q.Contains("terms=yes") && view.Q.Contains("mode=full") && view.Q.Contains("theme=lea"), "validated GET values: " + view.Q);
+                    Eq(1, submitEvents, "valid submit event");
+
+                    view.Go(validationPath);
+                    var bypassSubmit = view.At.Fs[11];
+                    Ok(bypassSubmit.Nv && view.At.Fs[10].V.Length == 0, "novalidate setup");
+                    view.Sm(bypassSubmit);
+                    Eq("Lea Form Result", view.T, "novalidate GET result");
+                    Ok(view.Q.Contains("skip=") && view.Q.Contains("bypass=yes"), "novalidate GET values");
+                    Eq(2, submitEvents, "novalidate submit event");
 
                     Check(view, root, "css.html", 3, 4);
                     Check(view, root, "images.html", 5, 6);
@@ -902,7 +987,7 @@ namespace Lea.Tests
                     Eq("url", urlError.K, "URL error kind");
                 }
 
-                Console.WriteLine("Lea smoke passed: relative positioning and z-index stacking, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, font families, text decoration, child and adjacent CSS selectors, white-space modes, overflow clipping, malformed HTML recovery, semantic blocks, nested lists, text alignment, line height, inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: form validation and typed inputs, relative positioning and z-index stacking, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, font families, text decoration, child and adjacent CSS selectors, white-space modes, overflow clipping, malformed HTML recovery, semantic blocks, nested lists, text alignment, line height, inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -1037,6 +1122,12 @@ namespace Lea.Tests
                 return (Rectangle)type.GetField("C").GetValue(value);
             }
             return Rectangle.Empty;
+        }
+
+        private static B FieldBlock(P page, Fi field)
+        {
+            foreach (var block in page.Bs) if (Object.ReferenceEquals(block.I, field)) return block;
+            throw new InvalidOperationException("field block unavailable: " + (field == null ? "" : field.N));
         }
 
         private static Rectangle[] TextLines(V view, B block)

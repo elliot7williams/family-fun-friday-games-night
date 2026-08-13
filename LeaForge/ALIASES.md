@@ -100,6 +100,14 @@ hold reset defaults. Pages expose fields through `P.Fs`, while `B.I` links a
 paint block to its field. The WinForms view raises `Ed` for edits and `Sb` for
 form actions.
 
+Validation metadata remains short: `Rq` is required, `Mn/Mx` are text-length
+bounds, `Pa` is a bounded pattern, and `Lo/Hi` hold number or ISO-date bounds.
+`Nv` bypasses checks for `novalidate`/`formnovalidate`; `Ok` and `Vm` expose the
+mutable validity result and compact reason. `V.Vf(button)` validates one form,
+while `Sm/SmA` call it automatically before raising `Sb` or navigating.
+Messages use `required/short/long/pattern/email/url/number/date/min/max`.
+The CSS `:valid` and `:invalid` pseudo-classes follow the same result state.
+
 Select fields expose options through `Fi.Os`; each compact `O` has `V` (value),
 `T` (text), and `Ds` (disabled). `Si` is the selected index and `Di` is its
 reset default.

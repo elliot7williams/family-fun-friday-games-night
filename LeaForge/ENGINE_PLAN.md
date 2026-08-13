@@ -209,7 +209,14 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add more HTML form controls and validation.
+Add absolute/fixed positioning and clipping contexts.
+
+Form fields now parse compact `Rq/Mn/Mx/Pa/Lo/Hi/Nv` constraints and expose
+`Ok/Vm` results. `V.Vf` and both submit paths validate required controls,
+radio groups, selected values, lengths, bounded patterns, email/URL syntax,
+numbers, and ISO dates. Invalid forms remain on-page, receive visible state and
+`:invalid` CSS, and suppress submit events; `novalidate` remains an explicit
+bypass. Select, textarea, and button child text no longer paints twice.
 
 Relative positioning now uses compact `S.Pn/Tp/Rt/Bm/Lt/Zi` fields. Signed
 pixel offsets move top-level blocks and tables while their original normal-flow
