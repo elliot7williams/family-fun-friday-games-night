@@ -266,6 +266,18 @@ namespace Lea.Tests
                 Ok(Object.ReferenceEquals(nestedPositionPage.Bs[6].Up, nestedPositionPage.Bs[5]), "stacked child parent alias");
                 Ok(Object.ReferenceEquals(nestedPositionPage.Bs[8].Up, nestedPositionPage.Bs[7]), "fixed child parent alias");
                 Ok(nestedPositionPage.Bs[9].Up == null, "root flow block has no context parent");
+                var nestedFlowPath = Path.Combine(root, "LeaForge", "test-pages", "nested-flow.html");
+                var nestedFlowPage = engine.Go(nestedFlowPath);
+                Eq(12, nestedFlowPage.Bs.Count, "nested flow block count");
+                Eq(1, nestedFlowPage.Ls.Count, "nested flow link count");
+                Eq("h1,section,p,div,article,h2,p,p,p,section,p,p", BlockKinds(nestedFlowPage), "nested flow block kinds");
+                Ok(Object.ReferenceEquals(nestedFlowPage.Bs[2].Up, nestedFlowPage.Bs[1]), "outer visual context owns first child");
+                Ok(Object.ReferenceEquals(nestedFlowPage.Bs[3].Up, nestedFlowPage.Bs[1]), "outer visual context owns middle child");
+                Ok(Object.ReferenceEquals(nestedFlowPage.Bs[4].Up, nestedFlowPage.Bs[3]), "middle visual context owns inner child");
+                Ok(Object.ReferenceEquals(nestedFlowPage.Bs[5].Up, nestedFlowPage.Bs[4]) && Object.ReferenceEquals(nestedFlowPage.Bs[6].Up, nestedFlowPage.Bs[4]), "inner visual context owns text children");
+                Ok(Object.ReferenceEquals(nestedFlowPage.Bs[8].Up, nestedFlowPage.Bs[1]), "outer visual context resumes after nested subtree");
+                Ok(Object.ReferenceEquals(nestedFlowPage.Bs[10].Up, nestedFlowPage.Bs[9]), "mixed-content visual context owns child");
+                Ok(nestedFlowPage.Bs[11].Up == null, "following root block leaves visual contexts");
                 var backLayer = positioningPage.Bs[1].S;
                 var frontLayer = positioningPage.Bs[2].S;
                 var rightLayer = positioningPage.Bs[3].S;
@@ -915,6 +927,51 @@ namespace Lea.Tests
                         Click(view, HitRect(view, "forms.html"));
                     }
                     WaitFor(delegate { return view.T == "Lea Forms Test"; }, "fixed descendant link navigation after scroll");
+                    view.Size = new Size(720, 700);
+                    view.Go(nestedFlowPath);
+                    int wideOuterWidth;
+                    using (var nestedFlowPaint = Render(view))
+                    {
+                        Ok(view.Bc > view.At.Bs.Count, "nested flow creates child and inline paint boxes");
+                        var outer = BlockRect(view, view.At.Bs[1]);
+                        var outerBorder = BlockOuterRect(view, view.At.Bs[1]);
+                        var first = BlockRect(view, view.At.Bs[2]);
+                        var middle = BlockRect(view, view.At.Bs[3]);
+                        var inner = BlockRect(view, view.At.Bs[4]);
+                        var innerHeading = BlockRect(view, view.At.Bs[5]);
+                        var innerText = BlockRect(view, view.At.Bs[6]);
+                        var middleTail = BlockRect(view, view.At.Bs[7]);
+                        var outerTail = BlockRect(view, view.At.Bs[8]);
+                        var mixed = BlockRect(view, view.At.Bs[9]);
+                        var mixedBorder = BlockOuterRect(view, view.At.Bs[9]);
+                        var mixedChild = BlockRect(view, view.At.Bs[10]);
+                        var after = BlockRect(view, view.At.Bs[11]);
+                        wideOuterWidth = outer.Width;
+                        Eq(360, outer.Width, "wide auto container keeps declared content width");
+                        Eq(outer.Left + 4, first.Left, "outer child uses parent content and own padding");
+                        Eq(outer.Left + 34, middle.Left, "middle child uses nested margin border and padding");
+                        Eq(middle.Left + 19, inner.Left, "third-level child uses nested content coordinates");
+                        Ok(inner.Bottom > innerText.Bottom && innerText.Top > innerHeading.Bottom, "inner auto height contains ordered children");
+                        Ok(middle.Bottom > middleTail.Bottom && middleTail.Top > BlockOuterRect(view, view.At.Bs[4]).Bottom, "middle auto height resumes after inner subtree");
+                        Ok(outer.Bottom > outerTail.Bottom && outerTail.Top > BlockOuterRect(view, view.At.Bs[3]).Bottom, "outer auto height resumes after middle subtree");
+                        var mixedLines = TextLines(view, view.At.Bs[9]);
+                        Ok(mixedLines.Length == 1 && mixedChild.Top > mixedLines[0].Bottom && mixed.Bottom > mixedChild.Bottom, "mixed direct text precedes nested child inside auto height");
+                        Ok(after.Top > outerBorder.Bottom && after.Top > mixedBorder.Bottom, "root flow continues after finalized containers");
+                        var nestedLink = HitRect(view, "second.html");
+                        Ok(!nestedLink.IsEmpty && nestedLink.Left >= inner.Left && nestedLink.Right <= inner.Right && nestedLink.Top >= inner.Top && nestedLink.Bottom <= inner.Bottom, "nested link hit stays inside all visual parents");
+                        Ok(ColorDistance(nestedFlowPaint.GetPixel(outerBorder.Left + 4, outerBorder.Top + 4), Color.FromArgb(232, 245, 239)) < 4, "auto container background paints through padding");
+                        Click(view, nestedLink);
+                    }
+                    WaitFor(delegate { return view.T == "LeaForge Second Page"; }, "nested flow link navigation");
+                    view.Size = new Size(320, 700);
+                    view.Go(nestedFlowPath);
+                    Paint(view);
+                    var narrowOuter = BlockRect(view, view.At.Bs[1]);
+                    var narrowMiddle = BlockRect(view, view.At.Bs[3]);
+                    var narrowInnerBorder = BlockOuterRect(view, view.At.Bs[4]);
+                    Ok(narrowOuter.Width < wideOuterWidth, "nested visual container reflows to narrow viewport");
+                    Ok(narrowInnerBorder.Right <= narrowMiddle.Right, "deep nested box remains within narrowed parent");
+                    Ok(BlockRect(view, view.At.Bs[11]).Top > BlockOuterRect(view, view.At.Bs[9]).Bottom, "narrow root flow follows expanded mixed container");
                     view.Go(textStylePath);
                     Paint(view);
                     Eq(8, view.At.Bs.Count, "text style render blocks");
@@ -1196,7 +1253,7 @@ namespace Lea.Tests
                     Eq("url", urlError.K, "URL error kind");
                 }
 
-                Console.WriteLine("Lea smoke passed: nested containing blocks and stacking paths, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, relative positioning and z-index stacking, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: nested auto-height visual flow, nested containing blocks and stacking paths, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, relative positioning and z-index stacking, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -1329,6 +1386,17 @@ namespace Lea.Tests
                 var type = value.GetType();
                 if (!Object.ReferenceEquals(type.GetField("B").GetValue(value), block) || (bool)type.GetField("Inline").GetValue(value)) continue;
                 return (Rectangle)type.GetField("C").GetValue(value);
+            }
+            return Rectangle.Empty;
+        }
+
+        private static Rectangle BlockOuterRect(V view, B block)
+        {
+            foreach (var value in LayoutBoxes(view))
+            {
+                var type = value.GetType();
+                if (!Object.ReferenceEquals(type.GetField("B").GetValue(value), block) || (bool)type.GetField("Inline").GetValue(value)) continue;
+                return (Rectangle)type.GetField("R").GetValue(value);
             }
             return Rectangle.Empty;
         }

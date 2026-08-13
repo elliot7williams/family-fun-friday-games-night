@@ -329,6 +329,9 @@ namespace Lea.Win
             boxes.Clear();
             if (At == null) return;
             var contexts = new Dictionary<B, Lc>();
+            var owners = new HashSet<B>();
+            foreach (var block in At.Bs) if (block.Up != null) owners.Add(block.Up);
+            var active = new List<Lc>();
             var style = At.S;
             var left = style == null ? 0 : style.Ml + style.Pl + BorderWidth(style, style.Bl);
             var right = style == null ? 0 : style.Mr + style.Pr + BorderWidth(style, style.Br);
@@ -359,6 +362,7 @@ namespace Lea.Win
             {
                 foreach (var block in At.Bs)
                 {
+                    CloseContexts(block, active, ref y);
                     var bs = block.S;
                     Lc parent = null;
                     if (block.Up != null) contexts.TryGetValue(block.Up, out parent);
@@ -429,14 +433,28 @@ namespace Lea.Win
                     var content = new Rectangle(bx + bl + pl, by + bt + pt, bw, height);
                     var fixedSelf = bs != null && bs.Pn == "f";
                     var inheritedClip = fixedSelf ? Rectangle.Empty : parentClip;
-                    boxes.Add(new Bx(block.K, inline == null ? text : "", link, bs, outer, content, false, block, false, inheritedClip));
+                    var ownerBox = new Bx(block.K, inline == null ? text : "", link, bs, outer, content, false, block, false, inheritedClip);
+                    boxes.Add(ownerBox);
                     if (inline != null) AddInlineBoxes(block, content, inline, inheritedClip);
                     var ownClip = ClipsOverflow(bs) ? content : Rectangle.Empty;
                     var childClip = CombineClip(inheritedClip, ownClip);
                     var hasContent = block.X.Length > 0 || block.Is.Count > 0;
                     var childY = content.Y + (hasContent ? Math.Min(naturalHeight, height) + 4 : 0);
                     var fixedChain = fixedSelf || fixedParent;
-                    contexts[block] = new Lc(outer, content, childY, childClip, fixedChain);
+                    var context = new Lc(outer, content, childY, childClip, fixedChain)
+                    {
+                        B = block,
+                        Box = ownerBox,
+                        Up = parent,
+                        Au = owners.Contains(block) && (bs == null || bs.H == 0),
+                        Fl = !OutOfFlow(bs),
+                        Fy = flowY,
+                        Gp = (HeadingKind(block.K) ? 12 : 8) + mb,
+                        Pc = inheritedClip,
+                        Co = ClipsOverflow(bs)
+                    };
+                    contexts[block] = context;
+                    if (context.Au) active.Add(context);
                     if (!fixedChain) layoutBottom = Math.Max(layoutBottom, outer.Bottom + mb);
                     if (!OutOfFlow(bs))
                     {
@@ -444,6 +462,7 @@ namespace Lea.Win
                         if (parent == null) y = next; else parent.Y = next;
                     }
                 }
+                CloseContexts(null, active, ref y);
             }
 
             docHeight = y + 20 + (style == null ? 0 : style.Pb + BorderWidth(style, style.Bb) + style.Mb);
@@ -453,6 +472,43 @@ namespace Lea.Win
             layoutWidth = ClientSize.Width;
             layoutDirty = false;
             sy = Math.Min(sy, MaxScroll());
+        }
+
+        private void CloseContexts(B next, IList<Lc> active, ref int rootY)
+        {
+            while (active.Count > 0 && !Inside(next, active[active.Count - 1].B))
+            {
+                var index = active.Count - 1;
+                var context = active[index];
+                active.RemoveAt(index);
+                FinishContext(context, ref rootY);
+            }
+        }
+
+        private static bool Inside(B block, B parent)
+        {
+            for (var current = block == null ? null : block.Up; current != null; current = current.Up)
+                if (Object.ReferenceEquals(current, parent)) return true;
+            return false;
+        }
+
+        private void FinishContext(Lc context, ref int rootY)
+        {
+            var needed = Math.Max(context.C.Height, Math.Max(1, context.Y - context.C.Top));
+            var height = ConstrainHeight(context.B == null ? null : context.B.S, needed);
+            if (height != context.C.Height)
+            {
+                context.C = new Rectangle(context.C.X, context.C.Y, context.C.Width, height);
+                context.R = new Rectangle(context.R.X, context.R.Y, context.R.Width, height + context.R.Height - context.Box.C.Height);
+                context.Box.C = context.C;
+                context.Box.R = context.R;
+                if (context.Co) context.Cp = CombineClip(context.Pc, context.C);
+            }
+            if (!context.Fx) layoutBottom = Math.Max(layoutBottom, context.R.Bottom);
+            if (!context.Fl) return;
+            var next = context.Fy + context.R.Height + context.Gp;
+            if (context.Up == null) rootY = Math.Max(rootY, next);
+            else context.Up.Y = Math.Max(context.Up.Y, next);
         }
 
         private static Lc ContainingContext(B block, IDictionary<B, Lc> contexts)
@@ -2132,11 +2188,20 @@ namespace Lea.Win
 
         private sealed class Lc
         {
-            public readonly Rectangle R;
-            public readonly Rectangle C;
+            public Rectangle R;
+            public Rectangle C;
             public int Y;
-            public readonly Rectangle Cp;
+            public Rectangle Cp;
             public readonly bool Fx;
+            public B B;
+            public Bx Box;
+            public Lc Up;
+            public bool Au;
+            public bool Fl;
+            public int Fy;
+            public int Gp;
+            public Rectangle Pc;
+            public bool Co;
 
             public Lc(Rectangle outer, Rectangle content, int y, Rectangle clip, bool fixedPosition)
             {
@@ -2154,8 +2219,8 @@ namespace Lea.Win
             public readonly string X;
             public readonly Uri U;
             public readonly S S;
-            public readonly Rectangle R;
-            public readonly Rectangle C;
+            public Rectangle R;
+            public Rectangle C;
             public readonly bool Title;
             public readonly B B;
             public readonly bool Inline;

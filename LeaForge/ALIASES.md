@@ -67,8 +67,11 @@ content rectangle.
 
 Positioning stays compact: `Pn` is `s/r/a/f` for static, relative, absolute, or
 fixed; `Tp/Rt/Bm/Lt` are nullable signed pixel offsets, and `Zi` is the bounded
-z-index. `B.Up` points to the nearest retained positioned or clipping parent
-block. Relative blocks and tables shift while retaining normal flow. Absolute
+z-index. `B.Up` points to the nearest retained visual, positioned, or clipping
+parent block. Styled semantic containers are retained when their background,
+border, spacing, or dimensions affect layout; unstyled wrappers stay on the
+flat fast path. Auto-height visual parents grow around nested normal-flow
+children. Relative blocks and tables shift while retaining normal flow. Absolute
 boxes leave flow and use the nearest positioned containing block; fixed boxes
 use viewport coordinates, including when nested. Overflow clips inherit through
 the parent chain. Lea paints and hit-tests boxes with stable hierarchical `Zi`

@@ -424,7 +424,7 @@ namespace Lea.Engine
         {
             var contexts = new Dictionary<N, B>();
             foreach (var block in page.Bs)
-                if (block.El != null && LayoutContext(block.S) && !contexts.ContainsKey(block.El)) contexts[block.El] = block;
+                if (block.El != null && BlockContext(block) && !contexts.ContainsKey(block.El)) contexts[block.El] = block;
             foreach (var block in page.Bs)
             {
                 for (var node = block.El == null ? null : block.El.Up; node != null; node = node.Up)
@@ -440,6 +440,20 @@ namespace Lea.Engine
         private static bool LayoutContext(S style)
         {
             return style != null && (style.Pn == "r" || style.Pn == "a" || style.Pn == "f" || (style.Ov.Length > 0 && style.Ov != "v"));
+        }
+
+        private static bool BlockContext(B block)
+        {
+            return block != null && (LayoutContext(block.S) || IsContainerBlock(block.K));
+        }
+
+        private static bool VisualContext(S style)
+        {
+            return LayoutContext(style) || style != null &&
+                (style.Bg.Length > 0 || style.Mt != 0 || style.Mr != 0 || style.Mb != 0 || style.Ml != 0 ||
+                 style.Pt != 0 || style.Pr != 0 || style.Pb != 0 || style.Pl != 0 || style.W > 0 || style.H > 0 ||
+                 style.Wn > 0 || style.Wx > 0 || style.Hn > 0 || style.Hx > 0 ||
+                 style.Bt > 0 || style.Br > 0 || style.Bb > 0 || style.Bl > 0);
         }
 
         private static bool Owns(N root, N node)
@@ -1496,7 +1510,7 @@ namespace Lea.Engine
                     NormalizeInlines(block);
                     block.X = InlineText(block);
                 }
-                if (block.X.Length > 0 || block.Is.Count > 0 || LayoutContext(style)) page.Bs.Add(block);
+                if (block.X.Length > 0 || block.Is.Count > 0 || LayoutContext(style) || (IsContainerBlock(kind) && VisualContext(style))) page.Bs.Add(block);
                 AddNestedBlocks(page, node, baseUrl, rules, style);
                 return;
             }

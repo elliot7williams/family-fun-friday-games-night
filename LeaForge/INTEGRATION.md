@@ -155,7 +155,11 @@ cache. CSS width/height wins over HTML dimensions; otherwise `width` and
 
 Blocks and tables support lightweight `position:relative`, `position:absolute`,
 and `position:fixed` through `S.Pn/Tp/Rt/Bm/Lt/Zi`. `B.Up` links each retained
-positioned or clipping block to its nearest compact parent context. Relative
+visual, positioned, or clipping block to its nearest compact parent context.
+Semantic containers with meaningful backgrounds, borders, spacing, or dimensions
+retain their own layout box; unstyled wrappers remain flattened. Auto-height
+visual containers finalize from the bottom up around nested normal-flow children,
+including mixed direct text and several levels of nesting. Relative
 space remains in normal flow; absolute and fixed boxes are out of flow. Absolute
 boxes use the nearest positioned containing block, while fixed boxes use viewport
 coordinates even when nested. Overflow clips inherit through nested descendants.

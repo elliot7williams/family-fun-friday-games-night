@@ -209,7 +209,15 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add more tolerant nested HTML block layout.
+Expand CSS stacking-context triggers and auto-sized positioned containers.
+
+Ordinary visual containers now retain compact layout ownership through `B.Up`
+when backgrounds, borders, spacing, or dimensions make their own box meaningful.
+The layout closes auto-height contexts from the deepest subtree outward, grows
+each parent around normal-flow descendants, then places its next sibling or root
+block. Mixed direct text, nested links, three-level containers, and narrow-view
+reflow share this path. Unstyled semantic wrappers remain flattened so simple
+pages keep the original low-overhead layout.
 
 Nested positioning now retains compact parent relationships through `B.Up`.
 The WinForms layout records each context's content rectangle, child-flow cursor,
