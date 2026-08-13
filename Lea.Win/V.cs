@@ -328,6 +328,7 @@ namespace Lea.Win
         {
             boxes.Clear();
             if (At == null) return;
+            var contexts = new Dictionary<B, Lc>();
             var style = At.S;
             var left = style == null ? 0 : style.Ml + style.Pl + BorderWidth(style, style.Bl);
             var right = style == null ? 0 : style.Mr + style.Pr + BorderWidth(style, style.Br);
@@ -335,6 +336,7 @@ namespace Lea.Win
             var width = ConstrainWidth(style, Math.Max(120, ClientSize.Width - x - 20 - right));
             var y = 18 + (style == null ? 0 : style.Mt + style.Pt + BorderWidth(style, style.Bt));
             var anchorTop = y;
+            var rootContaining = new Rectangle(x, anchorTop, width, Math.Max(1, ClientSize.Height - anchorTop));
             layoutBottom = y;
 
             using (var titleFont = BoxFont("#title", style, true))
@@ -358,9 +360,20 @@ namespace Lea.Win
                 foreach (var block in At.Bs)
                 {
                     var bs = block.S;
+                    Lc parent = null;
+                    if (block.Up != null) contexts.TryGetValue(block.Up, out parent);
+                    var lx = parent == null ? x : parent.C.X;
+                    var lw = parent == null ? width : parent.C.Width;
+                    var ly = parent == null ? y : parent.Y;
+                    var parentClip = parent == null ? Rectangle.Empty : parent.Cp;
+                    var fixedParent = parent != null && parent.Fx;
+                    var containingContext = ContainingContext(block, contexts);
+                    var containing = bs != null && bs.Pn == "f" ? ClientRectangle : containingContext == null ? rootContaining : containingContext.C;
                     if (block.K == "table" && block.Tb != null)
                     {
-                        y = LayTable(graphics, block, x, width, y, anchorTop);
+                        int next;
+                        contexts[block] = LayTable(graphics, block, lx, lw, ly, containing, parentClip, fixedParent, out next);
+                        if (parent == null) y = next; else parent.Y = next;
                         continue;
                     }
                     var bt = bs == null ? 0 : BorderWidth(bs, bs.Bt);
@@ -375,8 +388,8 @@ namespace Lea.Win
                     var mr = bs == null ? 0 : bs.Mr;
                     var mt = bs == null ? 0 : bs.Mt;
                     var mb = bs == null ? 0 : bs.Mb;
-                    var flowY = y + mt;
-                    var outerAvailable = Math.Max(40, width - ml - mr);
+                    var flowY = ly + mt;
+                    var outerAvailable = Math.Max(40, lw - ml - mr);
                     var bw = ConstrainWidth(bs, Math.Max(1, outerAvailable - bl - br - pl - pr));
                     int height;
                     List<Ix> inline = null;
@@ -404,19 +417,32 @@ namespace Lea.Win
                     {
                         using (var font = BoxFont(block.K, bs, false)) height = Measure(graphics, block.K == "li" ? "- " + block.X : block.X, font, bw);
                     }
+                    var naturalHeight = height;
                     height = ConstrainHeight(bs, height);
                     var text = block.K == "li" ? "- " + block.X : block.X;
                     var link = inline == null && block.K == "a" ? block.U : null;
                     var outerWidth = bw + pl + pr + bl + br;
                     var outerHeight = height + pt + pb + bt + bb;
-                    var bx = PositionX(bs, x + ml, outerWidth, x, width, ml, mr);
-                    var by = PositionY(bs, flowY, outerHeight, anchorTop, mt, mb);
+                    var bx = PositionX(bs, lx + ml, outerWidth, containing, ml, mr);
+                    var by = PositionY(bs, flowY, outerHeight, containing, mt, mb);
                     var outer = new Rectangle(bx, by, outerWidth, outerHeight);
                     var content = new Rectangle(bx + bl + pl, by + bt + pt, bw, height);
-                    boxes.Add(new Bx(block.K, inline == null ? text : "", link, bs, outer, content, false, block));
-                    if (inline != null) AddInlineBoxes(block, content, inline);
-                    if (bs == null || bs.Pn != "f") layoutBottom = Math.Max(layoutBottom, outer.Bottom + mb);
-                    if (!OutOfFlow(bs)) y = flowY + outer.Height + (HeadingKind(block.K) ? 12 : 8) + mb;
+                    var fixedSelf = bs != null && bs.Pn == "f";
+                    var inheritedClip = fixedSelf ? Rectangle.Empty : parentClip;
+                    boxes.Add(new Bx(block.K, inline == null ? text : "", link, bs, outer, content, false, block, false, inheritedClip));
+                    if (inline != null) AddInlineBoxes(block, content, inline, inheritedClip);
+                    var ownClip = ClipsOverflow(bs) ? content : Rectangle.Empty;
+                    var childClip = CombineClip(inheritedClip, ownClip);
+                    var hasContent = block.X.Length > 0 || block.Is.Count > 0;
+                    var childY = content.Y + (hasContent ? Math.Min(naturalHeight, height) + 4 : 0);
+                    var fixedChain = fixedSelf || fixedParent;
+                    contexts[block] = new Lc(outer, content, childY, childClip, fixedChain);
+                    if (!fixedChain) layoutBottom = Math.Max(layoutBottom, outer.Bottom + mb);
+                    if (!OutOfFlow(bs))
+                    {
+                        var next = flowY + outer.Height + (HeadingKind(block.K) ? 12 : 8) + mb;
+                        if (parent == null) y = next; else parent.Y = next;
+                    }
                 }
             }
 
@@ -429,7 +455,17 @@ namespace Lea.Win
             sy = Math.Min(sy, MaxScroll());
         }
 
-        private int LayTable(Graphics graphics, B block, int x, int width, int y, int anchorTop)
+        private static Lc ContainingContext(B block, IDictionary<B, Lc> contexts)
+        {
+            for (var parent = block == null ? null : block.Up; parent != null; parent = parent.Up)
+            {
+                Lc context;
+                if (Positioned(parent.S) && contexts.TryGetValue(parent, out context)) return context;
+            }
+            return null;
+        }
+
+        private Lc LayTable(Graphics graphics, B block, int x, int width, int y, Rectangle containing, Rectangle parentClip, bool fixedParent, out int nextY)
         {
             var style = block.S;
             var bt = style == null ? 0 : BorderWidth(style, style.Bt);
@@ -479,8 +515,8 @@ namespace Lea.Win
             var contentHeight = ConstrainHeight(style, naturalHeight);
             var outerWidth = tableWidth + pl + pr + bl + br;
             var outerHeight = contentHeight + pt + pb + bt + bb;
-            var bx = PositionX(style, x + ml, outerWidth, x, width, ml, mr);
-            var by = PositionY(style, flowY, outerHeight, anchorTop, mt, mb);
+            var bx = PositionX(style, x + ml, outerWidth, containing, ml, mr);
+            var by = PositionY(style, flowY, outerHeight, containing, mt, mb);
             var contentX = bx + bl + pl;
             var contentY = by + bt + pt;
             var rowY = contentY;
@@ -524,16 +560,22 @@ namespace Lea.Win
                 rowY += rowHeight;
             }
 
+            var fixedSelf = style != null && style.Pn == "f";
+            var inheritedClip = fixedSelf ? Rectangle.Empty : parentClip;
             var tableClip = ClipsOverflow(style) ? new Rectangle(contentX, contentY, tableWidth, contentHeight) : Rectangle.Empty;
-            if (!tableClip.IsEmpty)
-                for (var index = first; index < boxes.Count; index++) boxes[index].Clip = CombineClip(boxes[index].Clip, tableClip);
+            var childClip = CombineClip(inheritedClip, tableClip);
+            if (!childClip.IsEmpty)
+                for (var index = first; index < boxes.Count; index++) boxes[index].Clip = CombineClip(boxes[index].Clip, childClip);
             var outerTable = new Rectangle(bx, by, outerWidth, outerHeight);
-            boxes.Insert(first, new Bx("table", "", null, style, outerTable, new Rectangle(contentX, contentY, tableWidth, contentHeight), false, block));
-            if (style == null || style.Pn != "f") layoutBottom = Math.Max(layoutBottom, outerTable.Bottom + mb);
-            return OutOfFlow(style) ? y : flowY + outerTable.Height + 8 + mb;
+            var contentTable = new Rectangle(contentX, contentY, tableWidth, contentHeight);
+            boxes.Insert(first, new Bx("table", "", null, style, outerTable, contentTable, false, block, false, inheritedClip));
+            var fixedChain = fixedSelf || fixedParent;
+            if (!fixedChain) layoutBottom = Math.Max(layoutBottom, outerTable.Bottom + mb);
+            nextY = OutOfFlow(style) ? y : flowY + outerTable.Height + 8 + mb;
+            return new Lc(outerTable, contentTable, contentY, childClip, fixedChain);
         }
 
-        private int PositionX(S style, int flowX, int outerWidth, int x, int width, int ml, int mr)
+        private static int PositionX(S style, int flowX, int outerWidth, Rectangle containing, int ml, int mr)
         {
             if (style == null || style.Pn.Length == 0 || style.Pn == "s") return flowX;
             if (style.Pn == "r")
@@ -541,12 +583,12 @@ namespace Lea.Win
                 if (style.Lt.HasValue) return flowX + style.Lt.Value;
                 return style.Rt.HasValue ? flowX - style.Rt.Value : flowX;
             }
-            if (style.Lt.HasValue) return x + ml + style.Lt.Value;
-            if (style.Rt.HasValue) return x + width - outerWidth - mr - style.Rt.Value;
+            if (style.Lt.HasValue) return containing.Left + ml + style.Lt.Value;
+            if (style.Rt.HasValue) return containing.Right - outerWidth - mr - style.Rt.Value;
             return flowX;
         }
 
-        private int PositionY(S style, int flowY, int outerHeight, int anchorTop, int mt, int mb)
+        private static int PositionY(S style, int flowY, int outerHeight, Rectangle containing, int mt, int mb)
         {
             if (style == null || style.Pn.Length == 0 || style.Pn == "s") return flowY;
             if (style.Pn == "r")
@@ -554,8 +596,8 @@ namespace Lea.Win
                 if (style.Tp.HasValue) return flowY + style.Tp.Value;
                 return style.Bm.HasValue ? flowY - style.Bm.Value : flowY;
             }
-            if (style.Tp.HasValue) return (style.Pn == "f" ? 0 : anchorTop) + mt + style.Tp.Value;
-            if (style.Bm.HasValue) return ClientSize.Height - outerHeight - mb - style.Bm.Value;
+            if (style.Tp.HasValue) return containing.Top + mt + style.Tp.Value;
+            if (style.Bm.HasValue) return containing.Bottom - outerHeight - mb - style.Bm.Value;
             return flowY;
         }
 
@@ -571,22 +613,23 @@ namespace Lea.Win
 
         private static Rectangle CombineClip(Rectangle current, Rectangle parent)
         {
-            return current.IsEmpty ? parent : Rectangle.Intersect(current, parent);
+            if (current.IsEmpty) return parent;
+            if (parent.IsEmpty) return current;
+            return Rectangle.Intersect(current, parent);
         }
 
         private void StackBoxes()
         {
             foreach (var box in boxes)
             {
-                var style = BoxOwnerStyle(box);
-                box.Z = Positioned(style) ? style.Zi : 0;
-                box.Fx = style != null && style.Pn == "f";
+                box.Zp = StackPath(box.B);
+                box.Fx = FixedBlock(box.B);
             }
             for (var index = 1; index < boxes.Count; index++)
             {
                 var item = boxes[index];
                 var at = index;
-                while (at > 0 && boxes[at - 1].Z > item.Z)
+                while (at > 0 && CompareStack(boxes[at - 1].Zp, item.Zp) > 0)
                 {
                     boxes[at] = boxes[at - 1];
                     at--;
@@ -595,22 +638,33 @@ namespace Lea.Win
             }
         }
 
-        private S BoxOwnerStyle(Bx box)
+        private static int[] StackPath(B block)
         {
-            foreach (var block in At.Bs)
+            var chain = new List<B>();
+            for (var current = block; current != null; current = current.Up) chain.Add(current);
+            var path = new List<int>();
+            for (var index = chain.Count - 1; index >= 0; index--)
             {
-                if (Object.ReferenceEquals(box.B, block) || Within(box.El, block.El))
-                    return block.S;
+                var style = chain[index].S;
+                if (Positioned(style)) path.Add(style.Zi);
             }
-            return null;
+            if (path.Count == 0) path.Add(0);
+            return path.ToArray();
         }
 
-        private static bool Within(N node, N root)
+        private static bool FixedBlock(B block)
         {
-            if (node == null || root == null) return false;
-            for (var current = node; current != null; current = current.Up)
-                if (Object.ReferenceEquals(current, root)) return true;
+            for (var current = block; current != null; current = current.Up)
+                if (current.S != null && current.S.Pn == "f") return true;
             return false;
+        }
+
+        private static int CompareStack(int[] left, int[] right)
+        {
+            var count = Math.Min(left.Length, right.Length);
+            for (var index = 0; index < count; index++)
+                if (left[index] != right[index]) return left[index].CompareTo(right[index]);
+            return left.Length.CompareTo(right.Length);
         }
 
         private int CellContentHeight(Graphics graphics, Tc cell, int width)
@@ -989,9 +1043,10 @@ namespace Lea.Win
             return nativeHeight;
         }
 
-        private void AddInlineBoxes(B block, Rectangle content, IList<Ix> flow)
+        private void AddInlineBoxes(B block, Rectangle content, IList<Ix> flow, Rectangle parentClip = default(Rectangle))
         {
             var clip = ClipsOverflow(block.S) ? content : Rectangle.Empty;
+            clip = CombineClip(parentClip, clip);
             foreach (var part in flow)
             {
                 var rect = part.R;
@@ -2075,6 +2130,24 @@ namespace Lea.Win
             }
         }
 
+        private sealed class Lc
+        {
+            public readonly Rectangle R;
+            public readonly Rectangle C;
+            public int Y;
+            public readonly Rectangle Cp;
+            public readonly bool Fx;
+
+            public Lc(Rectangle outer, Rectangle content, int y, Rectangle clip, bool fixedPosition)
+            {
+                R = outer;
+                C = content;
+                Y = y;
+                Cp = clip;
+                Fx = fixedPosition;
+            }
+        }
+
         private sealed class Bx
         {
             public readonly string K;
@@ -2088,7 +2161,7 @@ namespace Lea.Win
             public readonly bool Inline;
             public Rectangle Clip;
             public readonly N El;
-            public int Z;
+            public int[] Zp;
             public bool Fx;
 
             public Bx(string kind, string text, Uri url, S style, Rectangle rect, bool title, B block = null, bool inline = false, Rectangle clip = default(Rectangle), N element = null)

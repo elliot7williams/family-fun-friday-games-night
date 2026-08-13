@@ -17,8 +17,8 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-1. Add nested positioned containing blocks and stacking contexts.
-2. Add more tolerant nested HTML block layout.
+1. Add more tolerant nested HTML block layout.
+2. Expand CSS stacking-context triggers and auto-sized positioned containers.
 3. Route more Firespider commands through Lea capability checks.
 4. Add a small JavaScript interpreter layer or bridge.
 5. Add downloads and find-in-page.

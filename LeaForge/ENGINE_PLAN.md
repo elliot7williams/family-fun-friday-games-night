@@ -209,7 +209,16 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add nested positioned containing blocks and stacking contexts.
+Add more tolerant nested HTML block layout.
+
+Nested positioning now retains compact parent relationships through `B.Up`.
+The WinForms layout records each context's content rectangle, child-flow cursor,
+inherited clip, and fixed ancestry. Absolute descendants resolve against their
+nearest positioned container; nested fixed descendants stay viewport anchored.
+Paint and hit testing use the same hierarchical z-index path, so a high-z child
+cannot escape beneath or above its parent's stacking layer. A focused fixture
+covers nested top/right/bottom/left offsets, inherited overflow clipping,
+overlapping links, normal-flow continuation, and fixed behavior while scrolling.
 
 File fields now use compact `Fi.Fp/Ac/Mu/En` state and `V.Sf` selection. The
 native picker and multipart serializer enforce eight-file, 4 MB per-file, and
@@ -226,13 +235,14 @@ numbers, and ISO dates. Invalid forms remain on-page, receive visible state and
 `:invalid` CSS, and suppress submit events; `novalidate` remains an explicit
 bypass. Select, textarea, and button child text no longer paints twice.
 
-Positioning uses compact `S.Pn/Tp/Rt/Bm/Lt/Zi` fields. Relative top-level blocks
-and tables move while preserving their normal-flow slot. Absolute and fixed
-boxes leave flow; root absolute boxes scroll with the page while fixed boxes
-remain in viewport coordinates. Fixed paint and hits clip to the viewport, and
-overflow-clipped positioned tables constrain their descendants. A stable
-z-index sort controls painting, hover selection, and overlap clicks. Nested
-positioned containing blocks and full CSS stacking contexts remain later work.
+Positioning uses compact `S.Pn/Tp/Rt/Bm/Lt/Zi` fields and `B.Up` context links.
+Relative blocks and tables move while preserving their normal-flow slot.
+Absolute boxes leave flow and resolve against the nearest positioned ancestor;
+fixed boxes remain in viewport coordinates through nested context chains.
+Inherited overflow clips constrain descendants. Hierarchical z-index paths use
+one stable order for painting, hover selection, and overlap clicks. Auto-sized
+positioned containers and the full CSS stacking-context trigger set remain
+later work.
 
 Responsive images now select compact `srcset` width or density candidates and
 screen-compatible `<picture>` sources before falling back to `<img src>`.

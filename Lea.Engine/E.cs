@@ -416,7 +416,30 @@ namespace Lea.Engine
             for (var i = ancestors.Count - 1; i >= 0; i--) inherited = Style(ancestors[i], inherited, rules);
             p.S = Style(body, inherited, rules);
             foreach (var child in body.C) Blocks(p, child, p.U, rules, p.S);
+            LinkBlocks(p);
             p.Fr = null;
+        }
+
+        private static void LinkBlocks(P page)
+        {
+            var contexts = new Dictionary<N, B>();
+            foreach (var block in page.Bs)
+                if (block.El != null && LayoutContext(block.S) && !contexts.ContainsKey(block.El)) contexts[block.El] = block;
+            foreach (var block in page.Bs)
+            {
+                for (var node = block.El == null ? null : block.El.Up; node != null; node = node.Up)
+                {
+                    B parent;
+                    if (!contexts.TryGetValue(node, out parent)) continue;
+                    block.Up = parent;
+                    break;
+                }
+            }
+        }
+
+        private static bool LayoutContext(S style)
+        {
+            return style != null && (style.Pn == "r" || style.Pn == "a" || style.Pn == "f" || (style.Ov.Length > 0 && style.Ov != "v"));
         }
 
         private static bool Owns(N root, N node)
@@ -1473,7 +1496,7 @@ namespace Lea.Engine
                     NormalizeInlines(block);
                     block.X = InlineText(block);
                 }
-                if (block.X.Length > 0 || block.Is.Count > 0) page.Bs.Add(block);
+                if (block.X.Length > 0 || block.Is.Count > 0 || LayoutContext(style)) page.Bs.Add(block);
                 AddNestedBlocks(page, node, baseUrl, rules, style);
                 return;
             }

@@ -255,6 +255,17 @@ namespace Lea.Tests
                 Eq("f", contextsPage.Bs[12].S.Pn, "fixed position alias");
                 Eq(-70, contextsPage.Bs[12].S.Rt, "negative fixed right offset");
                 Eq(18, contextsPage.Bs[12].S.Bm, "fixed bottom offset");
+                var nestedPositionPath = Path.Combine(root, "LeaForge", "test-pages", "nested-positioning.html");
+                var nestedPositionPage = engine.Go(nestedPositionPath);
+                Eq(15, nestedPositionPage.Bs.Count, "nested positioning block count");
+                Eq(4, nestedPositionPage.Ls.Count, "nested positioning link count");
+                Eq("h1,div,div,p,p,div,p,div,p,p,p,p,p,p,p", BlockKinds(nestedPositionPage), "nested positioning block kinds");
+                Ok(Object.ReferenceEquals(nestedPositionPage.Bs[2].Up, nestedPositionPage.Bs[1]), "nested clipper parent alias");
+                Ok(Object.ReferenceEquals(nestedPositionPage.Bs[3].Up, nestedPositionPage.Bs[2]), "absolute grandchild parent alias");
+                Ok(Object.ReferenceEquals(nestedPositionPage.Bs[4].Up, nestedPositionPage.Bs[1]), "absolute child parent alias");
+                Ok(Object.ReferenceEquals(nestedPositionPage.Bs[6].Up, nestedPositionPage.Bs[5]), "stacked child parent alias");
+                Ok(Object.ReferenceEquals(nestedPositionPage.Bs[8].Up, nestedPositionPage.Bs[7]), "fixed child parent alias");
+                Ok(nestedPositionPage.Bs[9].Up == null, "root flow block has no context parent");
                 var backLayer = positioningPage.Bs[1].S;
                 var frontLayer = positioningPage.Bs[2].S;
                 var rightLayer = positioningPage.Bs[3].S;
@@ -836,7 +847,7 @@ namespace Lea.Tests
                         Eq(144, absolute.Top, "absolute top anchors to initial content context");
                         Eq(658, absoluteRight.Right, "absolute right anchors to page content");
                         Eq(413, absoluteRight.Bottom, "absolute bottom anchors to viewport");
-                        Eq(542, fixedBox.Left, "fixed right anchor with negative offset");
+                        Eq(562, fixedBox.Left, "fixed right anchor with negative offset");
                         Eq(474, fixedBox.Bottom, "fixed bottom viewport anchor");
                         Eq(croppedTable, OwnedClip(view, view.At.Bs[4], "td"), "table children inherit positioned overflow clip");
                         Ok(fixedBox.Right > view.ClientSize.Width, "fixed layout can extend beyond viewport");
@@ -859,6 +870,51 @@ namespace Lea.Tests
                         Click(view, HitRect(view, "dynamic-state.html"));
                     }
                     WaitFor(delegate { return view.T == "Lea Dynamic State"; }, "fixed clipped link navigation after scroll");
+                    view.Size = new Size(720, 500);
+                    view.Go(nestedPositionPath);
+                    using (var nestedPaint = Render(view))
+                    {
+                        Eq(42, view.Bc, "nested context layout boxes");
+                        Eq(16, HitCount(view, false), "nested context link hits");
+                        var low = BlockRect(view, view.At.Bs[1]);
+                        var clipper = BlockRect(view, view.At.Bs[2]);
+                        var cropped = BlockRect(view, view.At.Bs[3]);
+                        var escape = BlockRect(view, view.At.Bs[4]);
+                        var high = BlockRect(view, view.At.Bs[5]);
+                        var cover = BlockRect(view, view.At.Bs[6]);
+                        var fixedParent = BlockRect(view, view.At.Bs[7]);
+                        var fixedChild = BlockRect(view, view.At.Bs[8]);
+                        Eq(low.Left + 2, clipper.Left, "nested normal flow uses parent content left");
+                        Eq(low.Top + 2, clipper.Top, "nested normal flow uses parent content top");
+                        Eq(clipper.Left + 72, cropped.Left, "absolute grandchild uses nearest containing block left");
+                        Eq(clipper.Top + 6, cropped.Top, "absolute grandchild uses nearest containing block top");
+                        Eq(low.Right - 190, escape.Left, "absolute child uses low parent right");
+                        Eq(low.Bottom - 125, escape.Top, "absolute child uses low parent bottom");
+                        Eq(high.Left + 30, cover.Left, "stacked child uses high parent left");
+                        Eq(high.Top + 25, cover.Top, "stacked child uses high parent top");
+                        Eq(escape, cover, "nested stacking layers overlap exactly");
+                        Eq(clipper, ClipRect(view, view.At.Bs[3]), "ancestor overflow clips absolute grandchild");
+                        var croppedHit = HitRect(view, "form-result.html");
+                        Ok(!croppedHit.IsEmpty && croppedHit.Right <= clipper.Right, "nested clipped link hit boundary");
+                        Ok(ColorDistance(CenterPixel(nestedPaint, cover), Color.FromArgb(126, 34, 206)) < 4, "parent stacking context contains high child z-index");
+                        Eq(fixedParent.Left, fixedChild.Left, "fixed descendant uses parent content left");
+                        Eq(fixedParent.Top, fixedChild.Top, "fixed descendant uses parent content top");
+                        Ok(BlockRect(view, view.At.Bs[9]).Top > low.Bottom, "nested children do not consume root flow slots");
+                        Click(view, HitRect(view, "dynamic-state.html"));
+                    }
+                    WaitFor(delegate { return view.T == "Lea Dynamic State"; }, "higher parent context wins overlap click");
+                    view.Go(nestedPositionPath);
+                    Paint(view);
+                    var fixedNestedBeforeScroll = BlockRect(view, view.At.Bs[8]);
+                    view.Sc(220);
+                    using (var nestedScrollPaint = Render(view))
+                    {
+                        Eq(220, view.Sy, "nested context scroll amount");
+                        Eq(fixedNestedBeforeScroll, BlockRect(view, view.At.Bs[8]), "fixed descendant remains in viewport coordinates");
+                        Ok(ColorDistance(CenterPixel(nestedScrollPaint, fixedNestedBeforeScroll), Color.FromArgb(29, 78, 216)) < 4, "fixed descendant remains painted after scroll");
+                        Click(view, HitRect(view, "forms.html"));
+                    }
+                    WaitFor(delegate { return view.T == "Lea Forms Test"; }, "fixed descendant link navigation after scroll");
                     view.Go(textStylePath);
                     Paint(view);
                     Eq(8, view.At.Bs.Count, "text style render blocks");
@@ -1140,7 +1196,7 @@ namespace Lea.Tests
                     Eq("url", urlError.K, "URL error kind");
                 }
 
-                Console.WriteLine("Lea smoke passed: bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, relative positioning and z-index stacking, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: nested containing blocks and stacking paths, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, relative positioning and z-index stacking, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)

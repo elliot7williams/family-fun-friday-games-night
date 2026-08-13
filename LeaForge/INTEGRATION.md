@@ -153,14 +153,15 @@ and icon data URLs decode under a 4 MB limit into the existing 24-entry image
 cache. CSS width/height wins over HTML dimensions; otherwise `width` and
 `height` attributes feed the same constrained layout path.
 
-Top-level blocks and tables support lightweight `position:relative`,
-`position:absolute`, and `position:fixed` through `S.Pn/Tp/Rt/Bm/Lt/Zi`.
-Relative space remains in normal flow; absolute and fixed boxes are out of flow.
-Absolute boxes use the root content context and scroll with the document. Fixed
-boxes use viewport coordinates and clip paint, links, and native field editors
-to the viewport. Positioned overflow clips table descendants, and overlapping
-paint, hover, and clicks use the same bounded z-index order. Nested containing
-blocks and full CSS stacking contexts remain future work.
+Blocks and tables support lightweight `position:relative`, `position:absolute`,
+and `position:fixed` through `S.Pn/Tp/Rt/Bm/Lt/Zi`. `B.Up` links each retained
+positioned or clipping block to its nearest compact parent context. Relative
+space remains in normal flow; absolute and fixed boxes are out of flow. Absolute
+boxes use the nearest positioned containing block, while fixed boxes use viewport
+coordinates even when nested. Overflow clips inherit through nested descendants.
+Paint, hover, and clicks share a stable hierarchical z-index path, keeping child
+layers inside their parent layer. Auto-sized positioned containers and the full
+set of CSS stacking-context triggers remain future work.
 
 Fields are exposed through `P.Fs`. The view paints controls on the Lea surface,
 reuses one editor for focused text, opens native choice/file/color dialogs, and

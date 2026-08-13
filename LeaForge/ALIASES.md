@@ -67,12 +67,13 @@ content rectangle.
 
 Positioning stays compact: `Pn` is `s/r/a/f` for static, relative, absolute, or
 fixed; `Tp/Rt/Bm/Lt` are nullable signed pixel offsets, and `Zi` is the bounded
-z-index. Relative top-level blocks and tables shift while retaining normal
-flow. Absolute and fixed boxes leave flow; absolute boxes scroll with the root
-document while fixed boxes stay in viewport coordinates. Lea paints positioned
-boxes in stable low-to-high `Zi` order, clips fixed paint and hits to the
-viewport, and tests overlapping links from the topmost layer. Static boxes
-retain parsed offsets but do not apply them.
+z-index. `B.Up` points to the nearest retained positioned or clipping parent
+block. Relative blocks and tables shift while retaining normal flow. Absolute
+boxes leave flow and use the nearest positioned containing block; fixed boxes
+use viewport coordinates, including when nested. Overflow clips inherit through
+the parent chain. Lea paints and hit-tests boxes with stable hierarchical `Zi`
+paths so a child remains inside its parent's stacking layer. Static boxes retain
+parsed offsets but do not apply them.
 
 The WinForms view exposes `Dh` (document height), `Sy` (scroll position), and
 `Bc` (cached layout-box count) for compact host diagnostics. `Sc(delta)` moves
