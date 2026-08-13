@@ -8,6 +8,9 @@ namespace Lea.Engine
         public int Fs { get; internal set; }
         public bool B { get; internal set; }
         public bool I { get; internal set; }
+        public string Ta { get; internal set; }
+        public int Lh { get; internal set; }
+        public int Lm { get; internal set; }
         public string D { get; internal set; }
         public int Mt { get; internal set; }
         public int Mr { get; internal set; }
@@ -30,6 +33,7 @@ namespace Lea.Engine
         {
             F = "";
             Bg = "";
+            Ta = "";
             D = "";
             Bc = "";
             Bs = "";
@@ -37,7 +41,7 @@ namespace Lea.Engine
 
         internal S Inherit()
         {
-            return new S { F = F, Fs = Fs, B = B, I = I };
+            return new S { F = F, Fs = Fs, B = B, I = I, Ta = Ta, Lh = Lh, Lm = Lm };
         }
     }
 }

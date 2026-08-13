@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.IO.Compression;
@@ -87,6 +88,19 @@ namespace Lea.Tests
                 Eq("#a13b18", inline.Is[7].S.F, "inline class color");
                 Eq("br", inline.Is[9].K, "inline line break");
                 Eq(0, inlinePage.Bs[2].Is.Count, "plain text fast path");
+
+                var textPath = Path.Combine(root, "LeaForge", "test-pages", "text-layout.html");
+                var textPage = engine.Go(textPath);
+                Eq(5, textPage.Bs.Count, "text layout blocks");
+                Eq("c", textPage.Bs[1].S.Ta, "center alignment alias");
+                Eq(28, textPage.Bs[1].S.Lh, "pixel line-height alias");
+                Eq("r", textPage.Bs[2].S.Ta, "right alignment alias");
+                Eq(175, textPage.Bs[2].S.Lm, "percentage line-height alias");
+                Eq("j", textPage.Bs[3].S.Ta, "justify alignment alias");
+                Eq(0, textPage.Bs[3].Is.Count, "styled plain text keeps compact page model");
+                var textCell = textPage.Bs[4].Tb.Rs[0].Cs[0];
+                Eq("r", textCell.S.Ta, "table cell alignment inheritance");
+                Eq(160, textCell.S.Lm, "unitless table-cell line height");
 
                 using (var view = new V())
                 {
@@ -179,6 +193,32 @@ namespace Lea.Tests
                     Eq(3, LinkBoxes(view, "second.html"), "only inline link words are clickable");
                     Click(view, inlineLink);
                     WaitFor(delegate { return view.T == "LeaForge Second Page"; }, "inline link navigation");
+                    view.Size = new Size(420, 760);
+                    view.Go(textPath);
+                    Paint(view);
+                    var centerBlock = view.At.Bs[1];
+                    var centerBox = BlockRect(view, centerBlock);
+                    var centerLines = TextLines(view, centerBlock);
+                    Eq(2, centerLines.Length, "center line count");
+                    Ok(Centered(centerLines[0], centerBox) && Centered(centerLines[1], centerBox), "centered line positions");
+                    Ok(centerLines[1].Top - centerLines[0].Top >= 28, "pixel line spacing");
+                    var rightBlock = view.At.Bs[2];
+                    var rightBox = BlockRect(view, rightBlock);
+                    var rightLines = TextLines(view, rightBlock);
+                    Eq(2, rightLines.Length, "right line count");
+                    Ok(rightLines[0].Right == rightBox.Right && rightLines[1].Right == rightBox.Right, "right line positions");
+                    Ok(rightLines[1].Top - rightLines[0].Top > 20, "percentage line spacing");
+                    var justifyBlock = view.At.Bs[3];
+                    var justifyBox = BlockRect(view, justifyBlock);
+                    var justifyLines = TextLines(view, justifyBlock);
+                    Ok(justifyLines.Length > 1, "justified text wraps");
+                    Ok(justifyLines[0].Left == justifyBox.Left && justifyLines[0].Right == justifyBox.Right, "wrapped line justification");
+                    Ok(justifyLines[justifyLines.Length - 1].Width < justifyBox.Width, "final justify line stays natural");
+                    var cellPart = view.At.Bs[4].Tb.Rs[0].Cs[0].Bs[0];
+                    var cellLines = TextLines(view, cellPart);
+                    var cellBox = ContainingCell(view, view.At.Bs[4], cellLines[0]);
+                    Ok(cellLines.Length > 1 && !cellBox.IsEmpty, "table text line layout");
+                    foreach (var cellLine in cellLines) Ok(cellLine.Right == cellBox.Right, "right-aligned table line");
                     view.Size = new Size(720, 760);
                     view.Go(Path.Combine(root, "LeaForge", "test-pages", "scroll.html"));
                     Paint(view);
@@ -406,7 +446,7 @@ namespace Lea.Tests
                     Eq("url", urlError.K, "URL error kind");
                 }
 
-                Console.WriteLine("Lea smoke passed: inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: text alignment, line height, inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -482,6 +522,41 @@ namespace Lea.Tests
                 var type = value.GetType();
                 if (!Object.ReferenceEquals(type.GetField("B").GetValue(value), block) || (bool)type.GetField("Inline").GetValue(value)) continue;
                 return (Rectangle)type.GetField("C").GetValue(value);
+            }
+            return Rectangle.Empty;
+        }
+
+        private static Rectangle[] TextLines(V view, B block)
+        {
+            var lines = new List<Rectangle>();
+            foreach (var value in LayoutBoxes(view))
+            {
+                var type = value.GetType();
+                if (!Object.ReferenceEquals(type.GetField("B").GetValue(value), block) || !(bool)type.GetField("Inline").GetValue(value)) continue;
+                var rect = (Rectangle)type.GetField("R").GetValue(value);
+                var found = -1;
+                for (var i = 0; i < lines.Count; i++) if (lines[i].Top == rect.Top) { found = i; break; }
+                if (found < 0) lines.Add(rect);
+                else lines[found] = Rectangle.Union(lines[found], rect);
+            }
+            lines.Sort(delegate(Rectangle a, Rectangle b) { return a.Top.CompareTo(b.Top); });
+            return lines.ToArray();
+        }
+
+        private static bool Centered(Rectangle line, Rectangle box)
+        {
+            return Math.Abs((line.Left + line.Right) - (box.Left + box.Right)) <= 2;
+        }
+
+        private static Rectangle ContainingCell(V view, B table, Rectangle line)
+        {
+            foreach (var value in LayoutBoxes(view))
+            {
+                var type = value.GetType();
+                if (!Object.ReferenceEquals(type.GetField("B").GetValue(value), table) || (bool)type.GetField("Inline").GetValue(value)) continue;
+                if ((string)type.GetField("K").GetValue(value) != "td") continue;
+                var content = (Rectangle)type.GetField("C").GetValue(value);
+                if (content.IntersectsWith(line)) return content;
             }
             return Rectangle.Empty;
         }

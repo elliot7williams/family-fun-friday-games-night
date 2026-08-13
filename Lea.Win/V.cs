@@ -215,7 +215,7 @@ namespace Lea.Win
                 var content = box.C;
                 content.Offset(0, -sy);
                 if (rect.Bottom < 0 || rect.Top > ClientSize.Height) continue;
-                if (!box.Title) PaintBox(pe.Graphics, rect, box.S, pageBackground, pageColor);
+                if (!box.Title && (!box.Inline || box.B == null || box.B.Is.Count > 0)) PaintBox(pe.Graphics, rect, box.S, pageBackground, pageColor);
                 if (box.K == "img")
                 {
                     PaintPic(pe.Graphics, box, content, pageColor);
@@ -308,26 +308,18 @@ namespace Lea.Win
                             }
                         }
                     }
-                    else if (block.Is.Count > 0) inline = InlineLayout(graphics, block, bw, out height);
+                    else if (NeedsFlow(block)) inline = InlineLayout(graphics, block, bw, out height);
                     else
                     {
                         using (var font = BoxFont(block.K, bs, false)) height = Measure(graphics, block.K == "li" ? "- " + block.X : block.X, font, bw);
                     }
                     if (bs != null && bs.H > 0) height = inline == null ? bs.H : Math.Max(height, bs.H);
                     var text = block.K == "li" ? "- " + block.X : block.X;
-                    var link = block.K == "a" ? block.U : null;
+                    var link = inline == null && block.K == "a" ? block.U : null;
                     var outer = new Rectangle(bx, y, bw + pl + pr + bl + br, height + pt + pb + bt + bb);
                     var content = new Rectangle(bx + bl + pl, y + bt + pt, bw, height);
                     boxes.Add(new Bx(block.K, inline == null ? text : "", link, bs, outer, content, false, block));
-                    if (inline != null)
-                    {
-                        foreach (var part in inline)
-                        {
-                            var rect = part.R;
-                            rect.Offset(content.X, content.Y);
-                            boxes.Add(new Bx(part.K, part.X, part.U, part.S, rect, false, block, true));
-                        }
-                    }
+                    if (inline != null) AddInlineBoxes(block, content, inline);
                     y += outer.Height + (block.K.StartsWith("h") ? 12 : 8) + (bs == null ? 0 : bs.Mb);
                 }
             }
@@ -402,11 +394,17 @@ namespace Lea.Win
                     var inset = CellInset(cell.S);
                     var outer = new Rectangle(cellLeft, rowY, cellWidth, rowHeight);
                     var content = new Rectangle(cellLeft + inset.Left, rowY + inset.Top, Math.Max(1, cellWidth - inset.Left - inset.Right), Math.Max(1, rowHeight - inset.Top - inset.Bottom));
-                    if (SimpleCell(cell)) boxes.Add(new Bx(cell.H ? "th" : "td", cell.X, null, cell.S, outer, content, false, block));
+                    var simple = SimpleCellBlock(cell);
+                    if (simple != null && !NeedsFlow(simple)) boxes.Add(new Bx(cell.H ? "th" : "td", cell.X, null, cell.S, outer, content, false, block));
                     else
                     {
                         boxes.Add(new Bx(cell.H ? "th" : "td", "", null, cell.S, outer, content, false, block));
-                        LayCellBlocks(graphics, cell, content);
+                        if (simple != null)
+                        {
+                            int flowHeight;
+                            AddInlineBoxes(simple, content, InlineLayout(graphics, simple, content.Width, out flowHeight));
+                        }
+                        else LayCellBlocks(graphics, cell, content);
                     }
                     column = rightColumn;
                 }
@@ -423,6 +421,13 @@ namespace Lea.Win
         {
             if (SimpleCell(cell))
             {
+                var part = SimpleCellBlock(cell);
+                if (part != null && NeedsFlow(part))
+                {
+                    int flowHeight;
+                    InlineLayout(graphics, part, width, out flowHeight);
+                    return flowHeight;
+                }
                 using (var font = BoxFont(cell.H ? "th" : "td", cell.S, false)) return Measure(graphics, cell.X, font, width);
             }
 
@@ -452,12 +457,15 @@ namespace Lea.Win
                 var available = Math.Max(1, content.Width - ml - mr - bl - br - pl - pr);
                 if (style != null && style.W > 0) available = Math.Min(available, style.W);
                 int textHeight;
-                using (var font = BoxFont(part.K, style, false)) textHeight = part.K == "br" ? Math.Max(4, font.Height / 2) : Measure(graphics, CellText(part), font, available);
+                List<Ix> flow = null;
+                if (part.K != "br" && NeedsFlow(part)) flow = InlineLayout(graphics, part, available, out textHeight);
+                else using (var font = BoxFont(part.K, style, false)) textHeight = part.K == "br" ? Math.Max(4, font.Height / 2) : Measure(graphics, CellText(part), font, available);
                 if (style != null && style.H > 0) textHeight = style.H;
                 y += mt;
                 var outer = new Rectangle(content.X + ml, y, available + pl + pr + bl + br, textHeight + pt + pb + bt + bb);
                 var inner = new Rectangle(outer.X + bl + pl, outer.Y + bt + pt, available, textHeight);
-                boxes.Add(new Bx(part.K, CellText(part), part.K == "a" ? part.U : null, style, outer, inner, false, part));
+                boxes.Add(new Bx(part.K, flow == null ? CellText(part) : "", flow == null && part.K == "a" ? part.U : null, style, outer, inner, false, part));
+                if (flow != null) AddInlineBoxes(part, inner, flow);
                 y += outer.Height + mb + CellGap(part.K);
             }
         }
@@ -469,7 +477,8 @@ namespace Lea.Win
             var available = Math.Max(1, width - horizontal);
             if (style != null && style.W > 0) available = Math.Min(available, style.W);
             int height;
-            using (var font = BoxFont(part.K, style, false)) height = part.K == "br" ? Math.Max(4, font.Height / 2) : Measure(graphics, CellText(part), font, available);
+            if (part.K != "br" && NeedsFlow(part)) InlineLayout(graphics, part, available, out height);
+            else using (var font = BoxFont(part.K, style, false)) height = part.K == "br" ? Math.Max(4, font.Height / 2) : Measure(graphics, CellText(part), font, available);
             if (style != null && style.H > 0) height = style.H;
             if (style != null) height += style.Mt + style.Mb + style.Pt + style.Pb + BorderWidth(style, style.Bt) + BorderWidth(style, style.Bb);
             return height + CellGap(part.K);
@@ -480,6 +489,11 @@ namespace Lea.Win
             if (cell.Bs.Count == 0) return true;
             var part = cell.Bs.Count == 1 ? cell.Bs[0] : null;
             return part != null && part.U == null && part.K == (cell.H ? "th" : "td");
+        }
+
+        private static B SimpleCellBlock(Tc cell)
+        {
+            return SimpleCell(cell) && cell.Bs.Count == 1 ? cell.Bs[0] : null;
         }
 
         private static string CellText(B part)
@@ -517,7 +531,7 @@ namespace Lea.Win
         private List<Ix> InlineLayout(Graphics graphics, B block, int width, out int height)
         {
             int baseHeight;
-            using (var font = BoxFont(block.K, block.S, false)) baseHeight = font.Height;
+            using (var font = BoxFont(block.K, block.S, false)) baseHeight = CssLineHeight(block.S, font.Height);
             var lines = new List<Il>();
             var line = new Il();
             Ia pending = null;
@@ -529,32 +543,22 @@ namespace Lea.Win
                 pending = InlineAtom(graphics, "li", " ", null, block.S, block.K);
             }
 
-            foreach (var run in block.Is)
+            if (block.Is.Count == 0)
             {
-                if (run.K == "br")
+                AddInlineText(graphics, lines, ref line, ref pending, block.K, block.X, block.U, block.S, block.K, width, baseHeight, ref endedWithBreak);
+            }
+            else
+            {
+                foreach (var run in block.Is)
                 {
-                    FinishInlineLine(lines, ref line, baseHeight, true);
-                    pending = null;
-                    endedWithBreak = true;
-                    continue;
-                }
-
-                var value = run.X ?? "";
-                var index = 0;
-                while (index < value.Length)
-                {
-                    if (Char.IsWhiteSpace(value[index]))
+                    if (run.K == "br")
                     {
-                        while (index < value.Length && Char.IsWhiteSpace(value[index])) index++;
-                        pending = InlineAtom(graphics, run.K, " ", null, run.S, block.K);
+                        FinishInlineLine(lines, ref line, baseHeight, true, true);
+                        pending = null;
+                        endedWithBreak = true;
                         continue;
                     }
-
-                    var start = index;
-                    while (index < value.Length && !Char.IsWhiteSpace(value[index])) index++;
-                    var word = InlineAtom(graphics, run.K, value.Substring(start, index - start), run.U, run.S, block.K);
-                    AddInlineWord(graphics, lines, ref line, ref pending, word, width, baseHeight);
-                    endedWithBreak = false;
+                    AddInlineText(graphics, lines, ref line, ref pending, run.K, run.X, run.U, run.S, block.K, width, baseHeight, ref endedWithBreak);
                 }
             }
 
@@ -562,19 +566,54 @@ namespace Lea.Win
 
             var layout = new List<Ix>();
             var y = 0;
-            foreach (var current in lines)
+            for (var lineIndex = 0; lineIndex < lines.Count; lineIndex++)
             {
-                var x = 0;
+                var current = lines[lineIndex];
+                var align = block.S == null ? "" : block.S.Ta;
+                var justify = align == "j" && lineIndex < lines.Count - 1 && !current.Br;
+                var spaces = 0;
+                if (justify) foreach (var atom in current.As) if (atom.X == " ") spaces++;
+                var stretch = spaces == 0 ? 0 : Math.Max(0, width - current.W);
+                var each = spaces == 0 ? 0 : stretch / spaces;
+                var remainder = spaces == 0 ? 0 : stretch % spaces;
+                var x = align == "c" ? Math.Max(0, (width - current.W) / 2) : align == "r" ? Math.Max(0, width - current.W) : 0;
                 foreach (var atom in current.As)
                 {
-                    var rect = new Rectangle(x, y + current.H - atom.H, atom.W, atom.H);
+                    var atomWidth = atom.W;
+                    if (justify && atom.X == " ")
+                    {
+                        atomWidth += each;
+                        if (remainder-- > 0) atomWidth++;
+                    }
+                    var rect = new Rectangle(x, y + Math.Max(0, (current.H - atom.H) / 2), atomWidth, atom.H);
                     layout.Add(new Ix(atom.K, atom.X, atom.U, atom.S, rect));
-                    x += atom.W;
+                    x += atomWidth;
                 }
                 y += current.H;
             }
             height = Math.Max(baseHeight, y);
             return layout;
+        }
+
+        private void AddInlineText(Graphics graphics, List<Il> lines, ref Il line, ref Ia pending, string kind, string value, Uri url, S style, string baseKind, int width, int baseHeight, ref bool endedWithBreak)
+        {
+            value = value ?? "";
+            var index = 0;
+            while (index < value.Length)
+            {
+                if (Char.IsWhiteSpace(value[index]))
+                {
+                    while (index < value.Length && Char.IsWhiteSpace(value[index])) index++;
+                    pending = InlineAtom(graphics, kind, " ", null, style, baseKind);
+                    continue;
+                }
+
+                var start = index;
+                while (index < value.Length && !Char.IsWhiteSpace(value[index])) index++;
+                var word = InlineAtom(graphics, kind, value.Substring(start, index - start), url, style, baseKind);
+                AddInlineWord(graphics, lines, ref line, ref pending, word, width, baseHeight);
+                endedWithBreak = false;
+            }
         }
 
         private void AddInlineWord(Graphics graphics, List<Il> lines, ref Il line, ref Ia pending, Ia word, int width, int baseHeight)
@@ -618,7 +657,7 @@ namespace Lea.Win
             using (var font = BoxFont(kind, style, false, url != null, baseKind))
             {
                 var width = TextRenderer.MeasureText(graphics, text, font, Size.Empty, TextFormatFlags.SingleLine | TextFormatFlags.NoPadding).Width;
-                return new Ia(kind, text, url, style, baseKind, Math.Max(1, width), font.Height);
+                return new Ia(kind, text, url, style, baseKind, Math.Max(1, width), font.Height, CssLineHeight(style, font.Height));
             }
         }
 
@@ -626,17 +665,42 @@ namespace Lea.Win
         {
             line.As.Add(atom);
             line.W += atom.W;
-            line.H = Math.Max(line.H, atom.H);
+            line.H = Math.Max(line.H, atom.L);
         }
 
-        private static void FinishInlineLine(List<Il> lines, ref Il line, int baseHeight, bool force)
+        private static void FinishInlineLine(List<Il> lines, ref Il line, int baseHeight, bool force, bool broken = false)
         {
             if (line.As.Count > 0 || force)
             {
                 line.H = Math.Max(baseHeight, line.H);
+                line.Br = broken;
                 lines.Add(line);
             }
             line = new Il();
+        }
+
+        private static bool NeedsFlow(B block)
+        {
+            var style = block == null ? null : block.S;
+            return block != null && (block.Is.Count > 0 || (style != null && (style.Ta.Length > 0 || style.Lh > 0 || style.Lm > 0)));
+        }
+
+        private static int CssLineHeight(S style, int nativeHeight)
+        {
+            if (style == null) return nativeHeight;
+            if (style.Lh > 0) return Math.Max(nativeHeight, style.Lh);
+            if (style.Lm > 0) return Math.Max(nativeHeight, (int)Math.Round(nativeHeight * style.Lm / 100F));
+            return nativeHeight;
+        }
+
+        private void AddInlineBoxes(B block, Rectangle content, IList<Ix> flow)
+        {
+            foreach (var part in flow)
+            {
+                var rect = part.R;
+                rect.Offset(content.X, content.Y);
+                boxes.Add(new Bx(part.K, part.X, part.U, part.S, rect, false, block, true));
+            }
         }
 
         private static int BorderWidth(S style, int width)
@@ -1184,8 +1248,9 @@ namespace Lea.Win
             public readonly string Z;
             public readonly int W;
             public readonly int H;
+            public readonly int L;
 
-            public Ia(string kind, string text, Uri url, S style, string baseKind, int width, int height)
+            public Ia(string kind, string text, Uri url, S style, string baseKind, int width, int height, int lineHeight)
             {
                 K = kind;
                 X = text;
@@ -1194,6 +1259,7 @@ namespace Lea.Win
                 Z = baseKind;
                 W = width;
                 H = height;
+                L = lineHeight;
             }
         }
 
@@ -1202,6 +1268,7 @@ namespace Lea.Win
             public readonly List<Ia> As = new List<Ia>();
             public int W;
             public int H;
+            public bool Br;
         }
 
         private sealed class Ix

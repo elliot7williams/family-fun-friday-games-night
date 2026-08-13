@@ -58,7 +58,7 @@ fs      font size
 2. Implement the cascade and inheritance with a small priority model. (First specificity/source-order cascade added.)
    (`link rel=stylesheet` and inline `style` blocks now enter that source order
    together; linked CSS uses cookies, compression, validators, and shared LRU caching.)
-3. Add colors, fonts, spacing, borders, width, height, display, and overflow. (Colors, fonts, margins, padding, backgrounds, `display:none`, borders, and pixel width/height are active.)
+3. Add colors, fonts, spacing, borders, width, height, display, and overflow. (Colors, fonts, margins, padding, backgrounds, `display:none`, borders, pixel width/height, text alignment, and line height are active.)
 4. Replace one-WinForms-control-per-node rendering with lightweight layout boxes. (Reusable `Bx` layout pass added.)
 5. Paint text, backgrounds, borders, links, controls, and images onto one surface. (Text, nested bold/italic inline runs, backgrounds, solid/dashed/dotted borders, links, images, and basic form controls are active.)
 6. Add scrolling and hit testing from layout boxes. (Visible-box painting and bounded vertical scrolling added.)
@@ -209,6 +209,7 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add CSS text alignment and basic line-height. Lea now keeps nested emphasis,
-styled spans, line breaks, and links inside one wrapped block; link hit regions
-follow only their inline words, while plain text keeps the original fast path.
+Add more block tags and malformed nesting recovery. Lea now supports inherited
+left, center, right, and basic justified text plus pixel, percentage, and
+unitless line heights in normal blocks and table cells. Default text still uses
+the original one-box path; only requested text flow enters the word-line pass.

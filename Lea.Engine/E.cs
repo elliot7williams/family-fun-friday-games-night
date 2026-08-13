@@ -645,6 +645,8 @@ namespace Lea.Engine
                 else if (name == "background" || name == "background-color") style.Bg = value;
                 else if (name == "font-weight") style.B = value.Equals("bold", StringComparison.OrdinalIgnoreCase) || value == "700" || value == "800" || value == "900";
                 else if (name == "font-style") style.I = value.Equals("italic", StringComparison.OrdinalIgnoreCase) || value.Equals("oblique", StringComparison.OrdinalIgnoreCase);
+                else if (name == "text-align") TextAlign(style, value);
+                else if (name == "line-height") LineHeight(style, value);
                 else if (name == "display") style.D = value.ToLowerInvariant();
                 else if (name == "margin") Box(style, value, true);
                 else if (name == "padding") Box(style, value, false);
@@ -677,6 +679,44 @@ namespace Lea.Engine
                     if (size.Success && int.TryParse(size.Groups["n"].Value, out number) && number > 0 && number < 200) style.Fs = number;
                 }
             }
+        }
+
+        private static void TextAlign(S style, string value)
+        {
+            var align = (value ?? "").Trim().ToLowerInvariant();
+            if (align == "left" || align == "start") style.Ta = "l";
+            else if (align == "center") style.Ta = "c";
+            else if (align == "right" || align == "end") style.Ta = "r";
+            else if (align == "justify") style.Ta = "j";
+            else if (align == "initial") style.Ta = "";
+        }
+
+        private static void LineHeight(S style, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "normal" || source == "initial")
+            {
+                style.Lh = 0;
+                style.Lm = 0;
+                return;
+            }
+
+            var pixels = Regex.Match(source, "^(?<n>[0-9]{1,3})px$");
+            int number;
+            if (pixels.Success && Int32.TryParse(pixels.Groups["n"].Value, out number) && number > 0)
+            {
+                style.Lh = Math.Min(400, number);
+                style.Lm = 0;
+                return;
+            }
+
+            var relative = Regex.Match(source, "^(?<n>[0-9]{1,3}(?:\\.[0-9]{1,2})?)(?<p>%?)$");
+            double scale;
+            if (!relative.Success || !Double.TryParse(relative.Groups["n"].Value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out scale)) return;
+            if (relative.Groups["p"].Value == "%") scale /= 100D;
+            if (scale < 0.25D || scale > 5D) return;
+            style.Lm = Math.Max(25, Math.Min(500, (int)Math.Round(scale * 100D)));
+            style.Lh = 0;
         }
 
         private static void Box(S style, string value, bool margin)
