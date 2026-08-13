@@ -204,12 +204,42 @@ namespace Lea.Tests
                     Ok(!stale.Ca, "expired response reloads");
                     Eq(16, server.Hits, "expired response requests");
 
+                    var etagUrl = new Uri(server.U, "?etag=1");
+                    var etagFirst = net.Go(etagUrl);
+                    Ok(!etagFirst.Ca, "ETag first response downloads");
+                    Eq("\"lea-v1\"", etagFirst.Et, "ETag response metadata");
+                    Eq(17, server.Hits, "ETag first request");
+                    var etagValidated = net.Go(etagUrl);
+                    Ok(etagValidated.Ca && etagValidated.H == etagFirst.H, "ETag 304 reuses cached body");
+                    Eq(200, etagValidated.St, "ETag keeps representation status");
+                    Eq("\"lea-v1\"", server.LastIfNoneMatch, "If-None-Match request header");
+                    Eq(18, server.Hits, "ETag validation request");
+                    Ok(net.Go(etagUrl).Ca, "ETag validation refreshes lifetime");
+                    Eq(18, server.Hits, "fresh ETag response avoids network");
+                    var etagReload = net.Rl();
+                    Ok(!etagReload.Ca, "reload bypasses ETag validation");
+                    Eq("", server.LastIfNoneMatch, "reload omits If-None-Match");
+                    Eq(19, server.Hits, "unconditional ETag reload request");
+
+                    var modifiedUrl = new Uri(server.U, "?last-modified=1");
+                    var modifiedFirst = net.Go(modifiedUrl);
+                    Ok(!modifiedFirst.Ca, "Last-Modified first response downloads");
+                    Ok(modifiedFirst.Lm.Length > 0, "Last-Modified response metadata");
+                    Eq(20, server.Hits, "Last-Modified first request");
+                    var modifiedValidated = net.GoA(modifiedUrl).GetAwaiter().GetResult();
+                    Ok(modifiedValidated.Ca && modifiedValidated.H == modifiedFirst.H, "async Last-Modified 304 reuses cached body");
+                    Ok(server.LastIfModifiedSince.Length > 0, "If-Modified-Since request header");
+                    Eq(21, server.Hits, "Last-Modified validation request");
+                    Ok(net.Go(modifiedUrl).Ca, "Last-Modified validation refreshes lifetime");
+                    Eq(21, server.Hits, "fresh Last-Modified response avoids network");
+                    Eq(7, net.Ch, "cache body reuse count includes 304 responses");
+
                     net.Cs = 60;
                     net.Cl();
                     var redirected = net.Go(new Uri(server.U, "?redirect=1"));
                     Eq(200, redirected.St, "redirect final status");
                     Ok(redirected.U.Query.Contains("redirected=1"), "redirect final URL");
-                    Eq(18, server.Hits, "redirect request chain");
+                    Eq(23, server.Hits, "redirect request chain");
 
                     using (var postView = new V())
                     {
@@ -243,7 +273,7 @@ namespace Lea.Tests
                         Eq("Lea POST", asyncPost.T, "async POST result");
                         Ok(server.LastBody.Contains("flavor=mint") && server.LastBody.Contains("q=async+engine"), "async POST body: " + server.LastBody);
                     }
-                    Eq(21, server.Hits, "form and POST request count");
+                    Eq(26, server.Hits, "form and POST request count");
 
                     var unavailable = Fails(delegate { net.Go(new Uri(server.U, "?status=503")); }, "HTTP 503");
                     Eq("http", unavailable.K, "HTTP error kind");
@@ -263,7 +293,7 @@ namespace Lea.Tests
                     Eq("url", urlError.K, "URL error kind");
                 }
 
-                Console.WriteLine("Lea smoke passed: tables, typed errors, fresh cache, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: cache revalidation, tables, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -321,12 +351,16 @@ namespace Lea.Tests
             private string lastMethod = "";
             private string lastBody = "";
             private string lastType = "";
+            private string lastIfNoneMatch = "";
+            private string lastIfModifiedSince = "";
 
             public Uri U { get; private set; }
             public int Hits { get { return Interlocked.CompareExchange(ref hits, 0, 0); } }
             public string LastMethod { get { lock (state) return lastMethod; } }
             public string LastBody { get { lock (state) return lastBody; } }
             public string LastType { get { lock (state) return lastType; } }
+            public string LastIfNoneMatch { get { lock (state) return lastIfNoneMatch; } }
+            public string LastIfModifiedSince { get { lock (state) return lastIfModifiedSince; } }
 
             public CompressedServer()
             {
@@ -354,6 +388,8 @@ namespace Lea.Tests
                         var contentLength = 0;
                         var contentType = "";
                         var requestBody = "";
+                        var ifNoneMatch = "";
+                        var ifModifiedSince = "";
                         using (var reader = new StreamReader(stream, Encoding.ASCII, false, 1024, true))
                         {
                             request = reader.ReadLine() ?? "";
@@ -362,6 +398,8 @@ namespace Lea.Tests
                             {
                                 if (line.StartsWith("Content-Length:", StringComparison.OrdinalIgnoreCase)) Int32.TryParse(line.Substring(15).Trim(), out contentLength);
                                 else if (line.StartsWith("Content-Type:", StringComparison.OrdinalIgnoreCase)) contentType = line.Substring(13).Trim();
+                                else if (line.StartsWith("If-None-Match:", StringComparison.OrdinalIgnoreCase)) ifNoneMatch = line.Substring(14).Trim();
+                                else if (line.StartsWith("If-Modified-Since:", StringComparison.OrdinalIgnoreCase)) ifModifiedSince = line.Substring(18).Trim();
                             }
                             if (contentLength > 0)
                             {
@@ -384,6 +422,8 @@ namespace Lea.Tests
                             lastMethod = methodEnd < 0 ? request : request.Substring(0, methodEnd);
                             lastBody = requestBody;
                             lastType = contentType;
+                            lastIfNoneMatch = ifNoneMatch;
+                            lastIfModifiedSince = ifModifiedSince;
                         }
                         if (request.IndexOf("redirect=1", StringComparison.OrdinalIgnoreCase) >= 0)
                         {
@@ -397,6 +437,15 @@ namespace Lea.Tests
                             var status = unavailable ? "503 Service Unavailable" : "404 Not Found";
                             var failure = Encoding.ASCII.GetBytes("HTTP/1.1 " + status + "\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
                             stream.Write(failure, 0, failure.Length);
+                            continue;
+                        }
+                        var etag = request.IndexOf("etag=1", StringComparison.OrdinalIgnoreCase) >= 0;
+                        var lastModified = request.IndexOf("last-modified=1", StringComparison.OrdinalIgnoreCase) >= 0;
+                        if ((etag && ifNoneMatch == "\"lea-v1\"") || (lastModified && ifModifiedSince.Length > 0))
+                        {
+                            var validator = etag ? "ETag: \"lea-v1\"\r\n" : "Last-Modified: Wed, 12 Aug 2026 12:00:00 GMT\r\n";
+                            var unchanged = Encoding.ASCII.GetBytes("HTTP/1.1 304 Not Modified\r\nCache-Control: max-age=60\r\n" + validator + "Content-Length: 0\r\nConnection: close\r\n\r\n");
+                            stream.Write(unchanged, 0, unchanged.Length);
                             continue;
                         }
                         var deflate = request.IndexOf("encoding=deflate", StringComparison.OrdinalIgnoreCase) >= 0;
@@ -423,8 +472,10 @@ namespace Lea.Tests
                         var maxAge = request.IndexOf("max-age=60", StringComparison.OrdinalIgnoreCase) >= 0 ? "Cache-Control: max-age=60\r\n" :
                             request.IndexOf("max-age=0", StringComparison.OrdinalIgnoreCase) >= 0 ? "Cache-Control: max-age=0\r\n" : "";
                         var expires = request.IndexOf("expires=future", StringComparison.OrdinalIgnoreCase) >= 0 ? "Expires: " + DateTime.UtcNow.AddMinutes(5).ToString("R") + "\r\n" : "";
+                        var validators = etag ? "Cache-Control: max-age=0\r\nETag: \"lea-v1\"\r\n" :
+                            lastModified ? "Cache-Control: max-age=0\r\nLast-Modified: Wed, 12 Aug 2026 12:00:00 GMT\r\n" : "";
                         var headers = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Encoding: " + (deflate ? "deflate" : "gzip") + "\r\n" +
-                            (noStore ? "Cache-Control: no-store\r\n" : noCache ? "Cache-Control: no-cache\r\n" : maxAge + expires) + "Content-Length: " + body.Length + "\r\nConnection: close\r\n\r\n";
+                            (noStore ? "Cache-Control: no-store\r\n" : noCache ? "Cache-Control: no-cache\r\n" : maxAge + expires + validators) + "Content-Length: " + body.Length + "\r\nConnection: close\r\n\r\n";
                         var head = Encoding.ASCII.GetBytes(headers);
                         stream.Write(head, 0, head.Length);
                         stream.Write(body, 0, body.Length);

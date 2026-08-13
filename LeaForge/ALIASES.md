@@ -46,9 +46,10 @@ the bounded scroll position.
 
 Response metadata stays short: `P.St` is status, `Ct` is media type, `Ce` is
 content encoding, `Ch` is charset, `Sz` is decoded size, and `Ca` reports a
-cache hit. The engine exposes `Cm` (cache maximum), `Cc` (count), `Ch` (hits),
-`Cs` (default freshness seconds), and `Cl()` (clear). Reload always bypasses
-this cache.
+cache-body reuse. `Et` is the response ETag and `Lm` is Last-Modified. The
+engine exposes `Cm` (cache maximum), `Cc` (count), `Ch` (body reuses), `Cs`
+(default freshness seconds), and `Cl()` (clear). Stale validators use
+`If-None-Match` or `If-Modified-Since`; reload always bypasses this cache.
 
 Loading failures use `Er`: `K` is the failure kind, `U` is the address, `St` is
 an HTTP status when available, and `Rt` reports whether retrying may help.

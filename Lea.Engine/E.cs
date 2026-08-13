@@ -149,9 +149,23 @@ namespace Lea.Engine
                 if (url.IsFile) reply = ReadFile(url);
                 else
                 {
-                    var bytes = web.DownloadData(url);
-                    reply = ReadWeb(url, bytes);
+                    Cr stale;
+                    if (fresh || !GetStale(url, out stale)) stale = null;
+                    web.Va(stale == null ? "" : stale.Et, stale == null ? "" : stale.Lm);
+                    byte[] bytes;
+                    try
+                    {
+                        try { bytes = web.DownloadData(url); }
+                        catch (WebException error)
+                        {
+                            if (stale == null || !web.Nm(error)) throw;
+                            bytes = new byte[0];
+                        }
+                    }
+                    finally { web.Va("", ""); }
+                    reply = web.St == 304 && stale != null ? Revalidated(stale) : ReadWeb(url, bytes);
                     PutCache(url, reply);
+                    if (web.St == 304) { ch++; return Parse(reply, true); }
                 }
                 return Parse(reply, false);
             }
@@ -167,6 +181,8 @@ namespace Lea.Engine
         {
             Cr cached;
             if (!url.IsFile && !fresh && GetCache(url, out cached)) return Parse(cached, true);
+            Cr stale;
+            if (url.IsFile || fresh || !GetStale(url, out stale)) stale = null;
             if (busy) throw new InvalidOperationException("Lea is already loading a page.");
             busy = true;
             try
@@ -176,10 +192,18 @@ namespace Lea.Engine
                     return await Task.Factory.StartNew(delegate { return Parse(ReadFile(url), false); });
                 }
 
-                var bytes = await web.DownloadDataTaskAsync(url);
-                var reply = ReadWeb(url, bytes);
+                web.Va(stale == null ? "" : stale.Et, stale == null ? "" : stale.Lm);
+                byte[] bytes;
+                try { bytes = await web.DownloadDataTaskAsync(url); }
+                catch (WebException error)
+                {
+                    if (stale == null || !web.Nm(error)) throw;
+                    bytes = new byte[0];
+                }
+                var reply = web.St == 304 && stale != null ? Revalidated(stale) : ReadWeb(url, bytes);
                 PutCache(url, reply);
-                return Parse(reply, false);
+                if (web.St == 304) ch++;
+                return Parse(reply, web.St == 304);
             }
             catch (Exception error)
             {
@@ -189,6 +213,7 @@ namespace Lea.Engine
             }
             finally
             {
+                web.Va("", "");
                 busy = false;
             }
         }
@@ -253,6 +278,8 @@ namespace Lea.Engine
             p.Ct = reply.Ct;
             p.Ce = reply.Ce;
             p.Ch = reply.Ch;
+            p.Et = reply.Et;
+            p.Lm = reply.Lm;
             p.Sz = reply.Sz;
             p.Ca = cached;
             p.D = Tree(reply.H);
@@ -807,7 +834,6 @@ namespace Lea.Engine
             if (cm == 0 || !cache.TryGetValue(key, out reply)) return false;
             if (reply.Fr <= DateTime.UtcNow)
             {
-                DropCache(url);
                 reply = null;
                 return false;
             }
@@ -817,10 +843,27 @@ namespace Lea.Engine
             return true;
         }
 
+        private bool GetStale(Uri url, out Cr reply)
+        {
+            var key = CacheKey(url);
+            reply = null;
+            if (cm == 0 || !cache.TryGetValue(key, out reply) || reply.Fr > DateTime.UtcNow) return false;
+            if (reply.Et.Length == 0 && reply.Lm.Length == 0)
+            {
+                DropCache(url);
+                reply = null;
+                return false;
+            }
+            lru.Remove(key);
+            lru.Add(key);
+            return true;
+        }
+
         private void PutCache(Uri url, Cr reply)
         {
             var key = CacheKey(url);
-            if (cm == 0 || reply.Ns || reply.Fr <= DateTime.UtcNow || reply.St < 200 || reply.St >= 300 || reply.Sz > MaxCachePage)
+            var reusable = reply.Fr > DateTime.UtcNow || reply.Et.Length > 0 || reply.Lm.Length > 0;
+            if (cm == 0 || reply.Ns || !reusable || reply.St < 200 || reply.St >= 300 || reply.Sz > MaxCachePage)
             {
                 cache.Remove(key);
                 lru.Remove(key);
@@ -864,7 +907,7 @@ namespace Lea.Engine
             var bytes = File.ReadAllBytes(path);
             string charset;
             var html = Decode(bytes, "", out charset);
-            return new Cr(url, html, 200, FileType(path), "", charset, bytes.Length, true, DateTime.MinValue);
+            return new Cr(url, html, 200, FileType(path), "", charset, bytes.Length, true, DateTime.MinValue, "", "");
         }
 
         private Cr ReadWeb(Uri url, byte[] bytes)
@@ -872,7 +915,13 @@ namespace Lea.Engine
             var body = Expand(bytes, web.Ce);
             string charset;
             var html = Decode(body, Charset(web.Ct), out charset);
-            return new Cr(web.U ?? url, html, web.St == 0 ? 200 : web.St, MediaType(web.Ct), web.Ce, charset, body.Length, web.Ns, FreshUntil(web.Cc, web.Ex));
+            return new Cr(web.U ?? url, html, web.St == 0 ? 200 : web.St, MediaType(web.Ct), web.Ce, charset, body.Length, web.Ns, FreshUntil(web.Cc, web.Ex), web.Et, web.Lm);
+        }
+
+        private Cr Revalidated(Cr stale)
+        {
+            return new Cr(web.U ?? stale.U, stale.H, stale.St, stale.Ct, stale.Ce, stale.Ch, stale.Sz, web.Ns,
+                FreshUntil(web.Cc, web.Ex), web.Et.Length == 0 ? stale.Et : web.Et, web.Lm.Length == 0 ? stale.Lm : web.Lm);
         }
 
         private DateTime FreshUntil(string cacheControl, string expires)
@@ -968,8 +1017,10 @@ namespace Lea.Engine
             public readonly int Sz;
             public readonly bool Ns;
             public readonly DateTime Fr;
+            public readonly string Et;
+            public readonly string Lm;
 
-            public Cr(Uri url, string html, int status, string contentType, string contentEncoding, string charset, int size, bool noStore, DateTime freshUntil)
+            public Cr(Uri url, string html, int status, string contentType, string contentEncoding, string charset, int size, bool noStore, DateTime freshUntil, string etag, string lastModified)
             {
                 U = url;
                 H = html ?? "";
@@ -980,6 +1031,8 @@ namespace Lea.Engine
                 Sz = size;
                 Ns = noStore;
                 Fr = freshUntil;
+                Et = etag ?? "";
+                Lm = lastModified ?? "";
             }
         }
 
@@ -992,6 +1045,24 @@ namespace Lea.Engine
             public bool Ns { get; private set; }
             public string Cc { get; private set; }
             public string Ex { get; private set; }
+            public string Et { get; private set; }
+            public string Lm { get; private set; }
+            private string ve = "";
+            private string vm = "";
+
+            public void Va(string etag, string lastModified)
+            {
+                ve = etag ?? "";
+                vm = lastModified ?? "";
+            }
+
+            public bool Nm(WebException error)
+            {
+                var response = error == null ? null : error.Response as HttpWebResponse;
+                if (response == null || response.StatusCode != HttpStatusCode.NotModified) return false;
+                Capture(response);
+                return true;
+            }
 
             protected override WebRequest GetWebRequest(Uri address)
             {
@@ -1002,6 +1073,8 @@ namespace Lea.Engine
                 Ns = false;
                 Cc = "";
                 Ex = "";
+                Et = "";
+                Lm = "";
                 var request = base.GetWebRequest(address);
                 var http = request as HttpWebRequest;
                 if (http != null)
@@ -1011,6 +1084,9 @@ namespace Lea.Engine
                     http.UserAgent = "Lea/0.3";
                     http.Timeout = 15000;
                     http.ReadWriteTimeout = 15000;
+                    if (ve.Length > 0) http.Headers[HttpRequestHeader.IfNoneMatch] = ve;
+                    DateTime modified;
+                    if (vm.Length > 0 && DateTime.TryParse(vm, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out modified)) http.IfModifiedSince = modified.ToUniversalTime();
                 }
                 return request;
             }
@@ -1035,6 +1111,8 @@ namespace Lea.Engine
                 Ce = http.Headers[HttpResponseHeader.ContentEncoding] ?? "";
                 Cc = http.Headers[HttpResponseHeader.CacheControl] ?? "";
                 Ex = http.Headers[HttpResponseHeader.Expires] ?? "";
+                Et = http.Headers[HttpResponseHeader.ETag] ?? "";
+                Lm = http.Headers[HttpResponseHeader.LastModified] ?? "";
                 Ns = Cc.IndexOf("no-store", StringComparison.OrdinalIgnoreCase) >= 0;
                 return response;
             }

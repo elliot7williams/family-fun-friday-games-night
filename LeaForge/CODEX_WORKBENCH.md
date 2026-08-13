@@ -17,9 +17,9 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-1. Add conditional cache revalidation with ETag and Last-Modified.
-2. Add nested block content and links inside table cells.
-3. Add cookie storage with explicit clear and private-session behavior.
+1. Add nested block content and links inside table cells.
+2. Add cookie storage with explicit clear and private-session behavior.
+3. Route more Firespider commands through Lea capability checks.
 4. Add a small JavaScript interpreter layer or bridge.
 5. Add downloads and find-in-page.
 6. Add a developer tools panel for parsed nodes, CSS rules, network events, and console messages.

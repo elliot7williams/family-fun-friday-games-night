@@ -75,6 +75,9 @@ predictable rendering pass.
 - Image loading for PNG, JPEG, GIF, and ICO where the platform supports them. (Basic async image loading and bounded memory cache added.)
 - A small memory and disk cache with explicit size limits. (Bounded memory payload cache active; disk cache remains.)
 - Cache freshness from `max-age`, `Expires`, `no-cache`, `no-store`, and a configurable default. (Active.)
+- Conditional cache revalidation with ETag/If-None-Match and
+  Last-Modified/If-Modified-Since. (`304` responses reuse the decoded body and
+  refresh its lifetime; explicit reload remains unconditional.)
 - Compact typed `Er` failures for URL, file, HTTP, network, timeout, cancellation, and decoding problems. (Active.)
 - Basic cookies and a clear permission boundary for local files and scripts.
 
@@ -201,6 +204,6 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add conditional cache revalidation with ETag and Last-Modified. Firespider now
-routes its Close Tab command, tab-strip close gestures, and Page Source window
-to Lea, and restores up to 12 Lea tabs from an isolated private-mode-aware file.
+Add nested block content and clickable links inside table cells. Lea now keeps
+stale validator-bearing responses and conditionally revalidates them with ETag
+or Last-Modified while preserving unconditional reload behavior.

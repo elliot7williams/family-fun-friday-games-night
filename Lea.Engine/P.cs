@@ -21,6 +21,8 @@ namespace Lea.Engine
         public string Ct { get; internal set; }
         public string Ce { get; internal set; }
         public string Ch { get; internal set; }
+        public string Et { get; internal set; }
+        public string Lm { get; internal set; }
         public int Sz { get; internal set; }
         public bool Ca { get; internal set; }
         public IList<Ln> Ls { get; private set; }
