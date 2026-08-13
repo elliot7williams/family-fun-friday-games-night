@@ -697,6 +697,7 @@ namespace Lea.Engine
             {
                 if (rule.J[i] == '>') current = current.Up;
                 else if (rule.J[i] == '+') current = PreviousElement(current);
+                else if (rule.J[i] == '~') current = PreviousMatchingElement(current, rule.P[i]);
                 else
                 {
                     current = current.Up;
@@ -717,6 +718,7 @@ namespace Lea.Engine
             var join = ' ';
             var explicitJoin = false;
             var brackets = 0;
+            var parentheses = 0;
             var quote = '\0';
             for (var i = 0; i < source.Length; i++)
             {
@@ -727,7 +729,7 @@ namespace Lea.Engine
                     if (value == quote && (i == 0 || source[i - 1] != '\\')) quote = '\0';
                     continue;
                 }
-                if (brackets > 0 && (value == '\"' || value == '\'')) { quote = value; part.Append(value); continue; }
+                if ((brackets > 0 || parentheses > 0) && (value == '\"' || value == '\'')) { quote = value; part.Append(value); continue; }
                 if (value == '[') { brackets++; part.Append(value); continue; }
                 if (value == ']')
                 {
@@ -736,7 +738,15 @@ namespace Lea.Engine
                     part.Append(value);
                     continue;
                 }
-                if (brackets == 0 && (value == '>' || value == '+'))
+                if (brackets == 0 && value == '(') { parentheses++; part.Append(value); continue; }
+                if (brackets == 0 && value == ')')
+                {
+                    if (parentheses == 0) return false;
+                    parentheses--;
+                    part.Append(value);
+                    continue;
+                }
+                if (brackets == 0 && parentheses == 0 && (value == '>' || value == '+' || value == '~'))
                 {
                     if (part.Length > 0)
                     {
@@ -749,7 +759,7 @@ namespace Lea.Engine
                     explicitJoin = true;
                     continue;
                 }
-                if (brackets == 0 && Char.IsWhiteSpace(value))
+                if (brackets == 0 && parentheses == 0 && Char.IsWhiteSpace(value))
                 {
                     if (part.Length > 0)
                     {
@@ -761,7 +771,7 @@ namespace Lea.Engine
                 }
                 part.Append(value);
             }
-            if (quote != '\0' || brackets != 0) return false;
+            if (quote != '\0' || brackets != 0 || parentheses != 0) return false;
             if (part.Length > 0)
             {
                 AddCssPart(parts, joins, part, join);
@@ -778,6 +788,11 @@ namespace Lea.Engine
         }
 
         private static Se CssSimple(string selector)
+        {
+            return CssSimple(selector, true);
+        }
+
+        private static Se CssSimple(string selector, bool functions)
         {
             if (String.IsNullOrWhiteSpace(selector) || selector.Length > 512) return null;
             var tag = "";
@@ -824,6 +839,17 @@ namespace Lea.Engine
                 }
                 else if (tail[0] == ':')
                 {
+                    if (functions && tail.StartsWith(":not(", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var end = CssClose(tail, 4);
+                        if (end < 0) return null;
+                        var excluded = CssSimple(tail.Substring(5, end - 5).Trim(), false);
+                        if (excluded == null) return null;
+                        pseudos.Add(new Ps("not", "", excluded));
+                        weight += excluded.W;
+                        index += end + 1;
+                        continue;
+                    }
                     match = Regex.Match(tail, "^:(?<n>nth-child|nth-of-type)\\(\\s*(?<v>odd|even|[1-9][0-9]{0,3})\\s*\\)", RegexOptions.IgnoreCase);
                     if (!match.Success)
                         match = Regex.Match(tail, "^:(?<n>first-child|last-child|only-child|first-of-type|last-of-type|only-of-type|empty|root|link|checked|disabled|enabled|required|read-only|read-write)\\b", RegexOptions.IgnoreCase);
@@ -837,6 +863,34 @@ namespace Lea.Engine
             return new Se(tag, ids.ToArray(), classes.ToArray(), attrs.ToArray(), pseudos.ToArray(), weight);
         }
 
+        private static int CssClose(string source, int open)
+        {
+            var depth = 0;
+            var brackets = 0;
+            var quote = '\0';
+            for (var i = open; i < (source ?? "").Length; i++)
+            {
+                var value = source[i];
+                if (quote != '\0')
+                {
+                    if (value == quote && (i == 0 || source[i - 1] != '\\')) quote = '\0';
+                    continue;
+                }
+                if (brackets > 0 && (value == '\"' || value == '\'')) { quote = value; continue; }
+                if (value == '[') { brackets++; continue; }
+                if (value == ']')
+                {
+                    if (brackets == 0) return -1;
+                    brackets--;
+                    continue;
+                }
+                if (brackets > 0) continue;
+                if (value == '(') depth++;
+                else if (value == ')' && --depth == 0) return i;
+            }
+            return -1;
+        }
+
         private static N PreviousElement(N node)
         {
             if (node == null || node.Up == null) return null;
@@ -845,6 +899,18 @@ namespace Lea.Engine
             {
                 if (Object.ReferenceEquals(child, node)) return previous;
                 if (child.K.Length > 0 && child.K[0] != '#') previous = child;
+            }
+            return null;
+        }
+
+        private static N PreviousMatchingElement(N node, Se selector)
+        {
+            if (node == null || node.Up == null) return null;
+            N match = null;
+            foreach (var child in node.Up.C)
+            {
+                if (Object.ReferenceEquals(child, node)) return match;
+                if (child.K.Length > 0 && child.K[0] != '#' && MatchPart(child, selector)) match = child;
             }
             return null;
         }
@@ -883,6 +949,7 @@ namespace Lea.Engine
 
         private static bool MatchPseudo(N node, Ps pseudo)
         {
+            if (pseudo.N == "not") return pseudo.S != null && !MatchPart(node, pseudo.S);
             if (pseudo.N == "root") return node.Up != null && node.Up.K == "#doc";
             if (pseudo.N == "empty") return node.C.Count == 0;
             if (pseudo.N == "link") return (node.K == "a" || node.K == "area") && node.A.ContainsKey("href");
@@ -1889,11 +1956,18 @@ namespace Lea.Engine
         {
             public readonly string N;
             public readonly string V;
+            public readonly Se S;
 
             public Ps(string name, string value)
+                : this(name, value, null)
+            {
+            }
+
+            public Ps(string name, string value, Se selector)
             {
                 N = name;
                 V = value;
+                S = selector;
             }
         }
 

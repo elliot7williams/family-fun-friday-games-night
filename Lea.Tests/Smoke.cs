@@ -159,6 +159,23 @@ namespace Lea.Tests
                 Ok(selectorPage.Bs[9].S.I, "heading adjacent selector");
                 Ok(!selectorPage.Bs[11].S.I, "adjacent selector respects separator");
 
+                var negationPath = Path.Combine(root, "LeaForge", "test-pages", "selector-negation.html");
+                var negationPage = engine.Go(negationPath);
+                Eq(9, negationPage.Bs.Count, "general sibling and negation block count");
+                Eq(2, negationPage.Fs.Count, "negation field count");
+                Eq("#176b4d", negationPage.Bs[0].S.F, "negation argument specificity");
+                Eq("#2b3340", negationPage.Bs[1].S.F, "general sibling excludes source");
+                Eq(17, negationPage.Bs[1].S.Fs, "quoted tilde attribute selector");
+                Ok(negationPage.Bs[1].S.Bg == "#edf7f2" && negationPage.Bs[1].S.Td == "u" && !negationPage.Bs[1].S.I, "class attribute and first-child negation");
+                Ok(negationPage.Bs[2].S.F == "#176b4d" && negationPage.Bs[2].S.B && negationPage.Bs[2].S.I, "adjacent and general sibling combination");
+                Eq("#2b3340", negationPage.Bs[3].S.F, "general sibling target kind");
+                Ok(negationPage.Bs[4].S.F == "#176b4d" && negationPage.Bs[4].S.Bg == "#edf7f2" && negationPage.Bs[4].S.Td == "", "general sibling across intervening element");
+                Ok(negationPage.Bs[5].S.F == "#176b4d" && negationPage.Bs[5].S.Bg == "" && negationPage.Bs[5].S.Td == "u", "negated class selector");
+                Ok(negationPage.Bs[6].S.Bl == 3 && negationPage.Bs[6].S.Pl == 7, "later matching general sibling");
+                Ok(!negationPage.Bs[1].S.F.Equals("#c02050", StringComparison.OrdinalIgnoreCase), "negated universal matches nothing");
+                Ok(!negationPage.Fs[0].Ds && negationPage.Fs[0].S.B && negationPage.Fs[0].S.Bg == "#dff6e9", "negated disabled pseudo");
+                Ok(negationPage.Fs[1].Ds && negationPage.Fs[1].S.I && negationPage.Fs[1].S.F == "#8a4b22", "negated enabled pseudo");
+
                 var selectorStatePath = Path.Combine(root, "LeaForge", "test-pages", "selector-states.html");
                 var selectorStatePage = engine.Go(selectorStatePath);
                 Eq("#2b3340", selectorStatePage.S.F, "root pseudo inheritance");
@@ -417,6 +434,14 @@ namespace Lea.Tests
                     var thirdCard = BlockRect(view, view.At.Bs[7]);
                     Eq(firstCard.Left + 18, secondCard.Left, "adjacent selector second-card layout");
                     Eq(firstCard.Left + 18, thirdCard.Left, "adjacent selector third-card layout");
+                    view.Go(negationPath);
+                    Paint(view);
+                    Eq(9, view.At.Bs.Count, "general sibling and negation render blocks");
+                    Ok(view.Bc > view.At.Bs.Count, "negation fields paint separately");
+                    Ok(BlockRect(view, view.At.Bs[6]).Left > BlockRect(view, view.At.Bs[1]).Left, "general sibling border and padding layout");
+                    using (var combinedSelectorFont = RenderFont(view, "p", view.At.Bs[2].S)) Ok(HasFontStyle(combinedSelectorFont, FontStyle.Bold) && HasFontStyle(combinedSelectorFont, FontStyle.Italic), "combined sibling selector font");
+                    using (var enabledSelectorFont = RenderFont(view, "button", view.At.Bs[7].S)) Ok(HasFontStyle(enabledSelectorFont, FontStyle.Bold), "negated disabled rendered font");
+                    using (var disabledSelectorFont = RenderFont(view, "button", view.At.Bs[8].S)) Ok(HasFontStyle(disabledSelectorFont, FontStyle.Italic), "negated enabled rendered font");
                     view.Go(selectorStatePath);
                     Paint(view);
                     Eq(13, view.At.Bs.Count, "attribute and pseudo selector render blocks");
@@ -674,7 +699,7 @@ namespace Lea.Tests
                     Eq("url", urlError.K, "URL error kind");
                 }
 
-                Console.WriteLine("Lea smoke passed: min/max sizing, long-word breaking, compiled attribute and pseudo selectors, font families, text decoration, child and adjacent CSS selectors, white-space modes, overflow clipping, malformed HTML recovery, semantic blocks, nested lists, text alignment, line height, inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, font families, text decoration, child and adjacent CSS selectors, white-space modes, overflow clipping, malformed HTML recovery, semantic blocks, nested lists, text alignment, line height, inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)

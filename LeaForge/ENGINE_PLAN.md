@@ -54,7 +54,7 @@ fs      font size
 
 ## 4. CSS and layout
 
-1. Add selectors for tag, class, id, attributes, basic pseudo-classes, descendant, child, adjacent sibling, and inline styles. (Compiled compact `>` and `+` chains are active.)
+1. Add selectors for tag, class, id, attributes, basic pseudo-classes, negation, descendant, child, adjacent/general sibling, and inline styles. (Compiled compact `>`, `+`, and `~` chains are active.)
 2. Implement the cascade and inheritance with a small priority model. (First specificity/source-order cascade added.)
    (`link rel=stylesheet` and inline `style` blocks now enter that source order
    together; linked CSS uses cookies, compression, validators, and shared LRU caching.)
@@ -209,7 +209,14 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add general sibling selectors and selector negation.
+Add visibility and opacity.
+
+General sibling (`~`) chains scan the preceding element siblings once and keep
+the nearest compiled match. `:not(...)` accepts one simple selector containing
+tag, universal, ID, class, attribute, or an existing basic pseudo-class. Its
+argument contributes specificity directly, and the argument is compiled once
+with the rest of the rule. Complex selector lists and nested negation remain a
+later extension.
 
 `S.Wn/Wx/Hn/Hx` store positive pixel min/max dimensions. The shared layout
 clamps apply the declared size, maximum, and then minimum consistently to normal

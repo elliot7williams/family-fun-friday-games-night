@@ -105,16 +105,19 @@ and nested cell blocks. `S.Wb` uses `n/b/a/k` for normal, break-word,
 anywhere/break-all, and keep-all. These modes come from `word-break`,
 `overflow-wrap`, or `word-wrap`; `white-space:nowrap` still disables wrapping.
 
-Stylesheets accept descendant, direct-child (`>`), and adjacent-element (`+`)
-selectors. Compact chains such as `main>p+p` work without required spaces, and
-adjacent matching ignores formatting whitespace between HTML elements. Lea
-tokenizes these chains once per CSS rule and reuses them during tree matching.
+Stylesheets accept descendant, direct-child (`>`), adjacent-element (`+`), and
+general-sibling (`~`) selectors. Compact chains such as `main>p+p~p` work
+without required spaces, and sibling matching ignores formatting whitespace
+between HTML elements. Lea tokenizes these chains once per CSS rule and reuses
+them during tree matching.
 
 Simple selectors are also compiled once per rule. They support tag, universal,
 ID, class, attribute presence and the six common attribute-value operators,
 plus basic structural, link, and initial form-state pseudo-classes. Structural
 positions count element siblings and include type-aware fixed, odd, and even
-matching. Dynamic pointer and focus pseudo-classes are not yet exposed.
+matching. `:not(...)` compiles one simple-selector argument and uses that
+argument's specificity; complex arguments and dynamic pointer/focus states are
+not yet exposed.
 
 `S.Ff` carries up to eight CSS font-family fallbacks; `V` resolves and caches
 the first installed Windows family with a 32-entry bound. `S.Td` uses compact
