@@ -121,6 +121,26 @@ namespace Lea.Tests
                 Eq("h", whiteCell.S.Ov, "table overflow alias");
                 Eq("Cell    keeps spaces\nand wraps compact table text across more lines.", whiteCell.X, "table white-space preservation");
 
+                var sizingPath = Path.Combine(root, "LeaForge", "test-pages", "sizing-breaks.html");
+                var sizingPage = engine.Go(sizingPath);
+                Eq(10, sizingPage.Bs.Count, "sizing and word-break block count");
+                Eq(1, sizingPage.Fs.Count, "sizing field count");
+                Eq(120, sizingPage.Bs[1].S.W, "declared small width");
+                Eq(260, sizingPage.Bs[1].S.Wn, "minimum width alias");
+                Eq(520, sizingPage.Bs[2].S.W, "declared large width");
+                Eq(280, sizingPage.Bs[2].S.Wx, "maximum width alias");
+                Eq(20, sizingPage.Bs[3].S.H, "declared small height");
+                Eq(58, sizingPage.Bs[3].S.Hn, "minimum height alias");
+                Eq(120, sizingPage.Bs[4].S.H, "declared large height");
+                Eq(42, sizingPage.Bs[4].S.Hx, "maximum height alias");
+                Eq("n", sizingPage.Bs[5].S.Wb, "normal overflow-wrap alias");
+                Eq("b", sizingPage.Bs[6].S.Wb, "legacy word-wrap break alias");
+                Eq("a", sizingPage.Bs[7].S.Wb, "word-break all alias");
+                Eq(260, sizingPage.Fs[0].S.Wx, "field maximum width");
+                Eq(40, sizingPage.Fs[0].S.Hn, "field minimum height");
+                Eq(260, sizingPage.Bs[9].S.Wx, "table maximum width");
+                Eq("a", sizingPage.Bs[9].Tb.Rs[0].Cs[0].S.Wb, "table-cell anywhere wrap alias");
+
                 var selectorPath = Path.Combine(root, "LeaForge", "test-pages", "selectors.html");
                 var selectorPage = engine.Go(selectorPath);
                 Eq(12, selectorPage.Bs.Count, "relationship selector block count");
@@ -360,6 +380,35 @@ namespace Lea.Tests
                     Ok(whiteCellLines.Length > 2 && whiteCellBox.Height == 38, "table white-space layout");
                     Eq(whiteCellBox, ClipRect(view, whiteCellPart), "table cell overflow clip");
                     Eq(BlockRect(view, view.At.Bs[9]), ClipRect(view, view.At.Bs[9]), "scroll overflow clip");
+                    view.Go(sizingPath);
+                    Paint(view);
+                    Eq(260, BlockRect(view, view.At.Bs[1]).Width, "minimum width layout");
+                    Eq(280, BlockRect(view, view.At.Bs[2]).Width, "maximum width layout");
+                    Eq(58, BlockRect(view, view.At.Bs[3]).Height, "minimum height layout");
+                    var maxHeightBox = BlockRect(view, view.At.Bs[4]);
+                    var maxHeightLines = TextLines(view, view.At.Bs[4]);
+                    Eq(42, maxHeightBox.Height, "maximum height layout");
+                    Ok(maxHeightLines.Length > 2 && maxHeightLines[maxHeightLines.Length - 1].Bottom > maxHeightBox.Bottom, "maximum height keeps overflow layout");
+                    Eq(maxHeightBox, ClipRect(view, view.At.Bs[4]), "maximum height overflow clip");
+                    var normalBox = BlockRect(view, view.At.Bs[5]);
+                    var normalLines = TextLines(view, view.At.Bs[5]);
+                    Eq(1, normalLines.Length, "normal long word line count");
+                    Ok(normalLines[0].Right > normalBox.Right, "normal long word remains intact");
+                    var breakBox = BlockRect(view, view.At.Bs[6]);
+                    var breakLines = TextLines(view, view.At.Bs[6]);
+                    Ok(breakLines.Length > 2 && LinesFitWidth(breakLines, breakBox), "break-word bounded layout");
+                    var anywhereBox = BlockRect(view, view.At.Bs[7]);
+                    var anywhereLines = TextLines(view, view.At.Bs[7]);
+                    Ok(anywhereLines.Length > 1 && LinesFitWidth(anywhereLines, anywhereBox), "break-all bounded layout");
+                    Ok(anywhereLines[0].Right > breakLines[0].Right + 40, "break-all uses remaining line width");
+                    var fieldBox = BlockRect(view, view.At.Bs[8]);
+                    Eq(260, fieldBox.Width, "field maximum width layout");
+                    Eq(40, fieldBox.Height, "field minimum height layout");
+                    Eq(260, BlockRect(view, view.At.Bs[9]).Width, "table maximum width layout");
+                    var sizingCellPart = view.At.Bs[9].Tb.Rs[0].Cs[0].Bs[0];
+                    var sizingCellLines = TextLines(view, sizingCellPart);
+                    var sizingCellBox = ContainingCell(view, view.At.Bs[9], sizingCellLines[0]);
+                    Ok(sizingCellLines.Length > 1 && LinesFitWidth(sizingCellLines, sizingCellBox), "table-cell anywhere wrapping");
                     view.Go(selectorPath);
                     Paint(view);
                     Eq(12, view.At.Bs.Count, "relationship selector render blocks");
@@ -625,7 +674,7 @@ namespace Lea.Tests
                     Eq("url", urlError.K, "URL error kind");
                 }
 
-                Console.WriteLine("Lea smoke passed: compiled attribute and pseudo selectors, font families, text decoration, child and adjacent CSS selectors, white-space modes, overflow clipping, malformed HTML recovery, semantic blocks, nested lists, text alignment, line height, inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: min/max sizing, long-word breaking, compiled attribute and pseudo selectors, font families, text decoration, child and adjacent CSS selectors, white-space modes, overflow clipping, malformed HTML recovery, semantic blocks, nested lists, text alignment, line height, inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -799,6 +848,13 @@ namespace Lea.Tests
                 count++;
             }
             return count >= 2;
+        }
+
+        private static bool LinesFitWidth(Rectangle[] lines, Rectangle box)
+        {
+            if (lines.Length == 0 || box.IsEmpty) return false;
+            foreach (var line in lines) if (line.Left < box.Left || line.Right > box.Right) return false;
+            return true;
         }
 
         private static Font RenderFont(V view, string kind, S style, bool link = false, string baseKind = null)

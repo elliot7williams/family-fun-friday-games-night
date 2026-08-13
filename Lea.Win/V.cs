@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -286,8 +287,7 @@ namespace Lea.Win
             var left = style == null ? 0 : style.Ml + style.Pl + BorderWidth(style, style.Bl);
             var right = style == null ? 0 : style.Mr + style.Pr + BorderWidth(style, style.Br);
             var x = 20 + left;
-            var width = Math.Max(120, ClientSize.Width - x - 20 - right);
-            if (style != null && style.W > 0) width = Math.Min(width, style.W);
+            var width = ConstrainWidth(style, Math.Max(120, ClientSize.Width - x - 20 - right));
             var y = 18 + (style == null ? 0 : style.Mt + style.Pt + BorderWidth(style, style.Bt));
 
             using (var titleFont = BoxFont("#title", style, true))
@@ -329,8 +329,7 @@ namespace Lea.Win
                     y += bs == null ? 0 : bs.Mt;
                     var bx = x + ml;
                     var outerAvailable = Math.Max(40, width - ml - mr);
-                    var bw = Math.Max(1, outerAvailable - bl - br - pl - pr);
-                    if (bs != null && bs.W > 0) bw = Math.Min(bw, bs.W);
+                    var bw = ConstrainWidth(bs, Math.Max(1, outerAvailable - bl - br - pl - pr));
                     int height;
                     List<Ix> inline = null;
                     if (block.K == "img") height = PicSize(block, bw).Height;
@@ -352,7 +351,7 @@ namespace Lea.Win
                     {
                         using (var font = BoxFont(block.K, bs, false)) height = Measure(graphics, block.K == "li" ? "- " + block.X : block.X, font, bw);
                     }
-                    if (bs != null && bs.H > 0) height = bs.H;
+                    height = ConstrainHeight(bs, height);
                     var text = block.K == "li" ? "- " + block.X : block.X;
                     var link = inline == null && block.K == "a" ? block.U : null;
                     var outer = new Rectangle(bx, y, bw + pl + pr + bl + br, height + pt + pb + bt + bb);
@@ -386,8 +385,7 @@ namespace Lea.Win
             y += style == null ? 0 : style.Mt;
             var bx = x + ml;
             var available = Math.Max(40, width - ml - mr);
-            var tableWidth = Math.Max(1, available - bl - br - pl - pr);
-            if (style != null && style.W > 0) tableWidth = Math.Min(tableWidth, style.W);
+            var tableWidth = ConstrainWidth(style, Math.Max(1, available - bl - br - pl - pr));
             var contentX = bx + bl + pl;
             var contentY = y + bt + pt;
             var rowY = contentY;
@@ -416,8 +414,7 @@ namespace Lea.Win
                     var cellRight = contentX + tableWidth * rightColumn / columns;
                     var cellWidth = Math.Max(1, cellRight - cellLeft);
                     var cellBox = CellBox(cell.S, cellWidth);
-                    var height = CellContentHeight(graphics, cell, cellBox.Width);
-                    if (cell.S != null && cell.S.H > 0) height = SimpleCell(cell) ? cell.S.H : Math.Max(height, cell.S.H);
+                    var height = ConstrainHeight(cell.S, CellContentHeight(graphics, cell, cellBox.Width));
                     rowHeight = Math.Max(rowHeight, height + cellBox.Height);
                     column = rightColumn;
                 }
@@ -450,7 +447,7 @@ namespace Lea.Win
                 rowY += rowHeight;
             }
 
-            var contentHeight = Math.Max(rowY - contentY, style == null ? 0 : style.H);
+            var contentHeight = ConstrainHeight(style, rowY - contentY);
             var outerTable = new Rectangle(bx, y, tableWidth + pl + pr + bl + br, contentHeight + pt + pb + bt + bb);
             boxes.Insert(first, new Bx("table", "", null, style, outerTable, new Rectangle(contentX, contentY, tableWidth, contentHeight), false, block));
             return y + outerTable.Height + 8 + (style == null ? 0 : style.Mb);
@@ -493,13 +490,12 @@ namespace Lea.Win
                 var pr = style == null ? 0 : style.Pr;
                 var pb = style == null ? 0 : style.Pb;
                 var pl = style == null ? 0 : style.Pl;
-                var available = Math.Max(1, content.Width - ml - mr - bl - br - pl - pr);
-                if (style != null && style.W > 0) available = Math.Min(available, style.W);
+                var available = ConstrainWidth(style, Math.Max(1, content.Width - ml - mr - bl - br - pl - pr));
                 int textHeight;
                 List<Ix> flow = null;
                 if (part.K != "br" && NeedsFlow(part)) flow = InlineLayout(graphics, part, available, out textHeight);
                 else using (var font = BoxFont(part.K, style, false)) textHeight = part.K == "br" ? Math.Max(4, font.Height / 2) : Measure(graphics, CellText(part), font, available);
-                if (style != null && style.H > 0) textHeight = style.H;
+                textHeight = ConstrainHeight(style, textHeight);
                 y += mt;
                 var outer = new Rectangle(content.X + ml, y, available + pl + pr + bl + br, textHeight + pt + pb + bt + bb);
                 var inner = new Rectangle(outer.X + bl + pl, outer.Y + bt + pt, available, textHeight);
@@ -513,12 +509,11 @@ namespace Lea.Win
         {
             var style = part.S;
             var horizontal = style == null ? 0 : style.Ml + style.Mr + style.Pl + style.Pr + BorderWidth(style, style.Bl) + BorderWidth(style, style.Br);
-            var available = Math.Max(1, width - horizontal);
-            if (style != null && style.W > 0) available = Math.Min(available, style.W);
+            var available = ConstrainWidth(style, Math.Max(1, width - horizontal));
             int height;
             if (part.K != "br" && NeedsFlow(part)) InlineLayout(graphics, part, available, out height);
             else using (var font = BoxFont(part.K, style, false)) height = part.K == "br" ? Math.Max(4, font.Height / 2) : Measure(graphics, CellText(part), font, available);
-            if (style != null && style.H > 0) height = style.H;
+            height = ConstrainHeight(style, height);
             if (style != null) height += style.Mt + style.Mb + style.Pt + style.Pb + BorderWidth(style, style.Bt) + BorderWidth(style, style.Bb);
             return height + CellGap(part.K);
         }
@@ -567,6 +562,23 @@ namespace Lea.Win
             return Math.Max(font.Height, size.Height);
         }
 
+        private static int ConstrainWidth(S style, int available)
+        {
+            available = Math.Max(1, available);
+            var width = style != null && style.W > 0 ? Math.Min(available, style.W) : available;
+            if (style != null && style.Wx > 0) width = Math.Min(width, style.Wx);
+            if (style != null && style.Wn > 0) width = Math.Max(width, Math.Min(available, style.Wn));
+            return Math.Max(1, width);
+        }
+
+        private static int ConstrainHeight(S style, int natural)
+        {
+            var height = style != null && style.H > 0 ? style.H : Math.Max(1, natural);
+            if (style != null && style.Hx > 0) height = Math.Min(height, style.Hx);
+            if (style != null && style.Hn > 0) height = Math.Max(height, style.Hn);
+            return Math.Max(1, height);
+        }
+
         private List<Ix> InlineLayout(Graphics graphics, B block, int width, out int height)
         {
             int baseHeight;
@@ -580,7 +592,7 @@ namespace Lea.Win
 
             if (block.K == "li")
             {
-                AddInlineWord(graphics, lines, ref line, ref pending, InlineAtom(graphics, "li", "-", null, block.S, block.K), width, baseHeight, wrap);
+                AddInlineWord(graphics, lines, ref line, ref pending, InlineAtom(graphics, "li", "-", null, block.S, block.K), width, baseHeight, wrap, block.S == null ? "" : block.S.Wb);
                 pending = InlineAtom(graphics, "li", " ", null, block.S, block.K);
             }
 
@@ -667,7 +679,7 @@ namespace Lea.Win
                 var start = index;
                 while (index < value.Length && !Char.IsWhiteSpace(value[index])) index++;
                 var word = InlineAtom(graphics, kind, value.Substring(start, index - start), url, style, baseKind);
-                AddInlineWord(graphics, lines, ref line, ref pending, word, width, baseHeight, wrap);
+                AddInlineWord(graphics, lines, ref line, ref pending, word, width, baseHeight, wrap, style == null ? "" : style.Wb);
                 endedWithBreak = false;
             }
         }
@@ -695,7 +707,7 @@ namespace Lea.Win
                     index++;
                 }
                 var atom = InlineAtom(graphics, kind, text.ToString(), url, style, baseKind);
-                AddInlineWord(graphics, lines, ref line, ref pending, atom, width, baseHeight, wrap);
+                AddInlineWord(graphics, lines, ref line, ref pending, atom, width, baseHeight, wrap, style == null ? "" : style.Wb);
                 endedWithBreak = false;
             }
         }
@@ -708,7 +720,7 @@ namespace Lea.Win
             return index + 1 < value.Length && value[index + 1] == '\n' ? 2 : 1;
         }
 
-        private void AddInlineWord(Graphics graphics, List<Il> lines, ref Il line, ref Ia pending, Ia word, int width, int baseHeight, bool wrap)
+        private void AddInlineWord(Graphics graphics, List<Il> lines, ref Il line, ref Ia pending, Ia word, int width, int baseHeight, bool wrap, string mode)
         {
             if (!wrap)
             {
@@ -718,7 +730,8 @@ namespace Lea.Win
                 return;
             }
 
-            if (word.W <= width)
+            var breaking = String.IsNullOrEmpty(mode) ? "b" : mode;
+            if (breaking == "n" || breaking == "k")
             {
                 var gap = line.As.Count > 0 && pending != null ? pending.W : 0;
                 if (line.As.Count > 0 && line.W + gap + word.W > width)
@@ -732,21 +745,44 @@ namespace Lea.Win
                 return;
             }
 
-            if (line.As.Count > 0) FinishInlineLine(lines, ref line, baseHeight, false);
+            if (breaking != "a" && word.W <= width)
+            {
+                var gap = line.As.Count > 0 && pending != null ? pending.W : 0;
+                if (line.As.Count > 0 && line.W + gap + word.W > width)
+                {
+                    FinishInlineLine(lines, ref line, baseHeight, false);
+                    pending = null;
+                }
+                if (line.As.Count > 0 && pending != null) AddInlineAtom(line, pending);
+                AddInlineAtom(line, word);
+                pending = null;
+                return;
+            }
+
+            if (breaking == "b" && line.As.Count > 0) FinishInlineLine(lines, ref line, baseHeight, false);
+            if (breaking == "a" && line.As.Count > 0 && pending != null)
+            {
+                if (line.W + pending.W >= width) FinishInlineLine(lines, ref line, baseHeight, false);
+                else AddInlineAtom(line, pending);
+            }
             pending = null;
             var piece = new StringBuilder();
             var pieceWidth = 0;
-            foreach (var ch in word.X)
+            var elements = StringInfo.GetTextElementEnumerator(word.X);
+            while (elements.MoveNext())
             {
-                var character = InlineAtom(graphics, word.K, ch.ToString(), word.U, word.S, word.Z);
-                if (piece.Length > 0 && pieceWidth + character.W > width)
+                var text = elements.GetTextElement();
+                var character = InlineAtom(graphics, word.K, text, word.U, word.S, word.Z);
+                if (piece.Length > 0 && line.W + pieceWidth + character.W > width)
                 {
                     AddInlineAtom(line, InlineAtom(graphics, word.K, piece.ToString(), word.U, word.S, word.Z));
                     FinishInlineLine(lines, ref line, baseHeight, false);
                     piece.Clear();
                     pieceWidth = 0;
                 }
-                piece.Append(ch);
+                else if (piece.Length == 0 && line.As.Count > 0 && line.W + character.W > width)
+                    FinishInlineLine(lines, ref line, baseHeight, false);
+                piece.Append(text);
                 pieceWidth += character.W;
             }
             if (piece.Length > 0) AddInlineAtom(line, InlineAtom(graphics, word.K, piece.ToString(), word.U, word.S, word.Z));
@@ -782,7 +818,7 @@ namespace Lea.Win
         private static bool NeedsFlow(B block)
         {
             var style = block == null ? null : block.S;
-            return block != null && (block.Is.Count > 0 || (style != null && (style.Ta.Length > 0 || style.Lh > 0 || style.Lm > 0 || style.Ws.Length > 0 || style.Ov.Length > 0)));
+            return block != null && (block.Is.Count > 0 || (style != null && (style.Ta.Length > 0 || style.Lh > 0 || style.Lm > 0 || style.Ws.Length > 0 || style.Wb.Length > 0 || style.Ov.Length > 0)));
         }
 
         private static int CssLineHeight(S style, int nativeHeight)

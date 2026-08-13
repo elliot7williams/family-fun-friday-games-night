@@ -58,7 +58,7 @@ fs      font size
 2. Implement the cascade and inheritance with a small priority model. (First specificity/source-order cascade added.)
    (`link rel=stylesheet` and inline `style` blocks now enter that source order
    together; linked CSS uses cookies, compression, validators, and shared LRU caching.)
-3. Add colors, fonts, spacing, borders, width, height, display, and overflow. (Colors, fallback font families, underline/strike decorations, margins, padding, backgrounds, `display:none`, borders, pixel width/height, text alignment, line height, white-space modes, and clipped overflow are active.)
+3. Add colors, fonts, spacing, borders, width, height, display, and overflow. (Colors, fallback font families, underline/strike decorations, margins, padding, backgrounds, `display:none`, borders, pixel width/height bounds, text alignment, line height, word breaking, white-space modes, and clipped overflow are active.)
 4. Replace one-WinForms-control-per-node rendering with lightweight layout boxes. (Reusable `Bx` layout pass added.)
 5. Paint text, backgrounds, borders, links, controls, and images onto one surface. (Text, nested bold/italic inline runs, backgrounds, solid/dashed/dotted borders, links, images, and basic form controls are active.)
 6. Add scrolling and hit testing from layout boxes. (Visible-box painting and bounded vertical scrolling added.)
@@ -209,7 +209,14 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add min/max sizing and word breaking.
+Add general sibling selectors and selector negation.
+
+`S.Wn/Wx/Hn/Hx` store positive pixel min/max dimensions. The shared layout
+clamps apply the declared size, maximum, and then minimum consistently to normal
+blocks, fields, tables, and nested table content while keeping minimum widths
+inside the available viewport. `S.Wb` stores `n/b/a/k` for normal, emergency
+break-word, anywhere/break-all, and keep-all behavior. `word-break`,
+`overflow-wrap`, and legacy `word-wrap` all use the existing inline layout pass.
 
 Lea compiles every simple selector once when its stylesheet loads. Attribute
 presence plus `=`, `~=`, `|=`, `^=`, `$=`, and `*=` matching are active, as

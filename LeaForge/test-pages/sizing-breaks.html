@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Sizing and Word Breaking</title>
+  <style>
+    body { color: #26313b; }
+    p { margin: 4px 0; padding: 4px; border: 1px solid #9aa4af; }
+    .min-width { width: 120px; min-width: 260px; background: #edf7f2; }
+    .max-width { width: 520px; max-width: 280px; background: #eef4ff; }
+    .min-height { width: 300px; height: 20px; min-height: 58px; }
+    .max-height { width: 300px; height: 120px; max-height: 42px; overflow: hidden; }
+    .word-normal { width: 180px; overflow-wrap: normal; }
+    .word-break { width: 180px; word-wrap: break-word; }
+    .word-anywhere { width: 180px; word-break: break-all; }
+    input { width: 500px; max-width: 260px; min-height: 40px; }
+    table { width: 500px; max-width: 260px; border: 1px solid #18734b; }
+    td { padding: 4px; overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+  <h1>Sizing and word breaking</h1>
+  <p class="min-width">Minimum width overrides a smaller width.</p>
+  <p class="max-width">Maximum width caps a larger width.</p>
+  <p class="min-height">Minimum height overrides a smaller fixed height.</p>
+  <p class="max-height">Maximum height caps a larger fixed height and clips this extra text safely while the remaining words continue below the visible content box.</p>
+  <p class="word-normal">SupercalifragilisticexpialidociousLeaEngineNormal</p>
+  <p class="word-break">Lead SupercalifragilisticexpialidociousLeaEngineBreak</p>
+  <p class="word-anywhere">Lead SupercalifragilisticexpialidociousLeaEngineAnywhere</p>
+  <input type="text" value="Constrained field" aria-label="Constrained field">
+  <table><tr><td>TableSupercalifragilisticexpialidociousLeaEngineCell</td></tr></table>
+</body>
+</html>

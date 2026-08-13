@@ -965,6 +965,7 @@ namespace Lea.Engine
                 else if (name == "text-align") TextAlign(style, value);
                 else if (name == "line-height") LineHeight(style, value);
                 else if (name == "white-space") WhiteSpace(style, value);
+                else if (name == "word-break" || name == "overflow-wrap" || name == "word-wrap") WordBreak(style, value, name == "word-break");
                 else if (name == "overflow") Overflow(style, value);
                 else if (name == "display") style.D = value.ToLowerInvariant();
                 else if (name == "margin") Box(style, value, true);
@@ -979,6 +980,10 @@ namespace Lea.Engine
                 else if (name == "padding-left") style.Pl = Px(value);
                 else if (name == "width") style.W = Px(value);
                 else if (name == "height") style.H = Px(value);
+                else if (name == "min-width") style.Wn = Px(value);
+                else if (name == "max-width") style.Wx = Px(value);
+                else if (name == "min-height") style.Hn = Px(value);
+                else if (name == "max-height") style.Hx = Px(value);
                 else if (name == "border") Border(style, value, 0);
                 else if (name == "border-top") Border(style, value, 1);
                 else if (name == "border-right") Border(style, value, 2);
@@ -1084,6 +1089,15 @@ namespace Lea.Engine
             else if (mode == "pre") style.Ws = "p";
             else if (mode == "pre-wrap" || mode == "break-spaces") style.Ws = "pw";
             else if (mode == "pre-line") style.Ws = "pl";
+        }
+
+        private static void WordBreak(S style, string value, bool direct)
+        {
+            var mode = (value ?? "").Trim().ToLowerInvariant();
+            if (mode == "normal" || mode == "initial") style.Wb = "n";
+            else if (mode == "break-word") style.Wb = "b";
+            else if (mode == "anywhere" || (direct && mode == "break-all")) style.Wb = "a";
+            else if (direct && mode == "keep-all") style.Wb = "k";
         }
 
         private static void Overflow(S style, string value)

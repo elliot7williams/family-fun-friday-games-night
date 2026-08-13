@@ -40,8 +40,9 @@ text alignment using `l/c/r/j`; `Lh` is pixel line height and `Lm` is a bounded
 percentage multiplier. Lea accepts CSS pixel, percentage, and unitless line
 heights, then keeps each painted line tall enough for its largest font.
 `Ws` is white-space mode using `n/nw/p/pw/pl` for normal, nowrap, pre,
-pre-wrap, and pre-line. `Ov` is overflow using `v/h/c/a/s` for visible, hidden,
-clip, auto, and scroll.
+pre-wrap, and pre-line. `Wb` is word breaking using `n/b/a/k` for normal,
+break-word, anywhere/break-all, and keep-all. `Ov` is overflow using
+`v/h/c/a/s` for visible, hidden, clip, auto, and scroll.
 
 Text blocks keep compatible flattened text in `B.X`. When nested markup needs
 separate painting, `B.Is` exposes compact `Ir` inline runs; each run uses `K`
@@ -53,9 +54,11 @@ padding. `N.Up` links a document node to its parent for descendant and child
 selectors; `N.A` holds the attributes used by compiled attribute selectors;
 adjacent selectors walk the previous element sibling and ignore text. Pseudo
 selectors use the existing tree and field state, so they need no new public API.
-Pixel dimensions use `S.W` and `S.H`. Borders use `Bt/Br/Bb/Bl` for side
-widths and `Bc/Bs` for color and style. `V.Rb(index)` returns the cached outer
-border rectangle, while `V.Rc(index)` returns its content rectangle.
+Pixel dimensions use `S.W` and `S.H`; positive bounds use `Wn/Wx` for minimum
+and maximum width and `Hn/Hx` for minimum and maximum height. Borders use
+`Bt/Br/Bb/Bl` for side widths and `Bc/Bs` for color and style. `V.Rb(index)`
+returns the cached outer border rectangle, while `V.Rc(index)` returns its
+content rectangle.
 
 The WinForms view exposes `Dh` (document height), `Sy` (scroll position), and
 `Bc` (cached layout-box count) for compact host diagnostics. `Sc(delta)` moves

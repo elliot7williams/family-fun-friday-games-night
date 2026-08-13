@@ -99,6 +99,12 @@ spaces for `pre-line`, and disables soft wrapping for `nowrap`/`pre`. `S.Ov`
 uses `v/h/c/a/s`; non-visible modes clip glyph painting and link hit regions to
 the content box. Auto and scroll currently clip safely without inner scrollbars.
 
+Positive pixel bounds use `S.Wn/Wx/Hn/Hx` for minimum/maximum width and height.
+The WinForms layout applies the same clamp order to blocks, controls, tables,
+and nested cell blocks. `S.Wb` uses `n/b/a/k` for normal, break-word,
+anywhere/break-all, and keep-all. These modes come from `word-break`,
+`overflow-wrap`, or `word-wrap`; `white-space:nowrap` still disables wrapping.
+
 Stylesheets accept descendant, direct-child (`>`), and adjacent-element (`+`)
 selectors. Compact chains such as `main>p+p` work without required spaces, and
 adjacent matching ignores formatting whitespace between HTML elements. Lea
