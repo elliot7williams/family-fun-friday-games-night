@@ -9,9 +9,13 @@ namespace Lea.Engine
         internal Fi()
         {
             Os = new List<O>();
+            Fp = new List<string>();
             Pa = "";
             Lo = "";
             Hi = "";
+            Sp = "";
+            Ac = "";
+            En = "u";
             Vm = "";
             Ok = true;
         }
@@ -29,6 +33,10 @@ namespace Lea.Engine
         public string Pa { get; internal set; }
         public string Lo { get; internal set; }
         public string Hi { get; internal set; }
+        public string Sp { get; internal set; }
+        public string Ac { get; internal set; }
+        public bool Mu { get; internal set; }
+        public string En { get; internal set; }
         public bool Nv { get; internal set; }
         public bool Ok { get; set; }
         public string Vm { get; set; }
@@ -37,6 +45,7 @@ namespace Lea.Engine
         public string M { get; internal set; }
         public S S { get; internal set; }
         public IList<O> Os { get; private set; }
+        public IList<string> Fp { get; private set; }
         public int Si { get; set; }
 
         public string D { get; internal set; }

@@ -162,17 +162,20 @@ to the viewport. Positioned overflow clips table descendants, and overlapping
 paint, hover, and clicks use the same bounded z-index order. Nested containing
 blocks and full CSS stacking contexts remain future work.
 
-Basic fields are exposed through `P.Fs`. The view paints inactive controls on
-the Lea surface, reuses one editor for focused text, opens native choice menus
-for single-select fields, and provides `Rs`, `Sm`, and `SmA` for reset and
-URL-encoded GET/POST submission. Direct engine and view POST navigation use
-`Po`/`PoA`. `P.Q` preserves query text on both web and local pages.
+Fields are exposed through `P.Fs`. The view paints controls on the Lea surface,
+reuses one editor for focused text, opens native choice/file/color dialogs, and
+paints range controls as click-to-set sliders. `Rs`, `Sm`, and `SmA` cover reset,
+GET, URL-encoded POST, and multipart POST submission. Direct text POST uses
+`Po`/`PoA`; bounded binary POST uses `Pb`/`PbA`. `P.Q` preserves query text on
+both web and local pages.
 
-`Fi.Rq/Mn/Mx/Pa/Lo/Hi` expose parsed constraints; `Ok/Vm` report validity and
-`Nv` records validation bypass. Hosts may call `V.Vf(button)`, while `Sm/SmA`
-validate automatically and keep invalid pages in place without raising `Sb`.
-Required choices, lengths, safe patterns, email/URL syntax, numbers, and ISO
-dates are supported, together with CSS `:valid` and `:invalid` state.
+`Fi.Rq/Mn/Mx/Pa/Lo/Hi/Sp` expose parsed constraints; `Ok/Vm` report validity and
+`Nv` records validation bypass. `Fi.Fp/Ac/Mu/En` hold selected paths, accept,
+multiple, and compact encoding state. Hosts may call `V.Sf` and `V.Vf`, while
+`Sm/SmA` validate automatically and keep invalid pages in place without raising
+`Sb`. Files, steps, colors, multiple email addresses, time, month, week, and
+local datetime join the existing checks and CSS validity state. Uploads are
+bounded to eight files, 4 MB each and 8 MB combined.
 
 ## Experimental Firespider tab
 

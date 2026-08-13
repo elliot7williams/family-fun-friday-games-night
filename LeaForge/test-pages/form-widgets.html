@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Form Widgets</title>
+  <style>
+    body { color: #26313b; background: #ffffff; font-family: Segoe UI, sans-serif; }
+    h1 { color: #176b4d; }
+    input { width: 330px; margin: 3px 0; }
+    input[type="range"] { width: 280px; }
+    input[type="color"] { width: 190px; }
+    input:invalid { border: 2px solid #b91c1c; background: #fff1f2; }
+    button, input[type="reset"], input[type="submit"] { width: 130px; }
+  </style>
+</head>
+<body>
+  <h1>Files and richer fields</h1>
+  <form action="form-result.html" method="post" enctype="multipart/form-data">
+    <input type="file" name="upload" accept=".txt,text/plain" multiple required aria-label="Choose text files">
+    <input type="range" name="score" min="10" max="90" step="5" value="25" aria-label="Score">
+    <input type="color" name="accent" value="#176b4d" aria-label="Accent color">
+    <input type="time" name="start" min="09:00" max="17:00" value="10:30" aria-label="Start time">
+    <input type="month" name="month" value="2026-08" aria-label="Month">
+    <input type="week" name="week" value="2026-W33" aria-label="Week">
+    <input type="datetime-local" name="when" value="2026-08-13T19:30" aria-label="Date and time">
+    <input type="email" name="crew" value="lea@example.com,engine@example.com" multiple aria-label="Crew emails">
+    <input type="reset" value="Reset">
+    <input type="submit" name="send" value="Upload">
+  </form>
+</body>
+</html>

@@ -17,6 +17,7 @@ namespace Lea.Engine
         private const int MaxCachePage = 2 * 1024 * 1024;
         private const int MaxCss = 256 * 1024;
         private const int MaxStyleLinks = 8;
+        private const int MaxPost = 10 * 1024 * 1024;
         private readonly W web = new W();
         private readonly List<P> hs = new List<P>();
         private readonly Dictionary<string, Cr> cache = new Dictionary<string, Cr>(StringComparer.OrdinalIgnoreCase);
@@ -111,7 +112,20 @@ namespace Lea.Engine
         public P Po(Uri url, string data)
         {
             if (url == null) throw new ArgumentNullException("url");
-            var p = Post(url, data);
+            var p = Post(url, Encoding.UTF8.GetBytes(data ?? ""), "application/x-www-form-urlencoded; charset=utf-8");
+            Push(p);
+            return p;
+        }
+
+        public P Pb(string input, byte[] data, string type)
+        {
+            return Pb(ToUri(input, At == null ? null : At.U), data, type);
+        }
+
+        public P Pb(Uri url, byte[] data, string type)
+        {
+            if (url == null) throw new ArgumentNullException("url");
+            var p = Post(url, data, type);
             Push(p);
             return p;
         }
@@ -137,7 +151,20 @@ namespace Lea.Engine
         public async Task<P> PoA(Uri url, string data)
         {
             if (url == null) throw new ArgumentNullException("url");
-            var p = await PostA(url, data);
+            var p = await PostA(url, Encoding.UTF8.GetBytes(data ?? ""), "application/x-www-form-urlencoded; charset=utf-8");
+            Push(p);
+            return p;
+        }
+
+        public async Task<P> PbA(string input, byte[] data, string type)
+        {
+            return await PbA(ToUri(input, At == null ? null : At.U), data, type);
+        }
+
+        public async Task<P> PbA(Uri url, byte[] data, string type)
+        {
+            if (url == null) throw new ArgumentNullException("url");
+            var p = await PostA(url, data, type);
             Push(p);
             return p;
         }
@@ -216,15 +243,16 @@ namespace Lea.Engine
             }
         }
 
-        private P Post(Uri url, string data)
+        private P Post(Uri url, byte[] data, string type)
         {
             if (url.Scheme != Uri.UriSchemeHttp && url.Scheme != Uri.UriSchemeHttps)
                 throw new Er("url", url, 0, false, "Lea POST requires an HTTP or HTTPS address.", null);
+            if (data != null && data.Length > MaxPost) throw new ArgumentException("Lea request body is too large.", "data");
             try
             {
                 DropCache(url);
-                web.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded; charset=utf-8";
-                var bytes = web.UploadData(url, "POST", Encoding.UTF8.GetBytes(data ?? ""));
+                web.Headers[HttpRequestHeader.ContentType] = BodyType(type);
+                var bytes = web.UploadData(url, "POST", data ?? new byte[0]);
                 var reply = ReadWeb(url, bytes);
                 DropCache(reply.U);
                 return Parse(new Ld(reply, false));
@@ -238,17 +266,18 @@ namespace Lea.Engine
             finally { web.Headers.Remove(HttpRequestHeader.ContentType); }
         }
 
-        private async Task<P> PostA(Uri url, string data)
+        private async Task<P> PostA(Uri url, byte[] data, string type)
         {
             if (url.Scheme != Uri.UriSchemeHttp && url.Scheme != Uri.UriSchemeHttps)
                 throw new Er("url", url, 0, false, "Lea POST requires an HTTP or HTTPS address.", null);
+            if (data != null && data.Length > MaxPost) throw new ArgumentException("Lea request body is too large.", "data");
             if (busy) throw new InvalidOperationException("Lea is already loading a page.");
             busy = true;
             try
             {
                 DropCache(url);
-                web.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded; charset=utf-8";
-                var bytes = await web.UploadDataTaskAsync(url, "POST", Encoding.UTF8.GetBytes(data ?? ""));
+                web.Headers[HttpRequestHeader.ContentType] = BodyType(type);
+                var bytes = await web.UploadDataTaskAsync(url, "POST", data ?? new byte[0]);
                 var reply = ReadWeb(url, bytes);
                 DropCache(reply.U);
                 return await ParseA(new Ld(reply, false));
@@ -264,6 +293,15 @@ namespace Lea.Engine
                 busy = false;
                 web.Headers.Remove(HttpRequestHeader.ContentType);
             }
+        }
+
+        private static string BodyType(string type)
+        {
+            var value = (type ?? "").Trim();
+            if (value.Length == 0) return "application/octet-stream";
+            if (value.Length > 200 || value.IndexOf('\r') >= 0 || value.IndexOf('\n') >= 0)
+                throw new ArgumentException("Lea request content type is invalid.", "type");
+            return value;
         }
 
         private Ld Fetch(Uri url, bool fresh = false)
@@ -1862,12 +1900,20 @@ namespace Lea.Engine
             var buttonText = node.K == "button" ? Clean(NodeText(node)) : "";
             var value = node.K == "textarea" ? RawText(node).Trim() : node.Av("value");
             if (node.K == "button" && value.Length == 0) value = buttonText;
+            if (kind == "file") value = "";
             if ((kind == "checkbox" || kind == "radio") && value.Length == 0) value = "on";
+            if (kind == "color" && !Regex.IsMatch(value, "^#[0-9a-f]{6}$", RegexOptions.IgnoreCase)) value = "#000000";
+            if (kind == "range" && value.Length == 0) value = RangeDefault(node.Av("min"), node.Av("max"));
 
             var form = Parent(node, "form");
             Uri action = baseUrl;
             Uri formAction;
-            if (form != null && form.Av("action").Length > 0 && Uri.TryCreate(baseUrl, form.Av("action"), out formAction)) action = formAction;
+            var actionValue = node.Av("formaction");
+            if (actionValue.Length == 0 && form != null) actionValue = form.Av("action");
+            if (actionValue.Length > 0 && Uri.TryCreate(baseUrl, actionValue, out formAction)) action = formAction;
+            var method = node.Av("formmethod");
+            if (method.Length == 0 && form != null) method = form.Av("method");
+            method = method.Length == 0 ? "get" : method.Trim().ToLowerInvariant();
             int min;
             int max;
             var pattern = node.Av("pattern");
@@ -1889,10 +1935,14 @@ namespace Lea.Engine
                 Pa = pattern,
                 Lo = node.Av("min"),
                 Hi = node.Av("max"),
+                Sp = node.Av("step"),
+                Ac = node.Av("accept"),
+                Mu = node.A.ContainsKey("multiple"),
+                En = FormEncoding(node, form),
                 Nv = node.A.ContainsKey("formnovalidate") || (form != null && form.A.ContainsKey("novalidate")),
                 F = form,
                 U = action,
-                M = form == null || form.Av("method").Length == 0 ? "get" : form.Av("method").Trim().ToLowerInvariant(),
+                M = method,
                 S = style,
                 El = node
             };
@@ -1934,6 +1984,10 @@ namespace Lea.Engine
             target.Pa = source.Pa;
             target.Lo = source.Lo;
             target.Hi = source.Hi;
+            target.Sp = source.Sp;
+            target.Ac = source.Ac;
+            target.Mu = source.Mu;
+            target.En = source.En;
             target.Nv = source.Nv;
             target.Ok = source.Ok;
             target.Vm = source.Vm;
@@ -1990,7 +2044,24 @@ namespace Lea.Engine
         {
             var kind = node.Av("type").Trim().ToLowerInvariant();
             if (kind.Length == 0) return fallback;
-            return Regex.IsMatch(kind, "^(?:text|password|search|email|url|tel|number|date|checkbox|radio|file|submit|reset|button|hidden)$") ? kind : fallback;
+            return Regex.IsMatch(kind, "^(?:text|password|search|email|url|tel|number|range|color|date|time|month|week|datetime-local|checkbox|radio|file|submit|reset|button|hidden)$") ? kind : fallback;
+        }
+
+        private static string FormEncoding(N node, N form)
+        {
+            var value = node.Av("formenctype");
+            if (value.Length == 0 && form != null) value = form.Av("enctype");
+            return value.Trim().Equals("multipart/form-data", StringComparison.OrdinalIgnoreCase) ? "m" : "u";
+        }
+
+        private static string RangeDefault(string low, string high)
+        {
+            decimal lo;
+            decimal hi;
+            if (!Decimal.TryParse(low, NumberStyles.Float, CultureInfo.InvariantCulture, out lo)) lo = 0;
+            if (!Decimal.TryParse(high, NumberStyles.Float, CultureInfo.InvariantCulture, out hi)) hi = 100;
+            if (hi < lo) hi = lo;
+            return (lo + (hi - lo) / 2M).ToString(CultureInfo.InvariantCulture);
         }
 
         private static N Parent(N node, string kind)

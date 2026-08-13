@@ -52,6 +52,19 @@ namespace Lea.Tests
                 Ok(validationPage.Fs[0].Ok && validationPage.Fs[0].Vm.Length == 0, "initial validation state");
                 Eq("#176b4d", validationPage.Fs[0].S.Bc, "initial valid pseudo selector");
 
+                var widgetsPath = Path.Combine(root, "LeaForge", "test-pages", "form-widgets.html");
+                var widgetsPage = engine.Go(widgetsPath);
+                Eq(10, widgetsPage.Fs.Count, "richer widget field count");
+                Eq("file,range,color,time,month,week,datetime-local,email,reset,submit", Kinds(widgetsPage), "richer widget kinds");
+                Ok(widgetsPage.Fs[0].Rq && widgetsPage.Fs[0].Mu, "required multiple file aliases");
+                Eq(".txt,text/plain", widgetsPage.Fs[0].Ac, "file accept alias");
+                Eq(0, widgetsPage.Fs[0].Fp.Count, "file paths start private and empty");
+                Eq("m", widgetsPage.Fs[0].En, "multipart encoding alias");
+                Eq("5", widgetsPage.Fs[1].Sp, "range step alias");
+                Eq("25", widgetsPage.Fs[1].V, "range initial value");
+                Eq("#176b4d", widgetsPage.Fs[2].V, "color initial value");
+                Ok(widgetsPage.Fs[7].Mu, "multiple email alias");
+
                 var tablePage = engine.Go(Path.Combine(root, "LeaForge", "test-pages", "tables.html"));
                 Eq(3, tablePage.Bs.Count, "table page blocks");
                 Eq("table", tablePage.Bs[1].K, "table block kind");
@@ -476,6 +489,60 @@ namespace Lea.Tests
                     Eq("Lea Form Result", view.T, "novalidate GET result");
                     Ok(view.Q.Contains("skip=") && view.Q.Contains("bypass=yes"), "novalidate GET values");
                     Eq(2, submitEvents, "novalidate submit event");
+
+                    var uploadOne = Path.Combine(Path.GetTempPath(), "lea-widget-" + Guid.NewGuid().ToString("N") + "-one.txt");
+                    var uploadTwo = Path.Combine(Path.GetTempPath(), "lea-widget-" + Guid.NewGuid().ToString("N") + "-two.txt");
+                    File.WriteAllText(uploadOne, "Lea upload one", Encoding.UTF8);
+                    File.WriteAllText(uploadTwo, "Lea upload two", Encoding.UTF8);
+                    try
+                    {
+                        view.Go(widgetsPath);
+                        Paint(view);
+                        Eq(12, view.Bc, "richer widget layout boxes");
+                        var widgetSubmit = view.At.Fs[9];
+                        Ok(!view.Vf(widgetSubmit), "required file rejects empty selection");
+                        Eq("required", view.At.Fs[0].Vm, "required file validation message");
+                        Ok(view.Sf(view.At.Fs[0], uploadOne, uploadTwo), "bounded multiple file selection");
+                        Eq(2, view.At.Fs[0].Fp.Count, "selected file path count");
+                        Ok(view.At.Fs[0].V.Contains(Path.GetFileName(uploadOne)) && view.At.Fs[0].V.Contains(Path.GetFileName(uploadTwo)), "selected file display names");
+                        Ok(view.Vf(widgetSubmit), "valid richer widget form");
+
+                        view.At.Fs[1].V = "27";
+                        view.At.Fs[2].V = "green";
+                        view.At.Fs[3].V = "25:00";
+                        view.At.Fs[4].V = "2026-13";
+                        view.At.Fs[5].V = "2026-W99";
+                        view.At.Fs[6].V = "not-local-time";
+                        view.At.Fs[7].V = "lea@example.com,broken";
+                        Ok(!view.Vf(widgetSubmit), "richer typed values reject malformed input");
+                        Eq("step", view.At.Fs[1].Vm, "range step validation message");
+                        Eq("color", view.At.Fs[2].Vm, "color validation message");
+                        Eq("time", view.At.Fs[3].Vm, "time validation message");
+                        Eq("month", view.At.Fs[4].Vm, "month validation message");
+                        Eq("week", view.At.Fs[5].Vm, "week validation message");
+                        Eq("datetime-local", view.At.Fs[6].Vm, "local datetime validation message");
+                        Eq("email", view.At.Fs[7].Vm, "multiple email validation message");
+
+                        view.Rs(view.At.Fs[8]);
+                        Eq(0, view.At.Fs[0].Fp.Count, "reset clears selected files");
+                        Eq("25", view.At.Fs[1].V, "reset restores range");
+                        Eq("#176b4d", view.At.Fs[2].V, "reset restores color");
+                        Paint(view);
+                        var rangeBox = BlockRect(view, view.At.Bs[2]);
+                        var rangeX = rangeBox.Left + 12 + (rangeBox.Width - 24) * 3 / 4;
+                        Click(view, new Rectangle(rangeX - 1, rangeBox.Top + rangeBox.Height / 2 - 1, 2, 2));
+                        Eq("70", view.At.Fs[1].V, "range click snaps to compact step");
+                        using (var widgetPaint = Render(view))
+                        {
+                            var colorBox = BlockRect(view, view.At.Bs[3]);
+                            Ok(ColorDistance(widgetPaint.GetPixel(colorBox.Left + 12, colorBox.Top + colorBox.Height / 2), Color.FromArgb(23, 107, 77)) < 4, "color swatch paint");
+                        }
+                    }
+                    finally
+                    {
+                        File.Delete(uploadOne);
+                        File.Delete(uploadTwo);
+                    }
 
                     Check(view, root, "css.html", 3, 4);
                     Check(view, root, "images.html", 5, 6);
@@ -961,8 +1028,40 @@ namespace Lea.Tests
                         var asyncPost = postTask.GetAwaiter().GetResult();
                         Eq("Lea POST", asyncPost.T, "async POST result");
                         Ok(server.LastBody.Contains("flavor=mint") && server.LastBody.Contains("q=async+engine"), "async POST body: " + server.LastBody);
+
+                        var upload = Path.Combine(Path.GetTempPath(), "lea-multipart-" + Guid.NewGuid().ToString("N") + ".txt");
+                        File.WriteAllText(upload, "Lea multipart payload", new UTF8Encoding(false));
+                        try
+                        {
+                            var multipartUrl = new Uri(server.U, "?multipart-form=1");
+                            postView.Go(multipartUrl);
+                            Paint(postView);
+                            Eq("file,text,checkbox,submit", Kinds(postView.At), "multipart form fields");
+                            Ok(postView.At.Fs[0].Rq && postView.At.Fs[0].En == "m", "multipart file setup");
+                            Ok(postView.Sf(postView.At.Fs[0], upload), "multipart file selection");
+                            postView.At.Fs[1].V = "sync upload";
+                            var multipartPost = postView.Sm(postView.At.Fs[3]);
+                            Eq("Lea POST", multipartPost.T, "multipart POST result");
+                            Eq("POST", server.LastMethod, "multipart POST method");
+                            Ok(server.LastType.StartsWith("multipart/form-data; boundary=----Lea"), "multipart content type: " + server.LastType);
+                            Ok(server.LastBody.Contains("name=\"upload\"; filename=\"" + Path.GetFileName(upload) + "\"") && server.LastBody.Contains("Content-Type: text/plain") && server.LastBody.Contains("Lea multipart payload"), "multipart file part");
+                            Ok(server.LastBody.Contains("name=\"note\"") && server.LastBody.Contains("sync upload") && server.LastBody.Contains("name=\"keep\"") && server.LastBody.Contains("name=\"send\""), "multipart successful controls");
+
+                            postView.Go(multipartUrl);
+                            Ok(postView.Sf(postView.At.Fs[0], upload), "async multipart file selection");
+                            postView.At.Fs[1].V = "async upload";
+                            var multipartTask = postView.SmA(postView.At.Fs[3]);
+                            while (!multipartTask.IsCompleted)
+                            {
+                                Application.DoEvents();
+                                Thread.Sleep(2);
+                            }
+                            Eq("Lea POST", multipartTask.GetAwaiter().GetResult().T, "async multipart POST result");
+                            Ok(server.LastBody.Contains("async upload") && server.LastBody.Contains("Lea multipart payload"), "async multipart body");
+                        }
+                        finally { File.Delete(upload); }
                     }
-                    Eq(26, server.Hits, "form and POST request count");
+                    Eq(29, server.Hits, "form and POST request count");
 
                     var unavailable = Fails(delegate { net.Go(new Uri(server.U, "?status=503")); }, "HTTP 503");
                     Eq("http", unavailable.K, "HTTP error kind");
@@ -1041,7 +1140,7 @@ namespace Lea.Tests
                     Eq("url", urlError.K, "URL error kind");
                 }
 
-                Console.WriteLine("Lea smoke passed: absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, relative positioning and z-index stacking, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, font families, text decoration, child and adjacent CSS selectors, white-space modes, overflow clipping, malformed HTML recovery, semantic blocks, nested lists, text alignment, line height, inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, relative positioning and z-index stacking, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -1518,6 +1617,12 @@ namespace Lea.Tests
                                 links = many.ToString();
                             }
                             html = "<html><head><title>Lea Linked CSS</title>" + links + "</head><body><p class='remote'>Linked network CSS.</p></body></html>";
+                        }
+                        else if (request.IndexOf("multipart-form=1", StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            html = "<html><head><title>Lea Multipart Form</title></head><body><form action='/page?post=1' method='post' enctype='multipart/form-data'>" +
+                                "<input type='file' name='upload' accept='.txt' required><input name='note' value='lea'>" +
+                                "<input type='checkbox' name='keep' value='yes' checked><button type='submit' name='send' value='upload'>Upload</button></form></body></html>";
                         }
                         else if (request.IndexOf("form=1", StringComparison.OrdinalIgnoreCase) >= 0)
                         {

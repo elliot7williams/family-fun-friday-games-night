@@ -28,6 +28,9 @@ namespace Lea.Win
         private const int PicLimit = 24;
         private const int PicBytes = 4 * 1024 * 1024;
         private const int FontLimit = 32;
+        private const int UploadFiles = 8;
+        private const int UploadFileBytes = 4 * 1024 * 1024;
+        private const int UploadBytes = 8 * 1024 * 1024;
         private int sy;
         private int docHeight;
         private int layoutBottom;
@@ -104,6 +107,13 @@ namespace Lea.Win
             finally { Cursor = Cursors.Default; }
         }
 
+        public P Pb(Uri url, byte[] data, string type)
+        {
+            Cursor = Cursors.WaitCursor;
+            try { return Show(e.Pb(url, data, type), true); }
+            finally { Cursor = Cursors.Default; }
+        }
+
         public async Task<P> GoA(string input)
         {
             Cursor = Cursors.WaitCursor;
@@ -143,6 +153,22 @@ namespace Lea.Win
             try
             {
                 var page = Show(await e.PoA(url, data), false);
+                await PicsA(page);
+                Dirty();
+                Invalidate();
+                if (Done != null) Done(this, EventArgs.Empty);
+                return page;
+            }
+            finally { Cursor = Cursors.Default; }
+        }
+
+        public async Task<P> PbA(Uri url, byte[] data, string type)
+        {
+            Cursor = Cursors.WaitCursor;
+            picStop = false;
+            try
+            {
+                var page = Show(await e.PbA(url, data, type), false);
                 await PicsA(page);
                 Dirty();
                 Invalidate();
@@ -1149,6 +1175,20 @@ namespace Lea.Win
                 return;
             }
 
+            if (field.K == "range")
+            {
+                using (var brush = new SolidBrush(background)) graphics.FillRectangle(brush, rect);
+                var rangeBorder = field.Ok ? Color.FromArgb(165, 165, 165) : Color.FromArgb(185, 28, 28);
+                using (var pen = new Pen(PaintColor(rangeBorder, opacity), field.Ok ? 1F : 2F)) graphics.DrawRectangle(pen, rect.X, rect.Y, rect.Width - 1, rect.Height - 1);
+                var track = new Rectangle(rect.X + 12, rect.Top + rect.Height / 2 - 2, Math.Max(1, rect.Width - 24), 4);
+                var thumbX = track.Left + (int)Math.Round((track.Width - 1) * RangeRatio(field));
+                using (var brush = new SolidBrush(PaintColor(Color.FromArgb(205, 210, 216), opacity))) graphics.FillRectangle(brush, track);
+                using (var brush = new SolidBrush(PaintColor(disabled ? Color.Gray : Color.FromArgb(0, 102, 204), opacity))) graphics.FillRectangle(brush, new Rectangle(track.Left, track.Top, Math.Max(1, thumbX - track.Left), track.Height));
+                using (var brush = new SolidBrush(PaintColor(disabled ? Color.DarkGray : Color.White, opacity))) graphics.FillEllipse(brush, thumbX - 7, track.Top - 6, 14, 14);
+                using (var pen = new Pen(PaintColor(rangeBorder, opacity))) graphics.DrawEllipse(pen, thumbX - 7, track.Top - 6, 14, 14);
+                return;
+            }
+
             using (var brush = new SolidBrush(background)) graphics.FillRectangle(brush, rect);
             var border = !field.Ok ? Color.FromArgb(185, 28, 28) : box.K == "button" ? Color.FromArgb(145, 145, 145) : Color.FromArgb(165, 165, 165);
             using (var pen = new Pen(PaintColor(border, opacity), field.Ok ? 1F : 2F)) graphics.DrawRectangle(pen, rect.X + (field.Ok ? 0 : 1), rect.Y + (field.Ok ? 0 : 1), rect.Width - (field.Ok ? 1 : 3), rect.Height - (field.Ok ? 1 : 3));
@@ -1160,15 +1200,44 @@ namespace Lea.Win
             var textColor = placeholder ? Color.FromArgb(130, 130, 130) : foreground;
             var flags = box.K == "button" ? TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding : TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak | TextFormatFlags.NoPadding;
             var pad = box.K == "button" ? 2 : 7;
-            var reserve = field.K == "select" ? 24 : 0;
+            var reserve = field.K == "select" ? 24 : field.K == "file" ? 76 : 0;
+            var textLeft = rect.X + pad;
             if (field.K == "select")
             {
                 var middle = rect.Top + rect.Height / 2;
                 var arrow = new Point[] { new Point(rect.Right - 17, middle - 2), new Point(rect.Right - 7, middle - 2), new Point(rect.Right - 12, middle + 4) };
                 using (var brush = new SolidBrush(PaintColor(foreground, opacity))) graphics.FillPolygon(brush, arrow);
             }
+            else if (field.K == "file")
+            {
+                var button = new Rectangle(Math.Max(rect.Left, rect.Right - 72), rect.Top + 3, Math.Min(68, rect.Width), Math.Max(1, rect.Height - 6));
+                using (var brush = new SolidBrush(PaintColor(Color.FromArgb(240, 242, 245), opacity))) graphics.FillRectangle(brush, button);
+                using (var pen = new Pen(PaintColor(Color.FromArgb(145, 145, 145), opacity))) graphics.DrawRectangle(pen, button.X, button.Y, Math.Max(0, button.Width - 1), Math.Max(0, button.Height - 1));
+                using (var font = BoxFont(box.K, field.S, false))
+                    PaintText(graphics, "Browse", font, button, foreground, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding, opacity);
+            }
+            else if (field.K == "color")
+            {
+                var swatch = new Rectangle(rect.X + 5, rect.Y + 5, Math.Min(24, Math.Max(1, rect.Width - 10)), Math.Max(1, rect.Height - 10));
+                using (var brush = new SolidBrush(PaintColor(CssColor(field.V, Color.Black), opacity))) graphics.FillRectangle(brush, swatch);
+                using (var pen = new Pen(PaintColor(Color.FromArgb(120, 120, 120), opacity))) graphics.DrawRectangle(pen, swatch.X, swatch.Y, Math.Max(0, swatch.Width - 1), Math.Max(0, swatch.Height - 1));
+                textLeft += 30;
+            }
             using (var font = BoxFont(box.K, field.S, false))
-                PaintText(graphics, box.K == "button" ? box.X : text, font, new Rectangle(rect.X + pad, rect.Y + 3, Math.Max(1, rect.Width - (pad * 2) - reserve), Math.Max(1, rect.Height - 6)), textColor, flags, opacity);
+                PaintText(graphics, box.K == "button" ? box.X : text, font, new Rectangle(textLeft, rect.Y + 3, Math.Max(1, rect.Right - textLeft - pad - reserve), Math.Max(1, rect.Height - 6)), textColor, flags, opacity);
+        }
+
+        private static double RangeRatio(Fi field)
+        {
+            decimal low;
+            decimal high;
+            decimal value;
+            if (!Decimal.TryParse(field.Lo, NumberStyles.Float, CultureInfo.InvariantCulture, out low)) low = 0;
+            if (!Decimal.TryParse(field.Hi, NumberStyles.Float, CultureInfo.InvariantCulture, out high)) high = 100;
+            if (!Decimal.TryParse(field.V, NumberStyles.Float, CultureInfo.InvariantCulture, out value)) value = low;
+            if (high <= low) return 0;
+            value = Math.Max(low, Math.Min(high, value));
+            return (double)((value - low) / (high - low));
         }
 
         private async Task PicsA(P page)
@@ -1287,7 +1356,7 @@ namespace Lea.Win
             }
             try
             {
-                if (hit.B != null) await FieldClickA(hit.B);
+                if (hit.B != null) await FieldClickA(hit.B, e.Location);
                 else if (hit.U != null)
                 {
                     EndEdit(false);
@@ -1298,7 +1367,7 @@ namespace Lea.Win
             catch { Cursor = Cursors.Default; }
         }
 
-        private async Task FieldClickA(Bx box)
+        private async Task FieldClickA(Bx box, Point point)
         {
             var field = box.B.I;
             if (field == null || field.Ds) return;
@@ -1329,6 +1398,9 @@ namespace Lea.Win
                 OnEdited();
             }
             else if (field.K == "select") ShowChoices(field, box);
+            else if (field.K == "file") ChooseFiles(field);
+            else if (field.K == "range") SetRange(field, box, point);
+            else if (field.K == "color") ChooseColor(field);
             else if (field.K == "reset") Rs(field);
             else if (field.K == "submit") await SmA(field);
             else if (field.K == "button" && Sb != null) Sb(this, EventArgs.Empty);
@@ -1337,7 +1409,69 @@ namespace Lea.Win
 
         private static bool CanEdit(Fi field)
         {
-            return field != null && field.K != "checkbox" && field.K != "radio" && field.K != "select" && field.K != "submit" && field.K != "reset" && field.K != "button" && field.K != "file";
+            return field != null && field.K != "checkbox" && field.K != "radio" && field.K != "select" && field.K != "submit" && field.K != "reset" && field.K != "button" && field.K != "file" && field.K != "range" && field.K != "color";
+        }
+
+        private void ChooseFiles(Fi field)
+        {
+            using (var dialog = new OpenFileDialog())
+            {
+                dialog.Multiselect = field.Mu;
+                dialog.CheckFileExists = true;
+                dialog.RestoreDirectory = true;
+                dialog.Filter = AcceptFilter(field.Ac);
+                if (dialog.ShowDialog(FindForm()) == DialogResult.OK) Sf(field, dialog.FileNames);
+            }
+        }
+
+        private static string AcceptFilter(string accept)
+        {
+            var patterns = new List<string>();
+            foreach (var raw in (accept ?? "").Split(','))
+            {
+                var value = raw.Trim().ToLowerInvariant();
+                if (Regex.IsMatch(value, "^\\.[a-z0-9]{1,12}$")) patterns.Add("*" + value);
+                else if (value == "image/*") patterns.AddRange(new[] { "*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp", "*.ico" });
+                else if (value == "text/*" || value == "text/plain") patterns.AddRange(new[] { "*.txt", "*.csv", "*.html", "*.css", "*.js", "*.json", "*.xml" });
+                else if (value == "application/pdf") patterns.Add("*.pdf");
+            }
+            return patterns.Count == 0 ? "All files|*.*" : "Accepted files|" + String.Join(";", patterns.ToArray()) + "|All files|*.*";
+        }
+
+        private void SetRange(Fi field, Bx box, Point point)
+        {
+            var rect = box.C;
+            if (!box.Fx) rect.Offset(0, -sy);
+            decimal low;
+            decimal high;
+            decimal step;
+            if (!Decimal.TryParse(field.Lo, NumberStyles.Float, CultureInfo.InvariantCulture, out low)) low = 0;
+            if (!Decimal.TryParse(field.Hi, NumberStyles.Float, CultureInfo.InvariantCulture, out high)) high = 100;
+            if (high < low) high = low;
+            if (!Decimal.TryParse(field.Sp, NumberStyles.Float, CultureInfo.InvariantCulture, out step) || step <= 0) step = 1;
+            var width = Math.Max(1, rect.Width - 24);
+            var ratio = Math.Max(0D, Math.Min(1D, (point.X - rect.Left - 12D) / width));
+            var raw = low + (high - low) * (decimal)ratio;
+            var steps = Math.Round((raw - low) / step, 0, MidpointRounding.AwayFromZero);
+            var value = Math.Max(low, Math.Min(high, low + steps * step));
+            field.V = value.ToString(CultureInfo.InvariantCulture);
+            var restyle = ClearValidity(field);
+            OnEdited();
+            if (restyle) Restyle(); else Invalidate();
+        }
+
+        private void ChooseColor(Fi field)
+        {
+            using (var dialog = new ColorDialog())
+            {
+                dialog.FullOpen = true;
+                dialog.Color = CssColor(field.V, Color.Black);
+                if (dialog.ShowDialog(FindForm()) != DialogResult.OK) return;
+                field.V = String.Format(CultureInfo.InvariantCulture, "#{0:X2}{1:X2}{2:X2}", dialog.Color.R, dialog.Color.G, dialog.Color.B);
+                var restyle = ClearValidity(field);
+                OnEdited();
+                if (restyle) Restyle(); else Invalidate();
+            }
         }
 
         private void ShowChoices(Fi field, Bx box)
@@ -1485,12 +1619,42 @@ namespace Lea.Win
             ed.Visible = false;
         }
 
+        public bool Sf(Fi field, params string[] paths)
+        {
+            if (At == null || field == null || field.K != "file" || field.Ds || !At.Fs.Contains(field)) return false;
+            var selected = new List<string>();
+            long total = 0;
+            foreach (var value in paths ?? new string[0])
+            {
+                if (String.IsNullOrWhiteSpace(value)) continue;
+                string path;
+                try { path = Path.GetFullPath(value); }
+                catch { return false; }
+                if (!File.Exists(path) || selected.Count >= UploadFiles || (!field.Mu && selected.Count > 0)) return false;
+                var length = new FileInfo(path).Length;
+                if (length < 0 || length > UploadFileBytes || total + length > UploadBytes) return false;
+                selected.Add(path);
+                total += length;
+            }
+
+            field.Fp.Clear();
+            foreach (var path in selected) field.Fp.Add(path);
+            var names = new string[selected.Count];
+            for (var i = 0; i < selected.Count; i++) names[i] = Path.GetFileName(selected[i]);
+            field.V = String.Join("; ", names);
+            var restyle = ClearValidity(field);
+            OnEdited();
+            if (restyle) Restyle(); else Invalidate();
+            return true;
+        }
+
         public void Rs(Fi button)
         {
             if (At == null || button == null || button.F == null) return;
             foreach (var field in At.Fs)
             {
                 if (!Object.ReferenceEquals(field.F, button.F)) continue;
+                field.Fp.Clear();
                 field.V = field.D;
                 field.C = field.Dc;
                 field.Si = field.Di;
@@ -1504,22 +1668,33 @@ namespace Lea.Win
         {
             EndEdit(false);
             if (button == null || (!button.Nv && !Vf(button))) return At;
+            if (!ValidForm(button)) return At;
             var data = FormData(button);
-            if (data == null) return At;
+            var multipart = button.M == "post" && button.En == "m" && CanPost(button.U) ? MultipartData(button) : null;
             if (Sb != null) Sb(this, EventArgs.Empty);
             if (button.M == "get") return Go(FormUri(button, data));
-            return button.M == "post" && CanPost(button.U) ? Po(button.U, data) : At;
+            if (button.M != "post" || !CanPost(button.U)) return At;
+            if (button.En != "m") return Po(button.U, data);
+            return Pb(button.U, multipart.B, multipart.Ct);
         }
 
         public async Task<P> SmA(Fi button)
         {
             EndEdit(false);
             if (button == null || (!button.Nv && !Vf(button))) return At;
+            if (!ValidForm(button)) return At;
             var data = FormData(button);
-            if (data == null) return At;
+            var multipart = button.M == "post" && button.En == "m" && CanPost(button.U) ? MultipartData(button) : null;
             if (Sb != null) Sb(this, EventArgs.Empty);
             if (button.M == "get") return await GoA(FormUri(button, data));
-            return button.M == "post" && CanPost(button.U) ? await PoA(button.U, data) : At;
+            if (button.M != "post" || !CanPost(button.U)) return At;
+            if (button.En != "m") return await PoA(button.U, data);
+            return await PbA(button.U, multipart.B, multipart.Ct);
+        }
+
+        private bool ValidForm(Fi button)
+        {
+            return At != null && button != null && button.F != null && button.U != null && (button.M == "get" || button.M == "post");
         }
 
         public bool Vf(Fi button)
@@ -1540,10 +1715,11 @@ namespace Lea.Win
 
         private string FieldError(Fi field)
         {
-            if (field == null || field.Ds || field.Ro || field.K == "submit" || field.K == "reset" || field.K == "button" || field.K == "file") return "";
+            if (field == null || field.Ds || field.Ro || field.K == "submit" || field.K == "reset" || field.K == "button") return "";
             var value = field.V ?? "";
             if (field.Rq)
             {
+                if (field.K == "file" && field.Fp.Count == 0) return "required";
                 if (field.K == "checkbox" && !field.C) return "required";
                 if (field.K == "radio")
                 {
@@ -1554,15 +1730,41 @@ namespace Lea.Win
                 }
                 else if (value.Length == 0) return "required";
             }
+            if (field.K == "file") return FileError(field);
             if (value.Length == 0 || field.K == "checkbox" || field.K == "radio" || field.K == "select") return "";
-            if (field.K == "email" && !SafeMatch(value, "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) return "email";
+            if (field.K == "email")
+            {
+                var addresses = field.Mu ? value.Split(',') : new[] { value };
+                foreach (var addressValue in addresses)
+                    if (!SafeMatch(addressValue.Trim(), "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) return "email";
+            }
             Uri address;
             if (field.K == "url" && !Uri.TryCreate(value, UriKind.Absolute, out address)) return "url";
             if (field.Mn > 0 && value.Length < field.Mn) return "short";
             if (field.Mx > 0 && value.Length > field.Mx) return "long";
             if (field.Pa.Length > 0 && !SafeMatch(value, "^(?:" + field.Pa + ")$", true)) return "pattern";
-            if (field.K == "number") return NumberError(field, value);
+            if (field.K == "number" || field.K == "range") return NumberError(field, value);
+            if (field.K == "color" && !SafeMatch(value, "^#[0-9a-fA-F]{6}$")) return "color";
             if (field.K == "date") return DateError(field, value);
+            if (field.K == "time" || field.K == "month" || field.K == "week" || field.K == "datetime-local") return TemporalError(field, value);
+            return "";
+        }
+
+        private static string FileError(Fi field)
+        {
+            if ((!field.Mu && field.Fp.Count > 1) || field.Fp.Count > UploadFiles) return "files";
+            long total = 0;
+            foreach (var path in field.Fp)
+            {
+                try
+                {
+                    if (!File.Exists(path)) return "file";
+                    var length = new FileInfo(path).Length;
+                    if (length > UploadFileBytes || total + length > UploadBytes) return "large";
+                    total += length;
+                }
+                catch { return "file"; }
+            }
             return "";
         }
 
@@ -1573,6 +1775,13 @@ namespace Lea.Win
             decimal bound;
             if (Decimal.TryParse(field.Lo, NumberStyles.Float, CultureInfo.InvariantCulture, out bound) && number < bound) return "min";
             if (Decimal.TryParse(field.Hi, NumberStyles.Float, CultureInfo.InvariantCulture, out bound) && number > bound) return "max";
+            decimal step;
+            if (field.Sp != "any" && Decimal.TryParse(field.Sp, NumberStyles.Float, CultureInfo.InvariantCulture, out step) && step > 0)
+            {
+                decimal basis;
+                if (!Decimal.TryParse(field.Lo, NumberStyles.Float, CultureInfo.InvariantCulture, out basis)) basis = 0;
+                if ((number - basis) % step != 0) return "step";
+            }
             return "";
         }
 
@@ -1583,6 +1792,27 @@ namespace Lea.Win
             DateTime bound;
             if (DateTime.TryParseExact(field.Lo, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out bound) && date < bound) return "min";
             if (DateTime.TryParseExact(field.Hi, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out bound) && date > bound) return "max";
+            return "";
+        }
+
+        private static string TemporalError(Fi field, string value)
+        {
+            var format = field.K == "time" ? new[] { "HH:mm", "HH:mm:ss", "HH:mm:ss.FFFFFFF" } :
+                field.K == "month" ? new[] { "yyyy-MM" } :
+                field.K == "datetime-local" ? new[] { "yyyy-MM-dd'T'HH:mm", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss.FFFFFFF" } : null;
+            if (field.K == "week")
+            {
+                var match = Regex.Match(value, "^(?<y>[0-9]{4})-W(?<w>[0-9]{2})$", RegexOptions.CultureInvariant);
+                int week;
+                if (!match.Success || !Int32.TryParse(match.Groups["w"].Value, out week) || week < 1 || week > 53) return "week";
+            }
+            else
+            {
+                DateTime parsed;
+                if (!DateTime.TryParseExact(value, format, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsed)) return field.K;
+            }
+            if (field.Lo.Length > 0 && String.CompareOrdinal(value, field.Lo) < 0) return "min";
+            if (field.Hi.Length > 0 && String.CompareOrdinal(value, field.Hi) > 0) return "max";
             return "";
         }
 
@@ -1612,9 +1842,21 @@ namespace Lea.Win
 
         private string FormData(Fi button)
         {
-            if (At == null || button == null || button.F == null || button.U == null || (button.M != "get" && button.M != "post")) return null;
-
             var values = new List<string>();
+            foreach (var field in FormFields(button))
+            {
+                if (field.K == "file")
+                {
+                    foreach (var path in field.Fp) values.Add(FormEncode(field.N) + "=" + FormEncode(Path.GetFileName(path)));
+                    continue;
+                }
+                values.Add(FormEncode(field.N) + "=" + FormEncode(field.V ?? ""));
+            }
+            return String.Join("&", values.ToArray());
+        }
+
+        private IEnumerable<Fi> FormFields(Fi button)
+        {
             foreach (var field in At.Fs)
             {
                 if (!Object.ReferenceEquals(field.F, button.F) || field.Ds || field.N.Length == 0) continue;
@@ -1625,9 +1867,65 @@ namespace Lea.Win
                     if (index >= 0 && field.Os[index].Ds) continue;
                 }
                 if (field.K == "reset" || field.K == "button" || (field.K == "submit" && field != button)) continue;
-                values.Add(FormEncode(field.N) + "=" + FormEncode(field.V ?? ""));
+                yield return field;
             }
-            return String.Join("&", values.ToArray());
+        }
+
+        private Mp MultipartData(Fi button)
+        {
+            var boundary = "----Lea" + Guid.NewGuid().ToString("N");
+            using (var output = new MemoryStream())
+            {
+                foreach (var field in FormFields(button))
+                {
+                    if (field.K == "file")
+                    {
+                        foreach (var path in field.Fp)
+                        {
+                            var data = File.ReadAllBytes(path);
+                            if (data.Length > UploadFileBytes) throw new InvalidDataException("Lea upload file is too large.");
+                            WriteText(output, "--" + boundary + "\r\nContent-Disposition: form-data; name=\"" + HeaderValue(field.N) + "\"; filename=\"" + HeaderValue(Path.GetFileName(path)) + "\"\r\nContent-Type: " + FileType(path) + "\r\n\r\n");
+                            output.Write(data, 0, data.Length);
+                            WriteText(output, "\r\n");
+                        }
+                    }
+                    else
+                    {
+                        WriteText(output, "--" + boundary + "\r\nContent-Disposition: form-data; name=\"" + HeaderValue(field.N) + "\"\r\n\r\n" + (field.V ?? "") + "\r\n");
+                    }
+                    if (output.Length > UploadBytes + 65536) throw new InvalidDataException("Lea multipart request is too large.");
+                }
+                WriteText(output, "--" + boundary + "--\r\n");
+                return new Mp(output.ToArray(), "multipart/form-data; boundary=" + boundary);
+            }
+        }
+
+        private static void WriteText(Stream stream, string value)
+        {
+            var data = Encoding.UTF8.GetBytes(value ?? "");
+            stream.Write(data, 0, data.Length);
+        }
+
+        private static string HeaderValue(string value)
+        {
+            return (value ?? "").Replace("\r", "").Replace("\n", "").Replace("\"", "%22");
+        }
+
+        private static string FileType(string path)
+        {
+            switch (Path.GetExtension(path).ToLowerInvariant())
+            {
+                case ".txt": return "text/plain";
+                case ".csv": return "text/csv";
+                case ".html": case ".htm": return "text/html";
+                case ".css": return "text/css";
+                case ".json": return "application/json";
+                case ".pdf": return "application/pdf";
+                case ".png": return "image/png";
+                case ".jpg": case ".jpeg": return "image/jpeg";
+                case ".gif": return "image/gif";
+                default: return "application/octet-stream";
+            }
         }
 
         private static Uri FormUri(Fi button, string data)
@@ -1763,6 +2061,18 @@ namespace Lea.Win
                 pics.Clear();
             }
             base.Dispose(disposing);
+        }
+
+        private sealed class Mp
+        {
+            public readonly byte[] B;
+            public readonly string Ct;
+
+            public Mp(byte[] body, string type)
+            {
+                B = body;
+                Ct = type;
+            }
         }
 
         private sealed class Bx

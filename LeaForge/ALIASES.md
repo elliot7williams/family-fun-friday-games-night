@@ -103,12 +103,22 @@ hold reset defaults. Pages expose fields through `P.Fs`, while `B.I` links a
 paint block to its field. The WinForms view raises `Ed` for edits and `Sb` for
 form actions.
 
+File and richer field aliases stay short: `Fp` contains selected local file
+paths, `Ac` is the accept hint, `Mu` enables multiple files or email addresses,
+`Sp` is the numeric/range step, and `En` is `u/m` for URL-encoded or multipart.
+`V.Sf(field, paths)` safely selects up to eight existing files, with a 4 MB
+per-file and 8 MB combined limit. HTML-provided file values are ignored. Range
+fields paint as click-to-set sliders; color fields paint a swatch and open the
+native color picker. Time, month, week, and local datetime remain compact text
+editors with type-aware validation.
+
 Validation metadata remains short: `Rq` is required, `Mn/Mx` are text-length
 bounds, `Pa` is a bounded pattern, and `Lo/Hi` hold number or ISO-date bounds.
 `Nv` bypasses checks for `novalidate`/`formnovalidate`; `Ok` and `Vm` expose the
 mutable validity result and compact reason. `V.Vf(button)` validates one form,
 while `Sm/SmA` call it automatically before raising `Sb` or navigating.
-Messages use `required/short/long/pattern/email/url/number/date/min/max`.
+Messages additionally cover `file/files/large/step/color/time/month/week` and
+`datetime-local` where applicable.
 The CSS `:valid` and `:invalid` pseudo-classes follow the same result state.
 
 Select fields expose options through `Fi.Os`; each compact `O` has `V` (value),
@@ -116,8 +126,9 @@ Select fields expose options through `Fi.Os`; each compact `O` has `V` (value),
 reset default.
 
 Hosts can call `Rs(field)` to reset a form and `Sm(field)` or `SmA(field)` to
-submit a supported GET or URL-encoded POST form. `E.Po`/`PoA` and `V.Po`/`PoA`
-provide direct POST navigation aliases.
+submit GET, URL-encoded POST, or multipart POST forms. `E.Po`/`PoA` and
+`V.Po`/`PoA` provide direct text POST navigation; `Pb`/`PbA` send a content type
+plus a binary body under a 10 MB limit.
 
 Table blocks expose `B.Tb`. `Tb.Cp` is the caption, `Rs` contains compact
 `Tr` rows, and `Cs` is the computed column count. Each row exposes cells through

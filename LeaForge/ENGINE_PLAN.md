@@ -209,7 +209,15 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add file inputs, multipart submission, and richer form widgets.
+Add nested positioned containing blocks and stacking contexts.
+
+File fields now use compact `Fi.Fp/Ac/Mu/En` state and `V.Sf` selection. The
+native picker and multipart serializer enforce eight-file, 4 MB per-file, and
+8 MB combined bounds; HTML file values never become local paths. Synchronous
+and asynchronous submit paths send successful controls and binary file content
+through bounded `Pb/PbA` requests. Range and color have dedicated painting and
+interaction, while time, month, week, local datetime, multiple email, and step
+validation share the existing compact validity path.
 
 Form fields now parse compact `Rq/Mn/Mx/Pa/Lo/Hi/Nv` constraints and expose
 `Ok/Vm` results. `V.Vf` and both submit paths validate required controls,
