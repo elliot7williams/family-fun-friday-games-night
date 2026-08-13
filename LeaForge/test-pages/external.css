@@ -1,0 +1,5 @@
+body { background: #edf7f2; color: #17212b; }
+h1 { color: #176b4d; font-size: 19px; }
+.note { color: #1d4ed8; font-weight: bold; }
+.remote { color: #a13b18; font-size: 15px; }
+.gone { display: none; }

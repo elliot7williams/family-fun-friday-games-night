@@ -79,6 +79,12 @@ Cookies remain in memory and are bounded to 64 entries. Firespider maps its
 existing `pv` flag to each active Lea view, so private mode receives a fresh
 isolated jar and crossing the privacy boundary clears Lea's page cache.
 
+External `<link rel="stylesheet">` resources use the page URL for relative
+resolution and the same request layer as navigation. They therefore share
+cookies, compression, conditional validation, timeout/cancellation, `Cm` LRU
+capacity, and `Cl()` clearing. A page may load eight links of up to 256 KB each;
+missing, oversized, unsupported-media, and non-CSS links are skipped safely.
+
 Basic fields are exposed through `P.Fs`. The view paints inactive controls on
 the Lea surface, reuses one editor for focused text, opens native choice menus
 for single-select fields, and provides `Rs`, `Sm`, and `SmA` for reset and

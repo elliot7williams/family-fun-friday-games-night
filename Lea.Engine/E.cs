@@ -15,6 +15,8 @@ namespace Lea.Engine
     public sealed class E
     {
         private const int MaxCachePage = 2 * 1024 * 1024;
+        private const int MaxCss = 256 * 1024;
+        private const int MaxStyleLinks = 8;
         private readonly W web = new W();
         private readonly List<P> hs = new List<P>();
         private readonly Dictionary<string, Cr> cache = new Dictionary<string, Cr>(StringComparer.OrdinalIgnoreCase);
@@ -162,30 +164,7 @@ namespace Lea.Engine
         {
             try
             {
-                Cr reply;
-                if (!url.IsFile && !fresh && GetCache(url, out reply)) return Parse(reply, true);
-                if (url.IsFile) reply = ReadFile(url);
-                else
-                {
-                    Cr stale;
-                    if (fresh || !GetStale(url, out stale)) stale = null;
-                    web.Va(stale == null ? "" : stale.Et, stale == null ? "" : stale.Lm);
-                    byte[] bytes;
-                    try
-                    {
-                        try { bytes = web.DownloadData(url); }
-                        catch (WebException error)
-                        {
-                            if (stale == null || !web.Nm(error)) throw;
-                            bytes = new byte[0];
-                        }
-                    }
-                    finally { web.Va("", ""); }
-                    reply = web.St == 304 && stale != null ? Revalidated(stale) : ReadWeb(url, bytes);
-                    PutCache(url, reply);
-                    if (web.St == 304) { ch++; return Parse(reply, true); }
-                }
-                return Parse(reply, false);
+                return Parse(Fetch(url, fresh));
             }
             catch (Exception error)
             {
@@ -197,31 +176,11 @@ namespace Lea.Engine
 
         private async Task<P> ReadA(Uri url, bool fresh = false)
         {
-            Cr cached;
-            if (!url.IsFile && !fresh && GetCache(url, out cached)) return Parse(cached, true);
-            Cr stale;
-            if (url.IsFile || fresh || !GetStale(url, out stale)) stale = null;
             if (busy) throw new InvalidOperationException("Lea is already loading a page.");
             busy = true;
             try
             {
-                if (url.IsFile)
-                {
-                    return await Task.Factory.StartNew(delegate { return Parse(ReadFile(url), false); });
-                }
-
-                web.Va(stale == null ? "" : stale.Et, stale == null ? "" : stale.Lm);
-                byte[] bytes;
-                try { bytes = await web.DownloadDataTaskAsync(url); }
-                catch (WebException error)
-                {
-                    if (stale == null || !web.Nm(error)) throw;
-                    bytes = new byte[0];
-                }
-                var reply = web.St == 304 && stale != null ? Revalidated(stale) : ReadWeb(url, bytes);
-                PutCache(url, reply);
-                if (web.St == 304) ch++;
-                return Parse(reply, web.St == 304);
+                return await ParseA(await FetchA(url, fresh));
             }
             catch (Exception error)
             {
@@ -231,7 +190,6 @@ namespace Lea.Engine
             }
             finally
             {
-                web.Va("", "");
                 busy = false;
             }
         }
@@ -247,7 +205,7 @@ namespace Lea.Engine
                 var bytes = web.UploadData(url, "POST", Encoding.UTF8.GetBytes(data ?? ""));
                 var reply = ReadWeb(url, bytes);
                 DropCache(reply.U);
-                return Parse(reply, false);
+                return Parse(new Ld(reply, false));
             }
             catch (Exception error)
             {
@@ -271,7 +229,7 @@ namespace Lea.Engine
                 var bytes = await web.UploadDataTaskAsync(url, "POST", Encoding.UTF8.GetBytes(data ?? ""));
                 var reply = ReadWeb(url, bytes);
                 DropCache(reply.U);
-                return Parse(reply, false);
+                return await ParseA(new Ld(reply, false));
             }
             catch (Exception error)
             {
@@ -286,8 +244,77 @@ namespace Lea.Engine
             }
         }
 
-        private static P Parse(Cr reply, bool cached)
+        private Ld Fetch(Uri url, bool fresh = false)
         {
+            Cr reply;
+            if (!url.IsFile && !fresh && GetCache(url, out reply)) return new Ld(reply, true);
+            if (url.IsFile) return new Ld(ReadFile(url), false);
+
+            Cr stale;
+            if (fresh || !GetStale(url, out stale)) stale = null;
+            web.Va(stale == null ? "" : stale.Et, stale == null ? "" : stale.Lm);
+            byte[] bytes;
+            try
+            {
+                try { bytes = web.DownloadData(url); }
+                catch (WebException error)
+                {
+                    if (stale == null || !web.Nm(error)) throw;
+                    bytes = new byte[0];
+                }
+                var notModified = web.St == 304 && stale != null;
+                reply = notModified ? Revalidated(stale) : ReadWeb(url, bytes);
+                PutCache(url, reply);
+                if (notModified) ch++;
+                return new Ld(reply, notModified);
+            }
+            finally { web.Va("", ""); }
+        }
+
+        private async Task<Ld> FetchA(Uri url, bool fresh = false)
+        {
+            Cr reply;
+            if (!url.IsFile && !fresh && GetCache(url, out reply)) return new Ld(reply, true);
+            if (url.IsFile) return new Ld(await Task.Factory.StartNew(delegate { return ReadFile(url); }), false);
+
+            Cr stale;
+            if (fresh || !GetStale(url, out stale)) stale = null;
+            web.Va(stale == null ? "" : stale.Et, stale == null ? "" : stale.Lm);
+            byte[] bytes;
+            try
+            {
+                try { bytes = await web.DownloadDataTaskAsync(url); }
+                catch (WebException error)
+                {
+                    if (stale == null || !web.Nm(error)) throw;
+                    bytes = new byte[0];
+                }
+                var notModified = web.St == 304 && stale != null;
+                reply = notModified ? Revalidated(stale) : ReadWeb(url, bytes);
+                PutCache(url, reply);
+                if (notModified) ch++;
+                return new Ld(reply, notModified);
+            }
+            finally { web.Va("", ""); }
+        }
+
+        private P Parse(Ld load)
+        {
+            var page = Page(load);
+            Complete(page, Css(page.D, StyleSheets(page.D, page.U)));
+            return page;
+        }
+
+        private async Task<P> ParseA(Ld load)
+        {
+            var page = Page(load);
+            Complete(page, Css(page.D, await StyleSheetsA(page.D, page.U)));
+            return page;
+        }
+
+        private static P Page(Ld load)
+        {
+            var reply = load.R;
             var p = new P();
             p.U = reply.U;
             p.Q = Query(reply.U);
@@ -299,20 +326,22 @@ namespace Lea.Engine
             p.Et = reply.Et;
             p.Lm = reply.Lm;
             p.Sz = reply.Sz;
-            p.Ca = cached;
+            p.Ca = load.Ca;
             p.D = Tree(reply.H);
             var title = Find(p.D, "title");
             p.T = Clean(NodeText(title));
             if (p.T.Length == 0) p.T = reply.U.IsFile ? Path.GetFileName(reply.U.LocalPath) : reply.U.Host;
 
+            return p;
+        }
+
+        private static void Complete(P p, List<R> rules)
+        {
             var body = Find(p.D, "body") ?? p.D;
             p.X = Clean(NodeText(body));
             p.N = Count(p.D);
-            var rules = Css(p.D);
             p.S = Style(body, new S(), rules);
-            foreach (var child in body.C) Blocks(p, child, reply.U, rules, p.S);
-
-            return p;
+            foreach (var child in body.C) Blocks(p, child, p.U, rules, p.S);
         }
 
         private static N Tree(string html)
@@ -430,15 +459,105 @@ namespace Lea.Engine
             foreach (var child in node.C) AddText(child, text);
         }
 
-        private static List<R> Css(N root)
+        private Dictionary<N, string> StyleSheets(N root, Uri baseUrl)
+        {
+            var sheets = new Dictionary<N, string>();
+            var count = 0;
+            foreach (var link in StyleLinks(root))
+            {
+                Uri url;
+                if (!StyleUrl(link, baseUrl, out url)) continue;
+                if (count++ == MaxStyleLinks) break;
+                try
+                {
+                    var load = Fetch(url);
+                    if (!UsableCss(load.R)) { DropCache(url); continue; }
+                    sheets[link] = load.R.H;
+                }
+                catch (WebException) { }
+                catch (IOException) { }
+                catch (UnauthorizedAccessException) { }
+                catch (NotSupportedException) { }
+                catch (ArgumentException) { }
+            }
+            return sheets;
+        }
+
+        private async Task<Dictionary<N, string>> StyleSheetsA(N root, Uri baseUrl)
+        {
+            var sheets = new Dictionary<N, string>();
+            var count = 0;
+            foreach (var link in StyleLinks(root))
+            {
+                Uri url;
+                if (!StyleUrl(link, baseUrl, out url)) continue;
+                if (count++ == MaxStyleLinks) break;
+                try
+                {
+                    var load = await FetchA(url);
+                    if (!UsableCss(load.R)) { DropCache(url); continue; }
+                    sheets[link] = load.R.H;
+                }
+                catch (WebException error)
+                {
+                    if (error.Status == WebExceptionStatus.RequestCanceled) throw;
+                }
+                catch (OperationCanceledException) { throw; }
+                catch (IOException) { }
+                catch (UnauthorizedAccessException) { }
+                catch (NotSupportedException) { }
+                catch (ArgumentException) { }
+            }
+            return sheets;
+        }
+
+        private static List<N> StyleLinks(N root)
+        {
+            var found = new List<N>();
+            var links = new List<N>();
+            FindAll(root, "link", found);
+            foreach (var link in found)
+            {
+                var rel = " " + Regex.Replace(link.Av("rel").Trim(), "\\s+", " ").ToLowerInvariant() + " ";
+                var media = link.Av("media").Trim().ToLowerInvariant();
+                var type = link.Av("type").Trim().ToLowerInvariant();
+                if (rel.IndexOf(" stylesheet ", StringComparison.Ordinal) < 0 || rel.IndexOf(" alternate ", StringComparison.Ordinal) >= 0) continue;
+                if (link.A.ContainsKey("disabled") || (media.Length > 0 && media != "all" && media != "screen") || (type.Length > 0 && type != "text/css")) continue;
+                links.Add(link);
+            }
+            return links;
+        }
+
+        private static bool StyleUrl(N link, Uri baseUrl, out Uri url)
+        {
+            url = null;
+            var href = link.Av("href");
+            if (href.Length == 0 || !Uri.TryCreate(baseUrl, href, out url)) return false;
+            return url.IsFile || url.Scheme == Uri.UriSchemeHttp || url.Scheme == Uri.UriSchemeHttps;
+        }
+
+        private static bool UsableCss(Cr reply)
+        {
+            return reply != null && reply.St >= 200 && reply.St < 300 && reply.Ct == "text/css" && reply.Sz <= MaxCss;
+        }
+
+        private static List<R> Css(N root, IDictionary<N, string> sheets)
         {
             var rules = new List<R>();
-            var styles = new List<N>();
-            FindAll(root, "style", styles);
             var order = 0;
-            foreach (var style in styles)
+            CssRules(root, sheets, rules, ref order);
+            rules.Sort(delegate(R a, R b) { var byWeight = a.W.CompareTo(b.W); return byWeight != 0 ? byWeight : a.O.CompareTo(b.O); });
+            return rules;
+        }
+
+        private static void CssRules(N node, IDictionary<N, string> sheets, List<R> rules, ref int order)
+        {
+            string source = null;
+            if (node.K == "style") source = RawText(node);
+            else if (sheets != null) sheets.TryGetValue(node, out source);
+            if (source != null)
             {
-                foreach (Match match in Regex.Matches(RawText(style), "(?<q>[^{}]+)\\{(?<v>[^{}]*)\\}", RegexOptions.Singleline))
+                foreach (Match match in Regex.Matches(source, "(?<q>[^{}]+)\\{(?<v>[^{}]*)\\}", RegexOptions.Singleline))
                 {
                     foreach (var selector in match.Groups["q"].Value.Split(','))
                     {
@@ -447,8 +566,7 @@ namespace Lea.Engine
                     }
                 }
             }
-            rules.Sort(delegate(R a, R b) { var byWeight = a.W.CompareTo(b.W); return byWeight != 0 ? byWeight : a.O.CompareTo(b.O); });
-            return rules;
+            foreach (var child in node.C) CssRules(child, sheets, rules, ref order);
         }
 
         private static void FindAll(N node, string kind, List<N> found)
@@ -1079,6 +1197,18 @@ namespace Lea.Engine
                 V = values;
                 W = weight;
                 O = order;
+            }
+        }
+
+        private sealed class Ld
+        {
+            public readonly Cr R;
+            public readonly bool Ca;
+
+            public Ld(Cr reply, bool cached)
+            {
+                R = reply;
+                Ca = cached;
             }
         }
 

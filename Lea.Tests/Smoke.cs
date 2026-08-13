@@ -59,6 +59,17 @@ namespace Lea.Tests
                 Eq(1, table.Rs[1].Cs[0].S.Bt, "cell CSS border");
                 Eq(6, table.Rs[1].Cs[0].S.Pl, "cell CSS padding");
 
+                var externalPath = Path.Combine(root, "LeaForge", "test-pages", "external.html");
+                var externalPage = engine.Go(externalPath);
+                Eq("#edf7f2", externalPage.S.Bg, "external body background");
+                Eq(3, externalPage.Bs.Count, "external CSS hidden block");
+                Eq("#176b4d", externalPage.Bs[0].S.F, "external heading color");
+                Eq(19, externalPage.Bs[0].S.Fs, "external heading size");
+                Eq("#7e22ce", externalPage.Bs[1].S.F, "later inline stylesheet order");
+                Ok(externalPage.Bs[1].S.B, "external inherited bold");
+                Eq("#a13b18", externalPage.Bs[2].S.F, "external class color");
+                Eq("Lea External CSS", new E().GoA(externalPath).GetAwaiter().GetResult().T, "async local external CSS");
+
                 using (var view = new V())
                 {
                     view.Size = new Size(720, 760);
@@ -298,6 +309,34 @@ namespace Lea.Tests
                     var decode = Fails(delegate { net.Go(new Uri(server.U, "?bad-gzip=1")); }, "bad GZip");
                     Eq("decode", decode.K, "decode error kind");
 
+                    var cssNet = new E();
+                    var cssStart = server.Hits;
+                    var linked = cssNet.Go(new Uri(server.U, "?external-page=sync"));
+                    Eq("#0f6848", linked.S.Bg, "network external CSS body background");
+                    Eq("#a13b18", linked.Bs[0].S.F, "network external CSS block color");
+                    Eq(cssStart + 2, server.Hits, "page and stylesheet requests");
+                    var linkedAgain = cssNet.Go(new Uri(server.U, "?external-page=sync"));
+                    Eq("#0f6848", linkedAgain.S.Bg, "cached external CSS remains applied");
+                    Eq(cssStart + 3, server.Hits, "shared cache avoids stylesheet request");
+                    var asyncLinked = new E().GoA(new Uri(server.U, "?external-page=async")).GetAwaiter().GetResult();
+                    Eq("#0f6848", asyncLinked.S.Bg, "async network external CSS");
+                    Eq("#a13b18", asyncLinked.Bs[0].S.F, "async linked rule");
+                    var limitNet = new E();
+                    limitNet.Cm = 16;
+                    var limitStart = server.Hits;
+                    limitNet.Go(new Uri(server.U, "?external-page=limit"));
+                    Eq(limitStart + 9, server.Hits, "external stylesheet request limit");
+                    limitNet.Go(new Uri(server.U, "?external-page=limit"));
+                    Eq(limitStart + 10, server.Hits, "eight stylesheets reuse bounded cache");
+                    var largeNet = new E();
+                    var largeStart = server.Hits;
+                    var largePage = largeNet.Go(new Uri(server.U, "?external-page=large"));
+                    Eq("", largePage.S.Bg, "oversized stylesheet ignored");
+                    Eq(0, largeNet.Cc, "oversized stylesheet removed from cache");
+                    Eq(largeStart + 2, server.Hits, "oversized stylesheet first request");
+                    largeNet.Go(new Uri(server.U, "?external-page=large"));
+                    Eq(largeStart + 4, server.Hits, "oversized stylesheet not cached");
+
                     var jar = new E();
                     Eq(64, jar.Km, "bounded cookie maximum");
                     Eq(0, jar.Kc, "empty cookie jar");
@@ -336,7 +375,7 @@ namespace Lea.Tests
                     Eq("url", urlError.K, "URL error kind");
                 }
 
-                Console.WriteLine("Lea smoke passed: bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -522,8 +561,26 @@ namespace Lea.Tests
                             continue;
                         }
                         var deflate = request.IndexOf("encoding=deflate", StringComparison.OrdinalIgnoreCase) >= 0;
+                        var stylesheet = request.StartsWith("GET /style", StringComparison.OrdinalIgnoreCase) || request.StartsWith("GET /large.css", StringComparison.OrdinalIgnoreCase);
+                        var largeStylesheet = request.StartsWith("GET /large.css", StringComparison.OrdinalIgnoreCase);
                         string html;
-                        if (request.IndexOf("form=1", StringComparison.OrdinalIgnoreCase) >= 0)
+                        if (largeStylesheet)
+                            html = new String(' ', 270 * 1024) + "body{background:#ff0000}";
+                        else if (stylesheet)
+                            html = "body{background:#0f6848;color:#ffffff}.remote{color:#a13b18;font-size:16px}";
+                        else if (request.IndexOf("external-page=", StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            var variant = QueryValue(request, "external-page");
+                            var links = variant == "large" ? "<link rel='stylesheet' href='/large.css'>" : "<link rel='stylesheet' href='/style.css?v=" + variant + "'>";
+                            if (variant == "limit")
+                            {
+                                var many = new StringBuilder();
+                                for (var styleIndex = 0; styleIndex < 10; styleIndex++) many.Append("<link rel='stylesheet' href='/style").Append(styleIndex).Append(".css'>");
+                                links = many.ToString();
+                            }
+                            html = "<html><head><title>Lea Linked CSS</title>" + links + "</head><body><p class='remote'>Linked network CSS.</p></body></html>";
+                        }
+                        else if (request.IndexOf("form=1", StringComparison.OrdinalIgnoreCase) >= 0)
                         {
                             html = "<html><head><title>Lea POST Form</title></head><body><form action='/page?post=1' method='post'>" +
                                 "<select name='flavor'><option value='vanilla'>Vanilla</option><option value='mint' selected>Mint</option><option value='old' disabled>Old</option></select>" +
@@ -542,7 +599,7 @@ namespace Lea.Tests
                         var source = Encoding.UTF8.GetBytes(html);
                         var badGzip = request.IndexOf("bad-gzip=1", StringComparison.OrdinalIgnoreCase) >= 0;
                         var body = badGzip ? Encoding.ASCII.GetBytes("not a gzip stream") : Compress(source, deflate);
-                        var noStore = request.IndexOf("no-store=1", StringComparison.OrdinalIgnoreCase) >= 0;
+                        var noStore = request.IndexOf("no-store=1", StringComparison.OrdinalIgnoreCase) >= 0 || request.IndexOf("external-page=", StringComparison.OrdinalIgnoreCase) >= 0;
                         var cookieRoute = request.IndexOf("cookie=", StringComparison.OrdinalIgnoreCase) >= 0;
                         var noCache = request.IndexOf("no-cache=1", StringComparison.OrdinalIgnoreCase) >= 0;
                         var maxAge = request.IndexOf("max-age=60", StringComparison.OrdinalIgnoreCase) >= 0 ? "Cache-Control: max-age=60\r\n" :
@@ -554,8 +611,8 @@ namespace Lea.Tests
                         var setCookie = cookieName == "set-normal" ? "Set-Cookie: sid=normal; Path=/; HttpOnly\r\n" :
                             cookieName == "set-private" ? "Set-Cookie: sid=private; Path=/; HttpOnly\r\n" :
                             IntValue(cookieName) >= 0 ? "Set-Cookie: c" + cookieName + "=v; Path=/\r\n" : "";
-                        var headers = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Encoding: " + (deflate ? "deflate" : "gzip") + "\r\n" +
-                            (noStore || cookieRoute ? "Cache-Control: no-store\r\n" : noCache ? "Cache-Control: no-cache\r\n" : maxAge + expires + validators) + setCookie + "Content-Length: " + body.Length + "\r\nConnection: close\r\n\r\n";
+                        var headers = "HTTP/1.1 200 OK\r\nContent-Type: " + (stylesheet ? "text/css" : "text/html") + "; charset=utf-8\r\nContent-Encoding: " + (deflate ? "deflate" : "gzip") + "\r\n" +
+                            (noStore || cookieRoute ? "Cache-Control: no-store\r\n" : stylesheet ? "Cache-Control: max-age=60\r\n" : noCache ? "Cache-Control: no-cache\r\n" : maxAge + expires + validators) + setCookie + "Content-Length: " + body.Length + "\r\nConnection: close\r\n\r\n";
                         var head = Encoding.ASCII.GetBytes(headers);
                         stream.Write(head, 0, head.Length);
                         stream.Write(body, 0, body.Length);

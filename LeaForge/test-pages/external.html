@@ -1,0 +1,16 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea External CSS</title>
+  <link rel="stylesheet" href="missing.css">
+  <link rel="stylesheet" href="external.css" type="text/css" media="screen">
+  <style>.note { color: #7e22ce; }</style>
+</head>
+<body>
+  <h1>Linked stylesheet</h1>
+  <p class="note">Later inline CSS wins at equal specificity.</p>
+  <p class="remote">External CSS applies to this block.</p>
+  <p class="gone">External display none hides this block.</p>
+</body>
+</html>

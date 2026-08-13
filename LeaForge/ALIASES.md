@@ -50,6 +50,9 @@ cache-body reuse. `Et` is the response ETag and `Lm` is Last-Modified. The
 engine exposes `Cm` (cache maximum), `Cc` (count), `Ch` (body reuses), `Cs`
 (default freshness seconds), and `Cl()` (clear). Stale validators use
 `If-None-Match` or `If-Modified-Since`; reload always bypasses this cache.
+External stylesheets share this same LRU and its aliases rather than creating a
+second hidden cache. Lea loads at most eight linked stylesheets per page and
+parses up to 256 KB from each response.
 
 Cookies stay compact: `Kc` is the active cookie count, `Km` is the bounded
 maximum, and `Kcl()` clears the active jar plus page cache. `Pv` switches to a

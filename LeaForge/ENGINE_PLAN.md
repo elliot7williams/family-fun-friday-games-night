@@ -56,6 +56,8 @@ fs      font size
 
 1. Add selectors for tag, class, id, descendant, and inline styles. (First version complete.)
 2. Implement the cascade and inheritance with a small priority model. (First specificity/source-order cascade added.)
+   (`link rel=stylesheet` and inline `style` blocks now enter that source order
+   together; linked CSS uses cookies, compression, validators, and shared LRU caching.)
 3. Add colors, fonts, spacing, borders, width, height, display, and overflow. (Colors, fonts, margins, padding, backgrounds, `display:none`, borders, and pixel width/height are active.)
 4. Replace one-WinForms-control-per-node rendering with lightweight layout boxes. (Reusable `Bx` layout pass added.)
 5. Paint text, backgrounds, borders, links, controls, and images onto one surface. (Text, backgrounds, solid/dashed/dotted borders, links, images, and basic form controls are active.)
@@ -207,7 +209,7 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Load external stylesheets with the same bounded request and caching rules as
-pages. Lea now stores up to 64 standards-managed cookies in memory, isolates
-private sessions, destroys private cookies on exit, and clears page cache when
-the active cookie context changes.
+Improve inline text flow across nested emphasis and links. Lea now loads up to
+eight external stylesheets per page, ignores failed or non-CSS responses,
+rejects decoded CSS above 256 KB, and shares the existing bounded LRU rather
+than adding a separate resource cache.
