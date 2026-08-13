@@ -36,6 +36,9 @@ font size, `B` is bold, `I` is italic, and `D` is display behavior. `Ta` is
 text alignment using `l/c/r/j`; `Lh` is pixel line height and `Lm` is a bounded
 percentage multiplier. Lea accepts CSS pixel, percentage, and unitless line
 heights, then keeps each painted line tall enough for its largest font.
+`Ws` is white-space mode using `n/nw/p/pw/pl` for normal, nowrap, pre,
+pre-wrap, and pre-line. `Ov` is overflow using `v/h/c/a/s` for visible, hidden,
+clip, auto, and scroll.
 
 Text blocks keep compatible flattened text in `B.X`. When nested markup needs
 separate painting, `B.Is` exposes compact `Ir` inline runs; each run uses `K`

@@ -102,6 +102,25 @@ namespace Lea.Tests
                 Eq("r", textCell.S.Ta, "table cell alignment inheritance");
                 Eq(160, textCell.S.Lm, "unitless table-cell line height");
 
+                var whitePath = Path.Combine(root, "LeaForge", "test-pages", "white-space.html");
+                var whitePage = engine.Go(whitePath);
+                Eq(10, whitePage.Bs.Count, "white-space block count");
+                Eq("nw", whitePage.Bs[1].S.Ws, "nowrap alias");
+                Eq("h", whitePage.Bs[1].S.Ov, "hidden overflow alias");
+                Eq("v", whitePage.Bs[2].S.Ov, "visible overflow alias");
+                Eq("p", whitePage.Bs[3].S.Ws, "pre alias");
+                Eq("c", whitePage.Bs[3].S.Ov, "clip overflow alias");
+                Eq("Alpha    Beta\nGamma", whitePage.Bs[3].X, "pre text preservation");
+                Eq("pw", whitePage.Bs[4].S.Ws, "pre-wrap alias");
+                Eq("pl", whitePage.Bs[5].S.Ws, "pre-line alias");
+                Eq("a", whitePage.Bs[6].S.Ov, "auto overflow alias");
+                Eq("pl", whitePage.Bs[7].S.Ws, "inherited white-space alias");
+                Eq("s", whitePage.Bs[9].S.Ov, "scroll overflow alias");
+                var whiteCell = whitePage.Bs[8].Tb.Rs[0].Cs[0];
+                Eq("pw", whiteCell.S.Ws, "table pre-wrap alias");
+                Eq("h", whiteCell.S.Ov, "table overflow alias");
+                Eq("Cell    keeps spaces\nand wraps compact table text across more lines.", whiteCell.X, "table white-space preservation");
+
                 var recoveryPath = Path.Combine(root, "LeaForge", "test-pages", "recovery.html");
                 var recoveryPage = engine.Go(recoveryPath);
                 Eq(23, recoveryPage.Bs.Count, "recovered block count");
@@ -242,6 +261,35 @@ namespace Lea.Tests
                     var cellBox = ContainingCell(view, view.At.Bs[4], cellLines[0]);
                     Ok(cellLines.Length > 1 && !cellBox.IsEmpty, "table text line layout");
                     foreach (var cellLine in cellLines) Ok(cellLine.Right == cellBox.Right, "right-aligned table line");
+                    view.Size = new Size(520, 900);
+                    view.Go(whitePath);
+                    Paint(view);
+                    var nowrapBox = BlockRect(view, view.At.Bs[1]);
+                    var nowrapLines = TextLines(view, view.At.Bs[1]);
+                    Eq(1, nowrapLines.Length, "nowrap line count");
+                    Ok(nowrapLines[0].Right > nowrapBox.Right, "nowrap keeps natural line width");
+                    Eq(nowrapBox, ClipRect(view, view.At.Bs[1]), "hidden overflow clip");
+                    var visibleBox = BlockRect(view, view.At.Bs[2]);
+                    var visibleLines = TextLines(view, view.At.Bs[2]);
+                    Eq(1, visibleLines.Length, "visible nowrap line count");
+                    Ok(visibleLines[0].Right > visibleBox.Right && ClipRect(view, view.At.Bs[2]).IsEmpty, "visible overflow remains unclipped");
+                    Eq(2, TextLines(view, view.At.Bs[3]).Length, "pre explicit lines");
+                    Ok(PaintedText(view, view.At.Bs[3]).Contains("    "), "pre spaces remain painted");
+                    Ok(TextLines(view, view.At.Bs[4]).Length > 2 && PaintedText(view, view.At.Bs[4]).Contains("    "), "pre-wrap preserves and wraps");
+                    Eq(2, TextLines(view, view.At.Bs[5]).Length, "pre-line explicit lines");
+                    Ok(!PaintedText(view, view.At.Bs[5]).Contains("  "), "pre-line collapses spaces");
+                    var cropBox = BlockRect(view, view.At.Bs[6]);
+                    var cropLines = TextLines(view, view.At.Bs[6]);
+                    Eq(30, cropBox.Height, "fixed overflow height");
+                    Ok(cropLines.Length > 2 && cropLines[cropLines.Length - 1].Bottom > cropBox.Bottom, "overflow retains hidden layout content");
+                    Eq(cropBox, ClipRect(view, view.At.Bs[6]), "auto overflow clip");
+                    Eq(2, TextLines(view, view.At.Bs[7]).Length, "inherited pre-line layout");
+                    var whiteCellPart = view.At.Bs[8].Tb.Rs[0].Cs[0].Bs[0];
+                    var whiteCellLines = TextLines(view, whiteCellPart);
+                    var whiteCellBox = ContainingCell(view, view.At.Bs[8], whiteCellLines[0]);
+                    Ok(whiteCellLines.Length > 2 && whiteCellBox.Height == 38, "table white-space layout");
+                    Eq(whiteCellBox, ClipRect(view, whiteCellPart), "table cell overflow clip");
+                    Eq(BlockRect(view, view.At.Bs[9]), ClipRect(view, view.At.Bs[9]), "scroll overflow clip");
                     view.Go(recoveryPath);
                     Paint(view);
                     Eq(23, view.At.Bs.Count, "recovery render blocks");
@@ -478,7 +526,7 @@ namespace Lea.Tests
                     Eq("url", urlError.K, "URL error kind");
                 }
 
-                Console.WriteLine("Lea smoke passed: malformed HTML recovery, semantic blocks, nested lists, text alignment, line height, inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: white-space modes, overflow clipping, malformed HTML recovery, semantic blocks, nested lists, text alignment, line height, inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -594,6 +642,30 @@ namespace Lea.Tests
             }
             lines.Sort(delegate(Rectangle a, Rectangle b) { return a.Top.CompareTo(b.Top); });
             return lines.ToArray();
+        }
+
+        private static Rectangle ClipRect(V view, B block)
+        {
+            foreach (var value in LayoutBoxes(view))
+            {
+                var type = value.GetType();
+                if (!Object.ReferenceEquals(type.GetField("B").GetValue(value), block) || !(bool)type.GetField("Inline").GetValue(value)) continue;
+                var clip = (Rectangle)type.GetField("Clip").GetValue(value);
+                if (!clip.IsEmpty) return clip;
+            }
+            return Rectangle.Empty;
+        }
+
+        private static string PaintedText(V view, B block)
+        {
+            var text = new StringBuilder();
+            foreach (var value in LayoutBoxes(view))
+            {
+                var type = value.GetType();
+                if (!Object.ReferenceEquals(type.GetField("B").GetValue(value), block) || !(bool)type.GetField("Inline").GetValue(value)) continue;
+                text.Append((string)type.GetField("X").GetValue(value));
+            }
+            return text.ToString();
         }
 
         private static bool Centered(Rectangle line, Rectangle box)

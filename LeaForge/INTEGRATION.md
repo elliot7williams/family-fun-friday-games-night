@@ -93,6 +93,12 @@ blocks and table cells, centers glyphs within taller lines, and justifies only
 wrapped non-final lines. Blocks without these properties retain the native
 single-box text path.
 
+`S.Ws` carries compact `n/nw/p/pw/pl` white-space modes. Lea preserves explicit
+spaces and line breaks for `pre`/`pre-wrap`, keeps line breaks while collapsing
+spaces for `pre-line`, and disables soft wrapping for `nowrap`/`pre`. `S.Ov`
+uses `v/h/c/a/s`; non-visible modes clip glyph painting and link hit regions to
+the content box. Auto and scroll currently clip safely without inner scrollbars.
+
 `E` and `V` expose the same cookie aliases: `Kc`, `Km`, `Kcl()`, and `Pv`.
 Cookies remain in memory and are bounded to 64 entries. Firespider maps its
 existing `pv` flag to each active Lea view, so private mode receives a fresh

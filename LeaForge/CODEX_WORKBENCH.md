@@ -17,8 +17,8 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-1. Add more block tags and malformed nesting recovery.
-2. Add basic `white-space` and overflow behavior.
+1. Add child and adjacent CSS selectors.
+2. Add font families and text decoration.
 3. Route more Firespider commands through Lea capability checks.
 4. Add a small JavaScript interpreter layer or bridge.
 5. Add downloads and find-in-page.

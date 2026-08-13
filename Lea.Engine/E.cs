@@ -695,6 +695,8 @@ namespace Lea.Engine
                 else if (name == "font-style") style.I = value.Equals("italic", StringComparison.OrdinalIgnoreCase) || value.Equals("oblique", StringComparison.OrdinalIgnoreCase);
                 else if (name == "text-align") TextAlign(style, value);
                 else if (name == "line-height") LineHeight(style, value);
+                else if (name == "white-space") WhiteSpace(style, value);
+                else if (name == "overflow") Overflow(style, value);
                 else if (name == "display") style.D = value.ToLowerInvariant();
                 else if (name == "margin") Box(style, value, true);
                 else if (name == "padding") Box(style, value, false);
@@ -765,6 +767,26 @@ namespace Lea.Engine
             if (scale < 0.25D || scale > 5D) return;
             style.Lm = Math.Max(25, Math.Min(500, (int)Math.Round(scale * 100D)));
             style.Lh = 0;
+        }
+
+        private static void WhiteSpace(S style, string value)
+        {
+            var mode = (value ?? "").Trim().ToLowerInvariant();
+            if (mode == "normal" || mode == "initial") style.Ws = "n";
+            else if (mode == "nowrap") style.Ws = "nw";
+            else if (mode == "pre") style.Ws = "p";
+            else if (mode == "pre-wrap" || mode == "break-spaces") style.Ws = "pw";
+            else if (mode == "pre-line") style.Ws = "pl";
+        }
+
+        private static void Overflow(S style, string value)
+        {
+            var mode = (value ?? "").Trim().ToLowerInvariant();
+            if (mode == "visible" || mode == "initial") style.Ov = "v";
+            else if (mode == "hidden") style.Ov = "h";
+            else if (mode == "clip") style.Ov = "c";
+            else if (mode == "auto") style.Ov = "a";
+            else if (mode == "scroll") style.Ov = "s";
         }
 
         private static void Box(S style, string value, bool margin)
@@ -851,6 +873,7 @@ namespace Lea.Engine
             }
             if (kind == "head" || kind == "script" || kind == "style" || kind == "noscript" || kind == "template") return;
             var style = Style(node, inherited, rules);
+            if (kind == "pre" && style.Ws.Length == 0) style.Ws = "p";
             if (style.D == "none") return;
             if (kind == "strong" || kind == "b") style.B = true;
             if (kind == "em" || kind == "i") style.I = true;
@@ -868,10 +891,10 @@ namespace Lea.Engine
             {
                 Uri link;
                 var href = node.Av("href");
-                var text = Clean(NodeText(node));
+                var text = TextValue(RawText(node), style);
                 if (href.Length > 0 && Uri.TryCreate(baseUrl, href, out link))
                 {
-                    page.Ls.Add(new Ln { U = link, T = text });
+                    page.Ls.Add(new Ln { U = link, T = Clean(text) });
                     page.Bs.Add(new B { K = kind, X = text.Length == 0 ? link.ToString() : text, U = link, S = style });
                 }
                 return;
@@ -889,7 +912,7 @@ namespace Lea.Engine
             }
             else if (IsTextBlock(kind) || IsContainerBlock(kind))
             {
-                var text = Clean(BlockText(node));
+                var text = TextValue(BlockText(node, PreservesLines(style)), style);
                 var block = new B { K = kind, X = text, S = style };
                 if (HasInlineStructure(node))
                 {
@@ -921,23 +944,35 @@ namespace Lea.Engine
                    kind == "section";
         }
 
-        private static string BlockText(N node)
+        private static string BlockText(N node, bool raw)
         {
             var text = new StringBuilder();
-            AddBlockText(node, text, true);
+            AddBlockText(node, text, true, raw);
             return text.ToString();
         }
 
-        private static void AddBlockText(N node, StringBuilder text, bool root)
+        private static void AddBlockText(N node, StringBuilder text, bool root, bool raw)
         {
             if (node.K == "#text")
             {
-                text.Append(node.X).Append(' ');
+                text.Append(node.X);
+                if (!raw) text.Append(' ');
                 return;
             }
             if (!root && (IsBlockTag(node.K) || node.K == "img" || node.K == "input" || node.K == "textarea" || node.K == "button" || node.K == "select")) return;
             if (node.K == "script" || node.K == "style" || node.K == "noscript" || node.K == "template") return;
-            foreach (var child in node.C) AddBlockText(child, text, false);
+            foreach (var child in node.C) AddBlockText(child, text, false, raw);
+        }
+
+        private static bool PreservesLines(S style)
+        {
+            return style != null && (style.Ws == "p" || style.Ws == "pw" || style.Ws == "pl");
+        }
+
+        private static string TextValue(string value, S style)
+        {
+            if (!PreservesLines(style)) return Clean(value);
+            return (value ?? "").Replace("\r\n", "\n").Replace('\r', '\n');
         }
 
         private static void AddNestedBlocks(P page, N node, Uri baseUrl, List<R> rules, S inherited)
@@ -1003,6 +1038,21 @@ namespace Lea.Engine
         private static void NormalizeInlines(B block)
         {
             var clean = new List<Ir>();
+            if (PreservesLines(block.S))
+            {
+                foreach (var run in block.Is)
+                {
+                    if (run.K != "br") run.X = TextValue(WebUtility.HtmlDecode(run.X ?? ""), block.S);
+                    if (run.K != "br" && run.X.Length == 0) continue;
+                    var previous = clean.Count == 0 ? null : clean[clean.Count - 1];
+                    if (previous != null && previous.K != "br" && previous.K == run.K && previous.U == run.U && Object.ReferenceEquals(previous.S, run.S)) previous.X += run.X;
+                    else clean.Add(run);
+                }
+                block.Is.Clear();
+                foreach (var run in clean) block.Is.Add(run);
+                return;
+            }
+
             var pendingSpace = false;
             var lineHasText = false;
             foreach (var run in block.Is)
@@ -1045,15 +1095,17 @@ namespace Lea.Engine
         private static string InlineText(B block)
         {
             var text = new StringBuilder();
+            var lines = PreservesLines(block.S);
             foreach (var run in block.Is)
             {
                 if (run.K == "br")
                 {
-                    if (text.Length > 0 && text[text.Length - 1] != ' ') text.Append(' ');
+                    if (lines) text.Append('\n');
+                    else if (text.Length > 0 && text[text.Length - 1] != ' ') text.Append(' ');
                 }
                 else text.Append(run.X);
             }
-            return text.ToString().Trim();
+            return lines ? text.ToString() : text.ToString().Trim();
         }
 
         private static void AddTable(P page, N node, Uri baseUrl, List<R> rules, S style)
@@ -1084,7 +1136,7 @@ namespace Lea.Engine
                     int span;
                     if (!Int32.TryParse(child.Av("colspan"), out span)) span = 1;
                     span = Math.Max(1, Math.Min(16, span));
-                    var cell = new Tc { X = Clean(NodeText(child)), S = cellStyle, H = child.K == "th", Sp = span };
+                    var cell = new Tc { X = TextValue(RawText(child), cellStyle), S = cellStyle, H = child.K == "th", Sp = span };
                     AddCellBlocks(page, cell, child, baseUrl, rules, cellStyle, child.K);
                     if (cell.Bs.Count == 0 && cell.X.Length > 0) cell.Bs.Add(new B { K = child.K, X = cell.X, S = cellStyle });
                     row.Cs.Add(cell);
@@ -1107,12 +1159,13 @@ namespace Lea.Engine
             {
                 if (child.K == "#text")
                 {
-                    var text = Clean(child.X);
+                    var text = TextValue(child.X, inherited);
                     if (text.Length > 0) cell.Bs.Add(new B { K = fallback, X = text, S = inherited });
                     continue;
                 }
 
                 var style = Style(child, inherited, rules);
+                if (child.K == "pre" && style.Ws.Length == 0) style.Ws = "p";
                 if (style.D == "none" || child.K == "script" || child.K == "style" || child.K == "noscript" || child.K == "template") continue;
                 if (child.K == "strong" || child.K == "b") style.B = true;
                 if (child.K == "em" || child.K == "i") style.I = true;
@@ -1125,11 +1178,11 @@ namespace Lea.Engine
                 {
                     Uri link;
                     var href = child.Av("href");
-                    var text = Clean(NodeText(child));
+                    var text = TextValue(RawText(child), style);
                     if (href.Length > 0 && Uri.TryCreate(baseUrl, href, out link))
                     {
                         if (text.Length == 0) text = link.ToString();
-                        page.Ls.Add(new Ln { U = link, T = text });
+                        page.Ls.Add(new Ln { U = link, T = Clean(text) });
                         cell.Bs.Add(new B { K = "a", X = text, U = link, S = style });
                     }
                     continue;
@@ -1138,7 +1191,7 @@ namespace Lea.Engine
                 var nested = HasCellStructure(child);
                 if (!nested)
                 {
-                    var text = Clean(NodeText(child));
+                    var text = TextValue(RawText(child), style);
                     if (text.Length > 0) cell.Bs.Add(new B { K = CellKind(child.K, fallback), X = text, S = style });
                     continue;
                 }

@@ -215,35 +215,57 @@ namespace Lea.Win
                 var content = box.C;
                 content.Offset(0, -sy);
                 if (rect.Bottom < 0 || rect.Top > ClientSize.Height) continue;
-                if (!box.Title && (!box.Inline || box.B == null || box.B.Is.Count > 0)) PaintBox(pe.Graphics, rect, box.S, pageBackground, pageColor);
-                if (box.K == "img")
+                var clip = box.Clip;
+                if (!clip.IsEmpty) clip.Offset(0, -sy);
+                GraphicsState state = null;
+                try
                 {
-                    PaintPic(pe.Graphics, box, content, pageColor);
-                    continue;
-                }
-                if (box.K == "hr")
-                {
-                    var color = CssColor(box.S == null ? "" : box.S.F, Color.FromArgb(148, 163, 184));
-                    using (var pen = new Pen(color)) pe.Graphics.DrawLine(pen, content.Left, content.Top + content.Height / 2, content.Right, content.Top + content.Height / 2);
-                    continue;
-                }
-                if (box.B != null && box.B.I != null)
-                {
-                    PaintField(pe.Graphics, box, content, pageColor);
-                    hits.Add(new Hit(rect, null, box));
-                    continue;
-                }
+                    if (!clip.IsEmpty)
+                    {
+                        state = pe.Graphics.Save();
+                        pe.Graphics.SetClip(clip, CombineMode.Intersect);
+                    }
+                    if (!box.Title && (!box.Inline || box.B == null || box.B.Is.Count > 0)) PaintBox(pe.Graphics, rect, box.S, pageBackground, pageColor);
+                    if (box.K == "img")
+                    {
+                        PaintPic(pe.Graphics, box, content, pageColor);
+                        continue;
+                    }
+                    if (box.K == "hr")
+                    {
+                        var color = CssColor(box.S == null ? "" : box.S.F, Color.FromArgb(148, 163, 184));
+                        using (var pen = new Pen(color)) pe.Graphics.DrawLine(pen, content.Left, content.Top + content.Height / 2, content.Right, content.Top + content.Height / 2);
+                        continue;
+                    }
+                    if (box.B != null && box.B.I != null)
+                    {
+                        PaintField(pe.Graphics, box, content, pageColor);
+                        hits.Add(new Hit(VisibleRect(rect, clip), null, box));
+                        continue;
+                    }
 
-                using (var font = BoxFont(box.K, box.S, box.Title, box.U != null, box.Inline && box.B != null ? box.B.K : null))
-                {
-                    var color = box.U != null ? Color.FromArgb(0, 102, 204) : pageColor;
-                    if (box.S != null) color = CssColor(box.S.F, color);
-                    var flags = box.Inline ? TextFormatFlags.SingleLine | TextFormatFlags.NoPadding : TextFormatFlags.WordBreak | TextFormatFlags.NoPadding;
-                    TextRenderer.DrawText(pe.Graphics, box.X, font, content, color, flags);
-                }
+                    using (var font = BoxFont(box.K, box.S, box.Title, box.U != null, box.Inline && box.B != null ? box.B.K : null))
+                    {
+                        var color = box.U != null ? Color.FromArgb(0, 102, 204) : pageColor;
+                        if (box.S != null) color = CssColor(box.S.F, color);
+                        var flags = box.Inline ? TextFormatFlags.SingleLine | TextFormatFlags.NoPadding : TextFormatFlags.WordBreak | TextFormatFlags.NoPadding;
+                        if (!clip.IsEmpty) flags |= TextFormatFlags.PreserveGraphicsClipping;
+                        TextRenderer.DrawText(pe.Graphics, box.X, font, content, color, flags);
+                    }
 
-                if (box.U != null) hits.Add(new Hit(rect, box.U, null));
+                    if (box.U != null)
+                    {
+                        var hit = VisibleRect(rect, clip);
+                        if (!hit.IsEmpty) hits.Add(new Hit(hit, box.U, null));
+                    }
+                }
+                finally { if (state != null) pe.Graphics.Restore(state); }
             }
+        }
+
+        private static Rectangle VisibleRect(Rectangle rect, Rectangle clip)
+        {
+            return clip.IsEmpty ? rect : Rectangle.Intersect(rect, clip);
         }
 
         private void Lay(Graphics graphics)
@@ -320,7 +342,7 @@ namespace Lea.Win
                     {
                         using (var font = BoxFont(block.K, bs, false)) height = Measure(graphics, block.K == "li" ? "- " + block.X : block.X, font, bw);
                     }
-                    if (bs != null && bs.H > 0) height = inline == null ? bs.H : Math.Max(height, bs.H);
+                    if (bs != null && bs.H > 0) height = bs.H;
                     var text = block.K == "li" ? "- " + block.X : block.X;
                     var link = inline == null && block.K == "a" ? block.U : null;
                     var outer = new Rectangle(bx, y, bw + pl + pr + bl + br, height + pt + pb + bt + bb);
@@ -543,16 +565,18 @@ namespace Lea.Win
             var line = new Il();
             Ia pending = null;
             var endedWithBreak = false;
+            var space = block.S == null ? "" : block.S.Ws;
+            var wrap = space != "nw" && space != "p";
 
             if (block.K == "li")
             {
-                AddInlineWord(graphics, lines, ref line, ref pending, InlineAtom(graphics, "li", "-", null, block.S, block.K), width, baseHeight);
+                AddInlineWord(graphics, lines, ref line, ref pending, InlineAtom(graphics, "li", "-", null, block.S, block.K), width, baseHeight, wrap);
                 pending = InlineAtom(graphics, "li", " ", null, block.S, block.K);
             }
 
             if (block.Is.Count == 0)
             {
-                AddInlineText(graphics, lines, ref line, ref pending, block.K, block.X, block.U, block.S, block.K, width, baseHeight, ref endedWithBreak);
+                AddInlineText(graphics, lines, ref line, ref pending, block.K, block.X, block.U, block.S, block.K, width, baseHeight, space, wrap, ref endedWithBreak);
             }
             else
             {
@@ -565,7 +589,7 @@ namespace Lea.Win
                         endedWithBreak = true;
                         continue;
                     }
-                    AddInlineText(graphics, lines, ref line, ref pending, run.K, run.X, run.U, run.S, block.K, width, baseHeight, ref endedWithBreak);
+                    AddInlineText(graphics, lines, ref line, ref pending, run.K, run.X, run.U, run.S, block.K, width, baseHeight, space, wrap, ref endedWithBreak);
                 }
             }
 
@@ -602,15 +626,30 @@ namespace Lea.Win
             return layout;
         }
 
-        private void AddInlineText(Graphics graphics, List<Il> lines, ref Il line, ref Ia pending, string kind, string value, Uri url, S style, string baseKind, int width, int baseHeight, ref bool endedWithBreak)
+        private void AddInlineText(Graphics graphics, List<Il> lines, ref Il line, ref Ia pending, string kind, string value, Uri url, S style, string baseKind, int width, int baseHeight, string space, bool wrap, ref bool endedWithBreak)
         {
             value = value ?? "";
+            if (space == "p" || space == "pw")
+            {
+                AddPreservedText(graphics, lines, ref line, ref pending, kind, value, url, style, baseKind, width, baseHeight, wrap, ref endedWithBreak);
+                return;
+            }
+
             var index = 0;
             while (index < value.Length)
             {
+                var lineBreak = space == "pl" ? LineBreak(value, index) : 0;
+                if (lineBreak > 0)
+                {
+                    FinishInlineLine(lines, ref line, baseHeight, true, true);
+                    pending = null;
+                    endedWithBreak = true;
+                    index += lineBreak;
+                    continue;
+                }
                 if (Char.IsWhiteSpace(value[index]))
                 {
-                    while (index < value.Length && Char.IsWhiteSpace(value[index])) index++;
+                    while (index < value.Length && Char.IsWhiteSpace(value[index]) && (space != "pl" || LineBreak(value, index) == 0)) index++;
                     pending = InlineAtom(graphics, kind, " ", null, style, baseKind);
                     continue;
                 }
@@ -618,13 +657,57 @@ namespace Lea.Win
                 var start = index;
                 while (index < value.Length && !Char.IsWhiteSpace(value[index])) index++;
                 var word = InlineAtom(graphics, kind, value.Substring(start, index - start), url, style, baseKind);
-                AddInlineWord(graphics, lines, ref line, ref pending, word, width, baseHeight);
+                AddInlineWord(graphics, lines, ref line, ref pending, word, width, baseHeight, wrap);
                 endedWithBreak = false;
             }
         }
 
-        private void AddInlineWord(Graphics graphics, List<Il> lines, ref Il line, ref Ia pending, Ia word, int width, int baseHeight)
+        private void AddPreservedText(Graphics graphics, List<Il> lines, ref Il line, ref Ia pending, string kind, string value, Uri url, S style, string baseKind, int width, int baseHeight, bool wrap, ref bool endedWithBreak)
         {
+            var index = 0;
+            while (index < value.Length)
+            {
+                var lineBreak = LineBreak(value, index);
+                if (lineBreak > 0)
+                {
+                    FinishInlineLine(lines, ref line, baseHeight, true, true);
+                    pending = null;
+                    endedWithBreak = true;
+                    index += lineBreak;
+                    continue;
+                }
+
+                var spaces = Char.IsWhiteSpace(value[index]);
+                var text = new StringBuilder();
+                while (index < value.Length && LineBreak(value, index) == 0 && Char.IsWhiteSpace(value[index]) == spaces)
+                {
+                    text.Append(value[index] == '\t' ? "    " : value[index].ToString());
+                    index++;
+                }
+                var atom = InlineAtom(graphics, kind, text.ToString(), url, style, baseKind);
+                AddInlineWord(graphics, lines, ref line, ref pending, atom, width, baseHeight, wrap);
+                endedWithBreak = false;
+            }
+        }
+
+        private static int LineBreak(string value, int index)
+        {
+            if (index < 0 || index >= value.Length) return 0;
+            if (value[index] == '\n') return 1;
+            if (value[index] != '\r') return 0;
+            return index + 1 < value.Length && value[index + 1] == '\n' ? 2 : 1;
+        }
+
+        private void AddInlineWord(Graphics graphics, List<Il> lines, ref Il line, ref Ia pending, Ia word, int width, int baseHeight, bool wrap)
+        {
+            if (!wrap)
+            {
+                if (line.As.Count > 0 && pending != null) AddInlineAtom(line, pending);
+                AddInlineAtom(line, word);
+                pending = null;
+                return;
+            }
+
             if (word.W <= width)
             {
                 var gap = line.As.Count > 0 && pending != null ? pending.W : 0;
@@ -689,7 +772,7 @@ namespace Lea.Win
         private static bool NeedsFlow(B block)
         {
             var style = block == null ? null : block.S;
-            return block != null && (block.Is.Count > 0 || (style != null && (style.Ta.Length > 0 || style.Lh > 0 || style.Lm > 0)));
+            return block != null && (block.Is.Count > 0 || (style != null && (style.Ta.Length > 0 || style.Lh > 0 || style.Lm > 0 || style.Ws.Length > 0 || style.Ov.Length > 0)));
         }
 
         private static int CssLineHeight(S style, int nativeHeight)
@@ -702,12 +785,18 @@ namespace Lea.Win
 
         private void AddInlineBoxes(B block, Rectangle content, IList<Ix> flow)
         {
+            var clip = ClipsOverflow(block.S) ? content : Rectangle.Empty;
             foreach (var part in flow)
             {
                 var rect = part.R;
                 rect.Offset(content.X, content.Y);
-                boxes.Add(new Bx(part.K, part.X, part.U, part.S, rect, false, block, true));
+                boxes.Add(new Bx(part.K, part.X, part.U, part.S, rect, false, block, true, clip));
             }
+        }
+
+        private static bool ClipsOverflow(S style)
+        {
+            return style != null && style.Ov.Length > 0 && style.Ov != "v";
         }
 
         private static int BorderWidth(S style, int width)
@@ -1231,13 +1320,14 @@ namespace Lea.Win
             public readonly bool Title;
             public readonly B B;
             public readonly bool Inline;
+            public readonly Rectangle Clip;
 
-            public Bx(string kind, string text, Uri url, S style, Rectangle rect, bool title, B block = null, bool inline = false)
-                : this(kind, text, url, style, rect, rect, title, block, inline)
+            public Bx(string kind, string text, Uri url, S style, Rectangle rect, bool title, B block = null, bool inline = false, Rectangle clip = default(Rectangle))
+                : this(kind, text, url, style, rect, rect, title, block, inline, clip)
             {
             }
 
-            public Bx(string kind, string text, Uri url, S style, Rectangle rect, Rectangle content, bool title, B block = null, bool inline = false)
+            public Bx(string kind, string text, Uri url, S style, Rectangle rect, Rectangle content, bool title, B block = null, bool inline = false, Rectangle clip = default(Rectangle))
             {
                 K = kind;
                 X = text ?? "";
@@ -1248,6 +1338,7 @@ namespace Lea.Win
                 Title = title;
                 B = block;
                 Inline = inline;
+                Clip = clip;
             }
         }
 
