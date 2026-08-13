@@ -367,12 +367,9 @@ namespace Lea.Win
                     var cellRight = contentX + tableWidth * rightColumn / columns;
                     var cellWidth = Math.Max(1, cellRight - cellLeft);
                     var cellBox = CellBox(cell.S, cellWidth);
-                    using (var font = BoxFont(cell.H ? "th" : "td", cell.S, false))
-                    {
-                        var height = Measure(graphics, cell.X, font, cellBox.Width);
-                        if (cell.S != null && cell.S.H > 0) height = cell.S.H;
-                        rowHeight = Math.Max(rowHeight, height + cellBox.Height);
-                    }
+                    var height = CellContentHeight(graphics, cell, cellBox.Width);
+                    if (cell.S != null && cell.S.H > 0) height = SimpleCell(cell) ? cell.S.H : Math.Max(height, cell.S.H);
+                    rowHeight = Math.Max(rowHeight, height + cellBox.Height);
                     column = rightColumn;
                 }
 
@@ -387,7 +384,12 @@ namespace Lea.Win
                     var inset = CellInset(cell.S);
                     var outer = new Rectangle(cellLeft, rowY, cellWidth, rowHeight);
                     var content = new Rectangle(cellLeft + inset.Left, rowY + inset.Top, Math.Max(1, cellWidth - inset.Left - inset.Right), Math.Max(1, rowHeight - inset.Top - inset.Bottom));
-                    boxes.Add(new Bx(cell.H ? "th" : "td", cell.X, null, cell.S, outer, content, false, block));
+                    if (SimpleCell(cell)) boxes.Add(new Bx(cell.H ? "th" : "td", cell.X, null, cell.S, outer, content, false, block));
+                    else
+                    {
+                        boxes.Add(new Bx(cell.H ? "th" : "td", "", null, cell.S, outer, content, false, block));
+                        LayCellBlocks(graphics, cell, content);
+                    }
                     column = rightColumn;
                 }
                 rowY += rowHeight;
@@ -397,6 +399,79 @@ namespace Lea.Win
             var outerTable = new Rectangle(bx, y, tableWidth + pl + pr + bl + br, contentHeight + pt + pb + bt + bb);
             boxes.Insert(first, new Bx("table", "", null, style, outerTable, new Rectangle(contentX, contentY, tableWidth, contentHeight), false, block));
             return y + outerTable.Height + 8 + (style == null ? 0 : style.Mb);
+        }
+
+        private int CellContentHeight(Graphics graphics, Tc cell, int width)
+        {
+            if (SimpleCell(cell))
+            {
+                using (var font = BoxFont(cell.H ? "th" : "td", cell.S, false)) return Measure(graphics, cell.X, font, width);
+            }
+
+            var height = 0;
+            foreach (var part in cell.Bs) height += CellPartHeight(graphics, part, width);
+            return Math.Max(1, height);
+        }
+
+        private void LayCellBlocks(Graphics graphics, Tc cell, Rectangle content)
+        {
+            var y = content.Y;
+            foreach (var part in cell.Bs)
+            {
+                var style = part.S;
+                var ml = style == null ? 0 : style.Ml;
+                var mr = style == null ? 0 : style.Mr;
+                var mt = style == null ? 0 : style.Mt;
+                var mb = style == null ? 0 : style.Mb;
+                var bt = style == null ? 0 : BorderWidth(style, style.Bt);
+                var br = style == null ? 0 : BorderWidth(style, style.Br);
+                var bb = style == null ? 0 : BorderWidth(style, style.Bb);
+                var bl = style == null ? 0 : BorderWidth(style, style.Bl);
+                var pt = style == null ? 0 : style.Pt;
+                var pr = style == null ? 0 : style.Pr;
+                var pb = style == null ? 0 : style.Pb;
+                var pl = style == null ? 0 : style.Pl;
+                var available = Math.Max(1, content.Width - ml - mr - bl - br - pl - pr);
+                if (style != null && style.W > 0) available = Math.Min(available, style.W);
+                int textHeight;
+                using (var font = BoxFont(part.K, style, false)) textHeight = part.K == "br" ? Math.Max(4, font.Height / 2) : Measure(graphics, CellText(part), font, available);
+                if (style != null && style.H > 0) textHeight = style.H;
+                y += mt;
+                var outer = new Rectangle(content.X + ml, y, available + pl + pr + bl + br, textHeight + pt + pb + bt + bb);
+                var inner = new Rectangle(outer.X + bl + pl, outer.Y + bt + pt, available, textHeight);
+                boxes.Add(new Bx(part.K, CellText(part), part.K == "a" ? part.U : null, style, outer, inner, false, part));
+                y += outer.Height + mb + CellGap(part.K);
+            }
+        }
+
+        private int CellPartHeight(Graphics graphics, B part, int width)
+        {
+            var style = part.S;
+            var horizontal = style == null ? 0 : style.Ml + style.Mr + style.Pl + style.Pr + BorderWidth(style, style.Bl) + BorderWidth(style, style.Br);
+            var available = Math.Max(1, width - horizontal);
+            if (style != null && style.W > 0) available = Math.Min(available, style.W);
+            int height;
+            using (var font = BoxFont(part.K, style, false)) height = part.K == "br" ? Math.Max(4, font.Height / 2) : Measure(graphics, CellText(part), font, available);
+            if (style != null && style.H > 0) height = style.H;
+            if (style != null) height += style.Mt + style.Mb + style.Pt + style.Pb + BorderWidth(style, style.Bt) + BorderWidth(style, style.Bb);
+            return height + CellGap(part.K);
+        }
+
+        private static bool SimpleCell(Tc cell)
+        {
+            if (cell.Bs.Count == 0) return true;
+            var part = cell.Bs.Count == 1 ? cell.Bs[0] : null;
+            return part != null && part.U == null && part.K == (cell.H ? "th" : "td");
+        }
+
+        private static string CellText(B part)
+        {
+            return part.K == "li" ? "- " + part.X : part.X;
+        }
+
+        private static int CellGap(string kind)
+        {
+            return kind.StartsWith("h") ? 6 : kind == "p" ? 4 : kind == "br" ? 2 : 3;
         }
 
         private static Size CellBox(S style, int width)
@@ -431,7 +506,7 @@ namespace Lea.Win
             var name = kind == "pre" || kind == "code" ? "Consolas" : Font.FontFamily.Name;
             var size = title ? 20F : kind == "h1" ? 18F : kind == "h2" ? 15F : kind == "h3" ? 12F : Font.Size;
             if (!title && style != null && style.Fs > 0) size = style.Fs;
-            var fontStyle = title || kind.StartsWith("h") || kind == "caption" || (style != null && style.B) ? FontStyle.Bold : FontStyle.Regular;
+            var fontStyle = title || kind.StartsWith("h") || kind == "caption" || kind == "th" || kind == "strong" || kind == "b" || (style != null && style.B) ? FontStyle.Bold : FontStyle.Regular;
             if (kind == "a") fontStyle |= FontStyle.Underline;
             return new Font(name, size, fontStyle);
         }

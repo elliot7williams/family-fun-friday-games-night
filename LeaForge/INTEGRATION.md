@@ -71,6 +71,8 @@ outer-border and content rectangles for layout tests and host diagnostics.
 Parsed table blocks expose `B.Tb`, with `Tb.Rs`, `Tr.Cs`, and compact `Tc` cell
 records. `V` paints these on the same lightweight surface with shared row
 heights, CSS cell boxes, wrapped text, bounded column spans, and resize reflow.
+`Tc.Bs` carries structured cell content; nested links join `P.Ls` and use the
+same lightweight hit-testing and navigation path as links outside tables.
 
 Basic fields are exposed through `P.Fs`. The view paints inactive controls on
 the Lea surface, reuses one editor for focused text, opens native choice menus

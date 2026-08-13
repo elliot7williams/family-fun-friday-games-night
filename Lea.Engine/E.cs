@@ -622,7 +622,7 @@ namespace Lea.Engine
             if (style.D == "none") return;
             if (kind == "table")
             {
-                AddTable(page, node, rules, style);
+                AddTable(page, node, baseUrl, rules, style);
                 return;
             }
             if (kind == "a")
@@ -656,18 +656,18 @@ namespace Lea.Engine
             foreach (var child in node.C) Blocks(page, child, baseUrl, rules, style);
         }
 
-        private static void AddTable(P page, N node, List<R> rules, S style)
+        private static void AddTable(P page, N node, Uri baseUrl, List<R> rules, S style)
         {
             var table = new Tb();
             foreach (var child in node.C)
             {
                 if (child.K == "caption" && table.Cp.Length == 0) table.Cp = Clean(NodeText(child));
-                else AddTableRows(table, child, rules, style);
+                else AddTableRows(page, table, child, baseUrl, rules, style);
             }
             if (table.Rs.Count > 0) page.Bs.Add(new B { K = "table", X = table.Cp, S = style, Tb = table });
         }
 
-        private static void AddTableRows(Tb table, N node, List<R> rules, S inherited)
+        private static void AddTableRows(P page, Tb table, N node, Uri baseUrl, List<R> rules, S inherited)
         {
             if (node.K == "table") return;
             var style = Style(node, inherited, rules);
@@ -684,7 +684,10 @@ namespace Lea.Engine
                     int span;
                     if (!Int32.TryParse(child.Av("colspan"), out span)) span = 1;
                     span = Math.Max(1, Math.Min(16, span));
-                    row.Cs.Add(new Tc { X = Clean(NodeText(child)), S = cellStyle, H = child.K == "th", Sp = span });
+                    var cell = new Tc { X = Clean(NodeText(child)), S = cellStyle, H = child.K == "th", Sp = span };
+                    AddCellBlocks(page, cell, child, baseUrl, rules, cellStyle, child.K);
+                    if (cell.Bs.Count == 0 && cell.X.Length > 0) cell.Bs.Add(new B { K = child.K, X = cell.X, S = cellStyle });
+                    row.Cs.Add(cell);
                     columns += span;
                 }
                 if (row.Cs.Count > 0)
@@ -695,7 +698,62 @@ namespace Lea.Engine
                 return;
             }
             if (node.K != "thead" && node.K != "tbody" && node.K != "tfoot") return;
-            foreach (var child in node.C) AddTableRows(table, child, rules, style);
+            foreach (var child in node.C) AddTableRows(page, table, child, baseUrl, rules, style);
+        }
+
+        private static void AddCellBlocks(P page, Tc cell, N node, Uri baseUrl, List<R> rules, S inherited, string fallback)
+        {
+            foreach (var child in node.C)
+            {
+                if (child.K == "#text")
+                {
+                    var text = Clean(child.X);
+                    if (text.Length > 0) cell.Bs.Add(new B { K = fallback, X = text, S = inherited });
+                    continue;
+                }
+
+                var style = Style(child, inherited, rules);
+                if (style.D == "none" || child.K == "script" || child.K == "style" || child.K == "noscript") continue;
+                if (child.K == "strong" || child.K == "b") style.B = true;
+                if (child.K == "br")
+                {
+                    cell.Bs.Add(new B { K = "br", X = "", S = style });
+                    continue;
+                }
+                if (child.K == "a")
+                {
+                    Uri link;
+                    var href = child.Av("href");
+                    var text = Clean(NodeText(child));
+                    if (href.Length > 0 && Uri.TryCreate(baseUrl, href, out link))
+                    {
+                        if (text.Length == 0) text = link.ToString();
+                        page.Ls.Add(new Ln { U = link, T = text });
+                        cell.Bs.Add(new B { K = "a", X = text, U = link, S = style });
+                    }
+                    continue;
+                }
+
+                var nested = HasCellStructure(child);
+                if (!nested)
+                {
+                    var text = Clean(NodeText(child));
+                    if (text.Length > 0) cell.Bs.Add(new B { K = CellKind(child.K, fallback), X = text, S = style });
+                    continue;
+                }
+                AddCellBlocks(page, cell, child, baseUrl, rules, style, CellKind(child.K, fallback));
+            }
+        }
+
+        private static bool HasCellStructure(N node)
+        {
+            foreach (var child in node.C) if (child.K != "#text") return true;
+            return false;
+        }
+
+        private static string CellKind(string kind, string fallback)
+        {
+            return kind == "h1" || kind == "h2" || kind == "h3" || kind == "p" || kind == "li" || kind == "pre" || kind == "code" || kind == "label" || kind == "strong" || kind == "b" ? kind : fallback;
         }
 
         private static void AddField(P page, N node, Uri baseUrl, S style)

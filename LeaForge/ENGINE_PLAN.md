@@ -61,7 +61,8 @@ fs      font size
 5. Paint text, backgrounds, borders, links, controls, and images onto one surface. (Text, backgrounds, solid/dashed/dotted borders, links, images, and basic form controls are active.)
 6. Add scrolling and hit testing from layout boxes. (Visible-box painting and bounded vertical scrolling added.)
 7. Add compact table row/cell layout. (Equal columns, wrapped text, CSS boxes,
-   bounded `colspan`, malformed-markup recovery, and narrow-view reflow are active.)
+   bounded `colspan`, nested blocks, clickable links, malformed-markup recovery,
+   and narrow-view reflow are active.)
 
 This is the largest speed milestone: fewer controls, less UI overhead, and one
 predictable rendering pass.
@@ -204,6 +205,6 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add nested block content and clickable links inside table cells. Lea now keeps
-stale validator-bearing responses and conditionally revalidates them with ETag
-or Last-Modified while preserving unconditional reload behavior.
+Add bounded cookie storage with explicit clear and private-session behavior.
+Table cells now retain compact nested paint blocks, and their links use the
+normal hit-testing and navigation path without slowing ordinary one-box cells.

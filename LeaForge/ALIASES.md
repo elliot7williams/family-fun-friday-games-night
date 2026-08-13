@@ -72,4 +72,6 @@ provide direct POST navigation aliases.
 Table blocks expose `B.Tb`. `Tb.Cp` is the caption, `Rs` contains compact
 `Tr` rows, and `Cs` is the computed column count. Each row exposes cells through
 `Tr.Cs`; a `Tc` cell uses `X` for text, `S` for computed style, `H` for a header,
-and `Sp` for its bounded column span.
+`Sp` for its bounded column span, and `Bs` for nested paint blocks. Plain cells
+keep one compact block, while structured cells can expose headings, paragraphs,
+emphasis, line breaks, and links through the same short `B` model.

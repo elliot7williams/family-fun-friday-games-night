@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
@@ -41,12 +42,19 @@ namespace Lea.Tests
                 var table = tablePage.Bs[1].Tb;
                 Ok(table != null, "parsed table model");
                 Eq("Lea engine commands", table.Cp, "table caption");
-                Eq(3, table.Rs.Count, "table row count");
+                Eq(4, table.Rs.Count, "table row count");
                 Eq(3, table.Cs, "table column count");
                 Eq(3, table.Rs[0].Cs.Count, "header cell count");
                 Ok(table.Rs[0].Cs[0].H, "header cell kind");
                 Eq("Alias", table.Rs[0].Cs[0].X, "header cell text");
+                Eq(1, table.Rs[1].Cs[0].Bs.Count, "plain cell fast block");
                 Eq(2, table.Rs[2].Cs[0].Sp, "cell column span");
+                var nestedCell = table.Rs[3].Cs[0];
+                Eq(3, nestedCell.Sp, "nested cell column span");
+                Eq(3, nestedCell.Bs.Count, "nested cell blocks");
+                Eq("strong,p,a", CellKinds(nestedCell), "nested cell block kinds");
+                Eq(1, tablePage.Ls.Count, "table link count");
+                Eq("second.html", Path.GetFileName(tablePage.Ls[0].U.LocalPath), "table link target");
                 Eq(480, tablePage.Bs[1].S.W, "table CSS width");
                 Eq(1, table.Rs[1].Cs[0].S.Bt, "cell CSS border");
                 Eq(6, table.Rs[1].Cs[0].S.Pl, "cell CSS padding");
@@ -114,18 +122,22 @@ namespace Lea.Tests
                     Eq(347, view.Rb(4).Width, "sided border-box width");
                     view.Go(Path.Combine(root, "LeaForge", "test-pages", "tables.html"));
                     Paint(view);
-                    Eq(13, view.Bc, "table layout boxes");
+                    Eq(17, view.Bc, "table layout boxes");
                     Eq(480, view.Rc(2).Width, "table content width");
                     Eq(484, view.Rb(2).Width, "table border-box width");
                     Eq(view.Rb(4).Y, view.Rb(5).Y, "header cells share a row");
                     Eq(160, view.Rb(4).Width, "equal table column width");
                     Eq(320, view.Rb(10).Width, "spanning cell width");
                     Eq(160, view.Rb(11).Width, "cell after span width");
+                    Ok(view.Rb(13).Y >= view.Rb(12).Y && view.Rb(15).Bottom <= view.Rb(12).Bottom, "nested blocks stay in cell");
                     view.Size = new Size(420, 760);
                     Paint(view);
                     Ok(view.Rb(2).Width < 484, "table reflows to narrow view");
                     Eq(view.Rb(4).Y, view.Rb(5).Y, "narrow header row alignment");
                     view.Size = new Size(720, 760);
+                    Paint(view);
+                    Click(view, view.Rb(15));
+                    WaitFor(delegate { return view.T == "LeaForge Second Page"; }, "table cell link navigation");
                     view.Go(Path.Combine(root, "LeaForge", "test-pages", "scroll.html"));
                     Paint(view);
                     Eq(16, view.Bc, "scroll boxes");
@@ -293,7 +305,7 @@ namespace Lea.Tests
                     Eq("url", urlError.K, "URL error kind");
                 }
 
-                Console.WriteLine("Lea smoke passed: cache revalidation, tables, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -322,6 +334,31 @@ namespace Lea.Tests
             var values = new string[page.Fs.Count];
             for (var i = 0; i < values.Length; i++) values[i] = page.Fs[i].K;
             return String.Join(",", values);
+        }
+
+        private static string CellKinds(Tc cell)
+        {
+            var values = new string[cell.Bs.Count];
+            for (var i = 0; i < values.Length; i++) values[i] = cell.Bs[i].K;
+            return String.Join(",", values);
+        }
+
+        private static void Click(V view, Rectangle rect)
+        {
+            var method = typeof(V).GetMethod("OnMouseClick", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (method == null) throw new InvalidOperationException("mouse click method unavailable");
+            method.Invoke(view, new object[] { new MouseEventArgs(MouseButtons.Left, 1, rect.Left + rect.Width / 2, rect.Top + rect.Height / 2, 0) });
+        }
+
+        private static void WaitFor(Func<bool> ready, string name)
+        {
+            var end = DateTime.UtcNow.AddSeconds(3);
+            while (!ready() && DateTime.UtcNow < end)
+            {
+                Application.DoEvents();
+                Thread.Sleep(2);
+            }
+            Ok(ready(), name);
         }
 
         private static void Eq<T>(T expected, T actual, string name)
