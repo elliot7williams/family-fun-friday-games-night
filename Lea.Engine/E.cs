@@ -36,6 +36,18 @@ namespace Lea.Engine
         }
         public int Cc { get { return cache.Count; } }
         public int Ch { get { return ch; } }
+        public int Kc { get { return web.Kc; } }
+        public int Km { get { return W.CookieMax; } }
+        public bool Pv
+        {
+            get { return web.Pv; }
+            set
+            {
+                if (web.Pv == value) return;
+                web.Pv = value;
+                Cl();
+            }
+        }
         public int Cs
         {
             get { return cs; }
@@ -46,6 +58,12 @@ namespace Lea.Engine
         {
             cache.Clear();
             lru.Clear();
+        }
+
+        public void Kcl()
+        {
+            web.Kcl();
+            Cl();
         }
 
         public P Go(string input)
@@ -1096,6 +1114,12 @@ namespace Lea.Engine
 
         private sealed class W : WebClient
         {
+            public const int CookieMax = 64;
+            private CookieContainer normal = NewJar();
+            private CookieContainer privateJar = NewJar();
+            private CookieContainer jar;
+            private bool pv;
+
             public Uri U { get; private set; }
             public int St { get; private set; }
             public string Ct { get; private set; }
@@ -1107,6 +1131,39 @@ namespace Lea.Engine
             public string Lm { get; private set; }
             private string ve = "";
             private string vm = "";
+
+            public W()
+            {
+                jar = normal;
+            }
+
+            public int Kc { get { return jar.Count; } }
+            public bool Pv
+            {
+                get { return pv; }
+                set
+                {
+                    if (pv == value) return;
+                    pv = value;
+                    if (pv)
+                    {
+                        privateJar = NewJar();
+                        jar = privateJar;
+                    }
+                    else
+                    {
+                        privateJar = NewJar();
+                        jar = normal;
+                    }
+                }
+            }
+
+            public void Kcl()
+            {
+                if (pv) privateJar = NewJar();
+                else normal = NewJar();
+                jar = pv ? privateJar : normal;
+            }
 
             public void Va(string etag, string lastModified)
             {
@@ -1137,6 +1194,7 @@ namespace Lea.Engine
                 var http = request as HttpWebRequest;
                 if (http != null)
                 {
+                    http.CookieContainer = jar;
                     http.Headers[HttpRequestHeader.AcceptEncoding] = "gzip, deflate";
                     http.CachePolicy = new RequestCachePolicy(RequestCacheLevel.BypassCache);
                     http.UserAgent = "Lea/0.3";
@@ -1173,6 +1231,11 @@ namespace Lea.Engine
                 Lm = http.Headers[HttpResponseHeader.LastModified] ?? "";
                 Ns = Cc.IndexOf("no-store", StringComparison.OrdinalIgnoreCase) >= 0;
                 return response;
+            }
+
+            private static CookieContainer NewJar()
+            {
+                return new CookieContainer(CookieMax, 16, 4096);
             }
         }
 

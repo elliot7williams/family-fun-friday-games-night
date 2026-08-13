@@ -42,6 +42,15 @@ namespace Lea.Firespider
 
                     Check(host != null, "Lea view in selected tab");
                     Check(host.At != null && host.T == "Lea in Firespider", "bundled Lea start page");
+                    var privateField = type.GetField("pv", BindingFlags.Instance | BindingFlags.NonPublic);
+                    var currentLea = type.GetMethod("qleaAt", BindingFlags.Instance | BindingFlags.NonPublic);
+                    Check(privateField != null && currentLea != null && !host.Pv, "Lea normal cookie mode");
+                    privateField.SetValue(form, true);
+                    currentLea.Invoke(form, null);
+                    Check(host.Pv && host.Kc == 0, "Firespider private mode routed to Lea cookies");
+                    privateField.SetValue(form, false);
+                    currentLea.Invoke(form, null);
+                    Check(!host.Pv, "Firespider normal cookie mode restored");
                     var timer = Member<Timer>(form, "t");
                     var tick = typeof(Timer).GetMethod("OnTick", BindingFlags.Instance | BindingFlags.NonPublic);
                     Check(tick != null, "Firespider timer tick");
@@ -103,7 +112,7 @@ namespace Lea.Firespider
                     Check(restoredTabs.TabCount == beforeMiddle - 1 && FindLea(restoredTabs) == null, "middle-click Lea tab close");
                 }
 
-                Console.WriteLine("Firespider Lea smoke passed: close routing, sessions, source, menu, timer, start page, and navigation.");
+                Console.WriteLine("Firespider Lea smoke passed: private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
                 return 0;
             }
             catch (Exception error)

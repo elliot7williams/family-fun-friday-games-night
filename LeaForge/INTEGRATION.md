@@ -74,6 +74,11 @@ heights, CSS cell boxes, wrapped text, bounded column spans, and resize reflow.
 `Tc.Bs` carries structured cell content; nested links join `P.Ls` and use the
 same lightweight hit-testing and navigation path as links outside tables.
 
+`E` and `V` expose the same cookie aliases: `Kc`, `Km`, `Kcl()`, and `Pv`.
+Cookies remain in memory and are bounded to 64 entries. Firespider maps its
+existing `pv` flag to each active Lea view, so private mode receives a fresh
+isolated jar and crossing the privacy boundary clears Lea's page cache.
+
 Basic fields are exposed through `P.Fs`. The view paints inactive controls on
 the Lea surface, reuses one editor for focused text, opens native choice menus
 for single-select fields, and provides `Rs`, `Sm`, and `SmA` for reset and

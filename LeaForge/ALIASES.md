@@ -51,6 +51,11 @@ engine exposes `Cm` (cache maximum), `Cc` (count), `Ch` (body reuses), `Cs`
 (default freshness seconds), and `Cl()` (clear). Stale validators use
 `If-None-Match` or `If-Modified-Since`; reload always bypasses this cache.
 
+Cookies stay compact: `Kc` is the active cookie count, `Km` is the bounded
+maximum, and `Kcl()` clears the active jar plus page cache. `Pv` switches to a
+fresh isolated private jar; leaving private mode destroys it and restores the
+normal in-memory jar without allowing cached pages across the boundary.
+
 Loading failures use `Er`: `K` is the failure kind, `U` is the address, `St` is
 an HTTP status when available, and `Rt` reports whether retrying may help.
 

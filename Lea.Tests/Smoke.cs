@@ -297,6 +297,37 @@ namespace Lea.Tests
                     Ok(!missingHttp.Rt, "HTTP 404 not retryable");
                     var decode = Fails(delegate { net.Go(new Uri(server.U, "?bad-gzip=1")); }, "bad GZip");
                     Eq("decode", decode.K, "decode error kind");
+
+                    var jar = new E();
+                    Eq(64, jar.Km, "bounded cookie maximum");
+                    Eq(0, jar.Kc, "empty cookie jar");
+                    jar.Go(new Uri(server.U, "?cookie=set-normal"));
+                    Eq(1, jar.Kc, "stored normal cookie");
+                    Eq("Cookie normal", jar.Go(new Uri(server.U, "?cookie=read")).T, "normal cookie round trip");
+                    Ok(server.LastCookie.Contains("sid=normal"), "normal Cookie request header");
+                    jar.Go(new Uri(server.U, "?max-age=60&privacy-cache=1"));
+                    Ok(jar.Cc > 0, "normal cache before private mode");
+
+                    jar.Pv = true;
+                    Ok(jar.Pv && jar.Kc == 0 && jar.Cc == 0, "private mode starts isolated and clears cache");
+                    Eq("Cookie empty", jar.Go(new Uri(server.U, "?cookie=read")).T, "private jar hides normal cookie");
+                    jar.Go(new Uri(server.U, "?cookie=set-private"));
+                    Eq("Cookie private", jar.GoA(new Uri(server.U, "?cookie=read")).GetAwaiter().GetResult().T, "async private cookie round trip");
+                    Eq(1, jar.Kc, "private cookie count");
+
+                    jar.Pv = false;
+                    Ok(!jar.Pv && jar.Kc == 1 && jar.Cc == 0, "normal jar restored after private mode");
+                    Eq("Cookie normal", jar.Go(new Uri(server.U, "?cookie=read")).T, "private cookie discarded");
+                    jar.Pv = true;
+                    Eq(0, jar.Kc, "new private session discards prior private cookies");
+                    jar.Pv = false;
+                    for (var cookieIndex = 0; cookieIndex < 70; cookieIndex++) jar.Go(new Uri(server.U, "?cookie=" + cookieIndex));
+                    Ok(jar.Kc > 0 && jar.Kc <= jar.Km, "cookie jar remains bounded: " + jar.Kc);
+                    jar.Kcl();
+                    Eq(0, jar.Kc, "clear cookie jar");
+                    Eq(0, jar.Cc, "clear cookies also clears page cache");
+                    Eq("Cookie empty", jar.Go(new Uri(server.U, "?cookie=read")).T, "cleared cookie omitted");
+
                     var missingFile = new Uri(Path.Combine(root, "LeaForge", "test-pages", "missing-lea-page.html"));
                     var fileError = Fails(delegate { net.Go(missingFile); }, "missing file");
                     Eq("file", fileError.K, "file error kind");
@@ -305,7 +336,7 @@ namespace Lea.Tests
                     Eq("url", urlError.K, "URL error kind");
                 }
 
-                Console.WriteLine("Lea smoke passed: cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -390,6 +421,7 @@ namespace Lea.Tests
             private string lastType = "";
             private string lastIfNoneMatch = "";
             private string lastIfModifiedSince = "";
+            private string lastCookie = "";
 
             public Uri U { get; private set; }
             public int Hits { get { return Interlocked.CompareExchange(ref hits, 0, 0); } }
@@ -398,6 +430,7 @@ namespace Lea.Tests
             public string LastType { get { lock (state) return lastType; } }
             public string LastIfNoneMatch { get { lock (state) return lastIfNoneMatch; } }
             public string LastIfModifiedSince { get { lock (state) return lastIfModifiedSince; } }
+            public string LastCookie { get { lock (state) return lastCookie; } }
 
             public CompressedServer()
             {
@@ -427,6 +460,7 @@ namespace Lea.Tests
                         var requestBody = "";
                         var ifNoneMatch = "";
                         var ifModifiedSince = "";
+                        var cookie = "";
                         using (var reader = new StreamReader(stream, Encoding.ASCII, false, 1024, true))
                         {
                             request = reader.ReadLine() ?? "";
@@ -437,6 +471,7 @@ namespace Lea.Tests
                                 else if (line.StartsWith("Content-Type:", StringComparison.OrdinalIgnoreCase)) contentType = line.Substring(13).Trim();
                                 else if (line.StartsWith("If-None-Match:", StringComparison.OrdinalIgnoreCase)) ifNoneMatch = line.Substring(14).Trim();
                                 else if (line.StartsWith("If-Modified-Since:", StringComparison.OrdinalIgnoreCase)) ifModifiedSince = line.Substring(18).Trim();
+                                else if (line.StartsWith("Cookie:", StringComparison.OrdinalIgnoreCase)) cookie = line.Substring(7).Trim();
                             }
                             if (contentLength > 0)
                             {
@@ -461,6 +496,7 @@ namespace Lea.Tests
                             lastType = contentType;
                             lastIfNoneMatch = ifNoneMatch;
                             lastIfModifiedSince = ifModifiedSince;
+                            lastCookie = cookie;
                         }
                         if (request.IndexOf("redirect=1", StringComparison.OrdinalIgnoreCase) >= 0)
                         {
@@ -496,6 +532,8 @@ namespace Lea.Tests
                         }
                         else if (request.StartsWith("POST ", StringComparison.OrdinalIgnoreCase))
                             html = "<html><head><title>Lea POST</title></head><body><p>POST navigation worked.</p></body></html>";
+                        else if (request.IndexOf("cookie=read", StringComparison.OrdinalIgnoreCase) >= 0)
+                            html = "<html><head><title>Cookie " + (CookieValue(cookie, "sid").Length == 0 ? "empty" : CookieValue(cookie, "sid")) + "</title></head><body><p>Cookie response.</p></body></html>";
                         else
                         {
                             var title = deflate ? "Lea deflate" : "Lea gzip";
@@ -505,14 +543,19 @@ namespace Lea.Tests
                         var badGzip = request.IndexOf("bad-gzip=1", StringComparison.OrdinalIgnoreCase) >= 0;
                         var body = badGzip ? Encoding.ASCII.GetBytes("not a gzip stream") : Compress(source, deflate);
                         var noStore = request.IndexOf("no-store=1", StringComparison.OrdinalIgnoreCase) >= 0;
+                        var cookieRoute = request.IndexOf("cookie=", StringComparison.OrdinalIgnoreCase) >= 0;
                         var noCache = request.IndexOf("no-cache=1", StringComparison.OrdinalIgnoreCase) >= 0;
                         var maxAge = request.IndexOf("max-age=60", StringComparison.OrdinalIgnoreCase) >= 0 ? "Cache-Control: max-age=60\r\n" :
                             request.IndexOf("max-age=0", StringComparison.OrdinalIgnoreCase) >= 0 ? "Cache-Control: max-age=0\r\n" : "";
                         var expires = request.IndexOf("expires=future", StringComparison.OrdinalIgnoreCase) >= 0 ? "Expires: " + DateTime.UtcNow.AddMinutes(5).ToString("R") + "\r\n" : "";
                         var validators = etag ? "Cache-Control: max-age=0\r\nETag: \"lea-v1\"\r\n" :
                             lastModified ? "Cache-Control: max-age=0\r\nLast-Modified: Wed, 12 Aug 2026 12:00:00 GMT\r\n" : "";
+                        var cookieName = QueryValue(request, "cookie");
+                        var setCookie = cookieName == "set-normal" ? "Set-Cookie: sid=normal; Path=/; HttpOnly\r\n" :
+                            cookieName == "set-private" ? "Set-Cookie: sid=private; Path=/; HttpOnly\r\n" :
+                            IntValue(cookieName) >= 0 ? "Set-Cookie: c" + cookieName + "=v; Path=/\r\n" : "";
                         var headers = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Encoding: " + (deflate ? "deflate" : "gzip") + "\r\n" +
-                            (noStore ? "Cache-Control: no-store\r\n" : noCache ? "Cache-Control: no-cache\r\n" : maxAge + expires + validators) + "Content-Length: " + body.Length + "\r\nConnection: close\r\n\r\n";
+                            (noStore || cookieRoute ? "Cache-Control: no-store\r\n" : noCache ? "Cache-Control: no-cache\r\n" : maxAge + expires + validators) + setCookie + "Content-Length: " + body.Length + "\r\nConnection: close\r\n\r\n";
                         var head = Encoding.ASCII.GetBytes(headers);
                         stream.Write(head, 0, head.Length);
                         stream.Write(body, 0, body.Length);
@@ -528,6 +571,32 @@ namespace Lea.Tests
                         zip.Write(source, 0, source.Length);
                     return output.ToArray();
                 }
+            }
+
+            private static string QueryValue(string request, string name)
+            {
+                var marker = name + "=";
+                var start = request.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+                if (start < 0) return "";
+                start += marker.Length;
+                var end = request.IndexOfAny(new char[] { '&', ' ' }, start);
+                return request.Substring(start, (end < 0 ? request.Length : end) - start);
+            }
+
+            private static string CookieValue(string header, string name)
+            {
+                foreach (var item in (header ?? "").Split(';'))
+                {
+                    var split = item.IndexOf('=');
+                    if (split > 0 && item.Substring(0, split).Trim().Equals(name, StringComparison.OrdinalIgnoreCase)) return item.Substring(split + 1).Trim();
+                }
+                return "";
+            }
+
+            private static int IntValue(string value)
+            {
+                int number;
+                return Int32.TryParse(value, out number) && number >= 0 ? number : -1;
             }
 
             public void Dispose()

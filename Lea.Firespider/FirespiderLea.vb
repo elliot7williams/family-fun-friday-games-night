@@ -83,7 +83,9 @@ Partial Class j
 
     Private Function qleaAt() As Global.Lea.Win.V
         If k.SelectedTab Is Nothing OrElse k.SelectedTab.Controls.Count = 0 Then Return Nothing
-        Return TryCast(k.SelectedTab.Controls(0), Global.Lea.Win.V)
+        Dim host = TryCast(k.SelectedTab.Controls(0), Global.Lea.Win.V)
+        If host IsNot Nothing Then host.Pv = pv
+        Return host
     End Function
 
     Private Function qleaHost(ByVal tab As TabPage) As Global.Lea.Win.V
@@ -127,6 +129,7 @@ Partial Class j
     Private Function qleaNew(ByVal target As String) As Global.Lea.Win.V
         Dim tab As New TabPage("Lea")
         Dim host As New Global.Lea.Win.V()
+        host.Pv = pv
         host.Dock = DockStyle.Fill
         tab.Tag = "lea"
         tab.Controls.Add(host)

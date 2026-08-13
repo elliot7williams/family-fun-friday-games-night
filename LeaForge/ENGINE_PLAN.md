@@ -81,6 +81,8 @@ predictable rendering pass.
   refresh its lifetime; explicit reload remains unconditional.)
 - Compact typed `Er` failures for URL, file, HTTP, network, timeout, cancellation, and decoding problems. (Active.)
 - Basic cookies and a clear permission boundary for local files and scripts.
+  (A bounded `CookieContainer` now handles HTTP cookie rules; `Kc`, `Km`,
+  `Kcl()`, and `Pv` expose count, limit, clearing, and isolated private mode.)
 
 ## 6. Lea scripting
 
@@ -205,6 +207,7 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add bounded cookie storage with explicit clear and private-session behavior.
-Table cells now retain compact nested paint blocks, and their links use the
-normal hit-testing and navigation path without slowing ordinary one-box cells.
+Load external stylesheets with the same bounded request and caching rules as
+pages. Lea now stores up to 64 standards-managed cookies in memory, isolates
+private sessions, destroys private cookies on exit, and clears page cache when
+the active cookie context changes.

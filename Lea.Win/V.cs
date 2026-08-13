@@ -64,6 +64,9 @@ namespace Lea.Win
         public bool CanBk { get { return e.CanBk; } }
         public bool CanFw { get { return e.CanFw; } }
         public bool Busy { get { return e.Busy || picBusy; } }
+        public int Kc { get { return e.Kc; } }
+        public int Km { get { return e.Km; } }
+        public bool Pv { get { return e.Pv; } set { e.Pv = value; } }
         public int Dh { get { return docHeight; } }
         public int Sy { get { return sy; } }
         public int Bc { get { return boxes.Count; } }
@@ -161,6 +164,8 @@ namespace Lea.Win
             picWeb.CancelAsync();
             Cursor = Cursors.Default;
         }
+
+        public void Kcl() { e.Kcl(); }
 
         private P Show(P page, bool done)
         {

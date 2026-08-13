@@ -13,6 +13,10 @@ HTML. Up to 12 Lea URLs restore from `%LocalAppData%\Firespider Internet\Lea.ses
 private mode deletes that file instead of saving it. Legacy session settings
 remain owned by Firespider.
 
+Firespider's private-mode flag also drives `V.Pv`. Normal Lea cookies stay in
+their bounded in-memory jar, while each private session starts empty and is
+destroyed when private mode ends. Page cache is cleared between those contexts.
+
 The host project imports `Lea/FirespiderLea.targets`, which adds the two DLL
 references, compiles `FirespiderLea.vb`, and copies `start.html` to the output
 `Lea` folder. No Chromium, WebView, Safari, or hidden browser control is used.
