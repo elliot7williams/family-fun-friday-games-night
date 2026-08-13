@@ -1034,6 +1034,8 @@ namespace Lea.Engine
                 else if (name == "white-space") WhiteSpace(style, value);
                 else if (name == "word-break" || name == "overflow-wrap" || name == "word-wrap") WordBreak(style, value, name == "word-break");
                 else if (name == "overflow") Overflow(style, value);
+                else if (name == "visibility") Visibility(style, value);
+                else if (name == "opacity") Opacity(style, value);
                 else if (name == "display") style.D = value.ToLowerInvariant();
                 else if (name == "margin") Box(style, value, true);
                 else if (name == "padding") Box(style, value, false);
@@ -1175,6 +1177,26 @@ namespace Lea.Engine
             else if (mode == "clip") style.Ov = "c";
             else if (mode == "auto") style.Ov = "a";
             else if (mode == "scroll") style.Ov = "s";
+        }
+
+        private static void Visibility(S style, string value)
+        {
+            var mode = (value ?? "").Trim().ToLowerInvariant();
+            if (mode == "visible" || mode == "initial") style.Vi = "v";
+            else if (mode == "hidden") style.Vi = "h";
+            else if (mode == "collapse") style.Vi = "c";
+        }
+
+        private static void Opacity(S style, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "inherit" || source == "initial" || source == "unset" || source == "revert") { style.Op = style.Ao; return; }
+            var match = Regex.Match(source, "^(?<n>-?(?:[0-9]{1,3}(?:\\.[0-9]{1,3})?|\\.[0-9]{1,3}))(?<p>%?)$");
+            double number;
+            if (!match.Success || !Double.TryParse(match.Groups["n"].Value, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out number)) return;
+            if (match.Groups["p"].Value == "%") number /= 100D;
+            number = Math.Max(0D, Math.Min(1D, number));
+            style.Op = Math.Max(0, Math.Min(100, (int)Math.Round(style.Ao * number)));
         }
 
         private static void Box(S style, string value, bool margin)

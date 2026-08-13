@@ -16,6 +16,8 @@ namespace Lea.Engine
         public string Ws { get; internal set; }
         public string Wb { get; internal set; }
         public string Ov { get; internal set; }
+        public string Vi { get; internal set; }
+        public int Op { get; internal set; }
         public string D { get; internal set; }
         public int Mt { get; internal set; }
         public int Mr { get; internal set; }
@@ -37,6 +39,7 @@ namespace Lea.Engine
         public int Bl { get; internal set; }
         public string Bc { get; internal set; }
         public string Bs { get; internal set; }
+        internal int Ao { get; set; }
 
         internal S()
         {
@@ -48,6 +51,9 @@ namespace Lea.Engine
             Ws = "";
             Wb = "";
             Ov = "";
+            Vi = "";
+            Op = 100;
+            Ao = 100;
             D = "";
             Bc = "";
             Bs = "";
@@ -55,7 +61,7 @@ namespace Lea.Engine
 
         internal S Inherit()
         {
-            return new S { F = F, Fs = Fs, Ff = Ff, B = B, I = I, Td = Td, Ta = Ta, Lh = Lh, Lm = Lm, Ws = Ws, Wb = Wb };
+            return new S { F = F, Fs = Fs, Ff = Ff, B = B, I = I, Td = Td, Ta = Ta, Lh = Lh, Lm = Lm, Ws = Ws, Wb = Wb, Vi = Vi, Op = Op, Ao = Op };
         }
     }
 }

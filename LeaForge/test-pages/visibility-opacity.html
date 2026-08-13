@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Visibility and Opacity</title>
+  <style>
+    body { color: #26313b; background: #ffffff; }
+    p { width: 300px; min-height: 28px; margin: 4px 0; padding: 4px; border: 1px solid #687684; }
+    .opaque { opacity: 125%; background: #d02020; color: #ffffff; }
+    .half { opacity: 50%; background: #d02020; color: #ffffff; }
+    .quarter-parent { opacity: 50%; }
+    .quarter-parent>p { opacity: .5; background: #d02020; color: #ffffff; }
+    .cascade { opacity: .2; background: #176b4d; color: #ffffff; }
+    p.cascade { opacity: 80%; }
+    .hidden { visibility: hidden; background: #d02020; }
+    .collapsed { visibility: collapse; background: #d02020; }
+    .hidden-parent { visibility: hidden; }
+    .hidden-parent>.shown { visibility: visible; background: #edf7f2; }
+    a { display: block; width: 300px; min-height: 24px; margin: 4px 0; }
+    .zero-link { opacity: -0.2; }
+    .hidden-link { visibility: hidden; }
+    input { width: 260px; margin: 4px 0; }
+    .faded-field { opacity: .5; background: #dff6e9; }
+    .hidden-field { visibility: hidden; }
+    img { width: 48px; }
+    .faded-image { opacity: 50%; }
+    table { width: 300px; opacity: 50%; border: 2px solid #18734b; }
+    td { opacity: 50%; padding: 5px; background: #dff6e9; }
+  </style>
+</head>
+<body>
+  <h1>Visibility and opacity</h1>
+  <p class="opaque">Opaque paint</p>
+  <p class="half">Half opacity paint</p>
+  <section class="quarter-parent"><p>Quarter effective opacity</p></section>
+  <p class="cascade">Higher-specificity opacity wins</p>
+  <p class="hidden">Hidden layout space</p>
+  <p class="collapsed">Collapsed visibility space</p>
+  <section class="hidden-parent"><p class="shown">Visible child of hidden parent</p></section>
+  <a class="zero-link" href="second.html">Transparent link remains interactive</a>
+  <a class="hidden-link" href="second.html">Hidden link is inactive</a>
+  <input class="faded-field" type="text" value="Faded field" aria-label="Faded field">
+  <input class="hidden-field" type="text" value="Hidden field" aria-label="Hidden field">
+  <img src="../../assets/lea.ico" alt="Opaque Lea icon">
+  <img class="faded-image" src="../../assets/lea.ico" alt="Faded Lea icon">
+  <table><caption>Faded table</caption><tr><td>Quarter opacity cell</td></tr></table>
+</body>
+</html>

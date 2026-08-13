@@ -105,6 +105,13 @@ and nested cell blocks. `S.Wb` uses `n/b/a/k` for normal, break-word,
 anywhere/break-all, and keep-all. These modes come from `word-break`,
 `overflow-wrap`, or `word-wrap`; `white-space:nowrap` still disables wrapping.
 
+Inherited visibility uses `S.Vi` with `v/h/c`. Hidden and collapsed content
+keeps its layout rectangle but produces no pixels, links, field hits, or editor.
+`S.Op` is a bounded effective percentage: ancestor and local opacity combine,
+decimal and percentage syntax clamp safely, and cascade overrides remain
+deterministic. Opaque content stays on the original fast paint path; faded text,
+backgrounds, borders, controls, and images use lightweight alpha rendering.
+
 Stylesheets accept descendant, direct-child (`>`), adjacent-element (`+`), and
 general-sibling (`~`) selectors. Compact chains such as `main>p+p~p` work
 without required spaces, and sibling matching ignores formatting whitespace

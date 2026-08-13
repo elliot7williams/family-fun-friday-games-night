@@ -42,7 +42,9 @@ heights, then keeps each painted line tall enough for its largest font.
 `Ws` is white-space mode using `n/nw/p/pw/pl` for normal, nowrap, pre,
 pre-wrap, and pre-line. `Wb` is word breaking using `n/b/a/k` for normal,
 break-word, anywhere/break-all, and keep-all. `Ov` is overflow using
-`v/h/c/a/s` for visible, hidden, clip, auto, and scroll.
+`v/h/c/a/s` for visible, hidden, clip, auto, and scroll. `Vi` is inherited
+visibility using `v/h/c` for visible, hidden, and collapse. `Op` is the effective
+paint opacity from 0 through 100 after ancestor opacity is included.
 
 Text blocks keep compatible flattened text in `B.X`. When nested markup needs
 separate painting, `B.Is` exposes compact `Ir` inline runs; each run uses `K`

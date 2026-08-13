@@ -58,7 +58,7 @@ fs      font size
 2. Implement the cascade and inheritance with a small priority model. (First specificity/source-order cascade added.)
    (`link rel=stylesheet` and inline `style` blocks now enter that source order
    together; linked CSS uses cookies, compression, validators, and shared LRU caching.)
-3. Add colors, fonts, spacing, borders, width, height, display, and overflow. (Colors, fallback font families, underline/strike decorations, margins, padding, backgrounds, `display:none`, borders, pixel width/height bounds, text alignment, line height, word breaking, white-space modes, and clipped overflow are active.)
+3. Add colors, fonts, spacing, borders, width, height, display, visibility, opacity, and overflow. (Colors, fallback font families, underline/strike decorations, margins, padding, backgrounds, `display:none`, inherited visibility, bounded opacity, borders, pixel width/height bounds, text alignment, line height, word breaking, white-space modes, and clipped overflow are active.)
 4. Replace one-WinForms-control-per-node rendering with lightweight layout boxes. (Reusable `Bx` layout pass added.)
 5. Paint text, backgrounds, borders, links, controls, and images onto one surface. (Text, nested bold/italic inline runs, backgrounds, solid/dashed/dotted borders, links, images, and basic form controls are active.)
 6. Add scrolling and hit testing from layout boxes. (Visible-box painting and bounded vertical scrolling added.)
@@ -209,7 +209,15 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add visibility and opacity.
+Add dynamic hover and focus restyling.
+
+`S.Vi` stores inherited `v/h/c` visibility. Hidden and collapsed boxes retain
+layout but skip every paint, hit-registration, and native-editor path; a child
+may explicitly return to visible. `S.Op` stores the effective `0..100` opacity
+after combining ancestor and local decimal/percentage values. The opaque fast
+path is unchanged, while faded text, boxes, borders, controls, and images use
+alpha painting. Lea intentionally uses lightweight primitive alpha rather than
+a full stacking-context compositor.
 
 General sibling (`~`) chains scan the preceding element siblings once and keep
 the nearest compiled match. `:not(...)` accepts one simple selector containing

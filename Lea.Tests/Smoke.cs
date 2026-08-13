@@ -141,6 +141,27 @@ namespace Lea.Tests
                 Eq(260, sizingPage.Bs[9].S.Wx, "table maximum width");
                 Eq("a", sizingPage.Bs[9].Tb.Rs[0].Cs[0].S.Wb, "table-cell anywhere wrap alias");
 
+                var visibilityPath = Path.Combine(root, "LeaForge", "test-pages", "visibility-opacity.html");
+                var visibilityPage = engine.Go(visibilityPath);
+                Eq(15, visibilityPage.Bs.Count, "visibility and opacity block count");
+                Eq(2, visibilityPage.Fs.Count, "visibility field count");
+                Eq(2, visibilityPage.Ls.Count, "visibility link count");
+                Eq(100, visibilityPage.Bs[1].S.Op, "clamped opacity percentage");
+                Eq(50, visibilityPage.Bs[2].S.Op, "percentage opacity alias");
+                Eq(25, visibilityPage.Bs[3].S.Op, "nested effective opacity");
+                Eq(80, visibilityPage.Bs[4].S.Op, "opacity cascade override");
+                Eq("h", visibilityPage.Bs[5].S.Vi, "hidden visibility alias");
+                Eq("c", visibilityPage.Bs[6].S.Vi, "collapse visibility alias");
+                Eq("v", visibilityPage.Bs[7].S.Vi, "visible child override");
+                Eq(0, visibilityPage.Bs[8].S.Op, "negative opacity clamp");
+                Eq("h", visibilityPage.Bs[9].S.Vi, "hidden link visibility");
+                Eq(50, visibilityPage.Fs[0].S.Op, "field opacity");
+                Eq("h", visibilityPage.Fs[1].S.Vi, "hidden field visibility");
+                Eq(100, visibilityPage.Bs[12].S.Op, "opaque image state");
+                Eq(50, visibilityPage.Bs[13].S.Op, "faded image state");
+                Eq(50, visibilityPage.Bs[14].S.Op, "table effective opacity");
+                Eq(25, visibilityPage.Bs[14].Tb.Rs[0].Cs[0].S.Op, "table-cell effective opacity");
+
                 var selectorPath = Path.Combine(root, "LeaForge", "test-pages", "selectors.html");
                 var selectorPage = engine.Go(selectorPath);
                 Eq(12, selectorPage.Bs.Count, "relationship selector block count");
@@ -426,6 +447,36 @@ namespace Lea.Tests
                     var sizingCellLines = TextLines(view, sizingCellPart);
                     var sizingCellBox = ContainingCell(view, view.At.Bs[9], sizingCellLines[0]);
                     Ok(sizingCellLines.Length > 1 && LinesFitWidth(sizingCellLines, sizingCellBox), "table-cell anywhere wrapping");
+                    var visibilityLoad = view.GoA(visibilityPath);
+                    while (!visibilityLoad.IsCompleted)
+                    {
+                        Application.DoEvents();
+                        Thread.Sleep(2);
+                    }
+                    visibilityLoad.GetAwaiter().GetResult();
+                    using (var visibilityPaint = Render(view))
+                    {
+                        var opaqueBox = BlockRect(view, view.At.Bs[1]);
+                        var halfBox = BlockRect(view, view.At.Bs[2]);
+                        var quarterBox = BlockRect(view, view.At.Bs[3]);
+                        var hiddenBox = BlockRect(view, view.At.Bs[5]);
+                        var collapsedBox = BlockRect(view, view.At.Bs[6]);
+                        var shownBox = BlockRect(view, view.At.Bs[7]);
+                        var white = Color.White;
+                        var opaqueDistance = ColorDistance(BoxPixel(visibilityPaint, opaqueBox), white);
+                        var halfDistance = ColorDistance(BoxPixel(visibilityPaint, halfBox), white);
+                        var quarterDistance = ColorDistance(BoxPixel(visibilityPaint, quarterBox), white);
+                        Ok(opaqueDistance > halfDistance && halfDistance > quarterDistance, "rendered opacity progression");
+                        Ok(!hiddenBox.IsEmpty && !collapsedBox.IsEmpty && shownBox.Top > collapsedBox.Bottom && collapsedBox.Top > hiddenBox.Bottom, "hidden visibility keeps layout space");
+                        Eq(white.ToArgb(), BoxPixel(visibilityPaint, hiddenBox).ToArgb(), "hidden box leaves page background");
+                        Eq(white.ToArgb(), BoxPixel(visibilityPaint, collapsedBox).ToArgb(), "collapsed visibility leaves page background");
+                        Ok(ColorDistance(BoxPixel(visibilityPaint, shownBox), white) > 10, "visible child of hidden parent paints");
+                        Eq(1, HitCount(view, false), "transparent link hit and hidden link suppression");
+                        Eq(1, HitCount(view, true), "faded field hit and hidden field suppression");
+                        var opaqueImage = BlockRect(view, view.At.Bs[12]);
+                        var fadedImage = BlockRect(view, view.At.Bs[13]);
+                        Ok(ColorDistance(CenterPixel(visibilityPaint, opaqueImage), white) > ColorDistance(CenterPixel(visibilityPaint, fadedImage), white), "image opacity rendering");
+                    }
                     view.Go(selectorPath);
                     Paint(view);
                     Eq(12, view.At.Bs.Count, "relationship selector render blocks");
@@ -699,7 +750,7 @@ namespace Lea.Tests
                     Eq("url", urlError.K, "URL error kind");
                 }
 
-                Console.WriteLine("Lea smoke passed: general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, font families, text decoration, child and adjacent CSS selectors, white-space modes, overflow clipping, malformed HTML recovery, semantic blocks, nested lists, text alignment, line height, inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, font families, text decoration, child and adjacent CSS selectors, white-space modes, overflow clipping, malformed HTML recovery, semantic blocks, nested lists, text alignment, line height, inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -711,8 +762,14 @@ namespace Lea.Tests
 
         private static void Paint(V view)
         {
-            using (var image = new Bitmap(view.Width, view.Height))
-                view.DrawToBitmap(image, new Rectangle(Point.Empty, image.Size));
+            using (var image = Render(view)) { }
+        }
+
+        private static Bitmap Render(V view)
+        {
+            var image = new Bitmap(view.Width, view.Height);
+            view.DrawToBitmap(image, new Rectangle(Point.Empty, image.Size));
+            return image;
         }
 
         private static void Check(V view, string root, string file, int blocks, int boxes)
@@ -882,6 +939,21 @@ namespace Lea.Tests
             return true;
         }
 
+        private static Color BoxPixel(Bitmap image, Rectangle box)
+        {
+            return image.GetPixel(Math.Max(box.Left, box.Right - 12), box.Top + box.Height / 2);
+        }
+
+        private static Color CenterPixel(Bitmap image, Rectangle box)
+        {
+            return image.GetPixel(box.Left + box.Width / 2, box.Top + box.Height / 2);
+        }
+
+        private static int ColorDistance(Color left, Color right)
+        {
+            return Math.Abs(left.R - right.R) + Math.Abs(left.G - right.G) + Math.Abs(left.B - right.B);
+        }
+
         private static Font RenderFont(V view, string kind, S style, bool link = false, string baseKind = null)
         {
             var method = typeof(V).GetMethod("BoxFont", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -909,6 +981,20 @@ namespace Lea.Tests
             var values = field.GetValue(view) as System.Collections.IEnumerable;
             if (values == null) throw new InvalidOperationException("layout box values unavailable");
             return values;
+        }
+
+        private static int HitCount(V view, bool fields)
+        {
+            var member = typeof(V).GetField("hits", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = member == null ? null : member.GetValue(view) as System.Collections.IEnumerable;
+            if (values == null) throw new InvalidOperationException("hit values unavailable");
+            var count = 0;
+            foreach (var value in values)
+            {
+                var type = value.GetType();
+                if (fields ? type.GetField("B").GetValue(value) != null : type.GetField("U").GetValue(value) != null) count++;
+            }
+            return count;
         }
 
         private static void WaitFor(Func<bool> ready, string name)

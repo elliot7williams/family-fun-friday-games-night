@@ -27,6 +27,7 @@ LeaForge is where we can grow the more full-featured browser.
 - external stylesheets with document-order cascade and shared bounded caching
 - compiled relationship, attribute, structural, negation, link, and form-state selectors
 - min/max dimensions plus normal, break-word, and break-all text flow
+- inherited visibility and effective opacity across text, boxes, controls, and images
 - compact CSS cascade for colors, fonts, boxes, overflow, and inline styles
 - tiny script handling for `alert("...")` and `document.title = "..."`
 

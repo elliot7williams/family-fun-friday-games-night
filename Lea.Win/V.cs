@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Net;
@@ -215,7 +216,9 @@ namespace Lea.Win
 
             var pageColor = CssColor(At.S == null ? "" : At.S.F, ForeColor);
             var pageBackground = CssColor(At.S == null ? "" : At.S.Bg, BackColor);
-            pe.Graphics.Clear(pageBackground);
+            pe.Graphics.Clear(BackColor);
+            if (At.S != null && !Hidden(At.S) && At.S.Bg.Length > 0 && At.S.Op > 0)
+                using (var brush = new SolidBrush(PaintColor(pageBackground, At.S.Op))) pe.Graphics.FillRectangle(brush, ClientRectangle);
             if (layoutDirty || layoutWidth != ClientSize.Width) Lay(pe.Graphics);
             PlaceEditor();
 
@@ -226,6 +229,8 @@ namespace Lea.Win
                 var content = box.C;
                 content.Offset(0, -sy);
                 if (rect.Bottom < 0 || rect.Top > ClientSize.Height) continue;
+                if (Hidden(box.S)) continue;
+                var opacity = box.S == null ? 100 : box.S.Op;
                 var clip = box.Clip;
                 if (!clip.IsEmpty) clip.Offset(0, -sy);
                 GraphicsState state = null;
@@ -236,21 +241,22 @@ namespace Lea.Win
                         state = pe.Graphics.Save();
                         pe.Graphics.SetClip(clip, CombineMode.Intersect);
                     }
-                    if (!box.Title && (!box.Inline || box.B == null || box.B.Is.Count > 0)) PaintBox(pe.Graphics, rect, box.S, pageBackground, pageColor);
+                    if (opacity > 0 && !box.Title && (!box.Inline || box.B == null || box.B.Is.Count > 0)) PaintBox(pe.Graphics, rect, box.S, pageBackground, pageColor, opacity, box.B == null || box.B.I == null);
                     if (box.K == "img")
                     {
-                        PaintPic(pe.Graphics, box, content, pageColor);
+                        if (opacity > 0) PaintPic(pe.Graphics, box, content, pageColor, opacity);
                         continue;
                     }
                     if (box.K == "hr")
                     {
                         var color = CssColor(box.S == null ? "" : box.S.F, Color.FromArgb(148, 163, 184));
-                        using (var pen = new Pen(color)) pe.Graphics.DrawLine(pen, content.Left, content.Top + content.Height / 2, content.Right, content.Top + content.Height / 2);
+                        if (opacity > 0)
+                            using (var pen = new Pen(PaintColor(color, opacity))) pe.Graphics.DrawLine(pen, content.Left, content.Top + content.Height / 2, content.Right, content.Top + content.Height / 2);
                         continue;
                     }
                     if (box.B != null && box.B.I != null)
                     {
-                        PaintField(pe.Graphics, box, content, pageColor);
+                        if (opacity > 0) PaintField(pe.Graphics, box, content, pageColor, opacity);
                         hits.Add(new Hit(VisibleRect(rect, clip), null, box));
                         continue;
                     }
@@ -261,7 +267,7 @@ namespace Lea.Win
                         if (box.S != null) color = CssColor(box.S.F, color);
                         var flags = box.Inline ? TextFormatFlags.SingleLine | TextFormatFlags.NoPadding : TextFormatFlags.WordBreak | TextFormatFlags.NoPadding;
                         if (!clip.IsEmpty) flags |= TextFormatFlags.PreserveGraphicsClipping;
-                        TextRenderer.DrawText(pe.Graphics, box.X, font, content, color, flags);
+                        if (opacity > 0) PaintText(pe.Graphics, box.X, font, content, color, flags, opacity);
                     }
 
                     if (box.U != null)
@@ -396,7 +402,7 @@ namespace Lea.Win
                 using (var font = BoxFont("caption", style, false))
                 {
                     var height = Measure(graphics, block.Tb.Cp, font, tableWidth);
-                    boxes.Add(new Bx("caption", block.Tb.Cp, null, null, new Rectangle(contentX, rowY, tableWidth, height), false, block));
+                    boxes.Add(new Bx("caption", block.Tb.Cp, null, style, new Rectangle(contentX, rowY, tableWidth, height), false, block));
                     rowY += height + 8;
                 }
             }
@@ -901,18 +907,18 @@ namespace Lea.Win
             return new Size(width, 72);
         }
 
-        private static void PaintBox(Graphics graphics, Rectangle rect, S style, Color pageBackground, Color pageColor)
+        private static void PaintBox(Graphics graphics, Rectangle rect, S style, Color pageBackground, Color pageColor, int opacity, bool background)
         {
             if (style == null) return;
-            if (style.Bg.Length > 0)
-                using (var brush = new SolidBrush(CssColor(style.Bg, pageBackground))) graphics.FillRectangle(brush, rect);
+            if (background && style.Bg.Length > 0)
+                using (var brush = new SolidBrush(PaintColor(CssColor(style.Bg, pageBackground), opacity))) graphics.FillRectangle(brush, rect);
 
             var top = BorderWidth(style, style.Bt);
             var right = BorderWidth(style, style.Br);
             var bottom = BorderWidth(style, style.Bb);
             var left = BorderWidth(style, style.Bl);
             if (top + right + bottom + left == 0) return;
-            var color = CssColor(style.Bc, CssColor(style.F, pageColor));
+            var color = PaintColor(CssColor(style.Bc, CssColor(style.F, pageColor)), opacity);
             PaintBorder(graphics, rect, top, 0, color, style.Bs);
             PaintBorder(graphics, rect, right, 1, color, style.Bs);
             PaintBorder(graphics, rect, bottom, 2, color, style.Bs);
@@ -943,42 +949,43 @@ namespace Lea.Win
             using (var brush = new SolidBrush(color)) graphics.FillRectangle(brush, border);
         }
 
-        private void PaintPic(Graphics graphics, Bx box, Rectangle rect, Color color)
+        private void PaintPic(Graphics graphics, Bx box, Rectangle rect, Color color, int opacity)
         {
             Image image;
             if (box.B != null && box.B.U != null && pics.TryGetValue(box.B.U.AbsoluteUri, out image) && image != null)
             {
                 var size = PicSize(box.B, rect.Width);
                 graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                graphics.DrawImage(image, new Rectangle(rect.X, rect.Y, size.Width, size.Height));
+                PaintImage(graphics, image, new Rectangle(rect.X, rect.Y, size.Width, size.Height), opacity);
                 return;
             }
 
-            using (var brush = new SolidBrush(Color.FromArgb(20, color))) graphics.FillRectangle(brush, rect);
-            using (var pen = new Pen(Color.FromArgb(80, color))) graphics.DrawRectangle(pen, rect.X, rect.Y, rect.Width - 1, rect.Height - 1);
-            TextRenderer.DrawText(graphics, box.X.Length == 0 ? "Image unavailable" : box.X, Font, new Rectangle(rect.X + 8, rect.Y + 8, rect.Width - 16, rect.Height - 16), color, TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak);
+            using (var brush = new SolidBrush(PaintColor(Color.FromArgb(20, color), opacity))) graphics.FillRectangle(brush, rect);
+            using (var pen = new Pen(PaintColor(Color.FromArgb(80, color), opacity))) graphics.DrawRectangle(pen, rect.X, rect.Y, rect.Width - 1, rect.Height - 1);
+            PaintText(graphics, box.X.Length == 0 ? "Image unavailable" : box.X, Font, new Rectangle(rect.X + 8, rect.Y + 8, rect.Width - 16, rect.Height - 16), color, TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, opacity);
         }
 
-        private void PaintField(Graphics graphics, Bx box, Rectangle rect, Color color)
+        private void PaintField(Graphics graphics, Bx box, Rectangle rect, Color color, int opacity)
         {
             var field = box.B.I;
             var disabled = field.Ds;
             var background = disabled ? Color.FromArgb(238, 238, 238) : Color.White;
             if (field.S != null && field.S.Bg.Length > 0) background = CssColor(field.S.Bg, background);
             var foreground = disabled ? Color.FromArgb(130, 130, 130) : field.S == null ? color : CssColor(field.S.F, color);
+            background = PaintColor(background, opacity);
 
             if (field.K == "checkbox" || field.K == "radio")
             {
                 var mark = new Rectangle(rect.X, rect.Y + 3, 17, 17);
                 using (var brush = new SolidBrush(background)) graphics.FillRectangle(brush, mark);
-                using (var pen = new Pen(Color.FromArgb(120, 120, 120)))
+                using (var pen = new Pen(PaintColor(Color.FromArgb(120, 120, 120), opacity)))
                 {
                     if (field.K == "radio") graphics.DrawEllipse(pen, mark);
                     else graphics.DrawRectangle(pen, mark);
                 }
                 if (field.C)
                 {
-                    using (var pen = new Pen(disabled ? Color.Gray : Color.FromArgb(0, 102, 204), 2F))
+                    using (var pen = new Pen(PaintColor(disabled ? Color.Gray : Color.FromArgb(0, 102, 204), opacity), 2F))
                     {
                         if (field.K == "radio") graphics.FillEllipse(pen.Brush, new Rectangle(mark.X + 4, mark.Y + 4, 9, 9));
                         else
@@ -989,12 +996,12 @@ namespace Lea.Win
                     }
                 }
                 using (var font = BoxFont(box.K, field.S, false))
-                    TextRenderer.DrawText(graphics, box.X, font, new Rectangle(rect.X + 24, rect.Y, Math.Max(1, rect.Width - 24), rect.Height), foreground, TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding);
+                    PaintText(graphics, box.X, font, new Rectangle(rect.X + 24, rect.Y, Math.Max(1, rect.Width - 24), rect.Height), foreground, TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding, opacity);
                 return;
             }
 
             using (var brush = new SolidBrush(background)) graphics.FillRectangle(brush, rect);
-            using (var pen = new Pen(box.K == "button" ? Color.FromArgb(145, 145, 145) : Color.FromArgb(165, 165, 165))) graphics.DrawRectangle(pen, rect.X, rect.Y, rect.Width - 1, rect.Height - 1);
+            using (var pen = new Pen(PaintColor(box.K == "button" ? Color.FromArgb(145, 145, 145) : Color.FromArgb(165, 165, 165), opacity))) graphics.DrawRectangle(pen, rect.X, rect.Y, rect.Width - 1, rect.Height - 1);
 
             var text = field.K == "select" ? OptionText(field) : field.V ?? "";
             var placeholder = text.Length == 0 && field.P.Length > 0;
@@ -1008,10 +1015,10 @@ namespace Lea.Win
             {
                 var middle = rect.Top + rect.Height / 2;
                 var arrow = new Point[] { new Point(rect.Right - 17, middle - 2), new Point(rect.Right - 7, middle - 2), new Point(rect.Right - 12, middle + 4) };
-                using (var brush = new SolidBrush(foreground)) graphics.FillPolygon(brush, arrow);
+                using (var brush = new SolidBrush(PaintColor(foreground, opacity))) graphics.FillPolygon(brush, arrow);
             }
             using (var font = BoxFont(box.K, field.S, false))
-                TextRenderer.DrawText(graphics, box.K == "button" ? box.X : text, font, new Rectangle(rect.X + pad, rect.Y + 3, Math.Max(1, rect.Width - (pad * 2) - reserve), Math.Max(1, rect.Height - 6)), textColor, flags);
+                PaintText(graphics, box.K == "button" ? box.X : text, font, new Rectangle(rect.X + pad, rect.Y + 3, Math.Max(1, rect.Width - (pad * 2) - reserve), Math.Max(1, rect.Height - 6)), textColor, flags, opacity);
         }
 
         private async Task PicsA(P page)
@@ -1258,6 +1265,11 @@ namespace Lea.Win
             foreach (var box in boxes)
             {
                 if (box.B == null || box.B.I != edit) continue;
+                if (Hidden(box.S))
+                {
+                    ed.Visible = false;
+                    return;
+                }
                 var rect = box.C;
                 rect.Offset(0, -sy);
                 if (rect.Bottom <= 0 || rect.Top >= ClientSize.Height)
@@ -1351,6 +1363,49 @@ namespace Lea.Win
         {
             foreach (var hit in hits) if (hit.R.Contains(point)) return hit;
             return null;
+        }
+
+        private static bool Hidden(S style)
+        {
+            return style != null && (style.Vi == "h" || style.Vi == "c");
+        }
+
+        private static Color PaintColor(Color color, int opacity)
+        {
+            var alpha = Math.Max(0, Math.Min(255, color.A * Math.Max(0, Math.Min(100, opacity)) / 100));
+            return Color.FromArgb(alpha, color.R, color.G, color.B);
+        }
+
+        private static void PaintText(Graphics graphics, string text, Font font, Rectangle rect, Color color, TextFormatFlags flags, int opacity)
+        {
+            if (opacity >= 100)
+            {
+                TextRenderer.DrawText(graphics, text, font, rect, color, flags);
+                return;
+            }
+            if (opacity <= 0 || rect.Width < 1 || rect.Height < 1) return;
+            using (var format = (StringFormat)StringFormat.GenericTypographic.Clone())
+            using (var brush = new SolidBrush(PaintColor(color, opacity)))
+            {
+                if ((flags & TextFormatFlags.SingleLine) != 0) format.FormatFlags |= StringFormatFlags.NoWrap;
+                if ((flags & TextFormatFlags.HorizontalCenter) != 0) format.Alignment = StringAlignment.Center;
+                else if ((flags & TextFormatFlags.Right) != 0) format.Alignment = StringAlignment.Far;
+                if ((flags & TextFormatFlags.VerticalCenter) != 0) format.LineAlignment = StringAlignment.Center;
+                graphics.DrawString(text ?? "", font, brush, rect, format);
+            }
+        }
+
+        private static void PaintImage(Graphics graphics, Image image, Rectangle rect, int opacity)
+        {
+            if (opacity >= 100) { graphics.DrawImage(image, rect); return; }
+            if (opacity <= 0) return;
+            using (var attributes = new ImageAttributes())
+            {
+                var matrix = new ColorMatrix();
+                matrix.Matrix33 = opacity / 100F;
+                attributes.SetColorMatrix(matrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
+                graphics.DrawImage(image, rect, 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, attributes);
+            }
         }
 
         private static Color CssColor(string value, Color fallback)
