@@ -121,6 +121,24 @@ namespace Lea.Tests
                 Eq("h", whiteCell.S.Ov, "table overflow alias");
                 Eq("Cell    keeps spaces\nand wraps compact table text across more lines.", whiteCell.X, "table white-space preservation");
 
+                var selectorPath = Path.Combine(root, "LeaForge", "test-pages", "selectors.html");
+                var selectorPage = engine.Go(selectorPath);
+                Eq(12, selectorPage.Bs.Count, "relationship selector block count");
+                Eq("h1,p,p,p,p,div,div,div,h2,p,div,p", BlockKinds(selectorPage), "relationship selector block kinds");
+                Eq("#176b4d", selectorPage.Bs[1].S.F, "compact child selector");
+                Eq(17, selectorPage.Bs[1].S.Fs, "universal child selector");
+                Eq("#a13b18", selectorPage.Bs[2].S.F, "nested child selector");
+                Eq("#e8f4ed", selectorPage.Bs[3].S.Bg, "adjacent selector skips text nodes");
+                Eq(0, selectorPage.Bs[3].S.Bl, "nonmatching paragraph adjacency");
+                Eq(4, selectorPage.Bs[4].S.Bl, "compact adjacent selector border");
+                Eq(7, selectorPage.Bs[4].S.Pl, "compact adjacent selector padding");
+                Eq(24, selectorPage.Bs[4].S.Lh, "chained compact selector");
+                Eq(0, selectorPage.Bs[5].S.Ml, "first sibling margin");
+                Eq(18, selectorPage.Bs[6].S.Ml, "second sibling adjacent margin");
+                Eq(18, selectorPage.Bs[7].S.Ml, "third sibling adjacent margin");
+                Ok(selectorPage.Bs[9].S.I, "heading adjacent selector");
+                Ok(!selectorPage.Bs[11].S.I, "adjacent selector respects separator");
+
                 var recoveryPath = Path.Combine(root, "LeaForge", "test-pages", "recovery.html");
                 var recoveryPage = engine.Go(recoveryPath);
                 Eq(23, recoveryPage.Bs.Count, "recovered block count");
@@ -290,6 +308,14 @@ namespace Lea.Tests
                     Ok(whiteCellLines.Length > 2 && whiteCellBox.Height == 38, "table white-space layout");
                     Eq(whiteCellBox, ClipRect(view, whiteCellPart), "table cell overflow clip");
                     Eq(BlockRect(view, view.At.Bs[9]), ClipRect(view, view.At.Bs[9]), "scroll overflow clip");
+                    view.Go(selectorPath);
+                    Paint(view);
+                    Eq(12, view.At.Bs.Count, "relationship selector render blocks");
+                    var firstCard = BlockRect(view, view.At.Bs[5]);
+                    var secondCard = BlockRect(view, view.At.Bs[6]);
+                    var thirdCard = BlockRect(view, view.At.Bs[7]);
+                    Eq(firstCard.Left + 18, secondCard.Left, "adjacent selector second-card layout");
+                    Eq(firstCard.Left + 18, thirdCard.Left, "adjacent selector third-card layout");
                     view.Go(recoveryPath);
                     Paint(view);
                     Eq(23, view.At.Bs.Count, "recovery render blocks");
@@ -526,7 +552,7 @@ namespace Lea.Tests
                     Eq("url", urlError.K, "URL error kind");
                 }
 
-                Console.WriteLine("Lea smoke passed: white-space modes, overflow clipping, malformed HTML recovery, semantic blocks, nested lists, text alignment, line height, inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: child and adjacent CSS selectors, white-space modes, overflow clipping, malformed HTML recovery, semantic blocks, nested lists, text alignment, line height, inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)

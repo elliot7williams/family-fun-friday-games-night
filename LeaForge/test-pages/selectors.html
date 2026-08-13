@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea CSS Relationships</title>
+  <style>
+    body { color: #263442; }
+    p { color: #263442; }
+    main>p { color: #176b4d; }
+    main > article > p { color: #a13b18; }
+    #stage>*.direct { font-size: 17px; }
+    article + p { background: #e8f4ed; }
+    p+p { border-left: 4px solid #18734b; padding-left: 7px; }
+    main>p+p { line-height: 24px; }
+    .card + .card { margin-left: 18px; }
+    h2+p { font-style: italic; }
+  </style>
+</head>
+<body>
+  <h1>CSS Relationships</h1>
+  <main id="stage">
+    <p class="direct">Direct child</p>
+    <article><p class="nested">Nested child</p></article>
+    <p class="after">After article</p>
+    <p class="pair">Adjacent paragraph</p>
+    <div class="card">Card one</div>
+    <div class="card">Card two</div>
+    <div class="card">Card three</div>
+    <h2>Heading</h2>
+    <p class="lead">Following heading</p>
+    <div>Separator</div>
+    <p class="last">Not adjacent to heading</p>
+  </main>
+</body>
+</html>

@@ -610,7 +610,10 @@ namespace Lea.Engine
                     foreach (var selector in match.Groups["q"].Value.Split(','))
                     {
                         var query = selector.Trim();
-                        if (query.Length > 0) rules.Add(new R(query, match.Groups["v"].Value, Spec(query), order++));
+                        var parts = new List<string>();
+                        var joins = new List<char>();
+                        if (query.Length > 0 && CssParts(query, parts, joins))
+                            rules.Add(new R(match.Groups["v"].Value, Spec(parts), order++, parts.ToArray(), joins.ToArray()));
                     }
                 }
             }
@@ -636,34 +639,82 @@ namespace Lea.Engine
             foreach (var child in node.C) RawText(child, text);
         }
 
-        private static int Spec(string selector)
+        private static int Spec(List<string> parts)
         {
-            var score = Regex.Matches(selector, "#[a-z0-9_-]+", RegexOptions.IgnoreCase).Count * 100;
-            score += Regex.Matches(selector, "\\.[a-z0-9_-]+", RegexOptions.IgnoreCase).Count * 10;
-            score += Regex.Matches(selector, "(?:^|\\s)[a-z][a-z0-9-]*", RegexOptions.IgnoreCase).Count;
+            var score = 0;
+            foreach (var part in parts)
+            {
+                score += Regex.Matches(part, "#[a-z0-9_-]+", RegexOptions.IgnoreCase).Count * 100;
+                score += Regex.Matches(part, "\\.[a-z0-9_-]+", RegexOptions.IgnoreCase).Count * 10;
+                if (Regex.IsMatch(part, "^[a-z][a-z0-9-]*", RegexOptions.IgnoreCase)) score++;
+            }
             return score;
         }
 
-        private static bool MatchCss(N node, string selector)
+        private static bool MatchCss(N node, R rule)
         {
-            var parts = Regex.Split(selector.Trim(), "\\s+");
-            if (parts.Length == 0 || !MatchPart(node, parts[parts.Length - 1])) return false;
-            var parent = node.Up;
-            for (var i = parts.Length - 2; i >= 0; i--)
+            if (!MatchPart(node, rule.P[rule.P.Length - 1])) return false;
+
+            var current = node;
+            for (var i = rule.J.Length - 1; i >= 0; i--)
             {
-                while (parent != null && !MatchPart(parent, parts[i])) parent = parent.Up;
-                if (parent == null) return false;
-                parent = parent.Up;
+                if (rule.J[i] == '>') current = current.Up;
+                else if (rule.J[i] == '+') current = PreviousElement(current);
+                else
+                {
+                    current = current.Up;
+                    while (current != null && !MatchPart(current, rule.P[i])) current = current.Up;
+                    if (current == null) return false;
+                    continue;
+                }
+
+                if (current == null || !MatchPart(current, rule.P[i])) return false;
             }
             return true;
         }
 
+        private static bool CssParts(string selector, List<string> parts, List<char> joins)
+        {
+            var source = Regex.Replace((selector ?? "").Trim(), "\\s*([>+])\\s*", " $1 ");
+            var needPart = true;
+            var join = ' ';
+            foreach (var token in Regex.Split(source, "\\s+"))
+            {
+                if (token.Length == 0) continue;
+                if (token == ">" || token == "+")
+                {
+                    if (needPart) return false;
+                    join = token[0];
+                    needPart = true;
+                    continue;
+                }
+
+                if (parts.Count > 0) joins.Add(needPart ? join : ' ');
+                parts.Add(token);
+                join = ' ';
+                needPart = false;
+            }
+            return parts.Count > 0 && !needPart;
+        }
+
+        private static N PreviousElement(N node)
+        {
+            if (node == null || node.Up == null) return null;
+            N previous = null;
+            foreach (var child in node.Up.C)
+            {
+                if (Object.ReferenceEquals(child, node)) return previous;
+                if (child.K.Length > 0 && child.K[0] != '#') previous = child;
+            }
+            return null;
+        }
+
         private static bool MatchPart(N node, string selector)
         {
-            var match = Regex.Match(selector, "^(?<tag>[a-z][a-z0-9-]*)?(?<id>#[a-z0-9_-]+)?(?<classes>(?:\\.[a-z0-9_-]+)*)$", RegexOptions.IgnoreCase);
+            var match = Regex.Match(selector, "^(?<tag>[a-z][a-z0-9-]*|\\*)?(?<id>#[a-z0-9_-]+)?(?<classes>(?:\\.[a-z0-9_-]+)*)$", RegexOptions.IgnoreCase);
             if (!match.Success) return false;
             var tag = match.Groups["tag"].Value;
-            if (tag.Length > 0 && node.K != tag.ToLowerInvariant()) return false;
+            if (tag.Length > 0 && tag != "*" && node.K != tag.ToLowerInvariant()) return false;
             var id = match.Groups["id"].Value.TrimStart('#');
             if (id.Length > 0 && !node.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase)) return false;
 
@@ -676,7 +727,7 @@ namespace Lea.Engine
         private static S Style(N node, S inherited, List<R> rules)
         {
             var style = inherited == null ? new S() : inherited.Inherit();
-            foreach (var rule in rules) if (MatchCss(node, rule.Q)) Decls(style, rule.V);
+            foreach (var rule in rules) if (MatchCss(node, rule)) Decls(style, rule.V);
             Decls(style, node.Av("style"));
             return style;
         }
@@ -1504,17 +1555,19 @@ namespace Lea.Engine
 
         private sealed class R
         {
-            public readonly string Q;
             public readonly string V;
             public readonly int W;
             public readonly int O;
+            public readonly string[] P;
+            public readonly char[] J;
 
-            public R(string query, string values, int weight, int order)
+            public R(string values, int weight, int order, string[] parts, char[] joins)
             {
-                Q = query;
                 V = values;
                 W = weight;
                 O = order;
+                P = parts;
+                J = joins;
             }
         }
 

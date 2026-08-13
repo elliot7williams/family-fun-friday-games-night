@@ -99,6 +99,11 @@ spaces for `pre-line`, and disables soft wrapping for `nowrap`/`pre`. `S.Ov`
 uses `v/h/c/a/s`; non-visible modes clip glyph painting and link hit regions to
 the content box. Auto and scroll currently clip safely without inner scrollbars.
 
+Stylesheets accept descendant, direct-child (`>`), and adjacent-element (`+`)
+selectors. Compact chains such as `main>p+p` work without required spaces, and
+adjacent matching ignores formatting whitespace between HTML elements. Lea
+tokenizes these chains once per CSS rule and reuses them during tree matching.
+
 `E` and `V` expose the same cookie aliases: `Kc`, `Km`, `Kcl()`, and `Pv`.
 Cookies remain in memory and are bounded to 64 entries. Firespider maps its
 existing `pv` flag to each active Lea view, so private mode receives a fresh
