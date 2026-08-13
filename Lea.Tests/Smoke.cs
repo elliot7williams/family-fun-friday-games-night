@@ -102,6 +102,29 @@ namespace Lea.Tests
                 Eq("r", textCell.S.Ta, "table cell alignment inheritance");
                 Eq(160, textCell.S.Lm, "unitless table-cell line height");
 
+                var recoveryPath = Path.Combine(root, "LeaForge", "test-pages", "recovery.html");
+                var recoveryPage = engine.Go(recoveryPath);
+                Eq(23, recoveryPage.Bs.Count, "recovered block count");
+                Eq("header,h4,p,p,p,li,li,li,li,dt,dd,dt,dd,blockquote,figcaption,summary,p,article,address,h5,h6,hr,footer", BlockKinds(recoveryPage), "recovered block kinds");
+                Eq("First paragraph keeps emphasis", recoveryPage.Bs[2].X, "unclosed paragraph text");
+                Ok(recoveryPage.Bs[2].Is.Count == 2 && recoveryPage.Bs[2].Is[1].S.B, "unclosed emphasis stays in its paragraph");
+                Eq("Mismatched bold and italic survives.", recoveryPage.Bs[4].X, "mismatched inline text");
+                Ok(recoveryPage.Bs[4].Is[1].S.B && recoveryPage.Bs[4].Is[2].S.B && recoveryPage.Bs[4].Is[2].S.I, "mismatched inline styles recover");
+                Eq("Second item", recoveryPage.Bs[6].X, "outer list text excludes nested list");
+                Eq("Nested item", recoveryPage.Bs[7].X, "nested list gets its own block");
+                var listNodes = Nodes(recoveryPage.D, "li");
+                Eq(4, listNodes.Count, "recovered list node count");
+                Ok(Object.ReferenceEquals(listNodes[0].Up, listNodes[1].Up) && Object.ReferenceEquals(listNodes[0].Up, listNodes[3].Up), "outer list items remain siblings");
+                Ok(listNodes[2].Up != null && listNodes[2].Up.K == "ul" && Object.ReferenceEquals(listNodes[2].Up.Up, listNodes[1]), "nested list scope is preserved");
+                var termNodes = Nodes(recoveryPage.D, "dt");
+                var detailNodes = Nodes(recoveryPage.D, "dd");
+                Eq(2, termNodes.Count, "definition term recovery");
+                Eq(2, detailNodes.Count, "definition detail recovery");
+                Ok(Object.ReferenceEquals(termNodes[0].Up, termNodes[1].Up) && Object.ReferenceEquals(termNodes[0].Up, detailNodes[0].Up), "definition entries remain siblings");
+                var headingFive = Nodes(recoveryPage.D, "h5")[0];
+                var headingSix = Nodes(recoveryPage.D, "h6")[0];
+                Ok(Object.ReferenceEquals(headingFive.Up, headingSix.Up), "unclosed headings recover as siblings");
+
                 using (var view = new V())
                 {
                     view.Size = new Size(720, 760);
@@ -219,6 +242,15 @@ namespace Lea.Tests
                     var cellBox = ContainingCell(view, view.At.Bs[4], cellLines[0]);
                     Ok(cellLines.Length > 1 && !cellBox.IsEmpty, "table text line layout");
                     foreach (var cellLine in cellLines) Ok(cellLine.Right == cellBox.Right, "right-aligned table line");
+                    view.Go(recoveryPath);
+                    Paint(view);
+                    Eq(23, view.At.Bs.Count, "recovery render blocks");
+                    Ok(view.Bc > view.At.Bs.Count, "recovered inline content paints separately");
+                    var h4 = BlockRect(view, view.At.Bs[1]);
+                    var h5 = BlockRect(view, view.At.Bs[19]);
+                    var h6 = BlockRect(view, view.At.Bs[20]);
+                    Ok(h4.Height > h5.Height && h5.Height >= h6.Height, "heading levels four through six scale down");
+                    Eq(2, BlockRect(view, view.At.Bs[21]).Height, "horizontal rule height");
                     view.Size = new Size(720, 760);
                     view.Go(Path.Combine(root, "LeaForge", "test-pages", "scroll.html"));
                     Paint(view);
@@ -446,7 +478,7 @@ namespace Lea.Tests
                     Eq("url", urlError.K, "URL error kind");
                 }
 
-                Console.WriteLine("Lea smoke passed: text alignment, line height, inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: malformed HTML recovery, semantic blocks, nested lists, text alignment, line height, inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -482,6 +514,27 @@ namespace Lea.Tests
             var values = new string[cell.Bs.Count];
             for (var i = 0; i < values.Length; i++) values[i] = cell.Bs[i].K;
             return String.Join(",", values);
+        }
+
+        private static string BlockKinds(P page)
+        {
+            var values = new string[page.Bs.Count];
+            for (var i = 0; i < values.Length; i++) values[i] = page.Bs[i].K;
+            return String.Join(",", values);
+        }
+
+        private static List<N> Nodes(N node, string kind)
+        {
+            var found = new List<N>();
+            AddNodes(node, kind, found);
+            return found;
+        }
+
+        private static void AddNodes(N node, string kind, List<N> found)
+        {
+            if (node == null) return;
+            if (node.K == kind) found.Add(node);
+            foreach (var child in node.C) AddNodes(child, kind, found);
         }
 
         private static void Click(V view, Rectangle rect)

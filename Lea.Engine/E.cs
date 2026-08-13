@@ -374,10 +374,7 @@ namespace Lea.Engine
                     var open = Regex.Match(value, "^<\\s*(?<tag>[a-z][a-z0-9:-]*)(?<attrs>[^>]*)>", RegexOptions.IgnoreCase | RegexOptions.Singleline);
                     if (!open.Success) continue;
                     var tag = open.Groups["tag"].Value.ToLowerInvariant();
-                    if (tag == "li" || tag == "p") CloseOpen(stack, tag);
-                    else if (tag == "td" || tag == "th") CloseOpen(stack, "td", "th");
-                    else if (tag == "tr") CloseOpen(stack, "tr");
-                    else if (tag == "thead" || tag == "tbody" || tag == "tfoot") CloseOpen(stack, "thead", "tbody", "tfoot");
+                    Recover(stack, tag);
                     var node = new N(tag);
                     Attrs(node, open.Groups["attrs"].Value);
                     node.Up = stack[stack.Count - 1];
@@ -391,6 +388,42 @@ namespace Lea.Engine
             }
 
             return root;
+        }
+
+        private static void Recover(List<N> stack, string tag)
+        {
+            var block = IsBlockTag(tag);
+            if (block) CloseOpen(stack, "p");
+            if (block) CloseOpen(stack, "h1", "h2", "h3", "h4", "h5", "h6");
+            if (tag == "li") CloseScoped(stack, new[] { "li" }, new[] { "ul", "ol", "menu" });
+            else if (tag == "dt" || tag == "dd") CloseScoped(stack, new[] { "dt", "dd" }, new[] { "dl" });
+            else if (tag == "td" || tag == "th") CloseScoped(stack, new[] { "td", "th" }, new[] { "tr", "table" });
+            else if (tag == "tr") CloseScoped(stack, new[] { "tr" }, new[] { "table" });
+            else if (tag == "thead" || tag == "tbody" || tag == "tfoot") CloseScoped(stack, new[] { "thead", "tbody", "tfoot" }, new[] { "table" });
+            else if (tag == "option") CloseScoped(stack, new[] { "option" }, new[] { "select", "datalist" });
+            else if (tag == "optgroup")
+            {
+                CloseScoped(stack, new[] { "option" }, new[] { "select" });
+                CloseScoped(stack, new[] { "optgroup" }, new[] { "select" });
+            }
+            else if (tag == "a" || tag == "button") CloseOpen(stack, tag);
+        }
+
+        private static void CloseScoped(List<N> stack, string[] tags, string[] stops)
+        {
+            for (var i = stack.Count - 1; i > 0; i--)
+            {
+                if (Has(stops, stack[i].K)) return;
+                if (!Has(tags, stack[i].K)) continue;
+                stack.RemoveRange(i, stack.Count - i);
+                return;
+            }
+        }
+
+        private static bool Has(string[] values, string value)
+        {
+            foreach (var item in values) if (item == value) return true;
+            return false;
         }
 
         private static void CloseOpen(List<N> stack, params string[] tags)
@@ -418,6 +451,21 @@ namespace Lea.Engine
         private static bool Void(string tag)
         {
             return tag == "area" || tag == "base" || tag == "br" || tag == "col" || tag == "embed" || tag == "hr" || tag == "img" || tag == "input" || tag == "link" || tag == "meta" || tag == "param" || tag == "source" || tag == "track" || tag == "wbr";
+        }
+
+        private static bool IsBlockTag(string tag)
+        {
+            return IsHeading(tag) || tag == "address" || tag == "article" || tag == "aside" || tag == "blockquote" ||
+                   tag == "center" || tag == "dd" || tag == "details" || tag == "div" || tag == "dl" || tag == "dt" ||
+                   tag == "fieldset" || tag == "figcaption" || tag == "figure" || tag == "footer" || tag == "form" ||
+                   tag == "header" || tag == "hr" || tag == "legend" || tag == "li" || tag == "main" || tag == "menu" ||
+                   tag == "nav" || tag == "ol" || tag == "p" || tag == "pre" || tag == "section" || tag == "summary" ||
+                   tag == "table" || tag == "ul";
+        }
+
+        private static bool IsHeading(string tag)
+        {
+            return tag == "h1" || tag == "h2" || tag == "h3" || tag == "h4" || tag == "h5" || tag == "h6";
         }
 
         private static N Find(N node, string kind)
@@ -455,7 +503,7 @@ namespace Lea.Engine
                 text.Append(node.X).Append(' ');
                 return;
             }
-            if (node.K == "script" || node.K == "style" || node.K == "noscript") return;
+            if (node.K == "script" || node.K == "style" || node.K == "noscript" || node.K == "template") return;
             foreach (var child in node.C) AddText(child, text);
         }
 
@@ -795,11 +843,25 @@ namespace Lea.Engine
         {
             if (node == null) return;
             var kind = node.K;
+            if (kind == "#text")
+            {
+                var loose = Clean(node.X);
+                if (loose.Length > 0) page.Bs.Add(new B { K = "p", X = loose, S = inherited });
+                return;
+            }
+            if (kind == "head" || kind == "script" || kind == "style" || kind == "noscript" || kind == "template") return;
             var style = Style(node, inherited, rules);
             if (style.D == "none") return;
+            if (kind == "strong" || kind == "b") style.B = true;
+            if (kind == "em" || kind == "i") style.I = true;
             if (kind == "table")
             {
                 AddTable(page, node, baseUrl, rules, style);
+                return;
+            }
+            if (kind == "hr")
+            {
+                page.Bs.Add(new B { K = kind, X = "", S = style });
                 return;
             }
             if (kind == "a")
@@ -825,14 +887,14 @@ namespace Lea.Engine
             {
                 AddField(page, node, baseUrl, style);
             }
-            else if (kind == "h1" || kind == "h2" || kind == "h3" || kind == "p" || kind == "li" || kind == "pre" || kind == "code" || kind == "label")
+            else if (IsTextBlock(kind) || IsContainerBlock(kind))
             {
-                var text = Clean(NodeText(node));
+                var text = Clean(BlockText(node));
                 var block = new B { K = kind, X = text, S = style };
                 if (HasInlineStructure(node))
                 {
                     var inlineStyle = style.Inherit();
-                    if (kind.StartsWith("h")) inlineStyle.B = true;
+                    if (IsHeading(kind)) inlineStyle.B = true;
                     foreach (var child in node.C) AddInline(page, block, child, baseUrl, rules, inlineStyle, null, kind);
                     NormalizeInlines(block);
                     block.X = InlineText(block);
@@ -845,12 +907,45 @@ namespace Lea.Engine
             foreach (var child in node.C) Blocks(page, child, baseUrl, rules, style);
         }
 
+        private static bool IsTextBlock(string kind)
+        {
+            return IsHeading(kind) || kind == "address" || kind == "blockquote" || kind == "code" || kind == "dd" ||
+                   kind == "dt" || kind == "figcaption" || kind == "label" || kind == "legend" || kind == "li" ||
+                   kind == "p" || kind == "pre" || kind == "summary";
+        }
+
+        private static bool IsContainerBlock(string kind)
+        {
+            return kind == "article" || kind == "aside" || kind == "center" || kind == "details" || kind == "div" ||
+                   kind == "figure" || kind == "footer" || kind == "header" || kind == "main" || kind == "nav" ||
+                   kind == "section";
+        }
+
+        private static string BlockText(N node)
+        {
+            var text = new StringBuilder();
+            AddBlockText(node, text, true);
+            return text.ToString();
+        }
+
+        private static void AddBlockText(N node, StringBuilder text, bool root)
+        {
+            if (node.K == "#text")
+            {
+                text.Append(node.X).Append(' ');
+                return;
+            }
+            if (!root && (IsBlockTag(node.K) || node.K == "img" || node.K == "input" || node.K == "textarea" || node.K == "button" || node.K == "select")) return;
+            if (node.K == "script" || node.K == "style" || node.K == "noscript" || node.K == "template") return;
+            foreach (var child in node.C) AddBlockText(child, text, false);
+        }
+
         private static void AddNestedBlocks(P page, N node, Uri baseUrl, List<R> rules, S inherited)
         {
             foreach (var child in node.C)
             {
                 if (child.K == "#text") continue;
-                if (child.K == "img" || child.K == "input" || child.K == "textarea" || child.K == "button" || child.K == "select" || child.K == "table")
+                if (IsBlockTag(child.K) || child.K == "img" || child.K == "input" || child.K == "textarea" || child.K == "button" || child.K == "select")
                 {
                     Blocks(page, child, baseUrl, rules, inherited);
                     continue;
@@ -873,7 +968,8 @@ namespace Lea.Engine
                 if (node.X.Length > 0) block.Is.Add(new Ir { K = inheritedKind, X = node.X, U = activeLink, S = inherited });
                 return;
             }
-            if (node.K == "script" || node.K == "style" || node.K == "noscript") return;
+            if (node.K == "script" || node.K == "style" || node.K == "noscript" || node.K == "template") return;
+            if (IsBlockTag(node.K)) return;
 
             var style = Style(node, inherited, rules);
             if (style.D == "none") return;
@@ -1017,7 +1113,7 @@ namespace Lea.Engine
                 }
 
                 var style = Style(child, inherited, rules);
-                if (style.D == "none" || child.K == "script" || child.K == "style" || child.K == "noscript") continue;
+                if (style.D == "none" || child.K == "script" || child.K == "style" || child.K == "noscript" || child.K == "template") continue;
                 if (child.K == "strong" || child.K == "b") style.B = true;
                 if (child.K == "em" || child.K == "i") style.I = true;
                 if (child.K == "br")
@@ -1058,7 +1154,7 @@ namespace Lea.Engine
 
         private static string CellKind(string kind, string fallback)
         {
-            return kind == "h1" || kind == "h2" || kind == "h3" || kind == "p" || kind == "li" || kind == "pre" || kind == "code" || kind == "label" || kind == "strong" || kind == "b" ? kind : fallback;
+            return IsTextBlock(kind) || kind == "strong" || kind == "b" ? kind : fallback;
         }
 
         private static void AddField(P page, N node, Uri baseUrl, S style)

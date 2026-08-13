@@ -221,6 +221,12 @@ namespace Lea.Win
                     PaintPic(pe.Graphics, box, content, pageColor);
                     continue;
                 }
+                if (box.K == "hr")
+                {
+                    var color = CssColor(box.S == null ? "" : box.S.F, Color.FromArgb(148, 163, 184));
+                    using (var pen = new Pen(color)) pe.Graphics.DrawLine(pen, content.Left, content.Top + content.Height / 2, content.Right, content.Top + content.Height / 2);
+                    continue;
+                }
                 if (box.B != null && box.B.I != null)
                 {
                     PaintField(pe.Graphics, box, content, pageColor);
@@ -296,6 +302,7 @@ namespace Lea.Win
                     int height;
                     List<Ix> inline = null;
                     if (block.K == "img") height = PicSize(block, bw).Height;
+                    else if (block.K == "hr") height = 2;
                     else if (block.I != null)
                     {
                         using (var font = BoxFont(block.K, bs, false))
@@ -320,7 +327,7 @@ namespace Lea.Win
                     var content = new Rectangle(bx + bl + pl, y + bt + pt, bw, height);
                     boxes.Add(new Bx(block.K, inline == null ? text : "", link, bs, outer, content, false, block));
                     if (inline != null) AddInlineBoxes(block, content, inline);
-                    y += outer.Height + (block.K.StartsWith("h") ? 12 : 8) + (bs == null ? 0 : bs.Mb);
+                    y += outer.Height + (HeadingKind(block.K) ? 12 : 8) + (bs == null ? 0 : bs.Mb);
                 }
             }
 
@@ -503,7 +510,7 @@ namespace Lea.Win
 
         private static int CellGap(string kind)
         {
-            return kind.StartsWith("h") ? 6 : kind == "p" ? 4 : kind == "br" ? 2 : 3;
+            return HeadingKind(kind) ? 6 : kind == "p" ? 4 : kind == "br" ? 2 : 3;
         }
 
         private static Size CellBox(S style, int width)
@@ -712,12 +719,17 @@ namespace Lea.Win
         {
             var sizeKind = baseKind ?? kind;
             var name = kind == "pre" || kind == "code" || sizeKind == "pre" || sizeKind == "code" ? "Consolas" : Font.FontFamily.Name;
-            var size = title ? 20F : sizeKind == "h1" ? 18F : sizeKind == "h2" ? 15F : sizeKind == "h3" ? 12F : Font.Size;
+            var size = title ? 20F : sizeKind == "h1" ? 18F : sizeKind == "h2" ? 15F : sizeKind == "h3" ? 12F : sizeKind == "h4" ? 11F : sizeKind == "h5" ? 10F : sizeKind == "h6" ? 9F : Font.Size;
             if (!title && style != null && style.Fs > 0) size = style.Fs;
-            var fontStyle = title || kind.StartsWith("h") || kind == "caption" || kind == "th" || kind == "strong" || kind == "b" || (style != null && style.B) ? FontStyle.Bold : FontStyle.Regular;
+            var fontStyle = title || HeadingKind(kind) || kind == "caption" || kind == "th" || kind == "dt" || kind == "legend" || kind == "summary" || kind == "strong" || kind == "b" || (style != null && style.B) ? FontStyle.Bold : FontStyle.Regular;
             if (style != null && style.I) fontStyle |= FontStyle.Italic;
             if (kind == "a" || link) fontStyle |= FontStyle.Underline;
             return new Font(name, size, fontStyle);
+        }
+
+        private static bool HeadingKind(string kind)
+        {
+            return kind == "h1" || kind == "h2" || kind == "h3" || kind == "h4" || kind == "h5" || kind == "h6";
         }
 
         private Size PicSize(B block, int width)

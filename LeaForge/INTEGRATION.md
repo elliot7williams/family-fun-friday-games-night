@@ -80,6 +80,13 @@ an optional link `U`, and computed style `S`. `V` wraps mixed bold/italic text,
 styled spans, and links together, with a hit region for each linked fragment.
 Blocks without nested inline markup stay on the original one-box layout path.
 
+The tolerant tree builder applies scoped implied closing for paragraphs,
+headings, list and definition entries, table rows/cells, options, links, and
+buttons. Nested lists keep their own scope, while mismatched end tags unwind to
+the matching ancestor without discarding following text. Blocks include all six
+heading levels, semantic containers, definition lists, quotes, captions,
+details/summary, addresses, and horizontal rules.
+
 Computed styles use `S.Ta` for compact `l/c/r/j` alignment, `S.Lh` for pixel
 line height, and `S.Lm` for a relative multiplier. `V` applies these to wrapped
 blocks and table cells, centers glyphs within taller lines, and justifies only
