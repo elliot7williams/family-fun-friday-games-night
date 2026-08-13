@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Responsive Media</title>
+  <style>
+    body { color: #26313b; background: #ffffff; }
+    p { margin: 8px 0 3px; }
+    img { display: block; margin: 0 0 8px; border: 2px solid #687684; }
+    #width-choice { width: 300px; height: 60px; }
+    #css-size { width: 130px; height: 44px; }
+  </style>
+</head>
+<body>
+  <h1>Responsive and embedded images</h1>
+  <p>Embedded data image with HTML dimensions</p>
+  <img id="embedded" width="96" height="54" alt="Embedded green image" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXYxDP9v0PAAM7Ac+IRop4AAAAAElFTkSuQmCC">
+  <p>Density source set chooses the nearest one-times image</p>
+  <img id="density" width="80" height="48" alt="Density-selected purple image" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXYxDP9v0PAAM7Ac+IRop4AAAAAElFTkSuQmCC" srcset="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXY6hTOvcfAAT+Am4zJlOdAAAAAElFTkSuQmCC 1x, ../../assets/lea.ico 2x">
+  <p>Picture skips print and unsupported sources</p>
+  <picture>
+    <source media="print" type="image/png" srcset="missing-print.png 1x">
+    <source media="screen" type="image/svg+xml" srcset="../../assets/lea-icon.svg 1x">
+    <source media="screen" type="image/png" srcset="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXY5D1u/EfAAQSAkPG2q/4AAAAAElFTkSuQmCC 1x">
+    <img id="picture-image" width="110" height="56" alt="Picture-selected blue image" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXYxDP9v0PAAM7Ac+IRop4AAAAAElFTkSuQmCC">
+  </picture>
+  <p>Width source set chooses the smallest adequate candidate</p>
+  <img id="width-choice" alt="Width-selected Lea icon" src="missing-fallback.png" srcset="../../assets/lea.ico 320w, missing-large.png 640w">
+  <p>CSS dimensions override HTML dimensions</p>
+  <img id="css-size" width="60" height="20" alt="CSS-sized embedded image" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXYxDP9v0PAAM7Ac+IRop4AAAAAElFTkSuQmCC">
+</body>
+</html>

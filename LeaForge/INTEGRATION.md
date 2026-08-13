@@ -147,6 +147,12 @@ cookies, compression, conditional validation, timeout/cancellation, `Cm` LRU
 capacity, and `Cl()` clearing. A page may load eight links of up to 256 KB each;
 missing, oversized, unsupported-media, and non-CSS links are skipped safely.
 
+Images accept `src`, compact `srcset` width/density candidates, and direct
+screen-compatible `<picture><source>` fallbacks. Base64 PNG, JPEG, GIF, BMP,
+and icon data URLs decode under a 4 MB limit into the existing 24-entry image
+cache. CSS width/height wins over HTML dimensions; otherwise `width` and
+`height` attributes feed the same constrained layout path.
+
 Basic fields are exposed through `P.Fs`. The view paints inactive controls on
 the Lea surface, reuses one editor for focused text, opens native choice menus
 for single-select fields, and provides `Rs`, `Sm`, and `SmA` for reset and

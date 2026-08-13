@@ -1341,6 +1341,11 @@ namespace Lea.Engine
                 AddTable(page, node, baseUrl, rules, style);
                 return;
             }
+            if (kind == "picture")
+            {
+                AddPicture(page, node, baseUrl, rules, style);
+                return;
+            }
             if (kind == "hr")
             {
                 page.Bs.Add(new B { K = kind, X = "", S = style, El = node });
@@ -1360,10 +1365,9 @@ namespace Lea.Engine
             }
             else if (kind == "img")
             {
-                Uri image;
-                var source = node.Av("src");
-                if (source.Length > 0 && Uri.TryCreate(baseUrl, source, out image))
-                    page.Bs.Add(new B { K = kind, X = node.Av("alt"), U = image, S = style, El = node });
+                ImageDimensions(node, style);
+                var image = ImageUri(node, baseUrl, style.W);
+                if (image != null) page.Bs.Add(new B { K = kind, X = node.Av("alt"), U = image, S = style, El = node });
             }
             else if (kind == "input" || kind == "textarea" || kind == "button" || kind == "select")
             {
@@ -1387,6 +1391,125 @@ namespace Lea.Engine
             }
 
             foreach (var child in node.C) Blocks(page, child, baseUrl, rules, style);
+        }
+
+        private static void AddPicture(P page, N picture, Uri baseUrl, List<R> rules, S inherited)
+        {
+            N image = null;
+            foreach (var child in picture.C) if (child.K == "img") { image = child; break; }
+            if (image == null) return;
+
+            var style = Style(image, inherited, rules);
+            if (style.D == "none") return;
+            ImageDimensions(image, style);
+            Uri source = null;
+            foreach (var child in picture.C)
+            {
+                if (child.K != "source" || !ImageMedia(child.Av("media")) || !ImageType(child.Av("type"))) continue;
+                source = ImageUri(child, baseUrl, style.W);
+                if (source != null) break;
+            }
+            if (source == null) source = ImageUri(image, baseUrl, style.W);
+            if (source != null) page.Bs.Add(new B { K = "img", X = image.Av("alt"), U = source, S = style, El = image });
+        }
+
+        private static void ImageDimensions(N image, S style)
+        {
+            if (style.W == 0) style.W = HtmlDimension(image.Av("width"));
+            if (style.H == 0) style.H = HtmlDimension(image.Av("height"));
+        }
+
+        private static int HtmlDimension(string value)
+        {
+            var match = Regex.Match(value ?? "", "^\\s*(?<n>[1-9][0-9]{0,4})(?:px)?\\s*$", RegexOptions.IgnoreCase);
+            int number;
+            return match.Success && Int32.TryParse(match.Groups["n"].Value, out number) ? Math.Min(8192, number) : 0;
+        }
+
+        private static Uri ImageUri(N node, Uri baseUrl, int targetWidth)
+        {
+            var source = ImageCandidate(node.Av("srcset"), targetWidth);
+            if (source.Length == 0) source = node.Av("src").Trim();
+            Uri image;
+            return source.Length > 0 && source.Length <= 12 * 1024 * 1024 && Uri.TryCreate(baseUrl, source, out image) ? image : null;
+        }
+
+        private static string ImageCandidate(string value, int targetWidth)
+        {
+            var candidates = ImageCandidates(value);
+            Ic chosen = null;
+            var widths = false;
+            foreach (var candidate in candidates) if (candidate.W > 0) { widths = true; break; }
+            if (widths)
+            {
+                var target = Math.Max(1, targetWidth);
+                foreach (var candidate in candidates)
+                {
+                    if (candidate.W < 1) continue;
+                    if (chosen == null || (chosen.W < target && candidate.W > chosen.W) || (candidate.W >= target && (chosen.W < target || candidate.W < chosen.W))) chosen = candidate;
+                }
+            }
+            else
+            {
+                foreach (var candidate in candidates)
+                {
+                    if (candidate.D < 1) continue;
+                    if (chosen == null || (chosen.D < 100 && candidate.D > chosen.D) || (candidate.D >= 100 && (chosen.D < 100 || candidate.D < chosen.D))) chosen = candidate;
+                }
+            }
+            return chosen == null ? "" : chosen.U;
+        }
+
+        private static List<Ic> ImageCandidates(string value)
+        {
+            var found = new List<Ic>();
+            var source = (value ?? "").Trim();
+            if (source.Length > 1024 * 1024) return found;
+            var index = 0;
+            while (index < source.Length && found.Count < 16)
+            {
+                while (index < source.Length && (source[index] == ',' || Char.IsWhiteSpace(source[index]))) index++;
+                if (index >= source.Length) break;
+                var start = index;
+                var data = source.Substring(index).StartsWith("data:", StringComparison.OrdinalIgnoreCase);
+                while (index < source.Length && !Char.IsWhiteSpace(source[index]) && (data || source[index] != ',')) index++;
+                var url = source.Substring(start, index - start).Trim().Trim('"', '\'');
+                while (index < source.Length && Char.IsWhiteSpace(source[index])) index++;
+                start = index;
+                while (index < source.Length && source[index] != ',') index++;
+                var descriptor = source.Substring(start, index - start).Trim().ToLowerInvariant();
+                if (index < source.Length && source[index] == ',') index++;
+
+                int width = 0;
+                var density = 0;
+                if (descriptor.Length == 0) density = 100;
+                else
+                {
+                    var widthMatch = Regex.Match(descriptor, "^(?<n>[1-9][0-9]{0,5})w$");
+                    var densityMatch = Regex.Match(descriptor, "^(?<n>(?:[0-9](?:\\.[0-9]{1,2})?|\\.[0-9]{1,2}))x$");
+                    if (widthMatch.Success) Int32.TryParse(widthMatch.Groups["n"].Value, out width);
+                    else if (densityMatch.Success)
+                    {
+                        decimal parsed;
+                        if (Decimal.TryParse(densityMatch.Groups["n"].Value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out parsed) && parsed > 0 && parsed <= 8) density = (int)Math.Round(parsed * 100);
+                    }
+                    else continue;
+                }
+                if (url.Length > 0 && (width > 0 || density > 0)) found.Add(new Ic(url, width, density));
+            }
+            return found;
+        }
+
+        private static bool ImageMedia(string value)
+        {
+            var media = (value ?? "").Trim().ToLowerInvariant();
+            return media.Length == 0 || media == "all" || media == "screen";
+        }
+
+        private static bool ImageType(string value)
+        {
+            var type = (value ?? "").Split(';')[0].Trim().ToLowerInvariant();
+            return type.Length == 0 || type == "image/png" || type == "image/jpeg" || type == "image/gif" || type == "image/bmp" || type == "image/x-icon" || type == "image/vnd.microsoft.icon";
         }
 
         private static bool IsTextBlock(string kind)
@@ -2021,6 +2144,20 @@ namespace Lea.Engine
                 O = order;
                 P = parts;
                 J = joins;
+            }
+        }
+
+        private sealed class Ic
+        {
+            public readonly string U;
+            public readonly int W;
+            public readonly int D;
+
+            public Ic(string url, int width, int density)
+            {
+                U = url;
+                W = width;
+                D = density;
             }
         }
 

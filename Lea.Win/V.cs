@@ -25,6 +25,7 @@ namespace Lea.Win
         private readonly Queue<string> picOrder = new Queue<string>();
         private readonly TextBox ed = new TextBox();
         private const int PicLimit = 24;
+        private const int PicBytes = 4 * 1024 * 1024;
         private const int FontLimit = 32;
         private int sy;
         private int docHeight;
@@ -343,7 +344,12 @@ namespace Lea.Win
                     var bw = ConstrainWidth(bs, Math.Max(1, outerAvailable - bl - br - pl - pr));
                     int height;
                     List<Ix> inline = null;
-                    if (block.K == "img") height = PicSize(block, bw).Height;
+                    if (block.K == "img")
+                    {
+                        var size = PicSize(block, bw);
+                        if (bs == null || bs.W == 0) bw = Math.Min(bw, size.Width);
+                        height = size.Height;
+                    }
                     else if (block.K == "hr") height = 2;
                     else if (block.I != null)
                     {
@@ -906,10 +912,19 @@ namespace Lea.Win
             Image image;
             if (block.U != null && pics.TryGetValue(block.U.AbsoluteUri, out image) && image != null && image.Width > 0 && image.Height > 0)
             {
-                var scale = Math.Min(1F, Math.Min((float)width / image.Width, 360F / image.Height));
-                return new Size(Math.Max(1, (int)(image.Width * scale)), Math.Max(1, (int)(image.Height * scale)));
+                var style = block.S;
+                var explicitWidth = style != null && style.W > 0;
+                var explicitHeight = style != null && style.H > 0;
+                var renderWidth = explicitWidth ? width : Math.Min(width, image.Width);
+                var renderHeight = explicitHeight ? style.H : Math.Max(1, (int)Math.Round(image.Height * (double)renderWidth / image.Width));
+                if (!explicitWidth && !explicitHeight && renderHeight > 360)
+                {
+                    renderWidth = Math.Max(1, (int)Math.Round(renderWidth * 360D / renderHeight));
+                    renderHeight = 360;
+                }
+                return new Size(Math.Max(1, renderWidth), Math.Max(1, renderHeight));
             }
-            return new Size(width, 72);
+            return new Size(width, block.S != null && block.S.H > 0 ? block.S.H : 72);
         }
 
         private static void PaintBox(Graphics graphics, Rectangle rect, S style, Color pageBackground, Color pageColor, int opacity, bool background)
@@ -960,8 +975,20 @@ namespace Lea.Win
             if (box.B != null && box.B.U != null && pics.TryGetValue(box.B.U.AbsoluteUri, out image) && image != null)
             {
                 var size = PicSize(box.B, rect.Width);
-                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                PaintImage(graphics, image, new Rectangle(rect.X, rect.Y, size.Width, size.Height), opacity);
+                var tiny = image.Width < 4 || image.Height < 4;
+                var interpolation = graphics.InterpolationMode;
+                var offset = graphics.PixelOffsetMode;
+                try
+                {
+                    graphics.InterpolationMode = tiny ? InterpolationMode.NearestNeighbor : InterpolationMode.HighQualityBicubic;
+                    graphics.PixelOffsetMode = tiny ? PixelOffsetMode.Half : PixelOffsetMode.HighQuality;
+                    PaintImage(graphics, image, new Rectangle(rect.X, rect.Y, Math.Min(rect.Width, size.Width), Math.Min(rect.Height, size.Height)), opacity);
+                }
+                finally
+                {
+                    graphics.InterpolationMode = interpolation;
+                    graphics.PixelOffsetMode = offset;
+                }
                 return;
             }
 
@@ -1042,7 +1069,8 @@ namespace Lea.Win
                     try
                     {
                         byte[] data;
-                        if (block.U.IsFile)
+                        if (block.U.Scheme.Equals("data", StringComparison.OrdinalIgnoreCase)) data = EmbeddedPic(block.U);
+                        else if (block.U.IsFile)
                         {
                             var path = block.U.LocalPath;
                             data = await Task.Factory.StartNew(delegate { return File.ReadAllBytes(path); });
@@ -1052,6 +1080,7 @@ namespace Lea.Win
                             picWeb.Headers[HttpRequestHeader.UserAgent] = "Lea/0.2";
                             data = await picWeb.DownloadDataTaskAsync(block.U);
                         }
+                        if (data == null || data.Length == 0 || data.Length > PicBytes) throw new InvalidDataException("Image resource is empty or too large.");
                         using (var stream = new MemoryStream(data))
                         using (var loaded = Image.FromStream(stream)) image = new Bitmap(loaded);
                     }
@@ -1060,6 +1089,23 @@ namespace Lea.Win
                 }
             }
             finally { picBusy = false; }
+        }
+
+        private static byte[] EmbeddedPic(Uri url)
+        {
+            var source = url == null ? "" : url.OriginalString;
+            var comma = source.IndexOf(',');
+            if (comma < 6 || source.Length - comma - 1 > PicBytes * 4 / 3 + 4096) return null;
+            var metadata = source.Substring(5, comma - 5).ToLowerInvariant();
+            var type = metadata.Split(';')[0];
+            if (metadata.IndexOf(";base64", StringComparison.Ordinal) < 0 ||
+                (type != "image/png" && type != "image/jpeg" && type != "image/gif" && type != "image/bmp" && type != "image/x-icon" && type != "image/vnd.microsoft.icon")) return null;
+            try
+            {
+                var data = Convert.FromBase64String(Uri.UnescapeDataString(source.Substring(comma + 1)));
+                return data.Length <= PicBytes ? data : null;
+            }
+            catch (FormatException) { return null; }
         }
 
         private void StorePic(string key, Image image)

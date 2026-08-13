@@ -209,7 +209,13 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add more HTML media and embedded content.
+Add layout positioning and stacking.
+
+Responsive images now select compact `srcset` width or density candidates and
+screen-compatible `<picture>` sources before falling back to `<img src>`.
+Base64 `data:image/...` resources decode under a 4 MB bound and share the same
+24-entry image cache. HTML dimensions apply when CSS does not override them,
+and tiny embedded pixels use stable nearest-neighbor expansion.
 
 Dynamic `:hover` and `:focus` selectors are compiled with the static selector
 set. Paint blocks and runs retain a compact `El` element reference, allowing

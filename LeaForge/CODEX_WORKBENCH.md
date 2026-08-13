@@ -17,8 +17,8 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-1. Add more HTML media and embedded content.
-2. Add layout positioning and stacking.
+1. Add layout positioning and stacking.
+2. Add more HTML form controls and validation.
 3. Route more Firespider commands through Lea capability checks.
 4. Add a small JavaScript interpreter layer or bridge.
 5. Add downloads and find-in-page.

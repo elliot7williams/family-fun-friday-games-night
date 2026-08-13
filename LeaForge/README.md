@@ -29,6 +29,7 @@ LeaForge is where we can grow the more full-featured browser.
 - live `:hover` and `:focus` restyling that preserves mutable form values
 - min/max dimensions plus normal, break-word, and break-all text flow
 - inherited visibility and effective opacity across text, boxes, controls, and images
+- responsive `<picture>`/`srcset` selection and bounded base64 embedded images
 - compact CSS cascade for colors, fonts, boxes, overflow, and inline styles
 - tiny script handling for `alert("...")` and `document.title = "..."`
 

@@ -196,6 +196,19 @@ namespace Lea.Tests
                 Eq("Consolas|m", dynamicPage.Fs[0].S.Ff, "focus reset font");
                 Ok(Object.ReferenceEquals(savedField, dynamicPage.Fs[0]) && dynamicPage.Fs[0].V == "Edited value", "dynamic reset preserves field state");
 
+                var mediaPath = Path.Combine(root, "LeaForge", "test-pages", "responsive-media.html");
+                var mediaPage = engine.Go(mediaPath);
+                Eq(11, mediaPage.Bs.Count, "responsive media block count");
+                Eq("h1,p,img,p,img,p,img,p,img,p,img", BlockKinds(mediaPage), "responsive media block kinds");
+                Eq(96, mediaPage.Bs[2].S.W, "HTML image width");
+                Eq(54, mediaPage.Bs[2].S.H, "HTML image height");
+                Eq("data", mediaPage.Bs[2].U.Scheme, "embedded image scheme");
+                Ok(mediaPage.Bs[4].U.OriginalString.Contains("Y6hTOvc"), "one-times density candidate");
+                Ok(mediaPage.Bs[6].U.OriginalString.Contains("Y5D1u/E"), "picture screen source candidate");
+                Eq("lea.ico", Path.GetFileName(mediaPage.Bs[8].U.LocalPath), "smallest adequate width candidate");
+                Eq(130, mediaPage.Bs[10].S.W, "CSS image width overrides HTML");
+                Eq(44, mediaPage.Bs[10].S.H, "CSS image height overrides HTML");
+
                 var selectorPath = Path.Combine(root, "LeaForge", "test-pages", "selectors.html");
                 var selectorPage = engine.Go(selectorPath);
                 Eq(12, selectorPage.Bs.Count, "relationship selector block count");
@@ -567,6 +580,32 @@ namespace Lea.Tests
                     Paint(view);
                     Eq("Consolas|m", view.At.Fs[0].S.Ff, "live focus clears on background click");
                     Ok(Object.ReferenceEquals(liveField, view.At.Fs[0]) && view.At.Fs[0].V == "Live edited value", "live blur preserves field value");
+                    var mediaLoad = view.GoA(mediaPath);
+                    while (!mediaLoad.IsCompleted)
+                    {
+                        Application.DoEvents();
+                        Thread.Sleep(2);
+                    }
+                    mediaLoad.GetAwaiter().GetResult();
+                    using (var mediaPaint = Render(view))
+                    {
+                        Eq(11, view.At.Bs.Count, "responsive media render blocks");
+                        Eq(4, PicCount(view), "deduplicated responsive image cache");
+                        var embeddedBox = BlockRect(view, view.At.Bs[2]);
+                        var densityBox = BlockRect(view, view.At.Bs[4]);
+                        var pictureBox = BlockRect(view, view.At.Bs[6]);
+                        var widthBox = BlockRect(view, view.At.Bs[8]);
+                        var cssBox = BlockRect(view, view.At.Bs[10]);
+                        Eq(new Size(96, 54), embeddedBox.Size, "HTML-sized embedded image layout");
+                        Eq(new Size(80, 48), densityBox.Size, "density image layout");
+                        Eq(new Size(110, 56), pictureBox.Size, "picture image layout");
+                        Eq(new Size(300, 60), widthBox.Size, "width candidate layout");
+                        Eq(new Size(130, 44), cssBox.Size, "CSS-sized embedded image layout");
+                        Ok(ColorDistance(CenterPixel(mediaPaint, embeddedBox), Color.FromArgb(23, 107, 77)) < 4, "embedded data image paint");
+                        Ok(ColorDistance(CenterPixel(mediaPaint, densityBox), Color.FromArgb(126, 34, 206)) < 4, "density candidate paint");
+                        Ok(ColorDistance(CenterPixel(mediaPaint, pictureBox), Color.FromArgb(29, 78, 216)) < 4, "picture source paint");
+                        Ok(ColorDistance(CenterPixel(mediaPaint, cssBox), Color.FromArgb(23, 107, 77)) < 4, "CSS-sized data image paint");
+                    }
                     view.Go(textStylePath);
                     Paint(view);
                     Eq(8, view.At.Bs.Count, "text style render blocks");
@@ -816,7 +855,7 @@ namespace Lea.Tests
                     Eq("url", urlError.K, "URL error kind");
                 }
 
-                Console.WriteLine("Lea smoke passed: live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, font families, text decoration, child and adjacent CSS selectors, white-space modes, overflow clipping, malformed HTML recovery, semantic blocks, nested lists, text alignment, line height, inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, font families, text decoration, child and adjacent CSS selectors, white-space modes, overflow clipping, malformed HTML recovery, semantic blocks, nested lists, text alignment, line height, inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -1067,6 +1106,14 @@ namespace Lea.Tests
             var field = typeof(V).GetField("fontNames", BindingFlags.Instance | BindingFlags.NonPublic);
             var values = field == null ? null : field.GetValue(view) as System.Collections.IDictionary;
             if (values == null) throw new InvalidOperationException("font cache unavailable");
+            return values.Count;
+        }
+
+        private static int PicCount(V view)
+        {
+            var field = typeof(V).GetField("pics", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = field == null ? null : field.GetValue(view) as System.Collections.IDictionary;
+            if (values == null) throw new InvalidOperationException("image cache unavailable");
             return values.Count;
         }
 
