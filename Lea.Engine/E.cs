@@ -340,7 +340,11 @@ namespace Lea.Engine
             var body = Find(p.D, "body") ?? p.D;
             p.X = Clean(NodeText(body));
             p.N = Count(p.D);
-            p.S = Style(body, new S(), rules);
+            var inherited = new S();
+            var ancestors = new List<N>();
+            for (var parent = body.Up; parent != null && parent.K != "#doc"; parent = parent.Up) ancestors.Add(parent);
+            for (var i = ancestors.Count - 1; i >= 0; i--) inherited = Style(ancestors[i], inherited, rules);
+            p.S = Style(body, inherited, rules);
             foreach (var child in body.C) Blocks(p, child, p.U, rules, p.S);
         }
 
@@ -607,13 +611,21 @@ namespace Lea.Engine
             {
                 foreach (Match match in Regex.Matches(source, "(?<q>[^{}]+)\\{(?<v>[^{}]*)\\}", RegexOptions.Singleline))
                 {
-                    foreach (var selector in match.Groups["q"].Value.Split(','))
+                    foreach (var selector in CssGroups(match.Groups["q"].Value))
                     {
                         var query = selector.Trim();
                         var parts = new List<string>();
                         var joins = new List<char>();
-                        if (query.Length > 0 && CssParts(query, parts, joins))
-                            rules.Add(new R(match.Groups["v"].Value, Spec(parts), order++, parts.ToArray(), joins.ToArray()));
+                        if (query.Length == 0 || !CssParts(query, parts, joins)) continue;
+                        var simple = new List<Se>();
+                        foreach (var part in parts)
+                        {
+                            var value = CssSimple(part);
+                            if (value == null) { simple.Clear(); break; }
+                            simple.Add(value);
+                        }
+                        if (simple.Count == parts.Count)
+                            rules.Add(new R(match.Groups["v"].Value, Spec(simple), order++, simple.ToArray(), joins.ToArray()));
                     }
                 }
             }
@@ -639,16 +651,41 @@ namespace Lea.Engine
             foreach (var child in node.C) RawText(child, text);
         }
 
-        private static int Spec(List<string> parts)
+        private static int Spec(List<Se> parts)
         {
             var score = 0;
-            foreach (var part in parts)
-            {
-                score += Regex.Matches(part, "#[a-z0-9_-]+", RegexOptions.IgnoreCase).Count * 100;
-                score += Regex.Matches(part, "\\.[a-z0-9_-]+", RegexOptions.IgnoreCase).Count * 10;
-                if (Regex.IsMatch(part, "^[a-z][a-z0-9-]*", RegexOptions.IgnoreCase)) score++;
-            }
+            foreach (var part in parts) score += part.W;
             return score;
+        }
+
+        private static IEnumerable<string> CssGroups(string selectors)
+        {
+            var group = new StringBuilder();
+            var brackets = 0;
+            var parentheses = 0;
+            var quote = '\0';
+            for (var i = 0; i < (selectors ?? "").Length; i++)
+            {
+                var value = selectors[i];
+                if (quote != '\0')
+                {
+                    group.Append(value);
+                    if (value == quote && (i == 0 || selectors[i - 1] != '\\')) quote = '\0';
+                    continue;
+                }
+                if (value == '"' || value == '\'') { quote = value; group.Append(value); continue; }
+                if (value == '[') brackets++;
+                else if (value == ']' && brackets > 0) brackets--;
+                else if (value == '(') parentheses++;
+                else if (value == ')' && parentheses > 0) parentheses--;
+                if (value == ',' && brackets == 0 && parentheses == 0)
+                {
+                    yield return group.ToString();
+                    group.Clear();
+                }
+                else group.Append(value);
+            }
+            yield return group.ToString();
         }
 
         private static bool MatchCss(N node, R rule)
@@ -675,26 +712,129 @@ namespace Lea.Engine
 
         private static bool CssParts(string selector, List<string> parts, List<char> joins)
         {
-            var source = Regex.Replace((selector ?? "").Trim(), "\\s*([>+])\\s*", " $1 ");
-            var needPart = true;
+            var source = (selector ?? "").Trim();
+            var part = new StringBuilder();
             var join = ' ';
-            foreach (var token in Regex.Split(source, "\\s+"))
+            var explicitJoin = false;
+            var brackets = 0;
+            var quote = '\0';
+            for (var i = 0; i < source.Length; i++)
             {
-                if (token.Length == 0) continue;
-                if (token == ">" || token == "+")
+                var value = source[i];
+                if (quote != '\0')
                 {
-                    if (needPart) return false;
-                    join = token[0];
-                    needPart = true;
+                    part.Append(value);
+                    if (value == quote && (i == 0 || source[i - 1] != '\\')) quote = '\0';
                     continue;
                 }
-
-                if (parts.Count > 0) joins.Add(needPart ? join : ' ');
-                parts.Add(token);
-                join = ' ';
-                needPart = false;
+                if (brackets > 0 && (value == '\"' || value == '\'')) { quote = value; part.Append(value); continue; }
+                if (value == '[') { brackets++; part.Append(value); continue; }
+                if (value == ']')
+                {
+                    if (brackets == 0) return false;
+                    brackets--;
+                    part.Append(value);
+                    continue;
+                }
+                if (brackets == 0 && (value == '>' || value == '+'))
+                {
+                    if (part.Length > 0)
+                    {
+                        AddCssPart(parts, joins, part, join);
+                        explicitJoin = false;
+                        join = ' ';
+                    }
+                    else if (parts.Count == 0 || explicitJoin) return false;
+                    join = value;
+                    explicitJoin = true;
+                    continue;
+                }
+                if (brackets == 0 && Char.IsWhiteSpace(value))
+                {
+                    if (part.Length > 0)
+                    {
+                        AddCssPart(parts, joins, part, join);
+                        explicitJoin = false;
+                        join = ' ';
+                    }
+                    continue;
+                }
+                part.Append(value);
             }
-            return parts.Count > 0 && !needPart;
+            if (quote != '\0' || brackets != 0) return false;
+            if (part.Length > 0)
+            {
+                AddCssPart(parts, joins, part, join);
+                explicitJoin = false;
+            }
+            return parts.Count > 0 && !explicitJoin;
+        }
+
+        private static void AddCssPart(List<string> parts, List<char> joins, StringBuilder part, char join)
+        {
+            if (parts.Count > 0) joins.Add(join);
+            parts.Add(part.ToString());
+            part.Clear();
+        }
+
+        private static Se CssSimple(string selector)
+        {
+            if (String.IsNullOrWhiteSpace(selector) || selector.Length > 512) return null;
+            var tag = "";
+            var index = 0;
+            var weight = 0;
+            var tags = Regex.Match(selector, "^(?<v>[a-z][a-z0-9-]*|\\*)", RegexOptions.IgnoreCase);
+            if (tags.Success)
+            {
+                tag = tags.Groups["v"].Value.ToLowerInvariant();
+                index = tags.Length;
+                if (tag != "*") weight++;
+            }
+
+            var ids = new List<string>();
+            var classes = new List<string>();
+            var attrs = new List<Ca>();
+            var pseudos = new List<Ps>();
+            while (index < selector.Length)
+            {
+                var tail = selector.Substring(index);
+                Match match;
+                if (tail[0] == '#')
+                {
+                    match = Regex.Match(tail, "^#(?<v>[a-z0-9_-]+)", RegexOptions.IgnoreCase);
+                    if (!match.Success) return null;
+                    ids.Add(match.Groups["v"].Value);
+                    weight += 100;
+                }
+                else if (tail[0] == '.')
+                {
+                    match = Regex.Match(tail, "^\\.(?<v>[a-z0-9_-]+)", RegexOptions.IgnoreCase);
+                    if (!match.Success) return null;
+                    classes.Add(match.Groups["v"].Value);
+                    weight += 10;
+                }
+                else if (tail[0] == '[')
+                {
+                    match = Regex.Match(tail, "^\\[\\s*(?<n>[a-z_:][a-z0-9_:.\\-]*)\\s*(?:(?<o>[~|^$*]?=)\\s*(?<v>\"[^\"]*\"|'[^']*'|[^\\]\\s]+))?\\s*\\]", RegexOptions.IgnoreCase);
+                    if (!match.Success) return null;
+                    var value = match.Groups["v"].Value;
+                    if (value.Length >= 2 && ((value[0] == '\"' && value[value.Length - 1] == '\"') || (value[0] == '\'' && value[value.Length - 1] == '\''))) value = value.Substring(1, value.Length - 2);
+                    attrs.Add(new Ca(match.Groups["n"].Value, match.Groups["o"].Value, WebUtility.HtmlDecode(value)));
+                    weight += 10;
+                }
+                else if (tail[0] == ':')
+                {
+                    match = Regex.Match(tail, "^:(?<n>nth-child|nth-of-type)\\(\\s*(?<v>odd|even|[1-9][0-9]{0,3})\\s*\\)", RegexOptions.IgnoreCase);
+                    if (!match.Success)
+                        match = Regex.Match(tail, "^:(?<n>first-child|last-child|only-child|first-of-type|last-of-type|only-of-type|empty|root|link|checked|disabled|enabled|required|read-only|read-write)\\b", RegexOptions.IgnoreCase);
+                    if (!match.Success) return null;
+                    pseudos.Add(new Ps(match.Groups["n"].Value.ToLowerInvariant(), match.Groups["v"].Value.ToLowerInvariant()));
+                    weight += 10;
+                }
+                else return null;
+                index += match.Length;
+            }
+            return new Se(tag, ids.ToArray(), classes.ToArray(), attrs.ToArray(), pseudos.ToArray(), weight);
         }
 
         private static N PreviousElement(N node)
@@ -709,19 +849,94 @@ namespace Lea.Engine
             return null;
         }
 
-        private static bool MatchPart(N node, string selector)
+        private static bool MatchPart(N node, Se selector)
         {
-            var match = Regex.Match(selector, "^(?<tag>[a-z][a-z0-9-]*|\\*)?(?<id>#[a-z0-9_-]+)?(?<classes>(?:\\.[a-z0-9_-]+)*)$", RegexOptions.IgnoreCase);
-            if (!match.Success) return false;
-            var tag = match.Groups["tag"].Value;
-            if (tag.Length > 0 && tag != "*" && node.K != tag.ToLowerInvariant()) return false;
-            var id = match.Groups["id"].Value.TrimStart('#');
-            if (id.Length > 0 && !node.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase)) return false;
-
-            var classes = new HashSet<string>((node.Av("class") ?? "").Split(new char[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries), StringComparer.OrdinalIgnoreCase);
-            foreach (Match item in Regex.Matches(match.Groups["classes"].Value, "\\.([a-z0-9_-]+)", RegexOptions.IgnoreCase))
-                if (!classes.Contains(item.Groups[1].Value)) return false;
+            if (selector.T.Length > 0 && selector.T != "*" && node.K != selector.T) return false;
+            foreach (var id in selector.I) if (!node.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase)) return false;
+            if (selector.C.Length > 0)
+            {
+                var classes = new HashSet<string>((node.Av("class") ?? "").Split(new char[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries), StringComparer.OrdinalIgnoreCase);
+                foreach (var value in selector.C) if (!classes.Contains(value)) return false;
+            }
+            foreach (var attr in selector.A) if (!MatchAttribute(node, attr)) return false;
+            foreach (var pseudo in selector.Ps) if (!MatchPseudo(node, pseudo)) return false;
             return true;
+        }
+
+        private static bool MatchAttribute(N node, Ca attr)
+        {
+            string actual;
+            if (!node.A.TryGetValue(attr.N, out actual)) return false;
+            if (attr.O.Length == 0) return true;
+            if (attr.O == "=") return actual.Equals(attr.V, StringComparison.OrdinalIgnoreCase);
+            if (attr.O == "^=") return actual.StartsWith(attr.V, StringComparison.OrdinalIgnoreCase);
+            if (attr.O == "$=") return actual.EndsWith(attr.V, StringComparison.OrdinalIgnoreCase);
+            if (attr.O == "*=") return actual.IndexOf(attr.V, StringComparison.OrdinalIgnoreCase) >= 0;
+            if (attr.O == "|=") return actual.Equals(attr.V, StringComparison.OrdinalIgnoreCase) || actual.StartsWith(attr.V + "-", StringComparison.OrdinalIgnoreCase);
+            if (attr.O == "~=")
+            {
+                foreach (var value in actual.Split(new char[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
+                    if (value.Equals(attr.V, StringComparison.OrdinalIgnoreCase)) return true;
+            }
+            return false;
+        }
+
+        private static bool MatchPseudo(N node, Ps pseudo)
+        {
+            if (pseudo.N == "root") return node.Up != null && node.Up.K == "#doc";
+            if (pseudo.N == "empty") return node.C.Count == 0;
+            if (pseudo.N == "link") return (node.K == "a" || node.K == "area") && node.A.ContainsKey("href");
+            if (pseudo.N == "checked") return (node.K == "input" && node.A.ContainsKey("checked")) || (node.K == "option" && node.A.ContainsKey("selected"));
+            if (pseudo.N == "disabled") return FormNode(node) && node.A.ContainsKey("disabled");
+            if (pseudo.N == "enabled") return FormNode(node) && !node.A.ContainsKey("disabled");
+            if (pseudo.N == "required") return RequiredNode(node) && node.A.ContainsKey("required");
+            if (pseudo.N == "read-only") return EditNode(node) && node.A.ContainsKey("readonly");
+            if (pseudo.N == "read-write") return EditNode(node) && !node.A.ContainsKey("readonly") && !node.A.ContainsKey("disabled");
+
+            var type = pseudo.N.IndexOf("of-type", StringComparison.Ordinal) >= 0;
+            int count;
+            var position = ElementPosition(node, type, out count);
+            if (position == 0) return false;
+            if (pseudo.N == "first-child" || pseudo.N == "first-of-type") return position == 1;
+            if (pseudo.N == "last-child" || pseudo.N == "last-of-type") return position == count;
+            if (pseudo.N == "only-child" || pseudo.N == "only-of-type") return count == 1;
+            if (pseudo.N == "nth-child" || pseudo.N == "nth-of-type")
+            {
+                if (pseudo.V == "odd") return position % 2 == 1;
+                if (pseudo.V == "even") return position % 2 == 0;
+                int expected;
+                return Int32.TryParse(pseudo.V, out expected) && position == expected;
+            }
+            return false;
+        }
+
+        private static int ElementPosition(N node, bool type, out int count)
+        {
+            count = 0;
+            var position = 0;
+            if (node == null || node.Up == null) return 0;
+            foreach (var child in node.Up.C)
+            {
+                if (child.K.Length == 0 || child.K[0] == '#' || (type && child.K != node.K)) continue;
+                count++;
+                if (Object.ReferenceEquals(child, node)) position = count;
+            }
+            return position;
+        }
+
+        private static bool FormNode(N node)
+        {
+            return node.K == "button" || node.K == "fieldset" || node.K == "input" || node.K == "option" || node.K == "select" || node.K == "textarea";
+        }
+
+        private static bool RequiredNode(N node)
+        {
+            return node.K == "input" || node.K == "select" || node.K == "textarea";
+        }
+
+        private static bool EditNode(N node)
+        {
+            return node.K == "input" || node.K == "textarea";
         }
 
         private static S Style(N node, S inherited, List<R> rules)
@@ -1609,16 +1824,62 @@ namespace Lea.Engine
             public readonly string V;
             public readonly int W;
             public readonly int O;
-            public readonly string[] P;
+            public readonly Se[] P;
             public readonly char[] J;
 
-            public R(string values, int weight, int order, string[] parts, char[] joins)
+            public R(string values, int weight, int order, Se[] parts, char[] joins)
             {
                 V = values;
                 W = weight;
                 O = order;
                 P = parts;
                 J = joins;
+            }
+        }
+
+        private sealed class Se
+        {
+            public readonly string T;
+            public readonly string[] I;
+            public readonly string[] C;
+            public readonly Ca[] A;
+            public readonly Ps[] Ps;
+            public readonly int W;
+
+            public Se(string tag, string[] ids, string[] classes, Ca[] attrs, Ps[] pseudos, int weight)
+            {
+                T = tag;
+                I = ids;
+                C = classes;
+                A = attrs;
+                Ps = pseudos;
+                W = weight;
+            }
+        }
+
+        private sealed class Ca
+        {
+            public readonly string N;
+            public readonly string O;
+            public readonly string V;
+
+            public Ca(string name, string operation, string value)
+            {
+                N = name;
+                O = operation;
+                V = value;
+            }
+        }
+
+        private sealed class Ps
+        {
+            public readonly string N;
+            public readonly string V;
+
+            public Ps(string name, string value)
+            {
+                N = name;
+                V = value;
             }
         }
 

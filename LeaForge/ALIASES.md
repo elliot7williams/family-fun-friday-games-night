@@ -50,7 +50,9 @@ leaves `Is` empty and stays on the original one-box layout path.
 
 Box spacing stays compact: `Mt/Mr/Mb/Ml` are margins and `Pt/Pr/Pb/Pl` are
 padding. `N.Up` links a document node to its parent for descendant and child
-selectors; adjacent selectors walk the previous element sibling and ignore text.
+selectors; `N.A` holds the attributes used by compiled attribute selectors;
+adjacent selectors walk the previous element sibling and ignore text. Pseudo
+selectors use the existing tree and field state, so they need no new public API.
 Pixel dimensions use `S.W` and `S.H`. Borders use `Bt/Br/Bb/Bl` for side
 widths and `Bc/Bs` for color and style. `V.Rb(index)` returns the cached outer
 border rectangle, while `V.Rc(index)` returns its content rectangle.

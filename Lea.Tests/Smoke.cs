@@ -139,6 +139,39 @@ namespace Lea.Tests
                 Ok(selectorPage.Bs[9].S.I, "heading adjacent selector");
                 Ok(!selectorPage.Bs[11].S.I, "adjacent selector respects separator");
 
+                var selectorStatePath = Path.Combine(root, "LeaForge", "test-pages", "selector-states.html");
+                var selectorStatePage = engine.Go(selectorStatePath);
+                Eq("#2b3340", selectorStatePage.S.F, "root pseudo inheritance");
+                Eq(13, selectorStatePage.Bs.Count, "attribute and pseudo selector block count");
+                Eq(5, selectorStatePage.Fs.Count, "state selector field count");
+                var selectorHeading = selectorStatePage.Bs[0].S;
+                Eq("#176b4d", selectorHeading.F, "attribute value selector specificity");
+                Eq("#edf7f2", selectorHeading.Bg, "attribute presence selector");
+                Ok(selectorHeading.B, "attribute word selector");
+                Ok(selectorHeading.I, "attribute language selector");
+                Eq(3, selectorHeading.Bl, "attribute prefix selector");
+                Eq(7, selectorHeading.Pl, "attribute suffix selector");
+                Eq("u", selectorHeading.Td, "attribute substring selector");
+                Eq(17, selectorHeading.Fs, "quoted attribute value with spaces and comma");
+                Eq("#176b4d", selectorStatePage.Bs[1].S.F, "first-child selector");
+                Ok(selectorStatePage.Bs[2].S.I, "even nth-child selector");
+                Eq("Georgia|s", selectorStatePage.Bs[2].S.Ff, "fixed nth-of-type selector");
+                Eq("u", selectorStatePage.Bs[3].S.Td, "fixed nth-child selector");
+                Ok(selectorStatePage.Bs[4].S.I && selectorStatePage.Bs[4].S.Bg == "#e8f4ed", "last-child selector");
+                Eq(3, selectorStatePage.Bs[5].Is.Count, "type pseudo inline run count");
+                Eq("#176b4d", selectorStatePage.Bs[5].Is[0].S.F, "first-of-type selector");
+                Ok(selectorStatePage.Bs[5].Is[1].S.I && selectorStatePage.Bs[5].Is[1].S.Fs == 17, "only-of-type selector");
+                Ok(selectorStatePage.Bs[5].Is[2].S.Bg == "#e8f4ed" && selectorStatePage.Bs[5].Is[2].S.Td == "u", "last and nth-of-type selectors");
+                Eq(3, selectorStatePage.Bs[6].S.Bl, "only-child selector");
+                Eq("#0b63ce", selectorStatePage.Bs[7].Is[0].S.F, "link pseudo selector");
+                Eq("n", selectorStatePage.Bs[7].Is[0].S.Td, "link pseudo decoration");
+                Ok(selectorStatePage.Fs[0].C && selectorStatePage.Fs[0].S.Bg == "#dff6e9", "checked pseudo selector");
+                Ok(selectorStatePage.Fs[0].S.Bl == 2 && selectorStatePage.Fs[0].S.Ff == "m", "enabled and empty pseudo selectors");
+                Ok(selectorStatePage.Fs[1].Ds && selectorStatePage.Fs[1].S.F == "#8a4b22" && selectorStatePage.Fs[1].S.Bl == 0, "disabled pseudo selector");
+                Ok(selectorStatePage.Fs[2].S.B && selectorStatePage.Fs[2].S.Td == "u", "required and read-write pseudo selectors");
+                Ok(selectorStatePage.Fs[3].Ro && selectorStatePage.Fs[3].S.I && selectorStatePage.Fs[3].S.Td == "", "read-only pseudo selector");
+                Eq("u", selectorStatePage.Fs[4].S.Td, "editable read-write pseudo selector");
+
                 var textStylePath = Path.Combine(root, "LeaForge", "test-pages", "text-style.html");
                 var textStylePage = engine.Go(textStylePath);
                 Eq(8, textStylePage.Bs.Count, "text style block count");
@@ -335,6 +368,14 @@ namespace Lea.Tests
                     var thirdCard = BlockRect(view, view.At.Bs[7]);
                     Eq(firstCard.Left + 18, secondCard.Left, "adjacent selector second-card layout");
                     Eq(firstCard.Left + 18, thirdCard.Left, "adjacent selector third-card layout");
+                    view.Go(selectorStatePath);
+                    Paint(view);
+                    Eq(13, view.At.Bs.Count, "attribute and pseudo selector render blocks");
+                    Ok(view.Bc > view.At.Bs.Count, "selector fields and inline content paint separately");
+                    Ok(BlockRect(view, view.At.Bs[6]).Left > BlockRect(view, view.At.Bs[1]).Left, "only-child border and padding layout");
+                    using (var stateSerifFont = RenderFont(view, "p", view.At.Bs[2].S)) Eq("Georgia", stateSerifFont.FontFamily.Name, "nth-of-type rendered font");
+                    using (var stateMonoFont = RenderFont(view, "input", view.At.Fs[0].S)) Eq("Consolas", stateMonoFont.FontFamily.Name, "empty field rendered font");
+                    using (var stateLinkFont = RenderFont(view, "a", view.At.Bs[7].Is[0].S, true, "p")) Ok(!HasFontStyle(stateLinkFont, FontStyle.Underline), "link pseudo rendered decoration");
                     view.Go(textStylePath);
                     Paint(view);
                     Eq(8, view.At.Bs.Count, "text style render blocks");
@@ -584,7 +625,7 @@ namespace Lea.Tests
                     Eq("url", urlError.K, "URL error kind");
                 }
 
-                Console.WriteLine("Lea smoke passed: font families, text decoration, child and adjacent CSS selectors, white-space modes, overflow clipping, malformed HTML recovery, semantic blocks, nested lists, text alignment, line height, inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: compiled attribute and pseudo selectors, font families, text decoration, child and adjacent CSS selectors, white-space modes, overflow clipping, malformed HTML recovery, semantic blocks, nested lists, text alignment, line height, inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)

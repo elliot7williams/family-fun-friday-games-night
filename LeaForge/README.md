@@ -25,6 +25,7 @@ LeaForge is where we can grow the more full-featured browser.
 - inherited font-family fallbacks plus underline and line-through decoration
 - inherited left/center/right/justify alignment and pixel/relative line spacing
 - external stylesheets with document-order cascade and shared bounded caching
+- compiled relationship, attribute, structural, link, and form-state selectors
 - compact CSS cascade for colors, fonts, boxes, overflow, and inline styles
 - tiny script handling for `alert("...")` and `document.title = "..."`
 

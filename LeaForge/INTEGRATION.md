@@ -104,6 +104,12 @@ selectors. Compact chains such as `main>p+p` work without required spaces, and
 adjacent matching ignores formatting whitespace between HTML elements. Lea
 tokenizes these chains once per CSS rule and reuses them during tree matching.
 
+Simple selectors are also compiled once per rule. They support tag, universal,
+ID, class, attribute presence and the six common attribute-value operators,
+plus basic structural, link, and initial form-state pseudo-classes. Structural
+positions count element siblings and include type-aware fixed, odd, and even
+matching. Dynamic pointer and focus pseudo-classes are not yet exposed.
+
 `S.Ff` carries up to eight CSS font-family fallbacks; `V` resolves and caches
 the first installed Windows family with a 32-entry bound. `S.Td` uses compact
 `n/u/s/us` decoration modes. Underline, line-through, native decoration tags,

@@ -54,7 +54,7 @@ fs      font size
 
 ## 4. CSS and layout
 
-1. Add selectors for tag, class, id, descendant, child, adjacent sibling, and inline styles. (Compact `>` and `+` chains are active.)
+1. Add selectors for tag, class, id, attributes, basic pseudo-classes, descendant, child, adjacent sibling, and inline styles. (Compiled compact `>` and `+` chains are active.)
 2. Implement the cascade and inheritance with a small priority model. (First specificity/source-order cascade added.)
    (`link rel=stylesheet` and inline `style` blocks now enter that source order
    together; linked CSS uses cookies, compression, validators, and shared LRU caching.)
@@ -209,7 +209,16 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add attribute selectors and basic pseudo-classes. Lea now supports inherited
+Add min/max sizing and word breaking.
+
+Lea compiles every simple selector once when its stylesheet loads. Attribute
+presence plus `=`, `~=`, `|=`, `^=`, `$=`, and `*=` matching are active, as
+are root, empty, link, fixed/odd/even child and type positions, only/first/last
+positions, and initial checked/disabled/enabled/required/read-only/read-write
+form states. Dynamic hover and focus states remain part of a later interaction
+restyle milestone.
+
+Lea now supports inherited
 left, center, right, and basic justified text plus pixel, percentage, and
 unitless line heights in normal blocks and table cells. Default text still uses
 the original one-box path; only requested text flow enters the word-line pass.
@@ -222,4 +231,4 @@ link overrides, and native `u/s/strike/del` tags share the same paint path.
 CSS relationship matching supports descendant, direct-child (`>`), and
 adjacent-element (`+`) combinators with or without spaces. Matching runs from
 right to left, skips text nodes for adjacency, includes every simple selector
-in specificity scoring, and tokenizes each selector once when CSS is loaded.
+in specificity scoring, and compiles each selector once when CSS is loaded.

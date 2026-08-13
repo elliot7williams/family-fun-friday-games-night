@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Selector States</title>
+  <style>
+    html:root { color: #2b3340; }
+    [data-role="lead"] { color: #176b4d; }
+    h1 { color: #a13b18; }
+    [data-role] { background: #edf7f2; }
+    [data-tags~="hot"] { font-weight: bold; }
+    [lang|="en"] { font-style: italic; }
+    [data-code^="lea"] { border-left: 3px solid #18734b; }
+    [data-code$="63"] { padding-left: 7px; }
+    [data-code*="engine"] { text-decoration: underline; }
+    [data-note="hello, world"] { font-size: 17px; }
+    #structure>p:first-child { color: #176b4d; }
+    #structure>p:last-child { background: #e8f4ed; }
+    #structure>p:nth-child(even) { font-style: italic; }
+    #structure>p:nth-child(3) { text-decoration: underline; }
+    #structure>p:nth-of-type(2) { font-family: Georgia, serif; }
+    #types>span:first-of-type { color: #176b4d; }
+    #types>span:last-of-type { background: #e8f4ed; }
+    #types>span:nth-of-type(2) { text-decoration: underline; }
+    #types>em:only-of-type { font-size: 17px; }
+    .single>p:only-child { border-left: 3px solid #18734b; padding-left: 7px; }
+    a:link { color: #0b63ce; text-decoration: none; }
+    input:empty { font-family: monospace; }
+    input:enabled { border-left: 2px solid #18734b; }
+    input:checked { background: #dff6e9; }
+    input:disabled { color: #8a4b22; }
+    input:required { font-weight: bold; }
+    input:read-only { font-style: italic; }
+    input:read-write { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <h1 data-role="lead" data-tags="new hot compact" lang="en-US" data-code="lea-engine-63" data-note="hello, world">Attribute selectors</h1>
+  <section id="structure">
+    <p>First child</p>
+    <p>Second child</p>
+    <p>Third child</p>
+    <p>Fourth child</p>
+  </section>
+  <p id="types"><span>First span</span> <em>Only emphasis</em> <span>Last span</span></p>
+  <section class="single"><p>Only child</p></section>
+  <p><a href="second.html">Linked phrase</a></p>
+  <input type="checkbox" name="agree" checked aria-label="Checked field">
+  <input type="text" name="off" value="Disabled" disabled aria-label="Disabled field">
+  <input type="text" name="needed" value="Required" required aria-label="Required field">
+  <input type="text" name="fixed" value="Read only" readonly aria-label="Read-only field">
+  <input type="text" name="edit" value="Editable" aria-label="Editable field">
+</body>
+</html>
