@@ -209,7 +209,13 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add layout positioning and stacking.
+Add more HTML form controls and validation.
+
+Relative positioning now uses compact `S.Pn/Tp/Rt/Bm/Lt/Zi` fields. Signed
+pixel offsets move top-level blocks and tables while their original normal-flow
+slot stays intact. A stable z-index sort controls painting, hover selection,
+and overlap clicks; static elements ignore offsets and stacking values. Full
+absolute/fixed layout and nested stacking contexts remain later milestones.
 
 Responsive images now select compact `srcset` width or density candidates and
 screen-compatible `<picture>` sources before falling back to `<img src>`.

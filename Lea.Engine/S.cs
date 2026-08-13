@@ -19,6 +19,12 @@ namespace Lea.Engine
         public string Vi { get; internal set; }
         public int Op { get; internal set; }
         public string D { get; internal set; }
+        public string Pn { get; internal set; }
+        public int? Tp { get; internal set; }
+        public int? Rt { get; internal set; }
+        public int? Bm { get; internal set; }
+        public int? Lt { get; internal set; }
+        public int Zi { get; internal set; }
         public int Mt { get; internal set; }
         public int Mr { get; internal set; }
         public int Mb { get; internal set; }
@@ -55,6 +61,7 @@ namespace Lea.Engine
             Op = 100;
             Ao = 100;
             D = "";
+            Pn = "";
             Bc = "";
             Bs = "";
         }

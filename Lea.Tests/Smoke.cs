@@ -209,6 +209,29 @@ namespace Lea.Tests
                 Eq(130, mediaPage.Bs[10].S.W, "CSS image width overrides HTML");
                 Eq(44, mediaPage.Bs[10].S.H, "CSS image height overrides HTML");
 
+                var positioningPath = Path.Combine(root, "LeaForge", "test-pages", "positioning.html");
+                var positioningPage = engine.Go(positioningPath);
+                Eq(6, positioningPage.Bs.Count, "positioning block count");
+                Eq(4, positioningPage.Ls.Count, "positioning link count");
+                var backLayer = positioningPage.Bs[1].S;
+                var frontLayer = positioningPage.Bs[2].S;
+                var rightLayer = positioningPage.Bs[3].S;
+                var staticLayer = positioningPage.Bs[4].S;
+                Eq("r", backLayer.Pn, "relative position alias");
+                Eq(20, backLayer.Lt.Value, "left offset alias");
+                Eq(1, backLayer.Zi, "back z-index alias");
+                Eq(-82, frontLayer.Tp.Value, "signed top offset alias");
+                Eq(40, frontLayer.Lt.Value, "front left offset alias");
+                Eq(5, frontLayer.Zi, "front z-index alias");
+                Eq(15, rightLayer.Rt.Value, "right offset alias");
+                Eq(10, rightLayer.Bm.Value, "bottom offset alias");
+                Eq("s", staticLayer.Pn, "static position alias");
+                Eq(-300, staticLayer.Tp.Value, "static top remains parsed");
+                Eq(999, staticLayer.Zi, "static z-index remains parsed");
+                Eq("r", positioningPage.Bs[5].S.Pn, "relative table position alias");
+                Eq(12, positioningPage.Bs[5].S.Lt.Value, "relative table left offset");
+                Eq(3, positioningPage.Bs[5].S.Zi, "relative table z-index");
+
                 var selectorPath = Path.Combine(root, "LeaForge", "test-pages", "selectors.html");
                 var selectorPage = engine.Go(selectorPath);
                 Eq(12, selectorPage.Bs.Count, "relationship selector block count");
@@ -606,6 +629,30 @@ namespace Lea.Tests
                         Ok(ColorDistance(CenterPixel(mediaPaint, pictureBox), Color.FromArgb(29, 78, 216)) < 4, "picture source paint");
                         Ok(ColorDistance(CenterPixel(mediaPaint, cssBox), Color.FromArgb(23, 107, 77)) < 4, "CSS-sized data image paint");
                     }
+                    view.Go(positioningPath);
+                    using (var positioningPaint = Render(view))
+                    {
+                        Eq(8, view.Bc, "positioning layout boxes");
+                        Eq(4, HitCount(view, false), "positioning link hits");
+                        var backBox = BlockRect(view, view.At.Bs[1]);
+                        var frontBox = BlockRect(view, view.At.Bs[2]);
+                        var positionedRightBox = BlockRect(view, view.At.Bs[3]);
+                        var staticBox = BlockRect(view, view.At.Bs[4]);
+                        Eq(backBox.Top, frontBox.Top, "relative top preserves normal flow slot");
+                        Eq(backBox.Left + 20, frontBox.Left, "relative left offsets");
+                        Eq(positionedRightBox.Left + 35, backBox.Left, "relative right offset");
+                        Eq(positionedRightBox.Top + 92, staticBox.Top, "relative bottom preserves following flow");
+                        Eq(staticBox.Left + 20, backBox.Left, "static left offset ignored");
+                        var tableBox = BlockRect(view, view.At.Bs[5]);
+                        Eq(staticBox.Left + 12, tableBox.Left, "relative table horizontal offset");
+                        Ok(tableBox.Top > staticBox.Bottom, "relative table retains normal flow");
+                        var overlap = Rectangle.Intersect(backBox, frontBox);
+                        Ok(overlap.Width > 200 && overlap.Height == 70, "positioned layer overlap");
+                        var topPixel = positioningPaint.GetPixel(overlap.Right - 10, overlap.Bottom - 10);
+                        Ok(ColorDistance(topPixel, Color.FromArgb(29, 78, 216)) < 4, "z-index top layer paint");
+                        Click(view, new Rectangle(overlap.Right - 12, overlap.Bottom - 12, 4, 4));
+                    }
+                    WaitFor(delegate { return view.T == "Lea Dynamic State"; }, "topmost overlap link navigation");
                     view.Go(textStylePath);
                     Paint(view);
                     Eq(8, view.At.Bs.Count, "text style render blocks");
@@ -855,7 +902,7 @@ namespace Lea.Tests
                     Eq("url", urlError.K, "URL error kind");
                 }
 
-                Console.WriteLine("Lea smoke passed: responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, font families, text decoration, child and adjacent CSS selectors, white-space modes, overflow clipping, malformed HTML recovery, semantic blocks, nested lists, text alignment, line height, inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: relative positioning and z-index stacking, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, font families, text decoration, child and adjacent CSS selectors, white-space modes, overflow clipping, malformed HTML recovery, semantic blocks, nested lists, text alignment, line height, inline flow, external CSS, bounded private cookies, cache revalidation, nested table links, typed errors, selects, POST, compression, forms, CSS boxes, images, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)

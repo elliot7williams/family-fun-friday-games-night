@@ -1088,6 +1088,12 @@ namespace Lea.Engine
                 else if (name == "visibility") Visibility(style, value);
                 else if (name == "opacity") Opacity(style, value);
                 else if (name == "display") style.D = value.ToLowerInvariant();
+                else if (name == "position") Position(style, value);
+                else if (name == "top") Offset(style, value, 0);
+                else if (name == "right") Offset(style, value, 1);
+                else if (name == "bottom") Offset(style, value, 2);
+                else if (name == "left") Offset(style, value, 3);
+                else if (name == "z-index") ZIndex(style, value);
                 else if (name == "margin") Box(style, value, true);
                 else if (name == "padding") Box(style, value, false);
                 else if (name == "margin-top") style.Mt = Px(value);
@@ -1123,6 +1129,45 @@ namespace Lea.Engine
                     if (size.Success && int.TryParse(size.Groups["n"].Value, out number) && number > 0 && number < 200) style.Fs = number;
                 }
             }
+        }
+
+        private static void Position(S style, string value)
+        {
+            var mode = (value ?? "").Trim().ToLowerInvariant();
+            if (mode == "relative") style.Pn = "r";
+            else if (mode == "static" || mode == "initial" || mode == "unset" || mode == "revert") style.Pn = "s";
+        }
+
+        private static void Offset(S style, string value, int side)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            int? offset = null;
+            if (source != "auto" && source != "initial" && source != "unset" && source != "revert")
+            {
+                var match = Regex.Match(source, "^(?<n>-?[0-9]{1,5})(?:px)?$");
+                int number;
+                if (!match.Success || !Int32.TryParse(match.Groups["n"].Value, out number)) return;
+                offset = Math.Max(-8192, Math.Min(8192, number));
+            }
+
+            if (side == 0) style.Tp = offset;
+            else if (side == 1) style.Rt = offset;
+            else if (side == 2) style.Bm = offset;
+            else style.Lt = offset;
+        }
+
+        private static void ZIndex(S style, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "auto" || source == "initial" || source == "unset" || source == "revert")
+            {
+                style.Zi = 0;
+                return;
+            }
+
+            var match = Regex.Match(source, "^-?[0-9]{1,5}$");
+            int number;
+            if (match.Success && Int32.TryParse(match.Value, out number)) style.Zi = Math.Max(-1000, Math.Min(1000, number));
         }
 
         private static void FontFamily(S style, string value)

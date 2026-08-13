@@ -153,6 +153,11 @@ and icon data URLs decode under a 4 MB limit into the existing 24-entry image
 cache. CSS width/height wins over HTML dimensions; otherwise `width` and
 `height` attributes feed the same constrained layout path.
 
+Top-level blocks and tables support lightweight `position:relative` offsets
+and bounded `z-index` ordering through `S.Pn/Tp/Rt/Bm/Lt/Zi`. Their normal-flow
+space remains stable, and overlapping paint, hover, and clicks use the same
+topmost order. Absolute and fixed layout are intentionally deferred.
+
 Basic fields are exposed through `P.Fs`. The view paints inactive controls on
 the Lea surface, reuses one editor for focused text, opens native choice menus
 for single-select fields, and provides `Rs`, `Sm`, and `SmA` for reset and

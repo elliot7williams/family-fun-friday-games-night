@@ -65,6 +65,12 @@ and maximum width and `Hn/Hx` for minimum and maximum height. Borders use
 returns the cached outer border rectangle, while `V.Rc(index)` returns its
 content rectangle.
 
+Positioning stays compact: `Pn` is `s/r` for static or relative, `Tp/Rt/Bm/Lt`
+are nullable signed pixel offsets, and `Zi` is the bounded z-index. Relative
+top-level blocks and tables shift without leaving normal flow. Lea paints their
+boxes in a stable low-to-high `Zi` order and tests overlapping links from the
+topmost layer. Static boxes retain parsed offsets but do not apply them.
+
 The WinForms view exposes `Dh` (document height), `Sy` (scroll position), and
 `Bc` (cached layout-box count) for compact host diagnostics. `Sc(delta)` moves
 the bounded scroll position.
