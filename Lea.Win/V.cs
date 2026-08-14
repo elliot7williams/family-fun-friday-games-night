@@ -326,8 +326,14 @@ namespace Lea.Win
 
         private void Lay(Graphics graphics)
         {
+            Lay(graphics, null);
+        }
+
+        private void Lay(Graphics graphics, IDictionary<B, int> resolved)
+        {
             boxes.Clear();
             if (At == null) return;
+            var measured = resolved ?? new Dictionary<B, int>();
             var contexts = new Dictionary<B, Lc>();
             var owners = new HashSet<B>();
             foreach (var block in At.Bs) if (block.Up != null) owners.Add(block.Up);
@@ -362,7 +368,7 @@ namespace Lea.Win
             {
                 foreach (var block in At.Bs)
                 {
-                    CloseContexts(block, active, ref y);
+                    CloseContexts(block, active, ref y, measured);
                     var bs = block.S;
                     Lc parent = null;
                     if (block.Up != null) contexts.TryGetValue(block.Up, out parent);
@@ -423,6 +429,8 @@ namespace Lea.Win
                     }
                     var naturalHeight = height;
                     height = ConstrainHeight(bs, height);
+                    int resolvedHeight;
+                    if (resolved != null && owners.Contains(block) && (bs == null || bs.H == 0) && resolved.TryGetValue(block, out resolvedHeight)) height = resolvedHeight;
                     var text = block.K == "li" ? "- " + block.X : block.X;
                     var link = inline == null && block.K == "a" ? block.U : null;
                     var outerWidth = bw + pl + pr + bl + br;
@@ -462,7 +470,13 @@ namespace Lea.Win
                         if (parent == null) y = next; else parent.Y = next;
                     }
                 }
-                CloseContexts(null, active, ref y);
+                CloseContexts(null, active, ref y, measured);
+            }
+
+            if (resolved == null && measured.Count > 0)
+            {
+                Lay(graphics, measured);
+                return;
             }
 
             docHeight = y + 20 + (style == null ? 0 : style.Pb + BorderWidth(style, style.Bb) + style.Mb);
@@ -474,14 +488,14 @@ namespace Lea.Win
             sy = Math.Min(sy, MaxScroll());
         }
 
-        private void CloseContexts(B next, IList<Lc> active, ref int rootY)
+        private void CloseContexts(B next, IList<Lc> active, ref int rootY, IDictionary<B, int> measured)
         {
             while (active.Count > 0 && !Inside(next, active[active.Count - 1].B))
             {
                 var index = active.Count - 1;
                 var context = active[index];
                 active.RemoveAt(index);
-                FinishContext(context, ref rootY);
+                FinishContext(context, ref rootY, measured);
             }
         }
 
@@ -492,7 +506,7 @@ namespace Lea.Win
             return false;
         }
 
-        private void FinishContext(Lc context, ref int rootY)
+        private void FinishContext(Lc context, ref int rootY, IDictionary<B, int> measured)
         {
             var needed = Math.Max(context.C.Height, Math.Max(1, context.Y - context.C.Top));
             var height = ConstrainHeight(context.B == null ? null : context.B.S, needed);
@@ -504,6 +518,7 @@ namespace Lea.Win
                 context.Box.R = context.R;
                 if (context.Co) context.Cp = CombineClip(context.Pc, context.C);
             }
+            if (context.B != null) measured[context.B] = height;
             if (!context.Fx) layoutBottom = Math.Max(layoutBottom, context.R.Bottom);
             if (!context.Fl) return;
             var next = context.Fy + context.R.Height + context.Gp;
@@ -702,10 +717,15 @@ namespace Lea.Win
             for (var index = chain.Count - 1; index >= 0; index--)
             {
                 var style = chain[index].S;
-                if (Positioned(style)) path.Add(style.Zi);
+                if (StackingContext(style)) path.Add(style.Zi);
             }
             if (path.Count == 0) path.Add(0);
             return path.ToArray();
+        }
+
+        private static bool StackingContext(S style)
+        {
+            return style != null && (style.Zc || style.Pn == "f" || (Positioned(style) && style.Za));
         }
 
         private static bool FixedBlock(B block)

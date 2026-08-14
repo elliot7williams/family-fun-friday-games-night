@@ -209,7 +209,16 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Expand CSS stacking-context triggers and auto-sized positioned containers.
+Add nested form, media, and table contexts inside ordinary visual containers.
+
+`S.Za` now distinguishes numeric z-index from `auto`, and `S.Zc` records local
+opacity or `isolation:isolate` context creation. Fixed boxes remain contexts.
+The hierarchical paint and hit path therefore traps descendants only when the
+parent establishes a compact context; positioned `z-index:auto` descendants can
+participate in the ancestor layer. Auto-height context owners use one bounded
+measurement pass followed by final placement, so bottom/right offsets and
+overflow clips resolve against settled geometry without making flat pages pay
+for another layout pass.
 
 Ordinary visual containers now retain compact layout ownership through `B.Up`
 when backgrounds, borders, spacing, or dimensions make their own box meaningful.

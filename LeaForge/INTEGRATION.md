@@ -164,8 +164,12 @@ space remains in normal flow; absolute and fixed boxes are out of flow. Absolute
 boxes use the nearest positioned containing block, while fixed boxes use viewport
 coordinates even when nested. Overflow clips inherit through nested descendants.
 Paint, hover, and clicks share a stable hierarchical z-index path, keeping child
-layers inside their parent layer. Auto-sized positioned containers and the full
-set of CSS stacking-context triggers remain future work.
+layers inside their parent layer. `S.Za` distinguishes numeric z-index from
+`auto`, while `S.Zc` records local opacity and `isolation:isolate` contexts.
+Fixed boxes also establish a context. Auto-height owners use one bounded measure
+pass followed by final placement, allowing bottom-anchored descendants and
+overflow hit clips to resolve against settled parent geometry. Transforms,
+filters, containment, and the full CSS stacking model remain future work.
 
 Fields are exposed through `P.Fs`. The view paints controls on the Lea surface,
 reuses one editor for focused text, opens native choice/file/color dialogs, and

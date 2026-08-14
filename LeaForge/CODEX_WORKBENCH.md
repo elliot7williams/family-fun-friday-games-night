@@ -17,8 +17,8 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-1. Expand CSS stacking-context triggers and auto-sized positioned containers.
-2. Add nested form, media, and table contexts inside ordinary visual containers.
+1. Add nested form, media, and table contexts inside ordinary visual containers.
+2. Add more positioned layout values and stacking-context triggers.
 3. Route more Firespider commands through Lea capability checks.
 4. Add a small JavaScript interpreter layer or bridge.
 5. Add downloads and find-in-page.

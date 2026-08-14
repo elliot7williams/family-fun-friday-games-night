@@ -439,7 +439,7 @@ namespace Lea.Engine
 
         private static bool LayoutContext(S style)
         {
-            return style != null && (style.Pn == "r" || style.Pn == "a" || style.Pn == "f" || (style.Ov.Length > 0 && style.Ov != "v"));
+            return style != null && (style.Pn == "r" || style.Pn == "a" || style.Pn == "f" || style.Zc || (style.Ov.Length > 0 && style.Ov != "v"));
         }
 
         private static bool BlockContext(B block)
@@ -1164,6 +1164,7 @@ namespace Lea.Engine
                 else if (name == "overflow") Overflow(style, value);
                 else if (name == "visibility") Visibility(style, value);
                 else if (name == "opacity") Opacity(style, value);
+                else if (name == "isolation") Isolation(style, value);
                 else if (name == "display") style.D = value.ToLowerInvariant();
                 else if (name == "position") Position(style, value);
                 else if (name == "top") Offset(style, value, 0);
@@ -1241,12 +1242,17 @@ namespace Lea.Engine
             if (source == "auto" || source == "initial" || source == "unset" || source == "revert")
             {
                 style.Zi = 0;
+                style.Za = false;
                 return;
             }
 
             var match = Regex.Match(source, "^-?[0-9]{1,5}$");
             int number;
-            if (match.Success && Int32.TryParse(match.Value, out number)) style.Zi = Math.Max(-1000, Math.Min(1000, number));
+            if (match.Success && Int32.TryParse(match.Value, out number))
+            {
+                style.Zi = Math.Max(-1000, Math.Min(1000, number));
+                style.Za = true;
+            }
         }
 
         private static void FontFamily(S style, string value)
@@ -1365,13 +1371,34 @@ namespace Lea.Engine
         private static void Opacity(S style, string value)
         {
             var source = (value ?? "").Trim().ToLowerInvariant();
-            if (source == "inherit" || source == "initial" || source == "unset" || source == "revert") { style.Op = style.Ao; return; }
+            if (source == "inherit" || source == "initial" || source == "unset" || source == "revert")
+            {
+                style.Op = style.Ao;
+                style.Zo = false;
+                UpdateStackContext(style);
+                return;
+            }
             var match = Regex.Match(source, "^(?<n>-?(?:[0-9]{1,3}(?:\\.[0-9]{1,3})?|\\.[0-9]{1,3}))(?<p>%?)$");
             double number;
             if (!match.Success || !Double.TryParse(match.Groups["n"].Value, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out number)) return;
             if (match.Groups["p"].Value == "%") number /= 100D;
             number = Math.Max(0D, Math.Min(1D, number));
             style.Op = Math.Max(0, Math.Min(100, (int)Math.Round(style.Ao * number)));
+            style.Zo = number < 1D;
+            UpdateStackContext(style);
+        }
+
+        private static void Isolation(S style, string value)
+        {
+            var mode = (value ?? "").Trim().ToLowerInvariant();
+            if (mode != "isolate" && mode != "auto" && mode != "initial" && mode != "unset" && mode != "revert") return;
+            style.Zs = mode == "isolate";
+            UpdateStackContext(style);
+        }
+
+        private static void UpdateStackContext(S style)
+        {
+            style.Zc = style.Zo || style.Zs;
         }
 
         private static void Box(S style, string value, bool margin)

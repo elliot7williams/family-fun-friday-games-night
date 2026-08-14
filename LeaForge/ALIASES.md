@@ -67,15 +67,20 @@ content rectangle.
 
 Positioning stays compact: `Pn` is `s/r/a/f` for static, relative, absolute, or
 fixed; `Tp/Rt/Bm/Lt` are nullable signed pixel offsets, and `Zi` is the bounded
-z-index. `B.Up` points to the nearest retained visual, positioned, or clipping
-parent block. Styled semantic containers are retained when their background,
+z-index. `Za` marks a numeric z-index rather than `auto`; `Zc` marks a local
+opacity or `isolation:isolate` stacking context. `B.Up` points to the nearest
+retained visual, positioned, or clipping parent block. Styled semantic
+containers are retained when their background,
 border, spacing, or dimensions affect layout; unstyled wrappers stay on the
 flat fast path. Auto-height visual parents grow around nested normal-flow
-children. Relative blocks and tables shift while retaining normal flow. Absolute
+children. Positioned auto-height owners receive one bounded measurement pass
+before final placement, so bottom anchors and overflow clips use settled geometry.
+Relative blocks and tables shift while retaining normal flow. Absolute
 boxes leave flow and use the nearest positioned containing block; fixed boxes
 use viewport coordinates, including when nested. Overflow clips inherit through
-the parent chain. Lea paints and hit-tests boxes with stable hierarchical `Zi`
-paths so a child remains inside its parent's stacking layer. Static boxes retain
+the parent chain. Numeric positioned z-index, fixed positioning, local opacity,
+and isolation create compact hierarchical `Zi` paths; `z-index:auto` does not
+trap descendants. Paint and hit testing share that order. Static boxes retain
 parsed offsets but do not apply them.
 
 The WinForms view exposes `Dh` (document height), `Sy` (scroll position), and

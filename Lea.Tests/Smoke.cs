@@ -171,24 +171,25 @@ namespace Lea.Tests
 
                 var visibilityPath = Path.Combine(root, "LeaForge", "test-pages", "visibility-opacity.html");
                 var visibilityPage = engine.Go(visibilityPath);
-                Eq(15, visibilityPage.Bs.Count, "visibility and opacity block count");
+                Eq(16, visibilityPage.Bs.Count, "visibility and opacity block count");
                 Eq(2, visibilityPage.Fs.Count, "visibility field count");
                 Eq(2, visibilityPage.Ls.Count, "visibility link count");
                 Eq(100, visibilityPage.Bs[1].S.Op, "clamped opacity percentage");
                 Eq(50, visibilityPage.Bs[2].S.Op, "percentage opacity alias");
-                Eq(25, visibilityPage.Bs[3].S.Op, "nested effective opacity");
-                Eq(80, visibilityPage.Bs[4].S.Op, "opacity cascade override");
-                Eq("h", visibilityPage.Bs[5].S.Vi, "hidden visibility alias");
-                Eq("c", visibilityPage.Bs[6].S.Vi, "collapse visibility alias");
-                Eq("v", visibilityPage.Bs[7].S.Vi, "visible child override");
-                Eq(0, visibilityPage.Bs[8].S.Op, "negative opacity clamp");
-                Eq("h", visibilityPage.Bs[9].S.Vi, "hidden link visibility");
+                Ok(visibilityPage.Bs[3].S.Zc && Object.ReferenceEquals(visibilityPage.Bs[4].Up, visibilityPage.Bs[3]), "opacity stacking parent retained");
+                Eq(25, visibilityPage.Bs[4].S.Op, "nested effective opacity");
+                Eq(80, visibilityPage.Bs[5].S.Op, "opacity cascade override");
+                Eq("h", visibilityPage.Bs[6].S.Vi, "hidden visibility alias");
+                Eq("c", visibilityPage.Bs[7].S.Vi, "collapse visibility alias");
+                Eq("v", visibilityPage.Bs[8].S.Vi, "visible child override");
+                Eq(0, visibilityPage.Bs[9].S.Op, "negative opacity clamp");
+                Eq("h", visibilityPage.Bs[10].S.Vi, "hidden link visibility");
                 Eq(50, visibilityPage.Fs[0].S.Op, "field opacity");
                 Eq("h", visibilityPage.Fs[1].S.Vi, "hidden field visibility");
-                Eq(100, visibilityPage.Bs[12].S.Op, "opaque image state");
-                Eq(50, visibilityPage.Bs[13].S.Op, "faded image state");
-                Eq(50, visibilityPage.Bs[14].S.Op, "table effective opacity");
-                Eq(25, visibilityPage.Bs[14].Tb.Rs[0].Cs[0].S.Op, "table-cell effective opacity");
+                Eq(100, visibilityPage.Bs[13].S.Op, "opaque image state");
+                Eq(50, visibilityPage.Bs[14].S.Op, "faded image state");
+                Eq(50, visibilityPage.Bs[15].S.Op, "table effective opacity");
+                Eq(25, visibilityPage.Bs[15].Tb.Rs[0].Cs[0].S.Op, "table-cell effective opacity");
 
                 var dynamicPath = Path.Combine(root, "LeaForge", "test-pages", "dynamic-state.html");
                 var dynamicPage = engine.Go(dynamicPath);
@@ -278,6 +279,19 @@ namespace Lea.Tests
                 Ok(Object.ReferenceEquals(nestedFlowPage.Bs[8].Up, nestedFlowPage.Bs[1]), "outer visual context resumes after nested subtree");
                 Ok(Object.ReferenceEquals(nestedFlowPage.Bs[10].Up, nestedFlowPage.Bs[9]), "mixed-content visual context owns child");
                 Ok(nestedFlowPage.Bs[11].Up == null, "following root block leaves visual contexts");
+                var stackingPath = Path.Combine(root, "LeaForge", "test-pages", "stacking-contexts.html");
+                var stackingPage = engine.Go(stackingPath);
+                Eq(17, stackingPage.Bs.Count, "stacking context block count");
+                Eq(9, stackingPage.Ls.Count, "stacking context link count");
+                Eq("h1,div,p,p,div,p,p,div,p,p,div,p,p,section,p,p,p", BlockKinds(stackingPage), "stacking context block kinds");
+                Ok(stackingPage.Bs[1].S.Zc && !stackingPage.Bs[1].S.Za && stackingPage.Bs[1].S.Op == 75, "local opacity context aliases");
+                Ok(stackingPage.Bs[4].S.Zc && stackingPage.Bs[4].S.Op == 100, "isolation context alias");
+                Ok(!stackingPage.Bs[7].S.Zc && !stackingPage.Bs[7].S.Za && stackingPage.Bs[7].S.Zi == 0, "auto isolation and z-index reset aliases");
+                Ok(!stackingPage.Bs[10].S.Zc && stackingPage.Bs[10].S.Za && stackingPage.Bs[10].S.Zi == 0, "numeric zero z-index alias");
+                Ok(stackingPage.Bs[13].S.Za && stackingPage.Bs[13].S.Zi == 3, "auto-height positioned context z-index");
+                Ok(Object.ReferenceEquals(stackingPage.Bs[2].Up, stackingPage.Bs[1]) && Object.ReferenceEquals(stackingPage.Bs[5].Up, stackingPage.Bs[4]), "opacity and isolation context ownership");
+                Ok(Object.ReferenceEquals(stackingPage.Bs[8].Up, stackingPage.Bs[7]) && Object.ReferenceEquals(stackingPage.Bs[11].Up, stackingPage.Bs[10]), "auto and zero z-index context ownership");
+                Ok(Object.ReferenceEquals(stackingPage.Bs[14].Up, stackingPage.Bs[13]) && Object.ReferenceEquals(stackingPage.Bs[15].Up, stackingPage.Bs[13]), "auto-height positioned ownership");
                 var backLayer = positioningPage.Bs[1].S;
                 var frontLayer = positioningPage.Bs[2].S;
                 var rightLayer = positioningPage.Bs[3].S;
@@ -717,10 +731,10 @@ namespace Lea.Tests
                     {
                         var opaqueBox = BlockRect(view, view.At.Bs[1]);
                         var halfBox = BlockRect(view, view.At.Bs[2]);
-                        var quarterBox = BlockRect(view, view.At.Bs[3]);
-                        var hiddenBox = BlockRect(view, view.At.Bs[5]);
-                        var collapsedBox = BlockRect(view, view.At.Bs[6]);
-                        var shownBox = BlockRect(view, view.At.Bs[7]);
+                        var quarterBox = BlockRect(view, view.At.Bs[4]);
+                        var hiddenBox = BlockRect(view, view.At.Bs[6]);
+                        var collapsedBox = BlockRect(view, view.At.Bs[7]);
+                        var shownBox = BlockRect(view, view.At.Bs[8]);
                         var white = Color.White;
                         var opaqueDistance = ColorDistance(BoxPixel(visibilityPaint, opaqueBox), white);
                         var halfDistance = ColorDistance(BoxPixel(visibilityPaint, halfBox), white);
@@ -732,8 +746,8 @@ namespace Lea.Tests
                         Ok(ColorDistance(BoxPixel(visibilityPaint, shownBox), white) > 10, "visible child of hidden parent paints");
                         Eq(1, HitCount(view, false), "transparent link hit and hidden link suppression");
                         Eq(1, HitCount(view, true), "faded field hit and hidden field suppression");
-                        var opaqueImage = BlockRect(view, view.At.Bs[12]);
-                        var fadedImage = BlockRect(view, view.At.Bs[13]);
+                        var opaqueImage = BlockRect(view, view.At.Bs[13]);
+                        var fadedImage = BlockRect(view, view.At.Bs[14]);
                         Ok(ColorDistance(CenterPixel(visibilityPaint, opaqueImage), white) > ColorDistance(CenterPixel(visibilityPaint, fadedImage), white), "image opacity rendering");
                     }
                     view.Go(selectorPath);
@@ -972,6 +986,52 @@ namespace Lea.Tests
                     Ok(narrowOuter.Width < wideOuterWidth, "nested visual container reflows to narrow viewport");
                     Ok(narrowInnerBorder.Right <= narrowMiddle.Right, "deep nested box remains within narrowed parent");
                     Ok(BlockRect(view, view.At.Bs[11]).Top > BlockOuterRect(view, view.At.Bs[9]).Bottom, "narrow root flow follows expanded mixed container");
+                    view.Size = new Size(720, 800);
+                    view.Go(stackingPath);
+                    using (var stackingPaint = Render(view))
+                    {
+                        var opacityChild = BlockOuterRect(view, view.At.Bs[2]);
+                        var opacityCover = BlockOuterRect(view, view.At.Bs[3]);
+                        var isolationChild = BlockOuterRect(view, view.At.Bs[5]);
+                        var isolationCover = BlockOuterRect(view, view.At.Bs[6]);
+                        var autoChild = BlockOuterRect(view, view.At.Bs[8]);
+                        var autoCover = BlockOuterRect(view, view.At.Bs[9]);
+                        var zeroChild = BlockOuterRect(view, view.At.Bs[11]);
+                        var zeroCover = BlockOuterRect(view, view.At.Bs[12]);
+                        Eq(opacityChild, opacityCover, "opacity context overlap geometry");
+                        Eq(isolationChild, isolationCover, "isolation context overlap geometry");
+                        Eq(autoChild, autoCover, "z-index auto overlap geometry");
+                        Eq(zeroChild, zeroCover, "numeric zero overlap geometry");
+                        Ok(ColorDistance(CenterPixel(stackingPaint, opacityCover), Color.FromArgb(126, 34, 206)) < 4, "opacity context traps high child below root z1");
+                        Ok(ColorDistance(CenterPixel(stackingPaint, isolationCover), Color.FromArgb(23, 107, 77)) < 4, "isolation context traps high child below root z1");
+                        Ok(ColorDistance(CenterPixel(stackingPaint, autoChild), Color.FromArgb(29, 78, 216)) < 4, "z-index auto parent does not trap high child");
+                        Ok(ColorDistance(CenterPixel(stackingPaint, zeroCover), Color.FromArgb(15, 118, 110)) < 4, "numeric zero parent traps high child");
+                        var autoSized = BlockRect(view, view.At.Bs[13]);
+                        var normalChild = BlockOuterRect(view, view.At.Bs[14]);
+                        var bottomChild = BlockOuterRect(view, view.At.Bs[15]);
+                        var afterContext = BlockOuterRect(view, view.At.Bs[16]);
+                        Ok(autoSized.Bottom > normalChild.Bottom, "positioned auto height includes normal child");
+                        Eq(autoSized.Right - 8, bottomChild.Right, "right anchor uses finalized auto width");
+                        Eq(autoSized.Bottom + 12, bottomChild.Bottom, "bottom anchor uses finalized auto height");
+                        Eq(autoSized, ClipRect(view, view.At.Bs[15]), "finalized overflow clip reaches positioned child");
+                        var bottomHit = HitRect(view, "short.html");
+                        Ok(!bottomHit.IsEmpty && bottomHit.Bottom <= autoSized.Bottom, "negative bottom link hit clips to finalized parent");
+                        Ok(afterContext.Top > BlockOuterRect(view, view.At.Bs[13]).Bottom, "root flow follows positioned auto-height context");
+                        Click(view, HitRect(view, "dynamic-state.html"));
+                    }
+                    WaitFor(delegate { return view.T == "Lea Dynamic State"; }, "opacity context overlap click");
+                    view.Go(stackingPath);
+                    Paint(view);
+                    Click(view, HitRect(view, "second.html"));
+                    WaitFor(delegate { return view.T == "LeaForge Second Page"; }, "isolation context overlap click");
+                    view.Go(stackingPath);
+                    Paint(view);
+                    Click(view, HitRect(view, "form-widgets.html"));
+                    WaitFor(delegate { return view.T == "Lea Form Validation"; }, "z-index auto overlap click");
+                    view.Go(stackingPath);
+                    Paint(view);
+                    Click(view, HitRect(view, "images.html"));
+                    WaitFor(delegate { return view.T == "Lea Image Test"; }, "numeric zero overlap click");
                     view.Go(textStylePath);
                     Paint(view);
                     Eq(8, view.At.Bs.Count, "text style render blocks");
@@ -1253,7 +1313,7 @@ namespace Lea.Tests
                     Eq("url", urlError.K, "URL error kind");
                 }
 
-                Console.WriteLine("Lea smoke passed: nested auto-height visual flow, nested containing blocks and stacking paths, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, relative positioning and z-index stacking, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
