@@ -33,6 +33,7 @@ LeaForge is where we can grow the more full-featured browser.
 - compact CSS cascade for colors, fonts, boxes, overflow, and inline styles
 - auto-height styled semantic containers with nested normal-flow ownership
 - nested positioning with explicit z-index, opacity/isolation contexts, settled auto height, and inherited clipping
+- nested fields, responsive images, and tables with clip-aware native editing
 - bounded multipart file uploads plus range, color, and temporal form fields
 - tiny script handling for `alert("...")` and `document.title = "..."`
 

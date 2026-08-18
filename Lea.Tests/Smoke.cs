@@ -279,6 +279,16 @@ namespace Lea.Tests
                 Ok(Object.ReferenceEquals(nestedFlowPage.Bs[8].Up, nestedFlowPage.Bs[1]), "outer visual context resumes after nested subtree");
                 Ok(Object.ReferenceEquals(nestedFlowPage.Bs[10].Up, nestedFlowPage.Bs[9]), "mixed-content visual context owns child");
                 Ok(nestedFlowPage.Bs[11].Up == null, "following root block leaves visual contexts");
+                var nestedContentPath = Path.Combine(root, "LeaForge", "test-pages", "nested-content.html");
+                var nestedContentPage = engine.Go(nestedContentPath);
+                Eq(9, nestedContentPage.Bs.Count, "nested content block count");
+                Eq(2, nestedContentPage.Fs.Count, "nested content field count");
+                Eq("h1,section,input,div,input,img,table,p,p", BlockKinds(nestedContentPage), "nested content block kinds");
+                Ok(Object.ReferenceEquals(nestedContentPage.Bs[2].Up, nestedContentPage.Bs[1]), "form field crosses wrapper into visual parent");
+                Ok(Object.ReferenceEquals(nestedContentPage.Bs[3].Up, nestedContentPage.Bs[1]) && Object.ReferenceEquals(nestedContentPage.Bs[4].Up, nestedContentPage.Bs[3]), "clipped field keeps nearest visual parent");
+                Ok(Object.ReferenceEquals(nestedContentPage.Bs[5].Up, nestedContentPage.Bs[1]), "picture image belongs to visual parent");
+                Ok(Object.ReferenceEquals(nestedContentPage.Bs[6].Up, nestedContentPage.Bs[1]), "table belongs to visual parent");
+                Ok(Object.ReferenceEquals(nestedContentPage.Bs[7].Up, nestedContentPage.Bs[1]) && nestedContentPage.Bs[8].Up == null, "nested content exits visual parent cleanly");
                 var stackingPath = Path.Combine(root, "LeaForge", "test-pages", "stacking-contexts.html");
                 var stackingPage = engine.Go(stackingPath);
                 Eq(17, stackingPage.Bs.Count, "stacking context block count");
@@ -986,6 +996,43 @@ namespace Lea.Tests
                     Ok(narrowOuter.Width < wideOuterWidth, "nested visual container reflows to narrow viewport");
                     Ok(narrowInnerBorder.Right <= narrowMiddle.Right, "deep nested box remains within narrowed parent");
                     Ok(BlockRect(view, view.At.Bs[11]).Top > BlockOuterRect(view, view.At.Bs[9]).Bottom, "narrow root flow follows expanded mixed container");
+                    view.Size = new Size(720, 900);
+                    var nestedContentLoad = view.GoA(nestedContentPath);
+                    while (!nestedContentLoad.IsCompleted)
+                    {
+                        Application.DoEvents();
+                        Thread.Sleep(2);
+                    }
+                    nestedContentLoad.GetAwaiter().GetResult();
+                    using (var nestedContentPaint = Render(view))
+                    {
+                        var panel = BlockRect(view, view.At.Bs[1]);
+                        var panelBorder = BlockOuterRect(view, view.At.Bs[1]);
+                        var nameField = BlockOuterRect(view, view.At.Bs[2]);
+                        var fieldClipper = BlockRect(view, view.At.Bs[3]);
+                        var clippedField = BlockOuterRect(view, view.At.Bs[4]);
+                        var clippedFieldClip = OwnedClip(view, view.At.Bs[4], "input");
+                        var nestedImage = BlockOuterRect(view, view.At.Bs[5]);
+                        var nestedTable = BlockOuterRect(view, view.At.Bs[6]);
+                        var panelTail = BlockOuterRect(view, view.At.Bs[7]);
+                        var afterContent = BlockOuterRect(view, view.At.Bs[8]);
+                        Ok(nameField.Top >= panel.Top && fieldClipper.Top > nameField.Bottom, "nested form fields advance parent flow");
+                        Ok(clippedField.Right > fieldClipper.Right && clippedFieldClip == fieldClipper, "positioned field inherits parent overflow clip");
+                        Ok(nestedImage.Top > BlockOuterRect(view, view.At.Bs[3]).Bottom && nestedTable.Top > nestedImage.Bottom, "nested media and table stay in ordered flow");
+                        Ok(panelTail.Top > nestedTable.Bottom && panel.Bottom > panelTail.Bottom, "nested table contributes to automatic parent height");
+                        Ok(afterContent.Top > panelBorder.Bottom, "root flow follows mixed-content automatic height");
+                        Ok(nestedImage.Right <= panel.Right && nestedTable.Right <= panel.Right, "nested media and table fit parent content width");
+                        Ok(ColorDistance(CenterPixel(nestedContentPaint, nestedImage), Color.FromArgb(23, 107, 77)) < 4, "nested image paints from embedded source");
+                    }
+                    Paint(view);
+                    var editorTarget = Rectangle.Intersect(BlockOuterRect(view, view.At.Bs[4]), OwnedClip(view, view.At.Bs[4], "input"));
+                    Click(view, editorTarget);
+                    Paint(view);
+                    var nestedEditor = Editor(view);
+                    var editorClip = OwnedClip(view, view.At.Bs[4], "input");
+                    Ok(nestedEditor.Visible && nestedEditor.Bounds.Right <= editorClip.Right && nestedEditor.Bounds.Bottom <= editorClip.Bottom, "native field editor obeys ancestor clip");
+                    nestedEditor.Text = "Edited inside clip";
+                    Eq("Edited inside clip", view.At.Fs[1].V, "clipped editor updates nested field");
                     view.Size = new Size(720, 800);
                     view.Go(stackingPath);
                     using (var stackingPaint = Render(view))
@@ -1313,7 +1360,7 @@ namespace Lea.Tests
                     Eq("url", urlError.K, "URL error kind");
                 }
 
-                Console.WriteLine("Lea smoke passed: explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -1465,6 +1512,14 @@ namespace Lea.Tests
         {
             foreach (var block in page.Bs) if (Object.ReferenceEquals(block.I, field)) return block;
             throw new InvalidOperationException("field block unavailable: " + (field == null ? "" : field.N));
+        }
+
+        private static TextBox Editor(V view)
+        {
+            var member = typeof(V).GetField("ed", BindingFlags.Instance | BindingFlags.NonPublic);
+            var editor = member == null ? null : member.GetValue(view) as TextBox;
+            if (editor == null) throw new InvalidOperationException("native editor unavailable");
+            return editor;
         }
 
         private static Rectangle[] TextLines(V view, B block)

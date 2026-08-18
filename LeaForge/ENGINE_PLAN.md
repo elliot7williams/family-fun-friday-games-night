@@ -209,7 +209,16 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add nested form, media, and table contexts inside ordinary visual containers.
+Add more positioned layout values and stacking-context triggers.
+
+Nested fields, responsive images, and structured tables now retain their
+nearest ordinary visual owner through `B.Up`, including fields reached through
+an unstyled form wrapper. They participate in parent-relative width, ordered
+flow, automatic height, inherited overflow clipping, and following root flow.
+The WinForms editor intersects its content box with the inherited clip and
+viewport before it becomes visible, so focused fields cannot paint outside a
+clipped ancestor. `nested-content.html` verifies ownership, geometry, image
+paint, table height, clipped editing, and mutable field state together.
 
 `S.Za` now distinguishes numeric z-index from `auto`, and `S.Zc` records local
 opacity or `isolation:isolate` context creation. Fixed boxes remain contexts.

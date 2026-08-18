@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Nested Content</title>
+  <style>
+    body { color: #26313b; background: #ffffff; font-family: Segoe UI, sans-serif; }
+    h1 { color: #176b4d; }
+    #content-panel { width: 420px; padding: 12px; overflow: hidden; border: 2px solid #176b4d; background: #e8f5ef; }
+    #name-field { width: 260px; height: 32px; margin: 0 0 8px; padding: 4px; background: #ffffff; }
+    #field-clip { position: relative; width: 220px; height: 42px; margin: 0 0 8px; overflow: hidden; border: 2px solid #9a6700; background: #fff4c2; }
+    #clipped-field { position: absolute; top: 4px; left: 130px; width: 180px; height: 28px; padding: 3px; background: #ffffff; }
+    #nested-image { width: 160px; height: 70px; margin: 0 0 8px; border: 2px solid #1e3a8a; }
+    #nested-table { width: 320px; margin: 0 0 8px; border: 2px solid #7e22ce; background: #f0e8fa; }
+    #nested-table th { padding: 5px; background: #d9c7ef; }
+    #nested-table td { padding: 5px; border: 1px solid #7e22ce; background: #ffffff; }
+    #panel-tail { margin: 0; padding: 5px; background: #c8e8d9; }
+    #after-content { margin-top: 10px; padding: 6px; border-left: 3px solid #b91c1c; background: #f8eeee; }
+  </style>
+</head>
+<body>
+  <h1>Nested forms, media, and tables</h1>
+  <section id="content-panel">
+    <form action="form-result.html">
+      <input id="name-field" name="name" value="Lea nested field">
+      <div id="field-clip">
+        <input id="clipped-field" name="clipped" value="Clipped editor">
+      </div>
+    </form>
+    <picture>
+      <img id="nested-image" alt="Nested green image" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXYxDP9v0PAAM7Ac+IRop4AAAAAElFTkSuQmCC">
+    </picture>
+    <table id="nested-table">
+      <thead><tr><th>Part</th><th>Status</th></tr></thead>
+      <tbody><tr><td>Lea view</td><td>Nested</td></tr></tbody>
+    </table>
+    <p id="panel-tail">The panel contains every nested replaced element.</p>
+  </section>
+  <p id="after-content">Root flow continues after the mixed-content panel.</p>
+</body>
+</html>

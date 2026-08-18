@@ -61,6 +61,7 @@ namespace Lea.Win
             TabStop = true;
 
             ed.Visible = false;
+            ed.AutoSize = false;
             ed.BorderStyle = BorderStyle.FixedSingle;
             ed.TextChanged += EditChanged;
             ed.KeyDown += EditKeyDown;
@@ -1687,7 +1688,7 @@ namespace Lea.Win
             ed.Text = field.V;
             editLock = false;
             PlaceEditor();
-            ed.Visible = true;
+            if (!ed.Visible) return;
             ed.Focus();
             ed.SelectAll();
         }
@@ -1737,13 +1738,19 @@ namespace Lea.Win
                     return;
                 }
                 var rect = box.C;
-                if (!box.Fx) rect.Offset(0, -sy);
-                if (rect.Bottom <= 0 || rect.Top >= ClientSize.Height)
+                var clip = box.Clip;
+                if (!box.Fx)
+                {
+                    rect.Offset(0, -sy);
+                    if (!clip.IsEmpty) clip.Offset(0, -sy);
+                }
+                rect = Rectangle.Intersect(VisibleRect(rect, clip), ClientRectangle);
+                if (rect.Width <= 2 || rect.Height <= 2)
                 {
                     ed.Visible = false;
                     return;
                 }
-                ed.Bounds = new Rectangle(rect.X + 1, rect.Y + 1, Math.Max(1, rect.Width - 2), Math.Max(1, rect.Height - 2));
+                ed.Bounds = new Rectangle(rect.X + 1, rect.Y + 1, rect.Width - 2, rect.Height - 2);
                 ed.Visible = true;
                 return;
             }
