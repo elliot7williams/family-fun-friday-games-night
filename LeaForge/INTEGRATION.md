@@ -201,7 +201,10 @@ native dialog directly. Inline scripts may set the title, body background,
 foreground, and font size using `t/a/bg/fg/fs` or equivalent literal
 `document.*` assignments and `alert(...)`. `v/var` stores up to 16 small page
 variables and `${name}` substitutes them into later literals. `tx/text` replaces
-text under one safe element ID. `E.Ck(page, element)` and `V.Ck(element)` route
+text under one safe element ID. `ac/rc/tc` add, remove, or toggle one bounded
+class token on a safe ID and reuse the compiled CSS rebuild while preserving
+mutable fields. Each target accepts at most 32 classes and 512 class-attribute
+characters. `E.Ck(page, element)` and `V.Ck(element)` route
 button and link `data-lea`/`onclick` values through this same parser. Lea ignores external scripts, JSON
 data blocks, expressions, control flow, and unknown calls. Per-page limits are
 eight script blocks, 16 KB per block, 32 accepted commands per run, 16 variables,

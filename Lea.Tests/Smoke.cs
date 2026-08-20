@@ -205,6 +205,46 @@ namespace Lea.Tests
                 Eq(0, eventEngine.Ck(eventPage, ById(eventPage.D, "go")), "click commands respect script setting");
                 eventEngine.Je = true;
 
+                var classPath = Path.Combine(root, "LeaForge", "test-pages", "class-commands.html");
+                var classEngine = new E();
+                var classPage = classEngine.Go(classPath);
+                Eq(4, classPage.Jc, "page class command count");
+                Eq("panel hot", ById(classPage.D, "panel").Av("class"), "add class alias");
+                Eq("keep", ById(classPage.D, "remove").Av("class"), "remove class alias");
+                Eq("panel hot", ById(classPage.D, "toggle").Av("class"), "toggle class alias adds");
+                Eq("#b91c1c", BlockById(classPage, "panel").S.F, "added class reapplies CSS");
+                var classField = FieldById(classPage, "field");
+                classField.V = "Edited class value";
+                Eq(3, classEngine.Js(classPage, "rc('panel','hot'); ac('field','hot'); tc('toggle','hot');"), "host class commands");
+                Eq("panel", ById(classPage.D, "panel").Av("class"), "host remove class");
+                Eq("field hot", ById(classPage.D, "field").Av("class"), "host add field class");
+                Eq("panel", ById(classPage.D, "toggle").Av("class"), "host toggle class removes");
+                Eq("#334155", BlockById(classPage, "panel").S.F, "removed class reapplies CSS");
+                Eq("#166534", FieldById(classPage, "field").S.F, "field class reapplies CSS");
+                Eq("Edited class value", FieldById(classPage, "field").V, "class rebuild preserves field value");
+                Eq(1, classEngine.Js(classPage, "ac('field','HOT');"), "duplicate add is accepted");
+                Eq(2, ClassCount(ById(classPage.D, "field")), "duplicate add stays unique");
+                Eq(1, classEngine.Js(classPage, "rc('remove','missing');"), "absent remove is accepted");
+                Eq(0, classEngine.Js(classPage, "ac('missing','hot'); ac('unsafe-style','hot'); ac('panel','two words'); ac('panel','" + new String('x', 65) + "');"), "invalid class commands ignored");
+
+                var classLimitCode = new StringBuilder();
+                for (var classIndex = 0; classIndex < 32; classIndex++) classLimitCode.Append("ac('limit','c").Append(classIndex).Append("');");
+                Eq(32, classEngine.Js(classPage, classLimitCode.ToString()), "class count command limit");
+                Eq(32, ClassCount(ById(classPage.D, "limit")), "class count storage limit");
+                Eq(0, classEngine.Js(classPage, "ac('limit','c32');"), "class beyond storage limit rejected");
+                for (var classIndex = 0; classIndex < 7; classIndex++)
+                    Eq(1, classEngine.Js(classPage, "ac('length','" + new String((char)('a' + classIndex), 64) + "');"), "bounded long class " + classIndex);
+                Eq(0, classEngine.Js(classPage, "ac('length','" + new String('z', 64) + "');"), "class attribute length limit");
+
+                var clickClassEngine = new E();
+                var clickClassPage = clickClassEngine.Go(classPath);
+                FieldById(clickClassPage, "field").V = "Click-preserved value";
+                Eq(3, clickClassEngine.Ck(clickClassPage, ById(clickClassPage.D, "flip")), "click class commands");
+                Eq("panel", ById(clickClassPage.D, "panel").Av("class"), "click toggle removes class");
+                Eq("field hot", ById(clickClassPage.D, "field").Av("class"), "click toggle adds class");
+                Eq("Click-preserved value", FieldById(clickClassPage, "field").V, "click class rebuild preserves field value");
+                Eq("Class state changed", clickClassPage.Ms[0], "click class alert");
+
                 var variableEngine = new E();
                 var variablePage = variableEngine.Go(forms);
                 var variableCode = new StringBuilder();
@@ -706,6 +746,18 @@ namespace Lea.Tests
                     Eq("link", clickedEventPage.Vs["last"], "nested link click variable");
                     Eq(5, alertEvents, "nested link click alert event");
 
+                    view.Go(classPath);
+                    Paint(view);
+                    var viewClassField = FieldById(view.At, "field");
+                    viewClassField.V = "View-preserved value";
+                    Eq(3, view.Ck(ById(view.At.D, "flip")), "WinForms class click commands");
+                    Paint(view);
+                    Eq("panel", ById(view.At.D, "panel").Av("class"), "WinForms class remove");
+                    Eq("field hot", ById(view.At.D, "field").Av("class"), "WinForms class add");
+                    Eq("#166534", FieldById(view.At, "field").S.F, "WinForms class restyle");
+                    Eq("View-preserved value", FieldById(view.At, "field").V, "WinForms class field preservation");
+                    Eq(6, alertEvents, "WinForms class alert event");
+
                     view.Size = new Size(520, 260);
                     view.Go(findPath);
                     Paint(view);
@@ -741,7 +793,7 @@ namespace Lea.Tests
                     view.Size = new Size(720, 760);
                     view.Go(forms);
                     view.Bk();
-                    Eq(5, alertEvents, "history does not replay script alerts");
+                    Eq(6, alertEvents, "history does not replay script alerts");
                     view.Fw();
                     Paint(view);
                     Ok(view.Bc > page.Fs.Count, "form layout boxes");
@@ -1754,7 +1806,7 @@ namespace Lea.Tests
                 if (args.Length > 3) SaveEventRender(eventPath, args[3]);
                 if (args.Length > 4) SaveRender(tokenPath, args[4]);
 
-                Console.WriteLine("Lea smoke passed: bounded document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: bounded class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -1896,6 +1948,11 @@ namespace Lea.Tests
             var text = new StringBuilder();
             foreach (var child in node.C) text.Append(NodeText(child));
             return text.ToString();
+        }
+
+        private static int ClassCount(N node)
+        {
+            return node == null ? 0 : node.Av("class").Split(new char[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length;
         }
 
         private static bool Has(System.Collections.Generic.IList<string> values, string text)

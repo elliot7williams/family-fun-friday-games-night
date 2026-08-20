@@ -234,10 +234,9 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add bounded ID-scoped class mutation aliases to Lea's safe command bridge.
-Reuse the compiled CSS rebuild path, preserve mutable form state, constrain
-class names and command counts, and cover page, host, and click execution with
-a focused fixture.
+Add a Lea inspector route to Firespider using only the bounded `V.Dg()` public
+contract. Reuse the adapter boundary and existing host UI patterns, keep legacy
+tabs untouched, and cover open/refresh/clear behavior in the host smoke suite.
 
 The repeatable compatibility and performance report is now implemented by
 `Lea.Bench`. It probes supported HTML, CSS, forms, scripting, layout, downloads,
@@ -263,6 +262,13 @@ Document base resolution now honors the first valid `<base href>` under a
 the response URL. Stylesheets, links, images, forms, and download targets share
 the resolved HTTP, HTTPS, or file base; invalid and unsupported candidates are
 skipped, and pages without a valid base fall back to `U`.
+
+Safe class mutation now uses `ac/rc/tc` for add, remove, and toggle against one
+validated element ID. Names are 64 characters or fewer, each element retains
+at most 32 tokens and 512 class-attribute characters, and metadata/script
+targets are rejected. Valid no-op adds/removes remain accepted commands;
+remove and toggle clear duplicate matches. The existing single CSS rebuild per
+run preserves mutable fields across page, host, click, and WinForms execution.
 
 The `inset` shorthand now expands atomically into `Tp/Rt/Bm/Lt`, and opposing
 edges stretch auto-sized absolute and fixed boxes against their containing

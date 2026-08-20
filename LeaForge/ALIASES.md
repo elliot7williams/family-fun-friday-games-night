@@ -8,7 +8,7 @@ read and quick to write.
 - Core objects use one letter: `L` is the entry point, `E` is the engine, `P` is a page.
 - Actions use two or three letters: `Go`, `GoA`, `Bk`, `Fw`, `Rl`, `RlA`, `St`, and `At`.
 - Page values use one or two letters: `U`, `T`, `H`, `Q`, `D`, `N`, `Bs`, and `Ls`.
-- Page commands use one or two letters: `t`, `a`, `bg`, `fg`, `fs`, `v`, and `tx`.
+- Page commands use one or two letters: `t`, `a`, `bg`, `fg`, `fs`, `v`, `tx`, `ac`, `rc`, and `tc`.
 - New public aliases should be no more than three letters.
 - Longer names may remain inside the engine when they make the implementation safer to maintain.
 
@@ -37,6 +37,9 @@ fg("#164e3f")    body text color
 fs(20)           body font size
 v("who", "Lea")  bounded page variable
 tx("id", "Hi ${who}") element text
+ac("id", "hot")       add class
+rc("id", "hot")       remove class
+tc("id", "hot")       toggle class
 ```
 
 `P.Vs` exposes at most 16 case-insensitive variables. Names are one through 16
@@ -44,11 +47,19 @@ letters, digits, or underscores and must begin with a letter; values are capped
 at 256 characters. `${name}` performs one bounded literal substitution in later
 commands. There are no expressions or recursive substitutions.
 
+`ac`, `rc`, and `tc` add, remove, or toggle one class on a safe element ID.
+Class names use one through 64 ASCII letters, digits, hyphens, or underscores.
+Each element is limited to 32 classes and 512 class-attribute characters.
+Duplicate adds and absent removes are accepted no-ops; remove and toggle clear
+all matching tokens. A successful run reapplies compiled CSS once and preserves
+mutable form state.
+
 `E.Ck(page, element)` and `V.Ck(element)` run the same allow-list from an
 element's `data-lea` attribute, falling back to `onclick`. The WinForms view
 calls `Ck` for button and link hits. `tx/text` replaces only the text children
 of a safe element ID and cannot target the document, head, body, title, script,
-style, link, or metadata nodes. Click code cannot access files, processes,
+style, link, or metadata nodes. Class commands use the same target boundary.
+Click code cannot access files, processes,
 native controls, or arbitrary JavaScript APIs.
 
 Developer diagnostics use `Dg`: `E.Dg(page)` and `V.Dg()` return a bounded `G`

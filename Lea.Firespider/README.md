@@ -25,6 +25,8 @@ bar; page code does not open a native dialog directly.
 Buttons and links can run bounded `data-lea` or familiar `onclick` values through
 `V.Ck`. Small `v/var` variables and `tx/text` element updates stay inside Lea's
 allow-list and cannot reach native files, processes, or host controls.
+ID-scoped `ac/rc/tc` class changes use the same route, reapply compiled CSS, and
+preserve mutable field values.
 
 Firespider can read `V.Dg()` for bounded response, document, CSS, request,
 command, cache, and cookie diagnostics without reflecting into Lea internals.

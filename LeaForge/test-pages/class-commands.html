@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Class Commands</title>
+  <style id="unsafe-style">
+    body { color: #1f2937; background: #ffffff; }
+    .panel { color: #334155; background: #f1f5f9; padding: 8px; }
+    .hot { color: #b91c1c; background: #fee2e2; font-weight: bold; }
+    input.hot { color: #166534; background: #dcfce7; }
+  </style>
+</head>
+<body>
+  <h1>Bounded class commands</h1>
+  <section id="panel" class="panel">Panel class state</section>
+  <div id="remove" class="old keep OLD">Removed class state</div>
+  <div id="toggle" class="panel">Toggled class state</div>
+  <div id="limit">Class-count limit target</div>
+  <div id="length">Class-length limit target</div>
+  <input id="field" class="field" value="Editable class state">
+  <button id="flip" type="button" data-lea="tc('panel','hot'); tc('field','hot'); a('Class state changed')">Toggle class state</button>
+  <script type="text/lea">
+    v("state", "hot");
+    ac("panel", "${state}");
+    rc("remove", "old");
+    tc("toggle", "hot");
+  </script>
+</body>
+</html>

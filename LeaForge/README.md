@@ -42,6 +42,7 @@ LeaForge is where we can grow the more full-featured browser.
 - tiny script handling for `alert("...")` and `document.title = "..."`
 - bounded engine scripting for title, body colors, font size, and host-routed alerts
 - safe button/link commands with bounded variables and ID-scoped text updates
+- bounded `ac`/`rc`/`tc` class mutations with compiled CSS restyling
 - bounded developer snapshots plus a tabbed inspector in the test browser
 - repeatable compatibility, timing, memory, binary-size, and compression report
 - streamed local/HTTP downloads with explicit destinations and a 64 MB ceiling
@@ -59,6 +60,9 @@ fg("#222")       text color
 fs(12)           font size
 v("name", "Lea") variable
 tx("id", "Hi ${name}") element text
+ac("id", "hot")       add class
+rc("id", "hot")       remove class
+tc("id", "hot")       toggle class
 ```
 
 The longer `alert(...)` and `document.title = ...` forms still work. The short

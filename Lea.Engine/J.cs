@@ -12,6 +12,9 @@ namespace Lea.Engine
         private const int MaxCommands = 32;
         private const int MaxAlerts = 16;
         private const int MaxVariables = 16;
+        private const int MaxClasses = 32;
+        private const int MaxClassName = 64;
+        private const int MaxClassText = 512;
 
         internal static int Pg(P page, N root)
         {
@@ -70,6 +73,13 @@ namespace Lea.Engine
                 child.Up = target;
                 target.C.Add(child);
                 return true;
+            }
+            if (command.N == "ac" || command.N == "rc" || command.N == "tc")
+            {
+                var id = Id(Expand(page, command.V));
+                var name = ClassName(Expand(page, command.W));
+                var target = FindId(page.D, id);
+                return target != null && name.Length > 0 && ClassTarget(target.K) && SetClass(target, name, command.N);
             }
             if (command.N == "t")
             {
@@ -145,6 +155,9 @@ namespace Lea.Engine
             if (count == 1 && (name == "fs" || name == "fontsize")) return new Cm("fs", first);
             if (count == 2 && (name == "v" || name == "var")) return new Cm("v", first, second);
             if (count == 2 && (name == "tx" || name == "text")) return new Cm("tx", first, second);
+            if (count == 2 && name == "ac") return new Cm("ac", first, second);
+            if (count == 2 && name == "rc") return new Cm("rc", first, second);
+            if (count == 2 && name == "tc") return new Cm("tc", first, second);
             return null;
         }
 
@@ -337,6 +350,53 @@ namespace Lea.Engine
         {
             return kind != "#doc" && kind != "#text" && kind != "html" && kind != "head" && kind != "body" &&
                 kind != "title" && kind != "script" && kind != "style" && kind != "link" && kind != "meta";
+        }
+
+        private static bool ClassTarget(string kind)
+        {
+            return kind != "#doc" && kind != "#text" && kind != "html" && kind != "head" &&
+                kind != "title" && kind != "script" && kind != "style" && kind != "link" &&
+                kind != "meta" && kind != "base";
+        }
+
+        private static string ClassName(string value)
+        {
+            var name = (value ?? "").Trim();
+            if (name.Length < 1 || name.Length > MaxClassName) return "";
+            foreach (var ch in name)
+                if ((ch < 'a' || ch > 'z') && (ch < 'A' || ch > 'Z') &&
+                    (ch < '0' || ch > '9') && ch != '-' && ch != '_') return "";
+            return name;
+        }
+
+        private static bool SetClass(N target, string name, string mode)
+        {
+            var source = target.Av("class");
+            if (source.Length > MaxClassText) return false;
+            var values = new List<string>(source.Split(new char[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries));
+            if (values.Count > MaxClasses) return false;
+            var found = false;
+            for (var i = 0; i < values.Count; i++)
+                if (values[i].Equals(name, StringComparison.OrdinalIgnoreCase)) { found = true; break; }
+
+            if (mode == "ac" && found) return true;
+            if (mode == "rc" && !found) return true;
+            if (found)
+            {
+                for (var i = values.Count - 1; i >= 0; i--)
+                    if (values[i].Equals(name, StringComparison.OrdinalIgnoreCase)) values.RemoveAt(i);
+            }
+            else
+            {
+                if (values.Count == MaxClasses) return false;
+                values.Add(name);
+            }
+
+            var result = String.Join(" ", values.ToArray());
+            if (result.Length > MaxClassText) return false;
+            if (result.Length == 0) target.A.Remove("class");
+            else target.A["class"] = result;
+            return true;
         }
 
         private static bool Color(string value, out string color)

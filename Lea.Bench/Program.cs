@@ -102,7 +102,7 @@ namespace Lea.Bench
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "layout.html",
                 "tables.html", "forms.html", "events-vars.html", "responsive-media.html",
-                "stacking-contexts.html", "external.html", "base-url.html"
+                "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -273,6 +273,18 @@ namespace Lea.Bench
                 Need(engine.Ck(page, ById(page.D, "go")) == 3 && page.T == "Clicked Lea", "click commands did not run");
                 return page.Jc + " safe commands and " + page.Vs.Count + " variables after click";
             });
+            AddProbe(probes, "Bounded class mutations", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "class-commands.html"));
+                Need(engine.Q(page, "#panel.hot") != null && engine.Q(page, "#remove.old") == null, "page class commands changed");
+                var field = page.Fs.First(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Preserved benchmark value";
+                Need(engine.Js(page, "rc('panel','hot'); ac('field','hot'); tc('toggle','hot');") == 3, "host class commands changed");
+                Need(engine.Q(page, "#panel.hot") == null && engine.Q(page, "#field.hot") != null, "class selectors were not rebuilt");
+                Need(field.V == "Preserved benchmark value", "class rebuild replaced mutable field state");
+                return "ac/rc/tc restyle compiled CSS with 32 classes and 512 class-text characters bounded";
+            });
             AddProbe(probes, "Find and local download", delegate
             {
                 var engine = new E();
@@ -356,7 +368,7 @@ namespace Lea.Bench
             Capability(builder, "CSS", "Partial", "Compiled selector subset, cascade, box/text styles, visibility, positioning, transforms, and responsive image sizing");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms block, inline, table, form, image, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
-            Capability(builder, "Lea command scripting", "Supported", "Bounded title, color, font, alert, variable, text, and safe click commands");
+            Capability(builder, "Lea command scripting", "Supported", "Bounded title, color, font, alert, variable, text, class mutation, and safe click commands");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
             Capability(builder, "Flexbox, Grid, Canvas, SVG", "Not supported", "Future compatibility work; no silent fallback claim");
             Capability(builder, "Audio and video", "Not supported", "Future optional module");
