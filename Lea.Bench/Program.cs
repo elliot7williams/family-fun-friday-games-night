@@ -100,7 +100,7 @@ namespace Lea.Bench
             var folder = Path.Combine(root, "LeaForge", "test-pages");
             var names = new[]
             {
-                "index.html", "recovery.html", "selectors.html", "layout.html",
+                "index.html", "recovery.html", "html-tokens.html", "selectors.html", "layout.html",
                 "tables.html", "forms.html", "events-vars.html", "responsive-media.html",
                 "stacking-contexts.html", "external.html"
             };
@@ -207,9 +207,11 @@ namespace Lea.Bench
                 var engine = new E();
                 var page = engine.Go(Path.Combine(folder, "recovery.html"));
                 var table = engine.Go(Path.Combine(folder, "tables.html"));
+                var tokens = engine.Go(Path.Combine(folder, "html-tokens.html"));
                 Need(engine.Dg(page).N > 8, "document tree is incomplete");
                 Need(table.Bs.Any(block => block.Tb != null), "table model is missing");
-                return "Recovered tree and structured table model";
+                Need(tokens.T == "Lea & Tokenizer <b>literal</b>" && tokens.Vs["markup"] == "<strong>raw</strong>", "raw-text tokenization changed");
+                return "Recovered tree, structured table, raw text, RCDATA, and entities";
             });
             AddProbe(probes, "CSS selectors and cascade", delegate
             {
@@ -329,7 +331,7 @@ namespace Lea.Bench
             builder.AppendLine("| Area | Status | Lea 1.0 scope |");
             builder.AppendLine("| --- | --- | --- |");
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
-            Capability(builder, "HTML documents", "Partial", "Tolerant tree, metadata, semantic blocks, links, images, tables, and form models; not the full Living Standard");
+            Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, tables, and forms; not the full Living Standard");
             Capability(builder, "CSS", "Partial", "Compiled selector subset, cascade, box/text styles, visibility, positioning, transforms, and responsive image sizing");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms block, inline, table, form, image, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");

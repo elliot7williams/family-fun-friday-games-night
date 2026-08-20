@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea &amp; Tokenizer <b>literal</b></title>
+  <style>
+    .token { color: #176b4d; }
+    .after { font-weight: bold; }
+    /* <not-a-tag data-note=">"> */
+  </style>
+  <script type="text/lea">
+    v("markup", "<strong>raw</strong>");
+    v("entity", "&amp;");
+    tx("script-state", "${markup} ${entity}");
+  </script>
+</head>
+<body>
+  <?lea ignored?>
+  <!-- <p id="ghost">Comment markup must stay hidden.</p> -->
+  <main>
+    <h1>HTML tokenizer</h1>
+    <p id="entity" class="token" data-note="1 > 0" title='A < B'>A &amp; B &#35; &#x4c; &lt;safe&gt; &leaUnknown;</p>
+    <p id="math">2 < 3 and 5 > 4</p>
+    <form>
+      <textarea name="raw">Line &amp; <b>literal</b></textarea>
+    </form>
+    <p id="script-state">Waiting</p>
+    <p id="after" class="after">After raw elements</p>
+  </main>
+  <!broken "quoted > delimiter" ignored>
+</body>
+</html>
+<!-- unclosed hidden marker

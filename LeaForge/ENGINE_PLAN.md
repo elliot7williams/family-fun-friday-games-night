@@ -234,15 +234,23 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Replace regex-only HTML tokenization edge cases with a bounded scanner. Cover
-raw-text elements, comments, malformed delimiters, and named/numeric entities
-with focused fixtures while preserving Lea's small document model.
+Add compact bounded document-query helpers through `Id`, `Q`, and `Qa`. Keep
+the returned `N` nodes read-only to hosts through their existing public
+collections and cap multi-result queries so embedding code cannot request an
+unbounded traversal result.
 
 The repeatable compatibility and performance report is now implemented by
 `Lea.Bench`. It probes supported HTML, CSS, forms, scripting, layout, downloads,
 and diagnostics, then records local load timing, bitmap paint timing, retained
 managed memory, binary footprint, and compressed runtime size in
 `COMPATIBILITY_PERFORMANCE.md`.
+
+HTML tokenization now uses a small quote-aware scanner rather than a single
+tag-splitting regex. It recognizes comments and declarations, preserves raw
+`script/style` text, decodes title/textarea RCDATA and normal text entities,
+keeps malformed `<` delimiters as text, and caps scan steps, tree nodes, stack
+depth, attributes, names, and attribute values. `html-tokens.html` plus a
+generated stress document verify each limit.
 
 The `inset` shorthand now expands atomically into `Tp/Rt/Bm/Lt`, and opposing
 edges stretch auto-sized absolute and fixed boxes against their containing

@@ -579,6 +579,45 @@ namespace Lea.Tests
                 var headingSix = Nodes(recoveryPage.D, "h6")[0];
                 Ok(Object.ReferenceEquals(headingFive.Up, headingSix.Up), "unclosed headings recover as siblings");
 
+                var tokenPath = Path.Combine(root, "LeaForge", "test-pages", "html-tokens.html");
+                var tokenEngine = new E();
+                var tokenPage = tokenEngine.Go(tokenPath);
+                Eq("Lea & Tokenizer <b>literal</b>", tokenPage.T, "RCDATA title keeps literal markup");
+                Eq("1 > 0", ById(tokenPage.D, "entity").Av("data-note"), "quoted greater-than attribute");
+                Eq("A < B", ById(tokenPage.D, "entity").Av("title"), "quoted less-than attribute");
+                Eq("A & B # L <safe> &leaUnknown;", ById(tokenPage.D, "entity").C[0].X, "named and numeric text entities");
+                Eq("2 < 3 and 5 > 4", NodeText(ById(tokenPage.D, "math")), "malformed delimiter stays text");
+                Eq(1, tokenPage.Fs.Count, "RCDATA textarea field count");
+                Eq("Line & <b>literal</b>", tokenPage.Fs[0].V, "RCDATA textarea keeps literal markup");
+                Eq("<strong>raw</strong>", tokenPage.Vs["markup"], "script raw text keeps tag-shaped strings");
+                Eq("&amp;", tokenPage.Vs["entity"], "script raw text does not decode entities");
+                Eq("<strong>raw</strong> &amp;", ById(tokenPage.D, "script-state").C[0].X, "raw script commands execute intact");
+                Eq(0, Nodes(tokenPage.D, "b").Count, "RCDATA markup does not create elements");
+                Eq(0, Nodes(tokenPage.D, "strong").Count, "script markup does not create elements");
+                Eq(0, Nodes(tokenPage.D, "not-a-tag").Count, "style markup does not create elements");
+                Ok(ById(tokenPage.D, "ghost") == null && tokenPage.X.IndexOf("hidden marker", StringComparison.Ordinal) < 0, "comments stay outside the document tree");
+                Eq(2, tokenEngine.Dg(tokenPage).C, "raw style rules compile");
+
+                var boundedTreePath = Path.Combine(Path.GetTempPath(), "lea-tree-" + Guid.NewGuid().ToString("N") + ".html");
+                try
+                {
+                    var boundedHtml = new StringBuilder("<!doctype html><html><body><p id='attrs'");
+                    for (var attribute = 0; attribute < 200; attribute++) boundedHtml.Append(" a").Append(attribute).Append("='v'");
+                    boundedHtml.Append(">bounded</p>");
+                    for (var depth = 0; depth < 200; depth++) boundedHtml.Append("<div>");
+                    boundedHtml.Append("deep");
+                    for (var depth = 0; depth < 200; depth++) boundedHtml.Append("</div>");
+                    for (var node = 0; node < 9000; node++) boundedHtml.Append("<i>x</i>");
+                    boundedHtml.Append("</body></html>");
+                    File.WriteAllText(boundedTreePath, boundedHtml.ToString());
+                    var boundedTree = new E().Go(boundedTreePath);
+                    Eq(8192, TreeNodes(boundedTree.D), "bounded HTML node count");
+                    Ok(boundedTree.N < 8192, "bounded HTML element count");
+                    Eq(128, ById(boundedTree.D, "attrs").A.Count, "bounded HTML attribute count");
+                    Ok(NodeDepth(boundedTree.D) <= 129, "bounded HTML tree depth");
+                }
+                finally { File.Delete(boundedTreePath); }
+
                 using (var view = new V())
                 {
                     view.Size = new Size(720, 760);
@@ -1661,8 +1700,9 @@ namespace Lea.Tests
                 if (args.Length > 1) SaveRender(scriptPath, args[1]);
                 if (args.Length > 2) SaveFindRender(findPath, args[2]);
                 if (args.Length > 3) SaveEventRender(eventPath, args[3]);
+                if (args.Length > 4) SaveRender(tokenPath, args[4]);
 
-                Console.WriteLine("Lea smoke passed: bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -1779,6 +1819,31 @@ namespace Lea.Tests
                 if (found != null) return found;
             }
             return null;
+        }
+
+        private static int NodeDepth(N node)
+        {
+            if (node == null) return 0;
+            var depth = 1;
+            foreach (var child in node.C) depth = Math.Max(depth, 1 + NodeDepth(child));
+            return depth;
+        }
+
+        private static int TreeNodes(N node)
+        {
+            if (node == null) return 0;
+            var count = 1;
+            foreach (var child in node.C) count += TreeNodes(child);
+            return count;
+        }
+
+        private static string NodeText(N node)
+        {
+            if (node == null) return "";
+            if (node.K == "#text") return node.X;
+            var text = new StringBuilder();
+            foreach (var child in node.C) text.Append(NodeText(child));
+            return text.ToString();
         }
 
         private static bool Has(System.Collections.Generic.IList<string> values, string text)

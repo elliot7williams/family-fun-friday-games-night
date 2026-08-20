@@ -21,6 +21,7 @@ LeaForge is where we can grow the more full-featured browser.
 - basic HTTP page loading
 - bounded in-memory page cache for faster repeat navigation
 - basic HTML rendering for headings, paragraphs, lists, links, buttons, images, code, pre blocks, and structured tables
+- bounded quote-aware HTML tokenization with comments, declarations, raw text, RCDATA, entities, and malformed-delimiter recovery
 - wrapped inline bold/italic text, styled spans, line breaks, and links inside text blocks
 - inherited font-family fallbacks plus underline and line-through decoration
 - inherited left/center/right/justify alignment and pixel/relative line spacing

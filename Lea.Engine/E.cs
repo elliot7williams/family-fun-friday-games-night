@@ -23,6 +23,13 @@ namespace Lea.Engine
         private const int MaxDiagnosticNodes = 512;
         private const int MaxDiagnosticRules = 256;
         private const int MaxDiagnosticRequests = 32;
+        private const int MaxHtmlTokens = 32768;
+        private const int MaxHtmlNodes = 8192;
+        private const int MaxHtmlDepth = 128;
+        private const int MaxHtmlAttributes = 128;
+        private const int MaxHtmlName = 64;
+        private const int MaxHtmlAttributeText = 64 * 1024;
+        private const int MaxHtmlAttributeValue = 16 * 1024;
         private readonly W web = new W();
         private readonly List<P> hs = new List<P>();
         private readonly Dictionary<string, Cr> cache = new Dictionary<string, Cr>(StringComparer.OrdinalIgnoreCase);
@@ -815,45 +822,199 @@ namespace Lea.Engine
             var root = new N("#doc");
             var stack = new List<N>();
             stack.Add(root);
+            var nodes = 1;
 
-            foreach (Match token in Regex.Matches(html ?? "", "<!--.*?-->|<![^>]*>|</?\\s*[a-z][^>]*>|[^<]+|<", RegexOptions.IgnoreCase | RegexOptions.Singleline))
+            foreach (var token in Tokens(html))
             {
-                var value = token.Value;
-                if (value.StartsWith("<!--") || value.StartsWith("<!")) continue;
-
-                if (value.StartsWith("</"))
+                if (token.K == 'c')
                 {
-                    var close = Regex.Match(value, "^</\\s*(?<tag>[a-z][a-z0-9:-]*)", RegexOptions.IgnoreCase);
-                    if (!close.Success) continue;
-                    var tag = close.Groups["tag"].Value.ToLowerInvariant();
                     for (var i = stack.Count - 1; i > 0; i--)
                     {
-                        if (stack[i].K != tag) continue;
+                        if (stack[i].K != token.N) continue;
                         stack.RemoveRange(i, stack.Count - i);
                         break;
                     }
                     continue;
                 }
 
-                if (value.StartsWith("<"))
+                if (token.K == 'o')
                 {
-                    var open = Regex.Match(value, "^<\\s*(?<tag>[a-z][a-z0-9:-]*)(?<attrs>[^>]*)>", RegexOptions.IgnoreCase | RegexOptions.Singleline);
-                    if (!open.Success) continue;
-                    var tag = open.Groups["tag"].Value.ToLowerInvariant();
-                    Recover(stack, tag);
-                    var node = new N(tag);
-                    Attrs(node, open.Groups["attrs"].Value);
+                    if (nodes == MaxHtmlNodes) break;
+                    Recover(stack, token.N);
+                    var node = new N(token.N);
+                    Attrs(node, token.A);
                     node.Up = stack[stack.Count - 1];
                     stack[stack.Count - 1].C.Add(node);
-                    if (!value.TrimEnd().EndsWith("/>") && !Void(tag)) stack.Add(node);
+                    nodes++;
+                    if (!token.S && !Void(token.N) && stack.Count < MaxHtmlDepth) stack.Add(node);
                     continue;
                 }
 
+                if (token.X.Length == 0) continue;
+                if (nodes == MaxHtmlNodes) break;
                 var parent = stack[stack.Count - 1];
-                if (value.Length > 0) parent.C.Add(new N("#text") { X = WebUtility.HtmlDecode(value), Up = parent });
+                parent.C.Add(new N("#text") { X = token.D ? WebUtility.HtmlDecode(token.X) : token.X, Up = parent });
+                nodes++;
             }
 
             return root;
+        }
+
+        private static IEnumerable<Tk> Tokens(string html)
+        {
+            var source = html ?? "";
+            var at = 0;
+            var steps = 0;
+            while (at < source.Length && steps++ < MaxHtmlTokens)
+            {
+                if (source[at] != '<')
+                {
+                    var next = source.IndexOf('<', at);
+                    if (next < 0) next = source.Length;
+                    yield return Tk.T(source.Substring(at, next - at), true);
+                    at = next;
+                    continue;
+                }
+
+                if (Starts(source, at, "<!--"))
+                {
+                    var end = source.IndexOf("-->", at + 4, StringComparison.Ordinal);
+                    at = end < 0 ? source.Length : end + 3;
+                    continue;
+                }
+
+                if (Starts(source, at, "<!") || Starts(source, at, "<?"))
+                {
+                    var end = TagEnd(source, at + 2);
+                    at = end < 0 ? source.Length : end + 1;
+                    continue;
+                }
+
+                var close = Starts(source, at, "</");
+                var nameAt = at + (close ? 2 : 1);
+                while (nameAt < source.Length && Char.IsWhiteSpace(source[nameAt])) nameAt++;
+                if (nameAt >= source.Length || !NameStart(source[nameAt]))
+                {
+                    yield return Tk.T("<", true);
+                    at++;
+                    continue;
+                }
+
+                var nameEnd = nameAt + 1;
+                while (nameEnd < source.Length && NameChar(source[nameEnd])) nameEnd++;
+                if (nameEnd - nameAt > MaxHtmlName)
+                {
+                    yield return Tk.T("<", true);
+                    at++;
+                    continue;
+                }
+
+                var endTag = TagEnd(source, nameEnd);
+                if (endTag < 0)
+                {
+                    yield return Tk.T(source.Substring(at), true);
+                    yield break;
+                }
+
+                var name = source.Substring(nameAt, nameEnd - nameAt).ToLowerInvariant();
+                if (close)
+                {
+                    yield return Tk.C(name);
+                    at = endTag + 1;
+                    continue;
+                }
+
+                var self = SelfClose(source, nameEnd, endTag);
+                var attrLength = Math.Min(endTag - nameEnd, MaxHtmlAttributeText);
+                var attrs = source.Substring(nameEnd, attrLength);
+                yield return Tk.O(name, attrs, self);
+                at = endTag + 1;
+
+                var raw = RawKind(name);
+                if (raw == 0 || self) continue;
+                int rawEnd;
+                var rawClose = RawClose(source, at, name, out rawEnd);
+                if (rawClose < 0)
+                {
+                    if (at < source.Length) yield return Tk.T(source.Substring(at), raw == 2);
+                    yield break;
+                }
+                if (rawClose > at) yield return Tk.T(source.Substring(at, rawClose - at), raw == 2);
+                yield return Tk.C(name);
+                at = rawEnd + 1;
+            }
+        }
+
+        private static int TagEnd(string source, int start)
+        {
+            var quote = '\0';
+            for (var i = start; i < source.Length; i++)
+            {
+                var value = source[i];
+                if (quote != '\0')
+                {
+                    if (value == quote) quote = '\0';
+                    continue;
+                }
+                if (value == '\'' || value == '"') quote = value;
+                else if (value == '>') return i;
+            }
+            return -1;
+        }
+
+        private static int RawClose(string source, int start, string name, out int end)
+        {
+            var find = "</" + name;
+            var at = start;
+            while (at < source.Length)
+            {
+                var close = source.IndexOf(find, at, StringComparison.OrdinalIgnoreCase);
+                if (close < 0) break;
+                var after = close + find.Length;
+                if (after < source.Length && !Char.IsWhiteSpace(source[after]) && source[after] != '>')
+                {
+                    at = after;
+                    continue;
+                }
+                end = TagEnd(source, after);
+                if (end >= 0) return close;
+                break;
+            }
+            end = -1;
+            return -1;
+        }
+
+        private static int RawKind(string name)
+        {
+            if (name == "title" || name == "textarea") return 2;
+            return name == "script" || name == "style" || name == "xmp" || name == "iframe" ||
+                   name == "noembed" || name == "noframes" ? 1 : 0;
+        }
+
+        private static bool SelfClose(string source, int start, int end)
+        {
+            for (var i = end - 1; i >= start; i--)
+            {
+                if (Char.IsWhiteSpace(source[i])) continue;
+                return source[i] == '/';
+            }
+            return false;
+        }
+
+        private static bool Starts(string source, int at, string value)
+        {
+            return at >= 0 && at + value.Length <= source.Length &&
+                   String.Compare(source, at, value, 0, value.Length, StringComparison.Ordinal) == 0;
+        }
+
+        private static bool NameStart(char value)
+        {
+            return value >= 'a' && value <= 'z' || value >= 'A' && value <= 'Z';
+        }
+
+        private static bool NameChar(char value)
+        {
+            return NameStart(value) || value >= '0' && value <= '9' || value == ':' || value == '-';
         }
 
         private static void Recover(List<N> stack, string tag)
@@ -907,10 +1068,17 @@ namespace Lea.Engine
         private static void Attrs(N node, string attrs)
         {
             const string pattern = "(?<n>[a-z_:][a-z0-9_:.\\-]*)(?:\\s*=\\s*(?:\"(?<d>[^\"]*)\"|'(?<s>[^']*)'|(?<b>[^\\s\"'=<>]+)))?";
-            foreach (Match match in Regex.Matches(attrs ?? "", pattern, RegexOptions.IgnoreCase))
+            var source = attrs ?? "";
+            if (source.Length > MaxHtmlAttributeText) source = source.Substring(0, MaxHtmlAttributeText);
+            var count = 0;
+            foreach (Match match in Regex.Matches(source, pattern, RegexOptions.IgnoreCase))
             {
+                if (count++ == MaxHtmlAttributes) break;
+                var name = match.Groups["n"].Value;
+                if (name.Length > MaxHtmlName) continue;
                 var value = match.Groups["d"].Success ? match.Groups["d"].Value : match.Groups["s"].Success ? match.Groups["s"].Value : match.Groups["b"].Value;
-                node.A[match.Groups["n"].Value] = WebUtility.HtmlDecode(value);
+                if (value.Length > MaxHtmlAttributeValue) value = value.Substring(0, MaxHtmlAttributeValue);
+                node.A[name] = WebUtility.HtmlDecode(value);
             }
         }
 
@@ -2791,6 +2959,30 @@ namespace Lea.Engine
             used = encoding.WebName.ToLowerInvariant();
             using (var stream = new MemoryStream(bytes))
             using (var reader = new StreamReader(stream, encoding, true)) return reader.ReadToEnd();
+        }
+
+        private sealed class Tk
+        {
+            public readonly char K;
+            public readonly string N;
+            public readonly string A;
+            public readonly string X;
+            public readonly bool S;
+            public readonly bool D;
+
+            private Tk(char kind, string name, string attrs, string text, bool self, bool decode)
+            {
+                K = kind;
+                N = name;
+                A = attrs;
+                X = text;
+                S = self;
+                D = decode;
+            }
+
+            public static Tk T(string text, bool decode) { return new Tk('t', "", "", text, false, decode); }
+            public static Tk O(string name, string attrs, bool self) { return new Tk('o', name, attrs, "", self, false); }
+            public static Tk C(string name) { return new Tk('c', name, "", "", false, false); }
         }
 
         private sealed class R
