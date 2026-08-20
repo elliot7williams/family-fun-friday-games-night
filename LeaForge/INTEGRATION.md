@@ -93,6 +93,13 @@ the indeterminate state. Lea bounds numeric text, finite magnitude, layout,
 table-cell placement, inherited color, opacity, clipping, and resize through
 the same custom surface used by the rest of the document.
 
+Supported `<output>` and `<data>` elements use the compact `Dv` model instead
+of native controls. Hosts can enumerate `P.Dvs`; standalone and inline paint
+records expose the same object through `B.Dv` and `Ir.Dv`. `K/V/X/N/F/Fo/El`
+provide one-letter kind, bounded current and visible values, output metadata,
+and DOM ownership. Safe `tx/text` and class commands rebuild these aliases while
+preserving computed styles, form fields, and a data element's machine value.
+
 Parsed table blocks expose `B.Tb`, with `Tb.Rs`, `Tr.Cs`, and compact `Tc` cell
 records. `V` paints these on the same lightweight surface with shared row
 heights, CSS cell boxes, wrapped text, bounded column spans, and resize reflow.
@@ -104,7 +111,7 @@ styled nested content through `B.Is`. Each compact `Ir` run carries `K`, `X`,
 an optional link `U`, and computed style `S`. `V` wraps mixed bold/italic text,
 styled spans, and links together, with a hit region for each linked fragment.
 Blocks without nested inline markup stay on the original one-box layout path.
-`B.El`, `Ir.El`, `Fi.El`, and `Tc.El` retain the originating document element.
+`B.El`, `Ir.El`, `Dv.El`, `Fi.El`, and `Tc.El` retain the originating document element.
 `E.Dy(page, hover, focus)` uses those references to reapply the already-compiled
 `:hover` and `:focus` rules while retaining mutable form values. `V` drives the
 state automatically for nested inline content, fields, and table cells.

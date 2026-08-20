@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea output and data values</title>
+  <style>
+    body { background: #f8fafc; color: #172033; font-family: Arial; }
+    .value-block { display: block; width: 260px; padding: 8px; border: 2px solid #176b4d; color: #176b4d; }
+    .value-block strong { color: #123f8c; font-weight: bold; }
+    .hot { color: #b91c1c; border-color: #b91c1c; }
+    table { width: 320px; border: 1px solid #64748b; }
+    td { padding: 6px; }
+    td data { color: #123f8c; font-style: italic; }
+  </style>
+</head>
+<body>
+  <output class="value-block" id="total-output" name="total" form="calc" for="price qty price">42 <strong>points</strong></output>
+  <p id="inline-line">Engine <data id="inline-data" value="lea-97"><strong>Lea</strong> compact</data> ready.</p>
+  <data class="value-block" id="live-data" value="sku-19">Initial label</data>
+  <output class="value-block" id="live-output">Initial total</output>
+  <output id="many-refs" for="r01 r02 r03 r04 r05 r06 r07 r08 r09 r10 r11 r12 r13 r14 r15 r16 r17 r18 r19 r20 r21 r22 r23 r24 r25 r26 r27 r28 r29 r30 r31 r32 r33 r34 r01">Bounded references</output>
+  <output id="empty-output" name="empty"></output>
+  <table id="value-table">
+    <tr><td><data id="cell-data" value="cell-01">Cell <em>datum</em></data></td></tr>
+  </table>
+  <button id="update-output" type="button" data-lea="tx('live-output','Updated total')">Update output</button>
+  <button id="update-data" type="button" data-lea="tx('live-data','Updated label')">Update data label</button>
+  <button id="style-data" type="button" data-lea="ac('live-data','hot')">Style data</button>
+  <form id="calc"></form>
+  <span id="price"></span><span id="qty"></span>
+</body>
+</html>

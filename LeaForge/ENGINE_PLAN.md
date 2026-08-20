@@ -277,6 +277,14 @@ progress uses `In` for indeterminate state. Numeric text and magnitude are
 bounded before clamping. Normal flow, inherited styles, table cells, opacity,
 clipping, painting, and resize all share the custom path in `gauges.html`.
 
+Output and data elements now carry compact `Dv` state through `P.Dvs`, `B.Dv`,
+and `Ir.Dv`. One-letter `K` kinds distinguish output and data; `V/X/N/F/Fo/El`
+expose bounded current, visible, naming, reference, form, and ownership data.
+Values stop at 4,096 characters, `for` stops at 32 unique bounded ID tokens,
+and safe `tx/text` updates retain their 512-character ceiling. Inline styles,
+standalone blocks, table cells, class/text rebuilds, and resize remain on Lea's
+custom renderer and share the fixture in `values.html`.
+
 HTML tokenization now uses a small quote-aware scanner rather than a single
 tag-splitting regex. It recognizes comments and declarations, preserves raw
 `script/style` text, decodes title/textarea RCDATA and normal text entities,

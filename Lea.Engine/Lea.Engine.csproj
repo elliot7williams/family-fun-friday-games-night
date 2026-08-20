@@ -29,6 +29,7 @@
   <ItemGroup>
     <Compile Include="B.cs" />
     <Compile Include="D.cs" />
+    <Compile Include="Dv.cs" />
     <Compile Include="E.cs" />
     <Compile Include="Er.cs" />
     <Compile Include="Fi.cs" />

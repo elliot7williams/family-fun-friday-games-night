@@ -103,7 +103,8 @@ namespace Lea.Bench
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "layout.html",
                 "tables.html", "forms.html", "events-vars.html", "responsive-media.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
-                "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html"
+                "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
+                "values.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -285,6 +286,29 @@ namespace Lea.Bench
                 }
                 return "Vm aliases, determinate/indeterminate progress, ordered meter regions, 10^12 numeric ceiling, inherited style, tables, resize, and paint";
             });
+            AddProbe(probes, "Bounded output and data values", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "values.html"));
+                var output = page.Dvs.First(value => value.El.Av("id") == "total-output");
+                var data = page.Dvs.First(value => value.El.Av("id") == "inline-data");
+                var cell = page.Dvs.First(value => value.El.Av("id") == "cell-data");
+                Need(page.Dvs.Count == 7 && output.K == "o" && output.V == "42 points", "output value collection changed");
+                Need(output.N == "total" && output.Fo == "calc" && output.F.SequenceEqual(new[] { "price", "qty" }), "output ownership aliases changed");
+                Need(data.K == "d" && data.V == "lea-97" && data.X == "Lea compact", "data value aliases changed");
+                Need(cell.El.Up != null && cell.El.Up.K == "td", "table data ownership changed");
+                Need(page.Bs.SelectMany(block => block.Is).Any(run => Object.ReferenceEquals(run.Dv, data)), "inline data run is missing");
+                Need(page.Dvs.First(value => value.El.Av("id") == "many-refs").F.Count == 32, "output reference bound changed");
+                Need(engine.Ck(page, ById(page.D, "update-output")) == 1 && page.Dvs.First(value => value.El.Av("id") == "live-output").V == "Updated total", "safe output rebuild failed");
+                using (var view = NewView())
+                {
+                    view.Go(Path.Combine(folder, "values.html"));
+                    using (var image = Draw(view)) Need(view.Bc > 0 && ColoredSamples(image) > 0, "value layout is blank");
+                    view.Size = new Size(150, 720);
+                    using (var image = Draw(view)) Need(view.At.Dvs.Count == 7 && view.Bc > 0, "value resize path changed");
+                }
+                return "Dv aliases, 4096-char values, 32 unique references, inline/block/table ownership, 512-char updates, rebuilds, and resize";
+            });
             AddProbe(probes, "CSS selectors and cascade", delegate
             {
                 var engine = new E();
@@ -456,7 +480,7 @@ namespace Lea.Bench
             builder.AppendLine("| Area | Status | Lea 1.0 scope |");
             builder.AppendLine("| --- | --- | --- |");
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
-            Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, list markers, details disclosures, progress/meter gauges, tables, and forms; not the full Living Standard");
+            Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, list markers, details disclosures, progress/meter gauges, output/data values, tables, and forms; not the full Living Standard");
             Capability(builder, "CSS", "Partial", "Compiled selector subset, cascade, box/text styles, visibility, positioning, transforms, and responsive image sizing");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms block, inline, table, form, image, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
@@ -469,6 +493,7 @@ namespace Lea.Bench
             Capability(builder, "Document base URLs", "Supported", "First valid bounded HTTP, HTTPS, or file base; U remains the response URL and Bu drives relative resources");
             Capability(builder, "Same-page fragments", "Supported", "Bounded Ft/Fg/Rv lookup, retained 128-entry history, details reveal, target scrolling, and no-fetch Back/Forward");
             Capability(builder, "Progress and meter gauges", "Supported", "Compact Vm values, finite normalization, meter quality regions, inherited styles, table cells, and custom paint");
+            Capability(builder, "Output and data values", "Supported", "Compact Dv values, bounded references and text, host aliases, inline/block/table ownership, and safe rebuilds");
             Capability(builder, "Accessibility", "Partial", "Keyboard focus and native fields are present; a complete accessibility tree is not");
             builder.AppendLine();
             builder.AppendLine("## Binary Footprint");

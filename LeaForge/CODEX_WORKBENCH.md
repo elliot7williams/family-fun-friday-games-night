@@ -17,7 +17,7 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-1. Add bounded `details`/`summary` disclosure state and interaction coverage.
+1. Add compact `<time>`, `<ins>`, and `<del>` semantic metadata with bounded date/citation aliases.
 2. Expand the safe command set only through bounded, fixture-backed aliases.
 3. Keep strengthening host tests as more legacy tab routes move to Lea.
 
@@ -55,6 +55,10 @@ cases share one 128-entry path in the engine, test browser, and Firespider.
 Progress and meter elements now expose compact `B.Vm` state. Determinate and
 indeterminate progress, ordered meter regions, finite clamping, inherited
 colors, table cells, custom painting, and resize reflow share `gauges.html`.
+Output and data elements now expose compact `P.Dvs`, `B.Dv`, and `Ir.Dv` state.
+Bounded current/visible values, output references, form/name metadata, DOM
+ownership, safe updates, table cells, style rebuilds, and resize share
+`values.html` without adding native controls.
 
 ## Rules For Future Codex Work
 

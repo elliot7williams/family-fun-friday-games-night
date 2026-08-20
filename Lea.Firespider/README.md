@@ -46,6 +46,11 @@ Progress and meter elements remain inside Lea's custom renderer. Compact
 inherited painting, and table-cell reflow without adding a native browser or
 per-gauge WinForms control to Firespider.
 
+Output and data elements also stay inside Lea's custom renderer. Firespider can
+read ordered `P.Dvs` values or the matching `B.Dv`/`Ir.Dv` paint ownership,
+including bounded output references, data machine values, and safe text/class
+rebuilds, without adding per-value WinForms controls.
+
 Firespider can read `V.Dg()` for bounded response, document, CSS, request,
 command, cache, and cookie diagnostics without reflecting into Lea internals.
 The snapshot omits mutable form values, passwords, and selected file paths.

@@ -143,6 +143,16 @@ Progress uses `In` for the indeterminate state. Numeric attribute text is capped
 at 64 characters, finite values are capped at +/-10^12, malformed values use
 HTML defaults, and every result is clamped before layout or painting.
 
+Output and data elements expose one compact `Dv` value model. `P.Dvs` is the
+page's ordered value list, while `B.Dv` and `Ir.Dv` connect block and inline
+paint records to the same object. `K` is `o` for output or `d` for data, `V` is
+the output text or machine-readable data value, and `X` is visible text. Output
+metadata uses `N` for name, `Fo` for form owner, and `F` for ordered unique
+`for` ID tokens; `El` retains the owning document element. Values and text are
+capped at 4,096 characters, names at 256, form/reference tokens at 128, and
+references at 32. `tx/text` remains capped at 512 characters and rebuilds all
+aliases without changing a data element's machine value or duplicating models.
+
 Computed style uses `S`: `F` is foreground color, `Bg` is background, `Fs` is
 font size, `Ff` is a font fallback list, `B` is bold, `I` is italic, and `D` is
 display behavior. `Td` is decoration using `n/u/s/us` for none, underline,

@@ -943,6 +943,7 @@ namespace Lea.Engine
             p.Ls.Clear();
             p.Bs.Clear();
             p.Fs.Clear();
+            p.Dvs.Clear();
             p.Fr = fields;
             var body = Find(p.D, "body") ?? p.D;
             p.X = Clean(NodeText(body));
@@ -2433,6 +2434,11 @@ namespace Lea.Engine
                 page.Bs.Add(GaugeBlock(node, style));
                 return;
             }
+            if (ValueTag(kind))
+            {
+                AddValueBlock(page, node, baseUrl, rules, style);
+                return;
+            }
             if (kind == "a")
             {
                 Uri link;
@@ -2588,6 +2594,60 @@ namespace Lea.Engine
         private static bool GaugeTag(string kind)
         {
             return kind == "progress" || kind == "meter";
+        }
+
+        private static bool ValueTag(string kind)
+        {
+            return kind == "output" || kind == "data";
+        }
+
+        private static void AddValueBlock(P page, N node, Uri baseUrl, List<R> rules, S style)
+        {
+            var block = ValueBlock(page, node, baseUrl, rules, style);
+            if (block.X.Length > 0 || block.Is.Count > 0 || LayoutContext(style)) page.Bs.Add(block);
+        }
+
+        private static B ValueBlock(P page, N node, Uri baseUrl, List<R> rules, S style)
+        {
+            var text = TextValue(RawText(node), style);
+            var model = ValueModel(page, node, text);
+            var block = new B { K = node.K, X = text, S = style, Dv = model, El = node };
+            if (HasInlineStructure(node))
+            {
+                foreach (var child in node.C) AddInline(page, block, child, baseUrl, rules, style.Inherit(), null, node.K, model);
+                NormalizeInlines(block);
+                block.X = InlineText(block);
+            }
+            return block;
+        }
+
+        private static Dv ValueModel(P page, N node, string text)
+        {
+            var model = new Dv
+            {
+                K = node.K == "output" ? "o" : "d",
+                X = BoundValue(text, 4096),
+                V = BoundValue(node.K == "output" ? RawText(node) : node.Av("value"), 4096),
+                N = BoundValue(node.Av("name").Trim(), 256),
+                Fo = BoundValue(node.Av("form").Trim(), 128),
+                El = node
+            };
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var value in (node.Av("for") ?? "").Split((char[])null, StringSplitOptions.RemoveEmptyEntries))
+            {
+                var reference = BoundValue(value, 128);
+                if (reference.Length == 0 || !seen.Add(reference)) continue;
+                model.F.Add(reference);
+                if (model.F.Count == 32) break;
+            }
+            page.Dvs.Add(model);
+            return model;
+        }
+
+        private static string BoundValue(string value, int max)
+        {
+            value = value ?? "";
+            return value.Length <= max ? value : value.Substring(0, max);
         }
 
         private static Uri ImageUri(N node, Uri baseUrl, int targetWidth)
@@ -2829,11 +2889,11 @@ namespace Lea.Engine
             return false;
         }
 
-        private static void AddInline(P page, B block, N node, Uri baseUrl, List<R> rules, S inherited, Uri activeLink, string inheritedKind)
+        private static void AddInline(P page, B block, N node, Uri baseUrl, List<R> rules, S inherited, Uri activeLink, string inheritedKind, Dv inheritedValue = null)
         {
             if (node.K == "#text")
             {
-                if (node.X.Length > 0) block.Is.Add(new Ir { K = inheritedKind, X = node.X, U = activeLink, S = inherited, El = node.Up });
+                if (node.X.Length > 0) block.Is.Add(new Ir { K = inheritedKind, X = node.X, U = activeLink, S = inherited, Dv = inheritedValue, El = node.Up });
                 return;
             }
             if (node.K == "script" || node.K == "style" || node.K == "noscript" || node.K == "template") return;
@@ -2849,6 +2909,8 @@ namespace Lea.Engine
 
             var link = activeLink;
             var kind = node.K;
+            var value = inheritedValue;
+            if (ValueTag(node.K)) value = ValueModel(page, node, TextValue(RawText(node), style));
             if (node.K == "a")
             {
                 Uri target;
@@ -2861,7 +2923,7 @@ namespace Lea.Engine
             }
 
             var first = block.Is.Count;
-            if (node.K != "img") foreach (var child in node.C) AddInline(page, block, child, baseUrl, rules, style, link, kind);
+            if (node.K != "img") foreach (var child in node.C) AddInline(page, block, child, baseUrl, rules, style, link, kind, value);
             if (node.K == "a" && link != null && block.Is.Count == first)
                 block.Is.Add(new Ir { K = "a", X = link.ToString(), U = link, S = style, El = node });
         }
@@ -2876,7 +2938,7 @@ namespace Lea.Engine
                     if (run.K != "br") run.X = TextValue(WebUtility.HtmlDecode(run.X ?? ""), block.S);
                     if (run.K != "br" && run.X.Length == 0) continue;
                     var previous = clean.Count == 0 ? null : clean[clean.Count - 1];
-                    if (previous != null && previous.K != "br" && previous.K == run.K && previous.U == run.U && Object.ReferenceEquals(previous.S, run.S) && Object.ReferenceEquals(previous.El, run.El)) previous.X += run.X;
+                    if (previous != null && previous.K != "br" && previous.K == run.K && previous.U == run.U && Object.ReferenceEquals(previous.S, run.S) && Object.ReferenceEquals(previous.Dv, run.Dv) && Object.ReferenceEquals(previous.El, run.El)) previous.X += run.X;
                     else clean.Add(run);
                 }
                 block.Is.Clear();
@@ -2916,7 +2978,7 @@ namespace Lea.Engine
                 if (text.Length == 0) continue;
                 run.X = text.ToString();
                 var previous = clean.Count == 0 ? null : clean[clean.Count - 1];
-                if (previous != null && previous.K != "br" && previous.K == run.K && previous.U == run.U && Object.ReferenceEquals(previous.S, run.S) && Object.ReferenceEquals(previous.El, run.El)) previous.X += run.X;
+                if (previous != null && previous.K != "br" && previous.K == run.K && previous.U == run.U && Object.ReferenceEquals(previous.S, run.S) && Object.ReferenceEquals(previous.Dv, run.Dv) && Object.ReferenceEquals(previous.El, run.El)) previous.X += run.X;
                 else clean.Add(run);
             }
             block.Is.Clear();
@@ -3019,6 +3081,12 @@ namespace Lea.Engine
                 if (GaugeTag(child.K))
                 {
                     cell.Bs.Add(GaugeBlock(child, style));
+                    continue;
+                }
+                if (ValueTag(child.K))
+                {
+                    var block = ValueBlock(page, child, baseUrl, rules, style);
+                    if (block.X.Length > 0 || block.Is.Count > 0 || LayoutContext(style)) cell.Bs.Add(block);
                     continue;
                 }
 

@@ -20,6 +20,7 @@ namespace Lea.Engine
         public S S { get; internal set; }
         public Fi I { get; internal set; }
         public Vm Vm { get; internal set; }
+        public Dv Dv { get; internal set; }
         public Tb Tb { get; internal set; }
         public N El { get; internal set; }
         public B Up { get; internal set; }

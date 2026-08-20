@@ -830,6 +830,71 @@ namespace Lea.Tests
                 var cellMeter = BlockById(gaugePage, "cell-meter");
                 Ok(cellMeter.K == "meter" && cellMeter.Vm != null && cellMeter.Vm.R == 0.75D, "table cell meter model");
 
+                var valuePath = Path.Combine(root, "LeaForge", "test-pages", "values.html");
+                var valueEngine = new E();
+                var valuePage = valueEngine.Go(valuePath);
+                Eq(7, valuePage.Dvs.Count, "bounded page value collection");
+                var totalValue = ValueById(valuePage, "total-output");
+                Eq("o", totalValue.K, "output value kind alias");
+                Eq("42 points", totalValue.V, "output current value alias");
+                Eq("42 points", totalValue.X, "output visible text alias");
+                Eq("total", totalValue.N, "output name alias");
+                Eq("calc", totalValue.Fo, "output form owner alias");
+                Eq(2, totalValue.F.Count, "output for references deduplicate");
+                Eq("price", totalValue.F[0], "first output reference");
+                Eq("qty", totalValue.F[1], "second output reference");
+                var totalBlock = BlockById(valuePage, "total-output");
+                Ok(Object.ReferenceEquals(totalValue, totalBlock.Dv) && Object.ReferenceEquals(totalValue.El, totalBlock.El), "standalone output block ownership");
+                var boldOutput = false;
+                foreach (var run in totalBlock.Is)
+                    if (Object.ReferenceEquals(run.Dv, totalValue) && run.S.B && run.El != null && run.El.K == "strong") boldOutput = true;
+                Ok(boldOutput, "output keeps nested computed inline style and ownership");
+                Eq("#176b4d", totalBlock.S.F, "output computed foreground style");
+
+                var inlineValue = ValueById(valuePage, "inline-data");
+                Eq("d", inlineValue.K, "data value kind alias");
+                Eq("lea-97", inlineValue.V, "data machine value alias");
+                Eq("Lea compact", inlineValue.X, "data visible text alias");
+                var inlineRun = RunByValue(BlockById(valuePage, "inline-line"), inlineValue);
+                Ok(inlineRun != null && Object.ReferenceEquals(inlineRun.Dv, inlineValue), "inline data run ownership");
+                var cellValue = ValueById(valuePage, "cell-data");
+                var cellValueBlock = BlockById(valuePage, "cell-data");
+                Ok(Object.ReferenceEquals(cellValueBlock.Dv, cellValue) && cellValueBlock.K == "data", "table cell data value model");
+                var cellValueRun = RunByValue(cellValueBlock, cellValue);
+                Ok(cellValueRun != null && cellValueRun.S.I && cellValueRun.El != null, "table cell data keeps inline style and ownership");
+                Eq(32, ValueById(valuePage, "many-refs").F.Count, "output references cap at 32");
+                Eq("r32", ValueById(valuePage, "many-refs").F[31], "output reference cap keeps order");
+                Eq("", ValueById(valuePage, "empty-output").V, "empty output remains host-readable");
+
+                Eq(1, valueEngine.Ck(valuePage, ById(valuePage.D, "update-output")), "safe output update command");
+                var updatedOutput = ValueById(valuePage, "live-output");
+                Eq("Updated total", updatedOutput.V, "output model rebuilds after text update");
+                Ok(Object.ReferenceEquals(updatedOutput, BlockById(valuePage, "live-output").Dv), "rebuilt output block keeps value ownership");
+                Eq(1, valueEngine.Ck(valuePage, ById(valuePage.D, "update-data")), "safe data text update command");
+                var updatedData = ValueById(valuePage, "live-data");
+                Eq("sku-19", updatedData.V, "data machine value survives text update");
+                Eq("Updated label", updatedData.X, "data visible text rebuilds after update");
+                Eq(1, valueEngine.Ck(valuePage, ById(valuePage.D, "style-data")), "safe data class update command");
+                Eq("#b91c1c", BlockById(valuePage, "live-data").S.F, "data computed style rebuilds after class update");
+                Eq(7, valuePage.Dvs.Count, "value rebuild does not duplicate page models");
+
+                var boundedValuePath = Path.Combine(Path.GetTempPath(), "lea-values-" + Guid.NewGuid().ToString("N") + ".html");
+                try
+                {
+                    var longMachine = new string('v', 4200);
+                    var longUpdate = new string('u', 600);
+                    File.WriteAllText(boundedValuePath, "<!doctype html><html><body><data id='bound-data' value='" + longMachine + "'>label</data><output id='bound-output'>initial</output><button id='bound-update' data-lea=\"tx('bound-output','" + longUpdate + "')\">Update</button></body></html>", new UTF8Encoding(false));
+                    var valueBoundEngine = new E();
+                    var valueBoundPage = valueBoundEngine.Go(boundedValuePath);
+                    Eq(4096, ValueById(valueBoundPage, "bound-data").V.Length, "data machine value cap");
+                    Eq(1, valueBoundEngine.Ck(valueBoundPage, ById(valueBoundPage.D, "bound-update")), "bounded output update command");
+                    Eq(512, ValueById(valueBoundPage, "bound-output").V.Length, "safe output update cap");
+                }
+                finally
+                {
+                    if (File.Exists(boundedValuePath)) File.Delete(boundedValuePath);
+                }
+
                 var tokenPath = Path.Combine(root, "LeaForge", "test-pages", "html-tokens.html");
                 var tokenEngine = new E();
                 var tokenPage = tokenEngine.Go(tokenPath);
@@ -1844,6 +1909,22 @@ namespace Lea.Tests
                     var narrowAutoProgressRect = BlockRect(view, BlockById(view.At, "auto-progress"));
                     Ok(narrowAutoProgressRect.Width > 0 && narrowAutoProgressRect.Width < wideAutoProgressWidth, "default progress reflows in narrow view");
 
+                    view.Size = new Size(620, 900);
+                    view.Go(valuePath);
+                    Paint(view);
+                    var viewOutput = BlockById(view.At, "total-output");
+                    var wideValueRect = BlockRect(view, viewOutput);
+                    Ok(!wideValueRect.IsEmpty && viewOutput.Dv != null && viewOutput.Dv.V == "42 points", "WinForms output value layout");
+                    var valueTable = BlockById(view.At, "value-table");
+                    var viewCellData = BlockById(view.At, "cell-data");
+                    var cellValueRect = BlockRect(view, viewCellData);
+                    Ok(!cellValueRect.IsEmpty && ContainingCell(view, valueTable, cellValueRect).Contains(cellValueRect), "data value lays out inside table cell");
+                    var wideValueWidth = wideValueRect.Width;
+                    view.Size = new Size(150, 900);
+                    Paint(view);
+                    var narrowValueRect = BlockRect(view, BlockById(view.At, "total-output"));
+                    Ok(narrowValueRect.Width > 0 && narrowValueRect.Width < wideValueWidth && view.At.Dvs.Count == 7, "output value reflows without rebuilding models");
+
                     view.Size = new Size(720, 760);
                     view.Go(Path.Combine(root, "LeaForge", "test-pages", "scroll.html"));
                     Paint(view);
@@ -2190,7 +2271,7 @@ namespace Lea.Tests
                 if (args.Length > 3) SaveEventRender(eventPath, args[3]);
                 if (args.Length > 4) SaveRender(tokenPath, args[4]);
 
-                Console.WriteLine("Lea smoke passed: compact progress and meter values, quality regions, inherited custom painting, table placement and resize reflow, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -2459,6 +2540,28 @@ namespace Lea.Tests
                     foreach (var part in cell.Bs)
                     {
                         var found = BlockById(part, id);
+                        if (found != null) return found;
+                    }
+            return null;
+        }
+
+        private static Dv ValueById(P page, string id)
+        {
+            foreach (var value in page.Dvs)
+                if (value.El != null && value.El.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase)) return value;
+            throw new InvalidOperationException("value unavailable: " + id);
+        }
+
+        private static Ir RunByValue(B block, Dv value)
+        {
+            if (block == null) return null;
+            foreach (var run in block.Is) if (Object.ReferenceEquals(run.Dv, value)) return run;
+            if (block.Tb == null) return null;
+            foreach (var row in block.Tb.Rs)
+                foreach (var cell in row.Cs)
+                    foreach (var part in cell.Bs)
+                    {
+                        var found = RunByValue(part, value);
                         if (found != null) return found;
                     }
             return null;
