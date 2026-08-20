@@ -401,6 +401,7 @@ namespace Lea.Win
                     var mb = bs == null ? 0 : bs.Mb;
                     var flowY = ly + mt;
                     var outerAvailable = Math.Max(40, lw - ml - mr);
+                    if (StretchesWidth(bs)) outerAvailable = Math.Max(1, containing.Width - bs.Lt.Value - bs.Rt.Value - ml - mr);
                     var bw = ConstrainWidth(bs, Math.Max(1, outerAvailable - bl - br - pl - pr));
                     int height;
                     List<Ix> inline = null;
@@ -431,7 +432,8 @@ namespace Lea.Win
                     var naturalHeight = height;
                     height = ConstrainHeight(bs, height);
                     int resolvedHeight;
-                    if (resolved != null && owners.Contains(block) && (bs == null || bs.H == 0) && resolved.TryGetValue(block, out resolvedHeight)) height = resolvedHeight;
+                    if (resolved != null && owners.Contains(block) && (bs == null || bs.H == 0) && !StretchesHeight(bs) && resolved.TryGetValue(block, out resolvedHeight)) height = resolvedHeight;
+                    if (StretchesHeight(bs)) height = ConstrainHeight(bs, Math.Max(1, containing.Height - bs.Tp.Value - bs.Bm.Value - mt - mb - bt - bb - pt - pb));
                     var text = block.K == "li" ? "- " + block.X : block.X;
                     var link = inline == null && block.K == "a" ? block.U : null;
                     var outerWidth = bw + pl + pr + bl + br;
@@ -554,6 +556,7 @@ namespace Lea.Win
             var mb = style == null ? 0 : style.Mb;
             var flowY = y + mt;
             var available = Math.Max(40, width - ml - mr);
+            if (StretchesWidth(style)) available = Math.Max(1, containing.Width - style.Lt.Value - style.Rt.Value - ml - mr);
             var tableWidth = ConstrainWidth(style, Math.Max(1, available - bl - br - pl - pr));
             var captionHeight = 0;
             if (block.Tb.Cp.Length > 0)
@@ -585,6 +588,7 @@ namespace Lea.Win
             var naturalHeight = captionHeight > 0 ? captionHeight + 8 : 0;
             foreach (var rowHeight in rowHeights) naturalHeight += rowHeight;
             var contentHeight = ConstrainHeight(style, naturalHeight);
+            if (StretchesHeight(style)) contentHeight = ConstrainHeight(style, Math.Max(1, containing.Height - style.Tp.Value - style.Bm.Value - mt - mb - bt - bb - pt - pb));
             var outerWidth = tableWidth + pl + pr + bl + br;
             var outerHeight = contentHeight + pt + pb + bt + bb;
             var bx = PositionX(style, x + ml, outerWidth, containing, ml, mr);
@@ -649,28 +653,44 @@ namespace Lea.Win
 
         private static int PositionX(S style, int flowX, int outerWidth, Rectangle containing, int ml, int mr)
         {
-            if (style == null || style.Pn.Length == 0 || style.Pn == "s") return flowX;
+            if (style == null) return flowX;
+            var x = flowX;
+            if (style.Pn.Length == 0 || style.Pn == "s") return x + style.Tx;
             if (style.Pn == "r")
             {
-                if (style.Lt.HasValue) return flowX + style.Lt.Value;
-                return style.Rt.HasValue ? flowX - style.Rt.Value : flowX;
+                if (style.Lt.HasValue) x += style.Lt.Value;
+                else if (style.Rt.HasValue) x -= style.Rt.Value;
+                return x + style.Tx;
             }
-            if (style.Lt.HasValue) return containing.Left + ml + style.Lt.Value;
-            if (style.Rt.HasValue) return containing.Right - outerWidth - mr - style.Rt.Value;
-            return flowX;
+            if (style.Lt.HasValue) x = containing.Left + ml + style.Lt.Value;
+            else if (style.Rt.HasValue) x = containing.Right - outerWidth - mr - style.Rt.Value;
+            return x + style.Tx;
         }
 
         private static int PositionY(S style, int flowY, int outerHeight, Rectangle containing, int mt, int mb)
         {
-            if (style == null || style.Pn.Length == 0 || style.Pn == "s") return flowY;
+            if (style == null) return flowY;
+            var y = flowY;
+            if (style.Pn.Length == 0 || style.Pn == "s") return y + style.Ty;
             if (style.Pn == "r")
             {
-                if (style.Tp.HasValue) return flowY + style.Tp.Value;
-                return style.Bm.HasValue ? flowY - style.Bm.Value : flowY;
+                if (style.Tp.HasValue) y += style.Tp.Value;
+                else if (style.Bm.HasValue) y -= style.Bm.Value;
+                return y + style.Ty;
             }
-            if (style.Tp.HasValue) return containing.Top + mt + style.Tp.Value;
-            if (style.Bm.HasValue) return containing.Bottom - outerHeight - mb - style.Bm.Value;
-            return flowY;
+            if (style.Tp.HasValue) y = containing.Top + mt + style.Tp.Value;
+            else if (style.Bm.HasValue) y = containing.Bottom - outerHeight - mb - style.Bm.Value;
+            return y + style.Ty;
+        }
+
+        private static bool StretchesWidth(S style)
+        {
+            return OutOfFlow(style) && style.W == 0 && style.Lt.HasValue && style.Rt.HasValue;
+        }
+
+        private static bool StretchesHeight(S style)
+        {
+            return OutOfFlow(style) && style.H == 0 && style.Tp.HasValue && style.Bm.HasValue;
         }
 
         private static bool OutOfFlow(S style)

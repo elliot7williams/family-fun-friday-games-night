@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Position Values</title>
+  <style>
+    body { color: #26313b; background: #ffffff; font-family: Segoe UI, sans-serif; }
+    h1 { color: #176b4d; }
+    a { color: #ffffff; text-decoration: none; }
+    #inset-owner { position: relative; width: 360px; height: 180px; margin-bottom: 18px; overflow: hidden; border: 2px solid #176b4d; background: #e8f5ef; }
+    #stretch-x { position: absolute; inset: 14px 20px auto 24px; height: 40px; margin: 0; padding: 4px; border: 2px solid #1e3a8a; background: #1d4ed8; }
+    #stretch-y { position: absolute; inset: 76px 190px 12px 24px; margin: 0; padding: 4px; border: 2px solid #9a6700; background: #fff4c2; }
+    #corner { position: absolute; inset: auto 18px 14px auto; width: 120px; height: 32px; margin: 0; padding: 4px; border: 2px solid #581c87; background: #7e22ce; }
+    #translate-anchor { position: absolute; top: 370px; left: 20px; width: 220px; height: 70px; transform: translate(99px, 99px); transform: none; background: #d7dee5; }
+    #translate-parent { position: absolute; top: 370px; left: 20px; width: 220px; height: 70px; transform: translate(18px, 10px); background: #edf2f7; }
+    #translate-child, #translate-cover { position: absolute; width: 150px; height: 36px; margin: 0; padding: 4px; color: #ffffff; border: 2px solid #26313b; }
+    #translate-child { inset: 18px auto auto 30px; z-index: 90; background: #b91c1c; }
+    #translate-cover { top: 398px; left: 68px; z-index: 1; background: #176b4d; }
+    #after-values { margin-top: 8px; padding: 6px; border-left: 3px solid #b91c1c; background: #f8eeee; }
+  </style>
+</head>
+<body>
+  <h1>Inset and translated contexts</h1>
+  <section id="inset-owner">
+    <p id="stretch-x"><a href="second.html">Opposing horizontal insets stretch this link.</a></p>
+    <p id="stretch-y">Four-value inset stretches this box vertically.</p>
+    <p id="corner"><a href="forms.html">Auto inset corner</a></p>
+  </section>
+  <div id="translate-anchor"></div>
+  <div id="translate-parent"><p id="translate-child"><a href="form-result.html">Translated child z90</a></p></div>
+  <a id="translate-cover" href="dynamic-state.html">Root cover z1</a>
+  <p id="after-values">Normal flow continues after the inset owner.</p>
+</body>
+</html>

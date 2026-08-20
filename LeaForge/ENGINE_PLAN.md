@@ -209,7 +209,16 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add more positioned layout values and stacking-context triggers.
+Route more Firespider commands through Lea capability checks.
+
+The `inset` shorthand now expands atomically into `Tp/Rt/Bm/Lt`, and opposing
+edges stretch auto-sized absolute and fixed boxes against their containing
+rectangle. Supported pixel `translate`, `translateX`, and `translateY` values
+use compact `Tx/Ty` aliases, apply after normal positioning without consuming
+flow, and create the existing `Zc` local stacking context. The
+`position-values.html` fixture verifies cascade reset, used edges, horizontal
+and vertical stretch, parent-relative translation, trapped high-z descendants,
+paint order, click routing, and following normal flow.
 
 Nested fields, responsive images, and structured tables now retain their
 nearest ordinary visual owner through `B.Up`, including fields reached through

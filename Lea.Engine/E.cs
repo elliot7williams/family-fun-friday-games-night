@@ -1165,8 +1165,10 @@ namespace Lea.Engine
                 else if (name == "visibility") Visibility(style, value);
                 else if (name == "opacity") Opacity(style, value);
                 else if (name == "isolation") Isolation(style, value);
+                else if (name == "transform") Transform(style, value);
                 else if (name == "display") style.D = value.ToLowerInvariant();
                 else if (name == "position") Position(style, value);
+                else if (name == "inset") Inset(style, value);
                 else if (name == "top") Offset(style, value, 0);
                 else if (name == "right") Offset(style, value, 1);
                 else if (name == "bottom") Offset(style, value, 2);
@@ -1220,20 +1222,43 @@ namespace Lea.Engine
 
         private static void Offset(S style, string value, int side)
         {
-            var source = (value ?? "").Trim().ToLowerInvariant();
-            int? offset = null;
-            if (source != "auto" && source != "initial" && source != "unset" && source != "revert")
-            {
-                var match = Regex.Match(source, "^(?<n>-?[0-9]{1,5})(?:px)?$");
-                int number;
-                if (!match.Success || !Int32.TryParse(match.Groups["n"].Value, out number)) return;
-                offset = Math.Max(-8192, Math.Min(8192, number));
-            }
+            int? offset;
+            if (!OffsetValue(value, out offset)) return;
 
             if (side == 0) style.Tp = offset;
             else if (side == 1) style.Rt = offset;
             else if (side == 2) style.Bm = offset;
             else style.Lt = offset;
+        }
+
+        private static void Inset(S style, string value)
+        {
+            var parts = Regex.Split((value ?? "").Trim(), "\\s+");
+            if (parts.Length < 1 || parts.Length > 4 || parts[0].Length == 0) return;
+            int? top;
+            int? right;
+            int? bottom;
+            int? left;
+            if (!OffsetValue(parts[0], out top) ||
+                !OffsetValue(parts.Length > 1 ? parts[1] : parts[0], out right) ||
+                !OffsetValue(parts.Length > 2 ? parts[2] : parts[0], out bottom) ||
+                !OffsetValue(parts.Length > 3 ? parts[3] : parts.Length > 1 ? parts[1] : parts[0], out left)) return;
+            style.Tp = top;
+            style.Rt = right;
+            style.Bm = bottom;
+            style.Lt = left;
+        }
+
+        private static bool OffsetValue(string value, out int? offset)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            offset = null;
+            if (source == "auto" || source == "initial" || source == "unset" || source == "revert") return true;
+            var match = Regex.Match(source, "^(?<n>-?[0-9]{1,5})(?:px)?$");
+            int number;
+            if (!match.Success || !Int32.TryParse(match.Groups["n"].Value, out number)) return false;
+            offset = Math.Max(-8192, Math.Min(8192, number));
+            return true;
         }
 
         private static void ZIndex(S style, string value)
@@ -1396,9 +1421,45 @@ namespace Lea.Engine
             UpdateStackContext(style);
         }
 
+        private static void Transform(S style, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "none" || source == "initial" || source == "unset" || source == "revert")
+            {
+                style.Tx = 0;
+                style.Ty = 0;
+                style.Zt = false;
+                UpdateStackContext(style);
+                return;
+            }
+
+            var match = Regex.Match(source, "^translate\\(\\s*(?<x>-?[0-9]{1,5})(?:px)?(?:\\s*,\\s*|\\s+)(?<y>-?[0-9]{1,5})(?:px)?\\s*\\)$");
+            var xOnly = Regex.Match(source, "^translate(?:x)?\\(\\s*(?<x>-?[0-9]{1,5})(?:px)?\\s*\\)$");
+            var yOnly = Regex.Match(source, "^translatey\\(\\s*(?<y>-?[0-9]{1,5})(?:px)?\\s*\\)$");
+            var x = 0;
+            var y = 0;
+            if (match.Success)
+            {
+                if (!Int32.TryParse(match.Groups["x"].Value, out x) || !Int32.TryParse(match.Groups["y"].Value, out y)) return;
+            }
+            else if (xOnly.Success)
+            {
+                if (!Int32.TryParse(xOnly.Groups["x"].Value, out x)) return;
+            }
+            else if (yOnly.Success)
+            {
+                if (!Int32.TryParse(yOnly.Groups["y"].Value, out y)) return;
+            }
+            else return;
+            style.Tx = Math.Max(-8192, Math.Min(8192, x));
+            style.Ty = Math.Max(-8192, Math.Min(8192, y));
+            style.Zt = true;
+            UpdateStackContext(style);
+        }
+
         private static void UpdateStackContext(S style)
         {
-            style.Zc = style.Zo || style.Zs;
+            style.Zc = style.Zo || style.Zs || style.Zt;
         }
 
         private static void Box(S style, string value, bool margin)

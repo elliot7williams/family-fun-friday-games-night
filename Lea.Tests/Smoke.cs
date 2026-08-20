@@ -256,6 +256,26 @@ namespace Lea.Tests
                 Eq("f", contextsPage.Bs[12].S.Pn, "fixed position alias");
                 Eq(-70, contextsPage.Bs[12].S.Rt, "negative fixed right offset");
                 Eq(18, contextsPage.Bs[12].S.Bm, "fixed bottom offset");
+                var positionValuesPath = Path.Combine(root, "LeaForge", "test-pages", "position-values.html");
+                var positionValuesPage = engine.Go(positionValuesPath);
+                Eq(10, positionValuesPage.Bs.Count, "position values block count");
+                Eq(4, positionValuesPage.Ls.Count, "position values link count");
+                Eq("h1,section,p,p,p,div,div,p,a,p", BlockKinds(positionValuesPage), "position values block kinds");
+                Eq(14, positionValuesPage.Bs[2].S.Tp.Value, "inset top alias");
+                Eq(20, positionValuesPage.Bs[2].S.Rt.Value, "inset right alias");
+                Ok(!positionValuesPage.Bs[2].S.Bm.HasValue, "inset auto bottom alias");
+                Eq(24, positionValuesPage.Bs[2].S.Lt.Value, "inset left alias");
+                Eq(76, positionValuesPage.Bs[3].S.Tp.Value, "four-value inset top");
+                Eq(190, positionValuesPage.Bs[3].S.Rt.Value, "four-value inset right");
+                Eq(12, positionValuesPage.Bs[3].S.Bm.Value, "four-value inset bottom");
+                Eq(24, positionValuesPage.Bs[3].S.Lt.Value, "four-value inset left");
+                Ok(!positionValuesPage.Bs[4].S.Tp.HasValue && !positionValuesPage.Bs[4].S.Lt.HasValue, "auto inset corner aliases");
+                Eq(18, positionValuesPage.Bs[4].S.Rt.Value, "corner right inset");
+                Eq(14, positionValuesPage.Bs[4].S.Bm.Value, "corner bottom inset");
+                Ok(positionValuesPage.Bs[5].S.Tx == 0 && positionValuesPage.Bs[5].S.Ty == 0 && !positionValuesPage.Bs[5].S.Zc, "transform none resets translate context");
+                Ok(positionValuesPage.Bs[6].S.Tx == 18 && positionValuesPage.Bs[6].S.Ty == 10 && positionValuesPage.Bs[6].S.Zc, "translate aliases create local context");
+                Ok(Object.ReferenceEquals(positionValuesPage.Bs[2].Up, positionValuesPage.Bs[1]) && Object.ReferenceEquals(positionValuesPage.Bs[3].Up, positionValuesPage.Bs[1]) && Object.ReferenceEquals(positionValuesPage.Bs[4].Up, positionValuesPage.Bs[1]), "inset children retain positioned owner");
+                Ok(Object.ReferenceEquals(positionValuesPage.Bs[7].Up, positionValuesPage.Bs[6]), "translated context owns high child");
                 var nestedPositionPath = Path.Combine(root, "LeaForge", "test-pages", "nested-positioning.html");
                 var nestedPositionPage = engine.Go(nestedPositionPath);
                 Eq(15, nestedPositionPage.Bs.Count, "nested positioning block count");
@@ -907,6 +927,41 @@ namespace Lea.Tests
                     }
                     WaitFor(delegate { return view.T == "Lea Dynamic State"; }, "fixed clipped link navigation after scroll");
                     view.Size = new Size(720, 500);
+                    view.Go(positionValuesPath);
+                    using (var positionValuesPaint = Render(view))
+                    {
+                        Ok(view.Bc > view.At.Bs.Count, "inset and translate inline paint boxes");
+                        Ok(!HitRect(view, "second.html").IsEmpty && !HitRect(view, "forms.html").IsEmpty && !HitRect(view, "form-result.html").IsEmpty && !HitRect(view, "dynamic-state.html").IsEmpty, "inset and translate link hits");
+                        var insetOwner = BlockRect(view, view.At.Bs[1]);
+                        var stretchX = BlockOuterRect(view, view.At.Bs[2]);
+                        var stretchY = BlockOuterRect(view, view.At.Bs[3]);
+                        var corner = BlockOuterRect(view, view.At.Bs[4]);
+                        var anchor = BlockRect(view, view.At.Bs[5]);
+                        var translated = BlockRect(view, view.At.Bs[6]);
+                        var translatedChild = BlockOuterRect(view, view.At.Bs[7]);
+                        var translateCover = BlockOuterRect(view, view.At.Bs[8]);
+                        var afterValues = BlockOuterRect(view, view.At.Bs[9]);
+                        Eq(insetOwner.Left + 24, stretchX.Left, "opposing inset stretch left");
+                        Eq(insetOwner.Right - 20, stretchX.Right, "opposing inset stretch right");
+                        Eq(insetOwner.Top + 14, stretchX.Top, "opposing inset stretch top");
+                        Eq(52, stretchX.Height, "explicit inset block height");
+                        Eq(insetOwner.Left + 24, stretchY.Left, "four-value inset left");
+                        Eq(insetOwner.Right - 190, stretchY.Right, "four-value inset right");
+                        Eq(insetOwner.Top + 76, stretchY.Top, "opposing vertical inset top");
+                        Eq(insetOwner.Bottom - 12, stretchY.Bottom, "opposing vertical inset stretch bottom");
+                        Eq(insetOwner.Right - 18, corner.Right, "auto inset right anchor");
+                        Eq(insetOwner.Bottom - 14, corner.Bottom, "auto inset bottom anchor");
+                        Ok(afterValues.Top > BlockOuterRect(view, view.At.Bs[1]).Bottom, "inset children leave owner flow intact");
+                        Eq(anchor.Left + 18, translated.Left, "translate x applies after absolute position");
+                        Eq(anchor.Top + 10, translated.Top, "translate y applies after absolute position");
+                        Eq(translated.Left + 30, translatedChild.Left, "translated child follows parent x");
+                        Eq(translated.Top + 18, translatedChild.Top, "translated child follows parent y");
+                        Eq(translatedChild, translateCover, "translated context overlap geometry");
+                        Ok(ColorDistance(CenterPixel(positionValuesPaint, translateCover), Color.FromArgb(23, 107, 77)) < 4, "translated context traps high child below root cover");
+                        Click(view, HitRect(view, "dynamic-state.html"));
+                    }
+                    WaitFor(delegate { return view.T == "Lea Dynamic State"; }, "translated context overlap click");
+                    view.Size = new Size(720, 500);
                     view.Go(nestedPositionPath);
                     using (var nestedPaint = Render(view))
                     {
@@ -1360,7 +1415,7 @@ namespace Lea.Tests
                     Eq("url", urlError.K, "URL error kind");
                 }
 
-                Console.WriteLine("Lea smoke passed: nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)

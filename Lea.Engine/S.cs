@@ -27,6 +27,8 @@ namespace Lea.Engine
         public int Zi { get; internal set; }
         public bool Za { get; internal set; }
         public bool Zc { get; internal set; }
+        public int Tx { get; internal set; }
+        public int Ty { get; internal set; }
         public int Mt { get; internal set; }
         public int Mr { get; internal set; }
         public int Mb { get; internal set; }
@@ -50,6 +52,7 @@ namespace Lea.Engine
         internal int Ao { get; set; }
         internal bool Zo { get; set; }
         internal bool Zs { get; set; }
+        internal bool Zt { get; set; }
 
         internal S()
         {

@@ -17,11 +17,10 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-1. Add more positioned layout values and stacking-context triggers.
-2. Route more Firespider commands through Lea capability checks.
-3. Add a small JavaScript interpreter layer or bridge.
-4. Add downloads and find-in-page.
-5. Add a developer tools panel for parsed nodes, CSS rules, network events, and console messages.
+1. Route more Firespider commands through Lea capability checks.
+2. Add a small JavaScript interpreter layer or bridge.
+3. Add downloads and find-in-page.
+4. Add a developer tools panel for parsed nodes, CSS rules, network events, and console messages.
 
 ## Rules For Future Codex Work
 

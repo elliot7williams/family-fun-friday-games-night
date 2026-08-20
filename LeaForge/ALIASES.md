@@ -67,8 +67,11 @@ content rectangle.
 
 Positioning stays compact: `Pn` is `s/r/a/f` for static, relative, absolute, or
 fixed; `Tp/Rt/Bm/Lt` are nullable signed pixel offsets, and `Zi` is the bounded
-z-index. `Za` marks a numeric z-index rather than `auto`; `Zc` marks a local
-opacity or `isolation:isolate` stacking context. `B.Up` points to the nearest
+z-index. The `inset` shorthand expands atomically into those four offsets;
+opposing offsets stretch auto-sized absolute and fixed boxes. `Tx/Ty` are
+bounded pixel translation offsets accepted from `translate`, `translateX`, and
+`translateY`. `Za` marks a numeric z-index rather than `auto`; `Zc` marks a local
+opacity, isolation, or translated stacking context. `B.Up` points to the nearest
 retained visual, positioned, or clipping parent block. Styled semantic
 containers are retained when their background,
 border, spacing, or dimensions affect layout; unstyled wrappers stay on the
@@ -79,9 +82,11 @@ Relative blocks and tables shift while retaining normal flow. Absolute
 boxes leave flow and use the nearest positioned containing block; fixed boxes
 use viewport coordinates, including when nested. Overflow clips inherit through
 the parent chain. Numeric positioned z-index, fixed positioning, local opacity,
-and isolation create compact hierarchical `Zi` paths; `z-index:auto` does not
-trap descendants. Paint and hit testing share that order. Static boxes retain
-parsed offsets but do not apply them.
+isolation, and supported pixel translations create compact hierarchical `Zi`
+paths; `z-index:auto` does not trap descendants. Paint and hit testing share
+that order. Static boxes retain parsed offsets but do not apply them, while
+translate offsets apply after normal or positioned placement without consuming
+flow.
 
 The WinForms view exposes `Dh` (document height), `Sy` (scroll position), and
 `Bc` (cached layout-box count) for compact host diagnostics. `Sc(delta)` moves
