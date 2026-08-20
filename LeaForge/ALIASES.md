@@ -100,7 +100,12 @@ assignments, and `alert(...)`. Unknown calls, expressions, nested control flow,
 external scripts, and non-script data blocks do not execute.
 
 `GoA` and `RlA` are the asynchronous forms used by browser windows. `St` cancels
-an active network request. The shorter synchronous forms remain useful for tests.
+an active network request. `Tm` is the per-request network deadline in
+milliseconds. It defaults to 15,000 and clamps to 100 through 60,000 on both
+`E` and `V`. The same bound covers synchronous requests, asynchronous page and
+POST work, and streamed network-download reads. A deadline raises retryable
+`Er.K == "timeout"`; `St` remains the distinct non-retryable `cancel` result.
+The shorter synchronous forms remain useful for tests.
 
 `P.U` remains the response URL. `P.Bu` is the document base URL resolved from
 the first valid `<base href>` using at most 4,096 characters; unsupported bases

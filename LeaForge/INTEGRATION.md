@@ -47,6 +47,9 @@ or WPF window host Lea's layout and paint output.
 Browser UI code should use `GoA` and `RlA` so network waits do not freeze the
 window. `St` cancels the active request. The synchronous `Go` and `Rl` aliases
 remain available for small tools and deterministic local tests.
+`E.Tm` and `V.Tm` configure the request deadline in milliseconds; the compact
+property defaults to 15,000 and clamps to 100 through 60,000. It applies to
+synchronous and asynchronous HTTP page, POST, stylesheet, and download work.
 
 Safe page code can call `go(url)` to request, but not perform, navigation.
 Headless integrations call `E.Gt(page)` once after `Js`/`Ck`. WinForms hosts
@@ -67,7 +70,8 @@ those conditional headers.
 
 Hosts can catch `Lea.Engine.Er` and inspect `K`, `U`, `St`, and `Rt` to present
 specific URL, local-file, HTTP, network, timeout, cancellation, or decoding
-failures without parsing exception text.
+failures without parsing exception text. A `timeout` is retryable, while a host
+`St` cancellation remains non-retryable and is never relabeled as a timeout.
 
 The `V` host control now performs cached layout and bounded scrolling. Firespider
 can read `Dh`, `Sy`, and `Bc`, and can call `Sc(delta)` without depending on

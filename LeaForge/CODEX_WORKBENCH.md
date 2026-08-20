@@ -17,7 +17,7 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-1. Add a configurable bounded `Tm` request timeout with typed timeout coverage.
+1. Make Firespider's primary New Tab path create Lea tabs with an explicit legacy fallback.
 2. Expand the safe command set only through bounded, fixture-backed aliases.
 3. Keep strengthening host tests as more legacy tab routes move to Lea.
 
@@ -36,6 +36,9 @@ and request-log clearing are covered by the off-screen host smoke suite.
 The safe page language now uses `go(url)` to queue one host-controlled request.
 `E.Gt` consumes it headlessly; `V.Gu`/`Gr` route it through the test browser and
 Firespider while unsupported schemes and remote-to-file requests are rejected.
+`E.Tm`/`V.Tm` now apply a bounded 100-60,000 ms network deadline to synchronous
+and asynchronous requests, preserving typed retryable timeout and distinct
+host-cancellation results.
 
 ## Rules For Future Codex Work
 

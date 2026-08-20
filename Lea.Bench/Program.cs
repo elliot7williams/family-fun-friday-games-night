@@ -284,6 +284,16 @@ namespace Lea.Bench
                 Need(engine.Ck(page, ById(page.D, "unsafe")) == 0 && engine.Gt(page) == null, "unsafe go scheme was accepted");
                 return "Relative file and HTTPS requests accepted; one pending request; unsafe schemes rejected";
             });
+            AddProbe(probes, "Bounded network timeout", delegate
+            {
+                var engine = new E();
+                Need(engine.Tm == 15000, "default timeout changed");
+                engine.Tm = 1;
+                Need(engine.Tm == 100, "minimum timeout changed");
+                engine.Tm = Int32.MaxValue;
+                Need(engine.Tm == 60000, "maximum timeout changed");
+                return "Tm defaults to 15000 ms and clamps to 100-60000 ms";
+            });
             AddProbe(probes, "Bounded class mutations", delegate
             {
                 var engine = new E();

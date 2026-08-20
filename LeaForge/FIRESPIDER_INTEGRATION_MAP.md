@@ -185,3 +185,5 @@ Lea tabs also subscribe to the compact `V.Gr` navigation-request event. A safe
 page `go(url)` value reaches Firespider as bounded `V.Gu` data and is loaded
 through the adapter's existing asynchronous route. The engine rejects unsafe
 schemes and remote-to-local-file requests before Firespider sees them.
+The host-visible `V.Tm` alias carries Lea's bounded 15-second default request
+deadline, with 100-60,000 ms limits and typed timeout/cancellation results.

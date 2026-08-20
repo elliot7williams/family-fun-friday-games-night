@@ -1,6 +1,6 @@
 # Lea 1.0 Progress
 
-Current completion: **90%**
+Current completion: **91%**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -10,14 +10,14 @@ modern web platform.
 | Area | Weight | Earned | Current state |
 | --- | ---: | ---: | --- |
 | Core and alias API | 10% | 10% | Compact API, bounded diagnostics, repeatable reports, history, projects, backups |
-| Networking | 10% | 9% | Streamed bounded downloads, private cookies, typed errors, validators, compression, LRU cache |
+| Networking | 10% | 10% | Bounded request deadlines and downloads, private cookies, typed errors, validators, compression, LRU cache |
 | HTML and document tree | 20% | 12% | Bounded tokens, queries, and base URLs, raw/RCDATA text, entities, recovery, semantic blocks, tables |
 | CSS | 15% | 15% | Compiled selectors, dynamic hover/focus, sizing, visibility/opacity, fonts, overflow, boxes |
 | Layout and painting | 20% | 20% | Inset stretch, translated contexts, nested content, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Bounded multipart files, richer widgets, validation, responsive images, GET/POST submit |
 | Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/style/alert and class commands |
 | Firespider integration and reliability | 10% | 9% | Lea Inspector, keyboard navigation, open/save/send routes, sessions, source, host smoke tests |
-| **Total** | **100%** | **90%** | |
+| **Total** | **100%** | **91%** | |
 
 ## Updating the percentage
 
@@ -28,4 +28,4 @@ modern web platform.
 
 ## Next gains
 
-- Configurable bounded request timeout (`Tm`) with typed timeout coverage: +1%
+- Make Firespider's primary New Tab command create Lea tabs while preserving an explicit legacy fallback: +1%

@@ -93,6 +93,7 @@ namespace Lea.Win
         public int Kc { get { return e.Kc; } }
         public int Km { get { return e.Km; } }
         public long Dm { get { return e.Dm; } }
+        public int Tm { get { return e.Tm; } set { e.Tm = value; } }
         public bool Pv { get { return e.Pv; } set { e.Pv = value; } }
         public bool Je { get { return e.Je; } set { e.Je = value; } }
         public string Am { get; private set; }

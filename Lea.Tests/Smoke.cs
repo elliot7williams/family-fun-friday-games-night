@@ -25,6 +25,12 @@ namespace Lea.Tests
                 var forms = Path.Combine(root, "LeaForge", "test-pages", "forms.html");
                 var engine = new E();
                 var page = engine.Go(forms);
+                Eq(15000, engine.Tm, "default request timeout milliseconds");
+                engine.Tm = 1;
+                Eq(100, engine.Tm, "minimum request timeout");
+                engine.Tm = Int32.MaxValue;
+                Eq(60000, engine.Tm, "maximum request timeout");
+                engine.Tm = 15000;
                 Eq(200, page.St, "local status");
                 Eq("text/html", page.Ct, "local content type");
                 Eq("utf-8", page.Ch, "local charset");
@@ -798,6 +804,10 @@ namespace Lea.Tests
                     view.Go(findPath);
                     Paint(view);
                     Eq(64L * 1024 * 1024, view.Dm, "WinForms download maximum");
+                    Eq(15000, view.Tm, "WinForms request timeout");
+                    view.Tm = 1;
+                    Eq(100, view.Tm, "WinForms request timeout forwarding");
+                    view.Tm = 15000;
                     Eq(3, view.Fd("cobalt"), "WinForms painted find count");
                     Eq(1, view.Fx, "WinForms first find index");
                     Ok(!view.Fr.IsEmpty, "WinForms current find rectangle");
@@ -1827,6 +1837,43 @@ namespace Lea.Tests
                     Eq(new Uri(server.U, "approved"), remoteGoEngine.Gt(remoteGoPage), "remote relative HTTP go request");
                 }
 
+                var timeoutEngine = new E();
+                timeoutEngine.Tm = 100;
+                using (var slow = new CompressedServer())
+                {
+                    var timeout = Fails(delegate { timeoutEngine.Go(new Uri(slow.U, "?delay=1000")); }, "synchronous request timeout");
+                    Eq("timeout", timeout.K, "synchronous timeout kind");
+                    Ok(timeout.Rt, "synchronous timeout retryable");
+                    Eq(1, slow.Hits, "synchronous timeout request started");
+                }
+                using (var normal = new CompressedServer())
+                {
+                    timeoutEngine.Tm = 1000;
+                    Eq("Lea gzip", timeoutEngine.Go(new Uri(normal.U, "?after-timeout=1")).T, "normal request after timeout");
+                }
+
+                var asyncTimeoutEngine = new E();
+                asyncTimeoutEngine.Tm = 100;
+                using (var slow = new CompressedServer())
+                {
+                    var timeout = Fails(delegate { asyncTimeoutEngine.GoA(new Uri(slow.U, "?delay=1000")).GetAwaiter().GetResult(); }, "asynchronous request timeout");
+                    Eq("timeout", timeout.K, "asynchronous timeout kind");
+                    Ok(timeout.Rt, "asynchronous timeout retryable");
+                    Eq(1, slow.Hits, "asynchronous timeout request started");
+                }
+
+                var cancelEngine = new E();
+                cancelEngine.Tm = 2000;
+                using (var slow = new CompressedServer())
+                {
+                    var work = cancelEngine.GoA(new Uri(slow.U, "?delay=1000&cancel=1"));
+                    WaitFor(delegate { return slow.Hits == 1; }, "cancel request started");
+                    cancelEngine.St();
+                    var cancel = Fails(delegate { work.GetAwaiter().GetResult(); }, "host request cancellation");
+                    Eq("cancel", cancel.K, "cancellation remains distinct from timeout");
+                    Ok(!cancel.Rt, "cancellation not retryable");
+                }
+
                 using (var alertView = new V())
                 {
                     var reentrantAlerts = 0;
@@ -2311,6 +2358,7 @@ namespace Lea.Tests
             private readonly TcpListener listener;
             private readonly Thread thread;
             private readonly object state = new object();
+            private readonly ManualResetEvent stop = new ManualResetEvent(false);
             private int hits;
             private volatile bool stopping;
             private string lastMethod = "";
@@ -2395,6 +2443,8 @@ namespace Lea.Tests
                             lastIfModifiedSince = ifModifiedSince;
                             lastCookie = cookie;
                         }
+                        var delay = IntValue(QueryValue(request, "delay"));
+                        if (delay > 0 && stop.WaitOne(Math.Min(delay, 2000))) return;
                         if (request.IndexOf("redirect=1", StringComparison.OrdinalIgnoreCase) >= 0)
                         {
                             var redirect = Encoding.ASCII.GetBytes("HTTP/1.1 302 Found\r\nLocation: /page?encoding=gzip&redirected=1\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
@@ -2529,8 +2579,10 @@ namespace Lea.Tests
             public void Dispose()
             {
                 stopping = true;
+                stop.Set();
                 listener.Stop();
                 thread.Join(2000);
+                stop.Dispose();
             }
         }
     }

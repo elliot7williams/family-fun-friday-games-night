@@ -239,10 +239,10 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Expose the existing 15-second network deadline as a compact bounded `Tm`
-property. Clamp it to a dependable range, apply it to synchronous and
-asynchronous HTTP work, preserve `Er.K == "timeout"`, and cover slow response,
-cancellation, and normal request behavior without lengthening the smoke suite.
+Move Firespider's primary New Tab command onto Lea while retaining an explicit
+legacy-tab fallback for features that still require `WebBrowser`. Route every
+new-tab entry point through one type-aware adapter and extend the off-screen
+host smoke so no immediate caller assumes the new control is a legacy browser.
 
 The repeatable compatibility and performance report is now implemented by
 `Lea.Bench`. It probes supported HTML, CSS, forms, scripting, layout, downloads,

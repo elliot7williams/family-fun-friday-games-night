@@ -31,6 +31,8 @@ The bounded `go(url)` command raises `V.Gr` with `V.Gu`; Firespider sends that
 request through its existing asynchronous Lea loader. Relative URLs resolve
 against the document base, unsafe schemes and remote-to-file requests are
 rejected, and a command request overrides the same click's default link route.
+Lea tabs also expose the bounded `V.Tm` request deadline: 15,000 ms by default,
+clamped to 100-60,000 ms, with typed timeout and cancellation failures.
 
 Firespider can read `V.Dg()` for bounded response, document, CSS, request,
 command, cache, and cookie diagnostics without reflecting into Lea internals.

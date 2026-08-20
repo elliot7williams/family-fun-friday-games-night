@@ -52,6 +52,10 @@ namespace Lea.Firespider
 
                     Check(host != null, "Lea view in selected tab");
                     Check(host.At != null && host.T == "Lea in Firespider", "bundled Lea start page");
+                    Check(host.Tm == 15000, "Firespider Lea request timeout");
+                    host.Tm = 1;
+                    Check(host.Tm == 100, "Firespider Lea request timeout forwarding");
+                    host.Tm = 15000;
                     var scriptCommands = host.Js("t('Firespider Script'); bg('#e8f4ef'); fs(19); a('Host alert');");
                     Check(scriptCommands == 4 && host.At.Jc == 4, "Firespider Lea script commands");
                     Check(host.T == "Firespider Script" && host.At.S.Bg == "#e8f4ef" && host.At.S.Fs == 19, "Firespider Lea script state");

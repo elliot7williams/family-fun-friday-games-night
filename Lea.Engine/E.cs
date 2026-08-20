@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Cache;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Lea.Engine
@@ -35,6 +36,9 @@ namespace Lea.Engine
         private const int MaxQueryGroups = 16;
         private const int MaxQueryParts = 16;
         private const int MaxQueryResults = 256;
+        private const int MinTimeout = 100;
+        private const int MaxTimeout = 60000;
+        private const int DefaultTimeout = 15000;
         private readonly W web = new W();
         private readonly List<P> hs = new List<P>();
         private readonly Dictionary<string, Cr> cache = new Dictionary<string, Cr>(StringComparer.OrdinalIgnoreCase);
@@ -63,6 +67,11 @@ namespace Lea.Engine
         public int Kc { get { return web.Kc; } }
         public int Km { get { return W.CookieMax; } }
         public long Dm { get { return MaxDownload; } }
+        public int Tm
+        {
+            get { return web.Tm; }
+            set { web.Tm = Math.Max(MinTimeout, Math.Min(MaxTimeout, value)); }
+        }
         public bool Je { get { return je; } set { je = value; } }
         public bool Pv
         {
@@ -476,7 +485,7 @@ namespace Lea.Engine
             {
                 var raw = url.IsFile
                     ? (Stream)new FileStream(Local(url), FileMode.Open, FileAccess.Read, FileShare.Read, 32768, true)
-                    : await web.OpenReadTaskAsync(url);
+                    : await NetA(web.OpenReadTaskAsync(url));
                 long size;
                 Uri finalUrl;
                 string contentType;
@@ -534,12 +543,14 @@ namespace Lea.Engine
             return total;
         }
 
-        private static async Task<long> CopyDownloadA(Stream input, Stream output, Uri url)
+        private async Task<long> CopyDownloadA(Stream input, Stream output, Uri url)
         {
             var buffer = new byte[32768];
             long total = 0;
             int read;
-            while ((read = await input.ReadAsync(buffer, 0, buffer.Length)) > 0)
+            while ((read = url.IsFile
+                ? await input.ReadAsync(buffer, 0, buffer.Length)
+                : await NetA(input.ReadAsync(buffer, 0, buffer.Length), delegate { input.Dispose(); })) > 0)
             {
                 total += read;
                 CheckDownloadLength(url, total);
@@ -618,6 +629,7 @@ namespace Lea.Engine
         {
             if (busy) throw new InvalidOperationException("Lea is already loading a page.");
             busy = true;
+            stopped = false;
             try
             {
                 return await ParseA(await FetchA(url, fresh));
@@ -630,6 +642,7 @@ namespace Lea.Engine
             }
             finally
             {
+                stopped = false;
                 busy = false;
             }
         }
@@ -665,11 +678,12 @@ namespace Lea.Engine
             if (data != null && data.Length > MaxPost) throw new ArgumentException("Lea request body is too large.", "data");
             if (busy) throw new InvalidOperationException("Lea is already loading a page.");
             busy = true;
+            stopped = false;
             try
             {
                 DropCache(url);
                 web.Headers[HttpRequestHeader.ContentType] = BodyType(type);
-                var bytes = await web.UploadDataTaskAsync(url, "POST", data ?? new byte[0]);
+                var bytes = await NetA(web.UploadDataTaskAsync(url, "POST", data ?? new byte[0]));
                 var reply = ReadWeb(url, bytes);
                 DropCache(reply.U);
                 var load = Track("POST", new Ld(reply, false), "net");
@@ -683,6 +697,7 @@ namespace Lea.Engine
             }
             finally
             {
+                stopped = false;
                 busy = false;
                 web.Headers.Remove(HttpRequestHeader.ContentType);
             }
@@ -736,7 +751,7 @@ namespace Lea.Engine
             byte[] bytes;
             try
             {
-                try { bytes = await web.DownloadDataTaskAsync(url); }
+                try { bytes = await NetA(web.DownloadDataTaskAsync(url)); }
                 catch (WebException error)
                 {
                     if (stale == null || !web.Nm(error)) throw;
@@ -749,6 +764,27 @@ namespace Lea.Engine
                 return Track("GET", new Ld(reply, notModified), notModified ? "304" : "net");
             }
             finally { web.Va("", ""); }
+        }
+
+        private async Task<T> NetA<T>(Task<T> work, Action cancel = null)
+        {
+            using (var timer = new CancellationTokenSource())
+            {
+                try
+                {
+                    var winner = await Task.WhenAny(work, Task.Delay(Tm, timer.Token));
+                    if (winner != work && !work.IsCompleted)
+                    {
+                        if (cancel != null) cancel();
+                        else web.CancelAsync();
+                        try { await work; }
+                        catch { }
+                        throw new WebException("Lea network request timed out.", stopped ? WebExceptionStatus.RequestCanceled : WebExceptionStatus.Timeout);
+                    }
+                    return await work;
+                }
+                finally { timer.Cancel(); }
+            }
         }
 
         private P Parse(Ld load)
@@ -3265,6 +3301,7 @@ namespace Lea.Engine
             private CookieContainer privateJar = NewJar();
             private CookieContainer jar;
             private bool pv;
+            private int tm = DefaultTimeout;
 
             public Uri U { get; private set; }
             public int St { get; private set; }
@@ -3285,6 +3322,7 @@ namespace Lea.Engine
             }
 
             public int Kc { get { return jar.Count; } }
+            public int Tm { get { return tm; } set { tm = value; } }
             public bool Pv
             {
                 get { return pv; }
@@ -3346,8 +3384,8 @@ namespace Lea.Engine
                     http.Headers[HttpRequestHeader.AcceptEncoding] = "gzip, deflate";
                     http.CachePolicy = new RequestCachePolicy(RequestCacheLevel.BypassCache);
                     http.UserAgent = "Lea/0.3";
-                    http.Timeout = 15000;
-                    http.ReadWriteTimeout = 15000;
+                    http.Timeout = tm;
+                    http.ReadWriteTimeout = tm;
                     if (ve.Length > 0) http.Headers[HttpRequestHeader.IfNoneMatch] = ve;
                     DateTime modified;
                     if (vm.Length > 0 && DateTime.TryParse(vm, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out modified)) http.IfModifiedSince = modified.ToUniversalTime();
