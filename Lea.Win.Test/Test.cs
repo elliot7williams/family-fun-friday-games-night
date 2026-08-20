@@ -3,6 +3,7 @@ using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Lea.Engine;
 using Lea.Win;
 
 namespace Lea.Win.Test
@@ -16,6 +17,7 @@ namespace Lea.Win.Test
         private readonly Button rl = new Button();
         private readonly Button stp = new Button();
         private readonly Button dl = new Button();
+        private readonly Button ins = new Button();
         private readonly Button go = new Button();
         private readonly Label st = new Label();
         private readonly TableLayoutPanel findBar = new TableLayoutPanel();
@@ -25,6 +27,13 @@ namespace Lea.Win.Test
         private readonly Button findNext = new Button();
         private readonly Button findClose = new Button();
         private readonly ToolTip tips = new ToolTip();
+        private readonly SplitContainer split = new SplitContainer();
+        private readonly TabControl inspectorTabs = new TabControl();
+        private readonly TextBox inspectorSummary = InspectorText();
+        private readonly TextBox inspectorNodes = InspectorText();
+        private readonly TextBox inspectorCss = InspectorText();
+        private readonly TextBox inspectorRequests = InspectorText();
+        private readonly TextBox inspectorMessages = InspectorText();
 
         public TestWindow(string start)
         {
@@ -37,13 +46,14 @@ namespace Lea.Win.Test
             var top = new TableLayoutPanel();
             top.Dock = DockStyle.Top;
             top.Height = 38;
-            top.ColumnCount = 7;
+            top.ColumnCount = 8;
             top.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 38));
             top.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 38));
             top.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 38));
             top.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 38));
             top.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 38));
             top.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            top.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 38));
             top.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 52));
 
             SetButton(bk, "<", delegate { v.Bk(); });
@@ -51,12 +61,14 @@ namespace Lea.Win.Test
             SetButton(rl, "R", async delegate { await TryGoA(delegate { return v.RlA(); }); });
             SetButton(stp, "X", delegate { v.St(); st.Text = "Stopped"; });
             SetButton(dl, "D", delegate { Download(v.U, DownloadName(v.U)); });
+            SetButton(ins, "I", delegate { ToggleInspector(); });
             SetButton(go, "Go", async delegate { await TryGoA(delegate { return v.GoA(u.Text); }); });
             tips.SetToolTip(bk, "Back");
             tips.SetToolTip(fw, "Forward");
             tips.SetToolTip(rl, "Reload");
             tips.SetToolTip(stp, "Stop");
             tips.SetToolTip(dl, "Download current address");
+            tips.SetToolTip(ins, "Developer diagnostics");
             u.Dock = DockStyle.Fill;
             u.Margin = new Padding(4, 7, 4, 4);
             u.KeyDown += async delegate(object sender, KeyEventArgs e)
@@ -70,7 +82,10 @@ namespace Lea.Win.Test
             top.Controls.Add(stp, 3, 0);
             top.Controls.Add(dl, 4, 0);
             top.Controls.Add(u, 5, 0);
-            top.Controls.Add(go, 6, 0);
+            top.Controls.Add(ins, 6, 0);
+            top.Controls.Add(go, 7, 0);
+
+            BuildInspector();
 
             findBar.Dock = DockStyle.Top;
             findBar.Height = 34;
@@ -120,6 +135,7 @@ namespace Lea.Win.Test
                 fw.Enabled = v.CanFw;
                 dl.Enabled = v.U != null;
                 st.Text = v.At == null ? "Lea ready" : v.At.N + " nodes, " + v.At.Ls.Count + " links, " + v.At.Fs.Count + " fields";
+                if (!split.Panel2Collapsed) RefreshInspector();
             };
             v.Al += delegate { st.Text = "Alert: " + v.Am; };
             v.Dr += delegate { Download(v.Du, v.Dn); };
@@ -127,19 +143,179 @@ namespace Lea.Win.Test
             KeyDown += delegate(object sender, KeyEventArgs e)
             {
                 if (e.Control && e.KeyCode == Keys.F) { OpenFind(); e.SuppressKeyPress = true; }
+                else if (e.KeyCode == Keys.F12 || (e.Control && e.Shift && e.KeyCode == Keys.I)) { ToggleInspector(); e.SuppressKeyPress = true; }
                 else if (e.KeyCode == Keys.Escape && findBar.Visible) { CloseFind(); e.SuppressKeyPress = true; }
+                else if (e.KeyCode == Keys.Escape && !split.Panel2Collapsed) { CloseInspector(); e.SuppressKeyPress = true; }
             };
 
-            Controls.Add(v);
+            split.Dock = DockStyle.Fill;
+            split.FixedPanel = FixedPanel.Panel2;
+            split.SplitterWidth = 5;
+            split.Panel1.Controls.Add(v);
+            split.Panel2Collapsed = true;
+            Controls.Add(split);
             Controls.Add(st);
             Controls.Add(findBar);
             Controls.Add(top);
+            PerformLayout();
+            split.Panel2MinSize = 280;
 
             if (!String.IsNullOrWhiteSpace(start))
             {
                 u.Text = start;
                 Shown += async delegate { await TryGoA(delegate { return v.GoA(start); }); };
             }
+        }
+
+        private void BuildInspector()
+        {
+            var header = new TableLayoutPanel();
+            header.Dock = DockStyle.Top;
+            header.Height = 34;
+            header.ColumnCount = 4;
+            header.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 32));
+            header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 32));
+            header.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 32));
+            var title = new Label();
+            title.Text = "Lea Inspector";
+            title.Dock = DockStyle.Fill;
+            title.Padding = new Padding(7, 8, 0, 0);
+            var refresh = new Button();
+            var clear = new Button();
+            var close = new Button();
+            SetButton(refresh, "R", delegate { RefreshInspector(); });
+            SetButton(clear, "C", delegate { v.Dcl(); RefreshInspector(); });
+            SetButton(close, "X", delegate { CloseInspector(); });
+            tips.SetToolTip(refresh, "Refresh diagnostics");
+            tips.SetToolTip(clear, "Clear request activity");
+            tips.SetToolTip(close, "Close diagnostics");
+            header.Controls.Add(title, 0, 0);
+            header.Controls.Add(refresh, 1, 0);
+            header.Controls.Add(clear, 2, 0);
+            header.Controls.Add(close, 3, 0);
+
+            inspectorTabs.Dock = DockStyle.Fill;
+            AddInspectorTab("Summary", inspectorSummary);
+            AddInspectorTab("Nodes", inspectorNodes);
+            AddInspectorTab("CSS", inspectorCss);
+            AddInspectorTab("Requests", inspectorRequests);
+            AddInspectorTab("Messages", inspectorMessages);
+            split.Panel2.Controls.Add(inspectorTabs);
+            split.Panel2.Controls.Add(header);
+        }
+
+        private void AddInspectorTab(string name, TextBox content)
+        {
+            var page = new TabPage(name);
+            page.Padding = new Padding(4);
+            page.Controls.Add(content);
+            inspectorTabs.TabPages.Add(page);
+        }
+
+        private static TextBox InspectorText()
+        {
+            return new TextBox
+            {
+                Dock = DockStyle.Fill,
+                Multiline = true,
+                ReadOnly = true,
+                WordWrap = false,
+                ScrollBars = ScrollBars.Both,
+                BorderStyle = BorderStyle.None,
+                BackColor = Color.White,
+                Font = new Font("Consolas", 9F)
+            };
+        }
+
+        private void ToggleInspector()
+        {
+            if (split.Panel2Collapsed) OpenInspector(); else CloseInspector();
+        }
+
+        private void OpenInspector()
+        {
+            split.Panel2Collapsed = false;
+            split.SplitterDistance = Math.Max(320, split.Width - 360);
+            RefreshInspector();
+        }
+
+        private void CloseInspector()
+        {
+            split.Panel2Collapsed = true;
+            v.Focus();
+        }
+
+        private void RefreshInspector()
+        {
+            var data = v.Dg();
+            if (data == null)
+            {
+                inspectorSummary.Text = "No page";
+                inspectorNodes.Clear();
+                inspectorCss.Clear();
+                inspectorRequests.Clear();
+                inspectorMessages.Clear();
+                return;
+            }
+            inspectorSummary.Lines = new[]
+            {
+                data.T,
+                data.U == null ? "" : data.U.ToString(),
+                "",
+                "Response   " + data.St + "  " + data.Ct + "  " + data.Sz + " bytes" + (data.Ca ? "  cache" : ""),
+                "Document   " + data.N + " nodes  " + data.B + " blocks",
+                "Content    " + data.L + " links  " + data.F + " fields  " + data.C + " CSS rules",
+                "Commands   " + data.J + " accepted  " + data.V + " variables  " + data.M + " alerts",
+                "Engine     " + data.Cc + " cached  " + data.Ch + " reuses  " + data.Kc + " cookies"
+            };
+            inspectorNodes.Lines = Copy(data.Ns);
+            inspectorCss.Lines = Copy(data.Cs);
+            inspectorRequests.Lines = Copy(data.Rs);
+            var messages = new System.Collections.Generic.List<string>();
+            foreach (var item in data.Ms) messages.Add(item);
+            if (data.Vs.Count > 0)
+            {
+                messages.Add("");
+                messages.Add("variables");
+                foreach (var item in data.Vs) messages.Add(item);
+            }
+            inspectorMessages.Lines = messages.ToArray();
+        }
+
+        private static string[] Copy(System.Collections.Generic.IList<string> values)
+        {
+            var result = new string[values.Count];
+            values.CopyTo(result, 0);
+            return result;
+        }
+
+        internal bool DiagnosticsSmoke(string page, string output)
+        {
+            v.Go(page);
+            OpenInspector();
+            PerformLayout();
+            var passed = inspectorSummary.Text.Contains("Response   200") &&
+                inspectorNodes.Text.Contains("body") && inspectorCss.Text.Contains("body") &&
+                inspectorRequests.Text.Contains("GET 200 file") && inspectorMessages.Text.Contains("commands");
+            if (!String.IsNullOrWhiteSpace(output))
+            {
+                var full = Path.GetFullPath(output);
+                var folder = Path.GetDirectoryName(full);
+                if (!String.IsNullOrWhiteSpace(folder)) Directory.CreateDirectory(folder);
+                ShowInTaskbar = false;
+                StartPosition = FormStartPosition.Manual;
+                Location = new Point(-20000, -20000);
+                Show();
+                Application.DoEvents();
+                using (var image = new Bitmap(ClientSize.Width, ClientSize.Height))
+                {
+                    DrawToBitmap(image, new Rectangle(Point.Empty, image.Size));
+                    image.Save(full, System.Drawing.Imaging.ImageFormat.Png);
+                }
+                Hide();
+            }
+            return passed;
         }
 
         private static void SetButton(Button button, string text, EventHandler action)
@@ -230,11 +406,28 @@ namespace Lea.Win.Test
     internal static class Program
     {
         [STAThread]
-        private static void Main(string[] args)
+        private static int Main(string[] args)
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+            if (args.Length > 1 && args[0] == "--smoke")
+            {
+                try
+                {
+                    using (var window = new TestWindow(""))
+                    {
+                        window.CreateControl();
+                        return window.DiagnosticsSmoke(args[1], args.Length > 2 ? args[2] : "") ? 0 : 1;
+                    }
+                }
+                catch (Exception error)
+                {
+                    if (args.Length > 2) File.WriteAllText(args[2] + ".error.txt", error.ToString());
+                    return 1;
+                }
+            }
             Application.Run(new TestWindow(args.Length > 0 ? args[0] : ""));
+            return 0;
         }
     }
 }

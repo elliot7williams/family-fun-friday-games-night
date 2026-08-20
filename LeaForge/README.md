@@ -39,6 +39,7 @@ LeaForge is where we can grow the more full-featured browser.
 - tiny script handling for `alert("...")` and `document.title = "..."`
 - bounded engine scripting for title, body colors, font size, and host-routed alerts
 - safe button/link commands with bounded variables and ID-scoped text updates
+- bounded developer snapshots plus a tabbed inspector in the test browser
 - streamed local/HTTP downloads with explicit destinations and a 64 MB ceiling
 - highlighted, case-insensitive find-in-page with next/previous cycling
 
@@ -58,6 +59,10 @@ tx("id", "Hi ${name}") element text
 
 The longer `alert(...)` and `document.title = ...` forms still work. The short
 forms are intended for small, fast Lea pages and are limited to simple values.
+
+The .NET Framework test browser opens Lea Inspector with `F12`, `Ctrl+Shift+I`,
+or the `I` toolbar button. Its Summary, Nodes, CSS, Requests, and Messages tabs
+use the compact `Dg` API and never inspect private renderer fields.
 
 ## Compact Engine API
 

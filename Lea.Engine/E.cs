@@ -20,10 +20,14 @@ namespace Lea.Engine
         private const int MaxPost = 10 * 1024 * 1024;
         private const long MaxDownload = 64L * 1024 * 1024;
         private const int MaxFind = 256;
+        private const int MaxDiagnosticNodes = 512;
+        private const int MaxDiagnosticRules = 256;
+        private const int MaxDiagnosticRequests = 32;
         private readonly W web = new W();
         private readonly List<P> hs = new List<P>();
         private readonly Dictionary<string, Cr> cache = new Dictionary<string, Cr>(StringComparer.OrdinalIgnoreCase);
         private readonly List<string> lru = new List<string>();
+        private readonly List<string> requests = new List<string>();
         private int at = -1;
         private bool busy;
         private int cm = 8;
@@ -124,6 +128,54 @@ namespace Lea.Engine
             var code = element.Av("data-lea");
             if (String.IsNullOrWhiteSpace(code)) code = element.Av("onclick");
             return String.IsNullOrWhiteSpace(code) ? 0 : Js(page, code);
+        }
+
+        // Dg captures bounded page and engine diagnostics for developer tools.
+        public G Dg(P page)
+        {
+            if (page == null) throw new ArgumentNullException("page");
+            if (!hs.Contains(page)) throw new ArgumentException("The page does not belong to this Lea engine.", "page");
+            var rules = page.R as List<R>;
+            var result = new G
+            {
+                U = page.U,
+                T = page.T ?? "",
+                St = page.St,
+                Ct = page.Ct ?? "",
+                Sz = page.Sz,
+                Ca = page.Ca,
+                N = page.N,
+                B = page.Bs.Count,
+                L = page.Ls.Count,
+                F = page.Fs.Count,
+                C = rules == null ? 0 : rules.Count,
+                J = page.Jc,
+                V = page.Vs.Count,
+                M = page.Ms.Count,
+                Cc = Cc,
+                Ch = Ch,
+                Kc = Kc
+            };
+            DiagnosticNodes(page.D, 0, result.Ns);
+            if (rules != null)
+                foreach (var rule in rules)
+                {
+                    if (result.Cs.Count == MaxDiagnosticRules) break;
+                    result.Cs.Add(Short(rule.Q, 96) + " { " + Short(rule.V, 144) + " } [" + rule.W + "]");
+                }
+            lock (requests)
+                foreach (var request in requests) result.Rs.Add(request);
+            result.Ms.Add("commands " + page.Jc);
+            foreach (var message in page.Ms) result.Ms.Add("alert " + Short(message, 180));
+            var names = new List<string>(page.Vs.Keys);
+            names.Sort(StringComparer.OrdinalIgnoreCase);
+            foreach (var name in names) result.Vs.Add(name + " = " + Short(page.Vs[name], 180));
+            return result;
+        }
+
+        public void Dcl()
+        {
+            lock (requests) requests.Clear();
         }
 
         // Fd counts bounded, case-insensitive page-text matches.
@@ -349,7 +401,9 @@ namespace Lea.Engine
                         size = CopyDownload(input, output, url);
                 }
                 FinishDownload(temp, path);
-                return DownloadResult(finalUrl, path, contentType, size, status);
+                var result = DownloadResult(finalUrl, path, contentType, size, status);
+                Trace("DL", result.U, result.St, result.Ct, result.Sz, result.U.IsFile ? "file" : "net");
+                return result;
             }
             catch
             {
@@ -383,7 +437,9 @@ namespace Lea.Engine
                         size = await CopyDownloadA(input, output, url);
                 }
                 FinishDownload(temp, path);
-                return DownloadResult(finalUrl, path, contentType, size, status);
+                var result = DownloadResult(finalUrl, path, contentType, size, status);
+                Trace("DL", result.U, result.St, result.Ct, result.Sz, result.U.IsFile ? "file" : "net");
+                return result;
             }
             catch
             {
@@ -534,7 +590,8 @@ namespace Lea.Engine
                 var bytes = web.UploadData(url, "POST", data ?? new byte[0]);
                 var reply = ReadWeb(url, bytes);
                 DropCache(reply.U);
-                return Parse(new Ld(reply, false));
+                var load = Track("POST", new Ld(reply, false), "net");
+                return Parse(load);
             }
             catch (Exception error)
             {
@@ -559,7 +616,8 @@ namespace Lea.Engine
                 var bytes = await web.UploadDataTaskAsync(url, "POST", data ?? new byte[0]);
                 var reply = ReadWeb(url, bytes);
                 DropCache(reply.U);
-                return await ParseA(new Ld(reply, false));
+                var load = Track("POST", new Ld(reply, false), "net");
+                return await ParseA(load);
             }
             catch (Exception error)
             {
@@ -586,8 +644,8 @@ namespace Lea.Engine
         private Ld Fetch(Uri url, bool fresh = false)
         {
             Cr reply;
-            if (!url.IsFile && !fresh && GetCache(url, out reply)) return new Ld(reply, true);
-            if (url.IsFile) return new Ld(ReadFile(url), false);
+            if (!url.IsFile && !fresh && GetCache(url, out reply)) return Track("GET", new Ld(reply, true), "cache");
+            if (url.IsFile) return Track("GET", new Ld(ReadFile(url), false), "file");
 
             Cr stale;
             if (fresh || !GetStale(url, out stale)) stale = null;
@@ -605,7 +663,7 @@ namespace Lea.Engine
                 reply = notModified ? Revalidated(stale) : ReadWeb(url, bytes);
                 PutCache(url, reply);
                 if (notModified) ch++;
-                return new Ld(reply, notModified);
+                return Track("GET", new Ld(reply, notModified), notModified ? "304" : "net");
             }
             finally { web.Va("", ""); }
         }
@@ -613,8 +671,8 @@ namespace Lea.Engine
         private async Task<Ld> FetchA(Uri url, bool fresh = false)
         {
             Cr reply;
-            if (!url.IsFile && !fresh && GetCache(url, out reply)) return new Ld(reply, true);
-            if (url.IsFile) return new Ld(await Task.Factory.StartNew(delegate { return ReadFile(url); }), false);
+            if (!url.IsFile && !fresh && GetCache(url, out reply)) return Track("GET", new Ld(reply, true), "cache");
+            if (url.IsFile) return Track("GET", new Ld(await Task.Factory.StartNew(delegate { return ReadFile(url); }), false), "file");
 
             Cr stale;
             if (fresh || !GetStale(url, out stale)) stale = null;
@@ -632,7 +690,7 @@ namespace Lea.Engine
                 reply = notModified ? Revalidated(stale) : ReadWeb(url, bytes);
                 PutCache(url, reply);
                 if (notModified) ch++;
-                return new Ld(reply, notModified);
+                return Track("GET", new Ld(reply, notModified), notModified ? "304" : "net");
             }
             finally { web.Va("", ""); }
         }
@@ -904,6 +962,64 @@ namespace Lea.Engine
             return text.ToString();
         }
 
+        private static void DiagnosticNodes(N node, int depth, IList<string> lines)
+        {
+            if (node == null || lines.Count == MaxDiagnosticNodes) return;
+            var line = new StringBuilder();
+            line.Append(new String(' ', Math.Min(24, depth) * 2)).Append(node.K);
+            if (node.K == "#text") line.Append(" \"").Append(Short(node.X, 72)).Append('"');
+            else
+            {
+                AddDiagnosticAttribute(line, "id", node.Av("id"));
+                AddDiagnosticAttribute(line, "class", node.Av("class"));
+                AddDiagnosticAttribute(line, "type", node.Av("type"));
+                AddDiagnosticAttribute(line, "name", node.Av("name"));
+                AddDiagnosticAttribute(line, "href", node.Av("href"));
+                AddDiagnosticAttribute(line, "src", node.Av("src"));
+            }
+            var value = line.ToString();
+            lines.Add(value.Length > 240 ? value.Substring(0, 240) : value);
+            foreach (var child in node.C) DiagnosticNodes(child, depth + 1, lines);
+        }
+
+        private static void AddDiagnosticAttribute(StringBuilder line, string name, string value)
+        {
+            if (String.IsNullOrWhiteSpace(value)) return;
+            line.Append(' ').Append(name).Append("=\"").Append(Short(value, 80)).Append('"');
+        }
+
+        private Ld Track(string method, Ld load, string kind)
+        {
+            if (load != null && load.R != null) Trace(method, load.R.U, load.R.St, load.R.Ct, load.R.Sz, kind);
+            return load;
+        }
+
+        private void Trace(string method, Uri url, int status, string type, long size, string kind)
+        {
+            var line = (method ?? "GET") + " " + status + " " + (kind ?? "net") + " " + size + "B " +
+                Short(type, 48) + " " + Short(url == null ? "" : url.ToString(), 180);
+            lock (requests)
+            {
+                requests.Add(Short(line, 320));
+                if (requests.Count > MaxDiagnosticRequests) requests.RemoveAt(0);
+            }
+        }
+
+        private static string Short(string value, int max)
+        {
+            var result = new StringBuilder();
+            var space = false;
+            foreach (var ch in value ?? "")
+            {
+                if (Char.IsWhiteSpace(ch) || Char.IsControl(ch)) { space = result.Length > 0; continue; }
+                if (space && result.Length > 0) result.Append(' ');
+                result.Append(ch);
+                space = false;
+                if (result.Length == max) break;
+            }
+            return result.ToString().Trim();
+        }
+
         private static void AddText(N node, StringBuilder text)
         {
             if (node.K == "#text")
@@ -1029,7 +1145,7 @@ namespace Lea.Engine
                             simple.Add(value);
                         }
                         if (simple.Count == parts.Count)
-                            rules.Add(new R(match.Groups["v"].Value, Spec(simple), order++, simple.ToArray(), joins.ToArray()));
+                            rules.Add(new R(query, match.Groups["v"].Value, Spec(simple), order++, simple.ToArray(), joins.ToArray()));
                     }
                 }
             }
@@ -2679,14 +2795,16 @@ namespace Lea.Engine
 
         private sealed class R
         {
+            public readonly string Q;
             public readonly string V;
             public readonly int W;
             public readonly int O;
             public readonly Se[] P;
             public readonly char[] J;
 
-            public R(string values, int weight, int order, Se[] parts, char[] joins)
+            public R(string query, string values, int weight, int order, Se[] parts, char[] joins)
             {
+                Q = query;
                 V = values;
                 W = weight;
                 O = order;

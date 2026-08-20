@@ -235,6 +235,13 @@ namespace Lea.Win
             return Commands(e.Ck(At, element));
         }
 
+        public G Dg()
+        {
+            return At == null ? null : e.Dg(At);
+        }
+
+        public void Dcl() { e.Dcl(); }
+
         private int Commands(int count)
         {
             if (count == 0) return 0;

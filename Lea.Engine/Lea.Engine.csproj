@@ -32,6 +32,7 @@
     <Compile Include="E.cs" />
     <Compile Include="Er.cs" />
     <Compile Include="Fi.cs" />
+    <Compile Include="G.cs" />
     <Compile Include="Ir.cs" />
     <Compile Include="J.cs" />
     <Compile Include="Ln.cs" />

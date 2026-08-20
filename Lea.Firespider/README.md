@@ -26,6 +26,10 @@ Buttons and links can run bounded `data-lea` or familiar `onclick` values throug
 `V.Ck`. Small `v/var` variables and `tx/text` element updates stay inside Lea's
 allow-list and cannot reach native files, processes, or host controls.
 
+Firespider can read `V.Dg()` for bounded response, document, CSS, request,
+command, cache, and cookie diagnostics without reflecting into Lea internals.
+The snapshot omits mutable form values, passwords, and selected file paths.
+
 Firespider's existing Find command (`Ctrl+F`) now calls Lea's highlighted,
 case-insensitive match cycling for Lea tabs and keeps the original DOM range
 path for legacy tabs. Lea download links open Firespider's Save dialog, honor its
@@ -40,7 +44,7 @@ The adapter is kept here as the clean source of record because the live
 Firespider working tree contains unrelated in-progress changes.
 
 `Smoke.cs` loads two compiled Firespider forms off-screen and verifies Lea tab
-creation, script/style and safe click execution, alert routing, keyboard navigation, local
+creation, diagnostics, script/style and safe click execution, alert routing, keyboard navigation, local
 open, find cycling, streamed download saves, page save, send-link metadata,
 close routes, source, and session restoration using temporary files rather than
 the user's data.

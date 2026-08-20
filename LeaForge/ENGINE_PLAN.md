@@ -30,6 +30,7 @@ bg/fg   background/text color
 fs      font size
 v/tx    variable/element text
 Ck      safe element click
+Dg/Dcl  diagnostics/clear request activity
 ```
 
 ## 2. Engine foundation
@@ -133,6 +134,12 @@ temporary file, and reject payloads above 64 MB. `Fd` is capped at 256 matches;
 the WinForms view highlights painted matches and cycles them with `Nx`/`Pr`.
 Download links raise a host request rather than gaining direct file access.
 
+Bounded developer diagnostics are active through `Dg`. The compact `G` snapshot
+contains page/response counts, up to 512 redacted tree lines, 256 compiled CSS
+summaries, and the latest 32 local/network/cache/download events. `Dcl` clears
+request activity. `Lea.Win.Test` presents Summary, Nodes, CSS, Requests, and
+Messages tabs in a resizable inspector without adding controls to rendered pages.
+
 ## 8. Safety and reliability
 
 - Never execute arbitrary native code from a page.
@@ -227,8 +234,8 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add compact developer diagnostics for nodes, CSS rules, requests, and command
-messages, then expose them through a small test-browser inspection panel.
+Add a repeatable compatibility and performance report covering supported HTML,
+CSS, forms, scripting, startup, load timing, memory, and compressed size.
 
 The `inset` shorthand now expands atomically into `Tp/Rt/Bm/Lt`, and opposing
 edges stretch auto-sized absolute and fixed boxes against their containing

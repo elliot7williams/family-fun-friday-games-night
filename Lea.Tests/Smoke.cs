@@ -165,6 +165,24 @@ namespace Lea.Tests
                 Eq(2, eventEngine.Ck(eventPage, ById(eventPage.D, "continue")), "link click commands");
                 Eq("link", eventPage.Vs["last"], "link click variable");
                 Eq(0, eventEngine.Ck(eventPage, ById(eventPage.D, "unsafe")), "unsafe click code ignored");
+                var eventDiagnostics = eventEngine.Dg(eventPage);
+                Eq(eventPage.U, eventDiagnostics.U, "diagnostic page URL");
+                Eq("Clicked Lea", eventDiagnostics.T, "diagnostic title");
+                Eq(14, eventDiagnostics.N, "diagnostic node count");
+                Eq(6, eventDiagnostics.B, "diagnostic block count");
+                Eq(1, eventDiagnostics.L, "diagnostic link count");
+                Eq(3, eventDiagnostics.F, "diagnostic field count");
+                Eq(5, eventDiagnostics.C, "diagnostic CSS rule count");
+                Eq(10, eventDiagnostics.J, "diagnostic command count");
+                Eq(3, eventDiagnostics.V, "diagnostic variable count");
+                Eq(2, eventDiagnostics.M, "diagnostic alert count");
+                Ok(eventDiagnostics.Ns.Count <= 512 && Has(eventDiagnostics.Ns, "    body"), "bounded diagnostic node tree");
+                Ok(eventDiagnostics.Cs.Count == 5 && Has(eventDiagnostics.Cs, "button"), "compiled CSS diagnostics");
+                Ok(eventDiagnostics.Rs.Count == 1 && Has(eventDiagnostics.Rs, "GET 200 file"), "local request diagnostics");
+                Ok(Has(eventDiagnostics.Ms, "commands 10") && Has(eventDiagnostics.Ms, "alert Safe click ran"), "command message diagnostics");
+                Ok(Has(eventDiagnostics.Vs, "last = link"), "variable diagnostics");
+                eventEngine.Dcl();
+                Eq(0, eventEngine.Dg(eventPage).Rs.Count, "clear request diagnostics");
                 eventEngine.Je = false;
                 Eq(0, eventEngine.Ck(eventPage, ById(eventPage.D, "go")), "click commands respect script setting");
                 eventEngine.Je = true;
@@ -177,6 +195,8 @@ namespace Lea.Tests
                 Eq(16, variableEngine.Js(variablePage, variableCode.ToString()), "page variable limit");
                 Eq(16, variablePage.Vs.Count, "bounded variable storage");
                 Eq(0, variableEngine.Js(variablePage, "v('1bad','value'); tx('missing','value'); tx('body id','value');"), "invalid variables and text targets ignored");
+                variablePage.Fs[1].V = "private-password-value";
+                Ok(!Has(variableEngine.Dg(variablePage).Ns, "private-password-value"), "diagnostics omit field values");
 
                 var findPath = Path.Combine(root, "LeaForge", "test-pages", "find-download.html");
                 var findPage = engine.Go(findPath);
@@ -592,6 +612,9 @@ namespace Lea.Tests
                     Eq("Hello Lea", ById(view.At.D, "status").C[0].X, "WinForms click text update");
                     Eq(4, alertEvents, "WinForms click alert event");
                     Eq("Safe click ran", view.Am, "WinForms click alert message");
+                    var viewDiagnostics = view.Dg();
+                    Eq("Clicked Lea", viewDiagnostics.T, "WinForms diagnostics title");
+                    Ok(Has(viewDiagnostics.Rs, "events-vars.html"), "WinForms request diagnostics");
                     Paint(view);
                     var clickedEventPage = view.At;
                     var eventLink = HitRect(view, "second.html");
@@ -1639,7 +1662,7 @@ namespace Lea.Tests
                 if (args.Length > 2) SaveFindRender(findPath, args[2]);
                 if (args.Length > 3) SaveEventRender(eventPath, args[3]);
 
-                Console.WriteLine("Lea smoke passed: safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -1756,6 +1779,13 @@ namespace Lea.Tests
                 if (found != null) return found;
             }
             return null;
+        }
+
+        private static bool Has(System.Collections.Generic.IList<string> values, string text)
+        {
+            foreach (var value in values)
+                if ((value ?? "").IndexOf(text, StringComparison.OrdinalIgnoreCase) >= 0) return true;
+            return false;
         }
 
         private static Ir Run(B block, string kind)

@@ -51,6 +51,26 @@ of a safe element ID and cannot target the document, head, body, title, script,
 style, link, or metadata nodes. Click code cannot access files, processes,
 native controls, or arbitrary JavaScript APIs.
 
+Developer diagnostics use `Dg`: `E.Dg(page)` and `V.Dg()` return a bounded `G`
+snapshot. `Dcl()` clears request activity without touching navigation, cache,
+cookies, page messages, or variables. `G` uses these compact values:
+
+```text
+U/T       URL/title
+St/Ct/Sz  response status/type/bytes
+Ca        response reused cached content
+N/B/L/F   nodes/blocks/links/fields
+C/J/V/M   CSS rules/commands/variables/alerts
+Cc/Ch/Kc  cache entries/reuses/cookies
+Ns/Cs     bounded node/CSS lines
+Rs/Ms/Vs  request/message/variable lines
+```
+
+Snapshots retain at most 512 node lines, 256 compiled CSS summaries, and the 32
+latest requests. Node lines expose structural IDs, classes, types, names, and
+resource addresses, but never mutable field values, passwords, or selected file
+paths. The test browser opens its inspector with `F12`, `Ctrl+Shift+I`, or `I`.
+
 Lea also recognizes literal `document.title`, `document.body.style` color/font
 assignments, and `alert(...)`. Unknown calls, expressions, nested control flow,
 external scripts, and non-script data blocks do not execute.

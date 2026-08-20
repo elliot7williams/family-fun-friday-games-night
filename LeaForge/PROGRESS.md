@@ -1,6 +1,6 @@
 # Lea 1.0 Progress
 
-Current completion: **81%**
+Current completion: **82%**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -9,7 +9,7 @@ modern web platform.
 
 | Area | Weight | Earned | Current state |
 | --- | ---: | ---: | --- |
-| Core and alias API | 10% | 8% | Compact API, history, projects, backups |
+| Core and alias API | 10% | 9% | Compact API, bounded diagnostics, history, projects, backups |
 | Networking | 10% | 9% | Streamed bounded downloads, private cookies, typed errors, validators, compression, LRU cache |
 | HTML and document tree | 20% | 8% | Tolerant nodes, malformed nesting recovery, semantic blocks, structured tables |
 | CSS | 15% | 15% | Compiled selectors, dynamic hover/focus, sizing, visibility/opacity, fonts, overflow, boxes |
@@ -17,7 +17,7 @@ modern web platform.
 | Resources, forms, and media | 10% | 10% | Bounded multipart files, richer widgets, validation, responsive images, GET/POST submit |
 | Lea scripting | 5% | 3% | Safe click events, 16 bounded variables, text/title/style/alert commands, host enable switch |
 | Firespider integration and reliability | 10% | 8% | Keyboard navigation, open/save/send routes, sessions, source, host smoke tests |
-| **Total** | **100%** | **81%** | |
+| **Total** | **100%** | **82%** | |
 
 ## Updating the percentage
 
@@ -28,4 +28,4 @@ modern web platform.
 
 ## Next gains
 
-- Compact developer diagnostics and a small inspection panel: +1%
+- Compact compatibility and performance report: +1%

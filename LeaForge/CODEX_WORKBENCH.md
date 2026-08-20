@@ -17,9 +17,9 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-1. Add a developer tools panel for parsed nodes, CSS rules, network events, and command messages.
-2. Add a compact compatibility and performance report.
-3. Expand the safe command set only through bounded, fixture-backed aliases.
+1. Add a compact compatibility and performance report.
+2. Expand the safe command set only through bounded, fixture-backed aliases.
+3. Route useful developer diagnostics into Firespider without coupling its UI to engine internals.
 
 ## Rules For Future Codex Work
 

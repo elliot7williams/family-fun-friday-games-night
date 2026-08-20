@@ -208,6 +208,15 @@ are capped at 64 MB, decoded for gzip/deflate transport encoding, and committed
 through a temporary file. `E.Fd` provides bounded text counts, while
 `V.Fd`/`Nx`/`Pr`/`Fc` manage highlighted painted matches and scrolling.
 
+Developer hosts call `E.Dg(page)` or `V.Dg()` for a compact `G` snapshot rather
+than reflecting into the renderer. Counts cover the response, document, CSS,
+commands, cache, and cookies. Bounded lists expose redacted node summaries,
+compiled CSS selectors/declarations, request activity, alert messages, and page
+variables. Mutable field values, passwords, and selected file paths are omitted.
+`Dcl()` clears the latest request activity only. The standalone test browser
+uses this contract for its right-side inspector and keeps page rendering on the
+existing single `V` surface.
+
 ## Experimental Firespider tab
 
 The source in `../Lea.Firespider` now powers real engine-backed tabs in the
@@ -227,7 +236,7 @@ removes it, and legacy tabs continue using Firespider's settings collections.
 Firespider imports one `Lea/FirespiderLea.targets` file. The import supplies the
 two DLL references, partial VB adapter, and bundled local start page. Debug and
 Release builds pass `Smoke.cs`, which verifies Lea tab creation, keyboard
-navigation, bounded script/style and safe click execution, alert status routing, local open,
+navigation, bounded diagnostics, script/style and safe click execution, alert status routing, local open,
 page save, find cycling, streamed downloads, send-link metadata, timer status,
 close and source routing, and
 session save/restore across two host forms without loading another browser

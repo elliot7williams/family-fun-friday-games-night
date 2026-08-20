@@ -72,6 +72,8 @@ namespace Lea.Firespider
                     Check(host.Ck(ById(host.At.D, "host-action")) == 3, "Firespider safe click commands");
                     Check(ById(host.At.D, "state").C[0].X == "Hello Firespider" && host.At.Vs["last"] == "click", "Firespider safe click state");
                     Check(Member<Label>(form, "su").Text == "Lea: Safe host click", "Firespider safe click alert status");
+                    var diagnostics = host.Dg();
+                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 4 && diagnostics.Rs.Count > 0, "Firespider Lea diagnostics");
                     var findPage = type.GetMethod("qleaFind", BindingFlags.Instance | BindingFlags.NonPublic);
                     Check(findPage != null && (int)findPage.Invoke(form, new object[] { host, "route", false }) == 3, "Firespider Find routed to Lea");
                     Check(host.Fx == 1 && Member<Label>(form, "su").Text == "Lea: match 1 of 3", "Firespider Find status");
@@ -146,7 +148,7 @@ namespace Lea.Firespider
                     Check(restoredTabs.TabCount == beforeMiddle - 1 && FindLea(restoredTabs) == null, "middle-click Lea tab close");
                 }
 
-                Console.WriteLine("Firespider Lea smoke passed: safe clicks and variables, find and downloads, scripts and alerts, keyboard navigation, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
+                Console.WriteLine("Firespider Lea smoke passed: diagnostics, safe clicks and variables, find and downloads, scripts and alerts, keyboard navigation, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
                 return 0;
             }
             catch (Exception error)
