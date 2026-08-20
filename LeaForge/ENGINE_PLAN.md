@@ -139,6 +139,9 @@ contains page/response counts, up to 512 redacted tree lines, 256 compiled CSS
 summaries, and the latest 32 local/network/cache/download events. `Dcl` clears
 request activity. `Lea.Win.Test` presents Summary, Nodes, CSS, Requests, and
 Messages tabs in a resizable inspector without adding controls to rendered pages.
+Firespider now exposes the same bounded data in a separate Lea Inspector window
+from its View menu or a Lea tab's context menu. `F12` opens it, `R` refreshes,
+and `C` clears only request activity. Legacy tabs remain on their original path.
 
 ## 8. Safety and reliability
 
@@ -234,9 +237,10 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add a Lea inspector route to Firespider using only the bounded `V.Dg()` public
-contract. Reuse the adapter boundary and existing host UI patterns, keep legacy
-tabs untouched, and cover open/refresh/clear behavior in the host smoke suite.
+Add a bounded `go` page command that raises a host-controlled navigation request.
+Resolve only supported absolute or document-relative HTTP, HTTPS, and file URLs,
+keep the page language unable to access native controls directly, and cover the
+command limit, rejected schemes, relative URLs, and WinForms navigation route.
 
 The repeatable compatibility and performance report is now implemented by
 `Lea.Bench`. It probes supported HTML, CSS, forms, scripting, layout, downloads,

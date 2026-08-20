@@ -175,6 +175,8 @@ migrated.
 
 Find-in-page, explicit streamed downloads, safe button/link page commands, and
 the host-readable `Dg` diagnostics snapshot now route through Lea for Lea tabs.
-`Lea.Bench` now emits the repeatable compatibility/performance report. The next
-host integration expansion is a small developer command that consumes `Dg`
-without engine-specific casts.
+**View > Lea Inspector** (`F12`) and each Lea tab's context menu now present that
+bounded snapshot as Summary, Nodes, CSS, Requests, and Messages tabs. Refresh
+and request-log clearing stay on the public `Dg`/`Dcl` boundary, while legacy
+tabs are explicitly left untouched. `Lea.Bench` emits the repeatable
+compatibility/performance report.

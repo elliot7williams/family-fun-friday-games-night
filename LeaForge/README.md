@@ -71,6 +71,8 @@ forms are intended for small, fast Lea pages and are limited to simple values.
 The .NET Framework test browser opens Lea Inspector with `F12`, `Ctrl+Shift+I`,
 or the `I` toolbar button. Its Summary, Nodes, CSS, Requests, and Messages tabs
 use the compact `Dg` API and never inspect private renderer fields.
+Firespider's experimental Lea tabs expose the same bounded inspector from the
+View menu (`F12`) and the tab context menu, with refresh and request-log clearing.
 
 ## Compact Engine API
 

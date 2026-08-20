@@ -37,6 +37,11 @@ namespace Lea.Firespider
                     foreach (ToolStripItem item in file.DropDownItems)
                         if (item.Text == "New Lea Tab") found = true;
                     Check(found, "New Lea Tab menu");
+                    var view = Member<ToolStripMenuItem>(form, "v");
+                    ToolStripMenuItem inspectorMenu = null;
+                    foreach (ToolStripItem item in view.DropDownItems)
+                        if (item.Text == "Lea Inspector") inspectorMenu = item as ToolStripMenuItem;
+                    Check(inspectorMenu != null && inspectorMenu.ShortcutKeys == Keys.F12, "Lea Inspector menu and shortcut");
 
                     var open = type.GetMethod("qleaNewClick", BindingFlags.Instance | BindingFlags.NonPublic);
                     Check(open != null, "Lea tab command");
@@ -75,6 +80,21 @@ namespace Lea.Firespider
                     Check(Member<Label>(form, "su").Text == "Lea: Safe host click", "Firespider safe click alert status");
                     var diagnostics = host.Dg();
                     Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 5 && diagnostics.Rs.Count > 0, "Firespider Lea diagnostics");
+                    var inspectorOpen = type.GetMethod("qleaInspectorOpen", BindingFlags.Instance | BindingFlags.NonPublic);
+                    var inspectorSnapshot = type.GetMethod("qleaInspectorSnapshot", BindingFlags.Instance | BindingFlags.NonPublic);
+                    var inspectorClear = type.GetMethod("qleaInspectorClear", BindingFlags.Instance | BindingFlags.NonPublic);
+                    Check(inspectorOpen != null && inspectorSnapshot != null && inspectorClear != null, "Firespider Lea Inspector routes");
+                    var inspector = inspectorOpen.Invoke(form, null) as Form;
+                    Check(inspector != null && inspector.Name == "LeaInspector" && inspector.Text == "Lea Inspector", "Firespider Lea Inspector open");
+                    Check((bool)inspectorSnapshot.Invoke(form, null), "Firespider Lea Inspector refresh");
+                    Check(Member<TextBox>(form, "qleaInspectorSummary").Text.Contains("Response   200") &&
+                        Member<TextBox>(form, "qleaInspectorNodes").Text.Contains("body") &&
+                        Member<TextBox>(form, "qleaInspectorCss").Text.Contains(".hot") &&
+                        Member<TextBox>(form, "qleaInspectorRequests").Text.Contains("GET 200 file") &&
+                        Member<TextBox>(form, "qleaInspectorMessages").Text.Contains("commands"), "Firespider Lea Inspector bounded tabs");
+                    Check((bool)inspectorClear.Invoke(form, null) && host.Dg().Rs.Count == 0 &&
+                        Member<TextBox>(form, "qleaInspectorRequests").Text.Length == 0, "Firespider Lea Inspector clear requests");
+                    inspector.Close();
                     var findPage = type.GetMethod("qleaFind", BindingFlags.Instance | BindingFlags.NonPublic);
                     Check(findPage != null && (int)findPage.Invoke(form, new object[] { host, "route", false }) == 3, "Firespider Find routed to Lea");
                     Check(host.Fx == 1 && Member<Label>(form, "su").Text == "Lea: match 1 of 3", "Firespider Find status");
@@ -110,6 +130,7 @@ namespace Lea.Firespider
                     var closeTab = Member<ToolStripMenuItem>(form, "CT");
                     typeof(ToolStripItem).GetMethod("OnClick", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(closeTab, new object[] { EventArgs.Empty });
                     Check(tabs.TabCount == beforeClose - 1 && FindLea(tabs) == null, "Firespider Close Tab routed to Lea");
+                    Check(inspectorOpen.Invoke(form, null) == null && Member<Label>(form, "su").Text.Contains("Select a Lea tab"), "Lea Inspector leaves legacy tabs untouched");
 
                     open.Invoke(form, new object[] { form, EventArgs.Empty });
                     host = FindLea(tabs);
@@ -149,7 +170,7 @@ namespace Lea.Firespider
                     Check(restoredTabs.TabCount == beforeMiddle - 1 && FindLea(restoredTabs) == null, "middle-click Lea tab close");
                 }
 
-                Console.WriteLine("Firespider Lea smoke passed: class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, keyboard navigation, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
+                Console.WriteLine("Firespider Lea smoke passed: Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, keyboard navigation, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
                 return 0;
             }
             catch (Exception error)

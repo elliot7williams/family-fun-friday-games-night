@@ -3,6 +3,15 @@ Imports System.Collections.Generic
 
 Partial Class j
     Private qleaMenu As ToolStripMenuItem
+    Private qleaInspectorMenu As ToolStripMenuItem
+    Private qleaInspectorWindow As Form
+    Private qleaInspectorTabs As TabControl
+    Private qleaInspectorSummary As TextBox
+    Private qleaInspectorNodes As TextBox
+    Private qleaInspectorCss As TextBox
+    Private qleaInspectorRequests As TextBox
+    Private qleaInspectorMessages As TextBox
+    Private qleaInspectorTips As ToolTip
     Private Shared qleaSessionRestored As Boolean
 
     Private Sub qleaInit(ByVal sender As Object, ByVal e As EventArgs) Handles Me.Load
@@ -15,6 +24,16 @@ Partial Class j
         qleaMenu.ShortcutKeys = Keys.Control Or Keys.Alt Or Keys.L
         AddHandler qleaMenu.Click, AddressOf qleaNewClick
         fl.DropDownItems.Insert(Math.Min(1, fl.DropDownItems.Count), qleaMenu)
+        qleaInspectorMenu = New ToolStripMenuItem("Lea Inspector")
+        qleaInspectorMenu.Image = My.Resources.F9
+        qleaInspectorMenu.BackColor = Color.White
+        qleaInspectorMenu.ForeColor = Color.Black
+        qleaInspectorMenu.Padding = New Padding(0)
+        qleaInspectorMenu.ShortcutKeys = Keys.F12
+        AddHandler qleaInspectorMenu.Click, AddressOf qleaInspectorClick
+        Dim inspectorIndex As Integer = v.DropDownItems.IndexOf(S7)
+        If inspectorIndex < 0 Then inspectorIndex = v.DropDownItems.Count
+        v.DropDownItems.Insert(inspectorIndex, qleaInspectorMenu)
         qleaWire()
         If Not qleaSessionRestored Then
             qleaSessionRestored = True
@@ -160,8 +179,12 @@ Partial Class j
         AddHandler host.Dr, AddressOf qleaDownload
 
         Dim closeMenu As New ContextMenuStrip()
+        Dim inspectorItem As New ToolStripMenuItem("Lea Inspector")
         Dim closeItem As New ToolStripMenuItem("Close Lea Tab")
+        AddHandler inspectorItem.Click, Sub() qleaInspectorOpen()
         AddHandler closeItem.Click, Sub() qleaClose(tab)
+        closeMenu.Items.Add(inspectorItem)
+        closeMenu.Items.Add(New ToolStripSeparator())
         closeMenu.Items.Add(closeItem)
         host.ContextMenuStrip = closeMenu
         If String.IsNullOrWhiteSpace(target) Then target = qleaStart()
@@ -220,13 +243,17 @@ Partial Class j
     End Sub
 
     Private Sub qleaChanged(ByVal sender As Object, ByVal e As EventArgs)
-        qleaState(TryCast(sender, Global.Lea.Win.V))
+        Dim host = TryCast(sender, Global.Lea.Win.V)
+        qleaState(host)
+        qleaInspectorFollow(host)
     End Sub
 
     Private Sub qleaDone(ByVal sender As Object, ByVal e As EventArgs)
         r.Image = My.Resources.F8
         su.Visible = False
-        qleaState(TryCast(sender, Global.Lea.Win.V))
+        Dim host = TryCast(sender, Global.Lea.Win.V)
+        qleaState(host)
+        qleaInspectorFollow(host)
     End Sub
 
     Private Sub qleaAlert(ByVal sender As Object, ByVal e As EventArgs)
@@ -306,6 +333,219 @@ Partial Class j
         End Using
     End Sub
 
+    Private Sub qleaInspectorClick(ByVal sender As Object, ByVal e As EventArgs)
+        qleaInspectorOpen()
+    End Sub
+
+    Private Function qleaInspectorOpen() As Form
+        If qleaAt() Is Nothing Then
+            su.Visible = True
+            su.Text = "Select a Lea tab to open Lea Inspector"
+            Return Nothing
+        End If
+        If qleaInspectorWindow Is Nothing OrElse qleaInspectorWindow.IsDisposed Then qleaInspectorBuild()
+        qleaInspectorSnapshot()
+        If Visible Then
+            If Not qleaInspectorWindow.Visible Then qleaInspectorWindow.Show(Me)
+            qleaInspectorWindow.BringToFront()
+        Else
+            qleaInspectorWindow.CreateControl()
+        End If
+        Return qleaInspectorWindow
+    End Function
+
+    Private Sub qleaInspectorBuild()
+        qleaInspectorWindow = New Form()
+        qleaInspectorWindow.Name = "LeaInspector"
+        qleaInspectorWindow.Text = "Lea Inspector"
+        qleaInspectorWindow.Icon = Icon
+        qleaInspectorWindow.Size = New Size(760, 520)
+        qleaInspectorWindow.MinimumSize = New Size(480, 320)
+        qleaInspectorWindow.StartPosition = FormStartPosition.CenterParent
+        qleaInspectorWindow.FormBorderStyle = FormBorderStyle.SizableToolWindow
+        qleaInspectorWindow.ShowInTaskbar = False
+        qleaInspectorWindow.KeyPreview = True
+        AddHandler qleaInspectorWindow.KeyDown, AddressOf qleaInspectorKeyDown
+        AddHandler qleaInspectorWindow.FormClosed, AddressOf qleaInspectorClosed
+
+        Dim header As New TableLayoutPanel()
+        header.Dock = DockStyle.Top
+        header.Height = 34
+        header.ColumnCount = 4
+        header.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 100))
+        header.ColumnStyles.Add(New ColumnStyle(SizeType.Absolute, 32))
+        header.ColumnStyles.Add(New ColumnStyle(SizeType.Absolute, 32))
+        header.ColumnStyles.Add(New ColumnStyle(SizeType.Absolute, 32))
+        Dim title As New Label()
+        title.Text = "Lea Inspector"
+        title.Dock = DockStyle.Fill
+        title.Padding = New Padding(7, 8, 0, 0)
+        Dim refresh As New Button()
+        Dim clear As New Button()
+        Dim closeButton As New Button()
+        qleaInspectorButton(refresh, "R", AddressOf qleaInspectorRefreshClick)
+        qleaInspectorButton(clear, "C", AddressOf qleaInspectorClearClick)
+        qleaInspectorButton(closeButton, "X", AddressOf qleaInspectorCloseClick)
+        qleaInspectorTips = New ToolTip()
+        qleaInspectorTips.SetToolTip(refresh, "Refresh diagnostics")
+        qleaInspectorTips.SetToolTip(clear, "Clear request activity")
+        qleaInspectorTips.SetToolTip(closeButton, "Close inspector")
+        header.Controls.Add(title, 0, 0)
+        header.Controls.Add(refresh, 1, 0)
+        header.Controls.Add(clear, 2, 0)
+        header.Controls.Add(closeButton, 3, 0)
+
+        qleaInspectorTabs = New TabControl()
+        qleaInspectorTabs.Name = "LeaInspectorTabs"
+        qleaInspectorTabs.Dock = DockStyle.Fill
+        qleaInspectorSummary = qleaInspectorText("LeaInspectorSummary")
+        qleaInspectorNodes = qleaInspectorText("LeaInspectorNodes")
+        qleaInspectorCss = qleaInspectorText("LeaInspectorCss")
+        qleaInspectorRequests = qleaInspectorText("LeaInspectorRequests")
+        qleaInspectorMessages = qleaInspectorText("LeaInspectorMessages")
+        qleaInspectorPage("Summary", qleaInspectorSummary)
+        qleaInspectorPage("Nodes", qleaInspectorNodes)
+        qleaInspectorPage("CSS", qleaInspectorCss)
+        qleaInspectorPage("Requests", qleaInspectorRequests)
+        qleaInspectorPage("Messages", qleaInspectorMessages)
+        qleaInspectorWindow.Controls.Add(qleaInspectorTabs)
+        qleaInspectorWindow.Controls.Add(header)
+    End Sub
+
+    Private Sub qleaInspectorButton(ByVal button As Button, ByVal text As String, ByVal action As EventHandler)
+        button.Text = text
+        button.Dock = DockStyle.Fill
+        button.FlatStyle = FlatStyle.Flat
+        button.Margin = New Padding(2)
+        button.TabStop = False
+        AddHandler button.Click, action
+    End Sub
+
+    Private Function qleaInspectorText(ByVal name As String) As TextBox
+        Dim box As New TextBox()
+        box.Name = name
+        box.Dock = DockStyle.Fill
+        box.Multiline = True
+        box.ReadOnly = True
+        box.WordWrap = False
+        box.ScrollBars = ScrollBars.Both
+        box.BorderStyle = BorderStyle.None
+        box.BackColor = Color.White
+        box.Font = New Font("Consolas", 9.0F)
+        Return box
+    End Function
+
+    Private Sub qleaInspectorPage(ByVal name As String, ByVal content As TextBox)
+        Dim page As New TabPage(name)
+        page.Padding = New Padding(4)
+        page.Controls.Add(content)
+        qleaInspectorTabs.TabPages.Add(page)
+    End Sub
+
+    Private Function qleaInspectorSnapshot() As Boolean
+        If qleaInspectorSummary Is Nothing Then Return False
+        Dim host = qleaAt()
+        If host Is Nothing Then
+            qleaInspectorSummary.Text = "Select a Lea tab"
+            qleaInspectorNodes.Clear()
+            qleaInspectorCss.Clear()
+            qleaInspectorRequests.Clear()
+            qleaInspectorMessages.Clear()
+            Return False
+        End If
+        Dim data = host.Dg()
+        If data Is Nothing Then
+            qleaInspectorSummary.Text = "No page"
+            qleaInspectorNodes.Clear()
+            qleaInspectorCss.Clear()
+            qleaInspectorRequests.Clear()
+            qleaInspectorMessages.Clear()
+            Return False
+        End If
+        qleaInspectorSummary.Lines = New String() {
+            If(data.T, ""),
+            If(data.U Is Nothing, "", data.U.ToString()),
+            "",
+            "Response   " & data.St.ToString() & "  " & If(data.Ct, "") & "  " & data.Sz.ToString() & " bytes" & If(data.Ca, "  cache", ""),
+            "Document   " & data.N.ToString() & " nodes  " & data.B.ToString() & " blocks",
+            "Content    " & data.L.ToString() & " links  " & data.F.ToString() & " fields  " & data.C.ToString() & " CSS rules",
+            "Commands   " & data.J.ToString() & " accepted  " & data.V.ToString() & " variables  " & data.M.ToString() & " alerts",
+            "Engine     " & data.Cc.ToString() & " cached  " & data.Ch.ToString() & " reuses  " & data.Kc.ToString() & " cookies"
+        }
+        qleaInspectorNodes.Lines = qleaInspectorCopy(data.Ns)
+        qleaInspectorCss.Lines = qleaInspectorCopy(data.Cs)
+        qleaInspectorRequests.Lines = qleaInspectorCopy(data.Rs)
+        Dim messages As New List(Of String)()
+        For Each item As String In data.Ms
+            messages.Add(item)
+        Next
+        If data.Vs.Count > 0 Then
+            messages.Add("")
+            messages.Add("variables")
+            For Each item As String In data.Vs
+                messages.Add(item)
+            Next
+        End If
+        qleaInspectorMessages.Lines = messages.ToArray()
+        Return True
+    End Function
+
+    Private Function qleaInspectorCopy(ByVal values As IList(Of String)) As String()
+        If values.Count = 0 Then Return New String() {}
+        Dim result(values.Count - 1) As String
+        values.CopyTo(result, 0)
+        Return result
+    End Function
+
+    Private Function qleaInspectorClear() As Boolean
+        Dim host = qleaAt()
+        If host Is Nothing Then Return False
+        host.Dcl()
+        qleaInspectorSnapshot()
+        su.Visible = True
+        su.Text = "Lea request activity cleared"
+        Return True
+    End Function
+
+    Private Sub qleaInspectorRefreshClick(ByVal sender As Object, ByVal e As EventArgs)
+        qleaInspectorSnapshot()
+    End Sub
+
+    Private Sub qleaInspectorClearClick(ByVal sender As Object, ByVal e As EventArgs)
+        qleaInspectorClear()
+    End Sub
+
+    Private Sub qleaInspectorCloseClick(ByVal sender As Object, ByVal e As EventArgs)
+        If qleaInspectorWindow IsNot Nothing Then qleaInspectorWindow.Close()
+    End Sub
+
+    Private Sub qleaInspectorKeyDown(ByVal sender As Object, ByVal e As KeyEventArgs)
+        If e.KeyCode = Keys.F5 Then
+            qleaInspectorSnapshot()
+            e.SuppressKeyPress = True
+        ElseIf e.KeyCode = Keys.Escape Then
+            qleaInspectorWindow.Close()
+            e.SuppressKeyPress = True
+        End If
+    End Sub
+
+    Private Sub qleaInspectorClosed(ByVal sender As Object, ByVal e As FormClosedEventArgs)
+        If qleaInspectorTips IsNot Nothing Then qleaInspectorTips.Dispose()
+        qleaInspectorTips = Nothing
+        qleaInspectorWindow = Nothing
+        qleaInspectorTabs = Nothing
+        qleaInspectorSummary = Nothing
+        qleaInspectorNodes = Nothing
+        qleaInspectorCss = Nothing
+        qleaInspectorRequests = Nothing
+        qleaInspectorMessages = Nothing
+    End Sub
+
+    Private Sub qleaInspectorFollow(ByVal host As Global.Lea.Win.V)
+        If host Is Nothing OrElse qleaInspectorWindow Is Nothing OrElse qleaInspectorWindow.IsDisposed Then Return
+        If Object.ReferenceEquals(host, qleaAt()) Then qleaInspectorSnapshot()
+    End Sub
+
     Private Sub qleaState(ByVal host As Global.Lea.Win.V)
         If host Is Nothing Then Return
         Dim tab = TryCast(host.Parent, TabPage)
@@ -323,8 +563,10 @@ Partial Class j
         Dim host = qleaAt()
         If host IsNot Nothing Then
             qleaState(host)
+            If qleaInspectorWindow IsNot Nothing Then qleaInspectorSnapshot()
             Return
         End If
+        If qleaInspectorWindow IsNot Nothing Then qleaInspectorSnapshot()
         If k.SelectedTab Is Nothing OrElse k.SelectedTab.Controls.Count = 0 Then Return
         Dim browser = TryCast(k.SelectedTab.Controls(0), WebBrowser)
         If browser Is Nothing Then Return
@@ -573,6 +815,7 @@ Partial Class j
 
     Private Sub qleaClosing(ByVal sender As Object, ByVal e As FormClosingEventArgs)
         Try
+            If qleaInspectorWindow IsNot Nothing Then qleaInspectorWindow.Close()
             qleaSaveSession()
             qfeatureclosing()
             If pv = False Then

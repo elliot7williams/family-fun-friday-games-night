@@ -31,6 +31,10 @@ preserve mutable field values.
 Firespider can read `V.Dg()` for bounded response, document, CSS, request,
 command, cache, and cookie diagnostics without reflecting into Lea internals.
 The snapshot omits mutable form values, passwords, and selected file paths.
+**View > Lea Inspector** (`F12`) and the Lea tab context menu open Summary,
+Nodes, CSS, Requests, and Messages tabs backed only by that snapshot. `R`/`F5`
+refresh, `C` clears request activity through `V.Dcl()`, and `X`/Escape closes
+the owned window. Legacy tabs remain on Firespider's original path.
 
 Firespider's existing Find command (`Ctrl+F`) now calls Lea's highlighted,
 case-insensitive match cycling for Lea tabs and keeps the original DOM range
@@ -46,7 +50,8 @@ The adapter is kept here as the clean source of record because the live
 Firespider working tree contains unrelated in-progress changes.
 
 `Smoke.cs` loads two compiled Firespider forms off-screen and verifies Lea tab
-creation, diagnostics, script/style and safe click execution, alert routing, keyboard navigation, local
+creation, Inspector open/refresh/clear and legacy isolation, diagnostics,
+script/style and safe click execution, alert routing, keyboard navigation, local
 open, find cycling, streamed download saves, page save, send-link metadata,
 close routes, source, and session restoration using temporary files rather than
 the user's data.

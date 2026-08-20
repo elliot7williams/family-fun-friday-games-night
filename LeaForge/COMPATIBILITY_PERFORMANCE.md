@@ -10,12 +10,12 @@ These are repeatable local diagnostic samples, not performance promises. Re-run 
 
 | Measurement | Result |
 | --- | ---: |
-| Clean process + engine + first page median | 412.808 ms |
-| Clean process + engine + first page p95 | 503.788 ms |
-| Local page load median | 1.291 ms |
-| Local page load p95 | 2.990 ms |
-| Layout + bitmap paint median | 28.786 ms |
-| Layout + bitmap paint p95 | 81.865 ms |
+| Clean process + engine + first page median | 413.848 ms |
+| Clean process + engine + first page p95 | 471.094 ms |
+| Local page load median | 1.348 ms |
+| Local page load p95 | 3.597 ms |
+| Layout + bitmap paint median | 30.137 ms |
+| Layout + bitmap paint p95 | 84.812 ms |
 | Retained managed memory | 1405.9 KB for 65 loaded pages |
 | Retained managed memory per page | 21.6 KB |
 | Engine runtime DLLs | 193.0 KB |
@@ -27,19 +27,19 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 
 | Fixture | Bytes | Nodes | CSS rules | Median | p95 |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| `index.html` | 970 | 17 | 1 | 1.302 ms | 2.270 ms |
-| `recovery.html` | 1040 | 39 | 0 | 1.444 ms | 2.586 ms |
-| `html-tokens.html` | 943 | 15 | 2 | 1.015 ms | 2.527 ms |
-| `selectors.html` | 1017 | 20 | 10 | 0.983 ms | 1.787 ms |
-| `layout.html` | 616 | 9 | 4 | 0.686 ms | 1.518 ms |
-| `tables.html` | 894 | 28 | 6 | 1.338 ms | 2.333 ms |
-| `forms.html` | 1566 | 25 | 7 | 1.942 ms | 2.738 ms |
-| `events-vars.html` | 1132 | 14 | 5 | 1.163 ms | 2.264 ms |
-| `responsive-media.html` | 2575 | 21 | 5 | 1.912 ms | 2.990 ms |
-| `stacking-contexts.html` | 3149 | 32 | 22 | 3.245 ms | 5.121 ms |
-| `external.html` | 502 | 12 | 6 | 1.106 ms | 1.585 ms |
-| `base-url.html` | 819 | 17 | 5 | 1.152 ms | 2.519 ms |
-| `class-commands.html` | 1065 | 15 | 4 | 0.646 ms | 1.525 ms |
+| `index.html` | 970 | 17 | 1 | 0.959 ms | 5.325 ms |
+| `recovery.html` | 1040 | 39 | 0 | 0.964 ms | 1.883 ms |
+| `html-tokens.html` | 943 | 15 | 2 | 1.071 ms | 2.135 ms |
+| `selectors.html` | 1017 | 20 | 10 | 1.151 ms | 2.077 ms |
+| `layout.html` | 616 | 9 | 4 | 0.835 ms | 3.711 ms |
+| `tables.html` | 894 | 28 | 6 | 1.650 ms | 3.885 ms |
+| `forms.html` | 1566 | 25 | 7 | 1.783 ms | 3.046 ms |
+| `events-vars.html` | 1132 | 14 | 5 | 1.375 ms | 1.951 ms |
+| `responsive-media.html` | 2575 | 21 | 5 | 2.030 ms | 3.152 ms |
+| `stacking-contexts.html` | 3149 | 32 | 22 | 3.266 ms | 4.685 ms |
+| `external.html` | 502 | 12 | 6 | 1.783 ms | 3.220 ms |
+| `base-url.html` | 819 | 17 | 5 | 1.561 ms | 2.648 ms |
+| `class-commands.html` | 1065 | 15 | 4 | 0.651 ms | 4.919 ms |
 
 ## Executable Probes
 
@@ -82,7 +82,7 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 | `Lea.Win.dll` | 76800 | 75.0 KB |
 | `Lea.Win.Test.exe` | 392192 | 383.0 KB |
 | `Lea.Bench.exe` | 33280 | 32.5 KB |
-| `Firespider Internet 19.exe` | 1102336 | 1076.5 KB |
+| `Firespider Internet 19.exe` | 1088512 | 1063.0 KB |
 
 The engine runtime size is `Lea.Engine.dll` plus `Lea.Win.dll`. Test and report executables are listed separately and are not required when embedding Lea in Firespider.
 

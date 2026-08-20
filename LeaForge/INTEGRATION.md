@@ -248,10 +248,18 @@ existing source window from `V.H`. Open File loads through Lea, Save Page writes
 bounded file at `%LocalAppData%\Firespider Internet\Lea.session`; private mode
 removes it, and legacy tabs continue using Firespider's settings collections.
 
+**View > Lea Inspector** (`F12`) and each Lea tab's context menu open a compact
+owned diagnostics window. Summary, Nodes, CSS, Requests, and Messages are built
+only from the bounded public `V.Dg()` snapshot. `R`/`F5` refresh, `C` clears the
+request activity through `V.Dcl()`, and `X`/Escape closes the window. Selecting
+a legacy tab produces a neutral selection message and never casts or reflects
+into the legacy browser control.
+
 Firespider imports one `Lea/FirespiderLea.targets` file. The import supplies the
 two DLL references, partial VB adapter, and bundled local start page. Debug and
 Release builds pass `Smoke.cs`, which verifies Lea tab creation, keyboard
-navigation, bounded diagnostics, script/style and safe click execution, alert status routing, local open,
+navigation, Inspector open/refresh/clear and legacy isolation, bounded diagnostics,
+script/style and safe click execution, alert status routing, local open,
 page save, find cycling, streamed downloads, send-link metadata, timer status,
 close and source routing, and
 session save/restore across two host forms without loading another browser

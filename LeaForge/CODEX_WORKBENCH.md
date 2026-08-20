@@ -17,8 +17,7 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-1. Route a Lea inspector command into Firespider using only bounded `V.Dg()`
-   snapshots and the existing adapter boundary.
+1. Add a bounded `go` page-navigation request with host-controlled URL handling.
 2. Expand the safe command set only through bounded, fixture-backed aliases.
 3. Keep strengthening host tests as more legacy tab routes move to Lea.
 
@@ -31,6 +30,9 @@ Pages now expose `Bu`; the first valid bounded `<base href>` drives relative
 styles, links, images, forms, and downloads while `U` remains the response URL.
 Safe scripts and hosts now use `ac/rc/tc` for bounded ID-scoped class changes;
 compiled CSS is reapplied without replacing edited form state.
+Firespider now opens Lea Inspector with `F12` or a Lea tab's context menu. Its
+Summary, Nodes, CSS, Requests, and Messages tabs consume only `V.Dg()`; refresh
+and request-log clearing are covered by the off-screen host smoke suite.
 
 ## Rules For Future Codex Work
 
