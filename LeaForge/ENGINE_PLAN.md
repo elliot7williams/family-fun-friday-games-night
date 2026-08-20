@@ -239,10 +239,10 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Move Firespider's primary New Tab command onto Lea while retaining an explicit
-legacy-tab fallback for features that still require `WebBrowser`. Route every
-new-tab entry point through one type-aware adapter and extend the off-screen
-host smoke so no immediate caller assumes the new control is a legacy browser.
+Add a compact list-marker model so ordered lists paint decimal markers and
+unordered lists retain bullets without flattening nested list scope. Keep
+marker text bounded, honor safe `start` and `value` integers, preserve existing
+list recovery, and cover nested layout, paint, resize, and malformed input.
 
 The repeatable compatibility and performance report is now implemented by
 `Lea.Bench`. It probes supported HTML, CSS, forms, scripting, layout, downloads,

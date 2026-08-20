@@ -76,6 +76,8 @@ or the `I` toolbar button. Its Summary, Nodes, CSS, Requests, and Messages tabs
 use the compact `Dg` API and never inspect private renderer fields.
 Firespider's experimental Lea tabs expose the same bounded inspector from the
 View menu (`F12`) and the tab context menu, with refresh and request-log clearing.
+Firespider's normal New Tab command and `Ctrl+T` now open Lea; **New Legacy Tab**
+(`Ctrl+Alt+L`) keeps the original engine available for unmigrated features.
 
 ## Compact Engine API
 

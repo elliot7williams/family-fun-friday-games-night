@@ -1,6 +1,6 @@
 # Lea 1.0 Progress
 
-Current completion: **91%**
+Current completion: **92%**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -16,8 +16,8 @@ modern web platform.
 | Layout and painting | 20% | 20% | Inset stretch, translated contexts, nested content, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Bounded multipart files, richer widgets, validation, responsive images, GET/POST submit |
 | Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/style/alert and class commands |
-| Firespider integration and reliability | 10% | 9% | Lea Inspector, keyboard navigation, open/save/send routes, sessions, source, host smoke tests |
-| **Total** | **100%** | **91%** | |
+| Firespider integration and reliability | 10% | 10% | Lea-first New Tab/Ctrl+T, explicit legacy fallback, Inspector, navigation, sessions, source, host smokes |
+| **Total** | **100%** | **92%** | |
 
 ## Updating the percentage
 
@@ -28,4 +28,4 @@ modern web platform.
 
 ## Next gains
 
-- Make Firespider's primary New Tab command create Lea tabs while preserving an explicit legacy fallback: +1%
+- Add bounded ordered and unordered list markers with nested-list coverage: +1%

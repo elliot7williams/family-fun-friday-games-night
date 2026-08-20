@@ -1,9 +1,11 @@
 # Lea Firespider Adapter
 
 `FirespiderLea.vb` is a reversible experimental integration for the VB.NET
-Firespider host. It adds **File > New Lea Tab** (`Ctrl+Alt+L`). Back, forward,
-home, go, search, reload, stop, and address/search Enter keys route by the
-selected tab's engine. Legacy tabs delegate to Firespider's original handlers.
+Firespider host. Firespider's normal **New Lea Tab** command and `Ctrl+T` now
+create `Lea.Win.V`; **New Legacy Tab** (`Ctrl+Alt+L`) deliberately uses the
+original `WebBrowser` path for features that still need it. Back, forward, home,
+go, search, reload, stop, and address/search Enter keys route by the selected
+tab's engine. Legacy tabs delegate to Firespider's original handlers.
 Its timer status handler is also routed safely so it never casts a Lea view to
 the legacy `WebBrowser` type.
 
@@ -59,8 +61,8 @@ resources do not need to be changed for that tooling mismatch.
 The adapter is kept here as the clean source of record because the live
 Firespider working tree contains unrelated in-progress changes.
 
-`Smoke.cs` loads two compiled Firespider forms off-screen and verifies Lea tab
-creation, Inspector open/refresh/clear and legacy isolation, diagnostics,
+`Smoke.cs` loads two compiled Firespider forms off-screen and verifies Lea-first
+New Tab creation, the explicit legacy fallback, Inspector open/refresh/clear and legacy isolation, diagnostics,
 script/style, host-controlled `go`, and safe click execution, alert routing, keyboard navigation, local
 open, find cycling, streamed download saves, page save, send-link metadata,
 close routes, source, and session restoration using temporary files rather than

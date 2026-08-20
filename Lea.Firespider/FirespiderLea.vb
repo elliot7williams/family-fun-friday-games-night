@@ -16,13 +16,15 @@ Partial Class j
 
     Private Sub qleaInit(ByVal sender As Object, ByVal e As EventArgs) Handles Me.Load
         If qleaMenu IsNot Nothing Then Return
-        qleaMenu = New ToolStripMenuItem("New Lea Tab")
+        N.Text = "New Lea Tab"
+        N.ToolTipText = "Open a new Lea tab"
+        qleaMenu = New ToolStripMenuItem("New Legacy Tab")
         qleaMenu.Image = My.Resources.F9
         qleaMenu.BackColor = Color.White
         qleaMenu.ForeColor = Color.Black
         qleaMenu.Padding = New Padding(0)
         qleaMenu.ShortcutKeys = Keys.Control Or Keys.Alt Or Keys.L
-        AddHandler qleaMenu.Click, AddressOf qleaNewClick
+        AddHandler qleaMenu.Click, AddressOf qleaLegacyNewClick
         fl.DropDownItems.Insert(Math.Min(1, fl.DropDownItems.Count), qleaMenu)
         qleaInspectorMenu = New ToolStripMenuItem("Lea Inspector")
         qleaInspectorMenu.Image = My.Resources.F9
@@ -78,6 +80,8 @@ Partial Class j
         RemoveHandler FI.Click, AddressOf q10
         RemoveHandler FI.MouseHover, AddressOf q13
         RemoveHandler Me.FormClosing, AddressOf q9
+        RemoveHandler N.Click, AddressOf nc
+        RemoveHandler N.MouseHover, AddressOf nh
 
         AddHandler b.Click, AddressOf qleaBackClick
         AddHandler b.MouseHover, AddressOf qleaBackHover
@@ -114,6 +118,8 @@ Partial Class j
         AddHandler SL.Click, AddressOf qleaSendLinkClick
         AddHandler FI.Click, AddressOf qleaFindClick
         AddHandler FI.MouseHover, AddressOf qleaFindHover
+        AddHandler N.Click, AddressOf qleaNewClick
+        AddHandler N.MouseHover, AddressOf qleaNewHover
         AddHandler k.MouseDown, AddressOf qleaTabMouseDown
         AddHandler Me.FormClosing, AddressOf qleaClosing
     End Sub
@@ -160,7 +166,15 @@ Partial Class j
     End Function
 
     Private Sub qleaNewClick(ByVal sender As Object, ByVal e As EventArgs)
-        qleaNew(qleaStart())
+        qleaNew(qntu())
+    End Sub
+
+    Private Sub qleaNewHover(ByVal sender As Object, ByVal e As EventArgs)
+        If My.Settings.t = "e" Then qleaNew(qntu())
+    End Sub
+
+    Private Sub qleaLegacyNewClick(ByVal sender As Object, ByVal e As EventArgs)
+        q3(qntu())
     End Sub
 
     Private Function qleaNew(ByVal target As String) As Global.Lea.Win.V

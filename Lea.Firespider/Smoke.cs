@@ -13,6 +13,13 @@ namespace Lea.Firespider
         private static int Main(string[] args)
         {
             var oldSession = Environment.GetEnvironmentVariable("LEA_FIRESPIDER_SESSION");
+            object settings = null;
+            PropertyInfo newTabSetting = null;
+            PropertyInfo dashboardSetting = null;
+            PropertyInfo shortcutSetting = null;
+            string oldNewTab = null;
+            string oldDashboard = null;
+            object oldShortcuts = null;
             var session = Path.Combine(Path.GetTempPath(), "lea-firespider-smoke-" + Guid.NewGuid().ToString("N") + ".txt");
             var openPage = Path.Combine(Path.GetTempPath(), "lea-firespider-open-" + Guid.NewGuid().ToString("N") + ".html");
             var savedPage = Path.Combine(Path.GetTempPath(), "lea-firespider-page-" + Guid.NewGuid().ToString("N") + ".html");
@@ -24,6 +31,17 @@ namespace Lea.Firespider
                 var root = args.Length > 0 ? args[0] : AppDomain.CurrentDomain.BaseDirectory;
                 var assembly = Assembly.LoadFrom(Path.Combine(root, "Firespider Internet 19.exe"));
                 var type = assembly.GetType("Firespider_Internet.j", true);
+                var settingsType = assembly.GetType("Firespider_Internet.My.MySettings", true);
+                settings = settingsType.GetProperty("Default", BindingFlags.Static | BindingFlags.Public).GetValue(null, null);
+                newTabSetting = settingsType.GetProperty("nf", BindingFlags.Instance | BindingFlags.Public);
+                dashboardSetting = settingsType.GetProperty("dashboard", BindingFlags.Instance | BindingFlags.Public);
+                shortcutSetting = settingsType.GetProperty("sc", BindingFlags.Instance | BindingFlags.Public);
+                oldNewTab = (string)newTabSetting.GetValue(settings, null);
+                oldDashboard = (string)dashboardSetting.GetValue(settings, null);
+                oldShortcuts = shortcutSetting.GetValue(settings, null);
+                newTabSetting.SetValue(settings, new Uri(Path.Combine(root, "Lea", "start.html")).AbsoluteUri, null);
+                dashboardSetting.SetValue(settings, "", null);
+                shortcutSetting.SetValue(settings, new System.Collections.Specialized.StringCollection(), null);
                 string savedUrl;
                 using (var form = (Form)Activator.CreateInstance(type, true))
                 {
@@ -33,25 +51,36 @@ namespace Lea.Firespider
                     init.Invoke(form, new object[] { form, EventArgs.Empty });
 
                     var file = Member<ToolStripMenuItem>(form, "fl");
-                    var found = false;
+                    ToolStripMenuItem legacyMenu = null;
                     foreach (ToolStripItem item in file.DropDownItems)
-                        if (item.Text == "New Lea Tab") found = true;
-                    Check(found, "New Lea Tab menu");
+                        if (item.Text == "New Legacy Tab") legacyMenu = item as ToolStripMenuItem;
+                    Check(legacyMenu != null && legacyMenu.ShortcutKeys == (Keys.Control | Keys.Alt | Keys.L), "explicit legacy tab menu");
+                    var newTab = Member<ToolStripMenuItem>(form, "N");
+                    Check(newTab.Text == "New Lea Tab" && newTab.ToolTipText == "Open a new Lea tab", "primary New Tab identifies Lea");
                     var view = Member<ToolStripMenuItem>(form, "v");
                     ToolStripMenuItem inspectorMenu = null;
                     foreach (ToolStripItem item in view.DropDownItems)
                         if (item.Text == "Lea Inspector") inspectorMenu = item as ToolStripMenuItem;
                     Check(inspectorMenu != null && inspectorMenu.ShortcutKeys == Keys.F12, "Lea Inspector menu and shortcut");
 
-                    var open = type.GetMethod("qleaNewClick", BindingFlags.Instance | BindingFlags.NonPublic);
-                    Check(open != null, "Lea tab command");
-                    open.Invoke(form, new object[] { form, EventArgs.Empty });
-
                     var tabs = Member<TabControl>(form, "k");
+                    newTab.PerformClick();
+                    var primaryLeaTab = tabs.SelectedTab;
                     var host = tabs.SelectedTab == null || tabs.SelectedTab.Controls.Count == 0 ? null : tabs.SelectedTab.Controls[0] as V;
 
-                    Check(host != null, "Lea view in selected tab");
-                    Check(host.At != null && host.T == "Lea in Firespider", "bundled Lea start page");
+                    Check(host != null, "primary New Tab creates Lea view");
+                    Check(host.At != null && host.T == "Lea in Firespider", "primary New Tab uses configured start page");
+                    var tabCountBeforeShortcut = tabs.TabCount;
+                    var shortcut = new KeyEventArgs(Keys.Control | Keys.T);
+                    var keyHandler = type.GetMethod("q8", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                    Check(keyHandler != null, "Firespider key handler");
+                    keyHandler.Invoke(form, new object[] { form, shortcut });
+                    Check(shortcut.SuppressKeyPress && tabs.TabCount == tabCountBeforeShortcut + 1 && tabs.SelectedTab.Controls[0] is V, "Ctrl+T creates Lea view");
+                    type.GetMethod("qleaClose", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(form, new object[] { tabs.SelectedTab });
+                    tabs.SelectedTab = primaryLeaTab;
+                    legacyMenu.PerformClick();
+                    Check(tabs.SelectedTab != null && tabs.SelectedTab.Controls.Count > 0 && tabs.SelectedTab.Controls[0] is WebBrowser, "explicit legacy tab fallback");
+                    tabs.SelectedTab = primaryLeaTab;
                     Check(host.Tm == 15000, "Firespider Lea request timeout");
                     host.Tm = 1;
                     Check(host.Tm == 100, "Firespider Lea request timeout forwarding");
@@ -141,7 +170,7 @@ namespace Lea.Firespider
                     Check(tabs.TabCount == beforeClose - 1 && FindLea(tabs) == null, "Firespider Close Tab routed to Lea");
                     Check(inspectorOpen.Invoke(form, null) == null && Member<Label>(form, "su").Text.Contains("Select a Lea tab"), "Lea Inspector leaves legacy tabs untouched");
 
-                    open.Invoke(form, new object[] { form, EventArgs.Empty });
+                    newTab.PerformClick();
                     host = FindLea(tabs);
                     Check(host != null && host.At != null, "replacement Lea tab");
                     var source = (string)type.GetMethod("qleaSourceText", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(form, null);
@@ -179,7 +208,7 @@ namespace Lea.Firespider
                     Check(restoredTabs.TabCount == beforeMiddle - 1 && FindLea(restoredTabs) == null, "middle-click Lea tab close");
                 }
 
-                Console.WriteLine("Firespider Lea smoke passed: host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, keyboard navigation, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
+                Console.WriteLine("Firespider Lea smoke passed: Lea-first New Tab and explicit legacy fallback, host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, keyboard navigation, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
                 return 0;
             }
             catch (Exception error)
@@ -189,6 +218,9 @@ namespace Lea.Firespider
             }
             finally
             {
+                if (settings != null && newTabSetting != null) newTabSetting.SetValue(settings, oldNewTab, null);
+                if (settings != null && dashboardSetting != null) dashboardSetting.SetValue(settings, oldDashboard, null);
+                if (settings != null && shortcutSetting != null) shortcutSetting.SetValue(settings, oldShortcuts, null);
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", oldSession);
                 if (File.Exists(session)) File.Delete(session);
                 if (File.Exists(openPage)) File.Delete(openPage);

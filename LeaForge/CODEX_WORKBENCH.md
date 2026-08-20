@@ -17,7 +17,7 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-1. Make Firespider's primary New Tab path create Lea tabs with an explicit legacy fallback.
+1. Add bounded ordered/unordered list markers and nested-list coverage.
 2. Expand the safe command set only through bounded, fixture-backed aliases.
 3. Keep strengthening host tests as more legacy tab routes move to Lea.
 
@@ -39,6 +39,9 @@ Firespider while unsupported schemes and remote-to-file requests are rejected.
 `E.Tm`/`V.Tm` now apply a bounded 100-60,000 ms network deadline to synchronous
 and asynchronous requests, preserving typed retryable timeout and distinct
 host-cancellation results.
+Firespider's normal New Tab command and `Ctrl+T` now create Lea views. A visible
+New Legacy Tab command keeps the original `q3`/`WebBrowser` route available for
+features that have not crossed the adapter boundary yet.
 
 ## Rules For Future Codex Work
 

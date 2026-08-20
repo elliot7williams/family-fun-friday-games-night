@@ -245,11 +245,13 @@ existing single `V` surface.
 ## Experimental Firespider tab
 
 The source in `../Lea.Firespider` now powers real engine-backed tabs in the
-Firespider project. **File > New Lea Tab** creates a `Lea.Win.V` inside
-Firespider's existing tab control. Back, forward, home, go, search, reload,
-stop, and address/search Enter keys dispatch by active tab type and delegate to
-the original handlers for legacy tabs. Shared New Tab controls remain legacy
-until their internal `WebBrowser`-only callers are migrated.
+Firespider project. Its normal **New Lea Tab** command and `Ctrl+T` create a
+`Lea.Win.V` inside Firespider's existing tab control. **New Legacy Tab**
+(`Ctrl+Alt+L`) remains an explicit `q3` fallback. Back, forward, home, go,
+search, reload, stop, and address/search Enter keys dispatch by active tab type
+and delegate to the original handlers for legacy tabs. Feature-specific
+`q3(...)` callers remain legacy until their immediate `WebBrowser` assumptions
+are migrated.
 
 Close Tab (`Ctrl+W`), the tab-strip close target, and middle-click now dispatch
 through Lea-aware close handling. Page Source (`Ctrl+U`) fills Firespider's
@@ -271,7 +273,8 @@ into the legacy browser control.
 
 Firespider imports one `Lea/FirespiderLea.targets` file. The import supplies the
 two DLL references, partial VB adapter, and bundled local start page. Debug and
-Release builds pass `Smoke.cs`, which verifies Lea tab creation, keyboard
+Release builds pass `Smoke.cs`, which verifies Lea-first New Tab creation,
+the explicit legacy fallback, keyboard
 navigation, host-controlled `go` requests, Inspector open/refresh/clear and legacy isolation, bounded diagnostics,
 script/style and safe click execution, alert status routing, local open,
 page save, find cycling, streamed downloads, send-link metadata, timer status,

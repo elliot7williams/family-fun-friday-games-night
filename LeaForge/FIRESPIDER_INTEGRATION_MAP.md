@@ -157,9 +157,10 @@ home and can proceed feature by feature.
 
 ## Experimental tab status
 
-Phase A now has a working opt-in path. `Lea.Firespider/FirespiderLea.vb` adds a
-New Lea Tab command and routes Firespider's primary navigation controls through
-`Lea.Win.V` only for that tab. Legacy tabs retain their original handlers. The
+Phase A now has a Lea-first primary path. `Lea.Firespider/FirespiderLea.vb`
+routes Firespider's normal New Tab command and `Ctrl+T` through `Lea.Win.V`.
+New Legacy Tab (`Ctrl+Alt+L`) keeps an explicit `q3` fallback, and legacy tabs
+retain their original handlers. The
 adapter is included through one reversible MSBuild import and passes Debug and
 Release host smoke tests. It also replaces the status timer's unconditional
 `WebBrowser` cast with type-aware routing, so selecting a Lea tab cannot trigger
@@ -169,8 +170,8 @@ Phase B routes address/search Enter keys, Open File, Save Page, and Send Link
 through Lea state when a Lea tab is active and retains the original handlers for
 legacy tabs. Close Tab, the tab-strip close target, middle-click, Page Source,
 and the bounded isolated Lea session remain capability-aware. Debug and Release
-host smoke tests cover these paths. Firespider's shared New Tab commands stay on
-the legacy path until internal callers that immediately require `WebBrowser` are
+host smoke tests cover these paths. Feature-specific internal `q3(...)` callers
+stay on the legacy path until their immediate `WebBrowser` assumptions are
 migrated.
 
 Find-in-page, explicit streamed downloads, safe button/link page commands, and
