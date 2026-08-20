@@ -23,6 +23,12 @@ Lea's bounded inline title/style commands run inside each Lea tab. Alert
 messages cross the `V.Al` host event and appear in Firespider's existing status
 bar; page code does not open a native dialog directly.
 
+Firespider's existing Find command (`Ctrl+F`) now calls Lea's highlighted,
+case-insensitive match cycling for Lea tabs and keeps the original DOM range
+path for legacy tabs. Lea download links open Firespider's Save dialog, honor its
+default save folder, stream through `V.DlA`, show the full destination and byte
+count in the status bar, and join Firespider's recent-download list.
+
 The host project imports `Lea/FirespiderLea.targets`, which adds the two DLL
 references, compiles `FirespiderLea.vb`, and copies `start.html` to the output
 `Lea` folder. No Chromium, WebView, Safari, or hidden browser control is used.
@@ -32,5 +38,6 @@ Firespider working tree contains unrelated in-progress changes.
 
 `Smoke.cs` loads two compiled Firespider forms off-screen and verifies Lea tab
 creation, script/style execution, alert routing, keyboard navigation, local
-open, page save, send-link metadata, close routes, source, and session
-restoration using temporary files rather than the user's data.
+open, find cycling, streamed download saves, page save, send-link metadata,
+close routes, source, and session restoration using temporary files rather than
+the user's data.

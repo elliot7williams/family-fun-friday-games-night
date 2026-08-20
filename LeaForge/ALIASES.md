@@ -110,6 +110,20 @@ The WinForms view exposes `Dh` (document height), `Sy` (scroll position), and
 `Bc` (cached layout-box count) for compact host diagnostics. `Sc(delta)` moves
 the bounded scroll position.
 
+Find-in-page uses `Fd`: `E.Fd(page, query)` counts up to 256 case-insensitive
+text occurrences. `V.Fd(query)` builds and highlights up to 256 painted matches;
+`Nx()` and `Pr()` cycle forward and backward, while `Fc()` clears the search.
+`Fq`, `Fn`, `Fx`, and `Fr` expose the query, match count, one-based current
+index, and visible current rectangle.
+
+Downloads use `Dl(address, path)` and asynchronous `DlA`. Local, HTTP, and HTTPS
+content streams to a same-folder temporary file before replacing the explicit
+destination. `Dm` exposes the fixed 64 MB ceiling. The compact `D` result uses
+`U` (final URL), `P` (full path), `N` (file name), `Ct` (media type), `Sz`
+(written bytes), and `St` (status). In `V`, `Dr` requests a destination for an
+HTML `download` link, `Du`/`Dn` provide its URL and safe suggested name, and
+`Ld` holds the latest completed result. Pages never choose native paths.
+
 Response metadata stays short: `P.St` is status, `Ct` is media type, `Ce` is
 content encoding, `Ch` is charset, `Sz` is decoded size, and `Ca` reports a
 cache-body reuse. `Et` is the response ETag and `Lm` is Last-Modified. The

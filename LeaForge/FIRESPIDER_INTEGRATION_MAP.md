@@ -173,5 +173,6 @@ host smoke tests cover these paths. Firespider's shared New Tab commands stay on
 the legacy path until internal callers that immediately require `WebBrowser` are
 migrated.
 
-The next integration expansion is find-in-page and downloads, followed by the
-remaining page and developer commands.
+Find-in-page and explicit streamed downloads now route through Lea for Lea tabs.
+The next integration expansion is safe page commands and the remaining
+developer commands.

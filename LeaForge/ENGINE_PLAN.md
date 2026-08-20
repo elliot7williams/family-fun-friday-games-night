@@ -124,6 +124,13 @@ test page. A full JavaScript runtime can remain a separate comparison project.
 - Page source and a small developer panel showing nodes, styles, requests, and logs.
 - Keyboard shortcuts that do not complicate the engine API.
 
+Downloads and find-in-page are active in the .NET Framework engine and WinForms
+view. `Dl`/`DlA` stream local, HTTP, and HTTPS responses through an explicit
+host-selected destination, decode HTTP content encoding, use a same-folder
+temporary file, and reject payloads above 64 MB. `Fd` is capped at 256 matches;
+the WinForms view highlights painted matches and cycles them with `Nx`/`Pr`.
+Download links raise a host request rather than gaining direct file access.
+
 ## 8. Safety and reliability
 
 - Never execute arbitrary native code from a page.

@@ -18,6 +18,8 @@ namespace Lea.Engine
         private const int MaxCss = 256 * 1024;
         private const int MaxStyleLinks = 8;
         private const int MaxPost = 10 * 1024 * 1024;
+        private const long MaxDownload = 64L * 1024 * 1024;
+        private const int MaxFind = 256;
         private readonly W web = new W();
         private readonly List<P> hs = new List<P>();
         private readonly Dictionary<string, Cr> cache = new Dictionary<string, Cr>(StringComparer.OrdinalIgnoreCase);
@@ -28,6 +30,8 @@ namespace Lea.Engine
         private int cs = 60;
         private int ch;
         private bool je = true;
+        private Stream download;
+        private bool stopped;
 
         public P At { get { return at >= 0 && at < hs.Count ? hs[at] : null; } }
         public bool CanBk { get { return at > 0; } }
@@ -42,6 +46,7 @@ namespace Lea.Engine
         public int Ch { get { return ch; } }
         public int Kc { get { return web.Kc; } }
         public int Km { get { return W.CookieMax; } }
+        public long Dm { get { return MaxDownload; } }
         public bool Je { get { return je; } set { je = value; } }
         public bool Pv
         {
@@ -107,6 +112,26 @@ namespace Lea.Engine
             var fields = new Dictionary<N, Fi>();
             foreach (var field in page.Fs) if (field.El != null) fields[field.El] = field;
             Rebuild(page, rules, fields);
+            return count;
+        }
+
+        // Fd counts bounded, case-insensitive page-text matches.
+        public int Fd(P page, string query)
+        {
+            if (page == null) throw new ArgumentNullException("page");
+            var find = (query ?? "").Trim();
+            if (find.Length == 0) return 0;
+            if (find.Length > 256) find = find.Substring(0, 256);
+            var text = page.X ?? "";
+            var count = 0;
+            var at = 0;
+            while (at <= text.Length - find.Length && count < MaxFind)
+            {
+                at = text.IndexOf(find, at, StringComparison.OrdinalIgnoreCase);
+                if (at < 0) break;
+                count++;
+                at += find.Length;
+            }
             return count;
         }
 
@@ -188,6 +213,64 @@ namespace Lea.Engine
             return p;
         }
 
+        public D Dl(string input, string path)
+        {
+            return Dl(ToUri(input, At == null ? null : At.U), path);
+        }
+
+        public D Dl(Uri url, string path)
+        {
+            if (url == null) throw new ArgumentNullException("url");
+            if (busy) throw new InvalidOperationException("Lea is already loading or downloading.");
+            var target = DownloadPath(path);
+            CheckDownloadUrl(url);
+            busy = true;
+            stopped = false;
+            try { return Download(url, target); }
+            catch (Exception error)
+            {
+                if (stopped) throw new Er("cancel", url, 0, false, "Lea stopped downloading" + ErrorAt(url) + ".", error);
+                var typed = LoadError(error, url);
+                if (typed == null) throw;
+                throw typed;
+            }
+            finally
+            {
+                download = null;
+                stopped = false;
+                busy = false;
+            }
+        }
+
+        public async Task<D> DlA(string input, string path)
+        {
+            return await DlA(ToUri(input, At == null ? null : At.U), path);
+        }
+
+        public async Task<D> DlA(Uri url, string path)
+        {
+            if (url == null) throw new ArgumentNullException("url");
+            if (busy) throw new InvalidOperationException("Lea is already loading or downloading.");
+            var target = DownloadPath(path);
+            CheckDownloadUrl(url);
+            busy = true;
+            stopped = false;
+            try { return await DownloadA(url, target); }
+            catch (Exception error)
+            {
+                if (stopped) throw new Er("cancel", url, 0, false, "Lea stopped downloading" + ErrorAt(url) + ".", error);
+                var typed = LoadError(error, url);
+                if (typed == null) throw;
+                throw typed;
+            }
+            finally
+            {
+                download = null;
+                stopped = false;
+                busy = false;
+            }
+        }
+
         private void Push(P p)
         {
             if (at < hs.Count - 1) hs.RemoveRange(at + 1, hs.Count - at - 1);
@@ -225,7 +308,173 @@ namespace Lea.Engine
 
         public void St()
         {
-            if (busy) web.CancelAsync();
+            if (!busy) return;
+            stopped = true;
+            web.CancelAsync();
+            var active = download;
+            if (active != null)
+                try { active.Dispose(); }
+                catch { }
+        }
+
+        private D Download(Uri url, string path)
+        {
+            var temp = DownloadTemp(path);
+            try
+            {
+                long size;
+                Uri finalUrl;
+                string contentType;
+                int status;
+                using (var raw = OpenDownload(url))
+                {
+                    download = raw;
+                    CheckDownloadLength(url, url.IsFile ? raw.Length : web.Len);
+                    finalUrl = url.IsFile ? url : web.U ?? url;
+                    contentType = url.IsFile ? FileType(Local(url)) : MediaType(web.Ct);
+                    status = url.IsFile ? 200 : web.St == 0 ? 200 : web.St;
+                    using (var input = DownloadStream(raw, url.IsFile ? "" : web.Ce))
+                    using (var output = new FileStream(temp, FileMode.CreateNew, FileAccess.Write, FileShare.None, 32768))
+                        size = CopyDownload(input, output, url);
+                }
+                FinishDownload(temp, path);
+                return DownloadResult(finalUrl, path, contentType, size, status);
+            }
+            catch
+            {
+                DeleteTemp(temp);
+                throw;
+            }
+            finally { download = null; }
+        }
+
+        private async Task<D> DownloadA(Uri url, string path)
+        {
+            var temp = DownloadTemp(path);
+            try
+            {
+                var raw = url.IsFile
+                    ? (Stream)new FileStream(Local(url), FileMode.Open, FileAccess.Read, FileShare.Read, 32768, true)
+                    : await web.OpenReadTaskAsync(url);
+                long size;
+                Uri finalUrl;
+                string contentType;
+                int status;
+                using (raw)
+                {
+                    download = raw;
+                    CheckDownloadLength(url, url.IsFile ? raw.Length : web.Len);
+                    finalUrl = url.IsFile ? url : web.U ?? url;
+                    contentType = url.IsFile ? FileType(Local(url)) : MediaType(web.Ct);
+                    status = url.IsFile ? 200 : web.St == 0 ? 200 : web.St;
+                    using (var input = DownloadStream(raw, url.IsFile ? "" : web.Ce))
+                    using (var output = new FileStream(temp, FileMode.CreateNew, FileAccess.Write, FileShare.None, 32768, true))
+                        size = await CopyDownloadA(input, output, url);
+                }
+                FinishDownload(temp, path);
+                return DownloadResult(finalUrl, path, contentType, size, status);
+            }
+            catch
+            {
+                DeleteTemp(temp);
+                throw;
+            }
+            finally { download = null; }
+        }
+
+        private Stream OpenDownload(Uri url)
+        {
+            return url.IsFile
+                ? (Stream)new FileStream(Local(url), FileMode.Open, FileAccess.Read, FileShare.Read)
+                : web.OpenRead(url);
+        }
+
+        private static Stream DownloadStream(Stream source, string encoding)
+        {
+            var value = (encoding ?? "").Trim().ToLowerInvariant();
+            if (value == "gzip") return new GZipStream(source, CompressionMode.Decompress);
+            if (value == "deflate") return new DeflateStream(source, CompressionMode.Decompress);
+            return source;
+        }
+
+        private static long CopyDownload(Stream input, Stream output, Uri url)
+        {
+            var buffer = new byte[32768];
+            long total = 0;
+            int read;
+            while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                total += read;
+                CheckDownloadLength(url, total);
+                output.Write(buffer, 0, read);
+            }
+            return total;
+        }
+
+        private static async Task<long> CopyDownloadA(Stream input, Stream output, Uri url)
+        {
+            var buffer = new byte[32768];
+            long total = 0;
+            int read;
+            while ((read = await input.ReadAsync(buffer, 0, buffer.Length)) > 0)
+            {
+                total += read;
+                CheckDownloadLength(url, total);
+                await output.WriteAsync(buffer, 0, read);
+            }
+            return total;
+        }
+
+        private static void CheckDownloadLength(Uri url, long length)
+        {
+            if (length > MaxDownload)
+                throw new Er("large", url, 0, false, "Lea downloads are limited to 64 MB" + ErrorAt(url) + ".", null);
+        }
+
+        private static void CheckDownloadUrl(Uri url)
+        {
+            if (!url.IsFile && url.Scheme != Uri.UriSchemeHttp && url.Scheme != Uri.UriSchemeHttps)
+                throw new Er("url", url, 0, false, "Lea downloads require a local, HTTP, or HTTPS address.", null);
+        }
+
+        private static string DownloadPath(string path)
+        {
+            if (String.IsNullOrWhiteSpace(path)) throw new ArgumentException("Lea requires a download destination.", "path");
+            var full = Path.GetFullPath(path);
+            if (Directory.Exists(full)) throw new ArgumentException("Lea requires a file destination.", "path");
+            var folder = Path.GetDirectoryName(full);
+            if (String.IsNullOrWhiteSpace(folder) || !Directory.Exists(folder)) throw new DirectoryNotFoundException("Lea could not find the download destination folder.");
+            return full;
+        }
+
+        private static string DownloadTemp(string path)
+        {
+            return Path.Combine(Path.GetDirectoryName(path), ".lea-" + Guid.NewGuid().ToString("N") + ".tmp");
+        }
+
+        private static void FinishDownload(string temp, string path)
+        {
+            if (File.Exists(path)) File.Replace(temp, path, null);
+            else File.Move(temp, path);
+        }
+
+        private static void DeleteTemp(string path)
+        {
+            try { if (File.Exists(path)) File.Delete(path); }
+            catch { }
+        }
+
+        private static D DownloadResult(Uri url, string path, string contentType, long size, int status)
+        {
+            return new D
+            {
+                U = url,
+                P = path,
+                N = Path.GetFileName(path),
+                Ct = contentType ?? "",
+                Sz = size,
+                St = status
+            };
         }
 
         private P Read(Uri url, bool fresh = false)
@@ -2561,6 +2810,7 @@ namespace Lea.Engine
             public string Ex { get; private set; }
             public string Et { get; private set; }
             public string Lm { get; private set; }
+            public long Len { get; private set; }
             private string ve = "";
             private string vm = "";
 
@@ -2622,6 +2872,7 @@ namespace Lea.Engine
                 Ex = "";
                 Et = "";
                 Lm = "";
+                Len = -1;
                 var request = base.GetWebRequest(address);
                 var http = request as HttpWebRequest;
                 if (http != null)
@@ -2661,6 +2912,7 @@ namespace Lea.Engine
                 Ex = http.Headers[HttpResponseHeader.Expires] ?? "";
                 Et = http.Headers[HttpResponseHeader.ETag] ?? "";
                 Lm = http.Headers[HttpResponseHeader.LastModified] ?? "";
+                Len = http.ContentLength;
                 Ns = Cc.IndexOf("no-store", StringComparison.OrdinalIgnoreCase) >= 0;
                 return response;
             }

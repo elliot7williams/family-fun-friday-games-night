@@ -25,6 +25,7 @@ namespace Lea.Win
         private readonly Dictionary<string, string> fontNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<P, int> alerts = new Dictionary<P, int>();
         private readonly Queue<P> alertOrder = new Queue<P>();
+        private readonly List<Bx> findMatches = new List<Bx>();
         private readonly Queue<string> picOrder = new Queue<string>();
         private readonly TextBox ed = new TextBox();
         private const int PicLimit = 24;
@@ -47,16 +48,20 @@ namespace Lea.Win
         private ContextMenuStrip choices;
         private N hover;
         private N focus;
+        private string findQuery = "";
+        private int findIndex = -1;
 
         public event EventHandler Done;
         public event EventHandler Changed;
         public event EventHandler Ed;
         public event EventHandler Sb;
         public event EventHandler Al;
+        public event EventHandler Dr;
 
         public V()
         {
             Am = "";
+            Dn = "";
             DoubleBuffered = true;
             BackColor = Color.White;
             ForeColor = Color.FromArgb(31, 41, 55);
@@ -84,14 +89,22 @@ namespace Lea.Win
         public bool Busy { get { return e.Busy || picBusy; } }
         public int Kc { get { return e.Kc; } }
         public int Km { get { return e.Km; } }
+        public long Dm { get { return e.Dm; } }
         public bool Pv { get { return e.Pv; } set { e.Pv = value; } }
         public bool Je { get { return e.Je; } set { e.Je = value; } }
         public string Am { get; private set; }
+        public string Fq { get { return findQuery; } }
+        public int Fn { get { return findMatches.Count; } }
+        public int Fx { get { return findIndex < 0 ? 0 : findIndex + 1; } }
+        public Uri Du { get; private set; }
+        public string Dn { get; private set; }
+        public D Ld { get; private set; }
         public int Dh { get { return docHeight; } }
         public int Sy { get { return sy; } }
         public int Bc { get { return boxes.Count; } }
         public Rectangle Rb(int index) { return index < 0 || index >= boxes.Count ? Rectangle.Empty : boxes[index].R; }
         public Rectangle Rc(int index) { return index < 0 || index >= boxes.Count ? Rectangle.Empty : boxes[index].C; }
+        public Rectangle Fr { get { return FindRect(); } }
 
         public P Go(string input)
         {
@@ -215,6 +228,7 @@ namespace Lea.Win
             if (At == null) return 0;
             var count = e.Js(At, code);
             if (count == 0) return 0;
+            ClearFind(false);
             Dirty();
             OnChanged();
             Invalidate();
@@ -222,9 +236,71 @@ namespace Lea.Win
             return count;
         }
 
+        public D Dl(string input, string path)
+        {
+            Cursor = Cursors.WaitCursor;
+            try { return Ld = e.Dl(input, path); }
+            finally { Cursor = Cursors.Default; }
+        }
+
+        public D Dl(Uri url, string path)
+        {
+            Cursor = Cursors.WaitCursor;
+            try { return Ld = e.Dl(url, path); }
+            finally { Cursor = Cursors.Default; }
+        }
+
+        public async Task<D> DlA(string input, string path)
+        {
+            Cursor = Cursors.WaitCursor;
+            try { return Ld = await e.DlA(input, path); }
+            finally { Cursor = Cursors.Default; }
+        }
+
+        public async Task<D> DlA(Uri url, string path)
+        {
+            Cursor = Cursors.WaitCursor;
+            try { return Ld = await e.DlA(url, path); }
+            finally { Cursor = Cursors.Default; }
+        }
+
+        public int Fd(string query)
+        {
+            findQuery = (query ?? "").Trim();
+            if (findQuery.Length > 256) findQuery = findQuery.Substring(0, 256);
+            EnsureLayout();
+            RebuildFind(0);
+            ShowFind();
+            return Fn;
+        }
+
+        public int Nx()
+        {
+            EnsureLayout();
+            if (findMatches.Count == 0) return 0;
+            SetFind((findIndex + 1) % findMatches.Count);
+            ShowFind();
+            return Fx;
+        }
+
+        public int Pr()
+        {
+            EnsureLayout();
+            if (findMatches.Count == 0) return 0;
+            SetFind((findIndex + findMatches.Count - 1) % findMatches.Count);
+            ShowFind();
+            return Fx;
+        }
+
+        public void Fc()
+        {
+            ClearFind(true);
+        }
+
         private P Show(P page, bool done)
         {
             CloseChoices();
+            ClearFind(false);
             hover = null;
             focus = null;
             EndEdit(false);
@@ -255,6 +331,70 @@ namespace Lea.Win
                 alerts[page] = shown + 1;
                 if (Al != null) Al(this, EventArgs.Empty);
             }
+        }
+
+        private void EnsureLayout()
+        {
+            if (At == null || (!layoutDirty && layoutWidth == ClientSize.Width)) return;
+            if (!IsHandleCreated) CreateControl();
+            using (var graphics = CreateGraphics()) Lay(graphics);
+        }
+
+        private void RebuildFind(int wanted)
+        {
+            foreach (var match in findMatches) { match.Fm = false; match.Fa = false; }
+            findMatches.Clear();
+            if (findQuery.Length > 0)
+                foreach (var box in boxes)
+                {
+                    if (box.Title || box.X.Length == 0 || Hidden(box.S)) continue;
+                    if (box.X.IndexOf(findQuery, StringComparison.OrdinalIgnoreCase) < 0) continue;
+                    box.Fm = true;
+                    findMatches.Add(box);
+                    if (findMatches.Count == 256) break;
+                }
+            if (findMatches.Count == 0) { findIndex = -1; return; }
+            SetFind(Math.Max(0, Math.Min(findMatches.Count - 1, wanted)));
+        }
+
+        private void SetFind(int index)
+        {
+            if (findIndex >= 0 && findIndex < findMatches.Count) findMatches[findIndex].Fa = false;
+            findIndex = index;
+            if (findIndex >= 0 && findIndex < findMatches.Count) findMatches[findIndex].Fa = true;
+        }
+
+        private void ShowFind()
+        {
+            if (findIndex < 0 || findIndex >= findMatches.Count) { Invalidate(); return; }
+            var match = findMatches[findIndex];
+            if (!match.Fx && (match.C.Top < sy + 12 || match.C.Bottom > sy + ClientSize.Height - 12))
+                sy = Math.Max(0, Math.Min(MaxScroll(), match.C.Top - 24));
+            PlaceEditor();
+            Invalidate();
+        }
+
+        private void ClearFind(bool paint)
+        {
+            foreach (var match in findMatches) { match.Fm = false; match.Fa = false; }
+            findMatches.Clear();
+            findQuery = "";
+            findIndex = -1;
+            if (paint) Invalidate();
+        }
+
+        private Rectangle FindRect()
+        {
+            if (findIndex < 0 || findIndex >= findMatches.Count) return Rectangle.Empty;
+            var box = findMatches[findIndex];
+            var rect = box.C;
+            var clip = box.Clip;
+            if (!box.Fx)
+            {
+                rect.Offset(0, -sy);
+                if (!clip.IsEmpty) clip.Offset(0, -sy);
+            }
+            return Rectangle.Intersect(VisibleRect(rect, clip), ClientRectangle);
         }
 
         private void Dirty()
@@ -319,6 +459,7 @@ namespace Lea.Win
                         pe.Graphics.SetClip(clip, CombineMode.Intersect);
                     }
                     if (opacity > 0 && !box.Title && (!box.Inline || box.B == null || box.B.Is.Count > 0)) PaintBox(pe.Graphics, rect, box.S, pageBackground, pageColor, opacity, box.B == null || box.B.I == null);
+                    if (opacity > 0 && box.Fm) PaintFind(pe.Graphics, VisibleRect(content, clip), box.Fa);
                     if (box.K == "img")
                     {
                         if (opacity > 0) PaintPic(pe.Graphics, box, content, pageColor, opacity);
@@ -351,7 +492,7 @@ namespace Lea.Win
                     if (box.U != null)
                     {
                         var hit = VisibleRect(rect, clip);
-                        if (!hit.IsEmpty) hits.Add(new Hit(hit, box.U, null));
+                        if (!hit.IsEmpty) hits.Add(new Hit(hit, box.U, null, box.El));
                     }
                 }
                 finally { if (state != null) pe.Graphics.Restore(state); }
@@ -527,6 +668,7 @@ namespace Lea.Win
             layoutWidth = ClientSize.Width;
             layoutDirty = false;
             sy = Math.Min(sy, MaxScroll());
+            if (findQuery.Length > 0) RebuildFind(findIndex);
         }
 
         private void CloseContexts(B next, IList<Lc> active, ref int rootY, IDictionary<B, int> measured)
@@ -1278,6 +1420,17 @@ namespace Lea.Win
             PaintBorder(graphics, rect, left, 3, color, style.Bs);
         }
 
+        private static void PaintFind(Graphics graphics, Rectangle rect, bool active)
+        {
+            rect = Rectangle.Intersect(rect, Rectangle.Round(graphics.VisibleClipBounds));
+            if (rect.Width < 1 || rect.Height < 1) return;
+            using (var brush = new SolidBrush(active ? Color.FromArgb(145, 251, 146, 60) : Color.FromArgb(85, 250, 204, 21)))
+                graphics.FillRectangle(brush, rect);
+            if (active)
+                using (var pen = new Pen(Color.FromArgb(194, 65, 12)))
+                    graphics.DrawRectangle(pen, rect.X, rect.Y, Math.Max(0, rect.Width - 1), Math.Max(0, rect.Height - 1));
+        }
+
         private static void PaintBorder(Graphics graphics, Rectangle rect, int width, int side, Color color, string style)
         {
             if (width < 1) return;
@@ -1546,15 +1699,36 @@ namespace Lea.Win
             }
             try
             {
-                if (hit.B != null) await FieldClickA(hit.B, e.Location);
+                if (hit.B != null && hit.B.B != null && hit.B.B.I != null) await FieldClickA(hit.B, e.Location);
                 else if (hit.U != null)
                 {
                     EndEdit(false);
                     SetFocus(null);
-                    await GoA(hit.U.ToString());
+                    var element = hit.El;
+                    if (element != null && element.A.ContainsKey("download") && Dr != null)
+                    {
+                        Du = hit.U;
+                        Dn = DownloadName(hit.U, element.Av("download"));
+                        Dr(this, EventArgs.Empty);
+                    }
+                    else await GoA(hit.U.ToString());
                 }
             }
             catch { Cursor = Cursors.Default; }
+        }
+
+        private static string DownloadName(Uri url, string hint)
+        {
+            var value = Path.GetFileName((hint ?? "").Trim());
+            if (value.Length == 0 && url != null)
+            {
+                try { value = Path.GetFileName(Uri.UnescapeDataString(url.AbsolutePath)); }
+                catch { value = ""; }
+            }
+            if (value.Length == 0) value = "download.bin";
+            foreach (var invalid in Path.GetInvalidFileNameChars()) value = value.Replace(invalid, '_');
+            if (value.Length > 120) value = value.Substring(0, 120);
+            return value;
         }
 
         private async Task FieldClickA(Bx box, Point point)
@@ -2313,6 +2487,8 @@ namespace Lea.Win
             public readonly N El;
             public int[] Zp;
             public bool Fx;
+            public bool Fm;
+            public bool Fa;
 
             public Bx(string kind, string text, Uri url, S style, Rectangle rect, bool title, B block = null, bool inline = false, Rectangle clip = default(Rectangle), N element = null)
                 : this(kind, text, url, style, rect, rect, title, block, inline, clip, element)
@@ -2394,12 +2570,14 @@ namespace Lea.Win
             public readonly Rectangle R;
             public readonly Uri U;
             public readonly Bx B;
+            public readonly N El;
 
-            public Hit(Rectangle rect, Uri url, Bx box)
+            public Hit(Rectangle rect, Uri url, Bx box, N element = null)
             {
                 R = rect;
                 U = url;
                 B = box;
+                El = element ?? (box == null ? null : box.El);
             }
         }
     }

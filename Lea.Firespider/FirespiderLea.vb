@@ -56,6 +56,8 @@ Partial Class j
         RemoveHandler SP.Click, AddressOf h3
         RemoveHandler SP.MouseHover, AddressOf h4
         RemoveHandler SL.Click, AddressOf k4
+        RemoveHandler FI.Click, AddressOf q10
+        RemoveHandler FI.MouseHover, AddressOf q13
         RemoveHandler Me.FormClosing, AddressOf q9
 
         AddHandler b.Click, AddressOf qleaBackClick
@@ -91,6 +93,8 @@ Partial Class j
         AddHandler SP.Click, AddressOf qleaSavePageClick
         AddHandler SP.MouseHover, AddressOf qleaSavePageHover
         AddHandler SL.Click, AddressOf qleaSendLinkClick
+        AddHandler FI.Click, AddressOf qleaFindClick
+        AddHandler FI.MouseHover, AddressOf qleaFindHover
         AddHandler k.MouseDown, AddressOf qleaTabMouseDown
         AddHandler Me.FormClosing, AddressOf qleaClosing
     End Sub
@@ -153,6 +157,7 @@ Partial Class j
         AddHandler host.Changed, AddressOf qleaChanged
         AddHandler host.Done, AddressOf qleaDone
         AddHandler host.Al, AddressOf qleaAlert
+        AddHandler host.Dr, AddressOf qleaDownload
 
         Dim closeMenu As New ContextMenuStrip()
         Dim closeItem As New ToolStripMenuItem("Close Lea Tab")
@@ -231,6 +236,74 @@ Partial Class j
         If message.Length > 160 Then message = message.Substring(0, 160)
         su.Visible = True
         su.Text = "Lea: " & message
+    End Sub
+
+    Private Function qleaFind(ByVal host As Global.Lea.Win.V, ByVal term As String, Optional ByVal advance As Boolean = False) As Integer
+        If host Is Nothing Then Return 0
+        Dim value = If(term, "").Trim()
+        If value.Length = 0 Then
+            host.Fc()
+        ElseIf advance AndAlso String.Equals(host.Fq, value, StringComparison.OrdinalIgnoreCase) AndAlso host.Fn > 0 Then
+            host.Nx()
+        Else
+            host.Fd(value)
+        End If
+        su.Visible = True
+        If host.Fn = 0 Then
+            su.Text = "Lea: no page match found"
+        Else
+            su.Text = "Lea: match " & host.Fx.ToString() & " of " & host.Fn.ToString()
+        End If
+        Return host.Fn
+    End Function
+
+    Private Sub qleaFindClick(ByVal sender As Object, ByVal e As EventArgs)
+        Dim host = qleaAt()
+        If host Is Nothing Then
+            q10(sender, e)
+            Return
+        End If
+        Dim term As String = InputBox("Enter text to find on this page:", "Find In Current Page", host.Fq)
+        If term.Length = 0 Then Return
+        qleaFind(host, term, True)
+    End Sub
+
+    Private Sub qleaFindHover(ByVal sender As Object, ByVal e As EventArgs)
+        If qleaAt() Is Nothing Then
+            q13(sender, e)
+        ElseIf My.Settings.t = "e" Then
+            qleaFindClick(sender, e)
+        End If
+    End Sub
+
+    Private Function qleaDownloadPath(ByVal host As Global.Lea.Win.V, ByVal address As Uri, ByVal path As String) As Boolean
+        If host Is Nothing OrElse address Is Nothing OrElse String.IsNullOrWhiteSpace(path) Then Return False
+        Dim result = host.Dl(address.AbsoluteUri, path)
+        su.Visible = True
+        su.Text = "Lea: downloaded " & result.Sz.ToString() & " bytes to " & result.P
+        Return File.Exists(result.P)
+    End Function
+
+    Private Async Sub qleaDownload(ByVal sender As Object, ByVal e As EventArgs)
+        Dim host = TryCast(sender, Global.Lea.Win.V)
+        If host Is Nothing OrElse host.Du Is Nothing Then Return
+        Using dialog As New SaveFileDialog()
+            qsavefolder(dialog)
+            dialog.FileName = qleaSafeName(host.Dn)
+            dialog.Filter = "All files (*.*)|*.*"
+            dialog.CheckPathExists = True
+            dialog.Title = "Save Lea Download"
+            If dialog.ShowDialog(Me) <> DialogResult.OK Then Return
+            su.Visible = True
+            su.Text = "Lea: downloading to " & dialog.FileName
+            Try
+                Dim result = Await host.DlA(host.Du.AbsoluteUri, dialog.FileName)
+                qad(result.P)
+                su.Text = "Lea: downloaded " & result.Sz.ToString() & " bytes to " & result.P
+            Catch ex As Exception
+                su.Text = "Lea: " & ex.Message
+            End Try
+        End Using
     End Sub
 
     Private Sub qleaState(ByVal host As Global.Lea.Win.V)

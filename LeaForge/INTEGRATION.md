@@ -197,6 +197,13 @@ foreground, and font size using `t/a/bg/fg/fs` or equivalent literal
 data blocks, expressions, control flow, and unknown calls. Per-page limits are
 eight script blocks, 16 KB per block, 32 accepted commands, and 16 alerts.
 
+Core downloads use `E.Dl`/`DlA`; `V` forwards those aliases and raises `Dr` for
+links carrying the HTML `download` attribute. The host receives `Du` and `Dn`,
+shows the destination UI, and passes the selected full path back to Lea. Streams
+are capped at 64 MB, decoded for gzip/deflate transport encoding, and committed
+through a temporary file. `E.Fd` provides bounded text counts, while
+`V.Fd`/`Nx`/`Pr`/`Fc` manage highlighted painted matches and scrolling.
+
 ## Experimental Firespider tab
 
 The source in `../Lea.Firespider` now powers real engine-backed tabs in the
@@ -217,7 +224,8 @@ Firespider imports one `Lea/FirespiderLea.targets` file. The import supplies the
 two DLL references, partial VB adapter, and bundled local start page. Debug and
 Release builds pass `Smoke.cs`, which verifies Lea tab creation, keyboard
 navigation, bounded script/style execution, alert status routing, local open,
-page save, send-link metadata, timer status, close and source routing, and
+page save, find cycling, streamed downloads, send-link metadata, timer status,
+close and source routing, and
 session save/restore across two host forms without loading another browser
 engine or touching the user's data. The adapter removes
 unconditional `WebBrowser` casts from the paths it owns and delegates by active

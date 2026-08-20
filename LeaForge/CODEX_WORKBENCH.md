@@ -17,9 +17,9 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-1. Add downloads and find-in-page.
-2. Add safe click commands and small script variables.
-3. Add a developer tools panel for parsed nodes, CSS rules, network events, and console messages.
+1. Add safe click commands and small script variables.
+2. Add a developer tools panel for parsed nodes, CSS rules, network events, and console messages.
+3. Add a compact compatibility and performance report.
 
 ## Rules For Future Codex Work
 

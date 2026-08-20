@@ -15,10 +15,11 @@ namespace Lea.Firespider
             var session = Path.Combine(Path.GetTempPath(), "lea-firespider-smoke-" + Guid.NewGuid().ToString("N") + ".txt");
             var openPage = Path.Combine(Path.GetTempPath(), "lea-firespider-open-" + Guid.NewGuid().ToString("N") + ".html");
             var savedPage = Path.Combine(Path.GetTempPath(), "lea-firespider-page-" + Guid.NewGuid().ToString("N") + ".html");
+            var downloadedPage = Path.Combine(Path.GetTempPath(), "lea-firespider-download-" + Guid.NewGuid().ToString("N") + ".html");
             try
             {
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", session);
-                File.WriteAllText(openPage, "<!doctype html><html><head><title>Lea Open Route</title></head><body>Open route fixture</body></html>");
+                File.WriteAllText(openPage, "<!doctype html><html><head><title>Lea Open Route</title></head><body><p>Open route fixture</p><p>Second route match</p><p>Third ROUTE match</p></body></html>");
                 var root = args.Length > 0 ? args[0] : AppDomain.CurrentDomain.BaseDirectory;
                 var assembly = Assembly.LoadFrom(Path.Combine(root, "Firespider Internet 19.exe"));
                 var type = assembly.GetType("Firespider_Internet.j", true);
@@ -67,6 +68,14 @@ namespace Lea.Firespider
                     var opened = (bool)type.GetMethod("qleaOpenPath", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(form, new object[] { openPage });
                     WaitFor(() => host.At != null && host.T == "Lea Open Route", "Firespider Open File routed to Lea");
                     Check(opened, "Firespider Open File capability");
+                    var findPage = type.GetMethod("qleaFind", BindingFlags.Instance | BindingFlags.NonPublic);
+                    Check(findPage != null && (int)findPage.Invoke(form, new object[] { host, "route", false }) == 3, "Firespider Find routed to Lea");
+                    Check(host.Fx == 1 && Member<Label>(form, "su").Text == "Lea: match 1 of 3", "Firespider Find status");
+                    findPage.Invoke(form, new object[] { host, "route", true });
+                    Check(host.Fx == 2 && Member<Label>(form, "su").Text == "Lea: match 2 of 3", "Firespider next Find match");
+                    var downloadPath = type.GetMethod("qleaDownloadPath", BindingFlags.Instance | BindingFlags.NonPublic);
+                    Check(downloadPath != null && (bool)downloadPath.Invoke(form, new object[] { host, new Uri(openPage), downloadedPage }), "Firespider download routed to Lea");
+                    Check(File.ReadAllText(downloadedPage).Contains("Third ROUTE match") && Member<Label>(form, "su").Text.Contains(downloadedPage), "Firespider download destination status");
                     var savedPageOk = (bool)type.GetMethod("qleaSavePath", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(form, new object[] { savedPage });
                     Check(savedPageOk && File.ReadAllText(savedPage).Contains("Open route fixture"), "Firespider Save Page routed to Lea");
                     var mailLink = (string)type.GetMethod("qleaMailLink", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(form, null);
@@ -133,7 +142,7 @@ namespace Lea.Firespider
                     Check(restoredTabs.TabCount == beforeMiddle - 1 && FindLea(restoredTabs) == null, "middle-click Lea tab close");
                 }
 
-                Console.WriteLine("Firespider Lea smoke passed: scripts and alerts, keyboard navigation, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
+                Console.WriteLine("Firespider Lea smoke passed: find and downloads, scripts and alerts, keyboard navigation, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
                 return 0;
             }
             catch (Exception error)
@@ -147,6 +156,7 @@ namespace Lea.Firespider
                 if (File.Exists(session)) File.Delete(session);
                 if (File.Exists(openPage)) File.Delete(openPage);
                 if (File.Exists(savedPage)) File.Delete(savedPage);
+                if (File.Exists(downloadedPage)) File.Delete(downloadedPage);
             }
         }
 

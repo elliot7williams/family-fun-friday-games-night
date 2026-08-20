@@ -147,6 +147,35 @@ namespace Lea.Tests
                 Eq(16, alertEngine.Js(alertPage, alertCode.ToString()), "alert queue limit");
                 Eq(16, alertPage.Ms.Count, "bounded alert queue");
 
+                var findPath = Path.Combine(root, "LeaForge", "test-pages", "find-download.html");
+                var findPage = engine.Go(findPath);
+                Eq(3, engine.Fd(findPage, "cobalt"), "engine page-text find count");
+                Eq(3, engine.Fd(findPage, "COBALT"), "engine find is case insensitive");
+                Eq(0, engine.Fd(findPage, "missing phrase"), "engine missing find count");
+
+                var downloadSource = Path.Combine(root, "LeaForge", "test-pages", "download-sample.txt");
+                var downloadSync = Path.Combine(Path.GetTempPath(), "lea-download-" + Guid.NewGuid().ToString("N") + ".txt");
+                var downloadAsync = Path.Combine(Path.GetTempPath(), "lea-download-" + Guid.NewGuid().ToString("N") + ".txt");
+                try
+                {
+                    Eq(64L * 1024 * 1024, engine.Dm, "bounded download maximum");
+                    File.WriteAllText(downloadSync, "replace this download");
+                    var saved = engine.Dl(downloadSource, downloadSync);
+                    Eq(200, saved.St, "local download status");
+                    Eq("text/plain", saved.Ct, "local download content type");
+                    Eq(new FileInfo(downloadSource).Length, saved.Sz, "local download size");
+                    Eq(Path.GetFileName(downloadSync), saved.N, "local download name");
+                    Eq(File.ReadAllText(downloadSource), File.ReadAllText(downloadSync), "streamed local download atomically replaces destination");
+                    var savedAsync = engine.DlA(new Uri(downloadSource), downloadAsync).GetAwaiter().GetResult();
+                    Eq(new FileInfo(downloadSource).Length, savedAsync.Sz, "async local download size");
+                    Eq(File.ReadAllText(downloadSource), File.ReadAllText(downloadAsync), "async local download bytes");
+                }
+                finally
+                {
+                    File.Delete(downloadSync);
+                    File.Delete(downloadAsync);
+                }
+
                 var inlinePath = Path.Combine(root, "LeaForge", "test-pages", "inline.html");
                 var inlinePage = engine.Go(inlinePath);
                 Eq(3, inlinePage.Bs.Count, "inline page avoids duplicate link block");
@@ -521,6 +550,39 @@ namespace Lea.Tests
                     Eq("View Script", view.T, "disabled WinForms script leaves title");
                     view.Je = true;
 
+                    view.Size = new Size(520, 260);
+                    view.Go(findPath);
+                    Paint(view);
+                    Eq(64L * 1024 * 1024, view.Dm, "WinForms download maximum");
+                    Eq(3, view.Fd("cobalt"), "WinForms painted find count");
+                    Eq(1, view.Fx, "WinForms first find index");
+                    Ok(!view.Fr.IsEmpty, "WinForms current find rectangle");
+                    using (var findPaint = Render(view))
+                    {
+                        var current = view.Fr;
+                        Ok(ColorDistance(findPaint.GetPixel(current.Right - 1, current.Bottom - 1), Color.FromArgb(194, 65, 12)) < 20, "active find highlight painting");
+                    }
+                    Eq(2, view.Nx(), "WinForms next find index");
+                    Eq(3, view.Nx(), "WinForms wrapped find progression");
+                    Ok(view.Sy > 0 && !view.Fr.IsEmpty, "WinForms find scrolls match into view");
+                    Eq(2, view.Pr(), "WinForms previous find index");
+                    Eq(0, view.Fd("not on this page"), "WinForms missing find count");
+                    view.Fc();
+                    Eq(0, view.Fn, "WinForms clear find");
+
+                    var downloadRequests = 0;
+                    view.Dr += delegate { downloadRequests++; };
+                    view.Sc(100000);
+                    Paint(view);
+                    var downloadHit = HitRect(view, "download-sample.txt");
+                    Ok(!downloadHit.IsEmpty, "download link hit target");
+                    Click(view, downloadHit);
+                    Eq(1, downloadRequests, "WinForms download request event");
+                    Eq("lea-download-sample.txt", view.Dn, "download attribute suggested name");
+                    Eq("download-sample.txt", Path.GetFileName(view.Du.LocalPath), "download request URL");
+                    Eq("Lea Find and Download", view.T, "download request does not navigate");
+
+                    view.Size = new Size(720, 760);
                     view.Go(forms);
                     view.Bk();
                     Eq(3, alertEvents, "history does not replay script alerts");
@@ -1476,6 +1538,28 @@ namespace Lea.Tests
                     Eq(0, jar.Cc, "clear cookies also clears page cache");
                     Eq("Cookie empty", jar.Go(new Uri(server.U, "?cookie=read")).T, "cleared cookie omitted");
 
+                    var networkDownload = Path.Combine(Path.GetTempPath(), "lea-network-download-" + Guid.NewGuid().ToString("N") + ".html");
+                    var networkDownloadAsync = Path.Combine(Path.GetTempPath(), "lea-network-download-" + Guid.NewGuid().ToString("N") + ".html");
+                    var largeDownload = Path.Combine(Path.GetTempPath(), "lea-large-download-" + Guid.NewGuid().ToString("N") + ".bin");
+                    try
+                    {
+                        var networkSaved = net.Dl(new Uri(server.U, "?download=sync"), networkDownload);
+                        Eq(200, networkSaved.St, "HTTP download status");
+                        Eq("text/html", networkSaved.Ct, "HTTP download content type");
+                        Ok(networkSaved.Sz > 0 && File.ReadAllText(networkDownload).Contains("Compressed Lea response"), "HTTP gzip download is streamed and decoded");
+                        var networkSavedAsync = net.DlA(new Uri(server.U, "?download=async&encoding=deflate"), networkDownloadAsync).GetAwaiter().GetResult();
+                        Ok(networkSavedAsync.Sz > 0 && File.ReadAllText(networkDownloadAsync).Contains("Compressed Lea response"), "async deflate download is streamed and decoded");
+                        var tooLarge = Fails(delegate { net.Dl(new Uri(server.U, "?download-large=1"), largeDownload); }, "oversized HTTP download");
+                        Eq("large", tooLarge.K, "oversized download error kind");
+                        Ok(!File.Exists(largeDownload), "oversized download leaves no destination");
+                    }
+                    finally
+                    {
+                        File.Delete(networkDownload);
+                        File.Delete(networkDownloadAsync);
+                        File.Delete(largeDownload);
+                    }
+
                     var missingFile = new Uri(Path.Combine(root, "LeaForge", "test-pages", "missing-lea-page.html"));
                     var fileError = Fails(delegate { net.Go(missingFile); }, "missing file");
                     Eq("file", fileError.K, "file error kind");
@@ -1501,8 +1585,9 @@ namespace Lea.Tests
                 }
 
                 if (args.Length > 1) SaveRender(scriptPath, args[1]);
+                if (args.Length > 2) SaveFindRender(findPath, args[2]);
 
-                Console.WriteLine("Lea smoke passed: bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -1533,6 +1618,21 @@ namespace Lea.Tests
                 view.Size = new Size(900, 600);
                 view.CreateControl();
                 view.Go(page);
+                using (var image = Render(view)) image.Save(output, System.Drawing.Imaging.ImageFormat.Png);
+            }
+        }
+
+        private static void SaveFindRender(string page, string output)
+        {
+            var folder = Path.GetDirectoryName(Path.GetFullPath(output));
+            if (!String.IsNullOrWhiteSpace(folder)) Directory.CreateDirectory(folder);
+            using (var view = new V())
+            {
+                view.Size = new Size(700, 420);
+                view.CreateControl();
+                view.Go(page);
+                view.Fd("cobalt");
+                view.Nx();
                 using (var image = Render(view)) image.Save(output, System.Drawing.Imaging.ImageFormat.Png);
             }
         }
@@ -1981,6 +2081,12 @@ namespace Lea.Tests
                             var status = unavailable ? "503 Service Unavailable" : "404 Not Found";
                             var failure = Encoding.ASCII.GetBytes("HTTP/1.1 " + status + "\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
                             stream.Write(failure, 0, failure.Length);
+                            continue;
+                        }
+                        if (request.IndexOf("download-large=1", StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            var large = Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: 67108865\r\nConnection: close\r\n\r\n");
+                            stream.Write(large, 0, large.Length);
                             continue;
                         }
                         var etag = request.IndexOf("etag=1", StringComparison.OrdinalIgnoreCase) >= 0;

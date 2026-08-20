@@ -38,6 +38,8 @@ LeaForge is where we can grow the more full-featured browser.
 - bounded multipart file uploads plus range, color, and temporal form fields
 - tiny script handling for `alert("...")` and `document.title = "..."`
 - bounded engine scripting for title, body colors, font size, and host-routed alerts
+- streamed local/HTTP downloads with explicit destinations and a 64 MB ceiling
+- highlighted, case-insensitive find-in-page with next/previous cycling
 
 ## Lea Short Commands
 
