@@ -33,3 +33,15 @@ The cleaner source projects are still:
 Run `Backup-Lea.ps1` to create a dated, source-only ZIP in the Documents
 `Lea Source Backups` folder. Git and GitHub remain the main version history;
 the ZIP is an additional local copy without `bin`, `obj`, or `dist` files.
+
+## Compatibility And Performance
+
+`Lea.Bench` is the repeatable .NET Framework report runner. After a Release
+build, run it from the repository root:
+
+```powershell
+.\Lea.Bench\bin\Release\Lea.Bench.exe -r . -o .\LeaForge\COMPATIBILITY_PERFORMANCE.md -n 15
+```
+
+Its compact switches are `-r` for repository root, `-o` for report output,
+`-n` for iterations, and optional `-b` for a Firespider executable path.

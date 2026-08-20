@@ -175,5 +175,6 @@ migrated.
 
 Find-in-page, explicit streamed downloads, safe button/link page commands, and
 the host-readable `Dg` diagnostics snapshot now route through Lea for Lea tabs.
-The next integration expansion is a compatibility/performance report followed
-by useful developer commands that consume `Dg` without engine-specific casts.
+`Lea.Bench` now emits the repeatable compatibility/performance report. The next
+host integration expansion is a small developer command that consumes `Dg`
+without engine-specific casts.

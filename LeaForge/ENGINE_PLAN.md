@@ -234,8 +234,15 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add a repeatable compatibility and performance report covering supported HTML,
-CSS, forms, scripting, startup, load timing, memory, and compressed size.
+Replace regex-only HTML tokenization edge cases with a bounded scanner. Cover
+raw-text elements, comments, malformed delimiters, and named/numeric entities
+with focused fixtures while preserving Lea's small document model.
+
+The repeatable compatibility and performance report is now implemented by
+`Lea.Bench`. It probes supported HTML, CSS, forms, scripting, layout, downloads,
+and diagnostics, then records local load timing, bitmap paint timing, retained
+managed memory, binary footprint, and compressed runtime size in
+`COMPATIBILITY_PERFORMANCE.md`.
 
 The `inset` shorthand now expands atomically into `Tp/Rt/Bm/Lt`, and opposing
 edges stretch auto-sized absolute and fixed boxes against their containing

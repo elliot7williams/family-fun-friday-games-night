@@ -40,6 +40,7 @@ LeaForge is where we can grow the more full-featured browser.
 - bounded engine scripting for title, body colors, font size, and host-routed alerts
 - safe button/link commands with bounded variables and ID-scoped text updates
 - bounded developer snapshots plus a tabbed inspector in the test browser
+- repeatable compatibility, timing, memory, binary-size, and compression report
 - streamed local/HTTP downloads with explicit destinations and a 64 MB ceiling
 - highlighted, case-insensitive find-in-page with next/previous cycling
 
@@ -93,6 +94,16 @@ The compiled test exe is expected at:
 ```text
 ../dist/LeaExes/LeaForge.exe
 ```
+
+After a Release solution build, regenerate the engine report with:
+
+```powershell
+..\Lea.Bench\bin\Release\Lea.Bench.exe -r .. -o COMPATIBILITY_PERFORMANCE.md -n 15
+```
+
+The report marks unsupported browser-platform features explicitly; a passing
+fixture probe is not presented as full Chrome, Safari, Firefox, or HTML Living
+Standard compatibility.
 
 ## Local Test Page
 
