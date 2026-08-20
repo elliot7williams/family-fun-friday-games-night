@@ -11,6 +11,7 @@ namespace Lea.Engine
             Bs = new List<B>();
             Fs = new List<Fi>();
             Ms = new List<string>();
+            Vs = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         }
 
         public Uri U { get; internal set; }
@@ -30,6 +31,7 @@ namespace Lea.Engine
         public IList<B> Bs { get; private set; }
         public IList<Fi> Fs { get; private set; }
         public IList<string> Ms { get; private set; }
+        public IDictionary<string, string> Vs { get; private set; }
         public N D { get; internal set; }
         public S S { get; internal set; }
         public int N { get; internal set; }

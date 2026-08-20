@@ -17,9 +17,9 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-1. Add safe click commands and small script variables.
-2. Add a developer tools panel for parsed nodes, CSS rules, network events, and console messages.
-3. Add a compact compatibility and performance report.
+1. Add a developer tools panel for parsed nodes, CSS rules, network events, and command messages.
+2. Add a compact compatibility and performance report.
+3. Expand the safe command set only through bounded, fixture-backed aliases.
 
 ## Rules For Future Codex Work
 

@@ -115,6 +115,17 @@ namespace Lea.Engine
             return count;
         }
 
+        // Ck runs a page element's safe Lea click commands.
+        public int Ck(P page, N element)
+        {
+            if (page == null) throw new ArgumentNullException("page");
+            if (!hs.Contains(page)) throw new ArgumentException("The page does not belong to this Lea engine.", "page");
+            if (element == null || !Owns(page.D, element)) return 0;
+            var code = element.Av("data-lea");
+            if (String.IsNullOrWhiteSpace(code)) code = element.Av("onclick");
+            return String.IsNullOrWhiteSpace(code) ? 0 : Js(page, code);
+        }
+
         // Fd counts bounded, case-insensitive page-text matches.
         public int Fd(P page, string query)
         {

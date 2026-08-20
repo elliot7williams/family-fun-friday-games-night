@@ -11,6 +11,7 @@ namespace Lea.Engine
         private const int MaxCode = 16 * 1024;
         private const int MaxCommands = 32;
         private const int MaxAlerts = 16;
+        private const int MaxVariables = 16;
 
         internal static int Pg(P page, N root)
         {
@@ -51,9 +52,28 @@ namespace Lea.Engine
 
         private static bool Apply(P page, Cm command)
         {
+            if (command.N == "v")
+            {
+                var name = Variable(command.V);
+                if (name.Length == 0 || (!page.Vs.ContainsKey(name) && page.Vs.Count >= MaxVariables)) return false;
+                page.Vs[name] = Text(Expand(page, command.W), 256);
+                return true;
+            }
+            if (command.N == "tx")
+            {
+                var id = Id(Expand(page, command.V));
+                var target = FindId(page.D, id);
+                if (target == null || !TextTarget(target.K)) return false;
+                target.C.Clear();
+                var child = new N("#text");
+                child.X = Text(Expand(page, command.W), 512);
+                child.Up = target;
+                target.C.Add(child);
+                return true;
+            }
             if (command.N == "t")
             {
-                var title = Text(command.V, 256);
+                var title = Text(Expand(page, command.V), 256);
                 if (title.Length == 0) return false;
                 page.T = title;
                 return true;
@@ -61,7 +81,7 @@ namespace Lea.Engine
             if (command.N == "a")
             {
                 if (page.Ms.Count >= MaxAlerts) return false;
-                page.Ms.Add(Text(command.V, 512));
+                page.Ms.Add(Text(Expand(page, command.V), 512));
                 return true;
             }
 
@@ -70,13 +90,13 @@ namespace Lea.Engine
             if (command.N == "bg" || command.N == "fg")
             {
                 string color;
-                if (!Color(command.V, out color)) return false;
+                if (!Color(Expand(page, command.V), out color)) return false;
                 return SetStyle(body, command.N == "bg" ? "background-color" : "color", color);
             }
             if (command.N == "fs")
             {
                 int size;
-                if (!Size(command.V, out size)) return false;
+                if (!Size(Expand(page, command.V), out size)) return false;
                 return SetStyle(body, "font-size", size.ToString() + "px");
             }
             return false;
@@ -91,11 +111,20 @@ namespace Lea.Engine
             if (reader.Take('('))
             {
                 reader.Space();
-                string value;
-                if (!reader.Value(out value)) return null;
+                string first;
+                if (!reader.Value(out first)) return null;
                 reader.Space();
+                string second = null;
+                var count = 1;
+                if (reader.Take(','))
+                {
+                    reader.Space();
+                    if (!reader.Value(out second)) return null;
+                    count = 2;
+                    reader.Space();
+                }
                 if (!reader.Take(')') || !reader.End()) return null;
-                return Command(name, value);
+                return Command(name, first, second, count);
             }
             if (reader.Take('='))
             {
@@ -107,13 +136,15 @@ namespace Lea.Engine
             return null;
         }
 
-        private static Cm Command(string name, string value)
+        private static Cm Command(string name, string first, string second, int count)
         {
-            if (name == "t" || name == "title") return new Cm("t", value);
-            if (name == "a" || name == "alert") return new Cm("a", value);
-            if (name == "bg" || name == "background") return new Cm("bg", value);
-            if (name == "fg" || name == "color") return new Cm("fg", value);
-            if (name == "fs" || name == "fontsize") return new Cm("fs", value);
+            if (count == 1 && (name == "t" || name == "title")) return new Cm("t", first);
+            if (count == 1 && (name == "a" || name == "alert")) return new Cm("a", first);
+            if (count == 1 && (name == "bg" || name == "background")) return new Cm("bg", first);
+            if (count == 1 && (name == "fg" || name == "color")) return new Cm("fg", first);
+            if (count == 1 && (name == "fs" || name == "fontsize")) return new Cm("fs", first);
+            if (count == 2 && (name == "v" || name == "var")) return new Cm("v", first, second);
+            if (count == 2 && (name == "tx" || name == "text")) return new Cm("tx", first, second);
             return null;
         }
 
@@ -240,6 +271,74 @@ namespace Lea.Engine
             return true;
         }
 
+        private static string Expand(P page, string value)
+        {
+            var source = value ?? "";
+            var result = new StringBuilder();
+            for (var at = 0; at < source.Length && result.Length < 1024;)
+            {
+                if (source[at] == '$' && at + 2 < source.Length && source[at + 1] == '{')
+                {
+                    var end = source.IndexOf('}', at + 2);
+                    if (end >= 0)
+                    {
+                        var name = Variable(source.Substring(at + 2, end - at - 2));
+                        string replacement;
+                        if (name.Length > 0 && page.Vs.TryGetValue(name, out replacement)) Append(result, replacement, 1024);
+                        at = end + 1;
+                        continue;
+                    }
+                }
+                result.Append(source[at++]);
+            }
+            return result.ToString();
+        }
+
+        private static void Append(StringBuilder target, string value, int max)
+        {
+            foreach (var ch in value ?? "")
+            {
+                if (target.Length == max) break;
+                target.Append(ch);
+            }
+        }
+
+        private static string Variable(string value)
+        {
+            var name = (value ?? "").Trim().ToLowerInvariant();
+            if (name.Length < 1 || name.Length > 16 || name[0] < 'a' || name[0] > 'z') return "";
+            foreach (var ch in name)
+                if ((ch < 'a' || ch > 'z') && (ch < '0' || ch > '9') && ch != '_') return "";
+            return name;
+        }
+
+        private static string Id(string value)
+        {
+            var id = (value ?? "").Trim();
+            if (id.Length < 1 || id.Length > 64) return "";
+            foreach (var ch in id)
+                if (!Char.IsLetterOrDigit(ch) && ch != '-' && ch != '_' && ch != ':' && ch != '.') return "";
+            return id;
+        }
+
+        private static N FindId(N node, string id)
+        {
+            if (node == null || id.Length == 0) return null;
+            if (node.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase)) return node;
+            foreach (var child in node.C)
+            {
+                var found = FindId(child, id);
+                if (found != null) return found;
+            }
+            return null;
+        }
+
+        private static bool TextTarget(string kind)
+        {
+            return kind != "#doc" && kind != "#text" && kind != "html" && kind != "head" && kind != "body" &&
+                kind != "title" && kind != "script" && kind != "style" && kind != "link" && kind != "meta";
+        }
+
         private static bool Color(string value, out string color)
         {
             color = (value ?? "").Trim().ToLowerInvariant();
@@ -280,8 +379,10 @@ namespace Lea.Engine
         {
             internal readonly string N;
             internal readonly string V;
+            internal readonly string W;
 
-            internal Cm(string name, string value) { N = name; V = value; }
+            internal Cm(string name, string value) : this(name, value, null) { }
+            internal Cm(string name, string value, string second) { N = name; V = value; W = second; }
         }
 
         private sealed class Rd

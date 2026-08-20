@@ -226,7 +226,17 @@ namespace Lea.Win
         public int Js(string code)
         {
             if (At == null) return 0;
-            var count = e.Js(At, code);
+            return Commands(e.Js(At, code));
+        }
+
+        public int Ck(N element)
+        {
+            if (At == null) return 0;
+            return Commands(e.Ck(At, element));
+        }
+
+        private int Commands(int count)
+        {
             if (count == 0) return 0;
             ClearFind(false);
             Dirty();
@@ -1705,6 +1715,7 @@ namespace Lea.Win
                     EndEdit(false);
                     SetFocus(null);
                     var element = hit.El;
+                    Ck(ClickElement(element));
                     if (element != null && element.A.ContainsKey("download") && Dr != null)
                     {
                         Du = hit.U;
@@ -1731,6 +1742,16 @@ namespace Lea.Win
             return value;
         }
 
+        private static N ClickElement(N element)
+        {
+            for (var current = element; current != null; current = current.Up)
+            {
+                if (current.A.ContainsKey("data-lea") || current.A.ContainsKey("onclick")) return current;
+                if (current.K == "a") return current;
+            }
+            return element;
+        }
+
         private async Task FieldClickA(Bx box, Point point)
         {
             var field = box.B.I;
@@ -1743,6 +1764,7 @@ namespace Lea.Win
 
             EndEdit(false);
             SetFocus(field.El);
+            if (field.K == "reset" || field.K == "submit" || field.K == "button") Ck(field.El);
             var restyle = false;
             if (field.K == "checkbox")
             {

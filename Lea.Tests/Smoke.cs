@@ -147,6 +147,37 @@ namespace Lea.Tests
                 Eq(16, alertEngine.Js(alertPage, alertCode.ToString()), "alert queue limit");
                 Eq(16, alertPage.Ms.Count, "bounded alert queue");
 
+                var eventPath = Path.Combine(root, "LeaForge", "test-pages", "events-vars.html");
+                var eventEngine = new E();
+                var eventPage = eventEngine.Go(eventPath);
+                Eq("Lea safe events", eventPage.T, "variable-expanded page title");
+                Eq(4, eventPage.Jc, "variable page command count");
+                Eq(2, eventPage.Vs.Count, "bounded page variables");
+                Eq("Lea", eventPage.Vs["who"], "short variable value");
+                Eq("#e0f2fe", eventPage.S.Bg, "variable-expanded style");
+                Eq(3, eventEngine.Ck(eventPage, ById(eventPage.D, "go")), "safe data-lea click commands");
+                Eq("Clicked Lea", eventPage.T, "click-updated title");
+                Eq("Hello Lea", ById(eventPage.D, "status").C[0].X, "click-updated element text");
+                Eq("Safe click ran", eventPage.Ms[0], "click alert");
+                Ok(eventPage.X.Contains("Hello Lea"), "text update rebuilds page text");
+                Eq(1, eventEngine.Ck(eventPage, ById(eventPage.D, "familiar")), "familiar onclick alias");
+                Eq("Familiar click command", ById(eventPage.D, "status").C[0].X, "onclick text update");
+                Eq(2, eventEngine.Ck(eventPage, ById(eventPage.D, "continue")), "link click commands");
+                Eq("link", eventPage.Vs["last"], "link click variable");
+                Eq(0, eventEngine.Ck(eventPage, ById(eventPage.D, "unsafe")), "unsafe click code ignored");
+                eventEngine.Je = false;
+                Eq(0, eventEngine.Ck(eventPage, ById(eventPage.D, "go")), "click commands respect script setting");
+                eventEngine.Je = true;
+
+                var variableEngine = new E();
+                var variablePage = variableEngine.Go(forms);
+                var variableCode = new StringBuilder();
+                for (var variableIndex = 0; variableIndex < 17; variableIndex++)
+                    variableCode.Append("v('v").Append(variableIndex).Append("','").Append(variableIndex).Append("');");
+                Eq(16, variableEngine.Js(variablePage, variableCode.ToString()), "page variable limit");
+                Eq(16, variablePage.Vs.Count, "bounded variable storage");
+                Eq(0, variableEngine.Js(variablePage, "v('1bad','value'); tx('missing','value'); tx('body id','value');"), "invalid variables and text targets ignored");
+
                 var findPath = Path.Combine(root, "LeaForge", "test-pages", "find-download.html");
                 var findPage = engine.Go(findPath);
                 Eq(3, engine.Fd(findPage, "cobalt"), "engine page-text find count");
@@ -550,6 +581,26 @@ namespace Lea.Tests
                     Eq("View Script", view.T, "disabled WinForms script leaves title");
                     view.Je = true;
 
+                    view.Size = new Size(720, 420);
+                    view.Go(eventPath);
+                    Paint(view);
+                    var eventField = FieldById(view.At, "go");
+                    var eventButton = BlockRect(view, FieldBlock(view.At, eventField));
+                    Ok(!eventButton.IsEmpty, "safe event button layout");
+                    Click(view, eventButton);
+                    Eq("Clicked Lea", view.T, "WinForms click command title");
+                    Eq("Hello Lea", ById(view.At.D, "status").C[0].X, "WinForms click text update");
+                    Eq(4, alertEvents, "WinForms click alert event");
+                    Eq("Safe click ran", view.Am, "WinForms click alert message");
+                    Paint(view);
+                    var clickedEventPage = view.At;
+                    var eventLink = HitRect(view, "second.html");
+                    Ok(!eventLink.IsEmpty, "nested safe event link hit target");
+                    Click(view, eventLink);
+                    WaitFor(delegate { return view.T == "LeaForge Second Page"; }, "safe event link navigation");
+                    Eq("link", clickedEventPage.Vs["last"], "nested link click variable");
+                    Eq(5, alertEvents, "nested link click alert event");
+
                     view.Size = new Size(520, 260);
                     view.Go(findPath);
                     Paint(view);
@@ -585,7 +636,7 @@ namespace Lea.Tests
                     view.Size = new Size(720, 760);
                     view.Go(forms);
                     view.Bk();
-                    Eq(3, alertEvents, "history does not replay script alerts");
+                    Eq(5, alertEvents, "history does not replay script alerts");
                     view.Fw();
                     Paint(view);
                     Ok(view.Bc > page.Fs.Count, "form layout boxes");
@@ -1586,8 +1637,9 @@ namespace Lea.Tests
 
                 if (args.Length > 1) SaveRender(scriptPath, args[1]);
                 if (args.Length > 2) SaveFindRender(findPath, args[2]);
+                if (args.Length > 3) SaveEventRender(eventPath, args[3]);
 
-                Console.WriteLine("Lea smoke passed: streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -1633,6 +1685,20 @@ namespace Lea.Tests
                 view.Go(page);
                 view.Fd("cobalt");
                 view.Nx();
+                using (var image = Render(view)) image.Save(output, System.Drawing.Imaging.ImageFormat.Png);
+            }
+        }
+
+        private static void SaveEventRender(string page, string output)
+        {
+            var folder = Path.GetDirectoryName(Path.GetFullPath(output));
+            if (!String.IsNullOrWhiteSpace(folder)) Directory.CreateDirectory(folder);
+            using (var view = new V())
+            {
+                view.Size = new Size(720, 420);
+                view.CreateControl();
+                view.Go(page);
+                view.Ck(ById(view.At.D, "go"));
                 using (var image = Render(view)) image.Save(output, System.Drawing.Imaging.ImageFormat.Png);
             }
         }
@@ -1767,6 +1833,13 @@ namespace Lea.Tests
         {
             foreach (var block in page.Bs) if (Object.ReferenceEquals(block.I, field)) return block;
             throw new InvalidOperationException("field block unavailable: " + (field == null ? "" : field.N));
+        }
+
+        private static Fi FieldById(P page, string id)
+        {
+            foreach (var field in page.Fs)
+                if (field.El != null && field.El.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase)) return field;
+            throw new InvalidOperationException("field unavailable: " + id);
         }
 
         private static TextBox Editor(V view)

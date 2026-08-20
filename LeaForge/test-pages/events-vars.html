@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Events Before</title>
+  <style>
+    body { background: #f8fafc; color: #172033; font-size: 17px; }
+    h1 { color: #0f766e; }
+    p { background: white; border: 1px solid #94a3b8; padding: 12px; }
+    button { background: #0f766e; color: white; border: 1px solid #115e59; padding: 9px; margin-right: 8px; }
+    a { color: #a13b18; }
+  </style>
+  <script type="text/lea">
+    v("who", "Lea");
+    var("tone", "#e0f2fe");
+    bg("${tone}");
+    t("${who} safe events");
+  </script>
+</head>
+<body>
+  <h1>Safe page events</h1>
+  <p id="status">Waiting for a safe click.</p>
+  <button id="go" type="button" data-lea="tx('status', 'Hello ${who}'); t('Clicked ${who}'); a('Safe click ran')">Run Lea command</button>
+  <button id="familiar" type="button" onclick="text('status', 'Familiar click command')">Use onclick</button>
+  <button id="unsafe" type="button" onclick="eval('tx(\'status\', \'Unsafe\')')">Unsafe command</button>
+  <a id="continue" href="second.html" data-lea="v('last', 'link'); a('Link command')"><strong>Continue</strong> to page two</a>
+</body>
+</html>

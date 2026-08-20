@@ -193,9 +193,13 @@ provide the compact host bridge. Pages expose accepted-command count through
 for each new message and exposes it through `Am`; it never lets page code open a
 native dialog directly. Inline scripts may set the title, body background,
 foreground, and font size using `t/a/bg/fg/fs` or equivalent literal
-`document.*` assignments and `alert(...)`. Lea ignores external scripts, JSON
+`document.*` assignments and `alert(...)`. `v/var` stores up to 16 small page
+variables and `${name}` substitutes them into later literals. `tx/text` replaces
+text under one safe element ID. `E.Ck(page, element)` and `V.Ck(element)` route
+button and link `data-lea`/`onclick` values through this same parser. Lea ignores external scripts, JSON
 data blocks, expressions, control flow, and unknown calls. Per-page limits are
-eight script blocks, 16 KB per block, 32 accepted commands, and 16 alerts.
+eight script blocks, 16 KB per block, 32 accepted commands per run, 16 variables,
+and 16 alerts.
 
 Core downloads use `E.Dl`/`DlA`; `V` forwards those aliases and raises `Dr` for
 links carrying the HTML `download` attribute. The host receives `Du` and `Dn`,
@@ -223,7 +227,7 @@ removes it, and legacy tabs continue using Firespider's settings collections.
 Firespider imports one `Lea/FirespiderLea.targets` file. The import supplies the
 two DLL references, partial VB adapter, and bundled local start page. Debug and
 Release builds pass `Smoke.cs`, which verifies Lea tab creation, keyboard
-navigation, bounded script/style execution, alert status routing, local open,
+navigation, bounded script/style and safe click execution, alert status routing, local open,
 page save, find cycling, streamed downloads, send-link metadata, timer status,
 close and source routing, and
 session save/restore across two host forms without loading another browser

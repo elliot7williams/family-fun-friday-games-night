@@ -38,6 +38,7 @@ LeaForge is where we can grow the more full-featured browser.
 - bounded multipart file uploads plus range, color, and temporal form fields
 - tiny script handling for `alert("...")` and `document.title = "..."`
 - bounded engine scripting for title, body colors, font size, and host-routed alerts
+- safe button/link commands with bounded variables and ID-scoped text updates
 - streamed local/HTTP downloads with explicit destinations and a 64 MB ceiling
 - highlighted, case-insensitive find-in-page with next/previous cycling
 
@@ -51,6 +52,8 @@ a("Message")     alert
 bg("#fff")       background
 fg("#222")       text color
 fs(12)           font size
+v("name", "Lea") variable
+tx("id", "Hi ${name}") element text
 ```
 
 The longer `alert(...)` and `document.title = ...` forms still work. The short

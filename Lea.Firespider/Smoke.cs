@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
+using Lea.Engine;
 using Lea.Win;
 
 namespace Lea.Firespider
@@ -19,7 +20,7 @@ namespace Lea.Firespider
             try
             {
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", session);
-                File.WriteAllText(openPage, "<!doctype html><html><head><title>Lea Open Route</title></head><body><p>Open route fixture</p><p>Second route match</p><p>Third ROUTE match</p></body></html>");
+                File.WriteAllText(openPage, "<!doctype html><html><head><title>Lea Open Route</title><script type='text/lea'>v('who','Firespider')</script></head><body><p>Open route fixture</p><p>Second route match</p><p>Third ROUTE match</p><p id='state'>Waiting for host click</p><button id='host-action' type='button' data-lea=\"tx('state','Hello ${who}'); v('last','click'); a('Safe host click')\">Run safe action</button></body></html>");
                 var root = args.Length > 0 ? args[0] : AppDomain.CurrentDomain.BaseDirectory;
                 var assembly = Assembly.LoadFrom(Path.Combine(root, "Firespider Internet 19.exe"));
                 var type = assembly.GetType("Firespider_Internet.j", true);
@@ -68,6 +69,9 @@ namespace Lea.Firespider
                     var opened = (bool)type.GetMethod("qleaOpenPath", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(form, new object[] { openPage });
                     WaitFor(() => host.At != null && host.T == "Lea Open Route", "Firespider Open File routed to Lea");
                     Check(opened, "Firespider Open File capability");
+                    Check(host.Ck(ById(host.At.D, "host-action")) == 3, "Firespider safe click commands");
+                    Check(ById(host.At.D, "state").C[0].X == "Hello Firespider" && host.At.Vs["last"] == "click", "Firespider safe click state");
+                    Check(Member<Label>(form, "su").Text == "Lea: Safe host click", "Firespider safe click alert status");
                     var findPage = type.GetMethod("qleaFind", BindingFlags.Instance | BindingFlags.NonPublic);
                     Check(findPage != null && (int)findPage.Invoke(form, new object[] { host, "route", false }) == 3, "Firespider Find routed to Lea");
                     Check(host.Fx == 1 && Member<Label>(form, "su").Text == "Lea: match 1 of 3", "Firespider Find status");
@@ -142,7 +146,7 @@ namespace Lea.Firespider
                     Check(restoredTabs.TabCount == beforeMiddle - 1 && FindLea(restoredTabs) == null, "middle-click Lea tab close");
                 }
 
-                Console.WriteLine("Firespider Lea smoke passed: find and downloads, scripts and alerts, keyboard navigation, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
+                Console.WriteLine("Firespider Lea smoke passed: safe clicks and variables, find and downloads, scripts and alerts, keyboard navigation, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
                 return 0;
             }
             catch (Exception error)
@@ -164,6 +168,18 @@ namespace Lea.Firespider
         {
             foreach (TabPage tab in tabs.TabPages)
                 if (tab.Controls.Count > 0 && tab.Controls[0] is V) return (V)tab.Controls[0];
+            return null;
+        }
+
+        private static N ById(N node, string id)
+        {
+            if (node == null) return null;
+            if (node.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase)) return node;
+            foreach (var child in node.C)
+            {
+                var found = ById(child, id);
+                if (found != null) return found;
+            }
             return null;
         }
 
