@@ -99,6 +99,54 @@ namespace Lea.Tests
                 Eq("#a13b18", externalPage.Bs[2].S.F, "external class color");
                 Eq("Lea External CSS", new E().GoA(externalPath).GetAwaiter().GetResult().T, "async local external CSS");
 
+                var scriptPath = Path.Combine(root, "LeaForge", "test-pages", "script-bridge.html");
+                var scriptEngine = new E();
+                var scriptPage = scriptEngine.Go(scriptPath);
+                Eq("Lea Script Bridge", scriptPage.T, "script title assignment");
+                Eq(9, scriptPage.Jc, "bounded page command count");
+                Eq(2, scriptPage.Ms.Count, "script alert queue");
+                Eq("Page ready", scriptPage.Ms[0], "JavaScript alert bridge");
+                Eq("Second alert", scriptPage.Ms[1], "short alert alias");
+                Eq("#f0fff8", scriptPage.S.Bg, "short background command");
+                Eq("#164e3f", scriptPage.S.F, "short foreground command");
+                Eq(20, scriptPage.S.Fs, "short font-size command");
+                Eq(3, scriptPage.Bs.Count, "script nodes stay out of page blocks");
+                Eq("Lea Script Bridge", new E().GoA(scriptPath).GetAwaiter().GetResult().T, "async page scripts");
+
+                var manualCommands = scriptEngine.Js(scriptPage, "t(\"Manual \\u004c\"); bg(\"#112233\"); fg(\"white\"); fs(22); a(\"Manual\\nalert\");");
+                Eq(5, manualCommands, "manual command count");
+                Eq(14, scriptPage.Jc, "cumulative command count");
+                Eq("Manual L", scriptPage.T, "escaped manual title");
+                Eq("#112233", scriptPage.S.Bg, "manual background rebuild");
+                Eq("white", scriptPage.S.F, "manual named foreground");
+                Eq(22, scriptPage.S.Fs, "manual font-size rebuild");
+                Eq("Manual alert", scriptPage.Ms[2], "manual alert normalization");
+                Eq(0, scriptEngine.Js(scriptPage, "eval('t(\\\"bad\\\")'); if(true){t('bad');}; fs(7); bg('red;display:none');"), "unknown and unsafe commands ignored");
+                Eq("Manual L", scriptPage.T, "ignored commands do not mutate title");
+
+                var scriptsOff = new E();
+                scriptsOff.Je = false;
+                var disabledScriptPage = scriptsOff.Go(scriptPath);
+                Eq("Script Before", disabledScriptPage.T, "disabled page scripts keep HTML title");
+                Eq(0, disabledScriptPage.Jc, "disabled page command count");
+                Eq(0, disabledScriptPage.Ms.Count, "disabled alerts");
+                Eq(0, scriptsOff.Js(disabledScriptPage, "t('Disabled manual command');"), "manual commands respect script setting");
+
+                var boundedEngine = new E();
+                var boundedPage = boundedEngine.Go(forms);
+                var boundedCode = new StringBuilder();
+                for (var commandIndex = 0; commandIndex < 40; commandIndex++) boundedCode.Append("t('T").Append(commandIndex).Append("');");
+                Eq(32, boundedEngine.Js(boundedPage, boundedCode.ToString()), "manual command limit");
+                Eq("T31", boundedPage.T, "commands after limit ignored");
+                Eq(0, boundedEngine.Js(boundedPage, new String(' ', 16 * 1024) + "t('oversized');"), "oversized code ignored");
+                Eq("T31", boundedPage.T, "oversized code does not mutate page");
+                var alertEngine = new E();
+                var alertPage = alertEngine.Go(forms);
+                var alertCode = new StringBuilder();
+                for (var alertIndex = 0; alertIndex < 20; alertIndex++) alertCode.Append("a('A").Append(alertIndex).Append("');");
+                Eq(16, alertEngine.Js(alertPage, alertCode.ToString()), "alert queue limit");
+                Eq(16, alertPage.Ms.Count, "bounded alert queue");
+
                 var inlinePath = Path.Combine(root, "LeaForge", "test-pages", "inline.html");
                 var inlinePage = engine.Go(inlinePath);
                 Eq(3, inlinePage.Bs.Count, "inline page avoids duplicate link block");
@@ -455,7 +503,28 @@ namespace Lea.Tests
                 {
                     view.Size = new Size(720, 760);
                     view.CreateControl();
+                    var alertEvents = 0;
+                    view.Al += delegate { alertEvents++; };
+                    view.Go(scriptPath);
+                    Paint(view);
+                    Eq(2, alertEvents, "WinForms alert events");
+                    Eq("Second alert", view.Am, "WinForms latest alert");
+                    Eq("#f0fff8", view.At.S.Bg, "WinForms scripted background");
+                    using (var scriptPaint = Render(view))
+                        Ok(ColorDistance(scriptPaint.GetPixel(2, 2), Color.FromArgb(240, 255, 248)) < 4, "scripted page background painting");
+                    Eq(3, view.Js("t('View Script'); bg('#dff7ed'); a('View alert');"), "WinForms manual commands");
+                    Eq("View Script", view.T, "WinForms manual title");
+                    Eq(3, alertEvents, "WinForms manual alert event");
+                    Eq("View alert", view.Am, "WinForms manual alert message");
+                    view.Je = false;
+                    Eq(0, view.Js("t('Blocked view script');"), "WinForms script setting");
+                    Eq("View Script", view.T, "disabled WinForms script leaves title");
+                    view.Je = true;
+
                     view.Go(forms);
+                    view.Bk();
+                    Eq(3, alertEvents, "history does not replay script alerts");
+                    view.Fw();
                     Paint(view);
                     Ok(view.Bc > page.Fs.Count, "form layout boxes");
                     Eq("Open result", view.At.Bs[view.At.Bs.Count - 1].X, "button label");
@@ -1415,7 +1484,25 @@ namespace Lea.Tests
                     Eq("url", urlError.K, "URL error kind");
                 }
 
-                Console.WriteLine("Lea smoke passed: inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                using (var alertView = new V())
+                {
+                    var reentrantAlerts = 0;
+                    var nestedAlert = false;
+                    alertView.Al += delegate
+                    {
+                        reentrantAlerts++;
+                        if (nestedAlert) return;
+                        nestedAlert = true;
+                        alertView.Js("a('Nested alert');");
+                    };
+                    alertView.Go(scriptPath);
+                    Eq(3, reentrantAlerts, "reentrant alert delivery stays once-only");
+                    Eq("Nested alert", alertView.Am, "reentrant latest alert");
+                }
+
+                if (args.Length > 1) SaveRender(scriptPath, args[1]);
+
+                Console.WriteLine("Lea smoke passed: bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -1435,6 +1522,19 @@ namespace Lea.Tests
             var image = new Bitmap(view.Width, view.Height);
             view.DrawToBitmap(image, new Rectangle(Point.Empty, image.Size));
             return image;
+        }
+
+        private static void SaveRender(string page, string output)
+        {
+            var folder = Path.GetDirectoryName(Path.GetFullPath(output));
+            if (!String.IsNullOrWhiteSpace(folder)) Directory.CreateDirectory(folder);
+            using (var view = new V())
+            {
+                view.Size = new Size(900, 600);
+                view.CreateControl();
+                view.Go(page);
+                using (var image = Render(view)) image.Save(output, System.Drawing.Imaging.ImageFormat.Png);
+            }
         }
 
         private static void Check(V view, string root, string file, int blocks, int boxes)

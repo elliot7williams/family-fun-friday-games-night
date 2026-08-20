@@ -23,6 +23,24 @@ Console.WriteLine(p.T);
 The aliases are the small public language of Lea. The readable internal classes
 are the implementation underneath it.
 
+Lea's first script bridge is allow-listed rather than a general JavaScript VM.
+`E.Je` and `V.Je` enable page commands, while `E.Js(page, code)` and
+`V.Js(code)` run a bounded host-provided command string. `P.Jc` counts accepted
+commands and `P.Ms` holds bounded alert messages. `V.Al` fires once for each new
+message and `V.Am` exposes the current message. Supported page commands are:
+
+```text
+t("Title")       title
+a("Message")     alert message
+bg("#f0fff8")    body background
+fg("#164e3f")    body text color
+fs(20)           body font size
+```
+
+Lea also recognizes literal `document.title`, `document.body.style` color/font
+assignments, and `alert(...)`. Unknown calls, expressions, nested control flow,
+external scripts, and non-script data blocks do not execute.
+
 `GoA` and `RlA` are the asynchronous forms used by browser windows. `St` cancels
 an active network request. The shorter synchronous forms remain useful for tests.
 

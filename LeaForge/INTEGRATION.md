@@ -186,6 +186,17 @@ multiple, and compact encoding state. Hosts may call `V.Sf` and `V.Vf`, while
 local datetime join the existing checks and CSS validity state. Uploads are
 bounded to eight files, 4 MB each and 8 MB combined.
 
+The first script boundary is an allow-listed command layer, not a general
+JavaScript runtime. `E.Je`/`V.Je` enable it and `E.Js(page, code)`/`V.Js(code)`
+provide the compact host bridge. Pages expose accepted-command count through
+`P.Jc` and bounded alert messages through `P.Ms`. The WinForms view raises `Al`
+for each new message and exposes it through `Am`; it never lets page code open a
+native dialog directly. Inline scripts may set the title, body background,
+foreground, and font size using `t/a/bg/fg/fs` or equivalent literal
+`document.*` assignments and `alert(...)`. Lea ignores external scripts, JSON
+data blocks, expressions, control flow, and unknown calls. Per-page limits are
+eight script blocks, 16 KB per block, 32 accepted commands, and 16 alerts.
+
 ## Experimental Firespider tab
 
 The source in `../Lea.Firespider` now powers real engine-backed tabs in the
@@ -205,9 +216,10 @@ removes it, and legacy tabs continue using Firespider's settings collections.
 Firespider imports one `Lea/FirespiderLea.targets` file. The import supplies the
 two DLL references, partial VB adapter, and bundled local start page. Debug and
 Release builds pass `Smoke.cs`, which verifies Lea tab creation, keyboard
-navigation, local open, page save, send-link metadata, timer status, close and
-source routing, and session save/restore across two host forms without loading
-another browser engine or touching the user's data. The adapter removes
+navigation, bounded script/style execution, alert status routing, local open,
+page save, send-link metadata, timer status, close and source routing, and
+session save/restore across two host forms without loading another browser
+engine or touching the user's data. The adapter removes
 unconditional `WebBrowser` casts from the paths it owns and delegates by active
 tab type.
 

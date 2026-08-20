@@ -17,8 +17,8 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-1. Add a small JavaScript interpreter layer or bridge.
-2. Add downloads and find-in-page.
+1. Add downloads and find-in-page.
+2. Add safe click commands and small script variables.
 3. Add a developer tools panel for parsed nodes, CSS rules, network events, and console messages.
 
 ## Rules For Future Codex Work

@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Script Before</title>
+  <script>
+    // Lea accepts only these bounded top-level commands.
+    document.title = "Lea Script Bridge";
+    document.body.style.backgroundColor = "#e8f4ef";
+    document.body.style.color = "#173f35";
+    document.body.style.fontSize = "18px";
+    alert("Page ready");
+    fetch("ignored.html");
+    if (true) { t("Nested code is ignored"); }
+  </script>
+</head>
+<body>
+  <h1>Lea script bridge</h1>
+  <p>This page is restyled through Lea's allow-listed command layer.</p>
+  <section>Unknown JavaScript is ignored instead of evaluated.</section>
+  <script type="text/lea">
+    bg("#f0fff8");
+    fg("#164e3f");
+    fs(20);
+    a("Second alert");
+  </script>
+  <script type="application/ld+json">t("JSON must not execute");</script>
+  <script src="ignored.js">t("External scripts are not loaded");</script>
+</body>
+</html>

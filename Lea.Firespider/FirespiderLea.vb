@@ -152,6 +152,7 @@ Partial Class j
         I += 1
         AddHandler host.Changed, AddressOf qleaChanged
         AddHandler host.Done, AddressOf qleaDone
+        AddHandler host.Al, AddressOf qleaAlert
 
         Dim closeMenu As New ContextMenuStrip()
         Dim closeItem As New ToolStripMenuItem("Close Lea Tab")
@@ -221,6 +222,15 @@ Partial Class j
         r.Image = My.Resources.F8
         su.Visible = False
         qleaState(TryCast(sender, Global.Lea.Win.V))
+    End Sub
+
+    Private Sub qleaAlert(ByVal sender As Object, ByVal e As EventArgs)
+        Dim host = TryCast(sender, Global.Lea.Win.V)
+        If host Is Nothing Then Return
+        Dim message = If(host.Am, "")
+        If message.Length > 160 Then message = message.Substring(0, 160)
+        su.Visible = True
+        su.Text = "Lea: " & message
     End Sub
 
     Private Sub qleaState(ByVal host As Global.Lea.Win.V)

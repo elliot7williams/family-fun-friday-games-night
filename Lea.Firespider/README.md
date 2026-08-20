@@ -19,6 +19,10 @@ Firespider's private-mode flag also drives `V.Pv`. Normal Lea cookies stay in
 their bounded in-memory jar, while each private session starts empty and is
 destroyed when private mode ends. Page cache is cleared between those contexts.
 
+Lea's bounded inline title/style commands run inside each Lea tab. Alert
+messages cross the `V.Al` host event and appear in Firespider's existing status
+bar; page code does not open a native dialog directly.
+
 The host project imports `Lea/FirespiderLea.targets`, which adds the two DLL
 references, compiles `FirespiderLea.vb`, and copies `start.html` to the output
 `Lea` folder. No Chromium, WebView, Safari, or hidden browser control is used.
@@ -27,6 +31,6 @@ The adapter is kept here as the clean source of record because the live
 Firespider working tree contains unrelated in-progress changes.
 
 `Smoke.cs` loads two compiled Firespider forms off-screen and verifies Lea tab
-creation, keyboard navigation, local open, page save, send-link metadata, close
-routes, source, and session restoration using temporary files rather than the
-user's data.
+creation, script/style execution, alert routing, keyboard navigation, local
+open, page save, send-link metadata, close routes, source, and session
+restoration using temporary files rather than the user's data.

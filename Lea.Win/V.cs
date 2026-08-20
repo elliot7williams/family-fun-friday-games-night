@@ -23,6 +23,8 @@ namespace Lea.Win
         private readonly WebClient picWeb = new WebClient();
         private readonly Dictionary<string, Image> pics = new Dictionary<string, Image>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, string> fontNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<P, int> alerts = new Dictionary<P, int>();
+        private readonly Queue<P> alertOrder = new Queue<P>();
         private readonly Queue<string> picOrder = new Queue<string>();
         private readonly TextBox ed = new TextBox();
         private const int PicLimit = 24;
@@ -50,9 +52,11 @@ namespace Lea.Win
         public event EventHandler Changed;
         public event EventHandler Ed;
         public event EventHandler Sb;
+        public event EventHandler Al;
 
         public V()
         {
+            Am = "";
             DoubleBuffered = true;
             BackColor = Color.White;
             ForeColor = Color.FromArgb(31, 41, 55);
@@ -81,6 +85,8 @@ namespace Lea.Win
         public int Kc { get { return e.Kc; } }
         public int Km { get { return e.Km; } }
         public bool Pv { get { return e.Pv; } set { e.Pv = value; } }
+        public bool Je { get { return e.Je; } set { e.Je = value; } }
+        public string Am { get; private set; }
         public int Dh { get { return docHeight; } }
         public int Sy { get { return sy; } }
         public int Bc { get { return boxes.Count; } }
@@ -204,6 +210,18 @@ namespace Lea.Win
 
         public void Kcl() { e.Kcl(); }
 
+        public int Js(string code)
+        {
+            if (At == null) return 0;
+            var count = e.Js(At, code);
+            if (count == 0) return 0;
+            Dirty();
+            OnChanged();
+            Invalidate();
+            Alerts(At);
+            return count;
+        }
+
         private P Show(P page, bool done)
         {
             CloseChoices();
@@ -215,8 +233,28 @@ namespace Lea.Win
             Dirty();
             OnChanged();
             Invalidate();
+            Alerts(page);
             if (done && Done != null) Done(this, EventArgs.Empty);
             return page;
+        }
+
+        private void Alerts(P page)
+        {
+            if (page == null || page.Ms.Count == 0) return;
+            int shown;
+            if (!alerts.TryGetValue(page, out shown))
+            {
+                shown = 0;
+                alerts[page] = 0;
+                alertOrder.Enqueue(page);
+                while (alertOrder.Count > 32) alerts.Remove(alertOrder.Dequeue());
+            }
+            while (alerts.TryGetValue(page, out shown) && shown < page.Ms.Count)
+            {
+                Am = page.Ms[shown];
+                alerts[page] = shown + 1;
+                if (Al != null) Al(this, EventArgs.Empty);
+            }
         }
 
         private void Dirty()

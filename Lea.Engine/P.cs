@@ -10,6 +10,7 @@ namespace Lea.Engine
             Ls = new List<Ln>();
             Bs = new List<B>();
             Fs = new List<Fi>();
+            Ms = new List<string>();
         }
 
         public Uri U { get; internal set; }
@@ -28,9 +29,11 @@ namespace Lea.Engine
         public IList<Ln> Ls { get; private set; }
         public IList<B> Bs { get; private set; }
         public IList<Fi> Fs { get; private set; }
+        public IList<string> Ms { get; private set; }
         public N D { get; internal set; }
         public S S { get; internal set; }
         public int N { get; internal set; }
+        public int Jc { get; internal set; }
         internal object R { get; set; }
         internal N Hv { get; set; }
         internal N Fc { get; set; }

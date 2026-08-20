@@ -100,6 +100,15 @@ fs(12)           font size
 Go("url")        navigate
 ```
 
+The first bounded layer is active in `Lea.Engine`. It accepts `t`, `a`, `bg`,
+`fg`, and `fs`, plus equivalent title/body-style assignments and `alert(...)`.
+Only top-level literal commands run. Execution is limited to eight inline
+blocks, 16 KB per block, 32 accepted commands, and 16 queued alerts. External
+scripts, JSON data blocks, expressions, control flow, and unknown calls are
+ignored. `Je` is the host permission switch and `Js` is the compact manual
+bridge. The WinForms host emits `Al` and exposes `Am` instead of allowing page
+code to open native UI itself.
+
 Then add safe event commands for buttons and links, simple variables, and page
 updates. Every command should have a short alias, a small implementation, and a
 test page. A full JavaScript runtime can remain a separate comparison project.

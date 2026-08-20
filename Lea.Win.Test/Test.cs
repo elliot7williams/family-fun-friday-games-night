@@ -17,7 +17,7 @@ namespace Lea.Win.Test
         private readonly Button go = new Button();
         private readonly Label st = new Label();
 
-        public TestWindow()
+        public TestWindow(string start)
         {
             Text = "Lea Win Test";
             StartPosition = FormStartPosition.CenterScreen;
@@ -67,10 +67,17 @@ namespace Lea.Win.Test
                 fw.Enabled = v.CanFw;
                 st.Text = v.At == null ? "Lea ready" : v.At.N + " nodes, " + v.At.Ls.Count + " links, " + v.At.Fs.Count + " fields";
             };
+            v.Al += delegate { st.Text = "Alert: " + v.Am; };
 
             Controls.Add(v);
             Controls.Add(st);
             Controls.Add(top);
+
+            if (!String.IsNullOrWhiteSpace(start))
+            {
+                u.Text = start;
+                Shown += async delegate { await TryGoA(delegate { return v.GoA(start); }); };
+            }
         }
 
         private static void SetButton(Button button, string text, EventHandler action)
@@ -92,11 +99,11 @@ namespace Lea.Win.Test
     internal static class Program
     {
         [STAThread]
-        private static void Main()
+        private static void Main(string[] args)
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new TestWindow());
+            Application.Run(new TestWindow(args.Length > 0 ? args[0] : ""));
         }
     }
 }

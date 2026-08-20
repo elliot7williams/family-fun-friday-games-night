@@ -45,6 +45,11 @@ namespace Lea.Firespider
 
                     Check(host != null, "Lea view in selected tab");
                     Check(host.At != null && host.T == "Lea in Firespider", "bundled Lea start page");
+                    var scriptCommands = host.Js("t('Firespider Script'); bg('#e8f4ef'); fs(19); a('Host alert');");
+                    Check(scriptCommands == 4 && host.At.Jc == 4, "Firespider Lea script commands");
+                    Check(host.T == "Firespider Script" && host.At.S.Bg == "#e8f4ef" && host.At.S.Fs == 19, "Firespider Lea script state");
+                    Check(Member<Label>(form, "su").Text == "Lea: Host alert", "Firespider Lea alert status");
+                    host.Go(Path.Combine(root, "Lea", "start.html"));
                     var privateField = type.GetField("pv", BindingFlags.Instance | BindingFlags.NonPublic);
                     var currentLea = type.GetMethod("qleaAt", BindingFlags.Instance | BindingFlags.NonPublic);
                     Check(privateField != null && currentLea != null && !host.Pv, "Lea normal cookie mode");
@@ -128,7 +133,7 @@ namespace Lea.Firespider
                     Check(restoredTabs.TabCount == beforeMiddle - 1 && FindLea(restoredTabs) == null, "middle-click Lea tab close");
                 }
 
-                Console.WriteLine("Firespider Lea smoke passed: keyboard navigation, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
+                Console.WriteLine("Firespider Lea smoke passed: scripts and alerts, keyboard navigation, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
                 return 0;
             }
             catch (Exception error)

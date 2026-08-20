@@ -27,6 +27,7 @@ namespace Lea.Engine
         private int cm = 8;
         private int cs = 60;
         private int ch;
+        private bool je = true;
 
         public P At { get { return at >= 0 && at < hs.Count ? hs[at] : null; } }
         public bool CanBk { get { return at > 0; } }
@@ -41,6 +42,7 @@ namespace Lea.Engine
         public int Ch { get { return ch; } }
         public int Kc { get { return web.Kc; } }
         public int Km { get { return W.CookieMax; } }
+        public bool Je { get { return je; } set { je = value; } }
         public bool Pv
         {
             get { return web.Pv; }
@@ -89,6 +91,23 @@ namespace Lea.Engine
             foreach (var field in page.Fs) if (field.El != null) fields[field.El] = field;
             Rebuild(page, rules, fields);
             return page;
+        }
+
+        // Js runs only Lea's bounded allow-listed page commands.
+        public int Js(P page, string code)
+        {
+            if (page == null) throw new ArgumentNullException("page");
+            if (!hs.Contains(page)) throw new ArgumentException("The page does not belong to this Lea engine.", "page");
+            if (!je) return 0;
+            var rules = page.R as List<R>;
+            if (rules == null) return 0;
+            var count = J.Run(page, code);
+            if (count == 0) return 0;
+            page.Jc = (int)Math.Min(Int32.MaxValue, (long)page.Jc + count);
+            var fields = new Dictionary<N, Fi>();
+            foreach (var field in page.Fs) if (field.El != null) fields[field.El] = field;
+            Rebuild(page, rules, fields);
+            return count;
         }
 
         public P Go(string input)
@@ -395,9 +414,10 @@ namespace Lea.Engine
             return p;
         }
 
-        private static void Complete(P p, List<R> rules)
+        private void Complete(P p, List<R> rules)
         {
             p.R = rules;
+            if (je) p.Jc = J.Pg(p, p.D);
             Rebuild(p, rules, null);
         }
 

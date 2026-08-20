@@ -37,6 +37,7 @@ LeaForge is where we can grow the more full-featured browser.
 - nested fields, responsive images, and tables with clip-aware native editing
 - bounded multipart file uploads plus range, color, and temporal form fields
 - tiny script handling for `alert("...")` and `document.title = "..."`
+- bounded engine scripting for title, body colors, font size, and host-routed alerts
 
 ## Lea Short Commands
 
@@ -94,3 +95,5 @@ LeaForge/test-pages/index.html
 ## Important
 
 LeaForge is still our own experimental renderer. It does not use Chromium, Edge WebView, or a full JavaScript VM.
+Lea.Engine now includes only a small allow-listed JavaScript-shaped command
+bridge; it does not evaluate arbitrary JavaScript.
