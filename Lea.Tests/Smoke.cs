@@ -797,6 +797,39 @@ namespace Lea.Tests
                 while (fragmentEngine.CanBk) { fragmentEngine.Bk(); fragmentBackCount++; }
                 Eq(127, fragmentBackCount, "fragment history keeps 128 entries");
 
+                var gaugePath = Path.Combine(root, "LeaForge", "test-pages", "gauges.html");
+                var gaugePage = new E().Go(gaugePath);
+                var styledProgress = BlockById(gaugePage, "styled-progress");
+                Eq("progress", styledProgress.K, "progress block kind");
+                Ok(styledProgress.Vm != null && !styledProgress.Vm.In, "determinate progress value model");
+                Eq(0D, styledProgress.Vm.Mn, "progress minimum alias");
+                Eq(8D, styledProgress.Vm.Mx, "progress maximum alias");
+                Eq(3D, styledProgress.Vm.V, "progress value alias");
+                Eq(0.375D, styledProgress.Vm.R, "progress ratio alias");
+                Eq("#176b4d", styledProgress.S.F, "progress inherits foreground style");
+                Eq("", styledProgress.X, "supported progress hides fallback text");
+                Ok(BlockById(gaugePage, "indeterminate-progress").Vm.In, "missing progress value is indeterminate");
+                var badProgress = BlockById(gaugePage, "bad-progress").Vm;
+                Ok(!badProgress.In && badProgress.Mx == 1D && badProgress.V == 0D && badProgress.R == 0D, "malformed progress uses bounded defaults");
+                var clampedProgress = BlockById(gaugePage, "clamped-progress").Vm;
+                Ok(clampedProgress.V == 100D && clampedProgress.R == 1D, "progress value clamps to maximum");
+                var extremeProgress = BlockById(gaugePage, "extreme-progress").Vm;
+                Ok(extremeProgress.Mx == 1000000000000D && extremeProgress.V == 1000000000000D && extremeProgress.R == 1D, "extreme progress numbers clamp to finite ceiling");
+
+                var bestMeter = BlockById(gaugePage, "best-meter").Vm;
+                var suboptimalMeter = BlockById(gaugePage, "suboptimal-meter").Vm;
+                var worstMeter = BlockById(gaugePage, "worst-meter").Vm;
+                Ok(bestMeter.Mn == 0D && bestMeter.Mx == 100D && bestMeter.Lo == 25D && bestMeter.Hi == 75D && bestMeter.Op == 10D, "meter boundary aliases");
+                Eq(0, bestMeter.Q, "optimum meter quality");
+                Eq(1, suboptimalMeter.Q, "suboptimal meter quality");
+                Eq(2, worstMeter.Q, "least-good meter quality");
+                var reversedMeter = BlockById(gaugePage, "reversed-meter").Vm;
+                Ok(reversedMeter.Mn == 10D && reversedMeter.Mx == 10D && reversedMeter.V == 10D && reversedMeter.Lo == 10D && reversedMeter.Hi == 10D && reversedMeter.Op == 10D && reversedMeter.R == 0D, "reversed meter range collapses safely");
+                var badMeter = BlockById(gaugePage, "bad-meter").Vm;
+                Ok(badMeter.Mn == 0D && badMeter.Mx == 1D && badMeter.V == 0D && badMeter.Lo == 0D && badMeter.Hi == 1D && badMeter.Op == 0.5D, "malformed meter uses bounded defaults");
+                var cellMeter = BlockById(gaugePage, "cell-meter");
+                Ok(cellMeter.K == "meter" && cellMeter.Vm != null && cellMeter.Vm.R == 0.75D, "table cell meter model");
+
                 var tokenPath = Path.Combine(root, "LeaForge", "test-pages", "html-tokens.html");
                 var tokenEngine = new E();
                 var tokenPage = tokenEngine.Go(tokenPath);
@@ -1778,6 +1811,39 @@ namespace Lea.Tests
                     Paint(view);
                     Ok(view.U.Fragment == "#target" && ElementVisible(view, ById(view.At.D, "target")), "initial cross-document URL fragment scrolls after load");
 
+                    view.Size = new Size(620, 900);
+                    view.Go(gaugePath);
+                    Paint(view);
+                    var viewStyledProgress = BlockById(view.At, "styled-progress");
+                    var styledProgressRect = BlockRect(view, viewStyledProgress);
+                    Eq(new Size(260, 18), styledProgressRect.Size, "styled progress dimensions");
+                    var autoProgressRect = BlockRect(view, BlockById(view.At, "auto-progress"));
+                    Ok(autoProgressRect.Width >= 80 && autoProgressRect.Height >= 14, "default progress dimensions");
+                    var gaugeTable = BlockById(view.At, "gauge-table");
+                    var viewCellMeter = BlockById(view.At, "cell-meter");
+                    var cellMeterRect = BlockRect(view, viewCellMeter);
+                    Ok(!cellMeterRect.IsEmpty && ContainingCell(view, gaugeTable, cellMeterRect).Contains(cellMeterRect), "meter lays out inside table cell");
+                    using (var gaugePaint = Render(view))
+                    {
+                        var styledY = styledProgressRect.Top + styledProgressRect.Height / 2;
+                        Ok(ColorDistance(gaugePaint.GetPixel(styledProgressRect.Left + styledProgressRect.Width / 4, styledY), Color.FromArgb(23, 107, 77)) < 4, "progress fill inherits color");
+                        Ok(ColorDistance(gaugePaint.GetPixel(styledProgressRect.Left + styledProgressRect.Width * 3 / 4, styledY), Color.FromArgb(226, 232, 240)) < 4, "progress unfilled track paint");
+                        var indeterminateRect = BlockRect(view, BlockById(view.At, "indeterminate-progress"));
+                        Ok(ColorDistance(CenterPixel(gaugePaint, indeterminateRect), Color.FromArgb(23, 107, 77)) < 4, "indeterminate progress segment paint");
+                        var bestRect = BlockRect(view, BlockById(view.At, "best-meter"));
+                        var suboptimalRect = BlockRect(view, BlockById(view.At, "suboptimal-meter"));
+                        var worstRect = BlockRect(view, BlockById(view.At, "worst-meter"));
+                        Ok(ColorDistance(gaugePaint.GetPixel(bestRect.Left + bestRect.Width / 20, bestRect.Top + bestRect.Height / 2), Color.FromArgb(21, 128, 61)) < 4, "optimum meter paint");
+                        Ok(ColorDistance(gaugePaint.GetPixel(suboptimalRect.Left + suboptimalRect.Width / 4, suboptimalRect.Top + suboptimalRect.Height / 2), Color.FromArgb(183, 121, 31)) < 4, "suboptimal meter paint");
+                        Ok(ColorDistance(gaugePaint.GetPixel(worstRect.Left + worstRect.Width / 2, worstRect.Top + worstRect.Height / 2), Color.FromArgb(185, 28, 28)) < 4, "least-good meter paint");
+                        Ok(ColorDistance(CenterPixel(gaugePaint, cellMeterRect), Color.FromArgb(21, 128, 61)) < 4, "table meter paint");
+                    }
+                    var wideAutoProgressWidth = autoProgressRect.Width;
+                    view.Size = new Size(150, 900);
+                    Paint(view);
+                    var narrowAutoProgressRect = BlockRect(view, BlockById(view.At, "auto-progress"));
+                    Ok(narrowAutoProgressRect.Width > 0 && narrowAutoProgressRect.Width < wideAutoProgressWidth, "default progress reflows in narrow view");
+
                     view.Size = new Size(720, 760);
                     view.Go(Path.Combine(root, "LeaForge", "test-pages", "scroll.html"));
                     Paint(view);
@@ -2124,7 +2190,7 @@ namespace Lea.Tests
                 if (args.Length > 3) SaveEventRender(eventPath, args[3]);
                 if (args.Length > 4) SaveRender(tokenPath, args[4]);
 
-                Console.WriteLine("Lea smoke passed: bounded retained fragment history, encoded and named targets, hidden reveal, table placement and resize reflow, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: compact progress and meter values, quality regions, inherited custom painting, table placement and resize reflow, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)

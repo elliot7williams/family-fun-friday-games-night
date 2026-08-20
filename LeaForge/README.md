@@ -26,6 +26,7 @@ LeaForge is where we can grow the more full-featured browser.
 - compact `Id`, `Q`/`Q1`, and read-only bounded `Qa` document queries
 - bounded `<base href>` resolution through compact `Bu`
 - retained same-page fragments through compact `Ft`/`Fg`/`Rv`, 128-entry history, percent-decoded IDs, named anchors, details reveal, and resize-safe scrolling
+- custom `<progress>` and `<meter>` painting through compact bounded `B.Vm` values, meter quality regions, inherited styles, and table-cell reflow
 - wrapped inline bold/italic text, styled spans, line breaks, and links inside text blocks
 - inherited font-family fallbacks plus underline and line-through decoration
 - inherited left/center/right/justify alignment and pixel/relative line spacing

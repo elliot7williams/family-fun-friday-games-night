@@ -601,6 +601,11 @@ namespace Lea.Win
                             using (var pen = new Pen(PaintColor(color, opacity))) pe.Graphics.DrawLine(pen, content.Left, content.Top + content.Height / 2, content.Right, content.Top + content.Height / 2);
                         continue;
                     }
+                    if (box.B != null && box.B.Vm != null)
+                    {
+                        if (opacity > 0) PaintGauge(pe.Graphics, box.K, box.B.Vm, box.S, content, opacity);
+                        continue;
+                    }
                     if (box.B != null && box.B.I != null)
                     {
                         if (opacity > 0) PaintField(pe.Graphics, box, content, pageColor, opacity);
@@ -726,6 +731,14 @@ namespace Lea.Win
                         height = size.Height;
                     }
                     else if (block.K == "hr") height = 2;
+                    else if (block.Vm != null)
+                    {
+                        using (var font = BoxFont(block.K, bs, false))
+                        {
+                            bw = GaugeWidth(bs, bw, font);
+                            height = GaugeHeight(font);
+                        }
+                    }
                     else if (block.I != null)
                     {
                         using (var font = BoxFont(block.K, bs, false))
@@ -1120,7 +1133,15 @@ namespace Lea.Win
                 var available = ConstrainWidth(style, Math.Max(1, content.Width - ml - mr - bl - br - pl - pr));
                 int textHeight;
                 List<Ix> flow = null;
-                if (part.K != "br" && NeedsFlow(part)) flow = InlineLayout(graphics, part, available, out textHeight);
+                if (part.Vm != null)
+                {
+                    using (var font = BoxFont(part.K, style, false))
+                    {
+                        available = GaugeWidth(style, available, font);
+                        textHeight = GaugeHeight(font);
+                    }
+                }
+                else if (part.K != "br" && NeedsFlow(part)) flow = InlineLayout(graphics, part, available, out textHeight);
                 else using (var font = BoxFont(part.K, style, false)) textHeight = part.K == "br" ? Math.Max(4, font.Height / 2) : Measure(graphics, CellText(part), font, available);
                 textHeight = ConstrainHeight(style, textHeight);
                 y += mt;
@@ -1138,7 +1159,9 @@ namespace Lea.Win
             var horizontal = style == null ? 0 : style.Ml + style.Mr + style.Pl + style.Pr + BorderWidth(style, style.Bl) + BorderWidth(style, style.Br);
             var available = ConstrainWidth(style, Math.Max(1, width - horizontal));
             int height;
-            if (part.K != "br" && NeedsFlow(part)) InlineLayout(graphics, part, available, out height);
+            if (part.Vm != null)
+                using (var font = BoxFont(part.K, style, false)) height = GaugeHeight(font);
+            else if (part.K != "br" && NeedsFlow(part)) InlineLayout(graphics, part, available, out height);
             else using (var font = BoxFont(part.K, style, false)) height = part.K == "br" ? Math.Max(4, font.Height / 2) : Measure(graphics, CellText(part), font, available);
             height = ConstrainHeight(style, height);
             if (style != null) height += style.Mt + style.Mb + style.Pt + style.Pb + BorderWidth(style, style.Bt) + BorderWidth(style, style.Bb);
@@ -1203,6 +1226,16 @@ namespace Lea.Win
         {
             var size = TextRenderer.MeasureText(graphics, text ?? "", font, new Size(width, int.MaxValue), TextFormatFlags.WordBreak | TextFormatFlags.NoPadding);
             return Math.Max(font.Height, size.Height);
+        }
+
+        private static int GaugeWidth(S style, int available, Font font)
+        {
+            return style != null && style.W > 0 ? available : Math.Min(available, Math.Max(80, font.Height * 10));
+        }
+
+        private static int GaugeHeight(Font font)
+        {
+            return Math.Max(14, font.Height);
         }
 
         private static int ConstrainWidth(S style, int available)
@@ -1634,6 +1667,36 @@ namespace Lea.Win
             using (var brush = new SolidBrush(PaintColor(Color.FromArgb(20, color), opacity))) graphics.FillRectangle(brush, rect);
             using (var pen = new Pen(PaintColor(Color.FromArgb(80, color), opacity))) graphics.DrawRectangle(pen, rect.X, rect.Y, rect.Width - 1, rect.Height - 1);
             PaintText(graphics, box.X.Length == 0 ? "Image unavailable" : box.X, Font, new Rectangle(rect.X + 8, rect.Y + 8, rect.Width - 16, rect.Height - 16), color, TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, opacity);
+        }
+
+        private static void PaintGauge(Graphics graphics, string kind, Vm model, S style, Rectangle rect, int opacity)
+        {
+            if (model == null || rect.Width < 1 || rect.Height < 1) return;
+            var trackColor = style != null && style.Bg.Length > 0 ? CssColor(style.Bg, Color.FromArgb(226, 232, 240)) : Color.FromArgb(226, 232, 240);
+            var fillColor = kind == "meter" ? model.Q == 2 ? Color.FromArgb(185, 28, 28) : model.Q == 1 ? Color.FromArgb(183, 121, 31) : Color.FromArgb(21, 128, 61) : Color.FromArgb(0, 102, 204);
+            if (style != null && style.F.Length > 0) fillColor = CssColor(style.F, fillColor);
+            var borderColor = style != null && style.Bc.Length > 0 ? CssColor(style.Bc, Color.FromArgb(148, 163, 184)) : Color.FromArgb(148, 163, 184);
+            using (var brush = new SolidBrush(PaintColor(trackColor, opacity))) graphics.FillRectangle(brush, rect);
+            var inner = new Rectangle(rect.X + 2, rect.Y + 2, Math.Max(0, rect.Width - 4), Math.Max(0, rect.Height - 4));
+            if (inner.Width > 0 && inner.Height > 0)
+            {
+                Rectangle fill;
+                if (model.In)
+                {
+                    var width = Math.Max(1, inner.Width / 3);
+                    fill = new Rectangle(inner.X + (inner.Width - width) / 2, inner.Y, width, inner.Height);
+                }
+                else
+                {
+                    var width = (int)Math.Round(inner.Width * Math.Max(0, Math.Min(1, model.R)));
+                    if (model.R > 0 && width == 0) width = 1;
+                    fill = new Rectangle(inner.X, inner.Y, Math.Max(0, Math.Min(inner.Width, width)), inner.Height);
+                }
+                if (fill.Width > 0)
+                    using (var brush = new SolidBrush(PaintColor(fillColor, opacity))) graphics.FillRectangle(brush, fill);
+            }
+            if (rect.Width > 1 && rect.Height > 1)
+                using (var pen = new Pen(PaintColor(borderColor, opacity))) graphics.DrawRectangle(pen, rect.X, rect.Y, rect.Width - 1, rect.Height - 1);
         }
 
         private void PaintField(Graphics graphics, Bx box, Rectangle rect, Color color, int opacity)

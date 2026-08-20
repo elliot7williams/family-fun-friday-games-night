@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+<head>
+  <title>Lea Progress and Meter Gauges</title>
+  <style>
+    body { background: #f7fbff; color: #172033; font-family: "Segoe UI", sans-serif; }
+    h1, h2 { color: #075fa8; }
+    section { margin: 8px 0; }
+    progress, meter { display: block; margin: 6px 0; }
+    .fixed { width: 260px; height: 18px; }
+    .inherited { color: #176b4d; }
+    .best { color: #15803d; }
+    .suboptimal { color: #b7791f; }
+    .worst { color: #b91c1c; }
+    table { width: 360px; }
+    td { border: 1px solid #94a3b8; padding: 8px; }
+    td meter { width: 180px; height: 16px; }
+  </style>
+</head>
+<body>
+  <h1>Native Lea gauges</h1>
+  <section class="inherited" id="progress-group">
+    <h2>Task progress</h2>
+    <progress class="fixed" id="styled-progress" max="8" value="3">3 of 8</progress>
+    <progress class="fixed" id="indeterminate-progress">Working</progress>
+    <progress class="fixed" id="bad-progress" max="bad" value="bad">Invalid input</progress>
+    <progress class="fixed" id="clamped-progress" max="100" value="999">Clamped input</progress>
+    <progress class="fixed" id="extreme-progress" max="1e100" value="1e99">Extreme input</progress>
+    <progress id="auto-progress" max="2" value="1">Resize target</progress>
+  </section>
+  <section id="meter-group">
+    <h2>Measured ranges</h2>
+    <meter class="fixed best" id="best-meter" min="0" low="25" high="75" optimum="10" max="100" value="10">10%</meter>
+    <meter class="fixed suboptimal" id="suboptimal-meter" min="0" low="25" high="75" optimum="10" max="100" value="50">50%</meter>
+    <meter class="fixed worst" id="worst-meter" min="0" low="25" high="75" optimum="10" max="100" value="90">90%</meter>
+    <meter class="fixed" id="reversed-meter" min="10" max="5" low="-4" high="99" optimum="20" value="100">Reversed range</meter>
+    <meter class="fixed" id="bad-meter" min="bad" max="bad" low="bad" high="bad" optimum="bad" value="bad">Invalid range</meter>
+  </section>
+  <table id="gauge-table">
+    <tr><td><meter class="best" id="cell-meter" min="0" max="4" value="3">3 of 4</meter></td></tr>
+  </table>
+</body>
+</html>

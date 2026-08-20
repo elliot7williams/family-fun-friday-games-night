@@ -10,16 +10,16 @@ These are repeatable local diagnostic samples, not performance promises. Re-run 
 
 | Measurement | Result |
 | --- | ---: |
-| Clean process + engine + first page median | 550.242 ms |
-| Clean process + engine + first page p95 | 586.364 ms |
-| Local page load median | 1.938 ms |
-| Local page load p95 | 8.325 ms |
-| Layout + bitmap paint median | 35.836 ms |
-| Layout + bitmap paint p95 | 158.671 ms |
-| Retained managed memory | 2102.1 KB for 85 loaded pages |
-| Retained managed memory per page | 24.7 KB |
-| Engine runtime DLLs | 203.5 KB |
-| Engine runtime GZip estimate | 89.7 KB (44.1% of raw) |
+| Clean process + engine + first page median | 369.531 ms |
+| Clean process + engine + first page p95 | 551.326 ms |
+| Local page load median | 1.560 ms |
+| Local page load p95 | 3.601 ms |
+| Layout + bitmap paint median | 31.238 ms |
+| Layout + bitmap paint p95 | 115.381 ms |
+| Retained managed memory | 2277.5 KB for 90 loaded pages |
+| Retained managed memory per page | 25.3 KB |
+| Engine runtime DLLs | 207.5 KB |
+| Engine runtime GZip estimate | 91.4 KB (44.0% of raw) |
 
 ## Fixture Loads
 
@@ -27,23 +27,24 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 
 | Fixture | Bytes | Nodes | CSS rules | Median | p95 |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| `index.html` | 970 | 17 | 1 | 1.299 ms | 2.412 ms |
-| `recovery.html` | 1040 | 39 | 0 | 1.536 ms | 2.475 ms |
-| `html-tokens.html` | 943 | 15 | 2 | 1.563 ms | 2.597 ms |
-| `selectors.html` | 1017 | 20 | 10 | 1.941 ms | 8.325 ms |
-| `layout.html` | 616 | 9 | 4 | 0.988 ms | 5.392 ms |
-| `tables.html` | 894 | 28 | 6 | 1.824 ms | 10.310 ms |
-| `forms.html` | 1566 | 25 | 7 | 2.107 ms | 4.226 ms |
-| `events-vars.html` | 1132 | 14 | 5 | 1.594 ms | 2.067 ms |
-| `responsive-media.html` | 2575 | 21 | 5 | 2.333 ms | 3.008 ms |
-| `stacking-contexts.html` | 3149 | 32 | 22 | 4.194 ms | 9.971 ms |
-| `external.html` | 502 | 12 | 6 | 2.522 ms | 47.074 ms |
-| `base-url.html` | 819 | 17 | 5 | 1.705 ms | 37.732 ms |
-| `class-commands.html` | 1065 | 15 | 4 | 1.294 ms | 42.528 ms |
-| `go-command.html` | 971 | 12 | 6 | 1.319 ms | 44.684 ms |
-| `lists.html` | 1849 | 39 | 5 | 2.806 ms | 50.721 ms |
-| `disclosure.html` | 2270 | 34 | 9 | 2.866 ms | 5.935 ms |
-| `fragments.html` | 2234 | 31 | 11 | 2.874 ms | 39.955 ms |
+| `index.html` | 970 | 17 | 1 | 1.147 ms | 1.663 ms |
+| `recovery.html` | 1040 | 39 | 0 | 1.265 ms | 1.623 ms |
+| `html-tokens.html` | 943 | 15 | 2 | 1.319 ms | 2.284 ms |
+| `selectors.html` | 1017 | 20 | 10 | 1.338 ms | 1.468 ms |
+| `layout.html` | 616 | 9 | 4 | 0.891 ms | 1.778 ms |
+| `tables.html` | 894 | 28 | 6 | 1.510 ms | 2.894 ms |
+| `forms.html` | 1566 | 25 | 7 | 1.735 ms | 2.708 ms |
+| `events-vars.html` | 1132 | 14 | 5 | 1.176 ms | 1.623 ms |
+| `responsive-media.html` | 2575 | 21 | 5 | 2.300 ms | 3.014 ms |
+| `stacking-contexts.html` | 3149 | 32 | 22 | 3.523 ms | 5.459 ms |
+| `external.html` | 502 | 12 | 6 | 1.572 ms | 2.065 ms |
+| `base-url.html` | 819 | 17 | 5 | 1.640 ms | 2.251 ms |
+| `class-commands.html` | 1065 | 15 | 4 | 1.167 ms | 1.962 ms |
+| `go-command.html` | 971 | 12 | 6 | 1.170 ms | 1.992 ms |
+| `lists.html` | 1849 | 39 | 5 | 2.153 ms | 5.025 ms |
+| `disclosure.html` | 2270 | 34 | 9 | 3.036 ms | 6.364 ms |
+| `fragments.html` | 2234 | 31 | 11 | 2.408 ms | 3.788 ms |
+| `gauges.html` | 2115 | 25 | 14 | 2.267 ms | 3.623 ms |
 
 ## Executable Probes
 
@@ -53,6 +54,7 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 | Bounded list markers | PASS | Unordered, start/value, nested negative, saturated, inline, and painted markers |
 | Bounded disclosures | PASS | Nested open state, retained fields, compact markers, host/view toggles, and painted content |
 | Retained fragment navigation | PASS | 128-entry history, zero-fetch page retention, encoded/named targets, hidden reveal, table placement, and resize coverage |
+| Bounded progress and meter gauges | PASS | Vm aliases, determinate/indeterminate progress, ordered meter regions, 10^12 numeric ceiling, inherited style, tables, resize, and paint |
 | CSS selectors and cascade | PASS | 10 compiled rules across 12 blocks |
 | Bounded document queries | PASS | Id and first match; 3 ordered matches; invalid selector rejected |
 | Document base URLs | PASS | First valid Bu resolves styles, links, images, forms, and downloads while U stays unchanged |
@@ -70,7 +72,7 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 | Area | Status | Lea 1.0 scope |
 | --- | --- | --- |
 | Local files and HTTP/HTTPS | Supported | Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors |
-| HTML documents | Partial | Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, list markers, details disclosures, tables, and forms; not the full Living Standard |
+| HTML documents | Partial | Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, list markers, details disclosures, progress/meter gauges, tables, and forms; not the full Living Standard |
 | CSS | Partial | Compiled selector subset, cascade, box/text styles, visibility, positioning, transforms, and responsive image sizing |
 | Layout and painting | Partial | Custom WinForms block, inline, table, form, image, clipping, scroll, and stacking renderer |
 | Forms | Supported subset | GET/POST, validation, text/select/choice/file/range/date/color/time-family controls |
@@ -82,16 +84,17 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 | Document queries | Supported subset | Id, first-match Q/Q1, and read-only Qa with compiled selectors and a 256-result ceiling |
 | Document base URLs | Supported | First valid bounded HTTP, HTTPS, or file base; U remains the response URL and Bu drives relative resources |
 | Same-page fragments | Supported | Bounded Ft/Fg/Rv lookup, retained 128-entry history, details reveal, target scrolling, and no-fetch Back/Forward |
+| Progress and meter gauges | Supported | Compact Vm values, finite normalization, meter quality regions, inherited styles, table cells, and custom paint |
 | Accessibility | Partial | Keyboard focus and native fields are present; a complete accessibility tree is not |
 
 ## Binary Footprint
 
 | Artifact | Bytes | Size |
 | --- | ---: | ---: |
-| `Lea.Engine.dll` | 129024 | 126.0 KB |
-| `Lea.Win.dll` | 79360 | 77.5 KB |
+| `Lea.Engine.dll` | 131584 | 128.5 KB |
+| `Lea.Win.dll` | 80896 | 79.0 KB |
 | `Lea.Win.Test.exe` | 393216 | 384.0 KB |
-| `Lea.Bench.exe` | 39424 | 38.5 KB |
+| `Lea.Bench.exe` | 41472 | 40.5 KB |
 | `Firespider Internet 19.exe` | 1108992 | 1083.0 KB |
 
 The engine runtime size is `Lea.Engine.dll` plus `Lea.Win.dll`. Test and report executables are listed separately and are not required when embedding Lea in Firespider.

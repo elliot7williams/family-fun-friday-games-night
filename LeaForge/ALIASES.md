@@ -135,6 +135,14 @@ state-preserving rebuild. Normal `Go`/`GoA`, links, and Back/Forward share this
 path. Missing targets retain the current scroll, `#` returns to the top, and
 valid targets are placed again after resize.
 
+Progress and meter blocks expose `B.Vm`, one compact `Vm` value model. `V` is
+the normalized value, `Mn/Mx` are the range, and `R` is the bounded 0..1 paint
+ratio. Meter models also expose ordered `Lo/Hi` boundaries, optimum point `Op`,
+and quality region `Q` (`0` optimum, `1` suboptimal, `2` least good).
+Progress uses `In` for the indeterminate state. Numeric attribute text is capped
+at 64 characters, finite values are capped at +/-10^12, malformed values use
+HTML defaults, and every result is clamped before layout or painting.
+
 Computed style uses `S`: `F` is foreground color, `Bg` is background, `Fs` is
 font size, `Ff` is a font fallback list, `B` is bold, `I` is italic, and `D` is
 display behavior. `Td` is decoration using `n/u/s/us` for none, underline,

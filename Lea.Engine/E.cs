@@ -38,6 +38,8 @@ namespace Lea.Engine
         private const int MaxQueryResults = 256;
         private const int MaxFragment = 4096;
         private const int MaxHistory = 128;
+        private const int MaxGaugeText = 64;
+        private const double MaxGaugeValue = 1000000000000D;
         private const int MinTimeout = 100;
         private const int MaxTimeout = 60000;
         private const int DefaultTimeout = 15000;
@@ -1286,7 +1288,7 @@ namespace Lea.Engine
                    tag == "center" || tag == "dd" || tag == "details" || tag == "div" || tag == "dl" || tag == "dt" ||
                    tag == "fieldset" || tag == "figcaption" || tag == "figure" || tag == "footer" || tag == "form" ||
                    tag == "header" || tag == "hr" || tag == "legend" || tag == "li" || tag == "main" || tag == "menu" ||
-                   tag == "nav" || tag == "ol" || tag == "p" || tag == "pre" || tag == "section" || tag == "summary" ||
+                   tag == "meter" || tag == "nav" || tag == "ol" || tag == "p" || tag == "pre" || tag == "progress" || tag == "section" || tag == "summary" ||
                    tag == "table" || tag == "ul";
         }
 
@@ -2426,6 +2428,11 @@ namespace Lea.Engine
                 page.Bs.Add(new B { K = kind, X = "", S = style, El = node });
                 return;
             }
+            if (GaugeTag(kind))
+            {
+                page.Bs.Add(GaugeBlock(node, style));
+                return;
+            }
             if (kind == "a")
             {
                 Uri link;
@@ -2500,6 +2507,87 @@ namespace Lea.Engine
             var match = Regex.Match(value ?? "", "^\\s*(?<n>[1-9][0-9]{0,4})(?:px)?\\s*$", RegexOptions.IgnoreCase);
             int number;
             return match.Success && Int32.TryParse(match.Groups["n"].Value, out number) ? Math.Min(8192, number) : 0;
+        }
+
+        private static B GaugeBlock(N node, S style)
+        {
+            return new B { K = node.K, X = "", S = style, Vm = Gauge(node), El = node };
+        }
+
+        private static Vm Gauge(N node)
+        {
+            var model = new Vm();
+            double value;
+            double maximum;
+            if (node.K == "progress")
+            {
+                model.Mn = 0;
+                if (!GaugeNumber(node.Av("max"), out maximum) || maximum <= 0) maximum = 1;
+                model.Mx = maximum;
+                model.In = !node.A.ContainsKey("value");
+                if (!GaugeNumber(node.Av("value"), out value)) value = 0;
+                model.V = GaugeClamp(value, model.Mn, model.Mx);
+                model.R = GaugeRatio(model.V, model.Mn, model.Mx);
+                return model;
+            }
+
+            if (!GaugeNumber(node.Av("min"), out value)) value = 0;
+            model.Mn = value;
+            if (!GaugeNumber(node.Av("max"), out maximum)) maximum = 1;
+            model.Mx = Math.Max(model.Mn, maximum);
+            if (!GaugeNumber(node.Av("value"), out value)) value = 0;
+            model.V = GaugeClamp(value, model.Mn, model.Mx);
+            if (!GaugeNumber(node.Av("low"), out value)) value = model.Mn;
+            model.Lo = GaugeClamp(value, model.Mn, model.Mx);
+            if (!GaugeNumber(node.Av("high"), out value)) value = model.Mx;
+            model.Hi = GaugeClamp(Math.Max(model.Lo, value), model.Mn, model.Mx);
+            if (!GaugeNumber(node.Av("optimum"), out value)) value = model.Mn + (model.Mx - model.Mn) / 2D;
+            model.Op = GaugeClamp(value, model.Mn, model.Mx);
+            model.R = GaugeRatio(model.V, model.Mn, model.Mx);
+            model.Q = GaugeQuality(model);
+            return model;
+        }
+
+        private static bool GaugeNumber(string input, out double value)
+        {
+            value = 0;
+            var text = (input ?? "").Trim();
+            if (text.Length == 0 || text.Length > MaxGaugeText ||
+                !Double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out value) ||
+                Double.IsNaN(value) || Double.IsInfinity(value)) return false;
+            value = Math.Max(-MaxGaugeValue, Math.Min(MaxGaugeValue, value));
+            return true;
+        }
+
+        private static double GaugeClamp(double value, double minimum, double maximum)
+        {
+            return Math.Max(minimum, Math.Min(maximum, value));
+        }
+
+        private static double GaugeRatio(double value, double minimum, double maximum)
+        {
+            if (maximum <= minimum) return 0;
+            return Math.Max(0, Math.Min(1, (value - minimum) / (maximum - minimum)));
+        }
+
+        private static int GaugeQuality(Vm model)
+        {
+            if (model.Op < model.Lo)
+            {
+                if (model.V < model.Lo) return 0;
+                return model.V <= model.Hi ? 1 : 2;
+            }
+            if (model.Op > model.Hi)
+            {
+                if (model.V > model.Hi) return 0;
+                return model.V >= model.Lo ? 1 : 2;
+            }
+            return model.V >= model.Lo && model.V <= model.Hi ? 0 : 1;
+        }
+
+        private static bool GaugeTag(string kind)
+        {
+            return kind == "progress" || kind == "meter";
         }
 
         private static Uri ImageUri(N node, Uri baseUrl, int targetWidth)
@@ -2926,6 +3014,11 @@ namespace Lea.Engine
                         page.Ls.Add(new Ln { U = link, T = Clean(text) });
                         cell.Bs.Add(new B { K = "a", X = text, U = link, S = style, El = child });
                     }
+                    continue;
+                }
+                if (GaugeTag(child.K))
+                {
+                    cell.Bs.Add(GaugeBlock(child, style));
                     continue;
                 }
 

@@ -27,7 +27,7 @@ namespace Lea.Firespider
             try
             {
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", session);
-                File.WriteAllText(openPage, "<!doctype html><html><head><title>Lea Open Route</title><style>.hot{color:#b91c1c;font-weight:bold}</style><script type='text/lea'>v('who','Firespider')</script></head><body><p>Open route fixture</p><p>Second route match</p><p>Third ROUTE match</p><p id='class-state'>Waiting for class state</p><p id='state'>Waiting for host click</p><button id='host-action' type='button' data-lea=\"tx('state','Hello ${who}'); v('last','click'); a('Safe host click')\">Run safe action</button></body></html>");
+                File.WriteAllText(openPage, "<!doctype html><html><head><title>Lea Open Route</title><style>.hot{color:#b91c1c;font-weight:bold}.host-gauge{color:#176b4d;width:180px;height:16px}</style><script type='text/lea'>v('who','Firespider')</script></head><body><p>Open route fixture</p><p>Second route match</p><p>Third ROUTE match</p><p id='class-state'>Waiting for class state</p><p id='state'>Waiting for host click</p><button id='host-action' type='button' data-lea=\"tx('state','Hello ${who}'); v('last','click'); a('Safe host click')\">Run safe action</button><progress class='host-gauge' id='host-progress' max='10' value='4'>4 of 10</progress><meter class='host-gauge' id='host-meter' min='0' max='4' value='3'>3 of 4</meter></body></html>");
                 var root = args.Length > 0 ? args[0] : AppDomain.CurrentDomain.BaseDirectory;
                 var assembly = Assembly.LoadFrom(Path.Combine(root, "Firespider Internet 19.exe"));
                 var type = assembly.GetType("Firespider_Internet.j", true);
@@ -107,6 +107,7 @@ namespace Lea.Firespider
                     var opened = (bool)type.GetMethod("qleaOpenPath", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(form, new object[] { openPage });
                     WaitFor(() => host.At != null && host.T == "Lea Open Route", "Firespider Open File routed to Lea");
                     Check(opened, "Firespider Open File capability");
+                    Check(BlockById(host.At, "host-progress").Vm.R == 0.4D && BlockById(host.At, "host-meter").Vm.R == 0.75D, "Firespider compact gauge models");
                     var fragmentPage = host.At;
                     var fragmentRequests = host.Dg().Rs.Count;
                     host.GoA("#state").GetAwaiter().GetResult();
@@ -214,7 +215,7 @@ namespace Lea.Firespider
                     Check(restoredTabs.TabCount == beforeMiddle - 1 && FindLea(restoredTabs) == null, "middle-click Lea tab close");
                 }
 
-                Console.WriteLine("Firespider Lea smoke passed: retained same-page fragments, Lea-first New Tab and explicit legacy fallback, host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, keyboard navigation, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
+                Console.WriteLine("Firespider Lea smoke passed: compact progress and meter gauges, retained same-page fragments, Lea-first New Tab and explicit legacy fallback, host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, keyboard navigation, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
                 return 0;
             }
             catch (Exception error)
@@ -252,6 +253,13 @@ namespace Lea.Firespider
                 if (found != null) return found;
             }
             return null;
+        }
+
+        private static B BlockById(P page, string id)
+        {
+            foreach (var block in page.Bs)
+                if (block.El != null && block.El.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase)) return block;
+            throw new InvalidOperationException("Missing Lea block: " + id);
         }
 
         private static Form OpenForm(string name)

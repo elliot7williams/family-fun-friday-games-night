@@ -239,9 +239,9 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add compact `<progress>` and `<meter>` value models plus lightweight painting.
-Clamp malformed and extreme values, keep aliases within three characters, and
-cover inherited style, table cells, resize, and nonblank output without adding
+Add compact `<output>` and `<data>` value models with host-readable aliases.
+Keep text updates bounded, preserve computed styles and element ownership, and
+cover inline, block, form, table-cell, rebuild, and resize paths without adding
 native or external browser controls.
 
 The repeatable compatibility and performance report is now implemented by
@@ -270,6 +270,12 @@ reuse the current page through a 128-entry history without another request.
 Closed details ancestors reveal in one rebuild; links, sync/async Go,
 Back/Forward, table targets, top and missing fragments, direct loads, and resize
 placement share the retained layout path covered by `fragments.html`.
+
+Progress and meter blocks now carry compact `B.Vm` state. `V/Mn/Mx/R` expose
+normalized values and paint ratios; meters add ordered `Lo/Hi/Op/Q` regions and
+progress uses `In` for indeterminate state. Numeric text and magnitude are
+bounded before clamping. Normal flow, inherited styles, table cells, opacity,
+clipping, painting, and resize all share the custom path in `gauges.html`.
 
 HTML tokenization now uses a small quote-aware scanner rather than a single
 tag-splitting regex. It recognizes comments and declarations, preserves raw

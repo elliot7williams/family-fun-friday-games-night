@@ -86,6 +86,13 @@ through the same layout-box lookup. A missing target keeps the viewport, `#`
 returns to the top, and `P.Bu` remains unchanged while `P.U` tracks the active
 fragment. Firespider receives the final `Changed` event and address normally.
 
+Supported `<progress>` and `<meter>` elements carry a compact `B.Vm` model
+instead of creating native controls. `V/Mn/Mx/R` provide normalized value,
+range, and paint ratio; meters add `Lo/Hi/Op/Q`, while progress uses `In` for
+the indeterminate state. Lea bounds numeric text, finite magnitude, layout,
+table-cell placement, inherited color, opacity, clipping, and resize through
+the same custom surface used by the rest of the document.
+
 Parsed table blocks expose `B.Tb`, with `Tb.Rs`, `Tr.Cs`, and compact `Tc` cell
 records. `V` paints these on the same lightweight surface with shared row
 heights, CSS cell boxes, wrapped text, bounded column spans, and resize reflow.

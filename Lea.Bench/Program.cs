@@ -103,7 +103,7 @@ namespace Lea.Bench
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "layout.html",
                 "tables.html", "forms.html", "events-vars.html", "responsive-media.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
-                "go-command.html", "lists.html", "disclosure.html", "fragments.html"
+                "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -268,6 +268,22 @@ namespace Lea.Bench
                     using (var image = Draw(view)) Need(ColoredSamples(image) > 0, "fragment layout is blank");
                 }
                 return "128-entry history, zero-fetch page retention, encoded/named targets, hidden reveal, table placement, and resize coverage";
+            });
+            AddProbe(probes, "Bounded progress and meter gauges", delegate
+            {
+                var page = new E().Go(Path.Combine(folder, "gauges.html"));
+                var progress = page.Bs.First(block => block.El != null && block.El.Av("id") == "styled-progress");
+                var extreme = page.Bs.First(block => block.El != null && block.El.Av("id") == "extreme-progress");
+                var worst = page.Bs.First(block => block.El != null && block.El.Av("id") == "worst-meter");
+                Need(progress.Vm != null && progress.Vm.R == 0.375D && progress.S.F == "#176b4d", "progress model or inherited style changed");
+                Need(extreme.Vm.Mx == 1000000000000D && extreme.Vm.V == extreme.Vm.Mx, "extreme progress value is unbounded");
+                Need(worst.Vm.Q == 2 && worst.Vm.R == 0.9D, "meter quality model changed");
+                using (var view = NewView())
+                {
+                    view.Go(Path.Combine(folder, "gauges.html"));
+                    using (var image = Draw(view)) Need(view.Bc > page.Bs.Count && ColoredSamples(image) > 0, "gauge layout is blank");
+                }
+                return "Vm aliases, determinate/indeterminate progress, ordered meter regions, 10^12 numeric ceiling, inherited style, tables, resize, and paint";
             });
             AddProbe(probes, "CSS selectors and cascade", delegate
             {
@@ -440,7 +456,7 @@ namespace Lea.Bench
             builder.AppendLine("| Area | Status | Lea 1.0 scope |");
             builder.AppendLine("| --- | --- | --- |");
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
-            Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, list markers, details disclosures, tables, and forms; not the full Living Standard");
+            Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, list markers, details disclosures, progress/meter gauges, tables, and forms; not the full Living Standard");
             Capability(builder, "CSS", "Partial", "Compiled selector subset, cascade, box/text styles, visibility, positioning, transforms, and responsive image sizing");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms block, inline, table, form, image, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
@@ -452,6 +468,7 @@ namespace Lea.Bench
             Capability(builder, "Document queries", "Supported subset", "Id, first-match Q/Q1, and read-only Qa with compiled selectors and a 256-result ceiling");
             Capability(builder, "Document base URLs", "Supported", "First valid bounded HTTP, HTTPS, or file base; U remains the response URL and Bu drives relative resources");
             Capability(builder, "Same-page fragments", "Supported", "Bounded Ft/Fg/Rv lookup, retained 128-entry history, details reveal, target scrolling, and no-fetch Back/Forward");
+            Capability(builder, "Progress and meter gauges", "Supported", "Compact Vm values, finite normalization, meter quality regions, inherited styles, table cells, and custom paint");
             Capability(builder, "Accessibility", "Partial", "Keyboard focus and native fields are present; a complete accessibility tree is not");
             builder.AppendLine();
             builder.AppendLine("## Binary Footprint");

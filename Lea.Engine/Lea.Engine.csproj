@@ -43,6 +43,7 @@
     <Compile Include="Tb.cs" />
     <Compile Include="Tc.cs" />
     <Compile Include="Tr.cs" />
+    <Compile Include="Vm.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

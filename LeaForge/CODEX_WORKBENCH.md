@@ -52,6 +52,9 @@ Same-page links now use bounded `Ft` target lookup, `Fg` retained history, and
 `Rv` details reveal. IDs and named anchors scroll through existing layout boxes
 without fetching, while missing, top, table, encoded, Back/Forward, and resize
 cases share one 128-entry path in the engine, test browser, and Firespider.
+Progress and meter elements now expose compact `B.Vm` state. Determinate and
+indeterminate progress, ordered meter regions, finite clamping, inherited
+colors, table cells, custom painting, and resize reflow share `gauges.html`.
 
 ## Rules For Future Codex Work
 

@@ -41,6 +41,11 @@ host loader. Compact `Ft/Fg/Rv` lookup, retained history, closed-details reveal,
 and layout scrolling still raise the normal `Changed` event, so Firespider's
 address bar and Back/Forward controls update without adapter-specific DOM code.
 
+Progress and meter elements remain inside Lea's custom renderer. Compact
+`B.Vm` values provide bounded ranges, indeterminate progress, meter quality,
+inherited painting, and table-cell reflow without adding a native browser or
+per-gauge WinForms control to Firespider.
+
 Firespider can read `V.Dg()` for bounded response, document, CSS, request,
 command, cache, and cookie diagnostics without reflecting into Lea internals.
 The snapshot omits mutable form values, passwords, and selected file paths.
