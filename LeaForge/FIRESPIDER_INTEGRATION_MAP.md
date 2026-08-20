@@ -165,11 +165,13 @@ Release host smoke tests. It also replaces the status timer's unconditional
 `WebBrowser` cast with type-aware routing, so selecting a Lea tab cannot trigger
 an `InvalidCastException` on `Timer.Tick`.
 
-Phase B routes Firespider's Close Tab command, tab-strip close target, and
-middle-click through Lea-aware handlers. The existing Page Source command opens
-Lea's raw HTML, and a bounded isolated session file restores Lea tabs without
-mixing engine markers into Firespider's legacy URL settings. Private mode clears
-the Lea session file. Debug and Release host smoke tests cover these paths.
+Phase B routes address/search Enter keys, Open File, Save Page, and Send Link
+through Lea state when a Lea tab is active and retains the original handlers for
+legacy tabs. Close Tab, the tab-strip close target, middle-click, Page Source,
+and the bounded isolated Lea session remain capability-aware. Debug and Release
+host smoke tests cover these paths. Firespider's shared New Tab commands stay on
+the legacy path until internal callers that immediately require `WebBrowser` are
+migrated.
 
-The next integration expansion is more capability-aware commands, including
-save-page, send-link, find, and downloads.
+The next integration expansion is find-in-page and downloads, followed by the
+remaining page and developer commands.

@@ -1,15 +1,17 @@
 # Lea Firespider Adapter
 
 `FirespiderLea.vb` is a reversible experimental integration for the VB.NET
-Firespider host. It adds **File > New Lea Tab** (`Ctrl+Alt+L`) and routes the
-existing back, forward, home, go, search, reload, and stop controls to Lea only
-while a Lea tab is selected. Legacy tabs delegate to Firespider's original
-handlers. Its timer status handler is also routed safely so it never casts a
-Lea view to the legacy `WebBrowser` type.
+Firespider host. It adds **File > New Lea Tab** (`Ctrl+Alt+L`). Back, forward,
+home, go, search, reload, stop, and address/search Enter keys route by the
+selected tab's engine. Legacy tabs delegate to Firespider's original handlers.
+Its timer status handler is also routed safely so it never casts a Lea view to
+the legacy `WebBrowser` type.
 
 Firespider's Close Tab command, tab-strip close target, and middle-click now
 close Lea tabs safely. The existing Page Source window displays Lea's raw `V.H`
-HTML. Up to 12 Lea URLs restore from `%LocalAppData%\Firespider Internet\Lea.session`;
+HTML. Open File loads local pages into the selected Lea view, Save Page writes
+that source as UTF-8, and Send Link builds its message from Lea's title and URL.
+Up to 12 Lea URLs restore from `%LocalAppData%\Firespider Internet\Lea.session`;
 private mode deletes that file instead of saving it. Legacy session settings
 remain owned by Firespider.
 
@@ -24,6 +26,7 @@ references, compiles `FirespiderLea.vb`, and copies `start.html` to the output
 The adapter is kept here as the clean source of record because the live
 Firespider working tree contains unrelated in-progress changes.
 
-`Smoke.cs` loads two compiled Firespider forms off-screen and verifies the menu,
-tab creation, start page, navigation, close routes, source window, session save,
-and session restoration using a temporary file rather than the user's session.
+`Smoke.cs` loads two compiled Firespider forms off-screen and verifies Lea tab
+creation, keyboard navigation, local open, page save, send-link metadata, close
+routes, source, and session restoration using temporary files rather than the
+user's data.

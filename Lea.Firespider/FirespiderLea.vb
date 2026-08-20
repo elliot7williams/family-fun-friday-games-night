@@ -49,6 +49,13 @@ Partial Class j
         RemoveHandler CT.Click, AddressOf h5
         RemoveHandler pt.Click, AddressOf e9
         RemoveHandler pt.MouseHover, AddressOf g1
+        RemoveHandler c.KeyDown, AddressOf i9
+        RemoveHandler x.KeyDown, AddressOf j1
+        RemoveHandler OP.Click, AddressOf h1
+        RemoveHandler OP.MouseHover, AddressOf h2
+        RemoveHandler SP.Click, AddressOf h3
+        RemoveHandler SP.MouseHover, AddressOf h4
+        RemoveHandler SL.Click, AddressOf k4
         RemoveHandler Me.FormClosing, AddressOf q9
 
         AddHandler b.Click, AddressOf qleaBackClick
@@ -77,6 +84,13 @@ Partial Class j
         AddHandler CT.Click, AddressOf qleaCloseMenuClick
         AddHandler pt.Click, AddressOf qleaSourceClick
         AddHandler pt.MouseHover, AddressOf qleaSourceHover
+        AddHandler c.KeyDown, AddressOf qleaAddressKeyDown
+        AddHandler x.KeyDown, AddressOf qleaSearchKeyDown
+        AddHandler OP.Click, AddressOf qleaOpenFileClick
+        AddHandler OP.MouseHover, AddressOf qleaOpenFileHover
+        AddHandler SP.Click, AddressOf qleaSavePageClick
+        AddHandler SP.MouseHover, AddressOf qleaSavePageHover
+        AddHandler SL.Click, AddressOf qleaSendLinkClick
         AddHandler k.MouseDown, AddressOf qleaTabMouseDown
         AddHandler Me.FormClosing, AddressOf qleaClosing
     End Sub
@@ -298,6 +312,133 @@ Partial Class j
         ElseIf My.Settings.t = "e" Then
             qleaSourceClick(sender, e)
         End If
+    End Sub
+
+    Private Sub qleaAddressKeyDown(ByVal sender As Object, ByVal e As KeyEventArgs)
+        If qleaAt() Is Nothing Then
+            i9(sender, e)
+            Return
+        End If
+        If e.KeyCode <> Keys.Enter OrElse String.IsNullOrWhiteSpace(c.Text) Then Return
+        qleaDo("go", c.Text)
+        e.Handled = True
+        e.SuppressKeyPress = True
+    End Sub
+
+    Private Sub qleaSearchKeyDown(ByVal sender As Object, ByVal e As KeyEventArgs)
+        If qleaAt() Is Nothing Then
+            j1(sender, e)
+            Return
+        End If
+        If e.KeyCode <> Keys.Enter OrElse String.IsNullOrWhiteSpace(x.Text) OrElse x.Text = "search" Then Return
+        qleaDo("search", x.Text)
+        e.Handled = True
+        e.SuppressKeyPress = True
+    End Sub
+
+    Private Function qleaOpenPath(ByVal path As String) As Boolean
+        Dim host = qleaAt()
+        If host Is Nothing OrElse String.IsNullOrWhiteSpace(path) OrElse Not File.Exists(path) Then Return False
+        qleaLoad(host, System.IO.Path.GetFullPath(path))
+        Return True
+    End Function
+
+    Private Sub qleaOpenFileClick(ByVal sender As Object, ByVal e As EventArgs)
+        If qleaAt() Is Nothing Then
+            h1(sender, e)
+            Return
+        End If
+        Using dialog As New OpenFileDialog()
+            dialog.Title = "Open"
+            dialog.CheckFileExists = True
+            dialog.Filter = "Web pages (*.html;*.htm)|*.html;*.htm|Text files (*.txt)|*.txt|All files (*.*)|*.*"
+            If dialog.ShowDialog(Me) <> DialogResult.OK Then Return
+            If qleaOpenPath(dialog.FileName) Then
+                qad(dialog.FileName)
+                su.Visible = True
+                su.Text = "Lea file opened"
+            End If
+        End Using
+    End Sub
+
+    Private Sub qleaOpenFileHover(ByVal sender As Object, ByVal e As EventArgs)
+        If qleaAt() Is Nothing Then
+            h2(sender, e)
+        ElseIf My.Settings.t = "e" Then
+            qleaOpenFileClick(sender, e)
+        End If
+    End Sub
+
+    Private Function qleaSafeName(ByVal title As String) As String
+        Dim name = If(title, "").Trim()
+        If name.Length = 0 Then name = "Lea page"
+        For Each invalid As Char In Path.GetInvalidFileNameChars()
+            name = name.Replace(invalid, "_"c)
+        Next
+        Return name
+    End Function
+
+    Private Function qleaSavePath(ByVal path As String) As Boolean
+        Dim source = qleaSourceText()
+        If source.Length = 0 OrElse String.IsNullOrWhiteSpace(path) Then Return False
+        File.WriteAllText(path, source, New System.Text.UTF8Encoding(False))
+        Return True
+    End Function
+
+    Private Sub qleaSavePageClick(ByVal sender As Object, ByVal e As EventArgs)
+        Dim host = qleaAt()
+        If host Is Nothing Then
+            h3(sender, e)
+            Return
+        End If
+        Using dialog As New SaveFileDialog()
+            qsavefolder(dialog)
+            dialog.FileName = qleaSafeName(host.T) & ".html"
+            dialog.Filter = "HTML (*.html)|*.html|All files (*.*)|*.*"
+            dialog.CheckPathExists = True
+            dialog.Title = "Save Lea Page"
+            If dialog.ShowDialog(Me) <> DialogResult.OK Then Return
+            Try
+                If qleaSavePath(dialog.FileName) Then
+                    qad(dialog.FileName)
+                    su.Visible = True
+                    su.Text = "Lea page saved"
+                End If
+            Catch ex As Exception
+                su.Visible = True
+                su.Text = "Lea: " & ex.Message
+            End Try
+        End Using
+    End Sub
+
+    Private Sub qleaSavePageHover(ByVal sender As Object, ByVal e As EventArgs)
+        If qleaAt() Is Nothing Then
+            h4(sender, e)
+        ElseIf My.Settings.t = "e" Then
+            qleaSavePageClick(sender, e)
+        End If
+    End Sub
+
+    Private Function qleaMailLink() As String
+        Dim host = qleaAt()
+        If host Is Nothing OrElse host.U Is Nothing Then Return ""
+        Return "mailto:?subject=" & Uri.EscapeDataString(If(host.T, "")) & "&body=" & Uri.EscapeDataString(host.U.AbsoluteUri)
+    End Function
+
+    Private Sub qleaSendLinkClick(ByVal sender As Object, ByVal e As EventArgs)
+        Dim link = qleaMailLink()
+        If link.Length = 0 Then
+            k4(sender, e)
+            Return
+        End If
+        Try
+            Process.Start(link)
+            su.Visible = True
+            su.Text = "Send Lea link opened"
+        Catch ex As Exception
+            su.Visible = True
+            su.Text = "Lea: " & ex.Message
+        End Try
     End Sub
 
     Private Function qleaSessionPath() As String

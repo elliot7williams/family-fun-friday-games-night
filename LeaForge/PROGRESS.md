@@ -1,6 +1,6 @@
 # Lea 1.0 Progress
 
-Current completion: **77%**
+Current completion: **78%**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -16,8 +16,8 @@ modern web platform.
 | Layout and painting | 20% | 20% | Inset stretch, translated contexts, nested content, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Bounded multipart files, richer widgets, validation, responsive images, GET/POST submit |
 | Lea scripting | 5% | 1% | Early compact commands in LeaForge |
-| Firespider integration and reliability | 10% | 7% | Navigation, safe close routing, Lea sessions, source viewing, host smoke tests |
-| **Total** | **100%** | **77%** | |
+| Firespider integration and reliability | 10% | 8% | Keyboard navigation, open/save/send routes, sessions, source, host smoke tests |
+| **Total** | **100%** | **78%** | |
 
 ## Updating the percentage
 
@@ -28,4 +28,4 @@ modern web platform.
 
 ## Next gains
 
-- More Firespider commands routed through Lea capability checks: +1%
+- Small JavaScript interpreter layer or bridge: +1%

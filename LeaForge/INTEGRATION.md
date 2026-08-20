@@ -188,25 +188,28 @@ bounded to eight files, 4 MB each and 8 MB combined.
 
 ## Experimental Firespider tab
 
-The source in `../Lea.Firespider` now powers a real experimental tab in the
-Firespider project. **File > New Lea Tab** or `Ctrl+Alt+L` creates a `Lea.Win.V`
-inside Firespider's existing tab control. Back, forward, home, go, search,
-reload, and stop dispatch to Lea while that tab is selected and delegate to the
-original handlers for legacy tabs.
+The source in `../Lea.Firespider` now powers real engine-backed tabs in the
+Firespider project. **File > New Lea Tab** creates a `Lea.Win.V` inside
+Firespider's existing tab control. Back, forward, home, go, search, reload,
+stop, and address/search Enter keys dispatch by active tab type and delegate to
+the original handlers for legacy tabs. Shared New Tab controls remain legacy
+until their internal `WebBrowser`-only callers are migrated.
 
 Close Tab (`Ctrl+W`), the tab-strip close target, and middle-click now dispatch
 through Lea-aware close handling. Page Source (`Ctrl+U`) fills Firespider's
-existing source window from `V.H`. Lea sessions use a separate bounded file at
-`%LocalAppData%\Firespider Internet\Lea.session`; private mode removes it, and
-legacy tabs continue using Firespider's existing settings collections.
+existing source window from `V.H`. Open File loads through Lea, Save Page writes
+`V.H` as UTF-8, and Send Link uses `V.T` and `V.U`. Lea sessions use a separate
+bounded file at `%LocalAppData%\Firespider Internet\Lea.session`; private mode
+removes it, and legacy tabs continue using Firespider's settings collections.
 
 Firespider imports one `Lea/FirespiderLea.targets` file. The import supplies the
 two DLL references, partial VB adapter, and bundled local start page. Debug and
-Release builds pass `Smoke.cs`, which verifies tab creation, start-page loading,
-host navigation, timer status, close routing, page source, and save/restore
-across two host forms without loading another browser engine or touching the
-user's real session. The adapter removes unconditional `WebBrowser` casts from
-the paths it owns and delegates by active tab type.
+Release builds pass `Smoke.cs`, which verifies Lea tab creation, keyboard
+navigation, local open, page save, send-link metadata, timer status, close and
+source routing, and session save/restore across two host forms without loading
+another browser engine or touching the user's data. The adapter removes
+unconditional `WebBrowser` casts from the paths it owns and delegates by active
+tab type.
 
 ## Integration rules
 

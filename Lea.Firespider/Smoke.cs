@@ -13,9 +13,12 @@ namespace Lea.Firespider
         {
             var oldSession = Environment.GetEnvironmentVariable("LEA_FIRESPIDER_SESSION");
             var session = Path.Combine(Path.GetTempPath(), "lea-firespider-smoke-" + Guid.NewGuid().ToString("N") + ".txt");
+            var openPage = Path.Combine(Path.GetTempPath(), "lea-firespider-open-" + Guid.NewGuid().ToString("N") + ".html");
+            var savedPage = Path.Combine(Path.GetTempPath(), "lea-firespider-page-" + Guid.NewGuid().ToString("N") + ".html");
             try
             {
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", session);
+                File.WriteAllText(openPage, "<!doctype html><html><head><title>Lea Open Route</title></head><body>Open route fixture</body></html>");
                 var root = args.Length > 0 ? args[0] : AppDomain.CurrentDomain.BaseDirectory;
                 var assembly = Assembly.LoadFrom(Path.Combine(root, "Firespider Internet 19.exe"));
                 var type = assembly.GetType("Firespider_Internet.j", true);
@@ -56,6 +59,19 @@ namespace Lea.Firespider
                     Check(tick != null, "Firespider timer tick");
                     tick.Invoke(timer, new object[] { EventArgs.Empty });
                     var start = Path.Combine(root, "Lea", "start.html");
+                    var opened = (bool)type.GetMethod("qleaOpenPath", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(form, new object[] { openPage });
+                    WaitFor(() => host.At != null && host.T == "Lea Open Route", "Firespider Open File routed to Lea");
+                    Check(opened, "Firespider Open File capability");
+                    var savedPageOk = (bool)type.GetMethod("qleaSavePath", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(form, new object[] { savedPage });
+                    Check(savedPageOk && File.ReadAllText(savedPage).Contains("Open route fixture"), "Firespider Save Page routed to Lea");
+                    var mailLink = (string)type.GetMethod("qleaMailLink", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(form, null);
+                    Check(mailLink.StartsWith("mailto:?") && mailLink.Contains("Lea%20Open%20Route"), "Firespider Send Link uses Lea metadata");
+                    var address = Member<ToolStripComboBox>(form, "c");
+                    address.Text = new Uri(start).AbsoluteUri;
+                    var addressKey = new KeyEventArgs(Keys.Enter);
+                    type.GetMethod("qleaAddressKeyDown", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(form, new object[] { address, addressKey });
+                    WaitFor(() => host.At != null && host.T == "Lea in Firespider", "address Enter routed to Lea");
+                    Check(addressKey.Handled && addressKey.SuppressKeyPress, "address Enter handled by Lea");
                     host.Go(start);
                     Check(host.CanBk, "Lea history before host Back");
                     Member<ToolStripItem>(form, "b").PerformClick();
@@ -112,7 +128,7 @@ namespace Lea.Firespider
                     Check(restoredTabs.TabCount == beforeMiddle - 1 && FindLea(restoredTabs) == null, "middle-click Lea tab close");
                 }
 
-                Console.WriteLine("Firespider Lea smoke passed: private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
+                Console.WriteLine("Firespider Lea smoke passed: keyboard navigation, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
                 return 0;
             }
             catch (Exception error)
@@ -124,6 +140,8 @@ namespace Lea.Firespider
             {
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", oldSession);
                 if (File.Exists(session)) File.Delete(session);
+                if (File.Exists(openPage)) File.Delete(openPage);
+                if (File.Exists(savedPage)) File.Delete(savedPage);
             }
         }
 
@@ -159,6 +177,17 @@ namespace Lea.Firespider
         private static void Check(bool value, string name)
         {
             if (!value) throw new InvalidOperationException(name);
+        }
+
+        private static void WaitFor(Func<bool> condition, string name)
+        {
+            var until = DateTime.UtcNow.AddSeconds(5);
+            while (!condition() && DateTime.UtcNow < until)
+            {
+                Application.DoEvents();
+                System.Threading.Thread.Sleep(10);
+            }
+            Check(condition(), name);
         }
 
     }
