@@ -1,6 +1,6 @@
 # Lea 1.0 Progress
 
-Current completion: **94%**
+Current completion: **95%**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -11,13 +11,13 @@ modern web platform.
 | --- | ---: | ---: | --- |
 | Core and alias API | 10% | 10% | Compact API, bounded diagnostics, repeatable reports, history, projects, backups |
 | Networking | 10% | 10% | Bounded request deadlines and downloads, private cookies, typed errors, validators, compression, LRU cache |
-| HTML and document tree | 20% | 14% | Bounded tokens, queries, and base URLs, raw/RCDATA text, entities, recovery, semantic blocks, list markers, disclosures, tables |
+| HTML and document tree | 20% | 15% | Bounded tokens, queries, base URLs and fragments, raw/RCDATA text, entities, recovery, semantic blocks, lists, disclosures, tables |
 | CSS | 15% | 15% | Compiled selectors, dynamic hover/focus, sizing, visibility/opacity, fonts, overflow, boxes |
 | Layout and painting | 20% | 20% | Inset stretch, translated contexts, nested content, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Bounded multipart files, richer widgets, validation, responsive images, GET/POST submit |
 | Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/style/alert and class commands |
 | Firespider integration and reliability | 10% | 10% | Lea-first New Tab/Ctrl+T, explicit legacy fallback, Inspector, navigation, sessions, source, host smokes |
-| **Total** | **100%** | **94%** | |
+| **Total** | **100%** | **95%** | |
 
 ## Updating the percentage
 
@@ -28,4 +28,4 @@ modern web platform.
 
 ## Next gains
 
-- Add bounded same-page fragment navigation, target lookup, and scroll coverage: +1%
+- Add compact `<progress>` and `<meter>` value modelling, painting, and bounds coverage: +1%

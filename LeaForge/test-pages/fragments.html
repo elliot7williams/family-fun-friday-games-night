@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head>
+  <title>Lea Fragment Navigation</title>
+  <style>
+    body { background: #f7fbff; color: #172033; font-family: "Segoe UI", sans-serif; }
+    h1, h2 { color: #176b4d; }
+    nav { background: #edf3f8; border: 1px solid #9eafc1; padding: 8px; }
+    nav a { color: #075fa8; }
+    .space { height: 420px; border-bottom: 2px solid #d6dee8; }
+    details { background: #fff7df; border: 1px solid #ba8a2d; margin: 8px 0; padding: 6px; }
+    summary { color: #8a3b12; }
+    table { width: 100%; }
+    td { background: #edf8f2; border: 1px solid #70a187; padding: 8px; }
+    #target { word-break: break-word; }
+  </style>
+</head>
+<body>
+  <h1 id="top">Fragment navigation</h1>
+  <nav id="fragment-links">
+    <a id="to-target" href="#target">Main target</a>
+    <a id="to-closed" href="#closed-target">Closed details target</a>
+    <a id="to-cell" href="#cell-target">Table cell target</a>
+    <a id="to-encoded" href="#encoded%20target">Encoded target</a>
+    <a id="to-name" href="#legacy-anchor">Named anchor</a>
+    <a id="to-missing" href="#missing-target">Missing target</a>
+    <a id="to-top" href="#">Top</a>
+  </nav>
+  <p>This deliberately long introductory line changes its wrapped height when the Lea view narrows so fragment placement can be recalculated after resize.</p>
+  <div class="space" id="space-one"></div>
+  <h2 id="target">Main retained document target with resize-safe placement</h2>
+  <p id="target-copy">This target should scroll near the top without loading the file again.</p>
+  <div class="space" id="space-two"></div>
+  <details id="closed-details">
+    <summary id="closed-summary">Closed fragment disclosure</summary>
+    <p id="closed-target">Navigating here reveals the closed details ancestor.</p>
+    <input id="fragment-field" name="kept" value="Initial fragment value">
+  </details>
+  <div class="space" id="space-three"></div>
+  <table id="fragment-table">
+    <tr id="row-target"><td id="cell-target">Fragment target inside a structured table cell</td></tr>
+  </table>
+  <div class="space" id="space-four"></div>
+  <h2 id="encoded target">Percent-decoded fragment target</h2>
+  <p><a id="named-block" name="legacy-anchor">Legacy named anchor target</a></p>
+</body>
+</html>

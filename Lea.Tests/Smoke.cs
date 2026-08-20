@@ -755,6 +755,48 @@ namespace Lea.Tests
                 Eq(1, disclosureEngine.Ds(disclosurePage, ById(disclosurePage.D, "outer-summary")), "outer disclosure reopens");
                 Ok(outerDetails.Op && nestedDetails.Op && !BlockById(disclosurePage, "nested-content").Hd, "nested open state survives outer toggle");
 
+                var fragmentPath = Path.Combine(root, "LeaForge", "test-pages", "fragments.html");
+                var fragmentEngine = new E();
+                var fragmentPage = fragmentEngine.Go(fragmentPath);
+                var fragmentRequests = fragmentEngine.Dg(fragmentPage).Rs.Count;
+                Eq("target", fragmentEngine.Ft(fragmentPage, "#target").Av("id"), "fragment ID target lookup");
+                Eq("encoded target", fragmentEngine.Ft(fragmentPage, "#encoded%20target").Av("id"), "percent-decoded fragment target lookup");
+                Eq("legacy-anchor", fragmentEngine.Ft(fragmentPage, "legacy-anchor").Av("name"), "named anchor fragment lookup");
+                Ok(fragmentEngine.Ft(fragmentPage, "#missing-target") == null && fragmentEngine.Ft(fragmentPage, "#" + new String('x', 4097)) == null, "missing and oversized fragments stay bounded");
+                var retainedFragmentField = FieldById(fragmentPage, "fragment-field");
+                retainedFragmentField.V = "Edited before fragment reveal";
+
+                var fragmentGoPage = fragmentEngine.Go("#target");
+                Ok(Object.ReferenceEquals(fragmentPage, fragmentGoPage) && fragmentEngine.CanBk, "same-document Go retains page and adds history");
+                Eq("#target", fragmentEngine.At.U.Fragment, "fragment Go updates current address");
+                Eq(fragmentRequests, fragmentEngine.Dg(fragmentPage).Rs.Count, "fragment Go performs no request");
+                Eq(1, fragmentEngine.Fg("#missing-target"), "missing fragment still updates same-document history");
+                Eq("#missing-target", fragmentEngine.At.U.Fragment, "missing fragment address");
+                Ok(Object.ReferenceEquals(fragmentPage, fragmentEngine.Bk()) && fragmentEngine.At.U.Fragment == "#target", "fragment Back retains document and URL");
+                Ok(Object.ReferenceEquals(fragmentPage, fragmentEngine.Fw()) && fragmentEngine.At.U.Fragment == "#missing-target", "fragment Forward retains document and URL");
+                Eq(0, fragmentEngine.Fg(new Uri(Path.Combine(root, "LeaForge", "test-pages", "second.html"))), "cross-document URL is not a fragment navigation");
+
+                Eq(1, fragmentEngine.Fg("#closed-target"), "closed fragment history navigation");
+                var closedFragmentTarget = fragmentEngine.Ft(fragmentPage, fragmentEngine.At.U.Fragment);
+                Eq(1, fragmentEngine.Rv(fragmentPage, closedFragmentTarget), "fragment reveals one closed details ancestor");
+                Ok(ById(fragmentPage.D, "closed-details").Op && !BlockById(fragmentPage, "closed-target").Hd, "revealed fragment content joins layout model");
+                Ok(Object.ReferenceEquals(retainedFragmentField, FieldById(fragmentPage, "fragment-field")) && retainedFragmentField.V == "Edited before fragment reveal", "fragment reveal preserves field state");
+                Eq(0, fragmentEngine.Rv(fragmentPage, closedFragmentTarget), "already visible fragment needs no rebuild");
+                var fragmentAsyncPage = fragmentEngine.GoA("#encoded%20target").GetAwaiter().GetResult();
+                Ok(Object.ReferenceEquals(fragmentPage, fragmentAsyncPage) && fragmentEngine.At.U.Fragment == "#encoded%20target", "asynchronous fragment Go retains page");
+                Eq(fragmentRequests, fragmentEngine.Dg(fragmentPage).Rs.Count, "asynchronous fragment Go performs no request");
+
+                Eq(1, fragmentEngine.Fg("#"), "empty fragment navigates to document top");
+                Eq(1, fragmentEngine.Fg("#target"), "fragment navigation after top");
+                Ok(Object.ReferenceEquals(fragmentPage, fragmentEngine.Go("#target")), "same fragment Go is a bounded no-op");
+                fragmentEngine.Bk();
+                Eq("#", fragmentEngine.At.U.Fragment, "same fragment does not duplicate history");
+                fragmentEngine.Fw();
+                for (var fragmentIndex = 0; fragmentIndex < 140; fragmentIndex++) Eq(1, fragmentEngine.Fg("#bounded-" + fragmentIndex), "bounded fragment history push");
+                var fragmentBackCount = 0;
+                while (fragmentEngine.CanBk) { fragmentEngine.Bk(); fragmentBackCount++; }
+                Eq(127, fragmentBackCount, "fragment history keeps 128 entries");
+
                 var tokenPath = Path.Combine(root, "LeaForge", "test-pages", "html-tokens.html");
                 var tokenEngine = new E();
                 var tokenPage = tokenEngine.Go(tokenPath);
@@ -1681,6 +1723,61 @@ namespace Lea.Tests
                     Paint(view);
                     Ok(ById(view.At.D, "cell-details").Op && !BlockRect(view, BlockById(view.At, "cell-content")).IsEmpty, "table cell summary toggles visible content");
 
+                    view.Size = new Size(620, 420);
+                    view.Go(fragmentPath);
+                    Paint(view);
+                    var retainedFragmentPage = view.At;
+                    var viewFragmentRequests = view.Dg().Rs.Count;
+                    var viewFragmentField = FieldById(view.At, "fragment-field");
+                    viewFragmentField.V = "Edited in fragment view";
+                    Eq("encoded target", view.Ft("#encoded%20target").Av("id"), "WinForms fragment target lookup");
+                    var targetHit = FragmentHitRect(view, "#target");
+                    Ok(!targetHit.IsEmpty, "same-page fragment link hit target");
+                    Click(view, targetHit);
+                    Paint(view);
+                    Ok(Object.ReferenceEquals(retainedFragmentPage, view.At) && view.U.Fragment == "#target", "fragment link retains rendered page and updates URL");
+                    Ok(view.Sy > 0 && ElementVisible(view, ById(view.At.D, "target")), "fragment link scrolls target into view");
+                    Eq(viewFragmentRequests, view.Dg().Rs.Count, "fragment link performs no request");
+                    var targetScroll = view.Sy;
+                    Eq(1, view.Fg("#missing-target"), "WinForms missing fragment history navigation");
+                    Eq(targetScroll, view.Sy, "missing fragment preserves current scroll");
+                    view.Bk();
+                    Paint(view);
+                    Ok(view.U.Fragment == "#target" && ElementVisible(view, ById(view.At.D, "target")), "fragment Back restores target placement");
+
+                    Eq(1, view.Fg("#closed-target"), "WinForms hidden fragment navigation");
+                    Paint(view);
+                    Ok(ById(view.At.D, "closed-details").Op && ElementVisible(view, ById(view.At.D, "closed-target")), "fragment navigation reveals closed details target");
+                    Ok(Object.ReferenceEquals(viewFragmentField, FieldById(view.At, "fragment-field")) && viewFragmentField.V == "Edited in fragment view", "WinForms fragment reveal preserves field state");
+                    Eq("v", BlockById(view.At, "closed-summary").Mk, "fragment reveal updates disclosure marker");
+                    Eq(1, view.Fg("#cell-target"), "WinForms table fragment navigation");
+                    Paint(view);
+                    Ok(ElementVisible(view, ById(view.At.D, "cell-target")), "table cell fragment target is visible");
+                    Eq(1, view.Fg("#encoded%20target"), "WinForms encoded fragment navigation");
+                    Paint(view);
+                    Ok(ElementVisible(view, ById(view.At.D, "encoded target")), "encoded fragment target is visible");
+                    Eq(1, view.Fg("#legacy-anchor"), "WinForms named anchor navigation");
+                    Paint(view);
+                    Ok(ElementVisible(view, ById(view.At.D, "named-block")), "named anchor fragment target is visible");
+                    Eq(1, view.Fg("#"), "WinForms top fragment navigation");
+                    Eq(0, view.Sy, "empty fragment scrolls to document top");
+
+                    view.Size = new Size(720, 420);
+                    Eq(1, view.Fg("#target"), "wide fragment placement");
+                    Paint(view);
+                    var wideTargetScroll = view.Sy;
+                    view.Size = new Size(300, 420);
+                    Paint(view);
+                    Eq(1, view.Fg("#target"), "same fragment recalculates after resize");
+                    Paint(view);
+                    Ok(ElementVisible(view, ById(view.At.D, "target")) && view.Sy != wideTargetScroll, "fragment placement follows resized layout");
+                    Eq(viewFragmentRequests, view.Dg().Rs.Count, "fragment resize path performs no request");
+
+                    view.Go(Path.Combine(root, "LeaForge", "test-pages", "second.html"));
+                    view.Go(new Uri(new Uri(fragmentPath).AbsoluteUri + "#target"));
+                    Paint(view);
+                    Ok(view.U.Fragment == "#target" && ElementVisible(view, ById(view.At.D, "target")), "initial cross-document URL fragment scrolls after load");
+
                     view.Size = new Size(720, 760);
                     view.Go(Path.Combine(root, "LeaForge", "test-pages", "scroll.html"));
                     Paint(view);
@@ -1693,13 +1790,14 @@ namespace Lea.Tests
                 {
                     var net = new E();
                     net.Cm = 2;
-                    var gzip = new Uri(server.U, "?encoding=gzip");
+                    var gzip = new Uri(server.U, "?encoding=gzip#net-target");
                     var first = net.Go(gzip);
                     Eq(200, first.St, "HTTP status");
                     Eq("text/html", first.Ct, "HTTP content type");
                     Eq("gzip", first.Ce, "GZip response encoding");
                     Eq("utf-8", first.Ch, "HTTP charset");
                     Eq("Lea gzip", first.T, "GZip decoded page");
+                    Eq("#net-target", first.U.Fragment, "network response preserves requested fragment");
                     Ok(first.Sz > 0 && !first.Ca, "network response metadata");
                     Eq(1, server.Hits, "first network request");
 
@@ -2026,7 +2124,7 @@ namespace Lea.Tests
                 if (args.Length > 3) SaveEventRender(eventPath, args[3]);
                 if (args.Length > 4) SaveRender(tokenPath, args[4]);
 
-                Console.WriteLine("Lea smoke passed: bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: bounded retained fragment history, encoded and named targets, hidden reveal, table placement and resize reflow, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -2362,6 +2460,36 @@ namespace Lea.Tests
                     return (Rectangle)type.GetField("R").GetValue(value);
             }
             return Rectangle.Empty;
+        }
+
+        private static Rectangle FragmentHitRect(V view, string fragment)
+        {
+            var member = typeof(V).GetField("hits", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = member == null ? null : member.GetValue(view) as System.Collections.IEnumerable;
+            if (values == null) throw new InvalidOperationException("fragment hit values unavailable");
+            foreach (var value in values)
+            {
+                var type = value.GetType();
+                var url = type.GetField("U").GetValue(value) as Uri;
+                if (url != null && url.Fragment.Equals(fragment, StringComparison.OrdinalIgnoreCase))
+                    return (Rectangle)type.GetField("R").GetValue(value);
+            }
+            return Rectangle.Empty;
+        }
+
+        private static bool ElementVisible(V view, N element)
+        {
+            Rectangle inline = Rectangle.Empty;
+            foreach (var value in LayoutBoxes(view))
+            {
+                var type = value.GetType();
+                if (!Object.ReferenceEquals(type.GetField("El").GetValue(value), element)) continue;
+                var rect = (Rectangle)type.GetField("C").GetValue(value);
+                if (!(bool)type.GetField("Fx").GetValue(value)) rect.Offset(0, -view.Sy);
+                if (!(bool)type.GetField("Inline").GetValue(value)) return rect.IntersectsWith(view.ClientRectangle);
+                if (inline.IsEmpty) inline = rect;
+            }
+            return !inline.IsEmpty && inline.IntersectsWith(view.ClientRectangle);
         }
 
         private static string PaintedText(V view, B block)

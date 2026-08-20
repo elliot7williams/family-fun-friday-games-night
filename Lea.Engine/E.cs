@@ -36,11 +36,13 @@ namespace Lea.Engine
         private const int MaxQueryGroups = 16;
         private const int MaxQueryParts = 16;
         private const int MaxQueryResults = 256;
+        private const int MaxFragment = 4096;
+        private const int MaxHistory = 128;
         private const int MinTimeout = 100;
         private const int MaxTimeout = 60000;
         private const int DefaultTimeout = 15000;
         private readonly W web = new W();
-        private readonly List<P> hs = new List<P>();
+        private readonly List<He> hs = new List<He>();
         private readonly Dictionary<string, Cr> cache = new Dictionary<string, Cr>(StringComparer.OrdinalIgnoreCase);
         private readonly List<string> lru = new List<string>();
         private readonly List<string> requests = new List<string>();
@@ -53,7 +55,7 @@ namespace Lea.Engine
         private Stream download;
         private bool stopped;
 
-        public P At { get { return at >= 0 && at < hs.Count ? hs[at] : null; } }
+        public P At { get { return Current(); } }
         public bool CanBk { get { return at > 0; } }
         public bool CanFw { get { return at < hs.Count - 1; } }
         public bool Busy { get { return busy; } }
@@ -127,7 +129,7 @@ namespace Lea.Engine
         public int Js(P page, string code)
         {
             if (page == null) throw new ArgumentNullException("page");
-            if (!hs.Contains(page)) throw new ArgumentException("The page does not belong to this Lea engine.", "page");
+            if (!OwnsPage(page)) throw new ArgumentException("The page does not belong to this Lea engine.", "page");
             if (!je) return 0;
             var rules = page.R as List<R>;
             if (rules == null) return 0;
@@ -144,7 +146,7 @@ namespace Lea.Engine
         public int Ck(P page, N element)
         {
             if (page == null) throw new ArgumentNullException("page");
-            if (!hs.Contains(page)) throw new ArgumentException("The page does not belong to this Lea engine.", "page");
+            if (!OwnsPage(page)) throw new ArgumentException("The page does not belong to this Lea engine.", "page");
             if (element == null || !Owns(page.D, element)) return 0;
             var code = element.Av("data-lea");
             if (String.IsNullOrWhiteSpace(code)) code = element.Av("onclick");
@@ -157,22 +159,44 @@ namespace Lea.Engine
             QueryPage(page);
             var details = Disclosure(element);
             if (details == null) return 0;
+            var rules = page.R as List<R>;
+            if (rules == null) return 0;
             details.Op = !details.Op;
             if (details.Op) details.A["open"] = "";
             else details.A.Remove("open");
-            var rules = page.R as List<R>;
-            if (rules == null) return 0;
             var fields = new Dictionary<N, Fi>();
             foreach (var field in page.Fs) if (field.El != null) fields[field.El] = field;
             Rebuild(page, rules, fields);
             return 1;
         }
 
+        // Rv reveals a target hidden by closed details in one retained rebuild.
+        public int Rv(P page, N element)
+        {
+            QueryPage(page);
+            if (element == null || !Owns(page.D, element)) return 0;
+            var rules = page.R as List<R>;
+            if (rules == null) return 0;
+            var count = 0;
+            for (var current = element.Up; current != null; current = current.Up)
+            {
+                if (current.K != "details" || current.Op) continue;
+                current.Op = true;
+                current.A["open"] = "";
+                count++;
+            }
+            if (count == 0) return 0;
+            var fields = new Dictionary<N, Fi>();
+            foreach (var field in page.Fs) if (field.El != null) fields[field.El] = field;
+            Rebuild(page, rules, fields);
+            return count;
+        }
+
         // Gt returns and clears one bounded page navigation request.
         public Uri Gt(P page)
         {
             if (page == null) throw new ArgumentNullException("page");
-            if (!hs.Contains(page)) throw new ArgumentException("The page does not belong to this Lea engine.", "page");
+            if (!OwnsPage(page)) throw new ArgumentException("The page does not belong to this Lea engine.", "page");
             if (!page.Gp) return null;
             var target = page.Gu;
             page.Gu = null;
@@ -184,7 +208,7 @@ namespace Lea.Engine
         public G Dg(P page)
         {
             if (page == null) throw new ArgumentNullException("page");
-            if (!hs.Contains(page)) throw new ArgumentException("The page does not belong to this Lea engine.", "page");
+            if (!OwnsPage(page)) throw new ArgumentException("The page does not belong to this Lea engine.", "page");
             var rules = page.R as List<R>;
             var result = new G
             {
@@ -236,6 +260,19 @@ namespace Lea.Engine
             return value.Length == 0 || value.Length > MaxHtmlAttributeValue ? null : FindId(page.D, value);
         }
 
+        // Ft resolves one bounded, percent-decoded fragment target.
+        public N Ft(P page, string fragment)
+        {
+            QueryPage(page);
+            var value = fragment ?? "";
+            if (value.StartsWith("#", StringComparison.Ordinal)) value = value.Substring(1);
+            if (value.Length == 0 || value.Length > MaxFragment) return null;
+            try { value = Uri.UnescapeDataString(value); }
+            catch (UriFormatException) { return null; }
+            if (value.Length == 0 || value.Length > MaxFragment) return null;
+            return FindId(page.D, value) ?? FindName(page.D, value);
+        }
+
         // Q returns the first document-order match from Lea's bounded selector subset.
         public N Q(P page, string query)
         {
@@ -257,7 +294,7 @@ namespace Lea.Engine
         private void QueryPage(P page)
         {
             if (page == null) throw new ArgumentNullException("page");
-            if (!hs.Contains(page)) throw new ArgumentException("The page does not belong to this Lea engine.", "page");
+            if (!OwnsPage(page)) throw new ArgumentException("The page does not belong to this Lea engine.", "page");
         }
 
         // Fd counts bounded, case-insensitive page-text matches.
@@ -280,14 +317,32 @@ namespace Lea.Engine
             return count;
         }
 
+        // Fg records one same-document fragment navigation without fetching.
+        public int Fg(string input)
+        {
+            return Fg(ToUri(input, At == null ? null : At.U));
+        }
+
+        public int Fg(Uri url)
+        {
+            if (url == null) throw new ArgumentNullException("url");
+            var page = At;
+            if (page == null || !SameDocument(page.U, url) || !FragmentNavigation(page.U, url)) return 0;
+            if (!String.Equals(page.U.AbsoluteUri, url.AbsoluteUri, StringComparison.OrdinalIgnoreCase)) Push(page, url);
+            return 1;
+        }
+
         public P Go(string input)
         {
-            return Go(ToUri(input, At == null ? null : At.U));
+            var url = ToUri(input, At == null ? null : At.U);
+            if (FragmentReference(input) && Fg(url) != 0) return At;
+            return Go(url);
         }
 
         public P Go(Uri url)
         {
             if (url == null) throw new ArgumentNullException("url");
+            if (!SameAddress(At == null ? null : At.U, url) && Fg(url) != 0) return At;
             var p = Read(url);
             Push(p);
             return p;
@@ -321,12 +376,15 @@ namespace Lea.Engine
 
         public async Task<P> GoA(string input)
         {
-            return await GoA(ToUri(input, At == null ? null : At.U));
+            var url = ToUri(input, At == null ? null : At.U);
+            if (FragmentReference(input) && Fg(url) != 0) return At;
+            return await GoA(url);
         }
 
         public async Task<P> GoA(Uri url)
         {
             if (url == null) throw new ArgumentNullException("url");
+            if (!SameAddress(At == null ? null : At.U, url) && Fg(url) != 0) return At;
             var p = await ReadA(url);
             Push(p);
             return p;
@@ -418,9 +476,17 @@ namespace Lea.Engine
 
         private void Push(P p)
         {
+            Push(p, p == null ? null : p.U);
+        }
+
+        private void Push(P p, Uri url)
+        {
             if (at < hs.Count - 1) hs.RemoveRange(at + 1, hs.Count - at - 1);
-            hs.Add(p);
+            hs.Add(new He(p, url));
             at = hs.Count - 1;
+            if (hs.Count <= MaxHistory) return;
+            hs.RemoveAt(0);
+            at--;
         }
 
         public P Bk()
@@ -439,7 +505,7 @@ namespace Lea.Engine
         {
             if (At == null) return null;
             var p = Read(At.U, true);
-            hs[at] = p;
+            hs[at] = new He(p, p.U);
             return p;
         }
 
@@ -447,8 +513,22 @@ namespace Lea.Engine
         {
             if (At == null) return null;
             var p = await ReadA(At.U, true);
-            hs[at] = p;
+            hs[at] = new He(p, p.U);
             return p;
+        }
+
+        private P Current()
+        {
+            if (at < 0 || at >= hs.Count) return null;
+            var entry = hs[at];
+            entry.P.U = entry.U;
+            return entry.P;
+        }
+
+        private bool OwnsPage(P page)
+        {
+            foreach (var entry in hs) if (Object.ReferenceEquals(entry.P, page)) return true;
+            return false;
         }
 
         public void St()
@@ -632,7 +712,7 @@ namespace Lea.Engine
         {
             try
             {
-                return Parse(Fetch(url, fresh));
+                return RequestedFragment(Parse(Fetch(url, fresh)), url);
             }
             catch (Exception error)
             {
@@ -649,7 +729,7 @@ namespace Lea.Engine
             stopped = false;
             try
             {
-                return await ParseA(await FetchA(url, fresh));
+                return RequestedFragment(await ParseA(await FetchA(url, fresh)), url);
             }
             catch (Exception error)
             {
@@ -840,6 +920,13 @@ namespace Lea.Engine
             if (p.T.Length == 0) p.T = reply.U.IsFile ? Path.GetFileName(reply.U.LocalPath) : reply.U.Host;
 
             return p;
+        }
+
+        private static P RequestedFragment(P page, Uri requested)
+        {
+            if (page == null || page.U == null || requested == null || requested.Fragment.Length == 0 || page.U.Fragment.Length > 0) return page;
+            page.U = new Uri(CacheKey(page.U) + requested.Fragment);
+            return page;
         }
 
         private void Complete(P p, List<R> rules)
@@ -1564,6 +1651,18 @@ namespace Lea.Engine
             foreach (var child in node.C)
             {
                 var found = FindId(child, id);
+                if (found != null) return found;
+            }
+            return null;
+        }
+
+        private static N FindName(N node, string name)
+        {
+            if (node == null) return null;
+            if (node.K == "a" && node.Av("name").Equals(name, StringComparison.OrdinalIgnoreCase)) return node;
+            foreach (var child in node.C)
+            {
+                var found = FindName(child, name);
                 if (found != null) return found;
             }
             return null;
@@ -2332,7 +2431,7 @@ namespace Lea.Engine
                 Uri link;
                 var href = node.Av("href");
                 var text = TextValue(RawText(node), style);
-                if (href.Length > 0 && Uri.TryCreate(baseUrl, href, out link))
+                if (href.Length > 0 && TryUri(baseUrl, href, out link))
                 {
                     page.Ls.Add(new Ln { U = link, T = Clean(text) });
                     page.Bs.Add(new B { K = kind, X = text.Length == 0 ? link.ToString() : text, U = link, S = style, El = node });
@@ -2666,7 +2765,7 @@ namespace Lea.Engine
             {
                 Uri target;
                 var href = node.Av("href");
-                if (href.Length > 0 && Uri.TryCreate(baseUrl, href, out target))
+                if (href.Length > 0 && TryUri(baseUrl, href, out target))
                 {
                     link = target;
                     page.Ls.Add(new Ln { U = link, T = Clean(NodeText(node)) });
@@ -2821,7 +2920,7 @@ namespace Lea.Engine
                     Uri link;
                     var href = child.Av("href");
                     var text = TextValue(RawText(child), style);
-                    if (href.Length > 0 && Uri.TryCreate(baseUrl, href, out link))
+                    if (href.Length > 0 && TryUri(baseUrl, href, out link))
                     {
                         if (text.Length == 0) text = link.ToString();
                         page.Ls.Add(new Ln { U = link, T = Clean(text) });
@@ -2886,7 +2985,7 @@ namespace Lea.Engine
             Uri formAction;
             var actionValue = node.Av("formaction");
             if (actionValue.Length == 0 && form != null) actionValue = form.Av("action");
-            if (actionValue.Length > 0 && Uri.TryCreate(baseUrl, actionValue, out formAction)) action = formAction;
+            if (actionValue.Length > 0 && TryUri(baseUrl, actionValue, out formAction)) action = formAction;
             var method = node.Av("formmethod");
             if (method.Length == 0 && form != null) method = form.Av("method");
             method = method.Length == 0 ? "get" : method.Trim().ToLowerInvariant();
@@ -3159,6 +3258,27 @@ namespace Lea.Engine
             return clean.Uri.AbsoluteUri;
         }
 
+        private static bool SameDocument(Uri left, Uri right)
+        {
+            return left != null && right != null && String.Equals(CacheKey(left), CacheKey(right), StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool SameAddress(Uri left, Uri right)
+        {
+            return left != null && right != null && String.Equals(left.AbsoluteUri, right.AbsoluteUri, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool FragmentReference(string input)
+        {
+            return (input ?? "").Trim().Trim('"').StartsWith("#", StringComparison.Ordinal);
+        }
+
+        private static bool FragmentNavigation(Uri current, Uri target)
+        {
+            if (current == null || target == null) return false;
+            return current.Fragment.Length > 0 || target.Fragment.Length > 0 || target.OriginalString.EndsWith("#", StringComparison.Ordinal);
+        }
+
         private static Cr ReadFile(Uri url)
         {
             var path = Local(url);
@@ -3359,6 +3479,18 @@ namespace Lea.Engine
             }
         }
 
+        private sealed class He
+        {
+            public readonly P P;
+            public readonly Uri U;
+
+            public He(P page, Uri url)
+            {
+                P = page;
+                U = url;
+            }
+        }
+
         private sealed class Ld
         {
             public readonly Cr R;
@@ -3537,11 +3669,25 @@ namespace Lea.Engine
         {
             input = (input ?? "").Trim().Trim('"');
             Uri u;
+            if (baseUrl != null && input.StartsWith("#", StringComparison.Ordinal)) return new Uri(CacheKey(baseUrl) + input);
             if (Uri.TryCreate(input, UriKind.Absolute, out u)) return u;
             if (baseUrl != null && Uri.TryCreate(baseUrl, input, out u)) return u;
             if (File.Exists(input)) return new Uri(Path.GetFullPath(input));
             try { return new Uri("https://" + input); }
             catch (UriFormatException error) { throw new Er("url", null, 0, false, "Lea could not understand that address.", error); }
+        }
+
+        private static bool TryUri(Uri baseUrl, string value, out Uri url)
+        {
+            url = null;
+            if (baseUrl == null) return false;
+            try
+            {
+                if ((value ?? "").StartsWith("#", StringComparison.Ordinal)) url = new Uri(CacheKey(baseUrl) + value);
+                else return Uri.TryCreate(baseUrl, value, out url);
+                return true;
+            }
+            catch (UriFormatException) { return false; }
         }
 
         private static string Local(Uri url)

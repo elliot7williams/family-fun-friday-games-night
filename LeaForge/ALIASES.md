@@ -107,10 +107,11 @@ POST work, and streamed network-download reads. A deadline raises retryable
 `Er.K == "timeout"`; `St` remains the distinct non-retryable `cancel` result.
 The shorter synchronous forms remain useful for tests.
 
-`P.U` remains the response URL. `P.Bu` is the document base URL resolved from
-the first valid `<base href>` using at most 4,096 characters; unsupported bases
-are skipped and pages without one use `U`. `V.U` and `V.Bu` expose the same
-pair. Relative stylesheets, links, images, forms, and download links use `Bu`.
+`P.U` is the active page URL and changes only its fragment during retained
+same-page navigation. `P.Bu` is the document base URL resolved from the first
+valid `<base href>` using at most 4,096 characters; unsupported bases are
+skipped and pages without one use the response URL. `V.U` and `V.Bu` expose the
+same pair. Relative stylesheets, links, images, forms, and downloads use `Bu`.
 
 `P.D` is the document root. Each node uses `K` (kind), `X` (text), `A`
 (attributes), `C` (children), and `Av(name)` for a short attribute lookup.
@@ -124,6 +125,15 @@ reuse Lea's compiled CSS subset and accept up to 1,024 characters, 16 groups,
 and 16 total selector parts. `V.Id` and `V.Qa` forward the same operations;
 `V.Q1` is first-match because the established `V.Q` alias remains the page URL
 query string.
+
+Fragments use three defining aliases. `E.Ft(page, fragment)` and `V.Ft` decode
+one value capped at 4,096 characters, then find the first ID or legacy named
+anchor. `E.Fg(url)` and `V.Fg` retain the current page, update `U`, and add one
+entry to a 128-entry history without fetching; cross-document URLs return `0`.
+`E.Rv(page, target)` and `V.Rv` reveal any closed details ancestors in one
+state-preserving rebuild. Normal `Go`/`GoA`, links, and Back/Forward share this
+path. Missing targets retain the current scroll, `#` returns to the top, and
+valid targets are placed again after resize.
 
 Computed style uses `S`: `F` is foreground color, `Bg` is background, `Fs` is
 font size, `Ff` is a font fallback list, `B` is bold, `I` is italic, and `D` is

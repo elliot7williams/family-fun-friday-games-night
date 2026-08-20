@@ -78,6 +78,14 @@ can read `Dh`, `Sy`, and `Bc`, and can call `Sc(delta)` without depending on
 WinForms mouse-wheel internals. `Rb(index)` and `Rc(index)` expose deterministic
 outer-border and content rectangles for layout tests and host diagnostics.
 
+Same-page navigation uses `Ft`, `Fg`, and `Rv`. `Ft` resolves a bounded decoded
+ID or named anchor, `Fg` stores the active fragment in a 128-entry retained-page
+history without another request, and `Rv` opens closed details ancestors in one
+field-preserving rebuild. `V.Go`/`GoA`, rendered links, and Back/Forward scroll
+through the same layout-box lookup. A missing target keeps the viewport, `#`
+returns to the top, and `P.Bu` remains unchanged while `P.U` tracks the active
+fragment. Firespider receives the final `Changed` event and address normally.
+
 Parsed table blocks expose `B.Tb`, with `Tb.Rs`, `Tr.Cs`, and compact `Tc` cell
 records. `V` paints these on the same lightweight surface with shared row
 heights, CSS cell boxes, wrapped text, bounded column spans, and resize reflow.

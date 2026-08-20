@@ -25,6 +25,7 @@ LeaForge is where we can grow the more full-featured browser.
 - bounded quote-aware HTML tokenization with comments, declarations, raw text, RCDATA, entities, and malformed-delimiter recovery
 - compact `Id`, `Q`/`Q1`, and read-only bounded `Qa` document queries
 - bounded `<base href>` resolution through compact `Bu`
+- retained same-page fragments through compact `Ft`/`Fg`/`Rv`, 128-entry history, percent-decoded IDs, named anchors, details reveal, and resize-safe scrolling
 - wrapped inline bold/italic text, styled spans, line breaks, and links inside text blocks
 - inherited font-family fallbacks plus underline and line-through decoration
 - inherited left/center/right/justify alignment and pixel/relative line spacing

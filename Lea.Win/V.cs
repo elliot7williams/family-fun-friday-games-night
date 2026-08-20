@@ -114,14 +114,22 @@ namespace Lea.Win
         public P Go(string input)
         {
             Cursor = Cursors.WaitCursor;
-            try { return Show(e.Go(input), true); }
+            try
+            {
+                if (Fg(input) != 0) return At;
+                return Show(e.Go(input), true);
+            }
             finally { Cursor = Cursors.Default; }
         }
 
         public P Go(Uri url)
         {
             Cursor = Cursors.WaitCursor;
-            try { return Show(e.Go(url), true); }
+            try
+            {
+                if (Fg(url) != 0) return At;
+                return Show(e.Go(url), true);
+            }
             finally { Cursor = Cursors.Default; }
         }
 
@@ -145,6 +153,7 @@ namespace Lea.Win
             picStop = false;
             try
             {
+                if (Fg(input) != 0) return At;
                 var page = Show(await e.GoA(input), false);
                 await PicsA(page);
                 Dirty();
@@ -162,6 +171,7 @@ namespace Lea.Win
             picStop = false;
             try
             {
+                if (Fg(url) != 0) return At;
                 var page = Show(await e.GoA(url), false);
                 await PicsA(page);
                 Dirty();
@@ -251,6 +261,12 @@ namespace Lea.Win
             return Commands(e.Ds(At, element));
         }
 
+        public int Rv(N element)
+        {
+            if (At == null) return 0;
+            return Commands(e.Rv(At, element));
+        }
+
         public G Dg()
         {
             return At == null ? null : e.Dg(At);
@@ -259,8 +275,25 @@ namespace Lea.Win
         public void Dcl() { e.Dcl(); }
 
         public N Id(string id) { return At == null ? null : e.Id(At, id); }
+        public N Ft(string fragment) { return At == null ? null : e.Ft(At, fragment); }
         public N Q1(string query) { return At == null ? null : e.Q(At, query); }
         public IList<N> Qa(string query) { return At == null ? new List<N>().AsReadOnly() : e.Qa(At, query); }
+
+        public int Fg(string input)
+        {
+            var old = sy;
+            if (e.Fg(input) == 0) return 0;
+            Show(At, true, old);
+            return 1;
+        }
+
+        public int Fg(Uri url)
+        {
+            var old = sy;
+            if (e.Fg(url) == 0) return 0;
+            Show(At, true, old);
+            return 1;
+        }
 
         private int Commands(int count)
         {
@@ -335,7 +368,7 @@ namespace Lea.Win
             ClearFind(true);
         }
 
-        private P Show(P page, bool done)
+        private P Show(P page, bool done, int preserveScroll = -1)
         {
             CloseChoices();
             ClearFind(false);
@@ -345,12 +378,58 @@ namespace Lea.Win
             e.Dy(page, null, null);
             sy = 0;
             Dirty();
+            if (!ScrollFragment(page) && preserveScroll >= 0 && page != null && page.U != null && page.U.Fragment.Length > 0)
+                sy = Math.Max(0, Math.Min(MaxScroll(), preserveScroll));
             OnChanged();
             Invalidate();
             Alerts(page);
             if (done && Done != null) Done(this, EventArgs.Empty);
             if (done) GoRequest(page);
             return page;
+        }
+
+        private bool ScrollFragment(P page)
+        {
+            if (page == null || page.U == null || page.U.Fragment.Length == 0) return false;
+            if (page.U.Fragment == "#")
+            {
+                sy = 0;
+                PlaceEditor();
+                return true;
+            }
+            var target = e.Ft(page, page.U.Fragment);
+            if (target == null) return false;
+            if (e.Rv(page, target) > 0) Dirty();
+            EnsureLayout();
+            var box = FragmentBox(target);
+            if (box == null) return false;
+            if (!box.Fx) sy = Math.Max(0, Math.Min(MaxScroll(), box.C.Top - 12));
+            PlaceEditor();
+            return true;
+        }
+
+        private Bx FragmentBox(N target)
+        {
+            Bx exactInline = null;
+            Bx descendant = null;
+            foreach (var box in boxes)
+            {
+                if (box.Title || box.El == null) continue;
+                if (Object.ReferenceEquals(box.El, target))
+                {
+                    if (!box.Inline) return box;
+                    if (exactInline == null) exactInline = box;
+                }
+                else if (descendant == null && Inside(box.El, target)) descendant = box;
+            }
+            return exactInline ?? descendant;
+        }
+
+        private static bool Inside(N node, N ancestor)
+        {
+            for (var current = node; current != null; current = current.Up)
+                if (Object.ReferenceEquals(current, ancestor)) return true;
+            return false;
         }
 
         private bool GoRequest(P page)

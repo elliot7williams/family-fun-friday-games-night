@@ -239,10 +239,10 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add bounded same-page fragment navigation so `#id` links resolve through the
-existing compact document lookup and scroll one retained layout target into
-view. Preserve history and base-URL behavior, and cover missing, hidden, table,
-encoded, and resize cases.
+Add compact `<progress>` and `<meter>` value models plus lightweight painting.
+Clamp malformed and extreme values, keep aliases within three characters, and
+cover inherited style, table cells, resize, and nonblank output without adding
+native or external browser controls.
 
 The repeatable compatibility and performance report is now implemented by
 `Lea.Bench`. It probes supported HTML, CSS, forms, scripting, layout, downloads,
@@ -263,6 +263,13 @@ its block and form models behind `B.Hd`. `E.Ds`/`V.Ds` toggle through one bounde
 rebuild that reapplies `[open]` CSS and preserves fields and nested state.
 `disclosure.html` covers pointer and Enter/Space activation, duplicate and stray
 summaries, summary-free host control, table cells, nesting, paint, and resize.
+
+Same-page fragments now use `E.Ft/Fg/Rv` and matching `V` aliases. Targets are
+decoded under a 4,096-character ceiling, resolve IDs before named anchors, and
+reuse the current page through a 128-entry history without another request.
+Closed details ancestors reveal in one rebuild; links, sync/async Go,
+Back/Forward, table targets, top and missing fragments, direct loads, and resize
+placement share the retained layout path covered by `fragments.html`.
 
 HTML tokenization now uses a small quote-aware scanner rather than a single
 tag-splitting regex. It recognizes comments and declarations, preserves raw

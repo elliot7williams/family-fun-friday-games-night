@@ -48,6 +48,10 @@ across nested scopes; simple and inline text share the same resize-safe paint pa
 Details elements now retain compact page-local `N.Op` state. Their first direct
 summary uses `B.Mk` (`>`/`v`), closed content remains modelled behind `B.Hd`, and
 `E.Ds`/`V.Ds` preserve nested and field state across pointer or keyboard toggles.
+Same-page links now use bounded `Ft` target lookup, `Fg` retained history, and
+`Rv` details reveal. IDs and named anchors scroll through existing layout boxes
+without fetching, while missing, top, table, encoded, Back/Forward, and resize
+cases share one 128-entry path in the engine, test browser, and Firespider.
 
 ## Rules For Future Codex Work
 

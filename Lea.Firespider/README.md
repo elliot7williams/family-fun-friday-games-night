@@ -36,6 +36,11 @@ rejected, and a command request overrides the same click's default link route.
 Lea tabs also expose the bounded `V.Tm` request deadline: 15,000 ms by default,
 clamped to 100-60,000 ms, with typed timeout and cancellation failures.
 
+Same-page `#fragment` links stay inside the current Lea page and never enter the
+host loader. Compact `Ft/Fg/Rv` lookup, retained history, closed-details reveal,
+and layout scrolling still raise the normal `Changed` event, so Firespider's
+address bar and Back/Forward controls update without adapter-specific DOM code.
+
 Firespider can read `V.Dg()` for bounded response, document, CSS, request,
 command, cache, and cookie diagnostics without reflecting into Lea internals.
 The snapshot omits mutable form values, passwords, and selected file paths.

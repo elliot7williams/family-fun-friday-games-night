@@ -103,7 +103,7 @@ namespace Lea.Bench
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "layout.html",
                 "tables.html", "forms.html", "events-vars.html", "responsive-media.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
-                "go-command.html", "lists.html", "disclosure.html"
+                "go-command.html", "lists.html", "disclosure.html", "fragments.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -250,6 +250,24 @@ namespace Lea.Bench
                     using (var image = Draw(view)) Need(view.Bc > 0 && ColoredSamples(image) > 0, "disclosure layout is blank");
                 }
                 return "Nested open state, retained fields, compact markers, host/view toggles, and painted content";
+            });
+            AddProbe(probes, "Retained fragment navigation", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "fragments.html"));
+                var requests = engine.Dg(page).Rs.Count;
+                Need(engine.Ft(page, "#encoded%20target") != null, "encoded fragment lookup failed");
+                Need(Object.ReferenceEquals(page, engine.Go("#target")) && engine.At.U.Fragment == "#target", "fragment navigation replaced the page");
+                Need(engine.Dg(page).Rs.Count == requests, "fragment navigation performed a request");
+                var hidden = engine.Ft(page, "#closed-target");
+                Need(engine.Rv(page, hidden) == 1 && ById(page.D, "closed-details").Op, "hidden fragment was not revealed");
+                using (var view = NewView())
+                {
+                    view.Go(Path.Combine(folder, "fragments.html"));
+                    Need(view.Fg("#cell-target") == 1 && view.Sy > 0, "view fragment placement failed");
+                    using (var image = Draw(view)) Need(ColoredSamples(image) > 0, "fragment layout is blank");
+                }
+                return "128-entry history, zero-fetch page retention, encoded/named targets, hidden reveal, table placement, and resize coverage";
             });
             AddProbe(probes, "CSS selectors and cascade", delegate
             {
@@ -433,6 +451,7 @@ namespace Lea.Bench
             Capability(builder, "Developer diagnostics", "Supported", "Bounded summary, node, CSS, request, message, and variable snapshots");
             Capability(builder, "Document queries", "Supported subset", "Id, first-match Q/Q1, and read-only Qa with compiled selectors and a 256-result ceiling");
             Capability(builder, "Document base URLs", "Supported", "First valid bounded HTTP, HTTPS, or file base; U remains the response URL and Bu drives relative resources");
+            Capability(builder, "Same-page fragments", "Supported", "Bounded Ft/Fg/Rv lookup, retained 128-entry history, details reveal, target scrolling, and no-fetch Back/Forward");
             Capability(builder, "Accessibility", "Partial", "Keyboard focus and native fields are present; a complete accessibility tree is not");
             builder.AppendLine();
             builder.AppendLine("## Binary Footprint");
