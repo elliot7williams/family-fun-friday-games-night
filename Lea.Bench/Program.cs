@@ -103,7 +103,7 @@ namespace Lea.Bench
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "layout.html",
                 "tables.html", "forms.html", "events-vars.html", "responsive-media.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
-                "go-command.html"
+                "go-command.html", "lists.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -213,6 +213,20 @@ namespace Lea.Bench
                 Need(table.Bs.Any(block => block.Tb != null), "table model is missing");
                 Need(tokens.T == "Lea & Tokenizer <b>literal</b>" && tokens.Vs["markup"] == "<strong>raw</strong>", "raw-text tokenization changed");
                 return "Recovered tree, structured table, raw text, RCDATA, and entities";
+            });
+            AddProbe(probes, "Bounded list markers", delegate
+            {
+                var page = new E().Go(Path.Combine(folder, "lists.html"));
+                var outer = page.Bs.First(block => block.El != null && block.El.Av("id") == "ten");
+                var nested = page.Bs.First(block => block.El != null && block.El.Av("id") == "minus-ten");
+                var bounded = page.Bs.First(block => block.El != null && block.El.Av("id") == "max-next");
+                Need(outer.Mk == "10." && nested.Mk == "-10." && bounded.Mk == "999999.", "list marker values changed");
+                using (var view = NewView())
+                {
+                    view.Go(Path.Combine(folder, "lists.html"));
+                    using (var image = Draw(view)) Need(view.Bc > page.Bs.Count && ColoredSamples(image) > 0, "list marker layout is blank");
+                }
+                return "Unordered, start/value, nested negative, saturated, inline, and painted markers";
             });
             AddProbe(probes, "CSS selectors and cascade", delegate
             {
@@ -385,7 +399,7 @@ namespace Lea.Bench
             builder.AppendLine("| Area | Status | Lea 1.0 scope |");
             builder.AppendLine("| --- | --- | --- |");
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
-            Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, tables, and forms; not the full Living Standard");
+            Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, list markers, tables, and forms; not the full Living Standard");
             Capability(builder, "CSS", "Partial", "Compiled selector subset, cascade, box/text styles, visibility, positioning, transforms, and responsive image sizing");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms block, inline, table, form, image, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");

@@ -846,6 +846,7 @@ namespace Lea.Engine
             for (var parent = body.Up; parent != null && parent.K != "#doc"; parent = parent.Up) ancestors.Add(parent);
             for (var i = ancestors.Count - 1; i >= 0; i--) inherited = Style(ancestors[i], inherited, rules);
             p.S = Style(body, inherited, rules);
+            MarkLists(body);
             foreach (var child in body.C) Blocks(p, child, p.Bu ?? p.U, rules, p.S);
             LinkBlocks(p);
             p.Fr = null;
@@ -2333,7 +2334,7 @@ namespace Lea.Engine
             else if (IsTextBlock(kind) || IsContainerBlock(kind))
             {
                 var text = TextValue(BlockText(node, PreservesLines(style)), style);
-                var block = new B { K = kind, X = text, S = style, El = node };
+                var block = new B { K = kind, X = text, Mk = ListMarker(node), S = style, El = node };
                 if (HasInlineStructure(node))
                 {
                     var inlineStyle = style.Inherit();
@@ -2481,6 +2482,41 @@ namespace Lea.Engine
             return kind == "article" || kind == "aside" || kind == "center" || kind == "details" || kind == "div" ||
                    kind == "figure" || kind == "footer" || kind == "header" || kind == "main" || kind == "nav" ||
                    kind == "section";
+        }
+
+        private static string ListMarker(N item)
+        {
+            if (item == null || item.K != "li") return "";
+            return String.IsNullOrEmpty(item.Mk) ? "-" : item.Mk;
+        }
+
+        private static void MarkLists(N node)
+        {
+            if (node == null) return;
+            if (node.K == "ol" || node.K == "ul" || node.K == "menu")
+            {
+                var ordered = node.K == "ol";
+                int number;
+                if (!ordered || !ListInteger(node.Av("start"), out number)) number = 1;
+                foreach (var child in node.C)
+                {
+                    if (child.K != "li") continue;
+                    int value;
+                    if (ordered && ListInteger(child.Av("value"), out value)) number = value;
+                    child.Mk = ordered ? number.ToString(CultureInfo.InvariantCulture) + "." : "-";
+                    if (ordered && number < 999999) number++;
+                }
+            }
+            foreach (var child in node.C) MarkLists(child);
+        }
+
+        private static bool ListInteger(string value, out int number)
+        {
+            number = 0;
+            var text = (value ?? "").Trim();
+            return text.Length > 0 && text.Length <= 7 &&
+                   Int32.TryParse(text, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out number) &&
+                   number >= -999999 && number <= 999999;
         }
 
         private static string BlockText(N node, bool raw)
@@ -2697,7 +2733,7 @@ namespace Lea.Engine
                 if (child.K == "#text")
                 {
                     var text = TextValue(child.X, inherited);
-                    if (text.Length > 0) cell.Bs.Add(new B { K = fallback, X = text, S = inherited, El = child.Up });
+                    if (text.Length > 0) cell.Bs.Add(new B { K = fallback, X = text, Mk = ListMarker(child.Up), S = inherited, El = child.Up });
                     continue;
                 }
 
@@ -2727,7 +2763,7 @@ namespace Lea.Engine
                 if (!nested)
                 {
                     var text = TextValue(RawText(child), style);
-                    if (text.Length > 0) cell.Bs.Add(new B { K = CellKind(child.K, fallback), X = text, S = style, El = child });
+                    if (text.Length > 0) cell.Bs.Add(new B { K = CellKind(child.K, fallback), X = text, Mk = ListMarker(child), S = style, El = child });
                     continue;
                 }
                 AddCellBlocks(page, cell, child, baseUrl, rules, style, CellKind(child.K, fallback));

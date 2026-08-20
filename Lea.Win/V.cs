@@ -650,14 +650,14 @@ namespace Lea.Win
                     else if (NeedsFlow(block)) inline = InlineLayout(graphics, block, bw, out height);
                     else
                     {
-                        using (var font = BoxFont(block.K, bs, false)) height = Measure(graphics, block.K == "li" ? "- " + block.X : block.X, font, bw);
+                        using (var font = BoxFont(block.K, bs, false)) height = Measure(graphics, MarkedText(block), font, bw);
                     }
                     var naturalHeight = height;
                     height = ConstrainHeight(bs, height);
                     int resolvedHeight;
                     if (resolved != null && owners.Contains(block) && (bs == null || bs.H == 0) && !StretchesHeight(bs) && resolved.TryGetValue(block, out resolvedHeight)) height = resolvedHeight;
                     if (StretchesHeight(bs)) height = ConstrainHeight(bs, Math.Max(1, containing.Height - bs.Tp.Value - bs.Bm.Value - mt - mb - bt - bb - pt - pb));
-                    var text = block.K == "li" ? "- " + block.X : block.X;
+                    var text = MarkedText(block);
                     var link = inline == null && block.K == "a" ? block.U : null;
                     var outerWidth = bw + pl + pr + bl + br;
                     var outerHeight = height + pt + pb + bt + bb;
@@ -1067,7 +1067,15 @@ namespace Lea.Win
 
         private static string CellText(B part)
         {
-            return part.K == "li" ? "- " + part.X : part.X;
+            return MarkedText(part);
+        }
+
+        private static string MarkedText(B block)
+        {
+            if (block == null) return "";
+            var text = block.X ?? "";
+            if (block.K != "li") return text;
+            return (String.IsNullOrEmpty(block.Mk) ? "-" : block.Mk) + " " + text;
         }
 
         private static int CellGap(string kind)
@@ -1127,7 +1135,8 @@ namespace Lea.Win
 
             if (block.K == "li")
             {
-                AddInlineWord(graphics, lines, ref line, ref pending, InlineAtom(graphics, "li", "-", null, block.S, block.K, block.El), width, baseHeight, wrap, block.S == null ? "" : block.S.Wb);
+                var marker = String.IsNullOrEmpty(block.Mk) ? "-" : block.Mk;
+                AddInlineWord(graphics, lines, ref line, ref pending, InlineAtom(graphics, "li", marker, null, block.S, block.K, block.El), width, baseHeight, wrap, block.S == null ? "" : block.S.Wb);
                 pending = InlineAtom(graphics, "li", " ", null, block.S, block.K, block.El);
             }
 

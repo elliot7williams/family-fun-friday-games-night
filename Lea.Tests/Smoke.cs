@@ -685,6 +685,30 @@ namespace Lea.Tests
                 var headingSix = Nodes(recoveryPage.D, "h6")[0];
                 Ok(Object.ReferenceEquals(headingFive.Up, headingSix.Up), "unclosed headings recover as siblings");
 
+                var listPath = Path.Combine(root, "LeaForge", "test-pages", "lists.html");
+                var listPage = engine.Go(listPath);
+                Eq("", listPage.Bs[0].Mk, "non-list marker stays empty");
+                Eq("-", BlockById(listPage, "bullet-one").Mk, "unordered list marker");
+                Eq("-", BlockById(listPage, "bullet-two").Mk, "unordered inline marker");
+                Eq("3.", BlockById(listPage, "three").Mk, "ordered start marker");
+                Eq("4.", BlockById(listPage, "four").Mk, "ordered continuation marker");
+                Eq("7.", BlockById(listPage, "seven").Mk, "ordered value marker");
+                Eq("8.", BlockById(listPage, "eight").Mk, "ordered value continuation");
+                Eq("9.", BlockById(listPage, "parent").Mk, "outer marker before nested list");
+                Eq("-2.", BlockById(listPage, "minus-two").Mk, "nested negative start marker");
+                Eq("-10.", BlockById(listPage, "minus-ten").Mk, "nested value override marker");
+                Eq("-9.", BlockById(listPage, "minus-nine").Mk, "nested value continuation");
+                Eq("10.", BlockById(listPage, "ten").Mk, "outer scope survives nested list");
+                Eq("1.", BlockById(listPage, "bad-start").Mk, "oversized list start rejected");
+                Eq("2.", BlockById(listPage, "bad-value").Mk, "malformed list value ignored");
+                Eq("999999.", BlockById(listPage, "max-value").Mk, "maximum list marker");
+                Eq("999999.", BlockById(listPage, "max-next").Mk, "list marker increment bounded");
+                Eq("-999999.", BlockById(listPage, "min-value").Mk, "minimum list marker");
+                Eq("-999998.", BlockById(listPage, "min-next").Mk, "negative list marker increment");
+                var listTable = listPage.Bs[listPage.Bs.Count - 1].Tb;
+                Ok(listTable != null && listTable.Rs.Count == 1, "list table model");
+                Eq("4.", listTable.Rs[0].Cs[0].Bs[0].Mk, "ordered marker inside table cell");
+
                 var tokenPath = Path.Combine(root, "LeaForge", "test-pages", "html-tokens.html");
                 var tokenEngine = new E();
                 var tokenPage = tokenEngine.Go(tokenPath);
@@ -1550,6 +1574,21 @@ namespace Lea.Tests
                     var h6 = BlockRect(view, view.At.Bs[20]);
                     Ok(h4.Height > h5.Height && h5.Height >= h6.Height, "heading levels four through six scale down");
                     Eq(2, BlockRect(view, view.At.Bs[21]).Height, "horizontal rule height");
+                    view.Size = new Size(720, 500);
+                    view.Go(listPath);
+                    Paint(view);
+                    var listWideLines = TextLines(view, BlockById(view.At, "wrap")).Length;
+                    Ok(BlockRect(view, BlockById(view.At, "minus-two")).Left > BlockRect(view, BlockById(view.At, "parent")).Left, "nested list indentation");
+                    Ok(PaintedText(view, BlockById(view.At, "three")).StartsWith("3. ", StringComparison.Ordinal), "ordered marker paints on plain flow");
+                    Ok(PaintedText(view, BlockById(view.At, "four")).StartsWith("4. ", StringComparison.Ordinal), "ordered marker paints on inline flow");
+                    Ok(PaintedText(view, BlockById(view.At, "bullet-two")).StartsWith("- ", StringComparison.Ordinal), "unordered marker paints on inline flow");
+                    Ok(PaintedText(view, BlockById(view.At, "minus-ten")).StartsWith("-10. ", StringComparison.Ordinal), "nested value marker paints");
+                    Ok(LinkBoxes(view, "second.html") > 0, "list marker keeps inline link hit boxes");
+                    using (var listPaint = Render(view))
+                        Ok(ColorDistance(listPaint.GetPixel(2, 2), Color.FromArgb(247, 251, 255)) < 4, "list fixture paints page background");
+                    view.Size = new Size(300, 500);
+                    Paint(view);
+                    Ok(TextLines(view, BlockById(view.At, "wrap")).Length > listWideLines, "list item reflows after resize");
                     view.Size = new Size(720, 760);
                     view.Go(Path.Combine(root, "LeaForge", "test-pages", "scroll.html"));
                     Paint(view);
@@ -1895,7 +1934,7 @@ namespace Lea.Tests
                 if (args.Length > 3) SaveEventRender(eventPath, args[3]);
                 if (args.Length > 4) SaveRender(tokenPath, args[4]);
 
-                Console.WriteLine("Lea smoke passed: bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -2212,8 +2251,9 @@ namespace Lea.Tests
             foreach (var value in LayoutBoxes(view))
             {
                 var type = value.GetType();
-                if (!Object.ReferenceEquals(type.GetField("B").GetValue(value), block) || !(bool)type.GetField("Inline").GetValue(value)) continue;
-                text.Append((string)type.GetField("X").GetValue(value));
+                if (!Object.ReferenceEquals(type.GetField("B").GetValue(value), block)) continue;
+                var part = type.GetField("X").GetValue(value) as string;
+                if (!String.IsNullOrEmpty(part)) text.Append(part);
             }
             return text.ToString();
         }

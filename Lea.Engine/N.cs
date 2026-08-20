@@ -9,6 +9,7 @@ namespace Lea.Engine
         {
             K = kind;
             X = "";
+            Mk = "";
             A = new Dictionary<string, string>(System.StringComparer.OrdinalIgnoreCase);
             C = new List<N>();
         }
@@ -20,6 +21,7 @@ namespace Lea.Engine
         public N Up { get; internal set; }
         internal bool Hv { get; set; }
         internal bool Fc { get; set; }
+        internal string Mk { get; set; }
 
         public string Av(string name)
         {

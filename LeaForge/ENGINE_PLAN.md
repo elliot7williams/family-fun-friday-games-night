@@ -239,16 +239,23 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add a compact list-marker model so ordered lists paint decimal markers and
-unordered lists retain bullets without flattening nested list scope. Keep
-marker text bounded, honor safe `start` and `value` integers, preserve existing
-list recovery, and cover nested layout, paint, resize, and malformed input.
+Add compact `details`/`summary` disclosure state so closed details hide their
+remaining content and summary clicks toggle one bounded page-local state. Keep
+recovery deterministic, preserve nested block ownership, and cover keyboard,
+pointer, resize, paint, and malformed input.
 
 The repeatable compatibility and performance report is now implemented by
 `Lea.Bench`. It probes supported HTML, CSS, forms, scripting, layout, downloads,
 and diagnostics, then records local load timing, bitmap paint timing, retained
 managed memory, binary footprint, and compressed runtime size in
 `COMPATIBILITY_PERFORMANCE.md`.
+
+List-item blocks now carry compact paint-ready `B.Mk` markers. Unordered lists
+use `-`; ordered lists use bounded invariant decimal markers and honor safe
+`start` and per-item `value` integers. Each nested list computes its own scope,
+increments saturate at 999999, and malformed or oversized values fall back
+without unbounded text. Simple blocks, inline runs, table-cell parts, measurement,
+paint, and resize all share the same marker text path through `lists.html`.
 
 HTML tokenization now uses a small quote-aware scanner rather than a single
 tag-splitting regex. It recognizes comments and declarations, preserves raw

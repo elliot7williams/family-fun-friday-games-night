@@ -17,7 +17,7 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-1. Add bounded ordered/unordered list markers and nested-list coverage.
+1. Add bounded `details`/`summary` disclosure state and interaction coverage.
 2. Expand the safe command set only through bounded, fixture-backed aliases.
 3. Keep strengthening host tests as more legacy tab routes move to Lea.
 
@@ -42,6 +42,9 @@ host-cancellation results.
 Firespider's normal New Tab command and `Ctrl+T` now create Lea views. A visible
 New Legacy Tab command keeps the original `q3`/`WebBrowser` route available for
 features that have not crossed the adapter boundary yet.
+List items now expose compact `B.Mk` markers. Unordered lists retain `-`, while
+ordered lists honor bounded decimal `start` and `value` sequences independently
+across nested scopes; simple and inline text share the same resize-safe paint path.
 
 ## Rules For Future Codex Work
 

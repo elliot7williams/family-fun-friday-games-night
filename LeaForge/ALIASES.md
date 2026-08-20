@@ -145,6 +145,12 @@ separate painting, `B.Is` exposes compact `Ir` inline runs; each run uses `K`
 (kind), `X` (text), `U` (optional link), and `S` (computed style). Plain text
 leaves `Is` empty and stays on the original one-box layout path.
 
+List-item blocks expose `B.Mk` as their paint-ready marker. Unordered lists use
+`-`; ordered lists use invariant decimal text ending in `.`. Ordered `start` and
+per-item `value` integers are limited to -999999 through 999999, and increments
+saturate at the upper bound. Nested lists compute their own sequence from their
+nearest list parent. Non-list blocks keep `Mk` empty.
+
 Box spacing stays compact: `Mt/Mr/Mb/Ml` are margins and `Pt/Pr/Pb/Pl` are
 padding. `N.Up` links a document node to its parent for descendant and child
 selectors; `N.A` holds the attributes used by compiled attribute selectors;
