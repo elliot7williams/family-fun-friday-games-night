@@ -81,6 +81,7 @@ namespace Lea.Win
 
         public P At { get { return e.At; } }
         public Uri U { get { return At == null ? null : At.U; } }
+        public Uri Bu { get { return At == null ? null : At.Bu; } }
         public string T { get { return At == null ? "" : At.T; } }
         public string H { get { return At == null ? "" : At.H; } }
         public string Q { get { return At == null ? "" : At.Q; } }

@@ -23,6 +23,7 @@ LeaForge is where we can grow the more full-featured browser.
 - basic HTML rendering for headings, paragraphs, lists, links, buttons, images, code, pre blocks, and structured tables
 - bounded quote-aware HTML tokenization with comments, declarations, raw text, RCDATA, entities, and malformed-delimiter recovery
 - compact `Id`, `Q`/`Q1`, and read-only bounded `Qa` document queries
+- bounded `<base href>` resolution through compact `Bu`
 - wrapped inline bold/italic text, styled spans, line breaks, and links inside text blocks
 - inherited font-family fallbacks plus underline and line-through decoration
 - inherited left/center/right/justify alignment and pixel/relative line spacing
@@ -79,7 +80,8 @@ Console.WriteLine(p.N + " nodes, " + p.Ls + " links");
 ```
 
 The main actions are `Go`, `Bk`, `Fw`, `Rl`, and `At`. Page values are shortened
-to `U` (URL), `T` (title), `H` (HTML), `N` (node count), and `Ls` (link count).
+to `U` (response URL), `Bu` (document base URL), `T` (title), `H` (HTML), `N`
+(node count), and `Ls` (link count).
 
 Alias naming is a core Lea rule. See [ALIASES.md](ALIASES.md) for the vocabulary
 and limits used by future engine features.

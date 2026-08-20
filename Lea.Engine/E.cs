@@ -30,6 +30,7 @@ namespace Lea.Engine
         private const int MaxHtmlName = 64;
         private const int MaxHtmlAttributeText = 64 * 1024;
         private const int MaxHtmlAttributeValue = 16 * 1024;
+        private const int MaxBaseUrl = 4096;
         private const int MaxQueryLength = 1024;
         private const int MaxQueryGroups = 16;
         private const int MaxQueryParts = 16;
@@ -741,14 +742,14 @@ namespace Lea.Engine
         private P Parse(Ld load)
         {
             var page = Page(load);
-            Complete(page, Css(page.D, StyleSheets(page.D, page.U)));
+            Complete(page, Css(page.D, StyleSheets(page.D, page.Bu)));
             return page;
         }
 
         private async Task<P> ParseA(Ld load)
         {
             var page = Page(load);
-            Complete(page, Css(page.D, await StyleSheetsA(page.D, page.U)));
+            Complete(page, Css(page.D, await StyleSheetsA(page.D, page.Bu)));
             return page;
         }
 
@@ -768,6 +769,7 @@ namespace Lea.Engine
             p.Sz = reply.Sz;
             p.Ca = load.Ca;
             p.D = Tree(reply.H);
+            p.Bu = DocumentBase(p.D, reply.U);
             var title = Find(p.D, "title");
             p.T = Clean(NodeText(title));
             if (p.T.Length == 0) p.T = reply.U.IsFile ? Path.GetFileName(reply.U.LocalPath) : reply.U.Host;
@@ -796,7 +798,7 @@ namespace Lea.Engine
             for (var parent = body.Up; parent != null && parent.K != "#doc"; parent = parent.Up) ancestors.Add(parent);
             for (var i = ancestors.Count - 1; i >= 0; i--) inherited = Style(ancestors[i], inherited, rules);
             p.S = Style(body, inherited, rules);
-            foreach (var child in body.C) Blocks(p, child, p.U, rules, p.S);
+            foreach (var child in body.C) Blocks(p, child, p.Bu ?? p.U, rules, p.S);
             LinkBlocks(p);
             p.Fr = null;
         }
@@ -1148,6 +1150,32 @@ namespace Lea.Engine
                 if (found != null) return found;
             }
             return null;
+        }
+
+        private static Uri DocumentBase(N root, Uri responseUrl)
+        {
+            Uri found;
+            return TryDocumentBase(root, responseUrl, out found) ? found : responseUrl;
+        }
+
+        private static bool TryDocumentBase(N node, Uri responseUrl, out Uri found)
+        {
+            found = null;
+            if (node == null) return false;
+            if (node.K == "base")
+            {
+                var href = node.Av("href").Trim();
+                Uri candidate;
+                if (href.Length > 0 && href.Length <= MaxBaseUrl && Uri.TryCreate(responseUrl, href, out candidate) &&
+                    (candidate.IsFile || candidate.Scheme == Uri.UriSchemeHttp || candidate.Scheme == Uri.UriSchemeHttps))
+                {
+                    found = candidate;
+                    return true;
+                }
+            }
+            foreach (var child in node.C)
+                if (TryDocumentBase(child, responseUrl, out found)) return true;
+            return false;
         }
 
         private static int Count(N node)

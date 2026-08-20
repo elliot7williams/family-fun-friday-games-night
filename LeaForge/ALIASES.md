@@ -78,6 +78,11 @@ external scripts, and non-script data blocks do not execute.
 `GoA` and `RlA` are the asynchronous forms used by browser windows. `St` cancels
 an active network request. The shorter synchronous forms remain useful for tests.
 
+`P.U` remains the response URL. `P.Bu` is the document base URL resolved from
+the first valid `<base href>` using at most 4,096 characters; unsupported bases
+are skipped and pages without one use `U`. `V.U` and `V.Bu` expose the same
+pair. Relative stylesheets, links, images, forms, and download links use `Bu`.
+
 `P.D` is the document root. Each node uses `K` (kind), `X` (text), `A`
 (attributes), `C` (children), and `Av(name)` for a short attribute lookup.
 `P.Q` preserves the URL query, including on local `file:` pages where older

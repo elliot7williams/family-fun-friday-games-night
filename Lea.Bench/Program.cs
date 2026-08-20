@@ -102,7 +102,7 @@ namespace Lea.Bench
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "layout.html",
                 "tables.html", "forms.html", "events-vars.html", "responsive-media.html",
-                "stacking-contexts.html", "external.html"
+                "stacking-contexts.html", "external.html", "base-url.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -231,6 +231,17 @@ namespace Lea.Bench
                 Need(engine.Qa(page, "p,,div").Count == 0, "invalid query was accepted");
                 return "Id and first match; 3 ordered matches; invalid selector rejected";
             });
+            AddProbe(probes, "Document base URLs", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "base-url.html"));
+                var expected = new Uri(page.U, "../");
+                Need(page.Bu == expected && page.U != page.Bu, "document base URL changed");
+                Need(page.S.Bg == "#edf7f2", "base-relative stylesheet is missing");
+                Need(page.Ls.Count == 2 && page.Ls.All(link => link.U.IsFile), "base-relative links changed");
+                Need(page.Fs.Any(field => field.U == new Uri(expected, "test-pages/form-result.html")), "base-relative form action changed");
+                return "First valid Bu resolves styles, links, images, forms, and downloads while U stays unchanged";
+            });
             AddProbe(probes, "Layout and painting", delegate
             {
                 using (var view = NewView())
@@ -351,6 +362,7 @@ namespace Lea.Bench
             Capability(builder, "Audio and video", "Not supported", "Future optional module");
             Capability(builder, "Developer diagnostics", "Supported", "Bounded summary, node, CSS, request, message, and variable snapshots");
             Capability(builder, "Document queries", "Supported subset", "Id, first-match Q/Q1, and read-only Qa with compiled selectors and a 256-result ceiling");
+            Capability(builder, "Document base URLs", "Supported", "First valid bounded HTTP, HTTPS, or file base; U remains the response URL and Bu drives relative resources");
             Capability(builder, "Accessibility", "Partial", "Keyboard focus and native fields are present; a complete accessibility tree is not");
             builder.AppendLine();
             builder.AppendLine("## Binary Footprint");

@@ -1,6 +1,6 @@
 # Lea 1.0 Progress
 
-Current completion: **86%**
+Current completion: **87%**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -11,13 +11,13 @@ modern web platform.
 | --- | ---: | ---: | --- |
 | Core and alias API | 10% | 10% | Compact API, bounded diagnostics, repeatable reports, history, projects, backups |
 | Networking | 10% | 9% | Streamed bounded downloads, private cookies, typed errors, validators, compression, LRU cache |
-| HTML and document tree | 20% | 11% | Bounded tokens and queries, raw/RCDATA text, entities, recovery, semantic blocks, tables |
+| HTML and document tree | 20% | 12% | Bounded tokens, queries, and base URLs, raw/RCDATA text, entities, recovery, semantic blocks, tables |
 | CSS | 15% | 15% | Compiled selectors, dynamic hover/focus, sizing, visibility/opacity, fonts, overflow, boxes |
 | Layout and painting | 20% | 20% | Inset stretch, translated contexts, nested content, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Bounded multipart files, richer widgets, validation, responsive images, GET/POST submit |
 | Lea scripting | 5% | 3% | Safe click events, 16 bounded variables, text/title/style/alert commands, host enable switch |
 | Firespider integration and reliability | 10% | 8% | Keyboard navigation, open/save/send routes, sessions, source, host smoke tests |
-| **Total** | **100%** | **86%** | |
+| **Total** | **100%** | **87%** | |
 
 ## Updating the percentage
 
@@ -28,4 +28,4 @@ modern web platform.
 
 ## Next gains
 
-- HTML `<base href>` resolution with a compact page base-URI alias: +1%
+- Bounded ID-scoped class mutation aliases for Lea scripting: +1%

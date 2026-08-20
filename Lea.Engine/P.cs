@@ -15,6 +15,7 @@ namespace Lea.Engine
         }
 
         public Uri U { get; internal set; }
+        public Uri Bu { get; internal set; }
         public string T { get; internal set; }
         public string H { get; internal set; }
         public string X { get; internal set; }

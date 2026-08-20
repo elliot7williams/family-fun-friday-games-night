@@ -29,6 +29,7 @@ namespace Lea.Tests
                 Eq("text/html", page.Ct, "local content type");
                 Eq("utf-8", page.Ch, "local charset");
                 Ok(page.Sz > 0 && !page.Ca, "local response metadata");
+                Eq(page.U, page.Bu, "document URL is fallback base URL");
                 Eq(9, page.Fs.Count, "field count");
                 Eq("text,password,textarea,select,checkbox,radio,radio,reset,submit", Kinds(page), "field kinds");
                 Eq(3, page.Fs[3].Os.Count, "select options");
@@ -98,6 +99,23 @@ namespace Lea.Tests
                 Ok(externalPage.Bs[1].S.B, "external inherited bold");
                 Eq("#a13b18", externalPage.Bs[2].S.F, "external class color");
                 Eq("Lea External CSS", new E().GoA(externalPath).GetAwaiter().GetResult().T, "async local external CSS");
+
+                var basePath = Path.Combine(root, "LeaForge", "test-pages", "base-url.html");
+                var basePage = engine.Go(basePath);
+                var responseUrl = new Uri(basePath);
+                var expectedBase = new Uri(responseUrl, "../");
+                Eq(responseUrl, basePage.U, "base element keeps response URL");
+                Eq(expectedBase, basePage.Bu, "first valid document base URL");
+                Eq("#edf7f2", basePage.S.Bg, "base URL external stylesheet");
+                Eq("#176b4d", basePage.Bs[0].S.F, "base URL stylesheet rule");
+                Eq(2, basePage.Ls.Count, "base URL link count");
+                Eq(new Uri(expectedBase, "test-pages/second.html"), basePage.Ls[0].U, "base URL link target");
+                Eq(new Uri(expectedBase, "../assets/lea.ico"), BlockById(basePage, "base-image").U, "base URL image target");
+                Eq(new Uri(expectedBase, "test-pages/form-result.html"), FieldById(basePage, "base-submit").U, "base URL form target");
+                Eq(new Uri(expectedBase, "test-pages/download-sample.txt"), basePage.Ls[1].U, "base URL download target");
+                var asyncBasePage = new E().GoA(basePath).GetAwaiter().GetResult();
+                Eq(expectedBase, asyncBasePage.Bu, "async document base URL");
+                Eq("#edf7f2", asyncBasePage.S.Bg, "async base URL external stylesheet");
 
                 var scriptPath = Path.Combine(root, "LeaForge", "test-pages", "script-bridge.html");
                 var scriptEngine = new E();
@@ -622,7 +640,8 @@ namespace Lea.Tests
                 var boundedTreePath = Path.Combine(Path.GetTempPath(), "lea-tree-" + Guid.NewGuid().ToString("N") + ".html");
                 try
                 {
-                    var boundedHtml = new StringBuilder("<!doctype html><html><body><p id='attrs'");
+                    var boundedHtml = new StringBuilder("<!doctype html><html><head><base href='");
+                    boundedHtml.Append(new String('x', 4097)).Append("'><base href='../'></head><body><p id='attrs'");
                     for (var attribute = 0; attribute < 200; attribute++) boundedHtml.Append(" a").Append(attribute).Append("='v'");
                     boundedHtml.Append(">bounded</p>");
                     for (var depth = 0; depth < 200; depth++) boundedHtml.Append("<div>");
@@ -638,6 +657,7 @@ namespace Lea.Tests
                     Eq(128, ById(boundedTree.D, "attrs").A.Count, "bounded HTML attribute count");
                     Ok(NodeDepth(boundedTree.D) <= 129, "bounded HTML tree depth");
                     Eq(256, treeEngine.Qa(boundedTree, "i").Count, "bounded query result count");
+                    Eq(new Uri(new Uri(boundedTreePath), "../"), boundedTree.Bu, "oversized base URL skipped");
                 }
                 finally { File.Delete(boundedTreePath); }
 
@@ -1059,6 +1079,11 @@ namespace Lea.Tests
                     var thirdCard = BlockRect(view, view.At.Bs[7]);
                     Eq(firstCard.Left + 18, secondCard.Left, "adjacent selector second-card layout");
                     Eq(firstCard.Left + 18, thirdCard.Left, "adjacent selector third-card layout");
+                    view.Go(basePath);
+                    Paint(view);
+                    Eq(responseUrl, view.U, "WinForms response URL with base");
+                    Eq(expectedBase, view.Bu, "WinForms document base URL");
+                    Ok(!HitRect(view, "second.html").IsEmpty, "WinForms base URL link hit");
                     view.Go(negationPath);
                     Paint(view);
                     Eq(9, view.At.Bs.Count, "general sibling and negation render blocks");
@@ -1729,7 +1754,7 @@ namespace Lea.Tests
                 if (args.Length > 3) SaveEventRender(eventPath, args[3]);
                 if (args.Length > 4) SaveRender(tokenPath, args[4]);
 
-                Console.WriteLine("Lea smoke passed: bounded Id/Q/Qa document queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: bounded document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -1962,6 +1987,13 @@ namespace Lea.Tests
             foreach (var field in page.Fs)
                 if (field.El != null && field.El.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase)) return field;
             throw new InvalidOperationException("field unavailable: " + id);
+        }
+
+        private static B BlockById(P page, string id)
+        {
+            foreach (var block in page.Bs)
+                if (block.El != null && block.El.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase)) return block;
+            throw new InvalidOperationException("block unavailable: " + id);
         }
 
         private static TextBox Editor(V view)

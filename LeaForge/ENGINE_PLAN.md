@@ -234,9 +234,10 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Honor the first valid HTML `<base href>` and expose the resolved document base
-through a compact page alias. Use it consistently for links, stylesheets,
-images, forms, and download targets without changing the response URL.
+Add bounded ID-scoped class mutation aliases to Lea's safe command bridge.
+Reuse the compiled CSS rebuild path, preserve mutable form state, constrain
+class names and command counts, and cover page, host, and click execution with
+a focused fixture.
 
 The repeatable compatibility and performance report is now implemented by
 `Lea.Bench`. It probes supported HTML, CSS, forms, scripting, layout, downloads,
@@ -256,6 +257,12 @@ Document queries now reuse the compiled CSS selector subset. `E.Id/Q/Qa` and
 most 256 matches. Query text, groups, and total selector parts are capped;
 invalid or unsupported selectors return no matches rather than entering an
 unbounded fallback parser. `V.Q1` preserves the older `V.Q` URL-query alias.
+
+Document base resolution now honors the first valid `<base href>` under a
+4,096-character ceiling. `P.Bu` and `V.Bu` expose the result while `U` remains
+the response URL. Stylesheets, links, images, forms, and download targets share
+the resolved HTTP, HTTPS, or file base; invalid and unsupported candidates are
+skipped, and pages without a valid base fall back to `U`.
 
 The `inset` shorthand now expands atomically into `Tp/Rt/Bm/Lt`, and opposing
 edges stretch auto-sized absolute and fixed boxes against their containing
