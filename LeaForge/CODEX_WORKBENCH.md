@@ -45,6 +45,9 @@ features that have not crossed the adapter boundary yet.
 List items now expose compact `B.Mk` markers. Unordered lists retain `-`, while
 ordered lists honor bounded decimal `start` and `value` sequences independently
 across nested scopes; simple and inline text share the same resize-safe paint path.
+Details elements now retain compact page-local `N.Op` state. Their first direct
+summary uses `B.Mk` (`>`/`v`), closed content remains modelled behind `B.Hd`, and
+`E.Ds`/`V.Ds` preserve nested and field state across pointer or keyboard toggles.
 
 ## Rules For Future Codex Work
 

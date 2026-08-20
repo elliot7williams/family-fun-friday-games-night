@@ -151,6 +151,23 @@ namespace Lea.Engine
             return String.IsNullOrWhiteSpace(code) ? 0 : Js(page, code);
         }
 
+        // Ds toggles the bounded open state of one details disclosure.
+        public int Ds(P page, N element)
+        {
+            QueryPage(page);
+            var details = Disclosure(element);
+            if (details == null) return 0;
+            details.Op = !details.Op;
+            if (details.Op) details.A["open"] = "";
+            else details.A.Remove("open");
+            var rules = page.R as List<R>;
+            if (rules == null) return 0;
+            var fields = new Dictionary<N, Fi>();
+            foreach (var field in page.Fs) if (field.El != null) fields[field.El] = field;
+            Rebuild(page, rules, fields);
+            return 1;
+        }
+
         // Gt returns and clears one bounded page navigation request.
         public Uri Gt(P page)
         {
@@ -849,6 +866,7 @@ namespace Lea.Engine
             MarkLists(body);
             foreach (var child in body.C) Blocks(p, child, p.Bu ?? p.U, rules, p.S);
             LinkBlocks(p);
+            MarkDisclosures(p);
             p.Fr = null;
         }
 
@@ -930,6 +948,7 @@ namespace Lea.Engine
                     Recover(stack, token.N);
                     var node = new N(token.N);
                     Attrs(node, token.A);
+                    if (node.K == "details") node.Op = node.A.ContainsKey("open");
                     node.Up = stack[stack.Count - 1];
                     stack[stack.Count - 1].C.Add(node);
                     nodes++;
@@ -2482,6 +2501,58 @@ namespace Lea.Engine
             return kind == "article" || kind == "aside" || kind == "center" || kind == "details" || kind == "div" ||
                    kind == "figure" || kind == "footer" || kind == "header" || kind == "main" || kind == "nav" ||
                    kind == "section";
+        }
+
+        private static void MarkDisclosures(P page)
+        {
+            foreach (var block in page.Bs) MarkDisclosure(block);
+        }
+
+        private static void MarkDisclosure(B block)
+        {
+            if (block == null) return;
+            block.Hd = DisclosureHidden(block.El);
+            if (block.K == "summary")
+            {
+                var details = Disclosure(block.El);
+                if (details != null) block.Mk = details.Op ? "v" : ">";
+            }
+            if (block.Tb == null) return;
+            foreach (var row in block.Tb.Rs)
+                foreach (var cell in row.Cs)
+                    foreach (var part in cell.Bs) MarkDisclosure(part);
+        }
+
+        private static bool DisclosureHidden(N node)
+        {
+            for (var current = node; current != null && current.Up != null; current = current.Up)
+            {
+                var parent = current.Up;
+                if (parent.K != "details" || parent.Op) continue;
+                if (!Object.ReferenceEquals(FirstSummary(parent), current)) return true;
+            }
+            return false;
+        }
+
+        private static N Disclosure(N element)
+        {
+            if (element == null) return null;
+            if (element.K == "details") return element;
+            for (var current = element; current != null; current = current.Up)
+            {
+                if (current.K == "details") return null;
+                if (current.K != "summary") continue;
+                var details = current.Up;
+                return details != null && details.K == "details" && Object.ReferenceEquals(FirstSummary(details), current) ? details : null;
+            }
+            return null;
+        }
+
+        private static N FirstSummary(N details)
+        {
+            if (details == null) return null;
+            foreach (var child in details.C) if (child.K == "summary") return child;
+            return null;
         }
 
         private static string ListMarker(N item)

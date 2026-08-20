@@ -101,6 +101,14 @@ the matching ancestor without discarding following text. Blocks include all six
 heading levels, semantic containers, definition lists, quotes, captions,
 details/summary, addresses, and horizontal rules.
 
+`N.Op` retains each details element's page-local open state. The first direct
+summary receives a compact `B.Mk` marker (`>` closed, `v` open), while `B.Hd`
+keeps closed content in the document and form models but outside layout and
+paint. `E.Ds` and `V.Ds` share one rebuild path that preserves mutable fields,
+nested disclosure state, compiled `[open]` styling, and block ownership. The
+WinForms view activates valid summaries by pointer, Enter, or Space, including
+wrapped summaries and summaries inside structured table cells.
+
 Computed styles use `S.Ta` for compact `l/c/r/j` alignment, `S.Lh` for pixel
 line height, and `S.Lm` for a relative multiplier. `V` applies these to wrapped
 blocks and table cells, centers glyphs within taller lines, and justifies only

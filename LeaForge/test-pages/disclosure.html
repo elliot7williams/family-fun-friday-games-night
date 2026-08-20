@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+  <title>Lea Disclosure State</title>
+  <style>
+    body { background: #f8fafc; color: #172033; font-family: "Segoe UI", sans-serif; }
+    h1 { color: #176b4d; }
+    details { background: #eef3f8; border: 1px solid #a8b6c6; margin: 8px; padding: 6px; }
+    summary { color: #8a3b12; padding: 3px; word-break: break-word; }
+    summary:focus { background: #fff1c7; }
+    details[open] > summary { color: #176b4d; }
+    #wrap-summary { word-break: break-word; }
+    table { width: 100%; }
+    td { border: 1px solid #8091a5; padding: 5px; }
+  </style>
+</head>
+<body>
+  <h1>Disclosure state</h1>
+  <details id="closed">
+    <summary id="closed-summary">Closed <strong>engine</strong> details</summary>
+    <p id="closed-content">Closed content becomes visible without replacing its model.</p>
+    <input id="closed-field" name="kept" value="Initial">
+  </details>
+  <p id="after-closed">Content after a closed disclosure remains visible.</p>
+  <details id="outer" open>
+    <summary id="outer-summary">Open outer details</summary>
+    <p id="outer-content">Outer content starts visible.</p>
+    <details id="nested">
+      <summary id="nested-summary">Nested closed details</summary>
+      <p id="nested-content">Nested content has independent state.</p>
+    </details>
+  </details>
+  <details id="duplicate">
+    <summary id="first-summary">Only the first summary is interactive</summary>
+    <summary id="second-summary">A second summary is ordinary hidden content</summary>
+    <p id="duplicate-content">Duplicate-summary details content.</p>
+  </details>
+  <details id="no-summary">
+    <p id="no-summary-content">A summary-free disclosure can be controlled by its host.</p>
+  </details>
+  <summary id="stray-summary">A stray summary is ordinary visible content</summary>
+  <details id="wrap-details">
+    <summary id="wrap-summary">This deliberately long disclosure summary wraps across more painted lines when the Lea view becomes narrow.</summary>
+    <p id="wrap-content">Wrapped disclosure content.</p>
+  </details>
+  <table id="detail-table">
+    <tr><td><details id="cell-details"><summary id="cell-summary">Table cell disclosure</summary><p id="cell-content">Hidden cell content.</p></details></td></tr>
+  </table>
+</body>
+</html>

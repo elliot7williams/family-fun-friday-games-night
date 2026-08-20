@@ -239,10 +239,10 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add compact `details`/`summary` disclosure state so closed details hide their
-remaining content and summary clicks toggle one bounded page-local state. Keep
-recovery deterministic, preserve nested block ownership, and cover keyboard,
-pointer, resize, paint, and malformed input.
+Add bounded same-page fragment navigation so `#id` links resolve through the
+existing compact document lookup and scroll one retained layout target into
+view. Preserve history and base-URL behavior, and cover missing, hidden, table,
+encoded, and resize cases.
 
 The repeatable compatibility and performance report is now implemented by
 `Lea.Bench`. It probes supported HTML, CSS, forms, scripting, layout, downloads,
@@ -256,6 +256,13 @@ use `-`; ordered lists use bounded invariant decimal markers and honor safe
 increments saturate at 999999, and malformed or oversized values fall back
 without unbounded text. Simple blocks, inline runs, table-cell parts, measurement,
 paint, and resize all share the same marker text path through `lists.html`.
+
+Details elements now carry compact page-local `N.Op` state. The first direct
+summary uses `B.Mk` as `>` or `v`; all content masked by a closed ancestor keeps
+its block and form models behind `B.Hd`. `E.Ds`/`V.Ds` toggle through one bounded
+rebuild that reapplies `[open]` CSS and preserves fields and nested state.
+`disclosure.html` covers pointer and Enter/Space activation, duplicate and stray
+summaries, summary-free host control, table cells, nesting, paint, and resize.
 
 HTML tokenization now uses a small quote-aware scanner rather than a single
 tag-splitting regex. It recognizes comments and declarations, preserves raw

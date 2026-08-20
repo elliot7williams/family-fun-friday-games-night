@@ -19,6 +19,7 @@ namespace Lea.Engine
         public IDictionary<string, string> A { get; private set; }
         public IList<N> C { get; private set; }
         public N Up { get; internal set; }
+        public bool Op { get; internal set; }
         internal bool Hv { get; set; }
         internal bool Fc { get; set; }
         internal string Mk { get; set; }

@@ -245,6 +245,12 @@ namespace Lea.Win
             return Commands(e.Ck(At, element));
         }
 
+        public int Ds(N element)
+        {
+            if (At == null) return 0;
+            return Commands(e.Ds(At, element));
+        }
+
         public G Dg()
         {
             return At == null ? null : e.Dg(At);
@@ -538,6 +544,11 @@ namespace Lea.Win
                         var hit = VisibleRect(rect, clip);
                         if (!hit.IsEmpty) hits.Add(new Hit(hit, box.U, null, box.El));
                     }
+                    else if (box.B != null && box.B.K == "summary" && !String.IsNullOrEmpty(box.B.Mk))
+                    {
+                        var hit = VisibleRect(rect, clip);
+                        if (!hit.IsEmpty) hits.Add(new Hit(hit, null, box, box.El));
+                    }
                 }
                 finally { if (state != null) pe.Graphics.Restore(state); }
             }
@@ -560,7 +571,7 @@ namespace Lea.Win
             var measured = resolved ?? new Dictionary<B, int>();
             var contexts = new Dictionary<B, Lc>();
             var owners = new HashSet<B>();
-            foreach (var block in At.Bs) if (block.Up != null) owners.Add(block.Up);
+            foreach (var block in At.Bs) if (!block.Hd && block.Up != null) owners.Add(block.Up);
             var active = new List<Lc>();
             var style = At.S;
             var left = style == null ? 0 : style.Ml + style.Pl + BorderWidth(style, style.Bl);
@@ -593,6 +604,7 @@ namespace Lea.Win
                 foreach (var block in At.Bs)
                 {
                     CloseContexts(block, active, ref y, measured);
+                    if (block.Hd) continue;
                     var bs = block.S;
                     Lc parent = null;
                     if (block.Up != null) contexts.TryGetValue(block.Up, out parent);
@@ -844,7 +856,7 @@ namespace Lea.Win
                     var outer = new Rectangle(cellLeft, rowY, cellWidth, rowHeight);
                     var content = new Rectangle(cellLeft + inset.Left, rowY + inset.Top, Math.Max(1, cellWidth - inset.Left - inset.Right), Math.Max(1, rowHeight - inset.Top - inset.Bottom));
                     var simple = SimpleCellBlock(cell);
-                    if (simple != null && !NeedsFlow(simple)) boxes.Add(new Bx(cell.H ? "th" : "td", cell.X, null, cell.S, outer, content, false, block, false, Rectangle.Empty, cell.El));
+                    if (simple != null && !NeedsFlow(simple)) boxes.Add(new Bx(cell.H ? "th" : "td", CellText(simple), null, cell.S, outer, content, false, block, false, Rectangle.Empty, cell.El));
                     else
                     {
                         boxes.Add(new Bx(cell.H ? "th" : "td", "", null, cell.S, outer, content, false, block, false, Rectangle.Empty, cell.El));
@@ -999,11 +1011,11 @@ namespace Lea.Win
                     InlineLayout(graphics, part, width, out flowHeight);
                     return flowHeight;
                 }
-                using (var font = BoxFont(cell.H ? "th" : "td", cell.S, false)) return Measure(graphics, cell.X, font, width);
+                using (var font = BoxFont(cell.H ? "th" : "td", cell.S, false)) return Measure(graphics, part == null ? cell.X : CellText(part), font, width);
             }
 
             var height = 0;
-            foreach (var part in cell.Bs) height += CellPartHeight(graphics, part, width);
+            foreach (var part in cell.Bs) if (!part.Hd) height += CellPartHeight(graphics, part, width);
             return Math.Max(1, height);
         }
 
@@ -1012,6 +1024,7 @@ namespace Lea.Win
             var y = content.Y;
             foreach (var part in cell.Bs)
             {
+                if (part.Hd) continue;
                 var style = part.S;
                 var ml = style == null ? 0 : style.Ml;
                 var mr = style == null ? 0 : style.Mr;
@@ -1056,13 +1069,19 @@ namespace Lea.Win
         private static bool SimpleCell(Tc cell)
         {
             if (cell.Bs.Count == 0) return true;
-            var part = cell.Bs.Count == 1 ? cell.Bs[0] : null;
-            return part != null && part.U == null && part.K == (cell.H ? "th" : "td");
+            return SimpleCellBlock(cell) != null;
         }
 
         private static B SimpleCellBlock(Tc cell)
         {
-            return SimpleCell(cell) && cell.Bs.Count == 1 ? cell.Bs[0] : null;
+            B found = null;
+            foreach (var part in cell.Bs)
+            {
+                if (part.Hd) continue;
+                if (found != null) return null;
+                found = part;
+            }
+            return found != null && found.U == null && found.K == (cell.H ? "th" : "td") ? found : null;
         }
 
         private static string CellText(B part)
@@ -1074,8 +1093,10 @@ namespace Lea.Win
         {
             if (block == null) return "";
             var text = block.X ?? "";
-            if (block.K != "li") return text;
-            return (String.IsNullOrEmpty(block.Mk) ? "-" : block.Mk) + " " + text;
+            if (block.K != "li" && block.K != "summary") return text;
+            if (block.K == "summary" && String.IsNullOrEmpty(block.Mk)) return text;
+            var marker = String.IsNullOrEmpty(block.Mk) ? "-" : block.Mk;
+            return marker + " " + text;
         }
 
         private static int CellGap(string kind)
@@ -1133,11 +1154,11 @@ namespace Lea.Win
             var space = block.S == null ? "" : block.S.Ws;
             var wrap = space != "nw" && space != "p";
 
-            if (block.K == "li")
+            if (block.K == "li" || (block.K == "summary" && !String.IsNullOrEmpty(block.Mk)))
             {
                 var marker = String.IsNullOrEmpty(block.Mk) ? "-" : block.Mk;
-                AddInlineWord(graphics, lines, ref line, ref pending, InlineAtom(graphics, "li", marker, null, block.S, block.K, block.El), width, baseHeight, wrap, block.S == null ? "" : block.S.Wb);
-                pending = InlineAtom(graphics, "li", " ", null, block.S, block.K, block.El);
+                AddInlineWord(graphics, lines, ref line, ref pending, InlineAtom(graphics, block.K, marker, null, block.S, block.K, block.El), width, baseHeight, wrap, block.S == null ? "" : block.S.Wb);
+                pending = InlineAtom(graphics, block.K, " ", null, block.S, block.K, block.El);
             }
 
             if (block.Is.Count == 0)
@@ -1728,7 +1749,8 @@ namespace Lea.Win
             base.OnMouseMove(e);
             var box = BoxAt(e.Location);
             SetHover(box == null ? null : box.El);
-            Cursor = box == null || (box.U == null && (box.B == null || box.B.I == null))
+            var summary = box != null && box.B != null && box.B.K == "summary" && !String.IsNullOrEmpty(box.B.Mk);
+            Cursor = box == null || (!summary && box.U == null && (box.B == null || box.B.I == null))
                 ? Cursors.Default
                 : box.B != null && CanEdit(box.B.I) ? Cursors.IBeam : Cursors.Hand;
         }
@@ -1769,8 +1791,34 @@ namespace Lea.Win
                     }
                     else await GoA(hit.U.ToString());
                 }
+                else if (hit.B != null && hit.B.B != null && hit.B.B.K == "summary")
+                {
+                    EndEdit(false);
+                    Focus();
+                    SetFocus(hit.El);
+                    Ds(hit.El);
+                }
             }
             catch { Cursor = Cursors.Default; }
+        }
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+            if ((e.KeyCode != Keys.Enter && e.KeyCode != Keys.Space) || DisclosureSummary(focus) == null) return;
+            if (Ds(focus) == 0) return;
+            e.SuppressKeyPress = true;
+            e.Handled = true;
+        }
+
+        private static N DisclosureSummary(N element)
+        {
+            for (var current = element; current != null; current = current.Up)
+            {
+                if (current.K == "summary") return current;
+                if (current.K == "details") return null;
+            }
+            return null;
         }
 
         private static string DownloadName(Uri url, string hint)

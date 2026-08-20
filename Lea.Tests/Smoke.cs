@@ -709,6 +709,52 @@ namespace Lea.Tests
                 Ok(listTable != null && listTable.Rs.Count == 1, "list table model");
                 Eq("4.", listTable.Rs[0].Cs[0].Bs[0].Mk, "ordered marker inside table cell");
 
+                var disclosurePath = Path.Combine(root, "LeaForge", "test-pages", "disclosure.html");
+                var disclosureEngine = new E();
+                var disclosurePage = disclosureEngine.Go(disclosurePath);
+                var closedDetails = ById(disclosurePage.D, "closed");
+                var closedSummary = ById(disclosurePage.D, "closed-summary");
+                var outerDetails = ById(disclosurePage.D, "outer");
+                var nestedDetails = ById(disclosurePage.D, "nested");
+                Ok(!closedDetails.Op && outerDetails.Op && !nestedDetails.Op, "initial disclosure open state");
+                Eq(">", BlockById(disclosurePage, "closed-summary").Mk, "closed disclosure marker");
+                Eq("v", BlockById(disclosurePage, "outer-summary").Mk, "open disclosure marker");
+                Ok(BlockById(disclosurePage, "closed-content").Hd && FieldBlock(disclosurePage, FieldById(disclosurePage, "closed-field")).Hd, "closed disclosure hides retained content");
+                Ok(!BlockById(disclosurePage, "after-closed").Hd && !BlockById(disclosurePage, "outer-content").Hd, "content outside and inside open details stays visible");
+                Ok(!BlockById(disclosurePage, "nested-summary").Hd && BlockById(disclosurePage, "nested-content").Hd, "nested disclosure visibility");
+                Ok(BlockById(disclosurePage, "second-summary").Hd && BlockById(disclosurePage, "second-summary").Mk.Length == 0, "only first direct summary is active");
+                Ok(!BlockById(disclosurePage, "stray-summary").Hd && BlockById(disclosurePage, "stray-summary").Mk.Length == 0, "stray summary remains ordinary content");
+                Ok(BlockById(disclosurePage, "no-summary-content").Hd, "summary-free details starts closed");
+                Ok(!BlockById(disclosurePage, "cell-summary").Hd && BlockById(disclosurePage, "cell-content").Hd, "table cell disclosure visibility");
+                Ok(Object.ReferenceEquals(BlockById(disclosurePage, "closed-content").Up, BlockById(disclosurePage, "closed")), "hidden block keeps visual ownership");
+
+                var retainedField = FieldById(disclosurePage, "closed-field");
+                retainedField.V = "Edited while closed";
+                Eq(1, disclosureEngine.Ds(disclosurePage, closedSummary), "host opens disclosure by summary");
+                Ok(closedDetails.Op && closedDetails.A.ContainsKey("open"), "open state and attribute stay synchronized");
+                Eq("v", BlockById(disclosurePage, "closed-summary").Mk, "opened disclosure marker");
+                Eq("#176b4d", BlockById(disclosurePage, "closed-summary").S.F, "open attribute reapplies CSS");
+                Ok(!BlockById(disclosurePage, "closed-content").Hd && !FieldBlock(disclosurePage, retainedField).Hd, "opened disclosure reveals content");
+                Ok(Object.ReferenceEquals(retainedField, FieldById(disclosurePage, "closed-field")) && retainedField.V == "Edited while closed", "disclosure rebuild preserves mutable field state");
+                Eq(1, disclosureEngine.Ds(disclosurePage, closedSummary), "host closes disclosure by summary");
+                Ok(!closedDetails.Op && !closedDetails.A.ContainsKey("open") && retainedField.V == "Edited while closed", "closed disclosure preserves edited field state");
+                Eq(0, disclosureEngine.Ds(disclosurePage, ById(disclosurePage.D, "second-summary")), "duplicate summary cannot toggle details");
+                Eq(0, disclosureEngine.Ds(disclosurePage, ById(disclosurePage.D, "stray-summary")), "stray summary cannot toggle details");
+
+                var noSummary = ById(disclosurePage.D, "no-summary");
+                Eq(1, disclosureEngine.Ds(disclosurePage, noSummary), "host opens summary-free details");
+                Ok(noSummary.Op && !BlockById(disclosurePage, "no-summary-content").Hd, "summary-free host state reveals content");
+                Eq(1, disclosureEngine.Ds(disclosurePage, noSummary), "host closes summary-free details");
+                Eq(1, disclosureEngine.Ds(disclosurePage, ById(disclosurePage.D, "cell-summary")), "table summary toggles through engine");
+                Ok(!BlockById(disclosurePage, "cell-content").Hd, "table disclosure reveals cell content");
+
+                Eq(1, disclosureEngine.Ds(disclosurePage, ById(disclosurePage.D, "nested-summary")), "nested disclosure opens independently");
+                Ok(nestedDetails.Op && !BlockById(disclosurePage, "nested-content").Hd, "nested content opens");
+                Eq(1, disclosureEngine.Ds(disclosurePage, ById(disclosurePage.D, "outer-summary")), "outer disclosure closes");
+                Ok(outerDetails.Op == false && nestedDetails.Op && BlockById(disclosurePage, "nested-summary").Hd && BlockById(disclosurePage, "nested-content").Hd, "closed outer disclosure masks nested open state");
+                Eq(1, disclosureEngine.Ds(disclosurePage, ById(disclosurePage.D, "outer-summary")), "outer disclosure reopens");
+                Ok(outerDetails.Op && nestedDetails.Op && !BlockById(disclosurePage, "nested-content").Hd, "nested open state survives outer toggle");
+
                 var tokenPath = Path.Combine(root, "LeaForge", "test-pages", "html-tokens.html");
                 var tokenEngine = new E();
                 var tokenPage = tokenEngine.Go(tokenPath);
@@ -1589,6 +1635,52 @@ namespace Lea.Tests
                     view.Size = new Size(300, 500);
                     Paint(view);
                     Ok(TextLines(view, BlockById(view.At, "wrap")).Length > listWideLines, "list item reflows after resize");
+
+                    view.Size = new Size(720, 760);
+                    view.Go(disclosurePath);
+                    Paint(view);
+                    var viewClosedSummary = BlockById(view.At, "closed-summary");
+                    var viewClosedField = FieldById(view.At, "closed-field");
+                    var closedDisclosureHeight = view.Dh;
+                    var closedSummaryRect = BlockRect(view, viewClosedSummary);
+                    Ok(!closedSummaryRect.IsEmpty && BlockRect(view, BlockById(view.At, "closed-content")).IsEmpty, "closed disclosure layout");
+                    Ok(BlockRect(view, FieldBlock(view.At, viewClosedField)).IsEmpty, "closed disclosure field stays out of layout");
+                    Ok(PaintedText(view, viewClosedSummary).StartsWith("> ", StringComparison.Ordinal), "closed summary marker paints");
+                    Move(view, closedSummaryRect);
+                    Ok(Object.ReferenceEquals(Cursors.Hand, view.Cursor), "summary exposes pointer cursor");
+                    viewClosedField.V = "Edited in view";
+                    Click(view, closedSummaryRect);
+                    Paint(view);
+                    Ok(ById(view.At.D, "closed").Op && !BlockRect(view, BlockById(view.At, "closed-content")).IsEmpty, "pointer opens disclosure");
+                    Ok(view.Dh > closedDisclosureHeight && PaintedText(view, BlockById(view.At, "closed-summary")).StartsWith("v ", StringComparison.Ordinal), "open disclosure expands and paints marker");
+                    Ok(Object.ReferenceEquals(viewClosedField, FieldById(view.At, "closed-field")) && viewClosedField.V == "Edited in view", "view disclosure preserves field state");
+                    var enter = Key(view, Keys.Enter);
+                    Paint(view);
+                    Ok(enter.Handled && enter.SuppressKeyPress && !ById(view.At.D, "closed").Op, "Enter closes focused disclosure");
+                    var space = Key(view, Keys.Space);
+                    Paint(view);
+                    Ok(space.Handled && space.SuppressKeyPress && ById(view.At.D, "closed").Op, "Space opens focused disclosure");
+
+                    var duplicateState = ById(view.At.D, "duplicate").Op;
+                    var strayRect = BlockRect(view, BlockById(view.At, "stray-summary"));
+                    Move(view, strayRect);
+                    Ok(!Object.ReferenceEquals(Cursors.Hand, view.Cursor), "stray summary has no disclosure cursor");
+                    Click(view, strayRect);
+                    Ok(ById(view.At.D, "duplicate").Op == duplicateState, "stray summary cannot toggle a disclosure");
+
+                    var wideSummaryLines = TextLines(view, BlockById(view.At, "wrap-summary")).Length;
+                    view.Size = new Size(300, 760);
+                    Paint(view);
+                    Ok(TextLines(view, BlockById(view.At, "wrap-summary")).Length > wideSummaryLines, "summary reflows after resize");
+                    view.Size = new Size(720, 760);
+                    Paint(view);
+                    var cellSummary = BlockById(view.At, "cell-summary");
+                    var disclosureCellLines = TextLines(view, cellSummary);
+                    Ok(disclosureCellLines.Length > 0 && BlockRect(view, BlockById(view.At, "cell-content")).IsEmpty, "table cell summary paints while content is closed");
+                    Click(view, disclosureCellLines[0]);
+                    Paint(view);
+                    Ok(ById(view.At.D, "cell-details").Op && !BlockRect(view, BlockById(view.At, "cell-content")).IsEmpty, "table cell summary toggles visible content");
+
                     view.Size = new Size(720, 760);
                     view.Go(Path.Combine(root, "LeaForge", "test-pages", "scroll.html"));
                     Paint(view);
@@ -1934,7 +2026,7 @@ namespace Lea.Tests
                 if (args.Length > 3) SaveEventRender(eventPath, args[3]);
                 if (args.Length > 4) SaveRender(tokenPath, args[4]);
 
-                Console.WriteLine("Lea smoke passed: bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -2103,6 +2195,15 @@ namespace Lea.Tests
             method.Invoke(view, new object[] { new MouseEventArgs(MouseButtons.Left, 1, rect.Left + rect.Width / 2, rect.Top + rect.Height / 2, 0) });
         }
 
+        private static KeyEventArgs Key(V view, Keys key)
+        {
+            var args = new KeyEventArgs(key);
+            var method = typeof(V).GetMethod("OnKeyDown", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (method == null) throw new InvalidOperationException("key method unavailable");
+            method.Invoke(view, new object[] { args });
+            return args;
+        }
+
         private static void Move(V view, Rectangle rect)
         {
             Move(view, new Point(rect.Left + rect.Width / 2, rect.Top + rect.Height / 2));
@@ -2177,8 +2278,26 @@ namespace Lea.Tests
         private static B BlockById(P page, string id)
         {
             foreach (var block in page.Bs)
-                if (block.El != null && block.El.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase)) return block;
+            {
+                var found = BlockById(block, id);
+                if (found != null) return found;
+            }
             throw new InvalidOperationException("block unavailable: " + id);
+        }
+
+        private static B BlockById(B block, string id)
+        {
+            if (block == null) return null;
+            if (block.El != null && block.El.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase)) return block;
+            if (block.Tb == null) return null;
+            foreach (var row in block.Tb.Rs)
+                foreach (var cell in row.Cs)
+                    foreach (var part in cell.Bs)
+                    {
+                        var found = BlockById(part, id);
+                        if (found != null) return found;
+                    }
+            return null;
         }
 
         private static TextBox Editor(V view)

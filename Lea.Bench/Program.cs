@@ -103,7 +103,7 @@ namespace Lea.Bench
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "layout.html",
                 "tables.html", "forms.html", "events-vars.html", "responsive-media.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
-                "go-command.html", "lists.html"
+                "go-command.html", "lists.html", "disclosure.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -227,6 +227,29 @@ namespace Lea.Bench
                     using (var image = Draw(view)) Need(view.Bc > page.Bs.Count && ColoredSamples(image) > 0, "list marker layout is blank");
                 }
                 return "Unordered, start/value, nested negative, saturated, inline, and painted markers";
+            });
+            AddProbe(probes, "Bounded disclosures", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "disclosure.html"));
+                var details = ById(page.D, "closed");
+                var summary = ById(page.D, "closed-summary");
+                var content = page.Bs.First(block => block.El != null && block.El.Av("id") == "closed-content");
+                var marker = page.Bs.First(block => block.El != null && block.El.Av("id") == "closed-summary");
+                var field = page.Fs.First(item => item.El != null && item.El.Av("id") == "closed-field");
+                field.V = "Retained benchmark value";
+                Need(!details.Op && content.Hd && marker.Mk == ">", "closed disclosure model changed");
+                Need(engine.Ds(page, summary) == 1 && details.Op, "disclosure toggle failed");
+                content = page.Bs.First(block => block.El != null && block.El.Av("id") == "closed-content");
+                Need(!content.Hd, "opened disclosure content stayed hidden");
+                Need(field.V == "Retained benchmark value", "disclosure rebuild replaced mutable field state");
+                using (var view = NewView())
+                {
+                    view.Go(Path.Combine(folder, "disclosure.html"));
+                    Need(view.Ds(ById(view.At.D, "closed-summary")) == 1, "view disclosure toggle failed");
+                    using (var image = Draw(view)) Need(view.Bc > 0 && ColoredSamples(image) > 0, "disclosure layout is blank");
+                }
+                return "Nested open state, retained fields, compact markers, host/view toggles, and painted content";
             });
             AddProbe(probes, "CSS selectors and cascade", delegate
             {
@@ -399,7 +422,7 @@ namespace Lea.Bench
             builder.AppendLine("| Area | Status | Lea 1.0 scope |");
             builder.AppendLine("| --- | --- | --- |");
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
-            Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, list markers, tables, and forms; not the full Living Standard");
+            Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, list markers, details disclosures, tables, and forms; not the full Living Standard");
             Capability(builder, "CSS", "Partial", "Compiled selector subset, cascade, box/text styles, visibility, positioning, transforms, and responsive image sizing");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms block, inline, table, form, image, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");

@@ -149,7 +149,15 @@ List-item blocks expose `B.Mk` as their paint-ready marker. Unordered lists use
 `-`; ordered lists use invariant decimal text ending in `.`. Ordered `start` and
 per-item `value` integers are limited to -999999 through 999999, and increments
 saturate at the upper bound. Nested lists compute their own sequence from their
-nearest list parent. Non-list blocks keep `Mk` empty.
+nearest list parent.
+
+Disclosure state stays equally compact. A `details` node uses `N.Op` for its
+page-local open state. Its first direct `summary` block uses `B.Mk` as `>` when
+closed and `v` when open; duplicate or stray summaries keep `Mk` empty. `B.Hd`
+marks retained blocks hidden by a closed disclosure, including nested and table
+content, without dropping form state or ownership. `E.Ds(page, element)` and
+`V.Ds(element)` toggle one valid details/summary pair and return `1`; invalid
+elements return `0`. Pointer clicks plus focused Enter/Space use the same path.
 
 Box spacing stays compact: `Mt/Mr/Mb/Ml` are margins and `Pt/Pr/Pb/Pl` are
 padding. `N.Up` links a document node to its parent for descendant and child
