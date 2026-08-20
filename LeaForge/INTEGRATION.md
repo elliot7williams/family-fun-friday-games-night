@@ -48,6 +48,12 @@ Browser UI code should use `GoA` and `RlA` so network waits do not freeze the
 window. `St` cancels the active request. The synchronous `Go` and `Rl` aliases
 remain available for small tools and deterministic local tests.
 
+Safe page code can call `go(url)` to request, but not perform, navigation.
+Headless integrations call `E.Gt(page)` once after `Js`/`Ck`. WinForms hosts
+subscribe to `V.Gr`, read the bounded target from `V.Gu`, and then choose whether
+to call `GoA`. Relative targets use `P.Bu`; unsupported schemes, UNC paths, and
+remote-page requests for local files are rejected before the host event.
+
 Pages now expose a lightweight tree through `P.D`. Firespider integrations
 should use that tree instead of expecting the legacy COM `HtmlDocument` object.
 `P.St`, `Ct`, `Ce`, `Ch`, `Sz`, and `Ca` expose compact response diagnostics.
@@ -248,6 +254,10 @@ existing source window from `V.H`. Open File loads through Lea, Save Page writes
 bounded file at `%LocalAppData%\Firespider Internet\Lea.session`; private mode
 removes it, and legacy tabs continue using Firespider's settings collections.
 
+Firespider subscribes to `V.Gr` for each Lea tab and sends `V.Gu` through its
+existing asynchronous Lea load/status route. The page command cannot invoke a
+legacy control, native process, dialog, or direct file API.
+
 **View > Lea Inspector** (`F12`) and each Lea tab's context menu open a compact
 owned diagnostics window. Summary, Nodes, CSS, Requests, and Messages are built
 only from the bounded public `V.Dg()` snapshot. `R`/`F5` refresh, `C` clears the
@@ -258,7 +268,7 @@ into the legacy browser control.
 Firespider imports one `Lea/FirespiderLea.targets` file. The import supplies the
 two DLL references, partial VB adapter, and bundled local start page. Debug and
 Release builds pass `Smoke.cs`, which verifies Lea tab creation, keyboard
-navigation, Inspector open/refresh/clear and legacy isolation, bounded diagnostics,
+navigation, host-controlled `go` requests, Inspector open/refresh/clear and legacy isolation, bounded diagnostics,
 script/style and safe click execution, alert status routing, local open,
 page save, find cycling, streamed downloads, send-link metadata, timer status,
 close and source routing, and

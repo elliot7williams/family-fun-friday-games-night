@@ -139,6 +139,11 @@ namespace Lea.Win.Test
             };
             v.Al += delegate { st.Text = "Alert: " + v.Am; };
             v.Dr += delegate { Download(v.Du, v.Dn); };
+            v.Gr += async delegate
+            {
+                var target = v.Gu;
+                if (target != null) await TryGoA(delegate { return v.GoA(target); });
+            };
 
             KeyDown += delegate(object sender, KeyEventArgs e)
             {

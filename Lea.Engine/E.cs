@@ -142,6 +142,18 @@ namespace Lea.Engine
             return String.IsNullOrWhiteSpace(code) ? 0 : Js(page, code);
         }
 
+        // Gt returns and clears one bounded page navigation request.
+        public Uri Gt(P page)
+        {
+            if (page == null) throw new ArgumentNullException("page");
+            if (!hs.Contains(page)) throw new ArgumentException("The page does not belong to this Lea engine.", "page");
+            if (!page.Gp) return null;
+            var target = page.Gu;
+            page.Gu = null;
+            page.Gp = false;
+            return target;
+        }
+
         // Dg captures bounded page and engine diagnostics for developer tools.
         public G Dg(P page)
         {

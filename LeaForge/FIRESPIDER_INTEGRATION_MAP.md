@@ -180,3 +180,8 @@ bounded snapshot as Summary, Nodes, CSS, Requests, and Messages tabs. Refresh
 and request-log clearing stay on the public `Dg`/`Dcl` boundary, while legacy
 tabs are explicitly left untouched. `Lea.Bench` emits the repeatable
 compatibility/performance report.
+
+Lea tabs also subscribe to the compact `V.Gr` navigation-request event. A safe
+page `go(url)` value reaches Firespider as bounded `V.Gu` data and is loaded
+through the adapter's existing asynchronous route. The engine rejects unsafe
+schemes and remote-to-local-file requests before Firespider sees them.

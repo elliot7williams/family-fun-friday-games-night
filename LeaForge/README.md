@@ -63,10 +63,13 @@ tx("id", "Hi ${name}") element text
 ac("id", "hot")       add class
 rc("id", "hot")       remove class
 tc("id", "hot")       toggle class
+go("next.html")        request navigation from the host
 ```
 
 The longer `alert(...)` and `document.title = ...` forms still work. The short
 forms are intended for small, fast Lea pages and are limited to simple values.
+`go` never navigates the engine directly: it queues one bounded HTTP, HTTPS, or
+safe local-file request for the browser host to approve and load.
 
 The .NET Framework test browser opens Lea Inspector with `F12`, `Ctrl+Shift+I`,
 or the `I` toolbar button. Its Summary, Nodes, CSS, Requests, and Messages tabs

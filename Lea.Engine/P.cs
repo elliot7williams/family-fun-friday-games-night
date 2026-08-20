@@ -41,5 +41,7 @@ namespace Lea.Engine
         internal N Hv { get; set; }
         internal N Fc { get; set; }
         internal IDictionary<N, Fi> Fr { get; set; }
+        internal Uri Gu { get; set; }
+        internal bool Gp { get; set; }
     }
 }

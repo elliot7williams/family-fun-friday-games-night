@@ -94,6 +94,14 @@ namespace Lea.Engine
                 page.Ms.Add(Text(Expand(page, command.V), 512));
                 return true;
             }
+            if (command.N == "go")
+            {
+                Uri target;
+                if (page.Gp || !GoUrl(page, Expand(page, command.V), out target)) return false;
+                page.Gu = target;
+                page.Gp = true;
+                return true;
+            }
 
             var body = Body(page.D);
             if (body == null) return false;
@@ -153,6 +161,7 @@ namespace Lea.Engine
             if (count == 1 && (name == "bg" || name == "background")) return new Cm("bg", first);
             if (count == 1 && (name == "fg" || name == "color")) return new Cm("fg", first);
             if (count == 1 && (name == "fs" || name == "fontsize")) return new Cm("fs", first);
+            if (count == 1 && name == "go") return new Cm("go", first);
             if (count == 2 && (name == "v" || name == "var")) return new Cm("v", first, second);
             if (count == 2 && (name == "tx" || name == "text")) return new Cm("tx", first, second);
             if (count == 2 && name == "ac") return new Cm("ac", first, second);
@@ -367,6 +376,19 @@ namespace Lea.Engine
                 if ((ch < 'a' || ch > 'z') && (ch < 'A' || ch > 'Z') &&
                     (ch < '0' || ch > '9') && ch != '-' && ch != '_') return "";
             return name;
+        }
+
+        private static bool GoUrl(P page, string value, out Uri target)
+        {
+            target = null;
+            var source = (value ?? "").Trim();
+            if (source.Length < 1 || source.Length > 2048) return false;
+            var baseUrl = page.Bu ?? page.U;
+            if (!Uri.TryCreate(source, UriKind.Absolute, out target) &&
+                (baseUrl == null || !Uri.TryCreate(baseUrl, source, out target))) return false;
+            if (target == null || !target.IsAbsoluteUri || target.AbsoluteUri.Length > 4096) return false;
+            if (target.IsFile) return page.U != null && page.U.IsFile && !target.IsUnc;
+            return (target.Scheme == Uri.UriSchemeHttp || target.Scheme == Uri.UriSchemeHttps) && target.Host.Length > 0;
         }
 
         private static bool SetClass(N target, string name, string mode)

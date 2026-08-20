@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Go Command</title>
+  <style>
+    body { background: #f8fafc; color: #172033; font-size: 17px; }
+    h1 { color: #0f766e; }
+    button, a { display: block; margin: 10px 0; padding: 9px; }
+    button { background: #0f766e; color: white; border: 1px solid #115e59; }
+    a { color: #a13b18; }
+  </style>
+  <script type="text/lea">v("next", "go-target.html")</script>
+</head>
+<body>
+  <h1>Bounded navigation requests</h1>
+  <button id="relative" type="button" data-lea="go('${next}')">Request relative page</button>
+  <button id="double" type="button" data-lea="go('go-target.html'); go('second.html')">Request once</button>
+  <button id="unsafe" type="button" data-lea="go('javascript:alert(1)'); go('data:text/html,bad'); go('mailto:test@example.com')">Reject unsafe schemes</button>
+  <a id="override" href="second.html" data-lea="go('go-target.html')">Command overrides default link</a>
+</body>
+</html>

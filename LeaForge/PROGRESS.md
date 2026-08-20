@@ -1,6 +1,6 @@
 # Lea 1.0 Progress
 
-Current completion: **89%**
+Current completion: **90%**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -15,9 +15,9 @@ modern web platform.
 | CSS | 15% | 15% | Compiled selectors, dynamic hover/focus, sizing, visibility/opacity, fonts, overflow, boxes |
 | Layout and painting | 20% | 20% | Inset stretch, translated contexts, nested content, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Bounded multipart files, richer widgets, validation, responsive images, GET/POST submit |
-| Lea scripting | 5% | 4% | Safe clicks, bounded variables, text/title/style/alert and ID-scoped class commands |
+| Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/style/alert and class commands |
 | Firespider integration and reliability | 10% | 9% | Lea Inspector, keyboard navigation, open/save/send routes, sessions, source, host smoke tests |
-| **Total** | **100%** | **89%** | |
+| **Total** | **100%** | **90%** | |
 
 ## Updating the percentage
 
@@ -28,4 +28,4 @@ modern web platform.
 
 ## Next gains
 
-- Bounded page navigation command/event (`go`) with host-controlled URL handling: +1%
+- Configurable bounded request timeout (`Tm`) with typed timeout coverage: +1%

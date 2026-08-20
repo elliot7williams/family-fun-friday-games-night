@@ -107,6 +107,11 @@ namespace Lea.Firespider
                     Check(savedPageOk && File.ReadAllText(savedPage).Contains("Open route fixture"), "Firespider Save Page routed to Lea");
                     var mailLink = (string)type.GetMethod("qleaMailLink", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(form, null);
                     Check(mailLink.StartsWith("mailto:?") && mailLink.Contains("Lea%20Open%20Route"), "Firespider Send Link uses Lea metadata");
+                    var goRequests = 0;
+                    host.Gr += delegate { goRequests++; };
+                    Check(host.Js("go('" + new Uri(start).AbsoluteUri + "')") == 1, "Firespider go command accepted");
+                    WaitFor(() => host.At != null && host.T == "Lea in Firespider", "Firespider go request routed by host");
+                    Check(goRequests == 1 && host.Gu == new Uri(start), "Firespider go request event and URL");
                     var address = Member<ToolStripComboBox>(form, "c");
                     address.Text = new Uri(start).AbsoluteUri;
                     var addressKey = new KeyEventArgs(Keys.Enter);
@@ -170,7 +175,7 @@ namespace Lea.Firespider
                     Check(restoredTabs.TabCount == beforeMiddle - 1 && FindLea(restoredTabs) == null, "middle-click Lea tab close");
                 }
 
-                Console.WriteLine("Firespider Lea smoke passed: Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, keyboard navigation, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
+                Console.WriteLine("Firespider Lea smoke passed: host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, keyboard navigation, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
                 return 0;
             }
             catch (Exception error)

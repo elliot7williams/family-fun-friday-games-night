@@ -50,6 +50,7 @@ namespace Lea.Win
         private N focus;
         private string findQuery = "";
         private int findIndex = -1;
+        private int goRequests;
 
         public event EventHandler Done;
         public event EventHandler Changed;
@@ -57,6 +58,7 @@ namespace Lea.Win
         public event EventHandler Sb;
         public event EventHandler Al;
         public event EventHandler Dr;
+        public event EventHandler Gr;
 
         public V()
         {
@@ -99,6 +101,7 @@ namespace Lea.Win
         public int Fx { get { return findIndex < 0 ? 0 : findIndex + 1; } }
         public Uri Du { get; private set; }
         public string Dn { get; private set; }
+        public Uri Gu { get; private set; }
         public D Ld { get; private set; }
         public int Dh { get { return docHeight; } }
         public int Sy { get { return sy; } }
@@ -146,6 +149,7 @@ namespace Lea.Win
                 Dirty();
                 Invalidate();
                 if (Done != null) Done(this, EventArgs.Empty);
+                GoRequest(page);
                 return page;
             }
             finally { Cursor = Cursors.Default; }
@@ -162,6 +166,7 @@ namespace Lea.Win
                 Dirty();
                 Invalidate();
                 if (Done != null) Done(this, EventArgs.Empty);
+                GoRequest(page);
                 return page;
             }
             finally { Cursor = Cursors.Default; }
@@ -178,6 +183,7 @@ namespace Lea.Win
                 Dirty();
                 Invalidate();
                 if (Done != null) Done(this, EventArgs.Empty);
+                GoRequest(page);
                 return page;
             }
             finally { Cursor = Cursors.Default; }
@@ -194,6 +200,7 @@ namespace Lea.Win
                 Dirty();
                 Invalidate();
                 if (Done != null) Done(this, EventArgs.Empty);
+                GoRequest(page);
                 return page;
             }
             finally { Cursor = Cursors.Default; }
@@ -211,6 +218,7 @@ namespace Lea.Win
             Dirty();
             Invalidate();
             if (Done != null) Done(this, EventArgs.Empty);
+            GoRequest(page);
             return page;
         }
 
@@ -255,6 +263,7 @@ namespace Lea.Win
             OnChanged();
             Invalidate();
             Alerts(At);
+            GoRequest(At);
             return count;
         }
 
@@ -333,7 +342,19 @@ namespace Lea.Win
             Invalidate();
             Alerts(page);
             if (done && Done != null) Done(this, EventArgs.Empty);
+            if (done) GoRequest(page);
             return page;
+        }
+
+        private bool GoRequest(P page)
+        {
+            if (page == null) return false;
+            var target = e.Gt(page);
+            if (target == null) return false;
+            Gu = target;
+            goRequests++;
+            if (Gr != null) Gr(this, EventArgs.Empty);
+            return true;
         }
 
         private void Alerts(P page)
@@ -1727,7 +1748,9 @@ namespace Lea.Win
                     EndEdit(false);
                     SetFocus(null);
                     var element = hit.El;
+                    var before = goRequests;
                     Ck(ClickElement(element));
+                    if (goRequests != before) return;
                     if (element != null && element.A.ContainsKey("download") && Dr != null)
                     {
                         Du = hit.U;
@@ -1776,7 +1799,12 @@ namespace Lea.Win
 
             EndEdit(false);
             SetFocus(field.El);
-            if (field.K == "reset" || field.K == "submit" || field.K == "button") Ck(field.El);
+            if (field.K == "reset" || field.K == "submit" || field.K == "button")
+            {
+                var before = goRequests;
+                Ck(field.El);
+                if (goRequests != before) return;
+            }
             var restyle = false;
             if (field.K == "checkbox")
             {

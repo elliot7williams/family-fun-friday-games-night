@@ -17,7 +17,7 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-1. Add a bounded `go` page-navigation request with host-controlled URL handling.
+1. Add a configurable bounded `Tm` request timeout with typed timeout coverage.
 2. Expand the safe command set only through bounded, fixture-backed aliases.
 3. Keep strengthening host tests as more legacy tab routes move to Lea.
 
@@ -33,6 +33,9 @@ compiled CSS is reapplied without replacing edited form state.
 Firespider now opens Lea Inspector with `F12` or a Lea tab's context menu. Its
 Summary, Nodes, CSS, Requests, and Messages tabs consume only `V.Dg()`; refresh
 and request-log clearing are covered by the off-screen host smoke suite.
+The safe page language now uses `go(url)` to queue one host-controlled request.
+`E.Gt` consumes it headlessly; `V.Gu`/`Gr` route it through the test browser and
+Firespider while unsupported schemes and remote-to-file requests are rejected.
 
 ## Rules For Future Codex Work
 

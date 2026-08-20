@@ -27,6 +27,10 @@ Buttons and links can run bounded `data-lea` or familiar `onclick` values throug
 allow-list and cannot reach native files, processes, or host controls.
 ID-scoped `ac/rc/tc` class changes use the same route, reapply compiled CSS, and
 preserve mutable field values.
+The bounded `go(url)` command raises `V.Gr` with `V.Gu`; Firespider sends that
+request through its existing asynchronous Lea loader. Relative URLs resolve
+against the document base, unsafe schemes and remote-to-file requests are
+rejected, and a command request overrides the same click's default link route.
 
 Firespider can read `V.Dg()` for bounded response, document, CSS, request,
 command, cache, and cookie diagnostics without reflecting into Lea internals.
@@ -45,13 +49,17 @@ count in the status bar, and join Firespider's recent-download list.
 The host project imports `Lea/FirespiderLea.targets`, which adds the two DLL
 references, compiles `FirespiderLea.vb`, and copies `start.html` to the output
 `Lea` folder. No Chromium, WebView, Safari, or hidden browser control is used.
+If SDK `dotnet build` forces old binary `.resx` files through its newer resource
+serializer, build this legacy host with the installed .NET Framework MSBuild:
+`%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe`. Lea source and
+resources do not need to be changed for that tooling mismatch.
 
 The adapter is kept here as the clean source of record because the live
 Firespider working tree contains unrelated in-progress changes.
 
 `Smoke.cs` loads two compiled Firespider forms off-screen and verifies Lea tab
 creation, Inspector open/refresh/clear and legacy isolation, diagnostics,
-script/style and safe click execution, alert routing, keyboard navigation, local
+script/style, host-controlled `go`, and safe click execution, alert routing, keyboard navigation, local
 open, find cycling, streamed download saves, page save, send-link metadata,
 close routes, source, and session restoration using temporary files rather than
 the user's data.

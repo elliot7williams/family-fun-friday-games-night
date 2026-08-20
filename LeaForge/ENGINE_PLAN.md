@@ -104,8 +104,8 @@ Go("url")        navigate
 ```
 
 The bounded layer is active in `Lea.Engine`. It accepts `t`, `a`, `bg`, `fg`,
-`fs`, `v`, and `tx`, plus equivalent title/body-style assignments and
-`alert(...)`.
+`fs`, `v`, `tx`, `ac`, `rc`, `tc`, and host-controlled `go`, plus equivalent
+title/body-style assignments and `alert(...)`.
 Only top-level literal commands run. Execution is limited to eight inline
 blocks, 16 KB per block, 32 accepted commands, and 16 queued alerts. External
 scripts, JSON data blocks, expressions, control flow, and unknown calls are
@@ -113,7 +113,9 @@ ignored. `Je` is the host permission switch and `Js` is the compact manual
 bridge. The WinForms host emits `Al` and exposes `Am` instead of allowing page
 code to open native UI itself. `Ck` safely dispatches button and link attributes;
 `P.Vs` holds 16 bounded variables and `tx` performs ID-scoped text replacement.
-Every command has a short alias, a fixed limit, and a local fixture. A full
+`go` resolves one pending HTTP, HTTPS, or safe file-origin URL against `P.Bu`;
+`E.Gt` consumes it, while `V.Gu`/`Gr` expose it to browser policy. Every command
+has a short alias, a fixed limit, and a local fixture. A full
 JavaScript runtime can remain a separate comparison project.
 
 ## 7. Browser shell
@@ -237,10 +239,10 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add a bounded `go` page command that raises a host-controlled navigation request.
-Resolve only supported absolute or document-relative HTTP, HTTPS, and file URLs,
-keep the page language unable to access native controls directly, and cover the
-command limit, rejected schemes, relative URLs, and WinForms navigation route.
+Expose the existing 15-second network deadline as a compact bounded `Tm`
+property. Clamp it to a dependable range, apply it to synchronous and
+asynchronous HTTP work, preserve `Er.K == "timeout"`, and cover slow response,
+cancellation, and normal request behavior without lengthening the smoke suite.
 
 The repeatable compatibility and performance report is now implemented by
 `Lea.Bench`. It probes supported HTML, CSS, forms, scripting, layout, downloads,

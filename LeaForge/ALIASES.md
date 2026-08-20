@@ -8,7 +8,7 @@ read and quick to write.
 - Core objects use one letter: `L` is the entry point, `E` is the engine, `P` is a page.
 - Actions use two or three letters: `Go`, `GoA`, `Bk`, `Fw`, `Rl`, `RlA`, `St`, and `At`.
 - Page values use one or two letters: `U`, `T`, `H`, `Q`, `D`, `N`, `Bs`, and `Ls`.
-- Page commands use one or two letters: `t`, `a`, `bg`, `fg`, `fs`, `v`, `tx`, `ac`, `rc`, and `tc`.
+- Page commands use one or two letters: `t`, `a`, `bg`, `fg`, `fs`, `v`, `tx`, `ac`, `rc`, `tc`, and `go`.
 - New public aliases should be no more than three letters.
 - Longer names may remain inside the engine when they make the implementation safer to maintain.
 
@@ -40,6 +40,7 @@ tx("id", "Hi ${who}") element text
 ac("id", "hot")       add class
 rc("id", "hot")       remove class
 tc("id", "hot")       toggle class
+go("next.html")        request host navigation
 ```
 
 `P.Vs` exposes at most 16 case-insensitive variables. Names are one through 16
@@ -53,6 +54,18 @@ Each element is limited to 32 classes and 512 class-attribute characters.
 Duplicate adds and absent removes are accepted no-ops; remove and toggle clear
 all matching tokens. A successful run reapplies compiled CSS once and preserves
 mutable form state.
+
+`go` queues one navigation request rather than loading a page directly. Its
+expanded input is limited to 2,048 characters and resolves against `P.Bu`; the
+resolved absolute URL is capped at 4,096 characters. HTTP and HTTPS are allowed.
+Local file targets are allowed only from a local file response and UNC paths are
+rejected. Empty values and `about`, `data`, `javascript`, `mailto`, and other
+schemes are ignored. Only one request can be pending at a time.
+
+Headless hosts call `E.Gt(page)` to take and clear the pending request. WinForms
+hosts read `V.Gu` when `V.Gr` fires. A command request suppresses the same
+click's default link or submit route; the host remains responsible for calling
+`Go`/`GoA`, applying policy, reporting errors, or declining the request.
 
 `E.Ck(page, element)` and `V.Ck(element)` run the same allow-list from an
 element's `data-lea` attribute, falling back to `onclick`. The WinForms view

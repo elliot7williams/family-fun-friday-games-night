@@ -102,7 +102,8 @@ namespace Lea.Bench
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "layout.html",
                 "tables.html", "forms.html", "events-vars.html", "responsive-media.html",
-                "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html"
+                "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
+                "go-command.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -273,6 +274,16 @@ namespace Lea.Bench
                 Need(engine.Ck(page, ById(page.D, "go")) == 3 && page.T == "Clicked Lea", "click commands did not run");
                 return page.Jc + " safe commands and " + page.Vs.Count + " variables after click";
             });
+            AddProbe(probes, "Host-controlled go requests", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "go-command.html"));
+                var target = new Uri(Path.Combine(folder, "go-target.html"));
+                Need(engine.Ck(page, ById(page.D, "relative")) == 1, "relative go command failed");
+                Need(engine.Gt(page) == target && engine.Gt(page) == null, "go request was not resolved and consumed once");
+                Need(engine.Ck(page, ById(page.D, "unsafe")) == 0 && engine.Gt(page) == null, "unsafe go scheme was accepted");
+                return "Relative file and HTTPS requests accepted; one pending request; unsafe schemes rejected";
+            });
             AddProbe(probes, "Bounded class mutations", delegate
             {
                 var engine = new E();
@@ -368,7 +379,7 @@ namespace Lea.Bench
             Capability(builder, "CSS", "Partial", "Compiled selector subset, cascade, box/text styles, visibility, positioning, transforms, and responsive image sizing");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms block, inline, table, form, image, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
-            Capability(builder, "Lea command scripting", "Supported", "Bounded title, color, font, alert, variable, text, class mutation, and safe click commands");
+            Capability(builder, "Lea command scripting", "Supported", "Bounded title, color, font, alert, variable, text, class mutation, host navigation request, and safe click commands");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
             Capability(builder, "Flexbox, Grid, Canvas, SVG", "Not supported", "Future compatibility work; no silent fallback claim");
             Capability(builder, "Audio and video", "Not supported", "Future optional module");

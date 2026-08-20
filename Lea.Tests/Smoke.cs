@@ -205,6 +205,28 @@ namespace Lea.Tests
                 Eq(0, eventEngine.Ck(eventPage, ById(eventPage.D, "go")), "click commands respect script setting");
                 eventEngine.Je = true;
 
+                var goPath = Path.Combine(root, "LeaForge", "test-pages", "go-command.html");
+                var goTargetPath = Path.Combine(root, "LeaForge", "test-pages", "go-target.html");
+                var goTarget = new Uri(goTargetPath);
+                var goEngine = new E();
+                var goPage = goEngine.Go(goPath);
+                Eq(1, goPage.Jc, "go fixture variable command");
+                Eq(1, goEngine.Ck(goPage, ById(goPage.D, "relative")), "relative go command accepted");
+                Eq(goTarget, goEngine.Gt(goPage), "relative go request resolves against document base");
+                Eq<Uri>(null, goEngine.Gt(goPage), "go request is consumed once");
+                Eq(1, goEngine.Ck(goPage, ById(goPage.D, "double")), "one pending go request per command run");
+                Eq(goTarget, goEngine.Gt(goPage), "first go request wins");
+                Eq(0, goEngine.Ck(goPage, ById(goPage.D, "unsafe")), "unsafe go schemes rejected");
+                Eq<Uri>(null, goEngine.Gt(goPage), "rejected go commands queue nothing");
+                Eq(1, goEngine.Js(goPage, "go('" + goTarget.AbsoluteUri + "')"), "absolute file go accepted from file page");
+                Eq(goTarget, goEngine.Gt(goPage), "absolute file go request");
+                Eq(1, goEngine.Js(goPage, "go('https://example.com/lea')"), "absolute HTTPS go accepted");
+                Eq(new Uri("https://example.com/lea"), goEngine.Gt(goPage), "absolute HTTPS go request");
+                Eq(0, goEngine.Js(goPage, "go(''); go('about:blank'); go('//remote/share')"), "empty, unsupported, and UNC go targets rejected");
+                goEngine.Je = false;
+                Eq(0, goEngine.Ck(goPage, ById(goPage.D, "relative")), "go command respects script setting");
+                goEngine.Je = true;
+
                 var classPath = Path.Combine(root, "LeaForge", "test-pages", "class-commands.html");
                 var classEngine = new E();
                 var classPage = classEngine.Go(classPath);
@@ -745,6 +767,20 @@ namespace Lea.Tests
                     WaitFor(delegate { return view.T == "LeaForge Second Page"; }, "safe event link navigation");
                     Eq("link", clickedEventPage.Vs["last"], "nested link click variable");
                     Eq(5, alertEvents, "nested link click alert event");
+
+                    var goEvents = 0;
+                    Uri viewGoTarget = null;
+                    view.Gr += delegate { goEvents++; viewGoTarget = view.Gu; };
+                    view.Go(goPath);
+                    Paint(view);
+                    var overrideLink = HitRect(view, "second.html");
+                    Ok(!overrideLink.IsEmpty, "go override link hit target");
+                    Click(view, overrideLink);
+                    WaitFor(delegate { return goEvents == 1; }, "WinForms go request event");
+                    Eq(goTarget, viewGoTarget, "WinForms go request URL");
+                    Eq("Lea Go Command", view.T, "go request suppresses default link navigation");
+                    view.Go(viewGoTarget);
+                    Eq("Lea Go Target", view.T, "host-approved WinForms go navigation");
 
                     view.Go(classPath);
                     Paint(view);
@@ -1783,6 +1819,12 @@ namespace Lea.Tests
                     Ok(!fileError.Rt, "file error not retryable");
                     var urlError = Fails(delegate { new E().Go(""); }, "bad URL");
                     Eq("url", urlError.K, "URL error kind");
+
+                    var remoteGoEngine = new E();
+                    var remoteGoPage = remoteGoEngine.Go(new Uri(server.U, "?go-security=1"));
+                    Eq(0, remoteGoEngine.Js(remoteGoPage, "go('" + goTarget.AbsoluteUri + "')"), "remote page cannot request a local file");
+                    Eq(1, remoteGoEngine.Js(remoteGoPage, "go('/approved')"), "remote relative HTTP go accepted");
+                    Eq(new Uri(server.U, "approved"), remoteGoEngine.Gt(remoteGoPage), "remote relative HTTP go request");
                 }
 
                 using (var alertView = new V())
@@ -1806,7 +1848,7 @@ namespace Lea.Tests
                 if (args.Length > 3) SaveEventRender(eventPath, args[3]);
                 if (args.Length > 4) SaveRender(tokenPath, args[4]);
 
-                Console.WriteLine("Lea smoke passed: bounded class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)

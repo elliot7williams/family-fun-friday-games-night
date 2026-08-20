@@ -177,6 +177,7 @@ Partial Class j
         AddHandler host.Done, AddressOf qleaDone
         AddHandler host.Al, AddressOf qleaAlert
         AddHandler host.Dr, AddressOf qleaDownload
+        AddHandler host.Gr, AddressOf qleaGoRequest
 
         Dim closeMenu As New ContextMenuStrip()
         Dim inspectorItem As New ToolStripMenuItem("Lea Inspector")
@@ -263,6 +264,12 @@ Partial Class j
         If message.Length > 160 Then message = message.Substring(0, 160)
         su.Visible = True
         su.Text = "Lea: " & message
+    End Sub
+
+    Private Sub qleaGoRequest(ByVal sender As Object, ByVal e As EventArgs)
+        Dim host = TryCast(sender, Global.Lea.Win.V)
+        If host Is Nothing OrElse host.Gu Is Nothing Then Return
+        qleaLoad(host, host.Gu.AbsoluteUri)
     End Sub
 
     Private Function qleaFind(ByVal host As Global.Lea.Win.V, ByVal term As String, Optional ByVal advance As Boolean = False) As Integer
