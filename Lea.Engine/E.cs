@@ -30,6 +30,10 @@ namespace Lea.Engine
         private const int MaxHtmlName = 64;
         private const int MaxHtmlAttributeText = 64 * 1024;
         private const int MaxHtmlAttributeValue = 16 * 1024;
+        private const int MaxQueryLength = 1024;
+        private const int MaxQueryGroups = 16;
+        private const int MaxQueryParts = 16;
+        private const int MaxQueryResults = 256;
         private readonly W web = new W();
         private readonly List<P> hs = new List<P>();
         private readonly Dictionary<string, Cr> cache = new Dictionary<string, Cr>(StringComparer.OrdinalIgnoreCase);
@@ -183,6 +187,38 @@ namespace Lea.Engine
         public void Dcl()
         {
             lock (requests) requests.Clear();
+        }
+
+        // Id finds the first element with a matching HTML id.
+        public N Id(P page, string id)
+        {
+            QueryPage(page);
+            var value = id ?? "";
+            return value.Length == 0 || value.Length > MaxHtmlAttributeValue ? null : FindId(page.D, value);
+        }
+
+        // Q returns the first document-order match from Lea's bounded selector subset.
+        public N Q(P page, string query)
+        {
+            QueryPage(page);
+            var rules = QueryRules(query);
+            return rules == null ? null : QueryOne(page.D, rules);
+        }
+
+        // Qa returns at most 256 document-order matches in a read-only list.
+        public IList<N> Qa(P page, string query)
+        {
+            QueryPage(page);
+            var found = new List<N>();
+            var rules = QueryRules(query);
+            if (rules != null) QueryAll(page.D, rules, found);
+            return found.AsReadOnly();
+        }
+
+        private void QueryPage(P page)
+        {
+            if (page == null) throw new ArgumentNullException("page");
+            if (!hs.Contains(page)) throw new ArgumentException("The page does not belong to this Lea engine.", "page");
         }
 
         // Fd counts bounded, case-insensitive page-text matches.
@@ -1397,6 +1433,74 @@ namespace Lea.Engine
                 if (current == null || !MatchPart(current, rule.P[i])) return false;
             }
             return true;
+        }
+
+        private static R[] QueryRules(string query)
+        {
+            var source = (query ?? "").Trim();
+            if (source.Length == 0 || source.Length > MaxQueryLength) return null;
+            var rules = new List<R>();
+            var totalParts = 0;
+            foreach (var group in CssGroups(source))
+            {
+                var value = group.Trim();
+                if (value.Length == 0 || rules.Count == MaxQueryGroups) return null;
+                var parts = new List<string>();
+                var joins = new List<char>();
+                if (!CssParts(value, parts, joins) || totalParts + parts.Count > MaxQueryParts) return null;
+                var simple = new List<Se>();
+                foreach (var part in parts)
+                {
+                    var selector = CssSimple(part);
+                    if (selector == null) return null;
+                    simple.Add(selector);
+                }
+                totalParts += parts.Count;
+                rules.Add(new R(value, "", Spec(simple), 0, simple.ToArray(), joins.ToArray()));
+            }
+            return rules.Count == 0 ? null : rules.ToArray();
+        }
+
+        private static N FindId(N node, string id)
+        {
+            if (node == null) return null;
+            if (node.K.Length > 0 && node.K[0] != '#' && node.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase)) return node;
+            foreach (var child in node.C)
+            {
+                var found = FindId(child, id);
+                if (found != null) return found;
+            }
+            return null;
+        }
+
+        private static N QueryOne(N node, R[] rules)
+        {
+            if (node == null) return null;
+            if (ElementMatch(node, rules)) return node;
+            foreach (var child in node.C)
+            {
+                var found = QueryOne(child, rules);
+                if (found != null) return found;
+            }
+            return null;
+        }
+
+        private static void QueryAll(N node, R[] rules, List<N> found)
+        {
+            if (node == null || found.Count == MaxQueryResults) return;
+            if (ElementMatch(node, rules)) found.Add(node);
+            foreach (var child in node.C)
+            {
+                QueryAll(child, rules, found);
+                if (found.Count == MaxQueryResults) return;
+            }
+        }
+
+        private static bool ElementMatch(N node, R[] rules)
+        {
+            if (node.K.Length == 0 || node.K[0] == '#') return false;
+            foreach (var rule in rules) if (MatchCss(node, rule)) return true;
+            return false;
         }
 
         private static bool CssParts(string selector, List<string> parts, List<char> joins)

@@ -242,6 +242,10 @@ namespace Lea.Win
 
         public void Dcl() { e.Dcl(); }
 
+        public N Id(string id) { return At == null ? null : e.Id(At, id); }
+        public N Q1(string query) { return At == null ? null : e.Q(At, query); }
+        public IList<N> Qa(string query) { return At == null ? new List<N>().AsReadOnly() : e.Qa(At, query); }
+
         private int Commands(int count)
         {
             if (count == 0) return 0;

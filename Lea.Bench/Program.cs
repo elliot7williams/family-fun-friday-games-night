@@ -221,6 +221,16 @@ namespace Lea.Bench
                 Need(snapshot.C > 0 && page.Bs.Count > 0 && page.S != null, "compiled styles are missing");
                 return snapshot.C + " compiled rules across " + snapshot.B + " blocks";
             });
+            AddProbe(probes, "Bounded document queries", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "selectors.html"));
+                Need(engine.Id(page, "stage") != null, "Id lookup failed");
+                Need(engine.Q(page, "#stage > p.direct") != null, "first query failed");
+                Need(engine.Qa(page, ".card").Count == 3, "all query count changed");
+                Need(engine.Qa(page, "p,,div").Count == 0, "invalid query was accepted");
+                return "Id and first match; 3 ordered matches; invalid selector rejected";
+            });
             AddProbe(probes, "Layout and painting", delegate
             {
                 using (var view = NewView())
@@ -340,6 +350,7 @@ namespace Lea.Bench
             Capability(builder, "Flexbox, Grid, Canvas, SVG", "Not supported", "Future compatibility work; no silent fallback claim");
             Capability(builder, "Audio and video", "Not supported", "Future optional module");
             Capability(builder, "Developer diagnostics", "Supported", "Bounded summary, node, CSS, request, message, and variable snapshots");
+            Capability(builder, "Document queries", "Supported subset", "Id, first-match Q/Q1, and read-only Qa with compiled selectors and a 256-result ceiling");
             Capability(builder, "Accessibility", "Partial", "Keyboard focus and native fields are present; a complete accessibility tree is not");
             builder.AppendLine();
             builder.AppendLine("## Binary Footprint");

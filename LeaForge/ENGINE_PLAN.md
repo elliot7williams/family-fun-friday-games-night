@@ -234,10 +234,9 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add compact bounded document-query helpers through `Id`, `Q`, and `Qa`. Keep
-the returned `N` nodes read-only to hosts through their existing public
-collections and cap multi-result queries so embedding code cannot request an
-unbounded traversal result.
+Honor the first valid HTML `<base href>` and expose the resolved document base
+through a compact page alias. Use it consistently for links, stylesheets,
+images, forms, and download targets without changing the response URL.
 
 The repeatable compatibility and performance report is now implemented by
 `Lea.Bench`. It probes supported HTML, CSS, forms, scripting, layout, downloads,
@@ -251,6 +250,12 @@ tag-splitting regex. It recognizes comments and declarations, preserves raw
 keeps malformed `<` delimiters as text, and caps scan steps, tree nodes, stack
 depth, attributes, names, and attribute values. `html-tokens.html` plus a
 generated stress document verify each limit.
+
+Document queries now reuse the compiled CSS selector subset. `E.Id/Q/Qa` and
+`V.Id/Q1/Qa` provide ID, first document-order match, and a read-only list of at
+most 256 matches. Query text, groups, and total selector parts are capped;
+invalid or unsupported selectors return no matches rather than entering an
+unbounded fallback parser. `V.Q1` preserves the older `V.Q` URL-query alias.
 
 The `inset` shorthand now expands atomically into `Tp/Rt/Bm/Lt`, and opposing
 edges stretch auto-sized absolute and fixed boxes against their containing

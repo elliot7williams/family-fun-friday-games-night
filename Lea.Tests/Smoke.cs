@@ -486,6 +486,26 @@ namespace Lea.Tests
                 Eq(18, selectorPage.Bs[7].S.Ml, "third sibling adjacent margin");
                 Ok(selectorPage.Bs[9].S.I, "heading adjacent selector");
                 Ok(!selectorPage.Bs[11].S.I, "adjacent selector respects separator");
+                var queryStage = engine.Id(selectorPage, "STAGE");
+                Ok(queryStage != null && queryStage.K == "main", "case-insensitive Id query");
+                Eq("Direct child", NodeText(engine.Q(selectorPage, "main#stage > p.direct")), "first child query");
+                Eq("Nested child", NodeText(engine.Q(selectorPage, "main > article > p.nested")), "nested child query");
+                Eq("Card two", NodeText(engine.Q(selectorPage, ".card + .card")), "adjacent first query");
+                Eq("Following heading", NodeText(engine.Q(selectorPage, ".missing, h2 + p.lead")), "selector group first query");
+                var queryCards = engine.Qa(selectorPage, ".card");
+                Eq(3, queryCards.Count, "bounded all query count");
+                Eq("Card one", NodeText(queryCards[0]), "all query document order start");
+                Eq("Card three", NodeText(queryCards[2]), "all query document order end");
+                var queryGroup = engine.Qa(selectorPage, ".card, p.direct");
+                Eq(4, queryGroup.Count, "selector group all query count");
+                Eq("Direct child", NodeText(queryGroup[0]), "selector group document order");
+                var queryReadOnly = false;
+                try { queryCards.Add(queryStage); }
+                catch (NotSupportedException) { queryReadOnly = true; }
+                Ok(queryReadOnly, "all query result is read-only");
+                Ok(engine.Id(selectorPage, "missing") == null && engine.Q(selectorPage, ".missing") == null, "missing query result");
+                Eq(0, engine.Qa(selectorPage, "p,,div").Count, "invalid selector group rejected");
+                Ok(engine.Q(selectorPage, new String('x', 1025)) == null, "oversized selector rejected");
 
                 var negationPath = Path.Combine(root, "LeaForge", "test-pages", "selector-negation.html");
                 var negationPage = engine.Go(negationPath);
@@ -592,6 +612,7 @@ namespace Lea.Tests
                 Eq("<strong>raw</strong>", tokenPage.Vs["markup"], "script raw text keeps tag-shaped strings");
                 Eq("&amp;", tokenPage.Vs["entity"], "script raw text does not decode entities");
                 Eq("<strong>raw</strong> &amp;", ById(tokenPage.D, "script-state").C[0].X, "raw script commands execute intact");
+                Eq("entity", tokenEngine.Q(tokenPage, "[data-note=\"1 > 0\"]").Av("id"), "query quoted delimiter attribute");
                 Eq(0, Nodes(tokenPage.D, "b").Count, "RCDATA markup does not create elements");
                 Eq(0, Nodes(tokenPage.D, "strong").Count, "script markup does not create elements");
                 Eq(0, Nodes(tokenPage.D, "not-a-tag").Count, "style markup does not create elements");
@@ -610,11 +631,13 @@ namespace Lea.Tests
                     for (var node = 0; node < 9000; node++) boundedHtml.Append("<i>x</i>");
                     boundedHtml.Append("</body></html>");
                     File.WriteAllText(boundedTreePath, boundedHtml.ToString());
-                    var boundedTree = new E().Go(boundedTreePath);
+                    var treeEngine = new E();
+                    var boundedTree = treeEngine.Go(boundedTreePath);
                     Eq(8192, TreeNodes(boundedTree.D), "bounded HTML node count");
                     Ok(boundedTree.N < 8192, "bounded HTML element count");
                     Eq(128, ById(boundedTree.D, "attrs").A.Count, "bounded HTML attribute count");
                     Ok(NodeDepth(boundedTree.D) <= 129, "bounded HTML tree depth");
+                    Eq(256, treeEngine.Qa(boundedTree, "i").Count, "bounded query result count");
                 }
                 finally { File.Delete(boundedTreePath); }
 
@@ -1027,6 +1050,10 @@ namespace Lea.Tests
                     view.Go(selectorPath);
                     Paint(view);
                     Eq(12, view.At.Bs.Count, "relationship selector render blocks");
+                    Eq("stage", view.Id("stage").Av("id"), "WinForms Id query");
+                    Eq("Direct child", NodeText(view.Q1("#stage > p.direct")), "WinForms first query");
+                    Eq(3, view.Qa(".card").Count, "WinForms all query");
+                    Eq("", view.Q, "WinForms URL query alias remains available");
                     var firstCard = BlockRect(view, view.At.Bs[5]);
                     var secondCard = BlockRect(view, view.At.Bs[6]);
                     var thirdCard = BlockRect(view, view.At.Bs[7]);
@@ -1702,7 +1729,7 @@ namespace Lea.Tests
                 if (args.Length > 3) SaveEventRender(eventPath, args[3]);
                 if (args.Length > 4) SaveRender(tokenPath, args[4]);
 
-                Console.WriteLine("Lea smoke passed: bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: bounded Id/Q/Qa document queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)

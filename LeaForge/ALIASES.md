@@ -83,6 +83,14 @@ an active network request. The shorter synchronous forms remain useful for tests
 `P.Q` preserves the URL query, including on local `file:` pages where older
 .NET Framework URI parsing does not expose it through `Uri.Query`.
 
+Document lookup stays short and bounded. `E.Id(page, id)` finds the first ID,
+`E.Q(page, selector)` finds the first document-order selector match, and
+`E.Qa(page, selector)` returns a read-only list of at most 256 matches. Queries
+reuse Lea's compiled CSS subset and accept up to 1,024 characters, 16 groups,
+and 16 total selector parts. `V.Id` and `V.Qa` forward the same operations;
+`V.Q1` is first-match because the established `V.Q` alias remains the page URL
+query string.
+
 Computed style uses `S`: `F` is foreground color, `Bg` is background, `Fs` is
 font size, `Ff` is a font fallback list, `B` is bold, `I` is italic, and `D` is
 display behavior. `Td` is decoration using `n/u/s/us` for none, underline,

@@ -208,6 +208,12 @@ are capped at 64 MB, decoded for gzip/deflate transport encoding, and committed
 through a temporary file. `E.Fd` provides bounded text counts, while
 `V.Fd`/`Nx`/`Pr`/`Fc` manage highlighted painted matches and scrolling.
 
+Hosts can inspect the compact `N` tree without maintaining a second selector
+implementation. `E.Id(page, id)`, `E.Q(page, selector)`, and `E.Qa(page,
+selector)` provide ID, first-match, and bounded all-match lookup. `Qa` returns a
+read-only list capped at 256 nodes. `V` forwards these as `Id`, `Q1`, and `Qa`;
+`V.Q` remains the current URL query string for compatibility.
+
 Developer hosts call `E.Dg(page)` or `V.Dg()` for a compact `G` snapshot rather
 than reflecting into the renderer. Counts cover the response, document, CSS,
 commands, cache, and cookies. Bounded lists expose redacted node summaries,
