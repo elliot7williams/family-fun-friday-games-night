@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea time and edit metadata</title>
+  <style>
+    body { background: #f8fafc; color: #172033; font-family: Arial; }
+    .semantic-block { display: block; width: 280px; padding: 8px; border: 2px solid #176b4d; color: #176b4d; }
+    .semantic-block em { color: #123f8c; font-style: italic; }
+    .hot { color: #b91c1c; border-color: #b91c1c; }
+    table { width: 340px; border: 1px solid #64748b; }
+    td { padding: 6px; }
+    td time { color: #123f8c; }
+  </style>
+</head>
+<body>
+  <time class="semantic-block" id="release-time" datetime="2026-08-21T19:00-04:00" cite="go-target.html#ignored">August 21, 2026</time>
+  <p id="inline-semantic">Published <time id="inline-time">2026-08-21</time>. <ins id="inline-ins" cite="go-target.html#change" datetime="2026-08-21T19:05-04:00"><strong>New</strong> engine metadata</ins>. <del id="inline-del" cite="javascript:alert(1)" datetime="2026-08-20">old metadata</del>.</p>
+  <ins class="semantic-block" id="added-block" cite="go-target.html#added" datetime="2026-08-21T19:10-04:00">Added <em>semantic</em> values</ins>
+  <del class="semantic-block" id="removed-block" cite="go-target.html#removed" datetime="2026-08-20T18:00-04:00">Removed old values</del>
+  <table id="semantic-table">
+    <tr>
+      <td><time id="cell-time" datetime="2026-08-21T19:30-04:00">7:30 PM</time></td>
+      <td><del id="cell-del" cite="go-target.html#cell" datetime="2026-08-21"><em>Cell old</em></del></td>
+    </tr>
+  </table>
+  <time id="live-time">initial</time>
+  <time id="fixed-time" datetime="2026-08-21">initial label</time>
+  <button id="update-live" type="button" data-lea="tx('live-time','2026-08-22')">Update text date</button>
+  <button id="update-fixed" type="button" data-lea="tx('fixed-time','Updated date label')">Update date label</button>
+  <button id="style-added" type="button" data-lea="ac('added-block','hot')">Style inserted text</button>
+</body>
+</html>

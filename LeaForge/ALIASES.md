@@ -143,15 +143,20 @@ Progress uses `In` for the indeterminate state. Numeric attribute text is capped
 at 64 characters, finite values are capped at +/-10^12, malformed values use
 HTML defaults, and every result is clamped before layout or painting.
 
-Output and data elements expose one compact `Dv` value model. `P.Dvs` is the
+Output, data, time, and edit elements expose one compact `Dv` value model. `P.Dvs` is the
 page's ordered value list, while `B.Dv` and `Ir.Dv` connect block and inline
-paint records to the same object. `K` is `o` for output or `d` for data, `V` is
-the output text or machine-readable data value, and `X` is visible text. Output
-metadata uses `N` for name, `Fo` for form owner, and `F` for ordered unique
-`for` ID tokens; `El` retains the owning document element. Values and text are
-capped at 4,096 characters, names at 256, form/reference tokens at 128, and
+paint records to the same object. `K` is `o` for output, `d` for data, `t` for
+time, `i` for inserted text, or `r` for removed text. `V` is current or
+machine-readable content and `X` is visible text. `Dt` exposes bounded authored
+`datetime` metadata; a time element without that attribute uses its text.
+`U` resolves an edit's `cite` through `P.Bu` and accepts only file, HTTP, or
+HTTPS targets. Citations stay private metadata and do not create links or
+navigate. Output metadata uses `N` for name, `Fo` for form owner, and `F` for
+ordered unique `for` ID tokens; `El` retains the owning document element.
+Values and text are capped at 4,096 characters, datetime text at 128, names at
+256, form/reference tokens at 128, citations at 4,096 input characters, and
 references at 32. `tx/text` remains capped at 512 characters and rebuilds all
-aliases without changing a data element's machine value or duplicating models.
+aliases without changing authored data/time machine values or duplicating models.
 
 Computed style uses `S`: `F` is foreground color, `Bg` is background, `Fs` is
 font size, `Ff` is a font fallback list, `B` is bold, `I` is italic, and `D` is

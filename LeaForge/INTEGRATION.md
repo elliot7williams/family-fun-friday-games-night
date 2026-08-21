@@ -100,6 +100,14 @@ provide one-letter kind, bounded current and visible values, output metadata,
 and DOM ownership. Safe `tx/text` and class commands rebuild these aliases while
 preserving computed styles, form fields, and a data element's machine value.
 
+Supported `<time>`, `<ins>`, and `<del>` elements extend that model without a
+new host control. `K=t/i/r` identifies the semantic kind, `Dt` carries bounded
+authored datetime text, and `U` carries only a safely resolved file, HTTP, or
+HTTPS edit citation. A time element without `datetime` derives `V/Dt` from its
+child text. Citations remain metadata rather than entering `P.Ls` or navigation.
+The same `B.Dv`/`Ir.Dv` ownership covers inline, standalone, and table content,
+including native decoration and text/class rebuilds.
+
 Parsed table blocks expose `B.Tb`, with `Tb.Rs`, `Tr.Cs`, and compact `Tc` cell
 records. `V` paints these on the same lightweight surface with shared row
 heights, CSS cell boxes, wrapped text, bounded column spans, and resize reflow.

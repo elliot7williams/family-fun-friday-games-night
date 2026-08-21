@@ -285,6 +285,14 @@ and safe `tx/text` updates retain their 512-character ceiling. Inline styles,
 standalone blocks, table cells, class/text rebuilds, and resize remain on Lea's
 custom renderer and share the fixture in `values.html`.
 
+Time and edit elements now reuse the same `Dv` ownership path. Compact `K`
+values `t/i/r` distinguish time, inserted, and removed content; `Dt` retains at
+most 128 authored datetime characters and `U` resolves bounded edit citations
+only through file, HTTP, or HTTPS. A time without `datetime` uses its child text
+as the machine value. Citations never become navigation links. Native
+underline/strike style, nested inline ownership, standalone and table blocks,
+safe rebuilds, resize, and Firespider hosting share `time-edits.html`.
+
 HTML tokenization now uses a small quote-aware scanner rather than a single
 tag-splitting regex. It recognizes comments and declarations, preserves raw
 `script/style` text, decodes title/textarea RCDATA and normal text entities,

@@ -104,7 +104,7 @@ namespace Lea.Bench
                 "tables.html", "forms.html", "events-vars.html", "responsive-media.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
-                "values.html"
+                "values.html", "time-edits.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -309,6 +309,28 @@ namespace Lea.Bench
                 }
                 return "Dv aliases, 4096-char values, 32 unique references, inline/block/table ownership, 512-char updates, rebuilds, and resize";
             });
+            AddProbe(probes, "Bounded time and edit metadata", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "time-edits.html"));
+                var release = page.Dvs.First(value => value.El.Av("id") == "release-time");
+                var inserted = page.Dvs.First(value => value.El.Av("id") == "inline-ins");
+                var removed = page.Dvs.First(value => value.El.Av("id") == "inline-del");
+                Need(page.Dvs.Count == 10 && release.K == "t" && release.V == "2026-08-21T19:00-04:00" && release.Dt == release.V, "time aliases changed");
+                Need(inserted.K == "i" && inserted.U == new Uri(page.Bu, "go-target.html#change") && inserted.Dt == "2026-08-21T19:05-04:00", "inserted metadata changed");
+                Need(removed.K == "r" && removed.U == null, "unsafe removed citation was accepted");
+                Need(page.Bs.SelectMany(block => block.Is).Any(run => Object.ReferenceEquals(run.Dv, inserted) && run.S.Td.IndexOf('u') >= 0), "inserted inline ownership or decoration changed");
+                Need(page.Bs.SelectMany(block => block.Is).Any(run => Object.ReferenceEquals(run.Dv, removed) && run.S.Td.IndexOf('s') >= 0), "removed inline ownership or decoration changed");
+                Need(engine.Ck(page, ById(page.D, "update-live")) == 1 && page.Dvs.First(value => value.El.Av("id") == "live-time").Dt == "2026-08-22", "text time rebuild failed");
+                using (var view = NewView())
+                {
+                    view.Go(Path.Combine(folder, "time-edits.html"));
+                    using (var image = Draw(view)) Need(view.Bc > 0 && ColoredSamples(image) > 0, "time and edit layout is blank");
+                    view.Size = new Size(160, 800);
+                    using (var image = Draw(view)) Need(view.At.Dvs.Count == 10 && view.Bc > 0, "time and edit resize path changed");
+                }
+                return "Dv t/i/r aliases, 128-char datetimes, safe resolved citations, unsafe-scheme rejection, native decoration, ownership, rebuilds, tables, and resize";
+            });
             AddProbe(probes, "CSS selectors and cascade", delegate
             {
                 var engine = new E();
@@ -480,7 +502,7 @@ namespace Lea.Bench
             builder.AppendLine("| Area | Status | Lea 1.0 scope |");
             builder.AppendLine("| --- | --- | --- |");
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
-            Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, list markers, details disclosures, progress/meter gauges, output/data values, tables, and forms; not the full Living Standard");
+            Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, list markers, details disclosures, progress/meter gauges, output/data values, time/edit metadata, tables, and forms; not the full Living Standard");
             Capability(builder, "CSS", "Partial", "Compiled selector subset, cascade, box/text styles, visibility, positioning, transforms, and responsive image sizing");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms block, inline, table, form, image, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
@@ -494,6 +516,7 @@ namespace Lea.Bench
             Capability(builder, "Same-page fragments", "Supported", "Bounded Ft/Fg/Rv lookup, retained 128-entry history, details reveal, target scrolling, and no-fetch Back/Forward");
             Capability(builder, "Progress and meter gauges", "Supported", "Compact Vm values, finite normalization, meter quality regions, inherited styles, table cells, and custom paint");
             Capability(builder, "Output and data values", "Supported", "Compact Dv values, bounded references and text, host aliases, inline/block/table ownership, and safe rebuilds");
+            Capability(builder, "Time and edit metadata", "Supported", "Compact Dv t/i/r values, bounded datetime and citation aliases, safe schemes, native decorations, inline/block/table ownership, and safe rebuilds");
             Capability(builder, "Accessibility", "Partial", "Keyboard focus and native fields are present; a complete accessibility tree is not");
             builder.AppendLine();
             builder.AppendLine("## Binary Footprint");

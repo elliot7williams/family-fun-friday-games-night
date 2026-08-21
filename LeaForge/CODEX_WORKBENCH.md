@@ -17,7 +17,7 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-1. Add compact `<time>`, `<ins>`, and `<del>` semantic metadata with bounded date/citation aliases.
+1. Add bounded `<map>`/`<area>` image-map targets with compact hit regions and resize coverage.
 2. Expand the safe command set only through bounded, fixture-backed aliases.
 3. Keep strengthening host tests as more legacy tab routes move to Lea.
 
@@ -59,6 +59,11 @@ Output and data elements now expose compact `P.Dvs`, `B.Dv`, and `Ir.Dv` state.
 Bounded current/visible values, output references, form/name metadata, DOM
 ownership, safe updates, table cells, style rebuilds, and resize share
 `values.html` without adding native controls.
+Time and edit elements now reuse that compact value path. `K=t/i/r`, `Dt`, and
+`U` expose bounded machine-readable time, authored edit dates, and safe resolved
+citations. Native insert/remove decoration, inline and block ownership, table
+cells, text/class rebuilds, Firespider hosting, and resize share
+`time-edits.html` without adding native controls or citation navigation.
 
 ## Rules For Future Codex Work
 

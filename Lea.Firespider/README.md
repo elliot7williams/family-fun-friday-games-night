@@ -51,6 +51,12 @@ read ordered `P.Dvs` values or the matching `B.Dv`/`Ir.Dv` paint ownership,
 including bounded output references, data machine values, and safe text/class
 rebuilds, without adding per-value WinForms controls.
 
+Time, inserted, and removed elements reuse that model with `K=t/i/r`, bounded
+`Dt` date text, and a safe file/HTTP/HTTPS citation `U`. Citations remain host
+metadata rather than clickable links. Native underline/strike painting,
+inline/block/table ownership, and safe text/class rebuilds stay inside the same
+custom surface; the off-screen Firespider smoke reads and updates these aliases.
+
 Firespider can read `V.Dg()` for bounded response, document, CSS, request,
 command, cache, and cookie diagnostics without reflecting into Lea internals.
 The snapshot omits mutable form values, passwords, and selected file paths.

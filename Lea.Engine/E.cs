@@ -2598,7 +2598,7 @@ namespace Lea.Engine
 
         private static bool ValueTag(string kind)
         {
-            return kind == "output" || kind == "data";
+            return kind == "output" || kind == "data" || kind == "time" || kind == "ins" || kind == "del";
         }
 
         private static void AddValueBlock(P page, N node, Uri baseUrl, List<R> rules, S style)
@@ -2610,7 +2610,7 @@ namespace Lea.Engine
         private static B ValueBlock(P page, N node, Uri baseUrl, List<R> rules, S style)
         {
             var text = TextValue(RawText(node), style);
-            var model = ValueModel(page, node, text);
+            var model = ValueModel(page, node, text, baseUrl);
             var block = new B { K = node.K, X = text, S = style, Dv = model, El = node };
             if (HasInlineStructure(node))
             {
@@ -2621,15 +2621,21 @@ namespace Lea.Engine
             return block;
         }
 
-        private static Dv ValueModel(P page, N node, string text)
+        private static Dv ValueModel(P page, N node, string text, Uri baseUrl)
         {
+            var raw = RawText(node);
+            var datetime = BoundValue(node.Av("datetime").Trim(), 128);
+            Uri citation;
+            if ((node.K != "ins" && node.K != "del") || !CitationUri(baseUrl, node.Av("cite"), out citation)) citation = null;
             var model = new Dv
             {
-                K = node.K == "output" ? "o" : "d",
+                K = ValueKind(node.K),
                 X = BoundValue(text, 4096),
-                V = BoundValue(node.K == "output" ? RawText(node) : node.Av("value"), 4096),
+                V = BoundValue(node.K == "data" ? node.Av("value") : node.K == "time" && node.A.ContainsKey("datetime") ? datetime : raw, 4096),
                 N = BoundValue(node.Av("name").Trim(), 256),
                 Fo = BoundValue(node.Av("form").Trim(), 128),
+                Dt = node.K == "time" && datetime.Length == 0 && !node.A.ContainsKey("datetime") ? BoundValue(raw, 128) : datetime,
+                U = citation,
                 El = node
             };
             var seen = new HashSet<string>(StringComparer.Ordinal);
@@ -2642,6 +2648,23 @@ namespace Lea.Engine
             }
             page.Dvs.Add(model);
             return model;
+        }
+
+        private static string ValueKind(string kind)
+        {
+            if (kind == "output") return "o";
+            if (kind == "data") return "d";
+            if (kind == "time") return "t";
+            if (kind == "ins") return "i";
+            return "r";
+        }
+
+        private static bool CitationUri(Uri baseUrl, string value, out Uri url)
+        {
+            url = null;
+            value = (value ?? "").Trim();
+            if (value.Length == 0 || value.Length > 4096 || !TryUri(baseUrl, value, out url)) return false;
+            return url.IsFile || url.Scheme == Uri.UriSchemeHttp || url.Scheme == Uri.UriSchemeHttps;
         }
 
         private static string BoundValue(string value, int max)
@@ -2910,7 +2933,7 @@ namespace Lea.Engine
             var link = activeLink;
             var kind = node.K;
             var value = inheritedValue;
-            if (ValueTag(node.K)) value = ValueModel(page, node, TextValue(RawText(node), style));
+            if (ValueTag(node.K)) value = ValueModel(page, node, TextValue(RawText(node), style), baseUrl);
             if (node.K == "a")
             {
                 Uri target;
@@ -3116,7 +3139,7 @@ namespace Lea.Engine
         {
             if (kind == "strong" || kind == "b") style.B = true;
             if (kind == "em" || kind == "i") style.I = true;
-            if (kind == "u") AddDecoration(style, 'u');
+            if (kind == "u" || kind == "ins") AddDecoration(style, 'u');
             if (kind == "s" || kind == "strike" || kind == "del") AddDecoration(style, 's');
         }
 

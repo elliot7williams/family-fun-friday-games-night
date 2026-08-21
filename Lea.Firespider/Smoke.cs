@@ -27,7 +27,7 @@ namespace Lea.Firespider
             try
             {
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", session);
-                File.WriteAllText(openPage, "<!doctype html><html><head><title>Lea Open Route</title><style>.hot{color:#b91c1c;font-weight:bold}.host-gauge{color:#176b4d;width:180px;height:16px}.host-value{color:#123f8c;width:180px}</style><script type='text/lea'>v('who','Firespider')</script></head><body><p>Open route fixture</p><p>Second route match</p><p>Third ROUTE match</p><p id='class-state'>Waiting for class state</p><p id='state'>Waiting for host click</p><button id='host-action' type='button' data-lea=\"tx('state','Hello ${who}'); v('last','click'); a('Safe host click')\">Run safe action</button><progress class='host-gauge' id='host-progress' max='10' value='4'>4 of 10</progress><meter class='host-gauge' id='host-meter' min='0' max='4' value='3'>3 of 4</meter><output class='host-value' id='host-output' name='total' for='host-data'>Host total</output><data class='host-value' id='host-data' value='lea-host'>Host label</data><button id='host-value-update' type='button' data-lea=\"tx('host-output','Updated host total')\">Update host value</button></body></html>");
+                File.WriteAllText(openPage, "<!doctype html><html><head><title>Lea Open Route</title><style>.hot{color:#b91c1c;font-weight:bold}.host-gauge{color:#176b4d;width:180px;height:16px}.host-value{color:#123f8c;width:180px}</style><script type='text/lea'>v('who','Firespider')</script></head><body><p>Open route fixture</p><p>Second route match</p><p>Third ROUTE match</p><p id='class-state'>Waiting for class state</p><p id='state'>Waiting for host click</p><button id='host-action' type='button' data-lea=\"tx('state','Hello ${who}'); v('last','click'); a('Safe host click')\">Run safe action</button><progress class='host-gauge' id='host-progress' max='10' value='4'>4 of 10</progress><meter class='host-gauge' id='host-meter' min='0' max='4' value='3'>3 of 4</meter><output class='host-value' id='host-output' name='total' for='host-data'>Host total</output><data class='host-value' id='host-data' value='lea-host'>Host label</data><time class='host-value' id='host-time'>2026-08-21</time><ins class='host-value' id='host-edit' cite='go-target.html#host' datetime='2026-08-21T19:00-04:00'>Host edit</ins><button id='host-value-update' type='button' data-lea=\"tx('host-output','Updated host total')\">Update host value</button><button id='host-time-update' type='button' data-lea=\"tx('host-time','2026-08-22')\">Update host time</button></body></html>");
                 var root = args.Length > 0 ? args[0] : AppDomain.CurrentDomain.BaseDirectory;
                 var assembly = Assembly.LoadFrom(Path.Combine(root, "Firespider Internet 19.exe"));
                 var type = assembly.GetType("Firespider_Internet.j", true);
@@ -108,7 +108,9 @@ namespace Lea.Firespider
                     WaitFor(() => host.At != null && host.T == "Lea Open Route", "Firespider Open File routed to Lea");
                     Check(opened, "Firespider Open File capability");
                     Check(BlockById(host.At, "host-progress").Vm.R == 0.4D && BlockById(host.At, "host-meter").Vm.R == 0.75D, "Firespider compact gauge models");
-                    Check(host.At.Dvs.Count == 2 && ValueById(host.At, "host-output").V == "Host total" && ValueById(host.At, "host-data").V == "lea-host", "Firespider compact output and data models");
+                    Check(host.At.Dvs.Count == 4 && ValueById(host.At, "host-output").V == "Host total" && ValueById(host.At, "host-data").V == "lea-host", "Firespider compact output and data models");
+                    Check(ValueById(host.At, "host-time").K == "t" && ValueById(host.At, "host-time").Dt == "2026-08-21", "Firespider compact time model");
+                    Check(ValueById(host.At, "host-edit").K == "i" && ValueById(host.At, "host-edit").U == new Uri(host.At.Bu, "go-target.html#host") && BlockById(host.At, "host-edit").S.Td.IndexOf('u') >= 0, "Firespider compact edit model");
                     var fragmentPage = host.At;
                     var fragmentRequests = host.Dg().Rs.Count;
                     host.GoA("#state").GetAwaiter().GetResult();
@@ -120,8 +122,9 @@ namespace Lea.Firespider
                     Check(ById(host.At.D, "state").C[0].X == "Hello Firespider" && host.At.Vs["last"] == "click", "Firespider safe click state");
                     Check(Member<Label>(form, "su").Text == "Lea: Safe host click", "Firespider safe click alert status");
                     Check(host.Ck(ById(host.At.D, "host-value-update")) == 1 && ValueById(host.At, "host-output").V == "Updated host total", "Firespider output value rebuild");
+                    Check(host.Ck(ById(host.At.D, "host-time-update")) == 1 && ValueById(host.At, "host-time").Dt == "2026-08-22", "Firespider time metadata rebuild");
                     var diagnostics = host.Dg();
-                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 6 && diagnostics.Rs.Count > 0, "Firespider Lea diagnostics");
+                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 7 && diagnostics.Rs.Count > 0, "Firespider Lea diagnostics");
                     var inspectorOpen = type.GetMethod("qleaInspectorOpen", BindingFlags.Instance | BindingFlags.NonPublic);
                     var inspectorSnapshot = type.GetMethod("qleaInspectorSnapshot", BindingFlags.Instance | BindingFlags.NonPublic);
                     var inspectorClear = type.GetMethod("qleaInspectorClear", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -217,7 +220,7 @@ namespace Lea.Firespider
                     Check(restoredTabs.TabCount == beforeMiddle - 1 && FindLea(restoredTabs) == null, "middle-click Lea tab close");
                 }
 
-                Console.WriteLine("Firespider Lea smoke passed: compact output/data values and safe rebuilds, progress and meter gauges, retained same-page fragments, Lea-first New Tab and explicit legacy fallback, host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, keyboard navigation, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
+                Console.WriteLine("Firespider Lea smoke passed: compact time/edit metadata, output/data values and safe rebuilds, progress and meter gauges, retained same-page fragments, Lea-first New Tab and explicit legacy fallback, host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, keyboard navigation, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
                 return 0;
             }
             catch (Exception error)

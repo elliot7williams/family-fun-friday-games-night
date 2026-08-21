@@ -895,6 +895,76 @@ namespace Lea.Tests
                     if (File.Exists(boundedValuePath)) File.Delete(boundedValuePath);
                 }
 
+                var timePath = Path.Combine(root, "LeaForge", "test-pages", "time-edits.html");
+                var timeEngine = new E();
+                var timePage = timeEngine.Go(timePath);
+                Eq(10, timePage.Dvs.Count, "bounded time and edit collection");
+                var releaseTime = ValueById(timePage, "release-time");
+                Eq("t", releaseTime.K, "time value kind alias");
+                Eq("2026-08-21T19:00-04:00", releaseTime.V, "time machine value alias");
+                Eq("August 21, 2026", releaseTime.X, "time visible text alias");
+                Eq("2026-08-21T19:00-04:00", releaseTime.Dt, "time datetime alias");
+                Ok(releaseTime.U == null && Object.ReferenceEquals(releaseTime, BlockById(timePage, "release-time").Dv), "standalone time ownership");
+
+                var inlineTime = ValueById(timePage, "inline-time");
+                Eq("2026-08-21", inlineTime.V, "text time machine value");
+                Eq("2026-08-21", inlineTime.Dt, "text time datetime value");
+                Ok(RunByValue(BlockById(timePage, "inline-semantic"), inlineTime) != null, "inline time run ownership");
+                var inlineIns = ValueById(timePage, "inline-ins");
+                Eq("i", inlineIns.K, "inserted value kind alias");
+                Eq("2026-08-21T19:05-04:00", inlineIns.Dt, "inserted datetime alias");
+                Eq(new Uri(timePage.Bu, "go-target.html#change"), inlineIns.U, "resolved inserted citation alias");
+                var insertedRun = RunByValue(BlockById(timePage, "inline-semantic"), inlineIns);
+                Ok(insertedRun != null && insertedRun.S.Td.IndexOf('u') >= 0, "inserted text default underline and ownership");
+                var insertedBold = false;
+                foreach (var run in BlockById(timePage, "inline-semantic").Is)
+                    if (Object.ReferenceEquals(run.Dv, inlineIns) && run.S.B) insertedBold = true;
+                Ok(insertedBold, "inserted text keeps nested computed style");
+                var inlineDel = ValueById(timePage, "inline-del");
+                Eq("r", inlineDel.K, "removed value kind alias");
+                Ok(inlineDel.U == null, "unsafe removed citation rejected");
+                var removedRun = RunByValue(BlockById(timePage, "inline-semantic"), inlineDel);
+                Ok(removedRun != null && removedRun.S.Td.IndexOf('s') >= 0, "removed text default strike and ownership");
+
+                var addedValue = ValueById(timePage, "added-block");
+                var addedBlock = BlockById(timePage, "added-block");
+                Ok(Object.ReferenceEquals(addedValue, addedBlock.Dv) && addedValue.U == new Uri(timePage.Bu, "go-target.html#added"), "standalone inserted metadata ownership");
+                var addedItalic = false;
+                foreach (var run in addedBlock.Is)
+                    if (Object.ReferenceEquals(run.Dv, addedValue) && run.S.I) addedItalic = true;
+                Ok(addedItalic, "standalone inserted text keeps nested style");
+                var cellTime = ValueById(timePage, "cell-time");
+                var cellRemoved = ValueById(timePage, "cell-del");
+                Ok(Object.ReferenceEquals(BlockById(timePage, "cell-time").Dv, cellTime), "table time metadata ownership");
+                var cellRemovedRun = RunByValue(BlockById(timePage, "cell-del"), cellRemoved);
+                Ok(cellRemovedRun != null && cellRemovedRun.S.I && cellRemovedRun.S.Td.IndexOf('s') >= 0, "table removed text keeps nested style and ownership");
+
+                Eq(1, timeEngine.Ck(timePage, ById(timePage.D, "update-live")), "safe text time update command");
+                var liveTime = ValueById(timePage, "live-time");
+                Ok(liveTime.V == "2026-08-22" && liveTime.Dt == "2026-08-22" && liveTime.X == "2026-08-22", "text time metadata rebuild");
+                Eq(1, timeEngine.Ck(timePage, ById(timePage.D, "update-fixed")), "safe authored time label update command");
+                var fixedTime = ValueById(timePage, "fixed-time");
+                Ok(fixedTime.V == "2026-08-21" && fixedTime.Dt == "2026-08-21" && fixedTime.X == "Updated date label", "authored datetime survives label rebuild");
+                Eq(1, timeEngine.Ck(timePage, ById(timePage.D, "style-added")), "safe inserted class update command");
+                Eq("#b91c1c", BlockById(timePage, "added-block").S.F, "inserted computed style rebuilds after class update");
+                Eq(10, timePage.Dvs.Count, "time and edit rebuild does not duplicate models");
+
+                var boundedTimePath = Path.Combine(Path.GetTempPath(), "lea-time-edits-" + Guid.NewGuid().ToString("N") + ".html");
+                try
+                {
+                    var longDate = new string('d', 200);
+                    var longCitation = new string('c', 4200);
+                    File.WriteAllText(boundedTimePath, "<!doctype html><html><body><time id='bound-time' datetime='" + longDate + "'>label</time><ins id='bound-edit' cite='" + longCitation + "' datetime='" + longDate + "'>edit</ins></body></html>", new UTF8Encoding(false));
+                    var boundedTimePage = new E().Go(boundedTimePath);
+                    Eq(128, ValueById(boundedTimePage, "bound-time").Dt.Length, "time datetime cap");
+                    Eq(128, ValueById(boundedTimePage, "bound-edit").Dt.Length, "edit datetime cap");
+                    Ok(ValueById(boundedTimePage, "bound-edit").U == null, "oversized edit citation rejected");
+                }
+                finally
+                {
+                    if (File.Exists(boundedTimePath)) File.Delete(boundedTimePath);
+                }
+
                 var tokenPath = Path.Combine(root, "LeaForge", "test-pages", "html-tokens.html");
                 var tokenEngine = new E();
                 var tokenPage = tokenEngine.Go(tokenPath);
@@ -1924,6 +1994,22 @@ namespace Lea.Tests
                     Paint(view);
                     var narrowValueRect = BlockRect(view, BlockById(view.At, "total-output"));
                     Ok(narrowValueRect.Width > 0 && narrowValueRect.Width < wideValueWidth && view.At.Dvs.Count == 7, "output value reflows without rebuilding models");
+
+                    view.Size = new Size(640, 900);
+                    view.Go(timePath);
+                    Paint(view);
+                    var viewReleaseTime = BlockById(view.At, "release-time");
+                    var wideTimeRect = BlockRect(view, viewReleaseTime);
+                    Ok(!wideTimeRect.IsEmpty && viewReleaseTime.Dv != null && viewReleaseTime.Dv.K == "t", "WinForms time metadata layout");
+                    var semanticTable = BlockById(view.At, "semantic-table");
+                    var viewCellRemoved = BlockById(view.At, "cell-del");
+                    var cellRemovedRect = BlockRect(view, viewCellRemoved);
+                    Ok(!cellRemovedRect.IsEmpty && ContainingCell(view, semanticTable, cellRemovedRect).Contains(cellRemovedRect), "removed metadata lays out inside table cell");
+                    var wideTimeWidth = wideTimeRect.Width;
+                    view.Size = new Size(160, 900);
+                    Paint(view);
+                    var narrowTimeRect = BlockRect(view, BlockById(view.At, "release-time"));
+                    Ok(narrowTimeRect.Width > 0 && narrowTimeRect.Width < wideTimeWidth && view.At.Dvs.Count == 10, "time metadata reflows without rebuilding models");
 
                     view.Size = new Size(720, 760);
                     view.Go(Path.Combine(root, "LeaForge", "test-pages", "scroll.html"));
