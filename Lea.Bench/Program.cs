@@ -104,7 +104,7 @@ namespace Lea.Bench
                 "tables.html", "forms.html", "events-vars.html", "responsive-media.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
-                "values.html", "time-edits.html"
+                "values.html", "time-edits.html", "image-maps.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -331,6 +331,27 @@ namespace Lea.Bench
                 }
                 return "Dv t/i/r aliases, 128-char datetimes, safe resolved citations, unsafe-scheme rejection, native decoration, ownership, rebuilds, tables, and resize";
             });
+            AddProbe(probes, "Bounded responsive image maps", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "image-maps.html"));
+                var map = page.Mps.First();
+                var image = page.Bs.First(block => block.El != null && block.El.Av("id") == "mapped");
+                Need(page.Mps.Count == 2 && map.N == "LeaMap" && map.As.Count == 7, "image map collection changed");
+                Need(map.As[0].U == null && map.As[1].K == "r" && map.As[1].Cs.SequenceEqual(new[] { 0D, 0D, 100D, 80D }), "rectangle or dead area model changed");
+                Need(map.As[2].K == "c" && map.As[2].Cs.Count == 3 && map.As[3].K == "p" && map.As[3].Cs.Count == 8, "circle or polygon model changed");
+                Need(map.As[4].Cs.Count == 0 && map.As[5].Cs.Count == 0 && map.As[6].K == "d", "empty/default area model changed");
+                Need(Object.ReferenceEquals(image.Mp, map) && image.Mw == 320 && image.Mh == 160 && page.Ls.Count == 6, "image map ownership or links changed");
+                Need(engine.Ck(page, ById(page.D, "style-map")) == 1 && page.Mps.Count == 2 && page.Bs.First(block => block.El != null && block.El.Av("id") == "mapped").S.W == 240, "image map rebuild failed");
+                using (var view = NewView())
+                {
+                    view.Go(Path.Combine(folder, "image-maps.html"));
+                    using (var bitmap = Draw(view)) Need(view.Bc > 0 && ColoredSamples(bitmap) > 0, "image map layout is blank");
+                    view.Size = new Size(180, 800);
+                    using (var bitmap = Draw(view)) Need(view.At.Mps.Count == 2 && view.Bc > 0, "image map resize path changed");
+                }
+                return "Mp/Ar aliases, rect/circle/poly/default and dead areas, 32 maps, 64 areas, 128 coordinates, responsive scaling, rebuilds, and paint";
+            });
             AddProbe(probes, "CSS selectors and cascade", delegate
             {
                 var engine = new E();
@@ -502,7 +523,7 @@ namespace Lea.Bench
             builder.AppendLine("| Area | Status | Lea 1.0 scope |");
             builder.AppendLine("| --- | --- | --- |");
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
-            Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, list markers, details disclosures, progress/meter gauges, output/data values, time/edit metadata, tables, and forms; not the full Living Standard");
+            Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
             Capability(builder, "CSS", "Partial", "Compiled selector subset, cascade, box/text styles, visibility, positioning, transforms, and responsive image sizing");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms block, inline, table, form, image, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
@@ -517,6 +538,7 @@ namespace Lea.Bench
             Capability(builder, "Progress and meter gauges", "Supported", "Compact Vm values, finite normalization, meter quality regions, inherited styles, table cells, and custom paint");
             Capability(builder, "Output and data values", "Supported", "Compact Dv values, bounded references and text, host aliases, inline/block/table ownership, and safe rebuilds");
             Capability(builder, "Time and edit metadata", "Supported", "Compact Dv t/i/r values, bounded datetime and citation aliases, safe schemes, native decorations, inline/block/table ownership, and safe rebuilds");
+            Capability(builder, "Image maps", "Supported subset", "Compact Mp/Ar models, rect/circle/poly/default and dead areas, bounded coordinates, scaled custom hit regions, area links/downloads, and safe rebuilds");
             Capability(builder, "Accessibility", "Partial", "Keyboard focus and native fields are present; a complete accessibility tree is not");
             builder.AppendLine();
             builder.AppendLine("## Binary Footprint");

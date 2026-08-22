@@ -293,6 +293,16 @@ as the machine value. Citations never become navigation links. Native
 underline/strike style, nested inline ownership, standalone and table blocks,
 safe rebuilds, resize, and Firespider hosting share `time-edits.html`.
 
+Image maps now use `P.Mps`, image-owned `B.Mp`, and compact `Ar` areas. Named
+maps and hash references are bounded; rectangle, circle, polygon, default, and
+dead shapes retain finite capped coordinates and DOM ownership. `B.Mw/Mh`
+separate the authored coordinate canvas from current CSS layout, allowing one
+shape-aware hit path to scale, clip, rebuild, and preserve first-area priority.
+Area links, fragments, commands, and downloads stay on existing host routes.
+Malformed shapes stay readable but inert. Engine, WinForms, resize, and
+Firespider coverage share `image-maps.html`; keyboard area traversal remains the
+next interaction step.
+
 HTML tokenization now uses a small quote-aware scanner rather than a single
 tag-splitting regex. It recognizes comments and declarations, preserves raw
 `script/style` text, decodes title/textarea RCDATA and normal text entities,

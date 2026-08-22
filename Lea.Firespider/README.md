@@ -57,6 +57,13 @@ metadata rather than clickable links. Native underline/strike painting,
 inline/block/table ownership, and safe text/class rebuilds stay inside the same
 custom surface; the off-screen Firespider smoke reads and updates these aliases.
 
+Image maps remain on Lea's surface as well. Firespider can enumerate `P.Mps`,
+follow an image's `B.Mp`, and inspect bounded `Ar.K/Cs/U/T/El` area data.
+Rectangle, circle, polygon, default, and dead regions scale from `B.Mw/Mh` to
+the settled image, clip with it, and preserve first-area priority. Area links,
+fragments, click commands, and downloads reuse existing host routes. The
+off-screen host smoke paints a mapped image and verifies its live hit cache.
+
 Firespider can read `V.Dg()` for bounded response, document, CSS, request,
 command, cache, and cookie diagnostics without reflecting into Lea internals.
 The snapshot omits mutable form values, passwords, and selected file paths.

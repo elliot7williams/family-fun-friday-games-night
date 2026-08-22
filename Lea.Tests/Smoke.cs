@@ -452,6 +452,65 @@ namespace Lea.Tests
                 Eq(130, mediaPage.Bs[10].S.W, "CSS image width overrides HTML");
                 Eq(44, mediaPage.Bs[10].S.H, "CSS image height overrides HTML");
 
+                var mapPath = Path.Combine(root, "LeaForge", "test-pages", "image-maps.html");
+                var mapEngine = new E();
+                var mapPage = mapEngine.Go(mapPath);
+                Eq(2, mapPage.Mps.Count, "bounded unique image map collection");
+                var imageMap = mapPage.Mps[0];
+                Eq("LeaMap", imageMap.N, "image map name alias");
+                Eq(7, imageMap.As.Count, "image map area collection");
+                Ok(imageMap.El != null && imageMap.El.K == "map", "image map element ownership");
+                var deadArea = imageMap.As[0];
+                Ok(deadArea.K == "r" && deadArea.U == null && deadArea.Cs.Count == 4, "dead rectangle area model");
+                var rectArea = imageMap.As[1];
+                Ok(rectArea.K == "r" && rectArea.Cs.Count == 4 && rectArea.Cs[0] == 0D && rectArea.Cs[1] == 0D && rectArea.Cs[2] == 100D && rectArea.Cs[3] == 80D, "rectangle alias, excess drop, and coordinate ordering");
+                Eq("#rect-target", rectArea.U.Fragment, "rectangle area link");
+                Eq("Rectangle target", rectArea.T, "area alt text alias");
+                var circleArea = imageMap.As[2];
+                Ok(circleArea.K == "c" && circleArea.Cs.Count == 3 && circleArea.Cs[2] == 35D, "circle alias and excess drop");
+                var polyArea = imageMap.As[3];
+                Ok(polyArea.K == "p" && polyArea.Cs.Count == 8, "polygon alias and odd coordinate drop");
+                Ok(imageMap.As[4].Cs.Count == 0 && imageMap.As[4].U != null, "zero-radius circle keeps empty link model");
+                Ok(imageMap.As[5].K == "r" && imageMap.As[5].Cs.Count == 0, "malformed rectangle creates no shape");
+                Ok(imageMap.As[6].K == "d" && imageMap.As[6].Cs.Count == 0, "default area ignores coordinates");
+                Eq("unused", mapPage.Mps[1].N, "unreferenced valid map model");
+                var mappedImage = BlockById(mapPage, "mapped");
+                Ok(Object.ReferenceEquals(mappedImage.Mp, imageMap), "percent-decoded image map ownership");
+                Ok(mappedImage.Mw == 320 && mappedImage.Mh == 160, "authored image map coordinate canvas aliases");
+                Ok(BlockById(mapPage, "unmapped").Mp == null, "non-hash usemap rejected");
+                Eq(6, mapPage.Ls.Count, "mapped area links join page links once");
+                Eq(1, mapEngine.Ck(mapPage, ById(mapPage.D, "style-map")), "safe image map class rebuild");
+                Eq(240, BlockById(mapPage, "mapped").S.W, "image map style rebuild");
+                Ok(Object.ReferenceEquals(BlockById(mapPage, "mapped").Mp, mapPage.Mps[0]), "rebuilt image map ownership");
+                Eq(2, mapPage.Mps.Count, "image map rebuild does not duplicate maps");
+                Eq(6, mapPage.Ls.Count, "image map rebuild does not duplicate links");
+
+                var boundedMapPath = Path.Combine(Path.GetTempPath(), "lea-image-maps-" + Guid.NewGuid().ToString("N") + ".html");
+                try
+                {
+                    var html = new StringBuilder("<!doctype html><html><body><img width='320' height='160' src='missing.png' usemap='#m0'><map name='m0'>");
+                    var coordinates = new StringBuilder("2000000,-2000000");
+                    for (var coordinate = 2; coordinate < 140; coordinate++) coordinates.Append(',').Append(coordinate);
+                    html.Append("<area shape='poly' coords='").Append(coordinates).Append("' href='").Append(new string('h', 4200)).Append("' alt='").Append(new string('a', 600)).Append("'>");
+                    html.Append("<area shape='poly' coords='").Append(new string('1', 4200)).Append("'>");
+                    for (var areaIndex = 2; areaIndex < 70; areaIndex++) html.Append("<area shape='default'>");
+                    html.Append("</map>");
+                    for (var mapIndex = 1; mapIndex < 35; mapIndex++) html.Append("<map name='m").Append(mapIndex).Append("'></map>");
+                    html.Append("</body></html>");
+                    File.WriteAllText(boundedMapPath, html.ToString(), new UTF8Encoding(false));
+                    var boundedMapPage = new E().Go(boundedMapPath);
+                    Eq(32, boundedMapPage.Mps.Count, "image map count cap");
+                    Eq(64, boundedMapPage.Mps[0].As.Count, "area count cap");
+                    Eq(128, boundedMapPage.Mps[0].As[0].Cs.Count, "polygon coordinate cap");
+                    Ok(boundedMapPage.Mps[0].As[0].Cs[0] == 1000000D && boundedMapPage.Mps[0].As[0].Cs[1] == -1000000D, "finite map coordinate magnitude cap");
+                    Ok(boundedMapPage.Mps[0].As[0].U == null && boundedMapPage.Mps[0].As[0].T.Length == 512, "bounded area href and alt metadata");
+                    Eq(0, boundedMapPage.Mps[0].As[1].Cs.Count, "coordinate text length cap");
+                }
+                finally
+                {
+                    if (File.Exists(boundedMapPath)) File.Delete(boundedMapPath);
+                }
+
                 var positioningPath = Path.Combine(root, "LeaForge", "test-pages", "positioning.html");
                 var positioningPage = engine.Go(positioningPath);
                 Eq(6, positioningPage.Bs.Count, "positioning block count");
@@ -1536,6 +1595,48 @@ namespace Lea.Tests
                         Ok(ColorDistance(CenterPixel(mediaPaint, pictureBox), Color.FromArgb(29, 78, 216)) < 4, "picture source paint");
                         Ok(ColorDistance(CenterPixel(mediaPaint, cssBox), Color.FromArgb(23, 107, 77)) < 4, "CSS-sized data image paint");
                     }
+                    view.Size = new Size(720, 900);
+                    view.Go(mapPath);
+                    using (var mapPaint = Render(view))
+                    {
+                        var mappedRect = BlockRect(view, BlockById(view.At, "mapped"));
+                        Eq(new Size(320, 160), mappedRect.Size, "mapped image dimensions");
+                        Eq(4, HitCount(view, false), "non-empty image map link hits");
+                        Eq(new Rectangle(mappedRect.Left, mappedRect.Top, 100, 80), AreaHitRect(view, "rect-area"), "rectangle area hit bounds");
+                        Eq(new Rectangle(mappedRect.Left + 125, mappedRect.Top + 5, 70, 70), AreaHitRect(view, "circle-area"), "circle area hit bounds");
+                        Eq(new Rectangle(mappedRect.Left + 200, mappedRect.Top, 120, 80), AreaHitRect(view, "poly-area"), "polygon area hit bounds");
+                        Eq(mappedRect, AreaHitRect(view, "default-area"), "default area covers image");
+                        Eq("dead-area", AreaAt(view, new Point(mappedRect.Left + 10, mappedRect.Top + 10)), "dead area masks lower links");
+                        Eq("rect-area", AreaAt(view, new Point(mappedRect.Left + 50, mappedRect.Top + 40)), "rectangle point hit");
+                        Eq("circle-area", AreaAt(view, new Point(mappedRect.Left + 160, mappedRect.Top + 40)), "circle point hit");
+                        Eq("poly-area", AreaAt(view, new Point(mappedRect.Left + 250, mappedRect.Top + 40)), "polygon point hit");
+                        Eq("default-area", AreaAt(view, new Point(mappedRect.Left + 150, mappedRect.Top + 130)), "default fallback point hit");
+                        Eq("default-area", AreaAt(view, new Point(mappedRect.Left + 80, mappedRect.Top + 120)), "empty circle creates no hit");
+                        Ok(ColorDistance(CenterPixel(mapPaint, mappedRect), Color.FromArgb(23, 107, 77)) < 4, "mapped image remains normally painted");
+                        Move(view, new Point(mappedRect.Left + 160, mappedRect.Top + 40));
+                        Eq(Cursors.Hand, view.Cursor, "image map link cursor");
+                        Move(view, new Point(mappedRect.Left + 10, mappedRect.Top + 10));
+                        Eq(Cursors.Default, view.Cursor, "dead image map cursor");
+                        Click(view, new Rectangle(mappedRect.Left + 9, mappedRect.Top + 9, 2, 2));
+                        Eq("", view.U.Fragment, "dead image map click stays on page");
+                        Click(view, new Rectangle(mappedRect.Left + 49, mappedRect.Top + 39, 2, 2));
+                    }
+                    WaitFor(delegate { return view.U.Fragment == "#rect-target"; }, "rectangle image map navigation");
+                    view.Go(mapPath);
+                    Paint(view);
+                    Eq(1, view.Ck(ById(view.At.D, "style-map")), "WinForms image map class rebuild");
+                    Paint(view);
+                    var styledMapRect = BlockRect(view, BlockById(view.At, "mapped"));
+                    var styledAreaRect = AreaHitRect(view, "rect-area");
+                    Eq(240, styledMapRect.Width, "class-rebuilt mapped image width");
+                    Eq(75, styledAreaRect.Width, "class-rebuilt area scaling");
+                    view.Size = new Size(180, 900);
+                    Paint(view);
+                    var narrowMapRect = BlockRect(view, BlockById(view.At, "mapped"));
+                    var narrowAreaRect = AreaHitRect(view, "rect-area");
+                    Ok(narrowMapRect.Width > 0 && narrowMapRect.Width < styledMapRect.Width, "mapped image narrows with viewport");
+                    Ok(narrowAreaRect.Width > 0 && narrowAreaRect.Width < styledAreaRect.Width && Math.Abs(narrowAreaRect.Width * styledMapRect.Width - styledAreaRect.Width * narrowMapRect.Width) <= styledMapRect.Width, "image map hit scales with rendered width");
+                    view.Size = new Size(720, 500);
                     view.Go(positioningPath);
                     using (var positioningPaint = Render(view))
                     {
@@ -2715,6 +2816,39 @@ namespace Lea.Tests
                     return (Rectangle)type.GetField("R").GetValue(value);
             }
             return Rectangle.Empty;
+        }
+
+        private static Rectangle AreaHitRect(V view, string id)
+        {
+            var member = typeof(V).GetField("hits", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = member == null ? null : member.GetValue(view) as System.Collections.IEnumerable;
+            if (values == null) throw new InvalidOperationException("area hit values unavailable");
+            foreach (var value in values)
+            {
+                var type = value.GetType();
+                var area = type.GetField("A").GetValue(value) as Ar;
+                if (area != null && area.El != null && area.El.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase))
+                    return (Rectangle)type.GetField("R").GetValue(value);
+            }
+            return Rectangle.Empty;
+        }
+
+        private static string AreaAt(V view, Point point)
+        {
+            var member = typeof(V).GetField("hits", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = member == null ? null : member.GetValue(view) as System.Collections.IEnumerable;
+            if (values == null) throw new InvalidOperationException("area hit values unavailable");
+            var hits = new List<object>();
+            foreach (var value in values) hits.Add(value);
+            for (var index = hits.Count - 1; index >= 0; index--)
+            {
+                var value = hits[index];
+                var type = value.GetType();
+                var area = type.GetField("A").GetValue(value) as Ar;
+                var contains = type.GetMethod("Contains", BindingFlags.Instance | BindingFlags.Public);
+                if (area != null && contains != null && (bool)contains.Invoke(value, new object[] { point })) return area.El.Av("id");
+            }
+            return "";
         }
 
         private static Rectangle FragmentHitRect(V view, string fragment)

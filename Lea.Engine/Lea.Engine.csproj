@@ -27,6 +27,7 @@
     <Reference Include="System.Net" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Ar.cs" />
     <Compile Include="B.cs" />
     <Compile Include="D.cs" />
     <Compile Include="Dv.cs" />
@@ -37,6 +38,7 @@
     <Compile Include="Ir.cs" />
     <Compile Include="J.cs" />
     <Compile Include="Ln.cs" />
+    <Compile Include="Mp.cs" />
     <Compile Include="N.cs" />
     <Compile Include="O.cs" />
     <Compile Include="P.cs" />

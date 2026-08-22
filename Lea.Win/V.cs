@@ -592,6 +592,7 @@ namespace Lea.Win
                     if (box.K == "img")
                     {
                         if (opacity > 0) PaintPic(pe.Graphics, box, content, pageColor, opacity);
+                        AddMapHits(box, content, clip);
                         continue;
                     }
                     if (box.K == "hr")
@@ -1669,6 +1670,79 @@ namespace Lea.Win
             PaintText(graphics, box.X.Length == 0 ? "Image unavailable" : box.X, Font, new Rectangle(rect.X + 8, rect.Y + 8, rect.Width - 16, rect.Height - 16), color, TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, opacity);
         }
 
+        private void AddMapHits(Bx box, Rectangle imageRect, Rectangle clip)
+        {
+            if (box == null || box.B == null || box.B.Mp == null || imageRect.Width < 1 || imageRect.Height < 1) return;
+            var visible = VisibleRect(imageRect, clip);
+            if (visible.IsEmpty) return;
+            var source = MapSourceSize(box.B, imageRect);
+            for (var index = box.B.Mp.As.Count - 1; index >= 0; index--)
+            {
+                var area = box.B.Mp.As[index];
+                var bounds = Rectangle.Intersect(visible, MapBounds(area, imageRect, source));
+                if (!bounds.IsEmpty) hits.Add(new Hit(bounds, area.U, null, area.El, area, imageRect, source));
+            }
+        }
+
+        private SizeF MapSourceSize(B block, Rectangle imageRect)
+        {
+            var width = (double)block.Mw;
+            var height = (double)block.Mh;
+            Image image;
+            if (block.U != null && pics.TryGetValue(block.U.AbsoluteUri, out image) && image != null && image.Width > 0 && image.Height > 0)
+            {
+                if (width > 0 && height <= 0) height = image.Height * width / image.Width;
+                else if (height > 0 && width <= 0) width = image.Width * height / image.Height;
+                else
+                {
+                    if (width <= 0) width = image.Width;
+                    if (height <= 0) height = image.Height;
+                }
+            }
+            if (width <= 0 && block.S != null && block.S.W > 0) width = block.S.W;
+            if (height <= 0 && block.S != null && block.S.H > 0) height = block.S.H;
+            if (width <= 0) width = imageRect.Width;
+            if (height <= 0) height = imageRect.Height;
+            return new SizeF((float)Math.Max(1D, width), (float)Math.Max(1D, height));
+        }
+
+        private static Rectangle MapBounds(Ar area, Rectangle imageRect, SizeF source)
+        {
+            if (area == null) return Rectangle.Empty;
+            if (area.K == "d") return imageRect;
+            if (area.K == "r" && area.Cs.Count >= 4)
+                return ScaledBounds(imageRect, source, area.Cs[0], area.Cs[1], area.Cs[2], area.Cs[3]);
+            if (area.K == "c" && area.Cs.Count >= 3)
+                return ScaledBounds(imageRect, source, area.Cs[0] - area.Cs[2], area.Cs[1] - area.Cs[2], area.Cs[0] + area.Cs[2], area.Cs[1] + area.Cs[2]);
+            if (area.K != "p" || area.Cs.Count < 6) return Rectangle.Empty;
+            var left = area.Cs[0];
+            var right = left;
+            var top = area.Cs[1];
+            var bottom = top;
+            for (var index = 2; index + 1 < area.Cs.Count; index += 2)
+            {
+                left = Math.Min(left, area.Cs[index]);
+                right = Math.Max(right, area.Cs[index]);
+                top = Math.Min(top, area.Cs[index + 1]);
+                bottom = Math.Max(bottom, area.Cs[index + 1]);
+            }
+            return ScaledBounds(imageRect, source, left, top, right, bottom);
+        }
+
+        private static Rectangle ScaledBounds(Rectangle imageRect, SizeF source, double left, double top, double right, double bottom)
+        {
+            var x1 = imageRect.Left + left * imageRect.Width / source.Width;
+            var x2 = imageRect.Left + right * imageRect.Width / source.Width;
+            var y1 = imageRect.Top + top * imageRect.Height / source.Height;
+            var y2 = imageRect.Top + bottom * imageRect.Height / source.Height;
+            var l = Math.Max(imageRect.Left, Math.Min(x1, x2));
+            var r = Math.Min(imageRect.Right, Math.Max(x1, x2));
+            var t = Math.Max(imageRect.Top, Math.Min(y1, y2));
+            var b = Math.Min(imageRect.Bottom, Math.Max(y1, y2));
+            if (r <= l || b <= t) return Rectangle.Empty;
+            return Rectangle.FromLTRB((int)Math.Floor(l), (int)Math.Floor(t), (int)Math.Ceiling(r), (int)Math.Ceiling(b));
+        }
+
         private static void PaintGauge(Graphics graphics, string kind, Vm model, S style, Rectangle rect, int opacity)
         {
             if (model == null || rect.Width < 1 || rect.Height < 1) return;
@@ -1889,10 +1963,12 @@ namespace Lea.Win
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);
+            var hit = HitAt(e.Location);
             var box = BoxAt(e.Location);
-            SetHover(box == null ? null : box.El);
+            SetHover(hit != null && hit.A != null ? hit.El : box == null ? null : box.El);
             var summary = box != null && box.B != null && box.B.K == "summary" && !String.IsNullOrEmpty(box.B.Mk);
-            Cursor = box == null || (!summary && box.U == null && (box.B == null || box.B.I == null))
+            var link = hit != null && hit.U != null || box != null && box.U != null;
+            Cursor = box == null || (!summary && !link && (box.B == null || box.B.I == null))
                 ? Cursors.Default
                 : box.B != null && CanEdit(box.B.I) ? Cursors.IBeam : Cursors.Hand;
         }
@@ -1939,6 +2015,11 @@ namespace Lea.Win
                     Focus();
                     SetFocus(hit.El);
                     Ds(hit.El);
+                }
+                else if (hit.A != null)
+                {
+                    EndEdit(false);
+                    SetFocus(null);
                 }
             }
             catch { Cursor = Cursors.Default; }
@@ -2587,7 +2668,7 @@ namespace Lea.Win
         private Hit HitAt(Point point)
         {
             for (var index = hits.Count - 1; index >= 0; index--)
-                if (hits[index].R.Contains(point)) return hits[index];
+                if (hits[index].Contains(point)) return hits[index];
             return null;
         }
 
@@ -2833,13 +2914,49 @@ namespace Lea.Win
             public readonly Uri U;
             public readonly Bx B;
             public readonly N El;
+            public readonly Ar A;
+            private readonly Rectangle image;
+            private readonly SizeF source;
 
-            public Hit(Rectangle rect, Uri url, Bx box, N element = null)
+            public Hit(Rectangle rect, Uri url, Bx box, N element = null, Ar area = null, Rectangle imageRect = default(Rectangle), SizeF sourceSize = default(SizeF))
             {
                 R = rect;
                 U = url;
                 B = box;
                 El = element ?? (box == null ? null : box.El);
+                A = area;
+                image = imageRect;
+                source = sourceSize;
+            }
+
+            public bool Contains(Point point)
+            {
+                if (!R.Contains(point)) return false;
+                if (A == null || A.K == "d") return true;
+                if (image.Width < 1 || image.Height < 1 || source.Width <= 0 || source.Height <= 0) return false;
+                var x = (point.X - image.Left) * source.Width / image.Width;
+                var y = (point.Y - image.Top) * source.Height / image.Height;
+                if (A.K == "r" && A.Cs.Count >= 4)
+                    return x >= A.Cs[0] && x <= A.Cs[2] && y >= A.Cs[1] && y <= A.Cs[3];
+                if (A.K == "c" && A.Cs.Count >= 3)
+                {
+                    var dx = x - A.Cs[0];
+                    var dy = y - A.Cs[1];
+                    return dx * dx + dy * dy <= A.Cs[2] * A.Cs[2];
+                }
+                if (A.K != "p" || A.Cs.Count < 6) return false;
+                var inside = false;
+                var last = A.Cs.Count - 2;
+                for (var index = 0; index < A.Cs.Count; index += 2)
+                {
+                    var xi = A.Cs[index];
+                    var yi = A.Cs[index + 1];
+                    var xj = A.Cs[last];
+                    var yj = A.Cs[last + 1];
+                    if ((yi > y) != (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside;
+                    last = index;
+                }
+                return inside;
             }
         }
     }

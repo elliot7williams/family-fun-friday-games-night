@@ -158,6 +158,25 @@ Values and text are capped at 4,096 characters, datetime text at 128, names at
 references at 32. `tx/text` remains capped at 512 characters and rebuilds all
 aliases without changing authored data/time machine values or duplicating models.
 
+Image maps use two compact models. `P.Mps` is the ordered list of the first 32
+valid unique named maps, and `B.Mp` connects a rendered image to its map. `Mp`
+uses `N` for its name, `As` for up to 64 descendant areas, and `El` for its
+document element. Each `Ar` uses `K` (`r/c/p/d` for rectangle, circle, polygon,
+or default), `Cs` for coordinates, `U` for an optional resolved link, `T` for
+bounded alternative text, and `El` for ownership. Rectangles and circles keep
+four and three coordinates; polygons keep at most 128 and drop one odd final
+value. Coordinate text and hrefs stop at 4,096 input characters, finite values
+clamp to +/-1,000,000, and alt text stops at 512 characters.
+
+`usemap` accepts one bounded percent-decoded hash-name reference. The first map
+name wins case-insensitively; invalid whitespace names and non-hash references
+do not bind. `B.Mw/Mh` retain the image's authored map canvas, falling back to
+natural image dimensions in the renderer. Area hits scale to the settled image,
+clip with it, and use first-area priority. An area without `href` remains a dead
+shape that masks lower areas, while malformed or zero-radius shapes remain
+host-readable but create no hit. Area links join `P.Ls`; click commands,
+fragments, navigation, and downloads use the existing host-controlled routes.
+
 Computed style uses `S`: `F` is foreground color, `Bg` is background, `Fs` is
 font size, `Ff` is a font fallback list, `B` is bold, `I` is italic, and `D` is
 display behavior. `Td` is decoration using `n/u/s/us` for none, underline,

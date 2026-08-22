@@ -108,6 +108,16 @@ child text. Citations remain metadata rather than entering `P.Ls` or navigation.
 The same `B.Dv`/`Ir.Dv` ownership covers inline, standalone, and table content,
 including native decoration and text/class rebuilds.
 
+Supported `<map>` and `<area>` elements use `P.Mps`, `B.Mp`, and compact `Ar`
+records rather than transparent native controls. `Mp.N/As/El` expose map names,
+areas, and ownership; `Ar.K/Cs/U/T/El` expose bounded shape, coordinates, link,
+alt text, and ownership. Images retain an authored coordinate canvas through
+`B.Mw/Mh`; `V` scales and clips rectangle, circle, polygon, default, and dead
+regions after layout settles. First-area priority and dead masking are retained.
+Area links join `P.Ls` and reuse normal click, fragment, navigation, command,
+and download host routes. Pointer activation is supported; keyboard traversal
+for image-map areas remains future work.
+
 Parsed table blocks expose `B.Tb`, with `Tb.Rs`, `Tr.Cs`, and compact `Tc` cell
 records. `V` paints these on the same lightweight surface with shared row
 heights, CSS cell boxes, wrapped text, bounded column spans, and resize reflow.

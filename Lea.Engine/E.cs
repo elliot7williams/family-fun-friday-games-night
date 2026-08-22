@@ -40,6 +40,10 @@ namespace Lea.Engine
         private const int MaxHistory = 128;
         private const int MaxGaugeText = 64;
         private const double MaxGaugeValue = 1000000000000D;
+        private const int MaxImageMaps = 32;
+        private const int MaxMapAreas = 64;
+        private const int MaxMapCoordinates = 128;
+        private const double MaxMapCoordinate = 1000000D;
         private const int MinTimeout = 100;
         private const int MaxTimeout = 60000;
         private const int DefaultTimeout = 15000;
@@ -944,6 +948,7 @@ namespace Lea.Engine
             p.Bs.Clear();
             p.Fs.Clear();
             p.Dvs.Clear();
+            p.Mps.Clear();
             p.Fr = fields;
             var body = Find(p.D, "body") ?? p.D;
             p.X = Clean(NodeText(body));
@@ -954,6 +959,7 @@ namespace Lea.Engine
             for (var i = ancestors.Count - 1; i >= 0; i--) inherited = Style(ancestors[i], inherited, rules);
             p.S = Style(body, inherited, rules);
             MarkLists(body);
+            if (p.H.IndexOf("<map", StringComparison.OrdinalIgnoreCase) >= 0) BuildMaps(p, body, p.Bu ?? p.U);
             foreach (var child in body.C) Blocks(p, child, p.Bu ?? p.U, rules, p.S);
             LinkBlocks(p);
             MarkDisclosures(p);
@@ -2455,7 +2461,7 @@ namespace Lea.Engine
             {
                 ImageDimensions(node, style);
                 var image = ImageUri(node, baseUrl, style.W);
-                if (image != null) page.Bs.Add(new B { K = kind, X = node.Av("alt"), U = image, S = style, El = node });
+                if (image != null) page.Bs.Add(ImageBlock(page, node, image, style));
             }
             else if (kind == "input" || kind == "textarea" || kind == "button" || kind == "select")
             {
@@ -2499,7 +2505,26 @@ namespace Lea.Engine
                 if (source != null) break;
             }
             if (source == null) source = ImageUri(image, baseUrl, style.W);
-            if (source != null) page.Bs.Add(new B { K = "img", X = image.Av("alt"), U = source, S = style, El = image });
+            if (source != null) page.Bs.Add(ImageBlock(page, image, source, style));
+        }
+
+        private static B ImageBlock(P page, N image, Uri source, S style)
+        {
+            var map = ImageMap(page, image.Av("usemap"));
+            if (map != null)
+                foreach (var area in map.As)
+                    if (area.U != null) page.Ls.Add(new Ln { U = area.U, T = Clean(area.T) });
+            return new B
+            {
+                K = "img",
+                X = image.Av("alt"),
+                U = source,
+                S = style,
+                Mp = map,
+                Mw = map == null ? 0 : HtmlDimension(image.Av("width")),
+                Mh = map == null ? 0 : HtmlDimension(image.Av("height")),
+                El = image
+            };
         }
 
         private static void ImageDimensions(N image, S style)
@@ -2513,6 +2538,118 @@ namespace Lea.Engine
             var match = Regex.Match(value ?? "", "^\\s*(?<n>[1-9][0-9]{0,4})(?:px)?\\s*$", RegexOptions.IgnoreCase);
             int number;
             return match.Success && Int32.TryParse(match.Groups["n"].Value, out number) ? Math.Min(8192, number) : 0;
+        }
+
+        private static void BuildMaps(P page, N node, Uri baseUrl)
+        {
+            if (node == null || page.Mps.Count == MaxImageMaps) return;
+            if (node.K == "map")
+            {
+                var name = node.Av("name");
+                if (MapName(name) && MapByName(page, name) == null)
+                {
+                    var map = new Mp { N = name, El = node };
+                    AddMapAreas(map, node, baseUrl);
+                    page.Mps.Add(map);
+                }
+            }
+            foreach (var child in node.C)
+            {
+                if (page.Mps.Count == MaxImageMaps) break;
+                BuildMaps(page, child, baseUrl);
+            }
+        }
+
+        private static bool MapName(string value)
+        {
+            if (String.IsNullOrEmpty(value) || value.Length > 128) return false;
+            foreach (var c in value)
+                if (c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\f') return false;
+            return true;
+        }
+
+        private static void AddMapAreas(Mp map, N node, Uri baseUrl)
+        {
+            foreach (var child in node.C)
+            {
+                if (map.As.Count == MaxMapAreas) return;
+                if (child.K == "area") map.As.Add(MapArea(child, baseUrl));
+                else AddMapAreas(map, child, baseUrl);
+            }
+        }
+
+        private static Ar MapArea(N node, Uri baseUrl)
+        {
+            var shape = (node.Av("shape") ?? "").Trim().ToLowerInvariant();
+            var kind = shape == "circle" || shape == "circ" ? "c" :
+                       shape == "poly" || shape == "polygon" ? "p" :
+                       shape == "default" ? "d" : "r";
+            Uri link = null;
+            var href = node.Av("href");
+            if (node.A.ContainsKey("href") && href.Length <= 4096) TryUri(baseUrl, href, out link);
+            var area = new Ar { K = kind, U = link, T = BoundValue(node.Av("alt"), 512), El = node };
+            if (kind != "d")
+                foreach (var value in MapCoordinates(node.Av("coords"))) area.Cs.Add(value);
+
+            var minimum = kind == "c" ? 3 : kind == "p" ? 6 : kind == "r" ? 4 : 0;
+            if (area.Cs.Count < minimum) area.Cs.Clear();
+            else if (kind == "c")
+            {
+                while (area.Cs.Count > 3) area.Cs.RemoveAt(area.Cs.Count - 1);
+                if (area.Cs[2] <= 0) area.Cs.Clear();
+            }
+            else if (kind == "r")
+            {
+                while (area.Cs.Count > 4) area.Cs.RemoveAt(area.Cs.Count - 1);
+                if (area.Cs[0] > area.Cs[2]) Swap(area.Cs, 0, 2);
+                if (area.Cs[1] > area.Cs[3]) Swap(area.Cs, 1, 3);
+            }
+            else if (kind == "p" && area.Cs.Count % 2 != 0) area.Cs.RemoveAt(area.Cs.Count - 1);
+            return area;
+        }
+
+        private static IList<double> MapCoordinates(string value)
+        {
+            var result = new List<double>();
+            value = value ?? "";
+            if (value.Length > 4096) return result;
+            var parts = value.Split(new char[] { ',', ' ', '\t', '\r', '\n', '\f' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var part in parts)
+            {
+                if (result.Count == MaxMapCoordinates) break;
+                double number;
+                if (!Double.TryParse(part, NumberStyles.Float, CultureInfo.InvariantCulture, out number) || Double.IsNaN(number) || Double.IsInfinity(number))
+                {
+                    result.Clear();
+                    break;
+                }
+                result.Add(Math.Max(-MaxMapCoordinate, Math.Min(MaxMapCoordinate, number)));
+            }
+            return result;
+        }
+
+        private static void Swap(IList<double> values, int left, int right)
+        {
+            var value = values[left];
+            values[left] = values[right];
+            values[right] = value;
+        }
+
+        private static Mp ImageMap(P page, string reference)
+        {
+            var value = (reference ?? "").Trim();
+            if (value.Length < 2 || value.Length > 4097 || value[0] != '#') return null;
+            value = value.Substring(1);
+            try { value = Uri.UnescapeDataString(value); }
+            catch (UriFormatException) { return null; }
+            return value.Length > 128 ? null : MapByName(page, value);
+        }
+
+        private static Mp MapByName(P page, string name)
+        {
+            foreach (var map in page.Mps)
+                if (map.N.Equals(name, StringComparison.OrdinalIgnoreCase)) return map;
+            return null;
         }
 
         private static B GaugeBlock(N node, S style)

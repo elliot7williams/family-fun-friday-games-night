@@ -17,7 +17,7 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-1. Add bounded `<map>`/`<area>` image-map targets with compact hit regions and resize coverage.
+1. Add bounded keyboard focus traversal and activation for links and image-map areas, including visible focus and `tabindex` coverage.
 2. Expand the safe command set only through bounded, fixture-backed aliases.
 3. Keep strengthening host tests as more legacy tab routes move to Lea.
 
@@ -64,6 +64,11 @@ Time and edit elements now reuse that compact value path. `K=t/i/r`, `Dt`, and
 citations. Native insert/remove decoration, inline and block ownership, table
 cells, text/class rebuilds, Firespider hosting, and resize share
 `time-edits.html` without adding native controls or citation navigation.
+Image maps now expose compact `P.Mps`, `B.Mp`, and `Ar` state. Rectangle,
+circle, polygon, default, and dead regions use bounded coordinates and one
+shape-aware custom hit path. First-area layering, malformed empty shapes,
+percent-decoded names, area links/downloads, class rebuilds, viewport scaling,
+Firespider hosting, and paint share `image-maps.html` without native controls.
 
 ## Rules For Future Codex Work
 

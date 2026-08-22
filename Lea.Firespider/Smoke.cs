@@ -22,12 +22,14 @@ namespace Lea.Firespider
             object oldShortcuts = null;
             var session = Path.Combine(Path.GetTempPath(), "lea-firespider-smoke-" + Guid.NewGuid().ToString("N") + ".txt");
             var openPage = Path.Combine(Path.GetTempPath(), "lea-firespider-open-" + Guid.NewGuid().ToString("N") + ".html");
+            var mapPage = Path.Combine(Path.GetTempPath(), "lea-firespider-map-" + Guid.NewGuid().ToString("N") + ".html");
             var savedPage = Path.Combine(Path.GetTempPath(), "lea-firespider-page-" + Guid.NewGuid().ToString("N") + ".html");
             var downloadedPage = Path.Combine(Path.GetTempPath(), "lea-firespider-download-" + Guid.NewGuid().ToString("N") + ".html");
             try
             {
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", session);
                 File.WriteAllText(openPage, "<!doctype html><html><head><title>Lea Open Route</title><style>.hot{color:#b91c1c;font-weight:bold}.host-gauge{color:#176b4d;width:180px;height:16px}.host-value{color:#123f8c;width:180px}</style><script type='text/lea'>v('who','Firespider')</script></head><body><p>Open route fixture</p><p>Second route match</p><p>Third ROUTE match</p><p id='class-state'>Waiting for class state</p><p id='state'>Waiting for host click</p><button id='host-action' type='button' data-lea=\"tx('state','Hello ${who}'); v('last','click'); a('Safe host click')\">Run safe action</button><progress class='host-gauge' id='host-progress' max='10' value='4'>4 of 10</progress><meter class='host-gauge' id='host-meter' min='0' max='4' value='3'>3 of 4</meter><output class='host-value' id='host-output' name='total' for='host-data'>Host total</output><data class='host-value' id='host-data' value='lea-host'>Host label</data><time class='host-value' id='host-time'>2026-08-21</time><ins class='host-value' id='host-edit' cite='go-target.html#host' datetime='2026-08-21T19:00-04:00'>Host edit</ins><button id='host-value-update' type='button' data-lea=\"tx('host-output','Updated host total')\">Update host value</button><button id='host-time-update' type='button' data-lea=\"tx('host-time','2026-08-22')\">Update host time</button></body></html>");
+                File.WriteAllText(mapPage, "<!doctype html><html><head><title>Lea Map Route</title><style>#host-map-image{width:120px;height:60px}</style></head><body><img id='host-map-image' width='120' height='60' usemap='#host-map' alt='Host map' src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXYxDP9v0PAAM7Ac+IRop4AAAAAElFTkSuQmCC'><map name='host-map'><area id='host-dead' shape='rect' coords='0,0,10,10'><area id='host-rect' shape='rect' coords='0,0,60,60' href='#host-target' alt='Host rectangle'><area id='host-default' shape='default' href='#host-target' alt='Host default'></map><p id='host-target'>Host map target</p></body></html>");
                 var root = args.Length > 0 ? args[0] : AppDomain.CurrentDomain.BaseDirectory;
                 var assembly = Assembly.LoadFrom(Path.Combine(root, "Firespider Internet 19.exe"));
                 var type = assembly.GetType("Firespider_Internet.j", true);
@@ -193,6 +195,25 @@ namespace Lea.Firespider
                     Check(sourceForm != null && Member<Control>(sourceForm, "RN").Text == host.H, "Firespider Page Source routed to Lea");
                     sourceForm.Close();
 
+                    host.Go(mapPage);
+                    Check(host.At != null && host.T == "Lea Map Route" && host.At.Mps.Count == 1, "Firespider image map route");
+                    var hostMapImage = BlockById(host.At, "host-map-image");
+                    Check(hostMapImage.Mp != null && hostMapImage.Mp.As.Count == 3 && hostMapImage.Mw == 120 && hostMapImage.Mh == 60, "Firespider compact image map model");
+                    Check(hostMapImage.Mp.As[1].K == "r" && hostMapImage.Mp.As[1].U.Fragment == "#host-target", "Firespider compact area model");
+                    form.ClientSize = new System.Drawing.Size(800, 600);
+                    form.PerformLayout();
+                    host.Dock = DockStyle.None;
+                    host.Size = new System.Drawing.Size(360, 240);
+                    host.CreateControl();
+                    host.PerformLayout();
+                    PaintView(host);
+                    var hostMapHits = MapHitCount(host, false);
+                    var hostMapLinks = MapHitCount(host, true);
+                    Check(hostMapHits == 3 && hostMapLinks == 2, "Firespider image map renderer hits: " + hostMapHits + "/" + hostMapLinks + " at " + host.Width + "x" + host.Height + ", boxes " + host.Bc + ", scroll " + host.Sy);
+                    host.Dock = DockStyle.Fill;
+                    host.Go(start);
+                    Check(host.At != null && host.T == "Lea in Firespider", "Firespider returns from image map route");
+
                     type.GetMethod("qleaSaveSession", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(form, null);
                     var saved = File.ReadAllLines(session);
                     Check(saved.Length == 1 && saved[0] == host.U.AbsoluteUri, "Lea session saved");
@@ -220,7 +241,7 @@ namespace Lea.Firespider
                     Check(restoredTabs.TabCount == beforeMiddle - 1 && FindLea(restoredTabs) == null, "middle-click Lea tab close");
                 }
 
-                Console.WriteLine("Firespider Lea smoke passed: compact time/edit metadata, output/data values and safe rebuilds, progress and meter gauges, retained same-page fragments, Lea-first New Tab and explicit legacy fallback, host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, keyboard navigation, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
+                Console.WriteLine("Firespider Lea smoke passed: bounded responsive image maps, compact time/edit metadata, output/data values and safe rebuilds, progress and meter gauges, retained same-page fragments, Lea-first New Tab and explicit legacy fallback, host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, keyboard navigation, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
                 return 0;
             }
             catch (Exception error)
@@ -236,6 +257,7 @@ namespace Lea.Firespider
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", oldSession);
                 if (File.Exists(session)) File.Delete(session);
                 if (File.Exists(openPage)) File.Delete(openPage);
+                if (File.Exists(mapPage)) File.Delete(mapPage);
                 if (File.Exists(savedPage)) File.Delete(savedPage);
                 if (File.Exists(downloadedPage)) File.Delete(downloadedPage);
             }
@@ -272,6 +294,31 @@ namespace Lea.Firespider
             foreach (var value in page.Dvs)
                 if (value.El != null && value.El.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase)) return value;
             throw new InvalidOperationException("Missing Lea value: " + id);
+        }
+
+        private static int MapHitCount(V view, bool links)
+        {
+            var member = typeof(V).GetField("hits", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = member == null ? null : member.GetValue(view) as System.Collections.IEnumerable;
+            if (values == null) throw new InvalidOperationException("Missing Lea image map hits");
+            var count = 0;
+            foreach (var value in values)
+            {
+                var type = value.GetType();
+                if (type.GetField("A").GetValue(value) == null) continue;
+                if (!links || type.GetField("U").GetValue(value) != null) count++;
+            }
+            return count;
+        }
+
+        private static void PaintView(V view)
+        {
+            var method = typeof(V).GetMethod("OnPaint", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (method == null) throw new InvalidOperationException("Missing Lea paint route");
+            using (var bitmap = new System.Drawing.Bitmap(Math.Max(1, view.Width), Math.Max(1, view.Height)))
+            using (var graphics = System.Drawing.Graphics.FromImage(bitmap))
+            using (var args = new PaintEventArgs(graphics, new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height)))
+                method.Invoke(view, new object[] { args });
         }
 
         private static Form OpenForm(string name)
