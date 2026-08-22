@@ -110,9 +110,13 @@ The root provider now also exposes bounded read-only logical TextPattern ranges
 over `P.X` and settled boxes. Document, child, and point ranges cover search,
 movement, read-only attributes, rendered rectangles, embedded children,
 scrolling, stale-page rejection, and protected-value exclusion. The public MTA
-client and Firespider smoke verify direct ranges. Visible-range arrays stay empty
-until the .NET Framework native interface-array boundary can return them without
-invalid client handles.
+client and Firespider smoke verify direct ranges. Plain wrapped blocks and inline
+flow now add bounded visual line starts, line-unit movement, merged per-line
+rectangles, and proportional partial-range geometry, verified by the MTA client,
+benchmark, and Firespider host. Visible-range arrays stay empty: managed arrays,
+explicit COM identities, manually built `SAFEARRAY(VT_UNKNOWN)` values, and both
+in-process and external MTA clients still produced invalid range handles, so a
+future implementation must live beyond the managed provider array boundary.
 
 ## Rules For Future Codex Work
 

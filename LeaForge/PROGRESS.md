@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **6**
+Post-1.0 hardening milestones completed: **7**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -52,9 +52,14 @@ modern web platform.
   movement, search, attributes, rendered bounds, embedded children, scrolling,
   stale-page rejection, protected-value exclusion, and public MTA plus Firespider
   host verification.
+- Added bounded visual-line TextPattern snapshots for plain and inline wrapped
+  text, visual `TextUnit.Line` expansion/movement, one rectangle per visible
+  line, proportional partial-range cropping, and public MTA, benchmark, and
+  Firespider host verification.
 
 ## Next gains
 
-- Add line-aware text geometry and a native-safe non-empty visible-range bridge
-  for the .NET Framework UI Automation client.
+- Add a native-safe non-empty visible-range bridge outside the .NET Framework
+  managed provider array boundary; retain the stable empty fallback until range
+  handles survive both in-process and external MTA clients.
 - Expand safe page commands only through bounded, fixture-backed aliases.

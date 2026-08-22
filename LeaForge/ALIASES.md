@@ -305,9 +305,13 @@ most 2,048 settled text segments. Ranges are tied to one page generation and
 support bounded text/search, read-only and culture attributes, character, word,
 line, and document movement, child/point lookup, rendered rectangles, enclosing
 and embedded elements, and scroll-to-view. Password and local file values never
-enter the stream. Selection and editing are unsupported. The current .NET
-Framework adapter returns an empty visible-range collection until a native-safe
-interface-array bridge is available.
+enter the stream. Plain wrapped blocks and inline flow produce bounded visual
+line starts; `TextUnit.Line` follows those starts, rectangle output merges each
+line, and partial ranges crop their first/last segments proportionally. Selection
+and editing are unsupported. The current .NET Framework adapter returns an empty
+visible-range collection because non-empty managed and manually constructed
+interface arrays produced invalid client handles; a future bridge must cross a
+different native boundary.
 
 Computed style uses `S`: `F` is foreground color, `Bg` is background, `Fs` is
 font size, `Ff` is a font fallback list, `B` is bold, `I` is italic, and `D` is

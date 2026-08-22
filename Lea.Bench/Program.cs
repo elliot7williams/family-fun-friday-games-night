@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Windows.Automation;
+using System.Windows.Automation.Text;
 using System.Windows.Forms;
 using Lea.Engine;
 using Lea.Win;
@@ -437,8 +438,14 @@ namespace Lea.Bench
                     var documentText = document.GetText(-1);
                     Need(documentText.Contains("Lea semantic fixture") && documentText.Contains("Shared note") && documentText.Contains("Hidden action") && !documentText.Contains("do-not-expose"), "UI Automation logical text or redaction changed");
                     Need((bool)document.GetAttributeValue(TextPattern.IsReadOnlyAttribute) && document.FindText("shared NOTE", false, true).GetText(-1) == "Shared note", "UI Automation text attributes or search changed");
+                    var intro = automation.FindFirst(TreeScope.Descendants, new PropertyCondition(AutomationElement.AutomationIdProperty, "intro"));
+                    var introRange = ((TextPattern)textPattern).RangeFromChild(intro);
+                    var visualLine = introRange.Clone();
+                    visualLine.ExpandToEnclosingUnit(TextUnit.Line);
+                    Need(introRange.GetBoundingRectangles().Length == 2 && visualLine.GetBoundingRectangles().Length == 1 &&
+                        visualLine.Move(TextUnit.Line, 1) == 1 && visualLine.GetBoundingRectangles().Length == 1, "UI Automation visual line geometry changed");
                 }
-                return "Ax/Axs/St/Is and V.Ax/Axs/Ab/Ao aliases, 512 records, names, roles, live protected state, bounds, MSAA children, UIA fragments, control types, grid/table coordinates, headers, logical text, search, redaction, and patterns";
+                return "Ax/Axs/St/Is and V.Ax/Axs/Ab/Ao aliases, 512 records, names, roles, live protected state, bounds, MSAA children, UIA fragments, control types, grid/table coordinates, headers, logical text, visual lines, search, redaction, and patterns";
             });
             AddProbe(probes, "CSS selectors and cascade", delegate
             {
@@ -652,7 +659,7 @@ namespace Lea.Bench
             Capability(builder, "Image maps", "Supported subset", "Compact Mp/Ar models, rect/circle/poly/default and dead areas, bounded coordinates, scaled custom hit regions, area links/downloads, and safe rebuilds");
             Capability(builder, "Keyboard focus", "Supported subset", "Bounded tabindex order, links, image-map areas, fields, summaries, visible focus, scrolling, wrapping, and host activation aliases");
             Capability(builder, "Focus shortcuts", "Supported subset", "Bounded autofocus candidates and ASCII access-key alternatives with conflict resolution, Alt+Shift labels, host-safe matching, focus, and activation");
-            Capability(builder, "Accessibility", "Supported subset", "Bounded Ax hierarchy with MSAA and native UI Automation fragments, roles, names, live protected state, rendered bounds, focus, invoke/value/toggle/selection/disclosure/range/scroll and Tb/Tc-backed grid/table/item patterns, plus read-only logical TextPattern document/child/point ranges; visible-range arrays currently use an empty fallback, and this is not the complete platform mapping standards");
+            Capability(builder, "Accessibility", "Supported subset", "Bounded Ax hierarchy with MSAA and native UI Automation fragments, roles, names, live protected state, rendered bounds, focus, invoke/value/toggle/selection/disclosure/range/scroll and Tb/Tc-backed grid/table/item patterns, plus read-only logical TextPattern document/child/point ranges with visual-line and partial-range geometry; visible-range arrays use an empty fallback, and this is not the complete platform mapping standards");
             builder.AppendLine();
             builder.AppendLine("## Binary Footprint");
             builder.AppendLine();

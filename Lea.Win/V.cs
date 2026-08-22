@@ -3534,14 +3534,17 @@ namespace Lea.Win
             if (page != null) AutomationTextOrder(page.D, order, ref position);
             var parts = new List<Us>();
             var sequence = 0;
-            foreach (var box in boxes)
+            using (var graphics = CreateGraphics())
             {
-                if (parts.Count == MaxAutomationTextSegments) break;
-                var value = AutomationBoxText(box);
-                if (value.Length == 0) { sequence++; continue; }
-                int nodeOrder;
-                if (box.El == null || !order.TryGetValue(box.El, out nodeOrder)) nodeOrder = Int32.MaxValue;
-                parts.Add(new Us(value, box.R, box.Clip, box.Fx, box.El, nodeOrder, sequence++));
+                foreach (var box in boxes)
+                {
+                    if (parts.Count == MaxAutomationTextSegments) break;
+                    var value = AutomationBoxText(box);
+                    if (value.Length == 0) { sequence++; continue; }
+                    int nodeOrder;
+                    if (box.El == null || !order.TryGetValue(box.El, out nodeOrder)) nodeOrder = Int32.MaxValue;
+                    AutomationTextParts(graphics, parts, box, value, nodeOrder, ref sequence);
+                }
             }
             parts.Sort(delegate(Us left, Us right)
             {
@@ -3560,7 +3563,68 @@ namespace Lea.Win
                 if (part.E > part.S) mapped.Add(part);
                 at = part.E;
             }
-            return new Ut(page, text, mapped);
+            return new Ut(page, text, mapped, AutomationTextLineBoundaries(text, mapped));
+        }
+
+        private void AutomationTextParts(Graphics graphics, IList<Us> parts, Bx box, string value, int order, ref int sequence)
+        {
+            var field = box.B == null ? null : box.B.I;
+            if (box.Inline || field != null || box.C.Width < 2)
+            {
+                parts.Add(new Us(value, box.R, box.Clip, box.Fx, box.El, order, sequence++));
+                return;
+            }
+
+            var area = box.C.IsEmpty ? box.R : box.C;
+            using (var font = BoxFont(box.K, box.S, false, box.U != null, box.B == null ? null : box.B.K))
+            {
+                var words = Regex.Matches(value, "\\S+");
+                var line = new StringBuilder();
+                var lineWidth = 0;
+                var spaceWidth = TextRenderer.MeasureText(graphics, " ", font, Size.Empty,
+                    TextFormatFlags.SingleLine | TextFormatFlags.NoPadding).Width;
+                var y = area.Top;
+                foreach (Match match in words)
+                {
+                    var wordWidth = TextRenderer.MeasureText(graphics, match.Value, font, Size.Empty,
+                        TextFormatFlags.SingleLine | TextFormatFlags.NoPadding).Width;
+                    if (line.Length > 0 && lineWidth + spaceWidth + wordWidth > area.Width)
+                    {
+                        parts.Add(new Us(line.ToString(), new Rectangle(area.Left, y, Math.Max(1, Math.Min(area.Width, lineWidth)), font.Height),
+                            box.Clip, box.Fx, box.El, order, sequence++));
+                        if (parts.Count == MaxAutomationTextSegments) return;
+                        y += font.Height;
+                        line.Clear();
+                        lineWidth = 0;
+                    }
+                    if (line.Length > 0) { line.Append(' '); lineWidth += spaceWidth; }
+                    line.Append(match.Value);
+                    lineWidth += wordWidth;
+                }
+                if (line.Length > 0 && parts.Count < MaxAutomationTextSegments)
+                    parts.Add(new Us(line.ToString(), new Rectangle(area.Left, y, Math.Max(1, Math.Min(area.Width, lineWidth)), font.Height),
+                        box.Clip, box.Fx, box.El, order, sequence++));
+            }
+        }
+
+        private static IList<int> AutomationTextLineBoundaries(string text, IList<Us> parts)
+        {
+            var result = new List<int> { 0 };
+            Us previous = null;
+            foreach (var part in parts)
+            {
+                if (previous != null && !AutomationSameTextLine(previous, part) && result[result.Count - 1] != part.S) result.Add(part.S);
+                previous = part;
+            }
+            if (result[result.Count - 1] != text.Length) result.Add(text.Length);
+            return result;
+        }
+
+        private static bool AutomationSameTextLine(Us left, Us right)
+        {
+            if (left.Fx != right.Fx) return false;
+            var overlap = Math.Min(left.R.Bottom, right.R.Bottom) - Math.Max(left.R.Top, right.R.Top);
+            return overlap > 0;
         }
 
         private static void AutomationTextOrder(N node, IDictionary<N, int> order, ref int position)
@@ -3592,16 +3656,29 @@ namespace Lea.Win
             return Regex.Replace(value, "\\s+", " ").Trim();
         }
 
-        private Rectangle AutomationTextRectangle(Us part)
+        private Rectangle AutomationTextLayoutRectangle(Us part)
         {
             if (part == null) return Rectangle.Empty;
             var rect = part.R;
+            if (!part.Fx) rect.Offset(0, -sy);
+            return rect;
+        }
+
+        private Rectangle AutomationTextRectangle(Us part)
+        {
+            return part == null ? Rectangle.Empty : AutomationTextRectangle(part, part.S, part.E);
+        }
+
+        private Rectangle AutomationTextRectangle(Us part, int start, int end)
+        {
+            if (part == null || end <= start || part.E <= part.S) return Rectangle.Empty;
+            var rect = AutomationTextLayoutRectangle(part);
             var clip = part.Cp;
-            if (!part.Fx)
-            {
-                rect.Offset(0, -sy);
-                if (!clip.IsEmpty) clip.Offset(0, -sy);
-            }
+            var length = part.E - part.S;
+            var left = rect.Left + (int)Math.Floor(rect.Width * (Math.Max(part.S, start) - part.S) / (double)length);
+            var right = rect.Left + (int)Math.Ceiling(rect.Width * (Math.Min(part.E, end) - part.S) / (double)length);
+            rect = new Rectangle(left, rect.Top, Math.Max(1, right - left), rect.Height);
+            if (!part.Fx && !clip.IsEmpty) clip.Offset(0, -sy);
             rect = Rectangle.Intersect(rect, ClientRectangle);
             if (!clip.IsEmpty) rect = Rectangle.Intersect(rect, clip);
             return rect;
@@ -3630,7 +3707,7 @@ namespace Lea.Win
                 if (score == 0) break;
             }
             if (best == null) return new Uq(this, text, 0, 0);
-            var bounds = AutomationTextRectangle(best);
+            var bounds = AutomationTextLayoutRectangle(best);
             var ratio = bounds.Width < 1 ? 0D : Math.Max(0D, Math.Min(1D, (point.X - bounds.Left) / (double)bounds.Width));
             var offset = best.S + (int)Math.Round((best.E - best.S) * ratio);
             offset = Math.Max(best.S, Math.Min(best.E, offset));
@@ -3732,7 +3809,7 @@ namespace Lea.Win
             foreach (var part in text.Ps)
             {
                 if (part.E <= start || part.S >= end) continue;
-                var rect = AutomationTextRectangle(part);
+                var rect = AutomationTextRectangle(part, Math.Max(start, part.S), Math.Min(end, part.E));
                 if (rect.IsEmpty) continue;
                 if (rectangles.Count > 0)
                 {
@@ -4333,7 +4410,8 @@ namespace Lea.Win
             public readonly P P;
             public readonly string X;
             public readonly IList<Us> Ps;
-            public Ut(P page, string text, IList<Us> parts) { P = page; X = text ?? ""; Ps = parts; }
+            public readonly IList<int> Ls;
+            public Ut(P page, string text, IList<Us> parts, IList<int> lines) { P = page; X = text ?? ""; Ps = parts; Ls = lines; }
         }
 
         private sealed class Us
@@ -4584,11 +4662,15 @@ namespace Lea.Win
                 }
                 if (unit == TextUnit.Line)
                 {
-                    start = position;
-                    while (start > 0 && t.X[start - 1] != '\n') start--;
-                    end = position;
-                    while (end < t.X.Length && t.X[end] != '\n') end++;
-                    if (end < t.X.Length) end++;
+                    start = 0;
+                    end = t.X.Length;
+                    for (var index = 0; index < t.Ls.Count - 1; index++)
+                    {
+                        if (position < t.Ls[index] || position >= t.Ls[index + 1]) continue;
+                        start = t.Ls[index];
+                        end = t.Ls[index + 1];
+                        break;
+                    }
                     return;
                 }
                 var kind = WordKind(t.X[position]);
@@ -4633,10 +4715,10 @@ namespace Lea.Win
                     if (t.X.Length > 0) result.Add(t.X.Length);
                     return result;
                 }
+                if (unit == TextUnit.Line) return new List<int>(t.Ls);
                 for (var index = 1; index < t.X.Length; index++)
                 {
-                    if (unit == TextUnit.Character || unit == TextUnit.Line && t.X[index - 1] == '\n' ||
-                        unit == TextUnit.Word && WordKind(t.X[index - 1]) != WordKind(t.X[index])) result.Add(index);
+                    if (unit == TextUnit.Character || unit == TextUnit.Word && WordKind(t.X[index - 1]) != WordKind(t.X[index])) result.Add(index);
                 }
                 if (result[result.Count - 1] != t.X.Length) result.Add(t.X.Length);
                 return result;

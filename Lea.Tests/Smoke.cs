@@ -819,6 +819,19 @@ namespace Lea.Tests
                                 pointText.ExpandToEnclosingUnit(TextUnit.Word);
                                 data["text-point"] = pointText.GetText(-1).Trim().Length > 0;
                                 data["text-bounds"] = introText.GetText(-1) + ":" + introText.GetBoundingRectangles().Length;
+                                var visualLine = introText.Clone();
+                                visualLine.ExpandToEnclosingUnit(TextUnit.Line);
+                                var firstLine = visualLine.GetText(-1);
+                                var firstLineBounds = visualLine.GetBoundingRectangles();
+                                var movedLine = visualLine.Move(TextUnit.Line, 1);
+                                var secondLine = visualLine.GetText(-1);
+                                var secondLineBounds = visualLine.GetBoundingRectangles();
+                                data["text-lines"] = firstLine.Trim().Length > 0 && firstLine.Length < introText.GetText(-1).Length &&
+                                    movedLine == 1 && secondLine.Trim().Length > 0 && firstLineBounds.Length == 1 && secondLineBounds.Length == 1;
+                                var compactText = introText.FindText("compact", false, false);
+                                var compactBounds = compactText.GetBoundingRectangles();
+                                data["text-partial-bounds"] = compactBounds.Length == 1 && firstLineBounds.Length == 1 &&
+                                    compactBounds[0].Width > 0 && compactBounds[0].Width < firstLineBounds[0].Width;
                                 var embedded = documentText.GetChildren();
                                 var embeddedHome = false;
                                 var embeddedTable = false;
@@ -882,7 +895,9 @@ namespace Lea.Tests
                     Eq("Shared note:True:True", (string)data["text-endpoints"], "UIA text endpoint movement and comparison");
                     Ok((bool)data["text-visible"], "UIA bounded visible text ranges");
                     Ok((bool)data["text-point"], "UIA point text range");
-                    Eq("A compact accessibility model for Lea hosts.:1", (string)data["text-bounds"], "UIA rendered text range bounds");
+                    Eq("A compact accessibility model for Lea hosts.:2", (string)data["text-bounds"], "UIA visual-line text range bounds");
+                    Ok((bool)data["text-lines"], "UIA visual line unit navigation");
+                    Ok((bool)data["text-partial-bounds"], "UIA partial text range geometry");
                     Eq("Home:home-link", (string)data["text-child"], "UIA child text range and enclosing element");
                     Ok((bool)data["text-children"], "UIA embedded text children");
                     Ok((bool)data["text-scroll"], "UIA text scroll-to-view");

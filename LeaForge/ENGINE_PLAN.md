@@ -240,19 +240,27 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add line-aware text geometry and a native-safe non-empty visible-range bridge
-for the .NET Framework UI Automation client. Keep the current stable empty-array
-fallback until returned range objects can cross that ABI without native handle
-corruption, and retain Lea's bounded read-only model.
+Add a native-safe non-empty visible-range bridge outside the .NET Framework
+managed provider array boundary. Keep the stable empty-array fallback until
+returned range objects survive direct COM validation plus in-process and external
+MTA client calls without native handle corruption.
 
-The previous milestone added a bounded read-only `ITextProvider` over `P.X` and
+The previous milestone added bounded visual-line snapshots for plain wrapped
+blocks and inline flow, visual `TextUnit.Line` expansion and movement, merged
+per-line rectangles, and proportional partial-range cropping. The public MTA
+client, repeatable benchmark, and Firespider host smoke verify two-line ranges
+and one-line navigation without adding a retained text tree.
+
+An earlier milestone added a bounded read-only `ITextProvider` over `P.X` and
 settled layout ownership. Document, child, and point ranges support bounded text,
 search, read-only attributes, character/word/line/document navigation, rendered
 bounds, enclosing and embedded elements, scroll-to-view, and stale-page
 rejection. Password and file values are excluded. The public MTA client,
 benchmark, and Firespider host smoke verify the pattern; `GetVisibleRanges`
-currently returns a stable empty collection while the native array bridge remains
-future work.
+returns a stable empty collection. Managed arrays, explicit COM identities,
+manual `SAFEARRAY(VT_UNKNOWN)` construction, native-callable adapters, and
+external MTA clients all produced invalid UIA range handles when non-empty, so a
+future bridge must live beyond that managed provider boundary.
 
 The previous milestone added `IGridProvider`, `ITableProvider`,
 `IGridItemProvider`, and `ITableItemProvider` over the existing `Tb/Tr/Tc`
