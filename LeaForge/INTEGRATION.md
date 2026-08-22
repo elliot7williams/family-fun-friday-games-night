@@ -158,13 +158,17 @@ roles, landmarks, text, tables, lists, forms, disclosures, and gauges rebuild
 with the existing page rather than creating a second document tree.
 
 WinForms hosts use `V.Axs`, `V.Ax(element)`, `V.Ab(record)`, and `V.Ao` for the
-same model. `V` overrides its native accessibility provider and exposes MSAA
-children with rendered bounds, hierarchy, live values/states, protected
-passwords, keyboard shortcuts, hit testing, focus selection, and default
-actions. Add the framework `Accessibility` reference beside `Lea.Engine` and
-`Lea.Win`; the supplied Firespider target already does this. The standalone
-test browser and Firespider Inspector both include an Access tab for live
-inspection.
+same model. `V` exposes MSAA children plus an HWND-rooted Windows UI Automation
+fragment tree with stable bounded IDs. Both paths share rendered bounds,
+hierarchy, live values/states, protected passwords, keyboard shortcuts, hit
+testing, focus, and actions. UIA maps Lea nodes to native control types and
+supports invoke, editable value, toggle, radio selection, disclosure,
+read-only/editable range, and scroll-item patterns with structure, focus, and
+property notifications. Add the framework `Accessibility`,
+`UIAutomationProvider`, `UIAutomationTypes`, and `WindowsBase` references beside
+`Lea.Engine` and `Lea.Win` when compiling the adapter source; the project file
+already includes them. The standalone test browser and Firespider Inspector
+both include an Access tab for live inspection.
 
 Parsed table blocks expose `B.Tb`, with `Tb.Rs`, `Tr.Cs`, and compact `Tc` cell
 records. `V` paints these on the same lightweight surface with shared row

@@ -7,6 +7,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Windows.Automation;
 using System.Windows.Forms;
 using Lea.Engine;
 using Lea.Win;
@@ -414,8 +415,16 @@ namespace Lea.Bench
                     view.Go(path);
                     using (var bitmap = Draw(view)) Need(!view.Ab(view.Ax(ById(view.At.D, "user-name"))).IsEmpty, "semantic view bounds changed");
                     Need(view.Ao != null && view.Ao.Role == AccessibleRole.Document && view.Ao.GetChildCount() > 0, "WinForms accessibility root changed");
+                    var automation = AutomationElement.FromHandle(view.Handle);
+                    Need(automation.Current.ControlType == ControlType.Document && automation.Current.FrameworkId == "Lea", "UI Automation document provider changed");
+                    var automationUser = automation.FindFirst(TreeScope.Descendants, new PropertyCondition(AutomationElement.AutomationIdProperty, "user-name"));
+                    object valuePattern;
+                    Need(automationUser != null && automationUser.Current.ControlType == ControlType.Edit && automationUser.TryGetCurrentPattern(ValuePattern.Pattern, out valuePattern), "UI Automation field or value pattern changed");
+                    var automationProgress = automation.FindFirst(TreeScope.Descendants, new PropertyCondition(AutomationElement.AutomationIdProperty, "load-progress"));
+                    object rangePattern;
+                    Need(automationProgress != null && automationProgress.TryGetCurrentPattern(RangeValuePattern.Pattern, out rangePattern) && ((RangeValuePattern)rangePattern).Current.IsReadOnly, "UI Automation range pattern changed");
                 }
-                return "Ax/Axs/St/Is and V.Ax/Axs/Ab/Ao aliases, 512 records, names, descriptions, roles, hierarchy, live values/states, redaction, bounds, and MSAA children";
+                return "Ax/Axs/St/Is and V.Ax/Axs/Ab/Ao aliases, 512 records, names, roles, live protected state, bounds, MSAA children, UIA fragments, control types, and patterns";
             });
             AddProbe(probes, "CSS selectors and cascade", delegate
             {
@@ -629,7 +638,7 @@ namespace Lea.Bench
             Capability(builder, "Image maps", "Supported subset", "Compact Mp/Ar models, rect/circle/poly/default and dead areas, bounded coordinates, scaled custom hit regions, area links/downloads, and safe rebuilds");
             Capability(builder, "Keyboard focus", "Supported subset", "Bounded tabindex order, links, image-map areas, fields, summaries, visible focus, scrolling, wrapping, and host activation aliases");
             Capability(builder, "Focus shortcuts", "Supported subset", "Bounded autofocus candidates and ASCII access-key alternatives with conflict resolution, Alt+Shift labels, host-safe matching, focus, and activation");
-            Capability(builder, "Accessibility", "Supported subset", "Bounded Ax hierarchy with HTML/ARIA roles, names, descriptions, live values and states, redaction, rendered bounds, MSAA children, focus, and default actions; not the complete platform mapping standards");
+            Capability(builder, "Accessibility", "Supported subset", "Bounded Ax hierarchy with MSAA and native UI Automation fragments, roles, names, live protected state, rendered bounds, focus, and invoke/value/toggle/selection/disclosure/range/scroll patterns; not the complete platform mapping standards");
             builder.AppendLine();
             builder.AppendLine("## Binary Footprint");
             builder.AppendLine();

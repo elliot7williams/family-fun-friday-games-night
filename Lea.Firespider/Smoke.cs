@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Windows.Automation;
 using System.Windows.Forms;
 using Lea.Engine;
 using Lea.Win;
@@ -114,6 +115,12 @@ namespace Lea.Firespider
                     var hostAccess = host.Ax(ById(host.At.D, "host-auto"));
                     Check(host.Axs.Count > 10 && hostAccess != null && hostAccess.K == "textbox" && hostAccess.N == "Host search" && hostAccess.D == "Host field help" && hostAccess.Is(Ax.Rq), "Firespider semantic accessibility aliases");
                     Check(host.Ax(ById(host.At.D, "host-secret")).V.Length == 0 && !host.Ab(hostAccess).IsEmpty && host.Ao != null && host.Ao.GetChildCount() > 0, "Firespider accessibility redaction, bounds, and provider");
+                    var automationRoot = AutomationElement.FromHandle(host.Handle);
+                    var automationHost = automationRoot.FindFirst(TreeScope.Descendants, new PropertyCondition(AutomationElement.AutomationIdProperty, "host-auto"));
+                    object automationValue;
+                    Check(automationRoot.Current.ControlType == ControlType.Document && automationRoot.Current.FrameworkId == "Lea" &&
+                        automationHost != null && automationHost.Current.ControlType == ControlType.Edit &&
+                        automationHost.TryGetCurrentPattern(ValuePattern.Pattern, out automationValue), "Firespider UI Automation document and value provider");
                     Check(!CommandKey(host, Keys.Alt | Keys.Shift | Keys.Q) && CommandKey(host, Keys.Alt | Keys.Shift | Keys.K), "Firespider command route preserves unmatched and accepts assigned access keys");
                     WaitFor(() => host.Ke != null && host.Ke.Av("id") == "host-key", "Firespider command-route access-key focus");
                     Check(host.Ki == 0 && host.Aa("q").GetAwaiter().GetResult() == 0, "Firespider host-safe access-key focus");
@@ -266,7 +273,7 @@ namespace Lea.Firespider
                     Check(restoredTabs.TabCount == beforeMiddle - 1 && FindLea(restoredTabs) == null, "middle-click Lea tab close");
                 }
 
-                Console.WriteLine("Firespider Lea smoke passed: bounded semantic accessibility, protected values, rendered bounds, MSAA provider and Access inspector, bounded autofocus and access keys, keyboard focus and activation, responsive image maps, compact time/edit metadata, output/data values and safe rebuilds, progress and meter gauges, retained same-page fragments, Lea-first New Tab and explicit legacy fallback, host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
+                Console.WriteLine("Firespider Lea smoke passed: bounded semantic accessibility, protected values, rendered bounds, MSAA and UI Automation providers, value patterns and Access inspector, bounded autofocus and access keys, keyboard focus and activation, responsive image maps, compact time/edit metadata, output/data values and safe rebuilds, progress and meter gauges, retained same-page fragments, Lea-first New Tab and explicit legacy fallback, host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
                 return 0;
             }
             catch (Exception error)

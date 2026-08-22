@@ -92,9 +92,12 @@ Semantic accessibility stays on the same Lea tab. Firespider can enumerate
 bounds through `Ab`. Compact `Ax.K/N/D/V/St/Lv/U/El/Up` aliases expose bounded
 roles, names, descriptions, live values and states, heading levels, links, DOM
 ownership, and hierarchy. Password and file values are redacted. `V.Ao` and
-the control's native provider expose the records as WinForms/MSAA children with
-focus, protected state, keyboard shortcuts, hit testing, and default actions.
-The adapter target adds the framework `Accessibility` reference.
+the control's native provider expose the records as WinForms/MSAA children and
+as a native UI Automation fragment tree. UIA provides stable bounded runtime
+IDs, Lea control types, protected state, focus and property notifications, and
+invoke/value/toggle/selection/disclosure/range/scroll patterns over the same
+records. The adapter target adds the framework `Accessibility`,
+`UIAutomationProvider`, `UIAutomationTypes`, and `WindowsBase` references.
 
 Firespider can read `V.Dg()` for bounded response, document, CSS, request,
 command, cache, and cookie diagnostics without reflecting into Lea internals.

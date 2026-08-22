@@ -9,6 +9,8 @@ using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows.Automation;
+using System.Windows.Automation.Provider;
 using System.Windows.Forms;
 using Lea.Engine;
 
@@ -55,6 +57,7 @@ namespace Lea.Win
         private string findQuery = "";
         private int findIndex = -1;
         private int goRequests;
+        private Ur ur;
 
         public event EventHandler Done;
         public event EventHandler Changed;
@@ -89,6 +92,18 @@ namespace Lea.Win
         {
             return new Va(this);
         }
+
+        protected override void WndProc(ref Message message)
+        {
+            if (message.Msg == 0x003D && message.LParam.ToInt64() == AutomationInteropProvider.RootObjectId)
+            {
+                message.Result = AutomationInteropProvider.ReturnRawElementProvider(Handle, message.WParam, message.LParam, UiRoot);
+                return;
+            }
+            base.WndProc(ref message);
+        }
+
+        private Ur UiRoot { get { return ur ?? (ur = new Ur(this)); } }
 
         public P At { get { return e.At; } }
         public Uri U { get { return At == null ? null : At.U; } }
@@ -3317,6 +3332,35 @@ namespace Lea.Win
         private void NotifyAccessibility(AccessibleEvents kind)
         {
             if (IsHandleCreated) AccessibilityNotifyClients(kind, -1);
+            if (!IsHandleCreated || !AutomationInteropProvider.ClientsAreListening) return;
+            try
+            {
+                if (kind == AccessibleEvents.Reorder)
+                    AutomationInteropProvider.RaiseStructureChangedEvent(UiRoot, new StructureChangedEventArgs(StructureChangeType.ChildrenInvalidated, UiRoot.GetRuntimeId()));
+                else if (kind == AccessibleEvents.Focus)
+                {
+                    var item = focus == null ? null : Ax(focus);
+                    var provider = item == null ? (IRawElementProviderSimple)UiRoot : new Ux(this, item);
+                    AutomationInteropProvider.RaiseAutomationEvent(AutomationElementIdentifiers.AutomationFocusChangedEvent, provider,
+                        new AutomationEventArgs(AutomationElementIdentifiers.AutomationFocusChangedEvent));
+                }
+            }
+            catch (InvalidOperationException) { }
+            catch (ElementNotAvailableException) { }
+        }
+
+        private void NotifyAutomation(Ax item, AutomationProperty property, object oldValue, object newValue)
+        {
+            if (!IsHandleCreated || !AutomationInteropProvider.ClientsAreListening) return;
+            item = CurrentAccessibility(item);
+            if (item == null) return;
+            try
+            {
+                AutomationInteropProvider.RaiseAutomationPropertyChangedEvent(new Ux(this, item),
+                    new AutomationPropertyChangedEventArgs(property, oldValue, newValue));
+            }
+            catch (InvalidOperationException) { }
+            catch (ElementNotAvailableException) { }
         }
 
         private Ax AccessibilityRoot()
@@ -3382,6 +3426,211 @@ namespace Lea.Win
             await Ka();
         }
 
+        private T OnUi<T>(Func<T> work)
+        {
+            if (IsDisposed) return default(T);
+            return InvokeRequired ? (T)Invoke(work) : work();
+        }
+
+        private void OnUi(Action work)
+        {
+            if (IsDisposed) return;
+            if (InvokeRequired) Invoke(work);
+            else work();
+        }
+
+        private Fi AccessibilityField(Ax item)
+        {
+            item = CurrentAccessibility(item);
+            if (At == null || item == null || item.El == null) return null;
+            foreach (var field in At.Fs)
+                if (Object.ReferenceEquals(field.El, item.El)) return field;
+            return null;
+        }
+
+        private bool CanAccessibilityValue(Ax item)
+        {
+            var field = AccessibilityField(item);
+            return field != null && field.K != "password" && field.K != "file" && field.K != "checkbox" &&
+                field.K != "radio" && field.K != "submit" && field.K != "reset" && field.K != "button" &&
+                field.K != "range" && field.K != "number";
+        }
+
+        private void SetAccessibilityValue(Ax item, string value)
+        {
+            var field = AccessibilityField(item);
+            if (field == null || !CanAccessibilityValue(item)) throw new InvalidOperationException("The Lea field does not expose an editable value.");
+            if (field.Ds || field.Ro) throw new InvalidOperationException("The Lea field is read-only.");
+            value = value ?? "";
+            if (value.Length > 1024) throw new ArgumentException("Lea field values are limited to 1,024 characters.", "value");
+            if (field.K == "select")
+            {
+                var oldValue = item.V;
+                for (var i = 0; i < field.Os.Count; i++)
+                    if (!field.Os[i].Ds && (field.Os[i].V == value || field.Os[i].T == value))
+                    {
+                        Choose(field, i);
+                        NotifyAccessibility(AccessibleEvents.ValueChange);
+                        NotifyAutomation(item, ValuePatternIdentifiers.ValueProperty, oldValue, item.V);
+                        return;
+                    }
+                throw new ArgumentException("The value is not an enabled option.", "value");
+            }
+            if (field.K == "color" && !Regex.IsMatch(value, "^#[0-9a-fA-F]{6}$"))
+                throw new ArgumentException("The color must use #RRGGBB form.", "value");
+            var previous = item.V;
+            field.V = value;
+            if (Object.ReferenceEquals(edit, field))
+            {
+                editLock = true;
+                ed.Text = value;
+                editLock = false;
+            }
+            var restyle = ClearValidity(field);
+            OnEdited();
+            NotifyAccessibility(AccessibleEvents.ValueChange);
+            NotifyAutomation(item, ValuePatternIdentifiers.ValueProperty, previous, item.V);
+            if (restyle) Restyle(); else Invalidate();
+        }
+
+        private bool CanAccessibilityToggle(Ax item)
+        {
+            var field = AccessibilityField(item);
+            return field != null && field.K == "checkbox";
+        }
+
+        private void ToggleAccessibility(Ax item)
+        {
+            var field = AccessibilityField(item);
+            if (field == null || field.K != "checkbox") throw new InvalidOperationException("The Lea item is not a native checkbox.");
+            if (field.Ds) throw new InvalidOperationException("The Lea checkbox is disabled.");
+            var previous = item.Is(Lea.Engine.Ax.Mx) ? ToggleState.Indeterminate : item.Is(Lea.Engine.Ax.Ck) ? ToggleState.On : ToggleState.Off;
+            field.C = !field.C;
+            var restyle = ClearValidity(field);
+            OnEdited();
+            NotifyAccessibility(AccessibleEvents.StateChange);
+            NotifyAutomation(item, TogglePatternIdentifiers.ToggleStateProperty, previous, field.C ? ToggleState.On : ToggleState.Off);
+            if (restyle) Restyle(); else Invalidate();
+        }
+
+        private bool CanAccessibilitySelect(Ax item)
+        {
+            var field = AccessibilityField(item);
+            return field != null && field.K == "radio";
+        }
+
+        private void SelectAccessibility(Ax item)
+        {
+            var field = AccessibilityField(item);
+            if (field == null || field.K != "radio") throw new InvalidOperationException("The Lea item is not a native radio button.");
+            if (field.Ds) throw new InvalidOperationException("The Lea radio button is disabled.");
+            var previous = item.Is(Lea.Engine.Ax.Ck) || item.Is(Lea.Engine.Ax.Sl);
+            var restyle = false;
+            foreach (var candidate in At.Fs)
+                if (candidate.K == "radio" && Object.ReferenceEquals(candidate.F, field.F) && candidate.N == field.N)
+                {
+                    candidate.C = false;
+                    restyle = ClearValidity(candidate) || restyle;
+                }
+            field.C = true;
+            OnEdited();
+            NotifyAccessibility(AccessibleEvents.Selection);
+            NotifyAutomation(item, SelectionItemPatternIdentifiers.IsSelectedProperty, previous, true);
+            if (restyle) Restyle(); else Invalidate();
+        }
+
+        private bool CanAccessibilityExpand(Ax item)
+        {
+            item = CurrentAccessibility(item);
+            return item != null && item.El != null && item.El.K == "summary" && (item.Is(Lea.Engine.Ax.Ex) || item.Is(Lea.Engine.Ax.Co));
+        }
+
+        private void SetAccessibilityExpanded(Ax item, bool expanded)
+        {
+            item = CurrentAccessibility(item);
+            if (!CanAccessibilityExpand(item)) throw new InvalidOperationException("The Lea item is not a disclosure summary.");
+            if (item.Is(Lea.Engine.Ax.Ex) == expanded) return;
+            var previous = expanded ? ExpandCollapseState.Collapsed : ExpandCollapseState.Expanded;
+            Ds(item.El);
+            NotifyAutomation(item, ExpandCollapsePatternIdentifiers.ExpandCollapseStateProperty, previous,
+                expanded ? ExpandCollapseState.Expanded : ExpandCollapseState.Collapsed);
+        }
+
+        private void ScrollAccessibility(Ax item)
+        {
+            item = CurrentAccessibility(item);
+            if (item == null || item.El == null) return;
+            EnsureLayout();
+            foreach (var box in boxes)
+            {
+                if (box.Title || box.El == null || Hidden(box.S) || HtmlHidden(box.El)) continue;
+                var owns = OwnsElement(item.El, box.El) || item.El.K == "#text" && Object.ReferenceEquals(item.El.Up, box.El);
+                if (!owns && item.El.K == "area" && box.B != null && box.B.Mp != null)
+                    foreach (var area in box.B.Mp.As)
+                        if (Object.ReferenceEquals(area.El, item.El)) { owns = true; break; }
+                if (!owns) continue;
+                if (!box.Fx) sy = Math.Max(0, Math.Min(MaxScroll(), box.R.Top - 24));
+                PlaceEditor();
+                Invalidate();
+                return;
+            }
+        }
+
+        private Ra AccessibilityRange(Ax item)
+        {
+            item = CurrentAccessibility(item);
+            if (item == null) return null;
+            var field = AccessibilityField(item);
+            if (field != null && (field.K == "range" || field.K == "number"))
+            {
+                var minimum = AccessibilityNumber(field.Lo, field.K == "range" ? 0D : -1000000000000D);
+                var maximum = AccessibilityNumber(field.Hi, field.K == "range" ? 100D : 1000000000000D);
+                if (maximum < minimum) maximum = minimum;
+                var value = AccessibilityNumber(field.V, minimum);
+                value = Math.Max(minimum, Math.Min(maximum, value));
+                var step = AccessibilityNumber(field.Sp, 1D);
+                if (step <= 0D) step = 1D;
+                return new Ra(value, minimum, maximum, step, Math.Min(maximum - minimum, step * 10D), field.Ds || field.Ro, field);
+            }
+            var element = item.El;
+            if (element == null || (item.K != "slider" && item.K != "progressbar" && item.K != "meter")) return null;
+            var nativeProgress = element.K == "progress";
+            var nativeMeter = element.K == "meter";
+            var minimumValue = nativeProgress ? 0D : AccessibilityNumber(element.Av(nativeMeter ? "min" : "aria-valuemin"), 0D);
+            var maximumValue = AccessibilityNumber(element.Av(nativeProgress || nativeMeter ? "max" : "aria-valuemax"), nativeProgress || nativeMeter ? 1D : 100D);
+            if (maximumValue < minimumValue) maximumValue = minimumValue;
+            var authored = nativeProgress || nativeMeter ? element.Av("value") : element.Av("aria-valuenow");
+            var currentValue = AccessibilityNumber(authored.Length == 0 ? item.V : authored, minimumValue);
+            currentValue = Math.Max(minimumValue, Math.Min(maximumValue, currentValue));
+            return new Ra(currentValue, minimumValue, maximumValue, 0D, 0D, true, null);
+        }
+
+        private void SetAccessibilityRange(Ax item, double value)
+        {
+            var range = AccessibilityRange(item);
+            if (range == null || range.F == null || range.Ro) throw new InvalidOperationException("The Lea range is read-only.");
+            if (Double.IsNaN(value) || Double.IsInfinity(value) || value < range.Mn || value > range.Mx)
+                throw new ArgumentOutOfRangeException("value");
+            if (range.Sm > 0D)
+            {
+                var steps = Math.Round((value - range.Mn) / range.Sm, MidpointRounding.AwayFromZero);
+                value = Math.Max(range.Mn, Math.Min(range.Mx, range.Mn + steps * range.Sm));
+            }
+            range.F.V = value.ToString("R", CultureInfo.InvariantCulture);
+            var restyle = ClearValidity(range.F);
+            OnEdited();
+            NotifyAccessibility(AccessibleEvents.ValueChange);
+            NotifyAutomation(item, RangeValuePatternIdentifiers.ValueProperty, range.V, value);
+            if (restyle) Restyle(); else Invalidate();
+        }
+
+        private static double AccessibilityNumber(string text, double fallback)
+        {
+            double value;
+            return Double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out value) &&
+                !Double.IsNaN(value) && !Double.IsInfinity(value) ? value : fallback;
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -3404,6 +3653,28 @@ namespace Lea.Win
             {
                 B = body;
                 Ct = type;
+            }
+        }
+
+        private sealed class Ra
+        {
+            public readonly double V;
+            public readonly double Mn;
+            public readonly double Mx;
+            public readonly double Sm;
+            public readonly double Lg;
+            public readonly bool Ro;
+            public readonly Fi F;
+
+            public Ra(double value, double minimum, double maximum, double small, double large, bool readOnly, Fi field)
+            {
+                V = value;
+                Mn = minimum;
+                Mx = maximum;
+                Sm = small;
+                Lg = large;
+                Ro = readOnly;
+                F = field;
             }
         }
 
@@ -3538,7 +3809,7 @@ namespace Lea.Win
                 return false;
             }
 
-            private static string AccessibilityAction(Ax item)
+            internal static string AccessibilityAction(Ax item)
             {
                 if (!item.Is(Lea.Engine.Ax.Fs)) return "";
                 var element = item.El;
@@ -3551,7 +3822,7 @@ namespace Lea.Win
                 return "";
             }
 
-            private static AccessibleRole AccessibilityRole(string role)
+            internal static AccessibleRole AccessibilityRole(string role)
             {
                 if (role == "link") return AccessibleRole.Link;
                 if (role == "button") return AccessibleRole.PushButton;
@@ -3579,7 +3850,7 @@ namespace Lea.Win
                 return AccessibleRole.Grouping;
             }
 
-            private static AccessibleStates AccessibilityState(Ax item, Rectangle bounds)
+            internal static AccessibleStates AccessibilityState(Ax item, Rectangle bounds)
             {
                 var result = AccessibleStates.None;
                 if (item.Is(Lea.Engine.Ax.Fs)) result |= AccessibleStates.Focusable;
@@ -3596,6 +3867,274 @@ namespace Lea.Win
                 if (item.El != null && item.El.K == "input" && item.El.Av("type").Equals("password", StringComparison.OrdinalIgnoreCase)) result |= AccessibleStates.Protected;
                 if (bounds.IsEmpty) result |= AccessibleStates.Offscreen;
                 return result;
+            }
+        }
+
+        private sealed class Ur : IRawElementProviderFragmentRoot
+        {
+            private readonly V v;
+
+            public Ur(V owner) { v = owner; }
+
+            public ProviderOptions ProviderOptions { get { return ProviderOptions.ServerSideProvider; } }
+            public IRawElementProviderSimple HostRawElementProvider
+            {
+                get { return v.IsHandleCreated ? AutomationInteropProvider.HostProviderFromHandle(v.Handle) : null; }
+            }
+            public object GetPatternProvider(int patternId) { return null; }
+            public object GetPropertyValue(int propertyId)
+            {
+                return v.OnUi<object>(delegate
+                {
+                    if (propertyId == AutomationElementIdentifiers.ControlTypeProperty.Id) return ControlType.Document.Id;
+                    if (propertyId == AutomationElementIdentifiers.NameProperty.Id) return v.T.Length == 0 ? "Lea document" : v.T;
+                    if (propertyId == AutomationElementIdentifiers.HelpTextProperty.Id) return "Lea web document";
+                    if (propertyId == AutomationElementIdentifiers.AutomationIdProperty.Id) return "LeaDocument";
+                    if (propertyId == AutomationElementIdentifiers.ClassNameProperty.Id) return "Lea.Win.V";
+                    if (propertyId == AutomationElementIdentifiers.FrameworkIdProperty.Id) return "Lea";
+                    if (propertyId == AutomationElementIdentifiers.IsControlElementProperty.Id || propertyId == AutomationElementIdentifiers.IsContentElementProperty.Id) return true;
+                    if (propertyId == AutomationElementIdentifiers.IsEnabledProperty.Id) return v.Enabled;
+                    if (propertyId == AutomationElementIdentifiers.IsKeyboardFocusableProperty.Id) return true;
+                    if (propertyId == AutomationElementIdentifiers.HasKeyboardFocusProperty.Id) return v.Focused || v.ContainsFocus;
+                    if (propertyId == AutomationElementIdentifiers.IsOffscreenProperty.Id) return !v.Visible;
+                    if (propertyId == AutomationElementIdentifiers.NativeWindowHandleProperty.Id) return v.Handle.ToInt32();
+                    return AutomationElementIdentifiers.NotSupported;
+                });
+            }
+            public System.Windows.Rect BoundingRectangle
+            {
+                get
+                {
+                    return v.OnUi(delegate
+                    {
+                        var bounds = v.RectangleToScreen(v.ClientRectangle);
+                        return new System.Windows.Rect(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+                    });
+                }
+            }
+            public IRawElementProviderFragmentRoot FragmentRoot { get { return this; } }
+            public IRawElementProviderFragment Navigate(NavigateDirection direction)
+            {
+                return v.OnUi<IRawElementProviderFragment>(delegate
+                {
+                    if (direction != NavigateDirection.FirstChild && direction != NavigateDirection.LastChild) return null;
+                    var root = v.AccessibilityRoot();
+                    if (root == null) return null;
+                    var children = v.AccessibilityChildren(root);
+                    if (children.Count == 0) return null;
+                    return new Ux(v, direction == NavigateDirection.FirstChild ? children[0] : children[children.Count - 1]);
+                });
+            }
+            public int[] GetRuntimeId() { return new[] { AutomationInteropProvider.AppendRuntimeId, 0 }; }
+            public IRawElementProviderSimple[] GetEmbeddedFragmentRoots() { return null; }
+            public void SetFocus() { v.OnUi(delegate { v.Focus(); }); }
+            public IRawElementProviderFragment ElementProviderFromPoint(double x, double y)
+            {
+                return v.OnUi<IRawElementProviderFragment>(delegate
+                {
+                    var item = v.AccessibilityAt(new Point((int)Math.Round(x), (int)Math.Round(y)));
+                    return item == null ? (IRawElementProviderFragment)this : new Ux(v, item);
+                });
+            }
+            public IRawElementProviderFragment GetFocus()
+            {
+                return v.OnUi<IRawElementProviderFragment>(delegate
+                {
+                    var item = v.focus == null ? null : v.Ax(v.focus);
+                    return item == null ? null : new Ux(v, item);
+                });
+            }
+        }
+
+        private sealed class Ux : IRawElementProviderFragment, IInvokeProvider, IValueProvider, IToggleProvider,
+            IExpandCollapseProvider, ISelectionItemProvider, IRangeValueProvider, IScrollItemProvider
+        {
+            private readonly V v;
+            private readonly Ax a;
+
+            public Ux(V owner, Ax item)
+            {
+                v = owner;
+                a = item;
+            }
+
+            private Ax A { get { return v.CurrentAccessibility(a) ?? a; } }
+            public ProviderOptions ProviderOptions { get { return ProviderOptions.ServerSideProvider; } }
+            public IRawElementProviderSimple HostRawElementProvider { get { return null; } }
+            public object GetPatternProvider(int patternId)
+            {
+                return v.OnUi<object>(delegate
+                {
+                    var item = A;
+                    if (patternId == InvokePatternIdentifiers.Pattern.Id) return CanInvoke(item) ? this : null;
+                    if (patternId == ValuePatternIdentifiers.Pattern.Id) return v.CanAccessibilityValue(item) ? this : null;
+                    if (patternId == TogglePatternIdentifiers.Pattern.Id) return v.CanAccessibilityToggle(item) ? this : null;
+                    if (patternId == ExpandCollapsePatternIdentifiers.Pattern.Id) return v.CanAccessibilityExpand(item) ? this : null;
+                    if (patternId == SelectionItemPatternIdentifiers.Pattern.Id) return v.CanAccessibilitySelect(item) ? this : null;
+                    if (patternId == RangeValuePatternIdentifiers.Pattern.Id) return v.AccessibilityRange(item) != null ? this : null;
+                    if (patternId == ScrollItemPatternIdentifiers.Pattern.Id) return item.El != null ? this : null;
+                    return null;
+                });
+            }
+            public object GetPropertyValue(int propertyId)
+            {
+                return v.OnUi<object>(delegate
+                {
+                    var item = A;
+                    if (propertyId == AutomationElementIdentifiers.ControlTypeProperty.Id) return AccessibilityControlType(item.K).Id;
+                    if (propertyId == AutomationElementIdentifiers.NameProperty.Id) return item.N;
+                    if (propertyId == AutomationElementIdentifiers.HelpTextProperty.Id) return item.D;
+                    if (propertyId == AutomationElementIdentifiers.AutomationIdProperty.Id) return item.El == null ? "" : item.El.Av("id");
+                    if (propertyId == AutomationElementIdentifiers.ClassNameProperty.Id) return item.El == null ? "Lea." + item.K : "Lea." + item.El.K;
+                    if (propertyId == AutomationElementIdentifiers.FrameworkIdProperty.Id) return "Lea";
+                    if (propertyId == AutomationElementIdentifiers.IsControlElementProperty.Id || propertyId == AutomationElementIdentifiers.IsContentElementProperty.Id) return true;
+                    if (propertyId == AutomationElementIdentifiers.IsEnabledProperty.Id) return !item.Is(Lea.Engine.Ax.Ds);
+                    if (propertyId == AutomationElementIdentifiers.IsKeyboardFocusableProperty.Id) return item.Is(Lea.Engine.Ax.Fs);
+                    if (propertyId == AutomationElementIdentifiers.HasKeyboardFocusProperty.Id) return item.Is(Lea.Engine.Ax.Fc);
+                    if (propertyId == AutomationElementIdentifiers.IsOffscreenProperty.Id) return v.Ab(item).IsEmpty;
+                    if (propertyId == AutomationElementIdentifiers.AccessKeyProperty.Id) return item.El == null ? "" : v.Kl(item.El);
+                    if (propertyId == AutomationElementIdentifiers.IsPasswordProperty.Id) return IsPassword(item);
+                    if (propertyId == AutomationElementIdentifiers.IsRequiredForFormProperty.Id) return item.Is(Lea.Engine.Ax.Rq);
+                    if (propertyId == AutomationElementIdentifiers.IsInvokePatternAvailableProperty.Id) return CanInvoke(item);
+                    if (propertyId == AutomationElementIdentifiers.IsValuePatternAvailableProperty.Id) return v.CanAccessibilityValue(item);
+                    if (propertyId == AutomationElementIdentifiers.IsTogglePatternAvailableProperty.Id) return v.CanAccessibilityToggle(item);
+                    if (propertyId == AutomationElementIdentifiers.IsExpandCollapsePatternAvailableProperty.Id) return v.CanAccessibilityExpand(item);
+                    if (propertyId == AutomationElementIdentifiers.IsSelectionItemPatternAvailableProperty.Id) return v.CanAccessibilitySelect(item);
+                    if (propertyId == AutomationElementIdentifiers.IsRangeValuePatternAvailableProperty.Id) return v.AccessibilityRange(item) != null;
+                    if (propertyId == AutomationElementIdentifiers.IsScrollItemPatternAvailableProperty.Id) return item.El != null;
+                    return AutomationElementIdentifiers.NotSupported;
+                });
+            }
+            public System.Windows.Rect BoundingRectangle
+            {
+                get
+                {
+                    return v.OnUi(delegate
+                    {
+                        var bounds = v.Ab(A);
+                        if (bounds.IsEmpty) return System.Windows.Rect.Empty;
+                        bounds = v.RectangleToScreen(bounds);
+                        return new System.Windows.Rect(bounds.X, bounds.Y, bounds.Width, bounds.Height);
+                    });
+                }
+            }
+            public IRawElementProviderFragmentRoot FragmentRoot { get { return v.UiRoot; } }
+            public IRawElementProviderFragment Navigate(NavigateDirection direction)
+            {
+                return v.OnUi<IRawElementProviderFragment>(delegate
+                {
+                    var item = A;
+                    if (direction == NavigateDirection.FirstChild || direction == NavigateDirection.LastChild)
+                    {
+                        var children = v.AccessibilityChildren(item);
+                        if (children.Count == 0) return null;
+                        return new Ux(v, direction == NavigateDirection.FirstChild ? children[0] : children[children.Count - 1]);
+                    }
+                    if (direction == NavigateDirection.Parent)
+                    {
+                        var root = v.AccessibilityRoot();
+                        return item.Up == null || Object.ReferenceEquals(item.Up, root) ? (IRawElementProviderFragment)v.UiRoot : new Ux(v, item.Up);
+                    }
+                    if (item.Up == null) return null;
+                    var siblings = v.AccessibilityChildren(item.Up);
+                    var index = siblings.IndexOf(item);
+                    if (direction == NavigateDirection.NextSibling) index++;
+                    else if (direction == NavigateDirection.PreviousSibling) index--;
+                    else return null;
+                    return index < 0 || index >= siblings.Count ? null : new Ux(v, siblings[index]);
+                });
+            }
+            public int[] GetRuntimeId()
+            {
+                return v.OnUi(delegate
+                {
+                    var index = v.At == null ? -1 : v.At.Axs.IndexOf(A);
+                    return new[] { AutomationInteropProvider.AppendRuntimeId, Math.Max(1, index + 1) };
+                });
+            }
+            public IRawElementProviderSimple[] GetEmbeddedFragmentRoots() { return null; }
+            public void SetFocus() { v.OnUi(delegate { v.FocusAccessibility(A); }); }
+
+            void IInvokeProvider.Invoke() { v.OnUi(delegate { v.ActivateAccessibility(A); }); }
+            bool IValueProvider.IsReadOnly
+            {
+                get
+                {
+                    return v.OnUi(delegate
+                    {
+                        var field = v.AccessibilityField(A);
+                        return field == null || field.Ds || field.Ro;
+                    });
+                }
+            }
+            string IValueProvider.Value { get { return v.OnUi(delegate { return A.V; }); } }
+            void IValueProvider.SetValue(string value) { v.OnUi(delegate { v.SetAccessibilityValue(A, value); }); }
+            ToggleState IToggleProvider.ToggleState
+            {
+                get
+                {
+                    return v.OnUi(delegate
+                    {
+                        var item = A;
+                        return item.Is(Lea.Engine.Ax.Mx) ? ToggleState.Indeterminate : item.Is(Lea.Engine.Ax.Ck) ? ToggleState.On : ToggleState.Off;
+                    });
+                }
+            }
+            void IToggleProvider.Toggle() { v.OnUi(delegate { v.ToggleAccessibility(A); }); }
+            ExpandCollapseState IExpandCollapseProvider.ExpandCollapseState
+            {
+                get { return v.OnUi(delegate { return A.Is(Lea.Engine.Ax.Ex) ? ExpandCollapseState.Expanded : ExpandCollapseState.Collapsed; }); }
+            }
+            void IExpandCollapseProvider.Expand() { v.OnUi(delegate { v.SetAccessibilityExpanded(A, true); }); }
+            void IExpandCollapseProvider.Collapse() { v.OnUi(delegate { v.SetAccessibilityExpanded(A, false); }); }
+            bool ISelectionItemProvider.IsSelected { get { return v.OnUi(delegate { return A.Is(Lea.Engine.Ax.Ck) || A.Is(Lea.Engine.Ax.Sl); }); } }
+            IRawElementProviderSimple ISelectionItemProvider.SelectionContainer { get { return null; } }
+            void ISelectionItemProvider.AddToSelection() { v.OnUi(delegate { v.SelectAccessibility(A); }); }
+            void ISelectionItemProvider.RemoveFromSelection() { throw new InvalidOperationException("Native radio buttons cannot be cleared without selecting a peer."); }
+            void ISelectionItemProvider.Select() { v.OnUi(delegate { v.SelectAccessibility(A); }); }
+            bool IRangeValueProvider.IsReadOnly { get { return v.OnUi(delegate { var range = v.AccessibilityRange(A); return range == null || range.Ro; }); } }
+            double IRangeValueProvider.Value { get { return v.OnUi(delegate { var range = v.AccessibilityRange(A); return range == null ? 0D : range.V; }); } }
+            double IRangeValueProvider.Minimum { get { return v.OnUi(delegate { var range = v.AccessibilityRange(A); return range == null ? 0D : range.Mn; }); } }
+            double IRangeValueProvider.Maximum { get { return v.OnUi(delegate { var range = v.AccessibilityRange(A); return range == null ? 0D : range.Mx; }); } }
+            double IRangeValueProvider.SmallChange { get { return v.OnUi(delegate { var range = v.AccessibilityRange(A); return range == null ? 0D : range.Sm; }); } }
+            double IRangeValueProvider.LargeChange { get { return v.OnUi(delegate { var range = v.AccessibilityRange(A); return range == null ? 0D : range.Lg; }); } }
+            void IRangeValueProvider.SetValue(double value) { v.OnUi(delegate { v.SetAccessibilityRange(A, value); }); }
+            void IScrollItemProvider.ScrollIntoView() { v.OnUi(delegate { v.ScrollAccessibility(A); }); }
+
+            private static bool CanInvoke(Ax item)
+            {
+                if (item == null || item.El == null || item.El.K == "summary") return false;
+                return (item.K == "link" || item.K == "button") && Xa.AccessibilityAction(item).Length > 0;
+            }
+
+            private static bool IsPassword(Ax item)
+            {
+                return item != null && item.El != null && item.El.K == "input" && item.El.Av("type").Equals("password", StringComparison.OrdinalIgnoreCase);
+            }
+
+            private static ControlType AccessibilityControlType(string role)
+            {
+                if (role == "document") return ControlType.Document;
+                if (role == "link") return ControlType.Hyperlink;
+                if (role == "button") return ControlType.Button;
+                if (role == "checkbox") return ControlType.CheckBox;
+                if (role == "radio") return ControlType.RadioButton;
+                if (role == "textbox" || role == "searchbox") return ControlType.Edit;
+                if (role == "spinbutton") return ControlType.Spinner;
+                if (role == "combobox") return ControlType.ComboBox;
+                if (role == "listbox" || role == "list") return ControlType.List;
+                if (role == "listitem") return ControlType.ListItem;
+                if (role == "slider") return ControlType.Slider;
+                if (role == "progressbar" || role == "meter") return ControlType.ProgressBar;
+                if (role == "img") return ControlType.Image;
+                if (role == "table") return ControlType.Table;
+                if (role == "row" || role == "cell") return ControlType.DataItem;
+                if (role == "columnheader" || role == "rowheader") return ControlType.HeaderItem;
+                if (role == "separator") return ControlType.Separator;
+                if (role == "status") return ControlType.StatusBar;
+                if (role == "text" || role == "paragraph" || role == "blockquote" || role == "code" || role == "caption" ||
+                    role == "term" || role == "definition" || role == "heading" || role == "time" || role == "timer") return ControlType.Text;
+                return ControlType.Group;
             }
         }
 

@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **3**
+Post-1.0 hardening milestones completed: **4**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -18,7 +18,7 @@ modern web platform.
 | Layout and painting | 20% | 20% | Inset stretch, translated contexts, nested content, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Bounded multipart files, richer widgets, validation, responsive images, GET/POST submit |
 | Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/style/alert, class, visibility, field-state, and focus commands |
-| Firespider integration and reliability | 10% | 10% | Lea-first New Tab/Ctrl+T, explicit legacy fallback, Inspector with Access view, MSAA surface, host-safe focus shortcuts, navigation, sessions, source, host smokes |
+| Firespider integration and reliability | 10% | 10% | Lea-first New Tab/Ctrl+T, explicit legacy fallback, Inspector with Access view, MSAA/UIA surfaces, host-safe focus shortcuts, navigation, sessions, source, host smokes |
 | **Total** | **100%** | **100%** | Scoped Lea 1.0 baseline complete; post-1.0 hardening continues |
 
 ## Updating the percentage
@@ -38,9 +38,14 @@ modern web platform.
 - Added bounded `hd/sh`, `ds/en`, `vl`, `ck`, and `fo` state commands, retained
   field ownership while hidden, one-shot `Kp` focus handoff, WinForms focus
   validation, and engine/host/benchmark fixtures.
+- Added a native HWND-rooted UI Automation fragment provider over `Ax`, stable
+  bounded runtime IDs, native control properties, protected values,
+  invoke/value/toggle/selection/disclosure/range/scroll patterns, and
+  structure/focus/property notifications; the provider and patterns are
+  verified by an MTA UIA client.
 
 ## Next gains
 
-- Continue platform accessibility mapping, compatibility, performance, and
-  Firespider migration work.
+- Continue platform accessibility mapping with bounded text, table, and grid
+  patterns where Lea has matching behavior.
 - Expand safe page commands only through bounded, fixture-backed aliases.

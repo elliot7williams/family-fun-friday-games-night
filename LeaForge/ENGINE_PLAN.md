@@ -240,10 +240,11 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add compact `<output>` and `<data>` value models with host-readable aliases.
-Keep text updates bounded, preserve computed styles and element ownership, and
-cover inline, block, form, table-cell, rebuild, and resize paths without adding
-native or external browser controls.
+Extend the Windows UI Automation mapping with bounded table and grid patterns
+over Lea's existing `Tb/Tr/Tc` ownership. Keep one semantic model, derive row,
+column, span, and header relationships without duplicating the document, and
+verify the result through the public UIA client API without adding a browser
+runtime.
 
 The repeatable compatibility and performance report is now implemented by
 `Lea.Bench`. It probes supported HTML, CSS, forms, scripting, layout, downloads,

@@ -8,6 +8,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using System.Windows.Automation;
 using System.Windows.Forms;
 using Lea.Engine;
 using Lea.Win;
@@ -694,6 +695,109 @@ namespace Lea.Tests
                     Eq("Open", accessibleLink.DefaultAction, "WinForms link default action");
                     var accessibleSummary = AccessibleByNameAndRole(accessibleRoot, "More details", AccessibleRole.PushButton, 0);
                     Ok((accessibleSummary.State & AccessibleStates.Collapsed) != 0, "WinForms collapsed disclosure state");
+                }
+
+                using (var automationHost = new Form { Size = new Size(800, 600), ShowInTaskbar = false })
+                using (var automationView = new V { Dock = DockStyle.Fill })
+                {
+                    automationHost.Controls.Add(automationView);
+                    automationHost.Show();
+                    automationView.Go(accessibilityPath);
+                    Paint(automationView);
+                    Application.DoEvents();
+                    var handle = automationView.Handle;
+                    var data = new Dictionary<string, object>();
+                    Exception automationError = null;
+                    using (var completed = new ManualResetEvent(false))
+                    {
+                        var client = new Thread(new ThreadStart(delegate
+                        {
+                            try
+                            {
+                                var rootElement = AutomationElement.FromHandle(handle);
+                                data["root-name"] = rootElement.Current.Name;
+                                data["root-type"] = rootElement.Current.ControlType;
+                                data["root-framework"] = rootElement.Current.FrameworkId;
+                                data["count"] = rootElement.FindAll(TreeScope.Descendants, Condition.TrueCondition).Count;
+                                var userElement = AutomationById(rootElement, "user-name");
+                                data["user-type"] = userElement.Current.ControlType;
+                                data["user-required"] = (bool)userElement.GetCurrentPropertyValue(AutomationElement.IsRequiredForFormProperty);
+                                var userValue = (ValuePattern)userElement.GetCurrentPattern(ValuePattern.Pattern);
+                                data["user-before"] = userValue.Current.Value;
+                                userValue.SetValue("UIA name");
+                                data["user-after"] = userValue.Current.Value;
+                                var secretElement = AutomationById(rootElement, "secret");
+                                data["secret-password"] = secretElement.Current.IsPassword;
+                                object secretPattern;
+                                data["secret-value"] = secretElement.TryGetCurrentPattern(ValuePattern.Pattern, out secretPattern);
+                                var newsElement = AutomationById(rootElement, "news");
+                                var newsToggle = (TogglePattern)newsElement.GetCurrentPattern(TogglePattern.Pattern);
+                                data["news-before"] = newsToggle.Current.ToggleState;
+                                newsToggle.Toggle();
+                                data["news-after"] = newsToggle.Current.ToggleState;
+                                var radioElement = AutomationById(rootElement, "pro-plan");
+                                var radioSelection = (SelectionItemPattern)radioElement.GetCurrentPattern(SelectionItemPattern.Pattern);
+                                radioSelection.Select();
+                                data["radio-selected"] = radioSelection.Current.IsSelected;
+                                var rangeElement = AutomationById(rootElement, "zoom-level");
+                                var rangeValue = (RangeValuePattern)rangeElement.GetCurrentPattern(RangeValuePattern.Pattern);
+                                data["range-bounds"] = rangeValue.Current.Minimum + ":" + rangeValue.Current.Maximum + ":" + rangeValue.Current.SmallChange;
+                                rangeValue.SetValue(8D);
+                                data["range-value"] = rangeValue.Current.Value;
+                                var themeElement = AutomationById(rootElement, "theme");
+                                var themeValue = (ValuePattern)themeElement.GetCurrentPattern(ValuePattern.Pattern);
+                                themeValue.SetValue("dark");
+                                data["theme-value"] = themeValue.Current.Value;
+                                var summaryElement = AutomationById(rootElement, "more-summary");
+                                var disclosure = (ExpandCollapsePattern)summaryElement.GetCurrentPattern(ExpandCollapsePattern.Pattern);
+                                data["summary-before"] = disclosure.Current.ExpandCollapseState;
+                                disclosure.Expand();
+                                data["summary-after"] = disclosure.Current.ExpandCollapseState;
+                                var progressElement = AutomationById(rootElement, "load-progress");
+                                var progressValue = (RangeValuePattern)progressElement.GetCurrentPattern(RangeValuePattern.Pattern);
+                                data["progress"] = progressValue.Current.Value + ":" + progressValue.Current.Maximum + ":" + progressValue.Current.IsReadOnly;
+                                var homeElement = AutomationById(rootElement, "home-link");
+                                data["home-key"] = homeElement.Current.AccessKey;
+                                object homePattern;
+                                data["home-invoke"] = homeElement.TryGetCurrentPattern(InvokePattern.Pattern, out homePattern);
+                                object scrollPattern;
+                                data["home-scroll"] = homeElement.TryGetCurrentPattern(ScrollItemPattern.Pattern, out scrollPattern);
+                                var areaElement = AutomationById(rootElement, "logo-area");
+                                ((ScrollItemPattern)areaElement.GetCurrentPattern(ScrollItemPattern.Pattern)).ScrollIntoView();
+                                data["area-scroll"] = true;
+                            }
+                            catch (Exception error) { automationError = error; }
+                            finally { completed.Set(); }
+                        }));
+                        client.SetApartmentState(ApartmentState.MTA);
+                        client.Start();
+                        while (!completed.WaitOne(10)) Application.DoEvents();
+                        client.Join();
+                    }
+                    if (automationError != null) throw new InvalidOperationException("UI Automation client probe failed.", automationError);
+                    Eq("Lea Accessibility", (string)data["root-name"], "UIA document name");
+                    Eq(ControlType.Document, (ControlType)data["root-type"], "UIA document control type");
+                    Eq("Lea", (string)data["root-framework"], "UIA framework identity");
+                    Ok((int)data["count"] > 30 && (int)data["count"] <= 511, "bounded UIA fragment descendants");
+                    Eq(ControlType.Edit, (ControlType)data["user-type"], "UIA text field control type");
+                    Ok((bool)data["user-required"], "UIA required field property");
+                    Eq("Elliot", (string)data["user-before"], "UIA initial value");
+                    Eq("UIA name", (string)data["user-after"], "UIA editable value pattern");
+                    Ok((bool)data["secret-password"] && !(bool)data["secret-value"], "UIA password protection and value suppression");
+                    Eq(ToggleState.On, (ToggleState)data["news-before"], "UIA initial checkbox state");
+                    Eq(ToggleState.Off, (ToggleState)data["news-after"], "UIA checkbox toggle pattern");
+                    Ok((bool)data["radio-selected"], "UIA radio selection pattern");
+                    Eq("0:10:2", (string)data["range-bounds"], "UIA slider range bounds");
+                    Eq(8D, (double)data["range-value"], "UIA slider range mutation");
+                    Eq("Dark", (string)data["theme-value"], "UIA select value mutation");
+                    Eq(ExpandCollapseState.Collapsed, (ExpandCollapseState)data["summary-before"], "UIA collapsed disclosure state");
+                    Eq(ExpandCollapseState.Expanded, (ExpandCollapseState)data["summary-after"], "UIA disclosure expand pattern");
+                    Eq("4:10:True", (string)data["progress"], "UIA read-only progress range");
+                    Eq("Alt+Shift+H", (string)data["home-key"], "UIA access key property");
+                    Ok((bool)data["home-invoke"] && (bool)data["home-scroll"], "UIA invoke and scroll-item patterns");
+                    Ok((bool)data["area-scroll"] && automationView.Sy > 0, "UIA image-map area scroll-to-view");
+                    Eq("UIA name", automationView.Id("user-name") == null ? "" : automationView.Ax(automationView.Id("user-name")).V, "UIA value reaches Lea model");
+                    automationHost.Hide();
                 }
 
                 var boundedAccessibilityPath = Path.Combine(Path.GetTempPath(), "lea-accessibility-" + Guid.NewGuid().ToString("N") + ".html");
@@ -2868,7 +2972,7 @@ namespace Lea.Tests
                 if (args.Length > 4) SaveRender(tokenPath, args[4]);
                 if (args.Length > 5) SaveStateRender(statePath, args[5]);
 
-                Console.WriteLine("Lea smoke passed: bounded semantic accessibility and WinForms MSAA children, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: bounded semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -2881,6 +2985,13 @@ namespace Lea.Tests
         private static void Paint(V view)
         {
             using (var image = Render(view)) { }
+        }
+
+        private static AutomationElement AutomationById(AutomationElement root, string id)
+        {
+            var element = root.FindFirst(TreeScope.Descendants, new PropertyCondition(AutomationElement.AutomationIdProperty, id));
+            if (element == null) throw new InvalidOperationException("Missing UI Automation element: " + id);
+            return element;
         }
 
         private static AccessibleObject AccessibleByNameAndRole(AccessibleObject root, string name, AccessibleRole role, int depth)

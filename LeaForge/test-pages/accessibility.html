@@ -23,6 +23,12 @@
         <span id="name-help">Shown beside your work.</span>
         <label>Password <input id="secret" name="secret" type="password" value="do-not-expose" readonly></label>
         <label><input id="news" name="news" type="checkbox" checked> Product news</label>
+        <label><input id="basic-plan" name="plan" type="radio" value="basic" checked> Basic plan</label>
+        <label><input id="pro-plan" name="plan" type="radio" value="pro"> Pro plan</label>
+        <label for="zoom-level">Zoom level</label>
+        <input id="zoom-level" name="zoom" type="range" min="0" max="10" step="2" value="4">
+        <label for="theme">Theme</label>
+        <select id="theme" name="theme"><option value="light">Light</option><option value="dark">Dark</option></select>
         <button id="save" type="button" aria-pressed="true">Save account</button>
       </form>
     </section>
@@ -36,7 +42,8 @@
       <thead><tr><th scope="col">Name</th><th scope="col">Role</th></tr></thead>
       <tbody><tr><th scope="row">Lea</th><td>Engine</td></tr></tbody>
     </table>
-    <img id="logo" alt="Lea mark" width="24" height="24" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAA1JREFUGFdj+P///38ACfsD/QvHytQAAAAASUVORK5CYII=">
+    <img id="logo" alt="Lea mark" width="24" height="24" usemap="#logo-map" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAA1JREFUGFdj+P///38ACfsD/QvHytQAAAAASUVORK5CYII=">
+    <map name="logo-map"><area id="logo-area" shape="default" href="#intro" alt="Lea mark area"></map>
     <div id="custom" role="switch checkbox" tabindex="0" aria-labelledby="custom-name" aria-label="Ignored label" aria-checked="mixed"></div>
     <span id="custom-name">Compact mode</span>
     <div role="presentation"><a id="presented-link" href="#intro">Presented wrapper link</a></div>
