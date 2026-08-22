@@ -53,6 +53,7 @@ LeaForge is where we can grow the more full-featured browser.
 - bounded engine scripting for title, body colors, font size, and host-routed alerts
 - safe button/link commands with bounded variables and ID-scoped text updates
 - bounded `ac`/`rc`/`tc` class mutations with compiled CSS restyling
+- bounded `hd/sh`, `ds/en`, `vl`, `ck`, and `fo` element-state commands
 - bounded developer snapshots plus a tabbed inspector with an Access view in the test browser
 - repeatable compatibility, timing, memory, binary-size, and compression report
 - streamed local/HTTP downloads with explicit destinations and a 64 MB ceiling
@@ -73,6 +74,13 @@ tx("id", "Hi ${name}") element text
 ac("id", "hot")       add class
 rc("id", "hot")       remove class
 tc("id", "hot")       toggle class
+hd("id")              hide element
+sh("id")              show element
+ds("id")              disable field
+en("id")              enable field
+vl("id", "value")     set bounded field value
+ck("id", "1")         set or toggle checked state
+fo("id")              request rendered focus
 go("next.html")        request navigation from the host
 ```
 
@@ -80,6 +88,10 @@ The longer `alert(...)` and `document.title = ...` forms still work. The short
 forms are intended for small, fast Lea pages and are limited to simple values.
 `go` never navigates the engine directly: it queues one bounded HTTP, HTTPS, or
 safe local-file request for the browser host to approve and load.
+State commands remain ID-scoped and preserve retained field identity through a
+single rebuild. Values stop at 1,024 characters, file values cannot be set,
+passwords stay redacted, and `E.Kp`/the WinForms view consume only one valid
+focus request.
 
 The .NET Framework test browser opens Lea Inspector with `F12`, `Ctrl+Shift+I`,
 or the `I` toolbar button. Its Summary, Nodes, CSS, Requests, and Messages tabs

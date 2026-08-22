@@ -166,6 +166,15 @@ namespace Lea.Engine
             return String.IsNullOrWhiteSpace(code) ? 0 : Js(page, code);
         }
 
+        // Kp takes and clears one page-command focus request.
+        public N Kp(P page)
+        {
+            QueryPage(page);
+            var target = page.Kq;
+            page.Kq = null;
+            return target;
+        }
+
         // Ds toggles the bounded open state of one details disclosure.
         public int Ds(P page, N element)
         {
@@ -1023,8 +1032,10 @@ namespace Lea.Engine
         private void Complete(P p, List<R> rules)
         {
             p.R = rules;
-            if (je) p.Jc = J.Pg(p, p.D);
             Rebuild(p, rules, null);
+            if (!je) return;
+            p.Jc = J.Pg(p, p.D);
+            if (p.Jc > 0) Rebuild(p, rules, null);
         }
 
         private static void Rebuild(P p, List<R> rules, IDictionary<N, Fi> fields)
@@ -1035,7 +1046,8 @@ namespace Lea.Engine
             p.Fs.Clear();
             p.Dvs.Clear();
             p.Mps.Clear();
-            p.Fr = fields;
+            if (fields != null)
+                foreach (var pair in fields) p.Fr[pair.Key] = pair.Value;
             var body = Find(p.D, "body") ?? p.D;
             p.X = Clean(NodeText(body));
             p.N = Count(p.D);
@@ -1050,7 +1062,6 @@ namespace Lea.Engine
             LinkBlocks(p);
             MarkDisclosures(p);
             BuildAccessibility(p, body, rules);
-            p.Fr = null;
         }
 
         private static void BuildAccessibility(P page, N body, List<R> rules)
@@ -1095,7 +1106,7 @@ namespace Lea.Engine
                 if (!suppressText && text.Length > 0) data.P.Axs.Add(new Ax { K = "text", N = text, El = node, Up = parent });
                 return;
             }
-            if (node.K == "head" || node.K == "script" || node.K == "style" || node.K == "noscript" || node.K == "template") return;
+            if (node.K == "head" || node.K == "script" || node.K == "style" || node.K == "noscript" || node.K == "template" || node.A.ContainsKey("hidden")) return;
 
             var style = Style(node, inherited, rules);
             if (style.D == "none" || DisclosureHidden(node) || AriaTrue(node, "aria-hidden")) return;
@@ -2501,6 +2512,7 @@ namespace Lea.Engine
             if (node.A.ContainsKey("hidden")) style.D = "none";
             foreach (var rule in rules) if (MatchCss(node, rule)) Decls(style, rule.V);
             Decls(style, node.Av("style"));
+            if (node.A.ContainsKey("data-lea-hidden")) style.D = "none";
             return style;
         }
 
@@ -3833,7 +3845,7 @@ namespace Lea.Engine
             };
             if (kind == "select") AddOptions(field, node);
             Fi current;
-            if (page.Fr != null && page.Fr.TryGetValue(node, out current))
+            if (page.Fr.TryGetValue(node, out current))
             {
                 var currentValue = current.V;
                 var currentChecked = current.C;
@@ -3848,6 +3860,7 @@ namespace Lea.Engine
                 current.Vm = currentMessage;
                 field = current;
             }
+            else page.Fr[node] = field;
             page.Fs.Add(field);
 
             var blockKind = node.K == "button" || kind == "submit" || kind == "reset" || kind == "button" ? "button" : node.K;

@@ -15,6 +15,7 @@ namespace Lea.Engine
         private const int MaxClasses = 32;
         private const int MaxClassName = 64;
         private const int MaxClassText = 512;
+        private const int MaxFieldValue = 1024;
 
         internal static int Pg(P page, N root)
         {
@@ -80,6 +81,47 @@ namespace Lea.Engine
                 var name = ClassName(Expand(page, command.W));
                 var target = FindId(page.D, id);
                 return target != null && name.Length > 0 && ClassTarget(target.K) && SetClass(target, name, command.N);
+            }
+            if (command.N == "hd" || command.N == "sh")
+            {
+                var target = FindId(page.D, Id(Expand(page, command.V)));
+                if (target == null || !ClassTarget(target.K)) return false;
+                if (command.N == "hd")
+                {
+                    target.A["hidden"] = "";
+                    target.A["data-lea-hidden"] = "1";
+                }
+                else
+                {
+                    target.A.Remove("hidden");
+                    target.A.Remove("data-lea-hidden");
+                }
+                return true;
+            }
+            if (command.N == "ds" || command.N == "en")
+            {
+                var target = FindId(page.D, Id(Expand(page, command.V)));
+                if (target == null || !DisableTarget(target.K)) return false;
+                if (command.N == "ds") target.A["disabled"] = "";
+                else target.A.Remove("disabled");
+                return true;
+            }
+            if (command.N == "vl")
+            {
+                var target = FindId(page.D, Id(Expand(page, command.V)));
+                return SetValue(page, target, Expand(page, command.W));
+            }
+            if (command.N == "ck")
+            {
+                var target = FindId(page.D, Id(Expand(page, command.V)));
+                return SetChecked(page, target, command.W == null ? null : Expand(page, command.W));
+            }
+            if (command.N == "fo")
+            {
+                var target = FindId(page.D, Id(Expand(page, command.V)));
+                if (page.Kq != null || !FocusTarget(target) || HiddenTarget(target)) return false;
+                page.Kq = target;
+                return true;
             }
             if (command.N == "t")
             {
@@ -162,8 +204,16 @@ namespace Lea.Engine
             if (count == 1 && (name == "fg" || name == "color")) return new Cm("fg", first);
             if (count == 1 && (name == "fs" || name == "fontsize")) return new Cm("fs", first);
             if (count == 1 && name == "go") return new Cm("go", first);
+            if (count == 1 && (name == "hd" || name == "hide")) return new Cm("hd", first);
+            if (count == 1 && (name == "sh" || name == "show")) return new Cm("sh", first);
+            if (count == 1 && (name == "ds" || name == "disable")) return new Cm("ds", first);
+            if (count == 1 && (name == "en" || name == "enable")) return new Cm("en", first);
+            if (count == 1 && (name == "fo" || name == "focus")) return new Cm("fo", first);
+            if (count == 1 && (name == "ck" || name == "check")) return new Cm("ck", first);
             if (count == 2 && (name == "v" || name == "var")) return new Cm("v", first, second);
             if (count == 2 && (name == "tx" || name == "text")) return new Cm("tx", first, second);
+            if (count == 2 && (name == "vl" || name == "value")) return new Cm("vl", first, second);
+            if (count == 2 && (name == "ck" || name == "check")) return new Cm("ck", first, second);
             if (count == 2 && name == "ac") return new Cm("ac", first, second);
             if (count == 2 && name == "rc") return new Cm("rc", first, second);
             if (count == 2 && name == "tc") return new Cm("tc", first, second);
@@ -366,6 +416,112 @@ namespace Lea.Engine
             return kind != "#doc" && kind != "#text" && kind != "html" && kind != "head" &&
                 kind != "title" && kind != "script" && kind != "style" && kind != "link" &&
                 kind != "meta" && kind != "base";
+        }
+
+        private static bool DisableTarget(string kind)
+        {
+            return kind == "input" || kind == "textarea" || kind == "select" || kind == "button";
+        }
+
+        private static bool FocusTarget(N target)
+        {
+            if (target == null || target.A.ContainsKey("disabled")) return false;
+            if (target.K == "input") return !target.Av("type").Equals("hidden", StringComparison.OrdinalIgnoreCase);
+            if (target.K == "textarea" || target.K == "select" || target.K == "button" || target.K == "summary") return true;
+            if ((target.K == "a" || target.K == "area") && target.A.ContainsKey("href")) return true;
+            var value = target.Av("tabindex").Trim();
+            int number;
+            return value.Length > 0 && value.Length <= 16 && Int32.TryParse(value, out number) && number >= -32767 && number <= 32767;
+        }
+
+        private static bool HiddenTarget(N target)
+        {
+            for (var current = target; current != null; current = current.Up)
+                if (current.A.ContainsKey("hidden")) return true;
+            return false;
+        }
+
+        private static Fi Field(P page, N target)
+        {
+            if (target == null) return null;
+            foreach (var field in page.Fs)
+                if (Object.ReferenceEquals(field.El, target)) return field;
+            Fi retained;
+            return page.Fr.TryGetValue(target, out retained) ? retained : null;
+        }
+
+        private static bool SetValue(P page, N target, string input)
+        {
+            var field = Field(page, target);
+            if (field == null || field.K == "file" || field.K == "submit" || field.K == "reset" || field.K == "button") return false;
+            var value = FieldValue(input, field.K == "textarea");
+            if (field.K == "color" && !HexColor(value)) return false;
+            if (field.K == "select")
+            {
+                var index = -1;
+                for (var i = 0; i < field.Os.Count; i++)
+                    if (!field.Os[i].Ds && field.Os[i].V == value) { index = i; break; }
+                if (index < 0) return false;
+                field.Si = index;
+            }
+            field.V = value;
+            ClearValidity(field);
+            return true;
+        }
+
+        private static bool SetChecked(P page, N target, string input)
+        {
+            var field = Field(page, target);
+            if (field == null || (field.K != "checkbox" && field.K != "radio")) return false;
+            bool value;
+            if (input == null) value = !field.C;
+            else if (!Boolean(input, out value)) return false;
+            if (field.K == "radio" && value)
+                foreach (var item in page.Fr.Values)
+                    if (item.K == "radio" && Object.ReferenceEquals(item.F, field.F) && item.N == field.N)
+                    {
+                        item.C = false;
+                        ClearValidity(item);
+                    }
+            field.C = value;
+            ClearValidity(field);
+            return true;
+        }
+
+        private static void ClearValidity(Fi field)
+        {
+            field.Ok = true;
+            field.Vm = "";
+            if (field.El != null) field.El.A.Remove("data-lea-invalid");
+        }
+
+        private static bool Boolean(string input, out bool value)
+        {
+            var text = (input ?? "").Trim().ToLowerInvariant();
+            if (text == "1" || text == "true" || text == "on" || text == "yes") { value = true; return true; }
+            if (text == "0" || text == "false" || text == "off" || text == "no") { value = false; return true; }
+            value = false;
+            return false;
+        }
+
+        private static bool HexColor(string value)
+        {
+            if (value == null || value.Length != 7 || value[0] != '#') return false;
+            for (var i = 1; i < value.Length; i++) if (!Uri.IsHexDigit(value[i])) return false;
+            return true;
+        }
+
+        private static string FieldValue(string input, bool multiline)
+        {
+            var result = new StringBuilder();
+            foreach (var ch in input ?? "")
+            {
+                if (ch == '\0' || Char.IsControl(ch) && ch != '\r' && ch != '\n' && ch != '\t') continue;
+                if (!multiline && (ch == '\r' || ch == '\n' || ch == '\t')) result.Append(' ');
+                else result.Append(ch);
+                if (result.Length == MaxFieldValue) break;
+            }
+            return result.ToString();
         }
 
         private static string ClassName(string value)

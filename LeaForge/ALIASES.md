@@ -8,7 +8,7 @@ read and quick to write.
 - Core objects use one letter: `L` is the entry point, `E` is the engine, `P` is a page.
 - Actions use two or three letters: `Go`, `GoA`, `Bk`, `Fw`, `Rl`, `RlA`, `St`, and `At`.
 - Page values use one or two letters: `U`, `T`, `H`, `Q`, `D`, `N`, `Bs`, and `Ls`.
-- Page commands use one or two letters: `t`, `a`, `bg`, `fg`, `fs`, `v`, `tx`, `ac`, `rc`, `tc`, and `go`.
+- Page commands use one or two letters: `t`, `a`, `bg`, `fg`, `fs`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`.
 - New public aliases should be no more than three letters.
 - Longer names may remain inside the engine when they make the implementation safer to maintain.
 
@@ -40,6 +40,13 @@ tx("id", "Hi ${who}") element text
 ac("id", "hot")       add class
 rc("id", "hot")       remove class
 tc("id", "hot")       toggle class
+hd("id")              hide element
+sh("id")              show element
+ds("id")              disable field
+en("id")              enable field
+vl("id", "value")     set field value
+ck("id", "1")         set checked state; one argument toggles
+fo("id")              request focus
 go("next.html")        request host navigation
 ```
 
@@ -54,6 +61,28 @@ Each element is limited to 32 classes and 512 class-attribute characters.
 Duplicate adds and absent removes are accepted no-ops; remove and toggle clear
 all matching tokens. A successful run reapplies compiled CSS once and preserves
 mutable form state.
+
+`hd/sh` hide or show one safe ID. Command hiding remains authoritative after
+author CSS and excludes the subtree from layout, focus, and semantics. Lea
+retains an existing field model by DOM ownership while it is hidden, so its
+edited value and checked state return when shown. `ds/en` apply only to input,
+textarea, select, and button targets and update rendered, focus, form, and
+accessibility state in the same rebuild.
+
+`vl` changes one supported field's current value after bounded literal
+expansion. Values stop at 1,024 characters; file, submit, reset, and ordinary
+button values cannot be injected. Colors require `#rrggbb`, and selects accept
+only the exact value of an enabled bounded option. Password values remain
+redacted from diagnostics and accessibility. `ck` toggles a checkbox or radio
+with one argument, or accepts `1/0`, `true/false`, `on/off`, or `yes/no` as its
+second argument. Selecting a radio clears its bounded same-form/name group.
+
+`fo` queues at most one enabled, non-hidden, statically focusable ID per command
+run; the first request wins. Headless hosts call `E.Kp(page)` to take and clear
+it. `V` consumes it automatically after final layout, ignores CSS-hidden or
+clipped targets, clears focus made invalid by another command, scrolls a valid
+target into view, and opens its editor only when the Lea surface already owns
+input focus.
 
 `go` queues one navigation request rather than loading a page directly. Its
 expanded input is limited to 2,048 characters and resolves against `P.Bu`; the

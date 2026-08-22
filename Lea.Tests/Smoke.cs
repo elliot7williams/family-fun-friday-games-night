@@ -273,6 +273,55 @@ namespace Lea.Tests
                 Eq("Click-preserved value", FieldById(clickClassPage, "field").V, "click class rebuild preserves field value");
                 Eq("Class state changed", clickClassPage.Ms[0], "click class alert");
 
+                var statePath = Path.Combine(root, "LeaForge", "test-pages", "state-commands.html");
+                var stateEngine = new E();
+                var statePage = stateEngine.Go(statePath);
+                Eq(8, statePage.Jc, "initial state command count");
+                var stateName = FieldById(statePage, "name");
+                Eq("Page ready", stateName.V, "initial bounded field value command");
+                Eq("two", FieldById(statePage, "pick").V, "initial select value command");
+                Eq(1, FieldById(statePage, "pick").Si, "initial select index command");
+                Eq("#118866", FieldById(statePage, "color").V, "initial color value command");
+                Ok(FieldById(statePage, "agree").C, "initial checked command");
+                Ok(!FieldById(statePage, "choice-a").C && FieldById(statePage, "choice-b").C, "radio command keeps one group choice");
+                Ok(FieldById(statePage, "locked").Ds, "initial disable command");
+                Ok(stateEngine.Ax(statePage, ById(statePage.D, "panel")) == null, "hide command removes rendered semantics");
+                Ok(Object.ReferenceEquals(ById(statePage.D, "name"), stateEngine.Kp(statePage)), "pending focus command target");
+                Eq<N>(null, stateEngine.Kp(statePage), "pending focus command is consumed once");
+
+                Eq(7, stateEngine.Ck(statePage, ById(statePage.D, "apply")), "state click command count");
+                Eq("Clicked Lea", stateName.V, "click field value command");
+                Ok(!FieldById(statePage, "locked").Ds, "enable command");
+                Ok(!FieldById(statePage, "agree").C, "checked toggle command");
+                Ok(FieldById(statePage, "choice-a").C && !FieldById(statePage, "choice-b").C, "radio set command");
+                Ok(stateEngine.Ax(statePage, ById(statePage.D, "panel")) != null, "show command restores rendered semantics");
+                Ok(Object.ReferenceEquals(ById(statePage.D, "name"), stateEngine.Kp(statePage)), "click focus request");
+                Eq("State commands ran", statePage.Ms[0], "state command alert");
+
+                Eq(3, stateEngine.Ck(statePage, ById(statePage.D, "hide-field")), "hide retains field command count");
+                Eq("Changed while hidden", stateName.V, "hidden field accepts bounded value command");
+                Ok(stateEngine.Ax(statePage, ById(statePage.D, "name")) == null, "hidden field leaves semantic model");
+                Eq(1, stateEngine.Ck(statePage, ById(statePage.D, "show-field")), "show retained field command");
+                Ok(Object.ReferenceEquals(stateName, FieldById(statePage, "name")), "hidden field model identity retained");
+                Eq("Changed while hidden", FieldById(statePage, "name").V, "shown field retains command value");
+                Eq(2, stateEngine.Js(statePage, "ck('choice-b','1'); hd('choice-b')"), "hide selected radio command");
+                Eq(1, stateEngine.Js(statePage, "ck('choice-a','1')"), "select against hidden radio peer");
+                Eq(1, stateEngine.Js(statePage, "sh('choice-b')"), "show cleared radio peer");
+                Ok(FieldById(statePage, "choice-a").C && !FieldById(statePage, "choice-b").C, "hidden retained radio group stays exclusive");
+
+                Eq(1, stateEngine.Js(statePage, "vl('secret','command-secret')"), "password value command accepted");
+                Eq("command-secret", FieldById(statePage, "secret").V, "password live value command");
+                Eq("", stateEngine.Ax(statePage, ById(statePage.D, "secret")).V, "password command remains semantically redacted");
+                Eq(0, stateEngine.Js(statePage, "vl('upload','C:\\\\private.txt'); vl('color','red'); vl('pick','blocked'); ck('name','1'); ds('panel'); fo('panel')"), "unsafe state targets and values rejected");
+                Eq(0, FieldById(statePage, "upload").Fp.Count, "file command cannot select local paths");
+                var longStateValue = new String('q', 1024);
+                Eq(1, stateEngine.Js(statePage, "vl('name','" + longStateValue + "')"), "bounded 1024-character field command");
+                Eq(1024, FieldById(statePage, "name").V.Length, "bounded field command storage");
+                Eq(0, stateEngine.Js(statePage, "vl('name','" + longStateValue + "q')"), "oversized field command rejected");
+                Eq(1024, FieldById(statePage, "name").V.Length, "oversized field command leaves state");
+                Eq(1, stateEngine.Js(statePage, "fo('name'); fo('locked')"), "first pending focus command wins");
+                Eq("name", stateEngine.Kp(statePage).Av("id"), "first pending focus target retained");
+
                 var variableEngine = new E();
                 var variablePage = variableEngine.Go(forms);
                 var variableCode = new StringBuilder();
@@ -1301,6 +1350,31 @@ namespace Lea.Tests
                     Eq("View-preserved value", FieldById(view.At, "field").V, "WinForms class field preservation");
                     Eq(6, alertEvents, "WinForms class alert event");
 
+                    view.Size = new Size(720, 700);
+                    view.Go(statePath);
+                    Paint(view);
+                    Eq("name", view.Ke.Av("id"), "WinForms consumes initial focus command");
+                    Eq("Page ready", FieldById(view.At, "name").V, "WinForms initial field command");
+                    Ok(view.Ax(view.Id("panel")) == null, "WinForms hidden command semantics");
+                    Eq(7, view.Ck(view.Id("apply")), "WinForms state click commands");
+                    Paint(view);
+                    Eq("name", view.Ke.Av("id"), "WinForms applies focus command");
+                    Eq("Clicked Lea", FieldById(view.At, "name").V, "WinForms value command");
+                    Ok(!BlockRect(view, BlockById(view.At, "panel")).IsEmpty, "WinForms show command layout");
+                    Ok(!FieldById(view.At, "locked").Ds && FieldById(view.At, "choice-a").C, "WinForms enable and radio commands");
+                    Eq(7, alertEvents, "WinForms state command alert event");
+                    Eq("State commands ran", view.Am, "WinForms state command message");
+                    Eq(1, view.Js("ds('name')"), "WinForms disable focused command");
+                    Eq<N>(null, view.Ke, "WinForms clears disabled focus target");
+                    Eq(2, view.Js("en('name'); fo('name')"), "WinForms restore focused command");
+                    Eq("name", view.Ke.Av("id"), "WinForms refocuses enabled command target");
+                    Eq(3, view.Ck(view.Id("hide-field")), "WinForms hidden field commands");
+                    Paint(view);
+                    Ok(view.Ax(view.Id("name")) == null, "WinForms hidden field leaves accessibility tree");
+                    Eq(1, view.Ck(view.Id("show-field")), "WinForms show retained field command");
+                    Paint(view);
+                    Eq("Changed while hidden", FieldById(view.At, "name").V, "WinForms hidden field state retained");
+
                     view.Size = new Size(520, 260);
                     view.Go(findPath);
                     Paint(view);
@@ -1340,7 +1414,7 @@ namespace Lea.Tests
                     view.Size = new Size(720, 760);
                     view.Go(forms);
                     view.Bk();
-                    Eq(6, alertEvents, "history does not replay script alerts");
+                    Eq(7, alertEvents, "history does not replay script alerts");
                     view.Fw();
                     Paint(view);
                     Ok(view.Bc > page.Fs.Count, "form layout boxes");
@@ -2792,6 +2866,7 @@ namespace Lea.Tests
                 if (args.Length > 2) SaveFindRender(findPath, args[2]);
                 if (args.Length > 3) SaveEventRender(eventPath, args[3]);
                 if (args.Length > 4) SaveRender(tokenPath, args[4]);
+                if (args.Length > 5) SaveStateRender(statePath, args[5]);
 
                 Console.WriteLine("Lea smoke passed: bounded semantic accessibility and WinForms MSAA children, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
@@ -2866,6 +2941,20 @@ namespace Lea.Tests
                 view.CreateControl();
                 view.Go(page);
                 view.Ck(ById(view.At.D, "go"));
+                using (var image = Render(view)) image.Save(output, System.Drawing.Imaging.ImageFormat.Png);
+            }
+        }
+
+        private static void SaveStateRender(string page, string output)
+        {
+            var folder = Path.GetDirectoryName(Path.GetFullPath(output));
+            if (!String.IsNullOrWhiteSpace(folder)) Directory.CreateDirectory(folder);
+            using (var view = new V())
+            {
+                view.Size = new Size(760, 760);
+                view.CreateControl();
+                view.Go(page);
+                view.Ck(ById(view.At.D, "apply"));
                 using (var image = Render(view)) image.Save(output, System.Drawing.Imaging.ImageFormat.Png);
             }
         }

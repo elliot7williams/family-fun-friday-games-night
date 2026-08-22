@@ -106,7 +106,7 @@ namespace Lea.Bench
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
-                "focus-shortcuts.html", "accessibility.html"
+                "focus-shortcuts.html", "accessibility.html", "state-commands.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -509,6 +509,29 @@ namespace Lea.Bench
                 Need(field.V == "Preserved benchmark value", "class rebuild replaced mutable field state");
                 return "ac/rc/tc restyle compiled CSS with 32 classes and 512 class-text characters bounded";
             });
+            AddProbe(probes, "Bounded element-state commands", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "state-commands.html"));
+                var name = page.Fs.First(item => item.El != null && item.El.Av("id") == "name");
+                Need(page.Jc == 8 && name.V == "Page ready", "initial state commands changed");
+                Need(page.Fs.First(item => item.El.Av("id") == "pick").V == "two" && page.Fs.First(item => item.El.Av("id") == "agree").C, "value or checked command changed");
+                Need(page.Fs.First(item => item.El.Av("id") == "locked").Ds && Object.ReferenceEquals(engine.Kp(page), name.El), "disable or focus request changed");
+                Need(engine.Ck(page, ById(page.D, "apply")) == 7 && name.V == "Clicked Lea", "state click commands changed");
+                Need(!page.Fs.First(item => item.El.Av("id") == "locked").Ds && page.Fs.First(item => item.El.Av("id") == "choice-a").C, "enable or radio state changed");
+                engine.Kp(page);
+                Need(engine.Ck(page, ById(page.D, "hide-field")) == 3 && name.V == "Changed while hidden", "hidden retained field state changed");
+                Need(engine.Ck(page, ById(page.D, "show-field")) == 1 && Object.ReferenceEquals(name, page.Fs.First(item => item.El.Av("id") == "name")), "shown field identity changed");
+                Need(engine.Js(page, "vl('upload','private.txt'); vl('color','red'); fo('panel')") == 0, "unsafe state value or target was accepted");
+                using (var view = NewView())
+                {
+                    view.Go(Path.Combine(folder, "state-commands.html"));
+                    Need(view.Ke != null && view.Ke.Av("id") == "name", "view did not consume initial focus request");
+                    Need(view.Js("ds('name')") == 1 && view.Ke == null, "view retained a disabled focus target");
+                    Need(view.Js("en('name'); fo('name')") == 2 && view.Ke != null && view.Ke.Av("id") == "name", "view did not restore command focus");
+                }
+                return "hd/sh, ds/en, vl, ck, fo, 1024-character values, retained fields, one pending focus target, and file-value rejection";
+            });
             AddProbe(probes, "Find and local download", delegate
             {
                 var engine = new E();
@@ -592,7 +615,7 @@ namespace Lea.Bench
             Capability(builder, "CSS", "Partial", "Compiled selector subset, cascade, box/text styles, visibility, positioning, transforms, and responsive image sizing");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms block, inline, table, form, image, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
-            Capability(builder, "Lea command scripting", "Supported", "Bounded title, color, font, alert, variable, text, class mutation, host navigation request, and safe click commands");
+            Capability(builder, "Lea command scripting", "Supported", "Bounded title, color, font, alert, variable, text, class, visibility, disabled/value/checked state, focus, host navigation request, and safe click commands");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
             Capability(builder, "Flexbox, Grid, Canvas, SVG", "Not supported", "Future compatibility work; no silent fallback claim");
             Capability(builder, "Audio and video", "Not supported", "Future optional module");

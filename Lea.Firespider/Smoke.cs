@@ -128,13 +128,19 @@ namespace Lea.Firespider
                     Check(host.Dg().Rs.Count == fragmentRequests, "Firespider fragment route performs no request");
                     host.Bk();
                     Check(host.Js("ac('class-state','hot')") == 1 && host.Q1("#class-state.hot") != null, "Firespider class command restyle");
+                    Check(host.Js("vl('host-auto','Host command value'); vl('host-secret','changed-secret'); hd('class-state'); ds('host-auto')") == 4, "Firespider bounded state commands");
+                    Check(FieldById(host.At, "host-auto").V == "Host command value" && FieldById(host.At, "host-auto").Ds && host.Ke == null, "Firespider value, disabled, and focus state");
+                    Check(FieldById(host.At, "host-secret").V == "changed-secret" && host.Ax(ById(host.At.D, "host-secret")).V.Length == 0, "Firespider command password redaction");
+                    Check(host.Ax(ById(host.At.D, "class-state")) == null && host.Js("ck('host-auto')") == 0, "Firespider hidden semantics and checked-target boundary");
+                    Check(host.Js("sh('class-state'); en('host-auto'); fo('host-auto')") == 3 && host.Ke != null && host.Ke.Av("id") == "host-auto", "Firespider show, enable, and focus commands");
+                    Check(host.Ax(ById(host.At.D, "class-state")) != null && !FieldById(host.At, "host-auto").Ds, "Firespider restored state command model");
                     Check(host.Ck(ById(host.At.D, "host-action")) == 3, "Firespider safe click commands");
                     Check(ById(host.At.D, "state").C[0].X == "Hello Firespider" && host.At.Vs["last"] == "click", "Firespider safe click state");
                     Check(Member<Label>(form, "su").Text == "Lea: Safe host click", "Firespider safe click alert status");
                     Check(host.Ck(ById(host.At.D, "host-value-update")) == 1 && ValueById(host.At, "host-output").V == "Updated host total", "Firespider output value rebuild");
                     Check(host.Ck(ById(host.At.D, "host-time-update")) == 1 && ValueById(host.At, "host-time").Dt == "2026-08-22", "Firespider time metadata rebuild");
                     var diagnostics = host.Dg();
-                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 7 && diagnostics.Rs.Count > 0, "Firespider Lea diagnostics");
+                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 14 && diagnostics.Rs.Count > 0, "Firespider Lea diagnostics");
                     var inspectorOpen = type.GetMethod("qleaInspectorOpen", BindingFlags.Instance | BindingFlags.NonPublic);
                     var inspectorSnapshot = type.GetMethod("qleaInspectorSnapshot", BindingFlags.Instance | BindingFlags.NonPublic);
                     var inspectorClear = type.GetMethod("qleaInspectorClear", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -306,6 +312,13 @@ namespace Lea.Firespider
             foreach (var block in page.Bs)
                 if (block.El != null && block.El.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase)) return block;
             throw new InvalidOperationException("Missing Lea block: " + id);
+        }
+
+        private static Fi FieldById(P page, string id)
+        {
+            foreach (var field in page.Fs)
+                if (field.El != null && field.El.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase)) return field;
+            throw new InvalidOperationException("Missing Lea field: " + id);
         }
 
         private static Dv ValueById(P page, string id)

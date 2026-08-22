@@ -104,7 +104,8 @@ Go("url")        navigate
 ```
 
 The bounded layer is active in `Lea.Engine`. It accepts `t`, `a`, `bg`, `fg`,
-`fs`, `v`, `tx`, `ac`, `rc`, `tc`, and host-controlled `go`, plus equivalent
+`fs`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `ds`, `en`, `vl`, `ck`, `fo`,
+and host-controlled `go`, plus equivalent
 title/body-style assignments and `alert(...)`.
 Only top-level literal commands run. Execution is limited to eight inline
 blocks, 16 KB per block, 32 accepted commands, and 16 queued alerts. External
@@ -350,6 +351,17 @@ at most 32 tokens and 512 class-attribute characters, and metadata/script
 targets are rejected. Valid no-op adds/removes remain accepted commands;
 remove and toggle clear duplicate matches. The existing single CSS rebuild per
 run preserves mutable fields across page, host, click, and WinForms execution.
+
+Bounded element-state mutation now uses `hd/sh` for authoritative visibility,
+`ds/en` for supported field availability, `vl` for current values, `ck` for
+checkbox/radio state, and `fo` for one pending focus request. IDs reuse the
+existing 64-character boundary; field values stop at 1,024 characters; files
+and button values cannot be injected; select/color values are validated; and
+passwords remain redacted. A retained field map keyed by the existing DOM node
+preserves identity and live state while command-hidden. `E.Kp` takes focus
+headlessly, while `V` resolves it against final rendered targets and clears
+focus invalidated by hide or disable. `state-commands.html` covers inline,
+host, click, WinForms, boundary, retained-state, benchmark, and Firespider paths.
 
 The `inset` shorthand now expands atomically into `Tp/Rt/Bm/Lt`, and opposing
 edges stretch auto-sized absolute and fixed boxes against their containing

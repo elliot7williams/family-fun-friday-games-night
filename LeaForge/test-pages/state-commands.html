@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea state commands</title>
+  <style>
+    body { background: #f7faf8; color: #19352d; font-size: 17px; }
+    h1 { color: #134e4a; }
+    #panel { background: #dff5ea; border: 2px solid #25805f; padding: 10px; width: 360px; }
+    input, select, button { display: block; margin: 8px 0; width: 280px; }
+    input:disabled { background: #e2e8f0; color: #64748b; }
+    input:focus { border-color: #c2410c; }
+    .row { display: block; margin: 5px 0; }
+  </style>
+  <script type="text/lea">
+    vl("name", "Page ready");
+    vl("pick", "two");
+    vl("color", "#118866");
+    ck("agree", "1");
+    ck("choice-b", "1");
+    hd("panel");
+    ds("locked");
+    fo("name");
+  </script>
+</head>
+<body>
+  <h1>Bounded state commands</h1>
+  <div id="panel" role="region" aria-label="Command panel">
+    <p id="message">The panel is visible.</p>
+  </div>
+
+  <label class="row" for="name">Name</label>
+  <input id="name" name="name" value="Authored" aria-describedby="name-help">
+  <span id="name-help">A command-controlled value.</span>
+
+  <label class="row" for="locked">Locked field</label>
+  <input id="locked" name="locked" value="Locked">
+
+  <label class="row"><input id="agree" name="agree" type="checkbox"> Agree</label>
+  <label class="row"><input id="choice-a" name="choice" type="radio" value="a" checked> Choice A</label>
+  <label class="row"><input id="choice-b" name="choice" type="radio" value="b"> Choice B</label>
+
+  <label class="row" for="pick">Pick</label>
+  <select id="pick" name="pick">
+    <option value="one">One</option>
+    <option value="two">Two</option>
+    <option value="blocked" disabled>Blocked</option>
+  </select>
+  <input id="color" name="color" type="color" value="#224466" aria-label="Color">
+  <input id="secret" name="secret" type="password" value="authored-secret" aria-label="Secret">
+  <input id="upload" name="upload" type="file" aria-label="Upload">
+
+  <button id="apply" type="button" data-lea="sh('panel'); en('locked'); vl('name','Clicked Lea'); ck('agree'); ck('choice-a','1'); fo('name'); a('State commands ran')">Apply state</button>
+  <button id="hide-field" type="button" data-lea="vl('name','Retained before hide'); hd('name'); vl('name','Changed while hidden')">Hide field</button>
+  <button id="show-field" type="button" data-lea="sh('name')">Show field</button>
+</body>
+</html>

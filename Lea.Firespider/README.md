@@ -29,6 +29,11 @@ Buttons and links can run bounded `data-lea` or familiar `onclick` values throug
 allow-list and cannot reach native files, processes, or host controls.
 ID-scoped `ac/rc/tc` class changes use the same route, reapply compiled CSS, and
 preserve mutable field values.
+The same public route supports bounded `hd/sh` visibility, `ds/en` field
+availability, `vl` values, `ck` checked state, and `fo` focus requests. Hidden
+field identity is retained, file values cannot be injected, passwords remain
+redacted, and focus is cleared or restored only through Lea's rendered target
+model.
 The bounded `go(url)` command raises `V.Gr` with `V.Gu`; Firespider sends that
 request through its existing asynchronous Lea loader. Relative URLs resolve
 against the document base, unsafe schemes and remote-to-file requests are
@@ -120,7 +125,7 @@ Firespider working tree contains unrelated in-progress changes.
 `Smoke.cs` loads two compiled Firespider forms off-screen and verifies Lea-first
 New Tab creation, the explicit legacy fallback, Inspector open/refresh/clear and legacy isolation, diagnostics,
 script/style, host-controlled `go`, and safe click execution, alert routing,
-autofocus/access keys, keyboard navigation, local
+state commands, retained fields, autofocus/access keys, keyboard navigation, local
 open, find cycling, streamed download saves, page save, send-link metadata,
 close routes, source, and session restoration using temporary files rather than
 the user's data.

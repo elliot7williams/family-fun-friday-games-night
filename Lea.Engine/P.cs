@@ -15,6 +15,7 @@ namespace Lea.Engine
             Mps = new List<Mp>();
             Ms = new List<string>();
             Vs = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            Fr = new Dictionary<N, Fi>();
         }
 
         public Uri U { get; internal set; }
@@ -46,7 +47,8 @@ namespace Lea.Engine
         internal object R { get; set; }
         internal N Hv { get; set; }
         internal N Fc { get; set; }
-        internal IDictionary<N, Fi> Fr { get; set; }
+        internal N Kq { get; set; }
+        internal IDictionary<N, Fi> Fr { get; private set; }
         internal Uri Gu { get; set; }
         internal bool Gp { get; set; }
     }

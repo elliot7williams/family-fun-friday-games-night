@@ -310,7 +310,17 @@ variables and `${name}` substitutes them into later literals. `tx/text` replaces
 text under one safe element ID. `ac/rc/tc` add, remove, or toggle one bounded
 class token on a safe ID and reuse the compiled CSS rebuild while preserving
 mutable fields. Each target accepts at most 32 classes and 512 class-attribute
-characters. `E.Ck(page, element)` and `V.Ck(element)` route
+characters. `hd/sh` provide command-authoritative hide/show state, while
+`ds/en` update supported field availability. `vl` sets one current field value
+under a 1,024-character limit, rejects file/button injection, validates color
+and select values, and keeps passwords redacted. `ck` toggles or explicitly
+sets checkbox/radio state and preserves radio-group exclusivity. Existing field
+objects remain retained by DOM owner while hidden.
+
+`fo` queues one enabled, non-HTML-hidden focus target; the first accepted
+request wins. Headless hosts take it once with `E.Kp(page)`. `V` resolves it
+against final rendered focus targets, scrolls it into view, and clears stale
+focus after hide/disable commands. `E.Ck(page, element)` and `V.Ck(element)` route
 button and link `data-lea`/`onclick` values through this same parser. Lea ignores external scripts, JSON
 data blocks, expressions, control flow, and unknown calls. Per-page limits are
 eight script blocks, 16 KB per block, 32 accepted commands per run, 16 variables,

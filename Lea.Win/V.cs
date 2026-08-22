@@ -355,6 +355,7 @@ namespace Lea.Win
             if (count == 0) return 0;
             ClearFind(false);
             Dirty();
+            if (!ApplyCommandFocus(At)) KeepValidFocus();
             OnChanged();
             Invalidate();
             NotifyAccessibility(AccessibleEvents.Reorder);
@@ -436,7 +437,8 @@ namespace Lea.Win
             sy = 0;
             Dirty();
             var scrolled = ScrollFragment(page);
-            if (!scrolled) ApplyAutofocus(page);
+            var commandFocus = ApplyCommandFocus(page);
+            if (!scrolled && !commandFocus) ApplyAutofocus(page);
             if (!scrolled && preserveScroll >= 0 && page != null && page.U != null && page.U.Fragment.Length > 0)
                 sy = Math.Max(0, Math.Min(MaxScroll(), preserveScroll));
             OnChanged();
@@ -2234,6 +2236,31 @@ namespace Lea.Win
                     return true;
                 }
             return false;
+        }
+
+        private bool ApplyCommandFocus(P page)
+        {
+            if (page == null) return false;
+            var candidate = e.Kp(page);
+            if (candidate == null) return false;
+            foreach (var target in FocusTargets(false))
+            {
+                if (!Object.ReferenceEquals(candidate, target.El)) continue;
+                SetFocus(target.El, target.Sl);
+                ShowKeyTarget();
+                if ((Focused || ContainsFocus) && target.B != null && target.B.B != null && CanEdit(target.B.B.I)) StartEdit(target.B.B.I);
+                return true;
+            }
+            return false;
+        }
+
+        private void KeepValidFocus()
+        {
+            if (focus == null) return;
+            foreach (var target in FocusTargets(false))
+                if (Object.ReferenceEquals(focus, target.El) && (keySlot < 0 || keySlot == target.Sl)) return;
+            if (edit != null) EndEdit(false);
+            else SetFocus(null);
         }
 
         private List<Kx> AccessTargets()
