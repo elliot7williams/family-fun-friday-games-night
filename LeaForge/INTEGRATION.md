@@ -128,6 +128,26 @@ map-region scan cap. The view reapplies
 `:focus`, paints a default ring, reveals off-screen targets, and leaves
 Ctrl+Tab/Alt+Tab available to Firespider and the operating system.
 
+Hosts can enumerate authored autofocus candidates through `E.Afs(page)` or
+`V.Afs()` and read the first through `Af`. The list is document ordered and
+capped at 32. On loads without a resolved fragment target, the view focuses the first candidate
+that resolves to one current rendered target; a focused editable Lea surface
+also opens its existing native editor. Non-focusable, hidden, disabled, clipped,
+and excess candidates remain inert, and navigation does not force the browser
+window itself to the front.
+
+`E.Aks(element)` parses up to 16 unique ASCII letter/digit alternatives from
+256 authored characters; `Ak` returns the first. The WinForms assignment layer
+resolves collisions in document order and retains at most 64 keys. `V.An`
+reports the count, `V.Ak(element)` returns the assigned key, `V.Kl(element)`
+returns the Windows `Alt+Shift+K` label, and `await V.Aa(key)` focuses and
+activates an assignment. Firespider/WinForms command routing runs first, so
+unmatched, host-owned, and differently modified shortcuts are not consumed.
+The activation path is the same one used by `Ka`, including areas, fields,
+summaries, safe commands, fragments, downloads, and host navigation.
+HTML-hidden nodes and their descendants receive default rendered/link/field/hit
+suppression and stay outside focus, autofocus, and access-key models.
+
 Parsed table blocks expose `B.Tb`, with `Tb.Rs`, `Tr.Cs`, and compact `Tc` cell
 records. `V` paints these on the same lightweight surface with shared row
 heights, CSS cell boxes, wrapped text, bounded column spans, and resize reflow.

@@ -71,6 +71,17 @@ metadata. Lea paints a default focus ring, reapplies page `:focus`, scrolls
 off-screen targets into view, and keeps Ctrl+Tab available to Firespider's tab
 chrome. The host smoke focuses and activates a mapped area off-screen.
 
+Autofocus and page shortcuts stay on that same custom surface. `Af/Afs` expose
+at most 32 authored candidates, and a load without a resolved fragment selects the first
+visible focusable target without forcing the Firespider window forward.
+`Ak/Aks` parse bounded ASCII letter/digit alternatives; the view exposes its
+first 64 conflict-free assignments through `An`, `Ak`, and `Kl`, while `Aa`
+focuses and activates one. Firespider's WinForms command route gets first
+refusal, and Lea consumes only an otherwise-unclaimed assigned
+`Alt+Shift+key`. The host smoke covers editable autofocus, a negative-tabindex
+focus key, conflict fallback, unmatched fallthrough, and mapped-area shortcut
+activation.
+
 Firespider can read `V.Dg()` for bounded response, document, CSS, request,
 command, cache, and cookie diagnostics without reflecting into Lea internals.
 The snapshot omits mutable form values, passwords, and selected file paths.
@@ -98,7 +109,8 @@ Firespider working tree contains unrelated in-progress changes.
 
 `Smoke.cs` loads two compiled Firespider forms off-screen and verifies Lea-first
 New Tab creation, the explicit legacy fallback, Inspector open/refresh/clear and legacy isolation, diagnostics,
-script/style, host-controlled `go`, and safe click execution, alert routing, keyboard navigation, local
+script/style, host-controlled `go`, and safe click execution, alert routing,
+autofocus/access keys, keyboard navigation, local
 open, find cycling, streamed download saves, page save, send-link metadata,
 close routes, source, and session restoration using temporary files rather than
 the user's data.

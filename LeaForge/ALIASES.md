@@ -202,6 +202,37 @@ their existing activation paths. Space does not activate links. Focus reapplies
 contrast ring even when the page supplies no focus CSS. Pointer and keyboard
 links share the same commands, fragments, downloads, and host navigation route.
 
+Autofocus and access keys reuse those targets. `E.Afs(page)`/`V.Afs()` return
+the first 32 authored `autofocus` candidates in document order, and `Af`
+returns the first candidate or null. On a load without a resolved fragment
+target, `V` focuses the
+first candidate that has one visible, enabled rendered target; non-focusable,
+HTML-hidden, CSS-hidden, disabled, clipped, and excess candidates are skipped.
+A resolved URL-fragment target suppresses autofocus. If the Lea surface already owns input
+focus and the target is editable, its compact native editor opens so typing can
+begin; loading a page does not itself force the browser window to the front.
+
+`E.Aks(element)` returns up to 16 unique authored alternatives after scanning
+at most 256 `accesskey` characters. Lea's current keyboard subset accepts ASCII
+letters and digits and normalizes them to uppercase; `Ak` returns the first or
+an empty string. `V` assigns alternatives to visible focus targets in document
+order, retains at most 64 assignments, and resolves collisions by trying the
+next authored alternative. `V.An` is the assigned count, `Ak(element)` is the
+actual assigned key, and `Kl(element)` is its `Alt+Shift+K` Windows label.
+`Aa(key)` focuses and activates one assignment, returning `1`, or returns `0`
+for an unmatched key. Links, mapped areas, fields, summaries, safe commands,
+fragments, downloads, and navigation share `Ka`; generic tabindex regions are
+focused without inventing activation behavior.
+
+Actual `Alt+Shift+key` input first follows WinForms/Firespider command routing.
+Only an unclaimed combination with a current page assignment is consumed;
+unmatched combinations and other modifier sets remain available to browser and
+operating-system chrome. HTML `hidden` on a target or ancestor excludes it from
+focus, autofocus, and access-key collection even when page CSS does not mention
+the attribute. Lea's default style also omits HTML-hidden nodes from layout,
+painting, links, fields, and hit regions. Author `display` CSS can override the
+presentation hint, but not the focus/access-key exclusion.
+
 Computed style uses `S`: `F` is foreground color, `Bg` is background, `Fs` is
 font size, `Ff` is a font fallback list, `B` is bold, `I` is italic, and `D` is
 display behavior. `Td` is decoration using `n/u/s/us` for none, underline,

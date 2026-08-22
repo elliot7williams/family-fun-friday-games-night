@@ -527,6 +527,45 @@ namespace Lea.Tests
                 boundedTab.A["tabindex"] = "12345678901234567";
                 Eq((int?)null, keyboardEngine.Ti(boundedTab), "tabindex text length cap");
 
+                var shortcutPath = Path.Combine(root, "LeaForge", "test-pages", "focus-shortcuts.html");
+                var shortcutEngine = new E();
+                var shortcutPage = shortcutEngine.Go(shortcutPath);
+                Eq(1, shortcutPage.Ls.Count, "HTML-hidden shortcut links stay out of rendered link model");
+                Eq(3, shortcutEngine.Afs(shortcutPage).Count, "bounded autofocus candidate aliases");
+                Eq("invalid-auto", shortcutEngine.Af(shortcutPage).Av("id"), "first authored autofocus alias");
+                var hiddenAuto = ById(shortcutPage.D, "hidden-auto");
+                hiddenAuto.A["style"] = "display:block";
+                shortcutEngine.Dy(shortcutPage, hiddenAuto, null);
+                Eq(2, shortcutPage.Ls.Count, "author display CSS can override hidden presentation hint");
+                var autoField = ById(shortcutPage.D, "auto-field");
+                Eq("S", shortcutEngine.Ak(autoField), "first access-key alias");
+                Eq(2, shortcutEngine.Aks(autoField).Count, "ordered access-key alternatives");
+                Eq("1", shortcutEngine.Aks(autoField)[1], "numeric access-key alternative");
+                var tokenButton = ById(shortcutPage.D, "token-button");
+                Eq(1, shortcutEngine.Aks(tokenButton).Count, "invalid and duplicate access-key tokens are removed");
+                Eq("Z", shortcutEngine.Ak(tokenButton), "valid access key follows invalid token");
+                tokenButton.A["accesskey"] = "a b c d e f g h i j k l m n o p q";
+                Eq(16, shortcutEngine.Aks(tokenButton).Count, "access-key token count cap");
+                tokenButton.A["accesskey"] = new string('a', 257);
+                Eq(0, shortcutEngine.Aks(tokenButton).Count, "access-key text length cap");
+                var boundedAutofocusPath = Path.Combine(Path.GetTempPath(), "lea-autofocus-" + Guid.NewGuid().ToString("N") + ".html");
+                try
+                {
+                    var boundedAutofocus = new StringBuilder("<!doctype html><html><body>");
+                    for (var autofocusIndex = 0; autofocusIndex < 40; autofocusIndex++)
+                        boundedAutofocus.Append("<button id='a").Append(autofocusIndex).Append("' autofocus>focus</button>");
+                    boundedAutofocus.Append("</body></html>");
+                    File.WriteAllText(boundedAutofocusPath, boundedAutofocus.ToString(), new UTF8Encoding(false));
+                    var boundedAutofocusEngine = new E();
+                    var boundedAutofocusPage = boundedAutofocusEngine.Go(boundedAutofocusPath);
+                    Eq(32, boundedAutofocusEngine.Afs(boundedAutofocusPage).Count, "autofocus candidate count cap");
+                    Eq("a0", boundedAutofocusEngine.Af(boundedAutofocusPage).Av("id"), "bounded autofocus preserves document order");
+                }
+                finally
+                {
+                    if (File.Exists(boundedAutofocusPath)) File.Delete(boundedAutofocusPath);
+                }
+
                 var positioningPath = Path.Combine(root, "LeaForge", "test-pages", "positioning.html");
                 var positioningPage = engine.Go(positioningPath);
                 Eq(6, positioningPage.Bs.Count, "positioning block count");
@@ -1745,6 +1784,67 @@ namespace Lea.Tests
                     Paint(view);
                     Ok(summarySpace.Handled && summarySpace.SuppressKeyPress && ById(view.At.D, "focus-details").Op, "Space activates focused summary");
 
+                    view.Size = new Size(520, 300);
+                    view.Go(shortcutPath);
+                    Paint(view);
+                    Eq("invalid-auto", view.Af().Av("id"), "view forwards first authored autofocus candidate");
+                    Eq(3, view.Afs().Count, "view forwards bounded autofocus candidates");
+                    Eq("auto-field", view.Ke.Av("id"), "autofocus skips non-focusable and hidden candidates");
+                    Eq(1, view.Ki, "autofocus field retains sequential index");
+                    Ok(!view.Kb.IsEmpty, "autofocus target has visible bounds");
+                    Eq(6, view.An, "assigned access-key count excludes hidden and disabled targets");
+                    Eq("S", view.Ak(ById(view.At.D, "auto-field")), "view assigned access-key alias");
+                    Eq("Alt+Shift+B", view.Kl(ById(view.At.D, "run-button")), "platform access-key label alias");
+                    Eq("X", view.Ak(ById(view.At.D, "fallback-button")), "conflicting access key uses authored fallback");
+                    Eq("", view.Ak(ById(view.At.D, "disabled-key")), "disabled access key remains unassigned");
+                    Ok(InputKey(view, Keys.Alt | Keys.Shift | Keys.B) && !InputKey(view, Keys.Alt | Keys.Shift | Keys.Q), "only assigned Alt+Shift page keys become input keys");
+                    var unmatchedAccess = Key(view, Keys.Alt | Keys.Shift | Keys.Q);
+                    Ok(!unmatchedAccess.Handled && !unmatchedAccess.SuppressKeyPress && view.Ke.Av("id") == "auto-field", "unmatched page shortcut remains available to host");
+                    var hostShortcut = Key(view, Keys.Control | Keys.Shift | Keys.B);
+                    Ok(!hostShortcut.Handled && view.Ke.Av("id") == "auto-field", "non-access modifier shortcut remains available to host");
+                    var accessButton = Key(view, Keys.Alt | Keys.Shift | Keys.B);
+                    WaitFor(delegate { return NodeText(ById(view.At.D, "shortcut-state")) == "button shortcut activated"; }, "Alt+Shift button activation");
+                    Ok(accessButton.Handled && accessButton.SuppressKeyPress && view.Ke.Av("id") == "run-button", "assigned button shortcut is consumed and focused");
+                    view.Go(shortcutPath);
+                    Paint(view);
+                    Ok(!CommandKey(view, Keys.Alt | Keys.Shift | Keys.Q), "unassigned WinForms command key remains available to host");
+                    Ok(CommandKey(view, Keys.Alt | Keys.Shift | Keys.B), "assigned WinForms command key is accepted after host routing");
+                    WaitFor(delegate { return NodeText(ById(view.At.D, "shortcut-state")) == "button shortcut activated"; }, "WinForms command-key button activation");
+                    Eq(1, view.Aa("r").GetAwaiter().GetResult(), "compact focus-only access activation alias");
+                    Eq("focus-region", view.Ke.Av("id"), "focus-only access target receives focus");
+                    Eq(0, view.Ki, "negative tabindex access target stays outside sequential order");
+                    Eq(1, view.Aa("x").GetAwaiter().GetResult(), "fallback access key activation");
+                    Eq("fallback shortcut activated", NodeText(ById(view.At.D, "shortcut-state")), "fallback access key runs safe command");
+                    Eq(1, view.Aa("z").GetAwaiter().GetResult(), "valid token after invalid access token activates");
+                    Eq("token shortcut activated", NodeText(ById(view.At.D, "shortcut-state")), "later valid token runs safe command");
+                    Eq(0, view.Aa("d").GetAwaiter().GetResult(), "disabled shortcut does not activate");
+
+                    view.Go(shortcutPath);
+                    Paint(view);
+                    Eq(1, view.Aa("g").GetAwaiter().GetResult(), "link access key activation");
+                    Eq("#target", view.U.Fragment, "link access key retains fragment route");
+                    Eq("link shortcut activated", NodeText(ById(view.At.D, "shortcut-state")), "link access key runs safe command before navigation");
+
+                    view.Go(shortcutPath);
+                    Paint(view);
+                    Eq(1, view.Aa("s").GetAwaiter().GetResult(), "editable field access key activation");
+                    Ok(Editor(view).Visible && view.Ke.Av("id") == "auto-field", "editable access key opens the native editor");
+                    var editorAccess = EditKey(view, Keys.Alt | Keys.Shift | Keys.X);
+                    WaitFor(delegate { return NodeText(ById(view.At.D, "shortcut-state")) == "fallback shortcut activated"; }, "editor access-key activation");
+                    Ok(editorAccess.Handled && editorAccess.SuppressKeyPress && !Editor(view).Visible, "assigned shortcut leaves active editor and is consumed");
+
+                    var shortcutFragment = new UriBuilder(new Uri(shortcutPath)) { Fragment = "target" }.Uri;
+                    view.Go(shortcutFragment);
+                    Paint(view);
+                    Ok(view.Ke == null && view.Kb.IsEmpty && view.Sy > 0, "fragment navigation suppresses autofocus and scrolls target");
+                    var missingShortcutFragment = new UriBuilder(new Uri(shortcutPath)) { Fragment = "missing-target" }.Uri;
+                    view.Go(missingShortcutFragment);
+                    Paint(view);
+                    Eq("auto-field", view.Ke.Av("id"), "unresolved fragment does not suppress autofocus");
+                    view.Go(shortcutPath);
+                    Paint(view);
+                    Eq("auto-field", view.Ke.Av("id"), "new unfragmented load reapplies autofocus");
+
                     var boundedFocusPath = Path.Combine(Path.GetTempPath(), "lea-keyboard-focus-" + Guid.NewGuid().ToString("N") + ".html");
                     try
                     {
@@ -2586,7 +2686,7 @@ namespace Lea.Tests
                 if (args.Length > 3) SaveEventRender(eventPath, args[3]);
                 if (args.Length > 4) SaveRender(tokenPath, args[4]);
 
-                Console.WriteLine("Lea smoke passed: bounded tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -2778,6 +2878,14 @@ namespace Lea.Tests
             var method = typeof(V).GetMethod("IsInputKey", BindingFlags.Instance | BindingFlags.NonPublic);
             if (method == null) throw new InvalidOperationException("input-key method unavailable");
             return (bool)method.Invoke(view, new object[] { key });
+        }
+
+        private static bool CommandKey(V view, Keys key)
+        {
+            var method = typeof(V).GetMethod("ProcessCmdKey", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (method == null) throw new InvalidOperationException("command-key method unavailable");
+            var message = Message.Create(IntPtr.Zero, 0x0104, (IntPtr)(int)(key & Keys.KeyCode), IntPtr.Zero);
+            return (bool)method.Invoke(view, new object[] { message, key });
         }
 
         private static void Move(V view, Rectangle rect)

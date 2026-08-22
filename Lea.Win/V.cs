@@ -30,6 +30,7 @@ namespace Lea.Win
         private readonly TextBox ed = new TextBox();
         private const int MaxKeyTargets = 256;
         private const int MaxKeyMapRegions = 4096;
+        private const int MaxAccessTargets = 64;
         private const int PicLimit = 24;
         private const int PicBytes = 4 * 1024 * 1024;
         private const int FontLimit = 32;
@@ -114,6 +115,7 @@ namespace Lea.Win
         public int Kn { get { return FocusTargets(true).Count; } }
         public int Ki { get { return FocusIndex(FocusTargets(true)) + 1; } }
         public Rectangle Kb { get { return FocusBounds(CurrentFocusTarget()); } }
+        public int An { get { return AccessTargets().Count; } }
         public Rectangle Rb(int index) { return index < 0 || index >= boxes.Count ? Rectangle.Empty : boxes[index].R; }
         public Rectangle Rc(int index) { return index < 0 || index >= boxes.Count ? Rectangle.Empty : boxes[index].C; }
         public Rectangle Fr { get { return FindRect(); } }
@@ -283,6 +285,18 @@ namespace Lea.Win
 
         public N Id(string id) { return At == null ? null : e.Id(At, id); }
         public int? Ti(N element) { return e.Ti(element); }
+        public N Af() { return At == null ? null : e.Af(At); }
+        public IList<N> Afs() { return At == null ? new List<N>().AsReadOnly() : e.Afs(At); }
+        public string Ak(N element)
+        {
+            var target = AccessTarget(element);
+            return target == null ? "" : target.K;
+        }
+        public string Kl(N element)
+        {
+            var key = Ak(element);
+            return key.Length == 0 ? "" : "Alt+Shift+" + key;
+        }
         public N Ft(string fragment) { return At == null ? null : e.Ft(At, fragment); }
         public N Q1(string query) { return At == null ? null : e.Q(At, query); }
         public IList<N> Qa(string query) { return At == null ? new List<N>().AsReadOnly() : e.Qa(At, query); }
@@ -387,7 +401,9 @@ namespace Lea.Win
             e.Dy(page, null, null);
             sy = 0;
             Dirty();
-            if (!ScrollFragment(page) && preserveScroll >= 0 && page != null && page.U != null && page.U.Fragment.Length > 0)
+            var scrolled = ScrollFragment(page);
+            if (!scrolled) ApplyAutofocus(page);
+            if (!scrolled && preserveScroll >= 0 && page != null && page.U != null && page.U.Fragment.Length > 0)
                 sy = Math.Max(0, Math.Min(MaxScroll(), preserveScroll));
             OnChanged();
             Invalidate();
@@ -2040,12 +2056,37 @@ namespace Lea.Win
         protected override bool IsInputKey(Keys keyData)
         {
             var modifiers = keyData & Keys.Modifiers;
-            return ((keyData & Keys.KeyCode) == Keys.Tab && (modifiers == Keys.None || modifiers == Keys.Shift)) || base.IsInputKey(keyData);
+            if ((keyData & Keys.KeyCode) == Keys.Tab && (modifiers == Keys.None || modifiers == Keys.Shift)) return true;
+            if (modifiers == (Keys.Alt | Keys.Shift) && AccessTarget(KeyText(keyData)) != null) return true;
+            return base.IsInputKey(keyData);
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (base.ProcessCmdKey(ref msg, keyData)) return true;
+            var modifiers = keyData & Keys.Modifiers;
+            var key = KeyText(keyData);
+            if (modifiers != (Keys.Alt | Keys.Shift) || AccessTarget(key) == null) return false;
+            ActivateAccessCommand(key);
+            return true;
+        }
+
+        private async void ActivateAccessCommand(string key)
+        {
+            try { await Aa(key); }
+            catch { Cursor = Cursors.Default; }
         }
 
         protected override async void OnKeyDown(KeyEventArgs e)
         {
             base.OnKeyDown(e);
+            if (e.Alt && e.Shift && !e.Control)
+            {
+                if (await Aa(KeyText(e.KeyData)) == 0) return;
+                e.SuppressKeyPress = true;
+                e.Handled = true;
+                return;
+            }
             if (e.KeyCode == Keys.Tab && !e.Control && !e.Alt)
             {
                 if (Kf(e.Shift) == 0) return;
@@ -2108,6 +2149,23 @@ namespace Lea.Win
             return 1;
         }
 
+        // Aa activates one assigned Alt+Shift page shortcut without claiming unmatched keys.
+        public async Task<int> Aa(string key)
+        {
+            var target = AccessTarget(key);
+            if (target == null) return 0;
+            if (edit != null)
+            {
+                edit = null;
+                ed.Visible = false;
+            }
+            Focus();
+            SetFocus(target.T.El, target.T.Sl);
+            ShowKeyTarget();
+            await Ka();
+            return 1;
+        }
+
         private async Task ActivateLinkA(Uri url, N element)
         {
             if (url == null) return;
@@ -2124,6 +2182,87 @@ namespace Lea.Win
             else await GoA(url.ToString());
         }
 
+        private bool ApplyAutofocus(P page)
+        {
+            if (page == null || page.U == null) return false;
+            if (page.U.Fragment.Length > 0 && e.Ft(page, page.U.Fragment) != null) return false;
+            var candidates = e.Afs(page);
+            if (candidates.Count == 0) return false;
+            var targets = FocusTargets(false);
+            foreach (var candidate in candidates)
+                foreach (var target in targets)
+                {
+                    if (!Object.ReferenceEquals(candidate, target.El)) continue;
+                    SetFocus(target.El, target.Sl);
+                    ShowKeyTarget();
+                    if ((Focused || ContainsFocus) && target.B != null && target.B.B != null && CanEdit(target.B.B.I)) StartEdit(target.B.B.I);
+                    return true;
+                }
+            return false;
+        }
+
+        private List<Ax> AccessTargets()
+        {
+            var result = new List<Ax>();
+            var targets = FocusTargets(false);
+            targets.Sort(CompareAccessTargets);
+            var elements = new HashSet<N>();
+            var keys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var target in targets)
+            {
+                if (!elements.Add(target.El)) continue;
+                foreach (var key in e.Aks(target.El))
+                {
+                    if (!keys.Add(key)) continue;
+                    result.Add(new Ax(target, key));
+                    break;
+                }
+                if (result.Count == MaxAccessTargets) break;
+            }
+            return result;
+        }
+
+        private Ax AccessTarget(N element)
+        {
+            if (element == null) return null;
+            foreach (var target in AccessTargets())
+                if (Object.ReferenceEquals(target.T.El, element)) return target;
+            return null;
+        }
+
+        private Ax AccessTarget(string key)
+        {
+            var value = NormalizeAccessKey(key);
+            if (value.Length == 0) return null;
+            foreach (var target in AccessTargets())
+                if (target.K == value) return target;
+            return null;
+        }
+
+        private static int CompareAccessTargets(Kt left, Kt right)
+        {
+            var value = left.Or.CompareTo(right.Or);
+            return value != 0 ? value : left.Sq.CompareTo(right.Sq);
+        }
+
+        private static string NormalizeAccessKey(string key)
+        {
+            var value = (key ?? "").Trim();
+            if (value.Length != 1) return "";
+            var letter = value[0];
+            if (!((letter >= 'a' && letter <= 'z') || (letter >= 'A' && letter <= 'Z') || (letter >= '0' && letter <= '9'))) return "";
+            return Char.ToUpperInvariant(letter).ToString();
+        }
+
+        private static string KeyText(Keys keyData)
+        {
+            var value = keyData & Keys.KeyCode;
+            if (value >= Keys.A && value <= Keys.Z) return ((char)('A' + (int)value - (int)Keys.A)).ToString();
+            if (value >= Keys.D0 && value <= Keys.D9) return ((char)('0' + (int)value - (int)Keys.D0)).ToString();
+            if (value >= Keys.NumPad0 && value <= Keys.NumPad9) return ((char)('0' + (int)value - (int)Keys.NumPad0)).ToString();
+            return "";
+        }
+
         private List<Kt> FocusTargets(bool sequential)
         {
             var targets = new List<Kt>();
@@ -2137,7 +2276,7 @@ namespace Lea.Win
 
             foreach (var box in boxes)
             {
-                if (box.Title || box.El == null || Hidden(box.S)) continue;
+                if (box.Title || box.El == null || Hidden(box.S) || HtmlHidden(box.El)) continue;
                 var element = box.El;
                 var url = box.U;
                 var action = (Bx)null;
@@ -2186,12 +2325,13 @@ namespace Lea.Win
             foreach (var box in boxes)
             {
                 if (mapRegions == MaxKeyMapRegions) break;
-                if (box.Title || box.B == null || box.B.Mp == null || Hidden(box.S)) continue;
+                if (box.Title || box.B == null || box.B.Mp == null || Hidden(box.S) || HtmlHidden(box.El)) continue;
                 var source = MapSourceSize(box.B, box.C);
                 foreach (var area in box.B.Mp.As)
                 {
                     if (mapRegions == MaxKeyMapRegions) break;
                     mapRegions++;
+                    if (HtmlHidden(area.El)) continue;
                     var tab = e.Ti(area.El);
                     if (area.U == null && !tab.HasValue) continue;
                     if (sequential && tab.HasValue && tab.Value < 0) continue;
@@ -2594,9 +2734,15 @@ namespace Lea.Win
             if (restyle) Restyle(); else Invalidate();
         }
 
-        private void EditKeyDown(object sender, KeyEventArgs args)
+        private async void EditKeyDown(object sender, KeyEventArgs args)
         {
-            if (args.KeyCode == Keys.Tab && !args.Control && !args.Alt)
+            if (args.Alt && args.Shift && !args.Control)
+            {
+                if (await Aa(KeyText(args.KeyData)) == 0) return;
+                args.SuppressKeyPress = true;
+                args.Handled = true;
+            }
+            else if (args.KeyCode == Keys.Tab && !args.Control && !args.Alt)
             {
                 Kf(args.Shift);
                 args.SuppressKeyPress = true;
@@ -3032,6 +3178,13 @@ namespace Lea.Win
             return style != null && (style.Vi == "h" || style.Vi == "c");
         }
 
+        private static bool HtmlHidden(N element)
+        {
+            for (var current = element; current != null; current = current.Up)
+                if (current.A.ContainsKey("hidden")) return true;
+            return false;
+        }
+
         private static Color PaintColor(Color color, int opacity)
         {
             var alpha = Math.Max(0, Math.Min(255, color.A * Math.Max(0, Math.Min(100, opacity)) / 100));
@@ -3224,6 +3377,18 @@ namespace Lea.Win
                 S = style;
                 R = rect;
                 El = element;
+            }
+        }
+
+        private sealed class Ax
+        {
+            public readonly Kt T;
+            public readonly string K;
+
+            public Ax(Kt target, string key)
+            {
+                T = target;
+                K = key;
             }
         }
 

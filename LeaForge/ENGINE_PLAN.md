@@ -312,6 +312,19 @@ ring, scrolls off-screen targets, wraps predictably, and keeps Ctrl/Alt+Tab for
 host chrome. Engine, WinForms, editor, repeated-map, Firespider, and resize
 coverage share `keyboard-focus.html`.
 
+Post-1.0 focus shortcuts now extend that model without a parallel control path.
+`Af/Afs` expose the first 32 authored autofocus candidates, while `Ak/Aks`
+parse 16 unique ASCII letter/digit alternatives from at most 256 characters.
+The WinForms view selects the first visible focusable candidate on loads without
+a resolved fragment target, assigns at most 64 conflict-free keys in document order, and
+exposes `An/Ak/Kl/Aa` for hosts. Firespider keeps first refusal over command
+keys; only an assigned, otherwise-unclaimed `Alt+Shift+key` is consumed. Focus,
+editor opening, commands, links, mapped areas, fragments, downloads, and
+navigation reuse existing bounded routes. Engine, WinForms, command-message,
+editor, fragment, limit, benchmark, and Firespider coverage share
+`focus-shortcuts.html`. HTML-hidden nodes receive default layout/paint/link/hit
+suppression and remain excluded from focus, autofocus, and access-key assignment.
+
 HTML tokenization now uses a small quote-aware scanner rather than a single
 tag-splitting regex. It recognizes comments and declarations, preserves raw
 `script/style` text, decodes title/textarea RCDATA and normal text entities,

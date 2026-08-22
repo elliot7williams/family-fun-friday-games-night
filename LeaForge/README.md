@@ -31,6 +31,7 @@ LeaForge is where we can grow the more full-featured browser.
 - compact `<time>`, `<ins>`, and `<del>` metadata through `Dv.K/Dt/U`, safe citation schemes, native decoration, rebuilds, and inline/table ownership
 - compact `<map>`/`<area>` models through `P.Mps`/`B.Mp`/`Ar`, bounded shape coordinates, dead-area layering, responsive custom hits, links, and downloads
 - bounded keyboard navigation through `Ti` and `Ke/Kn/Ki/Kb/Kf/Ka`, ordered tabindex targets, shared-map regions, visible rings, scrolling, and host activation
+- bounded autofocus and host-safe page shortcuts through `Af/Afs`, `Ak/Aks`, and `An/Kl/Aa`, with conflict fallback, resolved-fragment suppression, and `Alt+Shift` activation
 - wrapped inline bold/italic text, styled spans, line breaks, and links inside text blocks
 - inherited font-family fallbacks plus underline and line-through decoration
 - inherited left/center/right/justify alignment and pixel/relative line spacing
@@ -39,6 +40,7 @@ LeaForge is where we can grow the more full-featured browser.
 - live `:hover` and `:focus` restyling that preserves mutable form values
 - min/max dimensions plus normal, break-word, and break-all text flow
 - inherited visibility and effective opacity across text, boxes, controls, and images
+- default HTML `hidden` rendering suppression plus focus, autofocus, and access-key exclusion
 - responsive `<picture>`/`srcset` selection and bounded base64 embedded images
 - compact CSS cascade for colors, fonts, boxes, overflow, and inline styles
 - auto-height styled semantic containers with nested normal-flow ownership

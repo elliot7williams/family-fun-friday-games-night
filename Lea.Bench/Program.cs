@@ -104,7 +104,8 @@ namespace Lea.Bench
                 "tables.html", "forms.html", "events-vars.html", "responsive-media.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
-                "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html"
+                "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
+                "focus-shortcuts.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -374,6 +375,28 @@ namespace Lea.Bench
                 }
                 return "Ti and Ke/Kn/Ki/Kb/Kf/Ka aliases, positive/zero/default/negative order, links, areas, fields, summaries, focus rings, scrolling, and 256-target bounds";
             });
+            AddProbe(probes, "Bounded focus shortcuts", delegate
+            {
+                var path = Path.Combine(folder, "focus-shortcuts.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var auto = ById(page.D, "auto-field");
+                Need(engine.Afs(page).Count == 3 && engine.Af(page).Av("id") == "invalid-auto", "autofocus candidate model changed");
+                Need(engine.Ak(auto) == "S" && engine.Aks(auto).SequenceEqual(new[] { "S", "1" }), "access-key alternatives changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(520, 300);
+                    view.Go(path);
+                    using (var bitmap = Draw(view)) Need(view.Ke != null && view.Ke.Av("id") == "auto-field" && !view.Kb.IsEmpty, "rendered autofocus selection changed");
+                    Need(view.An == 6 && view.Ak(ById(view.At.D, "fallback-button")) == "X" && view.Kl(ById(view.At.D, "run-button")) == "Alt+Shift+B", "assigned access-key model changed");
+                    Need(view.Aa("b").GetAwaiter().GetResult() == 1 && ById(view.At.D, "shortcut-state").C[0].X == "button shortcut activated", "button access-key activation changed");
+                    Need(view.Aa("r").GetAwaiter().GetResult() == 1 && view.Ke.Av("id") == "focus-region" && view.Ki == 0, "focus-only access target changed");
+                    Need(view.Aa("g").GetAwaiter().GetResult() == 1 && view.U.Fragment == "#target", "link access-key activation changed");
+                    view.Go(new UriBuilder(new Uri(path)) { Fragment = "target" }.Uri);
+                    using (var bitmap = Draw(view)) Need(view.Ke == null && view.Sy > 0, "fragment autofocus suppression changed");
+                }
+                return "Af/Afs and Ak/Aks/An/Kl/Aa aliases, first usable autofocus, Alt+Shift assignment, conflicts, exclusions, focus, activation, and fragment suppression";
+            });
             AddProbe(probes, "CSS selectors and cascade", delegate
             {
                 var engine = new E();
@@ -562,6 +585,7 @@ namespace Lea.Bench
             Capability(builder, "Time and edit metadata", "Supported", "Compact Dv t/i/r values, bounded datetime and citation aliases, safe schemes, native decorations, inline/block/table ownership, and safe rebuilds");
             Capability(builder, "Image maps", "Supported subset", "Compact Mp/Ar models, rect/circle/poly/default and dead areas, bounded coordinates, scaled custom hit regions, area links/downloads, and safe rebuilds");
             Capability(builder, "Keyboard focus", "Supported subset", "Bounded tabindex order, links, image-map areas, fields, summaries, visible focus, scrolling, wrapping, and host activation aliases");
+            Capability(builder, "Focus shortcuts", "Supported subset", "Bounded autofocus candidates and ASCII access-key alternatives with conflict resolution, Alt+Shift labels, host-safe matching, focus, and activation");
             Capability(builder, "Accessibility", "Partial", "Keyboard focus and native fields are present; a complete accessibility tree is not");
             builder.AppendLine();
             builder.AppendLine("## Binary Footprint");

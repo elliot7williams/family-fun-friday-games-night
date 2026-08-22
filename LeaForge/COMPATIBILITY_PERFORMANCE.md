@@ -10,16 +10,16 @@ These are repeatable local diagnostic samples, not performance promises. Re-run 
 
 | Measurement | Result |
 | --- | ---: |
-| Clean process + engine + first page median | 478.131 ms |
-| Clean process + engine + first page p95 | 537.341 ms |
-| Local page load median | 1.720 ms |
-| Local page load p95 | 3.467 ms |
-| Layout + bitmap paint median | 38.732 ms |
-| Layout + bitmap paint p95 | 151.119 ms |
-| Retained managed memory | 3076.2 KB for 110 loaded pages |
+| Clean process + engine + first page median | 339.739 ms |
+| Clean process + engine + first page p95 | 355.911 ms |
+| Local page load median | 1.113 ms |
+| Local page load p95 | 2.205 ms |
+| Layout + bitmap paint median | 24.556 ms |
+| Layout + bitmap paint p95 | 99.297 ms |
+| Retained managed memory | 3215.9 KB for 115 loaded pages |
 | Retained managed memory per page | 28.0 KB |
-| Engine runtime DLLs | 235.0 KB |
-| Engine runtime GZip estimate | 103.5 KB (44.1% of raw) |
+| Engine runtime DLLs | 241.0 KB |
+| Engine runtime GZip estimate | 106.0 KB (44.0% of raw) |
 
 ## Fixture Loads
 
@@ -27,28 +27,29 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 
 | Fixture | Bytes | Nodes | CSS rules | Median | p95 |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| `index.html` | 970 | 17 | 1 | 1.216 ms | 1.967 ms |
-| `recovery.html` | 1040 | 39 | 0 | 1.665 ms | 2.204 ms |
-| `html-tokens.html` | 943 | 15 | 2 | 1.300 ms | 2.062 ms |
-| `selectors.html` | 1017 | 20 | 10 | 1.387 ms | 2.535 ms |
-| `layout.html` | 616 | 9 | 4 | 0.786 ms | 1.178 ms |
-| `tables.html` | 894 | 28 | 6 | 1.724 ms | 2.140 ms |
-| `forms.html` | 1566 | 25 | 7 | 1.584 ms | 2.428 ms |
-| `events-vars.html` | 1132 | 14 | 5 | 1.178 ms | 1.417 ms |
-| `responsive-media.html` | 2575 | 21 | 5 | 1.344 ms | 2.616 ms |
-| `stacking-contexts.html` | 3149 | 32 | 22 | 2.918 ms | 5.318 ms |
-| `external.html` | 502 | 12 | 6 | 2.089 ms | 2.774 ms |
-| `base-url.html` | 819 | 17 | 5 | 1.337 ms | 2.403 ms |
-| `class-commands.html` | 1065 | 15 | 4 | 0.983 ms | 2.420 ms |
-| `go-command.html` | 971 | 12 | 6 | 1.384 ms | 2.134 ms |
-| `lists.html` | 1849 | 39 | 5 | 2.412 ms | 3.255 ms |
-| `disclosure.html` | 2270 | 34 | 9 | 2.618 ms | 6.080 ms |
-| `fragments.html` | 2234 | 31 | 11 | 2.907 ms | 4.678 ms |
-| `gauges.html` | 2115 | 25 | 14 | 2.455 ms | 5.221 ms |
-| `values.html` | 1734 | 26 | 7 | 1.976 ms | 2.878 ms |
-| `time-edits.html` | 1966 | 27 | 7 | 2.144 ms | 2.875 ms |
-| `image-maps.html` | 2569 | 30 | 6 | 1.611 ms | 3.522 ms |
-| `keyboard-focus.html` | 3721 | 41 | 18 | 3.527 ms | 6.905 ms |
+| `index.html` | 970 | 17 | 1 | 1.072 ms | 1.258 ms |
+| `recovery.html` | 1040 | 39 | 0 | 0.752 ms | 0.825 ms |
+| `html-tokens.html` | 943 | 15 | 2 | 0.774 ms | 1.009 ms |
+| `selectors.html` | 1017 | 20 | 10 | 0.761 ms | 1.290 ms |
+| `layout.html` | 616 | 9 | 4 | 0.512 ms | 0.745 ms |
+| `tables.html` | 894 | 28 | 6 | 0.807 ms | 1.341 ms |
+| `forms.html` | 1566 | 25 | 7 | 1.127 ms | 1.840 ms |
+| `events-vars.html` | 1132 | 14 | 5 | 0.709 ms | 0.991 ms |
+| `responsive-media.html` | 2575 | 21 | 5 | 1.034 ms | 2.052 ms |
+| `stacking-contexts.html` | 3149 | 32 | 22 | 2.026 ms | 3.312 ms |
+| `external.html` | 502 | 12 | 6 | 0.922 ms | 1.237 ms |
+| `base-url.html` | 819 | 17 | 5 | 0.872 ms | 0.979 ms |
+| `class-commands.html` | 1065 | 15 | 4 | 0.644 ms | 0.980 ms |
+| `go-command.html` | 971 | 12 | 6 | 0.931 ms | 1.211 ms |
+| `lists.html` | 1849 | 39 | 5 | 1.268 ms | 1.719 ms |
+| `disclosure.html` | 2270 | 34 | 9 | 1.720 ms | 2.461 ms |
+| `fragments.html` | 2234 | 31 | 11 | 2.019 ms | 2.357 ms |
+| `gauges.html` | 2115 | 25 | 14 | 1.453 ms | 1.948 ms |
+| `values.html` | 1734 | 26 | 7 | 1.091 ms | 1.716 ms |
+| `time-edits.html` | 1966 | 27 | 7 | 1.494 ms | 2.551 ms |
+| `image-maps.html` | 2569 | 30 | 6 | 1.590 ms | 2.331 ms |
+| `keyboard-focus.html` | 3721 | 41 | 18 | 2.008 ms | 3.866 ms |
+| `focus-shortcuts.html` | 1838 | 20 | 13 | 1.174 ms | 1.861 ms |
 
 ## Executable Probes
 
@@ -63,6 +64,7 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 | Bounded time and edit metadata | PASS | Dv t/i/r aliases, 128-char datetimes, safe resolved citations, unsafe-scheme rejection, native decoration, ownership, rebuilds, tables, and resize |
 | Bounded responsive image maps | PASS | Mp/Ar aliases, rect/circle/poly/default and dead areas, 32 maps, 64 areas, 128 coordinates, responsive scaling, rebuilds, and paint |
 | Bounded keyboard focus | PASS | Ti and Ke/Kn/Ki/Kb/Kf/Ka aliases, positive/zero/default/negative order, links, areas, fields, summaries, focus rings, scrolling, and 256-target bounds |
+| Bounded focus shortcuts | PASS | Af/Afs and Ak/Aks/An/Kl/Aa aliases, first usable autofocus, Alt+Shift assignment, conflicts, exclusions, focus, activation, and fragment suppression |
 | CSS selectors and cascade | PASS | 10 compiled rules across 12 blocks |
 | Bounded document queries | PASS | Id and first match; 3 ordered matches; invalid selector rejected |
 | Document base URLs | PASS | First valid Bu resolves styles, links, images, forms, and downloads while U stays unchanged |
@@ -97,16 +99,17 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 | Time and edit metadata | Supported | Compact Dv t/i/r values, bounded datetime and citation aliases, safe schemes, native decorations, inline/block/table ownership, and safe rebuilds |
 | Image maps | Supported subset | Compact Mp/Ar models, rect/circle/poly/default and dead areas, bounded coordinates, scaled custom hit regions, area links/downloads, and safe rebuilds |
 | Keyboard focus | Supported subset | Bounded tabindex order, links, image-map areas, fields, summaries, visible focus, scrolling, wrapping, and host activation aliases |
+| Focus shortcuts | Supported subset | Bounded autofocus candidates and ASCII access-key alternatives with conflict resolution, Alt+Shift labels, host-safe matching, focus, and activation |
 | Accessibility | Partial | Keyboard focus and native fields are present; a complete accessibility tree is not |
 
 ## Binary Footprint
 
 | Artifact | Bytes | Size |
 | --- | ---: | ---: |
-| `Lea.Engine.dll` | 144896 | 141.5 KB |
-| `Lea.Win.dll` | 95744 | 93.5 KB |
+| `Lea.Engine.dll` | 145920 | 142.5 KB |
+| `Lea.Win.dll` | 100864 | 98.5 KB |
 | `Lea.Win.Test.exe` | 394240 | 385.0 KB |
-| `Lea.Bench.exe` | 55296 | 54.0 KB |
+| `Lea.Bench.exe` | 57856 | 56.5 KB |
 | `Firespider Internet 19.exe` | 1108992 | 1083.0 KB |
 
 The engine runtime size is `Lea.Engine.dll` plus `Lea.Win.dll`. Test and report executables are listed separately and are not required when embedding Lea in Firespider.

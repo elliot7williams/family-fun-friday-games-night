@@ -45,6 +45,9 @@ namespace Lea.Engine
         private const int MaxMapCoordinates = 128;
         private const double MaxMapCoordinate = 1000000D;
         private const int MaxTabIndex = 32767;
+        private const int MaxAutofocusCandidates = 32;
+        private const int MaxAccessKeyText = 256;
+        private const int MaxAccessKeyTokens = 16;
         private const int MinTimeout = 100;
         private const int MaxTimeout = 60000;
         private const int DefaultTimeout = 15000;
@@ -273,6 +276,51 @@ namespace Lea.Engine
             if (!Int64.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
                 return value[0] == '-' ? -MaxTabIndex : MaxTabIndex;
             return (int)Math.Max(-MaxTabIndex, Math.Min(MaxTabIndex, number));
+        }
+
+        // Aks returns bounded, unique ASCII access-key alternatives in authored order.
+        public IList<string> Aks(N element)
+        {
+            var result = new List<string>();
+            if (element == null || !element.A.ContainsKey("accesskey")) return result.AsReadOnly();
+            var source = element.Av("accesskey");
+            if (source.Length == 0 || source.Length > MaxAccessKeyText) return result.AsReadOnly();
+            var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var at = 0;
+            while (at < source.Length && result.Count < MaxAccessKeyTokens)
+            {
+                while (at < source.Length && AsciiWhite(source[at])) at++;
+                var start = at;
+                while (at < source.Length && !AsciiWhite(source[at])) at++;
+                if (at - start != 1) continue;
+                var value = source[start];
+                if (!((value >= 'a' && value <= 'z') || (value >= 'A' && value <= 'Z') || (value >= '0' && value <= '9'))) continue;
+                var key = Char.ToUpperInvariant(value).ToString();
+                if (used.Add(key)) result.Add(key);
+            }
+            return result.AsReadOnly();
+        }
+
+        // Ak returns the first usable access-key alternative, or an empty string.
+        public string Ak(N element)
+        {
+            var keys = Aks(element);
+            return keys.Count == 0 ? "" : keys[0];
+        }
+
+        // Afs returns at most 32 authored autofocus candidates in document order.
+        public IList<N> Afs(P page)
+        {
+            QueryPage(page);
+            var result = new List<N>();
+            FindAttributes(page.D, "autofocus", result, MaxAutofocusCandidates);
+            return result.AsReadOnly();
+        }
+
+        public N Af(P page)
+        {
+            var candidates = Afs(page);
+            return candidates.Count == 0 ? null : candidates[0];
         }
 
         // Id finds the first element with a matching HTML id.
@@ -1682,6 +1730,22 @@ namespace Lea.Engine
             return null;
         }
 
+        private static void FindAttributes(N node, string name, List<N> found, int maximum)
+        {
+            if (node == null || found.Count == maximum) return;
+            if (node.K.Length > 0 && node.K[0] != '#' && node.A.ContainsKey(name)) found.Add(node);
+            foreach (var child in node.C)
+            {
+                FindAttributes(child, name, found, maximum);
+                if (found.Count == maximum) return;
+            }
+        }
+
+        private static bool AsciiWhite(char value)
+        {
+            return value == ' ' || value == '\t' || value == '\n' || value == '\f' || value == '\r';
+        }
+
         private static N FindName(N node, string name)
         {
             if (node == null) return null;
@@ -2027,6 +2091,7 @@ namespace Lea.Engine
         {
             var style = inherited == null ? new S() : inherited.Inherit();
             TagStyle(style, node.K);
+            if (node.A.ContainsKey("hidden")) style.D = "none";
             foreach (var rule in rules) if (MatchCss(node, rule)) Decls(style, rule.V);
             Decls(style, node.Av("style"));
             return style;

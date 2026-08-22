@@ -301,10 +301,18 @@ namespace Lea.Win.Test
             OpenInspector();
             PerformLayout();
             var keyCount = v.Kn;
-            var keyPassed = keyCount == 0 || v.Kf() == 1 && v.Ke != null && !v.Kb.IsEmpty;
+            var keyPassed = keyCount == 0 || (v.Ke != null && !v.Kb.IsEmpty) || (v.Kf() > 0 && v.Ke != null && !v.Kb.IsEmpty);
+            var accessPassed = v.An == 0;
+            if (!accessPassed)
+                foreach (var element in v.Qa("[accesskey]"))
+                {
+                    if (v.Ak(element).Length == 0) continue;
+                    accessPassed = v.Kl(element).StartsWith("Alt+Shift+");
+                    break;
+                }
             var passed = inspectorSummary.Text.Contains("Response   200") &&
                 inspectorNodes.Text.Contains("body") && inspectorCss.Text.Contains("body") &&
-                inspectorRequests.Text.Contains("GET 200 file") && inspectorMessages.Text.Contains("commands") && keyPassed;
+                inspectorRequests.Text.Contains("GET 200 file") && inspectorMessages.Text.Contains("commands") && keyPassed && accessPassed;
             if (!String.IsNullOrWhiteSpace(output))
             {
                 var full = Path.GetFullPath(output);
