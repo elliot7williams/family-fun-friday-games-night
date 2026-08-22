@@ -164,7 +164,12 @@ hierarchy, live values/states, protected passwords, keyboard shortcuts, hit
 testing, focus, and actions. UIA maps Lea nodes to native control types and
 supports invoke, editable value, toggle, radio selection, disclosure,
 read-only/editable range, and scroll-item patterns with structure, focus, and
-property notifications. Add the framework `Accessibility`,
+property notifications. Native `Tb/Tr/Tc` tables also expose concurrent grid
+and table patterns; cells expose grid-item/table-item coordinates, bounded
+column spans, containing-grid links, and row/column header relationships. The
+loaded provider view is capped at 256 complete rows, 256 columns, and 512 cells;
+ragged tables remain semantic tables but do not advertise a grid until empty
+cell providers are modeled. Add the framework `Accessibility`,
 `UIAutomationProvider`, `UIAutomationTypes`, and `WindowsBase` references beside
 `Lea.Engine` and `Lea.Win` when compiling the adapter source; the project file
 already includes them. The standalone test browser and Firespider Inspector

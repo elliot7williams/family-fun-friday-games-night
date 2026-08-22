@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **4**
+Post-1.0 hardening milestones completed: **5**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -43,9 +43,13 @@ modern web platform.
   invoke/value/toggle/selection/disclosure/range/scroll patterns, and
   structure/focus/property notifications; the provider and patterns are
   verified by an MTA UIA client.
+- Added `Tb/Tr/Tc`-backed UI Automation grid, table, grid-item, and table-item
+  patterns with zero-based coordinates, bounded loaded rows/cells, column spans,
+  containing-grid links, row/column header relationships, and public MTA plus
+  Firespider host verification.
 
 ## Next gains
 
-- Continue platform accessibility mapping with bounded text, table, and grid
-  patterns where Lea has matching behavior.
+- Continue platform accessibility mapping with a bounded read-only text pattern
+  over Lea's existing text and layout ownership.
 - Expand safe page commands only through bounded, fixture-backed aliases.

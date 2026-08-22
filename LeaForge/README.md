@@ -32,7 +32,7 @@ LeaForge is where we can grow the more full-featured browser.
 - compact `<map>`/`<area>` models through `P.Mps`/`B.Mp`/`Ar`, bounded shape coordinates, dead-area layering, responsive custom hits, links, and downloads
 - bounded keyboard navigation through `Ti` and `Ke/Kn/Ki/Kb/Kf/Ka`, ordered tabindex targets, shared-map regions, visible rings, scrolling, and host activation
 - bounded autofocus and host-safe page shortcuts through `Af/Afs`, `Ak/Aks`, and `An/Kl/Aa`, with conflict fallback, resolved-fragment suppression, and `Alt+Shift` activation
-- bounded semantic accessibility through `Ax/Axs/St/Is` and `V.Ab/Ao`, with HTML/ARIA roles, labels, hierarchy, protected values, rendered bounds, WinForms/MSAA children, and native UI Automation fragments and control patterns
+- bounded semantic accessibility through `Ax/Axs/St/Is` and `V.Ab/Ao`, with HTML/ARIA roles, labels, hierarchy, protected values, rendered bounds, WinForms/MSAA children, native UI Automation fragments, interaction patterns, and `Tb/Tr/Tc`-backed grid/table patterns
 - wrapped inline bold/italic text, styled spans, line breaks, and links inside text blocks
 - inherited font-family fallbacks plus underline and line-through decoration
 - inherited left/center/right/justify alignment and pixel/relative line spacing

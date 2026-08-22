@@ -96,7 +96,10 @@ the control's native provider expose the records as WinForms/MSAA children and
 as a native UI Automation fragment tree. UIA provides stable bounded runtime
 IDs, Lea control types, protected state, focus and property notifications, and
 invoke/value/toggle/selection/disclosure/range/scroll patterns over the same
-records. The adapter target adds the framework `Accessibility`,
+records. `Tb/Tr/Tc` tables additionally expose grid/table and
+grid-item/table-item patterns with bounded dimensions, zero-based coordinates,
+column spans, containing-grid links, and row/column headers. The adapter target
+adds the framework `Accessibility`,
 `UIAutomationProvider`, `UIAutomationTypes`, and `WindowsBase` references.
 
 Firespider can read `V.Dg()` for bounded response, document, CSS, request,

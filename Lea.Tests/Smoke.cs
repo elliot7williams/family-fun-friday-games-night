@@ -756,6 +756,30 @@ namespace Lea.Tests
                                 var progressElement = AutomationById(rootElement, "load-progress");
                                 var progressValue = (RangeValuePattern)progressElement.GetCurrentPattern(RangeValuePattern.Pattern);
                                 data["progress"] = progressValue.Current.Value + ":" + progressValue.Current.Maximum + ":" + progressValue.Current.IsReadOnly;
+                                var peopleElement = AutomationById(rootElement, "people");
+                                var peopleGrid = (GridPattern)peopleElement.GetCurrentPattern(GridPattern.Pattern);
+                                var peopleTable = (TablePattern)peopleElement.GetCurrentPattern(TablePattern.Pattern);
+                                data["table-size"] = peopleGrid.Current.RowCount + ":" + peopleGrid.Current.ColumnCount;
+                                data["table-major"] = peopleTable.Current.RowOrColumnMajor;
+                                var columnHeaders = peopleTable.Current.GetColumnHeaders();
+                                var rowHeaders = peopleTable.Current.GetRowHeaders();
+                                data["table-column-headers"] = columnHeaders.Length + ":" + columnHeaders[0].Current.Name + ":" + columnHeaders[1].Current.Name;
+                                data["table-row-headers"] = rowHeaders.Length + ":" + rowHeaders[0].Current.Name;
+                                var engineElement = peopleGrid.GetItem(1, 1);
+                                var engineGridItem = (GridItemPattern)engineElement.GetCurrentPattern(GridItemPattern.Pattern);
+                                var engineTableItem = (TableItemPattern)engineElement.GetCurrentPattern(TableItemPattern.Pattern);
+                                data["cell-position"] = engineGridItem.Current.Row + ":" + engineGridItem.Current.Column + ":" + engineGridItem.Current.RowSpan + ":" + engineGridItem.Current.ColumnSpan;
+                                data["cell-grid"] = engineGridItem.Current.ContainingGrid.Current.AutomationId;
+                                var engineColumnHeaders = engineTableItem.Current.GetColumnHeaderItems();
+                                var engineRowHeaders = engineTableItem.Current.GetRowHeaderItems();
+                                data["cell-column-headers"] = engineColumnHeaders.Length + ":" + engineColumnHeaders[0].Current.Name;
+                                data["cell-row-headers"] = engineRowHeaders.Length + ":" + engineRowHeaders[0].Current.Name;
+                                var noteLeft = peopleGrid.GetItem(2, 0);
+                                var noteRight = peopleGrid.GetItem(2, 1);
+                                var noteGridItem = (GridItemPattern)noteLeft.GetCurrentPattern(GridItemPattern.Pattern);
+                                data["span-cell"] = noteLeft.Current.AutomationId + ":" + noteRight.Current.AutomationId + ":" + noteGridItem.Current.Column + ":" + noteGridItem.Current.ColumnSpan;
+                                try { peopleGrid.GetItem(3, 0); data["table-range"] = false; }
+                                catch (ArgumentOutOfRangeException) { data["table-range"] = true; }
                                 var homeElement = AutomationById(rootElement, "home-link");
                                 data["home-key"] = homeElement.Current.AccessKey;
                                 object homePattern;
@@ -793,6 +817,16 @@ namespace Lea.Tests
                     Eq(ExpandCollapseState.Collapsed, (ExpandCollapseState)data["summary-before"], "UIA collapsed disclosure state");
                     Eq(ExpandCollapseState.Expanded, (ExpandCollapseState)data["summary-after"], "UIA disclosure expand pattern");
                     Eq("4:10:True", (string)data["progress"], "UIA read-only progress range");
+                    Eq("3:2", (string)data["table-size"], "UIA grid row and column count");
+                    Eq(RowOrColumnMajor.RowMajor, (RowOrColumnMajor)data["table-major"], "UIA table row-major order");
+                    Eq("2:Name:Role", (string)data["table-column-headers"], "UIA table column headers");
+                    Eq("1:Lea", (string)data["table-row-headers"], "UIA table row headers");
+                    Eq("1:1:1:1", (string)data["cell-position"], "UIA grid item coordinates");
+                    Eq("people", (string)data["cell-grid"], "UIA grid item containing table");
+                    Eq("1:Role", (string)data["cell-column-headers"], "UIA table item column header");
+                    Eq("1:Lea", (string)data["cell-row-headers"], "UIA table item row header");
+                    Eq("people-note:people-note:0:2", (string)data["span-cell"], "UIA colspan grid mapping");
+                    Ok((bool)data["table-range"], "UIA out-of-range grid rejection");
                     Eq("Alt+Shift+H", (string)data["home-key"], "UIA access key property");
                     Ok((bool)data["home-invoke"] && (bool)data["home-scroll"], "UIA invoke and scroll-item patterns");
                     Ok((bool)data["area-scroll"] && automationView.Sy > 0, "UIA image-map area scroll-to-view");

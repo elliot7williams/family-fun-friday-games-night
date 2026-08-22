@@ -39,6 +39,9 @@ namespace Lea.Win
         private const int UploadFiles = 8;
         private const int UploadFileBytes = 4 * 1024 * 1024;
         private const int UploadBytes = 8 * 1024 * 1024;
+        private const int MaxAutomationTableRows = 256;
+        private const int MaxAutomationTableColumns = 256;
+        private const int MaxAutomationTableCells = 512;
         private int sy;
         private int docHeight;
         private int layoutBottom;
@@ -3420,6 +3423,98 @@ namespace Lea.Win
             return item.El == null ? null : e.Ax(At, item.El);
         }
 
+        private Ug AccessibilityGrid(Ax item)
+        {
+            item = CurrentAccessibility(item);
+            if (At == null || item == null || item.El == null) return null;
+            var tableElement = item.El;
+            while (tableElement != null && tableElement.K != "table") tableElement = tableElement.Up;
+            if (tableElement == null) return null;
+            var tableItem = Ax(tableElement);
+            if (tableItem == null || tableItem.K != "table") return null;
+            foreach (var block in At.Bs)
+            {
+                if (block.Tb == null || !Object.ReferenceEquals(block.El, tableElement)) continue;
+                var columns = Math.Min(block.Tb.Cs, MaxAutomationTableColumns);
+                var rows = 0;
+                var cells = 0;
+                foreach (var row in block.Tb.Rs)
+                {
+                    if (rows == MaxAutomationTableRows || rows > 0 && cells + row.Cs.Count > MaxAutomationTableCells) break;
+                    var width = 0;
+                    foreach (var cell in row.Cs)
+                    {
+                        if (width >= columns) break;
+                        width += Math.Max(1, Math.Min(cell.Sp, columns - width));
+                    }
+                    if (width < columns) return null;
+                    rows++;
+                    cells += row.Cs.Count;
+                    if (cells >= MaxAutomationTableCells) break;
+                }
+                return rows == 0 || columns == 0 ? null : new Ug(block.Tb, tableItem, rows, columns);
+            }
+            return null;
+        }
+
+        private Uc AccessibilityGridCell(Ax item)
+        {
+            var grid = AccessibilityGrid(item);
+            item = CurrentAccessibility(item);
+            if (grid == null || item == null || item.El == null) return null;
+            var visited = 0;
+            for (var row = 0; row < grid.Rs; row++)
+            {
+                var column = 0;
+                foreach (var cell in grid.T.Rs[row].Cs)
+                {
+                    if (visited++ == MaxAutomationTableCells || column >= grid.Cs) break;
+                    var span = Math.Max(1, Math.Min(cell.Sp, grid.Cs - column));
+                    if (Object.ReferenceEquals(cell.El, item.El)) return new Uc(grid, cell, item, row, column, span);
+                    column += span;
+                }
+            }
+            return null;
+        }
+
+        private Ax AccessibilityGridItem(Ug grid, int row, int column)
+        {
+            if (grid == null || row < 0 || row >= grid.Rs || column < 0 || column >= grid.Cs) return null;
+            var at = 0;
+            var visited = 0;
+            foreach (var cell in grid.T.Rs[row].Cs)
+            {
+                if (visited++ == MaxAutomationTableCells || at >= grid.Cs) break;
+                var span = Math.Max(1, Math.Min(cell.Sp, grid.Cs - at));
+                if (column >= at && column < at + span) return cell.El == null ? null : Ax(cell.El);
+                at += span;
+            }
+            return null;
+        }
+
+        private IRawElementProviderSimple[] AccessibilityHeaders(Ug grid, string role, Uc owner)
+        {
+            var result = new List<IRawElementProviderSimple>();
+            if (grid == null) return result.ToArray();
+            var visited = 0;
+            for (var row = 0; row < grid.Rs; row++)
+            {
+                var column = 0;
+                foreach (var cell in grid.T.Rs[row].Cs)
+                {
+                    if (visited++ == MaxAutomationTableCells || column >= grid.Cs) break;
+                    var span = Math.Max(1, Math.Min(cell.Sp, grid.Cs - column));
+                    var item = cell.El == null ? null : Ax(cell.El);
+                    var rowMatch = owner == null || owner.R == row;
+                    var columnMatch = owner == null || column < owner.C + owner.Sp && owner.C < column + span;
+                    if (item != null && item.K == role && (role == "rowheader" ? rowMatch : columnMatch)) result.Add(new Ux(this, item));
+                    column += span;
+                }
+                if (visited >= MaxAutomationTableCells) break;
+            }
+            return result.ToArray();
+        }
+
         private async void ActivateAccessibility(Ax item)
         {
             if (!FocusAccessibility(item)) return;
@@ -3947,7 +4042,8 @@ namespace Lea.Win
         }
 
         private sealed class Ux : IRawElementProviderFragment, IInvokeProvider, IValueProvider, IToggleProvider,
-            IExpandCollapseProvider, ISelectionItemProvider, IRangeValueProvider, IScrollItemProvider
+            IExpandCollapseProvider, ISelectionItemProvider, IRangeValueProvider, IScrollItemProvider,
+            IGridProvider, IGridItemProvider, ITableProvider, ITableItemProvider
         {
             private readonly V v;
             private readonly Ax a;
@@ -3973,6 +4069,12 @@ namespace Lea.Win
                     if (patternId == SelectionItemPatternIdentifiers.Pattern.Id) return v.CanAccessibilitySelect(item) ? this : null;
                     if (patternId == RangeValuePatternIdentifiers.Pattern.Id) return v.AccessibilityRange(item) != null ? this : null;
                     if (patternId == ScrollItemPatternIdentifiers.Pattern.Id) return item.El != null ? this : null;
+                    var grid = v.AccessibilityGrid(item);
+                    if (patternId == GridPatternIdentifiers.Pattern.Id || patternId == TablePatternIdentifiers.Pattern.Id)
+                        return grid != null && Object.ReferenceEquals(grid.A, item) ? this : null;
+                    var cell = v.AccessibilityGridCell(item);
+                    if (patternId == GridItemPatternIdentifiers.Pattern.Id || patternId == TableItemPatternIdentifiers.Pattern.Id)
+                        return cell == null ? null : this;
                     return null;
                 });
             }
@@ -4002,6 +4104,12 @@ namespace Lea.Win
                     if (propertyId == AutomationElementIdentifiers.IsSelectionItemPatternAvailableProperty.Id) return v.CanAccessibilitySelect(item);
                     if (propertyId == AutomationElementIdentifiers.IsRangeValuePatternAvailableProperty.Id) return v.AccessibilityRange(item) != null;
                     if (propertyId == AutomationElementIdentifiers.IsScrollItemPatternAvailableProperty.Id) return item.El != null;
+                    var grid = v.AccessibilityGrid(item);
+                    if (propertyId == AutomationElementIdentifiers.IsGridPatternAvailableProperty.Id || propertyId == AutomationElementIdentifiers.IsTablePatternAvailableProperty.Id)
+                        return grid != null && Object.ReferenceEquals(grid.A, item);
+                    var cell = v.AccessibilityGridCell(item);
+                    if (propertyId == AutomationElementIdentifiers.IsGridItemPatternAvailableProperty.Id || propertyId == AutomationElementIdentifiers.IsTableItemPatternAvailableProperty.Id)
+                        return cell != null;
                     return AutomationElementIdentifiers.NotSupported;
                 });
             }
@@ -4100,6 +4208,46 @@ namespace Lea.Win
             double IRangeValueProvider.LargeChange { get { return v.OnUi(delegate { var range = v.AccessibilityRange(A); return range == null ? 0D : range.Lg; }); } }
             void IRangeValueProvider.SetValue(double value) { v.OnUi(delegate { v.SetAccessibilityRange(A, value); }); }
             void IScrollItemProvider.ScrollIntoView() { v.OnUi(delegate { v.ScrollAccessibility(A); }); }
+            int IGridProvider.RowCount { get { return v.OnUi(delegate { var grid = v.AccessibilityGrid(A); return grid == null ? 0 : grid.Rs; }); } }
+            int IGridProvider.ColumnCount { get { return v.OnUi(delegate { var grid = v.AccessibilityGrid(A); return grid == null ? 0 : grid.Cs; }); } }
+            IRawElementProviderSimple IGridProvider.GetItem(int row, int column)
+            {
+                return v.OnUi<IRawElementProviderSimple>(delegate
+                {
+                    var grid = v.AccessibilityGrid(A);
+                    if (grid == null) return null;
+                    if (row < 0 || row >= grid.Rs) throw new ArgumentOutOfRangeException("row");
+                    if (column < 0 || column >= grid.Cs) throw new ArgumentOutOfRangeException("column");
+                    var item = v.AccessibilityGridItem(grid, row, column);
+                    return item == null ? null : new Ux(v, item);
+                });
+            }
+            RowOrColumnMajor ITableProvider.RowOrColumnMajor { get { return RowOrColumnMajor.RowMajor; } }
+            IRawElementProviderSimple[] ITableProvider.GetRowHeaders() { return v.OnUi(delegate { return v.AccessibilityHeaders(v.AccessibilityGrid(A), "rowheader", null); }); }
+            IRawElementProviderSimple[] ITableProvider.GetColumnHeaders() { return v.OnUi(delegate { return v.AccessibilityHeaders(v.AccessibilityGrid(A), "columnheader", null); }); }
+            int IGridItemProvider.Row { get { return v.OnUi(delegate { var cell = v.AccessibilityGridCell(A); return cell == null ? 0 : cell.R; }); } }
+            int IGridItemProvider.Column { get { return v.OnUi(delegate { var cell = v.AccessibilityGridCell(A); return cell == null ? 0 : cell.C; }); } }
+            int IGridItemProvider.RowSpan { get { return 1; } }
+            int IGridItemProvider.ColumnSpan { get { return v.OnUi(delegate { var cell = v.AccessibilityGridCell(A); return cell == null ? 1 : cell.Sp; }); } }
+            IRawElementProviderSimple IGridItemProvider.ContainingGrid
+            {
+                get
+                {
+                    return v.OnUi<IRawElementProviderSimple>(delegate
+                    {
+                        var cell = v.AccessibilityGridCell(A);
+                        return cell == null ? null : new Ux(v, cell.G.A);
+                    });
+                }
+            }
+            IRawElementProviderSimple[] ITableItemProvider.GetRowHeaderItems()
+            {
+                return v.OnUi(delegate { var cell = v.AccessibilityGridCell(A); return v.AccessibilityHeaders(cell == null ? null : cell.G, "rowheader", cell); });
+            }
+            IRawElementProviderSimple[] ITableItemProvider.GetColumnHeaderItems()
+            {
+                return v.OnUi(delegate { var cell = v.AccessibilityGridCell(A); return v.AccessibilityHeaders(cell == null ? null : cell.G, "columnheader", cell); });
+            }
 
             private static bool CanInvoke(Ax item)
             {
@@ -4136,6 +4284,26 @@ namespace Lea.Win
                     role == "term" || role == "definition" || role == "heading" || role == "time" || role == "timer") return ControlType.Text;
                 return ControlType.Group;
             }
+        }
+
+        private sealed class Ug
+        {
+            public readonly Tb T;
+            public readonly Ax A;
+            public readonly int Rs;
+            public readonly int Cs;
+            public Ug(Tb table, Ax item, int rows, int columns) { T = table; A = item; Rs = rows; Cs = columns; }
+        }
+
+        private sealed class Uc
+        {
+            public readonly Ug G;
+            public readonly Tc T;
+            public readonly Ax A;
+            public readonly int R;
+            public readonly int C;
+            public readonly int Sp;
+            public Uc(Ug grid, Tc cell, Ax item, int row, int column, int span) { G = grid; T = cell; A = item; R = row; C = column; Sp = span; }
         }
 
         private sealed class Lc

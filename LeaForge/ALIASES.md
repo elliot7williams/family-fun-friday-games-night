@@ -291,7 +291,12 @@ the WinForms accessibility root. `V` exposes document, structure, text, link,
 image, table, list, gauge, and form children through MSAA; names, descriptions,
 live values, protected password state, focus, expansion, selection, assigned
 keyboard shortcuts, hierarchy, hit testing, and default actions all read the
-same `Ax` records. This is a bounded supported subset, not a claim of complete
+same `Ax` records. Native UI Automation tables reuse `B.Tb`, `Tb.Rs`, `Tr.Cs`,
+and `Tc.Sp/El` for concurrent grid/table and grid-item/table-item patterns.
+Coordinates are zero-based; the loaded view stops at 256 complete rows, 256
+columns, or 512 cells and exposes column spans, containing-grid links, and
+semantic row/column headers without a second table tree. This is a bounded
+supported subset, not a claim of complete
 HTML-AAM, AccName, WAI-ARIA, MSAA, or UI Automation coverage.
 
 Computed style uses `S`: `F` is foreground color, `Bg` is background, `Fs` is

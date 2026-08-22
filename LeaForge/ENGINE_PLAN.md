@@ -240,11 +240,18 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Extend the Windows UI Automation mapping with bounded table and grid patterns
-over Lea's existing `Tb/Tr/Tc` ownership. Keep one semantic model, derive row,
-column, span, and header relationships without duplicating the document, and
-verify the result through the public UIA client API without adding a browser
-runtime.
+Add a bounded read-only Windows UI Automation text pattern over Lea's existing
+semantic nodes, inline runs, and settled layout boxes. Keep ranges tied to the
+current page generation, expose text and visible bounds without duplicating the
+document, and verify traversal through the public UIA client API before adding
+selection or editing behavior.
+
+The previous milestone added `IGridProvider`, `ITableProvider`,
+`IGridItemProvider`, and `ITableItemProvider` over the existing `Tb/Tr/Tc`
+model. It exposes zero-based row/column coordinates, bounded loaded dimensions,
+column spans, containing-grid links, and row/column header relationships. The
+MTA client and Firespider host smokes verify the native patterns without a new
+browser runtime or retained table tree.
 
 The repeatable compatibility and performance report is now implemented by
 `Lea.Bench`. It probes supported HTML, CSS, forms, scripting, layout, downloads,

@@ -17,7 +17,7 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-1. Map the compact accessibility model to richer Windows platform APIs.
+1. Add bounded read-only UI Automation text ranges over existing semantic and layout ownership.
 2. Continue command expansion only through bounded, fixture-backed aliases.
 3. Keep strengthening host tests as more legacy tab routes move to Lea.
 
@@ -102,6 +102,10 @@ disclosure values/states, focus, and strict redaction share one 512-record path.
 WinForms/MSAA children with rendered bounds, keyboard shortcuts, focus, and
 default actions. `accessibility.html` covers HTML labels, ARIA references and
 states, landmarks, tables, fields, gauges, exclusions, rebuilds, and limits.
+The native UI Automation provider now also maps real `Tb/Tr/Tc` ownership to
+bounded grid/table and grid-item/table-item patterns. Zero-based coordinates,
+column spans, containing-grid links, both header directions, range rejection,
+the MTA client, benchmark probe, and Firespider host smoke share that one model.
 
 ## Rules For Future Codex Work
 

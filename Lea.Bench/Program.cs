@@ -423,8 +423,16 @@ namespace Lea.Bench
                     var automationProgress = automation.FindFirst(TreeScope.Descendants, new PropertyCondition(AutomationElement.AutomationIdProperty, "load-progress"));
                     object rangePattern;
                     Need(automationProgress != null && automationProgress.TryGetCurrentPattern(RangeValuePattern.Pattern, out rangePattern) && ((RangeValuePattern)rangePattern).Current.IsReadOnly, "UI Automation range pattern changed");
+                    var automationTable = automation.FindFirst(TreeScope.Descendants, new PropertyCondition(AutomationElement.AutomationIdProperty, "people"));
+                    object gridPattern = null;
+                    object tablePattern = null;
+                    Need(automationTable != null && automationTable.TryGetCurrentPattern(GridPattern.Pattern, out gridPattern) && automationTable.TryGetCurrentPattern(TablePattern.Pattern, out tablePattern), "UI Automation table patterns changed");
+                    var grid = (GridPattern)gridPattern;
+                    var table = (TablePattern)tablePattern;
+                    Need(grid.Current.RowCount == 3 && grid.Current.ColumnCount == 2 && grid.GetItem(2, 1).Current.AutomationId == "people-note", "UI Automation table grid changed");
+                    Need(table.Current.RowOrColumnMajor == RowOrColumnMajor.RowMajor && table.Current.GetColumnHeaders().Length == 2 && table.Current.GetRowHeaders().Length == 1, "UI Automation table headers changed");
                 }
-                return "Ax/Axs/St/Is and V.Ax/Axs/Ab/Ao aliases, 512 records, names, roles, live protected state, bounds, MSAA children, UIA fragments, control types, and patterns";
+                return "Ax/Axs/St/Is and V.Ax/Axs/Ab/Ao aliases, 512 records, names, roles, live protected state, bounds, MSAA children, UIA fragments, control types, grid/table coordinates, headers, and patterns";
             });
             AddProbe(probes, "CSS selectors and cascade", delegate
             {
@@ -638,7 +646,7 @@ namespace Lea.Bench
             Capability(builder, "Image maps", "Supported subset", "Compact Mp/Ar models, rect/circle/poly/default and dead areas, bounded coordinates, scaled custom hit regions, area links/downloads, and safe rebuilds");
             Capability(builder, "Keyboard focus", "Supported subset", "Bounded tabindex order, links, image-map areas, fields, summaries, visible focus, scrolling, wrapping, and host activation aliases");
             Capability(builder, "Focus shortcuts", "Supported subset", "Bounded autofocus candidates and ASCII access-key alternatives with conflict resolution, Alt+Shift labels, host-safe matching, focus, and activation");
-            Capability(builder, "Accessibility", "Supported subset", "Bounded Ax hierarchy with MSAA and native UI Automation fragments, roles, names, live protected state, rendered bounds, focus, and invoke/value/toggle/selection/disclosure/range/scroll patterns; not the complete platform mapping standards");
+            Capability(builder, "Accessibility", "Supported subset", "Bounded Ax hierarchy with MSAA and native UI Automation fragments, roles, names, live protected state, rendered bounds, focus, invoke/value/toggle/selection/disclosure/range/scroll patterns, and Tb/Tc-backed grid/table/item mappings; not the complete platform mapping standards");
             builder.AppendLine();
             builder.AppendLine("## Binary Footprint");
             builder.AppendLine();
