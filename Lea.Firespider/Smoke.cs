@@ -129,6 +129,14 @@ namespace Lea.Firespider
                         ((GridPattern)automationGrid).Current.RowCount == 2 && ((GridPattern)automationGrid).Current.ColumnCount == 1 &&
                         ((TablePattern)automationTablePattern).Current.GetColumnHeaders().Length == 1 && ((TablePattern)automationTablePattern).Current.GetRowHeaders().Length == 1,
                         "Firespider UI Automation table and grid providers");
+                    object automationTextPattern;
+                    Check(automationRoot.TryGetCurrentPattern(TextPattern.Pattern, out automationTextPattern), "Firespider UI Automation text provider");
+                    var automationDocument = ((TextPattern)automationTextPattern).DocumentRange;
+                    var automationText = automationDocument.GetText(-1);
+                    var automationFoundText = automationDocument.FindText("host TOTAL", false, true);
+                    Check(automationText.Contains("Host total") && !automationText.Contains("host-secret") &&
+                        (bool)automationDocument.GetAttributeValue(TextPattern.IsReadOnlyAttribute) && automationFoundText != null && automationFoundText.GetText(-1) == "Host total",
+                        "Firespider UI Automation logical text, search, and redaction");
                     Check(!CommandKey(host, Keys.Alt | Keys.Shift | Keys.Q) && CommandKey(host, Keys.Alt | Keys.Shift | Keys.K), "Firespider command route preserves unmatched and accepts assigned access keys");
                     WaitFor(() => host.Ke != null && host.Ke.Av("id") == "host-key", "Firespider command-route access-key focus");
                     Check(host.Ki == 0 && host.Aa("q").GetAwaiter().GetResult() == 0, "Firespider host-safe access-key focus");
@@ -281,7 +289,7 @@ namespace Lea.Firespider
                     Check(restoredTabs.TabCount == beforeMiddle - 1 && FindLea(restoredTabs) == null, "middle-click Lea tab close");
                 }
 
-                Console.WriteLine("Firespider Lea smoke passed: bounded semantic accessibility, protected values, rendered bounds, MSAA and UI Automation providers, value plus table/grid patterns and Access inspector, bounded autofocus and access keys, keyboard focus and activation, responsive image maps, compact time/edit metadata, output/data values and safe rebuilds, progress and meter gauges, retained same-page fragments, Lea-first New Tab and explicit legacy fallback, host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
+                Console.WriteLine("Firespider Lea smoke passed: bounded semantic accessibility, protected values, rendered bounds, MSAA and UI Automation providers, value, table/grid, and read-only logical text patterns plus Access inspector, bounded autofocus and access keys, keyboard focus and activation, responsive image maps, compact time/edit metadata, output/data values and safe rebuilds, progress and meter gauges, retained same-page fragments, Lea-first New Tab and explicit legacy fallback, host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
                 return 0;
             }
             catch (Exception error)

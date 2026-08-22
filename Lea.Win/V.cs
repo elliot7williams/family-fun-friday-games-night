@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Automation;
 using System.Windows.Automation.Provider;
+using System.Windows.Automation.Text;
 using System.Windows.Forms;
 using Lea.Engine;
 
@@ -42,6 +43,9 @@ namespace Lea.Win
         private const int MaxAutomationTableRows = 256;
         private const int MaxAutomationTableColumns = 256;
         private const int MaxAutomationTableCells = 512;
+        private const int MaxAutomationTextChars = 32768;
+        private const int MaxAutomationTextSegments = 2048;
+        private const int MaxAutomationTextChildren = 64;
         private int sy;
         private int docHeight;
         private int layoutBottom;
@@ -3339,7 +3343,11 @@ namespace Lea.Win
             try
             {
                 if (kind == AccessibleEvents.Reorder)
+                {
                     AutomationInteropProvider.RaiseStructureChangedEvent(UiRoot, new StructureChangedEventArgs(StructureChangeType.ChildrenInvalidated, UiRoot.GetRuntimeId()));
+                    AutomationInteropProvider.RaiseAutomationEvent(TextPatternIdentifiers.TextChangedEvent, UiRoot,
+                        new AutomationEventArgs(TextPatternIdentifiers.TextChangedEvent));
+                }
                 else if (kind == AccessibleEvents.Focus)
                 {
                     var item = focus == null ? null : Ax(focus);
@@ -3513,6 +3521,254 @@ namespace Lea.Win
                 if (visited >= MaxAutomationTableCells) break;
             }
             return result.ToArray();
+        }
+
+        private Ut AutomationText()
+        {
+            EnsureLayout();
+            var page = At;
+            var text = page == null ? "" : page.X ?? "";
+            if (text.Length > MaxAutomationTextChars) text = text.Substring(0, MaxAutomationTextChars);
+            var order = new Dictionary<N, int>();
+            var position = 0;
+            if (page != null) AutomationTextOrder(page.D, order, ref position);
+            var parts = new List<Us>();
+            var sequence = 0;
+            foreach (var box in boxes)
+            {
+                if (parts.Count == MaxAutomationTextSegments) break;
+                var value = AutomationBoxText(box);
+                if (value.Length == 0) { sequence++; continue; }
+                int nodeOrder;
+                if (box.El == null || !order.TryGetValue(box.El, out nodeOrder)) nodeOrder = Int32.MaxValue;
+                parts.Add(new Us(value, box.R, box.Clip, box.Fx, box.El, nodeOrder, sequence++));
+            }
+            parts.Sort(delegate(Us left, Us right)
+            {
+                var compared = left.O.CompareTo(right.O);
+                return compared != 0 ? compared : left.Q.CompareTo(right.Q);
+            });
+            var mapped = new List<Us>();
+            var at = 0;
+            foreach (var part in parts)
+            {
+                if (at >= text.Length) break;
+                var found = text.IndexOf(part.X, at, StringComparison.Ordinal);
+                if (found < 0) continue;
+                part.S = found;
+                part.E = Math.Min(text.Length, found + part.X.Length);
+                if (part.E > part.S) mapped.Add(part);
+                at = part.E;
+            }
+            return new Ut(page, text, mapped);
+        }
+
+        private static void AutomationTextOrder(N node, IDictionary<N, int> order, ref int position)
+        {
+            if (node == null || position == 8192) return;
+            order[node] = position++;
+            foreach (var child in node.C)
+            {
+                if (position == 8192) break;
+                AutomationTextOrder(child, order, ref position);
+            }
+        }
+
+        private static string AutomationBoxText(Bx box)
+        {
+            if (box == null || box.Title || box.X.Length == 0 || Hidden(box.S) || HtmlHidden(box.El) || box.S != null && box.S.Op == 0) return "";
+            if (box.K == "img" || box.K == "hr" || box.K == "table" || box.B != null && box.B.Vm != null) return "";
+            if (box.B != null && box.B.I != null)
+            {
+                var field = box.B.I;
+                if (field.K != "checkbox" && field.K != "radio" && box.K != "button") return "";
+            }
+            var value = box.X;
+            if (box.B != null && box.B.Mk.Length > 0)
+            {
+                var prefix = box.B.Mk + " ";
+                if (value.StartsWith(prefix, StringComparison.Ordinal)) value = value.Substring(prefix.Length);
+            }
+            return Regex.Replace(value, "\\s+", " ").Trim();
+        }
+
+        private Rectangle AutomationTextRectangle(Us part)
+        {
+            if (part == null) return Rectangle.Empty;
+            var rect = part.R;
+            var clip = part.Cp;
+            if (!part.Fx)
+            {
+                rect.Offset(0, -sy);
+                if (!clip.IsEmpty) clip.Offset(0, -sy);
+            }
+            rect = Rectangle.Intersect(rect, ClientRectangle);
+            if (!clip.IsEmpty) rect = Rectangle.Intersect(rect, clip);
+            return rect;
+        }
+
+        private ITextRangeProvider[] AutomationVisibleTextRanges(Ut text)
+        {
+            return new ITextRangeProvider[0];
+        }
+
+        private ITextRangeProvider AutomationTextRangeFromPoint(Ut text, System.Windows.Point screenPoint)
+        {
+            var point = PointToClient(new Point((int)Math.Round(screenPoint.X), (int)Math.Round(screenPoint.Y)));
+            Us best = null;
+            var distance = Int64.MaxValue;
+            foreach (var part in text.Ps)
+            {
+                var rect = AutomationTextRectangle(part);
+                if (rect.IsEmpty) continue;
+                var dx = point.X < rect.Left ? rect.Left - point.X : point.X > rect.Right ? point.X - rect.Right : 0;
+                var dy = point.Y < rect.Top ? rect.Top - point.Y : point.Y > rect.Bottom ? point.Y - rect.Bottom : 0;
+                var score = (long)dx * dx + (long)dy * dy;
+                if (score >= distance) continue;
+                best = part;
+                distance = score;
+                if (score == 0) break;
+            }
+            if (best == null) return new Uq(this, text, 0, 0);
+            var bounds = AutomationTextRectangle(best);
+            var ratio = bounds.Width < 1 ? 0D : Math.Max(0D, Math.Min(1D, (point.X - bounds.Left) / (double)bounds.Width));
+            var offset = best.S + (int)Math.Round((best.E - best.S) * ratio);
+            offset = Math.Max(best.S, Math.Min(best.E, offset));
+            if (offset == best.E && offset > best.S) offset--;
+            if (offset < best.E && Char.IsWhiteSpace(text.X[offset]))
+            {
+                var right = offset + 1;
+                while (right < best.E && Char.IsWhiteSpace(text.X[right])) right++;
+                var left = offset - 1;
+                while (left >= best.S && Char.IsWhiteSpace(text.X[left])) left--;
+                if (right < best.E) offset = right;
+                else if (left >= best.S) offset = left;
+            }
+            return new Uq(this, text, offset, offset);
+        }
+
+        private bool AutomationTextChildBounds(Ut text, Ax item, out int start, out int end)
+        {
+            start = Int32.MaxValue;
+            end = -1;
+            item = CurrentAccessibility(item);
+            if (item == null || item.El == null) return false;
+            foreach (var part in text.Ps)
+            {
+                if (part.El == null || !OwnsElement(item.El, part.El) && !(item.El.K == "#text" && Object.ReferenceEquals(item.El.Up, part.El))) continue;
+                start = Math.Min(start, part.S);
+                end = Math.Max(end, part.E);
+            }
+            return end >= start;
+        }
+
+        private ITextRangeProvider AutomationTextRangeFromChild(Ut text, Ax item)
+        {
+            int start;
+            int end;
+            return AutomationTextChildBounds(text, item, out start, out end) ? new Uq(this, text, start, end) : new Uq(this, text, 0, 0);
+        }
+
+        private IRawElementProviderSimple[] AutomationTextChildren(Ut text, int start, int end)
+        {
+            var result = new List<IRawElementProviderSimple>();
+            if (At == null) return result.ToArray();
+            foreach (var item in At.Axs)
+            {
+                if (!AutomationTextEmbedded(item.K)) continue;
+                int childStart;
+                int childEnd;
+                if (!AutomationTextChildBounds(text, item, out childStart, out childEnd) || childEnd <= start || childStart >= end) continue;
+                result.Add(new Ux(this, item));
+                if (result.Count == MaxAutomationTextChildren) break;
+            }
+            return result.ToArray();
+        }
+
+        private static bool AutomationTextEmbedded(string role)
+        {
+            return role == "link" || role == "button" || role == "img" || role == "table" || role == "textbox" || role == "searchbox" ||
+                   role == "checkbox" || role == "radio" || role == "combobox" || role == "listbox" || role == "slider" ||
+                   role == "spinbutton" || role == "progressbar" || role == "meter";
+        }
+
+        private IRawElementProviderSimple AutomationTextEnclosing(Ut text, int start, int end)
+        {
+            Ax common = null;
+            foreach (var part in text.Ps)
+            {
+                if (part.E <= start || part.S >= end || part.El == null) continue;
+                var owner = AutomationTextOwner(part.El);
+                common = common == null ? owner : AutomationTextCommon(common, owner);
+                if (common == null || Object.ReferenceEquals(common, AccessibilityRoot())) break;
+            }
+            var root = AccessibilityRoot();
+            return common == null || Object.ReferenceEquals(common, root) ? (IRawElementProviderSimple)UiRoot : new Ux(this, common);
+        }
+
+        private Ax AutomationTextOwner(N element)
+        {
+            for (var current = element; current != null; current = current.Up)
+            {
+                var item = Ax(current);
+                if (item != null) return item;
+            }
+            return AccessibilityRoot();
+        }
+
+        private static Ax AutomationTextCommon(Ax left, Ax right)
+        {
+            if (left == null || right == null) return null;
+            var parents = new HashSet<Ax>();
+            for (var item = left; item != null; item = item.Up) parents.Add(item);
+            for (var item = right; item != null; item = item.Up) if (parents.Contains(item)) return item;
+            return null;
+        }
+
+        private double[] AutomationTextRectangles(Ut text, int start, int end)
+        {
+            var rectangles = new List<Rectangle>();
+            if (start == end) return new double[0];
+            foreach (var part in text.Ps)
+            {
+                if (part.E <= start || part.S >= end) continue;
+                var rect = AutomationTextRectangle(part);
+                if (rect.IsEmpty) continue;
+                if (rectangles.Count > 0)
+                {
+                    var previous = rectangles[rectangles.Count - 1];
+                    if (previous.Top == rect.Top && previous.Height == rect.Height && rect.Left <= previous.Right + 2)
+                    {
+                        rectangles[rectangles.Count - 1] = Rectangle.Union(previous, rect);
+                        continue;
+                    }
+                }
+                rectangles.Add(rect);
+                if (rectangles.Count == 256) break;
+            }
+            var result = new double[rectangles.Count * 4];
+            for (var index = 0; index < rectangles.Count; index++)
+            {
+                var rect = RectangleToScreen(rectangles[index]);
+                result[index * 4] = rect.X;
+                result[index * 4 + 1] = rect.Y;
+                result[index * 4 + 2] = rect.Width;
+                result[index * 4 + 3] = rect.Height;
+            }
+            return result;
+        }
+
+        private void ScrollAutomationText(Ut text, int start, int end, bool alignTop)
+        {
+            foreach (var part in text.Ps)
+            {
+                if (part.E <= start || part.S >= end || part.Fx) continue;
+                var target = alignTop ? part.R.Top - 24 : part.R.Bottom - ClientSize.Height + 24;
+                sy = Math.Max(0, Math.Min(MaxScroll(), target));
+                PlaceEditor();
+                Invalidate();
+                return;
+            }
         }
 
         private async void ActivateAccessibility(Ax item)
@@ -3965,18 +4221,22 @@ namespace Lea.Win
             }
         }
 
-        private sealed class Ur : IRawElementProviderFragmentRoot
+        private sealed class Ur : MarshalByRefObject, IRawElementProviderFragmentRoot, ITextProvider
         {
             private readonly V v;
 
             public Ur(V owner) { v = owner; }
 
-            public ProviderOptions ProviderOptions { get { return ProviderOptions.ServerSideProvider; } }
+            public ProviderOptions ProviderOptions { get { return ProviderOptions.ServerSideProvider | ProviderOptions.UseComThreading; } }
             public IRawElementProviderSimple HostRawElementProvider
             {
                 get { return v.IsHandleCreated ? AutomationInteropProvider.HostProviderFromHandle(v.Handle) : null; }
             }
-            public object GetPatternProvider(int patternId) { return null; }
+            public object GetPatternProvider(int patternId)
+            {
+                if (patternId != TextPatternIdentifiers.Pattern.Id) return null;
+                return v.OnUi<object>(delegate { return v.At == null ? null : this; });
+            }
             public object GetPropertyValue(int propertyId)
             {
                 return v.OnUi<object>(delegate
@@ -3993,6 +4253,7 @@ namespace Lea.Win
                     if (propertyId == AutomationElementIdentifiers.HasKeyboardFocusProperty.Id) return v.Focused || v.ContainsFocus;
                     if (propertyId == AutomationElementIdentifiers.IsOffscreenProperty.Id) return !v.Visible;
                     if (propertyId == AutomationElementIdentifiers.NativeWindowHandleProperty.Id) return v.Handle.ToInt32();
+                    if (propertyId == AutomationElementIdentifiers.IsTextPatternAvailableProperty.Id) return v.At != null;
                     return AutomationElementIdentifiers.NotSupported;
                 });
             }
@@ -4039,6 +4300,361 @@ namespace Lea.Win
                     return item == null ? null : new Ux(v, item);
                 });
             }
+
+            ITextRangeProvider ITextProvider.DocumentRange
+            {
+                get { return v.OnUi<ITextRangeProvider>(delegate { var text = v.AutomationText(); return new Uq(v, text, 0, text.X.Length); }); }
+            }
+            SupportedTextSelection ITextProvider.SupportedTextSelection { get { return SupportedTextSelection.None; } }
+            ITextRangeProvider[] ITextProvider.GetSelection() { throw new InvalidOperationException("The Lea document does not support text selection."); }
+            ITextRangeProvider[] ITextProvider.GetVisibleRanges() { return v.OnUi(delegate { var text = v.AutomationText(); return v.AutomationVisibleTextRanges(text); }); }
+            ITextRangeProvider ITextProvider.RangeFromChild(IRawElementProviderSimple childElement)
+            {
+                return v.OnUi<ITextRangeProvider>(delegate
+                {
+                    var child = childElement as Ux;
+                    if (child == null || !Object.ReferenceEquals(child.Owner, v)) throw new ArgumentException("The child is not owned by this Lea document.", "childElement");
+                    var text = v.AutomationText();
+                    return v.AutomationTextRangeFromChild(text, child.Item);
+                });
+            }
+            ITextRangeProvider ITextProvider.RangeFromPoint(System.Windows.Point screenLocation)
+            {
+                return v.OnUi<ITextRangeProvider>(delegate
+                {
+                    var text = v.AutomationText();
+                    return v.AutomationTextRangeFromPoint(text, screenLocation);
+                });
+            }
+        }
+
+        private sealed class Ut
+        {
+            public readonly P P;
+            public readonly string X;
+            public readonly IList<Us> Ps;
+            public Ut(P page, string text, IList<Us> parts) { P = page; X = text ?? ""; Ps = parts; }
+        }
+
+        private sealed class Us
+        {
+            public readonly string X;
+            public readonly Rectangle R;
+            public readonly Rectangle Cp;
+            public readonly bool Fx;
+            public readonly N El;
+            public readonly int O;
+            public readonly int Q;
+            public int S;
+            public int E;
+            public Us(string text, Rectangle rect, Rectangle clip, bool fixedPosition, N element, int order, int sequence)
+            {
+                X = text;
+                R = rect;
+                Cp = clip;
+                Fx = fixedPosition;
+                El = element;
+                O = order;
+                Q = sequence;
+            }
+        }
+
+        [System.Runtime.InteropServices.ComVisible(true)]
+        [System.Runtime.InteropServices.ClassInterface(System.Runtime.InteropServices.ClassInterfaceType.None)]
+        private sealed class Uq : MarshalByRefObject, ITextRangeProvider
+        {
+            private readonly V v;
+            private readonly Ut t;
+            private int s;
+            private int e;
+
+            public Uq(V owner, Ut text, int start, int end)
+            {
+                v = owner;
+                t = text;
+                s = Math.Max(0, Math.Min(t.X.Length, start));
+                e = Math.Max(s, Math.Min(t.X.Length, end));
+            }
+
+            public ITextRangeProvider Clone()
+            {
+                return v.OnUi<ITextRangeProvider>(delegate { Check(); return new Uq(v, t, s, e); });
+            }
+
+            public bool Compare(ITextRangeProvider range)
+            {
+                return v.OnUi(delegate
+                {
+                    Check();
+                    var other = Other(range, false);
+                    return other != null && s == other.s && e == other.e;
+                });
+            }
+
+            public int CompareEndpoints(TextPatternRangeEndpoint endpoint, ITextRangeProvider targetRange, TextPatternRangeEndpoint targetEndpoint)
+            {
+                return v.OnUi(delegate
+                {
+                    Check();
+                    var other = Other(targetRange, true);
+                    return Point(endpoint).CompareTo(other.Point(targetEndpoint));
+                });
+            }
+
+            public void ExpandToEnclosingUnit(TextUnit unit)
+            {
+                v.OnUi(delegate
+                {
+                    Check();
+                    int start;
+                    int end;
+                    Bounds(unit, s, out start, out end);
+                    s = start;
+                    e = end;
+                });
+            }
+
+            public ITextRangeProvider FindAttribute(int attributeId, object value, bool backward)
+            {
+                return v.OnUi<ITextRangeProvider>(delegate
+                {
+                    Check();
+                    ValidateAttribute(attributeId);
+                    var current = Attribute(attributeId);
+                    return Object.ReferenceEquals(current, AutomationElementIdentifiers.NotSupported) || !Object.Equals(current, value)
+                        ? null : new Uq(v, t, s, e);
+                });
+            }
+
+            public ITextRangeProvider FindText(string text, bool backward, bool ignoreCase)
+            {
+                return v.OnUi<ITextRangeProvider>(delegate
+                {
+                    Check();
+                    if (text == null) throw new ArgumentNullException("text");
+                    if (text.Length == 0) return null;
+                    if (text.Length > 4096) throw new ArgumentException("Lea text searches are limited to 4,096 characters.", "text");
+                    var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+                    var source = t.X.Substring(s, e - s);
+                    var found = backward ? source.LastIndexOf(text, comparison) : source.IndexOf(text, comparison);
+                    return found < 0 ? null : new Uq(v, t, s + found, s + found + text.Length);
+                });
+            }
+
+            public object GetAttributeValue(int attributeId)
+            {
+                return v.OnUi<object>(delegate
+                {
+                    Check();
+                    ValidateAttribute(attributeId);
+                    return Attribute(attributeId);
+                });
+            }
+
+            public double[] GetBoundingRectangles()
+            {
+                return v.OnUi(delegate { Check(); return v.AutomationTextRectangles(t, s, e); });
+            }
+
+            public IRawElementProviderSimple GetEnclosingElement()
+            {
+                return v.OnUi<IRawElementProviderSimple>(delegate { Check(); return v.AutomationTextEnclosing(t, s, e); });
+            }
+
+            public string GetText(int maxLength)
+            {
+                return v.OnUi(delegate
+                {
+                    Check();
+                    if (maxLength < -1) throw new ArgumentOutOfRangeException("maxLength");
+                    var length = e - s;
+                    if (maxLength >= 0) length = Math.Min(length, maxLength);
+                    return t.X.Substring(s, length);
+                });
+            }
+
+            public int Move(TextUnit unit, int count)
+            {
+                return v.OnUi(delegate
+                {
+                    Check();
+                    if (count == 0) return 0;
+                    int currentStart;
+                    int currentEnd;
+                    Bounds(unit, s, out currentStart, out currentEnd);
+                    int moved;
+                    var target = MovePoint(currentStart, unit, count, out moved);
+                    if (moved == 0) return 0;
+                    if (target == t.X.Length && count > 0) s = e = target;
+                    else Bounds(unit, target, out s, out e);
+                    return moved;
+                });
+            }
+
+            public int MoveEndpointByUnit(TextPatternRangeEndpoint endpoint, TextUnit unit, int count)
+            {
+                return v.OnUi(delegate
+                {
+                    Check();
+                    int moved;
+                    var point = MovePoint(Point(endpoint), unit, count, out moved);
+                    SetPoint(endpoint, point);
+                    return moved;
+                });
+            }
+
+            public void MoveEndpointByRange(TextPatternRangeEndpoint endpoint, ITextRangeProvider targetRange, TextPatternRangeEndpoint targetEndpoint)
+            {
+                v.OnUi(delegate
+                {
+                    Check();
+                    var other = Other(targetRange, true);
+                    SetPoint(endpoint, other.Point(targetEndpoint));
+                });
+            }
+
+            public void Select() { throw new InvalidOperationException("The Lea document does not support text selection."); }
+            public void AddToSelection() { throw new InvalidOperationException("The Lea document does not support text selection."); }
+            public void RemoveFromSelection() { throw new InvalidOperationException("The Lea document does not support text selection."); }
+            public void ScrollIntoView(bool alignToTop) { v.OnUi(delegate { Check(); v.ScrollAutomationText(t, s, e, alignToTop); }); }
+            public IRawElementProviderSimple[] GetChildren() { return v.OnUi(delegate { Check(); return v.AutomationTextChildren(t, s, e); }); }
+
+            private void Check()
+            {
+                if (!Object.ReferenceEquals(v.At, t.P)) throw new ElementNotAvailableException("The Lea text range belongs to an earlier page generation.");
+            }
+
+            private Uq Other(ITextRangeProvider range, bool required)
+            {
+                var other = range as Uq;
+                if (other != null && Object.ReferenceEquals(other.v, v) && Object.ReferenceEquals(other.t.P, t.P) && other.t.X == t.X) return other;
+                if (required) throw new ArgumentException("The text range is not owned by this Lea document.", "range");
+                return null;
+            }
+
+            private int Point(TextPatternRangeEndpoint endpoint) { return endpoint == TextPatternRangeEndpoint.Start ? s : e; }
+
+            private void SetPoint(TextPatternRangeEndpoint endpoint, int value)
+            {
+                value = Math.Max(0, Math.Min(t.X.Length, value));
+                if (endpoint == TextPatternRangeEndpoint.Start)
+                {
+                    s = value;
+                    if (s > e) e = s;
+                }
+                else
+                {
+                    e = value;
+                    if (e < s) s = e;
+                }
+            }
+
+            private object Attribute(int attributeId)
+            {
+                if (attributeId == TextPatternIdentifiers.IsReadOnlyAttribute.Id) return true;
+                if (attributeId == TextPatternIdentifiers.CultureAttribute.Id) return CultureInfo.CurrentCulture.LCID;
+                return AutomationElementIdentifiers.NotSupported;
+            }
+
+            private static void ValidateAttribute(int attributeId)
+            {
+                if (attributeId < 40000 || attributeId > 40030) throw new ArgumentException("The text attribute is not valid.", "attributeId");
+            }
+
+            private void Bounds(TextUnit unit, int position, out int start, out int end)
+            {
+                unit = Effective(unit);
+                position = Math.Max(0, Math.Min(t.X.Length, position));
+                if (unit == TextUnit.Document)
+                {
+                    start = 0;
+                    end = t.X.Length;
+                    return;
+                }
+                if (position == t.X.Length)
+                {
+                    start = end = position;
+                    return;
+                }
+                if (unit == TextUnit.Character)
+                {
+                    start = position;
+                    end = Math.Min(t.X.Length, position + 1);
+                    return;
+                }
+                if (unit == TextUnit.Line)
+                {
+                    start = position;
+                    while (start > 0 && t.X[start - 1] != '\n') start--;
+                    end = position;
+                    while (end < t.X.Length && t.X[end] != '\n') end++;
+                    if (end < t.X.Length) end++;
+                    return;
+                }
+                var kind = WordKind(t.X[position]);
+                start = position;
+                while (start > 0 && WordKind(t.X[start - 1]) == kind) start--;
+                end = position + 1;
+                while (end < t.X.Length && WordKind(t.X[end]) == kind) end++;
+            }
+
+            private int MovePoint(int point, TextUnit unit, int count, out int moved)
+            {
+                var boundaries = Boundaries(unit);
+                point = Math.Max(0, Math.Min(t.X.Length, point));
+                moved = 0;
+                while (moved != count)
+                {
+                    var next = point;
+                    if (count > 0)
+                    {
+                        foreach (var boundary in boundaries) if (boundary > point) { next = boundary; break; }
+                        if (next == point) break;
+                        moved++;
+                    }
+                    else
+                    {
+                        for (var index = boundaries.Count - 1; index >= 0; index--)
+                            if (boundaries[index] < point) { next = boundaries[index]; break; }
+                        if (next == point) break;
+                        moved--;
+                    }
+                    point = next;
+                }
+                return point;
+            }
+
+            private List<int> Boundaries(TextUnit unit)
+            {
+                unit = Effective(unit);
+                var result = new List<int> { 0 };
+                if (unit == TextUnit.Document)
+                {
+                    if (t.X.Length > 0) result.Add(t.X.Length);
+                    return result;
+                }
+                for (var index = 1; index < t.X.Length; index++)
+                {
+                    if (unit == TextUnit.Character || unit == TextUnit.Line && t.X[index - 1] == '\n' ||
+                        unit == TextUnit.Word && WordKind(t.X[index - 1]) != WordKind(t.X[index])) result.Add(index);
+                }
+                if (result[result.Count - 1] != t.X.Length) result.Add(t.X.Length);
+                return result;
+            }
+
+            private static TextUnit Effective(TextUnit unit)
+            {
+                if (unit < TextUnit.Character || unit > TextUnit.Document) throw new ArgumentException("The text unit is not valid.", "unit");
+                if (unit == TextUnit.Format) return TextUnit.Word;
+                if (unit == TextUnit.Paragraph) return TextUnit.Line;
+                if (unit == TextUnit.Page) return TextUnit.Document;
+                return unit;
+            }
+
+            private static int WordKind(char value)
+            {
+                return Char.IsWhiteSpace(value) ? 0 : Char.IsLetterOrDigit(value) || value == '_' ? 1 : 2;
+            }
         }
 
         private sealed class Ux : IRawElementProviderFragment, IInvokeProvider, IValueProvider, IToggleProvider,
@@ -4055,7 +4671,9 @@ namespace Lea.Win
             }
 
             private Ax A { get { return v.CurrentAccessibility(a) ?? a; } }
-            public ProviderOptions ProviderOptions { get { return ProviderOptions.ServerSideProvider; } }
+            internal V Owner { get { return v; } }
+            internal Ax Item { get { return A; } }
+            public ProviderOptions ProviderOptions { get { return ProviderOptions.ServerSideProvider | ProviderOptions.UseComThreading; } }
             public IRawElementProviderSimple HostRawElementProvider { get { return null; } }
             public object GetPatternProvider(int patternId)
             {

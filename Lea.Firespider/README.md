@@ -99,7 +99,10 @@ invoke/value/toggle/selection/disclosure/range/scroll patterns over the same
 records. `Tb/Tr/Tc` tables additionally expose grid/table and
 grid-item/table-item patterns with bounded dimensions, zero-based coordinates,
 column spans, containing-grid links, and row/column headers. The adapter target
-adds the framework `Accessibility`,
+also exposes bounded read-only logical TextPattern document/child/point ranges,
+search, movement, attributes, rendered bounds, embedded children, scrolling,
+and strict password/file-value exclusion. Visible-range arrays currently use a
+stable empty fallback. The adapter target adds the framework `Accessibility`,
 `UIAutomationProvider`, `UIAutomationTypes`, and `WindowsBase` references.
 
 Firespider can read `V.Dg()` for bounded response, document, CSS, request,

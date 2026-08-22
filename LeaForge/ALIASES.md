@@ -299,6 +299,16 @@ semantic row/column headers without a second table tree. This is a bounded
 supported subset, not a claim of complete
 HTML-AAM, AccName, WAI-ARIA, MSAA, or UI Automation coverage.
 
+The root native provider also exposes a read-only TextPattern over the existing
+`P.X` logical document string, capped at 32,768 characters and mapped through at
+most 2,048 settled text segments. Ranges are tied to one page generation and
+support bounded text/search, read-only and culture attributes, character, word,
+line, and document movement, child/point lookup, rendered rectangles, enclosing
+and embedded elements, and scroll-to-view. Password and local file values never
+enter the stream. Selection and editing are unsupported. The current .NET
+Framework adapter returns an empty visible-range collection until a native-safe
+interface-array bridge is available.
+
 Computed style uses `S`: `F` is foreground color, `Bg` is background, `Fs` is
 font size, `Ff` is a font fallback list, `B` is bold, `I` is italic, and `D` is
 display behavior. `Td` is decoration using `n/u/s/us` for none, underline,

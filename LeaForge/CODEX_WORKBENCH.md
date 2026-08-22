@@ -106,6 +106,13 @@ The native UI Automation provider now also maps real `Tb/Tr/Tc` ownership to
 bounded grid/table and grid-item/table-item patterns. Zero-based coordinates,
 column spans, containing-grid links, both header directions, range rejection,
 the MTA client, benchmark probe, and Firespider host smoke share that one model.
+The root provider now also exposes bounded read-only logical TextPattern ranges
+over `P.X` and settled boxes. Document, child, and point ranges cover search,
+movement, read-only attributes, rendered rectangles, embedded children,
+scrolling, stale-page rejection, and protected-value exclusion. The public MTA
+client and Firespider smoke verify direct ranges. Visible-range arrays stay empty
+until the .NET Framework native interface-array boundary can return them without
+invalid client handles.
 
 ## Rules For Future Codex Work
 

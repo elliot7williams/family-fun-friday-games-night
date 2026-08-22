@@ -240,11 +240,19 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add a bounded read-only Windows UI Automation text pattern over Lea's existing
-semantic nodes, inline runs, and settled layout boxes. Keep ranges tied to the
-current page generation, expose text and visible bounds without duplicating the
-document, and verify traversal through the public UIA client API before adding
-selection or editing behavior.
+Add line-aware text geometry and a native-safe non-empty visible-range bridge
+for the .NET Framework UI Automation client. Keep the current stable empty-array
+fallback until returned range objects can cross that ABI without native handle
+corruption, and retain Lea's bounded read-only model.
+
+The previous milestone added a bounded read-only `ITextProvider` over `P.X` and
+settled layout ownership. Document, child, and point ranges support bounded text,
+search, read-only attributes, character/word/line/document navigation, rendered
+bounds, enclosing and embedded elements, scroll-to-view, and stale-page
+rejection. Password and file values are excluded. The public MTA client,
+benchmark, and Firespider host smoke verify the pattern; `GetVisibleRanges`
+currently returns a stable empty collection while the native array bridge remains
+future work.
 
 The previous milestone added `IGridProvider`, `ITableProvider`,
 `IGridItemProvider`, and `ITableItemProvider` over the existing `Tb/Tr/Tc`
