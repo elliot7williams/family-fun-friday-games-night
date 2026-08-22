@@ -177,6 +177,31 @@ shape that masks lower areas, while malformed or zero-radius shapes remain
 host-readable but create no hit. Area links join `P.Ls`; click commands,
 fragments, navigation, and downloads use the existing host-controlled routes.
 
+Keyboard focus stays compact. `E.Ti(element)` and `V.Ti(element)` return one
+nullable authored `tabindex`, capped to -32,767 through 32,767 after at most 16
+characters; omitted and malformed values return null. `V.Ke` is the current DOM
+focus anchor, `Kn` is the bounded sequential target count, `Ki` is its one-based
+index or zero, and `Kb` is its visible focus bounds. `Kf(back)` moves forward or
+backward with wrapping, while asynchronous `Ka()` activates the current target.
+
+Lea scans at most 4,096 rendered map-region candidates and retains the first
+256 total targets after ordering. Positive tabindex
+values come first in ascending order and preserve document order on ties;
+zero, omitted, and malformed values then use document order. Negative values
+remain click focusable but stay outside `Kn/Ki` and Tab traversal. Supported
+targets are valid links, each rendered image-map link region, enabled fields,
+valid summaries, and rendered elements with a valid explicit tabindex. One map
+used by multiple images creates one independently scaled target per image.
+Hidden, disabled, malformed empty-map, and fully clipped targets do not enter
+the sequence.
+
+Tab and Shift+Tab drive `Kf`; Ctrl+Tab and Alt+Tab remain host/system shortcuts.
+Enter activates links and image-map areas, while fields and summaries reuse
+their existing activation paths. Space does not activate links. Focus reapplies
+`:focus`, scrolls off-screen targets into view, and paints a default high-
+contrast ring even when the page supplies no focus CSS. Pointer and keyboard
+links share the same commands, fragments, downloads, and host navigation route.
+
 Computed style uses `S`: `F` is foreground color, `Bg` is background, `Fs` is
 font size, `Ff` is a font fallback list, `B` is bold, `I` is italic, and `D` is
 display behavior. `Td` is decoration using `n/u/s/us` for none, underline,

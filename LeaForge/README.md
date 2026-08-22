@@ -30,6 +30,7 @@ LeaForge is where we can grow the more full-featured browser.
 - compact `<output>` and `<data>` values through `P.Dvs`/`B.Dv`/`Ir.Dv`, bounded metadata, safe updates, and inline/table ownership
 - compact `<time>`, `<ins>`, and `<del>` metadata through `Dv.K/Dt/U`, safe citation schemes, native decoration, rebuilds, and inline/table ownership
 - compact `<map>`/`<area>` models through `P.Mps`/`B.Mp`/`Ar`, bounded shape coordinates, dead-area layering, responsive custom hits, links, and downloads
+- bounded keyboard navigation through `Ti` and `Ke/Kn/Ki/Kb/Kf/Ka`, ordered tabindex targets, shared-map regions, visible rings, scrolling, and host activation
 - wrapped inline bold/italic text, styled spans, line breaks, and links inside text blocks
 - inherited font-family fallbacks plus underline and line-through decoration
 - inherited left/center/right/justify alignment and pixel/relative line spacing

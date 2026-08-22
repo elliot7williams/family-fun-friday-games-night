@@ -115,8 +115,18 @@ alt text, and ownership. Images retain an authored coordinate canvas through
 `B.Mw/Mh`; `V` scales and clips rectangle, circle, polygon, default, and dead
 regions after layout settles. First-area priority and dead masking are retained.
 Area links join `P.Ls` and reuse normal click, fragment, navigation, command,
-and download host routes. Pointer activation is supported; keyboard traversal
-for image-map areas remains future work.
+and download host routes. Pointer and keyboard activation use the same path.
+
+Hosts can parse one bounded nullable tabindex through `E.Ti` or `V.Ti`.
+`V.Ke/Kn/Ki/Kb` expose the focused DOM anchor, sequential count, one-based
+index, and visible bounds. `V.Kf(back)` advances or reverses the first 256
+targets with wrapping, and `V.Ka()` asynchronously activates the current link,
+image-map area, field, or summary. Positive tabindex priorities precede normal
+document order; negative values remain click focusable but are omitted from Tab
+navigation. Shared maps retain one target per rendered image within a 4,096
+map-region scan cap. The view reapplies
+`:focus`, paints a default ring, reveals off-screen targets, and leaves
+Ctrl+Tab/Alt+Tab available to Firespider and the operating system.
 
 Parsed table blocks expose `B.Tb`, with `Tb.Rs`, `Tr.Cs`, and compact `Tc` cell
 records. `V` paints these on the same lightweight surface with shared row

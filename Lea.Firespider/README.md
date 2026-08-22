@@ -64,6 +64,13 @@ the settled image, clip with it, and preserve first-area priority. Area links,
 fragments, click commands, and downloads reuse existing host routes. The
 off-screen host smoke paints a mapped image and verifies its live hit cache.
 
+Firespider can also read `V.Ke/Kn/Ki/Kb`, call `Kf(back)` to move through the
+first 256 sequential targets, and await `Ka()` to activate the current link,
+image-map area, field, or summary. `Ti` exposes bounded nullable tabindex
+metadata. Lea paints a default focus ring, reapplies page `:focus`, scrolls
+off-screen targets into view, and keeps Ctrl+Tab available to Firespider's tab
+chrome. The host smoke focuses and activates a mapped area off-screen.
+
 Firespider can read `V.Dg()` for bounded response, document, CSS, request,
 command, cache, and cookie diagnostics without reflecting into Lea internals.
 The snapshot omits mutable form values, passwords, and selected file paths.

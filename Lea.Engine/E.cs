@@ -44,6 +44,7 @@ namespace Lea.Engine
         private const int MaxMapAreas = 64;
         private const int MaxMapCoordinates = 128;
         private const double MaxMapCoordinate = 1000000D;
+        private const int MaxTabIndex = 32767;
         private const int MinTimeout = 100;
         private const int MaxTimeout = 60000;
         private const int DefaultTimeout = 15000;
@@ -256,6 +257,22 @@ namespace Lea.Engine
         public void Dcl()
         {
             lock (requests) requests.Clear();
+        }
+
+        // Ti parses one bounded authored tabindex; null means omitted or invalid.
+        public int? Ti(N element)
+        {
+            if (element == null || !element.A.ContainsKey("tabindex")) return null;
+            var value = element.Av("tabindex").Trim();
+            if (value.Length == 0 || value.Length > 16) return null;
+            var digit = value[0] == '+' || value[0] == '-' ? 1 : 0;
+            if (digit == value.Length) return null;
+            for (var index = digit; index < value.Length; index++)
+                if (value[index] < '0' || value[index] > '9') return null;
+            long number;
+            if (!Int64.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+                return value[0] == '-' ? -MaxTabIndex : MaxTabIndex;
+            return (int)Math.Max(-MaxTabIndex, Math.Min(MaxTabIndex, number));
         }
 
         // Id finds the first element with a matching HTML id.

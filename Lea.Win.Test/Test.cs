@@ -300,9 +300,11 @@ namespace Lea.Win.Test
             v.Go(page);
             OpenInspector();
             PerformLayout();
+            var keyCount = v.Kn;
+            var keyPassed = keyCount == 0 || v.Kf() == 1 && v.Ke != null && !v.Kb.IsEmpty;
             var passed = inspectorSummary.Text.Contains("Response   200") &&
                 inspectorNodes.Text.Contains("body") && inspectorCss.Text.Contains("body") &&
-                inspectorRequests.Text.Contains("GET 200 file") && inspectorMessages.Text.Contains("commands");
+                inspectorRequests.Text.Contains("GET 200 file") && inspectorMessages.Text.Contains("commands") && keyPassed;
             if (!String.IsNullOrWhiteSpace(output))
             {
                 var full = Path.GetFullPath(output);

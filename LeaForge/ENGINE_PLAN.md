@@ -300,8 +300,17 @@ separate the authored coordinate canvas from current CSS layout, allowing one
 shape-aware hit path to scale, clip, rebuild, and preserve first-area priority.
 Area links, fragments, commands, and downloads stay on existing host routes.
 Malformed shapes stay readable but inert. Engine, WinForms, resize, and
-Firespider coverage share `image-maps.html`; keyboard area traversal remains the
-next interaction step.
+Firespider coverage share `image-maps.html`.
+
+Sequential keyboard focus now stays on that same custom surface. `Ti` parses a
+bounded nullable tabindex, while `Ke/Kn/Ki/Kb/Kf/Ka` expose focus state,
+geometry, traversal, and activation to hosts. Positive values precede normal
+document order, negative values remain click-only, and the first 256 rendered
+targets include links, repeated image-map regions, enabled fields, summaries,
+and explicit generic regions after a 4,096 map-region scan cap. Focus reapplies compiled CSS, paints a default
+ring, scrolls off-screen targets, wraps predictably, and keeps Ctrl/Alt+Tab for
+host chrome. Engine, WinForms, editor, repeated-map, Firespider, and resize
+coverage share `keyboard-focus.html`.
 
 HTML tokenization now uses a small quote-aware scanner rather than a single
 tag-splitting regex. It recognizes comments and declarations, preserves raw

@@ -28,6 +28,8 @@ namespace Lea.Win
         private readonly List<Bx> findMatches = new List<Bx>();
         private readonly Queue<string> picOrder = new Queue<string>();
         private readonly TextBox ed = new TextBox();
+        private const int MaxKeyTargets = 256;
+        private const int MaxKeyMapRegions = 4096;
         private const int PicLimit = 24;
         private const int PicBytes = 4 * 1024 * 1024;
         private const int FontLimit = 32;
@@ -48,6 +50,7 @@ namespace Lea.Win
         private ContextMenuStrip choices;
         private N hover;
         private N focus;
+        private int keySlot = -1;
         private string findQuery = "";
         private int findIndex = -1;
         private int goRequests;
@@ -107,6 +110,10 @@ namespace Lea.Win
         public int Dh { get { return docHeight; } }
         public int Sy { get { return sy; } }
         public int Bc { get { return boxes.Count; } }
+        public N Ke { get { return focus; } }
+        public int Kn { get { return FocusTargets(true).Count; } }
+        public int Ki { get { return FocusIndex(FocusTargets(true)) + 1; } }
+        public Rectangle Kb { get { return FocusBounds(CurrentFocusTarget()); } }
         public Rectangle Rb(int index) { return index < 0 || index >= boxes.Count ? Rectangle.Empty : boxes[index].R; }
         public Rectangle Rc(int index) { return index < 0 || index >= boxes.Count ? Rectangle.Empty : boxes[index].C; }
         public Rectangle Fr { get { return FindRect(); } }
@@ -275,6 +282,7 @@ namespace Lea.Win
         public void Dcl() { e.Dcl(); }
 
         public N Id(string id) { return At == null ? null : e.Id(At, id); }
+        public int? Ti(N element) { return e.Ti(element); }
         public N Ft(string fragment) { return At == null ? null : e.Ft(At, fragment); }
         public N Q1(string query) { return At == null ? null : e.Q(At, query); }
         public IList<N> Qa(string query) { return At == null ? new List<N>().AsReadOnly() : e.Qa(At, query); }
@@ -374,6 +382,7 @@ namespace Lea.Win
             ClearFind(false);
             hover = null;
             focus = null;
+            keySlot = -1;
             EndEdit(false);
             e.Dy(page, null, null);
             sy = 0;
@@ -637,6 +646,7 @@ namespace Lea.Win
                 }
                 finally { if (state != null) pe.Graphics.Restore(state); }
             }
+            PaintKeyFocus(pe.Graphics);
         }
 
         private static Rectangle VisibleRect(Rectangle rect, Rectangle clip)
@@ -1986,8 +1996,14 @@ namespace Lea.Win
             var hit = HitAt(e.Location);
             if (hit == null)
             {
+                var target = FocusAt(e.Location);
                 EndEdit(false);
-                SetFocus(null);
+                if (target != null)
+                {
+                    Focus();
+                    SetFocus(target.El, target.Sl);
+                }
+                else SetFocus(null);
                 return;
             }
             try
@@ -1997,17 +2013,7 @@ namespace Lea.Win
                 {
                     EndEdit(false);
                     SetFocus(null);
-                    var element = hit.El;
-                    var before = goRequests;
-                    Ck(ClickElement(element));
-                    if (goRequests != before) return;
-                    if (element != null && element.A.ContainsKey("download") && Dr != null)
-                    {
-                        Du = hit.U;
-                        Dn = DownloadName(hit.U, element.Av("download"));
-                        Dr(this, EventArgs.Empty);
-                    }
-                    else await GoA(hit.U.ToString());
+                    await ActivateLinkA(hit.U, LinkElement(hit.El));
                 }
                 else if (hit.B != null && hit.B.B != null && hit.B.B.K == "summary")
                 {
@@ -2019,19 +2025,313 @@ namespace Lea.Win
                 else if (hit.A != null)
                 {
                     EndEdit(false);
-                    SetFocus(null);
+                    var target = FocusAt(e.Location);
+                    if (target != null)
+                    {
+                        Focus();
+                        SetFocus(target.El, target.Sl);
+                    }
+                    else SetFocus(null);
                 }
             }
             catch { Cursor = Cursors.Default; }
         }
 
-        protected override void OnKeyDown(KeyEventArgs e)
+        protected override bool IsInputKey(Keys keyData)
+        {
+            var modifiers = keyData & Keys.Modifiers;
+            return ((keyData & Keys.KeyCode) == Keys.Tab && (modifiers == Keys.None || modifiers == Keys.Shift)) || base.IsInputKey(keyData);
+        }
+
+        protected override async void OnKeyDown(KeyEventArgs e)
         {
             base.OnKeyDown(e);
-            if ((e.KeyCode != Keys.Enter && e.KeyCode != Keys.Space) || DisclosureSummary(focus) == null) return;
-            if (Ds(focus) == 0) return;
+            if (e.KeyCode == Keys.Tab && !e.Control && !e.Alt)
+            {
+                if (Kf(e.Shift) == 0) return;
+                e.SuppressKeyPress = true;
+                e.Handled = true;
+                return;
+            }
+            if (e.KeyCode != Keys.Enter && e.KeyCode != Keys.Space) return;
+            var target = CurrentFocusTarget();
+            if (target == null) return;
+            var link = target.U != null;
+            var summary = DisclosureSummary(target.El) != null;
+            var field = target.B != null && target.B.B != null ? target.B.B.I : null;
+            if (e.KeyCode == Keys.Space && link) return;
+            if (!link && !summary && field == null) return;
+            if (await Ka() == 0) return;
             e.SuppressKeyPress = true;
             e.Handled = true;
+        }
+
+        // Kf moves through Lea's bounded sequential keyboard targets.
+        public int Kf(bool back = false)
+        {
+            var targets = FocusTargets(true);
+            if (targets.Count == 0)
+            {
+                EndEdit(false);
+                SetFocus(null);
+                return 0;
+            }
+            var index = FocusIndex(targets);
+            index = index < 0 ? (back ? targets.Count - 1 : 0) : (index + (back ? -1 : 1) + targets.Count) % targets.Count;
+            if (edit != null)
+            {
+                edit = null;
+                ed.Visible = false;
+            }
+            var target = targets[index];
+            Focus();
+            SetFocus(target.El, target.Sl);
+            ShowKeyTarget();
+            return FocusIndex(FocusTargets(true)) + 1;
+        }
+
+        // Ka activates the focused link, area, field, or disclosure.
+        public async Task<int> Ka()
+        {
+            var target = CurrentFocusTarget();
+            if (target == null) return 0;
+            if (target.U != null)
+            {
+                await ActivateLinkA(target.U, target.El);
+                return 1;
+            }
+            if (DisclosureSummary(target.El) != null) return Ds(target.El);
+            var field = target.B == null || target.B.B == null ? null : target.B.B.I;
+            if (field == null || field.Ds) return 0;
+            var rect = FocusBounds(target);
+            await FieldClickA(target.B, rect.IsEmpty ? Point.Empty : new Point(rect.Left + rect.Width / 2, rect.Top + rect.Height / 2));
+            return 1;
+        }
+
+        private async Task ActivateLinkA(Uri url, N element)
+        {
+            if (url == null) return;
+            element = LinkElement(element);
+            var before = goRequests;
+            Ck(ClickElement(element));
+            if (goRequests != before) return;
+            if (element != null && element.A.ContainsKey("download") && Dr != null)
+            {
+                Du = url;
+                Dn = DownloadName(url, element.Av("download"));
+                Dr(this, EventArgs.Empty);
+            }
+            else await GoA(url.ToString());
+        }
+
+        private List<Kt> FocusTargets(bool sequential)
+        {
+            var targets = new List<Kt>();
+            if (At == null) return targets;
+            EnsureLayout();
+            var order = new Dictionary<N, int>();
+            var nextOrder = 0;
+            NodeOrders(At.D, order, ref nextOrder);
+            var grouped = new Dictionary<N, Kt>();
+            var sequence = 0;
+
+            foreach (var box in boxes)
+            {
+                if (box.Title || box.El == null || Hidden(box.S)) continue;
+                var element = box.El;
+                var url = box.U;
+                var action = (Bx)null;
+                var native = false;
+                if (box.B != null && box.B.I != null)
+                {
+                    if (box.B.I.Ds) continue;
+                    element = box.B.I.El;
+                    action = box;
+                    native = true;
+                }
+                else if (box.B != null && box.B.K == "summary" && !String.IsNullOrEmpty(box.B.Mk))
+                {
+                    element = DisclosureSummary(box.El);
+                    action = box;
+                    native = element != null;
+                }
+                else if (url != null)
+                {
+                    element = LinkElement(box.El);
+                    native = element != null;
+                }
+                if (element == null || element.K == "area") continue;
+                var tab = e.Ti(element);
+                if (!native && !tab.HasValue) continue;
+                if (sequential && tab.HasValue && tab.Value < 0) continue;
+                var rect = KeyRect(box);
+                if (rect.IsEmpty) continue;
+                Kt target;
+                if (!grouped.TryGetValue(element, out target))
+                {
+                    int value;
+                    target = new Kt(element, url, action, tab, order.TryGetValue(element, out value) ? value : Int32.MaxValue, sequence++);
+                    grouped[element] = target;
+                    targets.Add(target);
+                }
+                else
+                {
+                    if (target.U == null) target.U = url;
+                    if (target.B == null) target.B = action;
+                }
+                target.Add(rect, box.Fx);
+            }
+
+            var mapRegions = 0;
+            foreach (var box in boxes)
+            {
+                if (mapRegions == MaxKeyMapRegions) break;
+                if (box.Title || box.B == null || box.B.Mp == null || Hidden(box.S)) continue;
+                var source = MapSourceSize(box.B, box.C);
+                foreach (var area in box.B.Mp.As)
+                {
+                    if (mapRegions == MaxKeyMapRegions) break;
+                    mapRegions++;
+                    var tab = e.Ti(area.El);
+                    if (area.U == null && !tab.HasValue) continue;
+                    if (sequential && tab.HasValue && tab.Value < 0) continue;
+                    var rect = MapBounds(area, box.C, source);
+                    if (!box.Clip.IsEmpty) rect = Rectangle.Intersect(rect, box.Clip);
+                    if (rect.IsEmpty) continue;
+                    int value;
+                    var target = new Kt(area.El, area.U, null, tab, order.TryGetValue(area.El, out value) ? value : Int32.MaxValue, sequence++);
+                    target.Add(rect, box.Fx);
+                    targets.Add(target);
+                }
+            }
+
+            targets.Sort(CompareTargets);
+            if (targets.Count > MaxKeyTargets) targets.RemoveRange(MaxKeyTargets, targets.Count - MaxKeyTargets);
+            var slots = new Dictionary<N, int>();
+            foreach (var target in targets)
+            {
+                int slot;
+                slots.TryGetValue(target.El, out slot);
+                target.Sl = slot;
+                slots[target.El] = slot + 1;
+            }
+            return targets;
+        }
+
+        private static void NodeOrders(N node, IDictionary<N, int> order, ref int next)
+        {
+            if (node == null) return;
+            order[node] = next++;
+            foreach (var child in node.C) NodeOrders(child, order, ref next);
+        }
+
+        private static int CompareTargets(Kt left, Kt right)
+        {
+            var leftTab = left.Ti.HasValue && left.Ti.Value > 0 ? left.Ti.Value : Int32.MaxValue;
+            var rightTab = right.Ti.HasValue && right.Ti.Value > 0 ? right.Ti.Value : Int32.MaxValue;
+            var value = leftTab.CompareTo(rightTab);
+            if (value != 0) return value;
+            value = left.Or.CompareTo(right.Or);
+            return value != 0 ? value : left.Sq.CompareTo(right.Sq);
+        }
+
+        private static Rectangle KeyRect(Bx box)
+        {
+            return box == null ? Rectangle.Empty : VisibleRect(box.R, box.Clip);
+        }
+
+        private int FocusIndex(IList<Kt> targets)
+        {
+            if (focus == null) return -1;
+            for (var index = 0; index < targets.Count; index++)
+                if (Object.ReferenceEquals(targets[index].El, focus) && (keySlot < 0 || targets[index].Sl == keySlot)) return index;
+            return -1;
+        }
+
+        private Kt FocusTarget(IList<Kt> targets)
+        {
+            var index = FocusIndex(targets);
+            return index < 0 ? null : targets[index];
+        }
+
+        private Kt CurrentFocusTarget()
+        {
+            if (focus == null) return null;
+            var target = FocusTarget(FocusTargets(true));
+            return target ?? FocusTarget(FocusTargets(false));
+        }
+
+        private Kt FocusAt(Point point)
+        {
+            Kt found = null;
+            var size = Int64.MaxValue;
+            foreach (var target in FocusTargets(false))
+                foreach (var region in target.Rs)
+                {
+                    var rect = ScreenRect(region);
+                    if (!rect.Contains(point)) continue;
+                    var area = (long)rect.Width * rect.Height;
+                    if (area >= size) continue;
+                    found = target;
+                    size = area;
+                }
+            return found;
+        }
+
+        private Rectangle FocusBounds(Kt target)
+        {
+            var result = Rectangle.Empty;
+            if (target == null) return result;
+            foreach (var region in target.Rs)
+            {
+                var rect = Rectangle.Intersect(ScreenRect(region), ClientRectangle);
+                if (rect.IsEmpty) continue;
+                result = result.IsEmpty ? rect : Rectangle.Union(result, rect);
+            }
+            return result;
+        }
+
+        private Rectangle ScreenRect(Kr region)
+        {
+            var rect = region.R;
+            if (!region.Fx) rect.Offset(0, -sy);
+            return rect;
+        }
+
+        private void ShowKeyTarget()
+        {
+            var target = CurrentFocusTarget();
+            if (target == null) return;
+            foreach (var region in target.Rs)
+            {
+                if (region.Fx) break;
+                if (region.R.Top < sy + 12 || region.R.Bottom > sy + ClientSize.Height - 12)
+                    sy = Math.Max(0, Math.Min(MaxScroll(), region.R.Top - 24));
+                break;
+            }
+            PlaceEditor();
+            Invalidate();
+        }
+
+        private void PaintKeyFocus(Graphics graphics)
+        {
+            var target = CurrentFocusTarget();
+            if (target == null) return;
+            using (var outer = new Pen(Color.White, 4F))
+            using (var pen = new Pen(SystemColors.Highlight, 2F))
+            {
+                pen.DashStyle = DashStyle.Dot;
+                foreach (var region in target.Rs)
+                {
+                    var rect = Rectangle.Intersect(ScreenRect(region), ClientRectangle);
+                    if (rect.Width < 1 || rect.Height < 1) continue;
+                    rect.Inflate(2, 2);
+                    rect = Rectangle.Intersect(rect, ClientRectangle);
+                    if (rect.Width < 2 || rect.Height < 2) continue;
+                    graphics.DrawRectangle(outer, rect.X, rect.Y, rect.Width - 1, rect.Height - 1);
+                    graphics.DrawRectangle(pen, rect.X, rect.Y, rect.Width - 1, rect.Height - 1);
+                }
+            }
         }
 
         private static N DisclosureSummary(N element)
@@ -2056,6 +2356,13 @@ namespace Lea.Win
             foreach (var invalid in Path.GetInvalidFileNameChars()) value = value.Replace(invalid, '_');
             if (value.Length > 120) value = value.Substring(0, 120);
             return value;
+        }
+
+        private static N LinkElement(N element)
+        {
+            for (var current = element; current != null; current = current.Up)
+                if ((current.K == "a" || current.K == "area") && current.A.ContainsKey("href")) return current;
+            return element;
         }
 
         private static N ClickElement(N element)
@@ -2289,7 +2596,13 @@ namespace Lea.Win
 
         private void EditKeyDown(object sender, KeyEventArgs args)
         {
-            if (args.KeyCode == Keys.Escape)
+            if (args.KeyCode == Keys.Tab && !args.Control && !args.Alt)
+            {
+                Kf(args.Shift);
+                args.SuppressKeyPress = true;
+                args.Handled = true;
+            }
+            else if (args.KeyCode == Keys.Escape)
             {
                 EndEdit(true);
                 args.SuppressKeyPress = true;
@@ -2421,7 +2734,11 @@ namespace Lea.Win
                 SetValidity(field, message);
                 if (message.Length > 0 && first == null) first = field;
             }
-            if (first != null) focus = first.El;
+            if (first != null)
+            {
+                focus = first.El;
+                keySlot = -1;
+            }
             Restyle();
             return first == null;
         }
@@ -2693,11 +3010,13 @@ namespace Lea.Win
             Restyle();
         }
 
-        private void SetFocus(N node)
+        private void SetFocus(N node, int slot = -1)
         {
-            if (Object.ReferenceEquals(focus, node)) return;
+            if (Object.ReferenceEquals(focus, node) && keySlot == slot) return;
+            var restyle = !Object.ReferenceEquals(focus, node);
             focus = node;
-            Restyle();
+            keySlot = node == null ? -1 : slot;
+            if (restyle) Restyle(); else Invalidate();
         }
 
         private void Restyle()
@@ -2905,6 +3224,47 @@ namespace Lea.Win
                 S = style;
                 R = rect;
                 El = element;
+            }
+        }
+
+        private sealed class Kt
+        {
+            public readonly N El;
+            public Uri U;
+            public Bx B;
+            public readonly int? Ti;
+            public readonly int Or;
+            public readonly int Sq;
+            public readonly List<Kr> Rs = new List<Kr>();
+            public int Sl;
+
+            public Kt(N element, Uri url, Bx box, int? tabIndex, int order, int sequence)
+            {
+                El = element;
+                U = url;
+                B = box;
+                Ti = tabIndex;
+                Or = order;
+                Sq = sequence;
+            }
+
+            public void Add(Rectangle rect, bool fixedPosition)
+            {
+                foreach (var region in Rs)
+                    if (region.R == rect && region.Fx == fixedPosition) return;
+                Rs.Add(new Kr(rect, fixedPosition));
+            }
+        }
+
+        private sealed class Kr
+        {
+            public readonly Rectangle R;
+            public readonly bool Fx;
+
+            public Kr(Rectangle rect, bool fixedPosition)
+            {
+                R = rect;
+                Fx = fixedPosition;
             }
         }
 

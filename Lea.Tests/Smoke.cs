@@ -511,6 +511,22 @@ namespace Lea.Tests
                     if (File.Exists(boundedMapPath)) File.Delete(boundedMapPath);
                 }
 
+                var keyboardPath = Path.Combine(root, "LeaForge", "test-pages", "keyboard-focus.html");
+                var keyboardEngine = new E();
+                var keyboardPage = keyboardEngine.Go(keyboardPath);
+                Eq((int?)1, keyboardEngine.Ti(ById(keyboardPage.D, "priority-one")), "positive tabindex alias");
+                Eq((int?)0, keyboardEngine.Ti(ById(keyboardPage.D, "zero-link")), "zero tabindex alias");
+                Eq((int?)-1, keyboardEngine.Ti(ById(keyboardPage.D, "negative-link")), "negative tabindex alias");
+                Eq((int?)null, keyboardEngine.Ti(ById(keyboardPage.D, "invalid-link")), "invalid tabindex stays omitted");
+                Eq((int?)null, keyboardEngine.Ti(ById(keyboardPage.D, "default-first")), "omitted tabindex alias");
+                var boundedTab = ById(keyboardPage.D, "priority-one");
+                boundedTab.A["tabindex"] = "+999999999999999";
+                Eq((int?)32767, keyboardEngine.Ti(boundedTab), "positive tabindex cap");
+                boundedTab.A["tabindex"] = "-99999999999999";
+                Eq((int?)-32767, keyboardEngine.Ti(boundedTab), "negative tabindex cap");
+                boundedTab.A["tabindex"] = "12345678901234567";
+                Eq((int?)null, keyboardEngine.Ti(boundedTab), "tabindex text length cap");
+
                 var positioningPath = Path.Combine(root, "LeaForge", "test-pages", "positioning.html");
                 var positioningPage = engine.Go(positioningPath);
                 Eq(6, positioningPage.Bs.Count, "positioning block count");
@@ -1636,6 +1652,118 @@ namespace Lea.Tests
                     var narrowAreaRect = AreaHitRect(view, "rect-area");
                     Ok(narrowMapRect.Width > 0 && narrowMapRect.Width < styledMapRect.Width, "mapped image narrows with viewport");
                     Ok(narrowAreaRect.Width > 0 && narrowAreaRect.Width < styledAreaRect.Width && Math.Abs(narrowAreaRect.Width * styledMapRect.Width - styledAreaRect.Width * narrowMapRect.Width) <= styledMapRect.Width, "image map hit scales with rendered width");
+
+                    view.Size = new Size(520, 280);
+                    view.Go(keyboardPath);
+                    Paint(view);
+                    Eq(14, view.Kn, "bounded sequential keyboard target count");
+                    Eq(0, view.Ki, "keyboard focus starts unset");
+                    Ok(view.Ke == null && view.Kb.IsEmpty, "keyboard aliases start clear");
+                    var focusOrder = new[] { "priority-one", "priority-area", "priority-area", "priority-two", "priority-button", "priority-generic", "default-first", "zero-link", "invalid-link", "text-field", "focus-summary", "default-area", "default-area", "last-link" };
+                    for (var focusIndex = 0; focusIndex < focusOrder.Length; focusIndex++)
+                    {
+                        Eq(focusIndex + 1, view.Kf(), "forward keyboard focus index " + focusIndex);
+                        Eq(focusOrder[focusIndex], view.Ke.Av("id"), "forward keyboard focus order " + focusIndex);
+                        Ok(!view.Kb.IsEmpty, "focused keyboard target has visible bounds " + focusIndex);
+                        if (focusIndex == 0)
+                        {
+                            Eq("#176b4d", BlockById(view.At, "priority-one").S.Bg, "keyboard focus reapplies link focus CSS");
+                            var ring = view.Kb;
+                            ring.Inflate(3, 3);
+                            using (var focusPaint = Render(view)) Ok(HasColor(focusPaint, ring, SystemColors.Highlight), "default keyboard focus ring paints");
+                        }
+                        if (focusIndex == 1) Eq(new Size(100, 100), view.Kb.Size, "first image-map keyboard region uses scaled bounds");
+                        if (focusIndex == 2) Eq(new Size(50, 50), view.Kb.Size, "shared map creates a distinct second keyboard region");
+                    }
+                    Ok(view.Sy > 0 && !view.Kb.IsEmpty, "off-screen keyboard target scrolls into view");
+                    Eq(1, view.Kf(), "forward keyboard traversal wraps");
+                    Eq("priority-one", view.Ke.Av("id"), "forward wrap target");
+                    Eq(14, view.Kf(true), "backward keyboard traversal wraps");
+                    Eq("last-link", view.Ke.Av("id"), "backward wrap target");
+                    var reverseTab = Key(view, Keys.Shift | Keys.Tab);
+                    Ok(reverseTab.Handled && reverseTab.SuppressKeyPress && view.Ke.Av("id") == "default-area" && view.Kb.Size == new Size(50, 50), "Shift+Tab uses backward focus traversal");
+
+                    view.Go(keyboardPath);
+                    Paint(view);
+                    view.Kf();
+                    view.Kf();
+                    Eq("priority-area", view.Ke.Av("id"), "priority image-map area receives focus");
+                    var areaEnter = Key(view, Keys.Enter);
+                    WaitFor(delegate { return view.U.Fragment == "#area-target"; }, "Enter activates focused image-map area");
+                    Ok(areaEnter.Handled && areaEnter.SuppressKeyPress, "image-map Enter is consumed");
+
+                    view.Go(keyboardPath);
+                    Paint(view);
+                    Ok(InputKey(view, Keys.Tab) && InputKey(view, Keys.Shift | Keys.Tab) && !InputKey(view, Keys.Control | Keys.Tab), "page captures only plain forward and reverse Tab");
+                    var forwardTab = Key(view, Keys.Tab);
+                    Ok(forwardTab.Handled && forwardTab.SuppressKeyPress && view.Ke.Av("id") == "priority-one", "Tab enters bounded page focus order");
+                    var controlTab = Key(view, Keys.Control | Keys.Tab);
+                    Ok(!controlTab.Handled && view.Ke.Av("id") == "priority-one", "Ctrl+Tab remains available to browser chrome");
+                    var linkSpace = Key(view, Keys.Space);
+                    Ok(!linkSpace.Handled && view.U.Fragment.Length == 0, "Space does not activate focused link");
+                    var linkEnter = Key(view, Keys.Enter);
+                    WaitFor(delegate { return view.U.Fragment == "#one-target"; }, "Enter activates focused normal link");
+                    Ok(linkEnter.Handled && linkEnter.SuppressKeyPress, "normal link Enter is consumed");
+                    Eq("priority link activated", NodeText(ById(view.At.D, "focus-state")), "keyboard link activation runs safe command before navigation");
+
+                    view.Go(keyboardPath);
+                    Paint(view);
+                    for (var buttonFocus = 0; buttonFocus < 5; buttonFocus++) view.Kf();
+                    Eq("priority-button", view.Ke.Av("id"), "positive tabindex button order");
+                    Eq(1, view.Ka().GetAwaiter().GetResult(), "compact keyboard activation alias");
+                    Eq("button activated", NodeText(ById(view.At.D, "focus-state")), "keyboard button activation runs safe command");
+                    view.Kf();
+                    Eq("priority-generic", view.Ke.Av("id"), "generic tabindex region receives focus");
+                    Eq(0, view.Ka().GetAwaiter().GetResult(), "generic tabindex region has no activation behavior");
+                    Click(view, view.Kb);
+                    Eq("priority-generic", view.Ke.Av("id"), "click focus retains generic tabindex region");
+                    var negativeGenericRect = BlockRect(view, BlockById(view.At, "negative-generic"));
+                    view.Sc(negativeGenericRect.Top - view.Sy - 40);
+                    Paint(view);
+                    negativeGenericRect.Offset(0, -view.Sy);
+                    Click(view, negativeGenericRect);
+                    Eq("negative-generic", view.Ke.Av("id"), "negative tabindex remains click focusable");
+                    Eq(0, view.Ki, "negative tabindex stays outside sequential order");
+                    Ok(!view.Kb.IsEmpty, "negative tabindex click focus keeps visible bounds");
+                    var negativeRing = view.Kb;
+                    negativeRing.Inflate(3, 3);
+                    using (var negativeFocusPaint = Render(view)) Ok(HasColor(negativeFocusPaint, negativeRing, SystemColors.Highlight), "negative tabindex click focus ring paints");
+
+                    view.Go(keyboardPath);
+                    Paint(view);
+                    for (var fieldFocus = 0; fieldFocus < 10; fieldFocus++) view.Kf();
+                    Eq("text-field", view.Ke.Av("id"), "text field joins keyboard sequence");
+                    Eq(1, view.Ka().GetAwaiter().GetResult(), "keyboard activation opens text editor");
+                    var editorTab = EditKey(view, Keys.Tab);
+                    Ok(editorTab.Handled && editorTab.SuppressKeyPress && view.Ke.Av("id") == "focus-summary", "Tab leaves active editor through page sequence");
+
+                    view.Go(keyboardPath);
+                    Paint(view);
+                    for (var summaryFocus = 0; summaryFocus < 11; summaryFocus++) view.Kf();
+                    Eq("focus-summary", view.Ke.Av("id"), "summary joins keyboard sequence");
+                    var summarySpace = Key(view, Keys.Space);
+                    Paint(view);
+                    Ok(summarySpace.Handled && summarySpace.SuppressKeyPress && ById(view.At.D, "focus-details").Op, "Space activates focused summary");
+
+                    var boundedFocusPath = Path.Combine(Path.GetTempPath(), "lea-keyboard-focus-" + Guid.NewGuid().ToString("N") + ".html");
+                    try
+                    {
+                        var boundedFocus = new StringBuilder("<!doctype html><html><body>");
+                        for (var keyIndex = 0; keyIndex < 300; keyIndex++) boundedFocus.Append("<a id='k").Append(keyIndex).Append("' href='#k").Append(keyIndex).Append("'>key</a>");
+                        boundedFocus.Append("</body></html>");
+                        File.WriteAllText(boundedFocusPath, boundedFocus.ToString(), new UTF8Encoding(false));
+                        view.Go(boundedFocusPath);
+                        Paint(view);
+                        Eq(256, view.Kn, "keyboard target count cap");
+                        Eq(1, view.Kf(), "bounded keyboard first target");
+                        Eq("k0", view.Ke.Av("id"), "bounded keyboard preserves document order");
+                        Eq(256, view.Kf(true), "bounded keyboard reverse wrap");
+                        Eq("k255", view.Ke.Av("id"), "bounded keyboard drops targets after cap");
+                    }
+                    finally
+                    {
+                        if (File.Exists(boundedFocusPath)) File.Delete(boundedFocusPath);
+                    }
                     view.Size = new Size(720, 500);
                     view.Go(positioningPath);
                     using (var positioningPaint = Render(view))
@@ -2458,7 +2586,7 @@ namespace Lea.Tests
                 if (args.Length > 3) SaveEventRender(eventPath, args[3]);
                 if (args.Length > 4) SaveRender(tokenPath, args[4]);
 
-                Console.WriteLine("Lea smoke passed: compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: bounded tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -2634,6 +2762,22 @@ namespace Lea.Tests
             if (method == null) throw new InvalidOperationException("key method unavailable");
             method.Invoke(view, new object[] { args });
             return args;
+        }
+
+        private static KeyEventArgs EditKey(V view, Keys key)
+        {
+            var args = new KeyEventArgs(key);
+            var method = typeof(V).GetMethod("EditKeyDown", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (method == null) throw new InvalidOperationException("editor key method unavailable");
+            method.Invoke(view, new object[] { null, args });
+            return args;
+        }
+
+        private static bool InputKey(V view, Keys key)
+        {
+            var method = typeof(V).GetMethod("IsInputKey", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (method == null) throw new InvalidOperationException("input-key method unavailable");
+            return (bool)method.Invoke(view, new object[] { key });
         }
 
         private static void Move(V view, Rectangle rect)
@@ -2948,6 +3092,15 @@ namespace Lea.Tests
         private static int ColorDistance(Color left, Color right)
         {
             return Math.Abs(left.R - right.R) + Math.Abs(left.G - right.G) + Math.Abs(left.B - right.B);
+        }
+
+        private static bool HasColor(Bitmap image, Rectangle area, Color color)
+        {
+            area = Rectangle.Intersect(area, new Rectangle(Point.Empty, image.Size));
+            for (var y = area.Top; y < area.Bottom; y++)
+                for (var x = area.Left; x < area.Right; x++)
+                    if (ColorDistance(image.GetPixel(x, y), color) < 8) return true;
+            return false;
         }
 
         private static Font RenderFont(V view, string kind, S style, bool link = false, string baseKind = null)

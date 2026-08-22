@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea keyboard focus</title>
+  <style>
+    body { background: #f8fafc; color: #172033; font-family: Arial; }
+    a, button, input, summary, #priority-generic, #negative-generic { display: block; width: 260px; margin-bottom: 6px; padding: 4px; }
+    a:focus { color: #ffffff; background: #176b4d; padding-left: 12px; }
+    button:focus, input:focus, summary:focus, #priority-generic:focus { color: #ffffff; background: #7e22ce; }
+    #focus-map-image { display: block; width: 200px; height: 100px; border: 2px solid #176b4d; }
+    #focus-map-copy { display: block; width: 100px; height: 50px; border: 2px solid #7e22ce; }
+    .gone { display: none; }
+    .spacer { display: block; height: 520px; }
+    .target { display: block; width: 260px; padding: 4px; }
+    map { display: none; }
+  </style>
+</head>
+<body>
+  <h1>Bounded keyboard focus</h1>
+  <output id="focus-state">ready</output>
+  <a id="default-first" href="#default-target">Default first</a>
+  <a id="priority-two" tabindex="2" href="#two-target">Priority two</a>
+  <a id="priority-one" tabindex="1" href="#one-target" data-lea="tx('focus-state','priority link activated')">Priority one</a>
+  <button id="priority-button" tabindex="3" type="button" data-lea="tx('focus-state','button activated')">Priority button</button>
+  <div id="priority-generic" tabindex="4">Priority generic region</div>
+  <a id="zero-link" tabindex="0" href="#zero-target">Zero link</a>
+  <a id="invalid-link" tabindex="not-a-number" href="#invalid-target">Invalid tabindex link</a>
+  <a id="negative-link" tabindex="-1" href="#negative-target">Negative link</a>
+  <div id="negative-generic" tabindex="-1">Negative click-focus region</div>
+  <input id="text-field" type="text" value="keyboard value">
+  <button id="disabled-field" type="button" disabled>Disabled button</button>
+  <details id="focus-details"><summary id="focus-summary">Keyboard details</summary><p>Disclosure body</p></details>
+
+  <img id="focus-map-image" width="200" height="100" usemap="#focus-map" alt="Keyboard map" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXYxDP9v0PAAM7Ac+IRop4AAAAAElFTkSuQmCC">
+  <img id="focus-map-copy" width="200" height="100" usemap="#focus-map" alt="Keyboard map copy" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXYxDP9v0PAAM7Ac+IRop4AAAAAElFTkSuQmCC">
+  <map name="focus-map">
+    <area id="priority-area" shape="rect" coords="0,0,100,100" tabindex="1" href="#area-target" alt="Priority area">
+    <area id="default-area" shape="rect" coords="100,0,200,100" href="#area-target" alt="Default area">
+    <area id="negative-area" shape="default" tabindex="-1" href="#negative-target" alt="Negative area">
+    <area id="dead-area" shape="default" alt="Dead area">
+  </map>
+  <a id="hidden-link" class="gone" href="#hidden-target">Hidden link</a>
+  <div class="spacer"></div>
+  <a id="last-link" href="#last-target">Last off-screen link</a>
+
+  <p class="target" id="default-target">Default destination</p>
+  <p class="target" id="one-target">Priority one destination</p>
+  <p class="target" id="two-target">Priority two destination</p>
+  <p class="target" id="zero-target">Zero destination</p>
+  <p class="target" id="invalid-target">Invalid destination</p>
+  <p class="target" id="negative-target">Negative destination</p>
+  <p class="target" id="area-target">Area destination</p>
+  <p class="target" id="hidden-target">Hidden destination</p>
+  <p class="target" id="last-target">Last destination</p>
+</body>
+</html>

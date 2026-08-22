@@ -104,7 +104,7 @@ namespace Lea.Bench
                 "tables.html", "forms.html", "events-vars.html", "responsive-media.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
-                "values.html", "time-edits.html", "image-maps.html"
+                "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -352,6 +352,28 @@ namespace Lea.Bench
                 }
                 return "Mp/Ar aliases, rect/circle/poly/default and dead areas, 32 maps, 64 areas, 128 coordinates, responsive scaling, rebuilds, and paint";
             });
+            AddProbe(probes, "Bounded keyboard focus", delegate
+            {
+                var path = Path.Combine(folder, "keyboard-focus.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                Need(engine.Ti(ById(page.D, "priority-one")) == 1 && engine.Ti(ById(page.D, "negative-link")) == -1 && engine.Ti(ById(page.D, "invalid-link")) == null, "tabindex parsing changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(520, 280);
+                    view.Go(path);
+                    using (var bitmap = Draw(view)) Need(view.Kn == 14 && view.Ki == 0 && view.Ke == null, "keyboard target collection changed");
+                    Need(view.Kf() == 1 && view.Ke.Av("id") == "priority-one" && !view.Kb.IsEmpty, "positive tabindex ordering changed");
+                    Need(view.Kf() == 2 && view.Ke.Av("id") == "priority-area" && view.Kb.Size == new Size(100, 100), "image-map keyboard focus changed");
+                    Need(view.Kf() == 3 && view.Ke.Av("id") == "priority-area" && view.Kb.Size == new Size(50, 50), "shared image-map keyboard slot changed");
+                    Need(view.Ka().GetAwaiter().GetResult() == 1 && view.U.Fragment == "#area-target", "image-map keyboard activation changed");
+                    view.Go(path);
+                    for (var index = 0; index < 14; index++) view.Kf();
+                    Need(view.Ke.Av("id") == "last-link" && view.Sy > 0 && !view.Kb.IsEmpty, "off-screen keyboard scrolling changed");
+                    Need(view.Kf() == 1 && view.Ke.Av("id") == "priority-one", "keyboard wrapping changed");
+                }
+                return "Ti and Ke/Kn/Ki/Kb/Kf/Ka aliases, positive/zero/default/negative order, links, areas, fields, summaries, focus rings, scrolling, and 256-target bounds";
+            });
             AddProbe(probes, "CSS selectors and cascade", delegate
             {
                 var engine = new E();
@@ -539,6 +561,7 @@ namespace Lea.Bench
             Capability(builder, "Output and data values", "Supported", "Compact Dv values, bounded references and text, host aliases, inline/block/table ownership, and safe rebuilds");
             Capability(builder, "Time and edit metadata", "Supported", "Compact Dv t/i/r values, bounded datetime and citation aliases, safe schemes, native decorations, inline/block/table ownership, and safe rebuilds");
             Capability(builder, "Image maps", "Supported subset", "Compact Mp/Ar models, rect/circle/poly/default and dead areas, bounded coordinates, scaled custom hit regions, area links/downloads, and safe rebuilds");
+            Capability(builder, "Keyboard focus", "Supported subset", "Bounded tabindex order, links, image-map areas, fields, summaries, visible focus, scrolling, wrapping, and host activation aliases");
             Capability(builder, "Accessibility", "Partial", "Keyboard focus and native fields are present; a complete accessibility tree is not");
             builder.AppendLine();
             builder.AppendLine("## Binary Footprint");
