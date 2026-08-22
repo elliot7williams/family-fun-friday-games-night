@@ -10,16 +10,16 @@ These are repeatable local diagnostic samples, not performance promises. Re-run 
 
 | Measurement | Result |
 | --- | ---: |
-| Clean process + engine + first page median | 339.739 ms |
-| Clean process + engine + first page p95 | 355.911 ms |
-| Local page load median | 1.113 ms |
-| Local page load p95 | 2.205 ms |
-| Layout + bitmap paint median | 24.556 ms |
-| Layout + bitmap paint p95 | 99.297 ms |
-| Retained managed memory | 3215.9 KB for 115 loaded pages |
-| Retained managed memory per page | 28.0 KB |
-| Engine runtime DLLs | 241.0 KB |
-| Engine runtime GZip estimate | 106.0 KB (44.0% of raw) |
+| Clean process + engine + first page median | 631.392 ms |
+| Clean process + engine + first page p95 | 993.500 ms |
+| Local page load median | 2.480 ms |
+| Local page load p95 | 5.931 ms |
+| Layout + bitmap paint median | 36.522 ms |
+| Layout + bitmap paint p95 | 133.359 ms |
+| Retained managed memory | 3677.4 KB for 120 loaded pages |
+| Retained managed memory per page | 30.6 KB |
+| Engine runtime DLLs | 261.0 KB |
+| Engine runtime GZip estimate | 114.0 KB (43.7% of raw) |
 
 ## Fixture Loads
 
@@ -27,29 +27,30 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 
 | Fixture | Bytes | Nodes | CSS rules | Median | p95 |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| `index.html` | 970 | 17 | 1 | 1.072 ms | 1.258 ms |
-| `recovery.html` | 1040 | 39 | 0 | 0.752 ms | 0.825 ms |
-| `html-tokens.html` | 943 | 15 | 2 | 0.774 ms | 1.009 ms |
-| `selectors.html` | 1017 | 20 | 10 | 0.761 ms | 1.290 ms |
-| `layout.html` | 616 | 9 | 4 | 0.512 ms | 0.745 ms |
-| `tables.html` | 894 | 28 | 6 | 0.807 ms | 1.341 ms |
-| `forms.html` | 1566 | 25 | 7 | 1.127 ms | 1.840 ms |
-| `events-vars.html` | 1132 | 14 | 5 | 0.709 ms | 0.991 ms |
-| `responsive-media.html` | 2575 | 21 | 5 | 1.034 ms | 2.052 ms |
-| `stacking-contexts.html` | 3149 | 32 | 22 | 2.026 ms | 3.312 ms |
-| `external.html` | 502 | 12 | 6 | 0.922 ms | 1.237 ms |
-| `base-url.html` | 819 | 17 | 5 | 0.872 ms | 0.979 ms |
-| `class-commands.html` | 1065 | 15 | 4 | 0.644 ms | 0.980 ms |
-| `go-command.html` | 971 | 12 | 6 | 0.931 ms | 1.211 ms |
-| `lists.html` | 1849 | 39 | 5 | 1.268 ms | 1.719 ms |
-| `disclosure.html` | 2270 | 34 | 9 | 1.720 ms | 2.461 ms |
-| `fragments.html` | 2234 | 31 | 11 | 2.019 ms | 2.357 ms |
-| `gauges.html` | 2115 | 25 | 14 | 1.453 ms | 1.948 ms |
-| `values.html` | 1734 | 26 | 7 | 1.091 ms | 1.716 ms |
-| `time-edits.html` | 1966 | 27 | 7 | 1.494 ms | 2.551 ms |
-| `image-maps.html` | 2569 | 30 | 6 | 1.590 ms | 2.331 ms |
-| `keyboard-focus.html` | 3721 | 41 | 18 | 2.008 ms | 3.866 ms |
-| `focus-shortcuts.html` | 1838 | 20 | 13 | 1.174 ms | 1.861 ms |
+| `index.html` | 970 | 17 | 1 | 1.731 ms | 2.980 ms |
+| `recovery.html` | 1040 | 39 | 0 | 2.102 ms | 7.465 ms |
+| `html-tokens.html` | 943 | 15 | 2 | 1.295 ms | 2.191 ms |
+| `selectors.html` | 1017 | 20 | 10 | 1.737 ms | 2.819 ms |
+| `layout.html` | 616 | 9 | 4 | 1.179 ms | 2.118 ms |
+| `tables.html` | 894 | 28 | 6 | 2.531 ms | 5.978 ms |
+| `forms.html` | 1566 | 25 | 7 | 3.083 ms | 7.933 ms |
+| `events-vars.html` | 1132 | 14 | 5 | 2.091 ms | 5.241 ms |
+| `responsive-media.html` | 2575 | 21 | 5 | 3.133 ms | 5.189 ms |
+| `stacking-contexts.html` | 3149 | 32 | 22 | 6.553 ms | 15.640 ms |
+| `external.html` | 502 | 12 | 6 | 2.576 ms | 3.955 ms |
+| `base-url.html` | 819 | 17 | 5 | 1.467 ms | 3.322 ms |
+| `class-commands.html` | 1065 | 15 | 4 | 1.728 ms | 2.502 ms |
+| `go-command.html` | 971 | 12 | 6 | 1.715 ms | 2.416 ms |
+| `lists.html` | 1849 | 39 | 5 | 3.964 ms | 5.279 ms |
+| `disclosure.html` | 2270 | 34 | 9 | 3.919 ms | 4.511 ms |
+| `fragments.html` | 2234 | 31 | 11 | 3.415 ms | 5.145 ms |
+| `gauges.html` | 2115 | 25 | 14 | 3.101 ms | 4.512 ms |
+| `values.html` | 1734 | 26 | 7 | 2.154 ms | 6.099 ms |
+| `time-edits.html` | 1966 | 27 | 7 | 2.945 ms | 6.334 ms |
+| `image-maps.html` | 2569 | 30 | 6 | 1.973 ms | 3.441 ms |
+| `keyboard-focus.html` | 3721 | 41 | 18 | 3.486 ms | 4.886 ms |
+| `focus-shortcuts.html` | 1838 | 20 | 13 | 2.945 ms | 4.744 ms |
+| `accessibility.html` | 2344 | 46 | 3 | 3.255 ms | 7.681 ms |
 
 ## Executable Probes
 
@@ -65,6 +66,7 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 | Bounded responsive image maps | PASS | Mp/Ar aliases, rect/circle/poly/default and dead areas, 32 maps, 64 areas, 128 coordinates, responsive scaling, rebuilds, and paint |
 | Bounded keyboard focus | PASS | Ti and Ke/Kn/Ki/Kb/Kf/Ka aliases, positive/zero/default/negative order, links, areas, fields, summaries, focus rings, scrolling, and 256-target bounds |
 | Bounded focus shortcuts | PASS | Af/Afs and Ak/Aks/An/Kl/Aa aliases, first usable autofocus, Alt+Shift assignment, conflicts, exclusions, focus, activation, and fragment suppression |
+| Bounded semantic accessibility | PASS | Ax/Axs/St/Is and V.Ax/Axs/Ab/Ao aliases, 512 records, names, descriptions, roles, hierarchy, live values/states, redaction, bounds, and MSAA children |
 | CSS selectors and cascade | PASS | 10 compiled rules across 12 blocks |
 | Bounded document queries | PASS | Id and first match; 3 ordered matches; invalid selector rejected |
 | Document base URLs | PASS | First valid Bu resolves styles, links, images, forms, and downloads while U stays unchanged |
@@ -82,7 +84,7 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 | Area | Status | Lea 1.0 scope |
 | --- | --- | --- |
 | Local files and HTTP/HTTPS | Supported | Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors |
-| HTML documents | Partial | Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard |
+| HTML documents | Partial | Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard |
 | CSS | Partial | Compiled selector subset, cascade, box/text styles, visibility, positioning, transforms, and responsive image sizing |
 | Layout and painting | Partial | Custom WinForms block, inline, table, form, image, clipping, scroll, and stacking renderer |
 | Forms | Supported subset | GET/POST, validation, text/select/choice/file/range/date/color/time-family controls |
@@ -100,17 +102,17 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 | Image maps | Supported subset | Compact Mp/Ar models, rect/circle/poly/default and dead areas, bounded coordinates, scaled custom hit regions, area links/downloads, and safe rebuilds |
 | Keyboard focus | Supported subset | Bounded tabindex order, links, image-map areas, fields, summaries, visible focus, scrolling, wrapping, and host activation aliases |
 | Focus shortcuts | Supported subset | Bounded autofocus candidates and ASCII access-key alternatives with conflict resolution, Alt+Shift labels, host-safe matching, focus, and activation |
-| Accessibility | Partial | Keyboard focus and native fields are present; a complete accessibility tree is not |
+| Accessibility | Supported subset | Bounded Ax hierarchy with HTML/ARIA roles, names, descriptions, live values and states, redaction, rendered bounds, MSAA children, focus, and default actions; not the complete platform mapping standards |
 
 ## Binary Footprint
 
 | Artifact | Bytes | Size |
 | --- | ---: | ---: |
-| `Lea.Engine.dll` | 145920 | 142.5 KB |
-| `Lea.Win.dll` | 100864 | 98.5 KB |
-| `Lea.Win.Test.exe` | 394240 | 385.0 KB |
-| `Lea.Bench.exe` | 57856 | 56.5 KB |
-| `Firespider Internet 19.exe` | 1108992 | 1083.0 KB |
+| `Lea.Engine.dll` | 158720 | 155.0 KB |
+| `Lea.Win.dll` | 108544 | 106.0 KB |
+| `Lea.Win.Test.exe` | 395776 | 386.5 KB |
+| `Lea.Bench.exe` | 59904 | 58.5 KB |
+| `Firespider Internet 19.exe` | 1109504 | 1083.5 KB |
 
 The engine runtime size is `Lea.Engine.dll` plus `Lea.Win.dll`. Test and report executables are listed separately and are not required when embedding Lea in Firespider.
 

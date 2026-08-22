@@ -1,5 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Reference Include="Accessibility" />
     <Reference Include="Lea.Engine">
       <HintPath>$(MSBuildThisFileDirectory)Lea.Engine.dll</HintPath>
       <Private>True</Private>

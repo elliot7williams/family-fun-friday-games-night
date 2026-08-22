@@ -7,6 +7,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Windows.Forms;
 using Lea.Engine;
 using Lea.Win;
 
@@ -105,7 +106,7 @@ namespace Lea.Bench
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
-                "focus-shortcuts.html"
+                "focus-shortcuts.html", "accessibility.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -397,6 +398,25 @@ namespace Lea.Bench
                 }
                 return "Af/Afs and Ak/Aks/An/Kl/Aa aliases, first usable autofocus, Alt+Shift assignment, conflicts, exclusions, focus, activation, and fragment suppression";
             });
+            AddProbe(probes, "Bounded semantic accessibility", delegate
+            {
+                var path = Path.Combine(folder, "accessibility.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var user = ById(page.D, "user-name");
+                var semantic = engine.Ax(page, user);
+                Need(page.Axs.Count > 20 && page.Axs.Count <= 512 && Object.ReferenceEquals(page.Axs, engine.Axs(page)), "bounded accessibility list changed");
+                Need(semantic != null && semantic.K == "textbox" && semantic.N == "Display name" && semantic.D == "Shown beside your work." && semantic.Is(Ax.Rq), "accessible name, description, role, or state changed");
+                Need(engine.Ax(page, ById(page.D, "secret")).V.Length == 0 && engine.Ax(page, ById(page.D, "custom")).Is(Ax.Mx), "semantic redaction or ARIA state changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(760, 560);
+                    view.Go(path);
+                    using (var bitmap = Draw(view)) Need(!view.Ab(view.Ax(ById(view.At.D, "user-name"))).IsEmpty, "semantic view bounds changed");
+                    Need(view.Ao != null && view.Ao.Role == AccessibleRole.Document && view.Ao.GetChildCount() > 0, "WinForms accessibility root changed");
+                }
+                return "Ax/Axs/St/Is and V.Ax/Axs/Ab/Ao aliases, 512 records, names, descriptions, roles, hierarchy, live values/states, redaction, bounds, and MSAA children";
+            });
             AddProbe(probes, "CSS selectors and cascade", delegate
             {
                 var engine = new E();
@@ -568,7 +588,7 @@ namespace Lea.Bench
             builder.AppendLine("| Area | Status | Lea 1.0 scope |");
             builder.AppendLine("| --- | --- | --- |");
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
-            Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
+            Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
             Capability(builder, "CSS", "Partial", "Compiled selector subset, cascade, box/text styles, visibility, positioning, transforms, and responsive image sizing");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms block, inline, table, form, image, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
@@ -586,7 +606,7 @@ namespace Lea.Bench
             Capability(builder, "Image maps", "Supported subset", "Compact Mp/Ar models, rect/circle/poly/default and dead areas, bounded coordinates, scaled custom hit regions, area links/downloads, and safe rebuilds");
             Capability(builder, "Keyboard focus", "Supported subset", "Bounded tabindex order, links, image-map areas, fields, summaries, visible focus, scrolling, wrapping, and host activation aliases");
             Capability(builder, "Focus shortcuts", "Supported subset", "Bounded autofocus candidates and ASCII access-key alternatives with conflict resolution, Alt+Shift labels, host-safe matching, focus, and activation");
-            Capability(builder, "Accessibility", "Partial", "Keyboard focus and native fields are present; a complete accessibility tree is not");
+            Capability(builder, "Accessibility", "Supported subset", "Bounded Ax hierarchy with HTML/ARIA roles, names, descriptions, live values and states, redaction, rendered bounds, MSAA children, focus, and default actions; not the complete platform mapping standards");
             builder.AppendLine();
             builder.AppendLine("## Binary Footprint");
             builder.AppendLine();

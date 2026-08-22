@@ -48,6 +48,9 @@ namespace Lea.Engine
         private const int MaxAutofocusCandidates = 32;
         private const int MaxAccessKeyText = 256;
         private const int MaxAccessKeyTokens = 16;
+        private const int MaxAccessibilityNodes = 512;
+        private const int MaxAccessibilityReferences = 16;
+        private const int MaxAccessibilityText = 512;
         private const int MinTimeout = 100;
         private const int MaxTimeout = 60000;
         private const int DefaultTimeout = 15000;
@@ -260,6 +263,23 @@ namespace Lea.Engine
         public void Dcl()
         {
             lock (requests) requests.Clear();
+        }
+
+        // Axs exposes Lea's bounded semantic accessibility list.
+        public IList<Ax> Axs(P page)
+        {
+            QueryPage(page);
+            return page.Axs;
+        }
+
+        // Ax returns the first semantic record owned by one document element.
+        public Ax Ax(P page, N element)
+        {
+            QueryPage(page);
+            if (element == null || !Owns(page.D, element)) return null;
+            foreach (var item in page.Axs)
+                if (Object.ReferenceEquals(item.El, element)) return item;
+            return null;
         }
 
         // Ti parses one bounded authored tabindex; null means omitted or invalid.
@@ -1010,6 +1030,7 @@ namespace Lea.Engine
         private static void Rebuild(P p, List<R> rules, IDictionary<N, Fi> fields)
         {
             p.Ls.Clear();
+            p.Axs.Clear();
             p.Bs.Clear();
             p.Fs.Clear();
             p.Dvs.Clear();
@@ -1028,7 +1049,393 @@ namespace Lea.Engine
             foreach (var child in body.C) Blocks(p, child, p.Bu ?? p.U, rules, p.S);
             LinkBlocks(p);
             MarkDisclosures(p);
+            BuildAccessibility(p, body, rules);
             p.Fr = null;
+        }
+
+        private static void BuildAccessibility(P page, N body, List<R> rules)
+        {
+            var data = new Axc(page);
+            IndexAccessibility(page.D, data);
+            foreach (var field in page.Fs)
+                if (field.El != null && !data.Fs.ContainsKey(field.El)) data.Fs[field.El] = field;
+            foreach (var map in page.Mps)
+                foreach (var area in map.As)
+                    if (area.El != null) data.As.Add(area.El);
+
+            var root = new Ax { K = "document", N = BoundValue(page.T, MaxAccessibilityText), El = body };
+            page.Axs.Add(root);
+            foreach (var child in body.C) AddAccessibility(data, child, page.S, rules, root, false);
+        }
+
+        private static void IndexAccessibility(N node, Axc data)
+        {
+            if (node == null) return;
+            var id = node.Av("id");
+            if (id.Length > 0 && id.Length <= MaxHtmlAttributeValue && !data.Ids.ContainsKey(id)) data.Ids[id] = node;
+            if (node.K == "label")
+            {
+                var target = node.Av("for");
+                List<N> labels;
+                if (target.Length > 0 && target.Length <= MaxHtmlAttributeValue)
+                {
+                    if (!data.Lbs.TryGetValue(target, out labels)) data.Lbs[target] = labels = new List<N>();
+                    if (labels.Count < MaxAccessibilityReferences) labels.Add(node);
+                }
+            }
+            foreach (var child in node.C) IndexAccessibility(child, data);
+        }
+
+        private static void AddAccessibility(Axc data, N node, S inherited, List<R> rules, Ax parent, bool suppressText)
+        {
+            if (node == null || data.P.Axs.Count == MaxAccessibilityNodes) return;
+            if (node.K == "#text")
+            {
+                var text = BoundValue(Clean(node.X), MaxAccessibilityText);
+                if (!suppressText && text.Length > 0) data.P.Axs.Add(new Ax { K = "text", N = text, El = node, Up = parent });
+                return;
+            }
+            if (node.K == "head" || node.K == "script" || node.K == "style" || node.K == "noscript" || node.K == "template") return;
+
+            var style = Style(node, inherited, rules);
+            if (style.D == "none" || DisclosureHidden(node) || AriaTrue(node, "aria-hidden")) return;
+            if (node.K == "area" && !data.As.Contains(node)) return;
+
+            if (style.Vi == "h" || style.Vi == "c")
+            {
+                foreach (var child in node.C)
+                    if (child.K != "#text") AddAccessibility(data, child, style, rules, parent, suppressText);
+                return;
+            }
+
+            var role = AccessibilityRole(node, data);
+            var current = parent;
+            if (role != "none" && role.Length > 0)
+            {
+                var name = AccessibilityName(node, role, data);
+                if ((role == "form" || role == "region") && name.Length == 0) role = "";
+                if (role.Length > 0)
+                {
+                    current = new Ax
+                    {
+                        K = role,
+                        N = name,
+                        D = AccessibilityDescription(node, name, data),
+                        V = AccessibilityValue(node, data),
+                        St = AccessibilityState(node, role, data),
+                        Lv = HeadingLevel(node, role),
+                        U = AccessibilityUrl(node, data.P.Bu ?? data.P.U),
+                        El = node,
+                        Up = parent,
+                        F = AccessibilityField(node, data)
+                    };
+                    data.P.Axs.Add(current);
+                }
+            }
+
+            var childParent = current;
+            var childSuppress = suppressText || current != parent && AccessibilityConsumesText(role);
+            foreach (var child in node.C)
+            {
+                if (data.P.Axs.Count == MaxAccessibilityNodes) break;
+                AddAccessibility(data, child, style, rules, childParent, childSuppress);
+            }
+        }
+
+        private static string AccessibilityRole(N node, Axc data)
+        {
+            var explicitRole = ExplicitAccessibilityRole(node.Av("role"));
+            if (explicitRole.Length > 0) return explicitRole;
+            var kind = node.K;
+            if (kind == "a" && node.A.ContainsKey("href") || kind == "area" && node.A.ContainsKey("href")) return "link";
+            if (kind == "button" || kind == "summary") return "button";
+            if (kind == "input" || kind == "textarea" || kind == "select")
+            {
+                var field = AccessibilityField(node, data);
+                if (field == null) return "";
+                if (field.K == "checkbox") return "checkbox";
+                if (field.K == "radio") return "radio";
+                if (field.K == "range") return "slider";
+                if (field.K == "number") return "spinbutton";
+                if (field.K == "search") return "searchbox";
+                if (field.K == "select") return field.Mu ? "listbox" : "combobox";
+                if (field.K == "submit" || field.K == "reset" || field.K == "button" || field.K == "file" || field.K == "color") return "button";
+                return "textbox";
+            }
+            if (IsHeading(kind)) return "heading";
+            if (kind == "img") return node.Av("alt").Length == 0 && !node.A.ContainsKey("alt") ? "img" : node.Av("alt").Length == 0 ? "none" : "img";
+            if (kind == "nav") return "navigation";
+            if (kind == "main") return "main";
+            if (kind == "aside") return "complementary";
+            if (kind == "header") return HasSectionAncestor(node) ? "group" : "banner";
+            if (kind == "footer") return HasSectionAncestor(node) ? "group" : "contentinfo";
+            if (kind == "form") return "form";
+            if (kind == "section") return "region";
+            if (kind == "article") return "article";
+            if (kind == "figure") return "figure";
+            if (kind == "details" || kind == "fieldset") return "group";
+            if (kind == "ol" || kind == "ul" || kind == "menu") return "list";
+            if (kind == "li") return "listitem";
+            if (kind == "table") return "table";
+            if (kind == "thead" || kind == "tbody" || kind == "tfoot") return "rowgroup";
+            if (kind == "tr") return "row";
+            if (kind == "th") return node.Av("scope").Equals("row", StringComparison.OrdinalIgnoreCase) ? "rowheader" : "columnheader";
+            if (kind == "td") return "cell";
+            if (kind == "caption") return "caption";
+            if (kind == "progress") return "progressbar";
+            if (kind == "meter") return "meter";
+            if (kind == "output") return "status";
+            if (kind == "hr") return "separator";
+            if (kind == "p") return "paragraph";
+            if (kind == "blockquote") return "blockquote";
+            if (kind == "code" || kind == "pre") return "code";
+            if (kind == "dt") return "term";
+            if (kind == "dd") return "definition";
+            if (kind == "figcaption" || kind == "legend") return "caption";
+            if (kind == "time") return "time";
+            if (kind == "ins") return "insertion";
+            if (kind == "del") return "deletion";
+            if (kind == "address") return "group";
+            return "";
+        }
+
+        private static string ExplicitAccessibilityRole(string input)
+        {
+            var text = BoundValue(input, 256);
+            var at = 0;
+            var count = 0;
+            while (at < text.Length && count++ < MaxAccessibilityReferences)
+            {
+                while (at < text.Length && AsciiWhite(text[at])) at++;
+                var start = at;
+                while (at < text.Length && !AsciiWhite(text[at])) at++;
+                if (start == at) continue;
+                var role = text.Substring(start, at - start).ToLowerInvariant();
+                if (role == "presentation" || role == "none") return "none";
+                if (Regex.IsMatch(role, "^(?:alert|article|banner|blockquote|button|caption|cell|checkbox|code|columnheader|combobox|complementary|contentinfo|definition|deletion|dialog|document|feed|figure|form|generic|group|heading|img|insertion|link|list|listbox|listitem|log|main|marquee|meter|navigation|option|paragraph|progressbar|radio|region|row|rowgroup|rowheader|search|searchbox|separator|slider|spinbutton|status|table|term|textbox|time|timer)$")) return role;
+            }
+            return "";
+        }
+
+        private static string AccessibilityName(N node, string role, Axc data)
+        {
+            var value = AccessibilityReferences(node.Av("aria-labelledby"), data);
+            if (value.Length > 0) return value;
+            if (node.A.ContainsKey("aria-label")) return BoundValue(Clean(node.Av("aria-label")), MaxAccessibilityText);
+
+            var field = AccessibilityField(node, data);
+            if (field != null)
+            {
+                value = AccessibilityLabels(node, data);
+                if (value.Length > 0) return value;
+                if (role == "button")
+                {
+                    value = node.K == "button" ? Clean(NodeText(node)) : Clean(node.Av("value"));
+                    if (value.Length == 0) value = field.K == "reset" ? "Reset" : field.K == "submit" ? "Submit" : field.K == "file" ? "Choose file" : "Button";
+                    return BoundValue(value, MaxAccessibilityText);
+                }
+                if (node.A.ContainsKey("placeholder")) return BoundValue(Clean(node.Av("placeholder")), MaxAccessibilityText);
+            }
+            if (role == "img" && node.A.ContainsKey("alt")) return BoundValue(Clean(node.Av("alt")), MaxAccessibilityText);
+            if (role == "table")
+            {
+                var caption = FirstChild(node, "caption");
+                if (caption != null) return BoundValue(Clean(NodeText(caption)), MaxAccessibilityText);
+            }
+            if (role == "figure")
+            {
+                var caption = FirstChild(node, "figcaption");
+                if (caption != null) return BoundValue(Clean(NodeText(caption)), MaxAccessibilityText);
+            }
+            if (role == "group" && node.K == "fieldset")
+            {
+                var legend = FirstChild(node, "legend");
+                if (legend != null) return BoundValue(Clean(NodeText(legend)), MaxAccessibilityText);
+            }
+            if (role == "group" && node.K == "details")
+            {
+                var summary = FirstChild(node, "summary");
+                if (summary != null) return BoundValue(Clean(NodeText(summary)), MaxAccessibilityText);
+            }
+            if (AccessibilityNameFromContent(role))
+            {
+                value = BoundValue(Clean(NodeText(node)), MaxAccessibilityText);
+                if (value.Length > 0) return value;
+            }
+            if (node.A.ContainsKey("title")) return BoundValue(Clean(node.Av("title")), MaxAccessibilityText);
+            return "";
+        }
+
+        private static string AccessibilityDescription(N node, string name, Axc data)
+        {
+            var value = AccessibilityReferences(node.Av("aria-describedby"), data);
+            if (value.Length > 0) return value;
+            if (node.A.ContainsKey("aria-description")) return BoundValue(Clean(node.Av("aria-description")), MaxAccessibilityText);
+            value = BoundValue(Clean(node.Av("title")), MaxAccessibilityText);
+            return value == name ? "" : value;
+        }
+
+        private static string AccessibilityReferences(string input, Axc data)
+        {
+            var result = new StringBuilder();
+            var text = BoundValue(input, MaxHtmlAttributeValue);
+            var used = new HashSet<N>();
+            var at = 0;
+            var count = 0;
+            while (at < text.Length && count < MaxAccessibilityReferences)
+            {
+                while (at < text.Length && AsciiWhite(text[at])) at++;
+                var start = at;
+                while (at < text.Length && !AsciiWhite(text[at])) at++;
+                if (start == at) continue;
+                N target;
+                if (!data.Ids.TryGetValue(text.Substring(start, at - start), out target) || !used.Add(target)) continue;
+                var value = Clean(NodeText(target));
+                if (value.Length == 0) continue;
+                if (result.Length > 0) result.Append(' ');
+                result.Append(value);
+                count++;
+                if (result.Length >= MaxAccessibilityText) break;
+            }
+            return BoundValue(result.ToString(), MaxAccessibilityText);
+        }
+
+        private static string AccessibilityLabels(N node, Axc data)
+        {
+            var result = new StringBuilder();
+            List<N> labels;
+            var id = node.Av("id");
+            if (id.Length > 0 && data.Lbs.TryGetValue(id, out labels))
+                foreach (var label in labels) AppendAccessibilityText(result, NodeText(label));
+            for (var current = node.Up; current != null; current = current.Up)
+            {
+                if (current.K != "label") continue;
+                AppendAccessibilityText(result, NodeText(current));
+                break;
+            }
+            return BoundValue(result.ToString(), MaxAccessibilityText);
+        }
+
+        private static void AppendAccessibilityText(StringBuilder result, string input)
+        {
+            var value = Clean(input);
+            if (value.Length == 0 || result.Length >= MaxAccessibilityText) return;
+            if (result.Length > 0) result.Append(' ');
+            result.Append(value);
+        }
+
+        private static string AccessibilityValue(N node, Axc data)
+        {
+            var field = AccessibilityField(node, data);
+            if (field != null) return "";
+            var value = node.Av("aria-valuetext");
+            if (value.Length == 0) value = node.Av("aria-valuenow");
+            if (value.Length > 0) return BoundValue(Clean(value), MaxAccessibilityText);
+            foreach (var block in data.P.Bs)
+            {
+                if (!Object.ReferenceEquals(block.El, node)) continue;
+                if (block.Vm != null) return block.Vm.V.ToString("G", CultureInfo.InvariantCulture);
+                if (block.Dv != null) return BoundValue(Clean(block.Dv.V), MaxAccessibilityText);
+            }
+            return "";
+        }
+
+        private static int AccessibilityState(N node, string role, Axc data)
+        {
+            var state = 0;
+            var field = AccessibilityField(node, data);
+            if (field != null && !field.Ds || field == null && AccessibilityFocusable(node)) state |= Lea.Engine.Ax.Fs;
+            if (node.Fc) state |= Lea.Engine.Ax.Fc;
+            if ((field == null && node.A.ContainsKey("disabled")) || AriaTrue(node, "aria-disabled")) state |= Lea.Engine.Ax.Ds;
+            if ((field == null && node.A.ContainsKey("checked")) || AriaTrue(node, "aria-checked")) state |= Lea.Engine.Ax.Ck;
+            if (node.Av("aria-checked").Equals("mixed", StringComparison.OrdinalIgnoreCase)) state |= Lea.Engine.Ax.Mx;
+            if (node.A.ContainsKey("selected") || AriaTrue(node, "aria-selected")) state |= Lea.Engine.Ax.Sl;
+            if ((field == null && node.A.ContainsKey("required")) || AriaTrue(node, "aria-required")) state |= Lea.Engine.Ax.Rq;
+            if ((field == null && node.A.ContainsKey("readonly")) || AriaTrue(node, "aria-readonly")) state |= Lea.Engine.Ax.Ro;
+            var invalid = node.Av("aria-invalid");
+            if (invalid.Length > 0 && !invalid.Equals("false", StringComparison.OrdinalIgnoreCase)) state |= Lea.Engine.Ax.Iv;
+            if (node.A.ContainsKey("aria-expanded")) state |= AriaTrue(node, "aria-expanded") ? Lea.Engine.Ax.Ex : Lea.Engine.Ax.Co;
+            if (node.K == "details" || node.K == "summary") state |= (node.K == "details" ? node : node.Up).Op ? Lea.Engine.Ax.Ex : Lea.Engine.Ax.Co;
+            var pressed = node.Av("aria-pressed");
+            if (pressed.Equals("mixed", StringComparison.OrdinalIgnoreCase)) state |= Lea.Engine.Ax.Mx | Lea.Engine.Ax.Ps;
+            else if (pressed.Equals("true", StringComparison.OrdinalIgnoreCase)) state |= Lea.Engine.Ax.Ps;
+            if (AriaTrue(node, "aria-busy")) state |= Lea.Engine.Ax.Bs;
+            var current = node.Av("aria-current");
+            if (current.Length > 0 && !current.Equals("false", StringComparison.OrdinalIgnoreCase)) state |= Lea.Engine.Ax.Cr;
+            return state;
+        }
+
+        private static bool AccessibilityFocusable(N node)
+        {
+            if (node == null) return false;
+            if ((node.K == "a" || node.K == "area") && node.A.ContainsKey("href") || node.K == "button" || node.K == "summary") return true;
+            if (!node.A.ContainsKey("tabindex")) return false;
+            var value = node.Av("tabindex").Trim();
+            int number;
+            return value.Length > 0 && value.Length <= 16 && Int32.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out number);
+        }
+
+        private static Fi AccessibilityField(N node, Axc data)
+        {
+            Fi field;
+            return node != null && data.Fs.TryGetValue(node, out field) ? field : null;
+        }
+
+        private static Uri AccessibilityUrl(N node, Uri baseUrl)
+        {
+            if (node == null || baseUrl == null || (node.K != "a" && node.K != "area")) return null;
+            Uri result;
+            return TryUri(baseUrl, node.Av("href"), out result) ? result : null;
+        }
+
+        private static bool AriaTrue(N node, string name)
+        {
+            return node.Av(name).Trim().Equals("true", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool AccessibilityConsumesText(string role)
+        {
+            return AccessibilityNameFromContent(role) || role == "img" || role == "textbox" || role == "searchbox" || role == "combobox" || role == "listbox";
+        }
+
+        private static bool AccessibilityNameFromContent(string role)
+        {
+            return role == "button" || role == "link" || role == "heading" || role == "paragraph" || role == "blockquote" || role == "code" ||
+                   role == "listitem" || role == "cell" || role == "columnheader" || role == "rowheader" || role == "caption" || role == "option" ||
+                   role == "status" || role == "term" || role == "definition" || role == "time" || role == "insertion" || role == "deletion";
+        }
+
+        private static int HeadingLevel(N node, string role)
+        {
+            int level;
+            if (role != "heading") return 0;
+            if (node.K.Length == 2 && node.K[0] == 'h' && node.K[1] >= '1' && node.K[1] <= '6') return node.K[1] - '0';
+            return Int32.TryParse(node.Av("aria-level"), out level) ? Math.Max(1, Math.Min(9, level)) : 2;
+        }
+
+        private static N FirstChild(N node, string kind)
+        {
+            if (node == null) return null;
+            foreach (var child in node.C) if (child.K == kind) return child;
+            return null;
+        }
+
+        private static bool HasSectionAncestor(N node)
+        {
+            for (var current = node.Up; current != null; current = current.Up)
+                if (current.K == "article" || current.K == "aside" || current.K == "main" || current.K == "nav" || current.K == "section") return true;
+            return false;
+        }
+
+        private sealed class Axc
+        {
+            public readonly P P;
+            public readonly Dictionary<string, N> Ids = new Dictionary<string, N>(StringComparer.Ordinal);
+            public readonly Dictionary<string, List<N>> Lbs = new Dictionary<string, List<N>>(StringComparer.Ordinal);
+            public readonly Dictionary<N, Fi> Fs = new Dictionary<N, Fi>();
+            public readonly HashSet<N> As = new HashSet<N>();
+
+            public Axc(P page) { P = page; }
         }
 
         private static void LinkBlocks(P page)

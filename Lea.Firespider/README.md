@@ -82,13 +82,23 @@ refusal, and Lea consumes only an otherwise-unclaimed assigned
 focus key, conflict fallback, unmatched fallthrough, and mapped-area shortcut
 activation.
 
+Semantic accessibility stays on the same Lea tab. Firespider can enumerate
+`V.Axs`, resolve an element through `Ax`, and read one record's rendered client
+bounds through `Ab`. Compact `Ax.K/N/D/V/St/Lv/U/El/Up` aliases expose bounded
+roles, names, descriptions, live values and states, heading levels, links, DOM
+ownership, and hierarchy. Password and file values are redacted. `V.Ao` and
+the control's native provider expose the records as WinForms/MSAA children with
+focus, protected state, keyboard shortcuts, hit testing, and default actions.
+The adapter target adds the framework `Accessibility` reference.
+
 Firespider can read `V.Dg()` for bounded response, document, CSS, request,
 command, cache, and cookie diagnostics without reflecting into Lea internals.
 The snapshot omits mutable form values, passwords, and selected file paths.
 **View > Lea Inspector** (`F12`) and the Lea tab context menu open Summary,
-Nodes, CSS, Requests, and Messages tabs backed only by that snapshot. `R`/`F5`
-refresh, `C` clears request activity through `V.Dcl()`, and `X`/Escape closes
-the owned window. Legacy tabs remain on Firespider's original path.
+Nodes, CSS, Requests, Messages, and Access tabs backed only by public bounded
+models. `R`/`F5` refresh, `C` clears request activity through `V.Dcl()`, and
+`X`/Escape closes the owned window. Legacy tabs remain on Firespider's original
+path.
 
 Firespider's existing Find command (`Ctrl+F`) now calls Lea's highlighted,
 case-insensitive match cycling for Lea tabs and keeps the original DOM range

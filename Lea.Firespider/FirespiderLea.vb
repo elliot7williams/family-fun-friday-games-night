@@ -1,5 +1,6 @@
 Imports System.IO
 Imports System.Collections.Generic
+Imports System.Text
 
 Partial Class j
     Private qleaMenu As ToolStripMenuItem
@@ -11,6 +12,7 @@ Partial Class j
     Private qleaInspectorCss As TextBox
     Private qleaInspectorRequests As TextBox
     Private qleaInspectorMessages As TextBox
+    Private qleaInspectorAccess As TextBox
     Private qleaInspectorTips As ToolTip
     Private Shared qleaSessionRestored As Boolean
 
@@ -424,11 +426,13 @@ Partial Class j
         qleaInspectorCss = qleaInspectorText("LeaInspectorCss")
         qleaInspectorRequests = qleaInspectorText("LeaInspectorRequests")
         qleaInspectorMessages = qleaInspectorText("LeaInspectorMessages")
+        qleaInspectorAccess = qleaInspectorText("LeaInspectorAccess")
         qleaInspectorPage("Summary", qleaInspectorSummary)
         qleaInspectorPage("Nodes", qleaInspectorNodes)
         qleaInspectorPage("CSS", qleaInspectorCss)
         qleaInspectorPage("Requests", qleaInspectorRequests)
         qleaInspectorPage("Messages", qleaInspectorMessages)
+        qleaInspectorPage("Access", qleaInspectorAccess)
         qleaInspectorWindow.Controls.Add(qleaInspectorTabs)
         qleaInspectorWindow.Controls.Add(header)
     End Sub
@@ -472,6 +476,7 @@ Partial Class j
             qleaInspectorCss.Clear()
             qleaInspectorRequests.Clear()
             qleaInspectorMessages.Clear()
+            qleaInspectorAccess.Clear()
             Return False
         End If
         Dim data = host.Dg()
@@ -481,6 +486,7 @@ Partial Class j
             qleaInspectorCss.Clear()
             qleaInspectorRequests.Clear()
             qleaInspectorMessages.Clear()
+            qleaInspectorAccess.Clear()
             Return False
         End If
         qleaInspectorSummary.Lines = New String() {
@@ -488,7 +494,7 @@ Partial Class j
             If(data.U Is Nothing, "", data.U.ToString()),
             "",
             "Response   " & data.St.ToString() & "  " & If(data.Ct, "") & "  " & data.Sz.ToString() & " bytes" & If(data.Ca, "  cache", ""),
-            "Document   " & data.N.ToString() & " nodes  " & data.B.ToString() & " blocks",
+            "Document   " & data.N.ToString() & " nodes  " & data.B.ToString() & " blocks  " & host.Axs.Count.ToString() & " access",
             "Content    " & data.L.ToString() & " links  " & data.F.ToString() & " fields  " & data.C.ToString() & " CSS rules",
             "Commands   " & data.J.ToString() & " accepted  " & data.V.ToString() & " variables  " & data.M.ToString() & " alerts",
             "Engine     " & data.Cc.ToString() & " cached  " & data.Ch.ToString() & " reuses  " & data.Kc.ToString() & " cookies"
@@ -508,7 +514,28 @@ Partial Class j
             Next
         End If
         qleaInspectorMessages.Lines = messages.ToArray()
+        qleaInspectorAccess.Lines = qleaInspectorAccessLines(host)
         Return True
+    End Function
+
+    Private Function qleaInspectorAccessLines(ByVal host As Global.Lea.Win.V) As String()
+        Dim lines As New List(Of String)()
+        For Each item As Global.Lea.Engine.Ax In host.Axs
+            Dim depth As Integer = 0
+            Dim parent = item.Up
+            While parent IsNot Nothing AndAlso depth < 12
+                depth += 1
+                parent = parent.Up
+            End While
+            Dim line As New StringBuilder()
+            line.Append(New String(" "c, depth * 2)).Append(item.K)
+            If item.N.Length > 0 Then line.Append(" """).Append(item.N).Append("""")
+            If item.V.Length > 0 Then line.Append(" = ").Append(item.V)
+            If item.St <> 0 Then line.Append(" [").Append(item.St).Append("]")
+            If item.Lv > 0 Then line.Append(" level ").Append(item.Lv)
+            lines.Add(line.ToString())
+        Next
+        Return lines.ToArray()
     End Function
 
     Private Function qleaInspectorCopy(ByVal values As IList(Of String)) As String()
@@ -560,6 +587,7 @@ Partial Class j
         qleaInspectorCss = Nothing
         qleaInspectorRequests = Nothing
         qleaInspectorMessages = Nothing
+        qleaInspectorAccess = Nothing
     End Sub
 
     Private Sub qleaInspectorFollow(ByVal host As Global.Lea.Win.V)

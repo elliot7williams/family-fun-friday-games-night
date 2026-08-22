@@ -32,6 +32,7 @@ LeaForge is where we can grow the more full-featured browser.
 - compact `<map>`/`<area>` models through `P.Mps`/`B.Mp`/`Ar`, bounded shape coordinates, dead-area layering, responsive custom hits, links, and downloads
 - bounded keyboard navigation through `Ti` and `Ke/Kn/Ki/Kb/Kf/Ka`, ordered tabindex targets, shared-map regions, visible rings, scrolling, and host activation
 - bounded autofocus and host-safe page shortcuts through `Af/Afs`, `Ak/Aks`, and `An/Kl/Aa`, with conflict fallback, resolved-fragment suppression, and `Alt+Shift` activation
+- bounded semantic accessibility through `Ax/Axs/St/Is` and `V.Ab/Ao`, with HTML/ARIA roles, labels, hierarchy, protected values, rendered bounds, and WinForms/MSAA children
 - wrapped inline bold/italic text, styled spans, line breaks, and links inside text blocks
 - inherited font-family fallbacks plus underline and line-through decoration
 - inherited left/center/right/justify alignment and pixel/relative line spacing
@@ -52,7 +53,7 @@ LeaForge is where we can grow the more full-featured browser.
 - bounded engine scripting for title, body colors, font size, and host-routed alerts
 - safe button/link commands with bounded variables and ID-scoped text updates
 - bounded `ac`/`rc`/`tc` class mutations with compiled CSS restyling
-- bounded developer snapshots plus a tabbed inspector in the test browser
+- bounded developer snapshots plus a tabbed inspector with an Access view in the test browser
 - repeatable compatibility, timing, memory, binary-size, and compression report
 - streamed local/HTTP downloads with explicit destinations and a 64 MB ceiling
 - highlighted, case-insensitive find-in-page with next/previous cycling
@@ -82,7 +83,8 @@ safe local-file request for the browser host to approve and load.
 
 The .NET Framework test browser opens Lea Inspector with `F12`, `Ctrl+Shift+I`,
 or the `I` toolbar button. Its Summary, Nodes, CSS, Requests, and Messages tabs
-use the compact `Dg` API and never inspect private renderer fields.
+use the compact `Dg` API; Access uses `V.Axs`. Neither path inspects private
+renderer fields.
 Firespider's experimental Lea tabs expose the same bounded inspector from the
 View menu (`F12`) and the tab context menu, with refresh and request-log clearing.
 Firespider's normal New Tab command and `Ctrl+T` now open Lea; **New Legacy Tab**

@@ -148,6 +148,24 @@ summaries, safe commands, fragments, downloads, and host navigation.
 HTML-hidden nodes and their descendants receive default rendered/link/field/hit
 suppression and stay outside focus, autofocus, and access-key models.
 
+Accessibility hosts can enumerate `P.Axs` or call `E.Axs(page)` and
+`E.Ax(page, element)`. Each bounded `Ax` record keeps `K/N/D/V` role, name,
+description, and value; `St` plus `Is(flag)` expose compact live state bits;
+`Lv/U/El/Up` retain heading level, link URL, DOM owner, and semantic parent.
+The list is capped at 512 records and accessible name/description references at
+16 IDs. Password and file values are redacted. Labels, supported HTML and ARIA
+roles, landmarks, text, tables, lists, forms, disclosures, and gauges rebuild
+with the existing page rather than creating a second document tree.
+
+WinForms hosts use `V.Axs`, `V.Ax(element)`, `V.Ab(record)`, and `V.Ao` for the
+same model. `V` overrides its native accessibility provider and exposes MSAA
+children with rendered bounds, hierarchy, live values/states, protected
+passwords, keyboard shortcuts, hit testing, focus selection, and default
+actions. Add the framework `Accessibility` reference beside `Lea.Engine` and
+`Lea.Win`; the supplied Firespider target already does this. The standalone
+test browser and Firespider Inspector both include an Access tab for live
+inspection.
+
 Parsed table blocks expose `B.Tb`, with `Tb.Rs`, `Tr.Cs`, and compact `Tc` cell
 records. `V` paints these on the same lightweight surface with shared row
 heights, CSS cell boxes, wrapped text, bounded column spans, and resize reflow.
@@ -344,10 +362,10 @@ legacy control, native process, dialog, or direct file API.
 
 **View > Lea Inspector** (`F12`) and each Lea tab's context menu open a compact
 owned diagnostics window. Summary, Nodes, CSS, Requests, and Messages are built
-only from the bounded public `V.Dg()` snapshot. `R`/`F5` refresh, `C` clears the
-request activity through `V.Dcl()`, and `X`/Escape closes the window. Selecting
-a legacy tab produces a neutral selection message and never casts or reflects
-into the legacy browser control.
+only from the bounded public `V.Dg()` snapshot; Access reads `V.Axs`. `R`/`F5`
+refresh, `C` clears the request activity through `V.Dcl()`, and `X`/Escape
+closes the window. Selecting a legacy tab produces a neutral selection message
+and never casts or reflects into the legacy browser control.
 
 Firespider imports one `Lea/FirespiderLea.targets` file. The import supplies the
 two DLL references, partial VB adapter, and bundled local start page. Debug and

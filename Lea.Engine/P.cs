@@ -8,6 +8,7 @@ namespace Lea.Engine
         internal P()
         {
             Ls = new List<Ln>();
+            Axs = new List<Ax>();
             Bs = new List<B>();
             Fs = new List<Fi>();
             Dvs = new List<Dv>();
@@ -31,6 +32,7 @@ namespace Lea.Engine
         public int Sz { get; internal set; }
         public bool Ca { get; internal set; }
         public IList<Ln> Ls { get; private set; }
+        public IList<Ax> Axs { get; private set; }
         public IList<B> Bs { get; private set; }
         public IList<Fi> Fs { get; private set; }
         public IList<Dv> Dvs { get; private set; }

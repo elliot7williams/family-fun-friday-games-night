@@ -233,6 +233,38 @@ the attribute. Lea's default style also omits HTML-hidden nodes from layout,
 painting, links, fields, and hit regions. Author `display` CSS can override the
 presentation hint, but not the focus/access-key exclusion.
 
+Semantic accessibility uses compact `Ax` records. `P.Axs` is a document-order
+flat list capped at 512 records; `Ax.Up` links the nearest included semantic
+parent without duplicating the `N` tree, and `El` retains DOM ownership. Hosts
+can call `E.Axs(page)` or `E.Ax(page, element)`; `V` forwards these as `Axs` and
+`Ax(element)`. Each record uses `K` for role, `N` for accessible name, `D` for
+description, `V` for a bounded live value, `St` for state bits, `Lv` for a
+heading level, and `U` for a resolved link URL.
+
+Names follow a bounded author-first subset: up to 16 `aria-labelledby` ID
+references, then `aria-label`, HTML labels, native alt/caption/legend/summary
+text, supported name-from-content roles, and title fallback. Descriptions use
+`aria-describedby`, `aria-description`, then unused title text. Name,
+description, and value strings stop at 512 characters. Passwords and local file
+values always expose an empty `V`; mutable field values and disclosure/focus
+states remain live across retained records and normal rebuilds.
+
+`Ax.Is(flag)` tests `St`. The public flags are `Ds` disabled, `Ck` checked,
+`Mx` mixed, `Sl` selected, `Ex` expanded, `Co` collapsed, `Rq` required, `Ro`
+read-only, `Iv` invalid, `Fs` focusable, `Fc` focused, `Ps` pressed, `Bs` busy,
+and `Cr` current. Lea includes supported native structure/widgets and the first
+recognized concrete token from a bounded explicit `role` list. CSS display
+suppression, inherited visibility, closed disclosures, `aria-hidden`, unused
+image-map areas, and presentational roles stay out of the semantic list.
+
+On the custom view, `Ab(record)` returns visible client bounds and `Ao` returns
+the WinForms accessibility root. `V` exposes document, structure, text, link,
+image, table, list, gauge, and form children through MSAA; names, descriptions,
+live values, protected password state, focus, expansion, selection, assigned
+keyboard shortcuts, hierarchy, hit testing, and default actions all read the
+same `Ax` records. This is a bounded supported subset, not a claim of complete
+HTML-AAM, AccName, WAI-ARIA, MSAA, or UI Automation coverage.
+
 Computed style uses `S`: `F` is foreground color, `Bg` is background, `Fs` is
 font size, `Ff` is a font fallback list, `B` is bold, `I` is italic, and `D` is
 display behavior. `Td` is decoration using `n/u/s/us` for none, underline,

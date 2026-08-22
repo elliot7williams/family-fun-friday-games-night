@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Lea.Engine;
@@ -34,6 +35,7 @@ namespace Lea.Win.Test
         private readonly TextBox inspectorCss = InspectorText();
         private readonly TextBox inspectorRequests = InspectorText();
         private readonly TextBox inspectorMessages = InspectorText();
+        private readonly TextBox inspectorAccess = InspectorText();
 
         public TestWindow(string start)
         {
@@ -206,6 +208,7 @@ namespace Lea.Win.Test
             AddInspectorTab("CSS", inspectorCss);
             AddInspectorTab("Requests", inspectorRequests);
             AddInspectorTab("Messages", inspectorMessages);
+            AddInspectorTab("Access", inspectorAccess);
             split.Panel2.Controls.Add(inspectorTabs);
             split.Panel2.Controls.Add(header);
         }
@@ -261,6 +264,7 @@ namespace Lea.Win.Test
                 inspectorCss.Clear();
                 inspectorRequests.Clear();
                 inspectorMessages.Clear();
+                inspectorAccess.Clear();
                 return;
             }
             inspectorSummary.Lines = new[]
@@ -269,7 +273,7 @@ namespace Lea.Win.Test
                 data.U == null ? "" : data.U.ToString(),
                 "",
                 "Response   " + data.St + "  " + data.Ct + "  " + data.Sz + " bytes" + (data.Ca ? "  cache" : ""),
-                "Document   " + data.N + " nodes  " + data.B + " blocks",
+                "Document   " + data.N + " nodes  " + data.B + " blocks  " + v.Axs.Count + " access",
                 "Content    " + data.L + " links  " + data.F + " fields  " + data.C + " CSS rules",
                 "Commands   " + data.J + " accepted  " + data.V + " variables  " + data.M + " alerts",
                 "Engine     " + data.Cc + " cached  " + data.Ch + " reuses  " + data.Kc + " cookies"
@@ -286,6 +290,25 @@ namespace Lea.Win.Test
                 foreach (var item in data.Vs) messages.Add(item);
             }
             inspectorMessages.Lines = messages.ToArray();
+            inspectorAccess.Lines = AccessibilityLines();
+        }
+
+        private string[] AccessibilityLines()
+        {
+            var lines = new System.Collections.Generic.List<string>();
+            foreach (var item in v.Axs)
+            {
+                var depth = 0;
+                for (var parent = item.Up; parent != null && depth < 12; parent = parent.Up) depth++;
+                var line = new StringBuilder();
+                line.Append(new string(' ', depth * 2)).Append(item.K);
+                if (item.N.Length > 0) line.Append(" \"").Append(item.N).Append('"');
+                if (item.V.Length > 0) line.Append(" = ").Append(item.V);
+                if (item.St != 0) line.Append(" [").Append(item.St).Append(']');
+                if (item.Lv > 0) line.Append(" level ").Append(item.Lv);
+                lines.Add(line.ToString());
+            }
+            return lines.ToArray();
         }
 
         private static string[] Copy(System.Collections.Generic.IList<string> values)
@@ -312,9 +335,11 @@ namespace Lea.Win.Test
                 }
             var passed = inspectorSummary.Text.Contains("Response   200") &&
                 inspectorNodes.Text.Contains("body") && inspectorCss.Text.Contains("body") &&
-                inspectorRequests.Text.Contains("GET 200 file") && inspectorMessages.Text.Contains("commands") && keyPassed && accessPassed;
+                inspectorRequests.Text.Contains("GET 200 file") && inspectorMessages.Text.Contains("commands") &&
+                inspectorAccess.Text.Contains("document") && v.Ao != null && keyPassed && accessPassed;
             if (!String.IsNullOrWhiteSpace(output))
             {
+                if (inspectorTabs.TabPages.Count > 5) inspectorTabs.SelectedIndex = 5;
                 var full = Path.GetFullPath(output);
                 var folder = Path.GetDirectoryName(full);
                 if (!String.IsNullOrWhiteSpace(folder)) Directory.CreateDirectory(folder);

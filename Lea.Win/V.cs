@@ -85,6 +85,11 @@ namespace Lea.Win
             Controls.Add(ed);
         }
 
+        protected override AccessibleObject CreateAccessibilityInstance()
+        {
+            return new Va(this);
+        }
+
         public P At { get { return e.At; } }
         public Uri U { get { return At == null ? null : At.U; } }
         public Uri Bu { get { return At == null ? null : At.Bu; } }
@@ -116,6 +121,8 @@ namespace Lea.Win
         public int Ki { get { return FocusIndex(FocusTargets(true)) + 1; } }
         public Rectangle Kb { get { return FocusBounds(CurrentFocusTarget()); } }
         public int An { get { return AccessTargets().Count; } }
+        public IList<Ax> Axs { get { return At == null ? new List<Ax>().AsReadOnly() : At.Axs; } }
+        public AccessibleObject Ao { get { return AccessibilityObject ?? new Va(this); } }
         public Rectangle Rb(int index) { return index < 0 || index >= boxes.Count ? Rectangle.Empty : boxes[index].R; }
         public Rectangle Rc(int index) { return index < 0 || index >= boxes.Count ? Rectangle.Empty : boxes[index].C; }
         public Rectangle Fr { get { return FindRect(); } }
@@ -300,6 +307,32 @@ namespace Lea.Win
         public N Ft(string fragment) { return At == null ? null : e.Ft(At, fragment); }
         public N Q1(string query) { return At == null ? null : e.Q(At, query); }
         public IList<N> Qa(string query) { return At == null ? new List<N>().AsReadOnly() : e.Qa(At, query); }
+        public Ax Ax(N element) { return At == null ? null : e.Ax(At, element); }
+
+        // Ab returns one semantic record's visible client bounds.
+        public Rectangle Ab(Ax item)
+        {
+            item = CurrentAccessibility(item);
+            if (item == null) return Rectangle.Empty;
+            if (At.Axs.Count > 0 && Object.ReferenceEquals(item, At.Axs[0])) return ClientRectangle;
+            EnsureLayout();
+            var result = Rectangle.Empty;
+            foreach (var box in boxes)
+            {
+                if (box.Title || box.El == null || Hidden(box.S) || HtmlHidden(box.El)) continue;
+                if (item.El != null && (OwnsElement(item.El, box.El) || item.El.K == "#text" && Object.ReferenceEquals(item.El.Up, box.El)))
+                    AddAccessibleBounds(ref result, box.R, box.Clip, box.Fx);
+                if (box.B == null || box.B.Mp == null || item.El == null || item.El.K != "area") continue;
+                var source = MapSourceSize(box.B, box.C);
+                foreach (var area in box.B.Mp.As)
+                {
+                    if (!Object.ReferenceEquals(area.El, item.El)) continue;
+                    var rect = MapBounds(area, box.C, source);
+                    AddAccessibleBounds(ref result, rect, box.Clip, box.Fx);
+                }
+            }
+            return result;
+        }
 
         public int Fg(string input)
         {
@@ -324,6 +357,7 @@ namespace Lea.Win
             Dirty();
             OnChanged();
             Invalidate();
+            NotifyAccessibility(AccessibleEvents.Reorder);
             Alerts(At);
             GoRequest(At);
             return count;
@@ -407,6 +441,7 @@ namespace Lea.Win
                 sy = Math.Max(0, Math.Min(MaxScroll(), preserveScroll));
             OnChanged();
             Invalidate();
+            NotifyAccessibility(AccessibleEvents.Reorder);
             Alerts(page);
             if (done && Done != null) Done(this, EventArgs.Empty);
             if (done) GoRequest(page);
@@ -2201,9 +2236,9 @@ namespace Lea.Win
             return false;
         }
 
-        private List<Ax> AccessTargets()
+        private List<Kx> AccessTargets()
         {
-            var result = new List<Ax>();
+            var result = new List<Kx>();
             var targets = FocusTargets(false);
             targets.Sort(CompareAccessTargets);
             var elements = new HashSet<N>();
@@ -2214,7 +2249,7 @@ namespace Lea.Win
                 foreach (var key in e.Aks(target.El))
                 {
                     if (!keys.Add(key)) continue;
-                    result.Add(new Ax(target, key));
+                    result.Add(new Kx(target, key));
                     break;
                 }
                 if (result.Count == MaxAccessTargets) break;
@@ -2222,7 +2257,7 @@ namespace Lea.Win
             return result;
         }
 
-        private Ax AccessTarget(N element)
+        private Kx AccessTarget(N element)
         {
             if (element == null) return null;
             foreach (var target in AccessTargets())
@@ -2230,7 +2265,7 @@ namespace Lea.Win
             return null;
         }
 
-        private Ax AccessTarget(string key)
+        private Kx AccessTarget(string key)
         {
             var value = NormalizeAccessKey(key);
             if (value.Length == 0) return null;
@@ -2429,6 +2464,21 @@ namespace Lea.Win
                 result = result.IsEmpty ? rect : Rectangle.Union(result, rect);
             }
             return result;
+        }
+
+        private void AddAccessibleBounds(ref Rectangle result, Rectangle rect, Rectangle clip, bool fixedPosition)
+        {
+            rect = VisibleRect(rect, clip);
+            if (!fixedPosition) rect.Offset(0, -sy);
+            rect = Rectangle.Intersect(rect, ClientRectangle);
+            if (!rect.IsEmpty) result = result.IsEmpty ? rect : Rectangle.Union(result, rect);
+        }
+
+        private static bool OwnsElement(N root, N node)
+        {
+            for (var current = node; current != null; current = current.Up)
+                if (Object.ReferenceEquals(current, root)) return true;
+            return false;
         }
 
         private Rectangle ScreenRect(Kr region)
@@ -2731,6 +2781,7 @@ namespace Lea.Win
             edit.V = ed.Text;
             var restyle = ClearValidity(edit);
             OnEdited();
+            NotifyAccessibility(AccessibleEvents.ValueChange);
             if (restyle) Restyle(); else Invalidate();
         }
 
@@ -3163,6 +3214,7 @@ namespace Lea.Win
             focus = node;
             keySlot = node == null ? -1 : slot;
             if (restyle) Restyle(); else Invalidate();
+            NotifyAccessibility(AccessibleEvents.Focus);
         }
 
         private void Restyle()
@@ -3235,6 +3287,74 @@ namespace Lea.Win
             if (Changed != null) Changed(this, EventArgs.Empty);
         }
 
+        private void NotifyAccessibility(AccessibleEvents kind)
+        {
+            if (IsHandleCreated) AccessibilityNotifyClients(kind, -1);
+        }
+
+        private Ax AccessibilityRoot()
+        {
+            return At == null || At.Axs.Count == 0 ? null : At.Axs[0];
+        }
+
+        private List<Ax> AccessibilityChildren(Ax parent)
+        {
+            var result = new List<Ax>();
+            if (At == null) return result;
+            parent = CurrentAccessibility(parent);
+            if (parent == null) return result;
+            foreach (var item in At.Axs)
+                if (!Object.ReferenceEquals(item, parent) && Object.ReferenceEquals(item.Up, parent)) result.Add(item);
+            return result;
+        }
+
+        private Ax AccessibilityAt(Point screenPoint)
+        {
+            if (At == null) return null;
+            var point = PointToClient(screenPoint);
+            Ax found = null;
+            var size = Int64.MaxValue;
+            foreach (var item in At.Axs)
+            {
+                if (Object.ReferenceEquals(item, AccessibilityRoot())) continue;
+                var bounds = Ab(item);
+                if (!bounds.Contains(point)) continue;
+                var area = (long)bounds.Width * bounds.Height;
+                if (area > size) continue;
+                found = item;
+                size = area;
+            }
+            return found;
+        }
+
+        private bool FocusAccessibility(Ax item)
+        {
+            item = CurrentAccessibility(item);
+            if (item == null || !item.Is(Lea.Engine.Ax.Fs)) return false;
+            foreach (var target in FocusTargets(false))
+            {
+                if (!Object.ReferenceEquals(target.El, item.El)) continue;
+                Focus();
+                SetFocus(target.El, target.Sl);
+                ShowKeyTarget();
+                return true;
+            }
+            return false;
+        }
+
+        private Ax CurrentAccessibility(Ax item)
+        {
+            if (At == null || item == null) return null;
+            if (At.Axs.Contains(item)) return item;
+            return item.El == null ? null : e.Ax(At, item.El);
+        }
+
+        private async void ActivateAccessibility(Ax item)
+        {
+            if (!FocusAccessibility(item)) return;
+            await Ka();
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -3257,6 +3377,198 @@ namespace Lea.Win
             {
                 B = body;
                 Ct = type;
+            }
+        }
+
+        private sealed class Va : AccessibleObject
+        {
+            private readonly V v;
+
+            public Va(V owner) { v = owner; }
+
+            public override string Name
+            {
+                get { return v.T.Length == 0 ? "Lea document" : v.T; }
+                set { }
+            }
+            public override string Description { get { return "Lea web document"; } }
+            public override AccessibleRole Role { get { return AccessibleRole.Document; } }
+            public override AccessibleStates State
+            {
+                get { return AccessibleStates.Focusable | (v.Focused || v.ContainsFocus ? AccessibleStates.Focused : AccessibleStates.None); }
+            }
+            public override Rectangle Bounds { get { return v.RectangleToScreen(v.ClientRectangle); } }
+            public override int GetChildCount()
+            {
+                var root = v.AccessibilityRoot();
+                return root == null ? 0 : v.AccessibilityChildren(root).Count;
+            }
+            public override AccessibleObject GetChild(int index)
+            {
+                var root = v.AccessibilityRoot();
+                if (root == null) return null;
+                var children = v.AccessibilityChildren(root);
+                return index < 0 || index >= children.Count ? null : new Xa(v, children[index]);
+            }
+            public override AccessibleObject GetFocused()
+            {
+                var item = v.focus == null ? null : v.Ax(v.focus);
+                return item == null ? null : new Xa(v, item);
+            }
+            public override AccessibleObject HitTest(int x, int y)
+            {
+                var item = v.AccessibilityAt(new Point(x, y));
+                return item == null ? base.HitTest(x, y) : new Xa(v, item);
+            }
+        }
+
+        private sealed class Xa : AccessibleObject
+        {
+            private readonly V v;
+            private readonly Ax a;
+
+            public Xa(V owner, Ax item)
+            {
+                v = owner;
+                a = item;
+            }
+
+            private Ax A { get { return v.CurrentAccessibility(a) ?? a; } }
+
+            public override string Name
+            {
+                get { return A.N; }
+                set { }
+            }
+            public override string Description { get { return A.D; } }
+            public override string Value
+            {
+                get { return A.V; }
+                set { }
+            }
+            public override string KeyboardShortcut { get { return A.El == null ? "" : v.Kl(A.El); } }
+            public override string DefaultAction { get { return AccessibilityAction(A); } }
+            public override AccessibleRole Role { get { return AccessibilityRole(A.K); } }
+            public override AccessibleStates State { get { return AccessibilityState(A, v.Ab(A)); } }
+            public override Rectangle Bounds
+            {
+                get
+                {
+                    var bounds = v.Ab(A);
+                    return bounds.IsEmpty ? Rectangle.Empty : v.RectangleToScreen(bounds);
+                }
+            }
+            public override AccessibleObject Parent
+            {
+                get
+                {
+                    var root = v.AccessibilityRoot();
+                    var item = A;
+                    return item.Up == null || Object.ReferenceEquals(item.Up, root) ? v.Ao : new Xa(v, item.Up);
+                }
+            }
+            public override int GetChildCount() { return v.AccessibilityChildren(A).Count; }
+            public override AccessibleObject GetChild(int index)
+            {
+                var children = v.AccessibilityChildren(A);
+                return index < 0 || index >= children.Count ? null : new Xa(v, children[index]);
+            }
+            public override AccessibleObject GetFocused()
+            {
+                if (A.Is(Lea.Engine.Ax.Fc)) return this;
+                var item = v.focus == null ? null : v.Ax(v.focus);
+                return item != null && OwnsAx(A, item) ? new Xa(v, item) : null;
+            }
+            public override AccessibleObject HitTest(int x, int y)
+            {
+                var item = v.AccessibilityAt(new Point(x, y));
+                return item != null && OwnsAx(A, item) ? new Xa(v, item) : base.HitTest(x, y);
+            }
+            public override void DoDefaultAction() { v.ActivateAccessibility(A); }
+            public override void Select(AccessibleSelection flags)
+            {
+                if ((flags & (AccessibleSelection.TakeFocus | AccessibleSelection.TakeSelection)) != 0) v.FocusAccessibility(A);
+            }
+            public override AccessibleObject Navigate(AccessibleNavigation navdir)
+            {
+                if (navdir == AccessibleNavigation.FirstChild) return GetChild(0);
+                if (navdir == AccessibleNavigation.LastChild) return GetChild(GetChildCount() - 1);
+                if (navdir == AccessibleNavigation.Up) return Parent;
+                var item = A;
+                if (item.Up == null) return base.Navigate(navdir);
+                var siblings = v.AccessibilityChildren(item.Up);
+                var index = siblings.IndexOf(item);
+                if (navdir == AccessibleNavigation.Next || navdir == AccessibleNavigation.Right || navdir == AccessibleNavigation.Down) index++;
+                else if (navdir == AccessibleNavigation.Previous || navdir == AccessibleNavigation.Left) index--;
+                else return base.Navigate(navdir);
+                return index < 0 || index >= siblings.Count ? null : new Xa(v, siblings[index]);
+            }
+
+            private static bool OwnsAx(Ax root, Ax item)
+            {
+                for (var current = item; current != null; current = current.Up)
+                    if (Object.ReferenceEquals(current, root)) return true;
+                return false;
+            }
+
+            private static string AccessibilityAction(Ax item)
+            {
+                if (!item.Is(Lea.Engine.Ax.Fs)) return "";
+                var element = item.El;
+                var command = element != null && (element.A.ContainsKey("data-lea") || element.A.ContainsKey("onclick"));
+                if (item.K == "link" && (item.U != null || command)) return "Open";
+                if (item.K == "button" && (command || element != null && (element.K == "button" || element.K == "input" || element.K == "summary"))) return "Press";
+                if (item.K == "checkbox" && element != null && element.K == "input") return item.Is(Lea.Engine.Ax.Ck) ? "Uncheck" : "Check";
+                if (item.K == "radio" && element != null && element.K == "input") return "Select";
+                if ((item.K == "combobox" || item.K == "listbox") && element != null && element.K == "select") return "Open";
+                return "";
+            }
+
+            private static AccessibleRole AccessibilityRole(string role)
+            {
+                if (role == "link") return AccessibleRole.Link;
+                if (role == "button") return AccessibleRole.PushButton;
+                if (role == "checkbox") return AccessibleRole.CheckButton;
+                if (role == "radio") return AccessibleRole.RadioButton;
+                if (role == "textbox" || role == "searchbox" || role == "spinbutton") return role == "spinbutton" ? AccessibleRole.SpinButton : AccessibleRole.Text;
+                if (role == "combobox" || role == "listbox") return AccessibleRole.ComboBox;
+                if (role == "slider") return AccessibleRole.Slider;
+                if (role == "progressbar" || role == "meter") return AccessibleRole.ProgressBar;
+                if (role == "img") return AccessibleRole.Graphic;
+                if (role == "list") return AccessibleRole.List;
+                if (role == "listitem") return AccessibleRole.ListItem;
+                if (role == "table") return AccessibleRole.Table;
+                if (role == "row") return AccessibleRole.Row;
+                if (role == "cell") return AccessibleRole.Cell;
+                if (role == "columnheader") return AccessibleRole.ColumnHeader;
+                if (role == "rowheader") return AccessibleRole.RowHeader;
+                if (role == "separator") return AccessibleRole.Separator;
+                if (role == "status") return AccessibleRole.StatusBar;
+                if (role == "alert") return AccessibleRole.Alert;
+                if (role == "dialog") return AccessibleRole.Dialog;
+                if (role == "heading") return AccessibleRole.OutlineItem;
+                if (role == "text" || role == "paragraph" || role == "blockquote" || role == "code" || role == "caption" || role == "term" || role == "definition") return AccessibleRole.StaticText;
+                if (role == "time" || role == "timer") return AccessibleRole.Clock;
+                return AccessibleRole.Grouping;
+            }
+
+            private static AccessibleStates AccessibilityState(Ax item, Rectangle bounds)
+            {
+                var result = AccessibleStates.None;
+                if (item.Is(Lea.Engine.Ax.Fs)) result |= AccessibleStates.Focusable;
+                if (item.Is(Lea.Engine.Ax.Fc)) result |= AccessibleStates.Focused;
+                if (item.Is(Lea.Engine.Ax.Ds)) result |= AccessibleStates.Unavailable;
+                if (item.Is(Lea.Engine.Ax.Ck)) result |= AccessibleStates.Checked;
+                if (item.Is(Lea.Engine.Ax.Mx)) result |= AccessibleStates.Mixed;
+                if (item.Is(Lea.Engine.Ax.Sl)) result |= AccessibleStates.Selected;
+                if (item.Is(Lea.Engine.Ax.Ex)) result |= AccessibleStates.Expanded;
+                if (item.Is(Lea.Engine.Ax.Co)) result |= AccessibleStates.Collapsed;
+                if (item.Is(Lea.Engine.Ax.Ro)) result |= AccessibleStates.ReadOnly;
+                if (item.Is(Lea.Engine.Ax.Ps)) result |= AccessibleStates.Pressed;
+                if (item.Is(Lea.Engine.Ax.Bs)) result |= AccessibleStates.Busy;
+                if (item.El != null && item.El.K == "input" && item.El.Av("type").Equals("password", StringComparison.OrdinalIgnoreCase)) result |= AccessibleStates.Protected;
+                if (bounds.IsEmpty) result |= AccessibleStates.Offscreen;
+                return result;
             }
         }
 
@@ -3380,12 +3692,12 @@ namespace Lea.Win
             }
         }
 
-        private sealed class Ax
+        private sealed class Kx
         {
             public readonly Kt T;
             public readonly string K;
 
-            public Ax(Kt target, string key)
+            public Kx(Kt target, string key)
             {
                 T = target;
                 K = key;

@@ -566,6 +566,113 @@ namespace Lea.Tests
                     if (File.Exists(boundedAutofocusPath)) File.Delete(boundedAutofocusPath);
                 }
 
+                var accessibilityPath = Path.Combine(root, "LeaForge", "test-pages", "accessibility.html");
+                var accessibilityEngine = new E();
+                var accessibilityPage = accessibilityEngine.Go(accessibilityPath);
+                Ok(accessibilityPage.Axs.Count > 20 && accessibilityPage.Axs.Count <= 512, "bounded accessibility list");
+                Ok(Object.ReferenceEquals(accessibilityPage.Axs, accessibilityEngine.Axs(accessibilityPage)), "accessibility list alias");
+                Eq("document", accessibilityPage.Axs[0].K, "accessibility document role");
+                Eq("Lea Accessibility", accessibilityPage.Axs[0].N, "accessibility document name");
+                var headingAx = accessibilityEngine.Ax(accessibilityPage, ById(accessibilityPage.D, "main-title"));
+                Eq("heading", headingAx.K, "native heading role");
+                Eq(1, headingAx.Lv, "native heading level");
+                Eq("Semantic access", headingAx.N, "heading content name");
+                var userNode = ById(accessibilityPage.D, "user-name");
+                var userAx = accessibilityEngine.Ax(accessibilityPage, userNode);
+                Eq("textbox", userAx.K, "text field role");
+                Eq("Display name", userAx.N, "explicit HTML label name");
+                Eq("Shown beside your work.", userAx.D, "ARIA description references");
+                Eq("Elliot", userAx.V, "live text field value");
+                Ok(userAx.Is(Ax.Fs) && userAx.Is(Ax.Rq), "field focusable and required states");
+                Eq("form", userAx.Up.K, "semantic parent ownership");
+                accessibilityPage.Fs[0].V = "Updated name";
+                Eq("Updated name", userAx.V, "semantic field value stays live without rebuild");
+                var secretAx = accessibilityEngine.Ax(accessibilityPage, ById(accessibilityPage.D, "secret"));
+                Eq("Password", secretAx.N, "wrapping label name");
+                Eq("", secretAx.V, "password semantic value redaction");
+                Ok(secretAx.Is(Ax.Ro), "readonly semantic state");
+                var newsAx = accessibilityEngine.Ax(accessibilityPage, ById(accessibilityPage.D, "news"));
+                Eq("checkbox", newsAx.K, "checkbox role");
+                Ok(newsAx.Is(Ax.Ck), "live checked state");
+                accessibilityPage.Fs[2].C = false;
+                Ok(!newsAx.Is(Ax.Ck), "checked state updates without rebuild");
+                var customAx = accessibilityEngine.Ax(accessibilityPage, ById(accessibilityPage.D, "custom"));
+                Eq("checkbox", customAx.K, "first supported explicit role token");
+                Eq("Compact mode", customAx.N, "labelledby precedes aria-label");
+                Ok(customAx.Is(Ax.Mx) && customAx.Is(Ax.Fs), "mixed and focusable ARIA states");
+                Eq("progressbar", accessibilityEngine.Ax(accessibilityPage, ById(accessibilityPage.D, "load-progress")).K, "progress semantic role");
+                Eq("4", accessibilityEngine.Ax(accessibilityPage, ById(accessibilityPage.D, "load-progress")).V, "progress semantic value");
+                Eq("rowheader", accessibilityEngine.Ax(accessibilityPage, accessibilityEngine.Q(accessibilityPage, "th[scope=row]")).K, "table row-header role");
+                Ok(accessibilityEngine.Ax(accessibilityPage, ById(accessibilityPage.D, "presented-link")).Up.K != "presentation", "presentation role stays out of semantic list");
+                Ok(accessibilityEngine.Ax(accessibilityPage, ById(accessibilityPage.D, "hidden-button")) == null, "display-none subtree excluded from semantics");
+                Ok(accessibilityEngine.Ax(accessibilityPage, ById(accessibilityPage.D, "aria-hidden-button")) == null, "aria-hidden subtree excluded from semantics");
+                var summaryNode = ById(accessibilityPage.D, "more-summary");
+                var summaryAx = accessibilityEngine.Ax(accessibilityPage, summaryNode);
+                Ok(summaryAx.Is(Ax.Co) && accessibilityEngine.Ax(accessibilityPage, ById(accessibilityPage.D, "more-copy")) == null, "closed disclosure semantic state and exclusion");
+                Eq(1, accessibilityEngine.Ds(accessibilityPage, summaryNode), "semantic disclosure rebuild");
+                Ok(accessibilityEngine.Ax(accessibilityPage, summaryNode).Is(Ax.Ex) && accessibilityEngine.Ax(accessibilityPage, ById(accessibilityPage.D, "more-copy")) != null, "expanded disclosure semantic state and content");
+                accessibilityEngine.Dy(accessibilityPage, null, userNode);
+                Ok(accessibilityEngine.Ax(accessibilityPage, userNode).Is(Ax.Fc), "focused semantic state follows dynamic rebuild");
+
+                using (var accessibilityView = new V { Size = new Size(760, 560) })
+                {
+                    accessibilityView.CreateControl();
+                    var accessibilityHandle = accessibilityView.Handle;
+                    accessibilityView.Go(accessibilityPath);
+                    Paint(accessibilityView);
+                    Eq(accessibilityView.At.Axs.Count, accessibilityView.Axs.Count, "view accessibility list alias");
+                    var viewUser = accessibilityView.Ax(accessibilityView.Id("user-name"));
+                    Ok(viewUser != null && !accessibilityView.Ab(viewUser).IsEmpty, "view semantic bounds alias");
+                    var accessibleRoot = accessibilityView.Ao;
+                    Ok(accessibleRoot != null, "WinForms accessibility root provider");
+                    Eq(AccessibleRole.Document, accessibleRoot.Role, "WinForms document accessibility role");
+                    Ok(accessibleRoot.GetChildCount() > 0, "WinForms accessibility root children");
+                    var accessibleUser = AccessibleByNameAndRole(accessibleRoot, "Display name", AccessibleRole.Text, 0);
+                    Ok(accessibleUser != null, "WinForms labelled field accessibility child");
+                    Eq(AccessibleRole.Text, accessibleUser.Role, "WinForms text accessibility role");
+                    Eq("Elliot", accessibleUser.Value, "WinForms accessible field value");
+                    Eq("", accessibleUser.DefaultAction, "WinForms text field has no false default action");
+                    Ok((accessibleUser.State & AccessibleStates.Focusable) != 0 && !accessibleUser.Bounds.IsEmpty, "WinForms accessible focus and bounds");
+                    accessibleUser.Select(AccessibleSelection.TakeFocus);
+                    Eq("user-name", accessibilityView.Ke.Av("id"), "WinForms accessibility selection focuses Lea target");
+                    Ok((accessibleUser.State & AccessibleStates.Focused) != 0 && !accessibleUser.Bounds.IsEmpty, "WinForms accessible object survives semantic rebuild");
+                    var accessibleSecret = AccessibleByNameAndRole(accessibleRoot, "Password", AccessibleRole.Text, 0);
+                    Eq("", accessibleSecret.Value, "WinForms password value redaction");
+                    Ok((accessibleSecret.State & AccessibleStates.Protected) != 0, "WinForms password protected state");
+                    var accessibleLink = AccessibleByNameAndRole(accessibleRoot, "Home", AccessibleRole.Link, 0);
+                    Eq(AccessibleRole.Link, accessibleLink.Role, "WinForms link accessibility role");
+                    Eq("Alt+Shift+H", accessibleLink.KeyboardShortcut, "WinForms assigned keyboard shortcut");
+                    Eq("Open", accessibleLink.DefaultAction, "WinForms link default action");
+                    var accessibleSummary = AccessibleByNameAndRole(accessibleRoot, "More details", AccessibleRole.PushButton, 0);
+                    Ok((accessibleSummary.State & AccessibleStates.Collapsed) != 0, "WinForms collapsed disclosure state");
+                }
+
+                var boundedAccessibilityPath = Path.Combine(Path.GetTempPath(), "lea-accessibility-" + Guid.NewGuid().ToString("N") + ".html");
+                try
+                {
+                    var boundedAccessibility = new StringBuilder("<!doctype html><html><head><title>Bounded accessibility</title></head><body>");
+                    var references = new StringBuilder();
+                    for (var referenceIndex = 0; referenceIndex < 20; referenceIndex++)
+                    {
+                        boundedAccessibility.Append("<span id='r").Append(referenceIndex).Append("'>R").Append(referenceIndex).Append("</span>");
+                        if (referenceIndex > 0) references.Append(' ');
+                        references.Append('r').Append(referenceIndex);
+                    }
+                    boundedAccessibility.Append("<button id='refs' aria-labelledby='").Append(references).Append("'>fallback</button>");
+                    for (var accessibilityIndex = 0; accessibilityIndex < 600; accessibilityIndex++)
+                        boundedAccessibility.Append("<button id='x").Append(accessibilityIndex).Append("'>Action ").Append(accessibilityIndex).Append("</button>");
+                    boundedAccessibility.Append("</body></html>");
+                    File.WriteAllText(boundedAccessibilityPath, boundedAccessibility.ToString(), new UTF8Encoding(false));
+                    var boundedAccessibilityEngine = new E();
+                    var boundedAccessibilityPage = boundedAccessibilityEngine.Go(boundedAccessibilityPath);
+                    Eq(512, boundedAccessibilityPage.Axs.Count, "accessibility record count cap");
+                    Eq("R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15", boundedAccessibilityEngine.Ax(boundedAccessibilityPage, ById(boundedAccessibilityPage.D, "refs")).N, "accessibility ID reference cap");
+                }
+                finally
+                {
+                    if (File.Exists(boundedAccessibilityPath)) File.Delete(boundedAccessibilityPath);
+                }
+
                 var positioningPath = Path.Combine(root, "LeaForge", "test-pages", "positioning.html");
                 var positioningPage = engine.Go(positioningPath);
                 Eq(6, positioningPage.Bs.Count, "positioning block count");
@@ -2686,7 +2793,7 @@ namespace Lea.Tests
                 if (args.Length > 3) SaveEventRender(eventPath, args[3]);
                 if (args.Length > 4) SaveRender(tokenPath, args[4]);
 
-                Console.WriteLine("Lea smoke passed: bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: bounded semantic accessibility and WinForms MSAA children, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -2699,6 +2806,19 @@ namespace Lea.Tests
         private static void Paint(V view)
         {
             using (var image = Render(view)) { }
+        }
+
+        private static AccessibleObject AccessibleByNameAndRole(AccessibleObject root, string name, AccessibleRole role, int depth)
+        {
+            if (root == null || depth > 16) return null;
+            if (root.Name == name && root.Role == role) return root;
+            var count = root.GetChildCount();
+            for (var index = 0; index < count; index++)
+            {
+                var found = AccessibleByNameAndRole(root.GetChild(index), name, role, depth + 1);
+                if (found != null) return found;
+            }
+            return null;
         }
 
         private static Bitmap Render(V view)
