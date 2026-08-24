@@ -48,6 +48,9 @@ by the off-screen host smoke suite.
 The safe page language now uses `go(url)` to queue one host-controlled request.
 `E.Gt` consumes it headlessly; `V.Gu`/`Gr` route it through the test browser and
 Firespider while unsupported schemes and remote-to-file requests are rejected.
+One-argument `bg/fg/fs` still styles the body; two arguments now scope the same
+bounded color or 8..96px font values to one safe ID, with a 4KB inline-style cap
+and field-preserving compiled-CSS rebuild verified through every host layer.
 `E.Tm`/`V.Tm` now apply a bounded 100-60,000 ms network deadline to synchronous
 and asynchronous requests, preserving typed retryable timeout and distinct
 host-cancellation results.

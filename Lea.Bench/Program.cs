@@ -617,13 +617,19 @@ namespace Lea.Bench
             {
                 var engine = new E();
                 var page = engine.Go(Path.Combine(folder, "class-commands.html"));
-                Need(engine.Q(page, "#panel.hot") != null && engine.Q(page, "#remove.old") == null, "page class commands changed");
+                Need(page.Jc == 7 && engine.Q(page, "#panel.hot") != null && engine.Q(page, "#remove.old") == null, "page class or scoped style commands changed");
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "panel").S.F == "#0f4c81", "page scoped foreground command changed");
                 var field = page.Fs.First(item => item.El != null && item.El.Av("id") == "field");
                 field.V = "Preserved benchmark value";
                 Need(engine.Js(page, "rc('panel','hot'); ac('field','hot'); tc('toggle','hot');") == 3, "host class commands changed");
+                Need(engine.Js(page, "fg('panel','#334155'); bg('toggle','#e0f2fe'); fs('remove',24);") == 3, "host scoped style commands changed");
                 Need(engine.Q(page, "#panel.hot") == null && engine.Q(page, "#field.hot") != null, "class selectors were not rebuilt");
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "panel").S.F == "#334155" &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "toggle").S.Bg == "#e0f2fe" &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "remove").S.Fs == 24, "scoped style rebuild changed");
+                Need(engine.Js(page, "fg('missing','#fff'); bg('unsafe-style','#fff'); fs('panel',97);") == 0, "unsafe scoped style command was accepted");
                 Need(field.V == "Preserved benchmark value", "class rebuild replaced mutable field state");
-                return "ac/rc/tc restyle compiled CSS with 32 classes and 512 class-text characters bounded";
+                return "ac/rc/tc plus one/two-argument bg/fg/fs restyle compiled CSS with bounded IDs, colors, 8-96 px fonts, 32 classes, and retained fields";
             });
             AddProbe(probes, "Bounded element-state commands", delegate
             {
@@ -738,7 +744,7 @@ namespace Lea.Bench
             Capability(builder, "CSS", "Partial", "Compiled selector subset, cascade, box/text styles, visibility, positioning, transforms, responsive image sizing, and bounded row/column flex properties");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms block, inline, row/column flex, table, form, image, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
-            Capability(builder, "Lea command scripting", "Supported", "Bounded title, color, font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");
+            Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
             Capability(builder, "Flexbox", "Supported subset", "Row/row-reverse and fixed-height column/column-reverse containers, stable -64..64 order on nowrap rows and bounded columns, bounded row wrap, fixed/equal-share/weighted grow and integer weighted-shrink slots, explicit pixel min/max floors, pixel row/column gaps, basis, start/center/end/space-between/space-around/space-evenly justification, and container/item stretch/start/center/end cross alignment; no intrinsic min-content sizing, fractional factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis alignment, or auto-height column reordering guarantee");
             Capability(builder, "Grid, Canvas, SVG", "Not supported", "Future compatibility work; no silent fallback claim");

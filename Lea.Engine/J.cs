@@ -156,19 +156,21 @@ namespace Lea.Engine
                 return true;
             }
 
-            var body = Body(page.D);
-            if (body == null) return false;
             if (command.N == "bg" || command.N == "fg")
             {
+                var target = StyleTarget(page, command);
+                if (target == null) return false;
                 string color;
-                if (!Color(Expand(page, command.V), out color)) return false;
-                return SetStyle(body, command.N == "bg" ? "background-color" : "color", color);
+                if (!Color(Expand(page, command.W ?? command.V), out color)) return false;
+                return SetStyle(target, command.N == "bg" ? "background-color" : "color", color);
             }
             if (command.N == "fs")
             {
+                var target = StyleTarget(page, command);
+                if (target == null) return false;
                 int size;
-                if (!Size(Expand(page, command.V), out size)) return false;
-                return SetStyle(body, "font-size", size.ToString() + "px");
+                if (!Size(Expand(page, command.W ?? command.V), out size)) return false;
+                return SetStyle(target, "font-size", size.ToString() + "px");
             }
             return false;
         }
@@ -228,6 +230,9 @@ namespace Lea.Engine
             if (count == 2 && (name == "tx" || name == "text")) return new Cm("tx", first, second);
             if (count == 2 && (name == "vl" || name == "value")) return new Cm("vl", first, second);
             if (count == 2 && (name == "ck" || name == "check")) return new Cm("ck", first, second);
+            if (count == 2 && (name == "bg" || name == "background")) return new Cm("bg", first, second);
+            if (count == 2 && (name == "fg" || name == "color")) return new Cm("fg", first, second);
+            if (count == 2 && (name == "fs" || name == "fontsize")) return new Cm("fs", first, second);
             if (count == 2 && name == "ac") return new Cm("ac", first, second);
             if (count == 2 && name == "rc") return new Cm("rc", first, second);
             if (count == 2 && name == "tc") return new Cm("tc", first, second);
@@ -341,10 +346,17 @@ namespace Lea.Engine
             foreach (var child in node.C) Raw(child, value);
         }
 
-        private static bool SetStyle(N body, string name, string value)
+        private static N StyleTarget(P page, Cm command)
+        {
+            if (command.W == null) return Body(page.D);
+            var target = FindId(page.D, Id(Expand(page, command.V)));
+            return target != null && ClassTarget(target.K) ? target : null;
+        }
+
+        private static bool SetStyle(N target, string name, string value)
         {
             var result = new StringBuilder();
-            foreach (var item in body.Av("style").Split(';'))
+            foreach (var item in target.Av("style").Split(';'))
             {
                 var declaration = item.Trim();
                 var split = declaration.IndexOf(':');
@@ -353,7 +365,7 @@ namespace Lea.Engine
             }
             result.Append(name).Append(':').Append(value).Append(';');
             if (result.Length > 4096) return false;
-            body.A["style"] = result.ToString();
+            target.A["style"] = result.ToString();
             return true;
         }
 

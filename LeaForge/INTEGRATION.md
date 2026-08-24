@@ -330,7 +330,10 @@ provide the compact host bridge. Pages expose accepted-command count through
 for each new message and exposes it through `Am`; it never lets page code open a
 native dialog directly. Inline scripts may set the title, body background,
 foreground, and font size using `t/a/bg/fg/fs` or equivalent literal
-`document.*` assignments and `alert(...)`. `v/var` stores up to 16 small page
+`document.*` assignments and `alert(...)`. Two-argument `bg/fg/fs` forms safely
+scope those three styles to one bounded element ID, accept only existing
+hex/named-color or 8..96px values, reject metadata targets, and cap each inline
+style at 4,096 characters. `v/var` stores up to 16 small page
 variables and `${name}` substitutes them into later literals. `tx/text` replaces
 text under one safe element ID. `ac/rc/tc` add, remove, or toggle one bounded
 class token on a safe ID and reuse the compiled CSS rebuild while preserving

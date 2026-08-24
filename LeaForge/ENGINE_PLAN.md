@@ -108,6 +108,9 @@ a("Message")     alert
 bg("#fff")       page background
 fg("#222")       text color
 fs(12)           font size
+bg("id", "#fff") element background
+fg("id", "#222") element text color
+fs("id", 18)      element font size
 Go("url")        navigate
 ```
 
@@ -248,19 +251,25 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add a native-safe non-empty visible-range bridge outside the .NET Framework
-managed provider array boundary. Keep the stable empty-array fallback until
-returned range objects survive direct COM validation plus in-process and external
-MTA client calls without native handle corruption.
+Add compact `box-sizing` state and exact `content-box`/`border-box` geometry
+across normal blocks, flex items, fields, and tables. Preserve narrow reflow,
+min/max clamps, hit bounds, and the existing content-box fast path.
 
-The latest completed milestone added compact `S.As` item alignment plus
+The latest completed milestone overloaded `bg/fg/fs` with bounded two-argument
+forms that style one safe element ID while preserving their one-argument body
+forms. Existing named/hex colors, 8..96px font limits, safe target filtering,
+4KB inline-style cap, and field-preserving rebuild apply unchanged. Page scripts,
+manual host calls, click commands, WinForms, benchmark, and Firespider all verify
+the scoped cascade and rejection paths.
+
+The previous milestone added compact `S.As` item alignment plus
 `S.Jc=a/v` space-around and space-evenly distribution. A shared bounded integer
 helper now distributes main-axis room for rows and columns, while direct items
 can override container alignment with stretch/start/center/end. `flex.html`,
 exact remainder geometry, stretch, narrow reflow, paint/hit/flow tests,
 benchmark, and Firespider host probes cover the public state and rendered path.
 
-The previous milestone added compact `S.Or` state with stable signed -64..64
+The earlier milestone added compact `S.Or` state with stable signed -64..64
 ordering on nowrap rows and fixed-height columns, plus `S.Fd=c/y` for column and
 column-reverse. `Lea.Win` allocates bounded vertical grow/shrink slots with
 `Hn/Hx` protection, reverse main flow, justification, and cross-axis alignment;

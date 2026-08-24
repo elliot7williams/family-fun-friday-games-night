@@ -75,6 +75,9 @@ a("Message")     alert
 bg("#fff")       background
 fg("#222")       text color
 fs(12)           font size
+bg("id", "#fff") element background
+fg("id", "#222") element text color
+fs("id", 18)      element font size
 v("name", "Lea") variable
 tx("id", "Hi ${name}") element text
 ac("id", "hot")       add class

@@ -18,12 +18,15 @@
   <div id="limit">Class-count limit target</div>
   <div id="length">Class-length limit target</div>
   <input id="field" class="field" value="Editable class state">
-  <button id="flip" type="button" data-lea="tc('panel','hot'); tc('field','hot'); a('Class state changed')">Toggle class state</button>
+  <button id="flip" type="button" data-lea="tc('panel','hot'); tc('field','hot'); bg('panel','#dbeafe'); a('Class state changed')">Toggle class state</button>
   <script type="text/lea">
     v("state", "hot");
     ac("panel", "${state}");
     rc("remove", "old");
     tc("toggle", "hot");
+    fg("panel", "#0f4c81");
+    bg("toggle", "#fff4c2");
+    fs("remove", "21");
   </script>
 </body>
 </html>

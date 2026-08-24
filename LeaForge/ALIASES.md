@@ -35,6 +35,9 @@ a("Message")     alert message
 bg("#f0fff8")    body background
 fg("#164e3f")    body text color
 fs(20)           body font size
+bg("id", "#fff") element background
+fg("id", "#222") element text color
+fs("id", 18)      element font size
 v("who", "Lea")  bounded page variable
 tx("id", "Hi ${who}") element text
 ac("id", "hot")       add class
@@ -52,6 +55,11 @@ ck("id", "1")         set checked state; one argument toggles
 fo("id")              request focus
 go("next.html")        request host navigation
 ```
+
+The two-argument `bg/fg/fs` forms target one validated ID. They reuse the same
+hex/named-color and 8..96 pixel font bounds as the body forms, reject document
+metadata targets, cap the resulting inline style at 4,096 characters, and
+preserve mutable fields through the shared CSS rebuild.
 
 `P.Vs` exposes at most 16 case-insensitive variables. Names are one through 16
 letters, digits, or underscores and must begin with a letter; values are capped

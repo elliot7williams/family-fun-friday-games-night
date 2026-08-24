@@ -145,7 +145,8 @@ Firespider working tree contains unrelated in-progress changes.
 `Smoke.cs` loads two compiled Firespider forms off-screen and verifies Lea-first
 New Tab creation, the explicit legacy fallback, Inspector open/refresh/clear and legacy isolation, diagnostics,
 script/style, host-controlled `go`, and safe click execution, alert routing,
-state commands, retained fields, autofocus/access keys, keyboard navigation, local
+ID-scoped `bg/fg/fs` style commands, state commands, retained fields,
+autofocus/access keys, keyboard navigation, local
 open, find cycling, streamed download saves, page save, send-link metadata,
 close routes, source, and session restoration using temporary files rather than
 the user's data.
