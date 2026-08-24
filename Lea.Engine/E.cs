@@ -314,8 +314,9 @@ namespace Lea.Engine
             if (rules != null)
                 foreach (var rule in rules)
                 {
-                    if (result.Cs.Count == MaxDiagnosticRules) break;
-                    result.Cs.Add((rule.Md.Length == 0 ? "" : rule.Md + " ") + Short(rule.Q, 96) + " { " + Short(rule.V, 144) + " } [" + rule.W + "]");
+                    foreach (var declaration in rule.Ds) if (declaration.I) result.Ic++;
+                    if (result.Cs.Count < MaxDiagnosticRules)
+                        result.Cs.Add((rule.Md.Length == 0 ? "" : rule.Md + " ") + Short(rule.Q, 96) + " { " + Short(rule.V, 144) + " } [" + rule.W + "]");
                 }
             lock (requests)
                 foreach (var request in requests) result.Rs.Add(request);
@@ -2830,21 +2831,25 @@ namespace Lea.Engine
             foreach (var rule in rules)
                 if (MatchCss(node, rule)) matched.Add(rule);
             var inline = CssDeclarations(node.Av("style"));
-            foreach (var rule in matched) Custom(style, inherited, rule.Ds);
-            Custom(style, inherited, inline);
+            foreach (var rule in matched) Custom(style, inherited, rule.Ds, false);
+            Custom(style, inherited, inline, false);
+            foreach (var rule in matched) Custom(style, inherited, rule.Ds, true);
+            Custom(style, inherited, inline, true);
             TagStyle(style, node.K);
             if (node.A.ContainsKey("hidden")) style.D = "none";
-            foreach (var rule in matched) Decls(style, rule.Ds);
-            Decls(style, inline);
+            foreach (var rule in matched) Decls(style, rule.Ds, false);
+            Decls(style, inline, false);
+            foreach (var rule in matched) Decls(style, rule.Ds, true);
+            Decls(style, inline, true);
             if (node.A.ContainsKey("data-lea-hidden")) style.D = "none";
             return style;
         }
 
-        private static void Custom(S style, S inherited, Pd[] declarations)
+        private static void Custom(S style, S inherited, Pd[] declarations, bool important)
         {
             foreach (var declaration in declarations)
             {
-                if (!declaration.C) continue;
+                if (!declaration.C || declaration.I != important) continue;
                 var value = declaration.V;
                 if (value.Equals("initial", StringComparison.OrdinalIgnoreCase))
                 {
@@ -2871,11 +2876,11 @@ namespace Lea.Engine
             return style.Vr;
         }
 
-        private static void Decls(S style, Pd[] declarations)
+        private static void Decls(S style, Pd[] declarations, bool important)
         {
             foreach (var declaration in declarations)
             {
-                if (declaration.C) continue;
+                if (declaration.C || declaration.I != important) continue;
                 var name = declaration.N;
                 string value;
                 if (!VarValue(style, declaration.V, out value)) continue;
@@ -3004,7 +3009,34 @@ namespace Lea.Engine
             var custom = CustomName(name);
             if (!custom) name = name.ToLowerInvariant();
             if (name.Length == 0) return;
-            result.Add(new Pd(name, source.Substring(split + 1).Trim(), custom));
+            string declarationValue;
+            var important = CssImportant(source.Substring(split + 1), out declarationValue);
+            if (declarationValue.Length == 0) return;
+            result.Add(new Pd(name, declarationValue, custom, important));
+        }
+
+        private static bool CssImportant(string source, out string value)
+        {
+            value = (source ?? "").Trim();
+            var quote = '\0';
+            var parentheses = 0;
+            var marker = -1;
+            for (var index = 0; index < value.Length; index++)
+            {
+                var current = value[index];
+                if (quote != '\0')
+                {
+                    if (current == quote && (index == 0 || value[index - 1] != '\\')) quote = '\0';
+                    continue;
+                }
+                if (current == '"' || current == '\'') { quote = current; continue; }
+                if (current == '(') { parentheses++; continue; }
+                if (current == ')' && parentheses > 0) { parentheses--; continue; }
+                if (current == '!' && parentheses == 0) marker = index;
+            }
+            if (marker < 0 || !Regex.IsMatch(value.Substring(marker), "^!\\s*important\\s*$", RegexOptions.IgnoreCase)) return false;
+            value = value.Substring(0, marker).TrimEnd();
+            return true;
         }
 
         private static bool CustomName(string name)
@@ -4966,12 +4998,14 @@ namespace Lea.Engine
             public readonly string N;
             public readonly string V;
             public readonly bool C;
+            public readonly bool I;
 
-            public Pd(string name, string value, bool custom)
+            public Pd(string name, string value, bool custom, bool important)
             {
                 N = name;
                 V = value;
                 C = custom;
+                I = important;
             }
         }
 

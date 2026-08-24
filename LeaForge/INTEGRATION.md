@@ -303,6 +303,17 @@ declarations per block, 32 properties per style, 64-character names,
 characters. Missing, cyclic, oversized, and excess values fail safely into an
 authored fallback or leave the ordinary declaration unchanged.
 
+Compiled declaration records also retain a single important-priority bit. Lea
+recognizes only a final top-level literal `!important` marker, ignoring
+case while preserving identical text inside quotes and functions. Supported
+ordinary and custom properties run through normal stylesheet, normal inline,
+important stylesheet, and important inline tiers; specificity and source order
+continue to settle declarations within each stylesheet tier. This applies to
+hover/focus and active media rebuilds without replacing retained fields. Hosts
+can inspect the bounded active stylesheet count through `G.Ic` and the
+Inspector; inline declarations remain element-local and are not added to that
+aggregate.
+
 `S.Ff` carries up to eight CSS font-family fallbacks; `V` resolves and caches
 the first installed Windows family with a 32-entry bound. `S.Td` uses compact
 `n/u/s/us` decoration modes. Underline, line-through, native decoration tags,

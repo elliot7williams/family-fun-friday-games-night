@@ -31,6 +31,7 @@ namespace Lea.Engine
         public int M { get; internal set; }
         public int Vw { get; internal set; }
         public int Vc { get; internal set; }
+        public int Ic { get; internal set; }
         public int Cc { get; internal set; }
         public int Ch { get; internal set; }
         public int Kc { get; internal set; }

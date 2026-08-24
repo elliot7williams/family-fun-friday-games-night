@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **18**
+Post-1.0 hardening milestones completed: **19**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -14,7 +14,7 @@ modern web platform.
 | Core and alias API | 10% | 10% | Compact API, bounded diagnostics, repeatable reports, history, projects, backups |
 | Networking | 10% | 10% | Bounded request deadlines and downloads, private cookies, typed errors, validators, compression, memory LRU and optional persistent cache |
 | HTML and document tree | 20% | 20% | Bounded tokens, queries, base URLs and fragments, raw/RCDATA text, entities, recovery, HTML-hidden suppression, semantic accessibility, blocks, lists, disclosures, gauges, values, time/edit metadata, responsive image maps, tabindex focus, autofocus/access keys, tables |
-| CSS | 15% | 15% | Compiled selectors/declarations, bounded inherited custom properties and pixel-width media queries, dynamic hover/focus, content/border sizing, visibility/opacity, fonts, overflow, boxes, bounded ordered and distributed row/column flex properties |
+| CSS | 15% | 15% | Compiled selectors/declarations with two-tier important cascade, bounded inherited custom properties and pixel-width media queries, dynamic hover/focus, content/border sizing, visibility/opacity, fonts, overflow, boxes, bounded ordered and distributed row/column flex properties |
 | Layout and painting | 20% | 20% | Shared content/border geometry, ordered rows, bounded column/reverse flow, around/evenly distribution, item alignment, wrapping, grow/shrink, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Bounded multipart files, richer widgets, validation, responsive images, GET/POST submit |
 | Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/body and ID-scoped style/alert, class, visibility, disclosure, field-state, and focus commands |
@@ -116,6 +116,14 @@ modern web platform.
   characters, and 128 declarations per block. Missing, cyclic, oversized, and
   excess values fail into authored fallbacks while inline, hover, media,
   WinForms, benchmark, Inspector, and Firespider paths preserve live fields.
+- Added one compiled important-priority bit and a bounded two-tier cascade for
+  every supported ordinary and custom property. A final top-level literal
+  `!important` marker is stripped while quoted/function text stays intact;
+  stylesheet and inline priority, specificity, source order, shorthand and
+  longhand interaction, inherited variables, hover, media, and field retention
+  are verified. Compact `G.Ic` diagnostics and both Inspectors report the active
+  stylesheet count. The compatibility suite now covers 30 fixtures and 29
+  executable probes.
 
 ## Next gains
 

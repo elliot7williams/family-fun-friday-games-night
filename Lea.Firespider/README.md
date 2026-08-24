@@ -81,6 +81,14 @@ copy on override, and bounded nested `var()` fallbacks update through media and
 dynamic rebuilds without replacing fields. The host smoke verifies computed
 wide/narrow values and Inspector reporting.
 
+The same compiled records now retain a bounded important-priority bit. Final
+top-level literal `!important` markers create normal/important stylesheet and
+inline tiers for every supported ordinary and custom property while keeping
+specificity, source order, dynamic state, and responsive rebuilds. Firespider's
+Inspector reports active stylesheet declarations through `G.Ic`; the host smoke
+uses conflicting inline normal values to verify the important path and retained
+field identity without another browser runtime.
+
 Output and data elements also stay inside Lea's custom renderer. Firespider can
 read ordered `P.Dvs` values or the matching `B.Dv`/`Ir.Dv` paint ownership,
 including bounded output references, data machine values, and safe text/class

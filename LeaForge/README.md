@@ -42,6 +42,8 @@ LeaForge is where we can grow the more full-featured browser.
   `Vw` aliases, nested conditions, live WinForms resize, and retained fields
 - compiled declarations plus bounded inherited CSS custom properties with
   compact `S.Vc/Cv`, nested `var()` fallback, lazy maps, and strict limits
+- bounded normal/important cascade for supported declarations, with stylesheet
+  and inline tiers, compact `G.Ic` diagnostics, and quoted/function boundaries
 - live `:hover` and `:focus` restyling that preserves mutable form values
 - non-inherited `content-box`/`border-box` sizing across pixel dimensions,
   min/max clamps, flex basis, fields, images, tables, and cells

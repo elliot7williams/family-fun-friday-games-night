@@ -133,6 +133,7 @@ N/B/L/F   nodes/blocks/links/fields
 C/J/V/M   CSS rules/commands/variables/alerts
 Vw        applied viewport width in pixels
 Vc        document custom-property count
+Ic        active compiled important-declaration count
 Cc/Ch/Kc  cache entries/reuses/cookies
 Dc/Db     persistent cache entries/bytes
 Dh/Dw     persistent hits/stores
@@ -420,6 +421,15 @@ style keeps at most 32 properties; names are 3-64 ASCII letters/digits/hyphens/
 underscores, raw values are at most 512 characters, recursion is capped at eight,
 and expanded values at 1,024 characters. Missing, cyclic, invalid, oversized, or
 excess properties make that declaration use its fallback or remain ignored.
+
+Each compiled declaration also keeps one priority bit. A final, top-level,
+case-insensitive literal `!important` marker is removed from the value and moves
+that declaration into Lea's important tier; text inside quotes or functions is
+left untouched. Stylesheet normal, inline normal, stylesheet important, and
+inline important tiers apply in that order. Existing specificity, source order,
+shorthand/longhand mutation, custom properties, dynamic pseudo-classes, and
+media activation remain inside their tier. `G.Ic` counts active stylesheet
+important declarations without exposing their values.
 Pixel dimensions use `S.W` and `S.H`; positive bounds use `Wn/Wx` for minimum
 and maximum width and `Hn/Hx` for minimum and maximum height. `Bz` is `c/b` for
 the non-inherited `content-box` default or `border-box`; it applies the same

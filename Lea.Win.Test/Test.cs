@@ -274,7 +274,7 @@ namespace Lea.Win.Test
                 "",
                 "Response   " + data.St + "  " + data.Ct + "  " + data.Sz + " bytes" + (data.Ca ? "  cache" : ""),
                 "Document   " + data.N + " nodes  " + data.B + " blocks  " + v.Axs.Count + " access  " + data.Vw + "px viewport",
-                "Content    " + data.L + " links  " + data.F + " fields  " + data.C + " CSS rules  " + data.Vc + " custom",
+                "Content    " + data.L + " links  " + data.F + " fields  " + data.C + " CSS rules  " + data.Vc + " custom  " + data.Ic + " important",
                 "Commands   " + data.J + " accepted  " + data.V + " variables  " + data.M + " alerts",
                 "Engine     " + data.Cc + " cached  " + data.Ch + " reuses  " + data.Kc + " cookies"
             };

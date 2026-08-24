@@ -621,6 +621,40 @@ namespace Lea.Tests
                     if (File.Exists(customLimitPath)) File.Delete(customLimitPath);
                 }
 
+                var importantPath = Path.Combine(root, "LeaForge", "test-pages", "important-cascade.html");
+                var importantEngine = new E();
+                var importantPage = importantEngine.Go(importantPath);
+                Eq(19, importantEngine.Dg(importantPage).Ic, "important declaration diagnostic alias");
+                var sheetPriority = BlockById(importantPage, "sheet");
+                Ok(sheetPriority.S.F == "#a13b18" && sheetPriority.S.W == 140 && sheetPriority.S.Bg == "#7e22ce" && sheetPriority.S.Cv("--brand") == "#7e22ce", "stylesheet important overrides inline normal declarations");
+                var inlinePriority = BlockById(importantPage, "inline");
+                Ok(inlinePriority.S.F == "#0f4c81" && inlinePriority.S.W == 190 && inlinePriority.S.Bg == "#176b4d" && inlinePriority.S.Cv("--brand") == "#176b4d", "inline important overrides stylesheet important declarations");
+                var specificPriority = BlockById(importantPage, "specific");
+                Ok(specificPriority.S.F == "#0f4c81" && specificPriority.S.Pt == 9 && specificPriority.S.Pr == 9 && specificPriority.S.Pb == 9 && specificPriority.S.Pl == 9, "important specificity and source order");
+                var orderedPriority = BlockById(importantPage, "order");
+                Ok(orderedPriority.S.F == "#0f4c81" && orderedPriority.S.W == 91, "later normal declarations cannot replace important values");
+                var shorthandPriority = BlockById(importantPage, "shorthand");
+                Ok(shorthandPriority.S.Mt == 8 && shorthandPriority.S.Mr == 8 && shorthandPriority.S.Mb == 8 && shorthandPriority.S.Ml == 8 && shorthandPriority.S.Pt == 5 && shorthandPriority.S.Pr == 5 && shorthandPriority.S.Pb == 5 && shorthandPriority.S.Pl == 19, "important shorthand and longhand priority");
+                var customPriority = BlockById(importantPage, "custom");
+                Ok(customPriority.S.F == "#176b4d" && customPriority.S.Pl == 7 && customPriority.S.Cv("--tone") == "#176b4d", "important custom property cascade");
+                Ok(BlockById(importantPage, "custom-child").S.F == "#123f8c", "local normal custom property overrides inherited important value");
+                Eq(133, BlockById(importantPage, "fallback").S.W, "important custom property fallback");
+                var literalPriority = BlockById(importantPage, "literal");
+                Ok(literalPriority.S.Cv("--label") == "\"text !important\"" && literalPriority.S.Cv("--wrapped") == "var(--missing, 17px !important)", "quoted and nested important text remains a value");
+                var importantField = FieldById(importantPage, "field");
+                importantField.V = "Retained important field";
+                Ok(BlockById(importantPage, "hover").S.F == "#176b4d" && BlockById(importantPage, "hover").S.W == 130 && BlockById(importantPage, "media").S.W == 205 && importantField.S.W == 240, "initial important cascade state");
+                importantEngine.Dy(importantPage, ById(importantPage.D, "hover"), null);
+                Ok(BlockById(importantPage, "hover").S.F == "#a13b18" && BlockById(importantPage, "hover").S.W == 180, "hover important custom and ordinary declarations");
+                importantEngine.Dy(importantPage, ById(importantPage.D, "field"), null);
+                Ok(FieldById(importantPage, "field").S.W == 170 && Object.ReferenceEquals(importantField, FieldById(importantPage, "field")) && importantField.V == "Retained important field", "important hover rebuild preserves field state");
+                importantEngine.Dy(importantPage, null, null);
+                importantEngine.Vw = 480;
+                Ok(importantEngine.Dg(importantPage).Ic == 22 && BlockById(importantPage, "media").S.F == "#7e22ce" && BlockById(importantPage, "media").S.W == 115 && FieldById(importantPage, "field").S.W == 150, "responsive important declarations and diagnostics");
+                Ok(Object.ReferenceEquals(importantField, FieldById(importantPage, "field")) && importantField.V == "Retained important field", "important media rebuild preserves field state");
+                importantEngine.Vw = 840;
+                Ok(importantEngine.Dg(importantPage).Ic == 19 && BlockById(importantPage, "media").S.W == 205 && FieldById(importantPage, "field").S.W == 240, "wide important cascade restore");
+
                 var mapPath = Path.Combine(root, "LeaForge", "test-pages", "image-maps.html");
                 var mapEngine = new E();
                 var mapPage = mapEngine.Go(mapPath);
@@ -2465,6 +2499,22 @@ namespace Lea.Tests
                     Paint(view);
                     Eq(150, BlockRect(view, BlockById(view.At, "base")).Width, "responsive custom variable geometry");
                     Ok(Object.ReferenceEquals(customViewField, FieldById(view.At, "var-field")) && customViewField.V == "Retained custom view value", "custom view rebuild preserves field state");
+                    view.Size = new Size(840, 760);
+                    view.Go(importantPath);
+                    Paint(view);
+                    Eq(140, BlockRect(view, BlockById(view.At, "sheet")).Width, "important stylesheet view geometry");
+                    Eq(190, BlockRect(view, BlockById(view.At, "inline")).Width, "important inline view geometry");
+                    var importantViewField = FieldById(view.At, "field");
+                    importantViewField.V = "Retained important view value";
+                    Move(view, BlockRect(view, BlockById(view.At, "hover")));
+                    Paint(view);
+                    Ok(BlockById(view.At, "hover").S.F == "#a13b18" && BlockRect(view, BlockById(view.At, "hover")).Width == 180, "important hover view cascade");
+                    Move(view, new Point(-10, -10));
+                    view.Size = new Size(480, 760);
+                    Application.DoEvents();
+                    Paint(view);
+                    Eq(115, BlockRect(view, BlockById(view.At, "media")).Width, "important responsive view geometry");
+                    Ok(Object.ReferenceEquals(importantViewField, FieldById(view.At, "field")) && importantViewField.V == "Retained important view value" && importantViewField.S.W == 150, "important view rebuild preserves field state");
                     var mediaLoad = view.GoA(mediaPath);
                     while (!mediaLoad.IsCompleted)
                     {
@@ -3685,7 +3735,7 @@ namespace Lea.Tests
                 if (args.Length > 4) SaveRender(tokenPath, args[4]);
                 if (args.Length > 5) SaveStateRender(statePath, args[5]);
 
-                    Console.WriteLine("Lea smoke passed: bounded inherited CSS custom properties with compiled declarations, S.Vc/Cv and G.Vc aliases, nested and cycle fallbacks, hover/media rebuilds, and retained fields, bounded responsive CSS media queries with viewport aliases, live resize, diagnostics, and retained fields, optional bounded persistent cache with restart reuse, validators, private isolation, atomic recovery, LRU entry/byte ceilings and host aliases, bounded content-box and border-box geometry, body and ID-scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, shrink, reverse flow, and resize, semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                    Console.WriteLine("Lea smoke passed: bounded CSS important cascade with compiled priority, G.Ic diagnostics, stylesheet/inline tiers, custom properties, hover/media rebuilds, and retained fields, bounded inherited CSS custom properties with compiled declarations, S.Vc/Cv and G.Vc aliases, nested and cycle fallbacks, hover/media rebuilds, and retained fields, bounded responsive CSS media queries with viewport aliases, live resize, diagnostics, and retained fields, optional bounded persistent cache with restart reuse, validators, private isolation, atomic recovery, LRU entry/byte ceilings and host aliases, bounded content-box and border-box geometry, body and ID-scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, shrink, reverse flow, and resize, semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)

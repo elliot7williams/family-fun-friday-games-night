@@ -86,6 +86,11 @@ Dg/Dcl  diagnostics/clear request activity
     compact `S.Vc/Cv` plus `G.Vc` aliases. Nested `var()` fallback, cycles,
     inline styles, dynamic state, media activation, and strict count/name/value/
     depth/output ceilings are active.)
+11. Add a bounded important cascade. (Each compiled declaration carries one
+    priority bit; final top-level `!important` markers activate stylesheet and
+    inline important tiers while specificity/source order, shorthands, custom
+    properties, hover/focus, media activation, diagnostics, and retained fields
+    stay on the existing compact paths.)
 
 This is the largest speed milestone: fewer controls, less UI overhead, and one
 predictable rendering pass.
@@ -268,14 +273,18 @@ non-empty bridge survives both direct and external MTA clients. Continue host
 coverage and bounded HTML/CSS compatibility work without adding another browser
 runtime.
 
-The latest completed milestone added compiled declaration records and bounded
-inherited CSS custom properties. Compact `S.Vc/Cv` and `G.Vc` aliases sit over
-lazy copy-on-write maps; nested `var()` fallback, case-sensitive names, cycles,
-inline overrides, dynamic pseudo-classes, responsive values, strict count/name/
-value/depth/output ceilings, and field retention are covered by engine,
-WinForms, benchmark, Inspector, and Firespider host tests.
+The latest completed milestone added a bounded important cascade. One bit on
+each compiled declaration separates normal and important tiers for supported
+ordinary and custom properties. Final top-level literal markers, stylesheet
+versus inline priority, specificity/source order, shorthand interaction,
+quoted/function boundaries, inherited values, hover, media, field retention,
+compact `G.Ic` diagnostics, both Inspectors, and Firespider are covered.
 
-The previous milestone added bounded responsive CSS behind compact `E/V/P/G.Vw`
+The previous milestone added compiled declaration records and bounded inherited
+CSS custom properties behind `S.Vc/Cv` and `G.Vc`, with lazy copy-on-write maps,
+nested fallback, strict limits, dynamic state, and responsive rebuild coverage.
+
+The earlier responsive milestone added bounded CSS behind compact `E/V/P/G.Vw`
 aliases. Screen/all pixel conditions compile once and activate only at width
 boundaries while preserving fields.
 

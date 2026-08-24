@@ -495,7 +495,7 @@ Partial Class j
             "",
             "Response   " & data.St.ToString() & "  " & If(data.Ct, "") & "  " & data.Sz.ToString() & " bytes" & If(data.Ca, "  cache", ""),
             "Document   " & data.N.ToString() & " nodes  " & data.B.ToString() & " blocks  " & host.Axs.Count.ToString() & " access  " & data.Vw.ToString() & "px viewport",
-            "Content    " & data.L.ToString() & " links  " & data.F.ToString() & " fields  " & data.C.ToString() & " CSS rules  " & data.Vc.ToString() & " custom",
+            "Content    " & data.L.ToString() & " links  " & data.F.ToString() & " fields  " & data.C.ToString() & " CSS rules  " & data.Vc.ToString() & " custom  " & data.Ic.ToString() & " important",
             "Commands   " & data.J.ToString() & " accepted  " & data.V.ToString() & " variables  " & data.M.ToString() & " alerts",
             "Engine     " & data.Cc.ToString() & " memory  " & data.Ch.ToString() & " reuses  " & data.Kc.ToString() & " cookies",
             "Disk       " & data.Dc.ToString() & " entries  " & data.Db.ToString() & " bytes  " & data.Dh.ToString() & " hits  " & data.Dw.ToString() & " stores  " & data.Dr.ToString() & " recovers  " & data.De.ToString() & " evicts"
