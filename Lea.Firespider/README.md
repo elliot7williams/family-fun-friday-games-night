@@ -53,8 +53,9 @@ inherited painting, and table-cell reflow without adding a native browser or
 per-gauge WinForms control to Firespider.
 
 Bounded flex row and column flow also remains entirely inside Lea's custom
-renderer. Firespider can read compact `B.S.Fd/Jc/Ai/Gp/Wr/Rg/Fg/Sh/Fb/Or`
-state while fixed, equal-share, wrapped, ordered, integer weighted-growth, and
+renderer. Firespider can read compact `B.S.Fd/Jc/Ai/As/Gp/Wr/Rg/Fg/Sh/Fb/Or`
+state while fixed, equal-share, wrapped, ordered, around/evenly
+distributed, integer weighted-growth, and
 min-protected weighted-shrink items, row/column reversal, pixel basis and gaps,
 alignment, nesting, painting, and hit testing reuse the existing `V` surface
 without adding controls or another browser runtime.

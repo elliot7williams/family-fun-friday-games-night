@@ -2554,6 +2554,7 @@ namespace Lea.Engine
                 else if (name == "order") FlexOrder(style, value);
                 else if (name == "justify-content") JustifyContent(style, value);
                 else if (name == "align-items") AlignItems(style, value);
+                else if (name == "align-self") AlignSelf(style, value);
                 else if (name == "gap") Gap(style, value);
                 else if (name == "column-gap") OneGap(style, value, false);
                 else if (name == "row-gap") OneGap(style, value, true);
@@ -2739,6 +2740,8 @@ namespace Lea.Engine
             else if (align == "center") style.Jc = "c";
             else if (align == "flex-end" || align == "end" || align == "right") style.Jc = "e";
             else if (align == "space-between") style.Jc = "b";
+            else if (align == "space-around") style.Jc = "a";
+            else if (align == "space-evenly") style.Jc = "v";
         }
 
         private static void AlignItems(S style, string value)
@@ -2748,6 +2751,16 @@ namespace Lea.Engine
             else if (align == "flex-start" || align == "start" || align == "self-start") style.Ai = "s";
             else if (align == "center") style.Ai = "c";
             else if (align == "flex-end" || align == "end" || align == "self-end") style.Ai = "e";
+        }
+
+        private static void AlignSelf(S style, string value)
+        {
+            var align = (value ?? "").Trim().ToLowerInvariant();
+            if (align == "auto" || align == "initial" || align == "unset" || align == "revert") style.As = "";
+            else if (align == "stretch" || align == "normal") style.As = "t";
+            else if (align == "flex-start" || align == "start" || align == "self-start") style.As = "s";
+            else if (align == "center") style.As = "c";
+            else if (align == "flex-end" || align == "end" || align == "self-end") style.As = "e";
         }
 
         private static void Offset(S style, string value, int side)

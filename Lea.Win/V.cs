@@ -857,7 +857,7 @@ namespace Lea.Win
                     var resolvedOwner = resolved != null && owners.Contains(block) && (bs == null || bs.H == 0) && !StretchesHeight(bs) && resolved.TryGetValue(block, out resolvedHeight);
                     if (resolvedOwner) height = resolvedHeight;
                     if (StretchesHeight(bs)) height = ConstrainHeight(bs, Math.Max(1, containing.Height - bs.Tp.Value - bs.Bm.Value - mt - mb - bt - bb - pt - pb));
-                    if (flexChild && parent.Fh && parent.B.S.Ai == "t" && (bs == null || bs.H == 0))
+                    if (flexChild && parent.Fh && FlexAlign(parent, bs) == "t" && (bs == null || bs.H == 0))
                         height = ConstrainHeight(bs, Math.Max(1, parent.C.Bottom - parent.Ft - mt - mb - bt - bb - pt - pb));
                     if (flexChild && flex.C && flex.H >= 0)
                         height = ConstrainFlexHeight(bs, Math.Max(1, flex.H - mt - mb - bt - bb - pt - pb));
@@ -865,7 +865,7 @@ namespace Lea.Win
                     var link = inline == null && block.K == "a" ? block.U : null;
                     var outerWidth = bw + pl + pr + bl + br;
                     var outerHeight = height + pt + pb + bt + bb;
-                    var flexX = flexChild && flex.C ? FlexX(parent, outerWidth, ml, mr) : lx + ml;
+                    var flexX = flexChild && flex.C ? FlexX(parent, bs, outerWidth, ml, mr) : lx + ml;
                     var bx = PositionX(bs, flexX, outerWidth, containing, ml, mr);
                     var alignedY = flexChild && !flex.C ? FlexY(parent, bs, outerHeight, mt, mb, flowY) : flowY;
                     var by = PositionY(bs, alignedY, outerHeight, containing, mt, mb);
@@ -1053,11 +1053,7 @@ namespace Lea.Win
                 var used = baseGaps;
                 foreach (var item in visual) used += widths[item];
                 var leftover = Math.Max(0, context.C.Width - used);
-                var offset = 0;
-                if (style.Jc == "c") offset = leftover / 2;
-                else if (style.Jc == "e") offset = style.Fd == "x" ? 0 : leftover;
-                else if (style.Jc == "s" && style.Fd == "x") offset = leftover;
-                if (style.Jc == "b" && visual.Count > 1) lineGap += leftover / (visual.Count - 1);
+                var offset = FlexJustify(style.Jc, visual.Count, leftover, style.Fd == "x", ref lineGap);
 
                 if (style.Fd == "x") visual.Reverse();
                 var cursor = context.C.X + offset;
@@ -1090,11 +1086,7 @@ namespace Lea.Win
             var used = baseGaps;
             foreach (var item in items) used += heights[item];
             var leftover = Math.Max(0, context.C.Height - used);
-            var offset = 0;
-            if (style.Jc == "c") offset = leftover / 2;
-            else if (style.Jc == "e") offset = style.Fd == "y" ? 0 : leftover;
-            else if (style.Jc == "s" && style.Fd == "y") offset = leftover;
-            if (style.Jc == "b" && items.Count > 1) gap += leftover / (items.Count - 1);
+            var offset = FlexJustify(style.Jc, items.Count, leftover, style.Fd == "y", ref gap);
             if (style.Fd == "y") items.Reverse();
             var cursor = context.C.Y + offset;
             foreach (var item in items)
@@ -1115,6 +1107,27 @@ namespace Lea.Win
                 var order = leftOrder.CompareTo(rightOrder);
                 return order != 0 ? order : source[left].CompareTo(source[right]);
             });
+        }
+
+        private static int FlexJustify(string mode, int count, int leftover, bool reverse, ref int gap)
+        {
+            if (mode == "c") return leftover / 2;
+            if (mode == "e") return reverse ? 0 : leftover;
+            if (mode == "s") return reverse ? leftover : 0;
+            if (mode == "b" && count > 1) gap += leftover / (count - 1);
+            else if (mode == "a" && count > 0)
+            {
+                var space = leftover / count;
+                gap += space;
+                return space / 2;
+            }
+            else if (mode == "v" && count > 0)
+            {
+                var space = leftover / (count + 1);
+                gap += space;
+                return space;
+            }
+            return 0;
         }
 
         private static Dictionary<B, int> FlexSizes(IList<B> items, IDictionary<B, int> hints, int available, bool column)
@@ -1276,18 +1289,25 @@ namespace Lea.Win
         {
             if (parent == null || !parent.Fh || parent.B == null || parent.B.S == null) return flowY;
             var free = Math.Max(0, parent.C.Bottom - parent.Ft - outerHeight - mt - mb);
-            if (parent.B.S.Ai == "c") return parent.Ft + mt + free / 2;
-            if (parent.B.S.Ai == "e") return parent.Ft + mt + free;
+            var align = FlexAlign(parent, style);
+            if (align == "c") return parent.Ft + mt + free / 2;
+            if (align == "e") return parent.Ft + mt + free;
             return parent.Ft + mt;
         }
 
-        private static int FlexX(Lc parent, int outerWidth, int ml, int mr)
+        private static int FlexX(Lc parent, S style, int outerWidth, int ml, int mr)
         {
             if (parent == null || parent.B == null || parent.B.S == null) return parent == null ? ml : parent.C.X + ml;
             var free = Math.Max(0, parent.C.Width - outerWidth - ml - mr);
-            if (parent.B.S.Ai == "c") return parent.C.X + ml + free / 2;
-            if (parent.B.S.Ai == "e") return parent.C.X + ml + free;
+            var align = FlexAlign(parent, style);
+            if (align == "c") return parent.C.X + ml + free / 2;
+            if (align == "e") return parent.C.X + ml + free;
             return parent.C.X + ml;
+        }
+
+        private static string FlexAlign(Lc parent, S style)
+        {
+            return style != null && style.As.Length > 0 ? style.As : parent == null || parent.B == null || parent.B.S == null ? "t" : parent.B.S.Ai;
         }
 
         private static bool IsFlex(S style)

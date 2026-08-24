@@ -158,9 +158,11 @@ same pair. Relative stylesheets, links, images, forms, and downloads use `Bu`.
 
 Paint-ready blocks expose compact computed style through `B.S`. `D` is the
 normalized display text. For Lea's bounded flex subset, `Fd` is `r/x/c/y` for
-row, row-reverse, column, or column-reverse; `Jc` is `s/c/e/b` for start, center, end, or
-space-between; and `Ai` is `t/s/c/e` for stretch, start, center, or end. `Wr`
-is `n/w` for nowrap or wrap. `Gp` and `Rg` are 0..512 pixel column and row gaps
+row, row-reverse, column, or column-reverse; `Jc` is `s/c/e/b/a/v` for start,
+center, end, space-between, space-around, or space-evenly. `Ai` is the container
+cross-axis default and `As` is each direct item's override; both use `t/s/c/e`
+for stretch, start, center, or end, while empty `As` means auto. `Wr` is `n/w`
+for nowrap or wrap. `Gp` and `Rg` are 0..512 pixel column and row gaps
 from one/two-value `gap`, `column-gap`, or `row-gap`. Each direct item uses `Fg`
 for a 0..64 integer growth weight, `Sh` for a 0..64 integer shrink weight, and
 `Fb` for a 0..9,999 pixel basis; `Fb=-1` means auto/content. `Or` is a signed

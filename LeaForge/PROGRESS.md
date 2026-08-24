@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **12**
+Post-1.0 hardening milestones completed: **13**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -14,8 +14,8 @@ modern web platform.
 | Core and alias API | 10% | 10% | Compact API, bounded diagnostics, repeatable reports, history, projects, backups |
 | Networking | 10% | 10% | Bounded request deadlines and downloads, private cookies, typed errors, validators, compression, LRU cache |
 | HTML and document tree | 20% | 20% | Bounded tokens, queries, base URLs and fragments, raw/RCDATA text, entities, recovery, HTML-hidden suppression, semantic accessibility, blocks, lists, disclosures, gauges, values, time/edit metadata, responsive image maps, tabindex focus, autofocus/access keys, tables |
-| CSS | 15% | 15% | Compiled selectors, dynamic hover/focus, sizing, visibility/opacity, fonts, overflow, boxes, bounded ordered row/column flex properties |
-| Layout and painting | 20% | 20% | Ordered rows, bounded column/reverse flow, wrapping, grow/shrink, min protection, inset stretch, nested content, clipping, reflow, painting |
+| CSS | 15% | 15% | Compiled selectors, dynamic hover/focus, sizing, visibility/opacity, fonts, overflow, boxes, bounded ordered and distributed row/column flex properties |
+| Layout and painting | 20% | 20% | Ordered rows, bounded column/reverse flow, around/evenly distribution, item alignment, wrapping, grow/shrink, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Bounded multipart files, richer widgets, validation, responsive images, GET/POST submit |
 | Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/style/alert, class, visibility, disclosure, field-state, and focus commands |
 | Firespider integration and reliability | 10% | 10% | Lea-first New Tab/Ctrl+T, explicit legacy fallback, Inspector with Access view, MSAA/UIA surfaces including read-only text, host-safe focus shortcuts, navigation, sessions, source, host smokes |
@@ -79,6 +79,11 @@ modern web platform.
   `Hn/Hx` protection, and natural auto-height row gaps, then verified parser,
   exact geometry, paint, hits, following flow, resize, benchmark, and Firespider
   host paths.
+- Added compact `As` item alignment plus `Jc=a/v` around/evenly distribution,
+  shared the integer spacing helper across row and column axes, allowed direct
+  stretch/start/center/end overrides without changing container defaults, and
+  verified exact remainder geometry, stretching, narrow reflow, painting, link
+  hits, benchmark probes, and the Firespider host model.
 
 ## Next gains
 

@@ -71,8 +71,9 @@ Dg/Dcl  diagnostics/clear request activity
 8. Add a compact flexbox subset. (`flex`/`inline-flex`, row/row-reverse and
    fixed-height column/column-reverse, stable bounded order, fixed/equal-share
    auto/integer weighted grow and shrink slots, bounded row wrapping, explicit
-   pixel min/max floors, pixel basis and row/column gaps, main-axis distribution,
-   and cross-axis alignment are active. Intrinsic min-content sizing, fractional
+   pixel min/max floors, pixel basis and row/column gaps, between/around/evenly
+   main-axis distribution, and container/item cross-axis alignment are active.
+   Intrinsic min-content sizing, fractional
    factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis
    alignment, and auto-height column reordering remain outside this subset.)
 
@@ -252,16 +253,20 @@ managed provider array boundary. Keep the stable empty-array fallback until
 returned range objects survive direct COM validation plus in-process and external
 MTA client calls without native handle corruption.
 
-The latest completed milestone added compact `S.Or` state with stable signed
--64..64 ordering on nowrap rows and fixed-height columns, plus `S.Fd=c/y` for
-column and column-reverse. `Lea.Win` now allocates bounded vertical grow/shrink
-slots with `Hn/Hx` protection, row gaps, reverse main flow, justification, and
-cross-axis alignment; auto-height columns retain natural source-order stacking.
-`flex.html`, exact desktop/narrow geometry, paint/hit/flow tests, benchmark, and
-Firespider host probes cover the feature without claiming wrapped ordering,
-column wrapping, or auto-height reordering.
+The latest completed milestone added compact `S.As` item alignment plus
+`S.Jc=a/v` space-around and space-evenly distribution. A shared bounded integer
+helper now distributes main-axis room for rows and columns, while direct items
+can override container alignment with stretch/start/center/end. `flex.html`,
+exact remainder geometry, stretch, narrow reflow, paint/hit/flow tests,
+benchmark, and Firespider host probes cover the public state and rendered path.
 
-The previous milestone added compact `S.Sh` state and bounded integer
+The previous milestone added compact `S.Or` state with stable signed -64..64
+ordering on nowrap rows and fixed-height columns, plus `S.Fd=c/y` for column and
+column-reverse. `Lea.Win` allocates bounded vertical grow/shrink slots with
+`Hn/Hx` protection, reverse main flow, justification, and cross-axis alignment;
+auto-height columns retain natural source-order stacking.
+
+The earlier milestone added compact `S.Sh` state and bounded integer
 `flex-shrink`. One-, two-, and three-part shorthand retains its shrink weight;
 `flex:none` locks an item. `Lea.Win` clamps each outer pixel basis through
 `Wx/Wn`, removes line deficit by basis-scaled weight, iteratively freezes items

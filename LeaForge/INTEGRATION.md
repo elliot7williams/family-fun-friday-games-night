@@ -225,15 +225,16 @@ anywhere/break-all, and keep-all. These modes come from `word-break`,
 `overflow-wrap`, or `word-wrap`; `white-space:nowrap` still disables wrapping.
 
 Lea's bounded flex subset uses `S.D=flex/inline-flex` and compact
-`S.Fd/Jc/Ai/Gp/Wr/Rg/Fg/Sh/Fb/Or` values. The model preserves direct element items
+`S.Fd/Jc/Ai/As/Gp/Wr/Rg/Fg/Sh/Fb/Or` values. The model preserves direct element items
 under their visual container, while `V` allocates fixed, equal-share auto,
 integer weighted-growth, or integer weighted-shrink slots and reuses the
 existing child layout, clipping, stacking, hit, paint, and accessibility paths.
 Explicit pixel `Wn/Wx/Hn/Hx` floors and clamps participate in allocation; locked
 or exhausted minimums retain visible overflow. Row/row-reverse, fixed-height
 column/column-reverse, stable bounded order, row wrapping, pixel basis,
-one/two-value or separate row/column gaps, main-axis distribution, and
-cross-axis alignment are active. Auto-height columns retain source-order natural
+one/two-value or separate row/column gaps, start/center/end/between/around/evenly
+main-axis distribution, and container or per-item cross-axis alignment are active.
+Auto-height columns retain source-order natural
 stacking and row gaps. Intrinsic min-content sizing, fractional factors, wrapped
 ordering, column wrapping, wrap-reverse, wrapped cross-axis alignment,
 inline-level outer formatting, and auto-height column reordering remain explicit

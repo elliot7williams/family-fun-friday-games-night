@@ -1814,6 +1814,11 @@ namespace Lea.Tests
                     var orderThreeModel = BlockById(flexPage, "order-three");
                     var columnModel = BlockById(flexPage, "column");
                     var columnReverseModel = BlockById(flexPage, "column-reverse");
+                    var aroundModel = BlockById(flexPage, "around");
+                    var evenlyModel = BlockById(flexPage, "evenly");
+                    var aroundOneModel = BlockById(flexPage, "around-one");
+                    var aroundTwoModel = BlockById(flexPage, "around-two");
+                    var aroundThreeModel = BlockById(flexPage, "around-three");
                     var twoPartModel = BlockById(flexPage, "after-flex");
                     Eq("flex", spreadModel.S.D, "flex display model");
                     Eq("r", spreadModel.S.Fd, "flex row alias");
@@ -1848,10 +1853,18 @@ namespace Lea.Tests
                     Eq(2, orderThreeModel.S.Or, "explicit-plus flex order alias");
                     Eq("c", columnModel.S.Fd, "flex column alias");
                     Eq("y", columnReverseModel.S.Fd, "flex column-reverse alias");
+                    Eq("a", aroundModel.S.Jc, "space-around alias");
+                    Eq("v", evenlyModel.S.Jc, "space-evenly alias");
+                    Eq("t", aroundOneModel.S.As, "align-self stretch alias");
+                    Eq("c", aroundTwoModel.S.As, "align-self center alias");
+                    Eq("e", aroundThreeModel.S.As, "align-self end alias");
+                    Eq("s", BlockById(flexPage, "evenly-one").S.As, "align-self start alias");
                     Ok(Object.ReferenceEquals(BlockById(flexPage, "first").Up, spreadModel) && Object.ReferenceEquals(BlockById(flexPage, "nested-copy").Up, BlockById(flexPage, "auto-nested")), "flex visual ownership");
-                    view.Size = new Size(720, 1500);
+                    view.Size = new Size(720, 1900);
                     view.Go(flexPath);
                     var wideColumnWidth = 0;
+                    var wideAroundWidth = 0;
+                    var wideAroundInset = 0;
                     using (var flexPaint = Render(view))
                     {
                         var spread = BlockRect(view, BlockById(view.At, "spread"));
@@ -1966,12 +1979,39 @@ namespace Lea.Tests
                         var columnAutoTwo = BlockOuterRect(view, BlockById(view.At, "column-auto-two"));
                         Eq(7, columnAutoTwo.Top - columnAutoOne.Bottom, "auto-height column row gap");
                         Eq(columnAuto.Left + columnAuto.Width / 2, columnAutoOne.Left + columnAutoOne.Width / 2, "auto-height column cross alignment");
-                        Ok(BlockOuterRect(view, BlockById(view.At, "after-flex")).Top > columnAuto.Bottom, "normal flow follows row and column flex layouts");
+
+                        var around = BlockRect(view, BlockById(view.At, "around"));
+                        var aroundOne = BlockOuterRect(view, BlockById(view.At, "around-one"));
+                        var aroundTwo = BlockOuterRect(view, BlockById(view.At, "around-two"));
+                        var aroundThree = BlockOuterRect(view, BlockById(view.At, "around-three"));
+                        wideAroundWidth = around.Width;
+                        wideAroundInset = aroundOne.Left - around.Left;
+                        Eq(26, wideAroundInset, "space-around leading space");
+                        Eq(63, aroundTwo.Left - aroundOne.Right, "space-around first distributed gap");
+                        Eq(63, aroundThree.Left - aroundTwo.Right, "space-around second distributed gap");
+                        Eq(90, aroundOne.Height, "align-self stretch overrides parent start");
+                        Eq(around.Top + 35, aroundTwo.Top, "align-self row center");
+                        Eq(around.Bottom, aroundThree.Bottom, "align-self row end");
+                        Ok(!HitRect(view, "around.html").IsEmpty, "space-around link hit target");
+
+                        var evenly = BlockRect(view, BlockById(view.At, "evenly"));
+                        var evenlyOne = BlockOuterRect(view, BlockById(view.At, "evenly-one"));
+                        var evenlyTwo = BlockOuterRect(view, BlockById(view.At, "evenly-two"));
+                        var evenlyThree = BlockOuterRect(view, BlockById(view.At, "evenly-three"));
+                        Eq(27, evenlyOne.Top - evenly.Top, "space-evenly leading space");
+                        Eq(37, evenlyTwo.Top - evenlyOne.Bottom, "space-evenly first distributed gap");
+                        Eq(37, evenlyThree.Top - evenlyTwo.Bottom, "space-evenly second distributed gap");
+                        Eq(evenly.Left, evenlyOne.Left, "align-self column start");
+                        Eq(evenly.Left + evenly.Width / 2, evenlyTwo.Left + evenlyTwo.Width / 2, "align-self column center");
+                        Eq(evenly.Right, evenlyThree.Right, "align-self column end");
+                        Ok(BlockOuterRect(view, BlockById(view.At, "after-flex")).Top > evenly.Bottom, "normal flow follows distributed flex layouts");
                         Ok(ColorDistance(CenterPixel(flexPaint, first), Color.FromArgb(230, 239, 255)) < 8, "flex item paint");
                         Ok(ColorDistance(CenterPixel(flexPaint, wrapOne), Color.FromArgb(243, 232, 255)) < 8, "wrapped flex item paint");
                         Ok(ColorDistance(flexPaint.GetPixel(columnThree.Left + 4, columnThree.Top + 4), Color.FromArgb(220, 239, 232)) < 8, "column flex item paint");
+                        Ok(ColorDistance(flexPaint.GetPixel(aroundOne.Left + 4, aroundOne.Top + 4), Color.FromArgb(223, 232, 251)) < 8, "space-around item paint");
+                        Ok(ColorDistance(flexPaint.GetPixel(evenlyThree.Left + 4, evenlyThree.Top + 4), Color.FromArgb(247, 231, 202)) < 8, "space-evenly item paint");
                     }
-                    view.Size = new Size(360, 1500);
+                    view.Size = new Size(360, 1900);
                     Paint(view);
                     var narrowAuto = BlockRect(view, BlockById(view.At, "auto"));
                     var narrowLink = BlockOuterRect(view, BlockById(view.At, "auto-link"));
@@ -1992,6 +2032,9 @@ namespace Lea.Tests
                     var narrowColumnOne = BlockOuterRect(view, BlockById(view.At, "column-one"));
                     Ok(narrowColumn.Width < wideColumnWidth, "column cross axis reflows in narrow view");
                     Eq(narrowColumn.Left + narrowColumn.Width / 2, narrowColumnOne.Left + narrowColumnOne.Width / 2, "narrow column remains centered");
+                    var narrowAround = BlockRect(view, BlockById(view.At, "around"));
+                    var narrowAroundOne = BlockOuterRect(view, BlockById(view.At, "around-one"));
+                    Ok(narrowAround.Width < wideAroundWidth && narrowAroundOne.Left - narrowAround.Left < wideAroundInset, "space-around reflows in narrow view");
                     view.Size = new Size(720, 760);
                     var boxes = Path.Combine(root, "LeaForge", "test-pages", "boxes.html");
                     var boxPage = engine.Go(boxes);
@@ -3287,7 +3330,7 @@ namespace Lea.Tests
                 if (args.Length > 4) SaveRender(tokenPath, args[4]);
                 if (args.Length > 5) SaveStateRender(statePath, args[5]);
 
-                    Console.WriteLine("Lea smoke passed: bounded ordered row and column flex layout with wrapping, growth, shrink, reverse flow, and resize, semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                    Console.WriteLine("Lea smoke passed: bounded ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, shrink, reverse flow, and resize, semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)

@@ -36,8 +36,8 @@ map preserves one existing model while hidden; `E.Kp` and `V` consume one focus
 request without exposing files, passwords, arbitrary attributes, or native UI.
 `flex.html` keeps the benchmark at 26 fixtures and 24 executable compatibility
 probes. Bounded `flex`/`inline-flex` row and column flow uses compact
-`Fd/Jc/Ai/Gp/Wr/Rg/Fg/Sh/Fb/Or` state for direction, stable order,
-distribution, alignment, wrapping, row/column gaps, integer growth/shrink, and
+`Fd/Jc/Ai/As/Gp/Wr/Rg/Fg/Sh/Fb/Or` state for direction, stable order,
+around/evenly distribution, container/item alignment, wrapping, row/column gaps, integer growth/shrink, and
 pixel basis. Fixed, equal-share auto, wrapped, growing, min-protected, and locked
 slots retain direct item ownership and reuse nested layout, painting, hits,
 narrow overflow, and Firespider coverage.
