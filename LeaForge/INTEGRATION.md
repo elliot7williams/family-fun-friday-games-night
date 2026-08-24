@@ -225,15 +225,18 @@ anywhere/break-all, and keep-all. These modes come from `word-break`,
 `overflow-wrap`, or `word-wrap`; `white-space:nowrap` still disables wrapping.
 
 Lea's bounded flex-row subset uses `S.D=flex/inline-flex` and compact
-`S.Fd/Jc/Ai/Gp/Wr/Rg/Fg/Fb` values. The model preserves direct element items
-under their visual container, while `V` allocates fixed, equal-share auto, or
-integer weighted-growth slots and reuses the existing child layout, clipping,
-stacking, hit, paint, and accessibility paths. Row and row-reverse, bounded
+`S.Fd/Jc/Ai/Gp/Wr/Rg/Fg/Sh/Fb` values. The model preserves direct element items
+under their visual container, while `V` allocates fixed, equal-share auto,
+integer weighted-growth, or integer weighted-shrink slots and reuses the
+existing child layout, clipping, stacking, hit, paint, and accessibility paths.
+Explicit pixel `Wn/Wx` floors and clamps participate in allocation; locked or
+exhausted minimums retain visible overflow. Row and row-reverse, bounded
 wrapping, pixel basis, one/two-value or separate row/column gaps,
 start/center/end/space-between distribution, and single-line
-stretch/start/center/end alignment are active. Shrink, order, column flow,
-wrap-reverse, wrapped cross-axis alignment, inline-level outer formatting, and a
-guaranteed auto-height stretch pass remain explicit compatibility limits.
+stretch/start/center/end alignment are active. Intrinsic min-content sizing,
+fractional factors, order, column flow, wrap-reverse, wrapped cross-axis
+alignment, inline-level outer formatting, and a guaranteed auto-height stretch
+pass remain explicit compatibility limits.
 
 Inherited visibility uses `S.Vi` with `v/h/c`. Hidden and collapsed content
 keeps its layout rectangle but produces no pixels, links, field hits, or editor.

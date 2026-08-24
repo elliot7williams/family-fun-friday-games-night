@@ -70,10 +70,12 @@ Dg/Dcl  diagnostics/clear request activity
    and narrow-view reflow are active.)
 8. Add a compact flexbox subset. (`flex`/`inline-flex`, row and row-reverse,
    fixed, equal-share auto, and integer weighted-growth slots, bounded wrapping,
-   pixel basis and row/column gaps, start/center/end/space-between distribution,
-   and single-line stretch/start/center/end alignment are active. Shrink, order,
-   columns, wrap-reverse, wrapped cross-axis alignment, and a guaranteed
-   auto-height stretch pass remain outside this subset.)
+   integer weighted shrink with explicit pixel min/max floors, pixel basis and
+   row/column gaps, start/center/end/space-between distribution, and single-line
+   stretch/start/center/end alignment are active. Intrinsic min-content sizing,
+   fractional factors, order, columns, wrap-reverse, wrapped cross-axis
+   alignment, and a guaranteed auto-height stretch pass remain outside this
+   subset.)
 
 This is the largest speed milestone: fewer controls, less UI overhead, and one
 predictable rendering pass.
@@ -251,15 +253,20 @@ managed provider array boundary. Keep the stable empty-array fallback until
 returned range objects survive direct COM validation plus in-process and external
 MTA client calls without native handle corruption.
 
-The latest completed milestone extended bounded CSS flex rows with compact
+The latest completed milestone added compact `S.Sh` state and bounded integer
+`flex-shrink`. One-, two-, and three-part shorthand now retains its shrink
+weight; `flex:none` locks an item. `Lea.Win` clamps each outer pixel basis through
+`Wx/Wn`, removes line deficit by basis-scaled weight, iteratively freezes items
+at explicit minimums, and preserves measurable overflow when no legal room
+remains. `flex.html`, desktop/narrow geometry, benchmark, and Firespider host
+probes cover weighted and locked cases without claiming intrinsic min-content,
+fractional factors, order, columns, wrap-reverse, or wrapped cross-axis alignment.
+
+The previous milestone extended bounded CSS flex rows with compact
 `S.Wr/Rg/Fg/Fb` aliases for wrapping, row gaps, integer growth, and pixel basis.
 One/two-value and separate gaps plus common `flex` shorthand feed a per-line
 allocator that retains row reversal, distributes free width by growth weight,
-and advances wrapped lines by settled item height. The existing
-`S.Fd/Jc/Ai/Gp` path and direct ownership remain intact. `flex.html`, narrow
-resize, benchmark, and Firespider host probes cover exact geometry, painting,
-hits, and following flow without claiming shrink, order, columns, wrap-reverse,
-or wrapped cross-axis alignment.
+and advances wrapped lines by settled item height.
 
 The previous milestone added bounded `op/cl/tg` page commands for
 opening, closing, and toggling `details` by its own ID or first direct `summary`.

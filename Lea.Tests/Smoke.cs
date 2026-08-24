@@ -1806,6 +1806,9 @@ namespace Lea.Tests
                     var growModel = BlockById(flexPage, "grow");
                     var growOneModel = BlockById(flexPage, "grow-one");
                     var growTwoModel = BlockById(flexPage, "grow-two");
+                    var shrinkOneModel = BlockById(flexPage, "shrink-one");
+                    var shrinkTwoModel = BlockById(flexPage, "shrink-two");
+                    var shrinkLockModel = BlockById(flexPage, "shrink-lock");
                     var twoPartModel = BlockById(flexPage, "after-flex");
                     Eq("flex", spreadModel.S.D, "flex display model");
                     Eq("r", spreadModel.S.Fd, "flex row alias");
@@ -1827,7 +1830,14 @@ namespace Lea.Tests
                     Eq(2, growTwoModel.S.Fg, "weighted flex grow alias");
                     Eq(80, growTwoModel.S.Fb, "weighted flex basis alias");
                     Eq(1, twoPartModel.S.Fg, "two-part flex grow alias");
+                    Eq(1, twoPartModel.S.Sh, "two-part flex shrink alias");
                     Eq(0, twoPartModel.S.Fb, "unitless flex shrink is not a pixel basis");
+                    Eq(1, shrinkOneModel.S.Sh, "default weighted shrink alias");
+                    Eq(2, shrinkTwoModel.S.Sh, "double weighted shrink alias");
+                    Eq(0, shrinkLockModel.S.Sh, "locked shrink alias");
+                    Eq(140, shrinkLockModel.S.Fb, "locked flex basis alias");
+                    Eq(100, shrinkLockModel.S.Wn, "flex minimum width model");
+                    Eq(100, shrinkLockModel.S.Wx, "flex maximum width model");
                     Ok(Object.ReferenceEquals(BlockById(flexPage, "first").Up, spreadModel) && Object.ReferenceEquals(BlockById(flexPage, "nested-copy").Up, BlockById(flexPage, "auto-nested")), "flex visual ownership");
                     view.Go(flexPath);
                     using (var flexPaint = Render(view))
@@ -1890,7 +1900,19 @@ namespace Lea.Tests
                         Eq(8, growTwo.Left - growOne.Right, "weighted first gap");
                         Eq(8, growFixed.Left - growTwo.Right, "weighted second gap");
                         Eq(grow.Right, growFixed.Right, "weighted grow fills row");
-                        Ok(BlockOuterRect(view, BlockById(view.At, "after-flex")).Top > BlockOuterRect(view, BlockById(view.At, "grow")).Bottom, "normal flow follows wrapped and growing rows");
+
+                        var shrink = BlockRect(view, BlockById(view.At, "shrink"));
+                        var shrinkOne = BlockOuterRect(view, BlockById(view.At, "shrink-one"));
+                        var shrinkTwo = BlockOuterRect(view, BlockById(view.At, "shrink-two"));
+                        var shrinkLock = BlockOuterRect(view, BlockById(view.At, "shrink-lock"));
+                        Eq(shrink.Left, shrinkOne.Left, "weighted shrink starts at content edge");
+                        Eq(140, shrinkOne.Width, "single-weight shrink width");
+                        Eq(100, shrinkTwo.Width, "double-weight shrink width");
+                        Eq(100, shrinkLock.Width, "locked max-clamped width");
+                        Eq(10, shrinkTwo.Left - shrinkOne.Right, "shrink first gap");
+                        Eq(10, shrinkLock.Left - shrinkTwo.Right, "shrink second gap");
+                        Eq(shrink.Right, shrinkLock.Right, "weighted shrink fills row");
+                        Ok(BlockOuterRect(view, BlockById(view.At, "after-flex")).Top > BlockOuterRect(view, BlockById(view.At, "shrink")).Bottom, "normal flow follows wrapped, growing, and shrinking rows");
                         Ok(ColorDistance(CenterPixel(flexPaint, first), Color.FromArgb(230, 239, 255)) < 8, "flex item paint");
                         Ok(ColorDistance(CenterPixel(flexPaint, wrapOne), Color.FromArgb(243, 232, 255)) < 8, "wrapped flex item paint");
                     }
@@ -1903,6 +1925,14 @@ namespace Lea.Tests
                     var narrowWrapOne = BlockOuterRect(view, BlockById(view.At, "wrap-one"));
                     var narrowWrapTwo = BlockOuterRect(view, BlockById(view.At, "wrap-two"));
                     Ok(narrowWrapTwo.Top > narrowWrapOne.Bottom, "wrapped flex moves to one item per narrow line");
+                    var narrowShrink = BlockRect(view, BlockById(view.At, "shrink"));
+                    var narrowShrinkOne = BlockOuterRect(view, BlockById(view.At, "shrink-one"));
+                    var narrowShrinkTwo = BlockOuterRect(view, BlockById(view.At, "shrink-two"));
+                    var narrowShrinkLock = BlockOuterRect(view, BlockById(view.At, "shrink-lock"));
+                    Eq(120, narrowShrinkOne.Width, "narrow flex respects first minimum");
+                    Eq(80, narrowShrinkTwo.Width, "narrow flex respects second minimum");
+                    Eq(100, narrowShrinkLock.Width, "narrow flex preserves locked minimum");
+                    Eq(24, narrowShrinkLock.Right - narrowShrink.Right, "unshrinkable flex overflow remains explicit");
                     view.Size = new Size(720, 760);
                     var boxes = Path.Combine(root, "LeaForge", "test-pages", "boxes.html");
                     var boxPage = engine.Go(boxes);
@@ -3198,7 +3228,7 @@ namespace Lea.Tests
                 if (args.Length > 4) SaveRender(tokenPath, args[4]);
                 if (args.Length > 5) SaveStateRender(statePath, args[5]);
 
-                    Console.WriteLine("Lea smoke passed: bounded wrapped and growing flex rows, semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                    Console.WriteLine("Lea smoke passed: bounded wrapped, growing, and shrinking flex rows, semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)

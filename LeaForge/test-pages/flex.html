@@ -24,6 +24,11 @@
     #grow-one { flex-grow: 1; flex-basis: 80px; }
     #grow-two { flex: 2 1 80px; }
     #grow-fixed { width: 80px; }
+    #shrink { width: 360px; gap: 10px; }
+    .shrink-item { height: 32px; padding: 0; margin: 0; background: #ffe8cf; }
+    #shrink-one { flex: 0 1 180px; min-width: 120px; }
+    #shrink-two { flex: 0 2 180px; min-width: 80px; }
+    #shrink-lock { flex: 0 0 140px; min-width: 100px; max-width: 100px; }
     #after-flex { width: 500px; flex: 1 1; padding: 6px; border-left: 3px solid #b91c1c; background: #f8eeee; }
   </style>
 </head>
@@ -54,6 +59,11 @@
     <p id="grow-one" class="grow-item">Grow one</p>
     <p id="grow-two" class="grow-item">Grow two</p>
     <p id="grow-fixed" class="grow-item">Fixed</p>
+  </section>
+  <section id="shrink" class="row">
+    <p id="shrink-one" class="shrink-item">Shrink one</p>
+    <p id="shrink-two" class="shrink-item">Shrink two</p>
+    <p id="shrink-lock" class="shrink-item">Locked</p>
   </section>
   <p id="after-flex">Normal document flow continues below every flex row.</p>
 </body>

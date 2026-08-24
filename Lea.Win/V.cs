@@ -987,51 +987,56 @@ namespace Lea.Win
                 var fixedWidth = 0;
                 var growTotal = 0;
                 var autos = 0;
+                var autoMinimum = 0;
+                var widths = new Dictionary<B, int>();
                 foreach (var item in visual)
                 {
-                    fixedWidth += hints[item];
+                    var hint = hints[item];
+                    var width = hint > 0 ? hint : FlexMinOuterWidth(item.S);
+                    widths[item] = width;
+                    if (hint > 0) fixedWidth += width;
+                    else { autos++; autoMinimum += width; }
                     var grow = item.S == null ? 0 : item.S.Fg;
                     if (grow > 0) growTotal += grow;
-                    else if (hints[item] == 0) autos++;
                 }
 
                 var lineGap = gap;
                 var baseGaps = lineGap * Math.Max(0, visual.Count - 1);
-                var autoMinimum = growTotal > 0 ? autos : 0;
-                var free = Math.Max(0, context.C.Width - fixedWidth - baseGaps - autoMinimum);
-                var widths = new Dictionary<B, int>();
-                if (growTotal > 0)
+                var available = Math.Max(0, context.C.Width - baseGaps);
+                var baseWidth = fixedWidth + autoMinimum;
+                if (baseWidth > available)
                 {
+                    FlexShrink(visual, hints, widths, available);
+                }
+                else if (growTotal > 0)
+                {
+                    var free = available - baseWidth;
                     var remaining = free;
                     var remainingGrow = growTotal;
                     foreach (var item in visual)
                     {
                         var grow = item.S == null ? 0 : item.S.Fg;
-                        var width = hints[item];
                         if (grow > 0)
                         {
                             var share = remainingGrow == 0 ? 0 : remaining * grow / remainingGrow;
-                            width += share;
+                            widths[item] += share;
                             remaining -= share;
                             remainingGrow -= grow;
                         }
-                        else if (width == 0) width = 1;
-                        widths[item] = Math.Max(1, width);
                     }
                 }
                 else
                 {
+                    var free = available - baseWidth;
                     var autoWidth = autos == 0 ? 0 : Math.Max(1, free / autos);
                     var autoRemainder = autos == 0 ? 0 : Math.Max(0, free - autoWidth * autos);
                     foreach (var item in visual)
                     {
-                        var width = hints[item];
-                        if (width == 0)
+                        if (hints[item] == 0)
                         {
-                            width = autoWidth;
-                            if (autoRemainder > 0) { width++; autoRemainder--; }
+                            widths[item] += autoWidth;
+                            if (autoRemainder > 0) { widths[item]++; autoRemainder--; }
                         }
-                        widths[item] = Math.Max(1, width);
                     }
                 }
 
@@ -1058,8 +1063,60 @@ namespace Lea.Win
         {
             if (style == null) return 0;
             var basis = style.Fb >= 0 ? style.Fb : style.W;
-            if (basis == 0 && style.Fb < 0) return 0;
-            return basis + style.Ml + style.Mr + style.Pl + style.Pr + BorderWidth(style, style.Bl) + BorderWidth(style, style.Br);
+            if (basis == 0 && style.Fb < 0 && style.Wn == 0) return 0;
+            if (style.Wx > 0) basis = Math.Min(basis, style.Wx);
+            if (style.Wn > 0) basis = Math.Max(basis, style.Wn);
+            return basis + FlexHorizontal(style);
+        }
+
+        private static int FlexMinOuterWidth(S style)
+        {
+            if (style == null) return 1;
+            return Math.Max(1, style.Wn) + FlexHorizontal(style);
+        }
+
+        private static int FlexHorizontal(S style)
+        {
+            if (style == null) return 0;
+            return style.Ml + style.Mr + style.Pl + style.Pr + BorderWidth(style, style.Bl) + BorderWidth(style, style.Br);
+        }
+
+        private static void FlexShrink(IList<B> items, IDictionary<B, int> hints, IDictionary<B, int> widths, int available)
+        {
+            var deficit = 0;
+            foreach (var item in items) deficit += widths[item];
+            deficit = Math.Max(0, deficit - available);
+            while (deficit > 0)
+            {
+                var active = new List<B>();
+                long totalWeight = 0;
+                foreach (var item in items)
+                {
+                    var shrink = item.S == null ? 1 : item.S.Sh;
+                    if (shrink <= 0 || widths[item] <= FlexMinOuterWidth(item.S)) continue;
+                    active.Add(item);
+                    totalWeight += (long)Math.Max(1, hints[item]) * shrink;
+                }
+                if (active.Count == 0 || totalWeight <= 0) break;
+
+                var remaining = deficit;
+                var remainingWeight = totalWeight;
+                var reduced = 0;
+                foreach (var item in active)
+                {
+                    if (remaining <= 0) break;
+                    var weight = (long)Math.Max(1, hints[item]) * (item.S == null ? 1 : item.S.Sh);
+                    var share = (int)Math.Min(remaining, ((long)remaining * weight + remainingWeight - 1) / remainingWeight);
+                    var room = widths[item] - FlexMinOuterWidth(item.S);
+                    var amount = Math.Min(room, share);
+                    widths[item] -= amount;
+                    remaining -= amount;
+                    remainingWeight -= weight;
+                    reduced += amount;
+                }
+                if (reduced == 0) break;
+                deficit -= reduced;
+            }
         }
 
         private static int FlexTop(Lc parent, Fp slot)

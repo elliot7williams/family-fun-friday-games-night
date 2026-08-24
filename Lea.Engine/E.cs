@@ -2548,6 +2548,7 @@ namespace Lea.Engine
                 else if (name == "flex-direction") FlexDirection(style, value);
                 else if (name == "flex-wrap") FlexWrap(style, value);
                 else if (name == "flex-grow") FlexGrow(style, value);
+                else if (name == "flex-shrink") FlexShrink(style, value);
                 else if (name == "flex-basis") FlexBasis(style, value);
                 else if (name == "flex") FlexValue(style, value);
                 else if (name == "justify-content") JustifyContent(style, value);
@@ -2628,6 +2629,12 @@ namespace Lea.Engine
             if (GrowValue(value, out grow)) style.Fg = grow;
         }
 
+        private static void FlexShrink(S style, string value)
+        {
+            int shrink;
+            if (GrowValue(value, out shrink)) style.Sh = shrink;
+        }
+
         private static void FlexBasis(S style, string value)
         {
             int basis;
@@ -2637,27 +2644,28 @@ namespace Lea.Engine
         private static void FlexValue(S style, string value)
         {
             var source = (value ?? "").Trim().ToLowerInvariant();
-            if (source == "none" || source == "initial") { style.Fg = 0; style.Fb = -1; return; }
-            if (source == "auto") { style.Fg = 1; style.Fb = -1; return; }
+            if (source == "none") { style.Fg = 0; style.Sh = 0; style.Fb = -1; return; }
+            if (source == "initial") { style.Fg = 0; style.Sh = 1; style.Fb = -1; return; }
+            if (source == "auto") { style.Fg = 1; style.Sh = 1; style.Fb = -1; return; }
             var parts = Regex.Split(source, "\\s+");
             int grow;
             if (parts.Length < 1 || parts.Length > 3 || !GrowValue(parts[0], out grow)) return;
+            var shrink = 1;
             var basis = 0;
             if (parts.Length == 2)
             {
-                int ignored;
                 if (!FlexTokenBasis(parts[1], out basis))
                 {
-                    if (!GrowValue(parts[1], out ignored)) return;
+                    if (!GrowValue(parts[1], out shrink)) return;
                     basis = 0;
                 }
             }
             else if (parts.Length == 3)
             {
-                int ignored;
-                if (!GrowValue(parts[1], out ignored) || !BasisValue(parts[2], out basis)) return;
+                if (!GrowValue(parts[1], out shrink) || !BasisValue(parts[2], out basis)) return;
             }
             style.Fg = grow;
+            style.Sh = shrink;
             style.Fb = basis;
         }
 
