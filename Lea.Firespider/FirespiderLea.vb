@@ -497,7 +497,8 @@ Partial Class j
             "Document   " & data.N.ToString() & " nodes  " & data.B.ToString() & " blocks  " & host.Axs.Count.ToString() & " access",
             "Content    " & data.L.ToString() & " links  " & data.F.ToString() & " fields  " & data.C.ToString() & " CSS rules",
             "Commands   " & data.J.ToString() & " accepted  " & data.V.ToString() & " variables  " & data.M.ToString() & " alerts",
-            "Engine     " & data.Cc.ToString() & " cached  " & data.Ch.ToString() & " reuses  " & data.Kc.ToString() & " cookies"
+            "Engine     " & data.Cc.ToString() & " memory  " & data.Ch.ToString() & " reuses  " & data.Kc.ToString() & " cookies",
+            "Disk       " & data.Dc.ToString() & " entries  " & data.Db.ToString() & " bytes  " & data.Dh.ToString() & " hits  " & data.Dw.ToString() & " stores  " & data.Dr.ToString() & " recovers  " & data.De.ToString() & " evicts"
         }
         qleaInspectorNodes.Lines = qleaInspectorCopy(data.Ns)
         qleaInspectorCss.Lines = qleaInspectorCopy(data.Cs)

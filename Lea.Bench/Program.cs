@@ -5,8 +5,11 @@ using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Windows.Automation;
 using System.Windows.Automation.Text;
 using System.Windows.Forms;
@@ -644,6 +647,39 @@ namespace Lea.Bench
                 Need(engine.Tm == 60000, "maximum timeout changed");
                 return "Tm defaults to 15000 ms and clamps to 100-60000 ms";
             });
+            AddProbe(probes, "Bounded persistent cache", delegate
+            {
+                var path = Path.Combine(Path.GetTempPath(), "lea-bench-cache-" + Guid.NewGuid().ToString("N"));
+                try
+                {
+                    using (var server = new CacheServer())
+                    {
+                        var defaults = new E();
+                        Need(defaults.Cd == "" && defaults.Cx == 32 && defaults.Cb == 16L * 1024 * 1024, "persistent cache defaults changed");
+                        var freshUrl = new Uri(server.U, "?fresh=1");
+                        var seed = new E { Cd = path, Cm = 0 };
+                        var first = seed.Go(freshUrl);
+                        Need(!first.Ca && seed.Dc == 1 && seed.Db > 0 && seed.Cc == 0, "persistent seed was not stored");
+                        var requests = server.Hits;
+                        var restarted = new E { Cd = path, Cm = 0 };
+                        var hit = restarted.Go(freshUrl);
+                        Need(hit.Ca && hit.H == first.H && server.Hits == requests && restarted.Dg(hit).Dh == 1, "persistent restart hit failed");
+
+                        var etagUrl = new Uri(server.U, "?etag=1");
+                        new E { Cd = path }.Go(etagUrl);
+                        requests = server.Hits;
+                        var validator = new E { Cd = path };
+                        var validated = validator.Go(etagUrl);
+                        Need(validated.Ca && server.Hits == requests + 1 && server.LastIfNoneMatch == "\"lea-bench\"", "persistent ETag validation failed");
+                        Need(validator.Dg(validated).Rs.Any(line => line.Contains(" disk304 ")), "persistent validator diagnostics are missing");
+                        return "Cd opt-in; 32 entries/16 MB defaults; restart hit; ETag disk304; Dc/Db/Dh diagnostics";
+                    }
+                }
+                finally
+                {
+                    if (Directory.Exists(path)) Directory.Delete(path, true);
+                }
+            });
             AddProbe(probes, "Bounded class mutations", delegate
             {
                 var engine = new E();
@@ -771,6 +807,7 @@ namespace Lea.Bench
             builder.AppendLine("| Area | Status | Lea 1.0 scope |");
             builder.AppendLine("| --- | --- | --- |");
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
+            Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
             Capability(builder, "CSS", "Partial", "Compiled selector subset, cascade, content/border box and text styles, visibility, positioning, transforms, responsive image sizing, and bounded row/column flex properties");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, inline, row/column flex, table, form, image, clipping, scroll, and stacking renderer");
@@ -974,6 +1011,77 @@ namespace Lea.Bench
         private static void Capability(StringBuilder builder, string area, string status, string scope)
         {
             builder.AppendLine("| " + area + " | " + status + " | " + scope + " |");
+        }
+
+        private sealed class CacheServer : IDisposable
+        {
+            private readonly TcpListener listener;
+            private readonly Thread thread;
+            private volatile bool stopping;
+            private int hits;
+            private string lastIfNoneMatch = "";
+
+            public Uri U { get; private set; }
+            public int Hits { get { return Interlocked.CompareExchange(ref hits, 0, 0); } }
+            public string LastIfNoneMatch { get { return lastIfNoneMatch; } }
+
+            public CacheServer()
+            {
+                listener = new TcpListener(IPAddress.Loopback, 0);
+                listener.Start();
+                U = new Uri("http://127.0.0.1:" + ((IPEndPoint)listener.LocalEndpoint).Port + "/page");
+                thread = new Thread(Serve) { IsBackground = true };
+                thread.Start();
+            }
+
+            private void Serve()
+            {
+                while (!stopping)
+                {
+                    TcpClient client;
+                    try { client = listener.AcceptTcpClient(); }
+                    catch (SocketException) { if (stopping) return; throw; }
+                    catch (ObjectDisposedException) { return; }
+                    using (client)
+                    using (var stream = client.GetStream())
+                    {
+                        string request;
+                        var validator = "";
+                        using (var reader = new StreamReader(stream, Encoding.ASCII, false, 1024, true))
+                        {
+                            request = reader.ReadLine() ?? "";
+                            string line;
+                            while ((line = reader.ReadLine()) != null && line.Length > 0)
+                                if (line.StartsWith("If-None-Match:", StringComparison.OrdinalIgnoreCase)) validator = line.Substring(14).Trim();
+                        }
+                        lastIfNoneMatch = validator;
+                        Interlocked.Increment(ref hits);
+                        var etag = request.IndexOf("etag=1", StringComparison.OrdinalIgnoreCase) >= 0;
+                        if (etag && validator == "\"lea-bench\"")
+                        {
+                            Write(stream, "HTTP/1.1 304 Not Modified\r\nCache-Control: max-age=60\r\nETag: \"lea-bench\"\r\nContent-Length: 0\r\nConnection: close\r\n\r\n", null);
+                            continue;
+                        }
+                        var body = Encoding.UTF8.GetBytes("<html><head><title>Lea cache benchmark</title></head><body>Persistent cache.</body></html>");
+                        var cache = etag ? "Cache-Control: max-age=0\r\nETag: \"lea-bench\"\r\n" : "Cache-Control: max-age=60\r\n";
+                        Write(stream, "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\n" + cache + "Content-Length: " + body.Length + "\r\nConnection: close\r\n\r\n", body);
+                    }
+                }
+            }
+
+            private static void Write(Stream stream, string headers, byte[] body)
+            {
+                var head = Encoding.ASCII.GetBytes(headers);
+                stream.Write(head, 0, head.Length);
+                if (body != null) stream.Write(body, 0, body.Length);
+            }
+
+            public void Dispose()
+            {
+                stopping = true;
+                listener.Stop();
+                thread.Join(2000);
+            }
         }
 
         private sealed class LoadResult

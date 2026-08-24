@@ -873,8 +873,13 @@ namespace Lea.Tests
                         }));
                         client.SetApartmentState(ApartmentState.MTA);
                         client.Start();
-                        while (!completed.WaitOne(10)) Application.DoEvents();
-                        client.Join();
+                        var automationUntil = DateTime.UtcNow.AddSeconds(30);
+                        while (!completed.WaitOne(10))
+                        {
+                            Application.DoEvents();
+                            if (DateTime.UtcNow >= automationUntil) throw new TimeoutException("UI Automation client probe exceeded 30 seconds.");
+                        }
+                        if (!client.Join(1000)) throw new TimeoutException("UI Automation client probe did not exit.");
                     }
                     if (automationError != null) throw new InvalidOperationException("UI Automation client probe failed.", automationError);
                     Eq("Lea Accessibility", (string)data["root-name"], "UIA document name");
@@ -3334,6 +3339,160 @@ namespace Lea.Tests
                     Eq(0, remoteGoEngine.Js(remoteGoPage, "go('" + goTarget.AbsoluteUri + "')"), "remote page cannot request a local file");
                     Eq(1, remoteGoEngine.Js(remoteGoPage, "go('/approved')"), "remote relative HTTP go accepted");
                     Eq(new Uri(server.U, "approved"), remoteGoEngine.Gt(remoteGoPage), "remote relative HTTP go request");
+
+                    var diskRoot = Path.Combine(Path.GetTempPath(), "lea-disk-cache-" + Guid.NewGuid().ToString("N"));
+                    try
+                    {
+                        var disk = new E();
+                        Eq("", disk.Cd, "persistent cache stays opt-in");
+                        Eq(32, disk.Cx, "persistent cache default entry ceiling");
+                        Eq(16L * 1024 * 1024, disk.Cb, "persistent cache default byte ceiling");
+                        disk.Cd = diskRoot;
+                        disk.Cm = 0;
+                        var diskFreshUrl = new Uri(server.U, "?max-age=60&disk=fresh");
+                        var diskStart = server.Hits;
+                        var diskFirst = disk.Go(diskFreshUrl);
+                        Ok(!diskFirst.Ca && disk.Dc == 1 && disk.Db > 0 && disk.Cc == 0, "first persistent response stored within disk bounds");
+                        Eq(diskStart + 1, server.Hits, "first persistent response uses network");
+
+                        var restarted = new E();
+                        restarted.Cm = 0;
+                        restarted.Cd = diskRoot;
+                        var diskHit = restarted.Go(diskFreshUrl);
+                        Ok(diskHit.Ca && diskHit.H == diskFirst.H && restarted.Cc == 0 && restarted.Ch == 1, "fresh persistent response survives engine restart");
+                        Eq(diskStart + 1, server.Hits, "fresh persistent response avoids network after restart");
+                        var diskSnapshot = restarted.Dg(diskHit);
+                        Ok(diskSnapshot.Dc == 1 && diskSnapshot.Db > 0 && diskSnapshot.Dh == 1 && Has(diskSnapshot.Rs, " disk "), "persistent hit diagnostics");
+
+                        var diskEtagUrl = new Uri(server.U, "?etag=1&disk=validator");
+                        var validatorSeed = new E();
+                        validatorSeed.Cd = diskRoot;
+                        var etagSeed = validatorSeed.Go(diskEtagUrl);
+                        var validatorHits = server.Hits;
+                        Ok(!etagSeed.Ca && etagSeed.Et == "\"lea-v1\"", "persistent validator seed");
+                        var validatorRestart = new E();
+                        validatorRestart.Cd = diskRoot;
+                        var diskValidated = validatorRestart.GoA(diskEtagUrl).GetAwaiter().GetResult();
+                        Ok(diskValidated.Ca && diskValidated.H == etagSeed.H, "persistent ETag 304 reuses decoded body after restart");
+                        Eq(validatorHits + 1, server.Hits, "persistent validator performs one conditional request");
+                        Eq("\"lea-v1\"", server.LastIfNoneMatch, "persistent If-None-Match request header");
+                        var validatorSnapshot = validatorRestart.Dg(diskValidated);
+                        Ok(validatorSnapshot.Dh == 1 && validatorSnapshot.Dw == 1 && Has(validatorSnapshot.Rs, " disk304 "), "persistent validator diagnostics");
+
+                        var reloadRestart = new E();
+                        reloadRestart.Cd = diskRoot;
+                        reloadRestart.Go(diskFreshUrl);
+                        var reloadHits = server.Hits;
+                        var diskReload = reloadRestart.Rl();
+                        Ok(!diskReload.Ca, "reload bypasses persistent cache");
+                        Eq(reloadHits + 1, server.Hits, "persistent reload uses network");
+                        Eq("", server.LastIfNoneMatch, "persistent reload remains unconditional");
+
+                        var noStoreDiskUrl = new Uri(server.U, "?no-store=1&disk=nostore");
+                        var noStoreDisk = new E();
+                        noStoreDisk.Cd = diskRoot;
+                        var noStoreCount = noStoreDisk.Dc;
+                        var noStoreHits = server.Hits;
+                        noStoreDisk.Go(noStoreDiskUrl);
+                        var noStoreRestart = new E();
+                        noStoreRestart.Cd = diskRoot;
+                        Ok(!noStoreRestart.Go(noStoreDiskUrl).Ca, "no-store never enters persistent cache");
+                        Eq(noStoreHits + 2, server.Hits, "no-store remains network-only across restart");
+                        Eq(noStoreCount, noStoreRestart.Dc, "no-store leaves persistent entry count unchanged");
+
+                        var privateDiskUrl = new Uri(server.U, "?max-age=60&disk=private");
+                        var privateSeed = new E();
+                        privateSeed.Cd = diskRoot;
+                        privateSeed.Go(privateDiskUrl);
+                        var privateDisk = new E();
+                        privateDisk.Cd = diskRoot;
+                        privateDisk.Pv = true;
+                        var privateCount = privateDisk.Dc;
+                        var privateHits = server.Hits;
+                        Ok(!privateDisk.Go(privateDiskUrl).Ca, "private mode does not read persistent cache");
+                        Eq(privateHits + 1, server.Hits, "private mode uses isolated network path");
+                        Eq(privateCount, privateDisk.Dc, "private mode does not write persistent cache");
+                        privateDisk.Pv = false;
+                        var normalAfterPrivateHits = server.Hits;
+                        Ok(privateDisk.Go(privateDiskUrl).Ca, "normal persistent state is reusable after private mode");
+                        Eq(normalAfterPrivateHits, server.Hits, "leaving private mode restores normal persistent state");
+                        var privateOnlyUrl = new Uri(server.U, "?max-age=60&disk=private-only");
+                        privateDisk.Pv = true;
+                        privateCount = privateDisk.Dc;
+                        privateDisk.Go(privateOnlyUrl);
+                        Eq(privateCount, privateDisk.Dc, "private-only response is not persisted");
+                        privateDisk.Pv = false;
+
+                        disk.Cdl();
+                        Eq(0, disk.Dc, "clear persistent cache");
+                        var corruptUrl = new Uri(server.U, "?max-age=60&disk=corrupt");
+                        disk.Go(corruptUrl);
+                        var cacheFiles = Directory.GetFiles(diskRoot, "*.lea");
+                        Eq(1, cacheFiles.Length, "single corruption fixture entry");
+                        File.WriteAllBytes(cacheFiles[0], Encoding.ASCII.GetBytes("partial"));
+                        var corruptHits = server.Hits;
+                        var recovered = new E();
+                        recovered.Cd = diskRoot;
+                        var recoveredPage = recovered.Go(corruptUrl);
+                        Ok(!recoveredPage.Ca && recovered.Dg(recoveredPage).Dr == 1 && Has(recovered.Dg(recoveredPage).Rs, " recover "), "corrupt persistent entry falls back and reports recovery");
+                        Eq(corruptHits + 1, server.Hits, "corrupt persistent entry falls back to network");
+                        Eq(1, recovered.Dc, "corrupt persistent entry is replaced atomically");
+                        Eq(0, Directory.GetFiles(diskRoot, "*.tmp").Length, "persistent cache leaves no partial files");
+
+                        recovered.Cdl();
+                        recovered.Cm = 0;
+                        recovered.Cx = 2;
+                        recovered.Cb = 16L * 1024 * 1024;
+                        var lruOne = new Uri(server.U, "?max-age=60&disk=lru-one");
+                        var lruTwo = new Uri(server.U, "?max-age=60&disk=lru-two");
+                        var lruThree = new Uri(server.U, "?max-age=60&disk=lru-three");
+                        recovered.Go(lruOne);
+                        Thread.Sleep(20);
+                        recovered.Go(lruTwo);
+                        Thread.Sleep(20);
+                        recovered.Go(lruOne);
+                        Thread.Sleep(20);
+                        recovered.Go(lruThree);
+                        Eq(2, recovered.Dc, "persistent entry ceiling trims LRU data");
+                        Ok(recovered.Db > 0 && recovered.Db <= recovered.Cb, "persistent byte accounting stays bounded");
+                        var lruRestart = new E();
+                        lruRestart.Cd = diskRoot;
+                        lruRestart.Cm = 0;
+                        lruRestart.Cx = 2;
+                        var lruHits = server.Hits;
+                        Ok(lruRestart.Go(lruOne).Ca, "recent persistent entry survives LRU trim");
+                        Eq(lruHits, server.Hits, "recent persistent entry avoids network");
+                        Ok(!lruRestart.Go(lruTwo).Ca, "old persistent entry is evicted");
+                        Eq(lruHits + 1, server.Hits, "evicted persistent entry returns to network");
+
+                        lruRestart.Cb = 1;
+                        Eq(0, lruRestart.Dc, "persistent byte ceiling can disable stored payloads");
+                        lruRestart.Go(new Uri(server.U, "?max-age=60&disk=byte-limit"));
+                        Eq(0, lruRestart.Dc, "oversized-for-budget response is not retained");
+                        lruRestart.Cx = Int32.MaxValue;
+                        lruRestart.Cb = Int64.MaxValue;
+                        Eq(128, lruRestart.Cx, "persistent entry ceiling clamps");
+                        Eq(128L * 1024 * 1024, lruRestart.Cb, "persistent byte ceiling clamps");
+
+                        var unrelated = Path.Combine(diskRoot, "keep.txt");
+                        File.WriteAllText(unrelated, "host-owned");
+                        lruRestart.Cdl();
+                        Ok(File.Exists(unrelated) && lruRestart.Dc == 0 && lruRestart.Db == 0, "persistent clear preserves unrelated host files");
+                        using (var diskView = new V())
+                        {
+                            diskView.Cd = diskRoot;
+                            diskView.Cm = 3;
+                            diskView.Cx = 4;
+                            diskView.Cb = 4096;
+                            Ok(diskView.Cd == Path.GetFullPath(diskRoot) && diskView.Cm == 3 && diskView.Cx == 4 && diskView.Cb == 4096 && diskView.Cc == 0 && diskView.Dc == 0, "WinForms persistent cache aliases");
+                            diskView.Cl();
+                            diskView.Cdl();
+                        }
+                    }
+                    finally
+                    {
+                        if (Directory.Exists(diskRoot)) Directory.Delete(diskRoot, true);
+                    }
                 }
 
                 var timeoutEngine = new E();
@@ -3355,7 +3514,9 @@ namespace Lea.Tests
                 asyncTimeoutEngine.Tm = 100;
                 using (var slow = new CompressedServer())
                 {
-                    var timeout = Fails(delegate { asyncTimeoutEngine.GoA(new Uri(slow.U, "?delay=1000")).GetAwaiter().GetResult(); }, "asynchronous request timeout");
+                    var timeoutWork = asyncTimeoutEngine.GoA(new Uri(slow.U, "?delay=1000"));
+                    WaitFor(delegate { return timeoutWork.IsCompleted; }, "asynchronous timeout completion");
+                    var timeout = Fails(delegate { timeoutWork.GetAwaiter().GetResult(); }, "asynchronous request timeout");
                     Eq("timeout", timeout.K, "asynchronous timeout kind");
                     Ok(timeout.Rt, "asynchronous timeout retryable");
                     Eq(1, slow.Hits, "asynchronous timeout request started");
@@ -3368,6 +3529,7 @@ namespace Lea.Tests
                     var work = cancelEngine.GoA(new Uri(slow.U, "?delay=1000&cancel=1"));
                     WaitFor(delegate { return slow.Hits == 1; }, "cancel request started");
                     cancelEngine.St();
+                    WaitFor(delegate { return work.IsCompleted; }, "cancel request completion");
                     var cancel = Fails(delegate { work.GetAwaiter().GetResult(); }, "host request cancellation");
                     Eq("cancel", cancel.K, "cancellation remains distinct from timeout");
                     Ok(!cancel.Rt, "cancellation not retryable");
@@ -3395,7 +3557,7 @@ namespace Lea.Tests
                 if (args.Length > 4) SaveRender(tokenPath, args[4]);
                 if (args.Length > 5) SaveStateRender(statePath, args[5]);
 
-                    Console.WriteLine("Lea smoke passed: bounded content-box and border-box geometry, body and ID-scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, shrink, reverse flow, and resize, semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                    Console.WriteLine("Lea smoke passed: optional bounded persistent cache with restart reuse, validators, private isolation, atomic recovery, LRU entry/byte ceilings and host aliases, bounded content-box and border-box geometry, body and ID-scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, shrink, reverse flow, and resize, semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)

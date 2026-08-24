@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **15**
+Post-1.0 hardening milestones completed: **16**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -12,7 +12,7 @@ modern web platform.
 | Area | Weight | Earned | Current state |
 | --- | ---: | ---: | --- |
 | Core and alias API | 10% | 10% | Compact API, bounded diagnostics, repeatable reports, history, projects, backups |
-| Networking | 10% | 10% | Bounded request deadlines and downloads, private cookies, typed errors, validators, compression, LRU cache |
+| Networking | 10% | 10% | Bounded request deadlines and downloads, private cookies, typed errors, validators, compression, memory LRU and optional persistent cache |
 | HTML and document tree | 20% | 20% | Bounded tokens, queries, base URLs and fragments, raw/RCDATA text, entities, recovery, HTML-hidden suppression, semantic accessibility, blocks, lists, disclosures, gauges, values, time/edit metadata, responsive image maps, tabindex focus, autofocus/access keys, tables |
 | CSS | 15% | 15% | Compiled selectors, dynamic hover/focus, content/border sizing, visibility/opacity, fonts, overflow, boxes, bounded ordered and distributed row/column flex properties |
 | Layout and painting | 20% | 20% | Shared content/border geometry, ordered rows, bounded column/reverse flow, around/evenly distribution, item alignment, wrapping, grow/shrink, clipping, reflow, painting |
@@ -94,12 +94,19 @@ modern web platform.
   and flex-basis values across blocks, fields, images, flex items, tables, and
   cells. Exact wide/narrow geometry, cascade rejection, paint, hit,
   accessibility bounds, benchmark, and Firespider host coverage verify it.
+- Added an opt-in gzip persistent representation cache with compact
+  `Cd/Cx/Cb/Dc/Db/Cdl` aliases, SHA-256 URL filenames, same-directory atomic
+  replacement, 32-entry/16 MB defaults, 128-entry/128 MB hard ceilings, LRU
+  timestamps, cross-engine fresh hits and validator-backed `304` reuse. Private
+  sessions perform no persistent reads or writes; `no-store`, reload, malformed
+  files, entry/byte trimming, unrelated host files, bounded diagnostics,
+  WinForms forwarding, benchmark loopback probes, and Firespider Inspector
+  coverage are verified.
 
 ## Next gains
 
 - Add a native-safe non-empty visible-range bridge outside the .NET Framework
   managed provider array boundary; retain the stable empty fallback until range
   handles survive both in-process and external MTA clients.
-- Add an optional bounded persistent disk cache with explicit entry/byte
-  ceilings, conditional validators, private-mode isolation, and corrupt-entry
-  recovery while retaining the memory-only default.
+- Keep expanding the bounded HTML/CSS subset and Lea-first host routes without
+  adding a general JavaScript VM or external browser runtime.

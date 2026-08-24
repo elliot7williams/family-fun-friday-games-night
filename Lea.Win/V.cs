@@ -121,6 +121,15 @@ namespace Lea.Win
         public bool CanBk { get { return e.CanBk; } }
         public bool CanFw { get { return e.CanFw; } }
         public bool Busy { get { return e.Busy || picBusy; } }
+        public int Cm { get { return e.Cm; } set { e.Cm = value; } }
+        public int Cc { get { return e.Cc; } }
+        public int Ch { get { return e.Ch; } }
+        public int Cs { get { return e.Cs; } set { e.Cs = value; } }
+        public string Cd { get { return e.Cd; } set { e.Cd = value; } }
+        public int Cx { get { return e.Cx; } set { e.Cx = value; } }
+        public long Cb { get { return e.Cb; } set { e.Cb = value; } }
+        public int Dc { get { return e.Dc; } }
+        public long Db { get { return e.Db; } }
         public int Kc { get { return e.Kc; } }
         public int Km { get { return e.Km; } }
         public long Dm { get { return e.Dm; } }
@@ -279,6 +288,8 @@ namespace Lea.Win
             Cursor = Cursors.Default;
         }
 
+        public void Cl() { e.Cl(); }
+        public void Cdl() { e.Cdl(); }
         public void Kcl() { e.Kcl(); }
 
         public int Js(string code)

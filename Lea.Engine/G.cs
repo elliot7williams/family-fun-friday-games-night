@@ -32,6 +32,12 @@ namespace Lea.Engine
         public int Cc { get; internal set; }
         public int Ch { get; internal set; }
         public int Kc { get; internal set; }
+        public int Dc { get; internal set; }
+        public long Db { get; internal set; }
+        public int Dh { get; internal set; }
+        public int Dw { get; internal set; }
+        public int Dr { get; internal set; }
+        public int De { get; internal set; }
         public IList<string> Ns { get; private set; }
         public IList<string> Cs { get; private set; }
         public IList<string> Rs { get; private set; }

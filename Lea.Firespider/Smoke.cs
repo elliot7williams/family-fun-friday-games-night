@@ -27,6 +27,7 @@ namespace Lea.Firespider
             var mapPage = Path.Combine(Path.GetTempPath(), "lea-firespider-map-" + Guid.NewGuid().ToString("N") + ".html");
             var savedPage = Path.Combine(Path.GetTempPath(), "lea-firespider-page-" + Guid.NewGuid().ToString("N") + ".html");
             var downloadedPage = Path.Combine(Path.GetTempPath(), "lea-firespider-download-" + Guid.NewGuid().ToString("N") + ".html");
+            var cache = Path.Combine(Path.GetTempPath(), "lea-firespider-cache-" + Guid.NewGuid().ToString("N"));
             try
             {
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", session);
@@ -95,6 +96,14 @@ namespace Lea.Firespider
                     host.Tm = 1;
                     Check(host.Tm == 100, "Firespider Lea request timeout forwarding");
                     host.Tm = 15000;
+                    Check(host.Cd == "" && host.Cx == 32 && host.Cb == 16L * 1024 * 1024, "Firespider persistent cache stays opt-in and bounded");
+                    host.Cd = cache;
+                    host.Cm = 3;
+                    host.Cx = 4;
+                    host.Cb = 4096;
+                    Check(host.Cd == Path.GetFullPath(cache) && host.Cm == 3 && host.Cx == 4 && host.Cb == 4096 && host.Dc == 0 && host.Db == 0, "Firespider persistent cache aliases");
+                    host.Cl();
+                    host.Cdl();
                     var scriptCommands = host.Js("t('Firespider Script'); bg('#e8f4ef'); fs(19); a('Host alert');");
                     Check(scriptCommands == 4 && host.At.Jc == 4, "Firespider Lea script commands");
                     Check(host.T == "Firespider Script" && host.At.S.Bg == "#e8f4ef" && host.At.S.Fs == 19, "Firespider Lea script state");
@@ -213,6 +222,7 @@ namespace Lea.Firespider
                     Check(inspector != null && inspector.Name == "LeaInspector" && inspector.Text == "Lea Inspector", "Firespider Lea Inspector open");
                     Check((bool)inspectorSnapshot.Invoke(form, null), "Firespider Lea Inspector refresh");
                     Check(Member<TextBox>(form, "qleaInspectorSummary").Text.Contains("Response   200") &&
+                        Member<TextBox>(form, "qleaInspectorSummary").Text.Contains("Disk       0 entries") &&
                         Member<TextBox>(form, "qleaInspectorNodes").Text.Contains("body") &&
                         Member<TextBox>(form, "qleaInspectorCss").Text.Contains(".hot") &&
                         Member<TextBox>(form, "qleaInspectorRequests").Text.Contains("GET 200 file") &&
@@ -330,7 +340,7 @@ namespace Lea.Firespider
                     Check(restoredTabs.TabCount == beforeMiddle - 1 && FindLea(restoredTabs) == null, "middle-click Lea tab close");
                 }
 
-                Console.WriteLine("Firespider Lea smoke passed: bounded content-box and border-box geometry, scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, and shrink, semantic accessibility, protected values, rendered bounds, MSAA and UI Automation providers, value, table/grid, and read-only logical text patterns plus Access inspector, bounded autofocus and access keys, keyboard focus and activation, responsive image maps, compact time/edit metadata, output/data values and safe rebuilds, progress and meter gauges, disclosure commands, retained same-page fragments, Lea-first New Tab and explicit legacy fallback, host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
+                Console.WriteLine("Firespider Lea smoke passed: optional bounded persistent cache aliases and Inspector diagnostics, bounded content-box and border-box geometry, scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, and shrink, semantic accessibility, protected values, rendered bounds, MSAA and UI Automation providers, value, table/grid, and read-only logical text patterns plus Access inspector, bounded autofocus and access keys, keyboard focus and activation, responsive image maps, compact time/edit metadata, output/data values and safe rebuilds, progress and meter gauges, disclosure commands, retained same-page fragments, Lea-first New Tab and explicit legacy fallback, host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
                 return 0;
             }
             catch (Exception error)
@@ -349,6 +359,7 @@ namespace Lea.Firespider
                 if (File.Exists(mapPage)) File.Delete(mapPage);
                 if (File.Exists(savedPage)) File.Delete(savedPage);
                 if (File.Exists(downloadedPage)) File.Delete(downloadedPage);
+                if (Directory.Exists(cache)) Directory.Delete(cache, true);
             }
         }
 

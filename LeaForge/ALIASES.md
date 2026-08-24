@@ -132,6 +132,9 @@ Ca        response reused cached content
 N/B/L/F   nodes/blocks/links/fields
 C/J/V/M   CSS rules/commands/variables/alerts
 Cc/Ch/Kc  cache entries/reuses/cookies
+Dc/Db     persistent cache entries/bytes
+Dh/Dw     persistent hits/stores
+Dr/De     persistent recoveries/evictions
 Ns/Cs     bounded node/CSS lines
 Rs/Ms/Vs  request/message/variable lines
 ```
@@ -449,12 +452,25 @@ HTML `download` link, `Du`/`Dn` provide its URL and safe suggested name, and
 Response metadata stays short: `P.St` is status, `Ct` is media type, `Ce` is
 content encoding, `Ch` is charset, `Sz` is decoded size, and `Ca` reports a
 cache-body reuse. `Et` is the response ETag and `Lm` is Last-Modified. The
-engine exposes `Cm` (cache maximum), `Cc` (count), `Ch` (body reuses), `Cs`
-(default freshness seconds), and `Cl()` (clear). Stale validators use
+engine and WinForms view expose `Cm` (memory maximum), `Cc` (memory count),
+`Ch` (body reuses), `Cs` (default freshness seconds), and `Cl()` (memory clear).
+Stale validators use
 `If-None-Match` or `If-Modified-Since`; reload always bypasses this cache.
 External stylesheets share this same LRU and its aliases rather than creating a
 second hidden cache. Lea loads at most eight linked stylesheets per page and
 parses up to 256 KB from each response.
+
+Persistent caching is opt-in: `Cd` is its directory and the empty default means
+no disk I/O. `Cx` is the entry ceiling (32 by default, clamped to 0-128), `Cb`
+is the byte ceiling (16 MB by default, clamped to 0-128 MB), and `Dc`/`Db`
+report current Lea entry count and bytes. `Cdl()` removes only versioned Lea
+cache files. Entries use gzip bodies, SHA-256 URL filenames, bounded metadata,
+same-directory atomic replacement, and last-use timestamps for LRU trimming.
+Fresh entries survive a new `E`/`V`; stale ETag or Last-Modified entries retain
+conditional `304` reuse. Reload stays unconditional, `no-store` is removed,
+malformed entries fall back to the network, and private mode never reads or
+writes the persistent cache. `G.Dc/Db/Dh/Dw/Dr/De` expose bounded footprint,
+hit, store, recovery, and eviction diagnostics without response bodies.
 
 Cookies stay compact: `Kc` is the active cookie count, `Km` is the bounded
 maximum, and `Kcl()` clears the active jar plus page cache. `Pv` switches to a

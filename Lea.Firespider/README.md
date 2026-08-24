@@ -20,6 +20,9 @@ remain owned by Firespider.
 Firespider's private-mode flag also drives `V.Pv`. Normal Lea cookies stay in
 their bounded in-memory jar, while each private session starts empty and is
 destroyed when private mode ends. Page cache is cleared between those contexts.
+Lea's persistent cache is still opt-in through `V.Cd`; `Cx/Cb` set entry/byte
+ceilings, `Dc/Db` report its footprint, and `Cdl()` clears only Lea entries.
+Private tabs never read or write that directory.
 
 Lea's bounded inline title/style commands run inside each Lea tab. Alert
 messages cross the `V.Al` host event and appear in Firespider's existing status
@@ -122,7 +125,7 @@ non-empty interface arrays. The adapter target adds the framework `Accessibility
 `UIAutomationProvider`, `UIAutomationTypes`, and `WindowsBase` references.
 
 Firespider can read `V.Dg()` for bounded response, document, CSS, request,
-command, cache, and cookie diagnostics without reflecting into Lea internals.
+command, memory/persistent cache, and cookie diagnostics without reflecting into Lea internals.
 The snapshot omits mutable form values, passwords, and selected file paths.
 **View > Lea Inspector** (`F12`) and the Lea tab context menu open Summary,
 Nodes, CSS, Requests, Messages, and Access tabs backed only by public bounded

@@ -87,7 +87,9 @@ predictable rendering pass.
 - Redirects, response status, content type, content encoding, and character encoding. (Final response URL and compact page metadata are active.)
 - GZip/Deflate response decompression. (Both are decoded transparently and covered by loopback tests.)
 - Image loading for PNG, JPEG, GIF, and ICO where the platform supports them. (Basic async image loading and bounded memory cache added.)
-- A small memory and disk cache with explicit size limits. (Bounded memory payload cache active; disk cache remains.)
+- A small memory and disk cache with explicit size limits. (Bounded memory LRU
+  plus an opt-in gzip persistent cache with atomic writes, validator reuse,
+  private isolation, and entry/byte ceilings are active.)
 - Cache freshness from `max-age`, `Expires`, `no-cache`, `no-store`, and a configurable default. (Active.)
 - Conditional cache revalidation with ETag/If-None-Match and
   Last-Modified/If-Modified-Since. (`304` responses reuse the decoded body and
@@ -251,19 +253,27 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add an optional bounded persistent disk cache behind the existing request layer.
-Keep the memory-only default, enforce explicit entry and byte ceilings, preserve
-ETag/Last-Modified revalidation, isolate private mode, recover from corrupt or
-partial entries, and expose compact diagnostics without leaking response bodies.
+Keep the stable empty UI Automation visible-range fallback until a native-safe
+non-empty bridge survives both direct and external MTA clients. Continue host
+coverage and bounded HTML/CSS compatibility work without adding another browser
+runtime.
 
-The latest completed milestone added non-inherited compact `S.Bz=c/b` state for
+The latest completed milestone added an optional gzip persistent cache behind
+the existing request layer. Compact `Cd/Cx/Cb/Dc/Db/Cdl` aliases retain a
+memory-only default, while SHA-256 filenames, versioned bounded records,
+same-directory atomic replacement, LRU timestamps, 32-entry/16 MB defaults,
+128-entry/128 MB hard ceilings, validator reuse, private-mode isolation,
+`no-store`, reload bypass, and corrupt-entry recovery are covered by restart,
+loopback, benchmark, WinForms, diagnostics, and Firespider host tests.
+
+The previous milestone added non-inherited compact `S.Bz=c/b` state for
 `content-box` and `border-box`. One shared conversion now interprets pixel
 width, height, min/max, and flex-basis values before blocks, fields, images,
 flex items, tables, and cells enter layout. Exact wide and 180-pixel geometry,
 non-inheritance, invalid-value rejection, paint, links, accessibility bounds,
 benchmark, and Firespider host probes preserve the original content-box path.
 
-The previous milestone overloaded `bg/fg/fs` with bounded two-argument
+The earlier milestone overloaded `bg/fg/fs` with bounded two-argument
 forms that style one safe element ID while preserving their one-argument body
 forms. Existing named/hex colors, 8..96px font limits, safe target filtering,
 4KB inline-style cap, and field-preserving rebuild apply unchanged. Page scripts,

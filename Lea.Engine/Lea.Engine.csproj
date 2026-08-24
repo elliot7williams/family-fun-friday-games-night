@@ -43,6 +43,7 @@
     <Compile Include="N.cs" />
     <Compile Include="O.cs" />
     <Compile Include="P.cs" />
+    <Compile Include="Pc.cs" />
     <Compile Include="S.cs" />
     <Compile Include="Tb.cs" />
     <Compile Include="Tc.cs" />

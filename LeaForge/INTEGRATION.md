@@ -62,11 +62,25 @@ should use that tree instead of expecting the legacy COM `HtmlDocument` object.
 `P.St`, `Ct`, `Ce`, `Ch`, `Sz`, and `Ca` expose compact response diagnostics.
 `Et` and `Lm` expose ETag and Last-Modified validators. `Ca` is also true when
 a `304 Not Modified` response reuses Lea's cached decoded body.
-`E.Cm`, `Cc`, `Ch`, and `Cl()` configure or inspect Lea's bounded decoded-page
-payload cache; `Cs` sets default freshness seconds, while HTTP freshness headers
-can override it. Stale validator-bearing entries send `If-None-Match` or
+`E` and `V` expose `Cm`, `Cc`, `Ch`, and `Cl()` for Lea's bounded in-memory
+decoded-page cache; `Cs` sets default freshness seconds, while HTTP freshness
+headers can override it. Stale validator-bearing entries send `If-None-Match` or
 `If-Modified-Since`; `Rl` and `RlA` deliberately fetch a fresh response without
 those conditional headers.
+
+Persistent caching remains off until the Visual Studio host sets `Cd` to an
+owned directory. `Cx` and `Cb` configure its entry and byte ceilings, `Dc` and
+`Db` report the current footprint, and `Cdl()` clears Lea entries while leaving
+unrelated host files alone. The defaults are 32 entries and 16 MB, with hard
+ceilings of 128 entries and 128 MB. Private mode performs no persistent reads or
+writes; versioned gzip entries use atomic replacement, validator reuse, LRU
+trimming, and corrupt-file fallback. A host can opt in with:
+
+```csharp
+view.Cd = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "My Browser", "Lea Cache");
+view.Cx = 32;
+view.Cb = 16L * 1024 * 1024;
+```
 
 Hosts can catch `Lea.Engine.Er` and inspect `K`, `U`, `St`, and `Rt` to present
 specific URL, local-file, HTTP, network, timeout, cancellation, or decoding

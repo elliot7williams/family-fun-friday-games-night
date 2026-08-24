@@ -55,6 +55,7 @@ namespace Lea.Engine
         private const int MaxTimeout = 60000;
         private const int DefaultTimeout = 15000;
         private readonly W web = new W();
+        private readonly Pc disk = new Pc();
         private readonly List<He> hs = new List<He>();
         private readonly Dictionary<string, Cr> cache = new Dictionary<string, Cr>(StringComparer.OrdinalIgnoreCase);
         private readonly List<string> lru = new List<string>();
@@ -79,6 +80,20 @@ namespace Lea.Engine
         }
         public int Cc { get { return cache.Count; } }
         public int Ch { get { return ch; } }
+        public string Cd
+        {
+            get { return disk.P; }
+            set
+            {
+                var prior = disk.P;
+                disk.P = value;
+                if (!String.Equals(prior, disk.P, StringComparison.OrdinalIgnoreCase)) Cl();
+            }
+        }
+        public int Cx { get { return disk.Mx; } set { disk.Mx = value; } }
+        public long Cb { get { return disk.Mb; } set { disk.Mb = value; } }
+        public int Dc { get { return disk.N; } }
+        public long Db { get { return disk.B; } }
         public int Kc { get { return web.Kc; } }
         public int Km { get { return W.CookieMax; } }
         public long Dm { get { return MaxDownload; } }
@@ -101,13 +116,25 @@ namespace Lea.Engine
         public int Cs
         {
             get { return cs; }
-            set { cs = Math.Max(0, Math.Min(86400, value)); Cl(); }
+            set
+            {
+                var next = Math.Max(0, Math.Min(86400, value));
+                if (cs == next) return;
+                cs = next;
+                Cl();
+                Cdl();
+            }
         }
 
         public void Cl()
         {
             cache.Clear();
             lru.Clear();
+        }
+
+        public void Cdl()
+        {
+            disk.Cl();
         }
 
         public void Kcl()
@@ -250,7 +277,13 @@ namespace Lea.Engine
                 M = page.Ms.Count,
                 Cc = Cc,
                 Ch = Ch,
-                Kc = Kc
+                Kc = Kc,
+                Dc = Dc,
+                Db = Db,
+                Dh = disk.H,
+                Dw = disk.W,
+                Dr = disk.R,
+                De = disk.E
             };
             DiagnosticNodes(page.D, 0, result.Ns);
             if (rules != null)
@@ -912,11 +945,13 @@ namespace Lea.Engine
         private Ld Fetch(Uri url, bool fresh = false)
         {
             Cr reply;
-            if (!url.IsFile && !fresh && GetCache(url, out reply)) return Track("GET", new Ld(reply, true), "cache");
+            Cr stale = null;
+            var diskHit = false;
+            if (!url.IsFile && !fresh && GetCache(url, out reply, out stale, out diskHit)) return Track("GET", new Ld(reply, true), diskHit ? "disk" : "cache");
             if (url.IsFile) return Track("GET", new Ld(ReadFile(url), false), "file");
 
-            Cr stale;
-            if (fresh || !GetStale(url, out stale)) stale = null;
+            if (fresh) stale = null;
+            var staleDisk = stale != null && diskHit;
             web.Va(stale == null ? "" : stale.Et, stale == null ? "" : stale.Lm);
             byte[] bytes;
             try
@@ -931,7 +966,7 @@ namespace Lea.Engine
                 reply = notModified ? Revalidated(stale) : ReadWeb(url, bytes);
                 PutCache(url, reply);
                 if (notModified) ch++;
-                return Track("GET", new Ld(reply, notModified), notModified ? "304" : "net");
+                return Track("GET", new Ld(reply, notModified), notModified ? staleDisk ? "disk304" : "304" : "net");
             }
             finally { web.Va("", ""); }
         }
@@ -939,11 +974,13 @@ namespace Lea.Engine
         private async Task<Ld> FetchA(Uri url, bool fresh = false)
         {
             Cr reply;
-            if (!url.IsFile && !fresh && GetCache(url, out reply)) return Track("GET", new Ld(reply, true), "cache");
+            Cr stale = null;
+            var diskHit = false;
+            if (!url.IsFile && !fresh && GetCache(url, out reply, out stale, out diskHit)) return Track("GET", new Ld(reply, true), diskHit ? "disk" : "cache");
             if (url.IsFile) return Track("GET", new Ld(await Task.Factory.StartNew(delegate { return ReadFile(url); }), false), "file");
 
-            Cr stale;
-            if (fresh || !GetStale(url, out stale)) stale = null;
+            if (fresh) stale = null;
+            var staleDisk = stale != null && diskHit;
             web.Va(stale == null ? "" : stale.Et, stale == null ? "" : stale.Lm);
             byte[] bytes;
             try
@@ -958,7 +995,7 @@ namespace Lea.Engine
                 reply = notModified ? Revalidated(stale) : ReadWeb(url, bytes);
                 PutCache(url, reply);
                 if (notModified) ch++;
-                return Track("GET", new Ld(reply, notModified), notModified ? "304" : "net");
+                return Track("GET", new Ld(reply, notModified), notModified ? staleDisk ? "disk304" : "304" : "net");
             }
             finally { web.Va("", ""); }
         }
@@ -974,14 +1011,22 @@ namespace Lea.Engine
                     {
                         if (cancel != null) cancel();
                         else web.CancelAsync();
-                        try { await work; }
-                        catch { }
+                        Observe(work);
                         throw new WebException("Lea network request timed out.", stopped ? WebExceptionStatus.RequestCanceled : WebExceptionStatus.Timeout);
                     }
                     return await work;
                 }
                 finally { timer.Cancel(); }
             }
+        }
+
+        private static void Observe(Task work)
+        {
+            if (work == null) return;
+            work.ContinueWith(delegate(Task completed)
+            {
+                var ignored = completed.Exception;
+            }, CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
         }
 
         private P Parse(Ld load)
@@ -4192,43 +4237,81 @@ namespace Lea.Engine
             return url == null ? "" : " " + url;
         }
 
-        private bool GetCache(Uri url, out Cr reply)
+        private bool GetCache(Uri url, out Cr reply, out Cr stale, out bool fromDisk)
         {
             var key = CacheKey(url);
             reply = null;
-            if (cm == 0 || !cache.TryGetValue(key, out reply)) return false;
+            stale = null;
+            fromDisk = false;
+            if (cm > 0 && cache.TryGetValue(key, out reply))
+            {
+                if (reply.Fr <= DateTime.UtcNow)
+                {
+                    stale = reply;
+                    reply = null;
+                    ValidateStale(url, ref stale);
+                    return false;
+                }
+                lru.Remove(key);
+                lru.Add(key);
+                ch++;
+                return true;
+            }
+            if (!GetDisk(url, out reply, false)) return false;
             if (reply.Fr <= DateTime.UtcNow)
             {
+                stale = reply;
                 reply = null;
+                fromDisk = true;
+                ValidateStale(url, ref stale);
                 return false;
             }
-            lru.Remove(key);
-            lru.Add(key);
+            Remember(key, reply);
+            fromDisk = true;
             ch++;
             return true;
         }
 
-        private bool GetStale(Uri url, out Cr reply)
+        private void ValidateStale(Uri url, ref Cr stale)
         {
-            var key = CacheKey(url);
-            reply = null;
-            if (cm == 0 || !cache.TryGetValue(key, out reply) || reply.Fr > DateTime.UtcNow) return false;
-            if (reply.Et.Length == 0 && reply.Lm.Length == 0)
+            if (stale == null || stale.Et.Length == 0 && stale.Lm.Length == 0)
             {
                 DropCache(url);
-                reply = null;
-                return false;
+                stale = null;
             }
-            lru.Remove(key);
-            lru.Add(key);
-            return true;
         }
 
         private void PutCache(Uri url, Cr reply)
         {
             var key = CacheKey(url);
             var reusable = reply.Fr > DateTime.UtcNow || reply.Et.Length > 0 || reply.Lm.Length > 0;
-            if (cm == 0 || reply.Ns || !reusable || reply.St < 200 || reply.St >= 300 || reply.Sz > MaxCachePage)
+            if (reply.Ns || !reusable || reply.St < 200 || reply.St >= 300 || reply.Sz > MaxCachePage)
+            {
+                DropCache(url);
+                return;
+            }
+            Remember(key, reply);
+            if (DiskOn) disk.Pt(key, new Pr(reply.U, reply.H, reply.St, reply.Ct, reply.Ce, reply.Ch, reply.Sz, reply.Fr, reply.Et, reply.Lm));
+        }
+
+        private bool DiskOn { get { return !Pv && disk.On; } }
+
+        private bool GetDisk(Uri url, out Cr reply, bool remember)
+        {
+            reply = null;
+            if (!DiskOn) return false;
+            Pr saved;
+            var state = disk.Gt(CacheKey(url), out saved);
+            if (state == 2) Trace("CACHE", url, 0, "", 0, "recover");
+            if (state != 1 || saved == null) return false;
+            reply = new Cr(saved.U, saved.H, saved.St, saved.Ct, saved.Ce, saved.Ch, saved.Sz, false, saved.Fr, saved.Et, saved.Lm);
+            if (remember) Remember(CacheKey(url), reply);
+            return true;
+        }
+
+        private void Remember(string key, Cr reply)
+        {
+            if (cm == 0)
             {
                 cache.Remove(key);
                 lru.Remove(key);
@@ -4256,6 +4339,7 @@ namespace Lea.Engine
             var key = CacheKey(url);
             cache.Remove(key);
             lru.Remove(key);
+            if (DiskOn) disk.Rm(key);
         }
 
         private static string CacheKey(Uri url)

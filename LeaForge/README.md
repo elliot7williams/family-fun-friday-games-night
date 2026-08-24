@@ -19,7 +19,7 @@ LeaForge is where we can grow the more full-featured browser.
 - source viewer
 - local HTML file loading
 - basic HTTP page loading
-- bounded in-memory page cache for faster repeat navigation
+- bounded in-memory page cache plus an optional compressed persistent cache for faster repeat navigation across launches
 - basic HTML rendering for headings, paragraphs, bounded unordered/decimal lists, details disclosures, links, buttons, images, code, pre blocks, and structured tables
 - page-local `<details>`/`<summary>` state with compact markers, nested retention, pointer activation, and Enter/Space keyboard activation
 - bounded quote-aware HTML tokenization with comments, declarations, raw text, RCDATA, entities, and malformed-delimiter recovery
@@ -135,8 +135,10 @@ to `U` (response URL), `Bu` (document base URL), `T` (title), `H` (HTML), `N`
 Alias naming is a core Lea rule. See [ALIASES.md](ALIASES.md) for the vocabulary
 and limits used by future engine features.
 
-Normal navigation reuses up to 12 recently parsed pages. The Reload button bypasses
-that cache and fetches the current page again.
+Normal navigation reuses bounded parsed or decoded representations. `E` and `V`
+stay memory-only until a host sets `Cd`; `Cx`/`Cb` bound persistent entries and
+bytes, `Dc`/`Db` report its footprint, and `Cdl()` clears only Lea cache files.
+The Reload button bypasses both cache layers and fetches the current page again.
 
 ## Run
 
