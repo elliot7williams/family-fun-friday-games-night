@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **19**
+Post-1.0 hardening milestones completed: **20**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -14,7 +14,7 @@ modern web platform.
 | Core and alias API | 10% | 10% | Compact API, bounded diagnostics, repeatable reports, history, projects, backups |
 | Networking | 10% | 10% | Bounded request deadlines and downloads, private cookies, typed errors, validators, compression, memory LRU and optional persistent cache |
 | HTML and document tree | 20% | 20% | Bounded tokens, queries, base URLs and fragments, raw/RCDATA text, entities, recovery, HTML-hidden suppression, semantic accessibility, blocks, lists, disclosures, gauges, values, time/edit metadata, responsive image maps, tabindex focus, autofocus/access keys, tables |
-| CSS | 15% | 15% | Compiled selectors/declarations with two-tier important cascade, bounded inherited custom properties and pixel-width media queries, dynamic hover/focus, content/border sizing, visibility/opacity, fonts, overflow, boxes, bounded ordered and distributed row/column flex properties |
+| CSS | 15% | 15% | Compiled relationship and bounded functional selectors, declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, dynamic hover/focus, content/border sizing, visibility/opacity, fonts, overflow, boxes, bounded ordered and distributed row/column flex properties |
 | Layout and painting | 20% | 20% | Shared content/border geometry, ordered rows, bounded column/reverse flow, around/evenly distribution, item alignment, wrapping, grow/shrink, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Bounded multipart files, richer widgets, validation, responsive images, GET/POST submit |
 | Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/body and ID-scoped style/alert, class, visibility, disclosure, field-state, and focus commands |
@@ -124,6 +124,14 @@ modern web platform.
   are verified. Compact `G.Ic` diagnostics and both Inspectors report the active
   stylesheet count. The compatibility suite now covers 30 fixtures and 29
   executable probes.
+- Added bounded `:is(...)`, `:where(...)`, and selector-list `:not(...)` to the
+  shared stylesheet/query compiler. Each function accepts eight compound
+  alternatives, each simple selector permits sixteen authored functional tests,
+  and nesting/inner combinators remain excluded. `:is`/`:not` use maximum
+  argument specificity, `:where` uses zero, forgiving lists discard unsupported
+  alternatives, and `:not` stays strict. Engine, query, dynamic state, WinForms,
+  benchmark, Inspector, and Firespider host coverage bring the suite to 31
+  fixtures and 30 executable probes.
 
 ## Next gains
 

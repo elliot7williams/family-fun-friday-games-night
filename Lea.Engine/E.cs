@@ -22,6 +22,8 @@ namespace Lea.Engine
         private const int MaxMediaDepth = 4;
         private const int MaxMediaGroups = 8;
         private const int MaxViewport = 8192;
+        private const int MaxCssFunctionGroups = 8;
+        private const int MaxCssFunctionTests = 16;
         private const int MaxCssDeclarations = 128;
         private const int MaxCustomProperties = 32;
         private const int MaxCustomName = 64;
@@ -65,6 +67,7 @@ namespace Lea.Engine
         private const int MaxTimeout = 60000;
         private const int DefaultTimeout = 15000;
         private static readonly Pd[] NoDeclarations = new Pd[0];
+        private static readonly Se[] NoSelectors = new Se[0];
         private readonly W web = new W();
         private readonly Pc disk = new Pc();
         private readonly List<He> hs = new List<He>();
@@ -2624,6 +2627,7 @@ namespace Lea.Engine
             var classes = new List<string>();
             var attrs = new List<Ca>();
             var pseudos = new List<Ps>();
+            var functionTests = 0;
             while (index < selector.Length)
             {
                 var tail = selector.Substring(index);
@@ -2653,14 +2657,24 @@ namespace Lea.Engine
                 }
                 else if (tail[0] == ':')
                 {
-                    if (functions && tail.StartsWith(":not(", StringComparison.OrdinalIgnoreCase))
+                    var function = functions ? Regex.Match(tail, "^:(?<n>not|is|where)\\(", RegexOptions.IgnoreCase) : null;
+                    if (function != null && function.Success)
                     {
-                        var end = CssClose(tail, 4);
+                        var open = function.Length - 1;
+                        var end = CssClose(tail, open);
                         if (end < 0) return null;
-                        var excluded = CssSimple(tail.Substring(5, end - 5).Trim(), false);
-                        if (excluded == null) return null;
-                        pseudos.Add(new Ps("not", "", excluded));
-                        weight += excluded.W;
+                        var name = function.Groups["n"].Value.ToLowerInvariant();
+                        int authored;
+                        var alternatives = CssFunctionSelectors(tail.Substring(open + 1, end - open - 1), name != "not", out authored);
+                        if (alternatives == null || functionTests + authored > MaxCssFunctionTests) return null;
+                        functionTests += authored;
+                        pseudos.Add(new Ps(name, "", alternatives));
+                        if (name != "where")
+                        {
+                            var maximum = 0;
+                            foreach (var alternative in alternatives) maximum = Math.Max(maximum, alternative.W);
+                            weight += maximum;
+                        }
                         index += end + 1;
                         continue;
                     }
@@ -2675,6 +2689,26 @@ namespace Lea.Engine
                 index += match.Length;
             }
             return new Se(tag, ids.ToArray(), classes.ToArray(), attrs.ToArray(), pseudos.ToArray(), weight);
+        }
+
+        private static Se[] CssFunctionSelectors(string source, bool forgiving, out int authored)
+        {
+            var result = new List<Se>();
+            authored = 0;
+            foreach (var group in CssGroups(source))
+            {
+                authored++;
+                if (authored > MaxCssFunctionGroups) return null;
+                var value = group.Trim();
+                var selector = value.Length == 0 ? null : CssSimple(value, false);
+                if (selector == null)
+                {
+                    if (!forgiving) return null;
+                    continue;
+                }
+                result.Add(selector);
+            }
+            return result.ToArray();
         }
 
         private static int CssClose(string source, int open)
@@ -2763,7 +2797,8 @@ namespace Lea.Engine
 
         private static bool MatchPseudo(N node, Ps pseudo)
         {
-            if (pseudo.N == "not") return pseudo.S != null && !MatchPart(node, pseudo.S);
+            if (pseudo.N == "not") return pseudo.Ss.Length > 0 && !MatchAny(node, pseudo.Ss);
+            if (pseudo.N == "is" || pseudo.N == "where") return MatchAny(node, pseudo.Ss);
             if (pseudo.N == "hover") return node.Hv;
             if (pseudo.N == "focus") return node.Fc;
             if (pseudo.N == "root") return node.Up != null && node.Up.K == "#doc";
@@ -2792,6 +2827,13 @@ namespace Lea.Engine
                 int expected;
                 return Int32.TryParse(pseudo.V, out expected) && position == expected;
             }
+            return false;
+        }
+
+        private static bool MatchAny(N node, Se[] selectors)
+        {
+            foreach (var selector in selectors)
+                if (MatchPart(node, selector)) return true;
             return false;
         }
 
@@ -5131,18 +5173,18 @@ namespace Lea.Engine
         {
             public readonly string N;
             public readonly string V;
-            public readonly Se S;
+            public readonly Se[] Ss;
 
             public Ps(string name, string value)
-                : this(name, value, null)
+                : this(name, value, NoSelectors)
             {
             }
 
-            public Ps(string name, string value, Se selector)
+            public Ps(string name, string value, Se[] selectors)
             {
                 N = name;
                 V = value;
-                S = selector;
+                Ss = selectors ?? NoSelectors;
             }
         }
 

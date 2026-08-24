@@ -36,9 +36,13 @@ Safe scripts and hosts now also use `hd/sh`, `op/cl/tg`, `ds/en`, `vl`, `ck`, an
 `fo` for bounded visibility, disclosure, disabled, value, checked, and focus state. A retained field
 map preserves one existing model while hidden; `E.Kp` and `V` consume one focus
 request without exposing files, passwords, arbitrary attributes, or native UI.
-`important-cascade.html` brings the benchmark to 30 fixtures and its priority
-check brings it to 29 executable compatibility probes. One bit per compiled
-declaration drives normal/important stylesheet and inline tiers; compact `G.Ic`
+`selector-functions.html` brings the benchmark to 31 fixtures and its selector
+check brings it to 30 executable compatibility probes. Bounded compound lists,
+maximum `:is`/`:not` specificity, zero `:where` specificity, forgiving versus
+strict alternatives, outer combinators, document queries, dynamic state, and
+retained fields cover the shared compiler path. In the preceding important
+fixture, one bit per compiled declaration drives normal/important stylesheet
+and inline tiers; compact `G.Ic`
 diagnostics, specificity/source order, shorthands, custom properties, marker
 boundaries, hover/media activation, WinForms geometry, and retained fields cover
 the path. The preceding custom-property fixture covers lazy inherited maps,

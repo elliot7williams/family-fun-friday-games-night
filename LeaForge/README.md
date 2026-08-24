@@ -37,7 +37,8 @@ LeaForge is where we can grow the more full-featured browser.
 - inherited font-family fallbacks plus underline and line-through decoration
 - inherited left/center/right/justify alignment and pixel/relative line spacing
 - external stylesheets with document-order cascade and shared bounded caching
-- compiled relationship, attribute, structural, negation, link, and form-state selectors
+- compiled relationship, attribute, structural, link, and form-state selectors,
+  plus bounded `:is`/`:where`/list-`:not` alternatives and specificity
 - bounded responsive `screen`/`all` pixel-width media queries with compact
   `Vw` aliases, nested conditions, live WinForms resize, and retained fields
 - compiled declarations plus bounded inherited CSS custom properties with

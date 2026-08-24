@@ -278,10 +278,14 @@ Simple selectors are also compiled once per rule. They support tag, universal,
 ID, class, attribute presence and the six common attribute-value operators,
 plus basic structural, link, and initial form-state pseudo-classes. Structural
 positions count element siblings and include type-aware fixed, odd, and even
-matching. `:not(...)` compiles one simple-selector argument and uses that
-argument's specificity; complex arguments remain a later extension. Dynamic
-`:hover` and `:focus` use the same compiled selector path and are driven by
-compact `El` references in the WinForms hit-test model.
+matching. Bounded `:is(...)`, `:where(...)`, and `:not(...)` compile up to eight
+compound alternatives each and sixteen authored functional tests per simple
+selector. `:is` and list `:not` use maximum argument specificity; `:where` has
+zero specificity. Lea discards unsupported alternatives from forgiving
+`:is`/`:where` lists, rejects an invalid `:not` list, and deliberately leaves
+nested selector functions and inner combinators outside this subset. Dynamic
+`:hover` and `:focus` use the same compiled path and compact `El` references in
+the WinForms hit-test model. The `Id/Q/Qa` host queries reuse identical rules.
 
 Responsive styles use `E.Vw`, `P.Vw`, `V.Vw`, and `G.Vw`. A headless host sets
 `E.Vw` directly; the WinForms view forwards its client width and rebuilds only

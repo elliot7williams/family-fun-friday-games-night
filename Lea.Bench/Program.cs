@@ -106,7 +106,7 @@ namespace Lea.Bench
             var folder = Path.Combine(root, "LeaForge", "test-pages");
             var names = new[]
             {
-                "index.html", "recovery.html", "html-tokens.html", "selectors.html", "layout.html",
+                "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "layout.html",
                 "tables.html", "forms.html", "events-vars.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
@@ -458,6 +458,37 @@ namespace Lea.Bench
                 var snapshot = engine.Dg(page);
                 Need(snapshot.C > 0 && page.Bs.Count > 0 && page.S != null, "compiled styles are missing");
                 return snapshot.C + " compiled rules across " + snapshot.B + " blocks";
+            });
+            AddProbe(probes, "Bounded selector functions", delegate
+            {
+                var path = Path.Combine(folder, "selector-functions.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var block = page.Bs.First(item => item.El != null && item.El.Av("id") == "card");
+                var where = page.Bs.First(item => item.El != null && item.El.Av("id") == "where-target");
+                var adjacent = page.Bs.First(item => item.El != null && item.El.Av("id") == "adjacent");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark selector";
+                Need(block.S.F == "#0f4c81" && where.S.F == "#176b4d" && where.S.Pl == 9, "is maximum or where zero specificity changed");
+                Need(page.Bs.First(item => item.El != null && item.El.Av("id") == "keep").S.B &&
+                    !page.Bs.First(item => item.El != null && item.El.Av("id") == "skip").S.B && adjacent.S.W == 120 && adjacent.S.Ml == 17,
+                    "not alternatives or outer combinators changed");
+                Need(page.Bs.First(item => item.El != null && item.El.Av("id") == "forgiving").S.W == 144 &&
+                    page.Bs.First(item => item.El != null && item.El.Av("id") == "forgiving").S.H == 44, "is or where forgiving alternatives changed");
+                Need(engine.Qa(page, ":is(.card,.note)").Count == 3 && engine.Qa(page, ".item:not(.skip,[data-off])").Count == 1 &&
+                    engine.Qa(page, ":is(.a > .b,.c)").Count == 1 && engine.Qa(page, ":not(.a,,.c)").Count == 0 &&
+                    engine.Qa(page, ":is(.a,.b,.c,.d,.e,.f,.g,.h,.i)").Count == 0, "functional document queries, forgiving behavior, or bounds changed");
+                engine.Dy(page, ById(page.D, "hover"), null);
+                Need(page.Bs.First(item => item.El != null && item.El.Av("id") == "hover").S.Pl == 19, "functional hover selector changed");
+                engine.Dy(page, null, ById(page.D, "field"));
+                Need(field.S.Bl == 5 && field.S.Pl == 12 && Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) && field.V == "Retained benchmark selector", "functional focus rebuild replaced field state");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(840, 760);
+                    view.Go(path);
+                    using (var paint = Draw(view)) Need(BlockContent(view, "adjacent").Width == 120 && BlockContent(view, "where-target").Width > 0, "functional selector view geometry changed");
+                }
+                return "eight alternatives, sixteen tests, one-level compound arguments, forgiving is/where, strict not, maximum/zero specificity, outer combinators, queries, dynamic state, and retained fields";
             });
             AddProbe(probes, "Bounded media queries", delegate
             {
@@ -902,7 +933,7 @@ namespace Lea.Bench
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled selectors and declarations, two-tier important cascade, bounded inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box and text styles, visibility, positioning, transforms, responsive image sizing, and bounded row/column flex properties");
+            Capability(builder, "CSS", "Partial", "Compiled relationship and bounded is/where/list-not selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box and text styles, visibility, positioning, transforms, responsive image sizing, and bounded row/column flex properties");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, inline, row/column flex, table, form, image, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");

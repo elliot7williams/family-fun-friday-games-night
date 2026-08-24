@@ -89,6 +89,14 @@ Inspector reports active stylesheet declarations through `G.Ic`; the host smoke
 uses conflicting inline normal values to verify the important path and retained
 field identity without another browser runtime.
 
+Bounded selector functions stay on that compiler too. Firespider pages and host
+queries can use `:is`, zero-specificity `:where`, and selector-list `:not` with
+up to eight compound alternatives and sixteen authored tests per simple
+selector. Forgiving `:is`/`:where`, strict `:not`, maximum specificity, outer
+combinators, dynamic state, and retained fields need no adapter-side selector
+logic. The host smoke verifies computed border/font geometry, `Q1/Qa`, and CSS
+Inspector output.
+
 Output and data elements also stay inside Lea's custom renderer. Firespider can
 read ordered `P.Dvs` values or the matching `B.Dv`/`Ir.Dv` paint ownership,
 including bounded output references, data machine values, and safe text/class

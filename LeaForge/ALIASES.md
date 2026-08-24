@@ -401,6 +401,16 @@ element. `E.Dy(page, hover, focus)` reapplies the page's compiled CSS for
 `:hover` and `:focus` without reloading it; mutable field values are preserved.
 The WinForms `V` calls this automatically from pointer and field events.
 
+Functional selector lists stay compiled and bounded. `:is(...)`, `:where(...)`,
+and `:not(...)` accept up to eight compound simple-selector alternatives, with
+at most sixteen authored alternatives across one simple selector and no nested
+selector functions or inner combinators. `:is` and `:not` contribute the maximum
+argument specificity; `:where` contributes zero. Unsupported or malformed
+alternatives are discarded inside forgiving `:is`/`:where` lists, while
+`:not` rejects its complete selector when any alternative is invalid. An empty
+forgiving result remains valid and matches nothing. Stylesheets and compact
+`Id/Q/Qa` queries share this compiler, including dynamic hover/focus matching.
+
 Responsive CSS uses the compact `Vw` alias. Hosts may set `E.Vw`; it clamps to
 1-8,192 pixels and reapplies rules only when the active rule set changes.
 `V.Vw` is read-only and follows the control's client width automatically, while

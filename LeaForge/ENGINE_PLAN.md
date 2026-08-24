@@ -91,6 +91,11 @@ Dg/Dcl  diagnostics/clear request activity
     inline important tiers while specificity/source order, shorthands, custom
     properties, hover/focus, media activation, diagnostics, and retained fields
     stay on the existing compact paths.)
+12. Add bounded selector functions. (`:is`, `:where`, and selector-list `:not`
+    compile compound alternatives once for stylesheets and document queries.
+    Maximum/zero specificity, forgiving `:is`/`:where`, strict `:not`, dynamic
+    state, outer combinators, eight alternatives, and sixteen total authored
+    tests are active; nested functions and inner combinators stay outside.)
 
 This is the largest speed milestone: fewer controls, less UI overhead, and one
 predictable rendering pass.
@@ -273,14 +278,17 @@ non-empty bridge survives both direct and external MTA clients. Continue host
 coverage and bounded HTML/CSS compatibility work without adding another browser
 runtime.
 
-The latest completed milestone added a bounded important cascade. One bit on
-each compiled declaration separates normal and important tiers for supported
-ordinary and custom properties. Final top-level literal markers, stylesheet
-versus inline priority, specificity/source order, shorthand interaction,
-quoted/function boundaries, inherited values, hover, media, field retention,
-compact `G.Ic` diagnostics, both Inspectors, and Firespider are covered.
+The latest completed milestone added bounded `:is`, `:where`, and selector-list
+`:not` functions to the shared stylesheet and query compiler. Compound
+alternatives, maximum versus zero specificity, forgiving versus strict parsing,
+outer combinators, limits, dynamic state, retained fields, WinForms geometry,
+benchmark probes, Inspector diagnostics, and Firespider are covered.
 
-The previous milestone added compiled declaration records and bounded inherited
+The previous milestone added a bounded important cascade with one compiled bit,
+normal/important stylesheet and inline tiers, compact `G.Ic` diagnostics, and
+dynamic/host coverage.
+
+The earlier custom-property milestone added compiled declarations and inherited
 CSS custom properties behind `S.Vc/Cv` and `G.Vc`, with lazy copy-on-write maps,
 nested fallback, strict limits, dynamic state, and responsive rebuild coverage.
 
