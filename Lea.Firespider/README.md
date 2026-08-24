@@ -68,6 +68,12 @@ border-box sizing. Lea applies it to pixel width, height, min/max, and flex basi
 before the shared block, field, image, flex, table, cell, hit, paint, and
 accessibility-bound paths, without adding a native browser dependency.
 
+Responsive CSS also stays inside that surface. `V.Vw` follows the hosted
+control's client width, while `P.Vw` and `G.Vw` expose the applied value to the
+page and Inspector. Bounded screen/all pixel min/max/exact, comma, nested, and
+style media conditions switch compiled rules on resize without replacing live
+field models. The host smoke verifies narrow and restored wide states.
+
 Output and data elements also stay inside Lea's custom renderer. Firespider can
 read ordered `P.Dvs` values or the matching `B.Dv`/`Ir.Dv` paint ownership,
 including bounded output references, data machine values, and safe text/class

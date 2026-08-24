@@ -494,7 +494,7 @@ Partial Class j
             If(data.U Is Nothing, "", data.U.ToString()),
             "",
             "Response   " & data.St.ToString() & "  " & If(data.Ct, "") & "  " & data.Sz.ToString() & " bytes" & If(data.Ca, "  cache", ""),
-            "Document   " & data.N.ToString() & " nodes  " & data.B.ToString() & " blocks  " & host.Axs.Count.ToString() & " access",
+            "Document   " & data.N.ToString() & " nodes  " & data.B.ToString() & " blocks  " & host.Axs.Count.ToString() & " access  " & data.Vw.ToString() & "px viewport",
             "Content    " & data.L.ToString() & " links  " & data.F.ToString() & " fields  " & data.C.ToString() & " CSS rules",
             "Commands   " & data.J.ToString() & " accepted  " & data.V.ToString() & " variables  " & data.M.ToString() & " alerts",
             "Engine     " & data.Cc.ToString() & " memory  " & data.Ch.ToString() & " reuses  " & data.Kc.ToString() & " cookies",

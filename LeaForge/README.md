@@ -38,6 +38,8 @@ LeaForge is where we can grow the more full-featured browser.
 - inherited left/center/right/justify alignment and pixel/relative line spacing
 - external stylesheets with document-order cascade and shared bounded caching
 - compiled relationship, attribute, structural, negation, link, and form-state selectors
+- bounded responsive `screen`/`all` pixel-width media queries with compact
+  `Vw` aliases, nested conditions, live WinForms resize, and retained fields
 - live `:hover` and `:focus` restyling that preserves mutable form values
 - non-inherited `content-box`/`border-box` sizing across pixel dimensions,
   min/max clamps, flex basis, fields, images, tables, and cells

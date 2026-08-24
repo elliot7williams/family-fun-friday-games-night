@@ -107,7 +107,7 @@ namespace Lea.Bench
             var names = new[]
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "layout.html",
-                "tables.html", "forms.html", "events-vars.html", "responsive-media.html",
+                "tables.html", "forms.html", "events-vars.html", "responsive-media.html", "media-queries.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -459,6 +459,37 @@ namespace Lea.Bench
                 Need(snapshot.C > 0 && page.Bs.Count > 0 && page.S != null, "compiled styles are missing");
                 return snapshot.C + " compiled rules across " + snapshot.B + " blocks";
             });
+            AddProbe(probes, "Bounded media queries", delegate
+            {
+                var path = Path.Combine(folder, "media-queries.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark value";
+                Need(engine.Vw == 1024 && page.Vw == 1024 && engine.Dg(page).C == 16, "default responsive state changed");
+                Need(page.Bs.Any(block => block.El != null && block.El.Av("id") == "wide") &&
+                    !page.Bs.Any(block => block.El != null && block.El.Av("id") == "narrow"), "wide media selection changed");
+                engine.Vw = 480;
+                Need(page.Vw == 480 && engine.Dg(page).C == 16 &&
+                    page.Bs.Any(block => block.El != null && block.El.Av("id") == "narrow") &&
+                    page.Bs.Any(block => block.El != null && block.El.Av("id") == "nested") &&
+                    page.Bs.Any(block => block.El != null && block.El.Av("id") == "exact") &&
+                    !page.Bs.Any(block => block.El != null && block.El.Av("id") == "wide"), "narrow media selection changed");
+                Need(Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark value" && field.S.W == 140, "responsive rebuild replaced field state");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(840, 760);
+                    view.Go(path);
+                    using (var widePaint = Draw(view)) Need(view.Vw == 840 && BlockContent(view, "wide").Width == 320, "wide responsive view changed");
+                    var liveField = view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                    liveField.V = "Retained view value";
+                    view.Size = new Size(480, 760);
+                    using (var narrowPaint = Draw(view)) Need(view.Vw == 480 && BlockContent(view, "narrow").Width == 180, "narrow responsive view changed");
+                    Need(Object.ReferenceEquals(liveField, view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) && liveField.V == "Retained view value", "responsive view replaced field state");
+                }
+                return "Vw/P.Vw/G.Vw aliases, min/max/exact/comma/nested screen queries, style media, 1-8192 px bounds, live resize, diagnostics, and retained fields";
+            });
             AddProbe(probes, "Bounded document queries", delegate
             {
                 var engine = new E();
@@ -809,7 +840,7 @@ namespace Lea.Bench
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled selector subset, cascade, content/border box and text styles, visibility, positioning, transforms, responsive image sizing, and bounded row/column flex properties");
+            Capability(builder, "CSS", "Partial", "Compiled selector subset, cascade, bounded screen/all pixel-width media queries, content/border box and text styles, visibility, positioning, transforms, responsive image sizing, and bounded row/column flex properties");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, inline, row/column flex, table, form, image, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");

@@ -524,6 +524,50 @@ namespace Lea.Tests
                 Eq(130, mediaPage.Bs[10].S.W, "CSS image width overrides HTML");
                 Eq(44, mediaPage.Bs[10].S.H, "CSS image height overrides HTML");
 
+                var mediaQueryPath = Path.Combine(root, "LeaForge", "test-pages", "media-queries.html");
+                var mediaQueryEngine = new E();
+                Eq(1024, mediaQueryEngine.Vw, "default viewport width alias");
+                var mediaQueryPage = mediaQueryEngine.Go(mediaQueryPath);
+                Eq(1024, mediaQueryPage.Vw, "page viewport width alias");
+                Ok(HasBlock(mediaQueryPage, "wide") && HasBlock(mediaQueryPage, "either") && HasBlock(mediaQueryPage, "style-media"), "wide media rules active");
+                Ok(!HasBlock(mediaQueryPage, "narrow") && !HasBlock(mediaQueryPage, "nested") && !HasBlock(mediaQueryPage, "exact"), "narrow media rules inactive");
+                Ok(!HasBlock(mediaQueryPage, "print-only") && !HasBlock(mediaQueryPage, "unsupported"), "unsupported media rules inactive");
+                Eq(320, BlockById(mediaQueryPage, "wide").S.W, "minimum-width style");
+                var responsiveField = FieldById(mediaQueryPage, "field");
+                Eq(260, responsiveField.S.W, "wide field width");
+                responsiveField.V = "Retained responsive value";
+                var wideDiagnostics = mediaQueryEngine.Dg(mediaQueryPage);
+                Eq(1024, wideDiagnostics.Vw, "diagnostic viewport width alias");
+                Eq(16, wideDiagnostics.C, "wide active CSS rule count");
+                Ok(Has(wideDiagnostics.Cs, "@m>=701") && Has(wideDiagnostics.Cs, "@m>=900") && Has(wideDiagnostics.Cs, "@m>=700"), "wide media diagnostics");
+
+                mediaQueryEngine.Vw = 480;
+                Eq(480, mediaQueryPage.Vw, "responsive page viewport update");
+                Ok(HasBlock(mediaQueryPage, "narrow") && HasBlock(mediaQueryPage, "nested") && HasBlock(mediaQueryPage, "exact"), "narrow and exact media rules active");
+                Ok(!HasBlock(mediaQueryPage, "wide") && !HasBlock(mediaQueryPage, "either") && !HasBlock(mediaQueryPage, "style-media"), "wide media rules deactivate");
+                Eq(180, BlockById(mediaQueryPage, "narrow").S.W, "maximum-width style");
+                Eq(172, BlockById(mediaQueryPage, "nested").S.W, "nested media intersection");
+                Eq(148, BlockById(mediaQueryPage, "exact").S.W, "exact-width style");
+                Ok(Object.ReferenceEquals(responsiveField, FieldById(mediaQueryPage, "field")) && responsiveField.V == "Retained responsive value", "media rebuild preserves field state");
+                Eq(140, responsiveField.S.W, "narrow field width");
+                var narrowDiagnostics = mediaQueryEngine.Dg(mediaQueryPage);
+                Eq(16, narrowDiagnostics.C, "narrow active CSS rule count");
+                Ok(Has(narrowDiagnostics.Cs, "@m<=600") && Has(narrowDiagnostics.Cs, "@m=480") && Has(narrowDiagnostics.Cs, "@m400-700"), "narrow media diagnostics");
+
+                mediaQueryEngine.Vw = 350;
+                Ok(HasBlock(mediaQueryPage, "narrow") && HasBlock(mediaQueryPage, "either") && !HasBlock(mediaQueryPage, "nested") && !HasBlock(mediaQueryPage, "exact"), "comma media alternative and nested lower boundary");
+                Eq(15, mediaQueryEngine.Dg(mediaQueryPage).C, "small active CSS rule count");
+                mediaQueryEngine.Vw = 700;
+                Ok(!HasBlock(mediaQueryPage, "wide") && HasBlock(mediaQueryPage, "nested") && HasBlock(mediaQueryPage, "style-media"), "inclusive 700 pixel boundaries");
+                Eq(14, mediaQueryEngine.Dg(mediaQueryPage).C, "boundary active CSS rule count");
+                mediaQueryEngine.Vw = 800;
+                Ok(HasBlock(mediaQueryPage, "wide") && !HasBlock(mediaQueryPage, "nested") && !HasBlock(mediaQueryPage, "either") && HasBlock(mediaQueryPage, "style-media"), "between-alternative media state");
+                Eq(15, mediaQueryEngine.Dg(mediaQueryPage).C, "middle active CSS rule count");
+                mediaQueryEngine.Vw = 0;
+                Eq(1, mediaQueryEngine.Vw, "minimum viewport clamp");
+                mediaQueryEngine.Vw = Int32.MaxValue;
+                Eq(8192, mediaQueryEngine.Vw, "maximum viewport clamp");
+
                 var mapPath = Path.Combine(root, "LeaForge", "test-pages", "image-maps.html");
                 var mapEngine = new E();
                 var mapPage = mapEngine.Go(mapPath);
@@ -2337,6 +2381,23 @@ namespace Lea.Tests
                     Paint(view);
                     Eq("Consolas|m", view.At.Fs[0].S.Ff, "live focus clears on background click");
                     Ok(Object.ReferenceEquals(liveField, view.At.Fs[0]) && view.At.Fs[0].V == "Live edited value", "live blur preserves field value");
+                    view.Size = new Size(840, 760);
+                    view.Go(mediaQueryPath);
+                    Paint(view);
+                    Eq(840, view.Vw, "view viewport width forwarding");
+                    Ok(HasBlock(view.At, "wide") && !HasBlock(view.At, "narrow"), "wide view media state");
+                    Eq(320, BlockRect(view, BlockById(view.At, "wide")).Width, "wide responsive geometry");
+                    Ok(!FragmentHitRect(view, "#wide-target").IsEmpty && FragmentHitRect(view, "#narrow-target").IsEmpty, "wide responsive hit state");
+                    var responsiveViewField = FieldById(view.At, "field");
+                    responsiveViewField.V = "Retained view value";
+                    view.Size = new Size(480, 760);
+                    Application.DoEvents();
+                    Paint(view);
+                    Eq(480, view.Vw, "resized view viewport width");
+                    Ok(!HasBlock(view.At, "wide") && HasBlock(view.At, "narrow") && HasBlock(view.At, "nested") && HasBlock(view.At, "exact"), "narrow view media state");
+                    Eq(180, BlockRect(view, BlockById(view.At, "narrow")).Width, "narrow responsive geometry");
+                    Ok(FragmentHitRect(view, "#wide-target").IsEmpty && !FragmentHitRect(view, "#narrow-target").IsEmpty, "narrow responsive hit state");
+                    Ok(Object.ReferenceEquals(responsiveViewField, FieldById(view.At, "field")) && responsiveViewField.V == "Retained view value", "view resize preserves field state");
                     var mediaLoad = view.GoA(mediaPath);
                     while (!mediaLoad.IsCompleted)
                     {
@@ -3557,7 +3618,7 @@ namespace Lea.Tests
                 if (args.Length > 4) SaveRender(tokenPath, args[4]);
                 if (args.Length > 5) SaveStateRender(statePath, args[5]);
 
-                    Console.WriteLine("Lea smoke passed: optional bounded persistent cache with restart reuse, validators, private isolation, atomic recovery, LRU entry/byte ceilings and host aliases, bounded content-box and border-box geometry, body and ID-scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, shrink, reverse flow, and resize, semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                    Console.WriteLine("Lea smoke passed: bounded responsive CSS media queries with viewport aliases, live resize, diagnostics, and retained fields, optional bounded persistent cache with restart reuse, validators, private isolation, atomic recovery, LRU entry/byte ceilings and host aliases, bounded content-box and border-box geometry, body and ID-scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, shrink, reverse flow, and resize, semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -3883,6 +3944,13 @@ namespace Lea.Tests
                 if (found != null) return found;
             }
             throw new InvalidOperationException("block unavailable: " + id);
+        }
+
+        private static bool HasBlock(P page, string id)
+        {
+            foreach (var block in page.Bs)
+                if (BlockById(block, id) != null) return true;
+            return false;
         }
 
         private static B BlockById(B block, string id)

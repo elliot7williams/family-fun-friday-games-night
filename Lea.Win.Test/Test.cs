@@ -273,7 +273,7 @@ namespace Lea.Win.Test
                 data.U == null ? "" : data.U.ToString(),
                 "",
                 "Response   " + data.St + "  " + data.Ct + "  " + data.Sz + " bytes" + (data.Ca ? "  cache" : ""),
-                "Document   " + data.N + " nodes  " + data.B + " blocks  " + v.Axs.Count + " access",
+                "Document   " + data.N + " nodes  " + data.B + " blocks  " + v.Axs.Count + " access  " + data.Vw + "px viewport",
                 "Content    " + data.L + " links  " + data.F + " fields  " + data.C + " CSS rules",
                 "Commands   " + data.J + " accepted  " + data.V + " variables  " + data.M + " alerts",
                 "Engine     " + data.Cc + " cached  " + data.Ch + " reuses  " + data.Kc + " cookies"
@@ -334,6 +334,7 @@ namespace Lea.Win.Test
                     break;
                 }
             var passed = inspectorSummary.Text.Contains("Response   200") &&
+                inspectorSummary.Text.Contains("px viewport") &&
                 inspectorNodes.Text.Contains("body") && inspectorCss.Text.Contains("body") &&
                 inspectorRequests.Text.Contains("GET 200 file") && inspectorMessages.Text.Contains("commands") &&
                 inspectorAccess.Text.Contains("document") && v.Ao != null && keyPassed && accessPassed;

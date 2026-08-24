@@ -36,8 +36,12 @@ Safe scripts and hosts now also use `hd/sh`, `op/cl/tg`, `ds/en`, `vl`, `ck`, an
 `fo` for bounded visibility, disclosure, disabled, value, checked, and focus state. A retained field
 map preserves one existing model while hidden; `E.Kp` and `V` consume one focus
 request without exposing files, passwords, arbitrary attributes, or native UI.
-`box-sizing.html` keeps the benchmark at 27 fixtures, and the persistent-cache
-loopback check brings it to 26 executable compatibility probes. Non-inherited compact `Bz=c/b` state applies pixel
+`media-queries.html` brings the benchmark to 28 fixtures, and its responsive
+check brings it to 27 executable compatibility probes. Compact `E/V/P/G.Vw`
+state drives bounded screen/all pixel min/max/exact, comma, nested, and style
+media conditions. Rules compile once, WinForms resize activates only the matching
+set, diagnostics carry short `@m` labels, and mutable fields retain identity.
+Non-inherited compact `Bz=c/b` state applies pixel
 width/height, min/max, and flex-basis values to the content or border edge across
 blocks, fields, images, flex items, tables, and cells. Exact wide geometry,
 narrow reflow, paint, hit, benchmark, and Firespider host bounds use the shared

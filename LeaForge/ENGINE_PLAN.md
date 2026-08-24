@@ -76,6 +76,11 @@ Dg/Dcl  diagnostics/clear request activity
    Intrinsic min-content sizing, fractional
    factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis
    alignment, and auto-height column reordering remain outside this subset.)
+9. Add bounded responsive CSS. (`screen`/`all` pixel `min-width`, `max-width`,
+   exact `width`, comma alternatives, four nested `@media` levels, and
+   `<style media>` are active through compact `Vw` aliases. WinForms resize
+   activation preserves live fields; print, negated, and non-pixel queries stay
+   outside the supported subset.)
 
 This is the largest speed milestone: fewer controls, less UI overhead, and one
 predictable rendering pass.
@@ -258,13 +263,17 @@ non-empty bridge survives both direct and external MTA clients. Continue host
 coverage and bounded HTML/CSS compatibility work without adding another browser
 runtime.
 
-The latest completed milestone added an optional gzip persistent cache behind
-the existing request layer. Compact `Cd/Cx/Cb/Dc/Db/Cdl` aliases retain a
-memory-only default, while SHA-256 filenames, versioned bounded records,
-same-directory atomic replacement, LRU timestamps, 32-entry/16 MB defaults,
-128-entry/128 MB hard ceilings, validator reuse, private-mode isolation,
-`no-store`, reload bypass, and corrupt-entry recovery are covered by restart,
-loopback, benchmark, WinForms, diagnostics, and Firespider host tests.
+The latest completed milestone added bounded responsive CSS behind compact
+`E/V/P/G.Vw` aliases. Screen/all pixel minimum, maximum, exact, comma-OR,
+nested `@media`, and `<style media>` conditions compile once; active rules change
+only at width boundaries. Width, nesting, alternatives, and rule count are
+bounded, live fields survive responsive rebuilds, and engine, WinForms,
+diagnostic, benchmark, and Firespider host tests cover the path.
+
+The previous milestone added an optional gzip persistent cache behind the
+existing request layer. Compact `Cd/Cx/Cb/Dc/Db/Cdl` aliases retain a memory-only
+default, while atomic versioned records, LRU ceilings, validator reuse,
+private-mode isolation, and recovery are covered across the release suites.
 
 The previous milestone added non-inherited compact `S.Bz=c/b` state for
 `content-box` and `border-box`. One shared conversion now interprets pixel

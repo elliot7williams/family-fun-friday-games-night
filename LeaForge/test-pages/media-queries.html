@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Media Queries</title>
+  <style>
+    body { color: #26313b; background: #ffffff; }
+    p { margin: 4px 0; padding: 4px; }
+    #base { display: block; width: 220px; background: #e8f4ef; }
+    #wide, #narrow, #nested, #exact, #either, #style-media, #print-only, #unsupported { display: none; }
+    #field { width: 210px; height: 30px; background: #f3f5f7; }
+
+    @media screen and (min-width: 701px) {
+      #wide { display: block; width: 320px; background: #dcecff; }
+      #field { width: 260px; background: #dcecff; }
+    }
+
+    @media only screen and (max-width: 600px) {
+      #narrow { display: block; width: 180px; background: #e8f4ef; }
+      #field { width: 140px; background: #e8f4ef; }
+    }
+
+    @media (width: 480px) {
+      #exact { display: block; width: 148px; background: #fff4d6; }
+    }
+
+    @media (max-width: 400px), screen and (min-width: 900px) {
+      #either { display: block; width: 160px; background: #f4e8ff; }
+    }
+
+    @media screen and (max-width: 700px) {
+      @media (min-width: 400px) {
+        #nested { display: block; width: 172px; background: #ffe9e2; }
+      }
+    }
+
+    @media print { #print-only { display: block; } }
+    @media screen and (min-width: 20em) { #unsupported { display: block; } }
+    @supports (display: grid) { #unsupported { display: block; } }
+  </style>
+  <style media="screen and (min-width: 700px)">
+    #style-media { display: block; width: 196px; background: #e8f4ef; }
+  </style>
+  <style media="print">
+    #print-only { display: block; width: 999px; }
+  </style>
+</head>
+<body>
+  <h1>Bounded responsive CSS</h1>
+  <p id="base">Base rule</p>
+  <p id="wide"><a id="wide-link" href="#wide-target">Wide rule</a></p>
+  <p id="narrow"><a id="narrow-link" href="#narrow-target">Narrow rule</a></p>
+  <p id="nested">Nested rule</p>
+  <p id="exact">Exact rule</p>
+  <p id="either">Comma rule</p>
+  <p id="style-media">Style media rule</p>
+  <p id="print-only">Print rule</p>
+  <p id="unsupported">Unsupported rule</p>
+  <label for="field">Persistent field</label>
+  <input id="field" name="field" value="Initial value">
+  <p><a id="media-link" href="second.html">Responsive link</a></p>
+</body>
+</html>

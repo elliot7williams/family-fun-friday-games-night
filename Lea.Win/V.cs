@@ -93,6 +93,7 @@ namespace Lea.Win
             ed.LostFocus += delegate { EndEdit(false); };
             ed.MouseWheel += delegate(object sender, MouseEventArgs args) { Sc(-Math.Sign(args.Delta) * 72); };
             Controls.Add(ed);
+            e.Vw = Math.Max(1, ClientSize.Width);
         }
 
         protected override AccessibleObject CreateAccessibilityInstance()
@@ -147,6 +148,7 @@ namespace Lea.Win
         public int Dh { get { return docHeight; } }
         public int Sy { get { return sy; } }
         public int Bc { get { return boxes.Count; } }
+        public int Vw { get { return e.Vw; } }
         public N Ke { get { return focus; } }
         public int Kn { get { return FocusTargets(true).Count; } }
         public int Ki { get { return FocusIndex(FocusTargets(true)) + 1; } }
@@ -466,6 +468,7 @@ namespace Lea.Win
             focus = null;
             keySlot = -1;
             EndEdit(false);
+            e.Vw = Math.Max(1, ClientSize.Width);
             e.Dy(page, null, null);
             sy = 0;
             Dirty();
@@ -629,8 +632,11 @@ namespace Lea.Win
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
+            var changed = this.e.Vw != Math.Max(1, ClientSize.Width);
+            this.e.Vw = Math.Max(1, ClientSize.Width);
             Dirty();
             Invalidate();
+            if (changed && At != null) NotifyAccessibility(AccessibleEvents.Reorder);
         }
 
         protected override void OnFontChanged(EventArgs e)

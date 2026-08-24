@@ -283,6 +283,15 @@ argument's specificity; complex arguments remain a later extension. Dynamic
 `:hover` and `:focus` use the same compiled selector path and are driven by
 compact `El` references in the WinForms hit-test model.
 
+Responsive styles use `E.Vw`, `P.Vw`, `V.Vw`, and `G.Vw`. A headless host sets
+`E.Vw` directly; the WinForms view forwards its client width and rebuilds only
+when a media boundary changes. Existing `Fi` objects and mutable values survive
+that rebuild. The bounded compiler accepts `screen`/`all` with pixel
+`min-width`, `max-width`, and exact `width`, comma alternatives, nested
+`@media`, and `<style media>`. Widths clamp to 1-8,192 pixels; query alternatives,
+nesting, and total rules are capped at 8, 4, and 1,024. Unsupported media stays
+inactive instead of silently behaving as screen CSS.
+
 `S.Ff` carries up to eight CSS font-family fallbacks; `V` resolves and caches
 the first installed Windows family with a 32-entry bound. `S.Td` uses compact
 `n/u/s/us` decoration modes. Underline, line-through, native decoration tags,

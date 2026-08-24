@@ -18,6 +18,10 @@ namespace Lea.Engine
         private const int MaxCachePage = 2 * 1024 * 1024;
         private const int MaxCss = 256 * 1024;
         private const int MaxStyleLinks = 8;
+        private const int MaxCssRules = 1024;
+        private const int MaxMediaDepth = 4;
+        private const int MaxMediaGroups = 8;
+        private const int MaxViewport = 8192;
         private const int MaxPost = 10 * 1024 * 1024;
         private const long MaxDownload = 64L * 1024 * 1024;
         private const int MaxFind = 256;
@@ -65,6 +69,7 @@ namespace Lea.Engine
         private int cm = 8;
         private int cs = 60;
         private int ch;
+        private int vw = 1024;
         private bool je = true;
         private Stream download;
         private bool stopped;
@@ -73,6 +78,17 @@ namespace Lea.Engine
         public bool CanBk { get { return at > 0; } }
         public bool CanFw { get { return at < hs.Count - 1; } }
         public bool Busy { get { return busy; } }
+        public int Vw
+        {
+            get { return vw; }
+            set
+            {
+                var next = Math.Max(1, Math.Min(MaxViewport, value));
+                if (vw == next) return;
+                vw = next;
+                ApplyViewport(At);
+            }
+        }
         public int Cm
         {
             get { return cm; }
@@ -275,6 +291,7 @@ namespace Lea.Engine
                 J = page.Jc,
                 V = page.Vs.Count,
                 M = page.Ms.Count,
+                Vw = page.Vw,
                 Cc = Cc,
                 Ch = Ch,
                 Kc = Kc,
@@ -290,7 +307,7 @@ namespace Lea.Engine
                 foreach (var rule in rules)
                 {
                     if (result.Cs.Count == MaxDiagnosticRules) break;
-                    result.Cs.Add(Short(rule.Q, 96) + " { " + Short(rule.V, 144) + " } [" + rule.W + "]");
+                    result.Cs.Add((rule.Md.Length == 0 ? "" : rule.Md + " ") + Short(rule.Q, 96) + " { " + Short(rule.V, 144) + " } [" + rule.W + "]");
                 }
             lock (requests)
                 foreach (var request in requests) result.Rs.Add(request);
@@ -625,13 +642,17 @@ namespace Lea.Engine
         public P Bk()
         {
             if (CanBk) at--;
-            return At;
+            var page = At;
+            ApplyViewport(page);
+            return page;
         }
 
         public P Fw()
         {
             if (CanFw) at++;
-            return At;
+            var page = At;
+            ApplyViewport(page);
+            return page;
         }
 
         public P Rl()
@@ -1076,11 +1097,45 @@ namespace Lea.Engine
 
         private void Complete(P p, List<R> rules)
         {
-            p.R = rules;
-            Rebuild(p, rules, null);
+            p.Ra = rules;
+            p.Vw = vw;
+            var active = MediaRules(rules, vw);
+            p.R = active;
+            Rebuild(p, active, null);
             if (!je) return;
             p.Jc = J.Pg(p, p.D);
-            if (p.Jc > 0) Rebuild(p, rules, null);
+            if (p.Jc > 0) Rebuild(p, active, null);
+        }
+
+        private void ApplyViewport(P page)
+        {
+            if (page == null) return;
+            page.Vw = vw;
+            var all = page.Ra as List<R>;
+            if (all == null) return;
+            var active = MediaRules(all, vw);
+            var current = page.R as List<R>;
+            if (SameRules(current, active)) return;
+            var fields = new Dictionary<N, Fi>();
+            foreach (var field in page.Fs) if (field.El != null) fields[field.El] = field;
+            page.R = active;
+            Rebuild(page, active, fields);
+        }
+
+        private static List<R> MediaRules(List<R> rules, int width)
+        {
+            var active = new List<R>();
+            foreach (var rule in rules)
+                if (rule.On(width)) active.Add(rule);
+            return active;
+        }
+
+        private static bool SameRules(IList<R> left, IList<R> right)
+        {
+            if (left == null || right == null || left.Count != right.Count) return false;
+            for (var index = 0; index < left.Count; index++)
+                if (!Object.ReferenceEquals(left[index], right[index])) return false;
+            return true;
         }
 
         private static void Rebuild(P p, List<R> rules, IDictionary<N, Fi> fields)
@@ -2023,7 +2078,7 @@ namespace Lea.Engine
                 var media = link.Av("media").Trim().ToLowerInvariant();
                 var type = link.Av("type").Trim().ToLowerInvariant();
                 if (rel.IndexOf(" stylesheet ", StringComparison.Ordinal) < 0 || rel.IndexOf(" alternate ", StringComparison.Ordinal) >= 0) continue;
-                if (link.A.ContainsKey("disabled") || (media.Length > 0 && media != "all" && media != "screen") || (type.Length > 0 && type != "text/css")) continue;
+                if (link.A.ContainsKey("disabled") || CssMedia(media).Length == 0 || (type.Length > 0 && type != "text/css")) continue;
                 links.Add(link);
             }
             return links;
@@ -2058,27 +2113,232 @@ namespace Lea.Engine
             else if (sheets != null) sheets.TryGetValue(node, out source);
             if (source != null)
             {
-                foreach (Match match in Regex.Matches(source, "(?<q>[^{}]+)\\{(?<v>[^{}]*)\\}", RegexOptions.Singleline))
-                {
-                    foreach (var selector in CssGroups(match.Groups["q"].Value))
-                    {
-                        var query = selector.Trim();
-                        var parts = new List<string>();
-                        var joins = new List<char>();
-                        if (query.Length == 0 || !CssParts(query, parts, joins)) continue;
-                        var simple = new List<Se>();
-                        foreach (var part in parts)
-                        {
-                            var value = CssSimple(part);
-                            if (value == null) { simple.Clear(); break; }
-                            simple.Add(value);
-                        }
-                        if (simple.Count == parts.Count)
-                            rules.Add(new R(query, match.Groups["v"].Value, Spec(simple), order++, simple.ToArray(), joins.ToArray()));
-                    }
-                }
+                var media = CssMedia(node.Av("media"));
+                if (media.Length > 0) CssSource(source, rules, ref order, media, 0);
             }
             foreach (var child in node.C) CssRules(child, sheets, rules, ref order);
+        }
+
+        private static void CssSource(string source, List<R> rules, ref int order, Mc[] media, int depth)
+        {
+            if (String.IsNullOrEmpty(source) || media == null || media.Length == 0 || depth > MaxMediaDepth) return;
+            var at = 0;
+            string header;
+            string body;
+            while (rules.Count < MaxCssRules && CssBlock(source, ref at, out header, out body))
+            {
+                var query = CssClean(header).Trim();
+                if (query.Length == 0) continue;
+                if (Regex.IsMatch(query, "^@media(?:\\s|\\()", RegexOptions.IgnoreCase))
+                {
+                    if (depth == MaxMediaDepth) continue;
+                    var nested = CssIntersect(media, CssMedia(Regex.Replace(query, "^@media", "", RegexOptions.IgnoreCase)));
+                    if (nested.Length > 0) CssSource(body, rules, ref order, nested, depth + 1);
+                    continue;
+                }
+                if (query[0] == '@') continue;
+                CssRule(query, CssClean(body), rules, ref order, media);
+            }
+        }
+
+        private static void CssRule(string selectors, string declarations, List<R> rules, ref int order, Mc[] media)
+        {
+            if (String.IsNullOrWhiteSpace(declarations) || declarations.Length > 64 * 1024) return;
+            foreach (var selector in CssGroups(selectors))
+            {
+                if (rules.Count == MaxCssRules) return;
+                var query = selector.Trim();
+                var parts = new List<string>();
+                var joins = new List<char>();
+                if (query.Length == 0 || !CssParts(query, parts, joins)) continue;
+                var simple = new List<Se>();
+                foreach (var part in parts)
+                {
+                    var value = CssSimple(part);
+                    if (value == null) { simple.Clear(); break; }
+                    simple.Add(value);
+                }
+                if (simple.Count == parts.Count)
+                    rules.Add(new R(query, declarations, Spec(simple), order++, simple.ToArray(), joins.ToArray(), media));
+            }
+        }
+
+        private static bool CssBlock(string source, ref int at, out string header, out string body)
+        {
+            header = "";
+            body = "";
+            while (at < (source ?? "").Length)
+            {
+                while (at < source.Length && (Char.IsWhiteSpace(source[at]) || source[at] == ';')) at++;
+                if (at >= source.Length || source[at] == '}') return false;
+                var start = at;
+                var quote = '\0';
+                var brackets = 0;
+                var parentheses = 0;
+                var statement = false;
+                for (var index = at; index < source.Length; index++)
+                {
+                    var value = source[index];
+                    if (quote != '\0')
+                    {
+                        if (value == quote && (index == 0 || source[index - 1] != '\\')) quote = '\0';
+                        continue;
+                    }
+                    if (value == '/' && index + 1 < source.Length && source[index + 1] == '*')
+                    {
+                        index = CssComment(source, index);
+                        continue;
+                    }
+                    if (value == '"' || value == '\'') { quote = value; continue; }
+                    if (value == '[') brackets++;
+                    else if (value == ']' && brackets > 0) brackets--;
+                    else if (value == '(') parentheses++;
+                    else if (value == ')' && parentheses > 0) parentheses--;
+                    else if (brackets == 0 && parentheses == 0 && value == ';')
+                    {
+                        at = index + 1;
+                        statement = true;
+                        break;
+                    }
+                    else if (brackets == 0 && parentheses == 0 && value == '{')
+                    {
+                        var close = CssBrace(source, index);
+                        if (close < 0) { at = source.Length; return false; }
+                        header = source.Substring(start, index - start);
+                        body = source.Substring(index + 1, close - index - 1);
+                        at = close + 1;
+                        return true;
+                    }
+                    else if (brackets == 0 && parentheses == 0 && value == '}')
+                    {
+                        at = index + 1;
+                        return false;
+                    }
+                }
+                if (!statement) { at = source.Length; return false; }
+            }
+            return false;
+        }
+
+        private static int CssBrace(string source, int open)
+        {
+            var depth = 1;
+            var quote = '\0';
+            for (var index = open + 1; index < (source ?? "").Length; index++)
+            {
+                var value = source[index];
+                if (quote != '\0')
+                {
+                    if (value == quote && source[index - 1] != '\\') quote = '\0';
+                    continue;
+                }
+                if (value == '/' && index + 1 < source.Length && source[index + 1] == '*')
+                {
+                    index = CssComment(source, index);
+                    continue;
+                }
+                if (value == '"' || value == '\'') quote = value;
+                else if (value == '{') depth++;
+                else if (value == '}' && --depth == 0) return index;
+            }
+            return -1;
+        }
+
+        private static int CssComment(string source, int open)
+        {
+            var close = source.IndexOf("*/", open + 2, StringComparison.Ordinal);
+            return close < 0 ? source.Length - 1 : close + 1;
+        }
+
+        private static string CssClean(string source)
+        {
+            var result = new StringBuilder();
+            var quote = '\0';
+            for (var index = 0; index < (source ?? "").Length; index++)
+            {
+                var value = source[index];
+                if (quote != '\0')
+                {
+                    result.Append(value);
+                    if (value == quote && (index == 0 || source[index - 1] != '\\')) quote = '\0';
+                    continue;
+                }
+                if (value == '/' && index + 1 < source.Length && source[index + 1] == '*')
+                {
+                    index = CssComment(source, index);
+                    continue;
+                }
+                result.Append(value);
+                if (value == '"' || value == '\'') quote = value;
+            }
+            return result.ToString();
+        }
+
+        private static Mc[] CssMedia(string value)
+        {
+            var source = CssClean(value).Trim().ToLowerInvariant();
+            if (source.Length == 0) return new Mc[] { new Mc(0, 0) };
+            var result = new List<Mc>();
+            var groups = 0;
+            foreach (var item in CssGroups(source))
+            {
+                if (++groups > MaxMediaGroups) return new Mc[0];
+                var query = item.Trim();
+                if (query.Length == 0 || Regex.IsMatch(query, "(?:^|\\s)not(?:\\s|$)", RegexOptions.IgnoreCase)) continue;
+                var matches = Regex.Matches(query, "\\(\\s*(?<k>min-width|max-width|width)\\s*:\\s*(?<n>[0-9]{1,4})\\s*px\\s*\\)", RegexOptions.IgnoreCase);
+                var minimum = 0;
+                var maximum = 0;
+                var valid = true;
+                foreach (Match match in matches)
+                {
+                    int number;
+                    if (!Int32.TryParse(match.Groups["n"].Value, out number) || number < 1 || number > MaxViewport) { valid = false; break; }
+                    var kind = match.Groups["k"].Value.ToLowerInvariant();
+                    if (kind == "min-width") minimum = Math.Max(minimum, number);
+                    else if (kind == "max-width") maximum = maximum == 0 ? number : Math.Min(maximum, number);
+                    else
+                    {
+                        minimum = Math.Max(minimum, number);
+                        maximum = maximum == 0 ? number : Math.Min(maximum, number);
+                    }
+                }
+                if (!valid || minimum > 0 && maximum > 0 && minimum > maximum) continue;
+                var remainder = Regex.Replace(query, "\\(\\s*(?:min-width|max-width|width)\\s*:\\s*[0-9]{1,4}\\s*px\\s*\\)", " ", RegexOptions.IgnoreCase);
+                if (remainder.IndexOf('(') >= 0 || remainder.IndexOf(')') >= 0 || remainder.IndexOf(':') >= 0) continue;
+                var meaningful = matches.Count > 0;
+                foreach (var token in Regex.Split(remainder.Trim(), "\\s+"))
+                {
+                    if (token.Length == 0 || token == "and" || token == "only") continue;
+                    if (token == "screen" || token == "all") { meaningful = true; continue; }
+                    valid = false;
+                    break;
+                }
+                if (!valid || !meaningful) continue;
+                var condition = new Mc(minimum, maximum);
+                var duplicate = false;
+                foreach (var existing in result)
+                    if (existing.N == condition.N && existing.X == condition.X) { duplicate = true; break; }
+                if (!duplicate) result.Add(condition);
+            }
+            return result.ToArray();
+        }
+
+        private static Mc[] CssIntersect(Mc[] parent, Mc[] child)
+        {
+            var result = new List<Mc>();
+            if (parent == null || child == null) return result.ToArray();
+            foreach (var left in parent)
+                foreach (var right in child)
+                {
+                    var minimum = Math.Max(left.N, right.N);
+                    var maximum = left.X == 0 ? right.X : right.X == 0 ? left.X : Math.Min(left.X, right.X);
+                    if (maximum > 0 && minimum > maximum) continue;
+                    var duplicate = false;
+                    foreach (var existing in result)
+                        if (existing.N == minimum && existing.X == maximum) { duplicate = true; break; }
+                    if (!duplicate && result.Count < MaxMediaGroups) result.Add(new Mc(minimum, maximum));
+                }
+            return result.ToArray();
         }
 
         private static void FindAll(N node, string kind, List<N> found)
@@ -4484,6 +4744,35 @@ namespace Lea.Engine
             public static Tk C(string name) { return new Tk('c', name, "", "", false, false); }
         }
 
+        private sealed class Mc
+        {
+            public readonly int N;
+            public readonly int X;
+
+            public Mc(int minimum, int maximum)
+            {
+                N = minimum;
+                X = maximum;
+            }
+
+            public bool On(int width)
+            {
+                return width >= N && (X == 0 || width <= X);
+            }
+
+            public string D
+            {
+                get
+                {
+                    if (N == 0 && X == 0) return "";
+                    if (N == X) return "@m=" + N;
+                    if (N == 0) return "@m<=" + X;
+                    if (X == 0) return "@m>=" + N;
+                    return "@m" + N + "-" + X;
+                }
+            }
+        }
+
         private sealed class R
         {
             public readonly string Q;
@@ -4492,8 +4781,15 @@ namespace Lea.Engine
             public readonly int O;
             public readonly Se[] P;
             public readonly char[] J;
+            public readonly Mc[] M;
+            public readonly string Md;
 
             public R(string query, string values, int weight, int order, Se[] parts, char[] joins)
+                : this(query, values, weight, order, parts, joins, new Mc[] { new Mc(0, 0) })
+            {
+            }
+
+            public R(string query, string values, int weight, int order, Se[] parts, char[] joins, Mc[] media)
             {
                 Q = query;
                 V = values;
@@ -4501,6 +4797,18 @@ namespace Lea.Engine
                 O = order;
                 P = parts;
                 J = joins;
+                M = media ?? new Mc[0];
+                var labels = new List<string>();
+                foreach (var condition in M)
+                    if (condition.D.Length > 0) labels.Add(condition.D);
+                Md = String.Join("|", labels.ToArray());
+            }
+
+            public bool On(int width)
+            {
+                foreach (var condition in M)
+                    if (condition.On(width)) return true;
+                return false;
             }
         }
 

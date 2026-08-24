@@ -131,6 +131,7 @@ St/Ct/Sz  response status/type/bytes
 Ca        response reused cached content
 N/B/L/F   nodes/blocks/links/fields
 C/J/V/M   CSS rules/commands/variables/alerts
+Vw        applied viewport width in pixels
 Cc/Ch/Kc  cache entries/reuses/cookies
 Dc/Db     persistent cache entries/bytes
 Dh/Dw     persistent hits/stores
@@ -397,6 +398,15 @@ text. `El` links blocks, inline runs, fields, and table cells back to their
 element. `E.Dy(page, hover, focus)` reapplies the page's compiled CSS for
 `:hover` and `:focus` without reloading it; mutable field values are preserved.
 The WinForms `V` calls this automatically from pointer and field events.
+
+Responsive CSS uses the compact `Vw` alias. Hosts may set `E.Vw`; it clamps to
+1-8,192 pixels and reapplies rules only when the active rule set changes.
+`V.Vw` is read-only and follows the control's client width automatically, while
+`P.Vw` and `G.Vw` report the width applied to the page and diagnostic snapshot.
+Lea compiles bounded `screen`/`all` queries with pixel `min-width`, `max-width`,
+or exact `width`, comma alternatives, four nested `@media` levels, up to eight
+alternatives, and `<style media>`. Print, negated, unknown, and non-pixel
+conditions stay inactive. Active diagnostic CSS lines use short `@m` prefixes.
 Pixel dimensions use `S.W` and `S.H`; positive bounds use `Wn/Wx` for minimum
 and maximum width and `Hn/Hx` for minimum and maximum height. `Bz` is `c/b` for
 the non-inherited `content-box` default or `border-box`; it applies the same
