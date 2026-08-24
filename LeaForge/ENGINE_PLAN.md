@@ -81,6 +81,11 @@ Dg/Dcl  diagnostics/clear request activity
    `<style media>` are active through compact `Vw` aliases. WinForms resize
    activation preserves live fields; print, negated, and non-pixel queries stay
    outside the supported subset.)
+10. Add bounded CSS custom properties. (Stylesheet declarations now compile
+    once; inherited case-sensitive values use lazy copy-on-write storage and
+    compact `S.Vc/Cv` plus `G.Vc` aliases. Nested `var()` fallback, cycles,
+    inline styles, dynamic state, media activation, and strict count/name/value/
+    depth/output ceilings are active.)
 
 This is the largest speed milestone: fewer controls, less UI overhead, and one
 predictable rendering pass.
@@ -263,12 +268,16 @@ non-empty bridge survives both direct and external MTA clients. Continue host
 coverage and bounded HTML/CSS compatibility work without adding another browser
 runtime.
 
-The latest completed milestone added bounded responsive CSS behind compact
-`E/V/P/G.Vw` aliases. Screen/all pixel minimum, maximum, exact, comma-OR,
-nested `@media`, and `<style media>` conditions compile once; active rules change
-only at width boundaries. Width, nesting, alternatives, and rule count are
-bounded, live fields survive responsive rebuilds, and engine, WinForms,
-diagnostic, benchmark, and Firespider host tests cover the path.
+The latest completed milestone added compiled declaration records and bounded
+inherited CSS custom properties. Compact `S.Vc/Cv` and `G.Vc` aliases sit over
+lazy copy-on-write maps; nested `var()` fallback, case-sensitive names, cycles,
+inline overrides, dynamic pseudo-classes, responsive values, strict count/name/
+value/depth/output ceilings, and field retention are covered by engine,
+WinForms, benchmark, Inspector, and Firespider host tests.
+
+The previous milestone added bounded responsive CSS behind compact `E/V/P/G.Vw`
+aliases. Screen/all pixel conditions compile once and activate only at width
+boundaries while preserving fields.
 
 The previous milestone added an optional gzip persistent cache behind the
 existing request layer. Compact `Cd/Cx/Cb/Dc/Db/Cdl` aliases retain a memory-only

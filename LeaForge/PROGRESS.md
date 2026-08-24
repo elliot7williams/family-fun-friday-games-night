@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **17**
+Post-1.0 hardening milestones completed: **18**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -14,7 +14,7 @@ modern web platform.
 | Core and alias API | 10% | 10% | Compact API, bounded diagnostics, repeatable reports, history, projects, backups |
 | Networking | 10% | 10% | Bounded request deadlines and downloads, private cookies, typed errors, validators, compression, memory LRU and optional persistent cache |
 | HTML and document tree | 20% | 20% | Bounded tokens, queries, base URLs and fragments, raw/RCDATA text, entities, recovery, HTML-hidden suppression, semantic accessibility, blocks, lists, disclosures, gauges, values, time/edit metadata, responsive image maps, tabindex focus, autofocus/access keys, tables |
-| CSS | 15% | 15% | Compiled selectors, bounded pixel-width media queries, dynamic hover/focus, content/border sizing, visibility/opacity, fonts, overflow, boxes, bounded ordered and distributed row/column flex properties |
+| CSS | 15% | 15% | Compiled selectors/declarations, bounded inherited custom properties and pixel-width media queries, dynamic hover/focus, content/border sizing, visibility/opacity, fonts, overflow, boxes, bounded ordered and distributed row/column flex properties |
 | Layout and painting | 20% | 20% | Shared content/border geometry, ordered rows, bounded column/reverse flow, around/evenly distribution, item alignment, wrapping, grow/shrink, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Bounded multipart files, richer widgets, validation, responsive images, GET/POST submit |
 | Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/body and ID-scoped style/alert, class, visibility, disclosure, field-state, and focus commands |
@@ -108,6 +108,14 @@ modern web platform.
   four-level nesting, eight alternatives, 1,024 compiled rules, active-rule
   diagnostics, field-preserving boundary rebuilds, WinForms resize forwarding,
   fixtures, benchmark probes, and Firespider host coverage are verified.
+- Added compiled declaration records plus bounded inherited CSS custom properties
+  and `var()` fallback. Compact `S.Vc/Cv` and `G.Vc` aliases expose counts and
+  case-sensitive lookup; lazy copy-on-write storage keeps ordinary styles on the
+  low-allocation path. The engine caps each style at 32 properties, 64-character
+  names, 512-character raw values, eight nested resolutions, 1,024 expanded
+  characters, and 128 declarations per block. Missing, cyclic, oversized, and
+  excess values fail into authored fallbacks while inline, hover, media,
+  WinForms, benchmark, Inspector, and Firespider paths preserve live fields.
 
 ## Next gains
 

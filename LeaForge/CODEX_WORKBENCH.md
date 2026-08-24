@@ -36,8 +36,11 @@ Safe scripts and hosts now also use `hd/sh`, `op/cl/tg`, `ds/en`, `vl`, `ck`, an
 `fo` for bounded visibility, disclosure, disabled, value, checked, and focus state. A retained field
 map preserves one existing model while hidden; `E.Kp` and `V` consume one focus
 request without exposing files, passwords, arbitrary attributes, or native UI.
-`media-queries.html` brings the benchmark to 28 fixtures, and its responsive
-check brings it to 27 executable compatibility probes. Compact `E/V/P/G.Vw`
+`custom-properties.html` brings the benchmark to 29 fixtures, and its variable
+check brings it to 28 executable compatibility probes. Compiled declarations,
+lazy inherited maps, compact `S.Vc/Cv` and `G.Vc`, nested/cycle fallbacks,
+strict count/name/value/depth/output limits, hover/media activation, and retained
+fields cover the custom-property path. Compact `E/V/P/G.Vw`
 state drives bounded screen/all pixel min/max/exact, comma, nested, and style
 media conditions. Rules compile once, WinForms resize activates only the matching
 set, diagnostics carry short `@m` labels, and mutable fields retain identity.

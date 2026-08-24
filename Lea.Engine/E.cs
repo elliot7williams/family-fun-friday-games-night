@@ -22,6 +22,12 @@ namespace Lea.Engine
         private const int MaxMediaDepth = 4;
         private const int MaxMediaGroups = 8;
         private const int MaxViewport = 8192;
+        private const int MaxCssDeclarations = 128;
+        private const int MaxCustomProperties = 32;
+        private const int MaxCustomName = 64;
+        private const int MaxCustomValue = 512;
+        private const int MaxVarDepth = 8;
+        private const int MaxVarValue = 1024;
         private const int MaxPost = 10 * 1024 * 1024;
         private const long MaxDownload = 64L * 1024 * 1024;
         private const int MaxFind = 256;
@@ -58,6 +64,7 @@ namespace Lea.Engine
         private const int MinTimeout = 100;
         private const int MaxTimeout = 60000;
         private const int DefaultTimeout = 15000;
+        private static readonly Pd[] NoDeclarations = new Pd[0];
         private readonly W web = new W();
         private readonly Pc disk = new Pc();
         private readonly List<He> hs = new List<He>();
@@ -292,6 +299,7 @@ namespace Lea.Engine
                 V = page.Vs.Count,
                 M = page.Ms.Count,
                 Vw = page.Vw,
+                Vc = page.S == null ? 0 : page.S.Vc,
                 Cc = Cc,
                 Ch = Ch,
                 Kc = Kc,
@@ -2818,22 +2826,59 @@ namespace Lea.Engine
         private static S Style(N node, S inherited, List<R> rules)
         {
             var style = inherited == null ? new S() : inherited.Inherit();
+            var matched = new List<R>();
+            foreach (var rule in rules)
+                if (MatchCss(node, rule)) matched.Add(rule);
+            var inline = CssDeclarations(node.Av("style"));
+            foreach (var rule in matched) Custom(style, inherited, rule.Ds);
+            Custom(style, inherited, inline);
             TagStyle(style, node.K);
             if (node.A.ContainsKey("hidden")) style.D = "none";
-            foreach (var rule in rules) if (MatchCss(node, rule)) Decls(style, rule.V);
-            Decls(style, node.Av("style"));
+            foreach (var rule in matched) Decls(style, rule.Ds);
+            Decls(style, inline);
             if (node.A.ContainsKey("data-lea-hidden")) style.D = "none";
             return style;
         }
 
-        private static void Decls(S style, string declarations)
+        private static void Custom(S style, S inherited, Pd[] declarations)
         {
-            foreach (var declaration in (declarations ?? "").Split(';'))
+            foreach (var declaration in declarations)
             {
-                var split = declaration.IndexOf(':');
-                if (split < 1) continue;
-                var name = declaration.Substring(0, split).Trim().ToLowerInvariant();
-                var value = declaration.Substring(split + 1).Trim();
+                if (!declaration.C) continue;
+                var value = declaration.V;
+                if (value.Equals("initial", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (style.Vr != null && style.Vr.ContainsKey(declaration.N)) VarWrite(style, inherited).Remove(declaration.N);
+                    continue;
+                }
+                if (value.Equals("inherit", StringComparison.OrdinalIgnoreCase) || value.Equals("unset", StringComparison.OrdinalIgnoreCase) ||
+                    value.Equals("revert", StringComparison.OrdinalIgnoreCase) || value.Equals("revert-layer", StringComparison.OrdinalIgnoreCase))
+                {
+                    string parent;
+                    if (inherited != null && inherited.Vr != null && inherited.Vr.TryGetValue(declaration.N, out parent)) VarWrite(style, inherited)[declaration.N] = parent;
+                    else if (style.Vr != null && style.Vr.ContainsKey(declaration.N)) VarWrite(style, inherited).Remove(declaration.N);
+                    continue;
+                }
+                if (value.Length == 0 || value.Length > MaxCustomValue) continue;
+                if (style.Vr == null || style.Vr.ContainsKey(declaration.N) || style.Vr.Count < MaxCustomProperties) VarWrite(style, inherited)[declaration.N] = value;
+            }
+        }
+
+        private static Dictionary<string, string> VarWrite(S style, S inherited)
+        {
+            if (style.Vr == null) style.Vr = new Dictionary<string, string>(StringComparer.Ordinal);
+            else if (inherited != null && Object.ReferenceEquals(style.Vr, inherited.Vr)) style.Vr = new Dictionary<string, string>(style.Vr, StringComparer.Ordinal);
+            return style.Vr;
+        }
+
+        private static void Decls(S style, Pd[] declarations)
+        {
+            foreach (var declaration in declarations)
+            {
+                if (declaration.C) continue;
+                var name = declaration.N;
+                string value;
+                if (!VarValue(style, declaration.V, out value)) continue;
                 if (name == "color") style.F = value;
                 else if (name == "background" || name == "background-color") style.Bg = value;
                 else if (name == "font-family") FontFamily(style, value);
@@ -2906,6 +2951,178 @@ namespace Lea.Engine
                     if (size.Success && int.TryParse(size.Groups["n"].Value, out number) && number > 0 && number < 200) style.Fs = number;
                 }
             }
+        }
+
+        private static Pd[] CssDeclarations(string declarations)
+        {
+            var source = CssClean(declarations ?? "");
+            if (source.Length == 0 || source.Length > 64 * 1024) return NoDeclarations;
+            var result = new List<Pd>();
+            var start = 0;
+            var quote = '\0';
+            var parentheses = 0;
+            for (var index = 0; index <= source.Length; index++)
+            {
+                var end = index == source.Length;
+                var value = end ? ';' : source[index];
+                if (!end && quote != '\0')
+                {
+                    if (value == quote && (index == 0 || source[index - 1] != '\\')) quote = '\0';
+                    continue;
+                }
+                if (!end && (value == '"' || value == '\'')) { quote = value; continue; }
+                if (!end && value == '(') { parentheses++; continue; }
+                if (!end && value == ')' && parentheses > 0) { parentheses--; continue; }
+                if (value != ';' || parentheses != 0) continue;
+                CssDeclaration(source.Substring(start, index - start), result);
+                if (result.Count == MaxCssDeclarations) break;
+                start = index + 1;
+            }
+            return result.ToArray();
+        }
+
+        private static void CssDeclaration(string source, IList<Pd> result)
+        {
+            var quote = '\0';
+            var parentheses = 0;
+            var split = -1;
+            for (var index = 0; index < (source ?? "").Length; index++)
+            {
+                var value = source[index];
+                if (quote != '\0')
+                {
+                    if (value == quote && (index == 0 || source[index - 1] != '\\')) quote = '\0';
+                    continue;
+                }
+                if (value == '"' || value == '\'') { quote = value; continue; }
+                if (value == '(') parentheses++;
+                else if (value == ')' && parentheses > 0) parentheses--;
+                else if (value == ':' && parentheses == 0) { split = index; break; }
+            }
+            if (split < 1) return;
+            var name = source.Substring(0, split).Trim();
+            var custom = CustomName(name);
+            if (!custom) name = name.ToLowerInvariant();
+            if (name.Length == 0) return;
+            result.Add(new Pd(name, source.Substring(split + 1).Trim(), custom));
+        }
+
+        private static bool CustomName(string name)
+        {
+            if (String.IsNullOrEmpty(name) || name.Length < 3 || name.Length > MaxCustomName || name[0] != '-' || name[1] != '-') return false;
+            for (var index = 2; index < name.Length; index++)
+            {
+                var value = name[index];
+                var ascii = value >= 'a' && value <= 'z' || value >= 'A' && value <= 'Z' || value >= '0' && value <= '9';
+                if (!ascii && value != '-' && value != '_') return false;
+            }
+            return true;
+        }
+
+        private static bool VarValue(S style, string source, out string value)
+        {
+            value = source ?? "";
+            if (value.IndexOf("var(", StringComparison.OrdinalIgnoreCase) < 0) return true;
+            return ResolveVars(style, value, new HashSet<string>(StringComparer.Ordinal), 0, out value);
+        }
+
+        private static bool ResolveVars(S style, string source, HashSet<string> stack, int depth, out string value)
+        {
+            value = "";
+            if (source == null || source.Length > MaxVarValue || depth > MaxVarDepth) return false;
+            var result = new StringBuilder();
+            var quote = '\0';
+            for (var index = 0; index < source.Length; index++)
+            {
+                var current = source[index];
+                if (quote != '\0')
+                {
+                    result.Append(current);
+                    if (current == quote && (index == 0 || source[index - 1] != '\\')) quote = '\0';
+                    continue;
+                }
+                if (current == '"' || current == '\'') { quote = current; result.Append(current); continue; }
+                if (!VarAt(source, index))
+                {
+                    result.Append(current);
+                    if (result.Length > MaxVarValue) return false;
+                    continue;
+                }
+
+                var close = CssFunctionClose(source, index + 3);
+                if (close < 0) return false;
+                var inside = source.Substring(index + 4, close - index - 4);
+                var comma = CssVarComma(inside);
+                var name = (comma < 0 ? inside : inside.Substring(0, comma)).Trim();
+                if (!CustomName(name)) return false;
+                var fallback = comma < 0 ? null : inside.Substring(comma + 1).Trim();
+                string replacement;
+                var resolved = ResolveCustom(style, name, stack, depth + 1, out replacement);
+                if (!resolved && fallback != null) resolved = ResolveVars(style, fallback, stack, depth + 1, out replacement);
+                if (!resolved) return false;
+                result.Append(replacement);
+                if (result.Length > MaxVarValue) return false;
+                index = close;
+            }
+            value = result.ToString().Trim();
+            return true;
+        }
+
+        private static bool ResolveCustom(S style, string name, HashSet<string> stack, int depth, out string value)
+        {
+            value = "";
+            string source;
+            if (style == null || style.Vr == null || depth > MaxVarDepth || stack.Contains(name) || !style.Vr.TryGetValue(name, out source)) return false;
+            stack.Add(name);
+            try { return ResolveVars(style, source, stack, depth, out value); }
+            finally { stack.Remove(name); }
+        }
+
+        private static bool VarAt(string source, int index)
+        {
+            if (index < 0 || index + 4 > (source ?? "").Length || !source.Substring(index, 4).Equals("var(", StringComparison.OrdinalIgnoreCase)) return false;
+            if (index == 0) return true;
+            var prior = source[index - 1];
+            return !Char.IsLetterOrDigit(prior) && prior != '-' && prior != '_';
+        }
+
+        private static int CssFunctionClose(string source, int open)
+        {
+            var depth = 1;
+            var quote = '\0';
+            for (var index = open + 1; index < (source ?? "").Length; index++)
+            {
+                var value = source[index];
+                if (quote != '\0')
+                {
+                    if (value == quote && source[index - 1] != '\\') quote = '\0';
+                    continue;
+                }
+                if (value == '"' || value == '\'') quote = value;
+                else if (value == '(') depth++;
+                else if (value == ')' && --depth == 0) return index;
+            }
+            return -1;
+        }
+
+        private static int CssVarComma(string source)
+        {
+            var depth = 0;
+            var quote = '\0';
+            for (var index = 0; index < (source ?? "").Length; index++)
+            {
+                var value = source[index];
+                if (quote != '\0')
+                {
+                    if (value == quote && (index == 0 || source[index - 1] != '\\')) quote = '\0';
+                    continue;
+                }
+                if (value == '"' || value == '\'') quote = value;
+                else if (value == '(') depth++;
+                else if (value == ')' && depth > 0) depth--;
+                else if (value == ',' && depth == 0) return index;
+            }
+            return -1;
         }
 
         private static void BoxSizing(S style, string value)
@@ -4744,6 +4961,20 @@ namespace Lea.Engine
             public static Tk C(string name) { return new Tk('c', name, "", "", false, false); }
         }
 
+        private struct Pd
+        {
+            public readonly string N;
+            public readonly string V;
+            public readonly bool C;
+
+            public Pd(string name, string value, bool custom)
+            {
+                N = name;
+                V = value;
+                C = custom;
+            }
+        }
+
         private sealed class Mc
         {
             public readonly int N;
@@ -4783,6 +5014,7 @@ namespace Lea.Engine
             public readonly char[] J;
             public readonly Mc[] M;
             public readonly string Md;
+            public readonly Pd[] Ds;
 
             public R(string query, string values, int weight, int order, Se[] parts, char[] joins)
                 : this(query, values, weight, order, parts, joins, new Mc[] { new Mc(0, 0) })
@@ -4798,6 +5030,7 @@ namespace Lea.Engine
                 P = parts;
                 J = joins;
                 M = media ?? new Mc[0];
+                Ds = CssDeclarations(values);
                 var labels = new List<string>();
                 foreach (var condition in M)
                     if (condition.D.Length > 0) labels.Add(condition.D);

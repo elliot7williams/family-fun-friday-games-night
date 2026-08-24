@@ -74,6 +74,13 @@ page and Inspector. Bounded screen/all pixel min/max/exact, comma, nested, and
 style media conditions switch compiled rules on resize without replacing live
 field models. The host smoke verifies narrow and restored wide states.
 
+CSS custom properties stay compact as well. Firespider can read `S.Vc`, perform
+case-sensitive `S.Cv(name)` lookup, and see the document count through `G.Vc`
+and the Inspector. Declarations compile once, inherited maps remain lazy and
+copy on override, and bounded nested `var()` fallbacks update through media and
+dynamic rebuilds without replacing fields. The host smoke verifies computed
+wide/narrow values and Inspector reporting.
+
 Output and data elements also stay inside Lea's custom renderer. Firespider can
 read ordered `P.Dvs` values or the matching `B.Dv`/`Ir.Dv` paint ownership,
 including bounded output references, data machine values, and safe text/class

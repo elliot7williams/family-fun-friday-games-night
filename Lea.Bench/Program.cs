@@ -107,7 +107,7 @@ namespace Lea.Bench
             var names = new[]
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "layout.html",
-                "tables.html", "forms.html", "events-vars.html", "responsive-media.html", "media-queries.html",
+                "tables.html", "forms.html", "events-vars.html", "responsive-media.html", "media-queries.html", "custom-properties.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -490,6 +490,33 @@ namespace Lea.Bench
                 }
                 return "Vw/P.Vw/G.Vw aliases, min/max/exact/comma/nested screen queries, style media, 1-8192 px bounds, live resize, diagnostics, and retained fields";
             });
+            AddProbe(probes, "Bounded CSS custom properties", delegate
+            {
+                var path = Path.Combine(folder, "custom-properties.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "var-field");
+                field.V = "Retained benchmark variable";
+                Need(page.S.Vc == 19 && page.S.Cv("--brand") == "#176b4d" && page.S.Cv("--Brand") == "#123f8c", "custom property aliases or case sensitivity changed");
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "base").S.W == 260 &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "child").S.F == "#7e22ce" &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "depth-ok").S.W == 177 &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "depth-limit").S.W == 43, "custom inheritance, values, or depth bounds changed");
+                engine.Dy(page, ById(page.D, "hover"), null);
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "hover").S.Pl == 18, "custom hover cascade changed");
+                engine.Vw = 480;
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "base").S.W == 150 &&
+                    Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "var-field")) && field.V == "Retained benchmark variable", "responsive custom value or retained field changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(840, 760);
+                    view.Go(path);
+                    using (var widePaint = Draw(view)) Need(BlockContent(view, "base").Width == 260, "custom property wide geometry changed");
+                    view.Size = new Size(480, 760);
+                    using (var narrowPaint = Draw(view)) Need(BlockContent(view, "base").Width == 150, "custom property responsive geometry changed");
+                }
+                return "S.Vc/Cv aliases, 32 properties, 64-character names, 512-character values, eight-level resolution, case-sensitive inheritance, nested/cycle fallbacks, inline/hover/media rebuilds, and retained fields";
+            });
             AddProbe(probes, "Bounded document queries", delegate
             {
                 var engine = new E();
@@ -840,7 +867,7 @@ namespace Lea.Bench
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled selector subset, cascade, bounded screen/all pixel-width media queries, content/border box and text styles, visibility, positioning, transforms, responsive image sizing, and bounded row/column flex properties");
+            Capability(builder, "CSS", "Partial", "Compiled selectors and declarations, cascade, bounded inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box and text styles, visibility, positioning, transforms, responsive image sizing, and bounded row/column flex properties");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, inline, row/column flex, table, form, image, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");

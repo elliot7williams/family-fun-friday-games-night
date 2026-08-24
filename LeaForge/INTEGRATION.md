@@ -292,6 +292,17 @@ that rebuild. The bounded compiler accepts `screen`/`all` with pixel
 nesting, and total rules are capped at 8, 4, and 1,024. Unsupported media stays
 inactive instead of silently behaving as screen CSS.
 
+CSS declarations are compiled once per stylesheet rule. Bounded custom
+properties inherit through the compact style tree and use lazy copy-on-write
+storage, so pages without them do not allocate a variable map per style. Hosts
+inspect `S.Vc`, `S.Cv(name)`, and aggregate `G.Vc`; names remain case-sensitive.
+Lea resolves nested `var(--name, fallback)` after the winning custom-property
+cascade, including inline, hover/focus, and media changes. Limits are 128
+declarations per block, 32 properties per style, 64-character names,
+512-character raw values, eight resolution levels, and 1,024 expanded
+characters. Missing, cyclic, oversized, and excess values fail safely into an
+authored fallback or leave the ordinary declaration unchanged.
+
 `S.Ff` carries up to eight CSS font-family fallbacks; `V` resolves and caches
 the first installed Windows family with a 32-entry bound. `S.Td` uses compact
 `n/u/s/us` decoration modes. Underline, line-through, native decoration tags,

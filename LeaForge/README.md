@@ -40,6 +40,8 @@ LeaForge is where we can grow the more full-featured browser.
 - compiled relationship, attribute, structural, negation, link, and form-state selectors
 - bounded responsive `screen`/`all` pixel-width media queries with compact
   `Vw` aliases, nested conditions, live WinForms resize, and retained fields
+- compiled declarations plus bounded inherited CSS custom properties with
+  compact `S.Vc/Cv`, nested `var()` fallback, lazy maps, and strict limits
 - live `:hover` and `:focus` restyling that preserves mutable form values
 - non-inherited `content-box`/`border-box` sizing across pixel dimensions,
   min/max clamps, flex basis, fields, images, tables, and cells

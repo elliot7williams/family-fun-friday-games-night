@@ -37,8 +37,8 @@ namespace Lea.Firespider
                     .Replace(".host-wrap{width:160px}", ".host-wrap{width:160px}.host-box{box-sizing:border-box;width:180px;height:44px;padding:6px;border:2px solid #176b4d}")
                     .Replace(".host-flex{display:flex;width:300px;height:60px;gap:8px;justify-content:space-between;align-items:center}", ".host-flex{display:flex;width:300px;height:60px;flex-wrap:wrap;gap:6px 8px;justify-content:space-between;align-items:center}")
                     .Replace(".host-flex p{width:70px;height:20px}", ".host-flex p{flex:1 1 180px;height:20px}.host-flex #host-flex-b{flex-shrink:2;min-width:80px}.host-flex-column{display:flex;width:180px;height:100px;flex-direction:column-reverse;row-gap:5px;justify-content:space-evenly;align-items:flex-end}.host-flex-column p{width:70px;margin:0;flex:0 1 60px;min-height:30px}.host-flex-column #host-flex-column-a{order:2;align-self:center}.host-flex-column #host-flex-column-b{order:-1}")
-                    .Replace("</style>", ".host-media{display:none}@media screen and (max-width:500px){#host-media{display:block;width:120px;background:#e8f4ef}#host-box{display:none}}</style>")
-                    .Replace("<p id='class-state'>", "<p id='host-media' class='host-media'>Responsive host</p><p id='host-box' class='host-box'>Border-box host</p><section id='host-flex-column' class='host-flex-column'><p id='host-flex-column-a'>Column A</p><p id='host-flex-column-b'>Column B</p></section><p id='class-state'>");
+                    .Replace("</style>", ":root{--host-color:#0f4c81;--host-width:155px;--host-pad:7px}.host-var{color:var(--host-color);width:var(--host-width);padding:var(--host-pad)}.host-media{display:none}@media screen and (max-width:500px){:root{--host-width:110px;--host-pad:4px}#host-media{display:block;width:120px;background:#e8f4ef}#host-box{display:none}}</style>")
+                    .Replace("<p id='class-state'>", "<p id='host-var' class='host-var'>Custom property host</p><p id='host-media' class='host-media'>Responsive host</p><p id='host-box' class='host-box'>Border-box host</p><section id='host-flex-column' class='host-flex-column'><p id='host-flex-column-a'>Column A</p><p id='host-flex-column-b'>Column B</p></section><p id='class-state'>");
                 File.WriteAllText(openPage, openMarkup);
                 var root = args.Length > 0 ? args[0] : AppDomain.CurrentDomain.BaseDirectory;
                 var assembly = Assembly.LoadFrom(Path.Combine(root, "Firespider Internet 19.exe"));
@@ -194,15 +194,18 @@ namespace Lea.Firespider
                     var hostResponsiveField = FieldById(host.At, "host-auto");
                     hostResponsiveField.V = "Retained responsive host value";
                     Check(host.Vw > 500 && host.At.Vw == host.Vw && host.Dg().Vw == host.Vw && HasBlock(host.At, "host-box") && !HasBlock(host.At, "host-media"), "Firespider wide viewport aliases and media state");
+                    var hostVariable = BlockById(host.At, "host-var");
+                    Check(hostVariable.S.F == "#0f4c81" && hostVariable.S.W == 155 && hostVariable.S.Pl == 7 && hostVariable.S.Vc == 3 && hostVariable.S.Cv("--host-width") == "155px" && host.Dg().Vc == 3, "Firespider custom property aliases and values");
                     host.Size = new System.Drawing.Size(480, 560);
                     Application.DoEvents();
                     PaintView(host);
                     Check(host.Vw == 480 && host.At.Vw == 480 && !HasBlock(host.At, "host-box") && HasBlock(host.At, "host-media") && BlockById(host.At, "host-media").S.W == 120, "Firespider narrow media resize");
+                    Check(BlockById(host.At, "host-var").S.W == 110 && BlockById(host.At, "host-var").S.Pl == 4 && BlockById(host.At, "host-var").S.Cv("--host-width") == "110px", "Firespider responsive custom properties");
                     Check(Object.ReferenceEquals(hostResponsiveField, FieldById(host.At, "host-auto")) && hostResponsiveField.V == "Retained responsive host value", "Firespider responsive resize retains field state");
                     host.Size = new System.Drawing.Size(720, 560);
                     Application.DoEvents();
                     PaintView(host);
-                    Check(host.Vw > 500 && HasBlock(host.At, "host-box") && !HasBlock(host.At, "host-media") && Object.ReferenceEquals(hostResponsiveField, FieldById(host.At, "host-auto")), "Firespider wide media restore");
+                    Check(host.Vw > 500 && HasBlock(host.At, "host-box") && !HasBlock(host.At, "host-media") && BlockById(host.At, "host-var").S.W == 155 && Object.ReferenceEquals(hostResponsiveField, FieldById(host.At, "host-auto")), "Firespider wide media restore");
                     Check(BlockById(host.At, "host-progress").Vm.R == 0.4D && BlockById(host.At, "host-meter").Vm.R == 0.75D, "Firespider compact gauge models");
                     Check(host.At.Dvs.Count == 4 && ValueById(host.At, "host-output").V == "Host total" && ValueById(host.At, "host-data").V == "lea-host", "Firespider compact output and data models");
                     Check(ValueById(host.At, "host-time").K == "t" && ValueById(host.At, "host-time").Dt == "2026-08-21", "Firespider compact time model");
@@ -240,6 +243,7 @@ namespace Lea.Firespider
                     Check((bool)inspectorSnapshot.Invoke(form, null), "Firespider Lea Inspector refresh");
                     Check(Member<TextBox>(form, "qleaInspectorSummary").Text.Contains("Response   200") &&
                         Member<TextBox>(form, "qleaInspectorSummary").Text.Contains("px viewport") &&
+                        Member<TextBox>(form, "qleaInspectorSummary").Text.Contains("custom") &&
                         Member<TextBox>(form, "qleaInspectorSummary").Text.Contains("Disk       0 entries") &&
                         Member<TextBox>(form, "qleaInspectorNodes").Text.Contains("body") &&
                         Member<TextBox>(form, "qleaInspectorCss").Text.Contains(".hot") &&
@@ -358,7 +362,7 @@ namespace Lea.Firespider
                     Check(restoredTabs.TabCount == beforeMiddle - 1 && FindLea(restoredTabs) == null, "middle-click Lea tab close");
                 }
 
-                Console.WriteLine("Firespider Lea smoke passed: bounded responsive CSS media queries with viewport aliases and retained fields, optional bounded persistent cache aliases and Inspector diagnostics, bounded content-box and border-box geometry, scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, and shrink, semantic accessibility, protected values, rendered bounds, MSAA and UI Automation providers, value, table/grid, and read-only logical text patterns plus Access inspector, bounded autofocus and access keys, keyboard focus and activation, responsive image maps, compact time/edit metadata, output/data values and safe rebuilds, progress and meter gauges, disclosure commands, retained same-page fragments, Lea-first New Tab and explicit legacy fallback, host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
+                Console.WriteLine("Firespider Lea smoke passed: bounded inherited CSS custom properties with S.Vc/Cv and G.Vc aliases, responsive values, Inspector counts, and retained fields, bounded responsive CSS media queries with viewport aliases and retained fields, optional bounded persistent cache aliases and Inspector diagnostics, bounded content-box and border-box geometry, scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, and shrink, semantic accessibility, protected values, rendered bounds, MSAA and UI Automation providers, value, table/grid, and read-only logical text patterns plus Access inspector, bounded autofocus and access keys, keyboard focus and activation, responsive image maps, compact time/edit metadata, output/data values and safe rebuilds, progress and meter gauges, disclosure commands, retained same-page fragments, Lea-first New Tab and explicit legacy fallback, host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
                 return 0;
             }
             catch (Exception error)

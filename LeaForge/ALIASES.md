@@ -132,6 +132,7 @@ Ca        response reused cached content
 N/B/L/F   nodes/blocks/links/fields
 C/J/V/M   CSS rules/commands/variables/alerts
 Vw        applied viewport width in pixels
+Vc        document custom-property count
 Cc/Ch/Kc  cache entries/reuses/cookies
 Dc/Db     persistent cache entries/bytes
 Dh/Dw     persistent hits/stores
@@ -407,6 +408,18 @@ Lea compiles bounded `screen`/`all` queries with pixel `min-width`, `max-width`,
 or exact `width`, comma alternatives, four nested `@media` levels, up to eight
 alternatives, and `<style media>`. Print, negated, unknown, and non-pixel
 conditions stay inactive. Active diagnostic CSS lines use short `@m` prefixes.
+
+Computed styles expose bounded custom properties through `S.Vc` (count) and
+`S.Cv(name)` (case-sensitive raw lookup). `G.Vc` reports the body/document count
+without copying raw values into diagnostics. Styles inherit their map lazily and
+copy only when an element overrides it. Lea compiles up to 128 declarations per
+block once per stylesheet rule, then resolves ordinary declarations against the
+final custom-property cascade. `var(--name, fallback)` supports nested and comma
+fallback values, inline styles, dynamic pseudo-classes, and media rules. Each
+style keeps at most 32 properties; names are 3-64 ASCII letters/digits/hyphens/
+underscores, raw values are at most 512 characters, recursion is capped at eight,
+and expanded values at 1,024 characters. Missing, cyclic, invalid, oversized, or
+excess properties make that declaration use its fallback or remain ignored.
 Pixel dimensions use `S.W` and `S.H`; positive bounds use `Wn/Wx` for minimum
 and maximum width and `Hn/Hx` for minimum and maximum height. `Bz` is `c/b` for
 the non-inherited `content-box` default or `border-box`; it applies the same

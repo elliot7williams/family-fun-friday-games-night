@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace Lea.Engine
 {
     // S is Lea's compact computed style.
@@ -65,6 +68,15 @@ namespace Lea.Engine
         internal bool Zo { get; set; }
         internal bool Zs { get; set; }
         internal bool Zt { get; set; }
+        internal Dictionary<string, string> Vr { get; set; }
+
+        public int Vc { get { return Vr == null ? 0 : Vr.Count; } }
+
+        public string Cv(string name)
+        {
+            string value;
+            return !String.IsNullOrEmpty(name) && Vr != null && Vr.TryGetValue(name, out value) ? value : "";
+        }
 
         internal S()
         {
@@ -95,7 +107,9 @@ namespace Lea.Engine
 
         internal S Inherit()
         {
-            return new S { F = F, Fs = Fs, Ff = Ff, B = B, I = I, Td = Td, Ta = Ta, Lh = Lh, Lm = Lm, Ws = Ws, Wb = Wb, Vi = Vi, Op = Op, Ao = Op };
+            var style = new S { F = F, Fs = Fs, Ff = Ff, B = B, I = I, Td = Td, Ta = Ta, Lh = Lh, Lm = Lm, Ws = Ws, Wb = Wb, Vi = Vi, Op = Op, Ao = Op };
+            style.Vr = Vr;
+            return style;
         }
     }
 }

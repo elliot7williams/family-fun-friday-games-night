@@ -568,6 +568,59 @@ namespace Lea.Tests
                 mediaQueryEngine.Vw = Int32.MaxValue;
                 Eq(8192, mediaQueryEngine.Vw, "maximum viewport clamp");
 
+                var customPath = Path.Combine(root, "LeaForge", "test-pages", "custom-properties.html");
+                var customEngine = new E();
+                var customPage = customEngine.Go(customPath);
+                Eq(19, customPage.S.Vc, "inherited custom property count alias");
+                Eq("#176b4d", customPage.S.Cv("--brand"), "custom property lookup alias");
+                Eq("#123f8c", customPage.S.Cv("--Brand"), "case-sensitive custom property lookup");
+                Eq("", customPage.S.Cv("--BRAND"), "custom property case mismatch");
+                Eq(19, customEngine.Dg(customPage).Vc, "diagnostic custom property count alias");
+                var customBase = BlockById(customPage, "base");
+                Eq("#176b4d", customBase.S.F, "nested custom property color");
+                Ok(customBase.S.W == 260 && customBase.S.Pt == 8 && customBase.S.Mt == 8 && customBase.S.Mr == 8, "custom property dimensions and shorthand");
+                var customChild = BlockById(customPage, "child");
+                Ok(customChild.S.F == "#7e22ce" && customChild.S.Pl == 12 && customChild.S.W == 260 && customChild.S.Cv("--brand") == "#7e22ce", "scoped inherited custom properties");
+                Eq("#7e22ce", BlockById(customPage, "inherit").S.F, "explicit custom property inheritance");
+                Ok(BlockById(customPage, "initial").S.F == "#334155" && BlockById(customPage, "initial").S.Cv("--brand") == "", "custom property initial removal");
+                Eq(177, BlockById(customPage, "depth-ok").S.W, "custom property depth ceiling success");
+                Eq(43, BlockById(customPage, "depth-limit").S.W, "custom property depth fallback");
+                Ok(BlockById(customPage, "late").S.F == "#a13b18" && BlockById(customPage, "late").S.Bg == "#edf7f2", "late custom declaration and nested fallback");
+                var customFallback = BlockById(customPage, "fallback");
+                Ok(customFallback.S.F == "#a13b18" && customFallback.S.W == 180 && customFallback.S.Bt == 2 && customFallback.S.Bc == "#0f4c81" && customFallback.S.Ff == "Consolas|m", "custom fallback shorthands and comma value");
+                Eq("#0f4c81", BlockById(customPage, "cycle").S.F, "custom property cycle fallback");
+                Ok(BlockById(customPage, "case").S.F == "#123f8c" && BlockById(customPage, "case").S.Bg == "#176b4d", "case-sensitive custom property values");
+                Ok(BlockById(customPage, "invalid").S.F == "#334155" && BlockById(customPage, "invalid").S.W == 130, "unresolved variable declaration rejection");
+                Ok(BlockById(customPage, "inline").S.F == "#0f4c81" && BlockById(customPage, "inline").S.Pl == 10, "inline custom property and fallback");
+                var customField = FieldById(customPage, "var-field");
+                customField.V = "Retained custom value";
+                Eq(260, customField.S.W, "custom property field width");
+                customEngine.Dy(customPage, ById(customPage.D, "hover"), null);
+                Ok(BlockById(customPage, "hover").S.F == "#a13b18" && BlockById(customPage, "hover").S.Pl == 18, "dynamic custom property restyle");
+                Ok(Object.ReferenceEquals(customField, FieldById(customPage, "var-field")) && customField.V == "Retained custom value", "custom hover rebuild preserves field state");
+                customEngine.Vw = 480;
+                Ok(BlockById(customPage, "base").S.W == 150 && BlockById(customPage, "base").S.Pl == 6 && FieldById(customPage, "var-field").S.W == 150, "responsive custom property values");
+                Ok(Object.ReferenceEquals(customField, FieldById(customPage, "var-field")) && customField.V == "Retained custom value", "custom media rebuild preserves field state");
+
+                var customLimitPath = Path.Combine(Path.GetTempPath(), "lea-custom-limit-" + Guid.NewGuid().ToString("N") + ".html");
+                try
+                {
+                    var customHtml = new StringBuilder("<!doctype html><html><head><style>:root{--caf\u00e9:99px;");
+                    for (var customIndex = 0; customIndex < 40; customIndex++) customHtml.Append("--v").Append(customIndex).Append(':').Append(100 + customIndex).Append("px;");
+                    customHtml.Append("--oversized:").Append(new String('x', 520)).Append(";}#cap{width:var(--v31,1px);height:var(--v32,41px);padding:var(--oversized,7px)}</style></head><body><p id='cap'>Cap</p></body></html>");
+                    File.WriteAllText(customLimitPath, customHtml.ToString(), new UTF8Encoding(false));
+                    var customLimitPage = new E().Go(customLimitPath);
+                    var customCap = BlockById(customLimitPage, "cap");
+                    Eq(32, customLimitPage.S.Vc, "custom property count ceiling");
+                    Ok(customCap.S.W == 131 && customCap.S.H == 41 && customCap.S.Pl == 7, "custom property count and value limit fallbacks");
+                    Eq("", customLimitPage.S.Cv("--caf\u00e9"), "non-ASCII custom property omitted");
+                    Eq("", customLimitPage.S.Cv("--v32"), "excess custom property omitted");
+                }
+                finally
+                {
+                    if (File.Exists(customLimitPath)) File.Delete(customLimitPath);
+                }
+
                 var mapPath = Path.Combine(root, "LeaForge", "test-pages", "image-maps.html");
                 var mapEngine = new E();
                 var mapPage = mapEngine.Go(mapPath);
@@ -2398,6 +2451,20 @@ namespace Lea.Tests
                     Eq(180, BlockRect(view, BlockById(view.At, "narrow")).Width, "narrow responsive geometry");
                     Ok(FragmentHitRect(view, "#wide-target").IsEmpty && !FragmentHitRect(view, "#narrow-target").IsEmpty, "narrow responsive hit state");
                     Ok(Object.ReferenceEquals(responsiveViewField, FieldById(view.At, "field")) && responsiveViewField.V == "Retained view value", "view resize preserves field state");
+                    view.Size = new Size(840, 760);
+                    view.Go(customPath);
+                    Paint(view);
+                    var customViewField = FieldById(view.At, "var-field");
+                    customViewField.V = "Retained custom view value";
+                    Eq(260, BlockRect(view, BlockById(view.At, "base")).Width, "custom variable view geometry");
+                    Move(view, BlockRect(view, BlockById(view.At, "hover")));
+                    Paint(view);
+                    Ok(BlockById(view.At, "hover").S.F == "#a13b18" && BlockById(view.At, "hover").S.Pl == 18, "live custom property hover");
+                    view.Size = new Size(480, 760);
+                    Application.DoEvents();
+                    Paint(view);
+                    Eq(150, BlockRect(view, BlockById(view.At, "base")).Width, "responsive custom variable geometry");
+                    Ok(Object.ReferenceEquals(customViewField, FieldById(view.At, "var-field")) && customViewField.V == "Retained custom view value", "custom view rebuild preserves field state");
                     var mediaLoad = view.GoA(mediaPath);
                     while (!mediaLoad.IsCompleted)
                     {
@@ -3618,7 +3685,7 @@ namespace Lea.Tests
                 if (args.Length > 4) SaveRender(tokenPath, args[4]);
                 if (args.Length > 5) SaveStateRender(statePath, args[5]);
 
-                    Console.WriteLine("Lea smoke passed: bounded responsive CSS media queries with viewport aliases, live resize, diagnostics, and retained fields, optional bounded persistent cache with restart reuse, validators, private isolation, atomic recovery, LRU entry/byte ceilings and host aliases, bounded content-box and border-box geometry, body and ID-scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, shrink, reverse flow, and resize, semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                    Console.WriteLine("Lea smoke passed: bounded inherited CSS custom properties with compiled declarations, S.Vc/Cv and G.Vc aliases, nested and cycle fallbacks, hover/media rebuilds, and retained fields, bounded responsive CSS media queries with viewport aliases, live resize, diagnostics, and retained fields, optional bounded persistent cache with restart reuse, validators, private isolation, atomic recovery, LRU entry/byte ceilings and host aliases, bounded content-box and border-box geometry, body and ID-scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, shrink, reverse flow, and resize, semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
