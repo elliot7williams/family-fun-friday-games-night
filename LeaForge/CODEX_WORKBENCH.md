@@ -34,11 +34,12 @@ Safe scripts and hosts now also use `hd/sh`, `op/cl/tg`, `ds/en`, `vl`, `ck`, an
 `fo` for bounded visibility, disclosure, disabled, value, checked, and focus state. A retained field
 map preserves one existing model while hidden; `E.Kp` and `V` consume one focus
 request without exposing files, passwords, arbitrary attributes, or native UI.
-`flex.html` raises the benchmark to 26 fixtures and 24 executable compatibility
-probes. Bounded `flex`/`inline-flex` rows use compact `Fd/Jc/Ai/Gp` state for
-direction, distribution, alignment, and pixel gaps; fixed and equal-share auto
-slots retain direct item ownership and reuse nested layout, painting, hits, and
-Firespider coverage.
+`flex.html` keeps the benchmark at 26 fixtures and 24 executable compatibility
+probes. Bounded `flex`/`inline-flex` rows use compact `Fd/Jc/Ai/Gp/Wr/Rg/Fg/Fb`
+state for direction, distribution, alignment, wrapping, row/column gaps,
+integer growth, and pixel basis. Fixed, equal-share auto, wrapped, and weighted
+slots retain direct item ownership and reuse nested layout, painting, hits,
+narrow reflow, and Firespider coverage.
 Firespider now opens Lea Inspector with `F12` or a Lea tab's context menu. Its
 Summary, Nodes, CSS, Requests, and Messages tabs consume only `V.Dg()`; its
 Access tab reads bounded `V.Axs`. Refresh and request-log clearing are covered

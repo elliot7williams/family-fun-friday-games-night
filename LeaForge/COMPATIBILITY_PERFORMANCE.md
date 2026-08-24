@@ -10,16 +10,16 @@ These are repeatable local diagnostic samples, not performance promises. Re-run 
 
 | Measurement | Result |
 | --- | ---: |
-| Clean process + engine + first page median | 404.633 ms |
-| Clean process + engine + first page p95 | 412.381 ms |
-| Local page load median | 2.015 ms |
-| Local page load p95 | 4.514 ms |
-| Layout + bitmap paint median | 28.791 ms |
-| Layout + bitmap paint p95 | 92.082 ms |
-| Retained managed memory | 4209.9 KB for 130 loaded pages |
-| Retained managed memory per page | 32.4 KB |
-| Engine runtime DLLs | 315.0 KB |
-| Engine runtime GZip estimate | 134.2 KB (42.6% of raw) |
+| Clean process + engine + first page median | 507.404 ms |
+| Clean process + engine + first page p95 | 525.161 ms |
+| Local page load median | 2.257 ms |
+| Local page load p95 | 6.513 ms |
+| Layout + bitmap paint median | 33.013 ms |
+| Layout + bitmap paint p95 | 116.888 ms |
+| Retained managed memory | 4323.6 KB for 130 loaded pages |
+| Retained managed memory per page | 33.3 KB |
+| Engine runtime DLLs | 319.0 KB |
+| Engine runtime GZip estimate | 135.6 KB (42.5% of raw) |
 
 ## Fixture Loads
 
@@ -27,32 +27,32 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 
 | Fixture | Bytes | Nodes | CSS rules | Median | p95 |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| `index.html` | 970 | 17 | 1 | 2.167 ms | 2.721 ms |
-| `recovery.html` | 1040 | 39 | 0 | 1.190 ms | 1.684 ms |
-| `html-tokens.html` | 943 | 15 | 2 | 1.660 ms | 4.955 ms |
-| `selectors.html` | 1017 | 20 | 10 | 1.135 ms | 1.692 ms |
-| `layout.html` | 616 | 9 | 4 | 0.945 ms | 1.554 ms |
-| `tables.html` | 894 | 28 | 6 | 1.961 ms | 2.318 ms |
-| `forms.html` | 1566 | 25 | 7 | 2.270 ms | 3.145 ms |
-| `events-vars.html` | 1132 | 14 | 5 | 2.011 ms | 2.488 ms |
-| `responsive-media.html` | 2575 | 21 | 5 | 2.185 ms | 2.978 ms |
-| `stacking-contexts.html` | 3149 | 32 | 22 | 3.566 ms | 9.511 ms |
-| `external.html` | 502 | 12 | 6 | 1.322 ms | 2.266 ms |
-| `base-url.html` | 819 | 17 | 5 | 1.597 ms | 2.110 ms |
-| `class-commands.html` | 1065 | 15 | 4 | 1.650 ms | 2.140 ms |
-| `go-command.html` | 971 | 12 | 6 | 1.956 ms | 2.420 ms |
-| `lists.html` | 1849 | 39 | 5 | 3.732 ms | 7.655 ms |
-| `disclosure.html` | 2270 | 34 | 9 | 3.271 ms | 3.945 ms |
-| `fragments.html` | 2234 | 31 | 11 | 3.094 ms | 4.465 ms |
-| `gauges.html` | 2115 | 25 | 14 | 2.237 ms | 3.661 ms |
-| `values.html` | 1734 | 26 | 7 | 1.600 ms | 3.443 ms |
-| `time-edits.html` | 1966 | 27 | 7 | 1.686 ms | 2.286 ms |
-| `image-maps.html` | 2569 | 30 | 6 | 1.674 ms | 2.409 ms |
-| `keyboard-focus.html` | 3721 | 41 | 18 | 3.313 ms | 7.509 ms |
-| `focus-shortcuts.html` | 1838 | 20 | 13 | 1.807 ms | 2.231 ms |
-| `accessibility.html` | 3148 | 60 | 4 | 3.433 ms | 4.115 ms |
-| `state-commands.html` | 2711 | 37 | 9 | 4.816 ms | 15.252 ms |
-| `flex.html` | 2047 | 21 | 16 | 3.011 ms | 3.634 ms |
+| `index.html` | 970 | 17 | 1 | 2.557 ms | 3.101 ms |
+| `recovery.html` | 1040 | 39 | 0 | 1.914 ms | 2.186 ms |
+| `html-tokens.html` | 943 | 15 | 2 | 1.598 ms | 2.375 ms |
+| `selectors.html` | 1017 | 20 | 10 | 1.495 ms | 2.373 ms |
+| `layout.html` | 616 | 9 | 4 | 1.022 ms | 7.787 ms |
+| `tables.html` | 894 | 28 | 6 | 1.975 ms | 2.922 ms |
+| `forms.html` | 1566 | 25 | 7 | 1.847 ms | 2.800 ms |
+| `events-vars.html` | 1132 | 14 | 5 | 1.619 ms | 2.494 ms |
+| `responsive-media.html` | 2575 | 21 | 5 | 1.702 ms | 2.322 ms |
+| `stacking-contexts.html` | 3149 | 32 | 22 | 3.777 ms | 9.575 ms |
+| `external.html` | 502 | 12 | 6 | 1.797 ms | 2.198 ms |
+| `base-url.html` | 819 | 17 | 5 | 1.253 ms | 1.630 ms |
+| `class-commands.html` | 1065 | 15 | 4 | 1.201 ms | 1.803 ms |
+| `go-command.html` | 971 | 12 | 6 | 1.748 ms | 5.339 ms |
+| `lists.html` | 1849 | 39 | 5 | 2.599 ms | 9.210 ms |
+| `disclosure.html` | 2270 | 34 | 9 | 3.292 ms | 4.286 ms |
+| `fragments.html` | 2234 | 31 | 11 | 2.758 ms | 3.932 ms |
+| `gauges.html` | 2115 | 25 | 14 | 3.721 ms | 13.625 ms |
+| `values.html` | 1734 | 26 | 7 | 1.964 ms | 3.086 ms |
+| `time-edits.html` | 1966 | 27 | 7 | 2.526 ms | 3.352 ms |
+| `image-maps.html` | 2569 | 30 | 6 | 1.826 ms | 3.228 ms |
+| `keyboard-focus.html` | 3721 | 41 | 18 | 5.607 ms | 6.963 ms |
+| `focus-shortcuts.html` | 1838 | 20 | 13 | 3.069 ms | 3.967 ms |
+| `accessibility.html` | 3148 | 60 | 4 | 3.080 ms | 5.817 ms |
+| `state-commands.html` | 2711 | 37 | 9 | 7.276 ms | 20.289 ms |
+| `flex.html` | 3060 | 30 | 23 | 5.318 ms | 6.790 ms |
 
 ## Executable Probes
 
@@ -73,7 +73,7 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 | Bounded document queries | PASS | Id and first match; 3 ordered matches; invalid selector rejected |
 | Document base URLs | PASS | First valid Bu resolves styles, links, images, forms, and downloads while U stays unchanged |
 | Layout and painting | PASS | 67 boxes, 702 px document, 990 colored samples |
-| Bounded flex rows | PASS | Fd/Jc/Ai/Gp aliases, fixed and auto slots, gap distribution, row reverse, alignment, nesting, hits, and following flow |
+| Bounded flex rows | PASS | Fd/Jc/Ai/Gp/Wr/Rg/Fg/Fb aliases, fixed, auto, wrapped, and weighted slots, row reverse, alignment, nesting, hits, and following flow |
 | Forms and validation | PASS | 31 fields across basic, validation, and richer-widget fixtures |
 | Bounded Lea scripting | PASS | 7 safe commands and 2 variables after click |
 | Host-controlled go requests | PASS | Relative file and HTTPS requests accepted; one pending request; unsafe schemes rejected |
@@ -94,7 +94,7 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 | Forms | Supported subset | GET/POST, validation, text/select/choice/file/range/date/color/time-family controls |
 | Lea command scripting | Supported | Bounded title, color, font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands |
 | General JavaScript and DOM APIs | Not supported | Lea deliberately does not execute arbitrary JavaScript |
-| Flexbox | Supported subset | Single-line row/row-reverse containers, fixed or equal-share auto slots, pixel gap/column-gap, start/center/end/space-between justification, and stretch/start/center/end alignment; no wrap, grow/shrink, order, column flow, or auto-height stretch guarantee |
+| Flexbox | Supported subset | Row/row-reverse containers, bounded wrap, fixed/equal-share/weighted grow slots, pixel row/column gaps, basis, start/center/end/space-between justification, and single-line stretch/start/center/end alignment; no shrink, order, column flow, wrap-reverse, wrapped cross-axis alignment, or auto-height stretch guarantee |
 | Grid, Canvas, SVG | Not supported | Future compatibility work; no silent fallback claim |
 | Audio and video | Not supported | Future optional module |
 | Developer diagnostics | Supported | Bounded summary, node, CSS, request, message, and variable snapshots |
@@ -113,10 +113,10 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 
 | Artifact | Bytes | Size |
 | --- | ---: | ---: |
-| `Lea.Engine.dll` | 164352 | 160.5 KB |
-| `Lea.Win.dll` | 158208 | 154.5 KB |
-| `Lea.Win.Test.exe` | 395776 | 386.5 KB |
-| `Lea.Bench.exe` | 72192 | 70.5 KB |
+| `Lea.Engine.dll` | 166912 | 163.0 KB |
+| `Lea.Win.dll` | 159744 | 156.0 KB |
+| `Lea.Win.Test.exe` | 394752 | 385.5 KB |
+| `Lea.Bench.exe` | 74240 | 72.5 KB |
 | `Firespider Internet 19.exe` | 1109504 | 1083.5 KB |
 
 The engine runtime size is `Lea.Engine.dll` plus `Lea.Win.dll`. Test and report executables are listed separately and are not required when embedding Lea in Firespider.

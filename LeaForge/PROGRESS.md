@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **9**
+Post-1.0 hardening milestones completed: **10**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -14,8 +14,8 @@ modern web platform.
 | Core and alias API | 10% | 10% | Compact API, bounded diagnostics, repeatable reports, history, projects, backups |
 | Networking | 10% | 10% | Bounded request deadlines and downloads, private cookies, typed errors, validators, compression, LRU cache |
 | HTML and document tree | 20% | 20% | Bounded tokens, queries, base URLs and fragments, raw/RCDATA text, entities, recovery, HTML-hidden suppression, semantic accessibility, blocks, lists, disclosures, gauges, values, time/edit metadata, responsive image maps, tabindex focus, autofocus/access keys, tables |
-| CSS | 15% | 15% | Compiled selectors, dynamic hover/focus, sizing, visibility/opacity, fonts, overflow, boxes, bounded flex-row properties |
-| Layout and painting | 20% | 20% | Flex rows, inset stretch, translated contexts, nested content, clipping, reflow, painting |
+| CSS | 15% | 15% | Compiled selectors, dynamic hover/focus, sizing, visibility/opacity, fonts, overflow, boxes, bounded wrapped and growing flex-row properties |
+| Layout and painting | 20% | 20% | Wrapped and weighted flex rows, inset stretch, translated contexts, nested content, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Bounded multipart files, richer widgets, validation, responsive images, GET/POST submit |
 | Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/style/alert, class, visibility, disclosure, field-state, and focus commands |
 | Firespider integration and reliability | 10% | 10% | Lea-first New Tab/Ctrl+T, explicit legacy fallback, Inspector with Access view, MSAA/UIA surfaces including read-only text, host-safe focus shortcuts, navigation, sessions, source, host smokes |
@@ -64,6 +64,10 @@ modern web platform.
   aliases, `flex`/`inline-flex`, row reversal, fixed and equal-share auto slots,
   pixel gaps, distribution and cross-axis alignment, direct inline-item model
   ownership, nested content, hit testing, painting, and fixture-backed reflow.
+- Extended that flex subset with compact `Wr/Rg/Fg/Fb` state, bounded wrapping,
+  two-value and separate row/column gaps, pixel basis, common `flex` shorthand,
+  integer weighted growth, row reversal per line, exact geometry, narrow reflow,
+  benchmark coverage, and Firespider host verification.
 
 ## Next gains
 

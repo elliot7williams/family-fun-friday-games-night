@@ -496,8 +496,15 @@ namespace Lea.Bench
                 var spread = page.Bs.First(block => block.El != null && block.El.Av("id") == "spread");
                 var first = page.Bs.First(block => block.El != null && block.El.Av("id") == "first");
                 var reverse = page.Bs.First(block => block.El != null && block.El.Av("id") == "reverse");
+                var wrap = page.Bs.First(block => block.El != null && block.El.Av("id") == "wrap");
+                var wrapOne = page.Bs.First(block => block.El != null && block.El.Av("id") == "wrap-one");
+                var grow = page.Bs.First(block => block.El != null && block.El.Av("id") == "grow");
+                var growOne = page.Bs.First(block => block.El != null && block.El.Av("id") == "grow-one");
+                var growTwo = page.Bs.First(block => block.El != null && block.El.Av("id") == "grow-two");
                 Need(spread.S.D == "flex" && spread.S.Fd == "r" && spread.S.Jc == "b" && spread.S.Ai == "c" && spread.S.Gp == 10, "flex style aliases changed");
                 Need(Object.ReferenceEquals(first.Up, spread) && reverse.S.Fd == "x", "flex ownership or reverse direction changed");
+                Need(wrap.S.Wr == "w" && wrap.S.Rg == 12 && wrap.S.Gp == 10 && wrapOne.S.Fg == 1 && wrapOne.S.Fb == 150, "wrapped flex aliases changed");
+                Need(grow.S.Rg == 4 && grow.S.Gp == 8 && growOne.S.Fg == 1 && growOne.S.Fb == 80 && growTwo.S.Fg == 2 && growTwo.S.Fb == 80, "weighted flex aliases changed");
                 using (var view = NewView())
                 {
                     view.Go(path);
@@ -508,13 +515,22 @@ namespace Lea.Bench
                         var three = BlockOuter(view, "third");
                         var reverseOne = BlockOuter(view, "reverse-one");
                         var reverseTwo = BlockOuter(view, "reverse-two");
+                        var wrapOneBox = BlockOuter(view, "wrap-one");
+                        var wrapTwoBox = BlockOuter(view, "wrap-two");
+                        var wrapThreeBox = BlockOuter(view, "wrap-three");
+                        var growOneBox = BlockOuter(view, "grow-one");
+                        var growTwoBox = BlockOuter(view, "grow-two");
+                        var growFixedBox = BlockOuter(view, "grow-fixed");
                         var after = BlockOuter(view, "after-flex");
                         Need(one.Left < two.Left && two.Left < three.Left && two.Left - one.Right == 122, "flex distribution changed");
-                        Need(reverseOne.Left > reverseTwo.Left && after.Top > BlockOuter(view, "reverse").Bottom, "row-reverse or following flow changed");
+                        Need(reverseOne.Left > reverseTwo.Left, "row-reverse changed");
+                        Need(wrapOneBox.Width == 175 && wrapOneBox.Left - wrapTwoBox.Right == 10 && wrapThreeBox.Top - wrapOneBox.Top == 56, "wrapped flex geometry changed");
+                        Need(growOneBox.Width == 140 && growTwoBox.Width == 200 && growFixedBox.Width == 80 && growTwoBox.Left - growOneBox.Right == 8, "weighted flex geometry changed");
+                        Need(after.Top > BlockOuter(view, "grow").Bottom, "flex following flow changed");
                         Need(ColoredSamples(image) > 0, "flex layout is blank");
                     }
                 }
-                return "Fd/Jc/Ai/Gp aliases, fixed and auto slots, gap distribution, row reverse, alignment, nesting, hits, and following flow";
+                return "Fd/Jc/Ai/Gp/Wr/Rg/Fg/Fb aliases, fixed, auto, wrapped, and weighted slots, row reverse, alignment, nesting, hits, and following flow";
             });
             AddProbe(probes, "Forms and validation", delegate
             {
@@ -681,7 +697,7 @@ namespace Lea.Bench
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, color, font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
-            Capability(builder, "Flexbox", "Supported subset", "Single-line row/row-reverse containers, fixed or equal-share auto slots, pixel gap/column-gap, start/center/end/space-between justification, and stretch/start/center/end alignment; no wrap, grow/shrink, order, column flow, or auto-height stretch guarantee");
+            Capability(builder, "Flexbox", "Supported subset", "Row/row-reverse containers, bounded wrap, fixed/equal-share/weighted grow slots, pixel row/column gaps, basis, start/center/end/space-between justification, and single-line stretch/start/center/end alignment; no shrink, order, column flow, wrap-reverse, wrapped cross-axis alignment, or auto-height stretch guarantee");
             Capability(builder, "Grid, Canvas, SVG", "Not supported", "Future compatibility work; no silent fallback claim");
             Capability(builder, "Audio and video", "Not supported", "Future optional module");
             Capability(builder, "Developer diagnostics", "Supported", "Bounded summary, node, CSS, request, message, and variable snapshots");

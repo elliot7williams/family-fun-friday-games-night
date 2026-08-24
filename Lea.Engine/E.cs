@@ -2546,9 +2546,15 @@ namespace Lea.Engine
                 else if (name == "transform") Transform(style, value);
                 else if (name == "display") style.D = value.ToLowerInvariant();
                 else if (name == "flex-direction") FlexDirection(style, value);
+                else if (name == "flex-wrap") FlexWrap(style, value);
+                else if (name == "flex-grow") FlexGrow(style, value);
+                else if (name == "flex-basis") FlexBasis(style, value);
+                else if (name == "flex") FlexValue(style, value);
                 else if (name == "justify-content") JustifyContent(style, value);
                 else if (name == "align-items") AlignItems(style, value);
-                else if (name == "gap" || name == "column-gap") style.Gp = Math.Min(512, Px(value));
+                else if (name == "gap") Gap(style, value);
+                else if (name == "column-gap") OneGap(style, value, false);
+                else if (name == "row-gap") OneGap(style, value, true);
                 else if (name == "position") Position(style, value);
                 else if (name == "inset") Inset(style, value);
                 else if (name == "top") Offset(style, value, 0);
@@ -2607,6 +2613,103 @@ namespace Lea.Engine
             var direction = (value ?? "").Trim().ToLowerInvariant();
             if (direction == "row" || direction == "initial" || direction == "normal") style.Fd = "r";
             else if (direction == "row-reverse") style.Fd = "x";
+        }
+
+        private static void FlexWrap(S style, string value)
+        {
+            var wrap = (value ?? "").Trim().ToLowerInvariant();
+            if (wrap == "wrap") style.Wr = "w";
+            else if (wrap == "nowrap" || wrap == "initial" || wrap == "normal") style.Wr = "n";
+        }
+
+        private static void FlexGrow(S style, string value)
+        {
+            int grow;
+            if (GrowValue(value, out grow)) style.Fg = grow;
+        }
+
+        private static void FlexBasis(S style, string value)
+        {
+            int basis;
+            if (BasisValue(value, out basis)) style.Fb = basis;
+        }
+
+        private static void FlexValue(S style, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "none" || source == "initial") { style.Fg = 0; style.Fb = -1; return; }
+            if (source == "auto") { style.Fg = 1; style.Fb = -1; return; }
+            var parts = Regex.Split(source, "\\s+");
+            int grow;
+            if (parts.Length < 1 || parts.Length > 3 || !GrowValue(parts[0], out grow)) return;
+            var basis = 0;
+            if (parts.Length == 2)
+            {
+                int ignored;
+                if (!FlexTokenBasis(parts[1], out basis))
+                {
+                    if (!GrowValue(parts[1], out ignored)) return;
+                    basis = 0;
+                }
+            }
+            else if (parts.Length == 3)
+            {
+                int ignored;
+                if (!GrowValue(parts[1], out ignored) || !BasisValue(parts[2], out basis)) return;
+            }
+            style.Fg = grow;
+            style.Fb = basis;
+        }
+
+        private static bool FlexTokenBasis(string value, out int basis)
+        {
+            basis = -1;
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source != "auto" && source != "content" && source != "0%" && !source.EndsWith("px", StringComparison.Ordinal)) return false;
+            return BasisValue(source, out basis);
+        }
+
+        private static bool GrowValue(string value, out int grow)
+        {
+            grow = 0;
+            var match = Regex.Match((value ?? "").Trim(), "^(?<n>[0-9]{1,2})$");
+            return match.Success && Int32.TryParse(match.Groups["n"].Value, out grow) && grow <= 64;
+        }
+
+        private static bool BasisValue(string value, out int basis)
+        {
+            basis = -1;
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "auto" || source == "content") return true;
+            if (source == "0%") { basis = 0; return true; }
+            var match = Regex.Match(source, "^(?<n>[0-9]{1,4})(?:px)?$");
+            return match.Success && Int32.TryParse(match.Groups["n"].Value, out basis);
+        }
+
+        private static void Gap(S style, string value)
+        {
+            var parts = Regex.Split((value ?? "").Trim().ToLowerInvariant(), "\\s+");
+            int row;
+            int column;
+            if (parts.Length < 1 || parts.Length > 2 || !GapValue(parts[0], out row) || !GapValue(parts.Length == 2 ? parts[1] : parts[0], out column)) return;
+            style.Rg = row;
+            style.Gp = column;
+        }
+
+        private static void OneGap(S style, string value, bool row)
+        {
+            int gap;
+            if (!GapValue(value, out gap)) return;
+            if (row) style.Rg = gap; else style.Gp = gap;
+        }
+
+        private static bool GapValue(string value, out int gap)
+        {
+            gap = 0;
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "normal") return true;
+            var match = Regex.Match(source, "^(?<n>[0-9]{1,3})(?:px)?$");
+            return match.Success && Int32.TryParse(match.Groups["n"].Value, out gap) && gap <= 512;
         }
 
         private static void JustifyContent(S style, string value)

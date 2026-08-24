@@ -159,9 +159,15 @@ same pair. Relative stylesheets, links, images, forms, and downloads use `Bu`.
 Paint-ready blocks expose compact computed style through `B.S`. `D` is the
 normalized display text. For Lea's bounded flex-row subset, `Fd` is `r` for row
 or `x` for row-reverse; `Jc` is `s/c/e/b` for start, center, end, or
-space-between; `Ai` is `t/s/c/e` for stretch, start, center, or end; and `Gp`
-is a 0..512 pixel gap from `gap` or `column-gap`. The subset intentionally omits
-wrap, grow/shrink, order, column flow, and guaranteed auto-height stretching.
+space-between; and `Ai` is `t/s/c/e` for stretch, start, center, or end. `Wr`
+is `n/w` for nowrap or wrap. `Gp` and `Rg` are 0..512 pixel column and row gaps
+from one/two-value `gap`, `column-gap`, or `row-gap`. Each direct item uses `Fg`
+for a 0..64 integer growth weight and `Fb` for a 0..9,999 pixel basis; `Fb=-1`
+means auto/content. The common one-to-three-part `flex` forms fill the same
+state, but a validated shrink value is deliberately ignored. Fractions,
+nonzero percentage bases, shrink, order, column flow, wrap-reverse, wrapped
+cross-axis alignment, and guaranteed auto-height stretching remain outside the
+subset.
 
 Document lookup stays short and bounded. `E.Id(page, id)` finds the first ID,
 `E.Q(page, selector)` finds the first document-order selector match, and

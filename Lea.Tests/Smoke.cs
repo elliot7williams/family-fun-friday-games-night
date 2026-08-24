@@ -1801,6 +1801,12 @@ namespace Lea.Tests
                     var spreadModel = BlockById(flexPage, "spread");
                     var autoModel = BlockById(flexPage, "auto");
                     var reverseModel = BlockById(flexPage, "reverse");
+                    var wrapModel = BlockById(flexPage, "wrap");
+                    var wrapOneModel = BlockById(flexPage, "wrap-one");
+                    var growModel = BlockById(flexPage, "grow");
+                    var growOneModel = BlockById(flexPage, "grow-one");
+                    var growTwoModel = BlockById(flexPage, "grow-two");
+                    var twoPartModel = BlockById(flexPage, "after-flex");
                     Eq("flex", spreadModel.S.D, "flex display model");
                     Eq("r", spreadModel.S.Fd, "flex row alias");
                     Eq("b", spreadModel.S.Jc, "space-between alias");
@@ -1809,6 +1815,19 @@ namespace Lea.Tests
                     Eq("inline-flex", autoModel.S.D, "inline-flex display model");
                     Eq(12, autoModel.S.Gp, "column-gap alias");
                     Eq("x", reverseModel.S.Fd, "row-reverse alias");
+                    Eq("w", wrapModel.S.Wr, "flex wrap alias");
+                    Eq(12, wrapModel.S.Rg, "flex row-gap alias");
+                    Eq(10, wrapModel.S.Gp, "two-value flex column gap");
+                    Eq(1, wrapOneModel.S.Fg, "flex shorthand grow alias");
+                    Eq(150, wrapOneModel.S.Fb, "flex shorthand basis alias");
+                    Eq(4, growModel.S.Rg, "row-gap alias");
+                    Eq(8, growModel.S.Gp, "separate column-gap alias");
+                    Eq(1, growOneModel.S.Fg, "flex-grow property alias");
+                    Eq(80, growOneModel.S.Fb, "flex-basis property alias");
+                    Eq(2, growTwoModel.S.Fg, "weighted flex grow alias");
+                    Eq(80, growTwoModel.S.Fb, "weighted flex basis alias");
+                    Eq(1, twoPartModel.S.Fg, "two-part flex grow alias");
+                    Eq(0, twoPartModel.S.Fb, "unitless flex shrink is not a pixel basis");
                     Ok(Object.ReferenceEquals(BlockById(flexPage, "first").Up, spreadModel) && Object.ReferenceEquals(BlockById(flexPage, "nested-copy").Up, BlockById(flexPage, "auto-nested")), "flex visual ownership");
                     view.Go(flexPath);
                     using (var flexPaint = Render(view))
@@ -1845,8 +1864,35 @@ namespace Lea.Tests
                         Eq(reverse.Right, reverseOne.Right, "row-reverse flex-start edge");
                         Eq(reverse.Bottom, reverseOne.Bottom, "row-reverse end alignment");
                         Eq(reverse.Bottom, reverseThree.Bottom, "row-reverse shared end alignment");
-                        Ok(BlockOuterRect(view, BlockById(view.At, "after-flex")).Top > BlockOuterRect(view, BlockById(view.At, "reverse")).Bottom, "normal flow follows flex rows");
+
+                        var wrap = BlockRect(view, BlockById(view.At, "wrap"));
+                        var wrapOne = BlockOuterRect(view, BlockById(view.At, "wrap-one"));
+                        var wrapTwo = BlockOuterRect(view, BlockById(view.At, "wrap-two"));
+                        var wrapThree = BlockOuterRect(view, BlockById(view.At, "wrap-three"));
+                        var wrapFour = BlockOuterRect(view, BlockById(view.At, "wrap-four"));
+                        Eq(175, wrapOne.Width, "wrapped grow slot width");
+                        Eq(10, wrapOne.Left - wrapTwo.Right, "wrapped first-line column gap");
+                        Eq(10, wrapThree.Left - wrapFour.Right, "wrapped second-line column gap");
+                        Eq(wrap.Right, wrapOne.Right, "wrapped row-reverse first edge");
+                        Eq(wrap.Right, wrapThree.Right, "wrapped row-reverse second edge");
+                        Eq(wrapOne.Top, wrapTwo.Top, "wrapped first line top");
+                        Eq(wrapThree.Top, wrapFour.Top, "wrapped second line top");
+                        Eq(56, wrapThree.Top - wrapOne.Top, "wrapped row gap");
+
+                        var grow = BlockRect(view, BlockById(view.At, "grow"));
+                        var growOne = BlockOuterRect(view, BlockById(view.At, "grow-one"));
+                        var growTwo = BlockOuterRect(view, BlockById(view.At, "grow-two"));
+                        var growFixed = BlockOuterRect(view, BlockById(view.At, "grow-fixed"));
+                        Eq(grow.Left, growOne.Left, "weighted grow starts at content edge");
+                        Eq(140, growOne.Width, "single-weight flex width");
+                        Eq(200, growTwo.Width, "double-weight flex width");
+                        Eq(80, growFixed.Width, "fixed flex width");
+                        Eq(8, growTwo.Left - growOne.Right, "weighted first gap");
+                        Eq(8, growFixed.Left - growTwo.Right, "weighted second gap");
+                        Eq(grow.Right, growFixed.Right, "weighted grow fills row");
+                        Ok(BlockOuterRect(view, BlockById(view.At, "after-flex")).Top > BlockOuterRect(view, BlockById(view.At, "grow")).Bottom, "normal flow follows wrapped and growing rows");
                         Ok(ColorDistance(CenterPixel(flexPaint, first), Color.FromArgb(230, 239, 255)) < 8, "flex item paint");
+                        Ok(ColorDistance(CenterPixel(flexPaint, wrapOne), Color.FromArgb(243, 232, 255)) < 8, "wrapped flex item paint");
                     }
                     view.Size = new Size(360, 760);
                     Paint(view);
@@ -1854,6 +1900,9 @@ namespace Lea.Tests
                     var narrowLink = BlockOuterRect(view, BlockById(view.At, "auto-link"));
                     var narrowNested = BlockOuterRect(view, BlockById(view.At, "auto-nested"));
                     Ok(narrowLink.Width < 132 && narrowNested.Right <= narrowAuto.Right, "auto flex slots reflow in narrow view");
+                    var narrowWrapOne = BlockOuterRect(view, BlockById(view.At, "wrap-one"));
+                    var narrowWrapTwo = BlockOuterRect(view, BlockById(view.At, "wrap-two"));
+                    Ok(narrowWrapTwo.Top > narrowWrapOne.Bottom, "wrapped flex moves to one item per narrow line");
                     view.Size = new Size(720, 760);
                     var boxes = Path.Combine(root, "LeaForge", "test-pages", "boxes.html");
                     var boxPage = engine.Go(boxes);
@@ -3149,7 +3198,7 @@ namespace Lea.Tests
                 if (args.Length > 4) SaveRender(tokenPath, args[4]);
                 if (args.Length > 5) SaveStateRender(statePath, args[5]);
 
-                Console.WriteLine("Lea smoke passed: bounded flex rows, semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                    Console.WriteLine("Lea smoke passed: bounded wrapped and growing flex rows, semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)

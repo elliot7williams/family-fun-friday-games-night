@@ -23,6 +23,10 @@ namespace Lea.Engine
         public string Jc { get; internal set; }
         public string Ai { get; internal set; }
         public int Gp { get; internal set; }
+        public int Rg { get; internal set; }
+        public string Wr { get; internal set; }
+        public int Fg { get; internal set; }
+        public int Fb { get; internal set; }
         public string Pn { get; internal set; }
         public int? Tp { get; internal set; }
         public int? Rt { get; internal set; }
@@ -75,6 +79,8 @@ namespace Lea.Engine
             Fd = "r";
             Jc = "s";
             Ai = "t";
+            Wr = "n";
+            Fb = -1;
             Pn = "";
             Bc = "";
             Bs = "";
