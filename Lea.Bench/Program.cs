@@ -489,7 +489,7 @@ namespace Lea.Bench
                     }
                 }
             });
-            AddProbe(probes, "Bounded flex rows", delegate
+            AddProbe(probes, "Bounded flex layout", delegate
             {
                 var path = Path.Combine(folder, "flex.html");
                 var page = new E().Go(path);
@@ -504,11 +504,17 @@ namespace Lea.Bench
                 var shrinkOne = page.Bs.First(block => block.El != null && block.El.Av("id") == "shrink-one");
                 var shrinkTwo = page.Bs.First(block => block.El != null && block.El.Av("id") == "shrink-two");
                 var shrinkLock = page.Bs.First(block => block.El != null && block.El.Av("id") == "shrink-lock");
+                var orderOne = page.Bs.First(block => block.El != null && block.El.Av("id") == "order-one");
+                var orderTwo = page.Bs.First(block => block.El != null && block.El.Av("id") == "order-two");
+                var column = page.Bs.First(block => block.El != null && block.El.Av("id") == "column");
+                var columnReverse = page.Bs.First(block => block.El != null && block.El.Av("id") == "column-reverse");
                 Need(spread.S.D == "flex" && spread.S.Fd == "r" && spread.S.Jc == "b" && spread.S.Ai == "c" && spread.S.Gp == 10, "flex style aliases changed");
                 Need(Object.ReferenceEquals(first.Up, spread) && reverse.S.Fd == "x", "flex ownership or reverse direction changed");
                 Need(wrap.S.Wr == "w" && wrap.S.Rg == 12 && wrap.S.Gp == 10 && wrapOne.S.Fg == 1 && wrapOne.S.Fb == 150, "wrapped flex aliases changed");
                 Need(grow.S.Rg == 4 && grow.S.Gp == 8 && growOne.S.Fg == 1 && growOne.S.Fb == 80 && growTwo.S.Fg == 2 && growTwo.S.Fb == 80, "weighted flex aliases changed");
                 Need(shrinkOne.S.Sh == 1 && shrinkTwo.S.Sh == 2 && shrinkLock.S.Sh == 0 && shrinkLock.S.Wn == 100 && shrinkLock.S.Wx == 100, "weighted flex shrink aliases changed");
+                Need(orderOne.S.Or == 2 && orderTwo.S.Or == -1, "flex order aliases changed");
+                Need(column.S.Fd == "c" && columnReverse.S.Fd == "y", "flex column aliases changed");
                 using (var view = NewView())
                 {
                     view.Go(path);
@@ -528,17 +534,32 @@ namespace Lea.Bench
                         var shrinkOneBox = BlockOuter(view, "shrink-one");
                         var shrinkTwoBox = BlockOuter(view, "shrink-two");
                         var shrinkLockBox = BlockOuter(view, "shrink-lock");
+                        var orderOneBox = BlockOuter(view, "order-one");
+                        var orderTwoBox = BlockOuter(view, "order-two");
+                        var orderThreeBox = BlockOuter(view, "order-three");
+                        var columnOneBox = BlockOuter(view, "column-one");
+                        var columnTwoBox = BlockOuter(view, "column-two");
+                        var columnThreeBox = BlockOuter(view, "column-three");
+                        var columnReverseOneBox = BlockOuter(view, "column-reverse-one");
+                        var columnReverseTwoBox = BlockOuter(view, "column-reverse-two");
+                        var columnReverseThreeBox = BlockOuter(view, "column-reverse-three");
+                        var columnAutoOneBox = BlockOuter(view, "column-auto-one");
+                        var columnAutoTwoBox = BlockOuter(view, "column-auto-two");
                         var after = BlockOuter(view, "after-flex");
                         Need(one.Left < two.Left && two.Left < three.Left && two.Left - one.Right == 122, "flex distribution changed");
                         Need(reverseOne.Left > reverseTwo.Left, "row-reverse changed");
                         Need(wrapOneBox.Width == 175 && wrapOneBox.Left - wrapTwoBox.Right == 10 && wrapThreeBox.Top - wrapOneBox.Top == 56, "wrapped flex geometry changed");
                         Need(growOneBox.Width == 140 && growTwoBox.Width == 200 && growFixedBox.Width == 80 && growTwoBox.Left - growOneBox.Right == 8, "weighted flex geometry changed");
                         Need(shrinkOneBox.Width == 140 && shrinkTwoBox.Width == 100 && shrinkLockBox.Width == 100 && shrinkLockBox.Left - shrinkTwoBox.Right == 10, "weighted flex shrink geometry changed");
-                        Need(after.Top > BlockOuter(view, "shrink").Bottom, "flex following flow changed");
+                        Need(orderTwoBox.Left < orderOneBox.Left && orderOneBox.Left < orderThreeBox.Left && orderOneBox.Left - orderTwoBox.Right == 8, "ordered row geometry changed");
+                        Need(columnTwoBox.Height == 106 && columnOneBox.Height == 74 && columnThreeBox.Height == 40 && columnOneBox.Top - columnTwoBox.Bottom == 10, "ordered column growth changed");
+                        Need(columnReverseOneBox.Height == 50 && columnReverseTwoBox.Height == 30 && columnReverseThreeBox.Height == 30 && columnReverseOneBox.Top - columnReverseTwoBox.Bottom == 10, "column-reverse shrink changed");
+                        Need(columnAutoTwoBox.Top - columnAutoOneBox.Bottom == 7, "auto-height column gap changed");
+                        Need(after.Top > BlockOuter(view, "column-auto").Bottom, "flex following flow changed");
                         Need(ColoredSamples(image) > 0, "flex layout is blank");
                     }
                 }
-                return "Fd/Jc/Ai/Gp/Wr/Rg/Fg/Sh/Fb aliases, fixed, auto, wrapped, growing, shrinking, min-protected, and locked slots, row reverse, alignment, nesting, hits, and following flow";
+                return "Fd/Jc/Ai/Gp/Wr/Rg/Fg/Sh/Fb/Or aliases, stable row order, column/reverse flow, fixed, auto, wrapped, growing, shrinking, min-protected, and locked slots, alignment, nesting, hits, resize, and following flow";
             });
             AddProbe(probes, "Forms and validation", delegate
             {
@@ -700,12 +721,12 @@ namespace Lea.Bench
             builder.AppendLine("| --- | --- | --- |");
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled selector subset, cascade, box/text styles, visibility, positioning, transforms, responsive image sizing, and bounded flex-row properties");
-            Capability(builder, "Layout and painting", "Partial", "Custom WinForms block, inline, flex-row, table, form, image, clipping, scroll, and stacking renderer");
+            Capability(builder, "CSS", "Partial", "Compiled selector subset, cascade, box/text styles, visibility, positioning, transforms, responsive image sizing, and bounded row/column flex properties");
+            Capability(builder, "Layout and painting", "Partial", "Custom WinForms block, inline, row/column flex, table, form, image, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, color, font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
-            Capability(builder, "Flexbox", "Supported subset", "Row/row-reverse containers, bounded wrap, fixed/equal-share/weighted grow and integer weighted-shrink slots, explicit pixel min/max floors, pixel row/column gaps, basis, start/center/end/space-between justification, and single-line stretch/start/center/end alignment; no intrinsic min-content sizing, fractional factors, order, column flow, wrap-reverse, wrapped cross-axis alignment, or auto-height stretch guarantee");
+            Capability(builder, "Flexbox", "Supported subset", "Row/row-reverse and fixed-height column/column-reverse containers, stable -64..64 order on nowrap rows and bounded columns, bounded row wrap, fixed/equal-share/weighted grow and integer weighted-shrink slots, explicit pixel min/max floors, pixel row/column gaps, basis, start/center/end/space-between justification, and cross-axis stretch/start/center/end alignment; no intrinsic min-content sizing, fractional factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis alignment, or auto-height column reordering guarantee");
             Capability(builder, "Grid, Canvas, SVG", "Not supported", "Future compatibility work; no silent fallback claim");
             Capability(builder, "Audio and video", "Not supported", "Future optional module");
             Capability(builder, "Developer diagnostics", "Supported", "Bounded summary, node, CSS, request, message, and variable snapshots");

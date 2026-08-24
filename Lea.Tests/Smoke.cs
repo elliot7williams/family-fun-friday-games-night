@@ -1809,6 +1809,11 @@ namespace Lea.Tests
                     var shrinkOneModel = BlockById(flexPage, "shrink-one");
                     var shrinkTwoModel = BlockById(flexPage, "shrink-two");
                     var shrinkLockModel = BlockById(flexPage, "shrink-lock");
+                    var orderOneModel = BlockById(flexPage, "order-one");
+                    var orderTwoModel = BlockById(flexPage, "order-two");
+                    var orderThreeModel = BlockById(flexPage, "order-three");
+                    var columnModel = BlockById(flexPage, "column");
+                    var columnReverseModel = BlockById(flexPage, "column-reverse");
                     var twoPartModel = BlockById(flexPage, "after-flex");
                     Eq("flex", spreadModel.S.D, "flex display model");
                     Eq("r", spreadModel.S.Fd, "flex row alias");
@@ -1838,8 +1843,15 @@ namespace Lea.Tests
                     Eq(140, shrinkLockModel.S.Fb, "locked flex basis alias");
                     Eq(100, shrinkLockModel.S.Wn, "flex minimum width model");
                     Eq(100, shrinkLockModel.S.Wx, "flex maximum width model");
+                    Eq(2, orderOneModel.S.Or, "positive flex order alias");
+                    Eq(-1, orderTwoModel.S.Or, "negative flex order alias");
+                    Eq(2, orderThreeModel.S.Or, "explicit-plus flex order alias");
+                    Eq("c", columnModel.S.Fd, "flex column alias");
+                    Eq("y", columnReverseModel.S.Fd, "flex column-reverse alias");
                     Ok(Object.ReferenceEquals(BlockById(flexPage, "first").Up, spreadModel) && Object.ReferenceEquals(BlockById(flexPage, "nested-copy").Up, BlockById(flexPage, "auto-nested")), "flex visual ownership");
+                    view.Size = new Size(720, 1500);
                     view.Go(flexPath);
+                    var wideColumnWidth = 0;
                     using (var flexPaint = Render(view))
                     {
                         var spread = BlockRect(view, BlockById(view.At, "spread"));
@@ -1912,11 +1924,54 @@ namespace Lea.Tests
                         Eq(10, shrinkTwo.Left - shrinkOne.Right, "shrink first gap");
                         Eq(10, shrinkLock.Left - shrinkTwo.Right, "shrink second gap");
                         Eq(shrink.Right, shrinkLock.Right, "weighted shrink fills row");
-                        Ok(BlockOuterRect(view, BlockById(view.At, "after-flex")).Top > BlockOuterRect(view, BlockById(view.At, "shrink")).Bottom, "normal flow follows wrapped, growing, and shrinking rows");
+
+                        var ordered = BlockRect(view, BlockById(view.At, "ordered"));
+                        var orderOne = BlockOuterRect(view, BlockById(view.At, "order-one"));
+                        var orderTwo = BlockOuterRect(view, BlockById(view.At, "order-two"));
+                        var orderThree = BlockOuterRect(view, BlockById(view.At, "order-three"));
+                        Eq(ordered.Left, orderTwo.Left, "negative order starts row");
+                        Eq(8, orderOne.Left - orderTwo.Right, "ordered row first gap");
+                        Eq(8, orderThree.Left - orderOne.Right, "equal order remains stable");
+
+                        var column = BlockRect(view, BlockById(view.At, "column"));
+                        var columnOne = BlockOuterRect(view, BlockById(view.At, "column-one"));
+                        var columnTwo = BlockOuterRect(view, BlockById(view.At, "column-two"));
+                        var columnThree = BlockOuterRect(view, BlockById(view.At, "column-three"));
+                        wideColumnWidth = column.Width;
+                        Eq(column.Top, columnTwo.Top, "ordered column starts with negative order");
+                        Eq(106, columnTwo.Height, "double-weight column growth");
+                        Eq(74, columnOne.Height, "single-weight column growth");
+                        Eq(40, columnThree.Height, "locked column basis");
+                        Eq(10, columnOne.Top - columnTwo.Bottom, "column first row gap");
+                        Eq(10, columnThree.Top - columnOne.Bottom, "column second row gap");
+                        Eq(column.Left + column.Width / 2, columnOne.Left + columnOne.Width / 2, "column cross-axis center");
+                        Eq(column.Left + column.Width / 2, columnTwo.Left + columnTwo.Width / 2, "wide column cross-axis center");
+                        Eq(column.Bottom, columnThree.Bottom, "column growth fills main axis");
+                        Ok(!HitRect(view, "column.html").IsEmpty, "column link hit target");
+
+                        var columnReverse = BlockRect(view, BlockById(view.At, "column-reverse"));
+                        var columnReverseOne = BlockOuterRect(view, BlockById(view.At, "column-reverse-one"));
+                        var columnReverseTwo = BlockOuterRect(view, BlockById(view.At, "column-reverse-two"));
+                        var columnReverseThree = BlockOuterRect(view, BlockById(view.At, "column-reverse-three"));
+                        Eq(50, columnReverseOne.Height, "column shrink first minimum-aware height");
+                        Eq(30, columnReverseTwo.Height, "column shrink weighted minimum");
+                        Eq(30, columnReverseThree.Height, "column locked height");
+                        Eq(columnReverse.Bottom, columnReverseOne.Bottom, "column-reverse starts at bottom");
+                        Eq(10, columnReverseOne.Top - columnReverseTwo.Bottom, "column-reverse first gap");
+                        Eq(10, columnReverseTwo.Top - columnReverseThree.Bottom, "column-reverse second gap");
+                        Eq(columnReverse.Right, columnReverseOne.Right, "column cross-axis end alignment");
+                        Eq(columnReverse.Right, columnReverseThree.Right, "column-reverse shared end alignment");
+                        var columnAuto = BlockRect(view, BlockById(view.At, "column-auto"));
+                        var columnAutoOne = BlockOuterRect(view, BlockById(view.At, "column-auto-one"));
+                        var columnAutoTwo = BlockOuterRect(view, BlockById(view.At, "column-auto-two"));
+                        Eq(7, columnAutoTwo.Top - columnAutoOne.Bottom, "auto-height column row gap");
+                        Eq(columnAuto.Left + columnAuto.Width / 2, columnAutoOne.Left + columnAutoOne.Width / 2, "auto-height column cross alignment");
+                        Ok(BlockOuterRect(view, BlockById(view.At, "after-flex")).Top > columnAuto.Bottom, "normal flow follows row and column flex layouts");
                         Ok(ColorDistance(CenterPixel(flexPaint, first), Color.FromArgb(230, 239, 255)) < 8, "flex item paint");
                         Ok(ColorDistance(CenterPixel(flexPaint, wrapOne), Color.FromArgb(243, 232, 255)) < 8, "wrapped flex item paint");
+                        Ok(ColorDistance(flexPaint.GetPixel(columnThree.Left + 4, columnThree.Top + 4), Color.FromArgb(220, 239, 232)) < 8, "column flex item paint");
                     }
-                    view.Size = new Size(360, 760);
+                    view.Size = new Size(360, 1500);
                     Paint(view);
                     var narrowAuto = BlockRect(view, BlockById(view.At, "auto"));
                     var narrowLink = BlockOuterRect(view, BlockById(view.At, "auto-link"));
@@ -1933,6 +1988,10 @@ namespace Lea.Tests
                     Eq(80, narrowShrinkTwo.Width, "narrow flex respects second minimum");
                     Eq(100, narrowShrinkLock.Width, "narrow flex preserves locked minimum");
                     Eq(24, narrowShrinkLock.Right - narrowShrink.Right, "unshrinkable flex overflow remains explicit");
+                    var narrowColumn = BlockRect(view, BlockById(view.At, "column"));
+                    var narrowColumnOne = BlockOuterRect(view, BlockById(view.At, "column-one"));
+                    Ok(narrowColumn.Width < wideColumnWidth, "column cross axis reflows in narrow view");
+                    Eq(narrowColumn.Left + narrowColumn.Width / 2, narrowColumnOne.Left + narrowColumnOne.Width / 2, "narrow column remains centered");
                     view.Size = new Size(720, 760);
                     var boxes = Path.Combine(root, "LeaForge", "test-pages", "boxes.html");
                     var boxPage = engine.Go(boxes);
@@ -3228,7 +3287,7 @@ namespace Lea.Tests
                 if (args.Length > 4) SaveRender(tokenPath, args[4]);
                 if (args.Length > 5) SaveStateRender(statePath, args[5]);
 
-                    Console.WriteLine("Lea smoke passed: bounded wrapped, growing, and shrinking flex rows, semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                    Console.WriteLine("Lea smoke passed: bounded ordered row and column flex layout with wrapping, growth, shrink, reverse flow, and resize, semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)

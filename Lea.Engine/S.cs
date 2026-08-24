@@ -28,6 +28,7 @@ namespace Lea.Engine
         public int Fg { get; internal set; }
         public int Sh { get; internal set; }
         public int Fb { get; internal set; }
+        public int Or { get; internal set; }
         public string Pn { get; internal set; }
         public int? Tp { get; internal set; }
         public int? Rt { get; internal set; }

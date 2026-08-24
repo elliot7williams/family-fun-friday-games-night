@@ -68,14 +68,13 @@ Dg/Dcl  diagnostics/clear request activity
 7. Add compact table row/cell layout. (Equal columns, wrapped text, CSS boxes,
    bounded `colspan`, nested blocks, clickable links, malformed-markup recovery,
    and narrow-view reflow are active.)
-8. Add a compact flexbox subset. (`flex`/`inline-flex`, row and row-reverse,
-   fixed, equal-share auto, and integer weighted-growth slots, bounded wrapping,
-   integer weighted shrink with explicit pixel min/max floors, pixel basis and
-   row/column gaps, start/center/end/space-between distribution, and single-line
-   stretch/start/center/end alignment are active. Intrinsic min-content sizing,
-   fractional factors, order, columns, wrap-reverse, wrapped cross-axis
-   alignment, and a guaranteed auto-height stretch pass remain outside this
-   subset.)
+8. Add a compact flexbox subset. (`flex`/`inline-flex`, row/row-reverse and
+   fixed-height column/column-reverse, stable bounded order, fixed/equal-share
+   auto/integer weighted grow and shrink slots, bounded row wrapping, explicit
+   pixel min/max floors, pixel basis and row/column gaps, main-axis distribution,
+   and cross-axis alignment are active. Intrinsic min-content sizing, fractional
+   factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis
+   alignment, and auto-height column reordering remain outside this subset.)
 
 This is the largest speed milestone: fewer controls, less UI overhead, and one
 predictable rendering pass.
@@ -253,16 +252,23 @@ managed provider array boundary. Keep the stable empty-array fallback until
 returned range objects survive direct COM validation plus in-process and external
 MTA client calls without native handle corruption.
 
-The latest completed milestone added compact `S.Sh` state and bounded integer
-`flex-shrink`. One-, two-, and three-part shorthand now retains its shrink
-weight; `flex:none` locks an item. `Lea.Win` clamps each outer pixel basis through
+The latest completed milestone added compact `S.Or` state with stable signed
+-64..64 ordering on nowrap rows and fixed-height columns, plus `S.Fd=c/y` for
+column and column-reverse. `Lea.Win` now allocates bounded vertical grow/shrink
+slots with `Hn/Hx` protection, row gaps, reverse main flow, justification, and
+cross-axis alignment; auto-height columns retain natural source-order stacking.
+`flex.html`, exact desktop/narrow geometry, paint/hit/flow tests, benchmark, and
+Firespider host probes cover the feature without claiming wrapped ordering,
+column wrapping, or auto-height reordering.
+
+The previous milestone added compact `S.Sh` state and bounded integer
+`flex-shrink`. One-, two-, and three-part shorthand retains its shrink weight;
+`flex:none` locks an item. `Lea.Win` clamps each outer pixel basis through
 `Wx/Wn`, removes line deficit by basis-scaled weight, iteratively freezes items
 at explicit minimums, and preserves measurable overflow when no legal room
-remains. `flex.html`, desktop/narrow geometry, benchmark, and Firespider host
-probes cover weighted and locked cases without claiming intrinsic min-content,
-fractional factors, order, columns, wrap-reverse, or wrapped cross-axis alignment.
+remains.
 
-The previous milestone extended bounded CSS flex rows with compact
+The earlier flex milestone extended bounded CSS flex rows with compact
 `S.Wr/Rg/Fg/Fb` aliases for wrapping, row gaps, integer growth, and pixel basis.
 One/two-value and separate gaps plus common `flex` shorthand feed a per-line
 allocator that retains row reversal, distributes free width by growth weight,

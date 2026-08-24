@@ -782,7 +782,7 @@ namespace Lea.Win
                     var flexChild = parent != null && parent.Fs != null && parent.Fs.TryGetValue(block, out flex);
                     var lx = flexChild ? flex.X : parent == null ? x : parent.C.X;
                     var lw = flexChild ? flex.W : parent == null ? width : parent.C.Width;
-                    var ly = flexChild ? FlexTop(parent, flex) : parent == null ? y : parent.Y;
+                    var ly = flexChild ? flex.C ? flex.H >= 0 ? flex.Y : parent.Y : FlexTop(parent, flex) : parent == null ? y : parent.Y;
                     var parentClip = parent == null ? Rectangle.Empty : parent.Cp;
                     var fixedParent = parent != null && parent.Fx;
                     var containingContext = ContainingContext(block, contexts);
@@ -859,12 +859,15 @@ namespace Lea.Win
                     if (StretchesHeight(bs)) height = ConstrainHeight(bs, Math.Max(1, containing.Height - bs.Tp.Value - bs.Bm.Value - mt - mb - bt - bb - pt - pb));
                     if (flexChild && parent.Fh && parent.B.S.Ai == "t" && (bs == null || bs.H == 0))
                         height = ConstrainHeight(bs, Math.Max(1, parent.C.Bottom - parent.Ft - mt - mb - bt - bb - pt - pb));
+                    if (flexChild && flex.C && flex.H >= 0)
+                        height = ConstrainFlexHeight(bs, Math.Max(1, flex.H - mt - mb - bt - bb - pt - pb));
                     var text = MarkedText(block);
                     var link = inline == null && block.K == "a" ? block.U : null;
                     var outerWidth = bw + pl + pr + bl + br;
                     var outerHeight = height + pt + pb + bt + bb;
-                    var bx = PositionX(bs, lx + ml, outerWidth, containing, ml, mr);
-                    var alignedY = flexChild ? FlexY(parent, bs, outerHeight, mt, mb, flowY) : flowY;
+                    var flexX = flexChild && flex.C ? FlexX(parent, outerWidth, ml, mr) : lx + ml;
+                    var bx = PositionX(bs, flexX, outerWidth, containing, ml, mr);
+                    var alignedY = flexChild && !flex.C ? FlexY(parent, bs, outerHeight, mt, mb, flowY) : flowY;
                     var by = PositionY(bs, alignedY, outerHeight, containing, mt, mb);
                     var outer = new Rectangle(bx, by, outerWidth, outerHeight);
                     var content = new Rectangle(bx + bl + pl, by + bt + pt, bw, height);
@@ -886,10 +889,11 @@ namespace Lea.Win
                         Au = owners.Contains(block) && (bs == null || bs.H == 0),
                         Fl = !OutOfFlow(bs),
                         Fy = flowY,
-                        Gp = (HeadingKind(block.K) ? 12 : 8) + mb,
+                        Gp = flexChild && flex.C && flex.H < 0 ? flex.G + mb : (HeadingKind(block.K) ? 12 : 8) + mb,
                         Pc = inheritedClip,
                         Co = ClipsOverflow(bs),
-                        Fh = IsFlex(bs) && bs.Wr != "w" && (bs.H > 0 || resolvedOwner)
+                        Fh = IsFlex(bs) && !FlexColumn(bs) && bs.Wr != "w" && (bs.H > 0 || resolvedOwner),
+                        Fm = FlexColumn(bs) && bs.H > 0
                     };
                     FlexSlots(context);
                     contexts[block] = context;
@@ -901,7 +905,7 @@ namespace Lea.Win
                         if (parent == null) y = next;
                         else if (flexChild)
                         {
-                            parent.Y = Math.Max(parent.Y, outer.Bottom + mb);
+                            parent.Y = Math.Max(parent.Y, outer.Bottom + mb + flex.G);
                             FlexHeight(parent, outer.Bottom + mb);
                         }
                         else parent.Y = next;
@@ -953,6 +957,12 @@ namespace Lea.Win
             if (items.Count == 0) return;
 
             var style = context.B.S;
+            if (FlexColumn(style))
+            {
+                FlexColumnSlots(context, items);
+                return;
+            }
+            if (style.Wr != "w") SortFlexItems(items);
             var hints = new Dictionary<B, int>();
             foreach (var item in items)
                 hints[item] = FlexOuterWidth(item.S);
@@ -1006,7 +1016,7 @@ namespace Lea.Win
                 var baseWidth = fixedWidth + autoMinimum;
                 if (baseWidth > available)
                 {
-                    FlexShrink(visual, hints, widths, available);
+                    FlexShrink(visual, hints, widths, available, false);
                 }
                 else if (growTotal > 0)
                 {
@@ -1059,6 +1069,103 @@ namespace Lea.Win
             }
         }
 
+        private static void FlexColumnSlots(Lc context, List<B> items)
+        {
+            context.Fs = new Dictionary<B, Fp>();
+            if (!context.Fm)
+            {
+                for (var index = 0; index < items.Count; index++)
+                    context.Fs[items[index]] = new Fp(context.C.X, context.C.Width, -1, 0, -1, true, index + 1 < items.Count ? context.B.S.Rg : 0);
+                return;
+            }
+
+            SortFlexItems(items);
+            var style = context.B.S;
+            var hints = new Dictionary<B, int>();
+            foreach (var item in items) hints[item] = FlexOuterHeight(item.S);
+            var gap = Math.Min(style.Rg, context.C.Height);
+            var baseGaps = gap * Math.Max(0, items.Count - 1);
+            var available = Math.Max(0, context.C.Height - baseGaps);
+            var heights = FlexSizes(items, hints, available, true);
+            var used = baseGaps;
+            foreach (var item in items) used += heights[item];
+            var leftover = Math.Max(0, context.C.Height - used);
+            var offset = 0;
+            if (style.Jc == "c") offset = leftover / 2;
+            else if (style.Jc == "e") offset = style.Fd == "y" ? 0 : leftover;
+            else if (style.Jc == "s" && style.Fd == "y") offset = leftover;
+            if (style.Jc == "b" && items.Count > 1) gap += leftover / (items.Count - 1);
+            if (style.Fd == "y") items.Reverse();
+            var cursor = context.C.Y + offset;
+            foreach (var item in items)
+            {
+                context.Fs[item] = new Fp(context.C.X, context.C.Width, -1, cursor, heights[item], true);
+                cursor += heights[item] + gap;
+            }
+        }
+
+        private static void SortFlexItems(List<B> items)
+        {
+            var source = new Dictionary<B, int>();
+            for (var index = 0; index < items.Count; index++) source[items[index]] = index;
+            items.Sort(delegate(B left, B right)
+            {
+                var leftOrder = left.S == null ? 0 : left.S.Or;
+                var rightOrder = right.S == null ? 0 : right.S.Or;
+                var order = leftOrder.CompareTo(rightOrder);
+                return order != 0 ? order : source[left].CompareTo(source[right]);
+            });
+        }
+
+        private static Dictionary<B, int> FlexSizes(IList<B> items, IDictionary<B, int> hints, int available, bool column)
+        {
+            var fixedSize = 0;
+            var growTotal = 0;
+            var autos = 0;
+            var autoMinimum = 0;
+            var sizes = new Dictionary<B, int>();
+            foreach (var item in items)
+            {
+                var hint = hints[item];
+                var size = hint > 0 ? hint : FlexMinOuter(item.S, column);
+                sizes[item] = size;
+                if (hint > 0) fixedSize += size;
+                else { autos++; autoMinimum += size; }
+                var grow = item.S == null ? 0 : item.S.Fg;
+                if (grow > 0) growTotal += grow;
+            }
+
+            var baseSize = fixedSize + autoMinimum;
+            if (baseSize > available) FlexShrink(items, hints, sizes, available, column);
+            else if (growTotal > 0)
+            {
+                var remaining = available - baseSize;
+                var remainingGrow = growTotal;
+                foreach (var item in items)
+                {
+                    var grow = item.S == null ? 0 : item.S.Fg;
+                    if (grow <= 0) continue;
+                    var share = remainingGrow == 0 ? 0 : remaining * grow / remainingGrow;
+                    sizes[item] += share;
+                    remaining -= share;
+                    remainingGrow -= grow;
+                }
+            }
+            else
+            {
+                var free = available - baseSize;
+                var autoSize = autos == 0 ? 0 : Math.Max(1, free / autos);
+                var remainder = autos == 0 ? 0 : Math.Max(0, free - autoSize * autos);
+                foreach (var item in items)
+                {
+                    if (hints[item] != 0) continue;
+                    sizes[item] += autoSize;
+                    if (remainder > 0) { sizes[item]++; remainder--; }
+                }
+            }
+            return sizes;
+        }
+
         private static int FlexOuterWidth(S style)
         {
             if (style == null) return 0;
@@ -1075,16 +1182,43 @@ namespace Lea.Win
             return Math.Max(1, style.Wn) + FlexHorizontal(style);
         }
 
+        private static int FlexOuterHeight(S style)
+        {
+            if (style == null) return 0;
+            var basis = style.Fb >= 0 ? style.Fb : style.H;
+            if (basis == 0 && style.Fb < 0 && style.Hn == 0) return 0;
+            if (style.Hx > 0) basis = Math.Min(basis, style.Hx);
+            if (style.Hn > 0) basis = Math.Max(basis, style.Hn);
+            return basis + FlexVertical(style);
+        }
+
+        private static int FlexMinOuter(S style, bool column)
+        {
+            return column ? FlexMinOuterHeight(style) : FlexMinOuterWidth(style);
+        }
+
+        private static int FlexMinOuterHeight(S style)
+        {
+            if (style == null) return 1;
+            return Math.Max(1, style.Hn) + FlexVertical(style);
+        }
+
         private static int FlexHorizontal(S style)
         {
             if (style == null) return 0;
             return style.Ml + style.Mr + style.Pl + style.Pr + BorderWidth(style, style.Bl) + BorderWidth(style, style.Br);
         }
 
-        private static void FlexShrink(IList<B> items, IDictionary<B, int> hints, IDictionary<B, int> widths, int available)
+        private static int FlexVertical(S style)
+        {
+            if (style == null) return 0;
+            return style.Mt + style.Mb + style.Pt + style.Pb + BorderWidth(style, style.Bt) + BorderWidth(style, style.Bb);
+        }
+
+        private static void FlexShrink(IList<B> items, IDictionary<B, int> hints, IDictionary<B, int> sizes, int available, bool column)
         {
             var deficit = 0;
-            foreach (var item in items) deficit += widths[item];
+            foreach (var item in items) deficit += sizes[item];
             deficit = Math.Max(0, deficit - available);
             while (deficit > 0)
             {
@@ -1093,7 +1227,7 @@ namespace Lea.Win
                 foreach (var item in items)
                 {
                     var shrink = item.S == null ? 1 : item.S.Sh;
-                    if (shrink <= 0 || widths[item] <= FlexMinOuterWidth(item.S)) continue;
+                    if (shrink <= 0 || sizes[item] <= FlexMinOuter(item.S, column)) continue;
                     active.Add(item);
                     totalWeight += (long)Math.Max(1, hints[item]) * shrink;
                 }
@@ -1107,9 +1241,9 @@ namespace Lea.Win
                     if (remaining <= 0) break;
                     var weight = (long)Math.Max(1, hints[item]) * (item.S == null ? 1 : item.S.Sh);
                     var share = (int)Math.Min(remaining, ((long)remaining * weight + remainingWeight - 1) / remainingWeight);
-                    var room = widths[item] - FlexMinOuterWidth(item.S);
+                    var room = sizes[item] - FlexMinOuter(item.S, column);
                     var amount = Math.Min(room, share);
-                    widths[item] -= amount;
+                    sizes[item] -= amount;
                     remaining -= amount;
                     remainingWeight -= weight;
                     reduced += amount;
@@ -1147,9 +1281,23 @@ namespace Lea.Win
             return parent.Ft + mt;
         }
 
+        private static int FlexX(Lc parent, int outerWidth, int ml, int mr)
+        {
+            if (parent == null || parent.B == null || parent.B.S == null) return parent == null ? ml : parent.C.X + ml;
+            var free = Math.Max(0, parent.C.Width - outerWidth - ml - mr);
+            if (parent.B.S.Ai == "c") return parent.C.X + ml + free / 2;
+            if (parent.B.S.Ai == "e") return parent.C.X + ml + free;
+            return parent.C.X + ml;
+        }
+
         private static bool IsFlex(S style)
         {
             return style != null && (style.D == "flex" || style.D == "inline-flex");
+        }
+
+        private static bool FlexColumn(S style)
+        {
+            return IsFlex(style) && (style.Fd == "c" || style.Fd == "y");
         }
 
         private void FinishContext(Lc context, ref int rootY, IDictionary<B, int> measured)
@@ -1568,6 +1716,14 @@ namespace Lea.Win
         private static int ConstrainHeight(S style, int natural)
         {
             var height = style != null && style.H > 0 ? style.H : Math.Max(1, natural);
+            if (style != null && style.Hx > 0) height = Math.Min(height, style.Hx);
+            if (style != null && style.Hn > 0) height = Math.Max(height, style.Hn);
+            return Math.Max(1, height);
+        }
+
+        private static int ConstrainFlexHeight(S style, int allocated)
+        {
+            var height = Math.Max(1, allocated);
             if (style != null && style.Hx > 0) height = Math.Min(height, style.Hx);
             if (style != null && style.Hn > 0) height = Math.Max(height, style.Hn);
             return Math.Max(1, height);
@@ -5260,6 +5416,7 @@ namespace Lea.Win
             public int Fz;
             public int Fr;
             public bool Fh;
+            public bool Fm;
 
             public Lc(Rectangle outer, Rectangle content, int y, Rectangle clip, bool fixedPosition)
             {
@@ -5276,8 +5433,14 @@ namespace Lea.Win
             public readonly int X;
             public readonly int W;
             public readonly int L;
+            public readonly int Y;
+            public readonly int H;
+            public readonly bool C;
+            public readonly int G;
 
-            public Fp(int x, int width, int line) { X = x; W = width; L = line; }
+            public Fp(int x, int width, int line) : this(x, width, line, 0, -1, false, 0) { }
+            public Fp(int x, int width, int line, int y, int height, bool column) : this(x, width, line, y, height, column, 0) { }
+            public Fp(int x, int width, int line, int y, int height, bool column, int gap) { X = x; W = width; L = line; Y = y; H = height; C = column; G = gap; }
         }
 
         private sealed class Bx

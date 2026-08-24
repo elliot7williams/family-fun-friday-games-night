@@ -157,18 +157,22 @@ same pair. Relative stylesheets, links, images, forms, and downloads use `Bu`.
 .NET Framework URI parsing does not expose it through `Uri.Query`.
 
 Paint-ready blocks expose compact computed style through `B.S`. `D` is the
-normalized display text. For Lea's bounded flex-row subset, `Fd` is `r` for row
-or `x` for row-reverse; `Jc` is `s/c/e/b` for start, center, end, or
+normalized display text. For Lea's bounded flex subset, `Fd` is `r/x/c/y` for
+row, row-reverse, column, or column-reverse; `Jc` is `s/c/e/b` for start, center, end, or
 space-between; and `Ai` is `t/s/c/e` for stretch, start, center, or end. `Wr`
 is `n/w` for nowrap or wrap. `Gp` and `Rg` are 0..512 pixel column and row gaps
 from one/two-value `gap`, `column-gap`, or `row-gap`. Each direct item uses `Fg`
 for a 0..64 integer growth weight, `Sh` for a 0..64 integer shrink weight, and
-`Fb` for a 0..9,999 pixel basis; `Fb=-1` means auto/content. The common
+`Fb` for a 0..9,999 pixel basis; `Fb=-1` means auto/content. `Or` is a signed
+-64..64 item order. The common
 one-to-three-part `flex` forms fill the same state. Shrink distribution uses the
-outer pixel basis and freezes at explicit `Wn`; `Wx` clamps the base first and a
-locked or exhausted row may overflow visibly. Intrinsic min-content sizing,
-fractional factors, nonzero percentage bases, order, column flow, wrap-reverse,
-wrapped cross-axis alignment, and guaranteed auto-height stretching remain
+outer pixel basis and freezes at explicit `Wn/Hn`; `Wx/Hx` clamp the base first
+and a locked or exhausted axis may overflow visibly. Stable order is active on
+nowrap rows and fixed-height columns. Auto-height columns retain source order
+and natural stacking with `Rg`; fixed-height columns add weighted vertical
+growth/shrink, reverse flow, justification, and cross-axis alignment. Intrinsic
+min-content sizing, fractional factors, nonzero percentage bases, wrapped
+ordering, column wrapping, wrap-reverse, and wrapped cross-axis alignment remain
 outside the subset.
 
 Document lookup stays short and bounded. `E.Id(page, id)` finds the first ID,

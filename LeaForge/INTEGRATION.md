@@ -224,19 +224,20 @@ and nested cell blocks. `S.Wb` uses `n/b/a/k` for normal, break-word,
 anywhere/break-all, and keep-all. These modes come from `word-break`,
 `overflow-wrap`, or `word-wrap`; `white-space:nowrap` still disables wrapping.
 
-Lea's bounded flex-row subset uses `S.D=flex/inline-flex` and compact
-`S.Fd/Jc/Ai/Gp/Wr/Rg/Fg/Sh/Fb` values. The model preserves direct element items
+Lea's bounded flex subset uses `S.D=flex/inline-flex` and compact
+`S.Fd/Jc/Ai/Gp/Wr/Rg/Fg/Sh/Fb/Or` values. The model preserves direct element items
 under their visual container, while `V` allocates fixed, equal-share auto,
 integer weighted-growth, or integer weighted-shrink slots and reuses the
 existing child layout, clipping, stacking, hit, paint, and accessibility paths.
-Explicit pixel `Wn/Wx` floors and clamps participate in allocation; locked or
-exhausted minimums retain visible overflow. Row and row-reverse, bounded
-wrapping, pixel basis, one/two-value or separate row/column gaps,
-start/center/end/space-between distribution, and single-line
-stretch/start/center/end alignment are active. Intrinsic min-content sizing,
-fractional factors, order, column flow, wrap-reverse, wrapped cross-axis
-alignment, inline-level outer formatting, and a guaranteed auto-height stretch
-pass remain explicit compatibility limits.
+Explicit pixel `Wn/Wx/Hn/Hx` floors and clamps participate in allocation; locked
+or exhausted minimums retain visible overflow. Row/row-reverse, fixed-height
+column/column-reverse, stable bounded order, row wrapping, pixel basis,
+one/two-value or separate row/column gaps, main-axis distribution, and
+cross-axis alignment are active. Auto-height columns retain source-order natural
+stacking and row gaps. Intrinsic min-content sizing, fractional factors, wrapped
+ordering, column wrapping, wrap-reverse, wrapped cross-axis alignment,
+inline-level outer formatting, and auto-height column reordering remain explicit
+compatibility limits.
 
 Inherited visibility uses `S.Vi` with `v/h/c`. Hidden and collapsed content
 keeps its layout rectangle but produces no pixels, links, field hits, or editor.

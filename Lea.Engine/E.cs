@@ -2551,6 +2551,7 @@ namespace Lea.Engine
                 else if (name == "flex-shrink") FlexShrink(style, value);
                 else if (name == "flex-basis") FlexBasis(style, value);
                 else if (name == "flex") FlexValue(style, value);
+                else if (name == "order") FlexOrder(style, value);
                 else if (name == "justify-content") JustifyContent(style, value);
                 else if (name == "align-items") AlignItems(style, value);
                 else if (name == "gap") Gap(style, value);
@@ -2614,6 +2615,8 @@ namespace Lea.Engine
             var direction = (value ?? "").Trim().ToLowerInvariant();
             if (direction == "row" || direction == "initial" || direction == "normal") style.Fd = "r";
             else if (direction == "row-reverse") style.Fd = "x";
+            else if (direction == "column") style.Fd = "c";
+            else if (direction == "column-reverse") style.Fd = "y";
         }
 
         private static void FlexWrap(S style, string value)
@@ -2639,6 +2642,15 @@ namespace Lea.Engine
         {
             int basis;
             if (BasisValue(value, out basis)) style.Fb = basis;
+        }
+
+        private static void FlexOrder(S style, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "initial" || source == "normal" || source == "unset" || source == "revert") { style.Or = 0; return; }
+            var match = Regex.Match(source, "^(?<n>[+-]?[0-9]{1,2})$");
+            int order;
+            if (match.Success && Int32.TryParse(match.Groups["n"].Value, out order) && order >= -64 && order <= 64) style.Or = order;
         }
 
         private static void FlexValue(S style, string value)

@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Lea bounded flex rows</title>
+  <title>Lea bounded flex layout</title>
   <style>
     body { background: #f7faf8; color: #19352d; font-family: Segoe UI; }
     h1 { color: #134e4a; }
@@ -29,6 +29,23 @@
     #shrink-one { flex: 0 1 180px; min-width: 120px; }
     #shrink-two { flex: 0 2 180px; min-width: 80px; }
     #shrink-lock { flex: 0 0 140px; min-width: 100px; max-width: 100px; }
+    #ordered { width: 360px; height: 64px; gap: 8px; align-items: center; }
+    #order-one, #order-two, #order-three { width: 70px; height: 26px; }
+    #order-one { order: 2; }
+    #order-two { order: -1; }
+    #order-three { order: +2; }
+    .column { display: flex; border: 2px solid #176b4d; padding: 10px; margin-bottom: 12px; background: #edf8f3; }
+    .column-item { margin: 0; background: #dcefe8; }
+    #column { width: 440px; height: 240px; flex-direction: column; row-gap: 10px; align-items: center; }
+    #column-one { width: 80px; flex: 1 1 40px; order: 2; }
+    #column-two { width: 120px; flex: 2 1 40px; order: -1; }
+    #column-three { width: 60px; flex: 0 0 40px; order: 2; }
+    #column-reverse { width: 220px; height: 130px; flex-direction: column-reverse; row-gap: 10px; justify-content: flex-start; align-items: flex-end; }
+    #column-reverse-one { width: 70px; flex: 0 1 80px; min-height: 40px; }
+    #column-reverse-two { width: 90px; flex: 0 2 80px; min-height: 30px; }
+    #column-reverse-three { width: 60px; flex: 0 0 30px; min-height: 30px; max-height: 30px; }
+    #column-auto { width: 300px; flex-direction: column; row-gap: 7px; align-items: center; }
+    #column-auto p { width: 100px; height: 20px; margin: 0; }
     #after-flex { width: 500px; flex: 1 1; padding: 6px; border-left: 3px solid #b91c1c; background: #f8eeee; }
   </style>
 </head>
@@ -65,6 +82,25 @@
     <p id="shrink-two" class="shrink-item">Shrink two</p>
     <p id="shrink-lock" class="shrink-item">Locked</p>
   </section>
-  <p id="after-flex">Normal document flow continues below every flex row.</p>
+  <section id="ordered" class="row">
+    <article id="order-one" class="tile">Order one</article>
+    <article id="order-two" class="tile">Order two</article>
+    <article id="order-three" class="tile">Order three</article>
+  </section>
+  <section id="column" class="column">
+    <a id="column-one" class="column-item" href="column.html">Column one</a>
+    <p id="column-two" class="column-item">Column two</p>
+    <p id="column-three" class="column-item">Column three</p>
+  </section>
+  <section id="column-reverse" class="column">
+    <p id="column-reverse-one" class="column-item">Reverse one</p>
+    <p id="column-reverse-two" class="column-item">Reverse two</p>
+    <p id="column-reverse-three" class="column-item">Reverse three</p>
+  </section>
+  <section id="column-auto" class="column">
+    <p id="column-auto-one" class="column-item">Auto one</p>
+    <p id="column-auto-two" class="column-item">Auto two</p>
+  </section>
+  <p id="after-flex">Normal document flow continues below every flex layout.</p>
 </body>
 </html>
