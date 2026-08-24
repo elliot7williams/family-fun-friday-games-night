@@ -156,6 +156,13 @@ same pair. Relative stylesheets, links, images, forms, and downloads use `Bu`.
 `P.Q` preserves the URL query, including on local `file:` pages where older
 .NET Framework URI parsing does not expose it through `Uri.Query`.
 
+Paint-ready blocks expose compact computed style through `B.S`. `D` is the
+normalized display text. For Lea's bounded flex-row subset, `Fd` is `r` for row
+or `x` for row-reverse; `Jc` is `s/c/e/b` for start, center, end, or
+space-between; `Ai` is `t/s/c/e` for stretch, start, center, or end; and `Gp`
+is a 0..512 pixel gap from `gap` or `column-gap`. The subset intentionally omits
+wrap, grow/shrink, order, column flow, and guaranteed auto-height stretching.
+
 Document lookup stays short and bounded. `E.Id(page, id)` finds the first ID,
 `E.Q(page, selector)` finds the first document-order selector match, and
 `E.Qa(page, selector)` returns a read-only list of at most 256 matches. Queries

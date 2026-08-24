@@ -1796,6 +1796,65 @@ namespace Lea.Tests
                     Check(view, root, "css.html", 3, 4);
                     Check(view, root, "images.html", 5, 6);
                     Check(view, root, "layout.html", 3, 4);
+                    var flexPath = Path.Combine(root, "LeaForge", "test-pages", "flex.html");
+                    var flexPage = engine.Go(flexPath);
+                    var spreadModel = BlockById(flexPage, "spread");
+                    var autoModel = BlockById(flexPage, "auto");
+                    var reverseModel = BlockById(flexPage, "reverse");
+                    Eq("flex", spreadModel.S.D, "flex display model");
+                    Eq("r", spreadModel.S.Fd, "flex row alias");
+                    Eq("b", spreadModel.S.Jc, "space-between alias");
+                    Eq("c", spreadModel.S.Ai, "center alignment alias");
+                    Eq(10, spreadModel.S.Gp, "flex gap alias");
+                    Eq("inline-flex", autoModel.S.D, "inline-flex display model");
+                    Eq(12, autoModel.S.Gp, "column-gap alias");
+                    Eq("x", reverseModel.S.Fd, "row-reverse alias");
+                    Ok(Object.ReferenceEquals(BlockById(flexPage, "first").Up, spreadModel) && Object.ReferenceEquals(BlockById(flexPage, "nested-copy").Up, BlockById(flexPage, "auto-nested")), "flex visual ownership");
+                    view.Go(flexPath);
+                    using (var flexPaint = Render(view))
+                    {
+                        var spread = BlockRect(view, BlockById(view.At, "spread"));
+                        var first = BlockOuterRect(view, BlockById(view.At, "first"));
+                        var second = BlockOuterRect(view, BlockById(view.At, "second"));
+                        var third = BlockOuterRect(view, BlockById(view.At, "third"));
+                        Eq(spread.Left, first.Left, "flex row starts at content edge");
+                        Eq(spread.Right, third.Right, "space-between reaches content edge");
+                        Eq(122, second.Left - first.Right, "first distributed flex gap");
+                        Eq(122, third.Left - second.Right, "second distributed flex gap");
+                        Eq(spread.Top + (spread.Height - first.Height) / 2, first.Top, "first flex item centers");
+                        Eq(spread.Top + (spread.Height - second.Height) / 2, second.Top, "second flex item centers");
+
+                        var auto = BlockRect(view, BlockById(view.At, "auto"));
+                        var autoLink = BlockOuterRect(view, BlockById(view.At, "auto-link"));
+                        var autoButton = BlockOuterRect(view, BlockById(view.At, "auto-button"));
+                        var autoNested = BlockOuterRect(view, BlockById(view.At, "auto-nested"));
+                        Eq(auto.Left, autoLink.Left, "auto flex starts at content edge");
+                        Eq(144, autoButton.Left - autoLink.Left, "auto flex second slot");
+                        Eq(144, autoNested.Left - autoButton.Left, "auto flex third slot");
+                        Eq(autoLink.Width, autoNested.Width, "auto flex slots share width");
+                        Eq(auto.Height, autoLink.Height, "auto flex link stretches");
+                        Eq(auto.Height, autoButton.Height, "auto flex field stretches");
+                        Ok(!BlockRect(view, BlockById(view.At, "nested-copy")).IsEmpty, "nested flex content layout");
+                        Ok(!HitRect(view, "second.html").IsEmpty, "flex link hit target");
+
+                        var reverse = BlockRect(view, BlockById(view.At, "reverse"));
+                        var reverseOne = BlockOuterRect(view, BlockById(view.At, "reverse-one"));
+                        var reverseTwo = BlockOuterRect(view, BlockById(view.At, "reverse-two"));
+                        var reverseThree = BlockOuterRect(view, BlockById(view.At, "reverse-three"));
+                        Ok(reverseOne.Left > reverseTwo.Left && reverseTwo.Left > reverseThree.Left, "row-reverse visual order");
+                        Eq(reverse.Right, reverseOne.Right, "row-reverse flex-start edge");
+                        Eq(reverse.Bottom, reverseOne.Bottom, "row-reverse end alignment");
+                        Eq(reverse.Bottom, reverseThree.Bottom, "row-reverse shared end alignment");
+                        Ok(BlockOuterRect(view, BlockById(view.At, "after-flex")).Top > BlockOuterRect(view, BlockById(view.At, "reverse")).Bottom, "normal flow follows flex rows");
+                        Ok(ColorDistance(CenterPixel(flexPaint, first), Color.FromArgb(230, 239, 255)) < 8, "flex item paint");
+                    }
+                    view.Size = new Size(360, 760);
+                    Paint(view);
+                    var narrowAuto = BlockRect(view, BlockById(view.At, "auto"));
+                    var narrowLink = BlockOuterRect(view, BlockById(view.At, "auto-link"));
+                    var narrowNested = BlockOuterRect(view, BlockById(view.At, "auto-nested"));
+                    Ok(narrowLink.Width < 132 && narrowNested.Right <= narrowAuto.Right, "auto flex slots reflow in narrow view");
+                    view.Size = new Size(720, 760);
                     var boxes = Path.Combine(root, "LeaForge", "test-pages", "boxes.html");
                     var boxPage = engine.Go(boxes);
                     Eq(4, boxPage.Bs.Count, "box-model blocks");
@@ -3090,7 +3149,7 @@ namespace Lea.Tests
                 if (args.Length > 4) SaveRender(tokenPath, args[4]);
                 if (args.Length > 5) SaveStateRender(statePath, args[5]);
 
-                Console.WriteLine("Lea smoke passed: bounded semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                Console.WriteLine("Lea smoke passed: bounded flex rows, semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)

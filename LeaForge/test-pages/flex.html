@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea bounded flex rows</title>
+  <style>
+    body { background: #f7faf8; color: #19352d; font-family: Segoe UI; }
+    h1 { color: #134e4a; }
+    .row { display: flex; border: 2px solid #176b4d; padding: 10px; margin-bottom: 12px; background: #e8f5ef; }
+    .tile { border: 2px solid #1e3a8a; padding: 4px; margin: 0; background: #e6efff; }
+    #spread { width: 500px; height: 120px; gap: 10px; justify-content: space-between; align-items: center; }
+    #first { width: 70px; height: 30px; }
+    #second { width: 90px; height: 50px; }
+    #third { width: 60px; height: 20px; }
+    #auto { display: inline-flex; width: 420px; height: 96px; column-gap: 12px; align-items: stretch; }
+    #auto a, #auto button, #auto-nested { border: 1px solid #9a6700; padding: 6px; margin: 0; background: #fff4c2; }
+    #auto-nested p { margin: 0; padding: 3px; background: #ffffff; }
+    #reverse { width: 360px; height: 72px; gap: 8px; flex-direction: row-reverse; justify-content: flex-start; align-items: flex-end; }
+    #reverse p { width: 60px; height: 24px; margin: 0; padding: 3px; background: #f0e8fa; }
+    #after-flex { width: 500px; padding: 6px; border-left: 3px solid #b91c1c; background: #f8eeee; }
+  </style>
+</head>
+<body>
+  <h1>Bounded flex rows</h1>
+  <section id="spread" class="row">
+    <article id="first" class="tile">First</article>
+    <article id="second" class="tile">Second tile</article>
+    <article id="third" class="tile">Third</article>
+  </section>
+  <form id="auto" class="row">
+    <a id="auto-link" href="second.html">Open second page</a>
+    <button id="auto-button" type="button">Flex button</button>
+    <div id="auto-nested"><p id="nested-copy">Nested flex content wraps inside its assigned slot.</p></div>
+  </form>
+  <section id="reverse" class="row">
+    <p id="reverse-one">One</p>
+    <p id="reverse-two">Two</p>
+    <p id="reverse-three">Three</p>
+  </section>
+  <p id="after-flex">Normal document flow continues below every flex row.</p>
+</body>
+</html>

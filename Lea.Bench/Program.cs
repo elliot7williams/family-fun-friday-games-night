@@ -108,7 +108,7 @@ namespace Lea.Bench
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
-                "focus-shortcuts.html", "accessibility.html", "state-commands.html"
+                "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -489,6 +489,33 @@ namespace Lea.Bench
                     }
                 }
             });
+            AddProbe(probes, "Bounded flex rows", delegate
+            {
+                var path = Path.Combine(folder, "flex.html");
+                var page = new E().Go(path);
+                var spread = page.Bs.First(block => block.El != null && block.El.Av("id") == "spread");
+                var first = page.Bs.First(block => block.El != null && block.El.Av("id") == "first");
+                var reverse = page.Bs.First(block => block.El != null && block.El.Av("id") == "reverse");
+                Need(spread.S.D == "flex" && spread.S.Fd == "r" && spread.S.Jc == "b" && spread.S.Ai == "c" && spread.S.Gp == 10, "flex style aliases changed");
+                Need(Object.ReferenceEquals(first.Up, spread) && reverse.S.Fd == "x", "flex ownership or reverse direction changed");
+                using (var view = NewView())
+                {
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var one = BlockOuter(view, "first");
+                        var two = BlockOuter(view, "second");
+                        var three = BlockOuter(view, "third");
+                        var reverseOne = BlockOuter(view, "reverse-one");
+                        var reverseTwo = BlockOuter(view, "reverse-two");
+                        var after = BlockOuter(view, "after-flex");
+                        Need(one.Left < two.Left && two.Left < three.Left && two.Left - one.Right == 122, "flex distribution changed");
+                        Need(reverseOne.Left > reverseTwo.Left && after.Top > BlockOuter(view, "reverse").Bottom, "row-reverse or following flow changed");
+                        Need(ColoredSamples(image) > 0, "flex layout is blank");
+                    }
+                }
+                return "Fd/Jc/Ai/Gp aliases, fixed and auto slots, gap distribution, row reverse, alignment, nesting, hits, and following flow";
+            });
             AddProbe(probes, "Forms and validation", delegate
             {
                 var engine = new E();
@@ -649,12 +676,13 @@ namespace Lea.Bench
             builder.AppendLine("| --- | --- | --- |");
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled selector subset, cascade, box/text styles, visibility, positioning, transforms, and responsive image sizing");
-            Capability(builder, "Layout and painting", "Partial", "Custom WinForms block, inline, table, form, image, clipping, scroll, and stacking renderer");
+            Capability(builder, "CSS", "Partial", "Compiled selector subset, cascade, box/text styles, visibility, positioning, transforms, responsive image sizing, and bounded flex-row properties");
+            Capability(builder, "Layout and painting", "Partial", "Custom WinForms block, inline, flex-row, table, form, image, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, color, font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
-            Capability(builder, "Flexbox, Grid, Canvas, SVG", "Not supported", "Future compatibility work; no silent fallback claim");
+            Capability(builder, "Flexbox", "Supported subset", "Single-line row/row-reverse containers, fixed or equal-share auto slots, pixel gap/column-gap, start/center/end/space-between justification, and stretch/start/center/end alignment; no wrap, grow/shrink, order, column flow, or auto-height stretch guarantee");
+            Capability(builder, "Grid, Canvas, SVG", "Not supported", "Future compatibility work; no silent fallback claim");
             Capability(builder, "Audio and video", "Not supported", "Future optional module");
             Capability(builder, "Developer diagnostics", "Supported", "Bounded summary, node, CSS, request, message, and variable snapshots");
             Capability(builder, "Document queries", "Supported subset", "Id, first-match Q/Q1, and read-only Qa with compiled selectors and a 256-result ceiling");
@@ -761,6 +789,21 @@ namespace Lea.Bench
                     if (color.A != 0 && (color.R < 248 || color.G < 248 || color.B < 248)) count++;
                 }
             return count;
+        }
+
+        private static Rectangle BlockOuter(V view, string id)
+        {
+            var field = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = field == null ? null : field.GetValue(view) as System.Collections.IEnumerable;
+            if (values != null)
+                foreach (var value in values)
+                {
+                    var type = value.GetType();
+                    var block = type.GetField("B").GetValue(value) as B;
+                    if (block != null && block.El != null && block.El.Av("id") == id && !(bool)type.GetField("Inline").GetValue(value))
+                        return (Rectangle)type.GetField("R").GetValue(value);
+                }
+            throw new InvalidOperationException("Missing layout block " + id);
         }
 
         private static N ById(N node, string id)

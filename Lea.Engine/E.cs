@@ -1468,7 +1468,12 @@ namespace Lea.Engine
 
         private static bool LayoutContext(S style)
         {
-            return style != null && (style.Pn == "r" || style.Pn == "a" || style.Pn == "f" || style.Zc || (style.Ov.Length > 0 && style.Ov != "v"));
+            return style != null && (Flex(style) || style.Pn == "r" || style.Pn == "a" || style.Pn == "f" || style.Zc || (style.Ov.Length > 0 && style.Ov != "v"));
+        }
+
+        private static bool Flex(S style)
+        {
+            return style != null && (style.D == "flex" || style.D == "inline-flex");
         }
 
         private static bool BlockContext(B block)
@@ -2540,6 +2545,10 @@ namespace Lea.Engine
                 else if (name == "isolation") Isolation(style, value);
                 else if (name == "transform") Transform(style, value);
                 else if (name == "display") style.D = value.ToLowerInvariant();
+                else if (name == "flex-direction") FlexDirection(style, value);
+                else if (name == "justify-content") JustifyContent(style, value);
+                else if (name == "align-items") AlignItems(style, value);
+                else if (name == "gap" || name == "column-gap") style.Gp = Math.Min(512, Px(value));
                 else if (name == "position") Position(style, value);
                 else if (name == "inset") Inset(style, value);
                 else if (name == "top") Offset(style, value, 0);
@@ -2591,6 +2600,31 @@ namespace Lea.Engine
             else if (mode == "absolute") style.Pn = "a";
             else if (mode == "fixed") style.Pn = "f";
             else if (mode == "static" || mode == "initial" || mode == "unset" || mode == "revert") style.Pn = "s";
+        }
+
+        private static void FlexDirection(S style, string value)
+        {
+            var direction = (value ?? "").Trim().ToLowerInvariant();
+            if (direction == "row" || direction == "initial" || direction == "normal") style.Fd = "r";
+            else if (direction == "row-reverse") style.Fd = "x";
+        }
+
+        private static void JustifyContent(S style, string value)
+        {
+            var align = (value ?? "").Trim().ToLowerInvariant();
+            if (align == "flex-start" || align == "start" || align == "left" || align == "normal" || align == "initial") style.Jc = "s";
+            else if (align == "center") style.Jc = "c";
+            else if (align == "flex-end" || align == "end" || align == "right") style.Jc = "e";
+            else if (align == "space-between") style.Jc = "b";
+        }
+
+        private static void AlignItems(S style, string value)
+        {
+            var align = (value ?? "").Trim().ToLowerInvariant();
+            if (align == "stretch" || align == "normal" || align == "initial") style.Ai = "t";
+            else if (align == "flex-start" || align == "start" || align == "self-start") style.Ai = "s";
+            else if (align == "center") style.Ai = "c";
+            else if (align == "flex-end" || align == "end" || align == "self-end") style.Ai = "e";
         }
 
         private static void Offset(S style, string value, int side)
@@ -2969,11 +3003,11 @@ namespace Lea.Engine
                 AddField(page, node, baseUrl, style);
                 return;
             }
-            else if (IsTextBlock(kind) || IsContainerBlock(kind))
+            else if (IsTextBlock(kind) || IsContainerBlock(kind) || Flex(style))
             {
-                var text = TextValue(BlockText(node, PreservesLines(style)), style);
+                var text = TextValue(Flex(style) ? DirectText(node) : BlockText(node, PreservesLines(style)), style);
                 var block = new B { K = kind, X = text, Mk = ListMarker(node), S = style, El = node };
-                if (HasInlineStructure(node))
+                if (!Flex(style) && HasInlineStructure(node))
                 {
                     var inlineStyle = style.Inherit();
                     if (IsHeading(kind)) inlineStyle.B = true;
@@ -3505,6 +3539,13 @@ namespace Lea.Engine
             return text.ToString();
         }
 
+        private static string DirectText(N node)
+        {
+            var text = new StringBuilder();
+            foreach (var child in node.C) if (child.K == "#text") text.Append(child.X).Append(' ');
+            return Clean(text.ToString());
+        }
+
         private static void AddBlockText(N node, StringBuilder text, bool root, bool raw)
         {
             if (node.K == "#text")
@@ -3534,7 +3575,7 @@ namespace Lea.Engine
             foreach (var child in node.C)
             {
                 if (child.K == "#text") continue;
-                if (IsBlockTag(child.K) || child.K == "img" || child.K == "input" || child.K == "textarea" || child.K == "button" || child.K == "select")
+                if (Flex(inherited) || IsBlockTag(child.K) || child.K == "img" || child.K == "input" || child.K == "textarea" || child.K == "button" || child.K == "select")
                 {
                     Blocks(page, child, baseUrl, rules, inherited);
                     continue;

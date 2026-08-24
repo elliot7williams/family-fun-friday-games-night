@@ -224,6 +224,15 @@ and nested cell blocks. `S.Wb` uses `n/b/a/k` for normal, break-word,
 anywhere/break-all, and keep-all. These modes come from `word-break`,
 `overflow-wrap`, or `word-wrap`; `white-space:nowrap` still disables wrapping.
 
+Lea's bounded flex-row subset uses `S.D=flex/inline-flex` and compact
+`S.Fd/Jc/Ai/Gp` values. The model preserves direct element items under their
+visual container, while `V` allocates fixed or equal-share auto slots and reuses
+the existing child layout, clipping, stacking, hit, paint, and accessibility
+paths. Row and row-reverse, pixel `gap`/`column-gap`, start/center/end/
+space-between distribution, and stretch/start/center/end alignment are active.
+Wrapping, grow/shrink, order, column flow, inline-level outer formatting, and a
+guaranteed auto-height stretch pass remain explicit compatibility limits.
+
 Inherited visibility uses `S.Vi` with `v/h/c`. Hidden and collapsed content
 keeps its layout rectangle but produces no pixels, links, field hits, or editor.
 `S.Op` is a bounded effective percentage: ancestor and local opacity combine,

@@ -68,6 +68,11 @@ Dg/Dcl  diagnostics/clear request activity
 7. Add compact table row/cell layout. (Equal columns, wrapped text, CSS boxes,
    bounded `colspan`, nested blocks, clickable links, malformed-markup recovery,
    and narrow-view reflow are active.)
+8. Add a compact flexbox subset. (`flex`/`inline-flex`, row and row-reverse,
+   fixed and equal-share auto slots, bounded pixel `gap`/`column-gap`,
+   start/center/end/space-between distribution, and stretch/start/center/end
+   alignment are active. Wrapping, grow/shrink, order, columns, and a guaranteed
+   auto-height stretch pass remain outside this subset.)
 
 This is the largest speed milestone: fewer controls, less UI overhead, and one
 predictable rendering pass.
@@ -245,7 +250,15 @@ managed provider array boundary. Keep the stable empty-array fallback until
 returned range objects survive direct COM validation plus in-process and external
 MTA client calls without native handle corruption.
 
-The latest completed milestone added bounded `op/cl/tg` page commands for
+The latest completed milestone added bounded single-line CSS flex rows. Compact
+`S.Fd/Jc/Ai/Gp` aliases retain normalized direction, distribution, alignment,
+and pixel gaps; `display:flex` and `inline-flex` preserve direct visual items,
+including links and fields. `Lea.Win` allocates fixed or equal-share auto slots,
+supports row reversal and resolved-height cross alignment, and reuses existing
+nesting, clipping, stacking, hit, painting, and accessibility paths. The
+`flex.html` fixture and benchmark probe cover exact geometry and following flow.
+
+The previous milestone added bounded `op/cl/tg` page commands for
 opening, closing, and toggling `details` by its own ID or first direct `summary`.
 They synchronize `N.Op` and `open`, preserve nested edited fields through the
 shared rebuild, reject duplicate summaries and unrelated targets, and are

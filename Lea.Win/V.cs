@@ -778,9 +778,11 @@ namespace Lea.Win
                     var bs = block.S;
                     Lc parent = null;
                     if (block.Up != null) contexts.TryGetValue(block.Up, out parent);
-                    var lx = parent == null ? x : parent.C.X;
-                    var lw = parent == null ? width : parent.C.Width;
-                    var ly = parent == null ? y : parent.Y;
+                    Fp flex = null;
+                    var flexChild = parent != null && parent.Fs != null && parent.Fs.TryGetValue(block, out flex);
+                    var lx = flexChild ? flex.X : parent == null ? x : parent.C.X;
+                    var lw = flexChild ? flex.W : parent == null ? width : parent.C.Width;
+                    var ly = flexChild ? parent.Ft : parent == null ? y : parent.Y;
                     var parentClip = parent == null ? Rectangle.Empty : parent.Cp;
                     var fixedParent = parent != null && parent.Fx;
                     var containingContext = ContainingContext(block, contexts);
@@ -789,7 +791,9 @@ namespace Lea.Win
                     {
                         int next;
                         contexts[block] = LayTable(graphics, block, lx, lw, ly, containing, parentClip, fixedParent, out next);
-                        if (parent == null) y = next; else parent.Y = next;
+                        if (parent == null) y = next;
+                        else if (flexChild) parent.Y = Math.Max(parent.Y, next - 8);
+                        else parent.Y = next;
                         continue;
                     }
                     var bt = bs == null ? 0 : BorderWidth(bs, bs.Bt);
@@ -844,15 +848,19 @@ namespace Lea.Win
                     }
                     var naturalHeight = height;
                     height = ConstrainHeight(bs, height);
-                    int resolvedHeight;
-                    if (resolved != null && owners.Contains(block) && (bs == null || bs.H == 0) && !StretchesHeight(bs) && resolved.TryGetValue(block, out resolvedHeight)) height = resolvedHeight;
+                    var resolvedHeight = 0;
+                    var resolvedOwner = resolved != null && owners.Contains(block) && (bs == null || bs.H == 0) && !StretchesHeight(bs) && resolved.TryGetValue(block, out resolvedHeight);
+                    if (resolvedOwner) height = resolvedHeight;
                     if (StretchesHeight(bs)) height = ConstrainHeight(bs, Math.Max(1, containing.Height - bs.Tp.Value - bs.Bm.Value - mt - mb - bt - bb - pt - pb));
+                    if (flexChild && parent.Fh && parent.B.S.Ai == "t" && (bs == null || bs.H == 0))
+                        height = ConstrainHeight(bs, Math.Max(1, parent.C.Bottom - parent.Ft - mt - mb - bt - bb - pt - pb));
                     var text = MarkedText(block);
                     var link = inline == null && block.K == "a" ? block.U : null;
                     var outerWidth = bw + pl + pr + bl + br;
                     var outerHeight = height + pt + pb + bt + bb;
                     var bx = PositionX(bs, lx + ml, outerWidth, containing, ml, mr);
-                    var by = PositionY(bs, flowY, outerHeight, containing, mt, mb);
+                    var alignedY = flexChild ? FlexY(parent, bs, outerHeight, mt, mb, flowY) : flowY;
+                    var by = PositionY(bs, alignedY, outerHeight, containing, mt, mb);
                     var outer = new Rectangle(bx, by, outerWidth, outerHeight);
                     var content = new Rectangle(bx + bl + pl, by + bt + pt, bw, height);
                     var fixedSelf = bs != null && bs.Pn == "f";
@@ -875,15 +883,19 @@ namespace Lea.Win
                         Fy = flowY,
                         Gp = (HeadingKind(block.K) ? 12 : 8) + mb,
                         Pc = inheritedClip,
-                        Co = ClipsOverflow(bs)
+                        Co = ClipsOverflow(bs),
+                        Fh = IsFlex(bs) && ((bs != null && bs.H > 0) || resolvedOwner)
                     };
+                    FlexSlots(context);
                     contexts[block] = context;
                     if (context.Au) active.Add(context);
                     if (!fixedChain) layoutBottom = Math.Max(layoutBottom, outer.Bottom + mb);
                     if (!OutOfFlow(bs))
                     {
                         var next = flowY + outer.Height + (HeadingKind(block.K) ? 12 : 8) + mb;
-                        if (parent == null) y = next; else parent.Y = next;
+                        if (parent == null) y = next;
+                        else if (flexChild) parent.Y = Math.Max(parent.Y, outer.Bottom + mb);
+                        else parent.Y = next;
                     }
                 }
                 CloseContexts(null, active, ref y, measured);
@@ -921,6 +933,77 @@ namespace Lea.Win
             for (var current = block == null ? null : block.Up; current != null; current = current.Up)
                 if (Object.ReferenceEquals(current, parent)) return true;
             return false;
+        }
+
+        private void FlexSlots(Lc context)
+        {
+            if (context == null || context.B == null || !IsFlex(context.B.S)) return;
+            var items = new List<B>();
+            foreach (var item in At.Bs)
+                if (!item.Hd && Object.ReferenceEquals(item.Up, context.B) && !OutOfFlow(item.S)) items.Add(item);
+            if (items.Count == 0) return;
+
+            var style = context.B.S;
+            var hints = new Dictionary<B, int>();
+            var fixedWidth = 0;
+            var autos = 0;
+            foreach (var item in items)
+            {
+                var hint = FlexOuterWidth(item.S);
+                hints[item] = hint;
+                if (hint > 0) fixedWidth += hint;
+                else autos++;
+            }
+
+            var gap = Math.Min(style.Gp, context.C.Width);
+            var baseGaps = gap * Math.Max(0, items.Count - 1);
+            var free = Math.Max(0, context.C.Width - fixedWidth - baseGaps);
+            var offset = 0;
+            if (autos == 0)
+            {
+                if (style.Jc == "c") offset = free / 2;
+                else if (style.Jc == "e") offset = style.Fd == "x" ? 0 : free;
+                else if (style.Jc == "s" && style.Fd == "x") offset = free;
+                if (style.Jc == "b" && items.Count > 1) gap += free / (items.Count - 1);
+            }
+
+            if (style.Fd == "x") items.Reverse();
+            var autoWidth = autos == 0 ? 0 : Math.Max(1, free / autos);
+            var autoRemainder = autos == 0 ? 0 : Math.Max(0, free - autoWidth * autos);
+            var cursor = context.C.X + offset;
+            context.Fs = new Dictionary<B, Fp>();
+            context.Ft = context.Y;
+            foreach (var item in items)
+            {
+                var itemWidth = hints[item];
+                if (itemWidth == 0)
+                {
+                    itemWidth = autoWidth;
+                    if (autoRemainder > 0) { itemWidth++; autoRemainder--; }
+                }
+                context.Fs[item] = new Fp(cursor, Math.Max(1, itemWidth));
+                cursor += itemWidth + gap;
+            }
+        }
+
+        private static int FlexOuterWidth(S style)
+        {
+            if (style == null || style.W == 0) return 0;
+            return style.W + style.Ml + style.Mr + style.Pl + style.Pr + BorderWidth(style, style.Bl) + BorderWidth(style, style.Br);
+        }
+
+        private static int FlexY(Lc parent, S style, int outerHeight, int mt, int mb, int flowY)
+        {
+            if (parent == null || !parent.Fh || parent.B == null || parent.B.S == null) return flowY;
+            var free = Math.Max(0, parent.C.Bottom - parent.Ft - outerHeight - mt - mb);
+            if (parent.B.S.Ai == "c") return parent.Ft + mt + free / 2;
+            if (parent.B.S.Ai == "e") return parent.Ft + mt + free;
+            return parent.Ft + mt;
+        }
+
+        private static bool IsFlex(S style)
+        {
+            return style != null && (style.D == "flex" || style.D == "inline-flex");
         }
 
         private void FinishContext(Lc context, ref int rootY, IDictionary<B, int> measured)
@@ -5022,6 +5105,9 @@ namespace Lea.Win
             public int Gp;
             public Rectangle Pc;
             public bool Co;
+            public Dictionary<B, Fp> Fs;
+            public int Ft;
+            public bool Fh;
 
             public Lc(Rectangle outer, Rectangle content, int y, Rectangle clip, bool fixedPosition)
             {
@@ -5031,6 +5117,14 @@ namespace Lea.Win
                 Cp = clip;
                 Fx = fixedPosition;
             }
+        }
+
+        private sealed class Fp
+        {
+            public readonly int X;
+            public readonly int W;
+
+            public Fp(int x, int width) { X = x; W = width; }
         }
 
         private sealed class Bx
