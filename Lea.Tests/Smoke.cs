@@ -2059,6 +2059,20 @@ namespace Lea.Tests
                     Eq(2, boxPage.Bs[3].S.Br, "right border width");
                     Eq(3, boxPage.Bs[3].S.Bb, "bottom border width");
                     Eq(1, boxPage.Bs[3].S.Bl, "left border width");
+                    var boxSizingPath = Path.Combine(root, "LeaForge", "test-pages", "box-sizing.html");
+                    var boxSizingPage = engine.Go(boxSizingPath);
+                    Eq("c", BlockById(boxSizingPage, "content-box").S.Bz, "content-box compact style");
+                    Eq("b", BlockById(boxSizingPage, "border-box").S.Bz, "border-box compact style");
+                    Eq("b", BlockById(boxSizingPage, "border-min").S.Bz, "border-box minimum compact style");
+                    Eq("b", BlockById(boxSizingPage, "border-max").S.Bz, "invalid box-sizing value is ignored");
+                    Eq("b", FieldById(boxSizingPage, "border-field").S.Bz, "field border-box compact style");
+                    Eq("b", BlockById(boxSizingPage, "border-image").S.Bz, "image border-box compact style");
+                    Eq("b", BlockById(boxSizingPage, "border-flex").S.Bz, "flex container border-box compact style");
+                    Eq("c", BlockById(boxSizingPage, "flex-content").S.Bz, "box sizing does not inherit");
+                    Eq("b", BlockById(boxSizingPage, "flex-border").S.Bz, "flex item border-box compact style");
+                    Eq(140, BlockById(boxSizingPage, "flex-border").S.Fb, "border-box flex basis model");
+                    Eq("b", BlockById(boxSizingPage, "border-table").S.Bz, "table border-box compact style");
+                    Eq("b", BlockById(boxSizingPage, "border-table").Tb.Rs[0].Cs[0].S.Bz, "table cell border-box compact style");
                     view.Go(boxes);
                     Paint(view);
                     Eq(5, view.Bc, "box-model boxes");
@@ -2068,6 +2082,47 @@ namespace Lea.Tests
                     Eq(76, view.Rb(3).Height, "fixed border-box height");
                     Eq(320, view.Rc(4).Width, "sided content width");
                     Eq(347, view.Rb(4).Width, "sided border-box width");
+                    view.Size = new Size(720, 1200);
+                    view.Go(boxSizingPath);
+                    using (var boxSizingPaint = Render(view))
+                    {
+                        var contentBox = BlockRect(view, BlockById(view.At, "content-box"));
+                        var contentOuter = BlockOuterRect(view, BlockById(view.At, "content-box"));
+                        var borderBox = BlockRect(view, BlockById(view.At, "border-box"));
+                        var borderOuter = BlockOuterRect(view, BlockById(view.At, "border-box"));
+                        Eq(new Size(200, 50), contentBox.Size, "content-box declared content dimensions");
+                        Eq(new Size(232, 78), contentOuter.Size, "content-box outer dimensions");
+                        Eq(new Size(168, 22), borderBox.Size, "border-box derived content dimensions");
+                        Eq(new Size(200, 50), borderOuter.Size, "border-box declared outer dimensions");
+                        Eq(new Size(180, 42), BlockOuterRect(view, BlockById(view.At, "border-min")).Size, "border-box minimum dimensions");
+                        Eq(new Size(170, 44), BlockOuterRect(view, BlockById(view.At, "border-max")).Size, "border-box maximum dimensions");
+                        Eq(new Size(180, 44), BlockOuterRect(view, BlockById(view.At, "border-field")).Size, "border-box field dimensions");
+                        Eq(new Size(164, 28), BlockRect(view, BlockById(view.At, "border-field")).Size, "border-box field content dimensions");
+                        Eq(new Size(100, 60), BlockOuterRect(view, BlockById(view.At, "border-image")).Size, "border-box image dimensions");
+                        Eq(new Size(86, 46), BlockRect(view, BlockById(view.At, "border-image")).Size, "border-box image content dimensions");
+                        Eq(420, BlockOuterRect(view, BlockById(view.At, "border-flex")).Width, "border-box flex container width");
+                        Eq(396, BlockRect(view, BlockById(view.At, "border-flex")).Width, "border-box flex content width");
+                        Eq(new Size(162, 62), BlockOuterRect(view, BlockById(view.At, "flex-content")).Size, "content-box flex item dimensions");
+                        Eq(new Size(140, 40), BlockOuterRect(view, BlockById(view.At, "flex-border")).Size, "border-box flex item dimensions");
+                        Eq(new Size(118, 18), BlockRect(view, BlockById(view.At, "flex-border")).Size, "border-box flex item content dimensions");
+                        Eq(new Size(240, 100), BlockOuterRect(view, BlockById(view.At, "border-table")).Size, "border-box table dimensions");
+                        Eq(new Size(216, 76), BlockRect(view, BlockById(view.At, "border-table")).Size, "border-box table content dimensions");
+                        Eq(new Size(216, 52), ElementRect(view, ById(view.At.D, "border-cell"), true).Size, "border-box table cell dimensions");
+                        Eq(new Size(200, 36), ElementRect(view, ById(view.At.D, "border-cell"), false).Size, "border-box table cell content dimensions");
+                        Eq(borderOuter, HitRect(view, "second.html"), "border-box link hit bounds");
+                        Ok(ColorDistance(boxSizingPaint.GetPixel(borderOuter.Right - 10, borderOuter.Bottom - 10), Color.FromArgb(232, 245, 239)) < 4, "border-box background paint");
+                    }
+                    view.Size = new Size(180, 1200);
+                    Paint(view);
+                    var narrowBorder = BlockOuterRect(view, BlockById(view.At, "border-box"));
+                    var narrowField = BlockOuterRect(view, BlockById(view.At, "border-field"));
+                    var narrowFlex = BlockRect(view, BlockById(view.At, "border-flex"));
+                    var narrowFlexBorder = BlockOuterRect(view, BlockById(view.At, "flex-border"));
+                    var narrowTable = BlockOuterRect(view, BlockById(view.At, "border-table"));
+                    Ok(narrowBorder.Width > 32 && narrowBorder.Width < 200 && narrowField.Width == narrowBorder.Width, "border-box blocks and fields reflow narrowly");
+                    Ok(narrowFlexBorder.Width > 22 && narrowFlexBorder.Right <= narrowFlex.Right, "border-box flex item remains inside narrow content");
+                    Ok(narrowTable.Width == narrowBorder.Width, "border-box table reflows narrowly");
+                    view.Size = new Size(720, 760);
                     view.Go(Path.Combine(root, "LeaForge", "test-pages", "tables.html"));
                     Paint(view);
                     Eq(17, view.Bc, "table layout boxes");
@@ -3340,7 +3395,7 @@ namespace Lea.Tests
                 if (args.Length > 4) SaveRender(tokenPath, args[4]);
                 if (args.Length > 5) SaveStateRender(statePath, args[5]);
 
-                    Console.WriteLine("Lea smoke passed: bounded body and ID-scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, shrink, reverse flow, and resize, semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                    Console.WriteLine("Lea smoke passed: bounded content-box and border-box geometry, body and ID-scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, shrink, reverse flow, and resize, semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)
@@ -3630,6 +3685,17 @@ namespace Lea.Tests
                 var type = value.GetType();
                 if (!Object.ReferenceEquals(type.GetField("B").GetValue(value), block) || (bool)type.GetField("Inline").GetValue(value)) continue;
                 return (Rectangle)type.GetField("R").GetValue(value);
+            }
+            return Rectangle.Empty;
+        }
+
+        private static Rectangle ElementRect(V view, N element, bool outer)
+        {
+            foreach (var value in LayoutBoxes(view))
+            {
+                var type = value.GetType();
+                if (!Object.ReferenceEquals(type.GetField("El").GetValue(value), element) || (bool)type.GetField("Inline").GetValue(value)) continue;
+                return (Rectangle)type.GetField(outer ? "R" : "C").GetValue(value);
             }
             return Rectangle.Empty;
         }

@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **14**
+Post-1.0 hardening milestones completed: **15**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -14,8 +14,8 @@ modern web platform.
 | Core and alias API | 10% | 10% | Compact API, bounded diagnostics, repeatable reports, history, projects, backups |
 | Networking | 10% | 10% | Bounded request deadlines and downloads, private cookies, typed errors, validators, compression, LRU cache |
 | HTML and document tree | 20% | 20% | Bounded tokens, queries, base URLs and fragments, raw/RCDATA text, entities, recovery, HTML-hidden suppression, semantic accessibility, blocks, lists, disclosures, gauges, values, time/edit metadata, responsive image maps, tabindex focus, autofocus/access keys, tables |
-| CSS | 15% | 15% | Compiled selectors, dynamic hover/focus, sizing, visibility/opacity, fonts, overflow, boxes, bounded ordered and distributed row/column flex properties |
-| Layout and painting | 20% | 20% | Ordered rows, bounded column/reverse flow, around/evenly distribution, item alignment, wrapping, grow/shrink, clipping, reflow, painting |
+| CSS | 15% | 15% | Compiled selectors, dynamic hover/focus, content/border sizing, visibility/opacity, fonts, overflow, boxes, bounded ordered and distributed row/column flex properties |
+| Layout and painting | 20% | 20% | Shared content/border geometry, ordered rows, bounded column/reverse flow, around/evenly distribution, item alignment, wrapping, grow/shrink, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Bounded multipart files, richer widgets, validation, responsive images, GET/POST submit |
 | Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/body and ID-scoped style/alert, class, visibility, disclosure, field-state, and focus commands |
 | Firespider integration and reliability | 10% | 10% | Lea-first New Tab/Ctrl+T, explicit legacy fallback, Inspector with Access view, MSAA/UIA surfaces including read-only text, host-safe focus shortcuts, navigation, sessions, source, host smokes |
@@ -89,11 +89,17 @@ modern web platform.
   color and 8..96px bounds, safe target filtering, 4KB inline-style ceiling,
   field-preserving CSS rebuild, click execution, WinForms, benchmark, and
   Firespider host verification.
+- Added non-inherited compact `S.Bz=c/b` state for `content-box` and
+  `border-box`, applying one bounded conversion to pixel width, height, min/max,
+  and flex-basis values across blocks, fields, images, flex items, tables, and
+  cells. Exact wide/narrow geometry, cascade rejection, paint, hit,
+  accessibility bounds, benchmark, and Firespider host coverage verify it.
 
 ## Next gains
 
 - Add a native-safe non-empty visible-range bridge outside the .NET Framework
   managed provider array boundary; retain the stable empty fallback until range
   handles survive both in-process and external MTA clients.
-- Add compact `box-sizing` state and exact content-box/border-box geometry across
-  blocks, flex items, fields, and tables with narrow reflow coverage.
+- Add an optional bounded persistent disk cache with explicit entry/byte
+  ceilings, conditional validators, private-mode isolation, and corrupt-entry
+  recovery while retaining the memory-only default.

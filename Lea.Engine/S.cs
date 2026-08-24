@@ -48,6 +48,7 @@ namespace Lea.Engine
         public int Pr { get; internal set; }
         public int Pb { get; internal set; }
         public int Pl { get; internal set; }
+        public string Bz { get; internal set; }
         public int W { get; internal set; }
         public int H { get; internal set; }
         public int Wn { get; internal set; }
@@ -86,6 +87,7 @@ namespace Lea.Engine
             Wr = "n";
             Sh = 1;
             Fb = -1;
+            Bz = "c";
             Pn = "";
             Bc = "";
             Bs = "";

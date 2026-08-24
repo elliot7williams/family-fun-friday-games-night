@@ -224,6 +224,13 @@ and nested cell blocks. `S.Wb` uses `n/b/a/k` for normal, break-word,
 anywhere/break-all, and keep-all. These modes come from `word-break`,
 `overflow-wrap`, or `word-wrap`; `white-space:nowrap` still disables wrapping.
 
+`S.Bz` is the non-inherited box edge: `c` is the default `content-box`, while
+`b` is `border-box`. Shared bounded helpers interpret pixel width, height,
+min/max, and flex-basis values before layout. Border-box values contain visible
+padding and border but not margins; content dimensions floor at one render
+pixel. Blocks, fields, flex items, images, tables, and table cells use the same
+geometry, clipping, paint, hit, accessibility-bound, and narrow-reflow paths.
+
 Lea's bounded flex subset uses `S.D=flex/inline-flex` and compact
 `S.Fd/Jc/Ai/As/Gp/Wr/Rg/Fg/Sh/Fb/Or` values. The model preserves direct element items
 under their visual container, while `V` allocates fixed, equal-share auto,

@@ -61,7 +61,7 @@ Dg/Dcl  diagnostics/clear request activity
 2. Implement the cascade and inheritance with a small priority model. (First specificity/source-order cascade added.)
    (`link rel=stylesheet` and inline `style` blocks now enter that source order
    together; linked CSS uses cookies, compression, validators, and shared LRU caching.)
-3. Add colors, fonts, spacing, borders, width, height, display, visibility, opacity, and overflow. (Colors, fallback font families, underline/strike decorations, margins, padding, backgrounds, `display:none`, inherited visibility, bounded opacity, borders, pixel width/height bounds, text alignment, line height, word breaking, white-space modes, and clipped overflow are active.)
+3. Add colors, fonts, spacing, borders, width, height, display, visibility, opacity, and overflow. (Colors, fallback font families, underline/strike decorations, margins, padding, backgrounds, `display:none`, inherited visibility, bounded opacity, borders, non-inherited content/border-box pixel sizing, pixel width/height bounds, text alignment, line height, word breaking, white-space modes, and clipped overflow are active.)
 4. Replace one-WinForms-control-per-node rendering with lightweight layout boxes. (Reusable `Bx` layout pass added.)
 5. Paint text, backgrounds, borders, links, controls, and images onto one surface. (Text, nested bold/italic inline runs, backgrounds, solid/dashed/dotted borders, links, images, and basic form controls are active.)
 6. Add scrolling and hit testing from layout boxes. (Visible-box painting and bounded vertical scrolling added.)
@@ -251,18 +251,26 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Add compact `box-sizing` state and exact `content-box`/`border-box` geometry
-across normal blocks, flex items, fields, and tables. Preserve narrow reflow,
-min/max clamps, hit bounds, and the existing content-box fast path.
+Add an optional bounded persistent disk cache behind the existing request layer.
+Keep the memory-only default, enforce explicit entry and byte ceilings, preserve
+ETag/Last-Modified revalidation, isolate private mode, recover from corrupt or
+partial entries, and expose compact diagnostics without leaking response bodies.
 
-The latest completed milestone overloaded `bg/fg/fs` with bounded two-argument
+The latest completed milestone added non-inherited compact `S.Bz=c/b` state for
+`content-box` and `border-box`. One shared conversion now interprets pixel
+width, height, min/max, and flex-basis values before blocks, fields, images,
+flex items, tables, and cells enter layout. Exact wide and 180-pixel geometry,
+non-inheritance, invalid-value rejection, paint, links, accessibility bounds,
+benchmark, and Firespider host probes preserve the original content-box path.
+
+The previous milestone overloaded `bg/fg/fs` with bounded two-argument
 forms that style one safe element ID while preserving their one-argument body
 forms. Existing named/hex colors, 8..96px font limits, safe target filtering,
 4KB inline-style cap, and field-preserving rebuild apply unchanged. Page scripts,
 manual host calls, click commands, WinForms, benchmark, and Firespider all verify
 the scoped cascade and rejection paths.
 
-The previous milestone added compact `S.As` item alignment plus
+The earlier milestone added compact `S.As` item alignment plus
 `S.Jc=a/v` space-around and space-evenly distribution. A shared bounded integer
 helper now distributes main-axis room for rows and columns, while direct items
 can override container alignment with stretch/start/center/end. `flex.html`,

@@ -2575,6 +2575,7 @@ namespace Lea.Engine
                 else if (name == "padding-right") style.Pr = Px(value);
                 else if (name == "padding-bottom") style.Pb = Px(value);
                 else if (name == "padding-left") style.Pl = Px(value);
+                else if (name == "box-sizing") BoxSizing(style, value);
                 else if (name == "width") style.W = Px(value);
                 else if (name == "height") style.H = Px(value);
                 else if (name == "min-width") style.Wn = Px(value);
@@ -2600,6 +2601,13 @@ namespace Lea.Engine
                     if (size.Success && int.TryParse(size.Groups["n"].Value, out number) && number > 0 && number < 200) style.Fs = number;
                 }
             }
+        }
+
+        private static void BoxSizing(S style, string value)
+        {
+            var sizing = (value ?? "").Trim().ToLowerInvariant();
+            if (sizing == "border-box") style.Bz = "b";
+            else if (sizing == "content-box" || sizing == "initial" || sizing == "unset" || sizing == "revert") style.Bz = "c";
         }
 
         private static void Position(S style, string value)

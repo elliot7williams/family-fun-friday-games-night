@@ -39,6 +39,8 @@ LeaForge is where we can grow the more full-featured browser.
 - external stylesheets with document-order cascade and shared bounded caching
 - compiled relationship, attribute, structural, negation, link, and form-state selectors
 - live `:hover` and `:focus` restyling that preserves mutable form values
+- non-inherited `content-box`/`border-box` sizing across pixel dimensions,
+  min/max clamps, flex basis, fields, images, tables, and cells
 - min/max dimensions plus normal, break-word, and break-all text flow
 - inherited visibility and effective opacity across text, boxes, controls, and images
 - default HTML `hidden` rendering suppression plus focus, autofocus, and access-key exclusion

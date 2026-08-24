@@ -108,7 +108,8 @@ namespace Lea.Bench
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
-                "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html"
+                "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html",
+                "box-sizing.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -489,6 +490,36 @@ namespace Lea.Bench
                     }
                 }
             });
+            AddProbe(probes, "Bounded box sizing", delegate
+            {
+                var path = Path.Combine(folder, "box-sizing.html");
+                var page = new E().Go(path);
+                Need(ById(page.D, "content-box") != null && page.Bs.First(block => block.El != null && block.El.Av("id") == "content-box").S.Bz == "c", "content-box model changed");
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "border-box").S.Bz == "b" &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "flex-content").S.Bz == "c" &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "flex-border").S.Fb == 140, "border-box cascade, inheritance, or flex basis changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1200);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        Need(BlockOuter(view, "content-box").Size == new Size(232, 78) && BlockOuter(view, "border-box").Size == new Size(200, 50), "content/border box geometry changed");
+                        Need(BlockOuter(view, "border-min").Size == new Size(180, 42) && BlockOuter(view, "border-max").Size == new Size(170, 44), "border-box min/max geometry changed");
+                        Need(BlockOuter(view, "border-field").Size == new Size(180, 44) && BlockOuter(view, "border-image").Size == new Size(100, 60) && BlockOuter(view, "flex-content").Width == 162 && BlockOuter(view, "flex-border").Width == 140 && BlockOuter(view, "border-table").Size == new Size(240, 100), "field, image, flex, or table box sizing changed");
+                    }
+                    view.Size = new Size(180, 1200);
+                    using (var image = Draw(view))
+                    {
+                        var border = BlockOuter(view, "border-box");
+                        var flex = BlockContent(view, "border-flex");
+                        var item = BlockOuter(view, "flex-border");
+                        Need(border.Width > 32 && border.Width < 200 && BlockOuter(view, "border-field").Width == border.Width && BlockOuter(view, "border-table").Width == border.Width, "narrow border-box reflow changed");
+                        Need(item.Width > 22 && item.Right <= flex.Right, "narrow border-box flex containment changed");
+                    }
+                }
+                return "Bz c/b across width, height, min/max, flex-basis, fields, tables, and 180 px reflow with fixture-backed paint and hits";
+            });
             AddProbe(probes, "Bounded flex layout", delegate
             {
                 var path = Path.Combine(folder, "flex.html");
@@ -741,12 +772,12 @@ namespace Lea.Bench
             builder.AppendLine("| --- | --- | --- |");
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled selector subset, cascade, box/text styles, visibility, positioning, transforms, responsive image sizing, and bounded row/column flex properties");
-            Capability(builder, "Layout and painting", "Partial", "Custom WinForms block, inline, row/column flex, table, form, image, clipping, scroll, and stacking renderer");
+            Capability(builder, "CSS", "Partial", "Compiled selector subset, cascade, content/border box and text styles, visibility, positioning, transforms, responsive image sizing, and bounded row/column flex properties");
+            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, inline, row/column flex, table, form, image, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
-            Capability(builder, "Flexbox", "Supported subset", "Row/row-reverse and fixed-height column/column-reverse containers, stable -64..64 order on nowrap rows and bounded columns, bounded row wrap, fixed/equal-share/weighted grow and integer weighted-shrink slots, explicit pixel min/max floors, pixel row/column gaps, basis, start/center/end/space-between/space-around/space-evenly justification, and container/item stretch/start/center/end cross alignment; no intrinsic min-content sizing, fractional factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis alignment, or auto-height column reordering guarantee");
+            Capability(builder, "Flexbox", "Supported subset", "Row/row-reverse and fixed-height column/column-reverse containers, content/border-box pixel bases, stable -64..64 order on nowrap rows and bounded columns, bounded row wrap, fixed/equal-share/weighted grow and integer weighted-shrink slots, explicit pixel min/max floors, pixel row/column gaps, start/center/end/space-between/space-around/space-evenly justification, and container/item stretch/start/center/end cross alignment; no intrinsic min-content sizing, fractional factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis alignment, or auto-height column reordering guarantee");
             Capability(builder, "Grid, Canvas, SVG", "Not supported", "Future compatibility work; no silent fallback claim");
             Capability(builder, "Audio and video", "Not supported", "Future optional module");
             Capability(builder, "Developer diagnostics", "Supported", "Bounded summary, node, CSS, request, message, and variable snapshots");
@@ -869,6 +900,21 @@ namespace Lea.Bench
                         return (Rectangle)type.GetField("R").GetValue(value);
                 }
             throw new InvalidOperationException("Missing layout block " + id);
+        }
+
+        private static Rectangle BlockContent(V view, string id)
+        {
+            var field = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = field == null ? null : field.GetValue(view) as System.Collections.IEnumerable;
+            if (values != null)
+                foreach (var value in values)
+                {
+                    var type = value.GetType();
+                    var block = type.GetField("B").GetValue(value) as B;
+                    if (block != null && block.El != null && block.El.Av("id") == id && !(bool)type.GetField("Inline").GetValue(value))
+                        return (Rectangle)type.GetField("C").GetValue(value);
+                }
+            throw new InvalidOperationException("Missing content block " + id);
         }
 
         private static N ById(N node, string id)

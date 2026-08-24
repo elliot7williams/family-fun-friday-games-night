@@ -922,7 +922,7 @@ namespace Lea.Win
 
             docHeight = y + 20 + (style == null ? 0 : style.Pb + BorderWidth(style, style.Bb) + style.Mb);
             docHeight = Math.Max(docHeight, layoutBottom + 20);
-            if (style != null && style.H > 0) docHeight = Math.Max(docHeight, 18 + style.Mt + style.H + style.Pt + style.Pb + BorderWidth(style, style.Bt) + BorderWidth(style, style.Bb) + style.Mb);
+            if (style != null && style.H > 0) docHeight = Math.Max(docHeight, 18 + style.Mt + BoxContentHeight(style, style.H) + style.Pt + style.Pb + BorderWidth(style, style.Bt) + BorderWidth(style, style.Bb) + style.Mb);
             StackBoxes();
             layoutWidth = ClientSize.Width;
             layoutDirty = false;
@@ -1184,15 +1184,16 @@ namespace Lea.Win
             if (style == null) return 0;
             var basis = style.Fb >= 0 ? style.Fb : style.W;
             if (basis == 0 && style.Fb < 0 && style.Wn == 0) return 0;
-            if (style.Wx > 0) basis = Math.Min(basis, style.Wx);
-            if (style.Wn > 0) basis = Math.Max(basis, style.Wn);
+            basis = BoxContentWidth(style, basis);
+            if (style.Wx > 0) basis = Math.Min(basis, BoxContentWidth(style, style.Wx));
+            if (style.Wn > 0) basis = Math.Max(basis, BoxContentWidth(style, style.Wn));
             return basis + FlexHorizontal(style);
         }
 
         private static int FlexMinOuterWidth(S style)
         {
             if (style == null) return 1;
-            return Math.Max(1, style.Wn) + FlexHorizontal(style);
+            return Math.Max(1, BoxContentWidth(style, style.Wn)) + FlexHorizontal(style);
         }
 
         private static int FlexOuterHeight(S style)
@@ -1200,8 +1201,9 @@ namespace Lea.Win
             if (style == null) return 0;
             var basis = style.Fb >= 0 ? style.Fb : style.H;
             if (basis == 0 && style.Fb < 0 && style.Hn == 0) return 0;
-            if (style.Hx > 0) basis = Math.Min(basis, style.Hx);
-            if (style.Hn > 0) basis = Math.Max(basis, style.Hn);
+            basis = BoxContentHeight(style, basis);
+            if (style.Hx > 0) basis = Math.Min(basis, BoxContentHeight(style, style.Hx));
+            if (style.Hn > 0) basis = Math.Max(basis, BoxContentHeight(style, style.Hn));
             return basis + FlexVertical(style);
         }
 
@@ -1213,7 +1215,7 @@ namespace Lea.Win
         private static int FlexMinOuterHeight(S style)
         {
             if (style == null) return 1;
-            return Math.Max(1, style.Hn) + FlexVertical(style);
+            return Math.Max(1, BoxContentHeight(style, style.Hn)) + FlexVertical(style);
         }
 
         private static int FlexHorizontal(S style)
@@ -1727,26 +1729,38 @@ namespace Lea.Win
         private static int ConstrainWidth(S style, int available)
         {
             available = Math.Max(1, available);
-            var width = style != null && style.W > 0 ? Math.Min(available, style.W) : available;
-            if (style != null && style.Wx > 0) width = Math.Min(width, style.Wx);
-            if (style != null && style.Wn > 0) width = Math.Max(width, Math.Min(available, style.Wn));
+            var width = style != null && style.W > 0 ? Math.Min(available, Math.Max(1, BoxContentWidth(style, style.W))) : available;
+            if (style != null && style.Wx > 0) width = Math.Min(width, Math.Max(1, BoxContentWidth(style, style.Wx)));
+            if (style != null && style.Wn > 0) width = Math.Max(width, Math.Min(available, Math.Max(1, BoxContentWidth(style, style.Wn))));
             return Math.Max(1, width);
         }
 
         private static int ConstrainHeight(S style, int natural)
         {
-            var height = style != null && style.H > 0 ? style.H : Math.Max(1, natural);
-            if (style != null && style.Hx > 0) height = Math.Min(height, style.Hx);
-            if (style != null && style.Hn > 0) height = Math.Max(height, style.Hn);
+            var height = style != null && style.H > 0 ? Math.Max(1, BoxContentHeight(style, style.H)) : Math.Max(1, natural);
+            if (style != null && style.Hx > 0) height = Math.Min(height, Math.Max(1, BoxContentHeight(style, style.Hx)));
+            if (style != null && style.Hn > 0) height = Math.Max(height, Math.Max(1, BoxContentHeight(style, style.Hn)));
             return Math.Max(1, height);
         }
 
         private static int ConstrainFlexHeight(S style, int allocated)
         {
             var height = Math.Max(1, allocated);
-            if (style != null && style.Hx > 0) height = Math.Min(height, style.Hx);
-            if (style != null && style.Hn > 0) height = Math.Max(height, style.Hn);
+            if (style != null && style.Hx > 0) height = Math.Min(height, Math.Max(1, BoxContentHeight(style, style.Hx)));
+            if (style != null && style.Hn > 0) height = Math.Max(height, Math.Max(1, BoxContentHeight(style, style.Hn)));
             return Math.Max(1, height);
+        }
+
+        private static int BoxContentWidth(S style, int declared)
+        {
+            if (declared <= 0 || style == null || style.Bz != "b") return Math.Max(0, declared);
+            return Math.Max(0, declared - style.Pl - style.Pr - BorderWidth(style, style.Bl) - BorderWidth(style, style.Br));
+        }
+
+        private static int BoxContentHeight(S style, int declared)
+        {
+            if (declared <= 0 || style == null || style.Bz != "b") return Math.Max(0, declared);
+            return Math.Max(0, declared - style.Pt - style.Pb - BorderWidth(style, style.Bt) - BorderWidth(style, style.Bb));
         }
 
         private List<Ix> InlineLayout(Graphics graphics, B block, int width, out int height)
@@ -2071,7 +2085,7 @@ namespace Lea.Win
                 var explicitWidth = style != null && style.W > 0;
                 var explicitHeight = style != null && style.H > 0;
                 var renderWidth = explicitWidth ? width : Math.Min(width, image.Width);
-                var renderHeight = explicitHeight ? style.H : Math.Max(1, (int)Math.Round(image.Height * (double)renderWidth / image.Width));
+                var renderHeight = explicitHeight ? Math.Max(1, BoxContentHeight(style, style.H)) : Math.Max(1, (int)Math.Round(image.Height * (double)renderWidth / image.Width));
                 if (!explicitWidth && !explicitHeight && renderHeight > 360)
                 {
                     renderWidth = Math.Max(1, (int)Math.Round(renderWidth * 360D / renderHeight));
@@ -2079,7 +2093,7 @@ namespace Lea.Win
                 }
                 return new Size(Math.Max(1, renderWidth), Math.Max(1, renderHeight));
             }
-            return new Size(width, block.S != null && block.S.H > 0 ? block.S.H : 72);
+            return new Size(width, block.S != null && block.S.H > 0 ? Math.Max(1, BoxContentHeight(block.S, block.S.H)) : 72);
         }
 
         private static void PaintBox(Graphics graphics, Rectangle rect, S style, Color pageBackground, Color pageColor, int opacity, bool background)
@@ -2192,8 +2206,8 @@ namespace Lea.Win
                     if (height <= 0) height = image.Height;
                 }
             }
-            if (width <= 0 && block.S != null && block.S.W > 0) width = block.S.W;
-            if (height <= 0 && block.S != null && block.S.H > 0) height = block.S.H;
+            if (width <= 0 && block.S != null && block.S.W > 0) width = BoxContentWidth(block.S, block.S.W);
+            if (height <= 0 && block.S != null && block.S.H > 0) height = BoxContentHeight(block.S, block.S.H);
             if (width <= 0) width = imageRect.Width;
             if (height <= 0) height = imageRect.Height;
             return new SizeF((float)Math.Max(1D, width), (float)Math.Max(1D, height));

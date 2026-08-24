@@ -177,7 +177,8 @@ for a 0..64 integer growth weight, `Sh` for a 0..64 integer shrink weight, and
 -64..64 item order. The common
 one-to-three-part `flex` forms fill the same state. Shrink distribution uses the
 outer pixel basis and freezes at explicit `Wn/Hn`; `Wx/Hx` clamp the base first
-and a locked or exhausted axis may overflow visibly. Stable order is active on
+and `Bz` sizing is applied before outer-slot distribution. A locked or
+exhausted axis may overflow visibly. Stable order is active on
 nowrap rows and fixed-height columns. Auto-height columns retain source order
 and natural stacking with `Rg`; fixed-height columns add weighted vertical
 growth/shrink, reverse flow, justification, and cross-axis alignment. Intrinsic
@@ -394,7 +395,12 @@ element. `E.Dy(page, hover, focus)` reapplies the page's compiled CSS for
 `:hover` and `:focus` without reloading it; mutable field values are preserved.
 The WinForms `V` calls this automatically from pointer and field events.
 Pixel dimensions use `S.W` and `S.H`; positive bounds use `Wn/Wx` for minimum
-and maximum width and `Hn/Hx` for minimum and maximum height. Borders use
+and maximum width and `Hn/Hx` for minimum and maximum height. `Bz` is `c/b` for
+the non-inherited `content-box` default or `border-box`; it applies the same
+edge choice to pixel width, height, min/max, and flex-basis values. Border-box
+content dimensions subtract visible border and padding, exclude margins, and
+floor at the renderer's one-pixel layout minimum. Blocks, fields, flex items,
+images, tables, and table cells share that conversion. Borders use
 `Bt/Br/Bb/Bl` for side widths and `Bc/Bs` for color and style. `V.Rb(index)`
 returns the cached outer border rectangle, while `V.Rc(index)` returns its
 content rectangle.

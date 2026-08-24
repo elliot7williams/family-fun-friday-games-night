@@ -60,6 +60,11 @@ min-protected weighted-shrink items, row/column reversal, pixel basis and gaps,
 alignment, nesting, painting, and hit testing reuse the existing `V` surface
 without adding controls or another browser runtime.
 
+Firespider can also read `B.S.Bz` as `c/b` for non-inherited content-box or
+border-box sizing. Lea applies it to pixel width, height, min/max, and flex basis
+before the shared block, field, image, flex, table, cell, hit, paint, and
+accessibility-bound paths, without adding a native browser dependency.
+
 Output and data elements also stay inside Lea's custom renderer. Firespider can
 read ordered `P.Dvs` values or the matching `B.Dv`/`Ir.Dv` paint ownership,
 including bounded output references, data machine values, and safe text/class
