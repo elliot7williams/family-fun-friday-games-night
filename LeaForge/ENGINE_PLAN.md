@@ -245,6 +245,12 @@ managed provider array boundary. Keep the stable empty-array fallback until
 returned range objects survive direct COM validation plus in-process and external
 MTA client calls without native handle corruption.
 
+The latest completed milestone added bounded `op/cl/tg` page commands for
+opening, closing, and toggling `details` by its own ID or first direct `summary`.
+They synchronize `N.Op` and `open`, preserve nested edited fields through the
+shared rebuild, reject duplicate summaries and unrelated targets, and are
+covered through engine, WinForms, benchmark, and Firespider hosts.
+
 The previous milestone added bounded visual-line snapshots for plain wrapped
 blocks and inline flow, visual `TextUnit.Line` expansion and movement, merged
 per-line rectangles, and proportional partial-range cropping. The public MTA
@@ -259,8 +265,11 @@ rejection. Password and file values are excluded. The public MTA client,
 benchmark, and Firespider host smoke verify the pattern; `GetVisibleRanges`
 returns a stable empty collection. Managed arrays, explicit COM identities,
 manual `SAFEARRAY(VT_UNKNOWN)` construction, native-callable adapters, and
-external MTA clients all produced invalid UIA range handles when non-empty, so a
-future bridge must live beyond that managed provider boundary.
+external MTA clients all produced invalid UIA range handles when non-empty. A
+full x86/x64 C++ provider/range wrapper, private scalar-offset bridge, official
+native SAFEARRAY construction, retained lifetimes, IID metadata, and standard
+versus agile marshaling produced the same invalid handle and were removed, so a
+future bridge needs a different platform boundary rather than another wrapper.
 
 The previous milestone added `IGridProvider`, `ITableProvider`,
 `IGridItemProvider`, and `ITableItemProvider` over the existing `Tb/Tr/Tc`
@@ -377,8 +386,9 @@ remove and toggle clear duplicate matches. The existing single CSS rebuild per
 run preserves mutable fields across page, host, click, and WinForms execution.
 
 Bounded element-state mutation now uses `hd/sh` for authoritative visibility,
-`ds/en` for supported field availability, `vl` for current values, `ck` for
-checkbox/radio state, and `fo` for one pending focus request. IDs reuse the
+`op/cl/tg` for disclosure state, `ds/en` for supported field availability, `vl`
+for current values, `ck` for checkbox/radio state, and `fo` for one pending
+focus request. IDs reuse the
 existing 64-character boundary; field values stop at 1,024 characters; files
 and button values cannot be injected; select/color values are validated; and
 passwords remain redacted. A retained field map keyed by the existing DOM node

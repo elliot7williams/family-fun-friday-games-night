@@ -278,7 +278,7 @@ namespace Lea.Tests
                 var statePath = Path.Combine(root, "LeaForge", "test-pages", "state-commands.html");
                 var stateEngine = new E();
                 var statePage = stateEngine.Go(statePath);
-                Eq(8, statePage.Jc, "initial state command count");
+                Eq(9, statePage.Jc, "initial state command count");
                 var stateName = FieldById(statePage, "name");
                 Eq("Page ready", stateName.V, "initial bounded field value command");
                 Eq("two", FieldById(statePage, "pick").V, "initial select value command");
@@ -290,6 +290,18 @@ namespace Lea.Tests
                 Ok(stateEngine.Ax(statePage, ById(statePage.D, "panel")) == null, "hide command removes rendered semantics");
                 Ok(Object.ReferenceEquals(ById(statePage.D, "name"), stateEngine.Kp(statePage)), "pending focus command target");
                 Eq<N>(null, stateEngine.Kp(statePage), "pending focus command is consumed once");
+                var advancedDetails = ById(statePage.D, "advanced");
+                var advancedValue = FieldById(statePage, "advanced-value");
+                Ok(advancedDetails.Op && advancedDetails.A.ContainsKey("open"), "initial disclosure open command");
+                advancedValue.V = "Retained detail command value";
+                Eq(1, stateEngine.Js(statePage, "cl('advanced-summary')"), "close disclosure by first summary command");
+                Ok(!advancedDetails.Op && stateEngine.Ax(statePage, ById(statePage.D, "advanced-value")) == null, "closed command hides disclosure semantics");
+                Eq(1, stateEngine.Js(statePage, "op('advanced')"), "open disclosure by details command");
+                Ok(advancedDetails.Op && Object.ReferenceEquals(advancedValue, FieldById(statePage, "advanced-value")) && advancedValue.V == "Retained detail command value", "open command retains disclosure field state");
+                Eq(1, stateEngine.Js(statePage, "tg('advanced-summary')"), "toggle disclosure command");
+                Ok(!advancedDetails.Op, "toggle command closes open disclosure");
+                Eq(0, stateEngine.Js(statePage, "op('panel'); cl('missing'); tg('advanced-extra')"), "invalid disclosure command targets rejected");
+                Eq(1, stateEngine.Js(statePage, "op('advanced')"), "open disclosure no-op state restore");
 
                 Eq(7, stateEngine.Ck(statePage, ById(statePage.D, "apply")), "state click command count");
                 Eq("Clicked Lea", stateName.V, "click field value command");
@@ -314,7 +326,7 @@ namespace Lea.Tests
                 Eq(1, stateEngine.Js(statePage, "vl('secret','command-secret')"), "password value command accepted");
                 Eq("command-secret", FieldById(statePage, "secret").V, "password live value command");
                 Eq("", stateEngine.Ax(statePage, ById(statePage.D, "secret")).V, "password command remains semantically redacted");
-                Eq(0, stateEngine.Js(statePage, "vl('upload','C:\\\\private.txt'); vl('color','red'); vl('pick','blocked'); ck('name','1'); ds('panel'); fo('panel')"), "unsafe state targets and values rejected");
+                Eq(0, stateEngine.Js(statePage, "vl('upload','C:\\\\private.txt'); vl('color','red'); vl('pick','blocked'); ck('name','1'); ds('panel'); fo('panel'); op('name')"), "unsafe state targets and values rejected");
                 Eq(0, FieldById(statePage, "upload").Fp.Count, "file command cannot select local paths");
                 var longStateValue = new String('q', 1024);
                 Eq(1, stateEngine.Js(statePage, "vl('name','" + longStateValue + "')"), "bounded 1024-character field command");

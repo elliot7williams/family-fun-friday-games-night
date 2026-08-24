@@ -8,7 +8,7 @@ read and quick to write.
 - Core objects use one letter: `L` is the entry point, `E` is the engine, `P` is a page.
 - Actions use two or three letters: `Go`, `GoA`, `Bk`, `Fw`, `Rl`, `RlA`, `St`, and `At`.
 - Page values use one or two letters: `U`, `T`, `H`, `Q`, `D`, `N`, `Bs`, and `Ls`.
-- Page commands use one or two letters: `t`, `a`, `bg`, `fg`, `fs`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`.
+- Page commands use one or two letters: `t`, `a`, `bg`, `fg`, `fs`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`.
 - New public aliases should be no more than three letters.
 - Longer names may remain inside the engine when they make the implementation safer to maintain.
 
@@ -42,6 +42,9 @@ rc("id", "hot")       remove class
 tc("id", "hot")       toggle class
 hd("id")              hide element
 sh("id")              show element
+op("id")              open details
+cl("id")              close details
+tg("id")              toggle details
 ds("id")              disable field
 en("id")              enable field
 vl("id", "value")     set field value
@@ -68,6 +71,12 @@ retains an existing field model by DOM ownership while it is hidden, so its
 edited value and checked state return when shown. `ds/en` apply only to input,
 textarea, select, and button targets and update rendered, focus, form, and
 accessibility state in the same rebuild.
+
+`op/cl/tg` open, close, or toggle one bounded `details` disclosure. The ID may
+name the `details` element or its first direct `summary`; later summaries and
+unrelated elements are rejected. Open and close accept an already-matching
+state as a safe no-op, synchronize the compact `N.Op` state with the `open`
+attribute, and preserve edited fields through the shared retained rebuild.
 
 `vl` changes one supported field's current value after bounded literal
 expansion. Values stop at 1,024 characters; file, submit, reset, and ordinary

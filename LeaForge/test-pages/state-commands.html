@@ -21,6 +21,7 @@
     hd("panel");
     ds("locked");
     fo("name");
+    op("advanced");
   </script>
 </head>
 <body>
@@ -49,6 +50,13 @@
   <input id="color" name="color" type="color" value="#224466" aria-label="Color">
   <input id="secret" name="secret" type="password" value="authored-secret" aria-label="Secret">
   <input id="upload" name="upload" type="file" aria-label="Upload">
+
+  <details id="advanced">
+    <summary id="advanced-summary">Advanced state</summary>
+    <summary id="advanced-extra">Extra summary</summary>
+    <label class="row" for="advanced-value">Retained detail value</label>
+    <input id="advanced-value" name="advanced-value" value="Authored detail">
+  </details>
 
   <button id="apply" type="button" data-lea="sh('panel'); en('locked'); vl('name','Clicked Lea'); ck('agree'); ck('choice-a','1'); fo('name'); a('State commands ran')">Apply state</button>
   <button id="hide-field" type="button" data-lea="vl('name','Retained before hide'); hd('name'); vl('name','Changed while hidden')">Hide field</button>

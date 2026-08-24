@@ -29,8 +29,9 @@ Buttons and links can run bounded `data-lea` or familiar `onclick` values throug
 allow-list and cannot reach native files, processes, or host controls.
 ID-scoped `ac/rc/tc` class changes use the same route, reapply compiled CSS, and
 preserve mutable field values.
-The same public route supports bounded `hd/sh` visibility, `ds/en` field
-availability, `vl` values, `ck` checked state, and `fo` focus requests. Hidden
+The same public route supports bounded `hd/sh` visibility, `op/cl/tg` details
+state, `ds/en` field availability, `vl` values, `ck` checked state, and `fo`
+focus requests. Hidden
 field identity is retained, file values cannot be injected, passwords remain
 redacted, and focus is cleared or restored only through Lea's rendered target
 model.

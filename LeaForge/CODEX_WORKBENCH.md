@@ -30,8 +30,8 @@ Pages now expose `Bu`; the first valid bounded `<base href>` drives relative
 styles, links, images, forms, and downloads while `U` remains the response URL.
 Safe scripts and hosts now use `ac/rc/tc` for bounded ID-scoped class changes;
 compiled CSS is reapplied without replacing edited form state.
-Safe scripts and hosts now also use `hd/sh`, `ds/en`, `vl`, `ck`, and `fo` for
-bounded visibility, disabled, value, checked, and focus state. A retained field
+Safe scripts and hosts now also use `hd/sh`, `op/cl/tg`, `ds/en`, `vl`, `ck`, and
+`fo` for bounded visibility, disclosure, disabled, value, checked, and focus state. A retained field
 map preserves one existing model while hidden; `E.Kp` and `V` consume one focus
 request without exposing files, passwords, arbitrary attributes, or native UI.
 `state-commands.html` raises the benchmark to 25 fixtures and 23 executable

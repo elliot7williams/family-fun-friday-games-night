@@ -45,3 +45,5 @@ build, run it from the repository root:
 
 Its compact switches are `-r` for repository root, `-o` for report output,
 `-n` for iterations, and optional `-b` for a Firespider executable path.
+The same runner recognizes an extracted Lea runtime package and measures its
+local DLLs and Firespider executable without requiring a source solution.

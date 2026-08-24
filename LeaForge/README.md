@@ -53,7 +53,7 @@ LeaForge is where we can grow the more full-featured browser.
 - bounded engine scripting for title, body colors, font size, and host-routed alerts
 - safe button/link commands with bounded variables and ID-scoped text updates
 - bounded `ac`/`rc`/`tc` class mutations with compiled CSS restyling
-- bounded `hd/sh`, `ds/en`, `vl`, `ck`, and `fo` element-state commands
+- bounded `hd/sh`, `op/cl/tg`, `ds/en`, `vl`, `ck`, and `fo` element-state commands
 - bounded developer snapshots plus a tabbed inspector with an Access view in the test browser
 - repeatable compatibility, timing, memory, binary-size, and compression report
 - streamed local/HTTP downloads with explicit destinations and a 64 MB ceiling
@@ -76,6 +76,9 @@ rc("id", "hot")       remove class
 tc("id", "hot")       toggle class
 hd("id")              hide element
 sh("id")              show element
+op("id")              open details
+cl("id")              close details
+tg("id")              toggle details
 ds("id")              disable field
 en("id")              enable field
 vl("id", "value")     set bounded field value
@@ -91,7 +94,8 @@ safe local-file request for the browser host to approve and load.
 State commands remain ID-scoped and preserve retained field identity through a
 single rebuild. Values stop at 1,024 characters, file values cannot be set,
 passwords stay redacted, and `E.Kp`/the WinForms view consume only one valid
-focus request.
+focus request. Disclosure commands accept a `details` ID or its first direct
+`summary` ID and keep `N.Op` plus the authored `open` attribute synchronized.
 
 The .NET Framework test browser opens Lea Inspector with `F12`, `Ctrl+Shift+I`,
 or the `I` toolbar button. Its Summary, Nodes, CSS, Requests, and Messages tabs

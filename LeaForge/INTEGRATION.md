@@ -320,7 +320,9 @@ text under one safe element ID. `ac/rc/tc` add, remove, or toggle one bounded
 class token on a safe ID and reuse the compiled CSS rebuild while preserving
 mutable fields. Each target accepts at most 32 classes and 512 class-attribute
 characters. `hd/sh` provide command-authoritative hide/show state, while
-`ds/en` update supported field availability. `vl` sets one current field value
+`op/cl/tg` open, close, or toggle a bounded `details` element through its own ID
+or first direct `summary`, preserving nested field identity. `ds/en` update
+supported field availability. `vl` sets one current field value
 under a 1,024-character limit, rejects file/button injection, validates color
 and select values, and keeps passwords redacted. `ck` toggles or explicitly
 sets checkbox/radio state and preserves radio-group exclusivity. Existing field

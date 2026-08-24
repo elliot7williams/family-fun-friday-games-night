@@ -544,7 +544,7 @@ namespace Lea.Bench
                 var engine = new E();
                 var page = engine.Go(Path.Combine(folder, "state-commands.html"));
                 var name = page.Fs.First(item => item.El != null && item.El.Av("id") == "name");
-                Need(page.Jc == 8 && name.V == "Page ready", "initial state commands changed");
+                Need(page.Jc == 9 && name.V == "Page ready", "initial state commands changed");
                 Need(page.Fs.First(item => item.El.Av("id") == "pick").V == "two" && page.Fs.First(item => item.El.Av("id") == "agree").C, "value or checked command changed");
                 Need(page.Fs.First(item => item.El.Av("id") == "locked").Ds && Object.ReferenceEquals(engine.Kp(page), name.El), "disable or focus request changed");
                 Need(engine.Ck(page, ById(page.D, "apply")) == 7 && name.V == "Clicked Lea", "state click commands changed");
@@ -552,15 +552,22 @@ namespace Lea.Bench
                 engine.Kp(page);
                 Need(engine.Ck(page, ById(page.D, "hide-field")) == 3 && name.V == "Changed while hidden", "hidden retained field state changed");
                 Need(engine.Ck(page, ById(page.D, "show-field")) == 1 && Object.ReferenceEquals(name, page.Fs.First(item => item.El.Av("id") == "name")), "shown field identity changed");
+                var details = ById(page.D, "advanced");
+                var detailValue = page.Fs.First(item => item.El.Av("id") == "advanced-value");
+                detailValue.V = "Retained benchmark detail";
+                Need(details.Op && engine.Js(page, "cl('advanced-summary'); op('advanced'); tg('advanced-summary'); op('advanced')") == 4 && details.Op, "disclosure state commands changed");
+                Need(Object.ReferenceEquals(detailValue, page.Fs.First(item => item.El.Av("id") == "advanced-value")) && detailValue.V == "Retained benchmark detail", "disclosure command rebuild replaced field state");
                 Need(engine.Js(page, "vl('upload','private.txt'); vl('color','red'); fo('panel')") == 0, "unsafe state value or target was accepted");
                 using (var view = NewView())
                 {
                     view.Go(Path.Combine(folder, "state-commands.html"));
                     Need(view.Ke != null && view.Ke.Av("id") == "name", "view did not consume initial focus request");
+                    Need(view.Js("cl('advanced-summary')") == 1 && !ById(view.At.D, "advanced").Op, "view disclosure close command failed");
+                    Need(view.Js("op('advanced')") == 1 && ById(view.At.D, "advanced").Op, "view disclosure open command failed");
                     Need(view.Js("ds('name')") == 1 && view.Ke == null, "view retained a disabled focus target");
                     Need(view.Js("en('name'); fo('name')") == 2 && view.Ke != null && view.Ke.Av("id") == "name", "view did not restore command focus");
                 }
-                return "hd/sh, ds/en, vl, ck, fo, 1024-character values, retained fields, one pending focus target, and file-value rejection";
+                return "hd/sh, ds/en, vl, ck, fo, op/cl/tg, retained fields, one pending focus target, and file-value rejection";
             });
             AddProbe(probes, "Find and local download", delegate
             {
@@ -645,7 +652,7 @@ namespace Lea.Bench
             Capability(builder, "CSS", "Partial", "Compiled selector subset, cascade, box/text styles, visibility, positioning, transforms, and responsive image sizing");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms block, inline, table, form, image, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
-            Capability(builder, "Lea command scripting", "Supported", "Bounded title, color, font, alert, variable, text, class, visibility, disabled/value/checked state, focus, host navigation request, and safe click commands");
+            Capability(builder, "Lea command scripting", "Supported", "Bounded title, color, font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
             Capability(builder, "Flexbox, Grid, Canvas, SVG", "Not supported", "Future compatibility work; no silent fallback claim");
             Capability(builder, "Audio and video", "Not supported", "Future optional module");
@@ -682,18 +689,28 @@ namespace Lea.Bench
 
         private static IList<Artifact> ArtifactPaths(string root, string browser)
         {
+            var enginePath = Path.Combine(root, "Lea.Engine", "bin", "Release", "Lea.Engine.dll");
+            var winPath = Path.Combine(root, "Lea.Win", "bin", "Release", "Lea.Win.dll");
+            var winTestPath = Path.Combine(root, "Lea.Win.Test", "bin", "Release", "Lea.Win.Test.exe");
+            var benchPath = Path.Combine(root, "Lea.Bench", "bin", "Release", "Lea.Bench.exe");
+            if (!File.Exists(enginePath)) enginePath = Path.Combine(root, "Lea.Engine.dll");
+            if (!File.Exists(winPath)) winPath = Path.Combine(root, "Lea.Win.dll");
+            if (!File.Exists(winTestPath)) winTestPath = Path.Combine(root, "Lea.Win.Test.exe");
+            if (!File.Exists(benchPath)) benchPath = Path.Combine(root, "Lea.Bench.exe");
             var candidates = new List<Artifact>
             {
-                MakeArtifact("Lea.Engine.dll", Path.Combine(root, "Lea.Engine", "bin", "Release", "Lea.Engine.dll"), true),
-                MakeArtifact("Lea.Win.dll", Path.Combine(root, "Lea.Win", "bin", "Release", "Lea.Win.dll"), true),
-                MakeArtifact("Lea.Win.Test.exe", Path.Combine(root, "Lea.Win.Test", "bin", "Release", "Lea.Win.Test.exe"), false),
-                MakeArtifact("Lea.Bench.exe", Path.Combine(root, "Lea.Bench", "bin", "Release", "Lea.Bench.exe"), false)
+                MakeArtifact("Lea.Engine.dll", enginePath, true),
+                MakeArtifact("Lea.Win.dll", winPath, true),
+                MakeArtifact("Lea.Win.Test.exe", winTestPath, false),
+                MakeArtifact("Lea.Bench.exe", benchPath, false)
             };
             var browserPath = browser;
             if (String.IsNullOrWhiteSpace(browserPath))
             {
+                var local = Path.Combine(root, "Firespider Internet 19.exe");
                 var known = @"L:\Firespider Internet\Firespider Internet 19.exe";
-                if (File.Exists(known)) browserPath = known;
+                if (File.Exists(local)) browserPath = local;
+                else if (File.Exists(known)) browserPath = known;
             }
             if (!String.IsNullOrWhiteSpace(browserPath) && File.Exists(browserPath))
                 candidates.Add(MakeArtifact("Firespider Internet 19.exe", browserPath, false));
@@ -774,10 +791,13 @@ namespace Lea.Bench
             var directory = new DirectoryInfo(Path.GetFullPath(String.IsNullOrWhiteSpace(start) ? Directory.GetCurrentDirectory() : start));
             while (directory != null)
             {
-                if (File.Exists(Path.Combine(directory.FullName, "Lea.sln"))) return directory.FullName;
+                if (File.Exists(Path.Combine(directory.FullName, "Lea.sln")) || (
+                    File.Exists(Path.Combine(directory.FullName, "Lea.Engine.dll")) &&
+                    File.Exists(Path.Combine(directory.FullName, "Lea.Win.dll")) &&
+                    Directory.Exists(Path.Combine(directory.FullName, "LeaForge", "test-pages")))) return directory.FullName;
                 directory = directory.Parent;
             }
-            throw new DirectoryNotFoundException("Could not find Lea.sln. Pass the repository with -r.");
+            throw new DirectoryNotFoundException("Could not find a Lea source or runtime root. Pass it with -r.");
         }
 
         private static string F(double[] values) { return Median(values).ToString("0.000"); }

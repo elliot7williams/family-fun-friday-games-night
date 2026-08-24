@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **7**
+Post-1.0 hardening milestones completed: **8**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -17,7 +17,7 @@ modern web platform.
 | CSS | 15% | 15% | Compiled selectors, dynamic hover/focus, sizing, visibility/opacity, fonts, overflow, boxes |
 | Layout and painting | 20% | 20% | Inset stretch, translated contexts, nested content, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Bounded multipart files, richer widgets, validation, responsive images, GET/POST submit |
-| Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/style/alert, class, visibility, field-state, and focus commands |
+| Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/style/alert, class, visibility, disclosure, field-state, and focus commands |
 | Firespider integration and reliability | 10% | 10% | Lea-first New Tab/Ctrl+T, explicit legacy fallback, Inspector with Access view, MSAA/UIA surfaces including read-only text, host-safe focus shortcuts, navigation, sessions, source, host smokes |
 | **Total** | **100%** | **100%** | Scoped Lea 1.0 baseline complete; post-1.0 hardening continues |
 
@@ -56,6 +56,10 @@ modern web platform.
   text, visual `TextUnit.Line` expansion/movement, one rectangle per visible
   line, proportional partial-range cropping, and public MTA, benchmark, and
   Firespider host verification.
+- Added bounded `op/cl/tg` disclosure commands for a `details` ID or its first
+  direct `summary`, synchronized `N.Op`/`open` state, retained nested fields,
+  strict invalid-target rejection, and engine, WinForms, benchmark, plus
+  Firespider verification.
 
 ## Next gains
 

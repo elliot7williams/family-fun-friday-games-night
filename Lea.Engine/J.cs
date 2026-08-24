@@ -98,6 +98,17 @@ namespace Lea.Engine
                 }
                 return true;
             }
+            if (command.N == "op" || command.N == "cl" || command.N == "tg")
+            {
+                var target = FindId(page.D, Id(Expand(page, command.V)));
+                var details = DisclosureTarget(target);
+                if (details == null) return false;
+                var open = command.N == "op" || (command.N == "tg" && !details.Op);
+                details.Op = open;
+                if (open) details.A["open"] = "";
+                else details.A.Remove("open");
+                return true;
+            }
             if (command.N == "ds" || command.N == "en")
             {
                 var target = FindId(page.D, Id(Expand(page, command.V)));
@@ -210,6 +221,9 @@ namespace Lea.Engine
             if (count == 1 && (name == "en" || name == "enable")) return new Cm("en", first);
             if (count == 1 && (name == "fo" || name == "focus")) return new Cm("fo", first);
             if (count == 1 && (name == "ck" || name == "check")) return new Cm("ck", first);
+            if (count == 1 && (name == "op" || name == "open")) return new Cm("op", first);
+            if (count == 1 && (name == "cl" || name == "close")) return new Cm("cl", first);
+            if (count == 1 && (name == "tg" || name == "toggle")) return new Cm("tg", first);
             if (count == 2 && (name == "v" || name == "var")) return new Cm("v", first, second);
             if (count == 2 && (name == "tx" || name == "text")) return new Cm("tx", first, second);
             if (count == 2 && (name == "vl" || name == "value")) return new Cm("vl", first, second);
@@ -421,6 +435,17 @@ namespace Lea.Engine
         private static bool DisableTarget(string kind)
         {
             return kind == "input" || kind == "textarea" || kind == "select" || kind == "button";
+        }
+
+        private static N DisclosureTarget(N target)
+        {
+            if (target == null) return null;
+            if (target.K == "details") return target;
+            var details = target.K == "summary" ? target.Up : null;
+            if (details == null || details.K != "details") return null;
+            foreach (var child in details.C)
+                if (child.K == "summary") return Object.ReferenceEquals(child, target) ? details : null;
+            return null;
         }
 
         private static bool FocusTarget(N target)
