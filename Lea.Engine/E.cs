@@ -24,6 +24,8 @@ namespace Lea.Engine
         private const int MaxViewport = 8192;
         private const int MaxCssFunctionGroups = 8;
         private const int MaxCssFunctionTests = 16;
+        private const int MaxNthExpression = 32;
+        private const int MaxNthValue = 8192;
         private const int MaxCssDeclarations = 128;
         private const int MaxCustomProperties = 32;
         private const int MaxCustomName = 64;
@@ -2668,7 +2670,7 @@ namespace Lea.Engine
                         var alternatives = CssFunctionSelectors(tail.Substring(open + 1, end - open - 1), name != "not", out authored);
                         if (alternatives == null || functionTests + authored > MaxCssFunctionTests) return null;
                         functionTests += authored;
-                        pseudos.Add(new Ps(name, "", alternatives));
+                        pseudos.Add(new Ps(name, alternatives));
                         if (name != "where")
                         {
                             var maximum = 0;
@@ -2678,11 +2680,22 @@ namespace Lea.Engine
                         index += end + 1;
                         continue;
                     }
-                    match = Regex.Match(tail, "^:(?<n>nth-child|nth-of-type)\\(\\s*(?<v>odd|even|[1-9][0-9]{0,3})\\s*\\)", RegexOptions.IgnoreCase);
-                    if (!match.Success)
-                        match = Regex.Match(tail, "^:(?<n>first-child|last-child|only-child|first-of-type|last-of-type|only-of-type|empty|root|link|checked|disabled|enabled|required|read-only|read-write|valid|invalid|hover|focus)\\b", RegexOptions.IgnoreCase);
+                    var nth = Regex.Match(tail, "^:(?<n>nth-last-child|nth-child|nth-last-of-type|nth-of-type)\\(", RegexOptions.IgnoreCase);
+                    if (nth.Success)
+                    {
+                        var open = nth.Length - 1;
+                        var end = CssClose(tail, open);
+                        int a;
+                        int b;
+                        if (end < 0 || !CssNth(tail.Substring(open + 1, end - open - 1), out a, out b)) return null;
+                        pseudos.Add(new Ps(nth.Groups["n"].Value.ToLowerInvariant(), a, b));
+                        weight += 10;
+                        index += end + 1;
+                        continue;
+                    }
+                    match = Regex.Match(tail, "^:(?<n>first-child|last-child|only-child|first-of-type|last-of-type|only-of-type|empty|root|link|checked|disabled|enabled|required|read-only|read-write|valid|invalid|hover|focus)\\b", RegexOptions.IgnoreCase);
                     if (!match.Success) return null;
-                    pseudos.Add(new Ps(match.Groups["n"].Value.ToLowerInvariant(), match.Groups["v"].Value.ToLowerInvariant()));
+                    pseudos.Add(new Ps(match.Groups["n"].Value.ToLowerInvariant()));
                     weight += 10;
                 }
                 else return null;
@@ -2709,6 +2722,36 @@ namespace Lea.Engine
                 result.Add(selector);
             }
             return result.ToArray();
+        }
+
+        private static bool CssNth(string source, out int a, out int b)
+        {
+            a = 0;
+            b = 0;
+            var value = (source ?? "").Trim();
+            if (value.Length == 0 || value.Length > MaxNthExpression) return false;
+            if (value.Equals("odd", StringComparison.OrdinalIgnoreCase)) { a = 2; b = 1; return true; }
+            if (value.Equals("even", StringComparison.OrdinalIgnoreCase)) { a = 2; return true; }
+
+            var integer = Regex.Match(value, "^(?<b>[+-]?[0-9]{1,4})$");
+            if (integer.Success)
+            {
+                if (!Int32.TryParse(integer.Groups["b"].Value, out b)) return false;
+                return Math.Abs(b) <= MaxNthValue;
+            }
+
+            var formula = Regex.Match(value, "^(?<a>[+-]?(?:[0-9]{1,4})?)n(?:\\s*(?<s>[+-])\\s*(?<b>[0-9]{1,4}))?$", RegexOptions.IgnoreCase);
+            if (!formula.Success) return false;
+            var coefficient = formula.Groups["a"].Value;
+            if (coefficient.Length == 0 || coefficient == "+") a = 1;
+            else if (coefficient == "-") a = -1;
+            else if (!Int32.TryParse(coefficient, out a)) return false;
+            if (formula.Groups["b"].Success)
+            {
+                if (!Int32.TryParse(formula.Groups["b"].Value, out b)) return false;
+                if (formula.Groups["s"].Value == "-") b = -b;
+            }
+            return Math.Abs(a) <= MaxNthValue && Math.Abs(b) <= MaxNthValue;
         }
 
         private static int CssClose(string source, int open)
@@ -2820,14 +2863,19 @@ namespace Lea.Engine
             if (pseudo.N == "first-child" || pseudo.N == "first-of-type") return position == 1;
             if (pseudo.N == "last-child" || pseudo.N == "last-of-type") return position == count;
             if (pseudo.N == "only-child" || pseudo.N == "only-of-type") return count == 1;
-            if (pseudo.N == "nth-child" || pseudo.N == "nth-of-type")
+            if (pseudo.N == "nth-child" || pseudo.N == "nth-last-child" || pseudo.N == "nth-of-type" || pseudo.N == "nth-last-of-type")
             {
-                if (pseudo.V == "odd") return position % 2 == 1;
-                if (pseudo.V == "even") return position % 2 == 0;
-                int expected;
-                return Int32.TryParse(pseudo.V, out expected) && position == expected;
+                if (pseudo.N.StartsWith("nth-last", StringComparison.Ordinal)) position = count - position + 1;
+                return MatchNth(position, pseudo.A, pseudo.B);
             }
             return false;
+        }
+
+        private static bool MatchNth(int position, int a, int b)
+        {
+            var difference = position - b;
+            if (a == 0) return difference == 0;
+            return difference % a == 0 && difference / a >= 0;
         }
 
         private static bool MatchAny(N node, Se[] selectors)
@@ -5172,18 +5220,30 @@ namespace Lea.Engine
         private sealed class Ps
         {
             public readonly string N;
-            public readonly string V;
+            public readonly int A;
+            public readonly int B;
             public readonly Se[] Ss;
 
-            public Ps(string name, string value)
-                : this(name, value, NoSelectors)
+            public Ps(string name)
+                : this(name, 0, 0, NoSelectors)
             {
             }
 
-            public Ps(string name, string value, Se[] selectors)
+            public Ps(string name, int a, int b)
+                : this(name, a, b, NoSelectors)
+            {
+            }
+
+            public Ps(string name, Se[] selectors)
+                : this(name, 0, 0, selectors)
+            {
+            }
+
+            private Ps(string name, int a, int b, Se[] selectors)
             {
                 N = name;
-                V = value;
+                A = a;
+                B = b;
                 Ss = selectors ?? NoSelectors;
             }
         }

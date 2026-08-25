@@ -39,6 +39,8 @@ LeaForge is where we can grow the more full-featured browser.
 - external stylesheets with document-order cascade and shared bounded caching
 - compiled relationship, attribute, structural, link, and form-state selectors,
   plus bounded `:is`/`:where`/list-`:not` alternatives and specificity
+- precompiled bounded `An+B` arithmetic for forward/reverse child and type
+  positions, with shared stylesheet and `Id/Q/Qa` query behavior
 - bounded responsive `screen`/`all` pixel-width media queries with compact
   `Vw` aliases, nested conditions, live WinForms resize, and retained fields
 - compiled declarations plus bounded inherited CSS custom properties with

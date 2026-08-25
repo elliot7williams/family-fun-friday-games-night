@@ -106,7 +106,7 @@ namespace Lea.Bench
             var folder = Path.Combine(root, "LeaForge", "test-pages");
             var names = new[]
             {
-                "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "layout.html",
+                "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "layout.html",
                 "tables.html", "forms.html", "events-vars.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
@@ -489,6 +489,40 @@ namespace Lea.Bench
                     using (var paint = Draw(view)) Need(BlockContent(view, "adjacent").Width == 120 && BlockContent(view, "where-target").Width > 0, "functional selector view geometry changed");
                 }
                 return "eight alternatives, sixteen tests, one-level compound arguments, forgiving is/where, strict not, maximum/zero specificity, outer combinators, queries, dynamic state, and retained fields";
+            });
+            AddProbe(probes, "Bounded structural arithmetic", delegate
+            {
+                var path = Path.Combine(folder, "selector-arithmetic.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var one = page.Bs.First(item => item.El != null && item.El.Av("id") == "a1");
+                var five = page.Bs.First(item => item.El != null && item.El.Av("id") == "a5");
+                var seven = page.Bs.First(item => item.El != null && item.El.Av("id") == "a7");
+                var invalid = page.Bs.First(item => item.El != null && item.El.Av("id") == "invalid");
+                Need(one.S.F == "#0f4c81" && one.S.Bg == "#edf7f2" && one.S.B && one.S.H == 31 && one.S.Ml == 11,
+                    "positive, negative, reverse, specificity, or selector-list structural matching changed");
+                Need(five.S.I && five.S.B && seven.S.Pl == 13 && page.Bs.First(item => item.El != null && item.El.Av("id") == "a8").S.Pl == 13,
+                    "unit or reverse structural ranges changed");
+                Need(page.Bs.First(item => item.El != null && item.El.Av("id") == "m2").S.Bl == 4 &&
+                    page.Bs.First(item => item.El != null && item.El.Av("id") == "m2").S.W == 142 &&
+                    page.Bs.First(item => item.El != null && item.El.Av("id") == "m4").S.W == 142, "type structural formulas changed");
+                Need(invalid.S.W == 73 && invalid.S.H == 19 && invalid.S.Pl == 3 && invalid.S.Bl == 2 && invalid.S.Bg == "", "invalid structural expressions escaped bounds");
+                Need(engine.Qa(page, "#forward > p:nth-child(3n+1)").Count == 3 &&
+                    engine.Qa(page, "#forward > p:nth-child(-n+3)").Count == 3 &&
+                    engine.Qa(page, "#forward > p:nth-last-child(2n)").Count == 4 &&
+                    engine.Qa(page, "#mixed > div:nth-last-of-type(2n+1)").Count == 2 &&
+                    engine.Qa(page, "#forward > :is(p:nth-child(4n+1),.missing)").Count == 2, "structural document queries changed");
+                Need(engine.Qa(page, "#forward > p:nth-child(8192n+1)").Count == 1 &&
+                    engine.Qa(page, "#forward > p:nth-child(8193n+1)").Count == 0 &&
+                    engine.Qa(page, "#forward > p:nth-child(2n+-1)").Count == 0 &&
+                    engine.Qa(page, "#forward > p:nth-child(2n of .rank)").Count == 0, "structural query limits changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(840, 760);
+                    view.Go(path);
+                    using (var paint = Draw(view)) Need(BlockContent(view, "a1").Width == 96 && BlockContent(view, "a1").Height == 31 && BlockContent(view, "m2").Width == 142, "structural formula view geometry changed");
+                }
+                return "precompiled A/B integers, positive/negative/zero formulas, forward/reverse child and type positions, 32-character and 8192-value bounds, specificity, queries, selector-list composition, and geometry";
             });
             AddProbe(probes, "Bounded media queries", delegate
             {
@@ -933,7 +967,7 @@ namespace Lea.Bench
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled relationship and bounded is/where/list-not selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box and text styles, visibility, positioning, transforms, responsive image sizing, and bounded row/column flex properties");
+            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded is/where/list-not, and An+B/reverse structural selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box and text styles, visibility, positioning, transforms, responsive image sizing, and bounded row/column flex properties");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, inline, row/column flex, table, form, image, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");

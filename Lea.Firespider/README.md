@@ -97,6 +97,13 @@ combinators, dynamic state, and retained fields need no adapter-side selector
 logic. The host smoke verifies computed border/font geometry, `Q1/Qa`, and CSS
 Inspector output.
 
+Structural arithmetic stays precompiled too. Firespider pages and host queries
+can use signed integers and bounded `An+B` expressions with `:nth-child`,
+`:nth-last-child`, `:nth-of-type`, and `:nth-last-of-type`. Lea stores only the
+two parsed integers, caps expressions at 32 characters and absolute values at
+8,192, and performs no per-match regex work. Host smoke coverage checks forward
+and reverse computed borders, padding, color, `Qa`, geometry, and Inspector CSS.
+
 Output and data elements also stay inside Lea's custom renderer. Firespider can
 read ordered `P.Dvs` values or the matching `B.Dv`/`Ir.Dv` paint ownership,
 including bounded output references, data machine values, and safe text/class

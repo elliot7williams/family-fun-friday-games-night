@@ -95,7 +95,13 @@ Dg/Dcl  diagnostics/clear request activity
     compile compound alternatives once for stylesheets and document queries.
     Maximum/zero specificity, forgiving `:is`/`:where`, strict `:not`, dynamic
     state, outer combinators, eight alternatives, and sixteen total authored
-    tests are active; nested functions and inner combinators stay outside.)
+    tests are active; nested selector-list functions and inner combinators stay
+    outside.)
+13. Add bounded structural arithmetic. (`:nth-child`, `:nth-last-child`,
+    `:nth-of-type`, and `:nth-last-of-type` compile signed integer, odd/even,
+    and `An+B` expressions to two integers. Stylesheets, document queries,
+    selector-list alternatives, specificity, and forward/reverse matching share
+    32-character and absolute 8,192-value bounds; `of S` remains outside.)
 
 This is the largest speed milestone: fewer controls, less UI overhead, and one
 predictable rendering pass.
@@ -278,13 +284,17 @@ non-empty bridge survives both direct and external MTA clients. Continue host
 coverage and bounded HTML/CSS compatibility work without adding another browser
 runtime.
 
-The latest completed milestone added bounded `:is`, `:where`, and selector-list
-`:not` functions to the shared stylesheet and query compiler. Compound
-alternatives, maximum versus zero specificity, forgiving versus strict parsing,
-outer combinators, limits, dynamic state, retained fields, WinForms geometry,
-benchmark probes, Inspector diagnostics, and Firespider are covered.
+The latest completed milestone added precompiled `An+B` arithmetic and reverse
+structural positions. Positive, negative, zero, unit, odd/even, fixed, child,
+type, forward, and reverse forms share compact `A/B` records, strict bounds,
+stylesheet/query behavior, specificity, selector-list composition, WinForms
+geometry, benchmark probes, Inspector diagnostics, and Firespider coverage.
 
-The previous milestone added a bounded important cascade with one compiled bit,
+The previous milestone added bounded `:is`, `:where`, and selector-list `:not`
+functions with compound alternatives, maximum/zero specificity, forgiving/
+strict parsing, dynamic state, and host coverage.
+
+The earlier important milestone added a bounded cascade with one compiled bit,
 normal/important stylesheet and inline tiers, compact `G.Ic` diagnostics, and
 dynamic/host coverage.
 

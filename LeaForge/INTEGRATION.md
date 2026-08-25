@@ -277,13 +277,16 @@ them during tree matching.
 Simple selectors are also compiled once per rule. They support tag, universal,
 ID, class, attribute presence and the six common attribute-value operators,
 plus basic structural, link, and initial form-state pseudo-classes. Structural
-positions count element siblings and include type-aware fixed, odd, and even
-matching. Bounded `:is(...)`, `:where(...)`, and `:not(...)` compile up to eight
+positions count element siblings and compile `odd`, `even`, signed integers,
+and `An+B` arithmetic for forward/reverse child and type matching into two
+bounded integers. Expressions stop at 32 characters and absolute `A/B` values
+at 8,192; `of S` filtering remains outside the subset. Bounded `:is(...)`,
+`:where(...)`, and `:not(...)` compile up to eight
 compound alternatives each and sixteen authored functional tests per simple
 selector. `:is` and list `:not` use maximum argument specificity; `:where` has
 zero specificity. Lea discards unsupported alternatives from forgiving
 `:is`/`:where` lists, rejects an invalid `:not` list, and deliberately leaves
-nested selector functions and inner combinators outside this subset. Dynamic
+nested selector-list functions and inner combinators outside this subset. Dynamic
 `:hover` and `:focus` use the same compiled path and compact `El` references in
 the WinForms hit-test model. The `Id/Q/Qa` host queries reuse identical rules.
 

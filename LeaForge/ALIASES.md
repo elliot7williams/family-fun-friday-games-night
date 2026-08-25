@@ -404,12 +404,20 @@ The WinForms `V` calls this automatically from pointer and field events.
 Functional selector lists stay compiled and bounded. `:is(...)`, `:where(...)`,
 and `:not(...)` accept up to eight compound simple-selector alternatives, with
 at most sixteen authored alternatives across one simple selector and no nested
-selector functions or inner combinators. `:is` and `:not` contribute the maximum
+selector-list functions or inner combinators. `:is` and `:not` contribute the maximum
 argument specificity; `:where` contributes zero. Unsupported or malformed
 alternatives are discarded inside forgiving `:is`/`:where` lists, while
 `:not` rejects its complete selector when any alternative is invalid. An empty
 forgiving result remains valid and matches nothing. Stylesheets and compact
 `Id/Q/Qa` queries share this compiler, including dynamic hover/focus matching.
+
+Structural positions compile to compact `A/B` integers. `:nth-child`,
+`:nth-last-child`, `:nth-of-type`, and `:nth-last-of-type` accept `odd`, `even`,
+signed integers, and whitespace-aware `An+B` forms such as `3n + 1`, `-n+3`,
+and `n+5`. Expressions are limited to 32 characters and each absolute
+coefficient or offset to 8,192, matching Lea's document-node ceiling. Reverse
+forms reuse the sibling count; matching performs no regex or integer parsing.
+The Selectors Level 4 `of S` filter remains outside this bounded subset.
 
 Responsive CSS uses the compact `Vw` alias. Hosts may set `E.Vw`; it clamps to
 1-8,192 pixels and reapplies rules only when the active rule set changes.

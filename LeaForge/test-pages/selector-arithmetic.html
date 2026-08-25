@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Selector Arithmetic</title>
+  <style>
+    body { color: #334155; }
+    #forward > p { width: 96px; }
+    #forward > p:nth-child(3n + 1) { color: #0f4c81; }
+    #forward > p:nth-child(-n + 3) { background: #edf7f2; }
+    #forward > p:nth-child(n+5) { font-style: italic; }
+    #forward > p:nth-child(0n + 4) { text-decoration: underline; }
+    #forward > p:nth-last-child(2n) { font-weight: bold; }
+    #forward > p:nth-last-child(-n + 2) { padding-left: 13px; }
+    #forward > :is(p:nth-child(4n+1), .missing) { margin-left: 11px; }
+
+    .rank:nth-child(2n+1) { height: 31px; }
+    .rank { height: 17px; }
+
+    #mixed > div:nth-of-type(2n) { border-left: 4px solid #176b4d; }
+    #mixed > div:nth-last-of-type(2n+1) { width: 142px; }
+    #mixed > p:nth-last-of-type(-n+1) { color: #a13b18; }
+
+    #invalid { width: 73px; height: 19px; padding-left: 3px; }
+    #invalid:nth-child(+1) { border-left: 2px solid #176b4d; }
+    #invalid:nth-child(0) { width: 999px; }
+    #invalid:nth-child(8193n+1) { height: 999px; }
+    #invalid:nth-child(2n+-1) { padding-left: 99px; }
+    #invalid:nth-last-child(2n of .rank) { background: #c02050; }
+  </style>
+</head>
+<body>
+  <h1>Structural selector arithmetic</h1>
+  <section id="forward">
+    <p id="a1" class="rank">One</p>
+    <p id="a2" class="rank">Two</p>
+    <p id="a3" class="rank">Three</p>
+    <p id="a4" class="rank">Four</p>
+    <p id="a5" class="rank">Five</p>
+    <p id="a6" class="rank">Six</p>
+    <p id="a7" class="rank">Seven</p>
+    <p id="a8" class="rank">Eight</p>
+  </section>
+  <section id="mixed">
+    <div id="m1">First div</div>
+    <p id="mp1">First paragraph</p>
+    <div id="m2">Second div</div>
+    <div id="m3">Third div</div>
+    <p id="mp2">Last paragraph</p>
+    <div id="m4">Last div</div>
+  </section>
+  <section id="invalid-group">
+    <p id="invalid">Bounded invalid expressions</p>
+  </section>
+</body>
+</html>
