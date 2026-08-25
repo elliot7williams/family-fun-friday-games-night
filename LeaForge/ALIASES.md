@@ -417,7 +417,12 @@ signed integers, and whitespace-aware `An+B` forms such as `3n + 1`, `-n+3`,
 and `n+5`. Expressions are limited to 32 characters and each absolute
 coefficient or offset to 8,192, matching Lea's document-node ceiling. Reverse
 forms reuse the sibling count; matching performs no regex or integer parsing.
-The Selectors Level 4 `of S` filter remains outside this bounded subset.
+`:nth-child` and `:nth-last-child` also accept a strict `of S` filter with up to
+eight compound alternatives. Only matching inclusive siblings enter the
+forward/reverse position list, and the most specific filter is added to the
+pseudo-class specificity. Filter alternatives count toward the same sixteen
+authored tests per simple selector. Inner combinators, nested selector-list
+functions, filtered `nth-of-type`, and filtered `nth-last-of-type` stay outside.
 
 Responsive CSS uses the compact `Vw` alias. Hosts may set `E.Vw`; it clamps to
 1-8,192 pixels and reapplies rules only when the active rule set changes.

@@ -106,7 +106,7 @@ namespace Lea.Bench
             var folder = Path.Combine(root, "LeaForge", "test-pages");
             var names = new[]
             {
-                "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "layout.html",
+                "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "layout.html",
                 "tables.html", "forms.html", "events-vars.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
@@ -515,7 +515,7 @@ namespace Lea.Bench
                 Need(engine.Qa(page, "#forward > p:nth-child(8192n+1)").Count == 1 &&
                     engine.Qa(page, "#forward > p:nth-child(8193n+1)").Count == 0 &&
                     engine.Qa(page, "#forward > p:nth-child(2n+-1)").Count == 0 &&
-                    engine.Qa(page, "#forward > p:nth-child(2n of .rank)").Count == 0, "structural query limits changed");
+                    engine.Qa(page, "#forward > p:nth-child(2n of .rank)").Count == 4, "structural query limits or filtered compatibility changed");
                 using (var view = NewView())
                 {
                     view.Size = new Size(840, 760);
@@ -523,6 +523,43 @@ namespace Lea.Bench
                     using (var paint = Draw(view)) Need(BlockContent(view, "a1").Width == 96 && BlockContent(view, "a1").Height == 31 && BlockContent(view, "m2").Width == 142, "structural formula view geometry changed");
                 }
                 return "precompiled A/B integers, positive/negative/zero formulas, forward/reverse child and type positions, 32-character and 8192-value bounds, specificity, queries, selector-list composition, and geometry";
+            });
+            AddProbe(probes, "Bounded filtered positions", delegate
+            {
+                var path = Path.Combine(folder, "selector-filtered-position.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var one = page.Bs.First(item => item.El != null && item.El.Av("id") == "f1");
+                var five = page.Bs.First(item => item.El != null && item.El.Av("id") == "f5");
+                var seven = page.Bs.First(item => item.El != null && item.El.Av("id") == "f7");
+                var eight = page.Bs.First(item => item.El != null && item.El.Av("id") == "f8");
+                var invalid = page.Bs.First(item => item.El != null && item.El.Av("id") == "invalid");
+                Need(one.S.Bg == "#edf7f2" && five.S.Bg == "#edf7f2" && eight.S.Bg == "#edf7f2" &&
+                    seven.S.B && eight.S.B && page.Bs.First(item => item.El != null && item.El.Av("id") == "f3").S.Bl == 4 && five.S.Pl == 13,
+                    "filtered forward, reverse, list, or compound matching changed");
+                Need(one.S.F == "#0f4c81" && page.Bs.First(item => item.El != null && item.El.Av("id") == "f4").S.F == "#0f4c81" &&
+                    seven.S.F == "#0f4c81" && page.Bs.First(item => item.El != null && item.El.Av("id") == "specific").S.H == 33, "filtered reverse parity or specificity changed");
+                Need(page.Fs.First(item => item.El != null && item.El.Av("id") == "e2").S.Bg == "#dff6e9" &&
+                    page.Fs.First(item => item.El != null && item.El.Av("id") == "e2").S.B && page.Fs.First(item => item.El != null && item.El.Av("id") == "e3").S.Bl == 5,
+                    "filtered form-state matching changed");
+                Need(invalid.S.W == 73 && invalid.S.H == 19 && invalid.S.Pl == 3 && invalid.S.Bl == 2 && invalid.S.Br == 0 && invalid.S.Mr == 0 && invalid.S.Bg == "",
+                    "invalid filtered selectors escaped bounds");
+                Need(engine.Qa(page, "#items>p:nth-child(2n+1 of .pick)").Count == 3 &&
+                    engine.Qa(page, "#items>.pick:nth-child(-n+3)").Count == 2 &&
+                    engine.Qa(page, "#items>p:nth-child(-n+3 of .pick)").Count == 3 &&
+                    engine.Qa(page, "#items>p:nth-last-child(2n of .pick,[data-alt])").Count == 3 &&
+                    engine.Qa(page, "#forms>input:nth-child(2 of :enabled)").Count == 1, "filtered document queries changed");
+                Need(engine.Qa(page, "#invalid:nth-child(n of #invalid,.a,.b,.c,.d,.e,.f,.g):nth-last-child(n of #invalid,.h,.i,.j,.k,.l,.m,.o)").Count == 1 &&
+                    engine.Qa(page, "#invalid:nth-child(n of #invalid,.a,.b,.c,.d,.e,.f,.g):nth-last-child(n of #invalid,.h,.i,.j,.k,.l,.m,.o):nth-child(n of #invalid)").Count == 0 &&
+                    engine.Qa(page, "#invalid:nth-child(1 of .pick,)").Count == 0 && engine.Qa(page, "#invalid:nth-of-type(1 of #invalid)").Count == 0,
+                    "filtered strictness, total tests, or typed rejection changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(840, 760);
+                    view.Go(path);
+                    using (var paint = Draw(view)) Need(BlockContent(view, "f1").Width == 108 && BlockContent(view, "specific").Height == 33, "filtered selector view geometry changed");
+                }
+                return "strict compound of-S lists, eight alternatives, sixteen total tests, maximum filter specificity, forward/reverse counting, form-state filters, queries, invalid nesting/type rejection, and geometry";
             });
             AddProbe(probes, "Bounded media queries", delegate
             {
@@ -967,7 +1004,7 @@ namespace Lea.Bench
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded is/where/list-not, and An+B/reverse structural selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box and text styles, visibility, positioning, transforms, responsive image sizing, and bounded row/column flex properties");
+            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box and text styles, visibility, positioning, transforms, responsive image sizing, and bounded row/column flex properties");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, inline, row/column flex, table, form, image, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");

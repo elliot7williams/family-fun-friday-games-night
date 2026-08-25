@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Filtered Structural Positions</title>
+  <style>
+    body { color: #334155; }
+    #items > p { width: 108px; }
+    #items > p:nth-child(2n+1 of .pick) { background: #edf7f2; }
+    #items > p:nth-last-child(-n+2 of .pick) { font-weight: bold; }
+    #items > p:nth-child(2 of .pick, [data-alt]) { border-left: 4px solid #176b4d; }
+    #items > p:nth-child(2 of .pick[data-ready]) { padding-left: 13px; }
+    #items > p:nth-last-child(2n of .pick, [data-alt]) { color: #0f4c81; }
+
+    p:nth-child(1 of #specific) { height: 33px; }
+    #specific { height: 17px; }
+
+    #forms > input:nth-child(2 of :enabled) { background: #dff6e9; font-weight: bold; }
+    #forms > input:nth-last-child(1 of :enabled) { border-left: 5px solid #176b4d; }
+
+    #invalid { width: 73px; height: 19px; padding-left: 3px; }
+    #invalid:nth-child(1 of #invalid) { border-left: 2px solid #176b4d; }
+    #invalid:nth-child(1 of .pick,) { width: 999px; }
+    #invalid:nth-child(1 of .a > .b) { height: 999px; }
+    #invalid:nth-of-type(1 of #invalid) { padding-left: 99px; }
+    #invalid:nth-last-of-type(1 of #invalid) { margin-left: 99px; }
+    #invalid:nth-child(1 of :is(#invalid)) { background: #c02050; }
+    #invalid:nth-child(1 of .a,.b,.c,.d,.e,.f,.g,.h,.i) { border-right: 99px solid #c02050; }
+    #invalid:nth-child(n of #invalid,.a,.b,.c,.d,.e,.f,.g):nth-last-child(n of #invalid,.h,.i,.j,.k,.l,.m,.o):nth-child(n of #invalid) { margin-right: 99px; }
+  </style>
+</head>
+<body>
+  <h1>Filtered structural positions</h1>
+  <section id="items">
+    <p id="f1" class="pick" data-ready>Pick one</p>
+    <p id="f2" class="skip">Skip two</p>
+    <p id="f3" class="pick">Pick three</p>
+    <p id="f4" data-alt>Alternate four</p>
+    <p id="f5" class="pick" data-ready>Pick five</p>
+    <p id="f6" class="skip">Skip six</p>
+    <p id="f7" class="pick">Pick seven</p>
+    <p id="f8" class="pick" data-ready>Pick eight</p>
+  </section>
+  <section id="specificity">
+    <p id="specific">Filtered specificity</p>
+  </section>
+  <section id="forms">
+    <input id="e1" value="Enabled one">
+    <input id="d1" value="Disabled" disabled>
+    <input id="e2" value="Enabled two">
+    <input id="e3" value="Enabled three">
+  </section>
+  <section id="invalid-group">
+    <p id="invalid">Bounded invalid filters</p>
+  </section>
+</body>
+</html>

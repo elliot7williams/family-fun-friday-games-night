@@ -36,11 +36,15 @@ Safe scripts and hosts now also use `hd/sh`, `op/cl/tg`, `ds/en`, `vl`, `ck`, an
 `fo` for bounded visibility, disclosure, disabled, value, checked, and focus state. A retained field
 map preserves one existing model while hidden; `E.Kp` and `V` consume one focus
 request without exposing files, passwords, arbitrary attributes, or native UI.
-`selector-arithmetic.html` brings the benchmark to 32 fixtures and its
-structural check brings it to 31 executable compatibility probes. Precompiled
+`selector-filtered-position.html` brings the benchmark to 33 fixtures and its
+filtered-position check brings it to 32 executable compatibility probes. Strict
+compound `of S` lists, matching-sibling forward/reverse counts, maximum filter
+specificity, form-state filters, shared test bounds, invalid nesting/type/list
+rejection, document queries, dynamic retention, and WinForms geometry cover the
+shared compiler path. The preceding `selector-arithmetic.html` fixture covers precompiled
 positive/negative/zero `An+B`, forward/reverse child and type positions,
 specificity, selector-list composition, document queries, strict syntax/value
-bounds, and WinForms geometry cover the shared compiler path. The preceding
+bounds, and WinForms geometry. The preceding
 `selector-functions.html` fixture covers bounded compound lists,
 maximum `:is`/`:not` specificity, zero `:where` specificity, forgiving versus
 strict alternatives, outer combinators, document queries, dynamic state, and

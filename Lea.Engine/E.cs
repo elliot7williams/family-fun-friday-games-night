@@ -2608,10 +2608,10 @@ namespace Lea.Engine
 
         private static Se CssSimple(string selector)
         {
-            return CssSimple(selector, true);
+            return CssSimple(selector, true, true);
         }
 
-        private static Se CssSimple(string selector, bool functions)
+        private static Se CssSimple(string selector, bool functions, bool nthFilters)
         {
             if (String.IsNullOrWhiteSpace(selector) || selector.Length > 512) return null;
             var tag = "";
@@ -2685,11 +2685,17 @@ namespace Lea.Engine
                     {
                         var open = nth.Length - 1;
                         var end = CssClose(tail, open);
+                        var name = nth.Groups["n"].Value.ToLowerInvariant();
                         int a;
                         int b;
-                        if (end < 0 || !CssNth(tail.Substring(open + 1, end - open - 1), out a, out b)) return null;
-                        pseudos.Add(new Ps(nth.Groups["n"].Value.ToLowerInvariant(), a, b));
-                        weight += 10;
+                        int authored;
+                        Se[] filters;
+                        if (end < 0 || !CssNth(tail.Substring(open + 1, end - open - 1), nthFilters && name.IndexOf("of-type", StringComparison.Ordinal) < 0, out a, out b, out filters, out authored) || functionTests + authored > MaxCssFunctionTests) return null;
+                        functionTests += authored;
+                        pseudos.Add(new Ps(name, a, b, filters));
+                        var maximum = 0;
+                        foreach (var filter in filters) maximum = Math.Max(maximum, filter.W);
+                        weight += 10 + maximum;
                         index += end + 1;
                         continue;
                     }
@@ -2713,7 +2719,7 @@ namespace Lea.Engine
                 authored++;
                 if (authored > MaxCssFunctionGroups) return null;
                 var value = group.Trim();
-                var selector = value.Length == 0 ? null : CssSimple(value, false);
+                var selector = value.Length == 0 ? null : CssSimple(value, false, false);
                 if (selector == null)
                 {
                     if (!forgiving) return null;
@@ -2724,11 +2730,21 @@ namespace Lea.Engine
             return result.ToArray();
         }
 
-        private static bool CssNth(string source, out int a, out int b)
+        private static bool CssNth(string source, bool filters, out int a, out int b, out Se[] selectors, out int authored)
         {
             a = 0;
             b = 0;
+            selectors = NoSelectors;
+            authored = 0;
             var value = (source ?? "").Trim();
+            var filtered = Regex.Match(value, "^(?<f>.+?)\\s+of\\s+(?<s>.+)$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+            if (filtered.Success)
+            {
+                if (!filters) return false;
+                value = filtered.Groups["f"].Value.Trim();
+                selectors = CssFunctionSelectors(filtered.Groups["s"].Value, false, out authored);
+                if (selectors == null || selectors.Length == 0) return false;
+            }
             if (value.Length == 0 || value.Length > MaxNthExpression) return false;
             if (value.Equals("odd", StringComparison.OrdinalIgnoreCase)) { a = 2; b = 1; return true; }
             if (value.Equals("even", StringComparison.OrdinalIgnoreCase)) { a = 2; return true; }
@@ -2858,7 +2874,7 @@ namespace Lea.Engine
 
             var type = pseudo.N.IndexOf("of-type", StringComparison.Ordinal) >= 0;
             int count;
-            var position = ElementPosition(node, type, out count);
+            var position = ElementPosition(node, type, pseudo.Ss, out count);
             if (position == 0) return false;
             if (pseudo.N == "first-child" || pseudo.N == "first-of-type") return position == 1;
             if (pseudo.N == "last-child" || pseudo.N == "last-of-type") return position == count;
@@ -2885,14 +2901,14 @@ namespace Lea.Engine
             return false;
         }
 
-        private static int ElementPosition(N node, bool type, out int count)
+        private static int ElementPosition(N node, bool type, Se[] filters, out int count)
         {
             count = 0;
             var position = 0;
             if (node == null || node.Up == null) return 0;
             foreach (var child in node.Up.C)
             {
-                if (child.K.Length == 0 || child.K[0] == '#' || (type && child.K != node.K)) continue;
+                if (child.K.Length == 0 || child.K[0] == '#' || (type && child.K != node.K) || (filters.Length > 0 && !MatchAny(child, filters))) continue;
                 count++;
                 if (Object.ReferenceEquals(child, node)) position = count;
             }
@@ -5229,17 +5245,12 @@ namespace Lea.Engine
             {
             }
 
-            public Ps(string name, int a, int b)
-                : this(name, a, b, NoSelectors)
-            {
-            }
-
             public Ps(string name, Se[] selectors)
                 : this(name, 0, 0, selectors)
             {
             }
 
-            private Ps(string name, int a, int b, Se[] selectors)
+            public Ps(string name, int a, int b, Se[] selectors)
             {
                 N = name;
                 A = a;

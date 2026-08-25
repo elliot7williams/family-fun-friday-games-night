@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **21**
+Post-1.0 hardening milestones completed: **22**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -14,7 +14,7 @@ modern web platform.
 | Core and alias API | 10% | 10% | Compact API, bounded diagnostics, repeatable reports, history, projects, backups |
 | Networking | 10% | 10% | Bounded request deadlines and downloads, private cookies, typed errors, validators, compression, memory LRU and optional persistent cache |
 | HTML and document tree | 20% | 20% | Bounded tokens, queries, base URLs and fragments, raw/RCDATA text, entities, recovery, HTML-hidden suppression, semantic accessibility, blocks, lists, disclosures, gauges, values, time/edit metadata, responsive image maps, tabindex focus, autofocus/access keys, tables |
-| CSS | 15% | 15% | Compiled relationship, bounded functional and An+B/reverse structural selectors, declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, dynamic hover/focus, content/border sizing, visibility/opacity, fonts, overflow, boxes, bounded ordered and distributed row/column flex properties |
+| CSS | 15% | 15% | Compiled relationship, bounded functional, An+B/reverse, and filtered structural selectors, declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, dynamic hover/focus, content/border sizing, visibility/opacity, fonts, overflow, boxes, bounded ordered and distributed row/column flex properties |
 | Layout and painting | 20% | 20% | Shared content/border geometry, ordered rows, bounded column/reverse flow, around/evenly distribution, item alignment, wrapping, grow/shrink, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Bounded multipart files, richer widgets, validation, responsive images, GET/POST submit |
 | Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/body and ID-scoped style/alert, class, visibility, disclosure, field-state, and focus commands |
@@ -139,6 +139,14 @@ modern web platform.
   bounds. Specificity, selector-list composition, invalid syntax, document
   queries, WinForms geometry, benchmark, Inspector, and Firespider coverage
   bring the suite to 32 fixtures and 31 executable probes.
+- Added bounded `of S` filtering to `:nth-child` and `:nth-last-child`. Strict
+  compound lists compile into the existing selector array, count only matching
+  inclusive siblings in forward/reverse order, add maximum filter specificity,
+  and share the eight-alternative/sixteen-test limits. Compound attributes and
+  pseudo states, dynamic rebuilds, retained fields, invalid lists, nesting,
+  typed misuse, stylesheet/query parity, WinForms geometry, benchmark,
+  Inspector, and Firespider coverage bring the suite to 33 fixtures and 32
+  executable probes.
 
 ## Next gains
 

@@ -104,6 +104,13 @@ two parsed integers, caps expressions at 32 characters and absolute values at
 8,192, and performs no per-match regex work. Host smoke coverage checks forward
 and reverse computed borders, padding, color, `Qa`, geometry, and Inspector CSS.
 
+Filtered child positions reuse those records. Firespider pages and host queries
+can use strict bounded `:nth-child(... of S)` and `:nth-last-child(... of S)`
+compound lists. Matching siblings alone enter the forward/reverse count, the
+most specific filter contributes to cascade weight, and eight-alternative plus
+sixteen-total-test ceilings prevent unbounded matching. The host smoke checks
+separate forward/reverse borders, `Qa`, Inspector CSS, and flex geometry.
+
 Output and data elements also stay inside Lea's custom renderer. Firespider can
 read ordered `P.Dvs` values or the matching `B.Dv`/`Ir.Dv` paint ownership,
 including bounded output references, data machine values, and safe text/class

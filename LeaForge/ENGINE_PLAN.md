@@ -101,7 +101,13 @@ Dg/Dcl  diagnostics/clear request activity
     `:nth-of-type`, and `:nth-last-of-type` compile signed integer, odd/even,
     and `An+B` expressions to two integers. Stylesheets, document queries,
     selector-list alternatives, specificity, and forward/reverse matching share
-    32-character and absolute 8,192-value bounds; `of S` remains outside.)
+    32-character and absolute 8,192-value bounds.)
+14. Add bounded filtered structural positions. (`:nth-child(... of S)` and
+    `:nth-last-child(... of S)` compile strict compound lists into the existing
+    selector array, count matching siblings in forward/reverse order, and add
+    maximum filter specificity. Eight alternatives and sixteen total authored
+    tests are active; nested lists, inner combinators, and typed filters stay
+    outside.)
 
 This is the largest speed milestone: fewer controls, less UI overhead, and one
 predictable rendering pass.
@@ -284,13 +290,16 @@ non-empty bridge survives both direct and external MTA clients. Continue host
 coverage and bounded HTML/CSS compatibility work without adding another browser
 runtime.
 
-The latest completed milestone added precompiled `An+B` arithmetic and reverse
-structural positions. Positive, negative, zero, unit, odd/even, fixed, child,
-type, forward, and reverse forms share compact `A/B` records, strict bounds,
-stylesheet/query behavior, specificity, selector-list composition, WinForms
-geometry, benchmark probes, Inspector diagnostics, and Firespider coverage.
+The latest completed milestone added bounded `of S` filters to `:nth-child` and
+`:nth-last-child`. Strict compound alternatives reuse compiled selector arrays,
+matching-sibling forward/reverse counts, maximum filter specificity, shared
+functional limits, stylesheet/query behavior, dynamic state, retained fields,
+WinForms geometry, benchmark probes, Inspector diagnostics, and Firespider.
 
-The previous milestone added bounded `:is`, `:where`, and selector-list `:not`
+The previous milestone added precompiled `An+B` arithmetic and reverse
+structural positions with compact `A/B` records and strict bounds.
+
+The earlier selector-list milestone added bounded `:is`, `:where`, and `:not`
 functions with compound alternatives, maximum/zero specificity, forgiving/
 strict parsing, dynamic state, and host coverage.
 

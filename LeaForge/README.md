@@ -41,6 +41,8 @@ LeaForge is where we can grow the more full-featured browser.
   plus bounded `:is`/`:where`/list-`:not` alternatives and specificity
 - precompiled bounded `An+B` arithmetic for forward/reverse child and type
   positions, with shared stylesheet and `Id/Q/Qa` query behavior
+- strict bounded `nth-child(... of S)` and `nth-last-child(... of S)` compound
+  filters with matching-sibling counts and maximum filter specificity
 - bounded responsive `screen`/`all` pixel-width media queries with compact
   `Vw` aliases, nested conditions, live WinForms resize, and retained fields
 - compiled declarations plus bounded inherited CSS custom properties with

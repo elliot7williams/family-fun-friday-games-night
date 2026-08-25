@@ -280,7 +280,11 @@ plus basic structural, link, and initial form-state pseudo-classes. Structural
 positions count element siblings and compile `odd`, `even`, signed integers,
 and `An+B` arithmetic for forward/reverse child and type matching into two
 bounded integers. Expressions stop at 32 characters and absolute `A/B` values
-at 8,192; `of S` filtering remains outside the subset. Bounded `:is(...)`,
+at 8,192. `:nth-child` and `:nth-last-child` accept strict `of S` filters with
+up to eight compound alternatives, count only matching siblings, and add the
+maximum filter specificity. Filter alternatives share the sixteen-test ceiling;
+inner combinators, nested lists, and filtered type positions remain outside.
+Bounded `:is(...)`,
 `:where(...)`, and `:not(...)` compile up to eight
 compound alternatives each and sixteen authored functional tests per simple
 selector. `:is` and list `:not` use maximum argument specificity; `:where` has
