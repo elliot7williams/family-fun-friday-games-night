@@ -108,6 +108,13 @@ Dg/Dcl  diagnostics/clear request activity
     maximum filter specificity. Eight alternatives and sixteen total authored
     tests are active; nested lists, inner combinators, and typed filters stay
     outside.)
+15. Add bounded relational selectors. (Strict `:has(...)` lists compile to
+    compact relative records with implicit descendant plus leading child,
+    adjacent, and following relationships. Four-part chains, eight
+    alternatives, sixteen total parts, maximum argument specificity, and 4,096
+    candidate visits are active for stylesheets and queries. Descendant focus
+    rebuilds preserve fields; nested selector-list functions and
+    pseudo-elements stay outside.)
 
 This is the largest speed milestone: fewer controls, less UI overhead, and one
 predictable rendering pass.
@@ -290,7 +297,13 @@ non-empty bridge survives both direct and external MTA clients. Continue host
 coverage and bounded HTML/CSS compatibility work without adding another browser
 runtime.
 
-The latest completed milestone added bounded `of S` filters to `:nth-child` and
+The latest completed milestone added bounded strict `:has(...)` relative lists
+with compact precompiled relationship/part records, descendant, child,
+adjacent, and following matching, four-part chains, maximum specificity,
+deterministic traversal limits, dynamic focus retention, shared queries,
+WinForms geometry, benchmark probes, Inspector diagnostics, and Firespider.
+
+The previous milestone added bounded `of S` filters to `:nth-child` and
 `:nth-last-child`. Strict compound alternatives reuse compiled selector arrays,
 matching-sibling forward/reverse counts, maximum filter specificity, shared
 functional limits, stylesheet/query behavior, dynamic state, retained fields,

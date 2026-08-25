@@ -411,6 +411,17 @@ alternatives are discarded inside forgiving `:is`/`:where` lists, while
 forgiving result remains valid and matches nothing. Stylesheets and compact
 `Id/Q/Qa` queries share this compiler, including dynamic hover/focus matching.
 
+Relational selectors use compact precompiled `Hr` records internally: `L` is
+the leading implicit-descendant, child (`>`), adjacent (`+`), or following
+sibling (`~`) relationship; `P/J` hold up to four compound parts and their
+joins; and `W` is the argument specificity. Strict `:has(...)` lists accept up
+to eight alternatives and sixteen total parts per outer simple selector. The
+matcher visits at most 4,096 candidate elements across one `:has` evaluation,
+uses maximum argument specificity, and shares stylesheet plus `Id/Q/Qa` query
+behavior. Descendant focus changes can therefore restyle a retained parent.
+Malformed or empty lists, nested selector-list functions, pseudo-elements,
+oversized chains, and excess alternatives or work remain outside this subset.
+
 Structural positions compile to compact `A/B` integers. `:nth-child`,
 `:nth-last-child`, `:nth-of-type`, and `:nth-last-of-type` accept `odd`, `even`,
 signed integers, and whitespace-aware `An+B` forms such as `3n + 1`, `-n+3`,

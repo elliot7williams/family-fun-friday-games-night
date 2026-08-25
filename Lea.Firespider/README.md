@@ -111,6 +111,15 @@ most specific filter contributes to cascade weight, and eight-alternative plus
 sixteen-total-test ceilings prevent unbounded matching. The host smoke checks
 separate forward/reverse borders, `Qa`, Inspector CSS, and flex geometry.
 
+Relational selectors remain engine-owned as well. Firespider pages and host
+queries can use strict bounded `:has(...)` lists with implicit descendants,
+leading child, adjacent, and following relationships plus four-part compiled
+chains. Eight alternatives, sixteen total parts, and 4,096 candidate visits
+bound the work; maximum argument specificity drives the cascade. The host smoke
+checks parent style and geometry, complex queries, descendant-focus rebuilds,
+retained field identity, and Inspector CSS without adding adapter-side tree
+logic.
+
 Output and data elements also stay inside Lea's custom renderer. Firespider can
 read ordered `P.Dvs` values or the matching `B.Dv`/`Ir.Dv` paint ownership,
 including bounded output references, data machine values, and safe text/class

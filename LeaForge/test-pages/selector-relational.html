@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Relational Selectors</title>
+  <style>
+    body { color: #334155; }
+    .card, #complex, #focus-card, #invalid { width: 92px; }
+    .card:has(> img.hero) { width: 118px; background: #edf7f2; }
+    .card:has(.body .ready[data-state="go"]) { border-left: 4px solid #176b4d; }
+    #adjacent:has(+ dt) { height: 31px; }
+    #following:has(~ li.end) { padding-left: 11px; }
+    #complex:has(> .body > .row + .ready) { border-right: 6px solid #176b4d; }
+    .card:has(> img, + .next) { font-weight: bold; }
+
+    article:has(#needle) { height: 37px; }
+    #specific { height: 19px; }
+
+    #focus-card:has(input:focus) { background: #dff6e9; font-weight: bold; }
+
+    #invalid { height: 21px; padding-left: 3px; }
+    #invalid:has() { width: 999px; }
+    #invalid:has(.ready,) { height: 999px; }
+    #invalid:has(:has(.ready)) { padding-left: 99px; }
+    #invalid:has(::before) { margin-left: 99px; }
+    #invalid:has(> > .ready) { margin-right: 99px; }
+    #invalid:has(.a,.b,.c,.d,.e,.f,.g,.h,.i) { border-left: 99px solid #c02050; }
+    #invalid:has(> .a .b .c .d .e) { border-right: 99px solid #c02050; }
+  </style>
+</head>
+<body>
+  <h1>Relational selectors</h1>
+  <section id="direct" class="card">
+    <img class="hero" alt="Direct child">
+  </section>
+  <section id="descendant" class="card">
+    <div class="body"><span class="ready" data-state="go">Ready descendant</span></div>
+  </section>
+  <dl>
+    <dt id="adjacent">Adjacent term</dt>
+    <dt id="next-term">Next term</dt>
+  </dl>
+  <ul>
+    <li id="following">Following start</li>
+    <li>Middle item</li>
+    <li class="end">End item</li>
+  </ul>
+  <section id="complex">
+    <div class="body"><span class="row">Row</span><span class="ready">Complex ready</span></div>
+  </section>
+  <article id="specific"><span id="needle">Specific needle</span></article>
+  <section id="focus-card"><input id="focus-input" value="Focus me"></section>
+  <p id="invalid">Bounded invalid relations</p>
+</body>
+</html>

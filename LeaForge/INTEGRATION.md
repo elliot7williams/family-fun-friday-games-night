@@ -294,6 +294,16 @@ nested selector-list functions and inner combinators outside this subset. Dynami
 `:hover` and `:focus` use the same compiled path and compact `El` references in
 the WinForms hit-test model. The `Id/Q/Qa` host queries reuse identical rules.
 
+Strict bounded `:has(...)` relative lists also compile once. Lea supports an
+implicit descendant relationship and explicit leading `>`, `+`, or `~`, with
+up to four compound parts in each relative chain, eight alternatives, sixteen
+total parts per outer simple selector, and 4,096 candidate visits per
+evaluation. The pseudo-class contributes its most specific argument, matching
+Selectors Level 4 cascade behavior. Parent styles and host queries can react to
+descendant focus without replacing fields. Empty or malformed lists, nested
+selector-list functions, pseudo-elements, oversized chains, and excess work
+are rejected rather than entering an unbounded tree search.
+
 Responsive styles use `E.Vw`, `P.Vw`, `V.Vw`, and `G.Vw`. A headless host sets
 `E.Vw` directly; the WinForms view forwards its client width and rebuilds only
 when a media boundary changes. Existing `Fi` objects and mutable values survive

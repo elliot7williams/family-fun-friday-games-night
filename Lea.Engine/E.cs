@@ -24,6 +24,8 @@ namespace Lea.Engine
         private const int MaxViewport = 8192;
         private const int MaxCssFunctionGroups = 8;
         private const int MaxCssFunctionTests = 16;
+        private const int MaxCssRelativeParts = 4;
+        private const int MaxHasVisits = 4096;
         private const int MaxNthExpression = 32;
         private const int MaxNthValue = 8192;
         private const int MaxCssDeclarations = 128;
@@ -70,6 +72,7 @@ namespace Lea.Engine
         private const int DefaultTimeout = 15000;
         private static readonly Pd[] NoDeclarations = new Pd[0];
         private static readonly Se[] NoSelectors = new Se[0];
+        private static readonly Hr[] NoRelatives = new Hr[0];
         private readonly W web = new W();
         private readonly Pc disk = new Pc();
         private readonly List<He> hs = new List<He>();
@@ -2659,7 +2662,7 @@ namespace Lea.Engine
                 }
                 else if (tail[0] == ':')
                 {
-                    var function = functions ? Regex.Match(tail, "^:(?<n>not|is|where)\\(", RegexOptions.IgnoreCase) : null;
+                    var function = functions ? Regex.Match(tail, "^:(?<n>not|is|where|has)\\(", RegexOptions.IgnoreCase) : null;
                     if (function != null && function.Success)
                     {
                         var open = function.Length - 1;
@@ -2667,15 +2670,28 @@ namespace Lea.Engine
                         if (end < 0) return null;
                         var name = function.Groups["n"].Value.ToLowerInvariant();
                         int authored;
-                        var alternatives = CssFunctionSelectors(tail.Substring(open + 1, end - open - 1), name != "not", out authored);
-                        if (alternatives == null || functionTests + authored > MaxCssFunctionTests) return null;
-                        functionTests += authored;
-                        pseudos.Add(new Ps(name, alternatives));
-                        if (name != "where")
+                        if (name == "has")
                         {
+                            var relatives = CssRelativeSelectors(tail.Substring(open + 1, end - open - 1), out authored);
+                            if (relatives == null || functionTests + authored > MaxCssFunctionTests) return null;
+                            functionTests += authored;
+                            pseudos.Add(new Ps(name, relatives));
                             var maximum = 0;
-                            foreach (var alternative in alternatives) maximum = Math.Max(maximum, alternative.W);
+                            foreach (var relative in relatives) maximum = Math.Max(maximum, relative.W);
                             weight += maximum;
+                        }
+                        else
+                        {
+                            var alternatives = CssFunctionSelectors(tail.Substring(open + 1, end - open - 1), name != "not", out authored);
+                            if (alternatives == null || functionTests + authored > MaxCssFunctionTests) return null;
+                            functionTests += authored;
+                            pseudos.Add(new Ps(name, alternatives));
+                            if (name != "where")
+                            {
+                                var maximum = 0;
+                                foreach (var alternative in alternatives) maximum = Math.Max(maximum, alternative.W);
+                                weight += maximum;
+                            }
                         }
                         index += end + 1;
                         continue;
@@ -2728,6 +2744,38 @@ namespace Lea.Engine
                 result.Add(selector);
             }
             return result.ToArray();
+        }
+
+        private static Hr[] CssRelativeSelectors(string source, out int authored)
+        {
+            var result = new List<Hr>();
+            authored = 0;
+            var alternatives = 0;
+            foreach (var group in CssGroups(source))
+            {
+                if (++alternatives > MaxCssFunctionGroups) return null;
+                var value = group.Trim();
+                if (value.Length == 0) return null;
+                var leading = ' ';
+                if (value[0] == '>' || value[0] == '+' || value[0] == '~')
+                {
+                    leading = value[0];
+                    value = value.Substring(1).TrimStart();
+                }
+                var parts = new List<string>();
+                var joins = new List<char>();
+                if (value.Length == 0 || !CssParts(value, parts, joins) || parts.Count > MaxCssRelativeParts || authored + parts.Count > MaxCssFunctionTests) return null;
+                var simple = new List<Se>();
+                foreach (var part in parts)
+                {
+                    var selector = CssSimple(part, false, false);
+                    if (selector == null) return null;
+                    simple.Add(selector);
+                }
+                authored += simple.Count;
+                result.Add(new Hr(leading, simple.ToArray(), joins.ToArray(), Spec(simple)));
+            }
+            return result.Count == 0 ? null : result.ToArray();
         }
 
         private static bool CssNth(string source, bool filters, out int a, out int b, out Se[] selectors, out int authored)
@@ -2858,6 +2906,7 @@ namespace Lea.Engine
         {
             if (pseudo.N == "not") return pseudo.Ss.Length > 0 && !MatchAny(node, pseudo.Ss);
             if (pseudo.N == "is" || pseudo.N == "where") return MatchAny(node, pseudo.Ss);
+            if (pseudo.N == "has") return MatchHas(node, pseudo.Rs);
             if (pseudo.N == "hover") return node.Hv;
             if (pseudo.N == "focus") return node.Fc;
             if (pseudo.N == "root") return node.Up != null && node.Up.K == "#doc";
@@ -2899,6 +2948,122 @@ namespace Lea.Engine
             foreach (var selector in selectors)
                 if (MatchPart(node, selector)) return true;
             return false;
+        }
+
+        private static bool MatchHas(N anchor, Hr[] relatives)
+        {
+            var visits = 0;
+            foreach (var relative in relatives)
+            {
+                if (relative.P.Length == 1)
+                {
+                    if (relative.L == '>')
+                    {
+                        foreach (var child in anchor.C)
+                            if (ElementCandidate(child, anchor, relative, ref visits)) return true;
+                    }
+                    else if (relative.L == '+')
+                    {
+                        if (ElementCandidate(NextElement(anchor), anchor, relative, ref visits)) return true;
+                    }
+                    else if (relative.L == '~')
+                    {
+                        var following = false;
+                        if (anchor.Up != null)
+                            foreach (var child in anchor.Up.C)
+                            {
+                                if (Object.ReferenceEquals(child, anchor)) { following = true; continue; }
+                                if (following && ElementCandidate(child, anchor, relative, ref visits)) return true;
+                            }
+                    }
+                    else
+                    {
+                        foreach (var child in anchor.C)
+                            if (RelativeTree(child, anchor, relative, ref visits)) return true;
+                    }
+                }
+                else if (relative.L == '+' || relative.L == '~')
+                {
+                    var following = false;
+                    if (anchor.Up != null)
+                        foreach (var child in anchor.Up.C)
+                        {
+                            if (Object.ReferenceEquals(child, anchor)) { following = true; continue; }
+                            if (following && RelativeTree(child, anchor, relative, ref visits)) return true;
+                        }
+                }
+                else
+                {
+                    foreach (var child in anchor.C)
+                        if (RelativeTree(child, anchor, relative, ref visits)) return true;
+                }
+                if (visits >= MaxHasVisits) return false;
+            }
+            return false;
+        }
+
+        private static bool RelativeTree(N node, N anchor, Hr relative, ref int visits)
+        {
+            if (node == null || visits >= MaxHasVisits) return false;
+            if (ElementCandidate(node, anchor, relative, ref visits)) return true;
+            foreach (var child in node.C)
+            {
+                if (RelativeTree(child, anchor, relative, ref visits)) return true;
+                if (visits >= MaxHasVisits) return false;
+            }
+            return false;
+        }
+
+        private static bool ElementCandidate(N node, N anchor, Hr relative, ref int visits)
+        {
+            if (node == null || node.K.Length == 0 || node.K[0] == '#' || visits >= MaxHasVisits) return false;
+            visits++;
+            var current = RelativeLeft(node, relative);
+            if (current == null) return false;
+            if (relative.L == '>') return Object.ReferenceEquals(current.Up, anchor);
+            if (relative.L == '+') return Object.ReferenceEquals(PreviousElement(current), anchor);
+            if (relative.L == '~')
+            {
+                for (var previous = PreviousElement(current); previous != null; previous = PreviousElement(previous))
+                    if (Object.ReferenceEquals(previous, anchor)) return true;
+                return false;
+            }
+            for (var parent = current.Up; parent != null; parent = parent.Up)
+                if (Object.ReferenceEquals(parent, anchor)) return true;
+            return false;
+        }
+
+        private static N RelativeLeft(N node, Hr relative)
+        {
+            if (!MatchPart(node, relative.P[relative.P.Length - 1])) return null;
+            var current = node;
+            for (var index = relative.J.Length - 1; index >= 0; index--)
+            {
+                if (relative.J[index] == '>') current = current.Up;
+                else if (relative.J[index] == '+') current = PreviousElement(current);
+                else if (relative.J[index] == '~') current = PreviousMatchingElement(current, relative.P[index]);
+                else
+                {
+                    current = current.Up;
+                    while (current != null && !MatchPart(current, relative.P[index])) current = current.Up;
+                    if (current == null) return null;
+                    continue;
+                }
+                if (current == null || !MatchPart(current, relative.P[index])) return null;
+            }
+            return current;
+        }
+
+        private static N NextElement(N node)
+        {
+            if (node == null || node.Up == null) return null;
+            var following = false;
+            foreach (var child in node.Up.C)
+            {
+                if (Object.ReferenceEquals(child, node)) { following = true; continue; }
+                if (following && child.K.Length > 0 && child.K[0] != '#') return child;
+            }
+            return null;
         }
 
         private static int ElementPosition(N node, bool type, Se[] filters, out int count)
@@ -5239,23 +5404,51 @@ namespace Lea.Engine
             public readonly int A;
             public readonly int B;
             public readonly Se[] Ss;
+            public readonly Hr[] Rs;
 
             public Ps(string name)
-                : this(name, 0, 0, NoSelectors)
+                : this(name, 0, 0, NoSelectors, NoRelatives)
             {
             }
 
             public Ps(string name, Se[] selectors)
-                : this(name, 0, 0, selectors)
+                : this(name, 0, 0, selectors, NoRelatives)
+            {
+            }
+
+            public Ps(string name, Hr[] relatives)
+                : this(name, 0, 0, NoSelectors, relatives)
             {
             }
 
             public Ps(string name, int a, int b, Se[] selectors)
+                : this(name, a, b, selectors, NoRelatives)
+            {
+            }
+
+            private Ps(string name, int a, int b, Se[] selectors, Hr[] relatives)
             {
                 N = name;
                 A = a;
                 B = b;
                 Ss = selectors ?? NoSelectors;
+                Rs = relatives ?? NoRelatives;
+            }
+        }
+
+        private sealed class Hr
+        {
+            public readonly char L;
+            public readonly Se[] P;
+            public readonly char[] J;
+            public readonly int W;
+
+            public Hr(char leading, Se[] parts, char[] joins, int weight)
+            {
+                L = leading;
+                P = parts;
+                J = joins;
+                W = weight;
             }
         }
 

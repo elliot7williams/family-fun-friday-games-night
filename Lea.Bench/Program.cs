@@ -106,7 +106,7 @@ namespace Lea.Bench
             var folder = Path.Combine(root, "LeaForge", "test-pages");
             var names = new[]
             {
-                "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "layout.html",
+                "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
                 "tables.html", "forms.html", "events-vars.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
@@ -561,6 +561,48 @@ namespace Lea.Bench
                 }
                 return "strict compound of-S lists, eight alternatives, sixteen total tests, maximum filter specificity, forward/reverse counting, form-state filters, queries, invalid nesting/type rejection, and geometry";
             });
+            AddProbe(probes, "Bounded relational selectors", delegate
+            {
+                var path = Path.Combine(folder, "selector-relational.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var direct = page.Bs.First(item => item.El != null && item.El.Av("id") == "direct");
+                var descendant = page.Bs.First(item => item.El != null && item.El.Av("id") == "descendant");
+                var invalid = page.Bs.First(item => item.El != null && item.El.Av("id") == "invalid");
+                Need(direct.S.W == 118 && direct.S.Bg == "#edf7f2" && direct.S.B && descendant.S.Bl == 4,
+                    "relational child, descendant, list, or compound matching changed");
+                Need(page.Bs.First(item => item.El != null && item.El.Av("id") == "adjacent").S.H == 31 &&
+                    page.Bs.First(item => item.El != null && item.El.Av("id") == "following").S.Pl == 11 &&
+                    page.Bs.First(item => item.El != null && item.El.Av("id") == "complex").S.Br == 6 &&
+                    page.Bs.First(item => item.El != null && item.El.Av("id") == "specific").S.H == 37,
+                    "relational sibling, complex-chain, or specificity matching changed");
+                var field = page.Fs.First(item => item.El != null && item.El.Av("id") == "focus-input");
+                field.V = "Retained relational benchmark";
+                engine.Dy(page, null, field.El);
+                Need(page.Bs.First(item => item.El != null && item.El.Av("id") == "focus-card").S.Bg == "#dff6e9" &&
+                    Object.ReferenceEquals(field, page.Fs.First(item => item.El != null && item.El.Av("id") == "focus-input")) && field.V == "Retained relational benchmark",
+                    "relational focus rebuild or field retention changed");
+                Need(engine.Qa(page, ".card:has(> img.hero)").Count == 1 &&
+                    engine.Qa(page, ".card:has(.body .ready[data-state=go])").Count == 1 &&
+                    engine.Qa(page, "#adjacent:has(+ dt)").Count == 1 &&
+                    engine.Qa(page, "#following:has(~ li.end)").Count == 1 &&
+                    engine.Qa(page, "section:has(> .body > .row + .ready)").Count == 1,
+                    "relational document queries changed");
+                Need(engine.Qa(page, "#direct:has(> img,.a,.b,.c,.d,.e,.f,.g)").Count == 1 &&
+                    engine.Qa(page, "#complex:has(> .body .ready,.a .b,.c .d,.e .f,.g .h,.i .j,.k .l,.m .n)").Count == 1 &&
+                    engine.Qa(page, "#invalid:has(.ready,)").Count == 0 && engine.Qa(page, "#invalid:has(:has(.ready))").Count == 0 &&
+                    engine.Qa(page, "#invalid:has(> .a .b .c .d .e)").Count == 0,
+                    "relational strictness, nesting, or compile limits changed");
+                Need(invalid.S.W == 92 && invalid.S.H == 21 && invalid.S.Pl == 3 && invalid.S.Bl == 0 && invalid.S.Br == 0 && invalid.S.Ml == 0 && invalid.S.Mr == 0,
+                    "invalid relational selectors escaped bounds");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(840, 760);
+                    view.Go(path);
+                    using (var paint = Draw(view)) Need(BlockContent(view, "direct").Width == 118 && BlockContent(view, "specific").Height == 37, "relational selector view geometry changed");
+                }
+                return "strict precompiled relative lists, descendant/child/adjacent/following relationships, four-part chains, eight alternatives, sixteen total parts, 4096 candidate visits, maximum specificity, dynamic focus, queries, retained fields, and geometry";
+            });
             AddProbe(probes, "Bounded media queries", delegate
             {
                 var path = Path.Combine(folder, "media-queries.html");
@@ -1004,7 +1046,7 @@ namespace Lea.Bench
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box and text styles, visibility, positioning, transforms, responsive image sizing, and bounded row/column flex properties");
+            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box and text styles, visibility, positioning, transforms, responsive image sizing, and bounded row/column flex properties");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, inline, row/column flex, table, form, image, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");
