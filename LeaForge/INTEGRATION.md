@@ -297,9 +297,16 @@ spans can grow implicit columns; area-created unsized tracks use the same
 pattern. Pixel implicit rows contribute their exact minimum to the auto-height
 measurement pass. Reset values clear the lazy pattern, and an invalid
 declaration preserves its prior value. Escaped or repeated-name occurrence
-indexes, named spans, reverse flow, pre-explicit implicit tracks, intrinsic or
-percentage tracks, auto-fit/fill, subgrid, and true inline-level outer
-formatting remain explicit compatibility limits.
+indexes and named spans remain outside this subset. `grid-template` compiles
+explicit `rows / columns` and optionally sized quoted area rows while preserving
+automatic state. `grid` accepts those forms plus row/column `auto-flow` and
+`dense` forms, resets all owned explicit and implicit properties to their
+defaults, and leaves `Gp/Rg` gaps unchanged. Explicit `auto` tracks use `S.Av`.
+Both shorthands are capped at 1,024 characters and one top-level slash; scratch
+state makes every invalid declaration atomic. Reverse flow, pre-explicit
+implicit tracks, line names around quoted shorthand area rows, intrinsic or
+percentage tracks, auto-fit/fill, subgrid, and true inline-level outer formatting
+remain explicit compatibility limits.
 
 Inherited visibility uses `S.Vi` with `v/h/c`. Hidden and collapsed content
 keeps its layout rectangle but produces no pixels, links, field hits, or editor.

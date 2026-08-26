@@ -111,7 +111,7 @@ namespace Lea.Bench
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
-                "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html",
+                "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html",
                 "box-sizing.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
@@ -1038,6 +1038,49 @@ namespace Lea.Bench
                 }
                 return "S.Av plus Gac/Gav/Rac/Rav repeating pixel, auto, integer-fr, and minmax patterns; implicit endpoints, area tracks, row settlement, validation, bounds, paint, hits, and flow";
             });
+            AddProbe(probes, "Bounded grid shorthands", delegate
+            {
+                var path = Path.Combine(folder, "grid-shorthand.html");
+                var page = new E().Go(path);
+                var explicitGrid = page.Bs.First(block => block.El != null && block.El.Av("id") == "explicit-grid").S;
+                var preserved = page.Bs.First(block => block.El != null && block.El.Av("id") == "template-preserve").S;
+                Need(explicitGrid.Rc == 2 && explicitGrid.Rv(0) == 30 && explicitGrid.Rv(1) == -1 && explicitGrid.Gc == 3 && explicitGrid.Gv(0) == 80 && explicitGrid.Gv(1) == -1 && explicitGrid.Gv(2) == -2 && explicitGrid.Gf == "r" && explicitGrid.Gac == 0, "explicit grid shorthand aliases changed");
+                Need(preserved.Rc == 2 && preserved.Gc == 2 && preserved.Gf == "x" && preserved.Gav(0) == 25 && preserved.Rav(0) == 35, "grid-template shorthand preservation changed");
+                var area = page.Bs.First(block => block.El != null && block.El.Av("id") == "area-grid").S;
+                var rowFlow = page.Bs.First(block => block.El != null && block.El.Av("id") == "row-flow-grid").S;
+                var columnFlow = page.Bs.First(block => block.El != null && block.El.Av("id") == "column-flow-grid").S;
+                Need(area.Aa == 3 && area.Ar == 2 && area.Ac == 2 && area.Ag("head", 3) == 2 && rowFlow.Gf == "d" && rowFlow.Gc == 3 && rowFlow.Rac == 2 && columnFlow.Gf == "x" && columnFlow.Rc == 2 && columnFlow.Gac == 2, "area or auto-flow shorthand aliases changed");
+                var explicitAuto = page.Bs.First(block => block.El != null && block.El.Av("id") == "explicit-auto").S;
+                var reset = page.Bs.First(block => block.El != null && block.El.Av("id") == "grid-reset").S;
+                var invalid = page.Bs.First(block => block.El != null && block.El.Av("id") == "invalid-grid").S;
+                Need(explicitAuto.Rv(0) == S.Av && explicitAuto.Gv(0) == S.Av && reset.Gc == 0 && reset.Rc == 0 && reset.Gac == 0 && reset.Gf == "r" && reset.Gp == 7 && invalid.Gc == 2 && invalid.Rc == 1 && invalid.Gac == 1 && invalid.Rac == 1 && invalid.Gf == "c", "grid shorthand auto, reset, or atomic validation changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 2000);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var explicitA = BlockOuter(view, "explicit-a");
+                        var explicitB = BlockOuter(view, "explicit-b");
+                        var explicitC = BlockOuter(view, "explicit-c");
+                        var explicitF = BlockOuter(view, "explicit-f");
+                        Need(explicitA.Size == new Size(80, 30) && explicitB.Size == new Size(66, 30) && explicitC.Size == new Size(134, 30) && explicitF.Size == new Size(134, 65), "explicit grid shorthand geometry changed");
+                        var areaHead = BlockOuter(view, "area-head");
+                        var areaNav = BlockOuter(view, "area-nav");
+                        var areaMain = BlockOuter(view, "area-main");
+                        Need(areaHead.Size == new Size(300, 30) && areaNav.Size == new Size(90, 65) && areaMain.Size == new Size(200, 65), "area grid shorthand geometry changed");
+                        var rowA = BlockOuter(view, "row-flow-a");
+                        var rowB = BlockOuter(view, "row-flow-b");
+                        var rowC = BlockOuter(view, "row-flow-c");
+                        var columnA = BlockOuter(view, "column-flow-a");
+                        var columnB = BlockOuter(view, "column-flow-b");
+                        var columnC = BlockOuter(view, "column-flow-c");
+                        var columnE = BlockOuter(view, "column-flow-e");
+                        Need(rowA.Size == new Size(180, 30) && rowB.Size == new Size(180, 65) && rowC.Size == new Size(110, 30) && rowC.Top == rowA.Top && columnA.Size == new Size(40, 25) && columnB.Size == new Size(40, 70) && columnC.Size == new Size(200, 25) && columnE.Size == new Size(40, 25) && ColoredSamples(image) > 0, "auto-flow shorthand geometry or paint changed");
+                    }
+                }
+                return "Atomic grid-template/grid explicit and quoted-area forms, row/column auto-flow dense forms, automatic patterns, reset boundaries, explicit auto tracks, geometry, paint, hits, and flow";
+            });
             AddProbe(probes, "Forms and validation", delegate
             {
                 var engine = new E();
@@ -1244,7 +1287,7 @@ namespace Lea.Bench
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
             Capability(builder, "Flexbox", "Supported subset", "Row/row-reverse and fixed-height column/column-reverse containers, content/border-box pixel bases, stable -64..64 order on nowrap rows and bounded columns, bounded row wrap, fixed/equal-share/weighted grow and integer weighted-shrink slots, explicit pixel min/max floors, pixel row/column gaps, start/center/end/space-between/space-around/space-evenly justification, and container/item stretch/start/center/end cross alignment; no intrinsic min-content sizing, fractional factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis alignment, or auto-height column reordering guarantee");
-            Capability(builder, "CSS Grid", "Supported subset", "Grid/inline-grid with up to eight fixed-pixel or integer-fr tracks per explicit axis, simple repeat and minmax(0, Nfr), pixel gaps, bounded occupancy, two-axis numeric starts/spans, validated 8x8 named-area templates, unique explicit named lines, area-generated start/end lines, Gf row/column sparse/dense flow, repeating S.Av/Gac/Gav/Rac/Rav pixel/auto/integer-fr implicit patterns, definite endpoint/span growth, area-created track sizing, exact auto-height row settlement, and shared nested paint/hit/reflow; no escaped or repeated-name occurrence indexes, reverse flow, pre-explicit implicit tracks, intrinsic or percentage tracks, auto-fit/fill, or subgrid");
+            Capability(builder, "CSS Grid", "Supported subset", "Grid/inline-grid with up to eight fixed-pixel, auto, or integer-fr tracks per explicit axis, simple repeat and minmax(0, Nfr), pixel gaps, bounded occupancy, two-axis numeric starts/spans, validated 8x8 named-area templates, unique explicit named lines, area-generated start/end lines, Gf row/column sparse/dense flow, repeating S.Av/Gac/Gav/Rac/Rav pixel/auto/integer-fr implicit patterns, definite endpoint/span growth, area-created track sizing, exact auto-height row settlement, atomic grid-template/grid explicit, quoted-area, and row/column auto-flow shorthands, and shared nested paint/hit/reflow; no escaped or repeated-name occurrence indexes, reverse flow, pre-explicit implicit tracks, shorthand area-row line names, intrinsic or percentage tracks, auto-fit/fill, or subgrid");
             Capability(builder, "Canvas and SVG", "Not supported", "Future compatibility work; no silent fallback claim");
             Capability(builder, "Audio and video", "Not supported", "Future optional module");
             Capability(builder, "Developer diagnostics", "Supported", "Bounded summary, node, CSS, request, message, and variable snapshots");

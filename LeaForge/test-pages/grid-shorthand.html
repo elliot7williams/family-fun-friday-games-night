@@ -1,0 +1,138 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea bounded grid shorthands</title>
+  <style>
+    body { background: #f7faf8; color: #18372f; font-family: Segoe UI; }
+    h1 { color: #134e4a; }
+    .grid { display: grid; margin-bottom: 12px; background: #edf6f2; }
+    .item { margin: 0; background: #dce9ff; }
+    #explicit-grid {
+      width: 300px;
+      height: 100px;
+      grid: 30px 1fr / 80px 1fr 2fr;
+      gap: 5px 10px;
+    }
+    #explicit-a { background: #d8f1e5; }
+    #explicit-c { background: #c7e9ff; }
+    #explicit-f { background: #fde3c5; }
+    #template-preserve {
+      width: 200px;
+      height: 105px;
+      grid-auto-flow: column dense;
+      grid-auto-columns: 25px;
+      grid-auto-rows: 35px;
+      grid-template: 40px 60px / 70px 1fr;
+      gap: 5px 10px;
+    }
+    #area-grid {
+      width: 300px;
+      height: 100px;
+      grid: "head head" 30px "nav main" 1fr / 90px 1fr;
+      gap: 5px 10px;
+    }
+    #area-head { grid-area: head; background: #d8f1e5; }
+    #area-nav { grid-area: nav; }
+    #area-main { grid-area: main; background: #c7e9ff; }
+    #area-auto {
+      width: 200px;
+      grid-template: "one two" / 50px 1fr;
+      column-gap: 10px;
+    }
+    #area-auto-one { grid-area: one; }
+    #area-auto-two { grid-area: two; }
+    #row-flow-grid {
+      width: 300px;
+      height: 100px;
+      grid: auto-flow dense 30px 1fr / 60px 1fr 1fr;
+      gap: 5px 10px;
+    }
+    #row-flow-a, #row-flow-b { grid-column: span 2; }
+    #row-flow-a { background: #d8f1e5; }
+    #row-flow-b { background: #c7e9ff; }
+    #row-flow-c { background: #fde3c5; }
+    #column-flow-grid {
+      width: 300px;
+      height: 100px;
+      grid: 25px 1fr / dense auto-flow 40px 1fr;
+      gap: 5px 10px;
+    }
+    #column-flow-a { background: #d8f1e5; }
+    #column-flow-c { background: #c7e9ff; }
+    #column-flow-e { background: #fde3c5; }
+    #explicit-auto {
+      grid-template: auto 20px / repeat(2, auto);
+    }
+    #grid-reset {
+      gap: 7px;
+      grid-template-columns: 20px;
+      grid-template-rows: 30px;
+      grid-template-areas: "reset";
+      grid-auto-columns: 40px;
+      grid-auto-rows: 50px;
+      grid-auto-flow: column dense;
+      grid: none;
+    }
+    #template-reset {
+      grid-auto-columns: 40px;
+      grid-auto-rows: 50px;
+      grid-auto-flow: column;
+      grid-template: 20px / 30px;
+      grid-template: none;
+    }
+    #invalid-grid {
+      grid-template-columns: 50px 1fr;
+      grid-template-rows: 20px;
+      grid-auto-columns: 30px;
+      grid-auto-rows: 40px;
+      grid-auto-flow: column;
+      grid: auto-flow diagonal / 1fr;
+    }
+    #invalid-template {
+      grid-template-columns: 45px 1fr;
+      grid-template-rows: 25px 1fr;
+      grid-template: "same same" 30px "broken" 1fr / 50px 1fr;
+    }
+    #shorthand-target { background: #edf6f2; }
+    #after-shorthands { width: 320px; padding: 5px; border-left: 3px solid #b91c1c; background: #f8eeee; }
+  </style>
+</head>
+<body>
+  <h1>Bounded grid shorthands</h1>
+  <section id="explicit-grid" class="grid">
+    <p id="explicit-a" class="item">A</p><p id="explicit-b" class="item">B</p><p id="explicit-c" class="item">C</p>
+    <p id="explicit-d" class="item">D</p><p id="explicit-e" class="item">E</p><p id="explicit-f" class="item">F</p>
+  </section>
+  <section id="template-preserve" class="grid">
+    <p id="template-preserve-a" class="item">A</p><p id="template-preserve-b" class="item">B</p>
+    <p id="template-preserve-c" class="item">C</p><p id="template-preserve-d" class="item">D</p>
+  </section>
+  <section id="area-grid" class="grid">
+    <p id="area-head" class="item">Header</p>
+    <p id="area-nav" class="item">Navigation</p>
+    <p id="area-main" class="item">Main</p>
+  </section>
+  <section id="area-auto" class="grid">
+    <p id="area-auto-one" class="item">Auto row one</p>
+    <p id="area-auto-two" class="item">Auto row two</p>
+  </section>
+  <section id="row-flow-grid" class="grid">
+    <p id="row-flow-a" class="item">Row A</p>
+    <p id="row-flow-b" class="item">Row B</p>
+    <p id="row-flow-c" class="item">Row C</p>
+  </section>
+  <section id="column-flow-grid" class="grid">
+    <p id="column-flow-a" class="item">Column A</p><p id="column-flow-b" class="item">Column B</p>
+    <p id="column-flow-c" class="item">Column C</p><p id="column-flow-d" class="item">Column D</p>
+    <a id="column-flow-e" class="item" href="#shorthand-target">Column E link</a>
+  </section>
+  <section id="explicit-auto" class="grid"><p class="item">Explicit auto tracks.</p></section>
+  <section id="grid-reset" class="grid"><p class="item">Grid reset.</p></section>
+  <section id="template-reset" class="grid"><p class="item">Template reset.</p></section>
+  <section id="invalid-grid" class="grid"><p class="item">Invalid grid shorthand.</p></section>
+  <section id="invalid-template" class="grid"><p class="item">Invalid template shorthand.</p></section>
+  <p id="shorthand-target">Grid shorthand fragment target</p>
+  <p id="after-shorthands">Normal document flow continues below shorthand grids.</p>
+</body>
+</html>

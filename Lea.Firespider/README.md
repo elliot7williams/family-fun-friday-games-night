@@ -74,10 +74,12 @@ order, implicit rows, validated named-area templates through
 auto flow stay inside `V`. Repeating pixel/auto/integer-fr implicit patterns use
 `S.Av` and `Gac/Gav/Rac/Rav`; definite endpoints, largest spans, area-created
 tracks, and auto-height pixel rows share the placement and measurement passes.
+Atomic `grid-template`/`grid` explicit, quoted-area, row auto-flow, and column
+auto-flow forms compile into that state and retain standard gap/reset boundaries.
 Definite-first placement, nested content, fields, painting, hits, and responsive
 reflow use the same path. The host smoke verifies exact mixed
-column/row/named-area/named-line/dense/column-flow/auto-track geometry, dot-cell
-auto placement, ownership, queries, and Inspector CSS without adding
+column/row/named-area/named-line/dense/column-flow/auto-track/shorthand geometry,
+dot-cell auto placement, ownership, queries, and Inspector CSS without adding
 adapter-side layout logic.
 
 Firespider can also read `B.S.Bz` as `c/b` for non-inherited content-box or

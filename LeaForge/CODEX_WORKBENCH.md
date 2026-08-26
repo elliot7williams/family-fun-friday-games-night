@@ -36,8 +36,13 @@ Safe scripts and hosts now also use `hd/sh`, `op/cl/tg`, `ds/en`, `vl`, `ck`, an
 `fo` for bounded visibility, disclosure, disabled, value, checked, and focus state. A retained field
 map preserves one existing model while hidden; `E.Kp` and `V` consume one focus
 request without exposing files, passwords, arbitrary attributes, or native UI.
-`grid-auto-tracks.html` brings the benchmark to 39 fixtures and 38 executable
-compatibility probes. `S.Av` plus `Gac/Gav/Rac/Rav` cover repeating pixel,
+`grid-shorthand.html` brings the benchmark to 40 fixtures and 39 executable
+compatibility probes. Atomic `grid-template` and `grid` compilation covers
+explicit tracks, optionally sized quoted areas, row/column auto-flow and dense
+forms, explicit auto tracks, owned reset boundaries, malformed declaration
+preservation, exact geometry, paint, hits, following flow, and Firespider host
+checks. The preceding `grid-auto-tracks.html` fixture covers `S.Av` plus
+`Gac/Gav/Rac/Rav` repeating pixel,
 auto, integer-fr, and minmax implicit patterns, definite endpoint/span growth,
 area-created columns, exact auto-height row settlement, atomic validation,
 paint, hits, following flow, and Firespider host geometry. The preceding

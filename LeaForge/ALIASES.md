@@ -194,10 +194,10 @@ outside the subset.
 
 For Lea's bounded grid subset, `D` is `grid` or `inline-grid`. Column tracks stay
 lazy in compact `Gd`, with `Gc/Gv(index)` inspection; rows mirror them through
-`Rd` and `Rc/Rv(index)`. A template accepts one to eight `0..2000px` or
+`Rd` and `Rc/Rv(index)`. A template accepts one to eight `0..2000px`, `auto`, or
 `1..64fr` tracks, simple `repeat(1..8, track)` expansion, and `minmax(0, Nfr)`
-as a bounded flexible-track spelling. Nonnegative values are pixels and negative
-values are integer `fr` weights. `Gp/Rg` retain the
+as a bounded flexible-track spelling. Nonnegative values are pixels, `S.Av=-65`
+is auto, and the other negative values are integer `fr` weights. `Gp/Rg` retain the
 0..512 pixel column/row gaps, including legacy `grid-column-gap`,
 `grid-row-gap`, and `grid-gap`. Direct items use `Gl=0` for auto placement or
 `1..8` for a numeric column start, while `Gs=1..8` is the column span. Rows use
@@ -263,9 +263,24 @@ Pixel auto rows contribute a minimum during Lea's measurement pass, so an
 auto-height grid settles to its authored repeating row sizes before final
 placement. `initial`, `unset`, `revert`, `revert-layer`, and a lone `auto`
 restore the default; malformed, percentage, intrinsic, repeated, oversized,
-or excess patterns preserve the prior value atomically. Reverse flow,
-pre-explicit implicit tracks, shorthand `grid` auto-flow syntax, intrinsic or
-percentage tracks, auto-fit/fill, and subgrid remain outside the bounded subset.
+or excess patterns preserve the prior value atomically.
+
+`grid-template` and `grid` compile into those same aliases without adding a
+second layout model. Bounded `grid-template` accepts explicit `rows / columns`
+or one to eight quoted area rows, each with an optional pixel, auto, integer-fr,
+or minmax size, followed by optional `/ columns`. It resets `Gd/Rd/Gnd/Rnd` and
+`Ad/Ar/Ac` while preserving `Gf/Gad/Rad`. `grid` accepts the same explicit forms
+and also `auto-flow [dense] auto-rows / columns` or
+`rows / [dense] auto-flow auto-columns`. An explicit `grid` form resets all
+three automatic properties to row/auto defaults; an auto-flow form resets the
+unused explicit and automatic axis. Both shorthands accept one top-level slash
+and at most 1,024 characters. `none`, `initial`, `unset`, `revert`, and
+`revert-layer` reset their owned longhands, while `grid` deliberately leaves
+`Gp/Rg` gaps untouched. Parsing uses scratch style state, so malformed sides,
+areas, flow markers, track lists, or extra slashes preserve every prior owned
+value atomically. Reverse flow, pre-explicit implicit tracks, line names around
+quoted shorthand area rows, intrinsic or percentage tracks, auto-fit/fill, and
+subgrid remain outside the bounded subset.
 
 Document lookup stays short and bounded. `E.Id(page, id)` finds the first ID,
 `E.Q(page, selector)` finds the first document-order selector match, and

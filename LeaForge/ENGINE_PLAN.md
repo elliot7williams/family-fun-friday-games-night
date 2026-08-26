@@ -133,9 +133,11 @@ Dg/Dcl  diagnostics/clear request activity
     overflow, and real-height visual traversal. Repeating implicit column/row
     patterns add `S.Av` plus `Gac/Gav/Rac/Rav` inspection, pixel/auto/integer-fr
     and minmax sizing, definite endpoint/span growth, area-created track sizing,
-    and exact auto-height row settlement. Reverse flow, pre-explicit implicit
-    tracks, intrinsic/percentage tracks, and grid auto-flow shorthand syntax
-    stay outside.)
+    and exact auto-height row settlement. Atomic `grid-template`/`grid` forms add
+    explicit rows/columns, optionally sized quoted areas, row/column auto-flow
+    and dense syntax, explicit auto tracks, and standard owned-property resets
+    without resetting gaps. Reverse flow, pre-explicit implicit tracks, quoted
+    area-row line names, and intrinsic/percentage tracks stay outside.)
 
 This is the largest speed milestone: fewer controls, less UI overhead, and one
 predictable rendering pass.
@@ -318,7 +320,15 @@ non-empty bridge survives both direct and external MTA clients. Continue host
 coverage and bounded HTML/CSS compatibility work without adding another browser
 runtime.
 
-The latest completed grid milestone added bounded repeating
+The latest completed grid milestone added bounded atomic `grid-template` and
+`grid` shorthands. Explicit rows/columns, optionally sized quoted areas,
+row/column auto-flow and dense forms, explicit auto tracks, standard reset
+boundaries, and preserved gaps all compile into the existing aliases. Scratch
+state makes malformed sides, areas, tracks, flow markers, and extra slashes
+atomic. Exact geometry, paint, hits, benchmark, and Firespider host coverage use
+the existing placement map and renderer.
+
+The previous grid milestone added bounded repeating
 `grid-auto-columns/rows` sizing. `S.Av` plus `Gac/Gav/Rac/Rav` inspect up to
 eight pixel, auto, integer-fr, or minmax entries; patterns cycle after explicit
 tracks, size area-created tracks, honor definite endpoints and largest spans,

@@ -3189,6 +3189,8 @@ namespace Lea.Engine
                 else if (name == "gap" || name == "grid-gap") Gap(style, value);
                 else if (name == "column-gap" || name == "grid-column-gap") OneGap(style, value, false);
                 else if (name == "row-gap" || name == "grid-row-gap") OneGap(style, value, true);
+                else if (name == "grid-template") GridShorthand(style, value, true);
+                else if (name == "grid") GridShorthand(style, value, false);
                 else if (name == "grid-template-columns") GridTemplate(style, value, false);
                 else if (name == "grid-template-rows") GridTemplate(style, value, true);
                 else if (name == "grid-template-areas") GridTemplateAreas(style, value);
@@ -3518,7 +3520,7 @@ namespace Lea.Engine
 
             for (var expansion = 0; expansion < 8; expansion++)
             {
-                var repeat = Regex.Match(source, "repeat\\(\\s*(?<n>[1-8])\\s*,\\s*(?<t>(?:[0-9]{1,4}px|[1-9][0-9]?fr))\\s*\\)", RegexOptions.IgnoreCase);
+                var repeat = Regex.Match(source, "repeat\\(\\s*(?<n>[1-8])\\s*,\\s*(?<t>(?:[0-9]{1,4}px|[1-9][0-9]?fr|auto))\\s*\\)", RegexOptions.IgnoreCase);
                 if (!repeat.Success) break;
                 int count;
                 if (!Int32.TryParse(repeat.Groups["n"].Value, out count)) return;
@@ -3559,7 +3561,8 @@ namespace Lea.Engine
                 var pixels = Regex.Match(token, "^(?<n>[0-9]{1,4})px$", RegexOptions.IgnoreCase);
                 var fraction = Regex.Match(token, "^(?<n>[1-9][0-9]?)fr$", RegexOptions.IgnoreCase);
                 int number;
-                if (pixels.Success && Int32.TryParse(pixels.Groups["n"].Value, out number) && number <= 2000) tracks.Add(number);
+                if (token.Equals("auto", StringComparison.OrdinalIgnoreCase)) tracks.Add(S.Av);
+                else if (pixels.Success && Int32.TryParse(pixels.Groups["n"].Value, out number) && number <= 2000) tracks.Add(number);
                 else if (fraction.Success && Int32.TryParse(fraction.Groups["n"].Value, out number) && number <= 64) tracks.Add(-number);
                 else return;
             }
@@ -3623,6 +3626,145 @@ namespace Lea.Engine
             else if (source == "dense" || source == "row dense" || source == "dense row") style.Gf = "d";
             else if (source == "column") style.Gf = "c";
             else if (source == "column dense" || source == "dense column") style.Gf = "x";
+        }
+
+        private static void GridShorthand(S style, string value, bool templateOnly)
+        {
+            var source = (value ?? "").Trim();
+            if (source.Length == 0 || source.Length > 1024) return;
+            var reset = source.Equals("none", StringComparison.OrdinalIgnoreCase) || source.Equals("initial", StringComparison.OrdinalIgnoreCase) ||
+                source.Equals("unset", StringComparison.OrdinalIgnoreCase) || source.Equals("revert", StringComparison.OrdinalIgnoreCase) ||
+                source.Equals("revert-layer", StringComparison.OrdinalIgnoreCase);
+            var parsed = new S();
+            if (!reset && !GridShorthandParse(parsed, source, !templateOnly)) return;
+            GridTemplateCopy(style, parsed);
+            if (!templateOnly) GridAutomaticCopy(style, parsed);
+        }
+
+        private static bool GridShorthandParse(S style, string source, bool allowFlow)
+        {
+            var slash = GridShorthandSlash(source);
+            if (slash == -2) return false;
+            var left = (slash < 0 ? source : source.Substring(0, slash)).Trim();
+            var right = slash < 0 ? "" : source.Substring(slash + 1).Trim();
+            if (left.Length == 0 || slash >= 0 && right.Length == 0) return false;
+
+            bool leftDense;
+            var rightDense = false;
+            string leftAutomatic;
+            var rightAutomatic = "";
+            var leftFlow = GridFlowShorthandSide(left, out leftDense, out leftAutomatic);
+            var rightFlow = slash >= 0 && GridFlowShorthandSide(right, out rightDense, out rightAutomatic);
+            if (leftFlow || rightFlow)
+            {
+                if (!allowFlow || slash < 0 || leftFlow && rightFlow) return false;
+                if (leftFlow)
+                {
+                    if (!GridTemplateAxis(style, right, false) || !GridAutomaticAxis(style, leftAutomatic, true)) return false;
+                    style.Gf = leftDense ? "d" : "r";
+                }
+                else
+                {
+                    if (!GridTemplateAxis(style, left, true) || !GridAutomaticAxis(style, rightAutomatic, false)) return false;
+                    style.Gf = rightDense ? "x" : "c";
+                }
+                return true;
+            }
+            if (left.IndexOf("auto-flow", StringComparison.OrdinalIgnoreCase) >= 0 || right.IndexOf("auto-flow", StringComparison.OrdinalIgnoreCase) >= 0) return false;
+            if (left.IndexOf('"') >= 0 || left.IndexOf('\'') >= 0) return GridAreaShorthand(style, left, slash < 0 ? null : right);
+            return slash >= 0 && GridTemplateAxis(style, left, true) && GridTemplateAxis(style, right, false);
+        }
+
+        private static int GridShorthandSlash(string source)
+        {
+            var quote = '\0';
+            var parentheses = 0;
+            var brackets = 0;
+            var slash = -1;
+            for (var index = 0; index < source.Length; index++)
+            {
+                var current = source[index];
+                if (quote != '\0')
+                {
+                    if (current == quote) quote = '\0';
+                    continue;
+                }
+                if (current == '"' || current == '\'') { quote = current; continue; }
+                if (current == '(') parentheses++;
+                else if (current == ')' && --parentheses < 0) return -2;
+                else if (current == '[') brackets++;
+                else if (current == ']' && --brackets < 0) return -2;
+                else if (current == '/' && parentheses == 0 && brackets == 0)
+                {
+                    if (slash >= 0) return -2;
+                    slash = index;
+                }
+            }
+            return quote == '\0' && parentheses == 0 && brackets == 0 ? slash : -2;
+        }
+
+        private static bool GridFlowShorthandSide(string source, out bool dense, out string tracks)
+        {
+            dense = false;
+            tracks = "";
+            var match = Regex.Match(source ?? "", "^(?:auto-flow(?:\\s+(?<d>dense))?|(?<d>dense)\\s+auto-flow)(?:\\s+(?<t>.+))?$", RegexOptions.IgnoreCase);
+            if (!match.Success) return false;
+            dense = match.Groups["d"].Success;
+            tracks = match.Groups["t"].Success ? match.Groups["t"].Value.Trim() : "";
+            return true;
+        }
+
+        private static bool GridTemplateAxis(S style, string source, bool rows)
+        {
+            if (source.Equals("none", StringComparison.OrdinalIgnoreCase)) return true;
+            GridTemplate(style, source, rows);
+            return rows ? style.Rc > 0 : style.Gc > 0;
+        }
+
+        private static bool GridAutomaticAxis(S style, string source, bool rows)
+        {
+            if (String.IsNullOrEmpty(source) || source.Equals("auto", StringComparison.OrdinalIgnoreCase)) return true;
+            GridAutoTracks(style, source, rows);
+            return rows ? style.Rac > 0 : style.Gac > 0;
+        }
+
+        private static bool GridAreaShorthand(S style, string rows, string columns)
+        {
+            var matches = Regex.Matches(rows, "\"(?<d>[^\"]*)\"|'(?<s>[^']*)'");
+            if (matches.Count < 1 || matches.Count > 8 || !Regex.IsMatch(rows.Substring(0, matches[0].Index), "^\\s*$")) return false;
+            var areas = new List<string>();
+            var tracks = new List<string>();
+            for (var index = 0; index < matches.Count; index++)
+            {
+                var match = matches[index];
+                areas.Add(match.Value);
+                var end = index + 1 < matches.Count ? matches[index + 1].Index : rows.Length;
+                var track = rows.Substring(match.Index + match.Length, end - match.Index - match.Length).Trim();
+                tracks.Add(track.Length == 0 ? "auto" : track);
+            }
+            GridTemplateAreas(style, String.Join(" ", areas));
+            if (style.Ar != matches.Count) return false;
+            GridTemplate(style, String.Join(" ", tracks), true);
+            if (style.Rc != matches.Count) return false;
+            return columns == null || GridTemplateAxis(style, columns, false);
+        }
+
+        private static void GridTemplateCopy(S target, S source)
+        {
+            target.Gd = source.Gd;
+            target.Rd = source.Rd;
+            target.Gnd = source.Gnd;
+            target.Rnd = source.Rnd;
+            target.Ad = source.Ad;
+            target.Ar = source.Ar;
+            target.Ac = source.Ac;
+        }
+
+        private static void GridAutomaticCopy(S target, S source)
+        {
+            target.Gad = source.Gad;
+            target.Rad = source.Rad;
+            target.Gf = source.Gf;
         }
 
         private static void GridPlacement(S style, string value, bool rows)
