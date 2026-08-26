@@ -75,9 +75,10 @@ LeaForge is where we can grow the more full-featured browser.
   repeating implicit track patterns through `S.Av` and `Gac/Gav/Rac/Rav`,
   atomic `grid-template`/`grid` explicit, quoted-area, and row/column auto-flow
   shorthands, compact `Ji/Js/Ai/As` item alignment with atomic
-  `place-items`/`place-self`, definite-first placement, bounded implicit
-  endpoints, nested content, paint, hits, fields, auto-height row measurement,
-  and responsive reflow
+  `place-items`/`place-self`, `Al/Jc` track-group alignment with atomic
+  `place-content`, definite-first placement, bounded implicit endpoints, nested
+  content, paint, hits, fields, auto-height row measurement, and responsive
+  reflow
 - auto-height styled semantic containers with nested normal-flow ownership
 - nested positioning with explicit z-index, opacity/isolation contexts, settled auto height, and inherited clipping
 - compact inset stretching plus translated block stacking contexts

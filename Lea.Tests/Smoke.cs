@@ -2719,6 +2719,51 @@ namespace Lea.Tests
                         Ok(!FragmentHitRect(view, "#alignment-target").IsEmpty && BlockOuterRect(view, BlockById(view.At, "after-alignment")).Top > BlockOuterRect(view, BlockById(view.At, "alignment-target")).Bottom, "grid alignment hits and following flow");
                         Ok(ColorDistance(alignmentPaint.GetPixel(placeC.Left + 4, placeC.Top + 4), Color.FromArgb(253, 227, 197)) < 8, "grid alignment paint");
                     }
+                    var contentAlignmentPath = Path.Combine(root, "LeaForge", "test-pages", "grid-content-alignment.html");
+                    var contentAlignmentPage = engine.Go(contentAlignmentPath);
+                    var centerContent = BlockById(contentAlignmentPage, "center-grid").S;
+                    var axisContent = BlockById(contentAlignmentPage, "axis-grid").S;
+                    var betweenContent = BlockById(contentAlignmentPage, "between-grid").S;
+                    var mixedContent = BlockById(contentAlignmentPage, "mixed-grid").S;
+                    Ok(centerContent.Al == "c" && centerContent.Jc == "c" && axisContent.Al == "e" && axisContent.Jc == "s", "place-content center and two-value aliases");
+                    Ok(betweenContent.Al == "b" && betweenContent.Jc == "b" && mixedContent.Al == "a" && mixedContent.Jc == "v", "place-content distribution aliases");
+                    var longhandContent = BlockById(contentAlignmentPage, "longhand-content").S;
+                    var atomicContent = BlockById(contentAlignmentPage, "atomic-content").S;
+                    var resetContent = BlockById(contentAlignmentPage, "reset-content").S;
+                    var stretchContent = BlockById(contentAlignmentPage, "stretch-content").S;
+                    Ok(longhandContent.Al == "c" && longhandContent.Jc == "e", "align-content and justify-content longhand aliases");
+                    Ok(atomicContent.Al == "e" && atomicContent.Jc == "c", "invalid place-content preserves both prior axes atomically");
+                    Ok(resetContent.Al == "s" && resetContent.Jc == "s" && stretchContent.Al == "s" && stretchContent.Jc == "s", "place-content reset and bounded stretch aliases");
+                    view.Size = new Size(720, 2600);
+                    view.Go(contentAlignmentPath);
+                    using (var contentAlignmentPaint = Render(view))
+                    {
+                        var center = BlockOuterRect(view, BlockById(view.At, "center-grid"));
+                        var centerA = BlockOuterRect(view, BlockById(view.At, "center-a"));
+                        var centerD = BlockOuterRect(view, BlockById(view.At, "center-d"));
+                        Ok(centerA.Size == new Size(80, 40) && centerA.Left - center.Left == 55 && centerA.Top - center.Top == 55, "grid centered track-group geometry");
+                        Ok(centerD.Size == new Size(100, 60) && centerD.Left - center.Left == 145 && centerD.Top - center.Top == 105, "grid centered second track geometry");
+                        var axis = BlockOuterRect(view, BlockById(view.At, "axis-grid"));
+                        var axisA = BlockOuterRect(view, BlockById(view.At, "axis-a"));
+                        var axisD = BlockOuterRect(view, BlockById(view.At, "axis-d"));
+                        Ok(axisA.Left == axis.Left && axisA.Top - axis.Top == 110 && axisD.Left - axis.Left == 90 && axisD.Top - axis.Top == 160, "grid two-axis end/start content geometry");
+                        var between = BlockOuterRect(view, BlockById(view.At, "between-grid"));
+                        var betweenA = BlockOuterRect(view, BlockById(view.At, "between-a"));
+                        var betweenB = BlockOuterRect(view, BlockById(view.At, "between-b"));
+                        var betweenC = BlockOuterRect(view, BlockById(view.At, "between-c"));
+                        Ok(betweenA.Location == between.Location && betweenB.Left - between.Left == 200 && betweenC.Top - between.Top == 160, "grid space-between track distribution");
+                        var mixed = BlockOuterRect(view, BlockById(view.At, "mixed-grid"));
+                        var mixedA = BlockOuterRect(view, BlockById(view.At, "mixed-a"));
+                        var mixedB = BlockOuterRect(view, BlockById(view.At, "mixed-b"));
+                        var mixedC = BlockOuterRect(view, BlockById(view.At, "mixed-c"));
+                        var mixedD = BlockOuterRect(view, BlockById(view.At, "mixed-d"));
+                        Ok(mixedA.Left - mixed.Left == 40 && mixedA.Top - mixed.Top == 30 && mixedB.Left - mixed.Left == 160 && mixedC.Top - mixed.Top == 130 && mixedD.Location == new Point(mixed.Left + 160, mixed.Top + 130), "grid mixed around/evenly content geometry");
+                        var longhand = BlockOuterRect(view, BlockById(view.At, "longhand-content"));
+                        var longhandItem = BlockOuterRect(view, BlockById(view.At, "longhand-item"));
+                        Ok(longhandItem.Left - longhand.Left == 120 && longhandItem.Top - longhand.Top == 60, "grid longhand content alignment geometry");
+                        Ok(!FragmentHitRect(view, "#content-target").IsEmpty && BlockOuterRect(view, BlockById(view.At, "after-content")).Top > BlockOuterRect(view, BlockById(view.At, "content-target")).Bottom, "grid content alignment hits and following flow");
+                        Ok(ColorDistance(contentAlignmentPaint.GetPixel(mixedA.Left + 4, mixedA.Top + 4), Color.FromArgb(253, 227, 197)) < 8, "grid content alignment paint");
+                    }
                     view.Size = new Size(720, 760);
                     var boxes = Path.Combine(root, "LeaForge", "test-pages", "boxes.html");
                     var boxPage = engine.Go(boxes);

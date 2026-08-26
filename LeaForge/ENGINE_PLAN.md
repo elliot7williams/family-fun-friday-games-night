@@ -138,9 +138,11 @@ Dg/Dcl  diagnostics/clear request activity
     and dense syntax, explicit auto tracks, and standard owned-property resets
     without resetting gaps. Compact `Ji/Js/Ai/As` item alignment adds
     stretch/start/center/end container defaults and overrides plus atomic
-    `place-items`/`place-self`. Reverse flow, pre-explicit implicit tracks,
-    quoted area-row line names, intrinsic/percentage tracks, baseline alignment,
-    and writing-mode axis reversal stay outside.)
+    `place-items`/`place-self`. Compact `Al/Jc` track-group alignment adds
+    start/center/end/between/around/evenly distribution plus atomic
+    `place-content`. Reverse flow, pre-explicit implicit tracks, quoted area-row
+    line names, intrinsic/percentage tracks, baseline alignment, and writing-mode
+    axis reversal stay outside.)
 
 This is the largest speed milestone: fewer controls, less UI overhead, and one
 predictable rendering pass.
@@ -323,7 +325,14 @@ non-empty bridge survives both direct and external MTA clients. Continue host
 coverage and bounded HTML/CSS compatibility work without adding another browser
 runtime.
 
-The latest completed grid milestone added bounded Grid item alignment. Compact
+The latest completed grid milestone added bounded Grid content alignment.
+Compact `Al/Jc=s/c/e/b/a/v` state, one/two-value atomic `place-content`, and the
+shared integer distribution helper position fixed track groups across definite
+block/inline axes. Exact center/end/between/around/evenly geometry, resets,
+invalid preservation, paint, hits, benchmark, and Firespider host coverage use
+the existing track arrays and renderer.
+
+The previous grid milestone added bounded Grid item alignment. Compact
 `Ji/Js/Ai/As` state, start/center/end/stretch defaults and overrides, atomic
 `place-items`/`place-self`, measured simple-text auto width, resolved-row block
 alignment, exact geometry, paint, hits, benchmark, and Firespider host coverage

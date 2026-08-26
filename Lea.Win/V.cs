@@ -1194,7 +1194,10 @@ namespace Lea.Win
             var rowStarts = heights == null ? null : new int[rows];
             if (rowStarts != null)
             {
-                var top = context.C.Y;
+                var usedHeight = rowGap * Math.Max(0, rows - 1);
+                foreach (var height in heights) usedHeight += height;
+                var rowOffset = FlexJustify(style.Al, rows, Math.Max(0, context.C.Height - usedHeight), false, ref rowGap);
+                var top = context.C.Y + rowOffset;
                 for (var index = 0; index < rows; index++)
                 {
                     rowStarts[index] = top;

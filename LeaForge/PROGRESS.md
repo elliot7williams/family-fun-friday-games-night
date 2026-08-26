@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **31**
+Post-1.0 hardening milestones completed: **32**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,13 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded CSS Grid content alignment. Compact `Al/Jc=s/c/e/b/a/v` state
+  distributes fixed track groups on the block/inline axes using start, center,
+  end, between, around, or evenly modes. Atomic one/two-value `place-content`,
+  resets, invalid preservation, definite-height row offsets, authored gaps,
+  exact geometry, paint, hits, following flow, benchmark, and Firespider host
+  coverage bring the suite to 42 fixtures and 41 executable probes.
 
 - Added bounded CSS Grid item alignment. Compact `Ji/Js` inline-axis state joins
   `Ai/As` block-axis state for stretch/start/center/end container defaults and

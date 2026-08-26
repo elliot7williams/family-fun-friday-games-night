@@ -295,6 +295,18 @@ row keeps natural start flow. `normal`, reset keywords, and auto self values
 restore stretch/parent defaults. Safe/unsafe overflow alignment, baselines,
 legacy alignment, and writing-mode axis reversal remain outside this subset.
 
+Grid track-group alignment uses `Al/Jc=s/c/e/b/a/v` for block/inline-axis start,
+center, end, space-between, space-around, or space-evenly. `align-content` fills
+`Al`; the existing `justify-content` alias supplies `Jc`; one/two-value
+`place-content` updates both atomically in block/inline order. Distribution runs
+after bounded track sizing and authored gaps. Fixed tracks inside a definite
+grid can leave free space for offsets or enlarged between-track gaps, while
+`fr` and bounded `auto` tracks normally consume that space first. `normal`,
+`stretch`, and reset keywords use the start-compatible compact default; auto
+tracks already provide Lea's bounded stretch behavior. Invalid values preserve
+both prior axes. Baseline, safe/unsafe overflow, fallback positions, and
+writing-mode axis reversal remain outside this subset.
+
 Document lookup stays short and bounded. `E.Id(page, id)` finds the first ID,
 `E.Q(page, selector)` finds the first document-order selector match, and
 `E.Qa(page, selector)` returns a read-only list of at most 256 matches. Queries

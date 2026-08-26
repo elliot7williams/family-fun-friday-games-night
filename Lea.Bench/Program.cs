@@ -111,7 +111,7 @@ namespace Lea.Bench
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
-                "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html",
+                "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html",
                 "box-sizing.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
@@ -1121,6 +1121,42 @@ namespace Lea.Bench
                 }
                 return "Ji/Js plus Ai/As start, center, end, and stretch defaults/overrides; atomic place-items/place-self, auto fit, exact geometry, paint, hits, and flow";
             });
+            AddProbe(probes, "Bounded grid content alignment", delegate
+            {
+                var path = Path.Combine(folder, "grid-content-alignment.html");
+                var page = new E().Go(path);
+                var center = page.Bs.First(block => block.El != null && block.El.Av("id") == "center-grid").S;
+                var axis = page.Bs.First(block => block.El != null && block.El.Av("id") == "axis-grid").S;
+                var between = page.Bs.First(block => block.El != null && block.El.Av("id") == "between-grid").S;
+                var mixed = page.Bs.First(block => block.El != null && block.El.Av("id") == "mixed-grid").S;
+                var atomic = page.Bs.First(block => block.El != null && block.El.Av("id") == "atomic-content").S;
+                var reset = page.Bs.First(block => block.El != null && block.El.Av("id") == "reset-content").S;
+                Need(center.Al == "c" && center.Jc == "c" && axis.Al == "e" && axis.Jc == "s", "grid content center or axis aliases changed");
+                Need(between.Al == "b" && between.Jc == "b" && mixed.Al == "a" && mixed.Jc == "v", "grid content distribution aliases changed");
+                Need(atomic.Al == "e" && atomic.Jc == "c" && reset.Al == "s" && reset.Jc == "s", "grid content atomic/reset state changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 2600);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var centerGrid = BlockOuter(view, "center-grid");
+                        var centerA = BlockOuter(view, "center-a");
+                        var centerD = BlockOuter(view, "center-d");
+                        Need(centerA.Size == new Size(80, 40) && centerA.Left - centerGrid.Left == 55 && centerA.Top - centerGrid.Top == 55 && centerD.Left - centerGrid.Left == 145 && centerD.Top - centerGrid.Top == 105, "grid centered content geometry changed");
+                        var betweenGrid = BlockOuter(view, "between-grid");
+                        var betweenB = BlockOuter(view, "between-b");
+                        var betweenC = BlockOuter(view, "between-c");
+                        Need(betweenB.Left - betweenGrid.Left == 200 && betweenC.Top - betweenGrid.Top == 160, "grid space-between content geometry changed");
+                        var mixedGrid = BlockOuter(view, "mixed-grid");
+                        var mixedA = BlockOuter(view, "mixed-a");
+                        var mixedB = BlockOuter(view, "mixed-b");
+                        var mixedC = BlockOuter(view, "mixed-c");
+                        Need(mixedA.Left - mixedGrid.Left == 40 && mixedA.Top - mixedGrid.Top == 30 && mixedB.Left - mixedGrid.Left == 160 && mixedC.Top - mixedGrid.Top == 130 && ColoredSamples(image) > 0, "grid around/evenly content geometry or paint changed");
+                    }
+                }
+                return "Al/Jc start, center, end, between, around, and evenly track-group distribution; atomic place-content, exact geometry, paint, hits, and flow";
+            });
             AddProbe(probes, "Forms and validation", delegate
             {
                 var engine = new E();
@@ -1327,7 +1363,7 @@ namespace Lea.Bench
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
             Capability(builder, "Flexbox", "Supported subset", "Row/row-reverse and fixed-height column/column-reverse containers, content/border-box pixel bases, stable -64..64 order on nowrap rows and bounded columns, bounded row wrap, fixed/equal-share/weighted grow and integer weighted-shrink slots, explicit pixel min/max floors, pixel row/column gaps, start/center/end/space-between/space-around/space-evenly justification, and container/item stretch/start/center/end cross alignment; no intrinsic min-content sizing, fractional factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis alignment, or auto-height column reordering guarantee");
-            Capability(builder, "CSS Grid", "Supported subset", "Grid/inline-grid with up to eight fixed-pixel, auto, or integer-fr tracks per explicit axis, simple repeat and minmax(0, Nfr), pixel gaps, bounded occupancy, two-axis numeric starts/spans, validated 8x8 named-area templates, unique explicit named lines, area-generated start/end lines, Gf row/column sparse/dense flow, repeating S.Av/Gac/Gav/Rac/Rav pixel/auto/integer-fr implicit patterns, definite endpoint/span growth, area-created track sizing, exact auto-height row settlement, atomic grid-template/grid explicit, quoted-area, and row/column auto-flow shorthands, Ji/Js/Ai/As start/center/end/stretch item alignment, atomic place-items/place-self, and shared nested paint/hit/reflow; no escaped or repeated-name occurrence indexes, reverse flow, pre-explicit implicit tracks, shorthand area-row line names, intrinsic or percentage tracks, auto-fit/fill, baseline or safe/unsafe alignment, writing-mode axis reversal, or subgrid");
+            Capability(builder, "CSS Grid", "Supported subset", "Grid/inline-grid with up to eight fixed-pixel, auto, or integer-fr tracks per explicit axis, simple repeat and minmax(0, Nfr), pixel gaps, bounded occupancy, two-axis numeric starts/spans, validated 8x8 named-area templates, unique explicit named lines, area-generated start/end lines, Gf row/column sparse/dense flow, repeating S.Av/Gac/Gav/Rac/Rav pixel/auto/integer-fr implicit patterns, definite endpoint/span growth, area-created track sizing, exact auto-height row settlement, atomic grid-template/grid explicit, quoted-area, and row/column auto-flow shorthands, Ji/Js/Ai/As start/center/end/stretch item alignment, atomic place-items/place-self, Al/Jc start/center/end/between/around/evenly track-group alignment, atomic place-content, and shared nested paint/hit/reflow; no escaped or repeated-name occurrence indexes, reverse flow, pre-explicit implicit tracks, shorthand area-row line names, intrinsic or percentage tracks, auto-fit/fill, baseline or safe/unsafe alignment, writing-mode axis reversal, or subgrid");
             Capability(builder, "Canvas and SVG", "Not supported", "Future compatibility work; no silent fallback claim");
             Capability(builder, "Audio and video", "Not supported", "Future optional module");
             Capability(builder, "Developer diagnostics", "Supported", "Bounded summary, node, CSS, request, message, and variable snapshots");

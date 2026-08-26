@@ -310,8 +310,13 @@ margin boxes within resolved areas; simple auto-width text is measured and
 definite dimensions remain exact. Block-axis center/end/stretch requires a
 resolved row rectangle. Reverse flow, pre-explicit implicit tracks, line names
 around quoted shorthand area rows, intrinsic or percentage tracks, auto-fit/fill,
-subgrid, baseline or safe/unsafe alignment, writing-mode axis reversal, and true
-inline-level outer formatting remain explicit compatibility limits.
+and subgrid remain explicit compatibility limits. Track groups use compact
+`Al/Jc=s/c/e/b/a/v` block/inline-axis state for start, center, end, between,
+around, and evenly distribution. Atomic one/two-value `place-content` writes both
+axes after complete validation. Fixed tracks in a definite grid expose free
+space; flexible/auto tracks consume it during sizing first. Baseline, safe/unsafe
+alignment, writing-mode axis reversal, and true inline-level outer formatting
+remain outside the bounded model.
 
 Inherited visibility uses `S.Vi` with `v/h/c`. Hidden and collapsed content
 keeps its layout rectangle but produces no pixels, links, field hits, or editor.

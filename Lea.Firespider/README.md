@@ -78,11 +78,13 @@ Atomic `grid-template`/`grid` explicit, quoted-area, row auto-flow, and column
 auto-flow forms compile into that state and retain standard gap/reset boundaries.
 Compact `Ji/Js/Ai/As` state adds container/item start, center, end, and stretch
 alignment plus atomic `place-items`/`place-self` without adapter-side geometry.
+Compact `Al/Jc` state adds start/center/end/between/around/evenly track-group
+distribution and atomic `place-content` on the same resolved slots.
 Definite-first placement, nested content, fields, painting, hits, and responsive
 reflow use the same path. The host smoke verifies exact mixed
-column/row/named-area/named-line/dense/column-flow/auto-track/shorthand/alignment
-geometry, dot-cell auto placement, ownership, queries, and Inspector CSS without
-adding adapter-side layout logic.
+column/row/named-area/named-line/dense/column-flow/auto-track/shorthand/item/content
+alignment geometry, dot-cell auto placement, ownership, queries, and Inspector
+CSS without adding adapter-side layout logic.
 
 Firespider can also read `B.S.Bz` as `c/b` for non-inherited content-box or
 border-box sizing. Lea applies it to pixel width, height, min/max, and flex basis

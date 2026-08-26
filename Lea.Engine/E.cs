@@ -3184,12 +3184,14 @@ namespace Lea.Engine
                 else if (name == "flex") FlexValue(style, value);
                 else if (name == "order") FlexOrder(style, value);
                 else if (name == "justify-content") JustifyContent(style, value);
+                else if (name == "align-content") AlignContent(style, value);
                 else if (name == "justify-items") JustifyItems(style, value);
                 else if (name == "justify-self") JustifySelf(style, value);
                 else if (name == "align-items") AlignItems(style, value);
                 else if (name == "align-self") AlignSelf(style, value);
                 else if (name == "place-items") PlaceAlignment(style, value, false);
                 else if (name == "place-self") PlaceAlignment(style, value, true);
+                else if (name == "place-content") PlaceContent(style, value);
                 else if (name == "gap" || name == "grid-gap") Gap(style, value);
                 else if (name == "column-gap" || name == "grid-column-gap") OneGap(style, value, false);
                 else if (name == "row-gap" || name == "grid-row-gap") OneGap(style, value, true);
@@ -4058,13 +4060,42 @@ namespace Lea.Engine
 
         private static void JustifyContent(S style, string value)
         {
-            var align = (value ?? "").Trim().ToLowerInvariant();
-            if (align == "flex-start" || align == "start" || align == "left" || align == "normal" || align == "initial") style.Jc = "s";
-            else if (align == "center") style.Jc = "c";
-            else if (align == "flex-end" || align == "end" || align == "right") style.Jc = "e";
-            else if (align == "space-between") style.Jc = "b";
-            else if (align == "space-around") style.Jc = "a";
-            else if (align == "space-evenly") style.Jc = "v";
+            string align;
+            if (ContentAlignmentValue(value, true, out align)) style.Jc = align;
+        }
+
+        private static void AlignContent(S style, string value)
+        {
+            string align;
+            if (ContentAlignmentValue(value, false, out align)) style.Al = align;
+        }
+
+        private static void PlaceContent(S style, string value)
+        {
+            var source = Regex.Replace((value ?? "").Trim(), "\\s+", " ");
+            if (source.Length == 0 || source.Length > 64) return;
+            var parts = source.Split(' ');
+            if (parts.Length < 1 || parts.Length > 2) return;
+            string vertical;
+            string horizontal;
+            if (!ContentAlignmentValue(parts[0], false, out vertical) ||
+                !ContentAlignmentValue(parts.Length == 1 ? parts[0] : parts[1], true, out horizontal)) return;
+            style.Al = vertical;
+            style.Jc = horizontal;
+        }
+
+        private static bool ContentAlignmentValue(string value, bool horizontal, out string align)
+        {
+            align = "s";
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "normal" || source == "stretch" || source == "initial" || source == "unset" || source == "revert" || source == "revert-layer") return true;
+            if (source == "flex-start" || source == "start" || horizontal && source == "left") { align = "s"; return true; }
+            if (source == "center") { align = "c"; return true; }
+            if (source == "flex-end" || source == "end" || horizontal && source == "right") { align = "e"; return true; }
+            if (source == "space-between") { align = "b"; return true; }
+            if (source == "space-around") { align = "a"; return true; }
+            if (source == "space-evenly") { align = "v"; return true; }
+            return false;
         }
 
         private static void AlignItems(S style, string value)
