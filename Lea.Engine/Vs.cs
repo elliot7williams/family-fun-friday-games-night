@@ -32,6 +32,8 @@ namespace Lea.Engine
         public double Z { get; internal set; }
         public Uri U { get; internal set; }
         public N El { get; internal set; }
+        public Vd Fd { get; internal set; }
+        public Vd Sd { get; internal set; }
         public IList<double> P { get; private set; }
         public IList<Vp> D { get; private set; }
         public IList<double> M { get; private set; }
@@ -63,5 +65,41 @@ namespace Lea.Engine
         public double B { get; private set; }
         public double C { get; private set; }
         public double D { get; private set; }
+    }
+
+    // Vd is one bounded SVG linear or radial paint definition.
+    public sealed class Vd
+    {
+        internal Vd()
+        {
+            I = "";
+            K = "";
+            U = "b";
+            P = new List<double>();
+            M = new List<double> { 1D, 0D, 0D, 1D, 0D, 0D };
+            Ss = new List<Vt>();
+        }
+
+        public string I { get; internal set; }
+        public string K { get; internal set; }
+        public string U { get; internal set; }
+        public IList<double> P { get; private set; }
+        public IList<double> M { get; private set; }
+        public IList<Vt> Ss { get; private set; }
+    }
+
+    // Vt is one normalized gradient stop.
+    public sealed class Vt
+    {
+        internal Vt(double offset, string color, double alpha)
+        {
+            O = offset;
+            C = color;
+            A = alpha;
+        }
+
+        public double O { get; private set; }
+        public string C { get; private set; }
+        public double A { get; private set; }
     }
 }

@@ -715,3 +715,11 @@ target and source element. Each `Vp` is one absolute `K=M/L/C/Q/Z` step with
 `X/Y` as its endpoint; `A/B` hold one curve control and cubic steps also use
 `C/D` for their second control. Smooth commands are resolved and arcs are
 converted to bounded cubic steps while parsing.
+
+Gradient paint remains compact through `Vg.Ds`. Each `Vd` definition uses `I`
+for its local ID, `K=l/r` for linear/radial kind, `U=b/u` for object-bounds or
+user-space units, `P` for four linear or five radial coordinates, `M` for the
+six-number gradient transform, and `Ss` for up to 16 `Vt` stops. A `Vt` exposes
+normalized offset `O`, color `C`, and alpha `A`. Shapes resolve fill/stroke
+references once into `Vs.Fd/Sd`; unresolved or cyclic local references become
+`none` rather than retaining an unrelated inherited solid paint.

@@ -525,13 +525,19 @@ Presentation and inline transform lists support matrix, translate, scale,
 centered rotate, skewX, and skewY with cumulative group inheritance.
 Presentation attributes and inline styles cover fill, stroke, stroke width,
 opacity, fill/stroke opacity, font size, text anchor, and `currentColor`.
+Local linear and radial gradients resolve once through `Vg.Ds` and `Vs.Fd/Sd`.
+They support object-bounds/user-space coordinates, percentage values, radial
+focus, up to four `href` inheritance hops, gradient transforms, and up to 16
+presentation, stylesheet, or inline color/opacity stops. Gradient fills and
+strokes follow the shape and viewport matrices through the same clipped path.
 
 Parsing is capped at eight group levels, 128 shapes, 128 primitive/path points,
 256 text characters, 4,096 path characters, finite coordinates, and a 2,000 px
 intrinsic size. Transform lists are capped at 16 functions and 1,024 characters;
-arcs expand to no more than four cubic steps. Gradients/patterns, clip paths,
-masks, filters, markers, animation, scripting, external resources, nested SVG,
-and Canvas remain explicit compatibility limits.
+arcs expand to no more than four cubic steps. Gradient definitions and stops are
+capped at 16 each. Repeat/reflect spread, patterns, clip paths, masks, filters,
+markers, animation, scripting, external resources, nested SVG, and Canvas
+remain explicit compatibility limits.
 
 ## Experimental Firespider tab
 

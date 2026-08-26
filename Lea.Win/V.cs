@@ -2698,25 +2698,31 @@ namespace Lea.Win
                 foreach (var shape in vector.Ss)
                 {
                     var strokeScale = VectorStrokeScale(shape, scaleX, scaleY);
-                    using (var path = VectorPath(shape, scaleX, scaleY, translateX, translateY))
+                    RectangleF sourceBounds;
+                    using (var path = VectorPath(shape, scaleX, scaleY, translateX, translateY, out sourceBounds))
                     {
                         if (path == null || path.PointCount == 0) continue;
-                        var fill = shape.K != "line" && !VectorNone(shape.F);
-                        var stroke = shape.W > 0 && !VectorNone(shape.S);
+                        var fill = shape.K != "line" && (shape.Fd != null || !VectorNone(shape.F));
+                        var stroke = shape.W > 0 && (shape.Sd != null || !VectorNone(shape.S));
                         if (opacity > 0 && fill)
                         {
                             var fillOpacity = VectorOpacity(opacity, shape.O * shape.Fo);
                             if (fillOpacity > 0)
-                                using (var brush = new SolidBrush(PaintColor(VectorColor(shape.F, shape.C, color), fillOpacity))) graphics.FillPath(brush, path);
+                                using (var brush = VectorBrush(shape, shape.Fd, shape.F, sourceBounds, scaleX, scaleY, translateX, translateY, shape.C, color, fillOpacity))
+                                    if (brush != null) graphics.FillPath(brush, path);
                         }
                         if (opacity > 0 && stroke)
                         {
                             var strokeOpacity = VectorOpacity(opacity, shape.O * shape.So);
                             if (strokeOpacity > 0)
-                                using (var pen = new Pen(PaintColor(VectorColor(shape.S, shape.C, color), strokeOpacity), Math.Max(.5F, Math.Min(512F, (float)(shape.W * strokeScale)))))
+                                using (var brush = VectorBrush(shape, shape.Sd, shape.S, sourceBounds, scaleX, scaleY, translateX, translateY, shape.C, color, strokeOpacity))
                                 {
-                                    pen.LineJoin = LineJoin.Round;
-                                    graphics.DrawPath(pen, path);
+                                    if (brush != null)
+                                        using (var pen = new Pen(brush, Math.Max(.5F, Math.Min(512F, (float)(shape.W * strokeScale)))))
+                                        {
+                                            pen.LineJoin = LineJoin.Round;
+                                            graphics.DrawPath(pen, path);
+                                        }
                                 }
                         }
                         if (shape.U != null)
@@ -2774,8 +2780,9 @@ namespace Lea.Win
             return Double.IsNaN(scale) || Double.IsInfinity(scale) ? 1D : Math.Max(.001D, Math.Min(10000D, scale));
         }
 
-        private GraphicsPath VectorPath(Vs shape, double scaleX, double scaleY, double translateX, double translateY)
+        private GraphicsPath VectorPath(Vs shape, double scaleX, double scaleY, double translateX, double translateY, out RectangleF sourceBounds)
         {
+            sourceBounds = RectangleF.Empty;
             if (shape == null) return null;
             var path = new GraphicsPath(FillMode.Winding);
             try
@@ -2869,6 +2876,7 @@ namespace Lea.Win
                         }
                     }
                 }
+                sourceBounds = path.GetBounds();
                 using (var matrix = VectorMatrix(shape, scaleX, scaleY, translateX, translateY)) path.Transform(matrix);
                 return path;
             }
@@ -2895,7 +2903,116 @@ namespace Lea.Win
             path.CloseFigure();
         }
 
+        private static Brush VectorBrush(Vs shape, Vd gradient, string value, RectangleF bounds, double scaleX, double scaleY, double translateX, double translateY, string current, Color fallback, int opacity)
+        {
+            if (gradient == null) return new SolidBrush(PaintColor(VectorColor(value, current, fallback), opacity));
+            if (gradient.Ss == null || gradient.Ss.Count == 0) return null;
+            if (gradient.Ss.Count == 1)
+            {
+                var stop = gradient.Ss[0];
+                return new SolidBrush(PaintColor(VectorColor(stop.C, current, fallback), VectorOpacity(opacity, stop.A)));
+            }
+            if (gradient.U == "b" && (bounds.Width <= 0F || bounds.Height <= 0F)) return null;
+            using (var map = VectorGradientMatrix(shape, gradient, bounds, scaleX, scaleY, translateX, translateY))
+            {
+                var blend = VectorGradientBlend(gradient, current, fallback, opacity);
+                if (blend == null || blend.Colors.Length < 2) return null;
+                if (gradient.K == "l" && gradient.P.Count >= 4)
+                {
+                    var points = new[] { VectorPoint(gradient.P[0], gradient.P[1]), VectorPoint(gradient.P[2], gradient.P[3]) };
+                    map.TransformPoints(points);
+                    if (Math.Abs(points[0].X - points[1].X) < .01F && Math.Abs(points[0].Y - points[1].Y) < .01F)
+                        return new SolidBrush(blend.Colors[blend.Colors.Length - 1]);
+                    var brush = new LinearGradientBrush(points[0], points[1], blend.Colors[0], blend.Colors[blend.Colors.Length - 1]);
+                    brush.InterpolationColors = blend;
+                    return brush;
+                }
+                if (gradient.K == "r" && gradient.P.Count >= 5)
+                {
+                    var centerX = gradient.P[0];
+                    var centerY = gradient.P[1];
+                    var radius = gradient.P[2];
+                    var focusX = gradient.P[3];
+                    var focusY = gradient.P[4];
+                    var deltaX = focusX - centerX;
+                    var deltaY = focusY - centerY;
+                    var distance = Math.Sqrt(deltaX * deltaX + deltaY * deltaY);
+                    if (distance >= radius && distance > 0D)
+                    {
+                        var clamp = radius * .999D / distance;
+                        focusX = centerX + deltaX * clamp;
+                        focusY = centerY + deltaY * clamp;
+                    }
+                    using (var circle = new GraphicsPath())
+                    {
+                        circle.AddEllipse(VectorRect(centerX - radius, centerY - radius, radius * 2D, radius * 2D));
+                        circle.Transform(map);
+                        var focus = new[] { VectorPoint(focusX, focusY) };
+                        map.TransformPoints(focus);
+                        var brush = new PathGradientBrush(circle);
+                        brush.CenterPoint = focus[0];
+                        brush.CenterColor = blend.Colors[0];
+                        brush.SurroundColors = new[] { blend.Colors[blend.Colors.Length - 1] };
+                        brush.InterpolationColors = blend;
+                        return brush;
+                    }
+                }
+            }
+            return null;
+        }
+
+        private static ColorBlend VectorGradientBlend(Vd gradient, string current, Color fallback, int opacity)
+        {
+            var positions = new List<float>();
+            var colors = new List<Color>();
+            foreach (var stop in gradient.Ss)
+            {
+                var position = (float)Math.Max(0D, Math.Min(1D, stop.O));
+                var color = PaintColor(VectorColor(stop.C, current, fallback), VectorOpacity(opacity, stop.A));
+                if (positions.Count > 0 && position <= positions[positions.Count - 1])
+                {
+                    var previous = positions[positions.Count - 1];
+                    if (previous >= 1F) { colors[colors.Count - 1] = color; continue; }
+                    position = Math.Min(1F, previous + .0001F);
+                }
+                positions.Add(position);
+                colors.Add(color);
+            }
+            if (positions.Count == 0) return null;
+            if (positions[0] > 0F)
+            {
+                positions.Insert(0, 0F);
+                colors.Insert(0, colors[0]);
+            }
+            else positions[0] = 0F;
+            if (positions[positions.Count - 1] < 1F)
+            {
+                positions.Add(1F);
+                colors.Add(colors[colors.Count - 1]);
+            }
+            else positions[positions.Count - 1] = 1F;
+            return new ColorBlend(positions.Count) { Positions = positions.ToArray(), Colors = colors.ToArray() };
+        }
+
+        private static Matrix VectorGradientMatrix(Vs shape, Vd gradient, RectangleF bounds, double scaleX, double scaleY, double translateX, double translateY)
+        {
+            var shapeMatrix = VectorMatrixValues(shape, scaleX, scaleY, translateX, translateY);
+            var values = gradient == null || gradient.M == null || gradient.M.Count < 6 ? null : gradient.M;
+            var gradientMatrix = values == null ? new[] { 1D, 0D, 0D, 1D, 0D, 0D } : new[] { values[0], values[1], values[2], values[3], values[4], values[5] };
+            if (gradient != null && gradient.U == "b")
+            {
+                var box = new[] { (double)bounds.Width, 0D, 0D, (double)bounds.Height, (double)bounds.Left, (double)bounds.Top };
+                gradientMatrix = VectorMatrixMultiply(box, gradientMatrix);
+            }
+            return VectorMatrix(VectorMatrixMultiply(shapeMatrix, gradientMatrix));
+        }
+
         private static Matrix VectorMatrix(Vs shape, double scaleX, double scaleY, double translateX, double translateY)
+        {
+            return VectorMatrix(VectorMatrixValues(shape, scaleX, scaleY, translateX, translateY));
+        }
+
+        private static double[] VectorMatrixValues(Vs shape, double scaleX, double scaleY, double translateX, double translateY)
         {
             var values = shape == null || shape.M == null || shape.M.Count < 6 ? null : shape.M;
             var a = values == null ? 1D : values[0];
@@ -2904,10 +3021,25 @@ namespace Lea.Win
             var d = values == null ? 1D : values[3];
             var e = values == null ? 0D : values[4];
             var f = values == null ? 0D : values[5];
-            return new Matrix(
-                VectorFloat(a * scaleX), VectorFloat(b * scaleY),
-                VectorFloat(c * scaleX), VectorFloat(d * scaleY),
-                VectorFloat(translateX + e * scaleX), VectorFloat(translateY + f * scaleY));
+            return new[] { a * scaleX, b * scaleY, c * scaleX, d * scaleY, translateX + e * scaleX, translateY + f * scaleY };
+        }
+
+        private static double[] VectorMatrixMultiply(double[] left, double[] right)
+        {
+            return new[]
+            {
+                left[0] * right[0] + left[2] * right[1],
+                left[1] * right[0] + left[3] * right[1],
+                left[0] * right[2] + left[2] * right[3],
+                left[1] * right[2] + left[3] * right[3],
+                left[0] * right[4] + left[2] * right[5] + left[4],
+                left[1] * right[4] + left[3] * right[5] + left[5]
+            };
+        }
+
+        private static Matrix VectorMatrix(double[] values)
+        {
+            return new Matrix(VectorFloat(values[0]), VectorFloat(values[1]), VectorFloat(values[2]), VectorFloat(values[3]), VectorFloat(values[4]), VectorFloat(values[5]));
         }
 
         private static PointF VectorPoint(double px, double py)

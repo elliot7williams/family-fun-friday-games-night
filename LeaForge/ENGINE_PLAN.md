@@ -150,8 +150,10 @@ Dg/Dcl  diagnostics/clear request activity
     transforms share normal layout, clipping, scrolling, hit, fragment,
     and graphic-accessibility behavior. Presentation and inline fill/stroke,
     widths, opacity, font size, text anchor, and `currentColor` inherit through
-    eight levels under 128-shape/point and 256-text limits. Paint servers,
-    filters, animation, external resources, nested SVG, and Canvas stay outside.)
+    eight levels under 128-shape/point and 256-text limits. Compact `Vd/Vt`
+    linear/radial paint servers add bounded stops, local inheritance, units,
+    focus, transforms, fills, and strokes. Patterns, filters, animation,
+    external resources, nested SVG, and Canvas stay outside.)
 
 This is the largest speed milestone: fewer controls, less UI overhead, and one
 predictable rendering pass.
@@ -334,12 +336,13 @@ non-empty bridge survives both direct and external MTA clients. Continue host
 coverage and bounded HTML/CSS compatibility work without adding another browser
 runtime.
 
-The latest completed milestone extends bounded inline SVG through compact
-`Vg.A/M`, `Vs.M`, and `Vp.A/B/C/D` aliases. Aligned none/meet/slice viewBox
-mapping, cumulative matrix/translate/scale/rotate/skew transforms, and canonical
-absolute/relative `C/S/Q/T/A` geometry reuse Lea's layout, clipping, paint,
-transformed hit, fragment, and accessibility paths under explicit transform,
-shape, depth, point, text, and coordinate limits.
+The latest completed milestone adds bounded SVG paint servers through compact
+`Vg.Ds`, `Vs.Fd/Sd`, `Vd`, and `Vt` aliases. Linear/radial fills and strokes,
+object-bounds/user-space coordinates, percentages, radial focus, local
+inheritance, gradient transforms, CSS/presentation stops, opacity, and
+`currentColor` reuse Lea's transformed GDI+ path under 16-definition,
+16-stop, and four-link ceilings with cycles and unsupported spread failing
+closed.
 
 The latest completed grid milestone added bounded Grid content alignment.
 Compact `Al/Jc=s/c/e/b/a/v` state, one/two-value atomic `place-content`, and the

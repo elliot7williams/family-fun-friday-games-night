@@ -2843,6 +2843,41 @@ namespace Lea.Tests
                         Ok(ColorDistance(geometryPaint.GetPixel(minRect.Left + 50, minRect.Top + 50), Color.FromArgb(22, 163, 74)) < 12 && ColorDistance(geometryPaint.GetPixel(minRect.Right - 10, minRect.Top + 50), Color.White) < 12, "SVG xMinYMax meet alignment paint");
                         Ok(ColorDistance(geometryPaint.GetPixel(sliceRect.Left + 100, sliceRect.Top + 50), Color.FromArgb(37, 99, 235)) < 12, "SVG xMidYMax slice clipping paint");
                     }
+                    var svgGradientPath = Path.Combine(root, "LeaForge", "test-pages", "svg-gradients.html");
+                    var svgGradientPage = engine.Go(svgGradientPath);
+                    var gradientVector = BlockById(svgGradientPage, "gradient-vector");
+                    Ok(gradientVector.Vg != null && gradientVector.Vg.Ds.Count == 5, "SVG valid, invalid, and cyclic gradient definition count");
+                    Eq(8, gradientVector.Vg.Ss.Count, "SVG gradient shape count");
+                    var baseGradient = gradientVector.Vg.Ds[0];
+                    Ok(baseGradient.I == "base-gradient" && baseGradient.K == "l" && baseGradient.U == "b" && baseGradient.P.Count == 4 && baseGradient.Ss.Count == 3, "SVG compact linear gradient aliases");
+                    Ok(baseGradient.Ss[0].O == 0D && baseGradient.Ss[0].C == "#dc2626" && baseGradient.Ss[1].O == .5D && baseGradient.Ss[1].C == "#16a34a" && Math.Abs(baseGradient.Ss[1].A - .6D) < .001D && baseGradient.Ss[2].C == "#2563eb", "SVG gradient stops, stylesheet paint, opacity, and currentColor");
+                    Ok(Math.Abs(baseGradient.M[0] - Math.Cos(10D * Math.PI / 180D)) < .0001D && Math.Abs(baseGradient.M[1] - Math.Sin(10D * Math.PI / 180D)) < .0001D, "SVG gradient transform matrix");
+                    var derivedGradient = gradientVector.Vg.Ds[1];
+                    Ok(derivedGradient.I == "derived-gradient" && derivedGradient.P[0] == 1D && derivedGradient.P[2] == 0D && derivedGradient.M[0] == 1D && derivedGradient.Ss.Count == 3 && derivedGradient.Ss[1].C == "#16a34a", "SVG inherited gradient coordinates, transform override, and stops");
+                    var userGradient = gradientVector.Vg.Ds[2];
+                    Ok(userGradient.U == "u" && userGradient.P[0] == 0D && userGradient.P[2] == 180D && userGradient.Ss[1].C == "#10b981" && Math.Abs(userGradient.Ss[1].A - .8D) < .001D, "SVG user-space gradient and inline stop style");
+                    var radialGradient = gradientVector.Vg.Ds[3];
+                    Ok(radialGradient.K == "r" && radialGradient.P.Count == 5 && radialGradient.P[0] == .5D && radialGradient.P[2] == .5D && radialGradient.P[3] == .35D && radialGradient.P[4] == .4D && radialGradient.Ss.Count == 3, "SVG radial gradient center, radius, focus, and stops");
+                    Ok(gradientVector.Vg.Ss[0].Fd == baseGradient && gradientVector.Vg.Ss[1].Fd == derivedGradient && gradientVector.Vg.Ss[2].Fd == radialGradient && gradientVector.Vg.Ss[3].Fd == userGradient, "SVG resolved gradient fill references");
+                    Ok(gradientVector.Vg.Ss[4].Sd == gradientVector.Vg.Ds[4] && gradientVector.Vg.Ss[4].F == "none", "SVG resolved gradient stroke reference");
+                    Ok(gradientVector.Vg.Ss[5].Fd == derivedGradient && gradientVector.Vg.Ss[5].U.Fragment == "#gradient-target", "SVG linked gradient shape reference");
+                    Ok(gradientVector.Vg.Ss[6].Fd == null && gradientVector.Vg.Ss[6].F == "none" && gradientVector.Vg.Ss[7].Fd == null && gradientVector.Vg.Ss[7].F == "none", "SVG unsupported spread and cyclic references fail closed");
+                    Ok(svgGradientPage.Ls.Count == 1 && svgGradientPage.Ls[0].U.Fragment == "#gradient-target", "SVG gradient page link collection");
+                    var gradientGraphic = engine.Ax(svgGradientPage, ById(svgGradientPage.D, "gradient-vector"));
+                    Ok(gradientGraphic.K == "img" && gradientGraphic.N == "Linear and radial gradient samples", "SVG gradient accessibility name");
+                    view.Size = new Size(720, 700);
+                    view.Go(svgGradientPath);
+                    using (var gradientPaint = Render(view))
+                    {
+                        var gradientRect = BlockRect(view, BlockById(view.At, "gradient-vector"));
+                        Eq(new Size(360, 220), gradientRect.Size, "SVG gradient viewport size");
+                        Ok(HasColor(gradientPaint, new Rectangle(gradientRect.Left + 8, gradientRect.Top + 8, 145, 55), Color.FromArgb(220, 38, 38)) && HasColor(gradientPaint, new Rectangle(gradientRect.Left + 8, gradientRect.Top + 8, 145, 55), Color.FromArgb(37, 99, 235)), "SVG transformed object-bounds linear gradient paint");
+                        Ok(HasColor(gradientPaint, new Rectangle(gradientRect.Left + 28, gradientRect.Top + 72, 105, 105), Color.FromArgb(219, 39, 119)) && HasColor(gradientPaint, new Rectangle(gradientRect.Left + 28, gradientRect.Top + 72, 105, 105), Color.FromArgb(112, 26, 117)), "SVG focused radial gradient paint");
+                        Ok(HasColor(gradientPaint, new Rectangle(gradientRect.Left + 15, gradientRect.Top + 135, 330, 65), Color.FromArgb(15, 118, 110)) && HasColor(gradientPaint, new Rectangle(gradientRect.Left + 15, gradientRect.Top + 135, 330, 65), Color.FromArgb(245, 158, 11)), "SVG user-space gradient stroke paint");
+                        var gradientHit = FragmentHitRect(view, "#gradient-target");
+                        Ok(!gradientHit.IsEmpty && gradientHit.Top >= gradientRect.Top + 180, "SVG transformed gradient link hit geometry");
+                        Ok(ColorDistance(gradientPaint.GetPixel(gradientRect.Left + 20, gradientRect.Top + 198), Color.White) < 12 && ColorDistance(gradientPaint.GetPixel(gradientRect.Left + 70, gradientRect.Top + 198), Color.White) < 12, "SVG rejected gradient references remain unpainted");
+                    }
                     view.Size = new Size(720, 760);
                     var boxes = Path.Combine(root, "LeaForge", "test-pages", "boxes.html");
                     var boxPage = engine.Go(boxes);

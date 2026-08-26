@@ -64,6 +64,10 @@ namespace Lea.Engine
         private const int MaxSvgPoints = 128;
         private const int MaxSvgDepth = 8;
         private const int MaxSvgText = 256;
+        private const int MaxSvgGradients = 16;
+        private const int MaxSvgStops = 16;
+        private const int MaxSvgGradientLinks = 4;
+        private const int MaxSvgGradientId = 64;
         private const int MaxSvgTransforms = 16;
         private const int MaxSvgTransformText = 1024;
         private const double MaxSvgCoordinate = 100000D;
@@ -4626,6 +4630,7 @@ namespace Lea.Engine
             if (hasWidth && style.W == 0) style.W = Math.Max(1, (int)Math.Round(model.W));
             if (hasHeight && style.H == 0) style.H = Math.Max(1, (int)Math.Round(model.H));
 
+            SvgGradients(svg, rules, style, model);
             var initial = new Sv { C = style.F, Z = style.Fs > 0 ? style.Fs : 16D };
             var paint = SvgPaint(svg, initial, style, true);
             foreach (var child in svg.C)
@@ -4656,7 +4661,7 @@ namespace Lea.Engine
                 }
             }
 
-            var shape = SvgShape(node, paint, link, linkNode);
+            var shape = SvgShape(node, paint, link, linkNode, model);
             if (shape != null) model.Ss.Add(shape);
             if (node.K != "g" && node.K != "a") return;
             foreach (var child in node.C)
@@ -4666,7 +4671,7 @@ namespace Lea.Engine
             }
         }
 
-        private static Vs SvgShape(N node, Sv paint, Uri link, N linkElement)
+        private static Vs SvgShape(N node, Sv paint, Uri link, N linkElement, Vg model)
         {
             var kind = node.K;
             if (kind != "rect" && kind != "circle" && kind != "ellipse" && kind != "line" && kind != "polyline" && kind != "polygon" && kind != "text" && kind != "path") return null;
@@ -4686,6 +4691,10 @@ namespace Lea.Engine
                 El = linkElement ?? node
             };
             for (var index = 0; index < 6; index++) shape.M[index] = paint.M[index];
+            shape.Fd = SvgGradientReference(paint.F, model);
+            shape.Sd = SvgGradientReference(paint.S, model);
+            if (SvgPaintServer(paint.F) && shape.Fd == null) shape.F = "none";
+            if (SvgPaintServer(paint.S) && shape.Sd == null) shape.S = "none";
             double value;
             if (kind == "rect")
             {
@@ -4734,6 +4743,266 @@ namespace Lea.Engine
             return shape;
         }
 
+        private static void SvgGradients(N svg, List<R> rules, S inherited, Vg model)
+        {
+            var nodes = new List<N>();
+            SvgGradientNodes(svg, false, 0, nodes);
+            var sources = new Dictionary<string, N>(StringComparer.Ordinal);
+            foreach (var node in nodes)
+            {
+                var id = node.Av("id");
+                if (!SvgGradientId(id) || sources.ContainsKey(id) || sources.Count == MaxSvgGradients) continue;
+                sources[id] = node;
+            }
+            var built = new Dictionary<string, Vd>(StringComparer.Ordinal);
+            foreach (var node in nodes)
+            {
+                var id = node.Av("id");
+                if (!sources.ContainsKey(id) || model.Ds.Count == MaxSvgGradients) continue;
+                var gradient = SvgGradient(node, sources, built, new HashSet<string>(StringComparer.Ordinal), rules, inherited, model, 0);
+                if (gradient != null && SvgGradientById(model, id) == null) model.Ds.Add(gradient);
+            }
+        }
+
+        private static void SvgGradientNodes(N node, bool definitions, int depth, IList<N> result)
+        {
+            if (node == null || depth > MaxSvgDepth || result.Count >= MaxSvgGradients * 2) return;
+            definitions = definitions || node.K == "defs";
+            if (definitions && (node.K == "lineargradient" || node.K == "radialgradient")) result.Add(node);
+            foreach (var child in node.C)
+            {
+                if (result.Count >= MaxSvgGradients * 2) break;
+                SvgGradientNodes(child, definitions, depth + 1, result);
+            }
+        }
+
+        private static Vd SvgGradient(N node, IDictionary<string, N> sources, IDictionary<string, Vd> built, ISet<string> resolving, List<R> rules, S inherited, Vg model, int depth)
+        {
+            var id = node.Av("id");
+            Vd cached;
+            if (built.TryGetValue(id, out cached)) return cached;
+            if (depth > MaxSvgGradientLinks || resolving.Contains(id)) return null;
+            resolving.Add(id);
+            var kind = node.K == "lineargradient" ? "l" : node.K == "radialgradient" ? "r" : "";
+            if (kind.Length == 0) { resolving.Remove(id); return null; }
+
+            Vd gradient = null;
+            var hrefId = SvgGradientHref(node);
+            N hrefNode;
+            if (hrefId.Length > 0 && sources.TryGetValue(hrefId, out hrefNode))
+            {
+                var inheritedGradient = SvgGradient(hrefNode, sources, built, resolving, rules, inherited, model, depth + 1);
+                if (inheritedGradient == null) { resolving.Remove(id); return null; }
+                if (inheritedGradient.K == kind) gradient = SvgGradientCopy(inheritedGradient);
+            }
+            var inheritedCoordinates = gradient != null;
+            if (gradient == null) gradient = SvgGradientDefault(kind);
+            gradient.I = id;
+            gradient.K = kind;
+
+            var inheritedUnits = gradient.U;
+            var units = node.Av("gradientunits").Trim().ToLowerInvariant();
+            if (units.Length > 0)
+            {
+                if (units == "objectboundingbox") gradient.U = "b";
+                else if (units == "userspaceonuse") gradient.U = "u";
+                else { resolving.Remove(id); return null; }
+                if (inheritedCoordinates && inheritedUnits != gradient.U && !SvgGradientCoordinatesComplete(node, kind)) { resolving.Remove(id); return null; }
+            }
+            var spread = node.Av("spreadmethod").Trim().ToLowerInvariant();
+            if (spread.Length > 0 && spread != "pad") { resolving.Remove(id); return null; }
+            var transform = node.Av("gradienttransform");
+            if (!String.IsNullOrWhiteSpace(transform))
+            {
+                double[] matrix;
+                if (!SvgTransform(transform, out matrix)) { resolving.Remove(id); return null; }
+                for (var index = 0; index < 6; index++) gradient.M[index] = matrix[index];
+            }
+            if (!SvgGradientCoordinates(node, gradient, model, inheritedCoordinates)) { resolving.Remove(id); return null; }
+
+            bool authoredStops;
+            List<Vt> stops;
+            if (!SvgGradientStops(node, rules, inherited, out authoredStops, out stops)) { resolving.Remove(id); return null; }
+            if (authoredStops)
+            {
+                gradient.Ss.Clear();
+                foreach (var stop in stops) gradient.Ss.Add(stop);
+            }
+            if (gradient.Ss.Count == 0) { resolving.Remove(id); return null; }
+            built[id] = gradient;
+            resolving.Remove(id);
+            return gradient;
+        }
+
+        private static Vd SvgGradientDefault(string kind)
+        {
+            var gradient = new Vd { K = kind };
+            if (kind == "l")
+            {
+                foreach (var value in new[] { 0D, 0D, 1D, 0D }) gradient.P.Add(value);
+            }
+            else
+            {
+                foreach (var value in new[] { .5D, .5D, .5D, .5D, .5D }) gradient.P.Add(value);
+            }
+            return gradient;
+        }
+
+        private static Vd SvgGradientCopy(Vd source)
+        {
+            var copy = new Vd { I = source.I, K = source.K, U = source.U };
+            foreach (var value in source.P) copy.P.Add(value);
+            for (var index = 0; index < 6; index++) copy.M[index] = source.M[index];
+            foreach (var stop in source.Ss) copy.Ss.Add(new Vt(stop.O, stop.C, stop.A));
+            return copy;
+        }
+
+        private static bool SvgGradientCoordinates(N node, Vd gradient, Vg model, bool inherited)
+        {
+            if (gradient.K == "l")
+            {
+                return SvgGradientCoordinate(node, "x1", 'x', gradient, model, 0) &&
+                    SvgGradientCoordinate(node, "y1", 'y', gradient, model, 1) &&
+                    SvgGradientCoordinate(node, "x2", 'x', gradient, model, 2) &&
+                    SvgGradientCoordinate(node, "y2", 'y', gradient, model, 3);
+            }
+            var defaultFocusX = !inherited && node.Av("fx").Length == 0 && node.Av("cx").Length > 0;
+            var defaultFocusY = !inherited && node.Av("fy").Length == 0 && node.Av("cy").Length > 0;
+            if (!SvgGradientCoordinate(node, "cx", 'x', gradient, model, 0) ||
+                !SvgGradientCoordinate(node, "cy", 'y', gradient, model, 1) ||
+                !SvgGradientCoordinate(node, "r", 'r', gradient, model, 2)) return false;
+            if (defaultFocusX) gradient.P[3] = gradient.P[0];
+            if (defaultFocusY) gradient.P[4] = gradient.P[1];
+            return SvgGradientCoordinate(node, "fx", 'x', gradient, model, 3) &&
+                SvgGradientCoordinate(node, "fy", 'y', gradient, model, 4) && gradient.P[2] > 0D;
+        }
+
+        private static bool SvgGradientCoordinatesComplete(N node, string kind)
+        {
+            if (kind == "l") return node.Av("x1").Length > 0 && node.Av("y1").Length > 0 && node.Av("x2").Length > 0 && node.Av("y2").Length > 0;
+            return node.Av("cx").Length > 0 && node.Av("cy").Length > 0 && node.Av("r").Length > 0 && node.Av("fx").Length > 0 && node.Av("fy").Length > 0;
+        }
+
+        private static bool SvgGradientCoordinate(N node, string name, char axis, Vd gradient, Vg model, int index)
+        {
+            var input = node.Av(name);
+            if (String.IsNullOrWhiteSpace(input)) return true;
+            var match = Regex.Match(input, "^\\s*(?<n>[-+]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:e[-+]?[0-9]+)?)(?<p>%?)\\s*$", RegexOptions.IgnoreCase);
+            double value;
+            if (!match.Success || !SvgFinite(match.Groups["n"].Value, out value)) return false;
+            var percent = match.Groups["p"].Value.Length > 0;
+            if (percent) value /= 100D;
+            if (gradient.U == "b")
+            {
+                if (Math.Abs(value) > 100D) return false;
+            }
+            else if (percent)
+            {
+                if (axis == 'x') value = model.X + model.Vw * value;
+                else if (axis == 'y') value = model.Y + model.Vh * value;
+                else value = Math.Sqrt(model.Vw * model.Vw + model.Vh * model.Vh) / Math.Sqrt(2D) * value;
+            }
+            else if (Math.Abs(value) > MaxSvgCoordinate) return false;
+            gradient.P[index] = value;
+            return axis != 'r' || value > 0D;
+        }
+
+        private static bool SvgGradientStops(N node, List<R> rules, S inherited, out bool authored, out List<Vt> result)
+        {
+            authored = false;
+            result = new List<Vt>();
+            var count = 0;
+            foreach (var child in node.C) if (child.K == "stop") count++;
+            if (count == 0) return true;
+            authored = true;
+            if (count > MaxSvgStops) return false;
+            var gradientStyle = Style(node, inherited, rules);
+            var previous = 0D;
+            foreach (var stop in node.C)
+            {
+                if (stop.K != "stop") continue;
+                double offset;
+                if (!SvgStopOffset(stop.Av("offset"), out offset)) return false;
+                offset = Math.Max(previous, offset);
+                previous = offset;
+                var stopStyle = Style(stop, gradientStyle, rules);
+                var color = stop.Av("stop-color").Trim();
+                if (color.Length == 0) color = "#000000";
+                var alpha = 1D;
+                double authoredAlpha;
+                if (stop.Av("stop-opacity").Length > 0 && SvgAlpha(stop.Av("stop-opacity"), out authoredAlpha)) alpha = authoredAlpha;
+                foreach (var rule in rules)
+                    if (MatchCss(stop, rule)) SvgStopDeclarations(rule.Ds, false, stopStyle, ref color, ref alpha);
+                SvgStopDeclarations(CssDeclarations(stop.Av("style")), false, stopStyle, ref color, ref alpha);
+                foreach (var rule in rules)
+                    if (MatchCss(stop, rule)) SvgStopDeclarations(rule.Ds, true, stopStyle, ref color, ref alpha);
+                SvgStopDeclarations(CssDeclarations(stop.Av("style")), true, stopStyle, ref color, ref alpha);
+                if (color.Equals("currentcolor", StringComparison.OrdinalIgnoreCase)) color = stopStyle.F;
+                if (color.Length == 0 || color.Length > 64 || color.IndexOf("url(", StringComparison.OrdinalIgnoreCase) >= 0) return false;
+                result.Add(new Vt(offset, color, alpha));
+            }
+            return result.Count > 0;
+        }
+
+        private static void SvgStopDeclarations(Pd[] declarations, bool important, S style, ref string color, ref double alpha)
+        {
+            foreach (var declaration in declarations)
+            {
+                if (declaration.C || declaration.I != important) continue;
+                string value;
+                if (!VarValue(style, declaration.V, out value)) continue;
+                if (declaration.N == "stop-color") color = value.Trim();
+                else if (declaration.N == "stop-opacity")
+                {
+                    double number;
+                    if (SvgAlpha(value, out number)) alpha = number;
+                }
+            }
+        }
+
+        private static bool SvgStopOffset(string input, out double value)
+        {
+            value = 0D;
+            var text = (input ?? "").Trim();
+            if (text.Length == 0) return true;
+            var percent = text.EndsWith("%", StringComparison.Ordinal);
+            if (percent) text = text.Substring(0, text.Length - 1).Trim();
+            if (!SvgFinite(text, out value)) return false;
+            if (percent) value /= 100D;
+            value = Math.Max(0D, Math.Min(1D, value));
+            return true;
+        }
+
+        private static string SvgGradientHref(N node)
+        {
+            var href = node.Av("href");
+            if (href.Length == 0) href = node.Av("xlink:href");
+            var match = Regex.Match(href ?? "", "^\\s*#(?<i>[A-Za-z_][A-Za-z0-9_.:-]{0,63})\\s*$");
+            return match.Success ? match.Groups["i"].Value : "";
+        }
+
+        private static bool SvgGradientId(string value)
+        {
+            return !String.IsNullOrEmpty(value) && value.Length <= MaxSvgGradientId && Regex.IsMatch(value, "^[A-Za-z_][A-Za-z0-9_.:-]*$");
+        }
+
+        private static bool SvgPaintServer(string value)
+        {
+            return Regex.IsMatch((value ?? "").Trim(), "^url\\(\\s*['\"]?#(?<i>[A-Za-z_][A-Za-z0-9_.:-]{0,63})['\"]?\\s*\\)$", RegexOptions.IgnoreCase);
+        }
+
+        private static Vd SvgGradientReference(string value, Vg model)
+        {
+            var match = Regex.Match((value ?? "").Trim(), "^url\\(\\s*['\"]?#(?<i>[A-Za-z_][A-Za-z0-9_.:-]{0,63})['\"]?\\s*\\)$", RegexOptions.IgnoreCase);
+            return match.Success ? SvgGradientById(model, match.Groups["i"].Value) : null;
+        }
+
+        private static Vd SvgGradientById(Vg model, string id)
+        {
+            foreach (var gradient in model.Ds) if (gradient.I == id) return gradient;
+            return null;
+        }
+
         private static Sv SvgPaint(N node, Sv inherited, S css, bool root)
         {
             var paint = inherited.Copy();
@@ -4770,7 +5039,7 @@ namespace Lea.Engine
             if (value.Length == 0) return;
             if (name == "fill" || name == "stroke")
             {
-                if (value.Length > 64 || value.IndexOf("url(", StringComparison.OrdinalIgnoreCase) >= 0) return;
+                if (value.Length > 128 || value.IndexOf("url(", StringComparison.OrdinalIgnoreCase) >= 0 && !SvgPaintServer(value)) return;
                 if (name == "fill") paint.F = value;
                 else paint.S = value;
                 return;

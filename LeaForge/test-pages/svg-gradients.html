@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea SVG gradients</title>
+  <style>
+    body { background: #f6f8fb; color: #172554; font-family: Segoe UI; }
+    svg { display: block; background: #ffffff; border: 2px solid #cbd5e1; }
+    .cool-stop { stop-color: #16a34a; stop-opacity: 60%; }
+  </style>
+</head>
+<body>
+  <h1>SVG gradient paint servers</h1>
+  <svg id="gradient-vector" width="360" height="220" viewBox="0 0 180 110">
+    <title>Linear and radial gradient samples</title>
+    <defs>
+      <linearGradient id="base-gradient" gradientTransform="rotate(10 .5 .5)" style="color:#2563eb">
+        <stop offset="0" stop-color="#dc2626"></stop>
+        <stop class="cool-stop" offset="50%"></stop>
+        <stop offset="1" stop-color="currentColor"></stop>
+      </linearGradient>
+      <linearGradient id="derived-gradient" href="#base-gradient" x1="1" y1="0" x2="0" y2="0" gradientTransform="none"></linearGradient>
+      <linearGradient id="user-gradient" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="180" y2="0">
+        <stop offset="0" stop-color="#7c3aed"></stop>
+        <stop offset="100%" style="stop-color:#10b981;stop-opacity:.8"></stop>
+      </linearGradient>
+      <radialGradient id="radial-gradient" cx="50%" cy="50%" r="50%" fx="35%" fy="40%" gradientTransform="rotate(-8 .5 .5)">
+        <stop stop-color="#f8fafc"></stop>
+        <stop offset="55%" stop-color="#db2777"></stop>
+        <stop offset="100%" stop-color="#701a75"></stop>
+      </radialGradient>
+      <linearGradient id="stroke-gradient" gradientUnits="userSpaceOnUse" x1="10" y1="78" x2="170" y2="78">
+        <stop offset="0" stop-color="#0f766e"></stop>
+        <stop offset="1" stop-color="#f59e0b"></stop>
+      </linearGradient>
+      <linearGradient id="invalid-spread" spreadMethod="reflect">
+        <stop offset="0" stop-color="#000000"></stop>
+        <stop offset="1" stop-color="#ffffff"></stop>
+      </linearGradient>
+      <linearGradient id="cycle-a" href="#cycle-b"><stop offset="0" stop-color="#000000"></stop></linearGradient>
+      <linearGradient id="cycle-b" href="#cycle-a"><stop offset="1" stop-color="#ffffff"></stop></linearGradient>
+    </defs>
+    <rect id="base-fill" x="5" y="5" width="70" height="25" rx="3" fill="url(#base-gradient)"></rect>
+    <rect id="derived-fill" x="95" y="5" width="70" height="25" fill="url('#derived-gradient')"></rect>
+    <circle id="radial-fill" cx="40" cy="61" r="24" fill="url(#radial-gradient)"></circle>
+    <g transform="translate(87 39) rotate(8 38 18)">
+      <rect id="transformed-fill" x="0" y="0" width="76" height="36" fill="url(#user-gradient)"></rect>
+    </g>
+    <path id="gradient-stroke" d="M10 82 C55 68 125 96 170 82" fill="none" stroke="url(#stroke-gradient)" stroke-width="5"></path>
+    <a href="#gradient-target">
+      <rect id="linked-gradient" x="112" y="91" width="52" height="13" fill="url(#derived-gradient)" transform="skewX(-8)"></rect>
+    </a>
+    <rect id="invalid-gradient-shape" x="5" y="94" width="20" height="10" fill="url(#invalid-spread)"></rect>
+    <rect id="cycle-gradient-shape" x="30" y="94" width="20" height="10" fill="url(#cycle-a)"></rect>
+  </svg>
+  <p id="gradient-target">Gradient link target</p>
+</body>
+</html>
