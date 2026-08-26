@@ -9,6 +9,7 @@ namespace Lea.Engine
         {
             A = "mm";
             M = "m";
+            Cs = new List<Vc>();
             Ds = new List<Vd>();
             Ss = new List<Vs>();
         }
@@ -22,6 +23,7 @@ namespace Lea.Engine
         public bool Vb { get; internal set; }
         public string A { get; internal set; }
         public string M { get; internal set; }
+        public IList<Vc> Cs { get; private set; }
         public IList<Vd> Ds { get; private set; }
         public IList<Vs> Ss { get; private set; }
     }

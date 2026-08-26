@@ -2878,6 +2878,43 @@ namespace Lea.Tests
                         Ok(!gradientHit.IsEmpty && gradientHit.Top >= gradientRect.Top + 180, "SVG transformed gradient link hit geometry");
                         Ok(ColorDistance(gradientPaint.GetPixel(gradientRect.Left + 20, gradientRect.Top + 198), Color.White) < 12 && ColorDistance(gradientPaint.GetPixel(gradientRect.Left + 70, gradientRect.Top + 198), Color.White) < 12, "SVG rejected gradient references remain unpainted");
                     }
+                    var svgReusePath = Path.Combine(root, "LeaForge", "test-pages", "svg-use-clips.html");
+                    var svgReusePage = engine.Go(svgReusePath);
+                    var reuseVector = BlockById(svgReusePage, "reuse-vector");
+                    Ok(reuseVector.Vg != null && reuseVector.Vg.Cs.Count == 4, "SVG valid and cyclic clip definition count");
+                    Eq(14, reuseVector.Vg.Ss.Count, "SVG expanded use and clipped shape count");
+                    var reuseShapes = reuseVector.Vg.Ss;
+                    Ok(reuseShapes[0].K == "rect" && reuseShapes[0].F == "#dc2626" && reuseShapes[0].M[4] == 5D && reuseShapes[0].M[5] == 5D && reuseShapes[1].K == "circle" && reuseShapes[1].F == "#f8fafc", "SVG group use expansion, paint inheritance, and x/y matrix");
+                    Ok(reuseShapes[2].K == "path" && reuseShapes[2].F == "#7c3aed" && reuseShapes[2].M[0] == 1.2D && reuseShapes[2].M[3] == 1.2D && reuseShapes[2].M[4] == 54D && reuseShapes[2].M[5] == 6D, "SVG symbol use expansion and transform matrix");
+                    Ok(reuseShapes[4].M[4] == 85D && reuseShapes[6].M[4] == 113D && reuseShapes[4].F == "#0d9488" && reuseShapes[7].K == "circle", "SVG nested group use expansion and cumulative translation");
+                    var circleClip = reuseVector.Vg.Cs[0];
+                    var halfClip = reuseVector.Vg.Cs[1];
+                    var useClip = reuseVector.Vg.Cs[2];
+                    var groupClip = reuseVector.Vg.Cs[3];
+                    Ok(circleClip.I == "circle-clip" && circleClip.U == "u" && circleClip.Ss.Count == 1 && circleClip.M[4] == 2D && circleClip.Ss[0].M[4] == 2D, "SVG user-space clip aliases and transform");
+                    Ok(halfClip.I == "half-clip" && halfClip.U == "b" && halfClip.Ss.Count == 1 && halfClip.Ss[0].P[2] == .5D, "SVG object-bounds clip aliases");
+                    Ok(useClip.I == "use-clip" && useClip.Ss.Count == 1 && useClip.Ss[0].K == "path" && useClip.Ss[0].M[4] == 125D && useClip.Ss[0].M[5] == 38D, "SVG reusable geometry inside clip path");
+                    Ok(groupClip.Ss.Count == 2 && groupClip.Ss[0].K == "rect" && groupClip.Ss[1].K == "circle", "SVG multi-shape clip union");
+                    Ok(reuseShapes[8].Cl && reuseShapes[8].Cp == circleClip && reuseShapes[9].Cl && reuseShapes[9].Cp == halfClip && reuseShapes[10].Cl && reuseShapes[10].Cp == useClip, "SVG presentation, inline, and stylesheet clip references");
+                    Ok(reuseShapes[11].Cp == groupClip && reuseShapes[12].Cp == groupClip && reuseShapes[11].Cm[4] == 10D && reuseShapes[11].Cm[5] == 82D && reuseShapes[12].Cm[4] == 10D && reuseShapes[12].M[0] == .9D, "SVG inherited group clip attachment matrix");
+                    Ok(reuseShapes[13].Cl && reuseShapes[13].Cp == null, "SVG unresolved clip reference fails closed");
+                    Ok(svgReusePage.Ls.Count == 1 && svgReusePage.Ls[0].U.Fragment == "#clip-target" && reuseShapes[10].U.Fragment == "#clip-target", "SVG clipped use page link collection");
+                    var reuseGraphic = engine.Ax(svgReusePage, ById(svgReusePage.D, "reuse-vector"));
+                    Ok(reuseGraphic.K == "img" && reuseGraphic.N == "Reusable and clipped vector samples", "SVG reuse and clip accessibility name");
+                    view.Size = new Size(720, 720);
+                    view.Go(svgReusePath);
+                    using (var reusePaint = Render(view))
+                    {
+                        var reuseRect = BlockRect(view, BlockById(view.At, "reuse-vector"));
+                        Eq(new Size(360, 240), reuseRect.Size, "SVG reuse and clip viewport size");
+                        Ok(ColorDistance(reusePaint.GetPixel(reuseRect.Left + 14, reuseRect.Top + 14), Color.FromArgb(220, 38, 38)) < 12 && ColorDistance(reusePaint.GetPixel(reuseRect.Left + 46, reuseRect.Top + 26), Color.FromArgb(248, 250, 252)) < 12, "SVG reused group paint");
+                        Ok(ColorDistance(reusePaint.GetPixel(reuseRect.Left + 64, reuseRect.Top + 106), Color.FromArgb(234, 88, 12)) < 12 && ColorDistance(reusePaint.GetPixel(reuseRect.Left + 14, reuseRect.Top + 78), Color.White) < 12, "SVG transformed user-space circle clip paint");
+                        Ok(ColorDistance(reusePaint.GetPixel(reuseRect.Left + 150, reuseRect.Top + 106), Color.FromArgb(22, 163, 74)) < 12 && ColorDistance(reusePaint.GetPixel(reuseRect.Left + 210, reuseRect.Top + 106), Color.White) < 12, "SVG object-bounds half clip paint");
+                        Ok(ColorDistance(reusePaint.GetPixel(reuseRect.Left + 30, reuseRect.Top + 185), Color.FromArgb(219, 39, 119)) < 12 && ColorDistance(reusePaint.GetPixel(reuseRect.Left + 20, reuseRect.Top + 218), Color.White) < 12, "SVG inherited group clip paint");
+                        var clippedHit = FragmentHitRect(view, "#clip-target");
+                        Ok(!clippedHit.IsEmpty && clippedHit.Left >= reuseRect.Left + 248 && clippedHit.Right <= reuseRect.Left + 332 && clippedHit.Top >= reuseRect.Top + 74, "SVG clipped link hit bounds");
+                        Ok(ColorDistance(reusePaint.GetPixel(reuseRect.Left + 200, reuseRect.Top + 194), Color.White) < 12, "SVG unresolved clip remains unpainted");
+                    }
                     view.Size = new Size(720, 760);
                     var boxes = Path.Combine(root, "LeaForge", "test-pages", "boxes.html");
                     var boxPage = engine.Go(boxes);

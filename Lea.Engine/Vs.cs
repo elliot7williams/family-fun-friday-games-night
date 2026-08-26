@@ -16,6 +16,7 @@ namespace Lea.Engine
             A = "s";
             P = new List<double>();
             D = new List<Vp>();
+            Cm = new List<double> { 1D, 0D, 0D, 1D, 0D, 0D };
             M = new List<double> { 1D, 0D, 0D, 1D, 0D, 0D };
         }
 
@@ -34,8 +35,11 @@ namespace Lea.Engine
         public N El { get; internal set; }
         public Vd Fd { get; internal set; }
         public Vd Sd { get; internal set; }
+        public Vc Cp { get; internal set; }
+        public bool Cl { get; internal set; }
         public IList<double> P { get; private set; }
         public IList<Vp> D { get; private set; }
+        public IList<double> Cm { get; private set; }
         public IList<double> M { get; private set; }
     }
 
@@ -101,5 +105,22 @@ namespace Lea.Engine
         public double O { get; private set; }
         public string C { get; private set; }
         public double A { get; private set; }
+    }
+
+    // Vc is one bounded SVG clipping definition.
+    public sealed class Vc
+    {
+        internal Vc()
+        {
+            I = "";
+            U = "u";
+            M = new List<double> { 1D, 0D, 0D, 1D, 0D, 0D };
+            Ss = new List<Vs>();
+        }
+
+        public string I { get; internal set; }
+        public string U { get; internal set; }
+        public IList<double> M { get; private set; }
+        public IList<Vs> Ss { get; private set; }
     }
 }

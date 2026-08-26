@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **35**
+Post-1.0 hardening milestones completed: **36**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,17 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded SVG reusable geometry and clip paths through compact `Vg.Cs`,
+  `Vs.Cp/Cl/Cm`, `Vc`, and computed `S.Cp` aliases. Local `<use>` expands
+  shapes, groups, symbols, nested uses, `x/y`, transforms, and inherited paint
+  under four-link, 64-source, and 128-result ceilings with cycle rejection.
+  User-space and object-bounds clip paths accept primitive/path/text geometry,
+  transforms, multi-shape unions, reusable children, presentation/stylesheet/
+  inline attachment, and inherited group contexts. Paint and linked hit bounds
+  share the transformed clip, while missing or empty clips fail closed. Exact
+  model, matrix, paint, hit, benchmark, and Firespider host coverage bring the
+  suite to 46 fixtures and 45 executable probes.
 
 - Added bounded SVG gradient paint servers through compact `Vg.Ds`, `Vs.Fd/Sd`,
   `Vd`, and `Vt` aliases. Linear and radial gradients support object-bounds and

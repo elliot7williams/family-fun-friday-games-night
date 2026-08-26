@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea SVG reuse and clips</title>
+  <style>
+    body { background: #f6f8fb; color: #172554; font-family: Segoe UI; }
+    svg { display: block; background: #ffffff; border: 2px solid #cbd5e1; }
+    .css-clip { clip-path: url(#use-clip); }
+  </style>
+</head>
+<body>
+  <h1>SVG reusable geometry and clipping</h1>
+  <svg id="reuse-vector" width="360" height="240" viewBox="0 0 180 120">
+    <title>Reusable and clipped vector samples</title>
+    <defs>
+      <g id="badge-shape">
+        <rect x="0" y="0" width="24" height="16" rx="3"></rect>
+        <circle cx="18" cy="8" r="4" fill="#f8fafc"></circle>
+      </g>
+      <symbol id="mark-symbol">
+        <path d="M0 16 L10 0 L20 16 Z"></path>
+        <circle cx="10" cy="11" r="3" fill="#f8fafc"></circle>
+      </symbol>
+      <g id="double-badge">
+        <use href="#badge-shape" x="0" y="0"></use>
+        <use href="#badge-shape" x="28" y="0"></use>
+      </g>
+      <path id="clip-wedge" d="M0 0 H40 L20 30 H0 Z"></path>
+      <g id="cycle-one"><use href="#cycle-two"></use></g>
+      <g id="cycle-two"><use href="#cycle-one"></use></g>
+
+      <clipPath id="circle-clip" transform="translate(2 0)">
+        <circle cx="30" cy="53" r="15"></circle>
+      </clipPath>
+      <clipPath id="half-clip" clipPathUnits="objectBoundingBox">
+        <rect x="0" y="0" width=".5" height="1"></rect>
+      </clipPath>
+      <clipPath id="use-clip">
+        <use href="#clip-wedge" x="125" y="38"></use>
+      </clipPath>
+      <clipPath id="group-clip">
+        <rect x="0" y="0" width="48" height="24" rx="6"></rect>
+        <circle cx="52" cy="12" r="10"></circle>
+      </clipPath>
+      <clipPath id="cycle-clip"><use href="#cycle-one"></use></clipPath>
+    </defs>
+
+    <use id="badge-one" href="#badge-shape" x="5" y="5" fill="#dc2626"></use>
+    <use id="symbol-one" href="#mark-symbol" x="45" y="5" fill="#7c3aed" transform="scale(1.2)"></use>
+    <use id="double-one" href="#double-badge" x="85" y="5" fill="#0d9488"></use>
+
+    <rect id="user-clipped" x="5" y="38" width="50" height="30" fill="#ea580c" clip-path="url(#circle-clip)"></rect>
+    <rect id="object-clipped" x="65" y="38" width="50" height="30" fill="#16a34a" style="clip-path:url(#half-clip)"></rect>
+    <a href="#clip-target">
+      <rect id="linked-clipped" class="css-clip" x="125" y="38" width="45" height="30" fill="#2563eb"></rect>
+    </a>
+    <g id="clipped-group" transform="translate(10 82)" clip-path="url(#group-clip)">
+      <rect x="0" y="0" width="65" height="28" fill="#db2777"></rect>
+      <circle cx="57" cy="14" r="12" fill="#f59e0b" transform="scale(.9)"></circle>
+    </g>
+    <rect id="unresolved-clip" x="90" y="88" width="24" height="18" fill="#000000" clip-path="url(#missing-clip)"></rect>
+    <use id="cycle-use" href="#cycle-one" x="130" y="90" fill="#000000"></use>
+  </svg>
+  <p id="clip-target">Clipped link target</p>
+</body>
+</html>

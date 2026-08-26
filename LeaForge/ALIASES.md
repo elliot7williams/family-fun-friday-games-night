@@ -723,3 +723,12 @@ six-number gradient transform, and `Ss` for up to 16 `Vt` stops. A `Vt` exposes
 normalized offset `O`, color `C`, and alpha `A`. Shapes resolve fill/stroke
 references once into `Vs.Fd/Sd`; unresolved or cyclic local references become
 `none` rather than retaining an unrelated inherited solid paint.
+
+Reusable and clipped vectors stay short through `Vg.Cs` and `S.Cp`. A `Vc`
+uses `I` for its local ID, `U=u/b` for user-space or object-bounds units, `M`
+for its six-number root transform, and `Ss` for up to 32 geometry-only `Vs`
+shapes. A painted shape uses `Vs.Cl` to say a clip was requested, `Cp` for the
+resolved definition, and `Cm` for the six-number matrix where the clip became
+active. Local `<use>` references expand into ordinary `Vs` records, so hosts do
+not need a second instance tree; four nested references and 64 indexed IDs are
+the bounded ceilings, and cycles add no shapes.

@@ -2700,38 +2700,50 @@ namespace Lea.Win
                     var strokeScale = VectorStrokeScale(shape, scaleX, scaleY);
                     RectangleF sourceBounds;
                     using (var path = VectorPath(shape, scaleX, scaleY, translateX, translateY, out sourceBounds))
+                    using (var clipPath = shape.Cp == null ? null : VectorClipPath(shape, sourceBounds, scaleX, scaleY, translateX, translateY))
                     {
                         if (path == null || path.PointCount == 0) continue;
-                        var fill = shape.K != "line" && (shape.Fd != null || !VectorNone(shape.F));
-                        var stroke = shape.W > 0 && (shape.Sd != null || !VectorNone(shape.S));
-                        if (opacity > 0 && fill)
+                        if (shape.Cl && (shape.Cp == null || clipPath == null || clipPath.PointCount == 0)) continue;
+                        var shapeState = graphics.Save();
+                        try
                         {
-                            var fillOpacity = VectorOpacity(opacity, shape.O * shape.Fo);
-                            if (fillOpacity > 0)
-                                using (var brush = VectorBrush(shape, shape.Fd, shape.F, sourceBounds, scaleX, scaleY, translateX, translateY, shape.C, color, fillOpacity))
-                                    if (brush != null) graphics.FillPath(brush, path);
+                            if (clipPath != null) graphics.SetClip(clipPath, CombineMode.Intersect);
+                            var fill = shape.K != "line" && (shape.Fd != null || !VectorNone(shape.F));
+                            var stroke = shape.W > 0 && (shape.Sd != null || !VectorNone(shape.S));
+                            if (opacity > 0 && fill)
+                            {
+                                var fillOpacity = VectorOpacity(opacity, shape.O * shape.Fo);
+                                if (fillOpacity > 0)
+                                    using (var brush = VectorBrush(shape, shape.Fd, shape.F, sourceBounds, scaleX, scaleY, translateX, translateY, shape.C, color, fillOpacity))
+                                        if (brush != null) graphics.FillPath(brush, path);
+                            }
+                            if (opacity > 0 && stroke)
+                            {
+                                var strokeOpacity = VectorOpacity(opacity, shape.O * shape.So);
+                                if (strokeOpacity > 0)
+                                    using (var brush = VectorBrush(shape, shape.Sd, shape.S, sourceBounds, scaleX, scaleY, translateX, translateY, shape.C, color, strokeOpacity))
+                                    {
+                                        if (brush != null)
+                                            using (var pen = new Pen(brush, Math.Max(.5F, Math.Min(512F, (float)(shape.W * strokeScale)))))
+                                            {
+                                                pen.LineJoin = LineJoin.Round;
+                                                graphics.DrawPath(pen, path);
+                                            }
+                                    }
+                            }
+                            if (shape.U != null)
+                            {
+                                var bounds = Rectangle.Ceiling(path.GetBounds());
+                                bounds.Inflate(Math.Max(2, (int)Math.Ceiling(shape.W * strokeScale / 2D)), Math.Max(2, (int)Math.Ceiling(shape.W * strokeScale / 2D)));
+                                if (clipPath != null) bounds = Rectangle.Intersect(bounds, Rectangle.Ceiling(clipPath.GetBounds()));
+                                bounds = Rectangle.Intersect(bounds, rect);
+                                bounds = VisibleRect(bounds, clip);
+                                if (!bounds.IsEmpty) hits.Add(new Hit(bounds, shape.U, null, shape.El));
+                            }
                         }
-                        if (opacity > 0 && stroke)
+                        finally
                         {
-                            var strokeOpacity = VectorOpacity(opacity, shape.O * shape.So);
-                            if (strokeOpacity > 0)
-                                using (var brush = VectorBrush(shape, shape.Sd, shape.S, sourceBounds, scaleX, scaleY, translateX, translateY, shape.C, color, strokeOpacity))
-                                {
-                                    if (brush != null)
-                                        using (var pen = new Pen(brush, Math.Max(.5F, Math.Min(512F, (float)(shape.W * strokeScale)))))
-                                        {
-                                            pen.LineJoin = LineJoin.Round;
-                                            graphics.DrawPath(pen, path);
-                                        }
-                                }
-                        }
-                        if (shape.U != null)
-                        {
-                            var bounds = Rectangle.Ceiling(path.GetBounds());
-                            bounds.Inflate(Math.Max(2, (int)Math.Ceiling(shape.W * strokeScale / 2D)), Math.Max(2, (int)Math.Ceiling(shape.W * strokeScale / 2D)));
-                            bounds = Rectangle.Intersect(bounds, rect);
-                            bounds = VisibleRect(bounds, clip);
-                            if (!bounds.IsEmpty) hits.Add(new Hit(bounds, shape.U, null, shape.El));
+                            graphics.Restore(shapeState);
                         }
                     }
                 }
@@ -2903,6 +2915,44 @@ namespace Lea.Win
             path.CloseFigure();
         }
 
+        private GraphicsPath VectorClipPath(Vs shape, RectangleF sourceBounds, double scaleX, double scaleY, double translateX, double translateY)
+        {
+            if (shape == null || shape.Cp == null) return null;
+            var result = new GraphicsPath(FillMode.Winding);
+            try
+            {
+                foreach (var clipShape in shape.Cp.Ss)
+                {
+                    RectangleF unused;
+                    using (var part = VectorPath(clipShape, 1D, 1D, 0D, 0D, out unused))
+                    {
+                        if (part == null || part.PointCount == 0) continue;
+                        double[] values;
+                        if (shape.Cp.U == "b")
+                        {
+                            if (sourceBounds.Width <= 0F || sourceBounds.Height <= 0F) continue;
+                            var box = new[] { (double)sourceBounds.Width, 0D, 0D, (double)sourceBounds.Height, (double)sourceBounds.Left, (double)sourceBounds.Top };
+                            values = VectorMatrixMultiply(VectorMatrixValues(shape, scaleX, scaleY, translateX, translateY), box);
+                        }
+                        else values = VectorMatrixValues(shape.Cm, scaleX, scaleY, translateX, translateY);
+                        using (var matrix = VectorMatrix(values)) part.Transform(matrix);
+                        result.AddPath(part, false);
+                    }
+                }
+                return result;
+            }
+            catch (ArgumentException)
+            {
+                result.Dispose();
+                return null;
+            }
+            catch (System.Runtime.InteropServices.ExternalException)
+            {
+                result.Dispose();
+                return null;
+            }
+        }
+
         private static Brush VectorBrush(Vs shape, Vd gradient, string value, RectangleF bounds, double scaleX, double scaleY, double translateX, double translateY, string current, Color fallback, int opacity)
         {
             if (gradient == null) return new SolidBrush(PaintColor(VectorColor(value, current, fallback), opacity));
@@ -3014,7 +3064,12 @@ namespace Lea.Win
 
         private static double[] VectorMatrixValues(Vs shape, double scaleX, double scaleY, double translateX, double translateY)
         {
-            var values = shape == null || shape.M == null || shape.M.Count < 6 ? null : shape.M;
+            return VectorMatrixValues(shape == null ? null : shape.M, scaleX, scaleY, translateX, translateY);
+        }
+
+        private static double[] VectorMatrixValues(IList<double> values, double scaleX, double scaleY, double translateX, double translateY)
+        {
+            if (values != null && values.Count < 6) values = null;
             var a = values == null ? 1D : values[0];
             var b = values == null ? 0D : values[1];
             var c = values == null ? 0D : values[2];

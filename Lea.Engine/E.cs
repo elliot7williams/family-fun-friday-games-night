@@ -68,6 +68,10 @@ namespace Lea.Engine
         private const int MaxSvgStops = 16;
         private const int MaxSvgGradientLinks = 4;
         private const int MaxSvgGradientId = 64;
+        private const int MaxSvgSources = 64;
+        private const int MaxSvgClips = 16;
+        private const int MaxSvgClipShapes = 32;
+        private const int MaxSvgUseLinks = 4;
         private const int MaxSvgTransforms = 16;
         private const int MaxSvgTransformText = 1024;
         private const double MaxSvgCoordinate = 100000D;
@@ -3193,6 +3197,7 @@ namespace Lea.Engine
                 else if (name == "word-break" || name == "overflow-wrap" || name == "word-wrap") WordBreak(style, value, name == "word-break");
                 else if (name == "overflow") Overflow(style, value);
                 else if (name == "visibility") Visibility(style, value);
+                else if (name == "clip-path" && value.Length <= 128) style.Cp = value;
                 else if (name == "opacity") Opacity(style, value);
                 else if (name == "isolation") Isolation(style, value);
                 else if (name == "transform") Transform(style, value);
@@ -4630,24 +4635,32 @@ namespace Lea.Engine
             if (hasWidth && style.W == 0) style.W = Math.Max(1, (int)Math.Round(model.W));
             if (hasHeight && style.H == 0) style.H = Math.Max(1, (int)Math.Round(model.H));
 
+            var sources = SvgSources(svg);
             SvgGradients(svg, rules, style, model);
+            SvgClips(rules, style, model, sources);
             var initial = new Sv { C = style.F, Z = style.Fs > 0 ? style.Fs : 16D };
             var paint = SvgPaint(svg, initial, style, true);
             foreach (var child in svg.C)
             {
                 if (model.Ss.Count == MaxSvgShapes) break;
-                SvgWalk(page, child, baseUrl, rules, style, paint, model, 1, null, null);
+                SvgWalk(page, child, baseUrl, rules, style, paint, model, sources, new HashSet<string>(StringComparer.Ordinal), 1, 0, null, null);
             }
             return model;
         }
 
-        private static void SvgWalk(P page, N node, Uri baseUrl, List<R> rules, S inherited, Sv parent, Vg model, int depth, Uri activeLink, N linkElement)
+        private static void SvgWalk(P page, N node, Uri baseUrl, List<R> rules, S inherited, Sv parent, Vg model, Sx sources, ISet<string> usingIds, int depth, int useDepth, Uri activeLink, N linkElement)
         {
             if (node == null || node.K == "#text" || depth > MaxSvgDepth || model.Ss.Count == MaxSvgShapes) return;
-            if (node.K == "script" || node.K == "style" || node.K == "defs" || node.K == "symbol" || node.A.ContainsKey("hidden")) return;
+            if (node.K == "script" || node.K == "style" || node.K == "defs" || node.A.ContainsKey("hidden")) return;
             var css = Style(node, inherited, rules);
             if (css.D == "none" || css.Vi == "h" || css.Vi == "c" || AriaTrue(node, "aria-hidden")) return;
             var paint = SvgPaint(node, parent, css, false);
+            if (node.K == "use")
+            {
+                SvgUse(page, node, baseUrl, rules, css, paint, model, sources, usingIds, depth, useDepth, activeLink, linkElement);
+                return;
+            }
+            if (node.K == "symbol") return;
             var link = activeLink;
             var linkNode = linkElement;
             if (node.K == "a")
@@ -4667,8 +4680,37 @@ namespace Lea.Engine
             foreach (var child in node.C)
             {
                 if (model.Ss.Count == MaxSvgShapes) break;
-                SvgWalk(page, child, baseUrl, rules, css, paint, model, depth + 1, link, linkNode);
+                SvgWalk(page, child, baseUrl, rules, css, paint, model, sources, usingIds, depth + 1, useDepth, link, linkNode);
             }
+        }
+
+        private static void SvgUse(P page, N use, Uri baseUrl, List<R> rules, S css, Sv paint, Vg model, Sx sources, ISet<string> usingIds, int depth, int useDepth, Uri activeLink, N linkElement)
+        {
+            var id = SvgUseId(use);
+            N target;
+            if (id.Length == 0 || useDepth == MaxSvgUseLinks || usingIds.Contains(id) || !sources.Ns.TryGetValue(id, out target) || !SvgReusable(target.K)) return;
+            double x;
+            double y;
+            if (!SvgNumber(use.Av("x"), 0D, out x) || !SvgNumber(use.Av("y"), 0D, out y)) return;
+            paint = paint.Copy();
+            paint.M = SvgMatrixMultiply(paint.M, new[] { 1D, 0D, 0D, 1D, x, y });
+            if (!SvgMatrixSafe(paint.M)) return;
+            usingIds.Add(id);
+            if (target.K == "symbol")
+            {
+                var symbolCss = Style(target, css, rules);
+                if (symbolCss.D != "none" && symbolCss.Vi != "h" && symbolCss.Vi != "c" && !AriaTrue(target, "aria-hidden"))
+                {
+                    var symbolPaint = SvgPaint(target, paint, symbolCss, false);
+                    foreach (var child in target.C)
+                    {
+                        if (model.Ss.Count == MaxSvgShapes) break;
+                        SvgWalk(page, child, baseUrl, rules, symbolCss, symbolPaint, model, sources, usingIds, depth + 1, useDepth + 1, activeLink, linkElement);
+                    }
+                }
+            }
+            else SvgWalk(page, target, baseUrl, rules, css, paint, model, sources, usingIds, depth + 1, useDepth + 1, activeLink, linkElement);
+            usingIds.Remove(id);
         }
 
         private static Vs SvgShape(N node, Sv paint, Uri link, N linkElement, Vg model)
@@ -4690,7 +4732,13 @@ namespace Lea.Engine
                 U = link,
                 El = linkElement ?? node
             };
-            for (var index = 0; index < 6; index++) shape.M[index] = paint.M[index];
+            for (var index = 0; index < 6; index++)
+            {
+                shape.M[index] = paint.M[index];
+                shape.Cm[index] = paint.Xm[index];
+            }
+            shape.Cl = paint.X.Length > 0;
+            shape.Cp = SvgClipReference(paint.X, model);
             shape.Fd = SvgGradientReference(paint.F, model);
             shape.Sd = SvgGradientReference(paint.S, model);
             if (SvgPaintServer(paint.F) && shape.Fd == null) shape.F = "none";
@@ -4741,6 +4789,143 @@ namespace Lea.Engine
             }
             else if (!SvgPath(node.Av("d"), shape.D)) return null;
             return shape;
+        }
+
+        private static Sx SvgSources(N svg)
+        {
+            var result = new Sx();
+            SvgSourceNodes(svg, 0, result);
+            return result;
+        }
+
+        private static void SvgSourceNodes(N node, int depth, Sx result)
+        {
+            if (node == null || depth > MaxSvgDepth || result.Os.Count == MaxSvgSources) return;
+            var id = node.Av("id");
+            if (SvgGradientId(id) && !result.Ns.ContainsKey(id))
+            {
+                result.Ns[id] = node;
+                result.Os.Add(node);
+            }
+            foreach (var child in node.C)
+            {
+                if (result.Os.Count == MaxSvgSources) break;
+                SvgSourceNodes(child, depth + 1, result);
+            }
+        }
+
+        private static string SvgUseId(N node)
+        {
+            var href = node.Av("href");
+            if (href.Length == 0) href = node.Av("xlink:href");
+            var match = Regex.Match(href ?? "", "^\\s*#(?<i>[A-Za-z_][A-Za-z0-9_.:-]{0,63})\\s*$");
+            return match.Success ? match.Groups["i"].Value : "";
+        }
+
+        private static bool SvgReusable(string kind)
+        {
+            return kind == "rect" || kind == "circle" || kind == "ellipse" || kind == "line" || kind == "polyline" || kind == "polygon" ||
+                kind == "text" || kind == "path" || kind == "g" || kind == "symbol" || kind == "use" || kind == "a";
+        }
+
+        private static void SvgClips(List<R> rules, S inherited, Vg model, Sx sources)
+        {
+            foreach (var node in sources.Os)
+            {
+                if (node.K != "clippath" || model.Cs.Count == MaxSvgClips) continue;
+                var clip = SvgClip(node, rules, inherited, model, sources);
+                if (clip != null && SvgClipById(model, clip.I) == null) model.Cs.Add(clip);
+            }
+        }
+
+        private static Vc SvgClip(N node, List<R> rules, S inherited, Vg model, Sx sources)
+        {
+            var units = node.Av("clippathunits").Trim().ToLowerInvariant();
+            if (units.Length > 0 && units != "userspaceonuse" && units != "objectboundingbox") return null;
+            var css = Style(node, inherited, rules);
+            if (css.D == "none" || css.Vi == "h" || css.Vi == "c" || AriaTrue(node, "aria-hidden")) return null;
+            var initial = new Sv { C = inherited.F, Z = inherited.Fs > 0 ? inherited.Fs : 16D };
+            var paint = SvgPaint(node, initial, css, false);
+            paint.X = "";
+            paint.Xm = SvgIdentity();
+            var clip = new Vc { I = node.Av("id"), U = units == "objectboundingbox" ? "b" : "u" };
+            for (var index = 0; index < 6; index++) clip.M[index] = paint.M[index];
+            foreach (var child in node.C)
+            {
+                if (clip.Ss.Count == MaxSvgClipShapes) break;
+                SvgClipWalk(child, rules, css, paint, model, sources, new HashSet<string>(StringComparer.Ordinal), clip, 1, 0);
+            }
+            return clip.Ss.Count > 0 ? clip : null;
+        }
+
+        private static void SvgClipWalk(N node, List<R> rules, S inherited, Sv parent, Vg model, Sx sources, ISet<string> usingIds, Vc clip, int depth, int useDepth)
+        {
+            if (node == null || node.K == "#text" || depth > MaxSvgDepth || clip.Ss.Count == MaxSvgClipShapes) return;
+            if (node.K == "script" || node.K == "style" || node.K == "defs" || node.A.ContainsKey("hidden")) return;
+            var css = Style(node, inherited, rules);
+            if (css.D == "none" || css.Vi == "h" || css.Vi == "c" || AriaTrue(node, "aria-hidden")) return;
+            var paint = SvgPaint(node, parent, css, false);
+            paint.X = "";
+            paint.Xm = SvgIdentity();
+            if (node.K == "use")
+            {
+                SvgClipUse(node, rules, css, paint, model, sources, usingIds, clip, depth, useDepth);
+                return;
+            }
+            if (node.K == "symbol") return;
+            var shape = SvgShape(node, paint, null, null, model);
+            if (shape != null)
+            {
+                shape.Cl = false;
+                shape.Cp = null;
+                clip.Ss.Add(shape);
+            }
+            if (node.K != "g" && node.K != "a") return;
+            foreach (var child in node.C)
+            {
+                if (clip.Ss.Count == MaxSvgClipShapes) break;
+                SvgClipWalk(child, rules, css, paint, model, sources, usingIds, clip, depth + 1, useDepth);
+            }
+        }
+
+        private static void SvgClipUse(N use, List<R> rules, S css, Sv paint, Vg model, Sx sources, ISet<string> usingIds, Vc clip, int depth, int useDepth)
+        {
+            var id = SvgUseId(use);
+            N target;
+            if (id.Length == 0 || useDepth == MaxSvgUseLinks || usingIds.Contains(id) || !sources.Ns.TryGetValue(id, out target) || !SvgReusable(target.K)) return;
+            double x;
+            double y;
+            if (!SvgNumber(use.Av("x"), 0D, out x) || !SvgNumber(use.Av("y"), 0D, out y)) return;
+            paint = paint.Copy();
+            paint.M = SvgMatrixMultiply(paint.M, new[] { 1D, 0D, 0D, 1D, x, y });
+            if (!SvgMatrixSafe(paint.M)) return;
+            usingIds.Add(id);
+            if (target.K == "symbol")
+            {
+                var symbolCss = Style(target, css, rules);
+                if (symbolCss.D != "none" && symbolCss.Vi != "h" && symbolCss.Vi != "c" && !AriaTrue(target, "aria-hidden"))
+                {
+                    var symbolPaint = SvgPaint(target, paint, symbolCss, false);
+                    foreach (var child in target.C)
+                    {
+                        if (clip.Ss.Count == MaxSvgClipShapes) break;
+                        SvgClipWalk(child, rules, symbolCss, symbolPaint, model, sources, usingIds, clip, depth + 1, useDepth + 1);
+                    }
+                }
+            }
+            else SvgClipWalk(target, rules, css, paint, model, sources, usingIds, clip, depth + 1, useDepth + 1);
+            usingIds.Remove(id);
+        }
+
+        private static Vc SvgClipReference(string id, Vg model)
+        {
+            return id.Length > 0 ? SvgClipById(model, id) : null;
+        }
+
+        private static Vc SvgClipById(Vg model, string id)
+        {
+            foreach (var clip in model.Cs) if (clip.I == id) return clip;
+            return null;
         }
 
         private static void SvgGradients(N svg, List<R> rules, S inherited, Vg model)
@@ -5007,6 +5192,7 @@ namespace Lea.Engine
         {
             var paint = inherited.Copy();
             double[] transform = null;
+            var clipChanged = false;
             SvgTransform(node.Av("transform"), out transform);
             paint.C = css != null && css.F.Length > 0 ? css.F : paint.C;
             if (css != null && css.Fs > 0) paint.Z = css.Fs;
@@ -5018,6 +5204,8 @@ namespace Lea.Engine
             SvgPaintSet(paint, "stroke-opacity", node.Av("stroke-opacity"));
             SvgPaintSet(paint, "font-size", node.Av("font-size"));
             SvgPaintSet(paint, "text-anchor", node.Av("text-anchor"));
+            SvgClipSet(paint, node.Av("clip-path"), ref clipChanged);
+            if (css != null) SvgClipSet(paint, css.Cp, ref clipChanged);
             foreach (var declaration in CssDeclarations(node.Av("style")))
             {
                 if (root && declaration.N == "opacity") continue;
@@ -5030,7 +5218,23 @@ namespace Lea.Engine
                 SvgPaintSet(paint, declaration.N, declaration.V);
             }
             if (transform != null) paint.M = SvgMatrixMultiply(inherited.M, transform);
+            if (clipChanged) paint.Xm = (double[])paint.M.Clone();
             return paint;
+        }
+
+        private static void SvgClipSet(Sv paint, string input, ref bool changed)
+        {
+            var value = (input ?? "").Trim();
+            if (value.Equals("none", StringComparison.OrdinalIgnoreCase))
+            {
+                paint.X = "";
+                changed = true;
+                return;
+            }
+            var match = Regex.Match(value, "^url\\(\\s*['\"]?#(?<i>[A-Za-z_][A-Za-z0-9_.:-]{0,63})['\"]?\\s*\\)$", RegexOptions.IgnoreCase);
+            if (!match.Success) return;
+            paint.X = match.Groups["i"].Value;
+            changed = true;
         }
 
         private static void SvgPaintSet(Sv paint, string name, string input)
@@ -6741,6 +6945,12 @@ namespace Lea.Engine
             }
         }
 
+        private sealed class Sx
+        {
+            public readonly Dictionary<string, N> Ns = new Dictionary<string, N>(StringComparer.Ordinal);
+            public readonly List<N> Os = new List<N>();
+        }
+
         private sealed class Sv
         {
             public string F = "#000000";
@@ -6752,11 +6962,13 @@ namespace Lea.Engine
             public double Fo = 1D;
             public double So = 1D;
             public double Z = 16D;
+            public string X = "";
             public double[] M = SvgIdentity();
+            public double[] Xm = SvgIdentity();
 
             public Sv Copy()
             {
-                return new Sv { F = F, S = S, C = C, A = A, W = W, O = O, Fo = Fo, So = So, Z = Z, M = (double[])M.Clone() };
+                return new Sv { F = F, S = S, C = C, A = A, W = W, O = O, Fo = Fo, So = So, Z = Z, X = X, M = (double[])M.Clone(), Xm = (double[])Xm.Clone() };
             }
         }
 

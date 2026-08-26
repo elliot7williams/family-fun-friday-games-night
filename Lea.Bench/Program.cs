@@ -111,7 +111,7 @@ namespace Lea.Bench
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
-                "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html", "svg.html", "svg-geometry.html", "svg-gradients.html",
+                "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html", "svg.html", "svg-geometry.html", "svg-gradients.html", "svg-use-clips.html",
                 "box-sizing.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
@@ -1225,6 +1225,29 @@ namespace Lea.Bench
                 }
                 return "Vg.Ds, Vs.Fd/Sd, Vd/Vt aliases, bounded local inheritance and cycles, object/user units, transforms, CSS stops/opacity/currentColor, linear/radial fill and stroke paint, links, and invalid fallback";
             });
+            AddProbe(probes, "SVG reusable geometry and clips", delegate
+            {
+                var path = Path.Combine(folder, "svg-use-clips.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var block = page.Bs.First(item => item.El != null && item.El.Av("id") == "reuse-vector");
+                var shapes = block.Vg.Ss;
+                Need(block.Vg != null && block.Vg.Cs.Count == 4 && shapes.Count == 14, "SVG use expansion or clip model changed");
+                Need(shapes[0].M[4] == 5D && shapes[0].F == "#dc2626" && shapes[2].M[0] == 1.2D && shapes[4].M[4] == 85D && shapes[6].M[4] == 113D, "SVG group, symbol, or nested use matrix changed");
+                Need(block.Vg.Cs[0].U == "u" && block.Vg.Cs[0].M[4] == 2D && block.Vg.Cs[1].U == "b" && block.Vg.Cs[2].Ss[0].M[4] == 125D && block.Vg.Cs[3].Ss.Count == 2, "SVG clip units, transform, use, or union changed");
+                Need(shapes[8].Cp == block.Vg.Cs[0] && shapes[9].Cp == block.Vg.Cs[1] && shapes[10].Cp == block.Vg.Cs[2] && shapes[11].Cp == block.Vg.Cs[3] && shapes[13].Cl && shapes[13].Cp == null, "SVG clip attachment or fail-closed state changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 720);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        Need(BlockContent(view, "reuse-vector").Size == new Size(360, 240) && ColoredSamples(image) > 0, "SVG reusable clip layout or paint changed");
+                        Need(!FragmentHit(view, "#clip-target").IsEmpty, "SVG clipped link hit changed");
+                    }
+                }
+                return "Vg.Cs, Vs.Cp/Cl/Cm, Vc aliases, bounded group/symbol/nested use expansion, x/y and transforms, cycle rejection, user/object clip units, reusable clip geometry, CSS/group attachment, paint, links, and unresolved fallback";
+            });
             AddProbe(probes, "Forms and validation", delegate
             {
                 var engine = new E();
@@ -1432,7 +1455,7 @@ namespace Lea.Bench
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
             Capability(builder, "Flexbox", "Supported subset", "Row/row-reverse and fixed-height column/column-reverse containers, content/border-box pixel bases, stable -64..64 order on nowrap rows and bounded columns, bounded row wrap, fixed/equal-share/weighted grow and integer weighted-shrink slots, explicit pixel min/max floors, pixel row/column gaps, start/center/end/space-between/space-around/space-evenly justification, and container/item stretch/start/center/end cross alignment; no intrinsic min-content sizing, fractional factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis alignment, or auto-height column reordering guarantee");
             Capability(builder, "CSS Grid", "Supported subset", "Grid/inline-grid with up to eight fixed-pixel, auto, or integer-fr tracks per explicit axis, simple repeat and minmax(0, Nfr), pixel gaps, bounded occupancy, two-axis numeric starts/spans, validated 8x8 named-area templates, unique explicit named lines, area-generated start/end lines, Gf row/column sparse/dense flow, repeating S.Av/Gac/Gav/Rac/Rav pixel/auto/integer-fr implicit patterns, definite endpoint/span growth, area-created track sizing, exact auto-height row settlement, atomic grid-template/grid explicit, quoted-area, and row/column auto-flow shorthands, Ji/Js/Ai/As start/center/end/stretch item alignment, atomic place-items/place-self, Al/Jc start/center/end/between/around/evenly track-group alignment, atomic place-content, and shared nested paint/hit/reflow; no escaped or repeated-name occurrence indexes, reverse flow, pre-explicit implicit tracks, shorthand area-row line names, intrinsic or percentage tracks, auto-fit/fill, baseline or safe/unsafe alignment, writing-mode axis reversal, or subgrid");
-            Capability(builder, "SVG and Canvas", "SVG supported subset; Canvas not supported", "Bounded inline SVG with intrinsic width/height, preserveAspectRatio none/meet/slice mapping, groups/links, rect/circle/ellipse/line/polyline/polygon/text, M/L/H/V/Z/C/S/Q/T/A paths, cumulative matrix/translate/scale/rotate/skew transforms, linear/radial object-bounds or user-space gradients with bounded stops/inheritance/transforms, presentation and inline fill/stroke/opacity/font properties, currentColor, graphic accessibility, clipping, paint, and transformed shape-bounds hits; 128 shapes/points, 16 transforms/gradients/stops, eight levels, and 256 text characters. No repeat/reflect spread, patterns, clip paths, masks, filters, markers, animation, scripting, external resources, nested SVG, or Canvas");
+            Capability(builder, "SVG and Canvas", "SVG supported subset; Canvas not supported", "Bounded inline SVG with intrinsic width/height, preserveAspectRatio none/meet/slice mapping, groups/links, local shape/group/symbol use expansion, user/object clip paths, rect/circle/ellipse/line/polyline/polygon/text, M/L/H/V/Z/C/S/Q/T/A paths, cumulative matrix/translate/scale/rotate/skew transforms, linear/radial object-bounds or user-space gradients with bounded stops/inheritance/transforms, presentation and inline fill/stroke/opacity/font/clip properties, currentColor, graphic accessibility, clipped paint, and transformed shape-bounds hits; 128 shapes/points, 64 sources, 16 transforms/gradients/stops/clips, eight levels, and 256 text characters. No repeat/reflect spread, patterns, nested clips, masks, filters, markers, animation, scripting, external references, symbol viewBox sizing, nested SVG, or Canvas");
             Capability(builder, "Audio and video", "Not supported", "Future optional module");
             Capability(builder, "Developer diagnostics", "Supported", "Bounded summary, node, CSS, request, message, and variable snapshots");
             Capability(builder, "Document queries", "Supported subset", "Id, first-match Q/Q1, and read-only Qa with compiled selectors and a 256-result ceiling");

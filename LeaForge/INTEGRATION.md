@@ -531,13 +531,26 @@ focus, up to four `href` inheritance hops, gradient transforms, and up to 16
 presentation, stylesheet, or inline color/opacity stops. Gradient fills and
 strokes follow the shape and viewport matrices through the same clipped path.
 
+Local `<use>` references to a shape, group, symbol, link, or another use expand
+into the ordinary `Vs` list with inherited paint, `x/y`, and transforms. Lea
+indexes up to 64 unique local IDs, follows four use links, rejects cycles, and
+still enforces the 128 painted-shape ceiling, so embedding hosts do not need a
+parallel instance-tree API.
+
+Clip paths resolve through `Vg.Cs` and each shape's `Cp/Cl/Cm` state. Up to 16
+definitions can hold 32 primitive/path/text or reused geometry shapes each.
+User-space clips keep the matrix where a direct or group clip became active;
+object-bounds clips normalize through the target's logical bounds. Presentation,
+stylesheet, and inline local references intersect fills, strokes, and linked hit
+bounds. Missing, empty, cyclic, or over-limit definitions paint nothing.
+
 Parsing is capped at eight group levels, 128 shapes, 128 primitive/path points,
 256 text characters, 4,096 path characters, finite coordinates, and a 2,000 px
 intrinsic size. Transform lists are capped at 16 functions and 1,024 characters;
 arcs expand to no more than four cubic steps. Gradient definitions and stops are
-capped at 16 each. Repeat/reflect spread, patterns, clip paths, masks, filters,
-markers, animation, scripting, external resources, nested SVG, and Canvas
-remain explicit compatibility limits.
+capped at 16 each. Repeat/reflect spread, patterns, nested clip paths, masks,
+filters, markers, animation, scripting, external references, symbol viewBox
+sizing, nested SVG, and Canvas remain explicit compatibility limits.
 
 ## Experimental Firespider tab
 
