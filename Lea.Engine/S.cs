@@ -35,6 +35,8 @@ namespace Lea.Engine
         public int Or { get; internal set; }
         public int Gl { get; internal set; }
         public int Gs { get; internal set; }
+        public int Rl { get; internal set; }
+        public int Rs { get; internal set; }
         public string Pn { get; internal set; }
         public int? Tp { get; internal set; }
         public int? Rt { get; internal set; }
@@ -72,13 +74,20 @@ namespace Lea.Engine
         internal bool Zt { get; set; }
         internal Dictionary<string, string> Vr { get; set; }
         internal int[] Gd { get; set; }
+        internal int[] Rd { get; set; }
 
         public int Vc { get { return Vr == null ? 0 : Vr.Count; } }
         public int Gc { get { return Gd == null ? 0 : Gd.Length; } }
+        public int Rc { get { return Rd == null ? 0 : Rd.Length; } }
 
         public int Gv(int index)
         {
             return Gd != null && index >= 0 && index < Gd.Length ? Gd[index] : 0;
+        }
+
+        public int Rv(int index)
+        {
+            return Rd != null && index >= 0 && index < Rd.Length ? Rd[index] : 0;
         }
 
         public string Cv(string name)
@@ -109,6 +118,7 @@ namespace Lea.Engine
             Sh = 1;
             Fb = -1;
             Gs = 1;
+            Rs = 1;
             Bz = "c";
             Pn = "";
             Bc = "";

@@ -18,17 +18,26 @@
     #center { width: 300px; grid-template-columns: 80px 80px; column-gap: 10px; justify-content: center; }
     #separate { width: 330px; grid-template-columns: repeat(3, 1fr); gap: 6px; }
     #separate-two { grid-column-start: 2; grid-column-end: span 2; }
+    #rows { width: 300px; height: 150px; grid-template-columns: repeat(3, 1fr); grid-template-rows: 30px 1fr 2fr; gap: 8px 6px; }
+    #rows-a { grid-column: 1 / span 2; grid-row: 1 / span 1; background: #d8f1e5; }
+    #rows-b { grid-column: 2 / span 2; grid-row: 2 / span 2; background: #fde3c5; }
+    #rows-c { grid-column-start: 1; grid-row-start: 3; grid-row-end: span 1; background: #dce9ff; }
+    #auto-rows { width: 240px; grid-template-columns: repeat(2, 1fr); grid-template-rows: 20px 1fr; gap: 5px; }
+    #auto-row-a { grid-column: 1 / span 2; grid-row: 1; }
+    #auto-row-b { grid-column: 1; grid-row: 2; }
+    #auto-row-c { grid-column: 2; grid-row: 2; }
+    .row-item { margin: 0; }
     #fields { display: inline-grid; width: 300px; grid-template-columns: repeat(2, 1fr); gap: 8px; }
     #fields input, #fields button { margin: 0; }
     #nested { width: 260px; grid-template-columns: 1fr 1fr; gap: 5px; }
     #nested article, #nested p { margin: 0; }
     #responsive { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-    #invalid { width: 180px; grid-template-columns: repeat(9, 1fr); }
-    #invalid-one { grid-column: 0 / span 9; }
-    #limit { width: 320px; grid-template-columns: repeat(8, 1fr); }
+    #invalid { width: 180px; grid-template-columns: repeat(9, 1fr); grid-template-rows: repeat(9, 1fr); }
+    #invalid-one { grid-column: 0 / span 9; grid-row: 0 / span 9; }
+    #limit { width: 320px; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); }
     #zero { width: 40px; grid-template-columns: 0px 1fr; gap: 4px; }
     #overflow { width: 30px; grid-template-columns: 100px 200px; gap: 10px; }
-    #reset { width: 180px; grid-template-columns: 1fr 1fr; grid-template-columns: none; }
+    #reset { width: 180px; grid-template-columns: 1fr 1fr; grid-template-columns: none; grid-template-rows: 1fr 1fr; grid-template-rows: none; }
     #after-grid { width: 330px; padding: 5px; border-left: 3px solid #b91c1c; background: #f8eeee; }
   </style>
 </head>
@@ -61,6 +70,16 @@
     <p id="separate-one" class="item">Start</p>
     <p id="separate-two" class="item">Separate properties</p>
     <p id="separate-three" class="item">Next row</p>
+  </section>
+  <section id="rows" class="grid">
+    <p id="rows-a" class="row-item">First row span</p>
+    <p id="rows-b" class="row-item">Two-axis span</p>
+    <p id="rows-c" class="row-item">Separate row placement</p>
+  </section>
+  <section id="auto-rows" class="grid">
+    <p id="auto-row-a" class="row-item">Measured first row</p>
+    <p id="auto-row-b" class="row-item">Measured second row A</p>
+    <p id="auto-row-c" class="row-item">Measured second row B</p>
   </section>
   <form id="fields" class="grid">
     <input id="grid-field" value="Grid field">

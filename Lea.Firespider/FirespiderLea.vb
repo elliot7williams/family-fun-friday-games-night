@@ -127,10 +127,18 @@ Partial Class j
     End Sub
 
     Private Function qleaAt() As Global.Lea.Win.V
-        If k.SelectedTab Is Nothing OrElse k.SelectedTab.Controls.Count = 0 Then Return Nothing
-        Dim host = TryCast(k.SelectedTab.Controls(0), Global.Lea.Win.V)
+        Dim tab = qleaSelectedTab()
+        If tab Is Nothing OrElse tab.Controls.Count = 0 Then Return Nothing
+        Dim host = TryCast(tab.Controls(0), Global.Lea.Win.V)
         If host IsNot Nothing Then host.Pv = pv
         Return host
+    End Function
+
+    Private Function qleaSelectedTab() As TabPage
+        If k Is Nothing OrElse k.TabPages.Count = 0 Then Return Nothing
+        Dim index = k.SelectedIndex
+        If index < 0 OrElse index >= k.TabPages.Count Then Return Nothing
+        Return k.TabPages(index)
     End Function
 
     Private Function qleaHost(ByVal tab As TabPage) As Global.Lea.Win.V
@@ -630,12 +638,19 @@ Partial Class j
 
     Private Sub qleaTick(ByVal sender As Object, ByVal e As EventArgs)
         Dim host = qleaAt()
-        If host Is Nothing Then
-            tk(sender, e)
-        Else
+        If host IsNot Nothing Then
             su.Text = If(host.Busy, "Lea loading", "Lea ready")
             qleaState(host)
+            Return
         End If
+
+        Dim tab = qleaSelectedTab()
+        If tab Is Nothing OrElse tab.Controls.Count = 0 Then
+            su.Text = "Ready"
+            Return
+        End If
+        Dim browser = TryCast(tab.Controls(0), WebBrowser)
+        su.Text = If(browser Is Nothing OrElse browser.StatusText Is Nothing, "Ready", browser.StatusText)
     End Sub
 
     Private Sub qleaCloseMenuClick(ByVal sender As Object, ByVal e As EventArgs)

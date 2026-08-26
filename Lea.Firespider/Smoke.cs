@@ -37,8 +37,8 @@ namespace Lea.Firespider
                     .Replace(".host-wrap{width:160px}", ".host-wrap{width:160px}.host-box{box-sizing:border-box;width:180px;height:44px;padding:6px;border:2px solid #176b4d}")
                     .Replace(".host-flex{display:flex;width:300px;height:60px;gap:8px;justify-content:space-between;align-items:center}", ".host-flex{display:flex;width:300px;height:60px;flex-wrap:wrap;gap:6px 8px;justify-content:space-between;align-items:center}")
                     .Replace(".host-flex p{width:70px;height:20px}", ".host-flex p{flex:1 1 180px;height:20px}.host-flex #host-flex-b{flex-shrink:2;min-width:80px}.host-flex-column{display:flex;width:180px;height:100px;flex-direction:column-reverse;row-gap:5px;justify-content:space-evenly;align-items:flex-end}.host-flex-column p{width:70px;margin:0;flex:0 1 60px;min-height:30px}.host-flex-column #host-flex-column-a{order:2;align-self:center}.host-flex-column #host-flex-column-b{order:-1}")
-                    .Replace("</style>", ".host-grid{display:grid;width:300px;grid-template-columns:100px 1fr 2fr;gap:7px 10px}.host-grid p{height:20px;margin:0}.host-grid #host-grid-span{grid-column:2/span 2}:root{--host-color:#0f4c81;--host-width:155px;--host-pad:7px}.host-var{--host-color:#0f4c81!important;color:var(--host-color)!important;width:var(--host-width)!important;padding:var(--host-pad)}:is(.host-var,#host-never){border-left:4px solid #176b4d}:where(#host-var){padding-left:2px}.host-var:not(.missing,[data-off]){font-weight:bold}#host-flex>p:nth-child(2n+1){border-right:3px solid #176b4d}#host-flex>p:nth-last-child(-n+1){padding-left:9px}#host-flex-column>p:nth-last-of-type(2n){color:#a13b18}#host-flex>p:nth-child(1 of #host-flex-a,#host-flex-b){border-bottom:3px solid #176b4d}#host-flex>p:nth-last-child(1 of #host-flex-a,#host-flex-b){border-top:2px solid #a13b18}#host-has:has(> .host-direct){width:146px;border-left:5px solid #176b4d}#host-has:has(> .host-body .host-ready[data-host=ready]){padding-right:6px}#host-flex:has(+ #host-has){border-top:4px solid #a13b18}#host-has:has(input:focus){background:#dff6e9;font-weight:bold}.host-media{display:none}@media screen and (max-width:500px){:root{--host-width:110px;--host-pad:4px}#host-media{display:block;width:120px;background:#e8f4ef}#host-box{display:none}}</style>")
-                    .Replace("</section><p id='class-state'>", "</section><section id='host-has'><span class='host-direct'>Direct host child</span><div class='host-body'><span class='host-ready' data-host='ready'>Ready host descendant</span></div><input id='host-has-input' value='Relational host field'></section><section id='host-grid' class='host-grid'><p id='host-grid-a'>Grid A</p><p id='host-grid-b'>Grid B</p><p id='host-grid-c'>Grid C</p><p id='host-grid-span'>Grid span</p></section><p id='class-state'>")
+                    .Replace("</style>", ".host-grid{display:grid;width:300px;grid-template-columns:100px 1fr 2fr;gap:7px 10px}.host-grid p{height:20px;margin:0}.host-grid #host-grid-span{grid-column:2/span 2}.host-grid-rows{display:grid;width:300px;height:120px;grid-template-columns:1fr 2fr;grid-template-rows:30px 1fr;gap:6px 8px}.host-grid-rows p{margin:0}.host-grid-rows #host-grid-row-a{grid-column:1/span 2;grid-row:1}.host-grid-rows #host-grid-row-b{grid-column:2;grid-row:2}.host-grid-rows #host-grid-row-c{grid-column:1;grid-row-start:2;grid-row-end:span 1}:root{--host-color:#0f4c81;--host-width:155px;--host-pad:7px}.host-var{--host-color:#0f4c81!important;color:var(--host-color)!important;width:var(--host-width)!important;padding:var(--host-pad)}:is(.host-var,#host-never){border-left:4px solid #176b4d}:where(#host-var){padding-left:2px}.host-var:not(.missing,[data-off]){font-weight:bold}#host-flex>p:nth-child(2n+1){border-right:3px solid #176b4d}#host-flex>p:nth-last-child(-n+1){padding-left:9px}#host-flex-column>p:nth-last-of-type(2n){color:#a13b18}#host-flex>p:nth-child(1 of #host-flex-a,#host-flex-b){border-bottom:3px solid #176b4d}#host-flex>p:nth-last-child(1 of #host-flex-a,#host-flex-b){border-top:2px solid #a13b18}#host-has:has(> .host-direct){width:146px;border-left:5px solid #176b4d}#host-has:has(> .host-body .host-ready[data-host=ready]){padding-right:6px}#host-flex:has(+ #host-has){border-top:4px solid #a13b18}#host-has:has(input:focus){background:#dff6e9;font-weight:bold}.host-media{display:none}@media screen and (max-width:500px){:root{--host-width:110px;--host-pad:4px}#host-media{display:block;width:120px;background:#e8f4ef}#host-box{display:none}}</style>")
+                    .Replace("</section><p id='class-state'>", "</section><section id='host-has'><span class='host-direct'>Direct host child</span><div class='host-body'><span class='host-ready' data-host='ready'>Ready host descendant</span></div><input id='host-has-input' value='Relational host field'></section><section id='host-grid' class='host-grid'><p id='host-grid-a'>Grid A</p><p id='host-grid-b'>Grid B</p><p id='host-grid-c'>Grid C</p><p id='host-grid-span'>Grid span</p></section><section id='host-grid-rows' class='host-grid-rows'><p id='host-grid-row-a'>Grid row A</p><p id='host-grid-row-b'>Grid row B</p><p id='host-grid-row-c'>Grid row C</p></section><p id='class-state'>")
                     .Replace("<p id='class-state'>", "<p id='host-var' class='host-var' style='--host-color:#a13b18;color:#a13b18;width:199px'>Important property host</p><p id='host-media' class='host-media'>Responsive host</p><p id='host-box' class='host-box'>Border-box host</p><section id='host-flex-column' class='host-flex-column'><p id='host-flex-column-a'>Column A</p><p id='host-flex-column-b'>Column B</p></section><p id='class-state'>");
                 File.WriteAllText(openPage, openMarkup);
                 var root = args.Length > 0 ? args[0] : AppDomain.CurrentDomain.BaseDirectory;
@@ -77,6 +77,17 @@ namespace Lea.Firespider
                     Check(inspectorMenu != null && inspectorMenu.ShortcutKeys == Keys.F12, "Lea Inspector menu and shortcut");
 
                     var tabs = Member<TabControl>(form, "k");
+                    var timer = Member<Timer>(form, "t");
+                    var tick = typeof(Timer).GetMethod("OnTick", BindingFlags.Instance | BindingFlags.NonPublic);
+                    Check(tick != null, "Firespider timer tick");
+                    tick.Invoke(timer, new object[] { EventArgs.Empty });
+                    var pendingTab = new TabPage("Starting");
+                    tabs.TabPages.Add(pendingTab);
+                    tabs.SelectedTab = pendingTab;
+                    tick.Invoke(timer, new object[] { EventArgs.Empty });
+                    tabs.TabPages.Remove(pendingTab);
+                    pendingTab.Dispose();
+                    Check(Member<Label>(form, "su").Text == "Ready", "Firespider startup timer tolerates missing tabs and controls");
                     newTab.PerformClick();
                     var primaryLeaTab = tabs.SelectedTab;
                     var host = tabs.SelectedTab == null || tabs.SelectedTab.Controls.Count == 0 ? null : tabs.SelectedTab.Controls[0] as V;
@@ -120,9 +131,6 @@ namespace Lea.Firespider
                     privateField.SetValue(form, false);
                     currentLea.Invoke(form, null);
                     Check(!host.Pv, "Firespider normal cookie mode restored");
-                    var timer = Member<Timer>(form, "t");
-                    var tick = typeof(Timer).GetMethod("OnTick", BindingFlags.Instance | BindingFlags.NonPublic);
-                    Check(tick != null, "Firespider timer tick");
                     tick.Invoke(timer, new object[] { EventArgs.Empty });
                     var start = Path.Combine(root, "Lea", "start.html");
                     var opened = (bool)type.GetMethod("qleaOpenPath", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(form, new object[] { openPage });
@@ -220,6 +228,16 @@ namespace Lea.Firespider
                     var hostGridSpanBox = BlockOuter(host, "host-grid-span");
                     Check(hostGridABox.Width == 100 && hostGridBBox.Width == 60 && hostGridCBox.Width == 120 && hostGridBBox.Left - hostGridABox.Right == 10 && hostGridSpanBox.Width == 190 && hostGridSpanBox.Left == hostGridBBox.Left && hostGridSpanBox.Top - hostGridABox.Bottom == 7,
                         "Firespider bounded grid geometry");
+                    var hostGridRows = BlockById(host.At, "host-grid-rows");
+                    var hostGridRowA = BlockById(host.At, "host-grid-row-a");
+                    var hostGridRowB = BlockById(host.At, "host-grid-row-b");
+                    Check(hostGridRows.S.Rc == 2 && hostGridRows.S.Rv(0) == 30 && hostGridRows.S.Rv(1) == -1 && hostGridRowA.S.Rl == 1 && hostGridRowA.S.Gs == 2 && hostGridRowB.S.Rl == 2 && hostGridRowB.S.Gl == 2,
+                        "Firespider bounded grid row aliases");
+                    var hostGridRowABox = BlockOuter(host, "host-grid-row-a");
+                    var hostGridRowBBox = BlockOuter(host, "host-grid-row-b");
+                    var hostGridRowCBox = BlockOuter(host, "host-grid-row-c");
+                    Check(hostGridRowABox.Width == 300 && hostGridRowABox.Height == 30 && hostGridRowBBox.Width == 195 && hostGridRowBBox.Height == 84 && hostGridRowCBox.Width == 97 && hostGridRowCBox.Height == 84 && hostGridRowBBox.Left - hostGridRowCBox.Right == 8 && hostGridRowBBox.Top - hostGridRowABox.Bottom == 6,
+                        "Firespider bounded grid row geometry");
                     host.Size = new System.Drawing.Size(480, 560);
                     Application.DoEvents();
                     PaintView(host);

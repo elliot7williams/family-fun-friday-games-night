@@ -36,12 +36,13 @@ Safe scripts and hosts now also use `hd/sh`, `op/cl/tg`, `ds/en`, `vl`, `ck`, an
 `fo` for bounded visibility, disclosure, disabled, value, checked, and focus state. A retained field
 map preserves one existing model while hidden; `E.Kp` and `V` consume one focus
 request without exposing files, passwords, arbitrary attributes, or native UI.
-`grid.html` brings the benchmark to 35 fixtures and its bounded-grid check
-brings it to 34 executable compatibility probes. Lazy compact `Gd/Gc/Gv`
-tracks and direct-item `Gl/Gs` placement cover fixed pixel and integer-fr
-columns, simple repeat/minmax forms, gaps, spans, sparse automatic rows, stable
-order-modified traversal, nesting, fields, paint, hits, resize, strict invalid
-limits, Inspector visibility, and Firespider geometry. The preceding
+`grid.html` keeps the benchmark at 35 fixtures and its bounded-grid check keeps
+34 executable compatibility probes. Lazy compact `Gd/Gc/Gv` columns and
+`Rd/Rc/Rv` rows with direct-item `Gl/Gs` and `Rl/Rs` placement cover fixed pixel
+and integer-fr tracks, simple repeat/minmax forms, gaps, bounded occupancy,
+two-axis spans, implicit rows, stable order-modified traversal, auto-height
+settling, nesting, fields, paint, hits, resize, strict invalid limits, Inspector
+visibility, and Firespider geometry. The preceding
 `selector-relational.html` fixture covers strict precompiled `:has` lists with implicit descendants, explicit child,
 adjacent and following relationships, four-part chains, maximum argument
 specificity, dynamic descendant focus, retained fields, shared query behavior,

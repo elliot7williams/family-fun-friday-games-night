@@ -877,13 +877,13 @@ namespace Lea.Win
                     if (StretchesHeight(bs)) height = ConstrainHeight(bs, Math.Max(1, containing.Height - bs.Tp.Value - bs.Bm.Value - mt - mb - bt - bb - pt - pb));
                     if (slotChild && parent.Fh && FlexAlign(parent, bs) == "t" && (bs == null || bs.H == 0))
                         height = ConstrainHeight(bs, Math.Max(1, parent.C.Bottom - parent.Ft - mt - mb - bt - bb - pt - pb));
-                    if (slotChild && slot.C && slot.H >= 0)
+                    if (slotChild && slot.C && slot.H >= 0 && (!slot.Q || bs == null || bs.H == 0))
                         height = ConstrainFlexHeight(bs, Math.Max(1, slot.H - mt - mb - bt - bb - pt - pb));
                     var text = MarkedText(block);
                     var link = inline == null && block.K == "a" ? block.U : null;
                     var outerWidth = bw + pl + pr + bl + br;
                     var outerHeight = height + pt + pb + bt + bb;
-                    var flexX = slotChild && slot.C ? FlexX(parent, bs, outerWidth, ml, mr) : lx + ml;
+                    var flexX = slotChild && slot.C && !slot.Q ? FlexX(parent, bs, outerWidth, ml, mr) : lx + ml;
                     var bx = PositionX(bs, flexX, outerWidth, containing, ml, mr);
                     var alignedY = slotChild && !slot.C ? FlexY(parent, bs, outerHeight, mt, mb, flowY) : flowY;
                     var by = PositionY(bs, alignedY, outerHeight, containing, mt, mb);
@@ -911,7 +911,8 @@ namespace Lea.Win
                         Pc = inheritedClip,
                         Co = ClipsOverflow(bs),
                         Fh = IsFlex(bs) && !FlexColumn(bs) && bs.Wr != "w" && (bs.H > 0 || resolvedOwner),
-                        Fm = FlexColumn(bs) && bs.H > 0
+                        Fm = FlexColumn(bs) && bs.H > 0,
+                        Gm = IsGrid(bs) && bs.Rc > 0 && (bs.H > 0 || resolvedOwner)
                     };
                     ChildSlots(context);
                     contexts[block] = context;
@@ -1131,7 +1132,7 @@ namespace Lea.Win
 
             var columns = style.Gc;
             var gap = Math.Min(style.Gp, Math.Max(0, context.C.Width / Math.Max(1, columns - 1)));
-            var widths = GridTrackWidths(style, context.C.Width, gap);
+            var widths = GridTrackSizes(style, false, columns, context.C.Width, gap);
             var used = gap * Math.Max(0, columns - 1);
             foreach (var width in widths) used += width;
             var offset = FlexJustify(style.Jc, columns, Math.Max(0, context.C.Width - used), false, ref gap);
@@ -1148,36 +1149,103 @@ namespace Lea.Win
             context.Fi = -1;
             context.Fz = 0;
             context.Fr = style.Rg;
-            var line = 0;
-            var column = 0;
+            var placements = GridPositions(items, columns);
+            var rows = style.Rc;
+            foreach (var placement in placements.Values) rows = Math.Max(rows, placement.R + placement.Rs);
+            var rowGap = rows < 2 ? 0 : Math.Min(style.Rg, Math.Max(0, context.C.Height / (rows - 1)));
+            var heights = context.Gm ? GridTrackSizes(style, true, rows, context.C.Height, rowGap) : null;
+            var rowStarts = heights == null ? null : new int[rows];
+            if (rowStarts != null)
+            {
+                var top = context.C.Y;
+                for (var index = 0; index < rows; index++)
+                {
+                    rowStarts[index] = top;
+                    top += heights[index] + rowGap;
+                }
+            }
+
+            var naturalLine = 0;
             foreach (var item in items)
             {
-                var itemStyle = item.S;
-                var span = Math.Max(1, Math.Min(columns, itemStyle == null ? 1 : itemStyle.Gs));
-                var start = itemStyle == null || itemStyle.Gl < 1 ? -1 : Math.Min(columns - 1, itemStyle.Gl - 1);
-                if (start >= 0)
-                {
-                    if (start < column || start + span > columns) line++;
-                    column = start;
-                }
-                else if (column + span > columns)
-                {
-                    line++;
-                    column = 0;
-                }
-                span = Math.Min(span, columns - column);
+                var placement = placements[item];
                 var width = 0;
-                for (var track = column; track < column + span; track++) width += widths[track];
-                width += gap * Math.Max(0, span - 1);
-                context.Fs[item] = new Fp(starts[column], Math.Max(1, width), line);
-                column += span;
-                if (column >= columns) { line++; column = 0; }
+                for (var track = placement.C; track < placement.C + placement.Cs; track++) width += widths[track];
+                width += gap * Math.Max(0, placement.Cs - 1);
+                if (rowStarts != null)
+                {
+                    var height = 0;
+                    for (var track = placement.R; track < placement.R + placement.Rs; track++) height += heights[track];
+                    height += rowGap * Math.Max(0, placement.Rs - 1);
+                    context.Fs[item] = new Fp(starts[placement.C], Math.Max(1, width), placement.R, rowStarts[placement.R], Math.Max(1, height), true, 0, true);
+                }
+                else
+                {
+                    naturalLine = Math.Max(naturalLine, placement.R);
+                    context.Fs[item] = new Fp(starts[placement.C], Math.Max(1, width), naturalLine);
+                }
             }
         }
 
-        private static int[] GridTrackWidths(S style, int available, int gap)
+        private static Dictionary<B, Gq> GridPositions(IList<B> items, int columns)
         {
-            var count = style.Gc;
+            var result = new Dictionary<B, Gq>();
+            var occupied = new HashSet<int>();
+            var cursorRow = 0;
+            var cursorColumn = 0;
+            foreach (var item in items)
+            {
+                var style = item.S;
+                var columnSpan = Math.Max(1, Math.Min(columns, style == null ? 1 : style.Gs));
+                var rowSpan = Math.Max(1, style == null ? 1 : style.Rs);
+                var fixedColumn = style == null || style.Gl < 1 ? -1 : Math.Min(columns - 1, style.Gl - 1);
+                var fixedRow = style == null || style.Rl < 1 ? -1 : style.Rl - 1;
+                var row = fixedRow >= 0 ? fixedRow : cursorRow;
+                var column = fixedColumn >= 0 ? fixedColumn : fixedRow >= 0 ? 0 : cursorColumn;
+                if (fixedRow < 0 && fixedColumn >= 0 && column < cursorColumn) row++;
+
+                for (var attempt = 0; attempt < 8192; attempt++)
+                {
+                    if (column + columnSpan <= columns && GridFree(occupied, columns, row, column, rowSpan, columnSpan)) break;
+                    if (fixedColumn >= 0) row++;
+                    else
+                    {
+                        column++;
+                        if (column + columnSpan > columns) { row++; column = 0; }
+                    }
+                }
+                column = Math.Max(0, Math.Min(columns - columnSpan, column));
+                GridOccupy(occupied, columns, row, column, rowSpan, columnSpan);
+                result[item] = new Gq(row, column, rowSpan, columnSpan);
+
+                var nextRow = row;
+                var nextColumn = column + columnSpan;
+                if (nextColumn >= columns) { nextRow++; nextColumn = 0; }
+                if (nextRow > cursorRow || nextRow == cursorRow && nextColumn > cursorColumn)
+                {
+                    cursorRow = nextRow;
+                    cursorColumn = nextColumn;
+                }
+            }
+            return result;
+        }
+
+        private static bool GridFree(ISet<int> occupied, int columns, int row, int column, int rowSpan, int columnSpan)
+        {
+            for (var y = row; y < row + rowSpan; y++)
+                for (var x = column; x < column + columnSpan; x++)
+                    if (occupied.Contains(y * columns + x)) return false;
+            return true;
+        }
+
+        private static void GridOccupy(ISet<int> occupied, int columns, int row, int column, int rowSpan, int columnSpan)
+        {
+            for (var y = row; y < row + rowSpan; y++)
+                for (var x = column; x < column + columnSpan; x++) occupied.Add(y * columns + x);
+        }
+
+        private static int[] GridTrackSizes(S style, bool rows, int count, int available, int gap)
+        {
             var result = new int[count];
             var room = Math.Max(count, available - gap * Math.Max(0, count - 1));
             var fixedTotal = 0;
@@ -1185,15 +1253,15 @@ namespace Lea.Win
             var fractionCount = 0;
             for (var index = 0; index < count; index++)
             {
-                var track = style.Gv(index);
+                var track = GridTrack(style, rows, index);
                 if (track >= 0) fixedTotal += Math.Max(1, track);
                 else { fractionTotal += -track; fractionCount++; }
             }
 
             if (fixedTotal + fractionCount <= room)
             {
-                for (var index = 0; index < count; index++) if (style.Gv(index) >= 0) result[index] = Math.Max(1, style.Gv(index));
-                GridFractionWidths(style, result, Math.Max(0, room - fixedTotal), fractionTotal);
+                for (var index = 0; index < count; index++) if (GridTrack(style, rows, index) >= 0) result[index] = Math.Max(1, GridTrack(style, rows, index));
+                GridFractionSizes(style, rows, result, Math.Max(0, room - fixedTotal), fractionTotal);
             }
             else
             {
@@ -1201,7 +1269,8 @@ namespace Lea.Win
                 var total = 0;
                 for (var index = 0; index < count; index++)
                 {
-                    weights[index] = style.Gv(index) >= 0 ? Math.Max(1, style.Gv(index)) : Math.Max(1, -style.Gv(index));
+                    var track = GridTrack(style, rows, index);
+                    weights[index] = track >= 0 ? Math.Max(1, track) : Math.Max(1, -track);
                     total += weights[index];
                 }
                 GridWeightedWidths(result, weights, room, total);
@@ -1209,16 +1278,21 @@ namespace Lea.Win
             return result;
         }
 
-        private static void GridFractionWidths(S style, int[] result, int room, int total)
+        private static int GridTrack(S style, bool rows, int index)
+        {
+            return rows ? index < style.Rc ? style.Rv(index) : -1 : style.Gv(index);
+        }
+
+        private static void GridFractionSizes(S style, bool rows, int[] result, int room, int total)
         {
             if (total <= 0) return;
             var remaining = room;
             var weight = total;
             var tracks = 0;
-            for (var index = 0; index < result.Length; index++) if (style.Gv(index) < 0) tracks++;
+            for (var index = 0; index < result.Length; index++) if (GridTrack(style, rows, index) < 0) tracks++;
             for (var index = 0; index < result.Length; index++)
             {
-                var value = style.Gv(index);
+                var value = GridTrack(style, rows, index);
                 if (value >= 0) continue;
                 var width = tracks == 1 ? remaining : weight == 0 ? 1 : remaining * -value / weight;
                 width = Math.Max(1, Math.Min(Math.Max(1, remaining - tracks + 1), width));
@@ -5635,6 +5709,7 @@ namespace Lea.Win
             public int Fr;
             public bool Fh;
             public bool Fm;
+            public bool Gm;
 
             public Lc(Rectangle outer, Rectangle content, int y, Rectangle clip, bool fixedPosition)
             {
@@ -5655,10 +5730,21 @@ namespace Lea.Win
             public readonly int H;
             public readonly bool C;
             public readonly int G;
+            public readonly bool Q;
 
-            public Fp(int x, int width, int line) : this(x, width, line, 0, -1, false, 0) { }
-            public Fp(int x, int width, int line, int y, int height, bool column) : this(x, width, line, y, height, column, 0) { }
-            public Fp(int x, int width, int line, int y, int height, bool column, int gap) { X = x; W = width; L = line; Y = y; H = height; C = column; G = gap; }
+            public Fp(int x, int width, int line) : this(x, width, line, 0, -1, false, 0, false) { }
+            public Fp(int x, int width, int line, int y, int height, bool column) : this(x, width, line, y, height, column, 0, false) { }
+            public Fp(int x, int width, int line, int y, int height, bool column, int gap) : this(x, width, line, y, height, column, gap, false) { }
+            public Fp(int x, int width, int line, int y, int height, bool column, int gap, bool grid) { X = x; W = width; L = line; Y = y; H = height; C = column; G = gap; Q = grid; }
+        }
+
+        private sealed class Gq
+        {
+            public readonly int R;
+            public readonly int C;
+            public readonly int Rs;
+            public readonly int Cs;
+            public Gq(int row, int column, int rowSpan, int columnSpan) { R = row; C = column; Rs = rowSpan; Cs = columnSpan; }
         }
 
         private sealed class Bx

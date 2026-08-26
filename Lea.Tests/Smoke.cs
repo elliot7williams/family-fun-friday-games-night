@@ -2328,6 +2328,9 @@ namespace Lea.Tests
                     var mixedGrid = BlockById(gridPage, "mixed");
                     var mixedSpan = BlockById(gridPage, "mixed-four");
                     var separateSpan = BlockById(gridPage, "separate-two");
+                    var rowGrid = BlockById(gridPage, "rows");
+                    var rowSpan = BlockById(gridPage, "rows-b");
+                    var separateRow = BlockById(gridPage, "rows-c");
                     Eq("grid", equalGrid.S.D, "grid display model");
                     Eq(3, equalGrid.S.Gc, "repeated grid track count");
                     Eq(-1, equalGrid.S.Gv(0), "minmax fraction track alias");
@@ -2342,11 +2345,14 @@ namespace Lea.Tests
                     Eq(2, BlockById(gridPage, "equal-four").S.Gs, "implicit grid span alias");
                     Ok(mixedSpan.S.Gl == 2 && mixedSpan.S.Gs == 2, "grid shorthand start and span aliases");
                     Ok(separateSpan.S.Gl == 2 && separateSpan.S.Gs == 2, "separate grid start and end aliases");
+                    Ok(rowGrid.S.Rc == 3 && rowGrid.S.Rv(0) == 30 && rowGrid.S.Rv(1) == -1 && rowGrid.S.Rv(2) == -2 && rowGrid.S.Rv(3) == 0, "grid row track aliases");
+                    Ok(rowSpan.S.Rl == 2 && rowSpan.S.Rs == 2 && separateRow.S.Rl == 3 && separateRow.S.Rs == 1, "grid row placement aliases");
                     Eq("inline-grid", BlockById(gridPage, "fields").S.D, "inline-grid display model");
                     Eq(0, BlockById(gridPage, "invalid").S.Gc, "grid track overflow rejected");
                     Ok(BlockById(gridPage, "invalid-one").S.Gl == 0 && BlockById(gridPage, "invalid-one").S.Gs == 1, "invalid grid placement rejected");
-                    Eq(8, BlockById(gridPage, "limit").S.Gc, "eight-track grid ceiling accepted");
-                    Eq(0, BlockById(gridPage, "reset").S.Gc, "grid template reset");
+                    Ok(BlockById(gridPage, "invalid-one").S.Rl == 0 && BlockById(gridPage, "invalid-one").S.Rs == 1 && BlockById(gridPage, "invalid").S.Rc == 0, "invalid grid row values rejected");
+                    Ok(BlockById(gridPage, "limit").S.Gc == 8 && BlockById(gridPage, "limit").S.Rc == 8, "eight-track grid ceiling accepted");
+                    Ok(BlockById(gridPage, "reset").S.Gc == 0 && BlockById(gridPage, "reset").S.Rc == 0, "grid templates reset");
                     Ok(Object.ReferenceEquals(BlockById(gridPage, "equal-one").Up, equalGrid) && Object.ReferenceEquals(BlockById(gridPage, "nested-copy").Up, BlockById(gridPage, "nested-card")), "grid visual ownership");
 
                     view.Size = new Size(720, 2200);
@@ -2408,6 +2414,21 @@ namespace Lea.Tests
                         Eq(218, separateTwo.Width, "separate placement spans two columns");
                         Ok(separateThree.Top > separateTwo.Bottom, "separate placement advances row");
 
+                        var rows = BlockRect(view, BlockById(view.At, "rows"));
+                        var rowsA = BlockOuterRect(view, BlockById(view.At, "rows-a"));
+                        var rowsB = BlockOuterRect(view, BlockById(view.At, "rows-b"));
+                        var rowsC = BlockOuterRect(view, BlockById(view.At, "rows-c"));
+                        Eq(new Size(198, 30), rowsA.Size, "fixed grid row and column span geometry");
+                        Eq(new Size(198, 112), rowsB.Size, "two-axis grid span geometry");
+                        Eq(new Size(96, 70), rowsC.Size, "weighted grid row geometry");
+                        Ok(rowsA.Location == rows.Location && rowsB.Left == rows.Left + 102 && rowsB.Top == rows.Top + 38 && rowsC.Left == rows.Left && rowsC.Top == rows.Top + 80, "explicit two-axis grid placement");
+                        Ok(rowsB.Left - rowsC.Right == 6 && rowsB.Bottom == rows.Bottom && rowsC.Bottom == rows.Bottom, "grid row spans remain bounded and nonoverlapping");
+                        var autoRows = BlockRect(view, BlockById(view.At, "auto-rows"));
+                        var autoRowA = BlockOuterRect(view, BlockById(view.At, "auto-row-a"));
+                        var autoRowB = BlockOuterRect(view, BlockById(view.At, "auto-row-b"));
+                        var autoRowC = BlockOuterRect(view, BlockById(view.At, "auto-row-c"));
+                        Ok(autoRowA.Height == 20 && autoRowA.Width == 240 && autoRowB.Top - autoRowA.Bottom == 5 && autoRowB.Top == autoRowC.Top && autoRowB.Bottom == autoRowC.Bottom && autoRowC.Bottom == autoRows.Bottom, "auto-height grid rows settle before final placement");
+
                         var fieldRect = BlockOuterRect(view, FieldBlock(view.At, gridField));
                         var buttonRect = BlockOuterRect(view, BlockById(view.At, "grid-button"));
                         Eq(fieldRect.Top, buttonRect.Top, "grid fields share a row");
@@ -2425,6 +2446,7 @@ namespace Lea.Tests
                         Ok(BlockOuterRect(view, BlockById(view.At, "after-grid")).Top > BlockOuterRect(view, BlockById(view.At, "grid-target")).Bottom, "normal flow follows grid layouts");
                         Ok(ColorDistance(gridPaint.GetPixel(equalOne.Left + 4, equalOne.Top + 4), Color.FromArgb(230, 239, 255)) < 8, "grid item paint");
                         Ok(ColorDistance(gridPaint.GetPixel(equalFour.Left + 4, equalFour.Top + 4), Color.FromArgb(223, 245, 232)) < 8, "grid span paint");
+                        Ok(ColorDistance(gridPaint.GetPixel(rowsB.Left + 4, rowsB.Top + 4), Color.FromArgb(253, 227, 197)) < 8, "grid row span paint");
                     }
                     view.Size = new Size(360, 2200);
                     Paint(view);

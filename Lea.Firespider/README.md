@@ -6,8 +6,9 @@ create `Lea.Win.V`; **New Legacy Tab** (`Ctrl+Alt+L`) deliberately uses the
 original `WebBrowser` path for features that still need it. Back, forward, home,
 go, search, reload, stop, and address/search Enter keys route by the selected
 tab's engine. Legacy tabs delegate to Firespider's original handlers.
-Its timer status handler is also routed safely so it never casts a Lea view to
-the legacy `WebBrowser` type.
+Its timer status handler is also routed safely across startup, empty, Lea, and
+legacy-tab states, so it never dereferences a missing control or casts a Lea
+view to the legacy `WebBrowser` type.
 
 Firespider's Close Tab command, tab-strip close target, and middle-click now
 close Lea tabs safely. The existing Page Source window displays Lea's raw `V.H`
@@ -63,12 +64,14 @@ min-protected weighted-shrink items, row/column reversal, pixel basis and gaps,
 alignment, nesting, painting, and hit testing reuse the existing `V` surface
 without adding controls or another browser runtime.
 
-Bounded CSS Grid columns use that same custom renderer. Firespider can inspect
-lazy `B.S.Gc/Gv(index)` tracks and `Gl/Gs` item placement while fixed pixel and
-integer `fr` columns, simple `repeat()`/`minmax(0,Nfr)`, gaps, spans, stable
-order, sparse rows, nested content, fields, painting, hits, and responsive
-reflow stay inside `V`. The host smoke verifies exact mixed-track geometry,
-ownership, queries, and Inspector CSS without adding adapter-side layout logic.
+Bounded CSS Grid columns and rows use that same custom renderer. Firespider can
+inspect lazy `B.S.Gc/Gv(index)` and `Rc/Rv(index)` tracks plus `Gl/Gs` and
+`Rl/Rs` item placement while fixed pixel and integer `fr` tracks, simple
+`repeat()`/`minmax(0,Nfr)`, gaps, bounded occupancy, two-axis spans, stable
+order, implicit rows, nested content, fields, painting, hits, auto-height
+settling, and responsive reflow stay inside `V`. The host smoke verifies exact
+mixed column/row geometry, ownership, queries, and Inspector CSS without adding
+adapter-side layout logic.
 
 Firespider can also read `B.S.Bz` as `c/b` for non-inherited content-box or
 border-box sizing. Lea applies it to pixel width, height, min/max, and flex basis

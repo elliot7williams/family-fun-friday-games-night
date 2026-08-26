@@ -192,20 +192,24 @@ min-content sizing, fractional factors, nonzero percentage bases, wrapped
 ordering, column wrapping, wrap-reverse, and wrapped cross-axis alignment remain
 outside the subset.
 
-For Lea's bounded grid subset, `D` is `grid` or `inline-grid`. Tracks stay lazy
-in compact `Gd`; `Gc` exposes the count and `Gv(index)` returns a nonnegative
-pixel width or a negative integer `fr` weight. A template accepts one to eight
-`0..2000px` or `1..64fr` columns, simple `repeat(1..8, track)` expansion, and
-`minmax(0, Nfr)` as a bounded flexible-track spelling. `Gp/Rg` retain the
+For Lea's bounded grid subset, `D` is `grid` or `inline-grid`. Column tracks stay
+lazy in compact `Gd`, with `Gc/Gv(index)` inspection; rows mirror them through
+`Rd` and `Rc/Rv(index)`. A template accepts one to eight `0..2000px` or
+`1..64fr` tracks, simple `repeat(1..8, track)` expansion, and `minmax(0, Nfr)`
+as a bounded flexible-track spelling. Nonnegative values are pixels and negative
+values are integer `fr` weights. `Gp/Rg` retain the
 0..512 pixel column/row gaps, including legacy `grid-column-gap`,
 `grid-row-gap`, and `grid-gap`. Direct items use `Gl=0` for auto placement or
-`1..8` for a numeric column start, while `Gs=1..8` is the column span.
+`1..8` for a numeric column start, while `Gs=1..8` is the column span. Rows use
+matching `Rl/Rs` start/span aliases.
 `grid-column`, `grid-column-start`, and `grid-column-end:span N` fill those two
-aliases. Rows are created sparsely in stable `Or` order and use settled item
-height; existing nested layout, positioning, clipping, paint, hit, field, and
-accessibility paths are reused. Row templates/spans, named lines, areas,
-intrinsic/percentage tracks, auto-fit/fill, dense or column flow, and subgrid
-remain outside this subset.
+aliases; `grid-row`, `grid-row-start`, and `grid-row-end:span N` fill the row
+pair. A bounded occupancy map prevents two-axis spans from overlapping. Explicit
+rows use definite container height or Lea's auto-height measurement pass, while
+implicit rows remain available for additional items. Existing nested layout,
+positioning, clipping, paint, hit, field, and accessibility paths are reused.
+Named lines, areas, intrinsic/percentage tracks, auto-fit/fill, dense or column
+flow, and subgrid remain outside this subset.
 
 Document lookup stays short and bounded. `E.Id(page, id)` finds the first ID,
 `E.Q(page, selector)` finds the first document-order selector match, and

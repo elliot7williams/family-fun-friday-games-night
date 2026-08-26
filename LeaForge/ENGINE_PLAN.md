@@ -115,12 +115,13 @@ Dg/Dcl  diagnostics/clear request activity
     candidate visits are active for stylesheets and queries. Descendant focus
     rebuilds preserve fields; nested selector-list functions and
     pseudo-elements stay outside.)
-16. Add bounded CSS Grid columns. (`grid`/`inline-grid` retain one lazy compact
-    `Gd` array with `Gc/Gv` inspection and direct-item `Gl/Gs` placement. Up to
-    eight fixed pixel or integer-fr tracks, simple repeat/minmax forms, pixel
-    gaps, starts, spans, stable order, sparse automatic rows, nested flow,
-    paint, hits, fields, resize, benchmark, Inspector, and Firespider host paths
-    are active. Row templates/spans, named lines, areas, intrinsic tracks,
+16. Add bounded CSS Grid columns and rows. (`grid`/`inline-grid` retain lazy
+    compact `Gd/Rd` arrays with `Gc/Gv` and `Rc/Rv` inspection plus direct-item
+    `Gl/Gs` and `Rl/Rs` placement. Up to eight fixed pixel or integer-fr tracks
+    per explicit axis, simple repeat/minmax forms, pixel gaps, starts, two-axis
+    spans, bounded occupancy, stable order, implicit rows, auto-height settling,
+    nested flow, paint, hits, fields, resize, benchmark, Inspector, and
+    Firespider host paths are active. Named lines, areas, intrinsic tracks,
     auto-fit/fill, dense/column flow, and subgrid stay outside.)
 
 This is the largest speed milestone: fewer controls, less UI overhead, and one

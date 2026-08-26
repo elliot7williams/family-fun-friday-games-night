@@ -853,10 +853,13 @@ namespace Lea.Bench
                 var equal = page.Bs.First(block => block.El != null && block.El.Av("id") == "equal");
                 var mixed = page.Bs.First(block => block.El != null && block.El.Av("id") == "mixed");
                 var span = page.Bs.First(block => block.El != null && block.El.Av("id") == "mixed-four");
+                var rows = page.Bs.First(block => block.El != null && block.El.Av("id") == "rows");
+                var rowSpan = page.Bs.First(block => block.El != null && block.El.Av("id") == "rows-b");
                 var invalid = page.Bs.First(block => block.El != null && block.El.Av("id") == "invalid");
                 Need(equal.S.D == "grid" && equal.S.Gc == 3 && equal.S.Gv(0) == -1 && equal.S.Gv(2) == -1 && equal.S.Rg == 9 && equal.S.Gp == 6, "equal grid aliases changed");
                 Need(mixed.S.Gc == 3 && mixed.S.Gv(0) == 100 && mixed.S.Gv(1) == -1 && mixed.S.Gv(2) == -2, "mixed grid tracks changed");
-                Need(span.S.Gl == 2 && span.S.Gs == 2 && invalid.S.Gc == 0 && page.Bs.First(block => block.El != null && block.El.Av("id") == "limit").S.Gc == 8, "grid bounds or placement aliases changed");
+                Need(span.S.Gl == 2 && span.S.Gs == 2 && rows.S.Rc == 3 && rows.S.Rv(0) == 30 && rows.S.Rv(1) == -1 && rows.S.Rv(2) == -2 && rowSpan.S.Rl == 2 && rowSpan.S.Rs == 2, "grid row or placement aliases changed");
+                Need(invalid.S.Gc == 0 && invalid.S.Rc == 0 && page.Bs.First(block => block.El != null && block.El.Av("id") == "limit").S.Gc == 8 && page.Bs.First(block => block.El != null && block.El.Av("id") == "limit").S.Rc == 8, "grid bounds changed");
                 using (var view = NewView())
                 {
                     view.Size = new Size(720, 2200);
@@ -873,9 +876,18 @@ namespace Lea.Bench
                         var orderOne = BlockOuter(view, "order-one");
                         var orderTwo = BlockOuter(view, "order-two");
                         var orderThree = BlockOuter(view, "order-three");
+                        var rowsA = BlockOuter(view, "rows-a");
+                        var rowsB = BlockOuter(view, "rows-b");
+                        var rowsC = BlockOuter(view, "rows-c");
+                        var autoRows = BlockOuter(view, "auto-rows");
+                        var autoRowA = BlockOuter(view, "auto-row-a");
+                        var autoRowB = BlockOuter(view, "auto-row-b");
+                        var autoRowC = BlockOuter(view, "auto-row-c");
                         Need(equalOne.Width == 106 && equalTwo.Left - equalOne.Right == 6 && equalFour.Width == 218 && equalFour.Top - equalOne.Bottom == 9, "equal grid geometry changed");
                         Need(mixedOne.Width == 100 && mixedTwo.Width == 80 && mixedThree.Width == 160 && mixedFour.Width == 250 && mixedFour.Left == mixedTwo.Left, "mixed grid geometry changed");
                         Need(orderTwo.Left < orderThree.Left && orderOne.Top > orderTwo.Bottom, "ordered grid placement changed");
+                        Need(rowsA.Width == 198 && rowsA.Height == 30 && rowsB.Width == 198 && rowsB.Height == 112 && rowsC.Width == 96 && rowsC.Height == 70 && rowsB.Left - rowsC.Right == 6 && rowsB.Bottom == rowsC.Bottom, "two-axis grid row geometry changed");
+                        Need(autoRowA.Width == 240 && autoRowA.Height == 20 && autoRowB.Top - autoRowA.Bottom == 5 && autoRowB.Top == autoRowC.Top && autoRowB.Bottom == autoRowC.Bottom && autoRowC.Bottom == autoRows.Bottom, "auto-height grid row settling changed");
                         Need(BlockOuter(view, "after-grid").Top > BlockOuter(view, "grid-target").Bottom && ColoredSamples(image) > 0, "grid following flow or paint changed");
                     }
                     var wide = BlockOuter(view, "responsive-one").Width;
@@ -884,7 +896,7 @@ namespace Lea.Bench
                     view.Size = new Size(360, 2200);
                     using (var image = Draw(view)) Need(BlockOuter(view, "responsive-one").Width < wide && Object.ReferenceEquals(field, view.At.Fs.First(item => item.El != null && item.El.Av("id") == "grid-field")) && field.V == "Retained benchmark grid field" && ColoredSamples(image) > 0, "narrow grid reflow or field retention changed");
                 }
-                return "Gd/Gc/Gv compact tracks plus Gl/Gs placement, px/fr/repeat/minmax columns, gaps, spans, stable order, nested content, fields, paint, hits, resize, bounds, and following flow";
+                return "Gd/Gc/Gv columns, Rd/Rc/Rv rows, Gl/Gs and Rl/Rs two-axis placement, bounded px/fr/repeat/minmax tracks, gaps, spans, occupancy, paint, resize, and flow";
             });
             AddProbe(probes, "Forms and validation", delegate
             {
@@ -1086,13 +1098,13 @@ namespace Lea.Bench
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box and text styles, visibility, positioning, transforms, responsive image sizing, bounded row/column flex, and bounded grid columns");
+            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box and text styles, visibility, positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, inline, row/column flex, bounded grid, table, form, image, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
             Capability(builder, "Flexbox", "Supported subset", "Row/row-reverse and fixed-height column/column-reverse containers, content/border-box pixel bases, stable -64..64 order on nowrap rows and bounded columns, bounded row wrap, fixed/equal-share/weighted grow and integer weighted-shrink slots, explicit pixel min/max floors, pixel row/column gaps, start/center/end/space-between/space-around/space-evenly justification, and container/item stretch/start/center/end cross alignment; no intrinsic min-content sizing, fractional factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis alignment, or auto-height column reordering guarantee");
-            Capability(builder, "CSS Grid", "Supported subset", "Grid/inline-grid with up to eight fixed-pixel or integer-fr columns, simple repeat and minmax(0, Nfr), pixel gaps, sparse row auto-placement, numeric starts/spans, stable order, and shared nested paint/hit/reflow; no row templates, named lines, areas, dense/column flow, intrinsic tracks, auto-fit/fill, or subgrid");
+            Capability(builder, "CSS Grid", "Supported subset", "Grid/inline-grid with up to eight fixed-pixel or integer-fr tracks per explicit axis, simple repeat and minmax(0, Nfr), pixel gaps, bounded row-major occupancy, two-axis numeric starts/spans, implicit rows, stable order, auto-height settling, and shared nested paint/hit/reflow; no named lines, areas, dense/column flow, intrinsic or percentage tracks, auto-fit/fill, or subgrid");
             Capability(builder, "Canvas and SVG", "Not supported", "Future compatibility work; no silent fallback claim");
             Capability(builder, "Audio and video", "Not supported", "Future optional module");
             Capability(builder, "Developer diagnostics", "Supported", "Bounded summary, node, CSS, request, message, and variable snapshots");
