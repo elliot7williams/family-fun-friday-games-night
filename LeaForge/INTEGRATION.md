@@ -289,10 +289,17 @@ bounded explicit/template row count and create equal-share implicit columns.
 Resolved non-default flow order feeds the existing real-height measurement pass,
 while DOM ownership and semantics stay unchanged. Eight columns are the hard
 ceiling; excess content continues in additional final-column rows without
-overlap. Escaped or repeated-name occurrence indexes, named spans, custom
-auto-track sizing, reverse flow, intrinsic or percentage tracks, auto-fit/fill,
-subgrid, and true inline-level outer formatting remain explicit compatibility
-limits.
+overlap. Repeating `grid-auto-columns/rows` patterns expose compact
+`S.Gac/Gav(index)` and `Rac/Rav(index)` inspection. Each pattern accepts one to
+eight pixel, integer-fr, bounded `auto` (`S.Av`), or `minmax(0,Nfr)` entries and
+cycles after the explicit sized tracks. Definite numeric endpoints and largest
+spans can grow implicit columns; area-created unsized tracks use the same
+pattern. Pixel implicit rows contribute their exact minimum to the auto-height
+measurement pass. Reset values clear the lazy pattern, and an invalid
+declaration preserves its prior value. Escaped or repeated-name occurrence
+indexes, named spans, reverse flow, pre-explicit implicit tracks, intrinsic or
+percentage tracks, auto-fit/fill, subgrid, and true inline-level outer
+formatting remain explicit compatibility limits.
 
 Inherited visibility uses `S.Vi` with `v/h/c`. Hidden and collapsed content
 keeps its layout rectangle but produces no pixels, links, field hits, or editor.

@@ -130,8 +130,12 @@ Dg/Dcl  diagnostics/clear request activity
     spans, intrinsic tracks, auto-fit/fill, and subgrid stay outside. Compact
     `Gf=r/d/c/x` adds sparse/dense row/column auto placement, earlier-hole
     backfill, equal-share implicit columns, non-overlapping eight-column
-    overflow, and real-height visual traversal. Custom auto-track sizing,
-    reverse flow, and grid auto-flow shorthand syntax stay outside.)
+    overflow, and real-height visual traversal. Repeating implicit column/row
+    patterns add `S.Av` plus `Gac/Gav/Rac/Rav` inspection, pixel/auto/integer-fr
+    and minmax sizing, definite endpoint/span growth, area-created track sizing,
+    and exact auto-height row settlement. Reverse flow, pre-explicit implicit
+    tracks, intrinsic/percentage tracks, and grid auto-flow shorthand syntax
+    stay outside.)
 
 This is the largest speed milestone: fewer controls, less UI overhead, and one
 predictable rendering pass.
@@ -314,7 +318,15 @@ non-empty bridge survives both direct and external MTA clients. Continue host
 coverage and bounded HTML/CSS compatibility work without adding another browser
 runtime.
 
-The latest completed grid milestone added bounded `grid-auto-flow` through one
+The latest completed grid milestone added bounded repeating
+`grid-auto-columns/rows` sizing. `S.Av` plus `Gac/Gav/Rac/Rav` inspect up to
+eight pixel, auto, integer-fr, or minmax entries; patterns cycle after explicit
+tracks, size area-created tracks, honor definite endpoints and largest spans,
+and contribute exact pixel minima to auto-height row settlement. Atomic invalid
+handling, reset values, geometry, paint, hits, benchmark, and Firespider host
+coverage all share the existing placement map and custom renderer.
+
+The previous grid milestone added bounded `grid-auto-flow` through one
 `Gf=r/d/c/x` alias. Sparse/dense row and column cursors, earlier-hole backfill,
 equal implicit columns, an eight-column overflow fallback, auto-height visual
 traversal, exact geometry, invalid values, benchmark, and Firespider coverage

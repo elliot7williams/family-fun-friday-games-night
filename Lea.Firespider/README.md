@@ -71,12 +71,14 @@ inspect lazy `B.S.Gc/Gv(index)` and `Rc/Rv(index)` tracks plus `Gl/Gs` and
 order, implicit rows, validated named-area templates through
 `Aa/Ar/Ac/Ag/An`, unique named lines through `Gnc/Rnc/Gx/Rx` and
 `Gn/Ge/Rn/Re`, generated area edges, and `Gf=r/d/c/x` sparse/dense row/column
-auto flow stay inside `V`. Definite-first placement, bounded equal implicit
-columns, nested content, fields, painting, hits, auto-height settling, and
-responsive reflow use the same path. The host smoke verifies exact mixed
-column/row/named-area/named-line/dense/column-flow geometry, dot-cell auto
-placement, ownership, queries, and Inspector CSS without adding adapter-side
-layout logic.
+auto flow stay inside `V`. Repeating pixel/auto/integer-fr implicit patterns use
+`S.Av` and `Gac/Gav/Rac/Rav`; definite endpoints, largest spans, area-created
+tracks, and auto-height pixel rows share the placement and measurement passes.
+Definite-first placement, nested content, fields, painting, hits, and responsive
+reflow use the same path. The host smoke verifies exact mixed
+column/row/named-area/named-line/dense/column-flow/auto-track geometry, dot-cell
+auto placement, ownership, queries, and Inspector CSS without adding
+adapter-side layout logic.
 
 Firespider can also read `B.S.Bz` as `c/b` for non-inherited content-box or
 border-box sizing. Lea applies it to pixel width, height, min/max, and flex basis

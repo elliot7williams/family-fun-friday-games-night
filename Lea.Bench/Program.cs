@@ -111,7 +111,7 @@ namespace Lea.Bench
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
-                "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html",
+                "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html",
                 "box-sizing.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
@@ -994,6 +994,50 @@ namespace Lea.Bench
                 }
                 return "Gf r/d/c/x flow, sparse cursors, dense backfill, row/column swapping, equal implicit columns, eight-column overflow, bounds, paint, hits, and flow";
             });
+            AddProbe(probes, "Bounded grid auto tracks", delegate
+            {
+                var path = Path.Combine(folder, "grid-auto-tracks.html");
+                var page = new E().Go(path);
+                var pattern = page.Bs.First(block => block.El != null && block.El.Av("id") == "track-pattern").S;
+                Need(pattern.Gac == 2 && pattern.Gav(0) == 40 && pattern.Gav(1) == -1 && pattern.Rac == 2 && pattern.Rav(0) == 30 && pattern.Rav(1) == -2, "grid auto-track aliases changed");
+                var mixed = page.Bs.First(block => block.El != null && block.El.Av("id") == "auto-mix").S;
+                var invalid = page.Bs.First(block => block.El != null && block.El.Av("id") == "track-invalid").S;
+                Need(mixed.Gav(0) == S.Av && mixed.Gav(1) == -2 && invalid.Gav(0) == 35 && invalid.Gav(1) == -2 && invalid.Rav(0) == 30 && invalid.Rav(1) == S.Av, "grid auto-track auto or invalid preservation changed");
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "track-reset").S.Gac == 0 && page.Bs.First(block => block.El != null && block.El.Av("id") == "track-limit").S.Gac == 8, "grid auto-track reset or bounds changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1700);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var patternA = BlockOuter(view, "pattern-a");
+                        var patternB = BlockOuter(view, "pattern-b");
+                        var patternC = BlockOuter(view, "pattern-c");
+                        var patternD = BlockOuter(view, "pattern-d");
+                        var patternE = BlockOuter(view, "pattern-e");
+                        Need(patternA.Size == new Size(60, 20) && patternB.Size == new Size(40, 30) && patternC.Size == new Size(60, 105) && patternD.Size == new Size(40, 30) && patternE.Size == new Size(60, 20), "repeating grid auto-track geometry changed");
+                        var mixA = BlockOuter(view, "auto-mix-a");
+                        var mixB = BlockOuter(view, "auto-mix-b");
+                        var mixC = BlockOuter(view, "auto-mix-c");
+                        var mixD = BlockOuter(view, "auto-mix-d");
+                        var mixE = BlockOuter(view, "auto-mix-e");
+                        Need(mixA.Width == 50 && mixB.Width == 25 && mixC.Width == 50 && mixD.Width == 25 && mixE.Width == 50, "mixed auto and fraction implicit columns changed");
+                        var rowCycle = BlockOuter(view, "row-cycle");
+                        var rowA = BlockOuter(view, "row-cycle-a");
+                        var rowC = BlockOuter(view, "row-cycle-c");
+                        var rowE = BlockOuter(view, "row-cycle-e");
+                        var largeGap = BlockOuter(view, "row-large-gap");
+                        var largeGapA = BlockOuter(view, "row-large-gap-a");
+                        var largeGapB = BlockOuter(view, "row-large-gap-b");
+                        var largeGapC = BlockOuter(view, "row-large-gap-c");
+                        var areaLead = BlockOuter(view, "area-lead");
+                        var areaStory = BlockOuter(view, "area-story");
+                        var areaAction = BlockOuter(view, "area-action");
+                        Need(rowCycle.Height == 135 && rowA.Height == 35 && rowC.Height == 55 && rowE.Height == 35 && largeGap.Height == 120 && largeGapA.Height == 10 && largeGapB.Height == 20 && largeGapC.Height == 10 && largeGapB.Top - largeGapA.Bottom == 40 && areaLead.Width == 50 && areaStory.Width == 30 && areaAction.Width == 100 && ColoredSamples(image) > 0, "implicit row settling, large gaps, area tracks, or paint changed");
+                    }
+                }
+                return "S.Av plus Gac/Gav/Rac/Rav repeating pixel, auto, integer-fr, and minmax patterns; implicit endpoints, area tracks, row settlement, validation, bounds, paint, hits, and flow";
+            });
             AddProbe(probes, "Forms and validation", delegate
             {
                 var engine = new E();
@@ -1200,7 +1244,7 @@ namespace Lea.Bench
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
             Capability(builder, "Flexbox", "Supported subset", "Row/row-reverse and fixed-height column/column-reverse containers, content/border-box pixel bases, stable -64..64 order on nowrap rows and bounded columns, bounded row wrap, fixed/equal-share/weighted grow and integer weighted-shrink slots, explicit pixel min/max floors, pixel row/column gaps, start/center/end/space-between/space-around/space-evenly justification, and container/item stretch/start/center/end cross alignment; no intrinsic min-content sizing, fractional factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis alignment, or auto-height column reordering guarantee");
-            Capability(builder, "CSS Grid", "Supported subset", "Grid/inline-grid with up to eight fixed-pixel or integer-fr tracks per explicit axis, simple repeat and minmax(0, Nfr), pixel gaps, bounded occupancy, two-axis numeric starts/spans, validated 8x8 named-area templates, unique explicit named lines, area-generated start/end lines, Gf row/column sparse/dense flow, equal implicit columns, definite-first placement, auto-height settling, and shared nested paint/hit/reflow; no escaped or repeated-name occurrence indexes, custom auto-track sizing, reverse flow, intrinsic or percentage tracks, auto-fit/fill, or subgrid");
+            Capability(builder, "CSS Grid", "Supported subset", "Grid/inline-grid with up to eight fixed-pixel or integer-fr tracks per explicit axis, simple repeat and minmax(0, Nfr), pixel gaps, bounded occupancy, two-axis numeric starts/spans, validated 8x8 named-area templates, unique explicit named lines, area-generated start/end lines, Gf row/column sparse/dense flow, repeating S.Av/Gac/Gav/Rac/Rav pixel/auto/integer-fr implicit patterns, definite endpoint/span growth, area-created track sizing, exact auto-height row settlement, and shared nested paint/hit/reflow; no escaped or repeated-name occurrence indexes, reverse flow, pre-explicit implicit tracks, intrinsic or percentage tracks, auto-fit/fill, or subgrid");
             Capability(builder, "Canvas and SVG", "Not supported", "Future compatibility work; no silent fallback claim");
             Capability(builder, "Audio and video", "Not supported", "Future optional module");
             Capability(builder, "Developer diagnostics", "Supported", "Bounded summary, node, CSS, request, message, and variable snapshots");

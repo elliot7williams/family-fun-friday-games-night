@@ -912,7 +912,7 @@ namespace Lea.Win
                         Co = ClipsOverflow(bs),
                         Fh = IsFlex(bs) && !FlexColumn(bs) && bs.Wr != "w" && (bs.H > 0 || resolvedOwner),
                         Fm = FlexColumn(bs) && bs.H > 0,
-                        Gm = IsGrid(bs) && (bs.Rc > 0 || bs.Ar > 0) && (bs.H > 0 || resolvedOwner)
+                        Gm = IsGrid(bs) && (bs.Rc > 0 || bs.Ar > 0 || bs.Rac > 0) && (bs.H > 0 || resolvedOwner)
                     };
                     ChildSlots(context);
                     contexts[block] = context;
@@ -1002,7 +1002,7 @@ namespace Lea.Win
         {
             if (style == null || style.Gf == "r" || items.Count < 2) return;
             var columns = Math.Max(style.Gc, style.Ac);
-            if (columns == 0 && style.Gf != "c" && style.Gf != "x") return;
+            if (columns == 0 && style.Gac == 0 && style.Gf != "c" && style.Gf != "x") return;
             columns = Math.Max(1, columns);
             var flow = new List<B>();
             foreach (var item in items) if (!item.Hd && !OutOfFlow(item.S)) flow.Add(item);
@@ -1153,7 +1153,7 @@ namespace Lea.Win
         {
             var style = context.B.S;
             var columnFlow = style != null && (style.Gf == "c" || style.Gf == "x");
-            if (style == null || Math.Max(style.Gc, style.Ac) == 0 && !columnFlow) return;
+            if (style == null || Math.Max(style.Gc, style.Ac) == 0 && style.Gac == 0 && !columnFlow) return;
             var items = new List<B>();
             foreach (var item in At.Bs)
                 if (!item.Hd && Object.ReferenceEquals(item.Up, context.B) && !OutOfFlow(item.S)) items.Add(item);
@@ -1184,7 +1184,10 @@ namespace Lea.Win
             context.Fr = style.Rg;
             var rows = Math.Max(style.Rc, style.Ar);
             foreach (var placement in placements.Values) rows = Math.Max(rows, placement.R + placement.Rs);
-            var rowGap = rows < 2 ? 0 : Math.Min(style.Rg, Math.Max(0, context.C.Height / (rows - 1)));
+            var rowGap = rows < 2 ? 0 : context.Gm ? Math.Min(style.Rg, Math.Max(0, context.C.Height / (rows - 1))) : style.Rg;
+            context.Gh = GridTrackMinimum(style, true, rows, rowGap);
+            context.Gk = rows > 0;
+            for (var row = 0; row < rows; row++) if (GridTrack(style, true, row) < 0) { context.Gk = false; break; }
             var heights = context.Gm ? GridTrackSizes(style, true, rows, context.C.Height, rowGap) : null;
             var rowStarts = heights == null ? null : new int[rows];
             if (rowStarts != null)
@@ -1226,6 +1229,17 @@ namespace Lea.Win
             var columnFlow = container.Gf == "c" || container.Gf == "x";
             var dense = container.Gf == "d" || container.Gf == "x";
             var placementColumns = columnFlow ? 8 : columns;
+            if (!columnFlow)
+            {
+                foreach (var item in items)
+                {
+                    int fixedColumn;
+                    int columnSpan;
+                    GridAxis(container, item.S, false, 8, out fixedColumn, out columnSpan);
+                    placementColumns = Math.Max(placementColumns, fixedColumn >= 0 ? fixedColumn + columnSpan : columnSpan);
+                }
+                placementColumns = Math.Max(1, Math.Min(8, placementColumns));
+            }
             var rowLimit = Math.Max(1, Math.Max(container.Rc, container.Ar));
             var queue = new List<B>(items.Count);
             foreach (var item in items) if (GridDefinite(container, item.S, placementColumns)) queue.Add(item);
@@ -1395,7 +1409,7 @@ namespace Lea.Win
             {
                 var track = GridTrack(style, rows, index);
                 if (track >= 0) fixedTotal += Math.Max(1, track);
-                else { fractionTotal += -track; fractionCount++; }
+                else { fractionTotal += GridTrackWeight(track); fractionCount++; }
             }
 
             if (fixedTotal + fractionCount <= room)
@@ -1410,7 +1424,7 @@ namespace Lea.Win
                 for (var index = 0; index < count; index++)
                 {
                     var track = GridTrack(style, rows, index);
-                    weights[index] = track >= 0 ? Math.Max(1, track) : Math.Max(1, -track);
+                    weights[index] = track >= 0 ? Math.Max(1, track) : GridTrackWeight(track);
                     total += weights[index];
                 }
                 GridWeightedWidths(result, weights, room, total);
@@ -1420,7 +1434,28 @@ namespace Lea.Win
 
         private static int GridTrack(S style, bool rows, int index)
         {
-            return rows ? index < style.Rc ? style.Rv(index) : -1 : index < style.Gc ? style.Gv(index) : -1;
+            var explicitCount = rows ? style.Rc : style.Gc;
+            if (index < explicitCount) return rows ? style.Rv(index) : style.Gv(index);
+            var automaticCount = rows ? style.Rac : style.Gac;
+            if (automaticCount == 0) return S.Av;
+            var automaticIndex = (index - explicitCount) % automaticCount;
+            return rows ? style.Rav(automaticIndex) : style.Gav(automaticIndex);
+        }
+
+        private static int GridTrackWeight(int track)
+        {
+            return track == S.Av ? 1 : Math.Max(1, -track);
+        }
+
+        private static int GridTrackMinimum(S style, bool rows, int count, int gap)
+        {
+            var total = gap * Math.Max(0, count - 1);
+            for (var index = 0; index < count; index++)
+            {
+                var track = GridTrack(style, rows, index);
+                total += track >= 0 ? Math.Max(1, track) : 1;
+            }
+            return total;
         }
 
         private static void GridFractionSizes(S style, bool rows, int[] result, int room, int total)
@@ -1434,11 +1469,12 @@ namespace Lea.Win
             {
                 var value = GridTrack(style, rows, index);
                 if (value >= 0) continue;
-                var width = tracks == 1 ? remaining : weight == 0 ? 1 : remaining * -value / weight;
+                var trackWeight = GridTrackWeight(value);
+                var width = tracks == 1 ? remaining : weight == 0 ? 1 : remaining * trackWeight / weight;
                 width = Math.Max(1, Math.Min(Math.Max(1, remaining - tracks + 1), width));
                 result[index] = width;
                 remaining -= width;
-                weight -= -value;
+                weight -= trackWeight;
                 tracks--;
             }
         }
@@ -1722,7 +1758,8 @@ namespace Lea.Win
 
         private void FinishContext(Lc context, ref int rootY, IDictionary<B, int> measured)
         {
-            var needed = Math.Max(context.C.Height, Math.Max(1, context.Y - context.C.Top));
+            var natural = Math.Max(context.C.Height, Math.Max(1, context.Y - context.C.Top));
+            var needed = context.Gk ? Math.Max(context.Gh, context.C.Height) : Math.Max(context.Gh, natural);
             var height = ConstrainHeight(context.B == null ? null : context.B.S, needed);
             if (height != context.C.Height)
             {
@@ -5850,6 +5887,8 @@ namespace Lea.Win
             public bool Fh;
             public bool Fm;
             public bool Gm;
+            public bool Gk;
+            public int Gh;
 
             public Lc(Rectangle outer, Rectangle content, int y, Rectangle clip, bool fixedPosition)
             {

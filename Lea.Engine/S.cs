@@ -6,6 +6,8 @@ namespace Lea.Engine
     // S is Lea's compact computed style.
     public sealed class S
     {
+        public const int Av = -65;
+
         public string F { get; internal set; }
         public string Bg { get; internal set; }
         public int Fs { get; internal set; }
@@ -81,6 +83,8 @@ namespace Lea.Engine
         internal Dictionary<string, string> Vr { get; set; }
         internal int[] Gd { get; set; }
         internal int[] Rd { get; set; }
+        internal int[] Gad { get; set; }
+        internal int[] Rad { get; set; }
         internal Dictionary<string, int> Gnd { get; set; }
         internal Dictionary<string, int> Rnd { get; set; }
         internal Dictionary<string, int[]> Ad { get; set; }
@@ -88,6 +92,8 @@ namespace Lea.Engine
         public int Vc { get { return Vr == null ? 0 : Vr.Count; } }
         public int Gc { get { return Gd == null ? 0 : Gd.Length; } }
         public int Rc { get { return Rd == null ? 0 : Rd.Length; } }
+        public int Gac { get { return Gad == null ? 0 : Gad.Length; } }
+        public int Rac { get { return Rad == null ? 0 : Rad.Length; } }
         public int Gnc { get { return Gnd == null ? 0 : Gnd.Count; } }
         public int Rnc { get { return Rnd == null ? 0 : Rnd.Count; } }
         public int Aa { get { return Ad == null ? 0 : Ad.Count; } }
@@ -102,6 +108,16 @@ namespace Lea.Engine
         public int Rv(int index)
         {
             return Rd != null && index >= 0 && index < Rd.Length ? Rd[index] : 0;
+        }
+
+        public int Gav(int index)
+        {
+            return Gad != null && index >= 0 && index < Gad.Length ? Gad[index] : 0;
+        }
+
+        public int Rav(int index)
+        {
+            return Rad != null && index >= 0 && index < Rad.Length ? Rad[index] : 0;
         }
 
         public int Gx(string name)

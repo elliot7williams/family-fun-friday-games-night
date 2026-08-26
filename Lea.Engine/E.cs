@@ -3192,6 +3192,8 @@ namespace Lea.Engine
                 else if (name == "grid-template-columns") GridTemplate(style, value, false);
                 else if (name == "grid-template-rows") GridTemplate(style, value, true);
                 else if (name == "grid-template-areas") GridTemplateAreas(style, value);
+                else if (name == "grid-auto-columns") GridAutoTracks(style, value, false);
+                else if (name == "grid-auto-rows") GridAutoTracks(style, value, true);
                 else if (name == "grid-auto-flow") GridAutoFlow(style, value);
                 else if (name == "grid-column") GridPlacement(style, value, false);
                 else if (name == "grid-column-start") GridPlacementStart(style, value, false);
@@ -3582,6 +3584,36 @@ namespace Lea.Engine
                 !value.Equals("initial", StringComparison.OrdinalIgnoreCase) && !value.Equals("inherit", StringComparison.OrdinalIgnoreCase) &&
                 !value.Equals("unset", StringComparison.OrdinalIgnoreCase) && !value.Equals("revert", StringComparison.OrdinalIgnoreCase) &&
                 !value.Equals("revert-layer", StringComparison.OrdinalIgnoreCase) && !value.Equals("default", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static void GridAutoTracks(S style, string value, bool rows)
+        {
+            var source = Regex.Replace((value ?? "").Trim(), "minmax\\(\\s*0(?:px)?\\s*,\\s*(?<n>[1-9][0-9]?)fr\\s*\\)", "${n}fr", RegexOptions.IgnoreCase);
+            if (source.Equals("auto", StringComparison.OrdinalIgnoreCase) || source.Equals("initial", StringComparison.OrdinalIgnoreCase) ||
+                source.Equals("unset", StringComparison.OrdinalIgnoreCase) || source.Equals("revert", StringComparison.OrdinalIgnoreCase) ||
+                source.Equals("revert-layer", StringComparison.OrdinalIgnoreCase))
+            {
+                if (rows) style.Rad = null;
+                else style.Gad = null;
+                return;
+            }
+            if (source.Length == 0 || source.Length > 512 || source.IndexOf('(') >= 0 || source.IndexOf(')') >= 0 ||
+                source.IndexOf('[') >= 0 || source.IndexOf(']') >= 0) return;
+            var parts = Regex.Split(source, "\\s+");
+            if (parts.Length == 0 || parts.Length > 8) return;
+            var tracks = new List<int>();
+            foreach (var token in parts)
+            {
+                if (token.Equals("auto", StringComparison.OrdinalIgnoreCase)) { tracks.Add(S.Av); continue; }
+                var pixels = Regex.Match(token, "^(?<n>[0-9]{1,4})px$", RegexOptions.IgnoreCase);
+                var fraction = Regex.Match(token, "^(?<n>[1-9][0-9]?)fr$", RegexOptions.IgnoreCase);
+                int number;
+                if (pixels.Success && Int32.TryParse(pixels.Groups["n"].Value, out number) && number <= 2000) tracks.Add(number);
+                else if (fraction.Success && Int32.TryParse(fraction.Groups["n"].Value, out number) && number <= 64) tracks.Add(-number);
+                else return;
+            }
+            if (rows) style.Rad = tracks.ToArray();
+            else style.Gad = tracks.ToArray();
         }
 
         private static void GridAutoFlow(S style, string value)

@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **28**
+Post-1.0 hardening milestones completed: **29**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,14 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded repeating CSS Grid implicit-track sizing through `S.Av` and
+  `S.Gac/Gav/Rac/Rav`. One-to-eight-entry pixel, auto, integer-fr, and minmax
+  patterns cycle after explicit tracks, size area-created columns, honor
+  definite endpoints and largest spans, and settle authored pixel rows in
+  auto-height grids. Atomic reset/invalid parsing, exact mixed geometry, paint,
+  hits, following flow, benchmark, and Firespider host coverage bring the suite
+  to 39 fixtures and 38 executable probes.
 
 - Added bounded CSS Grid auto placement through `S.Gf=r/d/c/x`. Sparse and
   dense row/column flow, earlier-hole backfill, equal-share implicit columns,

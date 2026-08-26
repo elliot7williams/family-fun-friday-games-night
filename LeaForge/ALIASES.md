@@ -248,9 +248,24 @@ Definite items still reserve cells first and automatic items still enter in
 order-modified source order; non-default visual traversal follows resolved
 rows/columns while DOM, focus, form, and accessibility ownership remain intact.
 At most eight columns are generated. Content beyond that ceiling safely uses
-additional rows in the final column instead of overlapping. Custom
-`grid-auto-columns/rows` sizing, reverse flow, and shorthand `grid` auto-flow
-syntax remain outside the bounded subset.
+additional rows in the final column instead of overlapping.
+
+`grid-auto-columns` and `grid-auto-rows` add repeating implicit-track patterns.
+`Gac/Gav(index)` expose the column count/value and `Rac/Rav(index)` mirror the
+row pattern. One declaration accepts one to eight `0..2000px`, `1..64fr`,
+`auto`, or `minmax(0,Nfr)` entries. Positive values are pixels, `-1..-64` are
+integer `fr` weights, and `S.Av=-65` identifies bounded `auto`; a missing
+pattern also behaves as one auto-weight track. Patterns cycle from the first
+track after the explicitly sized template, including area-created tracks that
+have no explicit size. Definite numeric endpoints and the largest automatic
+span can grow the implicit column map to the shared eight-column ceiling.
+Pixel auto rows contribute a minimum during Lea's measurement pass, so an
+auto-height grid settles to its authored repeating row sizes before final
+placement. `initial`, `unset`, `revert`, `revert-layer`, and a lone `auto`
+restore the default; malformed, percentage, intrinsic, repeated, oversized,
+or excess patterns preserve the prior value atomically. Reverse flow,
+pre-explicit implicit tracks, shorthand `grid` auto-flow syntax, intrinsic or
+percentage tracks, auto-fit/fill, and subgrid remain outside the bounded subset.
 
 Document lookup stays short and bounded. `E.Id(page, id)` finds the first ID,
 `E.Q(page, selector)` finds the first document-order selector match, and

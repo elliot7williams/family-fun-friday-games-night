@@ -2567,6 +2567,52 @@ namespace Lea.Tests
                         Ok(!FragmentHitRect(view, "#flow-target").IsEmpty && BlockOuterRect(view, BlockById(view.At, "after-flow")).Top > BlockOuterRect(view, BlockById(view.At, "flow-target")).Bottom, "grid auto-flow hits and following flow");
                         Ok(ColorDistance(flowPaint.GetPixel(columnFive.Left + 4, columnFive.Top + 4), Color.FromArgb(253, 227, 197)) < 8, "grid auto-flow paint");
                     }
+                    var autoTrackPath = Path.Combine(root, "LeaForge", "test-pages", "grid-auto-tracks.html");
+                    var autoTrackPage = engine.Go(autoTrackPath);
+                    var trackPattern = BlockById(autoTrackPage, "track-pattern").S;
+                    Ok(trackPattern.Gac == 2 && trackPattern.Gav(0) == 40 && trackPattern.Gav(1) == -1 && trackPattern.Gav(2) == 0, "grid auto-column pattern aliases");
+                    Ok(trackPattern.Rac == 2 && trackPattern.Rav(0) == 30 && trackPattern.Rav(1) == -2 && trackPattern.Rav(2) == 0, "grid auto-row pattern aliases");
+                    var autoMixStyle = BlockById(autoTrackPage, "auto-mix").S;
+                    Ok(autoMixStyle.Gac == 2 && autoMixStyle.Gav(0) == S.Av && autoMixStyle.Gav(1) == -2 && S.Av == -65, "grid automatic track value alias");
+                    Ok(BlockById(autoTrackPage, "track-reset").S.Gac == 0 && BlockById(autoTrackPage, "track-reset").S.Rac == 0, "grid auto-track reset values");
+                    var invalidTracks = BlockById(autoTrackPage, "track-invalid").S;
+                    Ok(invalidTracks.Gac == 2 && invalidTracks.Gav(0) == 35 && invalidTracks.Gav(1) == -2 && invalidTracks.Rac == 2 && invalidTracks.Rav(0) == 30 && invalidTracks.Rav(1) == S.Av, "invalid grid auto-track values preserve prior patterns");
+                    Ok(BlockById(autoTrackPage, "track-limit").S.Gac == 8 && BlockById(autoTrackPage, "track-limit").S.Rac == 8, "grid auto-track pattern ceiling");
+                    view.Size = new Size(720, 1700);
+                    view.Go(autoTrackPath);
+                    using (var autoTrackPaint = Render(view))
+                    {
+                        var pattern = BlockOuterRect(view, BlockById(view.At, "track-pattern"));
+                        var patternA = BlockOuterRect(view, BlockById(view.At, "pattern-a"));
+                        var patternB = BlockOuterRect(view, BlockById(view.At, "pattern-b"));
+                        var patternC = BlockOuterRect(view, BlockById(view.At, "pattern-c"));
+                        var patternD = BlockOuterRect(view, BlockById(view.At, "pattern-d"));
+                        var patternE = BlockOuterRect(view, BlockById(view.At, "pattern-e"));
+                        Ok(pattern.Size == new Size(300, 200) && patternA.Size == new Size(60, 20) && patternB.Size == new Size(40, 30) && patternC.Size == new Size(60, 105) && patternD.Size == new Size(40, 30) && patternE.Size == new Size(60, 20), "repeating grid auto-track geometry");
+                        Ok(patternB.Left - patternA.Right == 10 && patternC.Left - patternB.Right == 10 && patternD.Left - patternC.Right == 10 && patternE.Left - patternD.Right == 10 && patternB.Top - patternA.Bottom == 5 && patternC.Top - patternB.Bottom == 5 && patternD.Top - patternC.Bottom == 5, "grid auto-track pattern order and gaps");
+                        var mixA = BlockOuterRect(view, BlockById(view.At, "auto-mix-a"));
+                        var mixB = BlockOuterRect(view, BlockById(view.At, "auto-mix-b"));
+                        var mixC = BlockOuterRect(view, BlockById(view.At, "auto-mix-c"));
+                        var mixD = BlockOuterRect(view, BlockById(view.At, "auto-mix-d"));
+                        var mixE = BlockOuterRect(view, BlockById(view.At, "auto-mix-e"));
+                        Ok(mixA.Width == 50 && mixB.Width == 25 && mixC.Width == 50 && mixD.Width == 25 && mixE.Width == 50 && mixE.Right - mixA.Left == 220, "mixed auto and fraction implicit columns");
+                        var rowCycle = BlockOuterRect(view, BlockById(view.At, "row-cycle"));
+                        var rowA = BlockOuterRect(view, BlockById(view.At, "row-cycle-a"));
+                        var rowC = BlockOuterRect(view, BlockById(view.At, "row-cycle-c"));
+                        var rowE = BlockOuterRect(view, BlockById(view.At, "row-cycle-e"));
+                        Ok(rowCycle.Height == 135 && rowA.Height == 35 && rowC.Height == 55 && rowE.Height == 35 && rowC.Top - rowA.Bottom == 5 && rowE.Top - rowC.Bottom == 5, "auto-height repeating implicit rows settle exactly");
+                        var largeGap = BlockOuterRect(view, BlockById(view.At, "row-large-gap"));
+                        var largeGapA = BlockOuterRect(view, BlockById(view.At, "row-large-gap-a"));
+                        var largeGapB = BlockOuterRect(view, BlockById(view.At, "row-large-gap-b"));
+                        var largeGapC = BlockOuterRect(view, BlockById(view.At, "row-large-gap-c"));
+                        Ok(largeGap.Height == 120 && largeGapA.Height == 10 && largeGapB.Height == 20 && largeGapC.Height == 10 && largeGapB.Top - largeGapA.Bottom == 40 && largeGapC.Top - largeGapB.Bottom == 40, "auto-height implicit rows reserve authored large gaps");
+                        var areaLead = BlockOuterRect(view, BlockById(view.At, "area-lead"));
+                        var areaStory = BlockOuterRect(view, BlockById(view.At, "area-story"));
+                        var areaAction = BlockOuterRect(view, BlockById(view.At, "area-action"));
+                        Ok(areaLead.Width == 50 && areaStory.Width == 30 && areaAction.Width == 100 && areaStory.Left - areaLead.Right == 10 && areaAction.Left - areaStory.Right == 10, "area-created tracks use the automatic column pattern");
+                        Ok(!FragmentHitRect(view, "#auto-target").IsEmpty && BlockOuterRect(view, BlockById(view.At, "after-auto-tracks")).Top > BlockOuterRect(view, BlockById(view.At, "auto-target")).Bottom, "grid auto-track hits and following flow");
+                        Ok(ColorDistance(autoTrackPaint.GetPixel(patternC.Left + 4, patternC.Top + 4), Color.FromArgb(199, 233, 255)) < 8, "grid auto-track paint");
+                    }
                     view.Size = new Size(720, 760);
                     var boxes = Path.Combine(root, "LeaForge", "test-pages", "boxes.html");
                     var boxPage = engine.Go(boxes);
