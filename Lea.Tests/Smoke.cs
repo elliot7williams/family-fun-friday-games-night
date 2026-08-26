@@ -2943,6 +2943,52 @@ namespace Lea.Tests
                         var squareHit = FragmentHitRect(view, "#stroke-target");
                         Ok(!squareHit.IsEmpty && squareHit.Left <= strokeRect.Left + 244 && squareHit.Right >= strokeRect.Left + 328 && squareHit.Top <= strokeRect.Top + 96, "SVG square-cap link hit bounds");
                     }
+                    var radiusPath = Path.Combine(root, "LeaForge", "test-pages", "border-radius.html");
+                    var radiusPage = engine.Go(radiusPath);
+                    var solidRadius = BlockById(radiusPage, "solid").S;
+                    Ok(solidRadius.R0 == 30 && solidRadius.R1 == 12 && solidRadius.R2 == 24 && solidRadius.R3 == 4 &&
+                        solidRadius.Q0 == 20 && solidRadius.Q1 == 8 && solidRadius.Q2 == 30 && solidRadius.Q3 == 4, "elliptical border-radius compact aliases");
+                    var dashedRadius = BlockById(radiusPage, "dashed").S;
+                    Ok(dashedRadius.R0 == -50 && dashedRadius.R1 == -25 && dashedRadius.R2 == -50 && dashedRadius.R3 == -25 &&
+                        dashedRadius.Q0 == 18 && dashedRadius.Q1 == 10 && dashedRadius.Q2 == 18 && dashedRadius.Q3 == 10, "percentage border-radius compact aliases");
+                    var fieldRadius = FieldById(radiusPage, "field").S;
+                    Ok(fieldRadius.R0 == 18 && fieldRadius.R1 == 36 && fieldRadius.R2 == 18 && fieldRadius.R3 == 36 &&
+                        fieldRadius.Q0 == 18 && fieldRadius.Q1 == 36 && fieldRadius.Q2 == 18 && fieldRadius.Q3 == 36, "custom-property field radius aliases");
+                    var atomicRadius = BlockById(radiusPage, "atomic").S;
+                    Ok(atomicRadius.R0 == 1 && atomicRadius.R1 == 2 && atomicRadius.R2 == 3 && atomicRadius.R3 == 4 &&
+                        atomicRadius.Q0 == 5 && atomicRadius.Q1 == 6 && atomicRadius.Q2 == 7 && atomicRadius.Q3 == 8, "invalid radius shorthand preserves atomic state");
+                    var priorityRadius = BlockById(radiusPage, "priority").S;
+                    Ok(priorityRadius.R0 == 22 && priorityRadius.Q0 == 11 && priorityRadius.R1 == 3 && priorityRadius.Q1 == 3, "important corner radius cascade");
+                    var resetRadius = BlockById(radiusPage, "reset").S;
+                    Ok(resetRadius.R0 == 0 && resetRadius.R1 == 0 && resetRadius.Q2 == 0 && resetRadius.Q3 == 0, "radius reset state");
+                    var boundedRadius = BlockById(radiusPage, "bounded").S;
+                    Ok(boundedRadius.R0 == 2000 && boundedRadius.R1 == -1000 && boundedRadius.Q2 == 2000 && boundedRadius.Q3 == -1000, "bounded oversized radius state");
+                    view.Size = new Size(720, 1200);
+                    view.Go(radiusPath);
+                    using (var radiusPaint = Render(view))
+                    {
+                        var solidOuter = BlockOuterRect(view, BlockById(view.At, "solid"));
+                        Ok(ColorDistance(radiusPaint.GetPixel(solidOuter.Left, solidOuter.Top), Color.White) < 12, "rounded solid corner excludes background");
+                        Ok(ColorDistance(radiusPaint.GetPixel(solidOuter.Left + solidOuter.Width / 2, solidOuter.Top + 2), Color.FromArgb(22, 101, 52)) < 24, "rounded solid border paint");
+                        Ok(ColorDistance(CenterPixel(radiusPaint, solidOuter), Color.FromArgb(254, 243, 199)) < 12, "rounded solid background paint");
+                        Eq(solidOuter, HitRect(view, "second.html"), "rounded link hit bounds");
+                        var clipper = BlockById(view.At, "clipper");
+                        var clipContent = BlockRect(view, clipper);
+                        Eq(clipContent, OwnedClip(view, BlockById(view.At, "clip-child"), "p"), "rounded overflow keeps bounded clip geometry");
+                        var clipCorner = radiusPaint.GetPixel(clipContent.Left + 1, clipContent.Top + 1);
+                        var clipCenter = CenterPixel(radiusPaint, clipContent);
+                        Ok(ColorDistance(clipCorner, Color.White) < 24 &&
+                            ColorDistance(clipCenter, Color.FromArgb(239, 68, 68)) < 12, "rounded overflow clips child corners " + clipCorner + " / " + clipCenter);
+                        var dashedOuter = BlockOuterRect(view, BlockById(view.At, "dashed"));
+                        Ok(ColorDistance(radiusPaint.GetPixel(dashedOuter.Left, dashedOuter.Top), Color.White) < 24 &&
+                            HasColor(radiusPaint, dashedOuter, Color.FromArgb(3, 105, 161)), "rounded dashed border paint");
+                        var fieldOuter = BlockRect(view, FieldBlock(view.At, FieldById(view.At, "field")));
+                        Ok(ColorDistance(radiusPaint.GetPixel(fieldOuter.Left, fieldOuter.Top), Color.White) < 24 &&
+                            ColorDistance(CenterPixel(radiusPaint, fieldOuter), Color.FromArgb(220, 252, 231)) < 12, "rounded field paint");
+                    }
+                    view.Size = new Size(300, 1200);
+                    Paint(view);
+                    Ok(BlockOuterRect(view, BlockById(view.At, "dashed")).Right <= view.ClientSize.Width - 1, "rounded boxes reflow narrowly");
                     view.Size = new Size(720, 760);
                     var boxes = Path.Combine(root, "LeaForge", "test-pages", "boxes.html");
                     var boxPage = engine.Go(boxes);
@@ -4526,6 +4572,7 @@ namespace Lea.Tests
                 if (args.Length > 3) SaveEventRender(eventPath, args[3]);
                 if (args.Length > 4) SaveRender(tokenPath, args[4]);
                 if (args.Length > 5) SaveStateRender(statePath, args[5]);
+                Console.WriteLine("Lea CSS radius smoke passed: compact ellipse aliases, atomic cascade, normalized paint, overflow, fields, links, and resize.");
 
                     Console.WriteLine("Lea smoke passed: bounded has relational selectors with strict lists, maximum specificity, descendant/child/adjacent/following and complex chains, queries, dynamic focus rebuilds, retained fields, WinForms geometry, and traversal/part limits, bounded nth-child of-S filters with strict compound lists, maximum specificity, forward/reverse counting, queries, dynamic form-state rebuilds, retained fields, WinForms geometry, and nesting/test limits, bounded precompiled An+B and reverse structural selectors with stylesheet/query parity, specificity, selector-list composition, type filtering, WinForms geometry, and invalid limits, bounded is, where, and list-not selector functions with maximum/zero specificity, forgiving/strict parsing, queries, dynamic state, WinForms geometry, and retained fields, bounded CSS important cascade with compiled priority, G.Ic diagnostics, stylesheet/inline tiers, custom properties, hover/media rebuilds, and retained fields, bounded inherited CSS custom properties with compiled declarations, S.Vc/Cv and G.Vc aliases, nested and cycle fallbacks, hover/media rebuilds, and retained fields, bounded responsive CSS media queries with viewport aliases, live resize, diagnostics, and retained fields, optional bounded persistent cache with restart reuse, validators, private isolation, atomic recovery, LRU entry/byte ceilings and host aliases, bounded content-box and border-box geometry, body and ID-scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, shrink, reverse flow, and resize, semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;

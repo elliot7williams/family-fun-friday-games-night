@@ -91,6 +91,13 @@ border-box sizing. Lea applies it to pixel width, height, min/max, and flex basi
 before the shared block, field, image, flex, table, cell, hit, paint, and
 accessibility-bound paths, without adding a native browser dependency.
 
+Rounded CSS boxes stay in that same path. Firespider can inspect clockwise
+`S.R0/R1/R2/R3` horizontal and `Q0/Q1/Q2/Q3` vertical aliases for bounded pixel
+or percentage circles and ellipses. Lea normalizes oversized opposing corners
+and reuses one curve for backgrounds, solid/dashed/dotted borders, descendant
+overflow clips, and ordinary fields. The adapter adds no rounded host controls;
+its smoke verifies the compiled browser receives the compact radius model.
+
 Responsive CSS also stays inside that surface. `V.Vw` follows the hosted
 control's client width, while `P.Vw` and `G.Vw` expose the applied value to the
 page and Inspector. Bounded screen/all pixel min/max/exact, comma, nested, and

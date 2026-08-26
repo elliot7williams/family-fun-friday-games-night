@@ -245,6 +245,17 @@ padding and border but not margins; content dimensions floor at one render
 pixel. Blocks, fields, flex items, images, tables, and table cells use the same
 geometry, clipping, paint, hit, accessibility-bound, and narrow-reflow paths.
 
+Circular and elliptical corners use clockwise `S.R0/R1/R2/R3` horizontal and
+`Q0/Q1/Q2/Q3` vertical aliases. Pixels remain nonnegative and percentages use
+negative compact values. Atomic one-to-four-value `border-radius`, optional
+slash-separated vertical radii, corner longhands, custom properties, important
+tiers, and resets share one CSS normalization step when opposing corners exceed
+the box. The WinForms view uses that path for backgrounds, solid/dashed/dotted
+borders, descendant overflow clipping, and ordinary field interiors while
+retaining the existing rectangular layout, link bounds, and responsive reflow.
+Pixels cap at 2,000 and percentages at 1,000; malformed declarations preserve
+the previous computed state.
+
 Lea's bounded flex subset uses `S.D=flex/inline-flex` and compact
 `S.Fd/Jc/Ai/As/Gp/Wr/Rg/Fg/Sh/Fb/Or` values. The model preserves direct element items
 under their visual container, while `V` allocates fixed, equal-share auto,

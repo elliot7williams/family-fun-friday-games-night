@@ -80,6 +80,14 @@ namespace Lea.Engine
         public int Bl { get; internal set; }
         public string Bc { get; internal set; }
         public string Bs { get; internal set; }
+        public int R0 { get; internal set; }
+        public int R1 { get; internal set; }
+        public int R2 { get; internal set; }
+        public int R3 { get; internal set; }
+        public int Q0 { get; internal set; }
+        public int Q1 { get; internal set; }
+        public int Q2 { get; internal set; }
+        public int Q3 { get; internal set; }
         internal int Ao { get; set; }
         internal bool Zo { get; set; }
         internal bool Zs { get; set; }

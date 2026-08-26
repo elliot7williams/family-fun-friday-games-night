@@ -338,7 +338,16 @@ non-empty bridge survives both direct and external MTA clients. Continue host
 coverage and bounded HTML/CSS compatibility work without adding another browser
 runtime.
 
-The latest completed milestone adds bounded SVG winding and stroke styles through
+The latest completed milestone adds bounded CSS corner radii through compact
+clockwise `S.R0/R1/R2/R3` horizontal and `Q0/Q1/Q2/Q3` vertical state. Atomic
+pixel/percentage circular and elliptical shorthands, corner longhands, custom
+properties, important/reset behavior, malformed preservation, and strict value
+bounds feed one CSS-normalized GDI+ path for backgrounds, solid/dashed/dotted
+borders, inherited overflow clipping, and ordinary fields. Exact paint, link,
+resize, benchmark, and Firespider host coverage remain on the existing box
+layout surface.
+
+The previous completed vector milestone adds bounded SVG winding and stroke styles through
 compact `Vs.Fr/Lc/Lj/Ml/Da/Do` state. Specificity-ordered stylesheet,
 presentation, inline, custom-property, and important declarations share the
 inherited paint path for nonzero/evenodd fills and clips, butt/round/square caps,

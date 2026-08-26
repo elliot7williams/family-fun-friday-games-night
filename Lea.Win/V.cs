@@ -23,6 +23,7 @@ namespace Lea.Win
         private readonly E e = new E();
         private readonly List<Hit> hits = new List<Hit>();
         private readonly List<Bx> boxes = new List<Bx>();
+        private readonly Dictionary<B, Bx> boxOwners = new Dictionary<B, Bx>();
         private readonly WebClient picWeb = new WebClient();
         private readonly Dictionary<string, Image> pics = new Dictionary<string, Image>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, string> fontNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -687,6 +688,7 @@ namespace Lea.Win
                     {
                         state = pe.Graphics.Save();
                         pe.Graphics.SetClip(clip, CombineMode.Intersect);
+                        ApplyRoundedOverflowClips(pe.Graphics, box);
                     }
                     if (opacity > 0 && !box.Title && (!box.Inline || box.B == null || box.B.Is.Count > 0)) PaintBox(pe.Graphics, rect, box.S, pageBackground, pageColor, opacity, box.B == null || box.B.I == null);
                     if (opacity > 0 && box.Fm) PaintFind(pe.Graphics, VisibleRect(content, clip), box.Fa);
@@ -751,6 +753,26 @@ namespace Lea.Win
             return clip.IsEmpty ? rect : Rectangle.Intersect(rect, clip);
         }
 
+        private void ApplyRoundedOverflowClips(Graphics graphics, Bx box)
+        {
+            if (box == null || box.Clip.IsEmpty) return;
+            for (var block = box == null ? null : box.B; block != null; block = block.Up)
+            {
+                Bx owner;
+                if (!boxOwners.TryGetValue(block, out owner)) continue;
+                if (Object.ReferenceEquals(owner, box)) continue;
+                if (!ClipsOverflow(owner.S) || !HasRadius(owner.S)) continue;
+                var content = owner.C;
+                if (!owner.Fx) content.Offset(0, -sy);
+                var left = Math.Max(0, owner.C.Left - owner.R.Left);
+                var top = Math.Max(0, owner.C.Top - owner.R.Top);
+                var right = Math.Max(0, owner.R.Right - owner.C.Right);
+                var bottom = Math.Max(0, owner.R.Bottom - owner.C.Bottom);
+                using (var path = RoundedPath(content, owner.S, left, top, right, bottom))
+                    graphics.SetClip(path, CombineMode.Intersect);
+            }
+        }
+
         private void Lay(Graphics graphics)
         {
             Lay(graphics, null);
@@ -759,6 +781,7 @@ namespace Lea.Win
         private void Lay(Graphics graphics, IDictionary<B, int> resolved)
         {
             boxes.Clear();
+            boxOwners.Clear();
             if (At == null) return;
             var measured = resolved ?? new Dictionary<B, int>();
             var contexts = new Dictionary<B, Lc>();
@@ -906,6 +929,7 @@ namespace Lea.Win
                     var inheritedClip = fixedSelf ? Rectangle.Empty : parentClip;
                     var ownerBox = new Bx(block.K, inline == null ? text : "", link, bs, outer, content, false, block, false, inheritedClip);
                     boxes.Add(ownerBox);
+                    boxOwners[block] = ownerBox;
                     if (inline != null) AddInlineBoxes(block, content, inline, inheritedClip);
                     var ownClip = ClipsOverflow(bs) ? content : Rectangle.Empty;
                     var childClip = CombineClip(inheritedClip, ownClip);
@@ -1937,7 +1961,9 @@ namespace Lea.Win
                 for (var index = first; index < boxes.Count; index++) boxes[index].Clip = CombineClip(boxes[index].Clip, childClip);
             var outerTable = new Rectangle(bx, by, outerWidth, outerHeight);
             var contentTable = new Rectangle(contentX, contentY, tableWidth, contentHeight);
-            boxes.Insert(first, new Bx("table", "", null, style, outerTable, contentTable, false, block, false, inheritedClip));
+            var ownerBox = new Bx("table", "", null, style, outerTable, contentTable, false, block, false, inheritedClip);
+            boxes.Insert(first, ownerBox);
+            boxOwners[block] = ownerBox;
             var fixedChain = fixedSelf || fixedParent;
             if (!fixedChain) layoutBottom = Math.Max(layoutBottom, outerTable.Bottom + mb);
             nextY = OutOfFlow(style) ? y : flowY + outerTable.Height + 8 + mb;
@@ -2112,7 +2138,9 @@ namespace Lea.Win
                 y += mt;
                 var outer = new Rectangle(content.X + ml, y, available + pl + pr + bl + br, textHeight + pt + pb + bt + bb);
                 var inner = new Rectangle(outer.X + bl + pl, outer.Y + bt + pt, available, textHeight);
-                boxes.Add(new Bx(part.K, flow == null ? CellText(part) : "", flow == null && part.K == "a" ? part.U : null, style, outer, inner, false, part));
+                var ownerBox = new Bx(part.K, flow == null ? CellText(part) : "", flow == null && part.K == "a" ? part.U : null, style, outer, inner, false, part);
+                boxes.Add(ownerBox);
+                boxOwners[part] = ownerBox;
                 if (flow != null) AddInlineBoxes(part, inner, flow);
                 y += outer.Height + mb + CellGap(part.K);
             }
@@ -2602,19 +2630,144 @@ namespace Lea.Win
         private static void PaintBox(Graphics graphics, Rectangle rect, S style, Color pageBackground, Color pageColor, int opacity, bool background)
         {
             if (style == null) return;
-            if (background && style.Bg.Length > 0)
-                using (var brush = new SolidBrush(PaintColor(CssColor(style.Bg, pageBackground), opacity))) graphics.FillRectangle(brush, rect);
+            var rounded = HasRadius(style);
+            var smoothing = graphics.SmoothingMode;
+            if (rounded) graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            try
+            {
+                if (background && style.Bg.Length > 0)
+                    using (var brush = new SolidBrush(PaintColor(CssColor(style.Bg, pageBackground), opacity)))
+                    {
+                        if (rounded)
+                            using (var path = RoundedPath(rect, style, 0, 0, 0, 0)) graphics.FillPath(brush, path);
+                        else graphics.FillRectangle(brush, rect);
+                    }
 
-            var top = BorderWidth(style, style.Bt);
-            var right = BorderWidth(style, style.Br);
-            var bottom = BorderWidth(style, style.Bb);
-            var left = BorderWidth(style, style.Bl);
-            if (top + right + bottom + left == 0) return;
-            var color = PaintColor(CssColor(style.Bc, CssColor(style.F, pageColor)), opacity);
-            PaintBorder(graphics, rect, top, 0, color, style.Bs);
-            PaintBorder(graphics, rect, right, 1, color, style.Bs);
-            PaintBorder(graphics, rect, bottom, 2, color, style.Bs);
-            PaintBorder(graphics, rect, left, 3, color, style.Bs);
+                var top = BorderWidth(style, style.Bt);
+                var right = BorderWidth(style, style.Br);
+                var bottom = BorderWidth(style, style.Bb);
+                var left = BorderWidth(style, style.Bl);
+                if (top + right + bottom + left == 0) return;
+                var color = PaintColor(CssColor(style.Bc, CssColor(style.F, pageColor)), opacity);
+                if (rounded) PaintRoundedBorder(graphics, rect, style, top, right, bottom, left, color);
+                else
+                {
+                    PaintBorder(graphics, rect, top, 0, color, style.Bs);
+                    PaintBorder(graphics, rect, right, 1, color, style.Bs);
+                    PaintBorder(graphics, rect, bottom, 2, color, style.Bs);
+                    PaintBorder(graphics, rect, left, 3, color, style.Bs);
+                }
+            }
+            finally { if (rounded) graphics.SmoothingMode = smoothing; }
+        }
+
+        private static bool HasRadius(S style)
+        {
+            return style != null && (style.R0 != 0 || style.R1 != 0 || style.R2 != 0 || style.R3 != 0 ||
+                style.Q0 != 0 || style.Q1 != 0 || style.Q2 != 0 || style.Q3 != 0);
+        }
+
+        private static GraphicsPath RoundedPath(Rectangle rect, S style, int left, int top, int right, int bottom)
+        {
+            var x = new float[]
+            {
+                Math.Max(0F, Radius(style.R0, rect.Width) - left),
+                Math.Max(0F, Radius(style.R1, rect.Width) - right),
+                Math.Max(0F, Radius(style.R2, rect.Width) - right),
+                Math.Max(0F, Radius(style.R3, rect.Width) - left)
+            };
+            var y = new float[]
+            {
+                Math.Max(0F, Radius(style.Q0, rect.Height) - top),
+                Math.Max(0F, Radius(style.Q1, rect.Height) - top),
+                Math.Max(0F, Radius(style.Q2, rect.Height) - bottom),
+                Math.Max(0F, Radius(style.Q3, rect.Height) - bottom)
+            };
+            NormalizeRadii(rect.Width, rect.Height, x, y);
+            var path = new GraphicsPath();
+            if (rect.Width < 1 || rect.Height < 1) return path;
+            path.StartFigure();
+            path.AddLine(rect.Left + x[0], rect.Top, rect.Right - x[1], rect.Top);
+            AddCorner(path, rect.Right - 2F * x[1], rect.Top, x[1], y[1], 270F);
+            path.AddLine(rect.Right, rect.Top + y[1], rect.Right, rect.Bottom - y[2]);
+            AddCorner(path, rect.Right - 2F * x[2], rect.Bottom - 2F * y[2], x[2], y[2], 0F);
+            path.AddLine(rect.Right - x[2], rect.Bottom, rect.Left + x[3], rect.Bottom);
+            AddCorner(path, rect.Left, rect.Bottom - 2F * y[3], x[3], y[3], 90F);
+            path.AddLine(rect.Left, rect.Bottom - y[3], rect.Left, rect.Top + y[0]);
+            AddCorner(path, rect.Left, rect.Top, x[0], y[0], 180F);
+            path.CloseFigure();
+            return path;
+        }
+
+        private static void AddCorner(GraphicsPath path, float x, float y, float radiusX, float radiusY, float start)
+        {
+            if (radiusX > 0F && radiusY > 0F) path.AddArc(x, y, radiusX * 2F, radiusY * 2F, start, 90F);
+        }
+
+        private static float Radius(int value, int length)
+        {
+            return value < 0 ? Math.Min(10000F, -value * Math.Max(0, length) / 100F) : Math.Min(2000F, value);
+        }
+
+        private static void NormalizeRadii(int width, int height, float[] x, float[] y)
+        {
+            var factor = 1F;
+            factor = RadiusFactor(factor, width, x[0] + x[1]);
+            factor = RadiusFactor(factor, width, x[3] + x[2]);
+            factor = RadiusFactor(factor, height, y[0] + y[3]);
+            factor = RadiusFactor(factor, height, y[1] + y[2]);
+            if (factor >= 1F) return;
+            for (var index = 0; index < 4; index++) { x[index] *= factor; y[index] *= factor; }
+        }
+
+        private static float RadiusFactor(float current, int length, float sum)
+        {
+            return sum <= 0F ? current : Math.Min(current, Math.Max(0, length) / sum);
+        }
+
+        private static void PaintRoundedBorder(Graphics graphics, Rectangle rect, S style, int top, int right, int bottom, int left, Color color)
+        {
+            if (style.Bs == "dashed" || style.Bs == "dotted")
+            {
+                PaintRoundedBorderSide(graphics, rect, style, top, 0, color);
+                PaintRoundedBorderSide(graphics, rect, style, right, 1, color);
+                PaintRoundedBorderSide(graphics, rect, style, bottom, 2, color);
+                PaintRoundedBorderSide(graphics, rect, style, left, 3, color);
+                return;
+            }
+            using (var outer = RoundedPath(rect, style, 0, 0, 0, 0))
+            using (var region = new Region(outer))
+            {
+                var innerRect = Rectangle.FromLTRB(rect.Left + left, rect.Top + top, rect.Right - right, rect.Bottom - bottom);
+                if (innerRect.Width > 0 && innerRect.Height > 0)
+                    using (var inner = RoundedPath(innerRect, style, left, top, right, bottom)) region.Exclude(inner);
+                using (var brush = new SolidBrush(color)) graphics.FillRegion(brush, region);
+            }
+        }
+
+        private static void PaintRoundedBorderSide(Graphics graphics, Rectangle rect, S style, int width, int side, Color color)
+        {
+            if (width < 1) return;
+            var inset = Math.Max(0, width / 2);
+            var center = Rectangle.Inflate(rect, -inset, -inset);
+            if (center.Width < 1 || center.Height < 1) return;
+            var state = graphics.Save();
+            try
+            {
+                Rectangle clip;
+                if (side == 0) clip = new Rectangle(rect.Left, rect.Top, rect.Width, Math.Max(1, rect.Height / 2));
+                else if (side == 1) clip = new Rectangle(rect.Left + rect.Width / 2, rect.Top, Math.Max(1, rect.Width - rect.Width / 2), rect.Height);
+                else if (side == 2) clip = new Rectangle(rect.Left, rect.Top + rect.Height / 2, rect.Width, Math.Max(1, rect.Height - rect.Height / 2));
+                else clip = new Rectangle(rect.Left, rect.Top, Math.Max(1, rect.Width / 2), rect.Height);
+                graphics.SetClip(clip, CombineMode.Intersect);
+                using (var path = RoundedPath(center, style, inset, inset, inset, inset))
+                using (var pen = new Pen(color, width))
+                {
+                    pen.DashStyle = style.Bs == "dashed" ? DashStyle.Dash : DashStyle.Dot;
+                    graphics.DrawPath(pen, path);
+                }
+            }
+            finally { graphics.Restore(state); }
         }
 
         private static void PaintFind(Graphics graphics, Rectangle rect, bool active)
@@ -3311,9 +3464,9 @@ namespace Lea.Win
 
             if (field.K == "range")
             {
-                using (var brush = new SolidBrush(background)) graphics.FillRectangle(brush, rect);
+                PaintFieldBackground(graphics, rect, field.S, background);
                 var rangeBorder = field.Ok ? Color.FromArgb(165, 165, 165) : Color.FromArgb(185, 28, 28);
-                using (var pen = new Pen(PaintColor(rangeBorder, opacity), field.Ok ? 1F : 2F)) graphics.DrawRectangle(pen, rect.X, rect.Y, rect.Width - 1, rect.Height - 1);
+                PaintFieldOutline(graphics, rect, field.S, PaintColor(rangeBorder, opacity), field.Ok ? 1F : 2F);
                 var track = new Rectangle(rect.X + 12, rect.Top + rect.Height / 2 - 2, Math.Max(1, rect.Width - 24), 4);
                 var thumbX = track.Left + (int)Math.Round((track.Width - 1) * RangeRatio(field));
                 using (var brush = new SolidBrush(PaintColor(Color.FromArgb(205, 210, 216), opacity))) graphics.FillRectangle(brush, track);
@@ -3323,9 +3476,10 @@ namespace Lea.Win
                 return;
             }
 
-            using (var brush = new SolidBrush(background)) graphics.FillRectangle(brush, rect);
+            PaintFieldBackground(graphics, rect, field.S, background);
             var border = !field.Ok ? Color.FromArgb(185, 28, 28) : box.K == "button" ? Color.FromArgb(145, 145, 145) : Color.FromArgb(165, 165, 165);
-            using (var pen = new Pen(PaintColor(border, opacity), field.Ok ? 1F : 2F)) graphics.DrawRectangle(pen, rect.X + (field.Ok ? 0 : 1), rect.Y + (field.Ok ? 0 : 1), rect.Width - (field.Ok ? 1 : 3), rect.Height - (field.Ok ? 1 : 3));
+            var outline = field.Ok ? rect : new Rectangle(rect.X + 1, rect.Y + 1, Math.Max(1, rect.Width - 2), Math.Max(1, rect.Height - 2));
+            PaintFieldOutline(graphics, outline, field.S, PaintColor(border, opacity), field.Ok ? 1F : 2F);
 
             var text = field.K == "select" ? OptionText(field) : field.V ?? "";
             var placeholder = text.Length == 0 && field.P.Length > 0;
@@ -3359,6 +3513,38 @@ namespace Lea.Win
             }
             using (var font = BoxFont(box.K, field.S, false))
                 PaintText(graphics, box.K == "button" ? box.X : text, font, new Rectangle(textLeft, rect.Y + 3, Math.Max(1, rect.Right - textLeft - pad - reserve), Math.Max(1, rect.Height - 6)), textColor, flags, opacity);
+        }
+
+        private static void PaintFieldBackground(Graphics graphics, Rectangle rect, S style, Color color)
+        {
+            using (var brush = new SolidBrush(color))
+            {
+                if (!HasRadius(style)) { graphics.FillRectangle(brush, rect); return; }
+                var smoothing = graphics.SmoothingMode;
+                try
+                {
+                    graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                    using (var path = RoundedPath(rect, style, 0, 0, 0, 0)) graphics.FillPath(brush, path);
+                }
+                finally { graphics.SmoothingMode = smoothing; }
+            }
+        }
+
+        private static void PaintFieldOutline(Graphics graphics, Rectangle rect, S style, Color color, float width)
+        {
+            using (var pen = new Pen(color, width))
+            {
+                var inset = Math.Max(1, (int)Math.Ceiling(width));
+                var outline = new Rectangle(rect.X, rect.Y, Math.Max(1, rect.Width - inset), Math.Max(1, rect.Height - inset));
+                if (!HasRadius(style)) { graphics.DrawRectangle(pen, outline); return; }
+                var smoothing = graphics.SmoothingMode;
+                try
+                {
+                    graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                    using (var path = RoundedPath(outline, style, 0, 0, inset, inset)) graphics.DrawPath(pen, path);
+                }
+                finally { graphics.SmoothingMode = smoothing; }
+            }
         }
 
         private static double RangeRatio(Fi field)

@@ -590,6 +590,17 @@ images, tables, and table cells share that conversion. Borders use
 returns the cached outer border rectangle, while `V.Rc(index)` returns its
 content rectangle.
 
+Rounded corners use clockwise horizontal `R0/R1/R2/R3` and vertical
+`Q0/Q1/Q2/Q3` values for top-left, top-right, bottom-right, and bottom-left.
+Nonnegative aliases are pixels; negative aliases encode percentages. CSS
+`border-radius` accepts one through four horizontal values and an optional `/`
+plus one through four vertical values; each corner longhand accepts one or two.
+Pixel and compact unitless values cap at 2,000, percentages cap at 1,000, and
+opposing radii normalize to the rendered box. Shorthand parsing is atomic and
+invalid declarations preserve prior state. The shared path paints backgrounds,
+solid/dashed/dotted borders, inherited rounded overflow clips, and ordinary
+form fields without changing rectangular layout or link bounds.
+
 Positioning stays compact: `Pn` is `s/r/a/f` for static, relative, absolute, or
 fixed; `Tp/Rt/Bm/Lt` are nullable signed pixel offsets, and `Zi` is the bounded
 z-index. The `inset` shorthand expands atomically into those four offsets;

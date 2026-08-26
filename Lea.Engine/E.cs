@@ -3275,6 +3275,11 @@ namespace Lea.Engine
                 else if (name == "border-left-width") style.Bl = Px(value);
                 else if (name == "border-color") style.Bc = value;
                 else if (name == "border-style") style.Bs = value.ToLowerInvariant();
+                else if (name == "border-radius") BorderRadius(style, value);
+                else if (name == "border-top-left-radius") BorderCornerRadius(style, value, 0);
+                else if (name == "border-top-right-radius") BorderCornerRadius(style, value, 1);
+                else if (name == "border-bottom-right-radius") BorderCornerRadius(style, value, 2);
+                else if (name == "border-bottom-left-radius") BorderCornerRadius(style, value, 3);
                 else if (name == "font-size")
                 {
                     var size = Regex.Match(value, "(?<n>[0-9]{1,3})(?:px)?", RegexOptions.IgnoreCase);
@@ -4482,6 +4487,82 @@ namespace Lea.Engine
             var match = Regex.Match(value ?? "", "^(?<n>[0-9]{1,3})(?:px)?$", RegexOptions.IgnoreCase);
             int number;
             return match.Success && int.TryParse(match.Groups["n"].Value, out number) ? Math.Min(number, 100) : -1;
+        }
+
+        private static void BorderRadius(S style, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (RadiusReset(source))
+            {
+                SetRadii(style, new int[4], new int[4]);
+                return;
+            }
+            var slash = source.IndexOf('/');
+            if (slash >= 0 && source.IndexOf('/', slash + 1) >= 0) return;
+            int[] horizontal;
+            int[] vertical;
+            if (!RadiusList(slash < 0 ? source : source.Substring(0, slash), out horizontal)) return;
+            if (slash < 0) vertical = (int[])horizontal.Clone();
+            else if (!RadiusList(source.Substring(slash + 1), out vertical)) return;
+            SetRadii(style, horizontal, vertical);
+        }
+
+        private static void BorderCornerRadius(S style, string value, int corner)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (RadiusReset(source)) { SetRadius(style, corner, 0, 0); return; }
+            var parts = Regex.Split(source, "\\s+");
+            int horizontal;
+            int vertical;
+            if (parts.Length < 1 || parts.Length > 2 || !RadiusValue(parts[0], out horizontal)) return;
+            if (parts.Length == 1) vertical = horizontal;
+            else if (!RadiusValue(parts[1], out vertical)) return;
+            SetRadius(style, corner, horizontal, vertical);
+        }
+
+        private static bool RadiusList(string source, out int[] values)
+        {
+            values = null;
+            var parts = Regex.Split((source ?? "").Trim(), "\\s+");
+            if (parts.Length < 1 || parts.Length > 4) return false;
+            var parsed = new int[parts.Length];
+            for (var index = 0; index < parts.Length; index++)
+                if (!RadiusValue(parts[index], out parsed[index])) return false;
+            values = new int[4];
+            values[0] = parsed[0];
+            values[1] = parts.Length > 1 ? parsed[1] : parsed[0];
+            values[2] = parts.Length > 2 ? parsed[2] : parsed[0];
+            values[3] = parts.Length > 3 ? parsed[3] : values[1];
+            return true;
+        }
+
+        private static bool RadiusValue(string value, out int radius)
+        {
+            radius = 0;
+            var match = Regex.Match(value ?? "", "^(?<n>[0-9]{1,4})(?<u>px|%)?$", RegexOptions.IgnoreCase);
+            int number;
+            if (!match.Success || !Int32.TryParse(match.Groups["n"].Value, out number)) return false;
+            if (match.Groups["u"].Value == "%") radius = -Math.Min(number, 1000);
+            else radius = Math.Min(number, 2000);
+            return true;
+        }
+
+        private static bool RadiusReset(string value)
+        {
+            return value == "initial" || value == "unset" || value == "revert" || value == "revert-layer";
+        }
+
+        private static void SetRadii(S style, int[] horizontal, int[] vertical)
+        {
+            for (var corner = 0; corner < 4; corner++) SetRadius(style, corner, horizontal[corner], vertical[corner]);
+        }
+
+        private static void SetRadius(S style, int corner, int horizontal, int vertical)
+        {
+            if (corner == 0) { style.R0 = horizontal; style.Q0 = vertical; }
+            else if (corner == 1) { style.R1 = horizontal; style.Q1 = vertical; }
+            else if (corner == 2) { style.R2 = horizontal; style.Q2 = vertical; }
+            else { style.R3 = horizontal; style.Q3 = vertical; }
         }
 
         private static void SetBorder(S style, int side, int width)

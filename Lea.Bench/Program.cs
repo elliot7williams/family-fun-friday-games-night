@@ -112,7 +112,7 @@ namespace Lea.Bench
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
                 "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html", "svg.html", "svg-geometry.html", "svg-gradients.html", "svg-use-clips.html", "svg-strokes.html",
-                "box-sizing.html"
+                "box-sizing.html", "border-radius.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -759,6 +759,36 @@ namespace Lea.Bench
                     }
                 }
                 return "Bz c/b across width, height, min/max, flex-basis, fields, tables, and 180 px reflow with fixture-backed paint and hits";
+            });
+            AddProbe(probes, "Bounded CSS corner radii", delegate
+            {
+                var path = Path.Combine(folder, "border-radius.html");
+                var page = new E().Go(path);
+                var solid = page.Bs.First(block => block.El != null && block.El.Av("id") == "solid");
+                var dashed = page.Bs.First(block => block.El != null && block.El.Av("id") == "dashed");
+                var atomic = page.Bs.First(block => block.El != null && block.El.Av("id") == "atomic");
+                var field = page.Fs.First(item => item.El != null && item.El.Av("id") == "field");
+                Need(solid.S.R0 == 30 && solid.S.R1 == 12 && solid.S.Q0 == 20 && solid.S.Q2 == 30, "elliptical radius aliases changed");
+                Need(dashed.S.R0 == -50 && dashed.S.R1 == -25 && dashed.S.Q0 == 18 && dashed.S.Q1 == 10, "percentage radius aliases changed");
+                Need(atomic.S.R0 == 1 && atomic.S.R3 == 4 && atomic.S.Q0 == 5 && atomic.S.Q3 == 8, "atomic invalid radius fallback changed");
+                Need(field.S.R0 == 18 && field.S.R1 == 36 && field.S.Q2 == 18 && field.S.Q3 == 36, "custom-property field radius changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1200);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var solidOuter = BlockOuter(view, "solid");
+                        var clipContent = BlockContent(view, "clipper");
+                        Need(ColorDistance(image.GetPixel(solidOuter.Left, solidOuter.Top), Color.White) < 24 &&
+                            ColorDistance(image.GetPixel(solidOuter.Left + solidOuter.Width / 2, solidOuter.Top + 2), Color.FromArgb(22, 101, 52)) < 24, "rounded background or solid border paint changed");
+                        Need(ColorDistance(image.GetPixel(clipContent.Left + 1, clipContent.Top + 1), Color.White) < 24 &&
+                            ColorDistance(image.GetPixel(clipContent.Left + clipContent.Width / 2, clipContent.Top + clipContent.Height / 2), Color.FromArgb(239, 68, 68)) < 12, "rounded overflow clip changed");
+                    }
+                    view.Size = new Size(300, 1200);
+                    using (var image = Draw(view)) Need(BlockOuter(view, "dashed").Right <= view.ClientSize.Width - 1, "rounded narrow reflow changed");
+                }
+                return "S.R0-R3/Q0-Q3 aliases, atomic pixel/percentage ellipses, longhands, variables, important/reset/bounds, normalized solid/dashed paint, overflow clips, fields, links, and resize";
             });
             AddProbe(probes, "Bounded flex layout", delegate
             {
@@ -1472,8 +1502,8 @@ namespace Lea.Bench
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box and text styles, visibility, positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
-            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, inline, row/column flex, bounded grid, table, form, image, inline vector, clipping, scroll, and stacking renderer");
+            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box, circular/elliptical radii, and text styles, visibility, positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
+            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/overflow/fields, inline, row/column flex, bounded grid, table, form, image, inline vector, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
