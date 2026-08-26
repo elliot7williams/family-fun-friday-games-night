@@ -2764,6 +2764,35 @@ namespace Lea.Tests
                         Ok(!FragmentHitRect(view, "#content-target").IsEmpty && BlockOuterRect(view, BlockById(view.At, "after-content")).Top > BlockOuterRect(view, BlockById(view.At, "content-target")).Bottom, "grid content alignment hits and following flow");
                         Ok(ColorDistance(contentAlignmentPaint.GetPixel(mixedA.Left + 4, mixedA.Top + 4), Color.FromArgb(253, 227, 197)) < 8, "grid content alignment paint");
                     }
+                    var svgPath = Path.Combine(root, "LeaForge", "test-pages", "svg.html");
+                    var svgPage = engine.Go(svgPath);
+                    var vector = BlockById(svgPage, "vector");
+                    Eq("svg", vector.K, "inline SVG block kind");
+                    Eq("Inline SVG status chart", vector.X, "inline SVG title label");
+                    Ok(vector.Vg != null && vector.Vg.Vb && vector.Vg.W == 320D && vector.Vg.H == 180D && vector.Vg.Vw == 160D && vector.Vg.Vh == 90D, "bounded SVG viewport aliases");
+                    Eq(9, vector.Vg.Ss.Count, "supported SVG shape count and invalid rejection");
+                    Eq("rect", vector.Vg.Ss[0].K, "SVG rectangle alias");
+                    Ok(vector.Vg.Ss[0].P.Count == 6 && vector.Vg.Ss[0].P[4] == 4D, "SVG rounded rectangle coordinates");
+                    Ok(vector.Vg.Ss[2].F == "currentColor" && vector.Vg.Ss[2].C == "#2563eb" && Math.Abs(vector.Vg.Ss[2].O - .8D) < .001D, "SVG inherited currentColor and opacity");
+                    Ok(vector.Vg.Ss[6].K == "path" && vector.Vg.Ss[6].D.Count == 5 && vector.Vg.Ss[6].D[0].K == 'M' && vector.Vg.Ss[6].D[4].K == 'Z', "SVG straight relative path steps");
+                    Ok(vector.Vg.Ss[7].U != null && vector.Vg.Ss[7].U.Fragment == "#svg-target" && vector.Vg.Ss[7].Fo == .85D, "SVG linked shape and fill opacity");
+                    Ok(vector.Vg.Ss[8].K == "text" && vector.Vg.Ss[8].T == "Lea vector" && vector.Vg.Ss[8].A == "m" && vector.Vg.Ss[8].Z == 9D, "SVG text aliases");
+                    Ok(svgPage.Ls.Count == 1 && svgPage.Ls[0].U.Fragment == "#svg-target", "SVG page link collection");
+                    var svgGraphic = engine.Ax(svgPage, ById(svgPage.D, "vector"));
+                    Ok(svgGraphic.K == "img" && svgGraphic.N == "Inline SVG status chart", "SVG graphic accessibility name");
+                    view.Size = new Size(720, 760);
+                    view.Go(svgPath);
+                    using (var svgPaint = Render(view))
+                    {
+                        var svgRect = BlockRect(view, BlockById(view.At, "vector"));
+                        Eq(new Size(320, 180), svgRect.Size, "SVG intrinsic layout size");
+                        Ok(ColorDistance(svgPaint.GetPixel(svgRect.Left + 20, svgRect.Top + 20), Color.FromArgb(215, 38, 61)) < 12, "SVG rectangle paint");
+                        Ok(ColorDistance(svgPaint.GetPixel(svgRect.Left + 110, svgRect.Top + 30), Color.FromArgb(16, 185, 129)) < 12, "SVG rgb circle paint");
+                        Ok(ColorDistance(svgPaint.GetPixel(svgRect.Left + 170, svgRect.Top + 30), Color.FromArgb(81, 130, 239)) < 18, "SVG inherited currentColor paint");
+                        Ok(ColorDistance(svgPaint.GetPixel(svgRect.Left + 160, svgRect.Top + 90), Color.FromArgb(245, 158, 11)) < 12, "SVG straight path paint");
+                        Ok(!FragmentHitRect(view, "#svg-target").IsEmpty, "SVG linked shape hit target");
+                        Ok(BlockOuterRect(view, BlockById(view.At, "after-svg")).Top > svgRect.Bottom, "normal flow follows inline SVG");
+                    }
                     view.Size = new Size(720, 760);
                     var boxes = Path.Combine(root, "LeaForge", "test-pages", "boxes.html");
                     var boxPage = engine.Go(boxes);

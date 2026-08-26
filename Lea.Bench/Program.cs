@@ -111,7 +111,7 @@ namespace Lea.Bench
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
-                "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html",
+                "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html", "svg.html",
                 "box-sizing.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
@@ -1157,6 +1157,24 @@ namespace Lea.Bench
                 }
                 return "Al/Jc start, center, end, between, around, and evenly track-group distribution; atomic place-content, exact geometry, paint, hits, and flow";
             });
+            AddProbe(probes, "Bounded inline SVG", delegate
+            {
+                var path = Path.Combine(folder, "svg.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var block = page.Bs.First(item => item.El != null && item.El.Av("id") == "vector");
+                var graphic = engine.Ax(page, ById(page.D, "vector"));
+                Need(block.Vg != null && block.Vg.Vb && block.Vg.W == 320D && block.Vg.H == 180D && block.Vg.Ss.Count == 9, "SVG model or bounds changed");
+                Need(block.Vg.Ss[6].K == "path" && block.Vg.Ss[6].D.Count == 5 && block.Vg.Ss[7].U.Fragment == "#svg-target", "SVG path or linked shape changed");
+                Need(graphic != null && graphic.K == "img" && graphic.N == "Inline SVG status chart", "SVG accessibility mapping changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 760);
+                    view.Go(path);
+                    using (var image = Draw(view)) Need(BlockContent(view, "vector").Size == new Size(320, 180) && ColoredSamples(image) > 0, "SVG layout or paint changed");
+                }
+                return "Vg/Vs/Vp aliases, viewBox meet sizing, 128 shapes/points, six primitives, text, straight paths, inherited paint/opacity, links, accessibility, and GDI paint";
+            });
             AddProbe(probes, "Forms and validation", delegate
             {
                 var engine = new E();
@@ -1358,13 +1376,13 @@ namespace Lea.Bench
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
             Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box and text styles, visibility, positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
-            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, inline, row/column flex, bounded grid, table, form, image, clipping, scroll, and stacking renderer");
+            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, inline, row/column flex, bounded grid, table, form, image, inline vector, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
             Capability(builder, "Flexbox", "Supported subset", "Row/row-reverse and fixed-height column/column-reverse containers, content/border-box pixel bases, stable -64..64 order on nowrap rows and bounded columns, bounded row wrap, fixed/equal-share/weighted grow and integer weighted-shrink slots, explicit pixel min/max floors, pixel row/column gaps, start/center/end/space-between/space-around/space-evenly justification, and container/item stretch/start/center/end cross alignment; no intrinsic min-content sizing, fractional factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis alignment, or auto-height column reordering guarantee");
             Capability(builder, "CSS Grid", "Supported subset", "Grid/inline-grid with up to eight fixed-pixel, auto, or integer-fr tracks per explicit axis, simple repeat and minmax(0, Nfr), pixel gaps, bounded occupancy, two-axis numeric starts/spans, validated 8x8 named-area templates, unique explicit named lines, area-generated start/end lines, Gf row/column sparse/dense flow, repeating S.Av/Gac/Gav/Rac/Rav pixel/auto/integer-fr implicit patterns, definite endpoint/span growth, area-created track sizing, exact auto-height row settlement, atomic grid-template/grid explicit, quoted-area, and row/column auto-flow shorthands, Ji/Js/Ai/As start/center/end/stretch item alignment, atomic place-items/place-self, Al/Jc start/center/end/between/around/evenly track-group alignment, atomic place-content, and shared nested paint/hit/reflow; no escaped or repeated-name occurrence indexes, reverse flow, pre-explicit implicit tracks, shorthand area-row line names, intrinsic or percentage tracks, auto-fit/fill, baseline or safe/unsafe alignment, writing-mode axis reversal, or subgrid");
-            Capability(builder, "Canvas and SVG", "Not supported", "Future compatibility work; no silent fallback claim");
+            Capability(builder, "SVG and Canvas", "SVG supported subset; Canvas not supported", "Bounded inline SVG with intrinsic width/height, default meet viewBox scaling, groups/links, rect/circle/ellipse/line/polyline/polygon/text, M/L/H/V/Z straight paths, presentation and inline fill/stroke/opacity/font properties, currentColor, graphic accessibility, clipping, paint, and shape-bounds hits; 128 shapes/points, eight levels, and 256 text characters. No curves/arcs, transforms, gradients/patterns, clip paths, masks, filters, markers, animation, scripting, external resources, nested SVG, or Canvas");
             Capability(builder, "Audio and video", "Not supported", "Future optional module");
             Capability(builder, "Developer diagnostics", "Supported", "Bounded summary, node, CSS, request, message, and variable snapshots");
             Capability(builder, "Document queries", "Supported subset", "Id, first-match Q/Q1, and read-only Qa with compiled selectors and a 256-result ceiling");

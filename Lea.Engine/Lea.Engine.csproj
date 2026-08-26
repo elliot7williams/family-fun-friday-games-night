@@ -49,6 +49,8 @@
     <Compile Include="Tc.cs" />
     <Compile Include="Tr.cs" />
     <Compile Include="Vm.cs" />
+    <Compile Include="Vg.cs" />
+    <Compile Include="Vs.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -690,6 +690,11 @@ namespace Lea.Win
                     }
                     if (opacity > 0 && !box.Title && (!box.Inline || box.B == null || box.B.Is.Count > 0)) PaintBox(pe.Graphics, rect, box.S, pageBackground, pageColor, opacity, box.B == null || box.B.I == null);
                     if (opacity > 0 && box.Fm) PaintFind(pe.Graphics, VisibleRect(content, clip), box.Fa);
+                    if (box.B != null && box.B.Vg != null)
+                    {
+                        PaintVector(pe.Graphics, box, content, pageColor, opacity, clip);
+                        continue;
+                    }
                     if (box.K == "img")
                     {
                         if (opacity > 0) PaintPic(pe.Graphics, box, content, pageColor, opacity);
@@ -839,7 +844,13 @@ namespace Lea.Win
                         bw = GridFitWidth(graphics, block, bs, bw);
                     int height;
                     List<Ix> inline = null;
-                    if (block.K == "img")
+                    if (block.Vg != null)
+                    {
+                        var size = VectorSize(block, bw);
+                        if (bs == null || bs.W == 0) bw = Math.Min(bw, size.Width);
+                        height = size.Height;
+                    }
+                    else if (block.K == "img")
                     {
                         var size = PicSize(block, bw);
                         if (bs == null || bs.W == 0) bw = Math.Min(bw, size.Width);
@@ -2554,6 +2565,20 @@ namespace Lea.Win
             return kind == "h1" || kind == "h2" || kind == "h3" || kind == "h4" || kind == "h5" || kind == "h6";
         }
 
+        private static Size VectorSize(B block, int width)
+        {
+            var vector = block == null ? null : block.Vg;
+            if (vector == null || vector.W <= 0 || vector.H <= 0) return new Size(Math.Max(1, width), 150);
+            var style = block.S;
+            var explicitWidth = style != null && style.W > 0;
+            var explicitHeight = style != null && style.H > 0;
+            var renderWidth = explicitWidth ? Math.Max(1, width) : Math.Min(Math.Max(1, width), Math.Max(1, (int)Math.Round(vector.W)));
+            var renderHeight = explicitHeight ? Math.Max(1, BoxContentHeight(style, style.H)) : Math.Max(1, (int)Math.Round(renderWidth * vector.H / vector.W));
+            if (!explicitWidth && explicitHeight)
+                renderWidth = Math.Min(Math.Max(1, width), Math.Max(1, (int)Math.Round(renderHeight * vector.W / vector.H)));
+            return new Size(renderWidth, renderHeight);
+        }
+
         private Size PicSize(B block, int width)
         {
             Image image;
@@ -2653,6 +2678,211 @@ namespace Lea.Win
             using (var brush = new SolidBrush(PaintColor(Color.FromArgb(20, color), opacity))) graphics.FillRectangle(brush, rect);
             using (var pen = new Pen(PaintColor(Color.FromArgb(80, color), opacity))) graphics.DrawRectangle(pen, rect.X, rect.Y, rect.Width - 1, rect.Height - 1);
             PaintText(graphics, box.X.Length == 0 ? "Image unavailable" : box.X, Font, new Rectangle(rect.X + 8, rect.Y + 8, rect.Width - 16, rect.Height - 16), color, TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, opacity);
+        }
+
+        private void PaintVector(Graphics graphics, Bx box, Rectangle rect, Color color, int opacity, Rectangle clip)
+        {
+            var vector = box == null || box.B == null ? null : box.B.Vg;
+            if (vector == null || rect.Width < 1 || rect.Height < 1 || vector.Vw <= 0 || vector.Vh <= 0) return;
+            var scale = Math.Min(rect.Width / vector.Vw, rect.Height / vector.Vh);
+            if (scale <= 0 || Double.IsNaN(scale) || Double.IsInfinity(scale)) return;
+            var x = rect.Left + (rect.Width - vector.Vw * scale) / 2D - vector.X * scale;
+            var y = rect.Top + (rect.Height - vector.Vh * scale) / 2D - vector.Y * scale;
+            var state = graphics.Save();
+            var smoothing = graphics.SmoothingMode;
+            try
+            {
+                graphics.SetClip(rect, CombineMode.Intersect);
+                graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                foreach (var shape in vector.Ss)
+                {
+                    using (var path = VectorPath(shape, x, y, scale))
+                    {
+                        if (path == null || path.PointCount == 0) continue;
+                        var fill = shape.K != "line" && !VectorNone(shape.F);
+                        var stroke = shape.W > 0 && !VectorNone(shape.S);
+                        if (opacity > 0 && fill)
+                        {
+                            var fillOpacity = VectorOpacity(opacity, shape.O * shape.Fo);
+                            if (fillOpacity > 0)
+                                using (var brush = new SolidBrush(PaintColor(VectorColor(shape.F, shape.C, color), fillOpacity))) graphics.FillPath(brush, path);
+                        }
+                        if (opacity > 0 && stroke)
+                        {
+                            var strokeOpacity = VectorOpacity(opacity, shape.O * shape.So);
+                            if (strokeOpacity > 0)
+                                using (var pen = new Pen(PaintColor(VectorColor(shape.S, shape.C, color), strokeOpacity), Math.Max(.5F, Math.Min(512F, (float)(shape.W * scale)))))
+                                {
+                                    pen.LineJoin = LineJoin.Round;
+                                    graphics.DrawPath(pen, path);
+                                }
+                        }
+                        if (shape.U != null)
+                        {
+                            var bounds = Rectangle.Ceiling(path.GetBounds());
+                            bounds.Inflate(Math.Max(2, (int)Math.Ceiling(shape.W * scale / 2D)), Math.Max(2, (int)Math.Ceiling(shape.W * scale / 2D)));
+                            bounds = Rectangle.Intersect(bounds, rect);
+                            bounds = VisibleRect(bounds, clip);
+                            if (!bounds.IsEmpty) hits.Add(new Hit(bounds, shape.U, null, shape.El));
+                        }
+                    }
+                }
+            }
+            catch (ArgumentException) { }
+            catch (System.Runtime.InteropServices.ExternalException) { }
+            finally
+            {
+                graphics.SmoothingMode = smoothing;
+                graphics.Restore(state);
+            }
+        }
+
+        private GraphicsPath VectorPath(Vs shape, double x, double y, double scale)
+        {
+            if (shape == null) return null;
+            var path = new GraphicsPath(FillMode.Winding);
+            try
+            {
+                var points = shape.P;
+                if (shape.K == "rect" && points.Count >= 6)
+                {
+                    var rect = VectorRect(points[0], points[1], points[2], points[3], x, y, scale);
+                    var rx = Math.Min(points[2] / 2D, points[4]) * scale;
+                    var ry = Math.Min(points[3] / 2D, points[5]) * scale;
+                    if (rx <= 0 && ry > 0) rx = ry;
+                    if (ry <= 0 && rx > 0) ry = rx;
+                    if (rx > 0 && ry > 0) VectorRoundRect(path, rect, (float)rx, (float)ry);
+                    else path.AddRectangle(rect);
+                }
+                else if (shape.K == "circle" && points.Count >= 3)
+                {
+                    var radius = points[2];
+                    path.AddEllipse(VectorRect(points[0] - radius, points[1] - radius, radius * 2D, radius * 2D, x, y, scale));
+                }
+                else if (shape.K == "ellipse" && points.Count >= 4)
+                    path.AddEllipse(VectorRect(points[0] - points[2], points[1] - points[3], points[2] * 2D, points[3] * 2D, x, y, scale));
+                else if (shape.K == "line" && points.Count >= 4)
+                    path.AddLine(VectorPoint(points[0], points[1], x, y, scale), VectorPoint(points[2], points[3], x, y, scale));
+                else if ((shape.K == "polyline" || shape.K == "polygon") && points.Count >= 4)
+                {
+                    var mapped = new PointF[points.Count / 2];
+                    for (var index = 0; index < mapped.Length; index++) mapped[index] = VectorPoint(points[index * 2], points[index * 2 + 1], x, y, scale);
+                    path.AddLines(mapped);
+                    if (shape.K == "polygon") path.CloseFigure();
+                }
+                else if (shape.K == "path")
+                {
+                    var current = PointF.Empty;
+                    var ready = false;
+                    foreach (var step in shape.D)
+                    {
+                        if (step.K == 'M')
+                        {
+                            path.StartFigure();
+                            current = VectorPoint(step.X, step.Y, x, y, scale);
+                            ready = true;
+                        }
+                        else if (step.K == 'L' && ready)
+                        {
+                            var next = VectorPoint(step.X, step.Y, x, y, scale);
+                            path.AddLine(current, next);
+                            current = next;
+                        }
+                        else if (step.K == 'Z' && ready) path.CloseFigure();
+                    }
+                }
+                else if (shape.K == "text" && points.Count >= 2 && shape.T.Length > 0)
+                {
+                    var origin = VectorPoint(points[0], points[1], x, y, scale);
+                    var size = Math.Max(1F, Math.Min(512F, (float)(shape.Z * scale)));
+                    var family = Font.FontFamily;
+                    var em = Math.Max(1, family.GetEmHeight(FontStyle.Regular));
+                    var ascent = size * family.GetCellAscent(FontStyle.Regular) / em;
+                    using (var format = (StringFormat)StringFormat.GenericTypographic.Clone())
+                    {
+                        format.FormatFlags |= StringFormatFlags.NoClip;
+                        path.AddString(shape.T, family, (int)FontStyle.Regular, size, new PointF(origin.X, origin.Y - ascent), format);
+                    }
+                    if (shape.A == "m" || shape.A == "e")
+                    {
+                        var bounds = path.GetBounds();
+                        using (var move = new Matrix())
+                        {
+                            move.Translate(shape.A == "m" ? -bounds.Width / 2F : -bounds.Width, 0);
+                            path.Transform(move);
+                        }
+                    }
+                }
+                return path;
+            }
+            catch (ArgumentException)
+            {
+                path.Dispose();
+                return null;
+            }
+            catch (System.Runtime.InteropServices.ExternalException)
+            {
+                path.Dispose();
+                return null;
+            }
+        }
+
+        private static void VectorRoundRect(GraphicsPath path, RectangleF rect, float rx, float ry)
+        {
+            rx = Math.Min(rect.Width / 2F, Math.Max(.01F, rx));
+            ry = Math.Min(rect.Height / 2F, Math.Max(.01F, ry));
+            path.AddArc(rect.Left, rect.Top, rx * 2F, ry * 2F, 180, 90);
+            path.AddArc(rect.Right - rx * 2F, rect.Top, rx * 2F, ry * 2F, 270, 90);
+            path.AddArc(rect.Right - rx * 2F, rect.Bottom - ry * 2F, rx * 2F, ry * 2F, 0, 90);
+            path.AddArc(rect.Left, rect.Bottom - ry * 2F, rx * 2F, ry * 2F, 90, 90);
+            path.CloseFigure();
+        }
+
+        private static PointF VectorPoint(double px, double py, double x, double y, double scale)
+        {
+            return new PointF(VectorFloat(x + px * scale), VectorFloat(y + py * scale));
+        }
+
+        private static RectangleF VectorRect(double px, double py, double width, double height, double x, double y, double scale)
+        {
+            var left = VectorFloat(x + px * scale);
+            var top = VectorFloat(y + py * scale);
+            var right = VectorFloat(x + (px + width) * scale);
+            var bottom = VectorFloat(y + (py + height) * scale);
+            return RectangleF.FromLTRB(Math.Min(left, right), Math.Min(top, bottom), Math.Max(left, right), Math.Max(top, bottom));
+        }
+
+        private static float VectorFloat(double value)
+        {
+            return (float)Math.Max(-1000000D, Math.Min(1000000D, value));
+        }
+
+        private static bool VectorNone(string value)
+        {
+            return String.IsNullOrWhiteSpace(value) || value.Trim().Equals("none", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static int VectorOpacity(int opacity, double scale)
+        {
+            if (Double.IsNaN(scale) || Double.IsInfinity(scale)) return 0;
+            return Math.Max(0, Math.Min(100, (int)Math.Round(opacity * Math.Max(0D, Math.Min(1D, scale)))));
+        }
+
+        private static Color VectorColor(string value, string current, Color fallback)
+        {
+            var text = (value ?? "").Trim();
+            if (text.Equals("currentcolor", StringComparison.OrdinalIgnoreCase)) text = current;
+            var match = Regex.Match(text ?? "", "^rgba?\\(\\s*(?<r>[0-9]{1,3})\\s*,\\s*(?<g>[0-9]{1,3})\\s*,\\s*(?<b>[0-9]{1,3})(?:\\s*,\\s*(?<a>(?:0|1)(?:\\.[0-9]+)?|\\.[0-9]+))?\\s*\\)$", RegexOptions.IgnoreCase);
+            if (!match.Success) return CssColor(text, fallback);
+            int red;
+            int green;
+            int blue;
+            double alpha;
+            Int32.TryParse(match.Groups["r"].Value, out red);
+            Int32.TryParse(match.Groups["g"].Value, out green);
+            Int32.TryParse(match.Groups["b"].Value, out blue);
+            if (!Double.TryParse(match.Groups["a"].Value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out alpha)) alpha = 1D;
+            return Color.FromArgb((int)Math.Round(Math.Max(0D, Math.Min(1D, alpha)) * 255D), Math.Min(255, red), Math.Min(255, green), Math.Min(255, blue));
         }
 
         private void AddMapHits(Bx box, Rectangle imageRect, Rectangle clip)

@@ -60,6 +60,12 @@ namespace Lea.Engine
         private const int MaxMapAreas = 64;
         private const int MaxMapCoordinates = 128;
         private const double MaxMapCoordinate = 1000000D;
+        private const int MaxSvgShapes = 128;
+        private const int MaxSvgPoints = 128;
+        private const int MaxSvgDepth = 8;
+        private const int MaxSvgText = 256;
+        private const double MaxSvgCoordinate = 100000D;
+        private const double MaxSvgSize = 2000D;
         private const int MaxTabIndex = 32767;
         private const int MaxAutofocusCandidates = 32;
         private const int MaxAccessKeyText = 256;
@@ -1292,6 +1298,7 @@ namespace Lea.Engine
             }
             if (IsHeading(kind)) return "heading";
             if (kind == "img") return node.Av("alt").Length == 0 && !node.A.ContainsKey("alt") ? "img" : node.Av("alt").Length == 0 ? "none" : "img";
+            if (kind == "svg") return "img";
             if (kind == "nav") return "navigation";
             if (kind == "main") return "main";
             if (kind == "aside") return "complementary";
@@ -1365,6 +1372,11 @@ namespace Lea.Engine
                 if (node.A.ContainsKey("placeholder")) return BoundValue(Clean(node.Av("placeholder")), MaxAccessibilityText);
             }
             if (role == "img" && node.A.ContainsKey("alt")) return BoundValue(Clean(node.Av("alt")), MaxAccessibilityText);
+            if (role == "img" && node.K == "svg")
+            {
+                var title = FirstChild(node, "title");
+                if (title != null) return BoundValue(Clean(NodeText(title)), MaxAccessibilityText);
+            }
             if (role == "table")
             {
                 var caption = FirstChild(node, "caption");
@@ -1906,7 +1918,7 @@ namespace Lea.Engine
                    tag == "fieldset" || tag == "figcaption" || tag == "figure" || tag == "footer" || tag == "form" ||
                    tag == "header" || tag == "hr" || tag == "legend" || tag == "li" || tag == "main" || tag == "menu" ||
                    tag == "meter" || tag == "nav" || tag == "ol" || tag == "p" || tag == "pre" || tag == "progress" || tag == "section" || tag == "summary" ||
-                   tag == "table" || tag == "ul";
+                   tag == "svg" || tag == "table" || tag == "ul";
         }
 
         private static bool IsHeading(string tag)
@@ -4487,6 +4499,11 @@ namespace Lea.Engine
                 AddPicture(page, node, baseUrl, rules, style);
                 return;
             }
+            if (kind == "svg")
+            {
+                AddSvg(page, node, baseUrl, rules, style);
+                return;
+            }
             if (kind == "hr")
             {
                 page.Bs.Add(new B { K = kind, X = "", S = style, El = node });
@@ -4563,6 +4580,346 @@ namespace Lea.Engine
             }
             if (source == null) source = ImageUri(image, baseUrl, style.W);
             if (source != null) page.Bs.Add(ImageBlock(page, image, source, style));
+        }
+
+        private static void AddSvg(P page, N svg, Uri baseUrl, List<R> rules, S style)
+        {
+            var model = SvgModel(page, svg, baseUrl, rules, style);
+            if (model == null || model.Ss.Count == 0) return;
+            page.Bs.Add(new B { K = "svg", X = SvgLabel(svg), S = style, Vg = model, El = svg });
+        }
+
+        private static Vg SvgModel(P page, N svg, Uri baseUrl, List<R> rules, S style)
+        {
+            var model = new Vg();
+            var view = SvgNumbers(svg.Av("viewbox"), 4);
+            if (view != null && view.Length == 4 && view[2] > 0 && view[3] > 0)
+            {
+                model.X = view[0];
+                model.Y = view[1];
+                model.Vw = view[2];
+                model.Vh = view[3];
+                model.Vb = true;
+            }
+
+            double width;
+            double height;
+            var hasWidth = SvgLength(svg.Av("width"), out width) && width > 0;
+            var hasHeight = SvgLength(svg.Av("height"), out height) && height > 0;
+            if (!hasWidth) width = model.Vb ? Math.Min(MaxSvgSize, model.Vw) : 300D;
+            if (!hasHeight) height = model.Vb ? Math.Min(MaxSvgSize, model.Vh) : 150D;
+            if (hasWidth && !hasHeight && model.Vb) height = Math.Min(MaxSvgSize, width * model.Vh / model.Vw);
+            else if (hasHeight && !hasWidth && model.Vb) width = Math.Min(MaxSvgSize, height * model.Vw / model.Vh);
+            model.W = Math.Max(1D, Math.Min(MaxSvgSize, width));
+            model.H = Math.Max(1D, Math.Min(MaxSvgSize, height));
+            if (!model.Vb)
+            {
+                model.Vw = model.W;
+                model.Vh = model.H;
+            }
+            if (hasWidth && style.W == 0) style.W = Math.Max(1, (int)Math.Round(model.W));
+            if (hasHeight && style.H == 0) style.H = Math.Max(1, (int)Math.Round(model.H));
+
+            var initial = new Sv { C = style.F, Z = style.Fs > 0 ? style.Fs : 16D };
+            var paint = SvgPaint(svg, initial, style, true);
+            foreach (var child in svg.C)
+            {
+                if (model.Ss.Count == MaxSvgShapes) break;
+                SvgWalk(page, child, baseUrl, rules, style, paint, model, 1, null, null);
+            }
+            return model;
+        }
+
+        private static void SvgWalk(P page, N node, Uri baseUrl, List<R> rules, S inherited, Sv parent, Vg model, int depth, Uri activeLink, N linkElement)
+        {
+            if (node == null || node.K == "#text" || depth > MaxSvgDepth || model.Ss.Count == MaxSvgShapes) return;
+            if (node.K == "script" || node.K == "style" || node.K == "defs" || node.K == "symbol" || node.A.ContainsKey("hidden")) return;
+            var css = Style(node, inherited, rules);
+            if (css.D == "none" || css.Vi == "h" || css.Vi == "c" || AriaTrue(node, "aria-hidden")) return;
+            var paint = SvgPaint(node, parent, css, false);
+            var link = activeLink;
+            var linkNode = linkElement;
+            if (node.K == "a")
+            {
+                Uri target;
+                if (TryUri(baseUrl, node.Av("href"), out target))
+                {
+                    link = target;
+                    linkNode = node;
+                    page.Ls.Add(new Ln { U = link, T = Clean(NodeText(node)) });
+                }
+            }
+
+            var shape = SvgShape(node, paint, link, linkNode);
+            if (shape != null) model.Ss.Add(shape);
+            if (node.K != "g" && node.K != "a") return;
+            foreach (var child in node.C)
+            {
+                if (model.Ss.Count == MaxSvgShapes) break;
+                SvgWalk(page, child, baseUrl, rules, css, paint, model, depth + 1, link, linkNode);
+            }
+        }
+
+        private static Vs SvgShape(N node, Sv paint, Uri link, N linkElement)
+        {
+            var kind = node.K;
+            if (kind != "rect" && kind != "circle" && kind != "ellipse" && kind != "line" && kind != "polyline" && kind != "polygon" && kind != "text" && kind != "path") return null;
+            var shape = new Vs
+            {
+                K = kind,
+                F = paint.F,
+                S = paint.S,
+                C = paint.C,
+                W = paint.W,
+                O = paint.O,
+                Fo = paint.Fo,
+                So = paint.So,
+                Z = paint.Z,
+                A = paint.A,
+                U = link,
+                El = linkElement ?? node
+            };
+            double value;
+            if (kind == "rect")
+            {
+                if (!SvgNumber(node.Av("x"), 0, out value)) return null; shape.P.Add(value);
+                if (!SvgNumber(node.Av("y"), 0, out value)) return null; shape.P.Add(value);
+                if (!SvgNumber(node.Av("width"), -1, out value) || value <= 0) return null; shape.P.Add(value);
+                if (!SvgNumber(node.Av("height"), -1, out value) || value <= 0) return null; shape.P.Add(value);
+                if (!SvgNumber(node.Av("rx"), 0, out value)) return null; shape.P.Add(Math.Max(0, value));
+                if (!SvgNumber(node.Av("ry"), 0, out value)) return null; shape.P.Add(Math.Max(0, value));
+            }
+            else if (kind == "circle")
+            {
+                if (!SvgNumber(node.Av("cx"), 0, out value)) return null; shape.P.Add(value);
+                if (!SvgNumber(node.Av("cy"), 0, out value)) return null; shape.P.Add(value);
+                if (!SvgNumber(node.Av("r"), -1, out value) || value <= 0) return null; shape.P.Add(value);
+            }
+            else if (kind == "ellipse")
+            {
+                if (!SvgNumber(node.Av("cx"), 0, out value)) return null; shape.P.Add(value);
+                if (!SvgNumber(node.Av("cy"), 0, out value)) return null; shape.P.Add(value);
+                if (!SvgNumber(node.Av("rx"), -1, out value) || value <= 0) return null; shape.P.Add(value);
+                if (!SvgNumber(node.Av("ry"), -1, out value) || value <= 0) return null; shape.P.Add(value);
+            }
+            else if (kind == "line")
+            {
+                foreach (var name in new[] { "x1", "y1", "x2", "y2" })
+                {
+                    if (!SvgNumber(node.Av(name), 0, out value)) return null;
+                    shape.P.Add(value);
+                }
+            }
+            else if (kind == "polyline" || kind == "polygon")
+            {
+                var points = SvgNumbers(node.Av("points"), MaxSvgPoints * 2);
+                if (points == null || points.Length % 2 != 0 || points.Length < (kind == "polygon" ? 6 : 4)) return null;
+                foreach (var point in points) shape.P.Add(point);
+            }
+            else if (kind == "text")
+            {
+                if (!SvgNumber(node.Av("x"), 0, out value)) return null; shape.P.Add(value);
+                if (!SvgNumber(node.Av("y"), 0, out value)) return null; shape.P.Add(value);
+                shape.T = BoundValue(Clean(NodeText(node)), MaxSvgText);
+                if (shape.T.Length == 0) return null;
+            }
+            else if (!SvgPath(node.Av("d"), shape.D)) return null;
+            return shape;
+        }
+
+        private static Sv SvgPaint(N node, Sv inherited, S css, bool root)
+        {
+            var paint = inherited.Copy();
+            paint.C = css != null && css.F.Length > 0 ? css.F : paint.C;
+            if (css != null && css.Fs > 0) paint.Z = css.Fs;
+            SvgPaintSet(paint, "fill", node.Av("fill"));
+            SvgPaintSet(paint, "stroke", node.Av("stroke"));
+            SvgPaintSet(paint, "stroke-width", node.Av("stroke-width"));
+            SvgPaintSet(paint, "opacity", node.Av("opacity"));
+            SvgPaintSet(paint, "fill-opacity", node.Av("fill-opacity"));
+            SvgPaintSet(paint, "stroke-opacity", node.Av("stroke-opacity"));
+            SvgPaintSet(paint, "font-size", node.Av("font-size"));
+            SvgPaintSet(paint, "text-anchor", node.Av("text-anchor"));
+            foreach (var declaration in CssDeclarations(node.Av("style")))
+            {
+                if (root && declaration.N == "opacity") continue;
+                SvgPaintSet(paint, declaration.N, declaration.V);
+            }
+            return paint;
+        }
+
+        private static void SvgPaintSet(Sv paint, string name, string input)
+        {
+            var value = (input ?? "").Trim();
+            if (value.Length == 0) return;
+            if (name == "fill" || name == "stroke")
+            {
+                if (value.Length > 64 || value.IndexOf("url(", StringComparison.OrdinalIgnoreCase) >= 0) return;
+                if (name == "fill") paint.F = value;
+                else paint.S = value;
+                return;
+            }
+            double number;
+            if (name == "stroke-width" && SvgLength(value, out number)) paint.W = Math.Max(0, Math.Min(256D, number));
+            else if (name == "opacity" && SvgAlpha(value, out number)) paint.O *= number;
+            else if (name == "fill-opacity" && SvgAlpha(value, out number)) paint.Fo = number;
+            else if (name == "stroke-opacity" && SvgAlpha(value, out number)) paint.So = number;
+            else if (name == "font-size" && SvgLength(value, out number) && number > 0) paint.Z = Math.Min(200D, number);
+            else if (name == "text-anchor")
+            {
+                var anchor = value.ToLowerInvariant();
+                if (anchor == "start") paint.A = "s";
+                else if (anchor == "middle") paint.A = "m";
+                else if (anchor == "end") paint.A = "e";
+            }
+        }
+
+        private static string SvgLabel(N svg)
+        {
+            var label = Clean(svg.Av("aria-label"));
+            if (label.Length == 0)
+            {
+                var title = FirstChild(svg, "title");
+                if (title != null) label = Clean(NodeText(title));
+            }
+            return BoundValue(label, MaxSvgText);
+        }
+
+        private static bool SvgLength(string input, out double value)
+        {
+            value = 0;
+            var match = Regex.Match(input ?? "", "^\\s*(?<n>[-+]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:e[-+]?[0-9]+)?)(?:px)?\\s*$", RegexOptions.IgnoreCase);
+            return match.Success && SvgFinite(match.Groups["n"].Value, out value) && value >= -MaxSvgSize && value <= MaxSvgSize;
+        }
+
+        private static bool SvgNumber(string input, double fallback, out double value)
+        {
+            value = fallback;
+            if (String.IsNullOrWhiteSpace(input)) { value = fallback; return true; }
+            var match = Regex.Match(input, "^\\s*(?<n>[-+]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:e[-+]?[0-9]+)?)\\s*$", RegexOptions.IgnoreCase);
+            return match.Success && SvgFinite(match.Groups["n"].Value, out value) && Math.Abs(value) <= MaxSvgCoordinate;
+        }
+
+        private static bool SvgAlpha(string input, out double value)
+        {
+            value = 1;
+            var text = (input ?? "").Trim();
+            var percent = text.EndsWith("%", StringComparison.Ordinal);
+            if (percent) text = text.Substring(0, text.Length - 1).Trim();
+            if (!SvgFinite(text, out value)) return false;
+            if (percent) value /= 100D;
+            value = Math.Max(0D, Math.Min(1D, value));
+            return true;
+        }
+
+        private static double[] SvgNumbers(string input, int maximum)
+        {
+            var source = input ?? "";
+            if (source.Length == 0 || source.Length > MaxHtmlAttributeValue) return null;
+            var matches = Regex.Matches(source, "[-+]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:e[-+]?[0-9]+)?", RegexOptions.IgnoreCase);
+            if (matches.Count == 0 || matches.Count > maximum) return null;
+            var result = new double[matches.Count];
+            var end = 0;
+            for (var index = 0; index < matches.Count; index++)
+            {
+                var match = matches[index];
+                if (!SvgSeparators(source, end, match.Index) || !SvgFinite(match.Value, out result[index]) || Math.Abs(result[index]) > MaxSvgCoordinate) return null;
+                end = match.Index + match.Length;
+            }
+            return SvgSeparators(source, end, source.Length) ? result : null;
+        }
+
+        private static bool SvgPath(string input, IList<Vp> result)
+        {
+            var source = input ?? "";
+            if (source.Length == 0 || source.Length > 4096) return false;
+            var matches = Regex.Matches(source, "[MmLlHhVvZz]|[-+]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:e[-+]?[0-9]+)?", RegexOptions.IgnoreCase);
+            if (matches.Count == 0 || matches.Count > MaxSvgPoints * 3) return false;
+            var tokens = new List<string>();
+            var end = 0;
+            foreach (Match match in matches)
+            {
+                if (!SvgSeparators(source, end, match.Index)) return false;
+                tokens.Add(match.Value);
+                end = match.Index + match.Length;
+            }
+            if (!SvgSeparators(source, end, source.Length)) return false;
+
+            var at = 0;
+            var command = '\0';
+            var x = 0D;
+            var y = 0D;
+            var startX = 0D;
+            var startY = 0D;
+            while (at < tokens.Count && result.Count < MaxSvgPoints)
+            {
+                if (tokens[at].Length == 1 && Char.IsLetter(tokens[at][0]))
+                {
+                    command = tokens[at++][0];
+                    if (command == 'z' || command == 'Z')
+                    {
+                        if (result.Count == 0) return false;
+                        result.Add(new Vp('Z', startX, startY));
+                        x = startX;
+                        y = startY;
+                        command = '\0';
+                        continue;
+                    }
+                }
+                if (command == '\0') return false;
+                var lower = Char.ToLowerInvariant(command);
+                var relative = Char.IsLower(command);
+                if (result.Count == 0 && lower != 'm') return false;
+                double a;
+                double b;
+                if (lower == 'm' || lower == 'l')
+                {
+                    if (!SvgPathNumber(tokens, ref at, out a) || !SvgPathNumber(tokens, ref at, out b)) return false;
+                    if (relative) { a += x; b += y; }
+                    if (Math.Abs(a) > MaxSvgCoordinate || Math.Abs(b) > MaxSvgCoordinate) return false;
+                    var move = lower == 'm';
+                    if (move) { startX = a; startY = b; }
+                    result.Add(new Vp(move ? 'M' : 'L', a, b));
+                    x = a;
+                    y = b;
+                    if (move) command = relative ? 'l' : 'L';
+                }
+                else if (lower == 'h')
+                {
+                    if (!SvgPathNumber(tokens, ref at, out a)) return false;
+                    x = relative ? x + a : a;
+                    if (Math.Abs(x) > MaxSvgCoordinate) return false;
+                    result.Add(new Vp('L', x, y));
+                }
+                else if (lower == 'v')
+                {
+                    if (!SvgPathNumber(tokens, ref at, out a)) return false;
+                    y = relative ? y + a : a;
+                    if (Math.Abs(y) > MaxSvgCoordinate) return false;
+                    result.Add(new Vp('L', x, y));
+                }
+                else return false;
+            }
+            return at == tokens.Count && result.Count > 0;
+        }
+
+        private static bool SvgPathNumber(IList<string> tokens, ref int at, out double value)
+        {
+            value = 0;
+            if (at >= tokens.Count || tokens[at].Length == 1 && Char.IsLetter(tokens[at][0])) return false;
+            return SvgFinite(tokens[at++], out value);
+        }
+
+        private static bool SvgFinite(string input, out double value)
+        {
+            return Double.TryParse(input, NumberStyles.Float, CultureInfo.InvariantCulture, out value) && !Double.IsNaN(value) && !Double.IsInfinity(value);
+        }
+
+        private static bool SvgSeparators(string source, int start, int end)
+        {
+            for (var index = start; index < end; index++)
+                if (!AsciiWhite(source[index]) && source[index] != ',') return false;
+            return true;
         }
 
         private static B ImageBlock(P page, N image, Uri source, S style)
@@ -5830,6 +6187,24 @@ namespace Lea.Engine
                 V = value;
                 C = custom;
                 I = important;
+            }
+        }
+
+        private sealed class Sv
+        {
+            public string F = "#000000";
+            public string S = "none";
+            public string C = "#000000";
+            public string A = "s";
+            public double W = 1D;
+            public double O = 1D;
+            public double Fo = 1D;
+            public double So = 1D;
+            public double Z = 16D;
+
+            public Sv Copy()
+            {
+                return new Sv { F = F, S = S, C = C, A = A, W = W, O = O, Fo = Fo, So = So, Z = Z };
             }
         }
 

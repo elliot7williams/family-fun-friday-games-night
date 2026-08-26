@@ -25,6 +25,7 @@ namespace Lea.Engine
         public int Mw { get; internal set; }
         public int Mh { get; internal set; }
         public Tb Tb { get; internal set; }
+        public Vg Vg { get; internal set; }
         public N El { get; internal set; }
         public B Up { get; internal set; }
         public IList<Ir> Is { get; private set; }

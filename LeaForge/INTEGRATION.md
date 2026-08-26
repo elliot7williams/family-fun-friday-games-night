@@ -508,6 +508,27 @@ variables. Mutable field values, passwords, and selected file paths are omitted.
 uses this contract for its right-side inspector and keeps page rendering on the
 existing single `V` surface.
 
+## Bounded inline SVG
+
+An inline `<svg>` becomes one normal `B` with `K=svg` and `B.Vg`. This keeps
+vector content inside the same layout, Flex/Grid ownership, scrolling,
+overflow clip, stacking, hit, and accessibility paths as text and images. The
+WinForms adapter uses `System.Drawing` directly; embedding Lea does not add an
+external browser or vector runtime.
+
+The supported slice covers authored/intrinsic pixel width and height, default
+centered meet `viewBox` scaling, `g` inheritance, SVG `a` links, rounded `rect`,
+`circle`, `ellipse`, `line`, `polyline`, `polygon`, text with start/middle/end
+anchors, and straight `path` commands `M/m`, `L/l`, `H/h`, `V/v`, and `Z/z`.
+Presentation attributes and inline styles cover fill, stroke, stroke width,
+opacity, fill/stroke opacity, font size, text anchor, and `currentColor`.
+
+Parsing is capped at eight group levels, 128 shapes, 128 primitive/path points,
+256 text characters, 4,096 path characters, finite coordinates, and a 2,000 px
+intrinsic size. Curves/arcs, transforms, gradients/patterns, clip paths, masks,
+filters, markers, animation, scripting, external resources, nested SVG, and
+Canvas remain explicit compatibility limits.
+
 ## Experimental Firespider tab
 
 The source in `../Lea.Firespider` now powers real engine-backed tabs in the

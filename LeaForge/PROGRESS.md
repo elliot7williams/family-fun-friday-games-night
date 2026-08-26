@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **32**
+Post-1.0 hardening milestones completed: **33**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,15 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded inline SVG through compact `B.Vg`, `Vg`, `Vs`, and `Vp`
+  aliases. Intrinsic sizing, default meet `viewBox` scaling, groups, links,
+  inherited presentation/inline fill, stroke, opacity, `currentColor`, six
+  basic shapes, text, and `M/L/H/V/Z` straight paths share Lea's existing
+  layout, clipping, paint, hit, fragment, and graphic-accessibility paths.
+  Eight-level, 128-shape/point, 256-text, finite-coordinate limits, invalid
+  rejection, exact paint, benchmark, and Firespider host coverage bring the
+  suite to 43 fixtures and 42 executable probes.
 
 - Added bounded CSS Grid content alignment. Compact `Al/Jc=s/c/e/b/a/v` state
   distributes fixed track groups on the block/inline axes using start, center,

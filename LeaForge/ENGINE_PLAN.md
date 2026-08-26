@@ -143,6 +143,15 @@ Dg/Dcl  diagnostics/clear request activity
     `place-content`. Reverse flow, pre-explicit implicit tracks, quoted area-row
     line names, intrinsic/percentage tracks, baseline alignment, and writing-mode
     axis reversal stay outside.)
+17. Add bounded inline SVG. (`B.Vg` carries a compact `Vg` viewport and `Vs`
+    shape list; `Vp` holds absolute straight-path steps. Intrinsic dimensions,
+    centered meet `viewBox`, groups, SVG links, six basic shapes, text, and
+    `M/L/H/V/Z` paths share normal layout, clipping, scrolling, hit, fragment,
+    and graphic-accessibility behavior. Presentation and inline fill/stroke,
+    widths, opacity, font size, text anchor, and `currentColor` inherit through
+    eight levels under 128-shape/point and 256-text limits. Curves, transforms,
+    paint servers, filters, animation, external resources, nested SVG, and
+    Canvas stay outside.)
 
 This is the largest speed milestone: fewer controls, less UI overhead, and one
 predictable rendering pass.
@@ -324,6 +333,12 @@ Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host
 coverage and bounded HTML/CSS compatibility work without adding another browser
 runtime.
+
+The latest completed milestone added bounded inline SVG through compact
+`B.Vg`, `Vg`, `Vs`, and `Vp` aliases. Intrinsic sizing, centered meet
+`viewBox`, groups/links, six basic shapes, text, and straight `M/L/H/V/Z`
+paths reuse Lea's layout, clipping, scrolling, hit, fragment, and accessibility
+paths with explicit shape/depth/point/text limits.
 
 The latest completed grid milestone added bounded Grid content alignment.
 Compact `Al/Jc=s/c/e/b/a/v` state, one/two-value atomic `place-content`, and the

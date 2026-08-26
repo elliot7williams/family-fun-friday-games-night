@@ -702,3 +702,11 @@ Table blocks expose `B.Tb`. `Tb.Cp` is the caption, `Rs` contains compact
 `Sp` for its bounded column span, and `Bs` for nested paint blocks. Plain cells
 keep one compact block, while structured cells can expose headings, paragraphs,
 emphasis, line breaks, and links through the same short `B` model.
+
+Inline vectors stay compact through `B.Vg`. `Vg.W/H` are intrinsic dimensions;
+`X/Y/Vw/Vh` hold the bounded `viewBox`; `Vb` says it was authored; and `Ss`
+contains paint-ready `Vs` shapes. A shape uses `K` for kind, `P` for primitive
+coordinates, `D` for straight `Vp` path steps, `T` for text, `F/S/C` for fill,
+stroke, and current color, `W` for stroke width, `O/Fo/So` for total/fill/stroke
+opacity, `Z` for font size, `A=s/m/e` for text anchor, and `U/El` for a linked
+target and source element. Each `Vp` is one `K=M/L/Z`, `X`, `Y` absolute step.
