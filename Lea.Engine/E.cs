@@ -3191,12 +3191,14 @@ namespace Lea.Engine
                 else if (name == "row-gap" || name == "grid-row-gap") OneGap(style, value, true);
                 else if (name == "grid-template-columns") GridTemplate(style, value, false);
                 else if (name == "grid-template-rows") GridTemplate(style, value, true);
+                else if (name == "grid-template-areas") GridTemplateAreas(style, value);
                 else if (name == "grid-column") GridPlacement(style, value, false);
                 else if (name == "grid-column-start") GridPlacementStart(style, value, false);
                 else if (name == "grid-column-end") GridPlacementEnd(style, value, false);
                 else if (name == "grid-row") GridPlacement(style, value, true);
                 else if (name == "grid-row-start") GridPlacementStart(style, value, true);
                 else if (name == "grid-row-end") GridPlacementEnd(style, value, true);
+                else if (name == "grid-area") GridArea(style, value);
                 else if (name == "position") Position(style, value);
                 else if (name == "inset") Inset(style, value);
                 else if (name == "top") Offset(style, value, 0);
@@ -3563,12 +3565,14 @@ namespace Lea.Engine
             var source = (value ?? "").Trim().ToLowerInvariant();
             if (source == "auto" || source == "initial" || source == "unset" || source == "revert")
             {
+                style.An = "";
                 if (rows) style.Rl = 0; else style.Gl = 0;
                 return;
             }
             int start;
             if (Regex.IsMatch(source, "^[1-8]$") && Int32.TryParse(source, out start))
             {
+                style.An = "";
                 if (rows) style.Rl = start; else style.Gl = start;
             }
         }
@@ -3578,6 +3582,7 @@ namespace Lea.Engine
             var source = (value ?? "").Trim().ToLowerInvariant();
             if (source == "auto" || source == "initial" || source == "unset" || source == "revert")
             {
+                style.An = "";
                 if (rows) style.Rs = 1; else style.Gs = 1;
                 return;
             }
@@ -3585,14 +3590,104 @@ namespace Lea.Engine
             int span;
             if (match.Success && Int32.TryParse(match.Groups["n"].Value, out span))
             {
+                style.An = "";
                 if (rows) style.Rs = span; else style.Gs = span;
             }
         }
 
         private static void GridPlacementSet(S style, bool rows, int start, int span)
         {
+            style.An = "";
             if (rows) { style.Rl = start; style.Rs = span; }
             else { style.Gl = start; style.Gs = span; }
+        }
+
+        private static void GridTemplateAreas(S style, string value)
+        {
+            var source = (value ?? "").Trim();
+            if (source.Equals("none", StringComparison.OrdinalIgnoreCase) || source.Equals("initial", StringComparison.OrdinalIgnoreCase) || source.Equals("unset", StringComparison.OrdinalIgnoreCase) || source.Equals("revert", StringComparison.OrdinalIgnoreCase))
+            {
+                style.Ad = null;
+                style.Ar = 0;
+                style.Ac = 0;
+                return;
+            }
+            if (source.Length == 0 || source.Length > 512) return;
+
+            var rows = Regex.Matches(source, "\"(?<d>[^\"]*)\"|'(?<s>[^']*)'");
+            if (rows.Count < 1 || rows.Count > 8) return;
+            var cells = new string[rows.Count][];
+            var cursor = 0;
+            var columns = 0;
+            for (var row = 0; row < rows.Count; row++)
+            {
+                var match = rows[row];
+                if (!Regex.IsMatch(source.Substring(cursor, match.Index - cursor), "^\\s*$")) return;
+                var text = match.Groups["d"].Success ? match.Groups["d"].Value : match.Groups["s"].Value;
+                if (text.Length == 0 || text.Length > 263 || text.IndexOf('\\') >= 0) return;
+                var parts = Regex.Split(text.Trim(), "\\s+");
+                if (parts.Length < 1 || parts.Length > 8 || columns != 0 && parts.Length != columns) return;
+                columns = parts.Length;
+                cells[row] = parts;
+                cursor = match.Index + match.Length;
+            }
+            if (!Regex.IsMatch(source.Substring(cursor), "^\\s*$")) return;
+
+            var areas = new Dictionary<string, int[]>(StringComparer.Ordinal);
+            for (var row = 0; row < cells.Length; row++)
+            {
+                for (var column = 0; column < columns; column++)
+                {
+                    var name = cells[row][column];
+                    if (Regex.IsMatch(name, "^\\.+$")) continue;
+                    if (!Regex.IsMatch(name, "^[A-Za-z_][A-Za-z0-9_-]{0,31}$")) return;
+                    int[] area;
+                    if (!areas.TryGetValue(name, out area))
+                    {
+                        if (areas.Count == 16) return;
+                        areas[name] = new[] { row, column, row, column, 1 };
+                    }
+                    else
+                    {
+                        area[0] = Math.Min(area[0], row);
+                        area[1] = Math.Min(area[1], column);
+                        area[2] = Math.Max(area[2], row);
+                        area[3] = Math.Max(area[3], column);
+                        area[4]++;
+                    }
+                }
+            }
+            foreach (var area in areas.Values)
+            {
+                if ((area[2] - area[0] + 1) * (area[3] - area[1] + 1) != area[4]) return;
+                area[2] = area[2] - area[0] + 1;
+                area[3] = area[3] - area[1] + 1;
+                area[0]++;
+                area[1]++;
+            }
+            style.Ad = areas;
+            style.Ar = cells.Length;
+            style.Ac = columns;
+        }
+
+        private static void GridArea(S style, string value)
+        {
+            var source = (value ?? "").Trim();
+            if (source.Equals("auto", StringComparison.OrdinalIgnoreCase) || source.Equals("initial", StringComparison.OrdinalIgnoreCase) || source.Equals("unset", StringComparison.OrdinalIgnoreCase) || source.Equals("revert", StringComparison.OrdinalIgnoreCase))
+            {
+                style.An = "";
+                style.Gl = 0;
+                style.Gs = 1;
+                style.Rl = 0;
+                style.Rs = 1;
+                return;
+            }
+            if (!Regex.IsMatch(source, "^[A-Za-z_][A-Za-z0-9_-]{0,31}$")) return;
+            style.Gl = 0;
+            style.Gs = 1;
+            style.Rl = 0;
+            style.Rs = 1;
+            style.An = source;
         }
 
         private static void FlexValue(S style, string value)

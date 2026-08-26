@@ -208,8 +208,19 @@ pair. A bounded occupancy map prevents two-axis spans from overlapping. Explicit
 rows use definite container height or Lea's auto-height measurement pass, while
 implicit rows remain available for additional items. Existing nested layout,
 positioning, clipping, paint, hit, field, and accessibility paths are reused.
-Named lines, areas, intrinsic/percentage tracks, auto-fit/fill, dense or column
-flow, and subgrid remain outside this subset.
+
+Named templates use `grid-template-areas` and `grid-area`. `Aa` is the container
+area count, `Ar/Ac` are its template row/column counts, and `Ag(name, part)`
+returns row start, column start, row span, or column span for parts `0..3`;
+starts are one-based and zero means unavailable. `An` is an item's exact
+case-sensitive area name. Templates are limited to 8x8 cells, 16 names,
+32-character ASCII identifiers, and 512 source characters. Every quoted row
+must have the same cell count, dot runs are null cells, and repeated names must
+form one filled rectangle. Definite named/numeric items reserve cells before
+automatic items, and area dimensions can create equal-share implicit tracks.
+Escaped identifiers, named lines, implicit `-start/-end` line references,
+intrinsic/percentage tracks, auto-fit/fill, dense or column flow, and subgrid
+remain outside this subset.
 
 Document lookup stays short and bounded. `E.Id(page, id)` finds the first ID,
 `E.Q(page, selector)` finds the first document-order selector match, and

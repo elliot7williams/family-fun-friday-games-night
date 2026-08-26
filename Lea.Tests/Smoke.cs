@@ -2453,6 +2453,41 @@ namespace Lea.Tests
                     var narrowResponsiveWidth = BlockOuterRect(view, BlockById(view.At, "responsive-one")).Width;
                     Ok(narrowResponsiveWidth < wideResponsiveWidth, "fraction grid tracks reflow in narrow view");
                     Ok(Object.ReferenceEquals(gridField, FieldById(view.At, "grid-field")) && gridField.V == "Retained grid field", "grid resize retains field state");
+                    var areaPath = Path.Combine(root, "LeaForge", "test-pages", "grid-areas.html");
+                    var areaPage = engine.Go(areaPath);
+                    var dashboard = BlockById(areaPage, "dashboard");
+                    var areaHead = BlockById(areaPage, "area-head");
+                    var areaMain = BlockById(areaPage, "area-main");
+                    Ok(dashboard.S.Aa == 4 && dashboard.S.Ar == 3 && dashboard.S.Ac == 3, "named grid area dimensions and count");
+                    Ok(dashboard.S.Ag("head", 0) == 1 && dashboard.S.Ag("head", 1) == 1 && dashboard.S.Ag("head", 2) == 1 && dashboard.S.Ag("head", 3) == 3, "named grid header area lookup");
+                    Ok(dashboard.S.Ag("main", 0) == 2 && dashboard.S.Ag("main", 1) == 2 && dashboard.S.Ag("main", 2) == 1 && dashboard.S.Ag("main", 3) == 2 && dashboard.S.Ag("missing", 0) == 0 && dashboard.S.Ag("main", 4) == 0, "named grid area bounds and lookup limits");
+                    Ok(areaHead.S.An == "head" && areaMain.S.An == "main" && BlockById(areaPage, "area-auto").S.An == "", "named grid item aliases");
+                    Ok(BlockById(areaPage, "implicit-columns").S.Gc == 0 && BlockById(areaPage, "implicit-columns").S.Ac == 2, "named areas define bounded implicit columns");
+                    Ok(BlockById(areaPage, "bad-uneven").S.Aa == 0 && BlockById(areaPage, "bad-shape").S.Aa == 0 && BlockById(areaPage, "bad-token").S.Aa == 0 && BlockById(areaPage, "too-many").S.Aa == 0, "invalid named grid templates rejected");
+                    Ok(BlockById(areaPage, "area-reset").S.Aa == 0 && BlockById(areaPage, "area-reset").S.Ar == 0 && BlockById(areaPage, "area-limit").S.Aa == 1 && BlockById(areaPage, "area-limit").S.Ar == 8 && BlockById(areaPage, "area-limit").S.Ac == 8, "named grid reset and 8x8 ceiling");
+                    view.Size = new Size(720, 1500);
+                    view.Go(areaPath);
+                    using (var areaPaint = Render(view))
+                    {
+                        var dashboardRect = BlockRect(view, BlockById(view.At, "dashboard"));
+                        var headRect = BlockOuterRect(view, BlockById(view.At, "area-head"));
+                        var navRect = BlockOuterRect(view, BlockById(view.At, "area-nav"));
+                        var mainRect = BlockOuterRect(view, BlockById(view.At, "area-main"));
+                        var footRect = BlockOuterRect(view, BlockById(view.At, "area-foot"));
+                        var autoRect = BlockOuterRect(view, BlockById(view.At, "area-auto"));
+                        Eq(new Size(360, 40), headRect.Size, "named header area span geometry");
+                        Eq(new Size(80, 78), navRect.Size, "named navigation area geometry");
+                        Eq(new Size(272, 78), mainRect.Size, "named main area span geometry");
+                        Eq(new Size(176, 50), footRect.Size, "named footer area span geometry");
+                        Eq(new Size(176, 50), autoRect.Size, "automatic item fills named-template dot cell");
+                        Ok(headRect.Location == dashboardRect.Location && mainRect.Left - navRect.Right == 8 && mainRect.Top - headRect.Bottom == 6 && footRect.Top - navRect.Bottom == 6 && autoRect.Left - footRect.Right == 8 && autoRect.Bottom == dashboardRect.Bottom, "named grid exact placement and gaps");
+                        var implicitLeft = BlockOuterRect(view, BlockById(view.At, "implicit-left"));
+                        var implicitRight = BlockOuterRect(view, BlockById(view.At, "implicit-right"));
+                        Ok(implicitLeft.Width == 96 && implicitRight.Width == 96 && implicitRight.Left - implicitLeft.Right == 8 && implicitLeft.Height == 60 && implicitRight.Height == 60, "named areas create equal implicit columns");
+                        Ok(!FragmentHitRect(view, "#area-target").IsEmpty, "named area inline link layout and hit target");
+                        Ok(BlockOuterRect(view, BlockById(view.At, "after-areas")).Top > BlockOuterRect(view, BlockById(view.At, "area-target")).Bottom, "normal flow follows named grids");
+                        Ok(ColorDistance(areaPaint.GetPixel(mainRect.Left + 4, mainRect.Top + 4), Color.FromArgb(253, 227, 197)) < 8, "named grid area paint");
+                    }
                     view.Size = new Size(720, 760);
                     var boxes = Path.Combine(root, "LeaForge", "test-pages", "boxes.html");
                     var boxPage = engine.Go(boxes);

@@ -111,7 +111,7 @@ namespace Lea.Bench
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
-                "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html",
+                "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html",
                 "box-sizing.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
@@ -898,6 +898,37 @@ namespace Lea.Bench
                 }
                 return "Gd/Gc/Gv columns, Rd/Rc/Rv rows, Gl/Gs and Rl/Rs two-axis placement, bounded px/fr/repeat/minmax tracks, gaps, spans, occupancy, paint, resize, and flow";
             });
+            AddProbe(probes, "Bounded named grid areas", delegate
+            {
+                var path = Path.Combine(folder, "grid-areas.html");
+                var page = new E().Go(path);
+                var dashboard = page.Bs.First(block => block.El != null && block.El.Av("id") == "dashboard");
+                var head = page.Bs.First(block => block.El != null && block.El.Av("id") == "area-head");
+                var main = page.Bs.First(block => block.El != null && block.El.Av("id") == "area-main");
+                Need(dashboard.S.Aa == 4 && dashboard.S.Ar == 3 && dashboard.S.Ac == 3 && dashboard.S.Ag("head", 0) == 1 && dashboard.S.Ag("head", 3) == 3 && dashboard.S.Ag("main", 1) == 2 && dashboard.S.Ag("main", 3) == 2, "named grid area aliases changed");
+                Need(head.S.An == "head" && main.S.An == "main" && page.Bs.First(block => block.El != null && block.El.Av("id") == "area-auto").S.An == "", "named grid item aliases changed");
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "bad-uneven").S.Aa == 0 && page.Bs.First(block => block.El != null && block.El.Av("id") == "bad-shape").S.Aa == 0 && page.Bs.First(block => block.El != null && block.El.Av("id") == "too-many").S.Aa == 0, "invalid named grid templates changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1500);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var dashboardRect = BlockOuter(view, "dashboard");
+                        var headRect = BlockOuter(view, "area-head");
+                        var navRect = BlockOuter(view, "area-nav");
+                        var mainRect = BlockOuter(view, "area-main");
+                        var footRect = BlockOuter(view, "area-foot");
+                        var autoRect = BlockOuter(view, "area-auto");
+                        Need(headRect.Width == 360 && headRect.Height == 40 && navRect.Width == 80 && navRect.Height == 78 && mainRect.Width == 272 && mainRect.Height == 78 && footRect.Width == 176 && footRect.Height == 50 && autoRect.Width == 176 && autoRect.Height == 50, "named grid area geometry changed");
+                        Need(mainRect.Left - navRect.Right == 8 && mainRect.Top - headRect.Bottom == 6 && footRect.Top - navRect.Bottom == 6 && autoRect.Left - footRect.Right == 8 && autoRect.Bottom == dashboardRect.Bottom, "named grid placement or gaps changed");
+                        var left = BlockOuter(view, "implicit-left");
+                        var right = BlockOuter(view, "implicit-right");
+                        Need(left.Width == 96 && right.Width == 96 && right.Left - left.Right == 8 && ColoredSamples(image) > 0, "named implicit columns or paint changed");
+                    }
+                }
+                return "Aa/Ar/Ac/Ag area templates plus An item names, rectangular validation, dot cells, definite-first placement, implicit columns, bounds, paint, hits, and flow";
+            });
             AddProbe(probes, "Forms and validation", delegate
             {
                 var engine = new E();
@@ -1104,7 +1135,7 @@ namespace Lea.Bench
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
             Capability(builder, "Flexbox", "Supported subset", "Row/row-reverse and fixed-height column/column-reverse containers, content/border-box pixel bases, stable -64..64 order on nowrap rows and bounded columns, bounded row wrap, fixed/equal-share/weighted grow and integer weighted-shrink slots, explicit pixel min/max floors, pixel row/column gaps, start/center/end/space-between/space-around/space-evenly justification, and container/item stretch/start/center/end cross alignment; no intrinsic min-content sizing, fractional factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis alignment, or auto-height column reordering guarantee");
-            Capability(builder, "CSS Grid", "Supported subset", "Grid/inline-grid with up to eight fixed-pixel or integer-fr tracks per explicit axis, simple repeat and minmax(0, Nfr), pixel gaps, bounded row-major occupancy, two-axis numeric starts/spans, implicit rows, stable order, auto-height settling, and shared nested paint/hit/reflow; no named lines, areas, dense/column flow, intrinsic or percentage tracks, auto-fit/fill, or subgrid");
+            Capability(builder, "CSS Grid", "Supported subset", "Grid/inline-grid with up to eight fixed-pixel or integer-fr tracks per explicit axis, simple repeat and minmax(0, Nfr), pixel gaps, bounded row-major occupancy, two-axis numeric starts/spans, validated 8x8 named-area templates, dot cells, definite-first placement, implicit tracks, stable order, auto-height settling, and shared nested paint/hit/reflow; no escaped or arbitrary named lines, dense/column flow, intrinsic or percentage tracks, auto-fit/fill, or subgrid");
             Capability(builder, "Canvas and SVG", "Not supported", "Future compatibility work; no silent fallback claim");
             Capability(builder, "Audio and video", "Not supported", "Future optional module");
             Capability(builder, "Developer diagnostics", "Supported", "Bounded summary, node, CSS, request, message, and variable snapshots");

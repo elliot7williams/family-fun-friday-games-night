@@ -271,9 +271,15 @@ allocates fractional remainder deterministically, shrinks oversized fixed
 tracks to definite space, and settles auto-height row containers through its
 existing measurement pass. Block ownership, nested flow, positioning, clipping,
 painting, hit testing, form retention, and accessibility bounds remain shared.
-Named lines, areas, intrinsic or percentage tracks, auto-fit/fill,
-dense/column flow, subgrid, and true inline-level outer formatting remain
-explicit compatibility limits.
+Bounded `grid-template-areas` adds `S.Aa/Ar/Ac/Ag` container inspection and
+`S.An` item names. Up to eight equal-width quoted rows, eight cells per row,
+16 exact ASCII names, dot cells, and filled rectangular regions compile once.
+Named and fully numeric definite items reserve occupancy before automatic items;
+area dimensions can create equal-share implicit tracks when no explicit column
+size exists. Escaped identifiers, generated `name-start/name-end` line
+references, arbitrary named lines, intrinsic or percentage tracks,
+auto-fit/fill, dense/column flow, subgrid, and true inline-level outer
+formatting remain explicit compatibility limits.
 
 Inherited visibility uses `S.Vi` with `v/h/c`. Hidden and collapsed content
 keeps its layout rectangle but produces no pixels, links, field hits, or editor.

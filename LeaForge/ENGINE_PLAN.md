@@ -121,8 +121,11 @@ Dg/Dcl  diagnostics/clear request activity
     per explicit axis, simple repeat/minmax forms, pixel gaps, starts, two-axis
     spans, bounded occupancy, stable order, implicit rows, auto-height settling,
     nested flow, paint, hits, fields, resize, benchmark, Inspector, and
-    Firespider host paths are active. Named lines, areas, intrinsic tracks,
-    auto-fit/fill, dense/column flow, and subgrid stay outside.)
+    Firespider host paths are active. Bounded named-area templates add equal-row,
+    dot-cell, filled-rectangle, 8x8/16-name validation; compact `Aa/Ar/Ac/Ag/An`
+    aliases; definite-first placement; and implicit columns. Escaped or arbitrary
+    named lines, intrinsic tracks, auto-fit/fill, dense/column flow, and subgrid
+    stay outside.)
 
 This is the largest speed milestone: fewer controls, less UI overhead, and one
 predictable rendering pass.

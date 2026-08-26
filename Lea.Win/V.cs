@@ -912,7 +912,7 @@ namespace Lea.Win
                         Co = ClipsOverflow(bs),
                         Fh = IsFlex(bs) && !FlexColumn(bs) && bs.Wr != "w" && (bs.H > 0 || resolvedOwner),
                         Fm = FlexColumn(bs) && bs.H > 0,
-                        Gm = IsGrid(bs) && bs.Rc > 0 && (bs.H > 0 || resolvedOwner)
+                        Gm = IsGrid(bs) && (bs.Rc > 0 || bs.Ar > 0) && (bs.H > 0 || resolvedOwner)
                     };
                     ChildSlots(context);
                     contexts[block] = context;
@@ -1123,14 +1123,14 @@ namespace Lea.Win
         private void GridSlots(Lc context)
         {
             var style = context.B.S;
-            if (style == null || style.Gc == 0) return;
+            if (style == null || Math.Max(style.Gc, style.Ac) == 0) return;
             var items = new List<B>();
             foreach (var item in At.Bs)
                 if (!item.Hd && Object.ReferenceEquals(item.Up, context.B) && !OutOfFlow(item.S)) items.Add(item);
             if (items.Count == 0) return;
             SortFlexItems(items);
 
-            var columns = style.Gc;
+            var columns = Math.Max(style.Gc, style.Ac);
             var gap = Math.Min(style.Gp, Math.Max(0, context.C.Width / Math.Max(1, columns - 1)));
             var widths = GridTrackSizes(style, false, columns, context.C.Width, gap);
             var used = gap * Math.Max(0, columns - 1);
@@ -1149,8 +1149,8 @@ namespace Lea.Win
             context.Fi = -1;
             context.Fz = 0;
             context.Fr = style.Rg;
-            var placements = GridPositions(items, columns);
-            var rows = style.Rc;
+            var placements = GridPositions(items, style, columns);
+            var rows = Math.Max(style.Rc, style.Ar);
             foreach (var placement in placements.Values) rows = Math.Max(rows, placement.R + placement.Rs);
             var rowGap = rows < 2 ? 0 : Math.Min(style.Rg, Math.Max(0, context.C.Height / (rows - 1)));
             var heights = context.Gm ? GridTrackSizes(style, true, rows, context.C.Height, rowGap) : null;
@@ -1187,19 +1187,30 @@ namespace Lea.Win
             }
         }
 
-        private static Dictionary<B, Gq> GridPositions(IList<B> items, int columns)
+        private static Dictionary<B, Gq> GridPositions(IList<B> items, S container, int columns)
         {
             var result = new Dictionary<B, Gq>();
             var occupied = new HashSet<int>();
+            var queue = new List<B>(items.Count);
+            foreach (var item in items) if (GridDefinite(container, item.S, columns)) queue.Add(item);
+            var definite = queue.Count;
+            foreach (var item in items) if (!GridDefinite(container, item.S, columns)) queue.Add(item);
             var cursorRow = 0;
             var cursorColumn = 0;
-            foreach (var item in items)
+            for (var itemIndex = 0; itemIndex < queue.Count; itemIndex++)
             {
+                if (itemIndex == definite) { cursorRow = 0; cursorColumn = 0; }
+                var item = queue[itemIndex];
                 var style = item.S;
-                var columnSpan = Math.Max(1, Math.Min(columns, style == null ? 1 : style.Gs));
-                var rowSpan = Math.Max(1, style == null ? 1 : style.Rs);
-                var fixedColumn = style == null || style.Gl < 1 ? -1 : Math.Min(columns - 1, style.Gl - 1);
-                var fixedRow = style == null || style.Rl < 1 ? -1 : style.Rl - 1;
+                int areaRow;
+                int areaColumn;
+                int areaRowSpan;
+                int areaColumnSpan;
+                var named = GridNamedArea(container, style, columns, out areaRow, out areaColumn, out areaRowSpan, out areaColumnSpan);
+                var columnSpan = named ? areaColumnSpan : Math.Max(1, Math.Min(columns, style == null ? 1 : style.Gs));
+                var rowSpan = named ? areaRowSpan : Math.Max(1, style == null ? 1 : style.Rs);
+                var fixedColumn = named ? areaColumn : style == null || style.Gl < 1 ? -1 : Math.Min(columns - 1, style.Gl - 1);
+                var fixedRow = named ? areaRow : style == null || style.Rl < 1 ? -1 : style.Rl - 1;
                 var row = fixedRow >= 0 ? fixedRow : cursorRow;
                 var column = fixedColumn >= 0 ? fixedColumn : fixedRow >= 0 ? 0 : cursorColumn;
                 if (fixedRow < 0 && fixedColumn >= 0 && column < cursorColumn) row++;
@@ -1228,6 +1239,29 @@ namespace Lea.Win
                 }
             }
             return result;
+        }
+
+        private static bool GridDefinite(S container, S item, int columns)
+        {
+            int row;
+            int column;
+            int rowSpan;
+            int columnSpan;
+            return GridNamedArea(container, item, columns, out row, out column, out rowSpan, out columnSpan) || item != null && item.Gl > 0 && item.Rl > 0;
+        }
+
+        private static bool GridNamedArea(S container, S item, int columns, out int row, out int column, out int rowSpan, out int columnSpan)
+        {
+            row = -1;
+            column = -1;
+            rowSpan = 1;
+            columnSpan = 1;
+            if (container == null || item == null || String.IsNullOrEmpty(item.An)) return false;
+            row = container.Ag(item.An, 0) - 1;
+            column = container.Ag(item.An, 1) - 1;
+            rowSpan = container.Ag(item.An, 2);
+            columnSpan = container.Ag(item.An, 3);
+            return row >= 0 && column >= 0 && rowSpan > 0 && columnSpan > 0 && column + columnSpan <= columns;
         }
 
         private static bool GridFree(ISet<int> occupied, int columns, int row, int column, int rowSpan, int columnSpan)
@@ -1280,7 +1314,7 @@ namespace Lea.Win
 
         private static int GridTrack(S style, bool rows, int index)
         {
-            return rows ? index < style.Rc ? style.Rv(index) : -1 : style.Gv(index);
+            return rows ? index < style.Rc ? style.Rv(index) : -1 : index < style.Gc ? style.Gv(index) : -1;
         }
 
         private static void GridFractionSizes(S style, bool rows, int[] result, int room, int total)

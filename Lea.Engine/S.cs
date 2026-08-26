@@ -37,6 +37,7 @@ namespace Lea.Engine
         public int Gs { get; internal set; }
         public int Rl { get; internal set; }
         public int Rs { get; internal set; }
+        public string An { get; internal set; }
         public string Pn { get; internal set; }
         public int? Tp { get; internal set; }
         public int? Rt { get; internal set; }
@@ -75,10 +76,14 @@ namespace Lea.Engine
         internal Dictionary<string, string> Vr { get; set; }
         internal int[] Gd { get; set; }
         internal int[] Rd { get; set; }
+        internal Dictionary<string, int[]> Ad { get; set; }
 
         public int Vc { get { return Vr == null ? 0 : Vr.Count; } }
         public int Gc { get { return Gd == null ? 0 : Gd.Length; } }
         public int Rc { get { return Rd == null ? 0 : Rd.Length; } }
+        public int Aa { get { return Ad == null ? 0 : Ad.Count; } }
+        public int Ar { get; internal set; }
+        public int Ac { get; internal set; }
 
         public int Gv(int index)
         {
@@ -88,6 +93,12 @@ namespace Lea.Engine
         public int Rv(int index)
         {
             return Rd != null && index >= 0 && index < Rd.Length ? Rd[index] : 0;
+        }
+
+        public int Ag(string name, int part)
+        {
+            int[] area;
+            return !String.IsNullOrEmpty(name) && part >= 0 && part < 4 && Ad != null && Ad.TryGetValue(name, out area) ? area[part] : 0;
         }
 
         public string Cv(string name)
@@ -119,6 +130,7 @@ namespace Lea.Engine
             Fb = -1;
             Gs = 1;
             Rs = 1;
+            An = "";
             Bz = "c";
             Pn = "";
             Bc = "";

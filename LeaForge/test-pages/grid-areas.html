@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea bounded named grid areas</title>
+  <style>
+    body { background: #f7faf8; color: #18372f; font-family: Segoe UI; }
+    h1 { color: #134e4a; }
+    .grid { display: grid; margin-bottom: 12px; background: #edf6f2; }
+    .area-item { margin: 0; }
+    #dashboard {
+      width: 360px;
+      height: 180px;
+      grid-template-columns: 80px 1fr 2fr;
+      grid-template-rows: 40px 1fr 50px;
+      grid-template-areas: "head head head" "nav main main" "foot foot .";
+      gap: 6px 8px;
+    }
+    #area-head { grid-area: head; background: #d8f1e5; }
+    #area-nav { grid-area: nav; background: #dce9ff; }
+    #area-main { grid-area: main; background: #fde3c5; }
+    #area-foot { grid-area: foot; background: #eee3fb; }
+    #area-auto { background: #f4dce2; }
+    #implicit-columns {
+      width: 200px;
+      height: 60px;
+      grid-template-rows: 60px;
+      grid-template-areas: 'left right';
+      column-gap: 8px;
+    }
+    #implicit-left { grid-area: left; background: #d8f1e5; }
+    #implicit-right { grid-area: right; background: #dce9ff; }
+    #bad-uneven { grid-template-columns: 1fr 1fr; grid-template-areas: "a a" "b"; }
+    #bad-shape { grid-template-columns: repeat(2, 1fr); grid-template-areas: "a a" "a b"; }
+    #bad-token { grid-template-columns: 1fr 1fr; grid-template-areas: "1bad ."; }
+    #too-many { grid-template-areas: "a b c d e" "f g h i j" "k l m n o" "p q r s t"; }
+    #area-reset { grid-template-areas: "old"; grid-template-areas: none; }
+    #area-limit {
+      grid-template-areas:
+        "cap . . . . . . ." ". . . . . . . ."
+        ". . . . . . . ." ". . . . . . . ."
+        ". . . . . . . ." ". . . . . . . ."
+        ". . . . . . . ." ". . . . . . . .";
+    }
+    #after-areas { width: 360px; padding: 5px; border-left: 3px solid #b91c1c; background: #f8eeee; }
+  </style>
+</head>
+<body>
+  <h1>Bounded named grid areas</h1>
+  <section id="dashboard" class="grid">
+    <p id="area-auto" class="area-item">Automatic dot cell</p>
+    <header id="area-head" class="area-item">Header area</header>
+    <nav id="area-nav" class="area-item">Navigation area</nav>
+    <article id="area-main" class="area-item">Main area<a id="area-link" href="#area-target">Area target</a></article>
+    <footer id="area-foot" class="area-item">Footer area</footer>
+  </section>
+  <section id="implicit-columns" class="grid">
+    <p id="implicit-left" class="area-item">Implicit left</p>
+    <p id="implicit-right" class="area-item">Implicit right</p>
+  </section>
+  <section id="bad-uneven" class="grid"><p>Uneven rows are ignored.</p></section>
+  <section id="bad-shape" class="grid"><p>Non-rectangular areas are ignored.</p></section>
+  <section id="bad-token" class="grid"><p>Unsupported names are ignored.</p></section>
+  <section id="too-many" class="grid"><p>Excess names are ignored.</p></section>
+  <section id="area-reset" class="grid"><p>Reset template.</p></section>
+  <section id="area-limit" class="grid"><p>Eight by eight ceiling.</p></section>
+  <p id="area-target">Named area fragment target</p>
+  <p id="after-areas">Normal document flow continues below named area layouts.</p>
+</body>
+</html>
