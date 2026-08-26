@@ -64,8 +64,13 @@ namespace Lea.Engine
         private const int MaxSvgPoints = 128;
         private const int MaxSvgDepth = 8;
         private const int MaxSvgText = 256;
+        private const int MaxSvgTransforms = 16;
+        private const int MaxSvgTransformText = 1024;
         private const double MaxSvgCoordinate = 100000D;
         private const double MaxSvgSize = 2000D;
+        private const double MinSvgView = .01D;
+        private const double MaxSvgMatrixScale = 10000D;
+        private const double MaxSvgMatrixTranslate = 1000000D;
         private const int MaxTabIndex = 32767;
         private const int MaxAutofocusCandidates = 32;
         private const int MaxAccessKeyText = 256;
@@ -4593,13 +4598,14 @@ namespace Lea.Engine
         {
             var model = new Vg();
             var view = SvgNumbers(svg.Av("viewbox"), 4);
-            if (view != null && view.Length == 4 && view[2] > 0 && view[3] > 0)
+            if (view != null && view.Length == 4 && view[2] >= MinSvgView && view[3] >= MinSvgView)
             {
                 model.X = view[0];
                 model.Y = view[1];
                 model.Vw = view[2];
                 model.Vh = view[3];
                 model.Vb = true;
+                SvgAspect(svg.Av("preserveaspectratio"), model);
             }
 
             double width;
@@ -4679,6 +4685,7 @@ namespace Lea.Engine
                 U = link,
                 El = linkElement ?? node
             };
+            for (var index = 0; index < 6; index++) shape.M[index] = paint.M[index];
             double value;
             if (kind == "rect")
             {
@@ -4730,6 +4737,8 @@ namespace Lea.Engine
         private static Sv SvgPaint(N node, Sv inherited, S css, bool root)
         {
             var paint = inherited.Copy();
+            double[] transform = null;
+            SvgTransform(node.Av("transform"), out transform);
             paint.C = css != null && css.F.Length > 0 ? css.F : paint.C;
             if (css != null && css.Fs > 0) paint.Z = css.Fs;
             SvgPaintSet(paint, "fill", node.Av("fill"));
@@ -4743,8 +4752,15 @@ namespace Lea.Engine
             foreach (var declaration in CssDeclarations(node.Av("style")))
             {
                 if (root && declaration.N == "opacity") continue;
+                if (declaration.N == "transform")
+                {
+                    double[] inline;
+                    if (!root && SvgTransform(declaration.V, out inline)) transform = inline;
+                    continue;
+                }
                 SvgPaintSet(paint, declaration.N, declaration.V);
             }
+            if (transform != null) paint.M = SvgMatrixMultiply(inherited.M, transform);
             return paint;
         }
 
@@ -4829,12 +4845,108 @@ namespace Lea.Engine
             return SvgSeparators(source, end, source.Length) ? result : null;
         }
 
+        private static void SvgAspect(string input, Vg model)
+        {
+            var value = Regex.Replace((input ?? "").Trim(), "\\s+", " ").ToLowerInvariant();
+            if (value.Length == 0) return;
+            var parts = value.Split(' ');
+            if (parts.Length > 2 || parts[0] == "defer") return;
+            if (parts[0] == "none")
+            {
+                if (parts.Length == 1) model.A = "n";
+                return;
+            }
+            var match = Regex.Match(parts[0], "^x(?<x>min|mid|max)y(?<y>min|mid|max)$", RegexOptions.IgnoreCase);
+            if (!match.Success) return;
+            if (parts.Length == 2 && parts[1] != "meet" && parts[1] != "slice") return;
+            model.A = SvgAspectPart(match.Groups["x"].Value) + SvgAspectPart(match.Groups["y"].Value);
+            model.M = parts.Length == 2 && parts[1] == "slice" ? "s" : "m";
+        }
+
+        private static string SvgAspectPart(string value)
+        {
+            return value == "min" ? "n" : value == "max" ? "x" : "m";
+        }
+
+        private static bool SvgTransform(string input, out double[] matrix)
+        {
+            matrix = null;
+            var source = (input ?? "").Trim();
+            if (source.Equals("none", StringComparison.OrdinalIgnoreCase)) { matrix = SvgIdentity(); return true; }
+            if (source.Length == 0 || source.Length > MaxSvgTransformText) return false;
+            var matches = Regex.Matches(source, "(?<n>matrix|translate|scale|rotate|skewx|skewy)\\s*\\((?<v>[^()]*)\\)", RegexOptions.IgnoreCase);
+            if (matches.Count == 0 || matches.Count > MaxSvgTransforms) return false;
+            var result = SvgIdentity();
+            var end = 0;
+            foreach (Match match in matches)
+            {
+                if (!SvgSeparators(source, end, match.Index)) return false;
+                var values = SvgNumbers(match.Groups["v"].Value, 6);
+                if (values == null) return false;
+                var name = match.Groups["n"].Value.ToLowerInvariant();
+                double[] next;
+                if (name == "matrix" && values.Length == 6) next = values;
+                else if (name == "translate" && (values.Length == 1 || values.Length == 2)) next = new[] { 1D, 0D, 0D, 1D, values[0], values.Length == 2 ? values[1] : 0D };
+                else if (name == "scale" && (values.Length == 1 || values.Length == 2)) next = new[] { values[0], 0D, 0D, values.Length == 2 ? values[1] : values[0], 0D, 0D };
+                else if (name == "rotate" && (values.Length == 1 || values.Length == 3)) next = SvgRotate(values);
+                else if ((name == "skewx" || name == "skewy") && values.Length == 1)
+                {
+                    var tangent = Math.Tan(values[0] * Math.PI / 180D);
+                    if (Double.IsNaN(tangent) || Double.IsInfinity(tangent) || Math.Abs(tangent) > MaxSvgMatrixScale) return false;
+                    next = name == "skewx" ? new[] { 1D, 0D, tangent, 1D, 0D, 0D } : new[] { 1D, tangent, 0D, 1D, 0D, 0D };
+                }
+                else return false;
+                result = SvgMatrixMultiply(result, next);
+                if (!SvgMatrixSafe(result)) return false;
+                end = match.Index + match.Length;
+            }
+            if (!SvgSeparators(source, end, source.Length)) return false;
+            matrix = result;
+            return true;
+        }
+
+        private static double[] SvgRotate(double[] values)
+        {
+            var angle = values[0] % 360D * Math.PI / 180D;
+            var cosine = Math.Cos(angle);
+            var sine = Math.Sin(angle);
+            var x = values.Length == 3 ? values[1] : 0D;
+            var y = values.Length == 3 ? values[2] : 0D;
+            return new[] { cosine, sine, -sine, cosine, x - cosine * x + sine * y, y - sine * x - cosine * y };
+        }
+
+        private static double[] SvgIdentity()
+        {
+            return new[] { 1D, 0D, 0D, 1D, 0D, 0D };
+        }
+
+        private static double[] SvgMatrixMultiply(double[] left, double[] right)
+        {
+            return new[]
+            {
+                left[0] * right[0] + left[2] * right[1],
+                left[1] * right[0] + left[3] * right[1],
+                left[0] * right[2] + left[2] * right[3],
+                left[1] * right[2] + left[3] * right[3],
+                left[0] * right[4] + left[2] * right[5] + left[4],
+                left[1] * right[4] + left[3] * right[5] + left[5]
+            };
+        }
+
+        private static bool SvgMatrixSafe(double[] matrix)
+        {
+            if (matrix == null || matrix.Length != 6) return false;
+            for (var index = 0; index < matrix.Length; index++)
+                if (Double.IsNaN(matrix[index]) || Double.IsInfinity(matrix[index]) || Math.Abs(matrix[index]) > (index < 4 ? MaxSvgMatrixScale : MaxSvgMatrixTranslate)) return false;
+            return true;
+        }
+
         private static bool SvgPath(string input, IList<Vp> result)
         {
             var source = input ?? "";
             if (source.Length == 0 || source.Length > 4096) return false;
-            var matches = Regex.Matches(source, "[MmLlHhVvZz]|[-+]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:e[-+]?[0-9]+)?", RegexOptions.IgnoreCase);
-            if (matches.Count == 0 || matches.Count > MaxSvgPoints * 3) return false;
+            var matches = Regex.Matches(source, "[MmLlHhVvCcSsQqTtAaZz]|[-+]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:e[-+]?[0-9]+)?", RegexOptions.IgnoreCase);
+            if (matches.Count == 0 || matches.Count > MaxSvgPoints * 8) return false;
             var tokens = new List<string>();
             var end = 0;
             foreach (Match match in matches)
@@ -4851,7 +4963,10 @@ namespace Lea.Engine
             var y = 0D;
             var startX = 0D;
             var startY = 0D;
-            while (at < tokens.Count && result.Count < MaxSvgPoints)
+            var controlX = 0D;
+            var controlY = 0D;
+            var previous = '\0';
+            while (at < tokens.Count)
             {
                 if (tokens[at].Length == 1 && Char.IsLetter(tokens[at][0]))
                 {
@@ -4862,6 +4977,7 @@ namespace Lea.Engine
                         result.Add(new Vp('Z', startX, startY));
                         x = startX;
                         y = startY;
+                        previous = 'z';
                         command = '\0';
                         continue;
                     }
@@ -4872,35 +4988,201 @@ namespace Lea.Engine
                 if (result.Count == 0 && lower != 'm') return false;
                 double a;
                 double b;
+                double c;
+                double d;
+                double e;
+                double f;
                 if (lower == 'm' || lower == 'l')
                 {
                     if (!SvgPathNumber(tokens, ref at, out a) || !SvgPathNumber(tokens, ref at, out b)) return false;
                     if (relative) { a += x; b += y; }
-                    if (Math.Abs(a) > MaxSvgCoordinate || Math.Abs(b) > MaxSvgCoordinate) return false;
+                    if (!SvgPathPoint(a, b) || result.Count == MaxSvgPoints) return false;
                     var move = lower == 'm';
                     if (move) { startX = a; startY = b; }
                     result.Add(new Vp(move ? 'M' : 'L', a, b));
                     x = a;
                     y = b;
+                    previous = move ? 'm' : 'l';
                     if (move) command = relative ? 'l' : 'L';
                 }
                 else if (lower == 'h')
                 {
                     if (!SvgPathNumber(tokens, ref at, out a)) return false;
                     x = relative ? x + a : a;
-                    if (Math.Abs(x) > MaxSvgCoordinate) return false;
+                    if (!SvgPathPoint(x, y) || result.Count == MaxSvgPoints) return false;
                     result.Add(new Vp('L', x, y));
+                    previous = 'h';
                 }
                 else if (lower == 'v')
                 {
                     if (!SvgPathNumber(tokens, ref at, out a)) return false;
                     y = relative ? y + a : a;
-                    if (Math.Abs(y) > MaxSvgCoordinate) return false;
+                    if (!SvgPathPoint(x, y) || result.Count == MaxSvgPoints) return false;
                     result.Add(new Vp('L', x, y));
+                    previous = 'v';
+                }
+                else if (lower == 'c')
+                {
+                    if (!SvgPathNumber(tokens, ref at, out a) || !SvgPathNumber(tokens, ref at, out b) ||
+                        !SvgPathNumber(tokens, ref at, out c) || !SvgPathNumber(tokens, ref at, out d) ||
+                        !SvgPathNumber(tokens, ref at, out e) || !SvgPathNumber(tokens, ref at, out f)) return false;
+                    if (relative) { a += x; b += y; c += x; d += y; e += x; f += y; }
+                    if (!SvgPathPoint(a, b) || !SvgPathPoint(c, d) || !SvgPathPoint(e, f) || result.Count == MaxSvgPoints) return false;
+                    result.Add(new Vp('C', e, f, a, b, c, d));
+                    x = e;
+                    y = f;
+                    controlX = c;
+                    controlY = d;
+                    previous = 'c';
+                }
+                else if (lower == 's')
+                {
+                    if (!SvgPathNumber(tokens, ref at, out c) || !SvgPathNumber(tokens, ref at, out d) ||
+                        !SvgPathNumber(tokens, ref at, out e) || !SvgPathNumber(tokens, ref at, out f)) return false;
+                    a = previous == 'c' || previous == 's' ? x * 2D - controlX : x;
+                    b = previous == 'c' || previous == 's' ? y * 2D - controlY : y;
+                    if (relative) { c += x; d += y; e += x; f += y; }
+                    if (!SvgPathPoint(a, b) || !SvgPathPoint(c, d) || !SvgPathPoint(e, f) || result.Count == MaxSvgPoints) return false;
+                    result.Add(new Vp('C', e, f, a, b, c, d));
+                    x = e;
+                    y = f;
+                    controlX = c;
+                    controlY = d;
+                    previous = 's';
+                }
+                else if (lower == 'q')
+                {
+                    if (!SvgPathNumber(tokens, ref at, out a) || !SvgPathNumber(tokens, ref at, out b) ||
+                        !SvgPathNumber(tokens, ref at, out c) || !SvgPathNumber(tokens, ref at, out d)) return false;
+                    if (relative) { a += x; b += y; c += x; d += y; }
+                    if (!SvgPathPoint(a, b) || !SvgPathPoint(c, d) || result.Count == MaxSvgPoints) return false;
+                    result.Add(new Vp('Q', c, d, a, b, 0D, 0D));
+                    x = c;
+                    y = d;
+                    controlX = a;
+                    controlY = b;
+                    previous = 'q';
+                }
+                else if (lower == 't')
+                {
+                    if (!SvgPathNumber(tokens, ref at, out c) || !SvgPathNumber(tokens, ref at, out d)) return false;
+                    a = previous == 'q' || previous == 't' ? x * 2D - controlX : x;
+                    b = previous == 'q' || previous == 't' ? y * 2D - controlY : y;
+                    if (relative) { c += x; d += y; }
+                    if (!SvgPathPoint(a, b) || !SvgPathPoint(c, d) || result.Count == MaxSvgPoints) return false;
+                    result.Add(new Vp('Q', c, d, a, b, 0D, 0D));
+                    x = c;
+                    y = d;
+                    controlX = a;
+                    controlY = b;
+                    previous = 't';
+                }
+                else if (lower == 'a')
+                {
+                    bool large;
+                    bool sweep;
+                    if (!SvgPathNumber(tokens, ref at, out a) || !SvgPathNumber(tokens, ref at, out b) ||
+                        !SvgPathNumber(tokens, ref at, out c) || !SvgPathFlag(tokens, ref at, out large) ||
+                        !SvgPathFlag(tokens, ref at, out sweep) || !SvgPathNumber(tokens, ref at, out d) ||
+                        !SvgPathNumber(tokens, ref at, out e)) return false;
+                    if (relative) { d += x; e += y; }
+                    if (!SvgArc(result, x, y, a, b, c, large, sweep, d, e)) return false;
+                    x = d;
+                    y = e;
+                    previous = 'a';
                 }
                 else return false;
             }
             return at == tokens.Count && result.Count > 0;
+        }
+
+        private static bool SvgArc(IList<Vp> result, double x1, double y1, double radiusX, double radiusY, double rotation, bool large, bool sweep, double x2, double y2)
+        {
+            if (!SvgPathPoint(x2, y2) || !SvgPathPoint(radiusX, radiusY) || Math.Abs(rotation) > MaxSvgCoordinate) return false;
+            if (Math.Abs(x1 - x2) < Double.Epsilon && Math.Abs(y1 - y2) < Double.Epsilon) return true;
+            var rx = Math.Abs(radiusX);
+            var ry = Math.Abs(radiusY);
+            if (rx < Double.Epsilon || ry < Double.Epsilon)
+            {
+                if (result.Count == MaxSvgPoints) return false;
+                result.Add(new Vp('L', x2, y2));
+                return true;
+            }
+
+            var phi = rotation % 360D * Math.PI / 180D;
+            var cosine = Math.Cos(phi);
+            var sine = Math.Sin(phi);
+            var halfX = (x1 - x2) / 2D;
+            var halfY = (y1 - y2) / 2D;
+            var x1p = cosine * halfX + sine * halfY;
+            var y1p = -sine * halfX + cosine * halfY;
+            var rx2 = rx * rx;
+            var ry2 = ry * ry;
+            var x1p2 = x1p * x1p;
+            var y1p2 = y1p * y1p;
+            var radii = x1p2 / rx2 + y1p2 / ry2;
+            if (radii > 1D)
+            {
+                var scale = Math.Sqrt(radii);
+                rx *= scale;
+                ry *= scale;
+                rx2 = rx * rx;
+                ry2 = ry * ry;
+            }
+
+            var denominator = rx2 * y1p2 + ry2 * x1p2;
+            if (denominator <= Double.Epsilon) return false;
+            var ratio = Math.Max(0D, (rx2 * ry2 - denominator) / denominator);
+            var coefficient = (large == sweep ? -1D : 1D) * Math.Sqrt(ratio);
+            var cxp = coefficient * rx * y1p / ry;
+            var cyp = coefficient * -ry * x1p / rx;
+            var cx = cosine * cxp - sine * cyp + (x1 + x2) / 2D;
+            var cy = sine * cxp + cosine * cyp + (y1 + y2) / 2D;
+            var theta = Math.Atan2((y1p - cyp) / ry, (x1p - cxp) / rx);
+            var endTheta = Math.Atan2((-y1p - cyp) / ry, (-x1p - cxp) / rx);
+            var delta = endTheta - theta;
+            if (!sweep && delta > 0D) delta -= Math.PI * 2D;
+            else if (sweep && delta < 0D) delta += Math.PI * 2D;
+            var segments = Math.Max(1, (int)Math.Ceiling(Math.Abs(delta) / (Math.PI / 2D)));
+            if (segments > 4 || result.Count + segments > MaxSvgPoints) return false;
+            var step = delta / segments;
+            for (var index = 0; index < segments; index++)
+            {
+                var from = theta + step * index;
+                var to = from + step;
+                var alpha = 4D / 3D * Math.Tan(step / 4D);
+                var fromX = cx + rx * cosine * Math.Cos(from) - ry * sine * Math.Sin(from);
+                var fromY = cy + rx * sine * Math.Cos(from) + ry * cosine * Math.Sin(from);
+                var toX = cx + rx * cosine * Math.Cos(to) - ry * sine * Math.Sin(to);
+                var toY = cy + rx * sine * Math.Cos(to) + ry * cosine * Math.Sin(to);
+                var fromDx = -rx * cosine * Math.Sin(from) - ry * sine * Math.Cos(from);
+                var fromDy = -rx * sine * Math.Sin(from) + ry * cosine * Math.Cos(from);
+                var toDx = -rx * cosine * Math.Sin(to) - ry * sine * Math.Cos(to);
+                var toDy = -rx * sine * Math.Sin(to) + ry * cosine * Math.Cos(to);
+                var control1X = fromX + alpha * fromDx;
+                var control1Y = fromY + alpha * fromDy;
+                var control2X = toX - alpha * toDx;
+                var control2Y = toY - alpha * toDy;
+                if (index == segments - 1) { toX = x2; toY = y2; }
+                if (!SvgPathPoint(control1X, control1Y) || !SvgPathPoint(control2X, control2Y) || !SvgPathPoint(toX, toY)) return false;
+                result.Add(new Vp('C', toX, toY, control1X, control1Y, control2X, control2Y));
+            }
+            return true;
+        }
+
+        private static bool SvgPathPoint(double x, double y)
+        {
+            return !Double.IsNaN(x) && !Double.IsInfinity(x) && !Double.IsNaN(y) && !Double.IsInfinity(y) &&
+                Math.Abs(x) <= MaxSvgCoordinate && Math.Abs(y) <= MaxSvgCoordinate;
+        }
+
+        private static bool SvgPathFlag(IList<string> tokens, ref int at, out bool value)
+        {
+            value = false;
+            double number;
+            if (!SvgPathNumber(tokens, ref at, out number) || number != 0D && number != 1D) return false;
+            value = number == 1D;
+            return true;
         }
 
         private static bool SvgPathNumber(IList<string> tokens, ref int at, out double value)
@@ -6201,10 +6483,11 @@ namespace Lea.Engine
             public double Fo = 1D;
             public double So = 1D;
             public double Z = 16D;
+            public double[] M = SvgIdentity();
 
             public Sv Copy()
             {
-                return new Sv { F = F, S = S, C = C, A = A, W = W, O = O, Fo = Fo, So = So, Z = Z };
+                return new Sv { F = F, S = S, C = C, A = A, W = W, O = O, Fo = Fo, So = So, Z = Z, M = (double[])M.Clone() };
             }
         }
 

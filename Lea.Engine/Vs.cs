@@ -16,6 +16,7 @@ namespace Lea.Engine
             A = "s";
             P = new List<double>();
             D = new List<Vp>();
+            M = new List<double> { 1D, 0D, 0D, 1D, 0D, 0D };
         }
 
         public string K { get; internal set; }
@@ -33,20 +34,34 @@ namespace Lea.Engine
         public N El { get; internal set; }
         public IList<double> P { get; private set; }
         public IList<Vp> D { get; private set; }
+        public IList<double> M { get; private set; }
     }
 
-    // Vp is one absolute move, line, or close step in Lea's straight-path subset.
+    // Vp stores one canonical absolute path step; curve controls use A/B and C/D.
     public sealed class Vp
     {
         internal Vp(char kind, double x, double y)
+            : this(kind, x, y, 0D, 0D, 0D, 0D)
+        {
+        }
+
+        internal Vp(char kind, double x, double y, double a, double b, double c, double d)
         {
             K = kind;
             X = x;
             Y = y;
+            A = a;
+            B = b;
+            C = c;
+            D = d;
         }
 
         public char K { get; private set; }
         public double X { get; private set; }
         public double Y { get; private set; }
+        public double A { get; private set; }
+        public double B { get; private set; }
+        public double C { get; private set; }
+        public double D { get; private set; }
     }
 }

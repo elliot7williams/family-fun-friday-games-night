@@ -516,18 +516,22 @@ overflow clip, stacking, hit, and accessibility paths as text and images. The
 WinForms adapter uses `System.Drawing` directly; embedding Lea does not add an
 external browser or vector runtime.
 
-The supported slice covers authored/intrinsic pixel width and height, default
-centered meet `viewBox` scaling, `g` inheritance, SVG `a` links, rounded `rect`,
+The supported slice covers authored/intrinsic pixel width and height, aligned
+`none`, `meet`, and `slice` `viewBox` mapping, `g` inheritance, SVG `a` links, rounded `rect`,
 `circle`, `ellipse`, `line`, `polyline`, `polygon`, text with start/middle/end
-anchors, and straight `path` commands `M/m`, `L/l`, `H/h`, `V/v`, and `Z/z`.
+anchors, straight `path` commands `M/m`, `L/l`, `H/h`, `V/v`, and `Z/z`, plus
+cubic `C/c` and `S/s`, quadratic `Q/q` and `T/t`, and elliptical `A/a` curves.
+Presentation and inline transform lists support matrix, translate, scale,
+centered rotate, skewX, and skewY with cumulative group inheritance.
 Presentation attributes and inline styles cover fill, stroke, stroke width,
 opacity, fill/stroke opacity, font size, text anchor, and `currentColor`.
 
 Parsing is capped at eight group levels, 128 shapes, 128 primitive/path points,
 256 text characters, 4,096 path characters, finite coordinates, and a 2,000 px
-intrinsic size. Curves/arcs, transforms, gradients/patterns, clip paths, masks,
-filters, markers, animation, scripting, external resources, nested SVG, and
-Canvas remain explicit compatibility limits.
+intrinsic size. Transform lists are capped at 16 functions and 1,024 characters;
+arcs expand to no more than four cubic steps. Gradients/patterns, clip paths,
+masks, filters, markers, animation, scripting, external resources, nested SVG,
+and Canvas remain explicit compatibility limits.
 
 ## Experimental Firespider tab
 

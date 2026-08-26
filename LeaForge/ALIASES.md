@@ -705,8 +705,13 @@ emphasis, line breaks, and links through the same short `B` model.
 
 Inline vectors stay compact through `B.Vg`. `Vg.W/H` are intrinsic dimensions;
 `X/Y/Vw/Vh` hold the bounded `viewBox`; `Vb` says it was authored; and `Ss`
-contains paint-ready `Vs` shapes. A shape uses `K` for kind, `P` for primitive
-coordinates, `D` for straight `Vp` path steps, `T` for text, `F/S/C` for fill,
+contains paint-ready `Vs` shapes. `Vg.A=n/nn/nm/nx/mn/mm/mx/xn/xm/xx` stores
+none or min/mid/max aspect alignment and `M=m/s` selects meet or slice. A shape
+uses `K` for kind, `P` for primitive coordinates, `D` for canonical `Vp` path
+steps, `M` for its six-number cumulative transform matrix, `T` for text, `F/S/C` for fill,
 stroke, and current color, `W` for stroke width, `O/Fo/So` for total/fill/stroke
 opacity, `Z` for font size, `A=s/m/e` for text anchor, and `U/El` for a linked
-target and source element. Each `Vp` is one `K=M/L/Z`, `X`, `Y` absolute step.
+target and source element. Each `Vp` is one absolute `K=M/L/C/Q/Z` step with
+`X/Y` as its endpoint; `A/B` hold one curve control and cubic steps also use
+`C/D` for their second control. Smooth commands are resolved and arcs are
+converted to bounded cubic steps while parsing.

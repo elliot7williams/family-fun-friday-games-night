@@ -2684,10 +2684,11 @@ namespace Lea.Win
         {
             var vector = box == null || box.B == null ? null : box.B.Vg;
             if (vector == null || rect.Width < 1 || rect.Height < 1 || vector.Vw <= 0 || vector.Vh <= 0) return;
-            var scale = Math.Min(rect.Width / vector.Vw, rect.Height / vector.Vh);
-            if (scale <= 0 || Double.IsNaN(scale) || Double.IsInfinity(scale)) return;
-            var x = rect.Left + (rect.Width - vector.Vw * scale) / 2D - vector.X * scale;
-            var y = rect.Top + (rect.Height - vector.Vh * scale) / 2D - vector.Y * scale;
+            double scaleX;
+            double scaleY;
+            double translateX;
+            double translateY;
+            if (!VectorViewport(vector, rect, out scaleX, out scaleY, out translateX, out translateY)) return;
             var state = graphics.Save();
             var smoothing = graphics.SmoothingMode;
             try
@@ -2696,7 +2697,8 @@ namespace Lea.Win
                 graphics.SmoothingMode = SmoothingMode.AntiAlias;
                 foreach (var shape in vector.Ss)
                 {
-                    using (var path = VectorPath(shape, x, y, scale))
+                    var strokeScale = VectorStrokeScale(shape, scaleX, scaleY);
+                    using (var path = VectorPath(shape, scaleX, scaleY, translateX, translateY))
                     {
                         if (path == null || path.PointCount == 0) continue;
                         var fill = shape.K != "line" && !VectorNone(shape.F);
@@ -2711,7 +2713,7 @@ namespace Lea.Win
                         {
                             var strokeOpacity = VectorOpacity(opacity, shape.O * shape.So);
                             if (strokeOpacity > 0)
-                                using (var pen = new Pen(PaintColor(VectorColor(shape.S, shape.C, color), strokeOpacity), Math.Max(.5F, Math.Min(512F, (float)(shape.W * scale)))))
+                                using (var pen = new Pen(PaintColor(VectorColor(shape.S, shape.C, color), strokeOpacity), Math.Max(.5F, Math.Min(512F, (float)(shape.W * strokeScale)))))
                                 {
                                     pen.LineJoin = LineJoin.Round;
                                     graphics.DrawPath(pen, path);
@@ -2720,7 +2722,7 @@ namespace Lea.Win
                         if (shape.U != null)
                         {
                             var bounds = Rectangle.Ceiling(path.GetBounds());
-                            bounds.Inflate(Math.Max(2, (int)Math.Ceiling(shape.W * scale / 2D)), Math.Max(2, (int)Math.Ceiling(shape.W * scale / 2D)));
+                            bounds.Inflate(Math.Max(2, (int)Math.Ceiling(shape.W * strokeScale / 2D)), Math.Max(2, (int)Math.Ceiling(shape.W * strokeScale / 2D)));
                             bounds = Rectangle.Intersect(bounds, rect);
                             bounds = VisibleRect(bounds, clip);
                             if (!bounds.IsEmpty) hits.Add(new Hit(bounds, shape.U, null, shape.El));
@@ -2737,7 +2739,42 @@ namespace Lea.Win
             }
         }
 
-        private GraphicsPath VectorPath(Vs shape, double x, double y, double scale)
+        private static bool VectorViewport(Vg vector, Rectangle rect, out double scaleX, out double scaleY, out double translateX, out double translateY)
+        {
+            scaleX = rect.Width / vector.Vw;
+            scaleY = rect.Height / vector.Vh;
+            translateX = rect.Left - vector.X * scaleX;
+            translateY = rect.Top - vector.Y * scaleY;
+            if (vector.A != "n")
+            {
+                var scale = vector.M == "s" ? Math.Max(scaleX, scaleY) : Math.Min(scaleX, scaleY);
+                scaleX = scale;
+                scaleY = scale;
+                var extraX = rect.Width - vector.Vw * scale;
+                var extraY = rect.Height - vector.Vh * scale;
+                var align = String.IsNullOrEmpty(vector.A) || vector.A.Length != 2 ? "mm" : vector.A;
+                translateX = rect.Left - vector.X * scale + (align[0] == 'x' ? extraX : align[0] == 'm' ? extraX / 2D : 0D);
+                translateY = rect.Top - vector.Y * scale + (align[1] == 'x' ? extraY : align[1] == 'm' ? extraY / 2D : 0D);
+            }
+            return scaleX > 0D && scaleY > 0D && !Double.IsNaN(scaleX) && !Double.IsInfinity(scaleX) &&
+                !Double.IsNaN(scaleY) && !Double.IsInfinity(scaleY) && !Double.IsNaN(translateX) && !Double.IsInfinity(translateX) &&
+                !Double.IsNaN(translateY) && !Double.IsInfinity(translateY);
+        }
+
+        private static double VectorStrokeScale(Vs shape, double scaleX, double scaleY)
+        {
+            var matrix = shape == null || shape.M == null || shape.M.Count < 6 ? null : shape.M;
+            var a = matrix == null ? 1D : matrix[0];
+            var b = matrix == null ? 0D : matrix[1];
+            var c = matrix == null ? 0D : matrix[2];
+            var d = matrix == null ? 1D : matrix[3];
+            var basisX = Math.Sqrt(a * a * scaleX * scaleX + b * b * scaleY * scaleY);
+            var basisY = Math.Sqrt(c * c * scaleX * scaleX + d * d * scaleY * scaleY);
+            var scale = (basisX + basisY) / 2D;
+            return Double.IsNaN(scale) || Double.IsInfinity(scale) ? 1D : Math.Max(.001D, Math.Min(10000D, scale));
+        }
+
+        private GraphicsPath VectorPath(Vs shape, double scaleX, double scaleY, double translateX, double translateY)
         {
             if (shape == null) return null;
             var path = new GraphicsPath(FillMode.Winding);
@@ -2746,9 +2783,9 @@ namespace Lea.Win
                 var points = shape.P;
                 if (shape.K == "rect" && points.Count >= 6)
                 {
-                    var rect = VectorRect(points[0], points[1], points[2], points[3], x, y, scale);
-                    var rx = Math.Min(points[2] / 2D, points[4]) * scale;
-                    var ry = Math.Min(points[3] / 2D, points[5]) * scale;
+                    var rect = VectorRect(points[0], points[1], points[2], points[3]);
+                    var rx = Math.Min(points[2] / 2D, points[4]);
+                    var ry = Math.Min(points[3] / 2D, points[5]);
                     if (rx <= 0 && ry > 0) rx = ry;
                     if (ry <= 0 && rx > 0) ry = rx;
                     if (rx > 0 && ry > 0) VectorRoundRect(path, rect, (float)rx, (float)ry);
@@ -2757,16 +2794,16 @@ namespace Lea.Win
                 else if (shape.K == "circle" && points.Count >= 3)
                 {
                     var radius = points[2];
-                    path.AddEllipse(VectorRect(points[0] - radius, points[1] - radius, radius * 2D, radius * 2D, x, y, scale));
+                    path.AddEllipse(VectorRect(points[0] - radius, points[1] - radius, radius * 2D, radius * 2D));
                 }
                 else if (shape.K == "ellipse" && points.Count >= 4)
-                    path.AddEllipse(VectorRect(points[0] - points[2], points[1] - points[3], points[2] * 2D, points[3] * 2D, x, y, scale));
+                    path.AddEllipse(VectorRect(points[0] - points[2], points[1] - points[3], points[2] * 2D, points[3] * 2D));
                 else if (shape.K == "line" && points.Count >= 4)
-                    path.AddLine(VectorPoint(points[0], points[1], x, y, scale), VectorPoint(points[2], points[3], x, y, scale));
+                    path.AddLine(VectorPoint(points[0], points[1]), VectorPoint(points[2], points[3]));
                 else if ((shape.K == "polyline" || shape.K == "polygon") && points.Count >= 4)
                 {
                     var mapped = new PointF[points.Count / 2];
-                    for (var index = 0; index < mapped.Length; index++) mapped[index] = VectorPoint(points[index * 2], points[index * 2 + 1], x, y, scale);
+                    for (var index = 0; index < mapped.Length; index++) mapped[index] = VectorPoint(points[index * 2], points[index * 2 + 1]);
                     path.AddLines(mapped);
                     if (shape.K == "polygon") path.CloseFigure();
                 }
@@ -2779,22 +2816,41 @@ namespace Lea.Win
                         if (step.K == 'M')
                         {
                             path.StartFigure();
-                            current = VectorPoint(step.X, step.Y, x, y, scale);
+                            current = VectorPoint(step.X, step.Y);
                             ready = true;
                         }
                         else if (step.K == 'L' && ready)
                         {
-                            var next = VectorPoint(step.X, step.Y, x, y, scale);
+                            var next = VectorPoint(step.X, step.Y);
                             path.AddLine(current, next);
                             current = next;
                         }
-                        else if (step.K == 'Z' && ready) path.CloseFigure();
+                        else if (step.K == 'C' && ready)
+                        {
+                            var next = VectorPoint(step.X, step.Y);
+                            path.AddBezier(current, VectorPoint(step.A, step.B), VectorPoint(step.C, step.D), next);
+                            current = next;
+                        }
+                        else if (step.K == 'Q' && ready)
+                        {
+                            var next = VectorPoint(step.X, step.Y);
+                            var control = VectorPoint(step.A, step.B);
+                            var control1 = new PointF(current.X + (control.X - current.X) * 2F / 3F, current.Y + (control.Y - current.Y) * 2F / 3F);
+                            var control2 = new PointF(next.X + (control.X - next.X) * 2F / 3F, next.Y + (control.Y - next.Y) * 2F / 3F);
+                            path.AddBezier(current, control1, control2, next);
+                            current = next;
+                        }
+                        else if (step.K == 'Z' && ready)
+                        {
+                            path.CloseFigure();
+                            current = VectorPoint(step.X, step.Y);
+                        }
                     }
                 }
                 else if (shape.K == "text" && points.Count >= 2 && shape.T.Length > 0)
                 {
-                    var origin = VectorPoint(points[0], points[1], x, y, scale);
-                    var size = Math.Max(1F, Math.Min(512F, (float)(shape.Z * scale)));
+                    var origin = VectorPoint(points[0], points[1]);
+                    var size = Math.Max(1F, Math.Min(512F, (float)shape.Z));
                     var family = Font.FontFamily;
                     var em = Math.Max(1, family.GetEmHeight(FontStyle.Regular));
                     var ascent = size * family.GetCellAscent(FontStyle.Regular) / em;
@@ -2813,6 +2869,7 @@ namespace Lea.Win
                         }
                     }
                 }
+                using (var matrix = VectorMatrix(shape, scaleX, scaleY, translateX, translateY)) path.Transform(matrix);
                 return path;
             }
             catch (ArgumentException)
@@ -2838,17 +2895,32 @@ namespace Lea.Win
             path.CloseFigure();
         }
 
-        private static PointF VectorPoint(double px, double py, double x, double y, double scale)
+        private static Matrix VectorMatrix(Vs shape, double scaleX, double scaleY, double translateX, double translateY)
         {
-            return new PointF(VectorFloat(x + px * scale), VectorFloat(y + py * scale));
+            var values = shape == null || shape.M == null || shape.M.Count < 6 ? null : shape.M;
+            var a = values == null ? 1D : values[0];
+            var b = values == null ? 0D : values[1];
+            var c = values == null ? 0D : values[2];
+            var d = values == null ? 1D : values[3];
+            var e = values == null ? 0D : values[4];
+            var f = values == null ? 0D : values[5];
+            return new Matrix(
+                VectorFloat(a * scaleX), VectorFloat(b * scaleY),
+                VectorFloat(c * scaleX), VectorFloat(d * scaleY),
+                VectorFloat(translateX + e * scaleX), VectorFloat(translateY + f * scaleY));
         }
 
-        private static RectangleF VectorRect(double px, double py, double width, double height, double x, double y, double scale)
+        private static PointF VectorPoint(double px, double py)
         {
-            var left = VectorFloat(x + px * scale);
-            var top = VectorFloat(y + py * scale);
-            var right = VectorFloat(x + (px + width) * scale);
-            var bottom = VectorFloat(y + (py + height) * scale);
+            return new PointF(VectorFloat(px), VectorFloat(py));
+        }
+
+        private static RectangleF VectorRect(double px, double py, double width, double height)
+        {
+            var left = VectorFloat(px);
+            var top = VectorFloat(py);
+            var right = VectorFloat(px + width);
+            var bottom = VectorFloat(py + height);
             return RectangleF.FromLTRB(Math.Min(left, right), Math.Min(top, bottom), Math.Max(left, right), Math.Max(top, bottom));
         }
 

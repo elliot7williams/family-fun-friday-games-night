@@ -111,7 +111,7 @@ namespace Lea.Bench
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
-                "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html", "svg.html",
+                "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html", "svg.html", "svg-geometry.html",
                 "box-sizing.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
@@ -1164,7 +1164,7 @@ namespace Lea.Bench
                 var page = engine.Go(path);
                 var block = page.Bs.First(item => item.El != null && item.El.Av("id") == "vector");
                 var graphic = engine.Ax(page, ById(page.D, "vector"));
-                Need(block.Vg != null && block.Vg.Vb && block.Vg.W == 320D && block.Vg.H == 180D && block.Vg.Ss.Count == 9, "SVG model or bounds changed");
+                Need(block.Vg != null && block.Vg.Vb && block.Vg.W == 320D && block.Vg.H == 180D && block.Vg.Ss.Count == 10, "SVG model or bounds changed");
                 Need(block.Vg.Ss[6].K == "path" && block.Vg.Ss[6].D.Count == 5 && block.Vg.Ss[7].U.Fragment == "#svg-target", "SVG path or linked shape changed");
                 Need(graphic != null && graphic.K == "img" && graphic.N == "Inline SVG status chart", "SVG accessibility mapping changed");
                 using (var view = NewView())
@@ -1173,7 +1173,35 @@ namespace Lea.Bench
                     view.Go(path);
                     using (var image = Draw(view)) Need(BlockContent(view, "vector").Size == new Size(320, 180) && ColoredSamples(image) > 0, "SVG layout or paint changed");
                 }
-                return "Vg/Vs/Vp aliases, viewBox meet sizing, 128 shapes/points, six primitives, text, straight paths, inherited paint/opacity, links, accessibility, and GDI paint";
+                return "Vg/Vs/Vp aliases, viewBox meet sizing, 128 shapes/points, six primitives, text, straight/cubic paths, inherited paint/opacity, links, accessibility, and GDI paint";
+            });
+            AddProbe(probes, "SVG geometry and transforms", delegate
+            {
+                var path = Path.Combine(folder, "svg-geometry.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var block = page.Bs.First(item => item.El != null && item.El.Av("id") == "geometry");
+                var shapes = block.Vg.Ss;
+                Need(block.Vg.A == "mm" && block.Vg.M == "m" && shapes.Count == 10, "SVG geometry model or defaults changed");
+                Need(shapes[0].D.Count == 3 && shapes[0].D[1].K == 'C' && shapes[0].D[2].K == 'C' && shapes[0].D[2].A == 50D && shapes[0].D[2].B == 60D, "SVG cubic or smooth control changed");
+                Need(shapes[1].D.Count == 3 && shapes[1].D[2].K == 'Q' && shapes[1].D[2].A == 55D && shapes[1].D[2].B == 100D, "SVG quadratic or smooth control changed");
+                Need(shapes[2].D.Count >= 2 && shapes[2].D.Skip(1).All(step => step.K == 'C'), "SVG arc conversion changed");
+                Need(shapes[3].M[0] == 1.5D && shapes[3].M[3] == 1.5D && shapes[3].M[4] == 120D && shapes[3].M[5] == 10D, "SVG cumulative transform changed");
+                Need(shapes[7].U != null && shapes[7].U.Fragment == "#geometry-target" && shapes[8].M[4] == 132D && shapes[9].M[0] == 1D, "SVG link, inline transform, or invalid fallback changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1100);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        Need(BlockContent(view, "geometry").Size == new Size(360, 200), "SVG transformed viewport size changed");
+                        Need(!FragmentHit(view, "#geometry-target").IsEmpty, "SVG transformed link hit changed");
+                        Need(ColorDistance(image.GetPixel(BlockContent(view, "aspect-none").Right - 4, BlockContent(view, "aspect-none").Top + 50), Color.FromArgb(220, 38, 38)) < 12, "SVG preserveAspectRatio none paint changed");
+                        Need(ColorDistance(image.GetPixel(BlockContent(view, "aspect-min").Left + 50, BlockContent(view, "aspect-min").Top + 50), Color.FromArgb(22, 163, 74)) < 12, "SVG aligned meet paint changed");
+                        Need(ColorDistance(image.GetPixel(BlockContent(view, "aspect-slice").Left + 100, BlockContent(view, "aspect-slice").Top + 50), Color.FromArgb(37, 99, 235)) < 12, "SVG slice clipping paint changed");
+                    }
+                }
+                return "C/S/Q/T/A paths, inherited matrix/translate/scale/rotate/skew transforms, preserveAspectRatio none/meet/slice, clipping, accessibility links, and bounded invalid fallback";
             });
             AddProbe(probes, "Forms and validation", delegate
             {
@@ -1382,7 +1410,7 @@ namespace Lea.Bench
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
             Capability(builder, "Flexbox", "Supported subset", "Row/row-reverse and fixed-height column/column-reverse containers, content/border-box pixel bases, stable -64..64 order on nowrap rows and bounded columns, bounded row wrap, fixed/equal-share/weighted grow and integer weighted-shrink slots, explicit pixel min/max floors, pixel row/column gaps, start/center/end/space-between/space-around/space-evenly justification, and container/item stretch/start/center/end cross alignment; no intrinsic min-content sizing, fractional factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis alignment, or auto-height column reordering guarantee");
             Capability(builder, "CSS Grid", "Supported subset", "Grid/inline-grid with up to eight fixed-pixel, auto, or integer-fr tracks per explicit axis, simple repeat and minmax(0, Nfr), pixel gaps, bounded occupancy, two-axis numeric starts/spans, validated 8x8 named-area templates, unique explicit named lines, area-generated start/end lines, Gf row/column sparse/dense flow, repeating S.Av/Gac/Gav/Rac/Rav pixel/auto/integer-fr implicit patterns, definite endpoint/span growth, area-created track sizing, exact auto-height row settlement, atomic grid-template/grid explicit, quoted-area, and row/column auto-flow shorthands, Ji/Js/Ai/As start/center/end/stretch item alignment, atomic place-items/place-self, Al/Jc start/center/end/between/around/evenly track-group alignment, atomic place-content, and shared nested paint/hit/reflow; no escaped or repeated-name occurrence indexes, reverse flow, pre-explicit implicit tracks, shorthand area-row line names, intrinsic or percentage tracks, auto-fit/fill, baseline or safe/unsafe alignment, writing-mode axis reversal, or subgrid");
-            Capability(builder, "SVG and Canvas", "SVG supported subset; Canvas not supported", "Bounded inline SVG with intrinsic width/height, default meet viewBox scaling, groups/links, rect/circle/ellipse/line/polyline/polygon/text, M/L/H/V/Z straight paths, presentation and inline fill/stroke/opacity/font properties, currentColor, graphic accessibility, clipping, paint, and shape-bounds hits; 128 shapes/points, eight levels, and 256 text characters. No curves/arcs, transforms, gradients/patterns, clip paths, masks, filters, markers, animation, scripting, external resources, nested SVG, or Canvas");
+            Capability(builder, "SVG and Canvas", "SVG supported subset; Canvas not supported", "Bounded inline SVG with intrinsic width/height, preserveAspectRatio none/meet/slice mapping, groups/links, rect/circle/ellipse/line/polyline/polygon/text, M/L/H/V/Z/C/S/Q/T/A paths, cumulative matrix/translate/scale/rotate/skew transforms, presentation and inline fill/stroke/opacity/font properties, currentColor, graphic accessibility, clipping, paint, and transformed shape-bounds hits; 128 shapes/points, 16 transforms, eight levels, and 256 text characters. No gradients/patterns, clip paths, masks, filters, markers, animation, scripting, external resources, nested SVG, or Canvas");
             Capability(builder, "Audio and video", "Not supported", "Future optional module");
             Capability(builder, "Developer diagnostics", "Supported", "Bounded summary, node, CSS, request, message, and variable snapshots");
             Capability(builder, "Document queries", "Supported subset", "Id, first-match Q/Q1, and read-only Qa with compiled selectors and a 256-result ceiling");
@@ -1489,6 +1517,26 @@ namespace Lea.Bench
                     if (color.A != 0 && (color.R < 248 || color.G < 248 || color.B < 248)) count++;
                 }
             return count;
+        }
+
+        private static int ColorDistance(Color left, Color right)
+        {
+            return Math.Abs(left.R - right.R) + Math.Abs(left.G - right.G) + Math.Abs(left.B - right.B);
+        }
+
+        private static Rectangle FragmentHit(V view, string fragment)
+        {
+            var member = typeof(V).GetField("hits", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = member == null ? null : member.GetValue(view) as System.Collections.IEnumerable;
+            if (values != null)
+                foreach (var value in values)
+                {
+                    var type = value.GetType();
+                    var url = type.GetField("U").GetValue(value) as Uri;
+                    if (url != null && url.Fragment.Equals(fragment, StringComparison.OrdinalIgnoreCase))
+                        return (Rectangle)type.GetField("R").GetValue(value);
+                }
+            return Rectangle.Empty;
         }
 
         private static Rectangle BlockOuter(V view, string id)

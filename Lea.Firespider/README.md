@@ -216,8 +216,10 @@ count in the status bar, and join Firespider's recent-download list.
 
 Inline SVG remains inside the same hosted `V` surface. Firespider can inspect
 `B.Vg` and compact `Vg/Vs/Vp` viewport, shape, paint, path, and link aliases;
-the adapter adds no SVG control or external runtime. The host smoke verifies a
-compiled Firespider tab's exact vector size and graphic accessibility name.
+the adapter adds no SVG control or external runtime. Curves, cumulative
+transforms, and preserveAspectRatio modes use the same model and paint path.
+The host smoke verifies a compiled Firespider tab's exact vector size, curve
+steps, inherited matrix, and graphic accessibility name.
 
 The host project imports `Lea/FirespiderLea.targets`, which adds the two DLL
 references, compiles `FirespiderLea.vb`, and copies `start.html` to the output
