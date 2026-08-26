@@ -2915,6 +2915,34 @@ namespace Lea.Tests
                         Ok(!clippedHit.IsEmpty && clippedHit.Left >= reuseRect.Left + 248 && clippedHit.Right <= reuseRect.Left + 332 && clippedHit.Top >= reuseRect.Top + 74, "SVG clipped link hit bounds");
                         Ok(ColorDistance(reusePaint.GetPixel(reuseRect.Left + 200, reuseRect.Top + 194), Color.White) < 12, "SVG unresolved clip remains unpainted");
                     }
+                    var svgStrokePath = Path.Combine(root, "LeaForge", "test-pages", "svg-strokes.html");
+                    var svgStrokePage = engine.Go(svgStrokePath);
+                    var strokeVector = BlockById(svgStrokePage, "stroke-vector");
+                    Ok(strokeVector.Vg != null && strokeVector.Vg.Cs.Count == 1, "SVG stroke fixture and clip model");
+                    Eq(13, strokeVector.Vg.Ss.Count, "SVG stroke and winding shape count");
+                    var strokeShapes = strokeVector.Vg.Ss;
+                    Ok(strokeShapes[0].Fr == "e" && strokeShapes[1].Fr == "n" && strokeShapes[2].Cp == strokeVector.Vg.Cs[0] && strokeVector.Vg.Cs[0].Ss[0].Fr == "e", "SVG fill-rule and clip-rule aliases");
+                    Ok(strokeShapes[3].Lc == "b" && strokeShapes[4].Lc == "r" && strokeShapes[5].Lc == "s" && strokeShapes[5].U.Fragment == "#stroke-target", "SVG line-cap aliases and linked square cap");
+                    Ok(strokeShapes[6].Lj == "m" && strokeShapes[6].Ml == 64D && strokeShapes[7].Lj == "r" && strokeShapes[8].Lj == "b", "SVG line-join and bounded miter aliases");
+                    Ok(strokeShapes[9].F == "none" && strokeShapes[9].S == "#0f766e" && strokeShapes[9].W == 5D && strokeShapes[9].Lc == "r" && strokeShapes[9].Do == 3D && strokeShapes[9].Da.Count == 6 && strokeShapes[9].Da[0] == 8D && strokeShapes[9].Da[1] == 4D && strokeShapes[9].Da[2] == 2D && strokeShapes[9].Da[3] == 8D, "SVG stylesheet variables and odd dash repetition");
+                    Ok(strokeShapes[10].F == "#f97316" && strokeShapes[10].S == "#7c3aed" && strokeShapes[10].W == 2D && strokeShapes[10].Fr == "e" && strokeShapes[10].Lj == "b", "SVG stylesheet, inline, and important paint cascade");
+                    Ok(strokeShapes[11].Da.Count == 2 && strokeShapes[11].Da[0] == 5D && strokeShapes[11].Da[1] == 3D && strokeShapes[12].Da.Count == 0, "SVG over-limit inherited and explicit none dash state");
+                    var strokeGraphic = engine.Ax(svgStrokePage, ById(svgStrokePage.D, "stroke-vector"));
+                    Ok(strokeGraphic.K == "img" && strokeGraphic.N == "Stroke and winding samples", "SVG stroke accessibility name");
+                    view.Size = new Size(720, 760);
+                    view.Go(svgStrokePath);
+                    using (var strokePaint = Render(view))
+                    {
+                        var strokeRect = BlockRect(view, BlockById(view.At, "stroke-vector"));
+                        Eq(new Size(360, 260), strokeRect.Size, "SVG stroke viewport size");
+                        Ok(ColorDistance(strokePaint.GetPixel(strokeRect.Left + 16, strokeRect.Top + 20), Color.FromArgb(220, 38, 38)) < 12 && ColorDistance(strokePaint.GetPixel(strokeRect.Left + 54, strokeRect.Top + 40), Color.White) < 12, "SVG even-odd painted hole");
+                        Ok(ColorDistance(strokePaint.GetPixel(strokeRect.Left + 174, strokeRect.Top + 40), Color.FromArgb(22, 163, 74)) < 12, "SVG nonzero painted center");
+                        Ok(ColorDistance(strokePaint.GetPixel(strokeRect.Left + 260, strokeRect.Top + 20), Color.FromArgb(245, 158, 11)) < 12 && ColorDistance(strokePaint.GetPixel(strokeRect.Left + 300, strokeRect.Top + 40), Color.White) < 12, "SVG even-odd clip region");
+                        Ok(ColorDistance(strokePaint.GetPixel(strokeRect.Left + 16, strokeRect.Top + 104), Color.White) < 12 && ColorDistance(strokePaint.GetPixel(strokeRect.Left + 124, strokeRect.Top + 104), Color.FromArgb(219, 39, 119)) < 20 && ColorDistance(strokePaint.GetPixel(strokeRect.Left + 244, strokeRect.Top + 104), Color.FromArgb(124, 58, 237)) < 20, "SVG butt, round, and square cap paint");
+                        Ok(ColorDistance(strokePaint.GetPixel(strokeRect.Left + 50, strokeRect.Top + 232), Color.White) < 12 && ColorDistance(strokePaint.GetPixel(strokeRect.Left + 16, strokeRect.Top + 220), Color.FromArgb(249, 115, 22)) < 20, "SVG stylesheet even-odd fill and important stroke paint");
+                        var squareHit = FragmentHitRect(view, "#stroke-target");
+                        Ok(!squareHit.IsEmpty && squareHit.Left <= strokeRect.Left + 244 && squareHit.Right >= strokeRect.Left + 328 && squareHit.Top <= strokeRect.Top + 96, "SVG square-cap link hit bounds");
+                    }
                     view.Size = new Size(720, 760);
                     var boxes = Path.Combine(root, "LeaForge", "test-pages", "boxes.html");
                     var boxPage = engine.Go(boxes);

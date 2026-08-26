@@ -523,7 +523,8 @@ anchors, straight `path` commands `M/m`, `L/l`, `H/h`, `V/v`, and `Z/z`, plus
 cubic `C/c` and `S/s`, quadratic `Q/q` and `T/t`, and elliptical `A/a` curves.
 Presentation and inline transform lists support matrix, translate, scale,
 centered rotate, skewX, and skewY with cumulative group inheritance.
-Presentation attributes and inline styles cover fill, stroke, stroke width,
+Presentation attributes, specificity-ordered stylesheets, inline styles,
+custom-property values, and important priority cover fill, stroke, stroke width,
 opacity, fill/stroke opacity, font size, text anchor, and `currentColor`.
 Local linear and radial gradients resolve once through `Vg.Ds` and `Vs.Fd/Sd`.
 They support object-bounds/user-space coordinates, percentage values, radial
@@ -544,11 +545,20 @@ object-bounds clips normalize through the target's logical bounds. Presentation,
 stylesheet, and inline local references intersect fills, strokes, and linked hit
 bounds. Missing, empty, cyclic, or over-limit definitions paint nothing.
 
+Painted and clipping paths expose nonzero/evenodd winding through `Vs.Fr`.
+Stroke state uses `Lc=b/r/s` for butt/round/square caps, `Lj=m/r/b` for
+miter/round/bevel joins, `Ml` for a 1-64 miter limit, `Da` for a normalized
+even dash list, and `Do` for its offset. Up to 16 nonnegative pixel/unit dash
+values fit in 256 authored characters; odd lists repeat, `none` clears an
+inherited list, and invalid or all-zero lists preserve inherited state. The
+WinForms adapter maps the state to one native pen and uses bounded miter/cap
+extents for linked stroke hits.
+
 Parsing is capped at eight group levels, 128 shapes, 128 primitive/path points,
 256 text characters, 4,096 path characters, finite coordinates, and a 2,000 px
 intrinsic size. Transform lists are capped at 16 functions and 1,024 characters;
-arcs expand to no more than four cubic steps. Gradient definitions and stops are
-capped at 16 each. Repeat/reflect spread, patterns, nested clip paths, masks,
+arcs expand to no more than four cubic steps. Gradient definitions, stops, and
+dash values are capped at 16 each. Repeat/reflect spread, patterns, nested clip paths, masks,
 filters, markers, animation, scripting, external references, symbol viewBox
 sizing, nested SVG, and Canvas remain explicit compatibility limits.
 

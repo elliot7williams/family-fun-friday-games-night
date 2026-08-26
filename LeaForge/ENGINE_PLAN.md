@@ -338,7 +338,16 @@ non-empty bridge survives both direct and external MTA clients. Continue host
 coverage and bounded HTML/CSS compatibility work without adding another browser
 runtime.
 
-The latest completed milestone adds bounded reusable SVG geometry and clipping
+The latest completed milestone adds bounded SVG winding and stroke styles through
+compact `Vs.Fr/Lc/Lj/Ml/Da/Do` state. Specificity-ordered stylesheet,
+presentation, inline, custom-property, and important declarations share the
+inherited paint path for nonzero/evenodd fills and clips, butt/round/square caps,
+miter/round/bevel joins, bounded miter limits, and normalized dash lists/offsets.
+Native region unions, GDI+ pen settings, painted holes, expanded linked hits,
+strict invalid preservation, exact tests, benchmark, and Firespider host coverage
+all remain inside the existing retained vector surface.
+
+The previous completed milestone added bounded reusable SVG geometry and clipping
 through compact `Vg.Cs`, `Vs.Cp/Cl/Cm`, `Vc`, and `S.Cp` aliases. Local
 shape/group/symbol/nested `use` expansion, user/object clip units, transforms,
 multi-shape unions, reusable clip children, presentation/CSS attachment,

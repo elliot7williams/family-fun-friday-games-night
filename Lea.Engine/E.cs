@@ -72,10 +72,13 @@ namespace Lea.Engine
         private const int MaxSvgClips = 16;
         private const int MaxSvgClipShapes = 32;
         private const int MaxSvgUseLinks = 4;
+        private const int MaxSvgDashes = 16;
+        private const int MaxSvgDashText = 256;
         private const int MaxSvgTransforms = 16;
         private const int MaxSvgTransformText = 1024;
         private const double MaxSvgCoordinate = 100000D;
         private const double MaxSvgSize = 2000D;
+        private const double MaxSvgMiterLimit = 64D;
         private const double MinSvgView = .01D;
         private const double MaxSvgMatrixScale = 10000D;
         private const double MaxSvgMatrixTranslate = 1000000D;
@@ -4639,7 +4642,7 @@ namespace Lea.Engine
             SvgGradients(svg, rules, style, model);
             SvgClips(rules, style, model, sources);
             var initial = new Sv { C = style.F, Z = style.Fs > 0 ? style.Fs : 16D };
-            var paint = SvgPaint(svg, initial, style, true);
+            var paint = SvgPaint(svg, initial, style, rules, true);
             foreach (var child in svg.C)
             {
                 if (model.Ss.Count == MaxSvgShapes) break;
@@ -4654,7 +4657,7 @@ namespace Lea.Engine
             if (node.K == "script" || node.K == "style" || node.K == "defs" || node.A.ContainsKey("hidden")) return;
             var css = Style(node, inherited, rules);
             if (css.D == "none" || css.Vi == "h" || css.Vi == "c" || AriaTrue(node, "aria-hidden")) return;
-            var paint = SvgPaint(node, parent, css, false);
+            var paint = SvgPaint(node, parent, css, rules, false);
             if (node.K == "use")
             {
                 SvgUse(page, node, baseUrl, rules, css, paint, model, sources, usingIds, depth, useDepth, activeLink, linkElement);
@@ -4701,7 +4704,7 @@ namespace Lea.Engine
                 var symbolCss = Style(target, css, rules);
                 if (symbolCss.D != "none" && symbolCss.Vi != "h" && symbolCss.Vi != "c" && !AriaTrue(target, "aria-hidden"))
                 {
-                    var symbolPaint = SvgPaint(target, paint, symbolCss, false);
+                    var symbolPaint = SvgPaint(target, paint, symbolCss, rules, false);
                     foreach (var child in target.C)
                     {
                         if (model.Ss.Count == MaxSvgShapes) break;
@@ -4723,15 +4726,21 @@ namespace Lea.Engine
                 F = paint.F,
                 S = paint.S,
                 C = paint.C,
+                Fr = paint.R,
+                Lc = paint.Lc,
+                Lj = paint.Lj,
                 W = paint.W,
                 O = paint.O,
                 Fo = paint.Fo,
                 So = paint.So,
                 Z = paint.Z,
+                Ml = paint.Ml,
+                Do = paint.Do,
                 A = paint.A,
                 U = link,
                 El = linkElement ?? node
             };
+            foreach (var dash in paint.Da) shape.Da.Add(dash);
             for (var index = 0; index < 6; index++)
             {
                 shape.M[index] = paint.M[index];
@@ -4845,7 +4854,7 @@ namespace Lea.Engine
             var css = Style(node, inherited, rules);
             if (css.D == "none" || css.Vi == "h" || css.Vi == "c" || AriaTrue(node, "aria-hidden")) return null;
             var initial = new Sv { C = inherited.F, Z = inherited.Fs > 0 ? inherited.Fs : 16D };
-            var paint = SvgPaint(node, initial, css, false);
+            var paint = SvgPaint(node, initial, css, rules, false);
             paint.X = "";
             paint.Xm = SvgIdentity();
             var clip = new Vc { I = node.Av("id"), U = units == "objectboundingbox" ? "b" : "u" };
@@ -4864,7 +4873,7 @@ namespace Lea.Engine
             if (node.K == "script" || node.K == "style" || node.K == "defs" || node.A.ContainsKey("hidden")) return;
             var css = Style(node, inherited, rules);
             if (css.D == "none" || css.Vi == "h" || css.Vi == "c" || AriaTrue(node, "aria-hidden")) return;
-            var paint = SvgPaint(node, parent, css, false);
+            var paint = SvgPaint(node, parent, css, rules, false);
             paint.X = "";
             paint.Xm = SvgIdentity();
             if (node.K == "use")
@@ -4876,6 +4885,7 @@ namespace Lea.Engine
             var shape = SvgShape(node, paint, null, null, model);
             if (shape != null)
             {
+                shape.Fr = paint.Cr;
                 shape.Cl = false;
                 shape.Cp = null;
                 clip.Ss.Add(shape);
@@ -4905,7 +4915,7 @@ namespace Lea.Engine
                 var symbolCss = Style(target, css, rules);
                 if (symbolCss.D != "none" && symbolCss.Vi != "h" && symbolCss.Vi != "c" && !AriaTrue(target, "aria-hidden"))
                 {
-                    var symbolPaint = SvgPaint(target, paint, symbolCss, false);
+                    var symbolPaint = SvgPaint(target, paint, symbolCss, rules, false);
                     foreach (var child in target.C)
                     {
                         if (clip.Ss.Count == MaxSvgClipShapes) break;
@@ -5188,7 +5198,7 @@ namespace Lea.Engine
             return null;
         }
 
-        private static Sv SvgPaint(N node, Sv inherited, S css, bool root)
+        private static Sv SvgPaint(N node, Sv inherited, S css, List<R> rules, bool root)
         {
             var paint = inherited.Copy();
             double[] transform = null;
@@ -5204,22 +5214,41 @@ namespace Lea.Engine
             SvgPaintSet(paint, "stroke-opacity", node.Av("stroke-opacity"));
             SvgPaintSet(paint, "font-size", node.Av("font-size"));
             SvgPaintSet(paint, "text-anchor", node.Av("text-anchor"));
+            SvgPaintSet(paint, "fill-rule", node.Av("fill-rule"));
+            SvgPaintSet(paint, "clip-rule", node.Av("clip-rule"));
+            SvgPaintSet(paint, "stroke-linecap", node.Av("stroke-linecap"));
+            SvgPaintSet(paint, "stroke-linejoin", node.Av("stroke-linejoin"));
+            SvgPaintSet(paint, "stroke-miterlimit", node.Av("stroke-miterlimit"));
+            SvgPaintSet(paint, "stroke-dasharray", node.Av("stroke-dasharray"));
+            SvgPaintSet(paint, "stroke-dashoffset", node.Av("stroke-dashoffset"));
             SvgClipSet(paint, node.Av("clip-path"), ref clipChanged);
-            if (css != null) SvgClipSet(paint, css.Cp, ref clipChanged);
-            foreach (var declaration in CssDeclarations(node.Av("style")))
-            {
-                if (root && declaration.N == "opacity") continue;
-                if (declaration.N == "transform")
-                {
-                    double[] inline;
-                    if (!root && SvgTransform(declaration.V, out inline)) transform = inline;
-                    continue;
-                }
-                SvgPaintSet(paint, declaration.N, declaration.V);
-            }
+            foreach (var rule in rules)
+                if (MatchCss(node, rule)) SvgPaintDeclarations(rule.Ds, false, css, paint, ref transform, ref clipChanged, root);
+            var inline = CssDeclarations(node.Av("style"));
+            SvgPaintDeclarations(inline, false, css, paint, ref transform, ref clipChanged, root);
+            foreach (var rule in rules)
+                if (MatchCss(node, rule)) SvgPaintDeclarations(rule.Ds, true, css, paint, ref transform, ref clipChanged, root);
+            SvgPaintDeclarations(inline, true, css, paint, ref transform, ref clipChanged, root);
             if (transform != null) paint.M = SvgMatrixMultiply(inherited.M, transform);
             if (clipChanged) paint.Xm = (double[])paint.M.Clone();
             return paint;
+        }
+
+        private static void SvgPaintDeclarations(Pd[] declarations, bool important, S style, Sv paint, ref double[] transform, ref bool clipChanged, bool root)
+        {
+            foreach (var declaration in declarations)
+            {
+                if (declaration.C || declaration.I != important) continue;
+                string value;
+                if (!VarValue(style, declaration.V, out value)) continue;
+                if (declaration.N == "clip-path") SvgClipSet(paint, value, ref clipChanged);
+                else if (declaration.N == "transform")
+                {
+                    double[] parsed;
+                    if (!root && SvgTransform(value, out parsed)) transform = parsed;
+                }
+                else if (!root || declaration.N != "opacity") SvgPaintSet(paint, declaration.N, value);
+            }
         }
 
         private static void SvgClipSet(Sv paint, string input, ref bool changed)
@@ -5254,6 +5283,29 @@ namespace Lea.Engine
             else if (name == "fill-opacity" && SvgAlpha(value, out number)) paint.Fo = number;
             else if (name == "stroke-opacity" && SvgAlpha(value, out number)) paint.So = number;
             else if (name == "font-size" && SvgLength(value, out number) && number > 0) paint.Z = Math.Min(200D, number);
+            else if (name == "fill-rule") SvgRule(value, ref paint.R);
+            else if (name == "clip-rule") SvgRule(value, ref paint.Cr);
+            else if (name == "stroke-linecap")
+            {
+                var cap = value.ToLowerInvariant();
+                if (cap == "butt") paint.Lc = "b";
+                else if (cap == "round") paint.Lc = "r";
+                else if (cap == "square") paint.Lc = "s";
+            }
+            else if (name == "stroke-linejoin")
+            {
+                var join = value.ToLowerInvariant();
+                if (join == "miter") paint.Lj = "m";
+                else if (join == "round") paint.Lj = "r";
+                else if (join == "bevel") paint.Lj = "b";
+            }
+            else if (name == "stroke-miterlimit" && SvgNumber(value, 4D, out number) && number >= 1D) paint.Ml = Math.Min(MaxSvgMiterLimit, number);
+            else if (name == "stroke-dashoffset" && SvgLength(value, out number)) paint.Do = number;
+            else if (name == "stroke-dasharray")
+            {
+                double[] dashes;
+                if (SvgDashes(value, out dashes)) paint.Da = dashes;
+            }
             else if (name == "text-anchor")
             {
                 var anchor = value.ToLowerInvariant();
@@ -5261,6 +5313,38 @@ namespace Lea.Engine
                 else if (anchor == "middle") paint.A = "m";
                 else if (anchor == "end") paint.A = "e";
             }
+        }
+
+        private static void SvgRule(string value, ref string target)
+        {
+            var rule = value.ToLowerInvariant();
+            if (rule == "nonzero") target = "n";
+            else if (rule == "evenodd") target = "e";
+        }
+
+        private static bool SvgDashes(string input, out double[] result)
+        {
+            result = null;
+            var source = (input ?? "").Trim();
+            if (source.Equals("none", StringComparison.OrdinalIgnoreCase)) { result = new double[0]; return true; }
+            if (source.Length == 0 || source.Length > MaxSvgDashText) return false;
+            var matches = Regex.Matches(source, "(?<n>[-+]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:e[-+]?[0-9]+)?)(?:px)?", RegexOptions.IgnoreCase);
+            if (matches.Count == 0 || matches.Count > MaxSvgDashes || matches.Count % 2 == 1 && matches.Count * 2 > MaxSvgDashes) return false;
+            var values = new List<double>();
+            var end = 0;
+            var total = 0D;
+            foreach (Match match in matches)
+            {
+                double value;
+                if (!SvgSeparators(source, end, match.Index) || !SvgFinite(match.Groups["n"].Value, out value) || value < 0D || value > MaxSvgSize) return false;
+                values.Add(value);
+                total += value;
+                end = match.Index + match.Length;
+            }
+            if (!SvgSeparators(source, end, source.Length) || total <= 0D) return false;
+            if (values.Count % 2 == 1) values.AddRange(values.ToArray());
+            result = values.ToArray();
+            return true;
         }
 
         private static string SvgLabel(N svg)
@@ -6957,18 +7041,25 @@ namespace Lea.Engine
             public string S = "none";
             public string C = "#000000";
             public string A = "s";
+            public string R = "n";
+            public string Cr = "n";
+            public string Lc = "b";
+            public string Lj = "m";
             public double W = 1D;
             public double O = 1D;
             public double Fo = 1D;
             public double So = 1D;
             public double Z = 16D;
+            public double Ml = 4D;
+            public double Do;
+            public double[] Da = new double[0];
             public string X = "";
             public double[] M = SvgIdentity();
             public double[] Xm = SvgIdentity();
 
             public Sv Copy()
             {
-                return new Sv { F = F, S = S, C = C, A = A, W = W, O = O, Fo = Fo, So = So, Z = Z, X = X, M = (double[])M.Clone(), Xm = (double[])Xm.Clone() };
+                return new Sv { F = F, S = S, C = C, A = A, R = R, Cr = Cr, Lc = Lc, Lj = Lj, W = W, O = O, Fo = Fo, So = So, Z = Z, Ml = Ml, Do = Do, Da = (double[])Da.Clone(), X = X, M = (double[])M.Clone(), Xm = (double[])Xm.Clone() };
             }
         }
 

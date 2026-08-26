@@ -14,8 +14,13 @@ namespace Lea.Engine
             S = "none";
             C = "#000000";
             A = "s";
+            Fr = "n";
+            Lc = "b";
+            Lj = "m";
+            Ml = 4D;
             P = new List<double>();
             D = new List<Vp>();
+            Da = new List<double>();
             Cm = new List<double> { 1D, 0D, 0D, 1D, 0D, 0D };
             M = new List<double> { 1D, 0D, 0D, 1D, 0D, 0D };
         }
@@ -26,11 +31,16 @@ namespace Lea.Engine
         public string S { get; internal set; }
         public string C { get; internal set; }
         public string A { get; internal set; }
+        public string Fr { get; internal set; }
+        public string Lc { get; internal set; }
+        public string Lj { get; internal set; }
         public double W { get; internal set; }
         public double O { get; internal set; }
         public double Fo { get; internal set; }
         public double So { get; internal set; }
         public double Z { get; internal set; }
+        public double Ml { get; internal set; }
+        public double Do { get; internal set; }
         public Uri U { get; internal set; }
         public N El { get; internal set; }
         public Vd Fd { get; internal set; }
@@ -39,6 +49,7 @@ namespace Lea.Engine
         public bool Cl { get; internal set; }
         public IList<double> P { get; private set; }
         public IList<Vp> D { get; private set; }
+        public IList<double> Da { get; private set; }
         public IList<double> Cm { get; private set; }
         public IList<double> M { get; private set; }
     }

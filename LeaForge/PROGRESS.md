@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **36**
+Post-1.0 hardening milestones completed: **37**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,17 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded SVG winding and stroke styles through compact
+  `Vs.Fr/Lc/Lj/Ml/Da/Do` aliases. Presentation, specificity-ordered stylesheet,
+  inline, custom-property, and important declarations now share one inherited
+  vector paint state for nonzero/evenodd fill and clip rules, butt/round/square
+  caps, miter/round/bevel joins, miter limits, and dash arrays/offsets. Odd dash
+  lists repeat to an even list; `none` clears them; malformed values retain the
+  inherited state; and 16-value, 256-character, 2,000-unit, and 64-miter ceilings
+  keep parsing and GDI+ paint bounded. Region clip unions, painted holes, stroke
+  bounds, linked hits, exact pixels, benchmark, and Firespider host coverage
+  bring the suite to 47 fixtures and 46 executable probes.
 
 - Added bounded SVG reusable geometry and clip paths through compact `Vg.Cs`,
   `Vs.Cp/Cl/Cm`, `Vc`, and computed `S.Cp` aliases. Local `<use>` expands

@@ -2700,14 +2700,14 @@ namespace Lea.Win
                     var strokeScale = VectorStrokeScale(shape, scaleX, scaleY);
                     RectangleF sourceBounds;
                     using (var path = VectorPath(shape, scaleX, scaleY, translateX, translateY, out sourceBounds))
-                    using (var clipPath = shape.Cp == null ? null : VectorClipPath(shape, sourceBounds, scaleX, scaleY, translateX, translateY))
+                    using (var clipRegion = shape.Cp == null ? null : VectorClipRegion(shape, sourceBounds, scaleX, scaleY, translateX, translateY))
                     {
                         if (path == null || path.PointCount == 0) continue;
-                        if (shape.Cl && (shape.Cp == null || clipPath == null || clipPath.PointCount == 0)) continue;
+                        if (shape.Cl && (shape.Cp == null || clipRegion == null || clipRegion.IsEmpty(graphics))) continue;
                         var shapeState = graphics.Save();
                         try
                         {
-                            if (clipPath != null) graphics.SetClip(clipPath, CombineMode.Intersect);
+                            if (clipRegion != null) graphics.SetClip(clipRegion, CombineMode.Intersect);
                             var fill = shape.K != "line" && (shape.Fd != null || !VectorNone(shape.F));
                             var stroke = shape.W > 0 && (shape.Sd != null || !VectorNone(shape.S));
                             if (opacity > 0 && fill)
@@ -2726,7 +2726,7 @@ namespace Lea.Win
                                         if (brush != null)
                                             using (var pen = new Pen(brush, Math.Max(.5F, Math.Min(512F, (float)(shape.W * strokeScale)))))
                                             {
-                                                pen.LineJoin = LineJoin.Round;
+                                                VectorPenStyle(pen, shape, strokeScale);
                                                 graphics.DrawPath(pen, path);
                                             }
                                     }
@@ -2734,8 +2734,9 @@ namespace Lea.Win
                             if (shape.U != null)
                             {
                                 var bounds = Rectangle.Ceiling(path.GetBounds());
-                                bounds.Inflate(Math.Max(2, (int)Math.Ceiling(shape.W * strokeScale / 2D)), Math.Max(2, (int)Math.Ceiling(shape.W * strokeScale / 2D)));
-                                if (clipPath != null) bounds = Rectangle.Intersect(bounds, Rectangle.Ceiling(clipPath.GetBounds()));
+                                var padding = VectorStrokePadding(shape, stroke, strokeScale);
+                                bounds.Inflate(padding, padding);
+                                if (clipRegion != null) bounds = Rectangle.Intersect(bounds, Rectangle.Ceiling(clipRegion.GetBounds(graphics)));
                                 bounds = Rectangle.Intersect(bounds, rect);
                                 bounds = VisibleRect(bounds, clip);
                                 if (!bounds.IsEmpty) hits.Add(new Hit(bounds, shape.U, null, shape.El));
@@ -2796,7 +2797,7 @@ namespace Lea.Win
         {
             sourceBounds = RectangleF.Empty;
             if (shape == null) return null;
-            var path = new GraphicsPath(FillMode.Winding);
+            var path = new GraphicsPath(shape.Fr == "e" ? FillMode.Alternate : FillMode.Winding);
             try
             {
                 var points = shape.P;
@@ -2915,10 +2916,11 @@ namespace Lea.Win
             path.CloseFigure();
         }
 
-        private GraphicsPath VectorClipPath(Vs shape, RectangleF sourceBounds, double scaleX, double scaleY, double translateX, double translateY)
+        private Region VectorClipRegion(Vs shape, RectangleF sourceBounds, double scaleX, double scaleY, double translateX, double translateY)
         {
             if (shape == null || shape.Cp == null) return null;
-            var result = new GraphicsPath(FillMode.Winding);
+            var result = new Region();
+            result.MakeEmpty();
             try
             {
                 foreach (var clipShape in shape.Cp.Ss)
@@ -2936,7 +2938,7 @@ namespace Lea.Win
                         }
                         else values = VectorMatrixValues(shape.Cm, scaleX, scaleY, translateX, translateY);
                         using (var matrix = VectorMatrix(values)) part.Transform(matrix);
-                        result.AddPath(part, false);
+                        result.Union(part);
                     }
                 }
                 return result;
@@ -2951,6 +2953,31 @@ namespace Lea.Win
                 result.Dispose();
                 return null;
             }
+        }
+
+        private static void VectorPenStyle(Pen pen, Vs shape, double strokeScale)
+        {
+            if (pen == null || shape == null) return;
+            var cap = shape.Lc == "r" ? LineCap.Round : shape.Lc == "s" ? LineCap.Square : LineCap.Flat;
+            pen.StartCap = cap;
+            pen.EndCap = cap;
+            pen.DashCap = shape.Lc == "r" ? DashCap.Round : DashCap.Flat;
+            pen.LineJoin = shape.Lj == "r" ? LineJoin.Round : shape.Lj == "b" ? LineJoin.Bevel : LineJoin.Miter;
+            pen.MiterLimit = (float)Math.Max(1D, Math.Min(64D, shape.Ml));
+            if (shape.Da == null || shape.Da.Count == 0 || pen.Width <= 0F) return;
+            var unit = strokeScale / pen.Width;
+            var pattern = new float[shape.Da.Count];
+            for (var index = 0; index < pattern.Length; index++) pattern[index] = (float)Math.Max(.01D, Math.Min(100000D, shape.Da[index] * unit));
+            pen.DashPattern = pattern;
+            pen.DashOffset = (float)Math.Max(-100000D, Math.Min(100000D, shape.Do * unit));
+        }
+
+        private static int VectorStrokePadding(Vs shape, bool stroke, double strokeScale)
+        {
+            if (!stroke || shape == null) return 2;
+            var padding = shape.W * strokeScale / 2D;
+            if (shape.Lj == "m" && shape.K != "line") padding *= Math.Max(1D, Math.Min(64D, shape.Ml));
+            return Math.Max(2, (int)Math.Ceiling(Math.Min(Int32.MaxValue / 4D, padding)));
         }
 
         private static Brush VectorBrush(Vs shape, Vd gradient, string value, RectangleF bounds, double scaleX, double scaleY, double translateX, double translateY, string current, Color fallback, int opacity)

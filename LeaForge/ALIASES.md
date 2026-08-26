@@ -711,7 +711,10 @@ uses `K` for kind, `P` for primitive coordinates, `D` for canonical `Vp` path
 steps, `M` for its six-number cumulative transform matrix, `T` for text, `F/S/C` for fill,
 stroke, and current color, `W` for stroke width, `O/Fo/So` for total/fill/stroke
 opacity, `Z` for font size, `A=s/m/e` for text anchor, and `U/El` for a linked
-target and source element. Each `Vp` is one absolute `K=M/L/C/Q/Z` step with
+target and source element. `Fr=n/e` selects nonzero or evenodd fill winding;
+`Lc=b/r/s` selects butt, round, or square caps; `Lj=m/r/b` selects miter, round,
+or bevel joins; `Ml` is the bounded miter limit; `Da` is the normalized even
+dash list; and `Do` is its offset. Each `Vp` is one absolute `K=M/L/C/Q/Z` step with
 `X/Y` as its endpoint; `A/B` hold one curve control and cubic steps also use
 `C/D` for their second control. Smooth commands are resolved and arcs are
 converted to bounded cubic steps while parsing.
@@ -729,6 +732,7 @@ uses `I` for its local ID, `U=u/b` for user-space or object-bounds units, `M`
 for its six-number root transform, and `Ss` for up to 32 geometry-only `Vs`
 shapes. A painted shape uses `Vs.Cl` to say a clip was requested, `Cp` for the
 resolved definition, and `Cm` for the six-number matrix where the clip became
-active. Local `<use>` references expand into ordinary `Vs` records, so hosts do
+active. Geometry inside `Vc.Ss` uses `Vs.Fr` as its effective nonzero/evenodd
+clip winding. Local `<use>` references expand into ordinary `Vs` records, so hosts do
 not need a second instance tree; four nested references and 64 indexed IDs are
 the bounded ceilings, and cycles add no shapes.
