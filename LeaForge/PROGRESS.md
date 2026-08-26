@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **27**
+Post-1.0 hardening milestones completed: **28**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,14 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded CSS Grid auto placement through `S.Gf=r/d/c/x`. Sparse and
+  dense row/column flow, earlier-hole backfill, equal-share implicit columns,
+  definite-first occupancy, real-height visual traversal, and a safe
+  non-overlapping eight-column overflow path all reuse the existing renderer.
+  Reset/invalid parsing, exact geometry, paint, hits, following flow, benchmark,
+  and Firespider host coverage bring the suite to 38 fixtures and 37 executable
+  probes.
 
 - Added bounded named CSS Grid lines. Lazy `S.Gnc/Rnc` maps and one-based
   `Gx/Rx(name)` lookup inspect unique explicit names, while item

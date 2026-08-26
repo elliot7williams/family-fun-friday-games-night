@@ -71,9 +71,9 @@ LeaForge is where we can grow the more full-featured browser.
   integer `fr` sizes, simple `repeat()`/`minmax(0,Nfr)`, pixel gaps, bounded
   occupancy, two-axis spans, validated named-area templates with compact
   `Aa/Ar/Ac/Ag/An` aliases, unique named lines through `Gnc/Rnc/Gx/Rx` and
-  `Gn/Ge/Rn/Re`, generated area edges, definite-first placement, stable order,
-  implicit tracks, nested content, paint, hits, fields, auto-height measurement,
-  and responsive reflow
+  `Gn/Ge/Rn/Re`, generated area edges, `Gf` row/column sparse/dense auto flow,
+  definite-first placement, bounded equal implicit columns, nested content,
+  paint, hits, fields, auto-height measurement, and responsive reflow
 - auto-height styled semantic containers with nested normal-flow ownership
 - nested positioning with explicit z-index, opacity/isolation contexts, settled auto height, and inherited clipping
 - compact inset stretching plus translated block stacking contexts

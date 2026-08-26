@@ -3192,6 +3192,7 @@ namespace Lea.Engine
                 else if (name == "grid-template-columns") GridTemplate(style, value, false);
                 else if (name == "grid-template-rows") GridTemplate(style, value, true);
                 else if (name == "grid-template-areas") GridTemplateAreas(style, value);
+                else if (name == "grid-auto-flow") GridAutoFlow(style, value);
                 else if (name == "grid-column") GridPlacement(style, value, false);
                 else if (name == "grid-column-start") GridPlacementStart(style, value, false);
                 else if (name == "grid-column-end") GridPlacementEnd(style, value, false);
@@ -3581,6 +3582,15 @@ namespace Lea.Engine
                 !value.Equals("initial", StringComparison.OrdinalIgnoreCase) && !value.Equals("inherit", StringComparison.OrdinalIgnoreCase) &&
                 !value.Equals("unset", StringComparison.OrdinalIgnoreCase) && !value.Equals("revert", StringComparison.OrdinalIgnoreCase) &&
                 !value.Equals("revert-layer", StringComparison.OrdinalIgnoreCase) && !value.Equals("default", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static void GridAutoFlow(S style, string value)
+        {
+            var source = Regex.Replace((value ?? "").Trim().ToLowerInvariant(), "\\s+", " ");
+            if (source == "row" || source == "initial" || source == "unset" || source == "revert") style.Gf = "r";
+            else if (source == "dense" || source == "row dense" || source == "dense row") style.Gf = "d";
+            else if (source == "column") style.Gf = "c";
+            else if (source == "column dense" || source == "dense column") style.Gf = "x";
         }
 
         private static void GridPlacement(S style, string value, bool rows)

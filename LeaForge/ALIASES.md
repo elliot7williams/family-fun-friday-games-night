@@ -236,7 +236,21 @@ tracks, and 512 source characters. Simple repeat groups can sit between named
 outer lines. Duplicate, reserved, malformed, oversized, and excess names reject
 the whole declaration while preserving a prior valid value. Escaped names,
 repeated-name occurrence indexes, named spans, intrinsic/percentage tracks,
-auto-fit/fill, dense or column flow, and subgrid remain outside this subset.
+auto-fit/fill, and subgrid remain outside this subset.
+
+`grid-auto-flow` uses one compact container alias: `Gf=r/d/c/x` means sparse
+row, dense row, sparse column, or dense column. Row flow keeps Lea's existing
+forward cursor and creates implicit rows. Dense row restarts that cursor for
+each automatic item so a later smaller span can fill an earlier hole. Column
+flow swaps the search axes, wraps through one to eight explicit/template rows,
+and creates equal-share implicit columns. Dense column combines both behaviors.
+Definite items still reserve cells first and automatic items still enter in
+order-modified source order; non-default visual traversal follows resolved
+rows/columns while DOM, focus, form, and accessibility ownership remain intact.
+At most eight columns are generated. Content beyond that ceiling safely uses
+additional rows in the final column instead of overlapping. Custom
+`grid-auto-columns/rows` sizing, reverse flow, and shorthand `grid` auto-flow
+syntax remain outside the bounded subset.
 
 Document lookup stays short and bounded. `E.Id(page, id)` finds the first ID,
 `E.Q(page, selector)` finds the first document-order selector match, and

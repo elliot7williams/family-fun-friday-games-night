@@ -2530,6 +2530,43 @@ namespace Lea.Tests
                         Ok(!FragmentHitRect(view, "#line-target").IsEmpty && BlockOuterRect(view, BlockById(view.At, "after-lines")).Top > BlockOuterRect(view, BlockById(view.At, "line-target")).Bottom, "named line hits and following flow");
                         Ok(ColorDistance(linePaint.GetPixel(mainRect.Left + 4, mainRect.Top + 4), Color.FromArgb(199, 233, 255)) < 8, "named grid line paint");
                     }
+                    var flowPath = Path.Combine(root, "LeaForge", "test-pages", "grid-flow.html");
+                    var flowPage = engine.Go(flowPath);
+                    Ok(BlockById(flowPage, "row-sparse").S.Gf == "r" && BlockById(flowPage, "row-dense").S.Gf == "d" && BlockById(flowPage, "column-flow").S.Gf == "c" && BlockById(flowPage, "column-dense").S.Gf == "x", "grid auto-flow compact aliases");
+                    Ok(BlockById(flowPage, "flow-reset").S.Gf == "r" && BlockById(flowPage, "flow-invalid").S.Gf == "c", "grid auto-flow reset and invalid preservation");
+                    view.Size = new Size(720, 1900);
+                    view.Go(flowPath);
+                    using (var flowPaint = Render(view))
+                    {
+                        var rowSparseA = BlockOuterRect(view, BlockById(view.At, "row-sparse-a"));
+                        var rowSparseB = BlockOuterRect(view, BlockById(view.At, "row-sparse-b"));
+                        var rowSparseC = BlockOuterRect(view, BlockById(view.At, "row-sparse-c"));
+                        var rowDenseA = BlockOuterRect(view, BlockById(view.At, "row-dense-a"));
+                        var rowDenseB = BlockOuterRect(view, BlockById(view.At, "row-dense-b"));
+                        var rowDenseC = BlockOuterRect(view, BlockById(view.At, "row-dense-c"));
+                        Ok(rowSparseA.Width == 198 && rowSparseC.Width == 96 && rowSparseC.Top == rowSparseB.Top && rowSparseC.Left > rowSparseB.Left, "sparse row auto flow keeps its forward cursor");
+                        Ok(rowDenseA.Width == 198 && rowDenseC.Width == 96 && rowDenseC.Top == rowDenseA.Top && rowDenseC.Left > rowDenseA.Left && rowDenseB.Top > rowDenseA.Bottom, "dense row auto flow backfills the first hole");
+                        var columnOne = BlockOuterRect(view, BlockById(view.At, "column-one"));
+                        var columnTwo = BlockOuterRect(view, BlockById(view.At, "column-two"));
+                        var columnThree = BlockOuterRect(view, BlockById(view.At, "column-three"));
+                        var columnFour = BlockOuterRect(view, BlockById(view.At, "column-four"));
+                        var columnFive = BlockOuterRect(view, BlockById(view.At, "column-five"));
+                        Ok(columnOne.Width == 93 && columnThree.Width == 93 && columnFive.Width == 94 && columnOne.Height == 47 && columnTwo.Height == 48, "column auto flow creates equal implicit tracks");
+                        Ok(columnOne.Left == columnTwo.Left && columnThree.Left == columnFour.Left && columnThree.Left - columnOne.Right == 10 && columnFive.Left - columnThree.Right == 10 && columnTwo.Top - columnOne.Bottom == 5, "column auto flow fills rows then columns");
+                        var columnSparseA = BlockOuterRect(view, BlockById(view.At, "column-sparse-a"));
+                        var columnSparseB = BlockOuterRect(view, BlockById(view.At, "column-sparse-b"));
+                        var columnSparseC = BlockOuterRect(view, BlockById(view.At, "column-sparse-c"));
+                        var columnDenseA = BlockOuterRect(view, BlockById(view.At, "column-dense-a"));
+                        var columnDenseB = BlockOuterRect(view, BlockById(view.At, "column-dense-b"));
+                        var columnDenseC = BlockOuterRect(view, BlockById(view.At, "column-dense-c"));
+                        Ok(columnSparseC.Left == columnSparseB.Left && columnSparseC.Top > columnSparseB.Top, "sparse column flow leaves the earlier hole");
+                        Ok(columnDenseC.Left == columnDenseA.Left && columnDenseC.Top > columnDenseA.Top && columnDenseB.Left > columnDenseA.Right, "dense column flow backfills the earlier hole");
+                        var ceilingEight = BlockOuterRect(view, BlockById(view.At, "ceiling-eight"));
+                        var ceilingNine = BlockOuterRect(view, BlockById(view.At, "ceiling-nine"));
+                        Ok(ceilingEight.Left == ceilingNine.Left && ceilingNine.Top > ceilingEight.Top, "column flow uses bounded overflow rows after eight columns");
+                        Ok(!FragmentHitRect(view, "#flow-target").IsEmpty && BlockOuterRect(view, BlockById(view.At, "after-flow")).Top > BlockOuterRect(view, BlockById(view.At, "flow-target")).Bottom, "grid auto-flow hits and following flow");
+                        Ok(ColorDistance(flowPaint.GetPixel(columnFive.Left + 4, columnFive.Top + 4), Color.FromArgb(253, 227, 197)) < 8, "grid auto-flow paint");
+                    }
                     view.Size = new Size(720, 760);
                     var boxes = Path.Combine(root, "LeaForge", "test-pages", "boxes.html");
                     var boxPage = engine.Go(boxes);

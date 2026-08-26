@@ -964,7 +964,7 @@ namespace Lea.Win
         {
             var orderedGrid = false;
             foreach (var block in At.Bs)
-                if (block.Up != null && IsGrid(block.Up.S) && block.S != null && block.S.Or != 0) { orderedGrid = true; break; }
+                if (block.Up != null && IsGrid(block.Up.S) && (block.S != null && block.S.Or != 0 || block.Up.S.Gf != "r")) { orderedGrid = true; break; }
             if (!orderedGrid) return At.Bs;
 
             var result = new List<B>(At.Bs.Count);
@@ -990,8 +990,37 @@ namespace Lea.Win
             result.Add(block);
             List<B> owned;
             if (!children.TryGetValue(block, out owned)) return;
-            if (IsGrid(block.S)) SortFlexItems(owned);
+            if (IsGrid(block.S))
+            {
+                SortFlexItems(owned);
+                GridVisualSort(block.S, owned);
+            }
             foreach (var child in owned) AddLayoutBlock(child, children, result);
+        }
+
+        private static void GridVisualSort(S style, List<B> items)
+        {
+            if (style == null || style.Gf == "r" || items.Count < 2) return;
+            var columns = Math.Max(style.Gc, style.Ac);
+            if (columns == 0 && style.Gf != "c" && style.Gf != "x") return;
+            columns = Math.Max(1, columns);
+            var flow = new List<B>();
+            foreach (var item in items) if (!item.Hd && !OutOfFlow(item.S)) flow.Add(item);
+            if (flow.Count < 2) return;
+            int usedColumns;
+            var placements = GridPositions(flow, style, columns, out usedColumns);
+            var source = new Dictionary<B, int>();
+            for (var index = 0; index < flow.Count; index++) source[flow[index]] = index;
+            flow.Sort(delegate(B left, B right)
+            {
+                var row = placements[left].R.CompareTo(placements[right].R);
+                if (row != 0) return row;
+                var column = placements[left].C.CompareTo(placements[right].C);
+                return column != 0 ? column : source[left].CompareTo(source[right]);
+            });
+            var flowIndex = 0;
+            for (var index = 0; index < items.Count; index++)
+                if (!items[index].Hd && !OutOfFlow(items[index].S)) items[index] = flow[flowIndex++];
         }
 
         private static bool Inside(B block, B parent)
@@ -1123,14 +1152,18 @@ namespace Lea.Win
         private void GridSlots(Lc context)
         {
             var style = context.B.S;
-            if (style == null || Math.Max(style.Gc, style.Ac) == 0) return;
+            var columnFlow = style != null && (style.Gf == "c" || style.Gf == "x");
+            if (style == null || Math.Max(style.Gc, style.Ac) == 0 && !columnFlow) return;
             var items = new List<B>();
             foreach (var item in At.Bs)
                 if (!item.Hd && Object.ReferenceEquals(item.Up, context.B) && !OutOfFlow(item.S)) items.Add(item);
             if (items.Count == 0) return;
             SortFlexItems(items);
 
-            var columns = Math.Max(style.Gc, style.Ac);
+            var columns = Math.Max(1, Math.Max(style.Gc, style.Ac));
+            int usedColumns;
+            var placements = GridPositions(items, style, columns, out usedColumns);
+            columns = Math.Max(columns, usedColumns);
             var gap = Math.Min(style.Gp, Math.Max(0, context.C.Width / Math.Max(1, columns - 1)));
             var widths = GridTrackSizes(style, false, columns, context.C.Width, gap);
             var used = gap * Math.Max(0, columns - 1);
@@ -1149,7 +1182,6 @@ namespace Lea.Win
             context.Fi = -1;
             context.Fz = 0;
             context.Fr = style.Rg;
-            var placements = GridPositions(items, style, columns);
             var rows = Math.Max(style.Rc, style.Ar);
             foreach (var placement in placements.Values) rows = Math.Max(rows, placement.R + placement.Rs);
             var rowGap = rows < 2 ? 0 : Math.Min(style.Rg, Math.Max(0, context.C.Height / (rows - 1)));
@@ -1182,31 +1214,36 @@ namespace Lea.Win
                 else
                 {
                     naturalLine = Math.Max(naturalLine, placement.R);
-                    context.Fs[item] = new Fp(starts[placement.C], Math.Max(1, width), naturalLine);
+                    context.Fs[item] = new Fp(starts[placement.C], Math.Max(1, width), style.Gf == "r" ? naturalLine : placement.R);
                 }
             }
         }
 
-        private static Dictionary<B, Gq> GridPositions(IList<B> items, S container, int columns)
+        private static Dictionary<B, Gq> GridPositions(IList<B> items, S container, int columns, out int usedColumns)
         {
             var result = new Dictionary<B, Gq>();
             var occupied = new HashSet<int>();
+            var columnFlow = container.Gf == "c" || container.Gf == "x";
+            var dense = container.Gf == "d" || container.Gf == "x";
+            var placementColumns = columnFlow ? 8 : columns;
+            var rowLimit = Math.Max(1, Math.Max(container.Rc, container.Ar));
             var queue = new List<B>(items.Count);
-            foreach (var item in items) if (GridDefinite(container, item.S, columns)) queue.Add(item);
+            foreach (var item in items) if (GridDefinite(container, item.S, placementColumns)) queue.Add(item);
             var definite = queue.Count;
-            foreach (var item in items) if (!GridDefinite(container, item.S, columns)) queue.Add(item);
+            foreach (var item in items) if (!GridDefinite(container, item.S, placementColumns)) queue.Add(item);
             var cursorRow = 0;
             var cursorColumn = 0;
+            usedColumns = columns;
             for (var itemIndex = 0; itemIndex < queue.Count; itemIndex++)
             {
-                if (itemIndex == definite) { cursorRow = 0; cursorColumn = 0; }
+                if (itemIndex == definite || dense && itemIndex >= definite) { cursorRow = 0; cursorColumn = 0; }
                 var item = queue[itemIndex];
                 var style = item.S;
                 int areaRow;
                 int areaColumn;
                 int areaRowSpan;
                 int areaColumnSpan;
-                var named = GridNamedArea(container, style, columns, out areaRow, out areaColumn, out areaRowSpan, out areaColumnSpan);
+                var named = GridNamedArea(container, style, placementColumns, out areaRow, out areaColumn, out areaRowSpan, out areaColumnSpan);
                 int fixedColumn;
                 int columnSpan;
                 int fixedRow;
@@ -1220,31 +1257,53 @@ namespace Lea.Win
                 }
                 else
                 {
-                    GridAxis(container, style, false, columns, out fixedColumn, out columnSpan);
+                    GridAxis(container, style, false, placementColumns, out fixedColumn, out columnSpan);
                     GridAxis(container, style, true, 8, out fixedRow, out rowSpan);
                 }
                 var row = fixedRow >= 0 ? fixedRow : cursorRow;
-                var column = fixedColumn >= 0 ? fixedColumn : fixedRow >= 0 ? 0 : cursorColumn;
-                if (fixedRow < 0 && fixedColumn >= 0 && column < cursorColumn) row++;
+                var column = fixedColumn >= 0 ? fixedColumn : columnFlow ? cursorColumn : fixedRow >= 0 ? 0 : cursorColumn;
+                if (!columnFlow && fixedRow < 0 && fixedColumn >= 0 && column < cursorColumn) row++;
+                if (columnFlow && fixedColumn < 0 && fixedRow >= 0 && row < cursorRow) column++;
 
+                var placed = false;
                 for (var attempt = 0; attempt < 8192; attempt++)
                 {
-                    if (column + columnSpan <= columns && GridFree(occupied, columns, row, column, rowSpan, columnSpan)) break;
-                    if (fixedColumn >= 0) row++;
+                    var withinRows = !columnFlow || fixedColumn >= 0 || row + rowSpan <= rowLimit;
+                    if (column + columnSpan <= placementColumns && withinRows && GridFree(occupied, row, column, rowSpan, columnSpan)) { placed = true; break; }
+                    if (columnFlow)
+                    {
+                        if (fixedColumn >= 0) row++;
+                        else if (fixedRow >= 0) column++;
+                        else
+                        {
+                            row++;
+                            if (row + rowSpan > rowLimit) { column++; row = 0; }
+                        }
+                        if (column + columnSpan > placementColumns && fixedColumn < 0) break;
+                    }
+                    else if (fixedColumn >= 0) row++;
                     else
                     {
                         column++;
-                        if (column + columnSpan > columns) { row++; column = 0; }
+                        if (column + columnSpan > placementColumns) { row++; column = 0; }
                     }
                 }
-                column = Math.Max(0, Math.Min(columns - columnSpan, column));
-                GridOccupy(occupied, columns, row, column, rowSpan, columnSpan);
+                if (!placed && columnFlow)
+                {
+                    column = Math.Max(0, Math.Min(placementColumns - columnSpan, fixedColumn >= 0 ? fixedColumn : placementColumns - columnSpan));
+                    row = Math.Max(rowLimit, row);
+                    for (var attempt = 0; attempt < 8192 && !GridFree(occupied, row, column, rowSpan, columnSpan); attempt++) row++;
+                }
+                else column = Math.Max(0, Math.Min(placementColumns - columnSpan, column));
+                GridOccupy(occupied, row, column, rowSpan, columnSpan);
                 result[item] = new Gq(row, column, rowSpan, columnSpan);
+                usedColumns = Math.Max(usedColumns, column + columnSpan);
 
-                var nextRow = row;
-                var nextColumn = column + columnSpan;
-                if (nextColumn >= columns) { nextRow++; nextColumn = 0; }
-                if (nextRow > cursorRow || nextRow == cursorRow && nextColumn > cursorColumn)
+                var nextRow = columnFlow ? row + rowSpan : row;
+                var nextColumn = columnFlow ? column : column + columnSpan;
+                if (columnFlow && nextRow >= rowLimit) { nextRow = 0; nextColumn = column + columnSpan; }
+                else if (!columnFlow && nextColumn >= placementColumns) { nextRow++; nextColumn = 0; }
+                if (columnFlow ? nextColumn > cursorColumn || nextColumn == cursorColumn && nextRow > cursorRow : nextRow > cursorRow || nextRow == cursorRow && nextColumn > cursorColumn)
                 {
                     cursorRow = nextRow;
                     cursorColumn = nextColumn;
@@ -1311,18 +1370,18 @@ namespace Lea.Win
             return row >= 0 && column >= 0 && rowSpan > 0 && columnSpan > 0 && column + columnSpan <= columns;
         }
 
-        private static bool GridFree(ISet<int> occupied, int columns, int row, int column, int rowSpan, int columnSpan)
+        private static bool GridFree(ISet<int> occupied, int row, int column, int rowSpan, int columnSpan)
         {
             for (var y = row; y < row + rowSpan; y++)
                 for (var x = column; x < column + columnSpan; x++)
-                    if (occupied.Contains(y * columns + x)) return false;
+                    if (occupied.Contains(y * 8 + x)) return false;
             return true;
         }
 
-        private static void GridOccupy(ISet<int> occupied, int columns, int row, int column, int rowSpan, int columnSpan)
+        private static void GridOccupy(ISet<int> occupied, int row, int column, int rowSpan, int columnSpan)
         {
             for (var y = row; y < row + rowSpan; y++)
-                for (var x = column; x < column + columnSpan; x++) occupied.Add(y * columns + x);
+                for (var x = column; x < column + columnSpan; x++) occupied.Add(y * 8 + x);
         }
 
         private static int[] GridTrackSizes(S style, bool rows, int count, int available, int gap)

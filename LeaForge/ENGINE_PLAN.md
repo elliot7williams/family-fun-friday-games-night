@@ -127,8 +127,11 @@ Dg/Dcl  diagnostics/clear request activity
     groups add lazy `Gnc/Rnc/Gx/Rx` inspection, `Gn/Ge/Rn/Re` item edges,
     unique 16-name-per-axis validation, area-generated start/end lines, and
     mixed name/span placement. Escapes, repeated-name occurrence indexes, named
-    spans, intrinsic tracks, auto-fit/fill, dense/column flow, and subgrid stay
-    outside.)
+    spans, intrinsic tracks, auto-fit/fill, and subgrid stay outside. Compact
+    `Gf=r/d/c/x` adds sparse/dense row/column auto placement, earlier-hole
+    backfill, equal-share implicit columns, non-overlapping eight-column
+    overflow, and real-height visual traversal. Custom auto-track sizing,
+    reverse flow, and grid auto-flow shorthand syntax stay outside.)
 
 This is the largest speed milestone: fewer controls, less UI overhead, and one
 predictable rendering pass.
@@ -311,7 +314,13 @@ non-empty bridge survives both direct and external MTA clients. Continue host
 coverage and bounded HTML/CSS compatibility work without adding another browser
 runtime.
 
-The latest completed grid milestone added bounded unique named lines to column
+The latest completed grid milestone added bounded `grid-auto-flow` through one
+`Gf=r/d/c/x` alias. Sparse/dense row and column cursors, earlier-hole backfill,
+equal implicit columns, an eight-column overflow fallback, auto-height visual
+traversal, exact geometry, invalid values, benchmark, and Firespider coverage
+all share the existing placement map and custom renderer.
+
+The previous grid milestone added bounded unique named lines to column
 and row track lists. Lazy exact maps expose `Gnc/Rnc/Gx/Rx`, items retain
 `Gn/Ge/Rn/Re`, named areas generate start/end edges without duplicate storage,
 and shorthand/longhand resolution shares definite-first occupancy, exact

@@ -283,9 +283,16 @@ longhands, numeric/name combinations, spans, and area-generated
 `name-start/name-end` edges resolve before automatic placement. Each axis keeps
 at most 16 explicit names, eight names per line, 32 characters per name, and
 the existing eight-track/512-character bounds. Invalid declarations are atomic.
-Escaped or repeated-name occurrence indexes, named spans, intrinsic or
-percentage tracks, auto-fit/fill, dense/column flow, subgrid, and true
-inline-level outer formatting remain explicit compatibility limits.
+`grid-auto-flow` adds compact `S.Gf=r/d/c/x` state for sparse/dense row/column
+placement. Dense modes backfill earlier holes; column modes wrap through the
+bounded explicit/template row count and create equal-share implicit columns.
+Resolved non-default flow order feeds the existing real-height measurement pass,
+while DOM ownership and semantics stay unchanged. Eight columns are the hard
+ceiling; excess content continues in additional final-column rows without
+overlap. Escaped or repeated-name occurrence indexes, named spans, custom
+auto-track sizing, reverse flow, intrinsic or percentage tracks, auto-fit/fill,
+subgrid, and true inline-level outer formatting remain explicit compatibility
+limits.
 
 Inherited visibility uses `S.Vi` with `v/h/c`. Hidden and collapsed content
 keeps its layout rectangle but produces no pixels, links, field hits, or editor.

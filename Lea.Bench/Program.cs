@@ -111,7 +111,7 @@ namespace Lea.Bench
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
-                "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html",
+                "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html",
                 "box-sizing.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
@@ -962,6 +962,38 @@ namespace Lea.Bench
                 }
                 return "Gnc/Rnc/Gx/Rx templates plus Gn/Ge/Rn/Re item names, area-generated edges, unique validation, repeats, definite-first placement, bounds, paint, hits, and flow";
             });
+            AddProbe(probes, "Bounded grid auto flow", delegate
+            {
+                var path = Path.Combine(folder, "grid-flow.html");
+                var page = new E().Go(path);
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "row-sparse").S.Gf == "r" && page.Bs.First(block => block.El != null && block.El.Av("id") == "row-dense").S.Gf == "d" && page.Bs.First(block => block.El != null && block.El.Av("id") == "column-flow").S.Gf == "c" && page.Bs.First(block => block.El != null && block.El.Av("id") == "column-dense").S.Gf == "x", "grid auto-flow aliases changed");
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "flow-reset").S.Gf == "r" && page.Bs.First(block => block.El != null && block.El.Av("id") == "flow-invalid").S.Gf == "c", "grid auto-flow validation changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1900);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var sparseA = BlockOuter(view, "row-sparse-a");
+                        var sparseB = BlockOuter(view, "row-sparse-b");
+                        var sparseC = BlockOuter(view, "row-sparse-c");
+                        var denseA = BlockOuter(view, "row-dense-a");
+                        var denseB = BlockOuter(view, "row-dense-b");
+                        var denseC = BlockOuter(view, "row-dense-c");
+                        Need(sparseA.Width == 198 && sparseC.Width == 96 && sparseC.Top == sparseB.Top && denseA.Width == 198 && denseC.Top == denseA.Top && denseB.Top > denseA.Bottom, "row sparse or dense placement changed");
+                        var one = BlockOuter(view, "column-one");
+                        var two = BlockOuter(view, "column-two");
+                        var three = BlockOuter(view, "column-three");
+                        var five = BlockOuter(view, "column-five");
+                        Need(one.Width == 93 && three.Width == 93 && five.Width == 94 && one.Left == two.Left && three.Left - one.Right == 10, "column flow implicit tracks changed");
+                        Need(BlockOuter(view, "column-sparse-c").Left == BlockOuter(view, "column-sparse-b").Left && BlockOuter(view, "column-dense-c").Left == BlockOuter(view, "column-dense-a").Left, "column dense placement changed");
+                        var eight = BlockOuter(view, "ceiling-eight");
+                        var nine = BlockOuter(view, "ceiling-nine");
+                        Need(eight.Left == nine.Left && nine.Top > eight.Top && ColoredSamples(image) > 0, "column flow ceiling or paint changed");
+                    }
+                }
+                return "Gf r/d/c/x flow, sparse cursors, dense backfill, row/column swapping, equal implicit columns, eight-column overflow, bounds, paint, hits, and flow";
+            });
             AddProbe(probes, "Forms and validation", delegate
             {
                 var engine = new E();
@@ -1168,7 +1200,7 @@ namespace Lea.Bench
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
             Capability(builder, "Flexbox", "Supported subset", "Row/row-reverse and fixed-height column/column-reverse containers, content/border-box pixel bases, stable -64..64 order on nowrap rows and bounded columns, bounded row wrap, fixed/equal-share/weighted grow and integer weighted-shrink slots, explicit pixel min/max floors, pixel row/column gaps, start/center/end/space-between/space-around/space-evenly justification, and container/item stretch/start/center/end cross alignment; no intrinsic min-content sizing, fractional factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis alignment, or auto-height column reordering guarantee");
-            Capability(builder, "CSS Grid", "Supported subset", "Grid/inline-grid with up to eight fixed-pixel or integer-fr tracks per explicit axis, simple repeat and minmax(0, Nfr), pixel gaps, bounded row-major occupancy, two-axis numeric starts/spans, validated 8x8 named-area templates, unique explicit named lines, area-generated start/end lines, definite-first placement, implicit tracks, stable order, auto-height settling, and shared nested paint/hit/reflow; no escaped or repeated-name occurrence indexes, dense/column flow, intrinsic or percentage tracks, auto-fit/fill, or subgrid");
+            Capability(builder, "CSS Grid", "Supported subset", "Grid/inline-grid with up to eight fixed-pixel or integer-fr tracks per explicit axis, simple repeat and minmax(0, Nfr), pixel gaps, bounded occupancy, two-axis numeric starts/spans, validated 8x8 named-area templates, unique explicit named lines, area-generated start/end lines, Gf row/column sparse/dense flow, equal implicit columns, definite-first placement, auto-height settling, and shared nested paint/hit/reflow; no escaped or repeated-name occurrence indexes, custom auto-track sizing, reverse flow, intrinsic or percentage tracks, auto-fit/fill, or subgrid");
             Capability(builder, "Canvas and SVG", "Not supported", "Future compatibility work; no silent fallback claim");
             Capability(builder, "Audio and video", "Not supported", "Future optional module");
             Capability(builder, "Developer diagnostics", "Supported", "Bounded summary, node, CSS, request, message, and variable snapshots");

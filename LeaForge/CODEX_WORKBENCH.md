@@ -36,11 +36,15 @@ Safe scripts and hosts now also use `hd/sh`, `op/cl/tg`, `ds/en`, `vl`, `ck`, an
 `fo` for bounded visibility, disclosure, disabled, value, checked, and focus state. A retained field
 map preserves one existing model while hidden; `E.Kp` and `V` consume one focus
 request without exposing files, passwords, arbitrary attributes, or native UI.
-`grid-lines.html` brings the benchmark to 37 fixtures and 36 executable
-compatibility probes. Lazy `Gnc/Rnc/Gx/Rx` maps, item `Gn/Ge/Rn/Re` edges,
+`grid-flow.html` brings the benchmark to 38 fixtures and 37 executable
+compatibility probes. Compact `Gf=r/d/c/x`, sparse and dense row/column cursors,
+earlier-hole backfill, equal-share implicit columns, the non-overlapping
+eight-column ceiling, auto-height visual traversal, exact paint/flow geometry,
+and Firespider host checks cover the new path. The preceding `grid-lines.html`
+fixture covers lazy `Gnc/Rnc/Gx/Rx` maps, item `Gn/Ge/Rn/Re` edges,
 case-sensitive unique validation, area-generated start/end lines, repeat and
 declaration-order limits, exact paint/flow geometry, and Firespider host checks
-cover the new path. The preceding `grid-areas.html` fixture covers compact
+cover that path. The preceding `grid-areas.html` fixture covers compact
 `Aa/Ar/Ac/Ag/An` aliases, equal-row and rectangular validation, dot cells,
 definite-first occupancy,
 implicit columns, nested inline hits, exact paint/flow geometry, strict 8x8 and
