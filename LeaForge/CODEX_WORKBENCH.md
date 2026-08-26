@@ -36,8 +36,13 @@ Safe scripts and hosts now also use `hd/sh`, `op/cl/tg`, `ds/en`, `vl`, `ck`, an
 `fo` for bounded visibility, disclosure, disabled, value, checked, and focus state. A retained field
 map preserves one existing model while hidden; `E.Kp` and `V` consume one focus
 request without exposing files, passwords, arbitrary attributes, or native UI.
-`grid-shorthand.html` brings the benchmark to 40 fixtures and 39 executable
-compatibility probes. Atomic `grid-template` and `grid` compilation covers
+`grid-alignment.html` brings the benchmark to 41 fixtures and 40 executable
+compatibility probes. Compact `Ji/Js/Ai/As` state covers container defaults and
+item overrides across start, center, end, and stretch, while atomic
+`place-items`/`place-self`, measured auto width, exact geometry, paint, hits,
+following flow, and Firespider host checks share the existing renderer. The
+preceding `grid-shorthand.html` fixture covers atomic `grid-template` and `grid`
+compilation across
 explicit tracks, optionally sized quoted areas, row/column auto-flow and dense
 forms, explicit auto tracks, owned reset boundaries, malformed declaration
 preservation, exact geometry, paint, hits, following flow, and Firespider host

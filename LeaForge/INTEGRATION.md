@@ -303,10 +303,15 @@ automatic state. `grid` accepts those forms plus row/column `auto-flow` and
 `dense` forms, resets all owned explicit and implicit properties to their
 defaults, and leaves `Gp/Rg` gaps unchanged. Explicit `auto` tracks use `S.Av`.
 Both shorthands are capped at 1,024 characters and one top-level slash; scratch
-state makes every invalid declaration atomic. Reverse flow, pre-explicit
-implicit tracks, line names around quoted shorthand area rows, intrinsic or
-percentage tracks, auto-fit/fill, subgrid, and true inline-level outer formatting
-remain explicit compatibility limits.
+state makes every invalid declaration atomic. Grid item alignment uses compact
+container `Ji/Ai` defaults and item `Js/As` overrides with `t/s/c/e` for
+stretch/start/center/end. Longhands and atomic `place-items`/`place-self` align
+margin boxes within resolved areas; simple auto-width text is measured and
+definite dimensions remain exact. Block-axis center/end/stretch requires a
+resolved row rectangle. Reverse flow, pre-explicit implicit tracks, line names
+around quoted shorthand area rows, intrinsic or percentage tracks, auto-fit/fill,
+subgrid, baseline or safe/unsafe alignment, writing-mode axis reversal, and true
+inline-level outer formatting remain explicit compatibility limits.
 
 Inherited visibility uses `S.Vi` with `v/h/c`. Hidden and collapsed content
 keeps its layout rectangle but produces no pixels, links, field hits, or editor.

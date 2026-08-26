@@ -136,8 +136,11 @@ Dg/Dcl  diagnostics/clear request activity
     and exact auto-height row settlement. Atomic `grid-template`/`grid` forms add
     explicit rows/columns, optionally sized quoted areas, row/column auto-flow
     and dense syntax, explicit auto tracks, and standard owned-property resets
-    without resetting gaps. Reverse flow, pre-explicit implicit tracks, quoted
-    area-row line names, and intrinsic/percentage tracks stay outside.)
+    without resetting gaps. Compact `Ji/Js/Ai/As` item alignment adds
+    stretch/start/center/end container defaults and overrides plus atomic
+    `place-items`/`place-self`. Reverse flow, pre-explicit implicit tracks,
+    quoted area-row line names, intrinsic/percentage tracks, baseline alignment,
+    and writing-mode axis reversal stay outside.)
 
 This is the largest speed milestone: fewer controls, less UI overhead, and one
 predictable rendering pass.
@@ -320,8 +323,14 @@ non-empty bridge survives both direct and external MTA clients. Continue host
 coverage and bounded HTML/CSS compatibility work without adding another browser
 runtime.
 
-The latest completed grid milestone added bounded atomic `grid-template` and
-`grid` shorthands. Explicit rows/columns, optionally sized quoted areas,
+The latest completed grid milestone added bounded Grid item alignment. Compact
+`Ji/Js/Ai/As` state, start/center/end/stretch defaults and overrides, atomic
+`place-items`/`place-self`, measured simple-text auto width, resolved-row block
+alignment, exact geometry, paint, hits, benchmark, and Firespider host coverage
+all reuse the existing slot and renderer path.
+
+The previous grid milestone added bounded atomic `grid-template` and `grid`
+shorthands. Explicit rows/columns, optionally sized quoted areas,
 row/column auto-flow and dense forms, explicit auto tracks, standard reset
 boundaries, and preserved gaps all compile into the existing aliases. Scratch
 state makes malformed sides, areas, tracks, flow markers, and extra slashes

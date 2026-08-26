@@ -3184,8 +3184,12 @@ namespace Lea.Engine
                 else if (name == "flex") FlexValue(style, value);
                 else if (name == "order") FlexOrder(style, value);
                 else if (name == "justify-content") JustifyContent(style, value);
+                else if (name == "justify-items") JustifyItems(style, value);
+                else if (name == "justify-self") JustifySelf(style, value);
                 else if (name == "align-items") AlignItems(style, value);
                 else if (name == "align-self") AlignSelf(style, value);
+                else if (name == "place-items") PlaceAlignment(style, value, false);
+                else if (name == "place-self") PlaceAlignment(style, value, true);
                 else if (name == "gap" || name == "grid-gap") Gap(style, value);
                 else if (name == "column-gap" || name == "grid-column-gap") OneGap(style, value, false);
                 else if (name == "row-gap" || name == "grid-row-gap") OneGap(style, value, true);
@@ -4065,21 +4069,53 @@ namespace Lea.Engine
 
         private static void AlignItems(S style, string value)
         {
-            var align = (value ?? "").Trim().ToLowerInvariant();
-            if (align == "stretch" || align == "normal" || align == "initial") style.Ai = "t";
-            else if (align == "flex-start" || align == "start" || align == "self-start") style.Ai = "s";
-            else if (align == "center") style.Ai = "c";
-            else if (align == "flex-end" || align == "end" || align == "self-end") style.Ai = "e";
+            string align;
+            if (AlignmentValue(value, false, false, out align)) style.Ai = align;
         }
 
         private static void AlignSelf(S style, string value)
         {
-            var align = (value ?? "").Trim().ToLowerInvariant();
-            if (align == "auto" || align == "initial" || align == "unset" || align == "revert") style.As = "";
-            else if (align == "stretch" || align == "normal") style.As = "t";
-            else if (align == "flex-start" || align == "start" || align == "self-start") style.As = "s";
-            else if (align == "center") style.As = "c";
-            else if (align == "flex-end" || align == "end" || align == "self-end") style.As = "e";
+            string align;
+            if (AlignmentValue(value, true, false, out align)) style.As = align;
+        }
+
+        private static void JustifyItems(S style, string value)
+        {
+            string align;
+            if (AlignmentValue(value, false, true, out align)) style.Ji = align;
+        }
+
+        private static void JustifySelf(S style, string value)
+        {
+            string align;
+            if (AlignmentValue(value, true, true, out align)) style.Js = align;
+        }
+
+        private static void PlaceAlignment(S style, string value, bool self)
+        {
+            var source = Regex.Replace((value ?? "").Trim(), "\\s+", " ");
+            if (source.Length == 0 || source.Length > 64) return;
+            var parts = source.Split(' ');
+            if (parts.Length < 1 || parts.Length > 2) return;
+            string vertical;
+            string horizontal;
+            if (!AlignmentValue(parts[0], self, false, out vertical) ||
+                !AlignmentValue(parts.Length == 1 ? parts[0] : parts[1], self, true, out horizontal)) return;
+            if (self) { style.As = vertical; style.Js = horizontal; }
+            else { style.Ai = vertical; style.Ji = horizontal; }
+        }
+
+        private static bool AlignmentValue(string value, bool self, bool horizontal, out string align)
+        {
+            align = "";
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (self && (source == "auto" || source == "initial" || source == "unset" || source == "revert" || source == "revert-layer")) return true;
+            if (!self && (source == "initial" || source == "unset" || source == "revert" || source == "revert-layer")) { align = "t"; return true; }
+            if (source == "stretch" || source == "normal") { align = "t"; return true; }
+            if (source == "flex-start" || source == "start" || source == "self-start" || horizontal && source == "left") { align = "s"; return true; }
+            if (source == "center") { align = "c"; return true; }
+            if (source == "flex-end" || source == "end" || source == "self-end" || horizontal && source == "right") { align = "e"; return true; }
+            return false;
         }
 
         private static void Offset(S style, string value, int side)

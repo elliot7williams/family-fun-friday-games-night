@@ -111,7 +111,7 @@ namespace Lea.Bench
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
-                "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html",
+                "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html",
                 "box-sizing.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
@@ -1081,6 +1081,46 @@ namespace Lea.Bench
                 }
                 return "Atomic grid-template/grid explicit and quoted-area forms, row/column auto-flow dense forms, automatic patterns, reset boundaries, explicit auto tracks, geometry, paint, hits, and flow";
             });
+            AddProbe(probes, "Bounded grid item alignment", delegate
+            {
+                var path = Path.Combine(folder, "grid-alignment.html");
+                var page = new E().Go(path);
+                var place = page.Bs.First(block => block.El != null && block.El.Av("id") == "place-grid").S;
+                var placeB = page.Bs.First(block => block.El != null && block.El.Av("id") == "place-b").S;
+                var placeC = page.Bs.First(block => block.El != null && block.El.Av("id") == "place-c").S;
+                var atomic = page.Bs.First(block => block.El != null && block.El.Av("id") == "atomic-items").S;
+                var atomicSelf = page.Bs.First(block => block.El != null && block.El.Av("id") == "atomic-self").S;
+                var reset = page.Bs.First(block => block.El != null && block.El.Av("id") == "reset-items").S;
+                var resetSelf = page.Bs.First(block => block.El != null && block.El.Av("id") == "reset-self").S;
+                var two = page.Bs.First(block => block.El != null && block.El.Av("id") == "two-items").S;
+                var twoSelf = page.Bs.First(block => block.El != null && block.El.Av("id") == "two-self").S;
+                Need(place.Ji == "c" && place.Ai == "c" && placeB.Js == "e" && placeB.As == "e" && placeC.Js == "t" && placeC.As == "t", "grid alignment aliases changed");
+                Need(atomic.Ji == "e" && atomic.Ai == "s" && atomicSelf.Js == "e" && atomicSelf.As == "s" && reset.Ji == "t" && reset.Ai == "t" && resetSelf.Js == "" && resetSelf.As == "", "grid alignment atomic/reset state changed");
+                Need(two.Ai == "s" && two.Ji == "e" && twoSelf.As == "e" && twoSelf.Js == "c", "grid two-value place axis order changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1400);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var grid = BlockOuter(view, "place-grid");
+                        var a = BlockOuter(view, "place-a");
+                        var b = BlockOuter(view, "place-b");
+                        var c = BlockOuter(view, "place-c");
+                        var d = BlockOuter(view, "place-d");
+                        Need(a.Size == new Size(40, 20) && a.Left - grid.Left == 50 && a.Top - grid.Top == 40 && b.Size == new Size(50, 30) && b.Left - grid.Left == 250 && b.Top - grid.Top == 70, "grid center/end alignment geometry changed");
+                        Need(c.Size == new Size(140, 100) && c.Left == grid.Left && c.Top - grid.Top == 110 && d.Size == new Size(60, 40) && d.Left - grid.Left == 150 && d.Top - grid.Top == 110, "grid stretch/start alignment geometry changed");
+                        var fit = BlockOuter(view, "fit-grid");
+                        var fitText = BlockOuter(view, "fit-text");
+                        Need(fitText.Width > 1 && fitText.Width < fit.Width && fitText.Left - fit.Left == (fit.Width - fitText.Width) / 2 && fitText.Height < fit.Height && fitText.Top - fit.Top == (fit.Height - fitText.Height) / 2, "grid auto-size alignment changed");
+                        var fitClamp = BlockOuter(view, "fit-clamp-grid");
+                        var fitClampText = BlockOuter(view, "fit-clamp-text");
+                        Need(fitClampText.Width == 100 && fitClampText.Left == fitClamp.Left, "grid auto-fit minimum clamp changed");
+                        Need(ColoredSamples(image) > 0, "grid alignment paint changed");
+                    }
+                }
+                return "Ji/Js plus Ai/As start, center, end, and stretch defaults/overrides; atomic place-items/place-self, auto fit, exact geometry, paint, hits, and flow";
+            });
             AddProbe(probes, "Forms and validation", delegate
             {
                 var engine = new E();
@@ -1287,7 +1327,7 @@ namespace Lea.Bench
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
             Capability(builder, "Flexbox", "Supported subset", "Row/row-reverse and fixed-height column/column-reverse containers, content/border-box pixel bases, stable -64..64 order on nowrap rows and bounded columns, bounded row wrap, fixed/equal-share/weighted grow and integer weighted-shrink slots, explicit pixel min/max floors, pixel row/column gaps, start/center/end/space-between/space-around/space-evenly justification, and container/item stretch/start/center/end cross alignment; no intrinsic min-content sizing, fractional factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis alignment, or auto-height column reordering guarantee");
-            Capability(builder, "CSS Grid", "Supported subset", "Grid/inline-grid with up to eight fixed-pixel, auto, or integer-fr tracks per explicit axis, simple repeat and minmax(0, Nfr), pixel gaps, bounded occupancy, two-axis numeric starts/spans, validated 8x8 named-area templates, unique explicit named lines, area-generated start/end lines, Gf row/column sparse/dense flow, repeating S.Av/Gac/Gav/Rac/Rav pixel/auto/integer-fr implicit patterns, definite endpoint/span growth, area-created track sizing, exact auto-height row settlement, atomic grid-template/grid explicit, quoted-area, and row/column auto-flow shorthands, and shared nested paint/hit/reflow; no escaped or repeated-name occurrence indexes, reverse flow, pre-explicit implicit tracks, shorthand area-row line names, intrinsic or percentage tracks, auto-fit/fill, or subgrid");
+            Capability(builder, "CSS Grid", "Supported subset", "Grid/inline-grid with up to eight fixed-pixel, auto, or integer-fr tracks per explicit axis, simple repeat and minmax(0, Nfr), pixel gaps, bounded occupancy, two-axis numeric starts/spans, validated 8x8 named-area templates, unique explicit named lines, area-generated start/end lines, Gf row/column sparse/dense flow, repeating S.Av/Gac/Gav/Rac/Rav pixel/auto/integer-fr implicit patterns, definite endpoint/span growth, area-created track sizing, exact auto-height row settlement, atomic grid-template/grid explicit, quoted-area, and row/column auto-flow shorthands, Ji/Js/Ai/As start/center/end/stretch item alignment, atomic place-items/place-self, and shared nested paint/hit/reflow; no escaped or repeated-name occurrence indexes, reverse flow, pre-explicit implicit tracks, shorthand area-row line names, intrinsic or percentage tracks, auto-fit/fill, baseline or safe/unsafe alignment, writing-mode axis reversal, or subgrid");
             Capability(builder, "Canvas and SVG", "Not supported", "Future compatibility work; no silent fallback claim");
             Capability(builder, "Audio and video", "Not supported", "Future optional module");
             Capability(builder, "Developer diagnostics", "Supported", "Bounded summary, node, CSS, request, message, and variable snapshots");

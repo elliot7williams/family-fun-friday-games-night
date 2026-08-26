@@ -1,0 +1,91 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea bounded grid item alignment</title>
+  <style>
+    body { background: #f7faf8; color: #18372f; font-family: Segoe UI; }
+    h1 { color: #134e4a; }
+    .grid { display: grid; margin-bottom: 12px; background: #edf6f2; }
+    .item { margin: 0; padding: 0; background: #dce9ff; }
+    #place-grid {
+      width: 300px;
+      height: 210px;
+      grid: 100px 100px / 140px 150px;
+      gap: 10px;
+      place-items: center;
+    }
+    #place-a { width: 40px; height: 20px; background: #d8f1e5; }
+    #place-b { width: 50px; height: 30px; place-self: end; background: #c7e9ff; }
+    #place-c { place-self: stretch; background: #fde3c5; }
+    #place-d { width: 60px; height: 40px; align-self: start; justify-self: start; }
+    #longhand-grid {
+      width: 300px;
+      height: 100px;
+      grid: 100px / 140px 150px;
+      column-gap: 10px;
+      justify-items: end;
+      align-items: end;
+    }
+    #longhand-a { width: 40px; height: 20px; }
+    #longhand-b { width: 50px; height: 30px; justify-self: center; align-self: center; }
+    #fit-grid {
+      width: 300px;
+      height: 50px;
+      grid: 50px / 300px;
+      place-items: center;
+    }
+    #fit-clamp-grid {
+      width: 100px;
+      height: 40px;
+      grid: 40px / 100px;
+      place-items: center;
+    }
+    #fit-clamp-text { min-width: 200px; }
+    #atomic-items {
+      justify-items: end;
+      align-items: start;
+      place-items: center diagonal;
+    }
+    #atomic-self {
+      justify-self: end;
+      align-self: start;
+      place-self: center diagonal extra;
+    }
+    #reset-items {
+      place-items: end;
+      place-items: initial;
+    }
+    #reset-self {
+      place-self: end;
+      place-self: initial;
+    }
+    #two-items { place-items: start end; }
+    #two-self { place-self: end center; }
+    #alignment-target { background: #edf6f2; }
+    #after-alignment { width: 320px; padding: 5px; border-left: 3px solid #b91c1c; background: #f8eeee; }
+  </style>
+</head>
+<body>
+  <h1>Bounded grid item alignment</h1>
+  <section id="place-grid" class="grid">
+    <p id="place-a" class="item">A</p>
+    <p id="place-b" class="item">B</p>
+    <p id="place-c" class="item">Stretch</p>
+    <p id="place-d" class="item">Start</p>
+  </section>
+  <section id="longhand-grid" class="grid">
+    <p id="longhand-a" class="item">End</p>
+    <p id="longhand-b" class="item">Center</p>
+  </section>
+  <section id="fit-grid" class="grid">
+    <a id="fit-text" class="item" href="#alignment-target">Measured auto width</a>
+  </section>
+  <section id="fit-clamp-grid" class="grid"><p id="fit-clamp-text" class="item">Clamped minimum</p></section>
+  <section id="atomic-items" class="grid"><p id="atomic-self" class="item">Atomic values</p></section>
+  <section id="reset-items" class="grid"><p id="reset-self" class="item">Reset values</p></section>
+  <section id="two-items" class="grid"><p id="two-self" class="item">Two-axis values</p></section>
+  <p id="alignment-target">Grid alignment fragment target</p>
+  <p id="after-alignment">Normal document flow continues below aligned grids.</p>
+</body>
+</html>

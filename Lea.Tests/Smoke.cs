@@ -2670,6 +2670,55 @@ namespace Lea.Tests
                         Ok(!FragmentHitRect(view, "#shorthand-target").IsEmpty && BlockOuterRect(view, BlockById(view.At, "after-shorthands")).Top > BlockOuterRect(view, BlockById(view.At, "shorthand-target")).Bottom, "grid shorthand hits and following flow");
                         Ok(ColorDistance(shorthandPaint.GetPixel(shorthandAreaMain.Left + 4, shorthandAreaMain.Top + 4), Color.FromArgb(199, 233, 255)) < 8, "grid shorthand paint");
                     }
+                    var alignmentPath = Path.Combine(root, "LeaForge", "test-pages", "grid-alignment.html");
+                    var alignmentPage = engine.Go(alignmentPath);
+                    var placeGrid = BlockById(alignmentPage, "place-grid").S;
+                    var placeAStyle = BlockById(alignmentPage, "place-a").S;
+                    var placeBStyle = BlockById(alignmentPage, "place-b").S;
+                    var placeCStyle = BlockById(alignmentPage, "place-c").S;
+                    var placeDStyle = BlockById(alignmentPage, "place-d").S;
+                    Ok(placeGrid.Ji == "c" && placeGrid.Ai == "c" && placeAStyle.Js == "" && placeAStyle.As == "", "place-items compact aliases");
+                    Ok(placeBStyle.Js == "e" && placeBStyle.As == "e" && placeCStyle.Js == "t" && placeCStyle.As == "t" && placeDStyle.Js == "s" && placeDStyle.As == "s", "place-self and grid alignment longhand aliases");
+                    var longhandGrid = BlockById(alignmentPage, "longhand-grid").S;
+                    var longhandBStyle = BlockById(alignmentPage, "longhand-b").S;
+                    Ok(longhandGrid.Ji == "e" && longhandGrid.Ai == "e" && longhandBStyle.Js == "c" && longhandBStyle.As == "c", "justify and align item/self aliases");
+                    var atomicItems = BlockById(alignmentPage, "atomic-items").S;
+                    var atomicSelf = BlockById(alignmentPage, "atomic-self").S;
+                    Ok(atomicItems.Ji == "e" && atomicItems.Ai == "s" && atomicSelf.Js == "e" && atomicSelf.As == "s", "invalid place shorthands preserve both prior axes atomically");
+                    var resetItems = BlockById(alignmentPage, "reset-items").S;
+                    var resetSelf = BlockById(alignmentPage, "reset-self").S;
+                    Ok(resetItems.Ji == "t" && resetItems.Ai == "t" && resetSelf.Js == "" && resetSelf.As == "", "place shorthand resets restore compact defaults");
+                    var twoItems = BlockById(alignmentPage, "two-items").S;
+                    var twoSelf = BlockById(alignmentPage, "two-self").S;
+                    Ok(twoItems.Ai == "s" && twoItems.Ji == "e" && twoSelf.As == "e" && twoSelf.Js == "c", "two-value place shorthand axis order");
+                    view.Size = new Size(720, 1400);
+                    view.Go(alignmentPath);
+                    using (var alignmentPaint = Render(view))
+                    {
+                        var place = BlockOuterRect(view, BlockById(view.At, "place-grid"));
+                        var placeA = BlockOuterRect(view, BlockById(view.At, "place-a"));
+                        var placeB = BlockOuterRect(view, BlockById(view.At, "place-b"));
+                        var placeC = BlockOuterRect(view, BlockById(view.At, "place-c"));
+                        var placeD = BlockOuterRect(view, BlockById(view.At, "place-d"));
+                        Ok(placeA.Size == new Size(40, 20) && placeA.Left - place.Left == 50 && placeA.Top - place.Top == 40, "place-items center geometry");
+                        Ok(placeB.Size == new Size(50, 30) && placeB.Left - place.Left == 250 && placeB.Top - place.Top == 70, "place-self end geometry");
+                        Ok(placeC.Size == new Size(140, 100) && placeC.Left == place.Left && placeC.Top - place.Top == 110, "place-self stretch geometry");
+                        Ok(placeD.Size == new Size(60, 40) && placeD.Left - place.Left == 150 && placeD.Top - place.Top == 110, "grid alignment start geometry");
+                        var longhand = BlockOuterRect(view, BlockById(view.At, "longhand-grid"));
+                        var longhandA = BlockOuterRect(view, BlockById(view.At, "longhand-a"));
+                        var longhandB = BlockOuterRect(view, BlockById(view.At, "longhand-b"));
+                        Ok(longhandA.Size == new Size(40, 20) && longhandA.Left - longhand.Left == 100 && longhandA.Top - longhand.Top == 80, "grid longhand end geometry");
+                        Ok(longhandB.Size == new Size(50, 30) && longhandB.Left - longhand.Left == 200 && longhandB.Top - longhand.Top == 35, "grid self center override geometry");
+                        var fit = BlockOuterRect(view, BlockById(view.At, "fit-grid"));
+                        var fitText = BlockOuterRect(view, BlockById(view.At, "fit-text"));
+                        Ok(fitText.Width > 1 && fitText.Width < fit.Width && fitText.Left - fit.Left == (fit.Width - fitText.Width) / 2, "grid non-stretch auto width fits and centers");
+                        Ok(fitText.Height < fit.Height && fitText.Top - fit.Top == (fit.Height - fitText.Height) / 2, "grid non-stretch natural height centers");
+                        var fitClamp = BlockOuterRect(view, BlockById(view.At, "fit-clamp-grid"));
+                        var fitClampText = BlockOuterRect(view, BlockById(view.At, "fit-clamp-text"));
+                        Ok(fitClampText.Width == 100 && fitClampText.Left == fitClamp.Left, "grid auto-fit minimum stays clamped to its area");
+                        Ok(!FragmentHitRect(view, "#alignment-target").IsEmpty && BlockOuterRect(view, BlockById(view.At, "after-alignment")).Top > BlockOuterRect(view, BlockById(view.At, "alignment-target")).Bottom, "grid alignment hits and following flow");
+                        Ok(ColorDistance(alignmentPaint.GetPixel(placeC.Left + 4, placeC.Top + 4), Color.FromArgb(253, 227, 197)) < 8, "grid alignment paint");
+                    }
                     view.Size = new Size(720, 760);
                     var boxes = Path.Combine(root, "LeaForge", "test-pages", "boxes.html");
                     var boxPage = engine.Go(boxes);

@@ -282,6 +282,19 @@ value atomically. Reverse flow, pre-explicit implicit tracks, line names around
 quoted shorthand area rows, intrinsic or percentage tracks, auto-fit/fill, and
 subgrid remain outside the bounded subset.
 
+Grid item alignment stays compact: container `Ji/Ai` and item `Js/As` represent
+the inline/block axes. All four use `t/s/c/e` for stretch, start, center, or end;
+empty `Js/As` means auto and reads the corresponding container default.
+`justify-items`, `align-items`, `justify-self`, and `align-self` fill those
+aliases, while one/two-value `place-items` and `place-self` update both axes
+atomically. Lea aligns the margin box inside the resolved grid area. Non-stretch
+simple text uses a bounded measured auto width, naturally sized images/buttons
+retain their compact width, and definite sizes remain exact. Block-axis
+center/end/stretch requires a resolved row rectangle; an auto-height unresolved
+row keeps natural start flow. `normal`, reset keywords, and auto self values
+restore stretch/parent defaults. Safe/unsafe overflow alignment, baselines,
+legacy alignment, and writing-mode axis reversal remain outside this subset.
+
 Document lookup stays short and bounded. `E.Id(page, id)` finds the first ID,
 `E.Q(page, selector)` finds the first document-order selector match, and
 `E.Qa(page, selector)` returns a read-only list of at most 256 matches. Queries

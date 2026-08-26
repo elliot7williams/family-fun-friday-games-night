@@ -835,6 +835,8 @@ namespace Lea.Win
                     var outerAvailable = Math.Max(gridChild ? 1 : 40, lw - ml - mr);
                     if (StretchesWidth(bs)) outerAvailable = Math.Max(1, containing.Width - bs.Lt.Value - bs.Rt.Value - ml - mr);
                     var bw = ConstrainWidth(bs, Math.Max(1, outerAvailable - bl - br - pl - pr));
+                    if (gridChild && GridAlign(parent, bs, true) != "t" && (bs == null || bs.W == 0))
+                        bw = GridFitWidth(graphics, block, bs, bw);
                     int height;
                     List<Ix> inline = null;
                     if (block.K == "img")
@@ -877,15 +879,15 @@ namespace Lea.Win
                     if (StretchesHeight(bs)) height = ConstrainHeight(bs, Math.Max(1, containing.Height - bs.Tp.Value - bs.Bm.Value - mt - mb - bt - bb - pt - pb));
                     if (slotChild && parent.Fh && FlexAlign(parent, bs) == "t" && (bs == null || bs.H == 0))
                         height = ConstrainHeight(bs, Math.Max(1, parent.C.Bottom - parent.Ft - mt - mb - bt - bb - pt - pb));
-                    if (slotChild && slot.C && slot.H >= 0 && (!slot.Q || bs == null || bs.H == 0))
+                    if (slotChild && slot.C && slot.H >= 0 && (!gridChild || GridAlign(parent, bs, false) == "t") && (!slot.Q || bs == null || bs.H == 0))
                         height = ConstrainFlexHeight(bs, Math.Max(1, slot.H - mt - mb - bt - bb - pt - pb));
                     var text = MarkedText(block);
                     var link = inline == null && block.K == "a" ? block.U : null;
                     var outerWidth = bw + pl + pr + bl + br;
                     var outerHeight = height + pt + pb + bt + bb;
-                    var flexX = slotChild && slot.C && !slot.Q ? FlexX(parent, bs, outerWidth, ml, mr) : lx + ml;
-                    var bx = PositionX(bs, flexX, outerWidth, containing, ml, mr);
-                    var alignedY = slotChild && !slot.C ? FlexY(parent, bs, outerHeight, mt, mb, flowY) : flowY;
+                    var alignedX = gridChild ? GridX(parent, slot, bs, outerWidth, ml, mr) : slotChild && slot.C ? FlexX(parent, bs, outerWidth, ml, mr) : lx + ml;
+                    var bx = PositionX(bs, alignedX, outerWidth, containing, ml, mr);
+                    var alignedY = gridChild && slot.C && slot.H >= 0 ? GridY(parent, slot, bs, outerHeight, mt, mb) : slotChild && !slot.C ? FlexY(parent, bs, outerHeight, mt, mb, flowY) : flowY;
                     var by = PositionY(bs, alignedY, outerHeight, containing, mt, mb);
                     var outer = new Rectangle(bx, by, outerWidth, outerHeight);
                     var content = new Rectangle(bx + bl + pl, by + bt + pt, bw, height);
@@ -1726,6 +1728,26 @@ namespace Lea.Win
             return parent.Ft + mt;
         }
 
+        private static int GridX(Lc parent, Fp slot, S style, int outerWidth, int ml, int mr)
+        {
+            if (slot == null) return parent == null ? ml : parent.C.X + ml;
+            var free = Math.Max(0, slot.W - outerWidth - ml - mr);
+            var align = GridAlign(parent, style, true);
+            if (align == "c") return slot.X + ml + free / 2;
+            if (align == "e") return slot.X + ml + free;
+            return slot.X + ml;
+        }
+
+        private static int GridY(Lc parent, Fp slot, S style, int outerHeight, int mt, int mb)
+        {
+            if (slot == null) return parent == null ? mt : parent.C.Y + mt;
+            var free = Math.Max(0, slot.H - outerHeight - mt - mb);
+            var align = GridAlign(parent, style, false);
+            if (align == "c") return slot.Y + mt + free / 2;
+            if (align == "e") return slot.Y + mt + free;
+            return slot.Y + mt;
+        }
+
         private static int FlexX(Lc parent, S style, int outerWidth, int ml, int mr)
         {
             if (parent == null || parent.B == null || parent.B.S == null) return parent == null ? ml : parent.C.X + ml;
@@ -1739,6 +1761,12 @@ namespace Lea.Win
         private static string FlexAlign(Lc parent, S style)
         {
             return style != null && style.As.Length > 0 ? style.As : parent == null || parent.B == null || parent.B.S == null ? "t" : parent.B.S.Ai;
+        }
+
+        private static string GridAlign(Lc parent, S style, bool horizontal)
+        {
+            if (!horizontal) return FlexAlign(parent, style);
+            return style != null && style.Js.Length > 0 ? style.Js : parent == null || parent.B == null || parent.B.S == null ? "t" : parent.B.S.Ji;
         }
 
         private static bool IsFlex(S style)
@@ -2149,6 +2177,18 @@ namespace Lea.Win
         {
             var size = TextRenderer.MeasureText(graphics, text ?? "", font, new Size(width, int.MaxValue), TextFormatFlags.WordBreak | TextFormatFlags.NoPadding);
             return Math.Max(font.Height, size.Height);
+        }
+
+        private int GridFitWidth(Graphics graphics, B block, S style, int available)
+        {
+            var text = MarkedText(block);
+            if (block == null || block.I != null || block.Vm != null || block.K == "img" || text.Length == 0 || NeedsFlow(block)) return available;
+            using (var font = BoxFont(block.K, style, false))
+            {
+                var measured = TextRenderer.MeasureText(graphics, text, font, Size.Empty, TextFormatFlags.SingleLine | TextFormatFlags.NoPadding).Width;
+                var minimum = style == null || style.Wn == 0 ? 1 : Math.Min(available, Math.Max(1, BoxContentWidth(style, style.Wn)));
+                return Math.Max(minimum, Math.Min(available, Math.Max(1, measured)));
+            }
         }
 
         private static int GaugeWidth(S style, int available, Font font)
