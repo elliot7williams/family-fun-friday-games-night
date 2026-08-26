@@ -37,8 +37,8 @@ namespace Lea.Firespider
                     .Replace(".host-wrap{width:160px}", ".host-wrap{width:160px}.host-box{box-sizing:border-box;width:180px;height:44px;padding:6px;border:2px solid #176b4d}")
                     .Replace(".host-flex{display:flex;width:300px;height:60px;gap:8px;justify-content:space-between;align-items:center}", ".host-flex{display:flex;width:300px;height:60px;flex-wrap:wrap;gap:6px 8px;justify-content:space-between;align-items:center}")
                     .Replace(".host-flex p{width:70px;height:20px}", ".host-flex p{flex:1 1 180px;height:20px}.host-flex #host-flex-b{flex-shrink:2;min-width:80px}.host-flex-column{display:flex;width:180px;height:100px;flex-direction:column-reverse;row-gap:5px;justify-content:space-evenly;align-items:flex-end}.host-flex-column p{width:70px;margin:0;flex:0 1 60px;min-height:30px}.host-flex-column #host-flex-column-a{order:2;align-self:center}.host-flex-column #host-flex-column-b{order:-1}")
-                    .Replace("</style>", ":root{--host-color:#0f4c81;--host-width:155px;--host-pad:7px}.host-var{--host-color:#0f4c81!important;color:var(--host-color)!important;width:var(--host-width)!important;padding:var(--host-pad)}:is(.host-var,#host-never){border-left:4px solid #176b4d}:where(#host-var){padding-left:2px}.host-var:not(.missing,[data-off]){font-weight:bold}#host-flex>p:nth-child(2n+1){border-right:3px solid #176b4d}#host-flex>p:nth-last-child(-n+1){padding-left:9px}#host-flex-column>p:nth-last-of-type(2n){color:#a13b18}#host-flex>p:nth-child(1 of #host-flex-a,#host-flex-b){border-bottom:3px solid #176b4d}#host-flex>p:nth-last-child(1 of #host-flex-a,#host-flex-b){border-top:2px solid #a13b18}#host-has:has(> .host-direct){width:146px;border-left:5px solid #176b4d}#host-has:has(> .host-body .host-ready[data-host=ready]){padding-right:6px}#host-flex:has(+ #host-has){border-top:4px solid #a13b18}#host-has:has(input:focus){background:#dff6e9;font-weight:bold}.host-media{display:none}@media screen and (max-width:500px){:root{--host-width:110px;--host-pad:4px}#host-media{display:block;width:120px;background:#e8f4ef}#host-box{display:none}}</style>")
-                    .Replace("</section><p id='class-state'>", "</section><section id='host-has'><span class='host-direct'>Direct host child</span><div class='host-body'><span class='host-ready' data-host='ready'>Ready host descendant</span></div><input id='host-has-input' value='Relational host field'></section><p id='class-state'>")
+                    .Replace("</style>", ".host-grid{display:grid;width:300px;grid-template-columns:100px 1fr 2fr;gap:7px 10px}.host-grid p{height:20px;margin:0}.host-grid #host-grid-span{grid-column:2/span 2}:root{--host-color:#0f4c81;--host-width:155px;--host-pad:7px}.host-var{--host-color:#0f4c81!important;color:var(--host-color)!important;width:var(--host-width)!important;padding:var(--host-pad)}:is(.host-var,#host-never){border-left:4px solid #176b4d}:where(#host-var){padding-left:2px}.host-var:not(.missing,[data-off]){font-weight:bold}#host-flex>p:nth-child(2n+1){border-right:3px solid #176b4d}#host-flex>p:nth-last-child(-n+1){padding-left:9px}#host-flex-column>p:nth-last-of-type(2n){color:#a13b18}#host-flex>p:nth-child(1 of #host-flex-a,#host-flex-b){border-bottom:3px solid #176b4d}#host-flex>p:nth-last-child(1 of #host-flex-a,#host-flex-b){border-top:2px solid #a13b18}#host-has:has(> .host-direct){width:146px;border-left:5px solid #176b4d}#host-has:has(> .host-body .host-ready[data-host=ready]){padding-right:6px}#host-flex:has(+ #host-has){border-top:4px solid #a13b18}#host-has:has(input:focus){background:#dff6e9;font-weight:bold}.host-media{display:none}@media screen and (max-width:500px){:root{--host-width:110px;--host-pad:4px}#host-media{display:block;width:120px;background:#e8f4ef}#host-box{display:none}}</style>")
+                    .Replace("</section><p id='class-state'>", "</section><section id='host-has'><span class='host-direct'>Direct host child</span><div class='host-body'><span class='host-ready' data-host='ready'>Ready host descendant</span></div><input id='host-has-input' value='Relational host field'></section><section id='host-grid' class='host-grid'><p id='host-grid-a'>Grid A</p><p id='host-grid-b'>Grid B</p><p id='host-grid-c'>Grid C</p><p id='host-grid-span'>Grid span</p></section><p id='class-state'>")
                     .Replace("<p id='class-state'>", "<p id='host-var' class='host-var' style='--host-color:#a13b18;color:#a13b18;width:199px'>Important property host</p><p id='host-media' class='host-media'>Responsive host</p><p id='host-box' class='host-box'>Border-box host</p><section id='host-flex-column' class='host-flex-column'><p id='host-flex-column-a'>Column A</p><p id='host-flex-column-b'>Column B</p></section><p id='class-state'>");
                 File.WriteAllText(openPage, openMarkup);
                 var root = args.Length > 0 ? args[0] : AppDomain.CurrentDomain.BaseDirectory;
@@ -209,6 +209,17 @@ namespace Lea.Firespider
                     Check(host.Qa("#host-has:has(> .host-direct)").Count == 1 && host.Qa("#host-has:has(> .host-body .host-ready[data-host=ready])").Count == 1 && host.Qa("#host-flex:has(+ #host-has)").Count == 1, "Firespider relational selector queries");
                     Check(host.Js("fo('host-has-input')") == 1 && BlockById(host.At, "host-has").S.Bg == "#dff6e9" && BlockById(host.At, "host-has").S.B && Object.ReferenceEquals(hostHasField, FieldById(host.At, "host-has-input")) && hostHasField.V == "Retained relational host value", "Firespider relational focus rebuild and retention");
                     Check(host.Js("fo('host-auto')") == 1 && BlockById(host.At, "host-has").S.Bg == "", "Firespider relational focus restore");
+                    var hostGrid = BlockById(host.At, "host-grid");
+                    var hostGridSpan = BlockById(host.At, "host-grid-span");
+                    Check(hostGrid.S.D == "grid" && hostGrid.S.Gc == 3 && hostGrid.S.Gv(0) == 100 && hostGrid.S.Gv(1) == -1 && hostGrid.S.Gv(2) == -2 && hostGrid.S.Rg == 7 && hostGrid.S.Gp == 10 && hostGridSpan.S.Gl == 2 && hostGridSpan.S.Gs == 2,
+                        "Firespider bounded grid model and aliases");
+                    Check(host.Qa("#host-grid>p").Count == 4 && Object.ReferenceEquals(BlockById(host.At, "host-grid-a").Up, hostGrid), "Firespider grid query and ownership");
+                    var hostGridABox = BlockOuter(host, "host-grid-a");
+                    var hostGridBBox = BlockOuter(host, "host-grid-b");
+                    var hostGridCBox = BlockOuter(host, "host-grid-c");
+                    var hostGridSpanBox = BlockOuter(host, "host-grid-span");
+                    Check(hostGridABox.Width == 100 && hostGridBBox.Width == 60 && hostGridCBox.Width == 120 && hostGridBBox.Left - hostGridABox.Right == 10 && hostGridSpanBox.Width == 190 && hostGridSpanBox.Left == hostGridBBox.Left && hostGridSpanBox.Top - hostGridABox.Bottom == 7,
+                        "Firespider bounded grid geometry");
                     host.Size = new System.Drawing.Size(480, 560);
                     Application.DoEvents();
                     PaintView(host);
@@ -265,6 +276,7 @@ namespace Lea.Firespider
                         Member<TextBox>(form, "qleaInspectorCss").Text.Contains("nth-last") &&
                         Member<TextBox>(form, "qleaInspectorCss").Text.Contains(" of #host-flex") &&
                         Member<TextBox>(form, "qleaInspectorCss").Text.Contains(":has") &&
+                        Member<TextBox>(form, "qleaInspectorCss").Text.Contains("grid-template") &&
                         Member<TextBox>(form, "qleaInspectorRequests").Text.Contains("GET 200 file") &&
                         Member<TextBox>(form, "qleaInspectorMessages").Text.Contains("commands") &&
                         Member<TextBox>(form, "qleaInspectorAccess").Text.Contains("document") &&
@@ -434,6 +446,21 @@ namespace Lea.Firespider
             foreach (var block in page.Bs)
                 if (block.El != null && block.El.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase)) return true;
             return false;
+        }
+
+        private static System.Drawing.Rectangle BlockOuter(V view, string id)
+        {
+            var target = BlockById(view.At, id);
+            var member = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = member == null ? null : member.GetValue(view) as System.Collections.IEnumerable;
+            if (values == null) throw new InvalidOperationException("Missing Lea layout boxes");
+            foreach (var value in values)
+            {
+                var type = value.GetType();
+                if (!Object.ReferenceEquals(type.GetField("B").GetValue(value), target) || (bool)type.GetField("Inline").GetValue(value)) continue;
+                return (System.Drawing.Rectangle)type.GetField("R").GetValue(value);
+            }
+            return System.Drawing.Rectangle.Empty;
         }
 
         private static Fi FieldById(P page, string id)

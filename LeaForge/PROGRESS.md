@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **23**
+Post-1.0 hardening milestones completed: **24**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -14,8 +14,8 @@ modern web platform.
 | Core and alias API | 10% | 10% | Compact API, bounded diagnostics, repeatable reports, history, projects, backups |
 | Networking | 10% | 10% | Bounded request deadlines and downloads, private cookies, typed errors, validators, compression, memory LRU and optional persistent cache |
 | HTML and document tree | 20% | 20% | Bounded tokens, queries, base URLs and fragments, raw/RCDATA text, entities, recovery, HTML-hidden suppression, semantic accessibility, blocks, lists, disclosures, gauges, values, time/edit metadata, responsive image maps, tabindex focus, autofocus/access keys, tables |
-| CSS | 15% | 15% | Compiled relationship, bounded strict relational/functional, An+B/reverse, and filtered structural selectors, declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, dynamic hover/focus, content/border sizing, visibility/opacity, fonts, overflow, boxes, bounded ordered and distributed row/column flex properties |
-| Layout and painting | 20% | 20% | Shared content/border geometry, ordered rows, bounded column/reverse flow, around/evenly distribution, item alignment, wrapping, grow/shrink, clipping, reflow, painting |
+| CSS | 15% | 15% | Compiled relationship, bounded strict relational/functional, An+B/reverse, and filtered structural selectors, declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, dynamic hover/focus, content/border sizing, visibility/opacity, fonts, overflow, boxes, bounded ordered flex and grid-column properties |
+| Layout and painting | 20% | 20% | Shared content/border geometry, ordered flex rows/columns, bounded grid tracks/spans, distribution, alignment, wrapping, grow/shrink, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Bounded multipart files, richer widgets, validation, responsive images, GET/POST submit |
 | Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/body and ID-scoped style/alert, class, visibility, disclosure, field-state, and focus commands |
 | Firespider integration and reliability | 10% | 10% | Lea-first New Tab/Ctrl+T, explicit legacy fallback, Inspector with Access view, MSAA/UIA surfaces including read-only text, host-safe focus shortcuts, navigation, sessions, source, host smokes |
@@ -29,6 +29,14 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded `grid`/`inline-grid` columns with a lazy compact `Gd` track
+  array, public `Gc/Gv` inspection, and direct-item `Gl/Gs` start/span aliases.
+  One to eight fixed pixel or integer-fr tracks, simple repeat/minmax forms,
+  pixel gaps, sparse automatic rows, stable order-modified traversal, spans,
+  nesting, fields, paint, hits, resize, strict invalid limits, benchmark,
+  Inspector, and Firespider host coverage bring the suite to 35 fixtures and 34
+  executable probes.
 
 - Added bounded `autofocus` candidates and assigned `accesskey` alternatives
   without consuming unmatched or host-owned shortcuts.

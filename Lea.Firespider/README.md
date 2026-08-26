@@ -63,6 +63,13 @@ min-protected weighted-shrink items, row/column reversal, pixel basis and gaps,
 alignment, nesting, painting, and hit testing reuse the existing `V` surface
 without adding controls or another browser runtime.
 
+Bounded CSS Grid columns use that same custom renderer. Firespider can inspect
+lazy `B.S.Gc/Gv(index)` tracks and `Gl/Gs` item placement while fixed pixel and
+integer `fr` columns, simple `repeat()`/`minmax(0,Nfr)`, gaps, spans, stable
+order, sparse rows, nested content, fields, painting, hits, and responsive
+reflow stay inside `V`. The host smoke verifies exact mixed-track geometry,
+ownership, queries, and Inspector CSS without adding adapter-side layout logic.
+
 Firespider can also read `B.S.Bz` as `c/b` for non-inherited content-box or
 border-box sizing. Lea applies it to pixel width, height, min/max, and flex basis
 before the shared block, field, image, flex, table, cell, hit, paint, and

@@ -261,6 +261,18 @@ ordering, column wrapping, wrap-reverse, wrapped cross-axis alignment,
 inline-level outer formatting, and auto-height column reordering remain explicit
 compatibility limits.
 
+Lea's bounded CSS Grid subset uses `S.D=grid/inline-grid`, a lazy compact `Gd`
+track array, public `Gc/Gv(index)` inspection, and direct-item `Gl/Gs` start/span
+aliases. Hosts can supply one to eight fixed `0..2000px` or integer `1..64fr`
+columns, simple bounded `repeat()`, `minmax(0,Nfr)`, pixel row/column gaps,
+numeric starts, `span N`, and stable `Or` ordering. `V` creates sparse automatic
+rows, allocates fractional remainder deterministically, shrinks oversized fixed
+tracks into the available content width, and reuses existing block ownership,
+nested flow, positioning, clipping, painting, hit testing, form retention, and
+accessibility bounds. Row templates/spans, named lines, areas, intrinsic or
+percentage tracks, auto-fit/fill, dense/column flow, subgrid, and true
+inline-level outer formatting remain explicit compatibility limits.
+
 Inherited visibility uses `S.Vi` with `v/h/c`. Hidden and collapsed content
 keeps its layout rectangle but produces no pixels, links, field hits, or editor.
 `S.Op` is a bounded effective percentage: ancestor and local opacity combine,

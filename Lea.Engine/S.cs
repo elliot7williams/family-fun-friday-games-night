@@ -33,6 +33,8 @@ namespace Lea.Engine
         public int Sh { get; internal set; }
         public int Fb { get; internal set; }
         public int Or { get; internal set; }
+        public int Gl { get; internal set; }
+        public int Gs { get; internal set; }
         public string Pn { get; internal set; }
         public int? Tp { get; internal set; }
         public int? Rt { get; internal set; }
@@ -69,8 +71,15 @@ namespace Lea.Engine
         internal bool Zs { get; set; }
         internal bool Zt { get; set; }
         internal Dictionary<string, string> Vr { get; set; }
+        internal int[] Gd { get; set; }
 
         public int Vc { get { return Vr == null ? 0 : Vr.Count; } }
+        public int Gc { get { return Gd == null ? 0 : Gd.Length; } }
+
+        public int Gv(int index)
+        {
+            return Gd != null && index >= 0 && index < Gd.Length ? Gd[index] : 0;
+        }
 
         public string Cv(string name)
         {
@@ -99,6 +108,7 @@ namespace Lea.Engine
             Wr = "n";
             Sh = 1;
             Fb = -1;
+            Gs = 1;
             Bz = "c";
             Pn = "";
             Bc = "";

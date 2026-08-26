@@ -1585,12 +1585,17 @@ namespace Lea.Engine
 
         private static bool LayoutContext(S style)
         {
-            return style != null && (Flex(style) || style.Pn == "r" || style.Pn == "a" || style.Pn == "f" || style.Zc || (style.Ov.Length > 0 && style.Ov != "v"));
+            return style != null && (Flex(style) || Grid(style) || style.Pn == "r" || style.Pn == "a" || style.Pn == "f" || style.Zc || (style.Ov.Length > 0 && style.Ov != "v"));
         }
 
         private static bool Flex(S style)
         {
             return style != null && (style.D == "flex" || style.D == "inline-flex");
+        }
+
+        private static bool Grid(S style)
+        {
+            return style != null && (style.D == "grid" || style.D == "inline-grid");
         }
 
         private static bool BlockContext(B block)
@@ -3181,9 +3186,13 @@ namespace Lea.Engine
                 else if (name == "justify-content") JustifyContent(style, value);
                 else if (name == "align-items") AlignItems(style, value);
                 else if (name == "align-self") AlignSelf(style, value);
-                else if (name == "gap") Gap(style, value);
-                else if (name == "column-gap") OneGap(style, value, false);
-                else if (name == "row-gap") OneGap(style, value, true);
+                else if (name == "gap" || name == "grid-gap") Gap(style, value);
+                else if (name == "column-gap" || name == "grid-column-gap") OneGap(style, value, false);
+                else if (name == "row-gap" || name == "grid-row-gap") OneGap(style, value, true);
+                else if (name == "grid-template-columns") GridTemplateColumns(style, value);
+                else if (name == "grid-column") GridColumn(style, value);
+                else if (name == "grid-column-start") GridColumnStart(style, value);
+                else if (name == "grid-column-end") GridColumnEnd(style, value);
                 else if (name == "position") Position(style, value);
                 else if (name == "inset") Inset(style, value);
                 else if (name == "top") Offset(style, value, 0);
@@ -3485,6 +3494,78 @@ namespace Lea.Engine
             var match = Regex.Match(source, "^(?<n>[+-]?[0-9]{1,2})$");
             int order;
             if (match.Success && Int32.TryParse(match.Groups["n"].Value, out order) && order >= -64 && order <= 64) style.Or = order;
+        }
+
+        private static void GridTemplateColumns(S style, string value)
+        {
+            var source = Regex.Replace((value ?? "").Trim().ToLowerInvariant(), "minmax\\(\\s*0(?:px)?\\s*,\\s*(?<n>[1-9][0-9]?)fr\\s*\\)", "${n}fr", RegexOptions.IgnoreCase);
+            if (source == "none" || source == "initial" || source == "unset" || source == "revert") { style.Gd = null; return; }
+            if (source.Length == 0 || source.Length > 512) return;
+
+            for (var expansion = 0; expansion < 8; expansion++)
+            {
+                var repeat = Regex.Match(source, "repeat\\(\\s*(?<n>[1-8])\\s*,\\s*(?<t>(?:[0-9]{1,4}px|[1-9][0-9]?fr))\\s*\\)", RegexOptions.IgnoreCase);
+                if (!repeat.Success) break;
+                int count;
+                if (!Int32.TryParse(repeat.Groups["n"].Value, out count)) return;
+                var values = new string[count];
+                for (var index = 0; index < count; index++) values[index] = repeat.Groups["t"].Value;
+                source = source.Substring(0, repeat.Index) + String.Join(" ", values) + source.Substring(repeat.Index + repeat.Length);
+                if (source.Length > 512) return;
+            }
+            if (source.IndexOf("repeat", StringComparison.OrdinalIgnoreCase) >= 0 || source.IndexOf('(') >= 0 || source.IndexOf(')') >= 0) return;
+
+            var parts = Regex.Split(source.Trim(), "\\s+");
+            if (parts.Length < 1 || parts.Length > 8) return;
+            var tracks = new int[parts.Length];
+            for (var index = 0; index < parts.Length; index++)
+            {
+                var pixels = Regex.Match(parts[index], "^(?<n>[0-9]{1,4})px$", RegexOptions.IgnoreCase);
+                var fraction = Regex.Match(parts[index], "^(?<n>[1-9][0-9]?)fr$", RegexOptions.IgnoreCase);
+                int number;
+                if (pixels.Success && Int32.TryParse(pixels.Groups["n"].Value, out number) && number <= 2000) tracks[index] = number;
+                else if (fraction.Success && Int32.TryParse(fraction.Groups["n"].Value, out number) && number <= 64) tracks[index] = -number;
+                else return;
+            }
+            style.Gd = tracks;
+        }
+
+        private static void GridColumn(S style, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "auto" || source == "initial" || source == "unset" || source == "revert") { style.Gl = 0; style.Gs = 1; return; }
+            var spanOnly = Regex.Match(source, "^span\\s+(?<n>[1-8])$");
+            var placed = Regex.Match(source, "^(?<s>[1-8])(?:\\s*/\\s*span\\s+(?<n>[1-8]))?$");
+            var autoSpan = Regex.Match(source, "^auto\\s*/\\s*span\\s+(?<n>[1-8])$");
+            int number;
+            if (spanOnly.Success && Int32.TryParse(spanOnly.Groups["n"].Value, out number)) { style.Gl = 0; style.Gs = number; }
+            else if (autoSpan.Success && Int32.TryParse(autoSpan.Groups["n"].Value, out number)) { style.Gl = 0; style.Gs = number; }
+            else if (placed.Success)
+            {
+                int start;
+                if (!Int32.TryParse(placed.Groups["s"].Value, out start)) return;
+                var span = 1;
+                if (placed.Groups["n"].Success && !Int32.TryParse(placed.Groups["n"].Value, out span)) return;
+                style.Gl = start;
+                style.Gs = span;
+            }
+        }
+
+        private static void GridColumnStart(S style, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "auto" || source == "initial" || source == "unset" || source == "revert") { style.Gl = 0; return; }
+            int start;
+            if (Regex.IsMatch(source, "^[1-8]$") && Int32.TryParse(source, out start)) style.Gl = start;
+        }
+
+        private static void GridColumnEnd(S style, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "auto" || source == "initial" || source == "unset" || source == "revert") { style.Gs = 1; return; }
+            var match = Regex.Match(source, "^span\\s+(?<n>[1-8])$");
+            int span;
+            if (match.Success && Int32.TryParse(match.Groups["n"].Value, out span)) style.Gs = span;
         }
 
         private static void FlexValue(S style, string value)
@@ -3972,11 +4053,11 @@ namespace Lea.Engine
                 AddField(page, node, baseUrl, style);
                 return;
             }
-            else if (IsTextBlock(kind) || IsContainerBlock(kind) || Flex(style))
+            else if (IsTextBlock(kind) || IsContainerBlock(kind) || Flex(style) || Grid(style))
             {
-                var text = TextValue(Flex(style) ? DirectText(node) : BlockText(node, PreservesLines(style)), style);
+                var text = TextValue(Flex(style) || Grid(style) ? DirectText(node) : BlockText(node, PreservesLines(style)), style);
                 var block = new B { K = kind, X = text, Mk = ListMarker(node), S = style, El = node };
-                if (!Flex(style) && HasInlineStructure(node))
+                if (!Flex(style) && !Grid(style) && HasInlineStructure(node))
                 {
                     var inlineStyle = style.Inherit();
                     if (IsHeading(kind)) inlineStyle.B = true;
@@ -4544,7 +4625,7 @@ namespace Lea.Engine
             foreach (var child in node.C)
             {
                 if (child.K == "#text") continue;
-                if (Flex(inherited) || IsBlockTag(child.K) || child.K == "img" || child.K == "input" || child.K == "textarea" || child.K == "button" || child.K == "select")
+                if (Flex(inherited) || Grid(inherited) || IsBlockTag(child.K) || child.K == "img" || child.K == "input" || child.K == "textarea" || child.K == "button" || child.K == "select")
                 {
                     Blocks(page, child, baseUrl, rules, inherited);
                     continue;

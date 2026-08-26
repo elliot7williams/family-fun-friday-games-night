@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea bounded grid layout</title>
+  <style>
+    body { background: #f7faf8; color: #19352d; font-family: Segoe UI; }
+    h1 { color: #134e4a; }
+    .grid { display: grid; margin-bottom: 12px; background: #e8f5ef; }
+    .item { height: 24px; margin: 0; background: #e6efff; }
+    #equal { width: 330px; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-gap: 9px 6px; }
+    #equal-four { grid-column: span 2; background: #dff5e8; }
+    #mixed { width: 360px; grid-template-columns: 100px 1fr 2fr; column-gap: 10px; row-gap: 7px; }
+    #mixed-four { grid-column: 2 / span 2; background: #ffe8cf; }
+    #ordered { width: 220px; grid-template-columns: 1fr 1fr; gap: 4px; }
+    #order-one { order: 2; }
+    #order-two { order: -1; }
+    #center { width: 300px; grid-template-columns: 80px 80px; column-gap: 10px; justify-content: center; }
+    #separate { width: 330px; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    #separate-two { grid-column-start: 2; grid-column-end: span 2; }
+    #fields { display: inline-grid; width: 300px; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    #fields input, #fields button { margin: 0; }
+    #nested { width: 260px; grid-template-columns: 1fr 1fr; gap: 5px; }
+    #nested article, #nested p { margin: 0; }
+    #responsive { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    #invalid { width: 180px; grid-template-columns: repeat(9, 1fr); }
+    #invalid-one { grid-column: 0 / span 9; }
+    #limit { width: 320px; grid-template-columns: repeat(8, 1fr); }
+    #zero { width: 40px; grid-template-columns: 0px 1fr; gap: 4px; }
+    #overflow { width: 30px; grid-template-columns: 100px 200px; gap: 10px; }
+    #reset { width: 180px; grid-template-columns: 1fr 1fr; grid-template-columns: none; }
+    #after-grid { width: 330px; padding: 5px; border-left: 3px solid #b91c1c; background: #f8eeee; }
+  </style>
+</head>
+<body>
+  <h1>Bounded grid tracks</h1>
+  <section id="equal" class="grid">
+    <p id="equal-one" class="item">Equal one</p>
+    <a id="equal-two" class="item" href="#grid-target">Equal link</a>
+    <p id="equal-three" class="item">Equal three</p>
+    <p id="equal-four" class="item">Equal span</p>
+    <p id="equal-five" class="item">Equal five</p>
+  </section>
+  <section id="mixed" class="grid">
+    <p id="mixed-one" class="item">Fixed</p>
+    <p id="mixed-two" class="item">One fraction</p>
+    <p id="mixed-three" class="item">Two fractions</p>
+    <p id="mixed-four" class="item">Explicit span</p>
+    <p id="mixed-five" class="item">Mixed five</p>
+  </section>
+  <section id="ordered" class="grid">
+    <p id="order-one" class="item">Order one</p>
+    <p id="order-two" class="item">Order two</p>
+    <p id="order-three" class="item">Order three</p>
+  </section>
+  <section id="center" class="grid">
+    <p id="center-one" class="item">Center one</p>
+    <p id="center-two" class="item">Center two</p>
+  </section>
+  <section id="separate" class="grid">
+    <p id="separate-one" class="item">Start</p>
+    <p id="separate-two" class="item">Separate properties</p>
+    <p id="separate-three" class="item">Next row</p>
+  </section>
+  <form id="fields" class="grid">
+    <input id="grid-field" value="Grid field">
+    <button id="grid-button" type="button">Grid button</button>
+  </form>
+  <section id="nested" class="grid">
+    <article id="nested-card">Nested card<p id="nested-copy">Nested grid content stays inside its assigned track.</p></article>
+    <p id="nested-peer" class="item">Nested peer</p>
+  </section>
+  <section id="responsive" class="grid">
+    <p id="responsive-one" class="item">Responsive one</p>
+    <p id="responsive-two" class="item">Responsive two</p>
+  </section>
+  <section id="invalid" class="grid">
+    <p id="invalid-one" class="item">Invalid bounded values</p>
+  </section>
+  <section id="limit" class="grid"><p class="item">Eight-track ceiling</p></section>
+  <section id="zero" class="grid"><p id="zero-one" class="item">Z</p><p id="zero-two" class="item">F</p></section>
+  <section id="overflow" class="grid"><p id="overflow-one" class="item">S</p><p id="overflow-two" class="item">L</p></section>
+  <section id="reset" class="grid"><p class="item">Reset tracks</p></section>
+  <p id="grid-target">Grid fragment target</p>
+  <p id="after-grid">Normal document flow continues below every grid layout.</p>
+</body>
+</html>

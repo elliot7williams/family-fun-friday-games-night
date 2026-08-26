@@ -66,6 +66,10 @@ LeaForge is where we can grow the more full-featured browser.
   protection, row wrapping, pixel basis and row/column gaps, around/evenly
   distribution, container/item alignment, natural auto-height columns, nested
   content, and shared hit paths
+- bounded `grid`/`inline-grid` columns with compact `Gd/Gc/Gv` tracks and
+  `Gl/Gs` item placement, fixed pixel and integer `fr` widths, simple
+  `repeat()`/`minmax(0,Nfr)`, pixel gaps, spans, stable order, sparse automatic
+  rows, nested content, paint, hits, fields, and responsive reflow
 - auto-height styled semantic containers with nested normal-flow ownership
 - nested positioning with explicit z-index, opacity/isolation contexts, settled auto height, and inherited clipping
 - compact inset stretching plus translated block stacking contexts

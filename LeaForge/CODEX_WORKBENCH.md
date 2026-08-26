@@ -36,9 +36,13 @@ Safe scripts and hosts now also use `hd/sh`, `op/cl/tg`, `ds/en`, `vl`, `ck`, an
 `fo` for bounded visibility, disclosure, disabled, value, checked, and focus state. A retained field
 map preserves one existing model while hidden; `E.Kp` and `V` consume one focus
 request without exposing files, passwords, arbitrary attributes, or native UI.
-`selector-relational.html` brings the benchmark to 34 fixtures and its
-relational-selector check brings it to 33 executable compatibility probes.
-Strict precompiled `:has` lists cover implicit descendants, explicit child,
+`grid.html` brings the benchmark to 35 fixtures and its bounded-grid check
+brings it to 34 executable compatibility probes. Lazy compact `Gd/Gc/Gv`
+tracks and direct-item `Gl/Gs` placement cover fixed pixel and integer-fr
+columns, simple repeat/minmax forms, gaps, spans, sparse automatic rows, stable
+order-modified traversal, nesting, fields, paint, hits, resize, strict invalid
+limits, Inspector visibility, and Firespider geometry. The preceding
+`selector-relational.html` fixture covers strict precompiled `:has` lists with implicit descendants, explicit child,
 adjacent and following relationships, four-part chains, maximum argument
 specificity, dynamic descendant focus, retained fields, shared query behavior,
 4,096 candidate visits, invalid nesting/list/part rejection, and WinForms plus

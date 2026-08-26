@@ -788,18 +788,19 @@ namespace Lea.Win
             }
             else
             {
-                foreach (var block in At.Bs)
+                foreach (var block in LayoutBlocks())
                 {
                     CloseContexts(block, active, ref y, measured);
                     if (block.Hd) continue;
                     var bs = block.S;
                     Lc parent = null;
                     if (block.Up != null) contexts.TryGetValue(block.Up, out parent);
-                    Fp flex = null;
-                    var flexChild = parent != null && parent.Fs != null && parent.Fs.TryGetValue(block, out flex);
-                    var lx = flexChild ? flex.X : parent == null ? x : parent.C.X;
-                    var lw = flexChild ? flex.W : parent == null ? width : parent.C.Width;
-                    var ly = flexChild ? flex.C ? flex.H >= 0 ? flex.Y : parent.Y : FlexTop(parent, flex) : parent == null ? y : parent.Y;
+                    Fp slot = null;
+                    var slotChild = parent != null && parent.Fs != null && parent.Fs.TryGetValue(block, out slot);
+                    var gridChild = slotChild && parent != null && parent.B != null && IsGrid(parent.B.S);
+                    var lx = slotChild ? slot.X : parent == null ? x : parent.C.X;
+                    var lw = slotChild ? slot.W : parent == null ? width : parent.C.Width;
+                    var ly = slotChild ? slot.C ? slot.H >= 0 ? slot.Y : parent.Y : FlexTop(parent, slot) : parent == null ? y : parent.Y;
                     var parentClip = parent == null ? Rectangle.Empty : parent.Cp;
                     var fixedParent = parent != null && parent.Fx;
                     var containingContext = ContainingContext(block, contexts);
@@ -810,7 +811,7 @@ namespace Lea.Win
                         var tableContext = LayTable(graphics, block, lx, lw, ly, containing, parentClip, fixedParent, out next);
                         contexts[block] = tableContext;
                         if (parent == null) y = next;
-                        else if (flexChild)
+                        else if (slotChild)
                         {
                             parent.Y = Math.Max(parent.Y, next - 8);
                             FlexHeight(parent, tableContext.R.Bottom + (bs == null ? 0 : bs.Mb));
@@ -831,7 +832,7 @@ namespace Lea.Win
                     var mt = bs == null ? 0 : bs.Mt;
                     var mb = bs == null ? 0 : bs.Mb;
                     var flowY = ly + mt;
-                    var outerAvailable = Math.Max(40, lw - ml - mr);
+                    var outerAvailable = Math.Max(gridChild ? 1 : 40, lw - ml - mr);
                     if (StretchesWidth(bs)) outerAvailable = Math.Max(1, containing.Width - bs.Lt.Value - bs.Rt.Value - ml - mr);
                     var bw = ConstrainWidth(bs, Math.Max(1, outerAvailable - bl - br - pl - pr));
                     int height;
@@ -874,17 +875,17 @@ namespace Lea.Win
                     var resolvedOwner = resolved != null && owners.Contains(block) && (bs == null || bs.H == 0) && !StretchesHeight(bs) && resolved.TryGetValue(block, out resolvedHeight);
                     if (resolvedOwner) height = resolvedHeight;
                     if (StretchesHeight(bs)) height = ConstrainHeight(bs, Math.Max(1, containing.Height - bs.Tp.Value - bs.Bm.Value - mt - mb - bt - bb - pt - pb));
-                    if (flexChild && parent.Fh && FlexAlign(parent, bs) == "t" && (bs == null || bs.H == 0))
+                    if (slotChild && parent.Fh && FlexAlign(parent, bs) == "t" && (bs == null || bs.H == 0))
                         height = ConstrainHeight(bs, Math.Max(1, parent.C.Bottom - parent.Ft - mt - mb - bt - bb - pt - pb));
-                    if (flexChild && flex.C && flex.H >= 0)
-                        height = ConstrainFlexHeight(bs, Math.Max(1, flex.H - mt - mb - bt - bb - pt - pb));
+                    if (slotChild && slot.C && slot.H >= 0)
+                        height = ConstrainFlexHeight(bs, Math.Max(1, slot.H - mt - mb - bt - bb - pt - pb));
                     var text = MarkedText(block);
                     var link = inline == null && block.K == "a" ? block.U : null;
                     var outerWidth = bw + pl + pr + bl + br;
                     var outerHeight = height + pt + pb + bt + bb;
-                    var flexX = flexChild && flex.C ? FlexX(parent, bs, outerWidth, ml, mr) : lx + ml;
+                    var flexX = slotChild && slot.C ? FlexX(parent, bs, outerWidth, ml, mr) : lx + ml;
                     var bx = PositionX(bs, flexX, outerWidth, containing, ml, mr);
-                    var alignedY = flexChild && !flex.C ? FlexY(parent, bs, outerHeight, mt, mb, flowY) : flowY;
+                    var alignedY = slotChild && !slot.C ? FlexY(parent, bs, outerHeight, mt, mb, flowY) : flowY;
                     var by = PositionY(bs, alignedY, outerHeight, containing, mt, mb);
                     var outer = new Rectangle(bx, by, outerWidth, outerHeight);
                     var content = new Rectangle(bx + bl + pl, by + bt + pt, bw, height);
@@ -906,13 +907,13 @@ namespace Lea.Win
                         Au = owners.Contains(block) && (bs == null || bs.H == 0),
                         Fl = !OutOfFlow(bs),
                         Fy = flowY,
-                        Gp = flexChild && flex.C && flex.H < 0 ? flex.G + mb : (HeadingKind(block.K) ? 12 : 8) + mb,
+                        Gp = slotChild && slot.C && slot.H < 0 ? slot.G + mb : (HeadingKind(block.K) ? 12 : 8) + mb,
                         Pc = inheritedClip,
                         Co = ClipsOverflow(bs),
                         Fh = IsFlex(bs) && !FlexColumn(bs) && bs.Wr != "w" && (bs.H > 0 || resolvedOwner),
                         Fm = FlexColumn(bs) && bs.H > 0
                     };
-                    FlexSlots(context);
+                    ChildSlots(context);
                     contexts[block] = context;
                     if (context.Au) active.Add(context);
                     if (!fixedChain) layoutBottom = Math.Max(layoutBottom, outer.Bottom + mb);
@@ -920,9 +921,9 @@ namespace Lea.Win
                     {
                         var next = flowY + outer.Height + (HeadingKind(block.K) ? 12 : 8) + mb;
                         if (parent == null) y = next;
-                        else if (flexChild)
+                        else if (slotChild)
                         {
-                            parent.Y = Math.Max(parent.Y, outer.Bottom + mb + flex.G);
+                            parent.Y = Math.Max(parent.Y, outer.Bottom + mb + slot.G);
                             FlexHeight(parent, outer.Bottom + mb);
                         }
                         else parent.Y = next;
@@ -958,6 +959,40 @@ namespace Lea.Win
             }
         }
 
+        private IList<B> LayoutBlocks()
+        {
+            var orderedGrid = false;
+            foreach (var block in At.Bs)
+                if (block.Up != null && IsGrid(block.Up.S) && block.S != null && block.S.Or != 0) { orderedGrid = true; break; }
+            if (!orderedGrid) return At.Bs;
+
+            var result = new List<B>(At.Bs.Count);
+            var known = new HashSet<B>(At.Bs);
+            var children = new Dictionary<B, List<B>>();
+            var roots = new List<B>();
+            foreach (var block in At.Bs)
+            {
+                if (block.Up == null || !known.Contains(block.Up)) roots.Add(block);
+                else
+                {
+                    List<B> owned;
+                    if (!children.TryGetValue(block.Up, out owned)) children[block.Up] = owned = new List<B>();
+                    owned.Add(block);
+                }
+            }
+            foreach (var root in roots) AddLayoutBlock(root, children, result);
+            return result;
+        }
+
+        private static void AddLayoutBlock(B block, IDictionary<B, List<B>> children, IList<B> result)
+        {
+            result.Add(block);
+            List<B> owned;
+            if (!children.TryGetValue(block, out owned)) return;
+            if (IsGrid(block.S)) SortFlexItems(owned);
+            foreach (var child in owned) AddLayoutBlock(child, children, result);
+        }
+
         private static bool Inside(B block, B parent)
         {
             for (var current = block == null ? null : block.Up; current != null; current = current.Up)
@@ -965,9 +1000,11 @@ namespace Lea.Win
             return false;
         }
 
-        private void FlexSlots(Lc context)
+        private void ChildSlots(Lc context)
         {
-            if (context == null || context.B == null || !IsFlex(context.B.S)) return;
+            if (context == null || context.B == null) return;
+            if (IsGrid(context.B.S)) { GridSlots(context); return; }
+            if (!IsFlex(context.B.S)) return;
             var items = new List<B>();
             foreach (var item in At.Bs)
                 if (!item.Hd && Object.ReferenceEquals(item.Up, context.B) && !OutOfFlow(item.S)) items.Add(item);
@@ -1079,6 +1116,131 @@ namespace Lea.Win
                     context.Fs[item] = new Fp(cursor, widths[item], lineIndex);
                     cursor += widths[item] + lineGap;
                 }
+            }
+        }
+
+        private void GridSlots(Lc context)
+        {
+            var style = context.B.S;
+            if (style == null || style.Gc == 0) return;
+            var items = new List<B>();
+            foreach (var item in At.Bs)
+                if (!item.Hd && Object.ReferenceEquals(item.Up, context.B) && !OutOfFlow(item.S)) items.Add(item);
+            if (items.Count == 0) return;
+            SortFlexItems(items);
+
+            var columns = style.Gc;
+            var gap = Math.Min(style.Gp, Math.Max(0, context.C.Width / Math.Max(1, columns - 1)));
+            var widths = GridTrackWidths(style, context.C.Width, gap);
+            var used = gap * Math.Max(0, columns - 1);
+            foreach (var width in widths) used += width;
+            var offset = FlexJustify(style.Jc, columns, Math.Max(0, context.C.Width - used), false, ref gap);
+            var starts = new int[columns];
+            var cursor = context.C.X + offset;
+            for (var index = 0; index < columns; index++)
+            {
+                starts[index] = cursor;
+                cursor += widths[index] + gap;
+            }
+
+            context.Fs = new Dictionary<B, Fp>();
+            context.Ft = context.Y;
+            context.Fi = -1;
+            context.Fz = 0;
+            context.Fr = style.Rg;
+            var line = 0;
+            var column = 0;
+            foreach (var item in items)
+            {
+                var itemStyle = item.S;
+                var span = Math.Max(1, Math.Min(columns, itemStyle == null ? 1 : itemStyle.Gs));
+                var start = itemStyle == null || itemStyle.Gl < 1 ? -1 : Math.Min(columns - 1, itemStyle.Gl - 1);
+                if (start >= 0)
+                {
+                    if (start < column || start + span > columns) line++;
+                    column = start;
+                }
+                else if (column + span > columns)
+                {
+                    line++;
+                    column = 0;
+                }
+                span = Math.Min(span, columns - column);
+                var width = 0;
+                for (var track = column; track < column + span; track++) width += widths[track];
+                width += gap * Math.Max(0, span - 1);
+                context.Fs[item] = new Fp(starts[column], Math.Max(1, width), line);
+                column += span;
+                if (column >= columns) { line++; column = 0; }
+            }
+        }
+
+        private static int[] GridTrackWidths(S style, int available, int gap)
+        {
+            var count = style.Gc;
+            var result = new int[count];
+            var room = Math.Max(count, available - gap * Math.Max(0, count - 1));
+            var fixedTotal = 0;
+            var fractionTotal = 0;
+            var fractionCount = 0;
+            for (var index = 0; index < count; index++)
+            {
+                var track = style.Gv(index);
+                if (track >= 0) fixedTotal += Math.Max(1, track);
+                else { fractionTotal += -track; fractionCount++; }
+            }
+
+            if (fixedTotal + fractionCount <= room)
+            {
+                for (var index = 0; index < count; index++) if (style.Gv(index) >= 0) result[index] = Math.Max(1, style.Gv(index));
+                GridFractionWidths(style, result, Math.Max(0, room - fixedTotal), fractionTotal);
+            }
+            else
+            {
+                var weights = new int[count];
+                var total = 0;
+                for (var index = 0; index < count; index++)
+                {
+                    weights[index] = style.Gv(index) >= 0 ? Math.Max(1, style.Gv(index)) : Math.Max(1, -style.Gv(index));
+                    total += weights[index];
+                }
+                GridWeightedWidths(result, weights, room, total);
+            }
+            return result;
+        }
+
+        private static void GridFractionWidths(S style, int[] result, int room, int total)
+        {
+            if (total <= 0) return;
+            var remaining = room;
+            var weight = total;
+            var tracks = 0;
+            for (var index = 0; index < result.Length; index++) if (style.Gv(index) < 0) tracks++;
+            for (var index = 0; index < result.Length; index++)
+            {
+                var value = style.Gv(index);
+                if (value >= 0) continue;
+                var width = tracks == 1 ? remaining : weight == 0 ? 1 : remaining * -value / weight;
+                width = Math.Max(1, Math.Min(Math.Max(1, remaining - tracks + 1), width));
+                result[index] = width;
+                remaining -= width;
+                weight -= -value;
+                tracks--;
+            }
+        }
+
+        private static void GridWeightedWidths(int[] result, int[] weights, int room, int total)
+        {
+            var remaining = room;
+            var weight = total;
+            for (var index = 0; index < result.Length; index++)
+            {
+                var tracks = result.Length - index;
+                var width = tracks == 1 ? remaining : weight == 0 ? 1 : remaining * weights[index] / weight;
+                width = Math.Max(1, Math.Min(Math.Max(1, remaining - tracks + 1), width));
+                result[index] = width;
+                remaining -= width;
+                weight -= weights[index];
             }
         }
 
@@ -1332,6 +1494,11 @@ namespace Lea.Win
         private static bool IsFlex(S style)
         {
             return style != null && (style.D == "flex" || style.D == "inline-flex");
+        }
+
+        private static bool IsGrid(S style)
+        {
+            return style != null && (style.D == "grid" || style.D == "inline-grid");
         }
 
         private static bool FlexColumn(S style)
