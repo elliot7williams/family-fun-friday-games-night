@@ -3504,10 +3504,11 @@ namespace Lea.Engine
 
         private static void GridTemplate(S style, string value, bool rows)
         {
-            var source = Regex.Replace((value ?? "").Trim().ToLowerInvariant(), "minmax\\(\\s*0(?:px)?\\s*,\\s*(?<n>[1-9][0-9]?)fr\\s*\\)", "${n}fr", RegexOptions.IgnoreCase);
-            if (source == "none" || source == "initial" || source == "unset" || source == "revert")
+            var source = Regex.Replace((value ?? "").Trim(), "minmax\\(\\s*0(?:px)?\\s*,\\s*(?<n>[1-9][0-9]?)fr\\s*\\)", "${n}fr", RegexOptions.IgnoreCase);
+            if (source.Equals("none", StringComparison.OrdinalIgnoreCase) || source.Equals("initial", StringComparison.OrdinalIgnoreCase) || source.Equals("unset", StringComparison.OrdinalIgnoreCase) || source.Equals("revert", StringComparison.OrdinalIgnoreCase))
             {
-                if (rows) style.Rd = null; else style.Gd = null;
+                if (rows) { style.Rd = null; style.Rnd = null; }
+                else { style.Gd = null; style.Gnd = null; }
                 return;
             }
             if (source.Length == 0 || source.Length > 512) return;
@@ -3525,28 +3526,70 @@ namespace Lea.Engine
             }
             if (source.IndexOf("repeat", StringComparison.OrdinalIgnoreCase) >= 0 || source.IndexOf('(') >= 0 || source.IndexOf(')') >= 0) return;
 
-            var parts = Regex.Split(source.Trim(), "\\s+");
-            if (parts.Length < 1 || parts.Length > 8) return;
-            var tracks = new int[parts.Length];
-            for (var index = 0; index < parts.Length; index++)
+            var parts = Regex.Matches(source, "\\[(?<names>[^\\[\\]]*)\\]|(?<track>[^\\s\\[\\]]+)");
+            if (parts.Count == 0) return;
+            var tracks = new List<int>();
+            Dictionary<string, int> names = null;
+            var cursor = 0;
+            foreach (Match part in parts)
             {
-                var pixels = Regex.Match(parts[index], "^(?<n>[0-9]{1,4})px$", RegexOptions.IgnoreCase);
-                var fraction = Regex.Match(parts[index], "^(?<n>[1-9][0-9]?)fr$", RegexOptions.IgnoreCase);
+                if (!Regex.IsMatch(source.Substring(cursor, part.Index - cursor), "^\\s*$")) return;
+                cursor = part.Index + part.Length;
+                if (part.Groups["names"].Success)
+                {
+                    var group = part.Groups["names"].Value.Trim();
+                    if (group.Length == 0) continue;
+                    if (group.Length > 263) return;
+                    var lineNames = Regex.Split(group, "\\s+");
+                    if (lineNames.Length > 8) return;
+                    foreach (var name in lineNames)
+                    {
+                        if (!GridLineName(name)) return;
+                        if (names == null) names = new Dictionary<string, int>(StringComparer.Ordinal);
+                        if (names.ContainsKey(name) || names.Count == 16) return;
+                        names[name] = tracks.Count + 1;
+                    }
+                    continue;
+                }
+                if (tracks.Count == 8) return;
+                var token = part.Groups["track"].Value;
+                var pixels = Regex.Match(token, "^(?<n>[0-9]{1,4})px$", RegexOptions.IgnoreCase);
+                var fraction = Regex.Match(token, "^(?<n>[1-9][0-9]?)fr$", RegexOptions.IgnoreCase);
                 int number;
-                if (pixels.Success && Int32.TryParse(pixels.Groups["n"].Value, out number) && number <= 2000) tracks[index] = number;
-                else if (fraction.Success && Int32.TryParse(fraction.Groups["n"].Value, out number) && number <= 64) tracks[index] = -number;
+                if (pixels.Success && Int32.TryParse(pixels.Groups["n"].Value, out number) && number <= 2000) tracks.Add(number);
+                else if (fraction.Success && Int32.TryParse(fraction.Groups["n"].Value, out number) && number <= 64) tracks.Add(-number);
                 else return;
             }
-            if (rows) style.Rd = tracks; else style.Gd = tracks;
+            if (!Regex.IsMatch(source.Substring(cursor), "^\\s*$") || tracks.Count == 0) return;
+            if (rows) { style.Rd = tracks.ToArray(); style.Rnd = names; }
+            else { style.Gd = tracks.ToArray(); style.Gnd = names; }
+        }
+
+        private static bool GridLineName(string value)
+        {
+            if (!Regex.IsMatch(value ?? "", "^[A-Za-z_][A-Za-z0-9_-]{0,31}$")) return false;
+            return !value.Equals("auto", StringComparison.OrdinalIgnoreCase) && !value.Equals("span", StringComparison.OrdinalIgnoreCase) &&
+                !value.Equals("initial", StringComparison.OrdinalIgnoreCase) && !value.Equals("inherit", StringComparison.OrdinalIgnoreCase) &&
+                !value.Equals("unset", StringComparison.OrdinalIgnoreCase) && !value.Equals("revert", StringComparison.OrdinalIgnoreCase) &&
+                !value.Equals("revert-layer", StringComparison.OrdinalIgnoreCase) && !value.Equals("default", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool GridPlacementName(string value)
+        {
+            return Regex.IsMatch(value ?? "", "^[A-Za-z_][A-Za-z0-9_-]{0,37}$") &&
+                !value.Equals("auto", StringComparison.OrdinalIgnoreCase) && !value.Equals("span", StringComparison.OrdinalIgnoreCase) &&
+                !value.Equals("initial", StringComparison.OrdinalIgnoreCase) && !value.Equals("inherit", StringComparison.OrdinalIgnoreCase) &&
+                !value.Equals("unset", StringComparison.OrdinalIgnoreCase) && !value.Equals("revert", StringComparison.OrdinalIgnoreCase) &&
+                !value.Equals("revert-layer", StringComparison.OrdinalIgnoreCase) && !value.Equals("default", StringComparison.OrdinalIgnoreCase);
         }
 
         private static void GridPlacement(S style, string value, bool rows)
         {
-            var source = (value ?? "").Trim().ToLowerInvariant();
-            if (source == "auto" || source == "initial" || source == "unset" || source == "revert") { GridPlacementSet(style, rows, 0, 1); return; }
-            var spanOnly = Regex.Match(source, "^span\\s+(?<n>[1-8])$");
-            var placed = Regex.Match(source, "^(?<s>[1-8])(?:\\s*/\\s*span\\s+(?<n>[1-8]))?$");
-            var autoSpan = Regex.Match(source, "^auto\\s*/\\s*span\\s+(?<n>[1-8])$");
+            var source = (value ?? "").Trim();
+            if (source.Equals("auto", StringComparison.OrdinalIgnoreCase) || source.Equals("initial", StringComparison.OrdinalIgnoreCase) || source.Equals("unset", StringComparison.OrdinalIgnoreCase) || source.Equals("revert", StringComparison.OrdinalIgnoreCase)) { GridPlacementSet(style, rows, 0, 1); return; }
+            var spanOnly = Regex.Match(source, "^span\\s+(?<n>[1-8])$", RegexOptions.IgnoreCase);
+            var placed = Regex.Match(source, "^(?<s>[1-8])(?:\\s*/\\s*span\\s+(?<n>[1-8]))?$", RegexOptions.IgnoreCase);
+            var autoSpan = Regex.Match(source, "^auto\\s*/\\s*span\\s+(?<n>[1-8])$", RegexOptions.IgnoreCase);
             int number;
             if (spanOnly.Success && Int32.TryParse(spanOnly.Groups["n"].Value, out number)) GridPlacementSet(style, rows, 0, number);
             else if (autoSpan.Success && Int32.TryParse(autoSpan.Groups["n"].Value, out number)) GridPlacementSet(style, rows, 0, number);
@@ -3558,14 +3601,41 @@ namespace Lea.Engine
                 if (placed.Groups["n"].Success && !Int32.TryParse(placed.Groups["n"].Value, out span)) return;
                 GridPlacementSet(style, rows, start, span);
             }
+            else
+            {
+                var sides = Regex.Split(source, "\\s*/\\s*");
+                if (sides.Length == 1 && GridPlacementName(sides[0])) GridPlacementNamedSet(style, rows, 0, sides[0], sides[0], 1);
+                else if (sides.Length == 2)
+                {
+                    var startName = GridPlacementName(sides[0]) ? sides[0] : "";
+                    var endName = GridPlacementName(sides[1]) ? sides[1] : "";
+                    var spanMatch = Regex.Match(sides[1], "^span\\s+(?<n>[1-8])$", RegexOptions.IgnoreCase);
+                    var reverseSpan = Regex.Match(sides[0], "^span\\s+(?<n>[1-8])$", RegexOptions.IgnoreCase);
+                    int start;
+                    if (startName.Length > 0 && endName.Length > 0) GridPlacementNamedSet(style, rows, 0, startName, endName, 1);
+                    else if (startName.Length > 0 && spanMatch.Success && Int32.TryParse(spanMatch.Groups["n"].Value, out number)) GridPlacementNamedSet(style, rows, 0, startName, "", number);
+                    else if ((sides[0].Equals("auto", StringComparison.OrdinalIgnoreCase) || reverseSpan.Success) && endName.Length > 0)
+                    {
+                        var span = reverseSpan.Success && Int32.TryParse(reverseSpan.Groups["n"].Value, out number) ? number : 1;
+                        GridPlacementNamedSet(style, rows, 0, "", endName, span);
+                    }
+                    else if (Int32.TryParse(sides[0], out start) && start >= 1 && start <= 8 && endName.Length > 0) GridPlacementNamedSet(style, rows, start, "", endName, 1);
+                    else
+                    {
+                        int end;
+                        if (Int32.TryParse(sides[0], out start) && Int32.TryParse(sides[1], out end) && start >= 1 && start <= 8 && end > start && end <= 9) GridPlacementSet(style, rows, start, end - start);
+                    }
+                }
+            }
         }
 
         private static void GridPlacementStart(S style, string value, bool rows)
         {
-            var source = (value ?? "").Trim().ToLowerInvariant();
-            if (source == "auto" || source == "initial" || source == "unset" || source == "revert")
+            var source = (value ?? "").Trim();
+            if (source.Equals("auto", StringComparison.OrdinalIgnoreCase) || source.Equals("initial", StringComparison.OrdinalIgnoreCase) || source.Equals("unset", StringComparison.OrdinalIgnoreCase) || source.Equals("revert", StringComparison.OrdinalIgnoreCase))
             {
                 style.An = "";
+                if (rows) style.Rn = ""; else style.Gn = "";
                 if (rows) style.Rl = 0; else style.Gl = 0;
                 return;
             }
@@ -3573,33 +3643,54 @@ namespace Lea.Engine
             if (Regex.IsMatch(source, "^[1-8]$") && Int32.TryParse(source, out start))
             {
                 style.An = "";
+                if (rows) style.Rn = ""; else style.Gn = "";
                 if (rows) style.Rl = start; else style.Gl = start;
+            }
+            else if (GridPlacementName(source))
+            {
+                style.An = "";
+                if (rows) { style.Rl = 0; style.Rn = source; }
+                else { style.Gl = 0; style.Gn = source; }
             }
         }
 
         private static void GridPlacementEnd(S style, string value, bool rows)
         {
-            var source = (value ?? "").Trim().ToLowerInvariant();
-            if (source == "auto" || source == "initial" || source == "unset" || source == "revert")
+            var source = (value ?? "").Trim();
+            if (source.Equals("auto", StringComparison.OrdinalIgnoreCase) || source.Equals("initial", StringComparison.OrdinalIgnoreCase) || source.Equals("unset", StringComparison.OrdinalIgnoreCase) || source.Equals("revert", StringComparison.OrdinalIgnoreCase))
             {
                 style.An = "";
+                if (rows) style.Re = ""; else style.Ge = "";
                 if (rows) style.Rs = 1; else style.Gs = 1;
                 return;
             }
-            var match = Regex.Match(source, "^span\\s+(?<n>[1-8])$");
+            var match = Regex.Match(source, "^span\\s+(?<n>[1-8])$", RegexOptions.IgnoreCase);
             int span;
             if (match.Success && Int32.TryParse(match.Groups["n"].Value, out span))
             {
                 style.An = "";
+                if (rows) style.Re = ""; else style.Ge = "";
                 if (rows) style.Rs = span; else style.Gs = span;
+            }
+            else if (GridPlacementName(source))
+            {
+                style.An = "";
+                if (rows) style.Re = source; else style.Ge = source;
             }
         }
 
         private static void GridPlacementSet(S style, bool rows, int start, int span)
         {
             style.An = "";
-            if (rows) { style.Rl = start; style.Rs = span; }
-            else { style.Gl = start; style.Gs = span; }
+            if (rows) { style.Rl = start; style.Rs = span; style.Rn = ""; style.Re = ""; }
+            else { style.Gl = start; style.Gs = span; style.Gn = ""; style.Ge = ""; }
+        }
+
+        private static void GridPlacementNamedSet(S style, bool rows, int start, string startName, string endName, int span)
+        {
+            style.An = "";
+            if (rows) { style.Rl = start; style.Rs = span; style.Rn = startName; style.Re = endName; }
+            else { style.Gl = start; style.Gs = span; style.Gn = startName; style.Ge = endName; }
         }
 
         private static void GridTemplateAreas(S style, string value)
@@ -3680,6 +3771,10 @@ namespace Lea.Engine
                 style.Gs = 1;
                 style.Rl = 0;
                 style.Rs = 1;
+                style.Gn = "";
+                style.Ge = "";
+                style.Rn = "";
+                style.Re = "";
                 return;
             }
             if (!Regex.IsMatch(source, "^[A-Za-z_][A-Za-z0-9_-]{0,31}$")) return;
@@ -3687,6 +3782,10 @@ namespace Lea.Engine
             style.Gs = 1;
             style.Rl = 0;
             style.Rs = 1;
+            style.Gn = "";
+            style.Ge = "";
+            style.Rn = "";
+            style.Re = "";
             style.An = source;
         }
 

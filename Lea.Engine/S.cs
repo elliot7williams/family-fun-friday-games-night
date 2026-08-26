@@ -37,6 +37,10 @@ namespace Lea.Engine
         public int Gs { get; internal set; }
         public int Rl { get; internal set; }
         public int Rs { get; internal set; }
+        public string Gn { get; internal set; }
+        public string Ge { get; internal set; }
+        public string Rn { get; internal set; }
+        public string Re { get; internal set; }
         public string An { get; internal set; }
         public string Pn { get; internal set; }
         public int? Tp { get; internal set; }
@@ -76,11 +80,15 @@ namespace Lea.Engine
         internal Dictionary<string, string> Vr { get; set; }
         internal int[] Gd { get; set; }
         internal int[] Rd { get; set; }
+        internal Dictionary<string, int> Gnd { get; set; }
+        internal Dictionary<string, int> Rnd { get; set; }
         internal Dictionary<string, int[]> Ad { get; set; }
 
         public int Vc { get { return Vr == null ? 0 : Vr.Count; } }
         public int Gc { get { return Gd == null ? 0 : Gd.Length; } }
         public int Rc { get { return Rd == null ? 0 : Rd.Length; } }
+        public int Gnc { get { return Gnd == null ? 0 : Gnd.Count; } }
+        public int Rnc { get { return Rnd == null ? 0 : Rnd.Count; } }
         public int Aa { get { return Ad == null ? 0 : Ad.Count; } }
         public int Ar { get; internal set; }
         public int Ac { get; internal set; }
@@ -95,6 +103,16 @@ namespace Lea.Engine
             return Rd != null && index >= 0 && index < Rd.Length ? Rd[index] : 0;
         }
 
+        public int Gx(string name)
+        {
+            return GridLine(name, false);
+        }
+
+        public int Rx(string name)
+        {
+            return GridLine(name, true);
+        }
+
         public int Ag(string name, int part)
         {
             int[] area;
@@ -105,6 +123,22 @@ namespace Lea.Engine
         {
             string value;
             return !String.IsNullOrEmpty(name) && Vr != null && Vr.TryGetValue(name, out value) ? value : "";
+        }
+
+        private int GridLine(string name, bool rows)
+        {
+            if (String.IsNullOrEmpty(name)) return 0;
+            var names = rows ? Rnd : Gnd;
+            int line;
+            if (names != null && names.TryGetValue(name, out line)) return line;
+            var start = name.EndsWith("-start", StringComparison.Ordinal);
+            var end = name.EndsWith("-end", StringComparison.Ordinal);
+            if (!start && !end) return 0;
+            var suffix = start ? 6 : 4;
+            int[] area;
+            if (name.Length <= suffix || Ad == null || !Ad.TryGetValue(name.Substring(0, name.Length - suffix), out area)) return 0;
+            var areaStart = rows ? area[0] : area[1];
+            return end ? areaStart + (rows ? area[2] : area[3]) : areaStart;
         }
 
         internal S()
@@ -130,6 +164,10 @@ namespace Lea.Engine
             Fb = -1;
             Gs = 1;
             Rs = 1;
+            Gn = "";
+            Ge = "";
+            Rn = "";
+            Re = "";
             An = "";
             Bz = "c";
             Pn = "";

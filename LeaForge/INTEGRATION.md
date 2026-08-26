@@ -276,10 +276,16 @@ Bounded `grid-template-areas` adds `S.Aa/Ar/Ac/Ag` container inspection and
 16 exact ASCII names, dot cells, and filled rectangular regions compile once.
 Named and fully numeric definite items reserve occupancy before automatic items;
 area dimensions can create equal-share implicit tracks when no explicit column
-size exists. Escaped identifiers, generated `name-start/name-end` line
-references, arbitrary named lines, intrinsic or percentage tracks,
-auto-fit/fill, dense/column flow, subgrid, and true inline-level outer
-formatting remain explicit compatibility limits.
+size exists. Bracketed track line groups compile into lazy, unique,
+case-sensitive maps with `S.Gnc/Rnc` counts and one-based `Gx/Rx(name)` lookup.
+Direct items retain `Gn/Ge` column and `Rn/Re` row names; named shorthands,
+longhands, numeric/name combinations, spans, and area-generated
+`name-start/name-end` edges resolve before automatic placement. Each axis keeps
+at most 16 explicit names, eight names per line, 32 characters per name, and
+the existing eight-track/512-character bounds. Invalid declarations are atomic.
+Escaped or repeated-name occurrence indexes, named spans, intrinsic or
+percentage tracks, auto-fit/fill, dense/column flow, subgrid, and true
+inline-level outer formatting remain explicit compatibility limits.
 
 Inherited visibility uses `S.Vi` with `v/h/c`. Hidden and collapsed content
 keeps its layout rectangle but produces no pixels, links, field hits, or editor.

@@ -123,9 +123,12 @@ Dg/Dcl  diagnostics/clear request activity
     nested flow, paint, hits, fields, resize, benchmark, Inspector, and
     Firespider host paths are active. Bounded named-area templates add equal-row,
     dot-cell, filled-rectangle, 8x8/16-name validation; compact `Aa/Ar/Ac/Ag/An`
-    aliases; definite-first placement; and implicit columns. Escaped or arbitrary
-    named lines, intrinsic tracks, auto-fit/fill, dense/column flow, and subgrid
-    stay outside.)
+    aliases; definite-first placement; and implicit columns. Bounded named line
+    groups add lazy `Gnc/Rnc/Gx/Rx` inspection, `Gn/Ge/Rn/Re` item edges,
+    unique 16-name-per-axis validation, area-generated start/end lines, and
+    mixed name/span placement. Escapes, repeated-name occurrence indexes, named
+    spans, intrinsic tracks, auto-fit/fill, dense/column flow, and subgrid stay
+    outside.)
 
 This is the largest speed milestone: fewer controls, less UI overhead, and one
 predictable rendering pass.
@@ -308,7 +311,13 @@ non-empty bridge survives both direct and external MTA clients. Continue host
 coverage and bounded HTML/CSS compatibility work without adding another browser
 runtime.
 
-The latest completed milestone added bounded strict `:has(...)` relative lists
+The latest completed grid milestone added bounded unique named lines to column
+and row track lists. Lazy exact maps expose `Gnc/Rnc/Gx/Rx`, items retain
+`Gn/Ge/Rn/Re`, named areas generate start/end edges without duplicate storage,
+and shorthand/longhand resolution shares definite-first occupancy, exact
+geometry, invalid-limit, benchmark, and Firespider host coverage.
+
+The latest completed selector milestone added bounded strict `:has(...)` relative lists
 with compact precompiled relationship/part records, descendant, child,
 adjacent, and following matching, four-part chains, maximum specificity,
 deterministic traversal limits, dynamic focus retention, shared queries,

@@ -2488,6 +2488,48 @@ namespace Lea.Tests
                         Ok(BlockOuterRect(view, BlockById(view.At, "after-areas")).Top > BlockOuterRect(view, BlockById(view.At, "area-target")).Bottom, "normal flow follows named grids");
                         Ok(ColorDistance(areaPaint.GetPixel(mainRect.Left + 4, mainRect.Top + 4), Color.FromArgb(253, 227, 197)) < 8, "named grid area paint");
                     }
+                    var linePath = Path.Combine(root, "LeaForge", "test-pages", "grid-lines.html");
+                    var linePage = engine.Go(linePath);
+                    var lineLayout = BlockById(linePage, "line-layout");
+                    var lineHead = BlockById(linePage, "line-head");
+                    var lineMain = BlockById(linePage, "line-main");
+                    Ok(lineLayout.S.Gnc == 7 && lineLayout.S.Rnc == 5 && lineLayout.S.Gx("edge") == 1 && lineLayout.S.Gx("side-end") == 2 && lineLayout.S.Gx("main-end") == 4 && lineLayout.S.Rx("footer-start") == 3 && lineLayout.S.Rx("bottom") == 4, "named grid line counts and lookups");
+                    Ok(lineLayout.S.Gx("missing") == 0 && lineLayout.S.Rx("") == 0 && lineLayout.S.Gx("Edge") == 0, "named grid line lookup bounds and case");
+                    Ok(lineHead.S.Gn == "edge" && lineHead.S.Ge == "edge-end" && lineHead.S.Rn == "top" && lineHead.S.Re == "body-start" && lineMain.S.Gn == "main-start" && lineMain.S.Ge == "main-end", "named grid item aliases");
+                    var areaLines = BlockById(linePage, "area-lines");
+                    Ok(areaLines.S.Gnc == 0 && areaLines.S.Rnc == 0 && areaLines.S.Gx("lead-start") == 1 && areaLines.S.Gx("lead-end") == 2 && areaLines.S.Gx("story-start") == 2 && areaLines.S.Gx("story-end") == 3 && areaLines.S.Rx("lead-start") == 1 && areaLines.S.Rx("lead-end") == 2, "area-generated grid line lookups");
+                    Ok(BlockById(linePage, "bad-duplicate").S.Gc == 1 && BlockById(linePage, "bad-duplicate").S.Gx("keep") == 1 && BlockById(linePage, "bad-duplicate").S.Gx("dup") == 0 && BlockById(linePage, "bad-name").S.Gx("valid") == 1, "invalid named line templates preserve prior values");
+                    Ok(BlockById(linePage, "bad-reserved").S.Rc == 0 && BlockById(linePage, "too-many-lines").S.Gc == 0 && BlockById(linePage, "too-many-on-line").S.Gc == 0 && BlockById(linePage, "too-long-line").S.Gc == 0 && BlockById(linePage, "line-reset").S.Gnc == 0, "named line invalid and reset limits");
+                    Ok(BlockById(linePage, "repeat-lines").S.Gc == 2 && BlockById(linePage, "repeat-lines").S.Gx("rep-end") == 3 && BlockById(linePage, "line-limit").S.Gc == 8 && BlockById(linePage, "line-limit").S.Gnc == 16 && BlockById(linePage, "line-limit").S.Gx("p") == 9, "named line repeat and ceilings");
+                    Ok(BlockById(linePage, "case-lines").S.Gx("Case") == 1 && BlockById(linePage, "case-lines").S.Gx("case") == 0 && BlockById(linePage, "case-item").S.Gn == "case", "named line case-sensitive placement input");
+                    view.Size = new Size(720, 1700);
+                    view.Go(linePath);
+                    using (var linePaint = Render(view))
+                    {
+                        var layoutRect = BlockRect(view, BlockById(view.At, "line-layout"));
+                        var headRect = BlockOuterRect(view, BlockById(view.At, "line-head"));
+                        var navRect = BlockOuterRect(view, BlockById(view.At, "line-nav"));
+                        var mainRect = BlockOuterRect(view, BlockById(view.At, "line-main"));
+                        var footRect = BlockOuterRect(view, BlockById(view.At, "line-foot"));
+                        var autoRect = BlockOuterRect(view, BlockById(view.At, "line-auto"));
+                        Eq(new Size(360, 40), headRect.Size, "named line header geometry");
+                        Eq(new Size(80, 78), navRect.Size, "named line navigation geometry");
+                        Eq(new Size(272, 78), mainRect.Size, "named line main geometry");
+                        Eq(new Size(176, 50), footRect.Size, "named line explicit span geometry");
+                        Eq(new Size(176, 50), autoRect.Size, "named line automatic final cell");
+                        Ok(headRect.Location == layoutRect.Location && mainRect.Left - navRect.Right == 8 && mainRect.Top - headRect.Bottom == 6 && footRect.Top - navRect.Bottom == 6 && autoRect.Left - footRect.Right == 8 && autoRect.Bottom == layoutRect.Bottom, "named line placement and gaps");
+                        var separateLeft = BlockOuterRect(view, BlockById(view.At, "separate-line-left"));
+                        var separateRight = BlockOuterRect(view, BlockById(view.At, "separate-line-right"));
+                        Ok(separateLeft.Width == 96 && separateRight.Width == 96 && separateRight.Left - separateLeft.Right == 8 && separateLeft.Height == 60 && separateRight.Height == 60, "separate named line longhands");
+                        var generatedLead = BlockOuterRect(view, BlockById(view.At, "area-line-lead"));
+                        var generatedStory = BlockOuterRect(view, BlockById(view.At, "area-line-story"));
+                        Ok(generatedLead.Width == 96 && generatedStory.Width == 96 && generatedStory.Left - generatedLead.Right == 8 && generatedLead.Height == 60 && generatedStory.Height == 60, "area-generated named line geometry");
+                        var implicitRowOne = BlockOuterRect(view, BlockById(view.At, "implicit-row-one"));
+                        var implicitRowThree = BlockOuterRect(view, BlockById(view.At, "implicit-row-three"));
+                        Ok(implicitRowThree.Top > implicitRowOne.Bottom && implicitRowThree.Top - implicitRowOne.Bottom >= 10, "numeric placement retains implicit row bounds");
+                        Ok(!FragmentHitRect(view, "#line-target").IsEmpty && BlockOuterRect(view, BlockById(view.At, "after-lines")).Top > BlockOuterRect(view, BlockById(view.At, "line-target")).Bottom, "named line hits and following flow");
+                        Ok(ColorDistance(linePaint.GetPixel(mainRect.Left + 4, mainRect.Top + 4), Color.FromArgb(199, 233, 255)) < 8, "named grid line paint");
+                    }
                     view.Size = new Size(720, 760);
                     var boxes = Path.Combine(root, "LeaForge", "test-pages", "boxes.html");
                     var boxPage = engine.Go(boxes);

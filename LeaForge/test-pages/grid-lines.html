@@ -1,0 +1,95 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea bounded named grid lines</title>
+  <style>
+    body { background: #f7faf8; color: #18372f; font-family: Segoe UI; }
+    h1 { color: #134e4a; }
+    .grid { display: grid; margin-bottom: 12px; background: #edf6f2; }
+    .line-item { margin: 0; }
+    #line-layout {
+      width: 360px;
+      height: 180px;
+      grid-template-columns: [edge content-start] 80px [side-end main-start] 1fr [middle] 2fr [edge-end main-end];
+      grid-template-rows: [top] 40px [body-start] 1fr [body-end footer-start] 50px [bottom];
+      gap: 6px 8px;
+    }
+    #line-head { grid-column: edge / edge-end; grid-row: top / body-start; background: #d8f1e5; }
+    #line-nav { grid-column: edge / side-end; grid-row: body-start / body-end; background: #dce9ff; }
+    #line-main { grid-column: main-start / main-end; grid-row: body-start / body-end; background: #c7e9ff; }
+    #line-foot { grid-column: edge / span 2; grid-row: footer-start / bottom; background: #eee3fb; }
+    #line-auto { background: #f4dce2; }
+    #separate-lines {
+      width: 200px;
+      height: 60px;
+      grid-template-columns: [left] 1fr [middle-line] 1fr [right];
+      grid-template-rows: [row-top] 60px [row-bottom];
+      column-gap: 8px;
+    }
+    #separate-line-left { grid-column-start: left; grid-column-end: middle-line; grid-row-start: row-top; grid-row-end: row-bottom; background: #d8f1e5; }
+    #separate-line-right { grid-column: middle-line / right; grid-row: row-top / row-bottom; background: #dce9ff; }
+    #area-lines {
+      width: 200px;
+      height: 60px;
+      grid-template-areas: "lead story";
+      column-gap: 8px;
+    }
+    #area-line-lead { grid-column: lead; grid-row: lead; background: #d8f1e5; }
+    #area-line-story { grid-column: story-start / story-end; grid-row: story-start / story-end; background: #dce9ff; }
+    #implicit-numbered-rows { width: 200px; grid-template-columns: 1fr; row-gap: 5px; }
+    #implicit-row-one { grid-row: 1; height: 20px; background: #d8f1e5; }
+    #implicit-row-three { grid-row: 3; height: 20px; background: #dce9ff; }
+    #bad-duplicate { grid-template-columns: [keep] 1fr [done]; grid-template-columns: [dup] 1fr [dup]; }
+    #bad-name { grid-template-columns: [valid] 1fr [finish]; grid-template-columns: [1bad] 1fr; }
+    #bad-reserved { grid-template-rows: [span] 1fr [done]; }
+    #too-many-lines { grid-template-columns: [a b c d e f g h] 1fr [i j k l m n o p] 1fr [q]; }
+    #too-many-on-line { grid-template-columns: [a b c d e f g h i] 1fr; }
+    #too-long-line { grid-template-columns: [abcdefghijklmnopqrstuvwxyzabcdefg] 1fr; }
+    #line-reset { grid-template-columns: [old-start] 1fr [old-end]; grid-template-columns: none; }
+    #repeat-lines { grid-template-columns: [rep-start] repeat(2, minmax(0, 1fr)) [rep-end]; }
+    #line-limit {
+      grid-template-columns:
+        [a b] 1fr [c d] 1fr [e f] 1fr [g h] 1fr
+        [i j] 1fr [k l] 1fr [m n] 1fr [o] 1fr [p];
+    }
+    #case-lines { grid-template-columns: [Case] 1fr [case-end]; }
+    #case-item { grid-column: case / case-end; }
+    #after-lines { width: 360px; padding: 5px; border-left: 3px solid #b91c1c; background: #f8eeee; }
+  </style>
+</head>
+<body>
+  <h1>Bounded named grid lines</h1>
+  <section id="line-layout" class="grid">
+    <p id="line-auto" class="line-item">Automatic final cell</p>
+    <header id="line-head" class="line-item">Header lines</header>
+    <nav id="line-nav" class="line-item">Navigation lines</nav>
+    <article id="line-main" class="line-item">Main lines<a id="line-link" href="#line-target">Line target</a></article>
+    <footer id="line-foot" class="line-item">Footer line span</footer>
+  </section>
+  <section id="separate-lines" class="grid">
+    <p id="separate-line-left" class="line-item">Separate left</p>
+    <p id="separate-line-right" class="line-item">Separate right</p>
+  </section>
+  <section id="area-lines" class="grid">
+    <p id="area-line-lead" class="line-item">Generated lead lines</p>
+    <p id="area-line-story" class="line-item">Generated story lines</p>
+  </section>
+  <section id="implicit-numbered-rows" class="grid">
+    <p id="implicit-row-one" class="line-item">Implicit row one</p>
+    <p id="implicit-row-three" class="line-item">Implicit row three</p>
+  </section>
+  <section id="bad-duplicate" class="grid"><p>Duplicate line template is ignored.</p></section>
+  <section id="bad-name" class="grid"><p>Invalid line template is ignored.</p></section>
+  <section id="bad-reserved" class="grid"><p>Reserved line name is ignored.</p></section>
+  <section id="too-many-lines" class="grid"><p>Excess total names are ignored.</p></section>
+  <section id="too-many-on-line" class="grid"><p>Excess names on one line are ignored.</p></section>
+  <section id="too-long-line" class="grid"><p>Oversized line name is ignored.</p></section>
+  <section id="line-reset" class="grid"><p>Reset line template.</p></section>
+  <section id="repeat-lines" class="grid"><p>Named repeat template.</p></section>
+  <section id="line-limit" class="grid"><p>Named line ceiling.</p></section>
+  <section id="case-lines" class="grid"><p id="case-item">Case-sensitive unresolved item.</p></section>
+  <p id="line-target">Named line fragment target</p>
+  <p id="after-lines">Normal document flow continues below named line layouts.</p>
+</body>
+</html>

@@ -1207,10 +1207,22 @@ namespace Lea.Win
                 int areaRowSpan;
                 int areaColumnSpan;
                 var named = GridNamedArea(container, style, columns, out areaRow, out areaColumn, out areaRowSpan, out areaColumnSpan);
-                var columnSpan = named ? areaColumnSpan : Math.Max(1, Math.Min(columns, style == null ? 1 : style.Gs));
-                var rowSpan = named ? areaRowSpan : Math.Max(1, style == null ? 1 : style.Rs);
-                var fixedColumn = named ? areaColumn : style == null || style.Gl < 1 ? -1 : Math.Min(columns - 1, style.Gl - 1);
-                var fixedRow = named ? areaRow : style == null || style.Rl < 1 ? -1 : style.Rl - 1;
+                int fixedColumn;
+                int columnSpan;
+                int fixedRow;
+                int rowSpan;
+                if (named)
+                {
+                    fixedColumn = areaColumn;
+                    columnSpan = areaColumnSpan;
+                    fixedRow = areaRow;
+                    rowSpan = areaRowSpan;
+                }
+                else
+                {
+                    GridAxis(container, style, false, columns, out fixedColumn, out columnSpan);
+                    GridAxis(container, style, true, 8, out fixedRow, out rowSpan);
+                }
                 var row = fixedRow >= 0 ? fixedRow : cursorRow;
                 var column = fixedColumn >= 0 ? fixedColumn : fixedRow >= 0 ? 0 : cursorColumn;
                 if (fixedRow < 0 && fixedColumn >= 0 && column < cursorColumn) row++;
@@ -1247,7 +1259,42 @@ namespace Lea.Win
             int column;
             int rowSpan;
             int columnSpan;
-            return GridNamedArea(container, item, columns, out row, out column, out rowSpan, out columnSpan) || item != null && item.Gl > 0 && item.Rl > 0;
+            if (GridNamedArea(container, item, columns, out row, out column, out rowSpan, out columnSpan)) return true;
+            GridAxis(container, item, false, columns, out column, out columnSpan);
+            GridAxis(container, item, true, 8, out row, out rowSpan);
+            return column >= 0 && row >= 0;
+        }
+
+        private static void GridAxis(S container, S item, bool rows, int limit, out int start, out int span)
+        {
+            span = Math.Max(1, Math.Min(limit, item == null ? 1 : rows ? item.Rs : item.Gs));
+            start = item == null || (rows ? item.Rl : item.Gl) < 1 ? -1 : Math.Min(limit - 1, (rows ? item.Rl : item.Gl) - 1);
+            if (item == null) return;
+            var startName = rows ? item.Rn : item.Gn;
+            var endName = rows ? item.Re : item.Ge;
+            if (String.IsNullOrEmpty(startName) && String.IsNullOrEmpty(endName)) return;
+            var startLine = String.IsNullOrEmpty(startName) ? 0 : GridLine(container, startName, rows, false);
+            var endLine = String.IsNullOrEmpty(endName) ? 0 : GridLine(container, endName, rows, true);
+            if (!String.IsNullOrEmpty(startName) && startLine == 0 || !String.IsNullOrEmpty(endName) && endLine == 0) { start = -1; return; }
+            if (startLine > 0) start = startLine - 1;
+            if (endLine > 0)
+            {
+                if (start >= 0)
+                {
+                    var resolvedSpan = endLine - start - 1;
+                    if (resolvedSpan <= 0 && startName == endName && startLine == endLine) resolvedSpan = 1;
+                    if (resolvedSpan <= 0 || resolvedSpan > limit) { start = -1; return; }
+                    span = resolvedSpan;
+                }
+                else start = endLine - span - 1;
+            }
+            if (start < 0 || start + span > limit) start = -1;
+        }
+
+        private static int GridLine(S container, string name, bool rows, bool end)
+        {
+            var edge = (rows ? container.Rx(name + (end ? "-end" : "-start")) : container.Gx(name + (end ? "-end" : "-start")));
+            return edge > 0 ? edge : rows ? container.Rx(name) : container.Gx(name);
         }
 
         private static bool GridNamedArea(S container, S item, int columns, out int row, out int column, out int rowSpan, out int columnSpan)

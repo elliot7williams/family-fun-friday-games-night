@@ -111,7 +111,7 @@ namespace Lea.Bench
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
-                "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html",
+                "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html",
                 "box-sizing.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
@@ -929,6 +929,39 @@ namespace Lea.Bench
                 }
                 return "Aa/Ar/Ac/Ag area templates plus An item names, rectangular validation, dot cells, definite-first placement, implicit columns, bounds, paint, hits, and flow";
             });
+            AddProbe(probes, "Bounded named grid lines", delegate
+            {
+                var path = Path.Combine(folder, "grid-lines.html");
+                var page = new E().Go(path);
+                var layout = page.Bs.First(block => block.El != null && block.El.Av("id") == "line-layout");
+                var head = page.Bs.First(block => block.El != null && block.El.Av("id") == "line-head");
+                var area = page.Bs.First(block => block.El != null && block.El.Av("id") == "area-lines");
+                Need(layout.S.Gnc == 7 && layout.S.Rnc == 5 && layout.S.Gx("edge") == 1 && layout.S.Gx("main-end") == 4 && layout.S.Rx("footer-start") == 3 && head.S.Gn == "edge" && head.S.Ge == "edge-end", "named grid line aliases changed");
+                Need(area.S.Gx("lead-start") == 1 && area.S.Gx("lead-end") == 2 && area.S.Rx("lead-end") == 2, "area-generated named lines changed");
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "bad-duplicate").S.Gx("keep") == 1 && page.Bs.First(block => block.El != null && block.El.Av("id") == "too-many-lines").S.Gc == 0 && page.Bs.First(block => block.El != null && block.El.Av("id") == "line-limit").S.Gnc == 16, "named grid line validation changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1700);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var layoutRect = BlockOuter(view, "line-layout");
+                        var headRect = BlockOuter(view, "line-head");
+                        var navRect = BlockOuter(view, "line-nav");
+                        var mainRect = BlockOuter(view, "line-main");
+                        var footRect = BlockOuter(view, "line-foot");
+                        var autoRect = BlockOuter(view, "line-auto");
+                        Need(headRect.Width == 360 && headRect.Height == 40 && navRect.Width == 80 && navRect.Height == 78 && mainRect.Width == 272 && mainRect.Height == 78 && footRect.Width == 176 && footRect.Height == 50 && autoRect.Width == 176 && autoRect.Height == 50, "named grid line geometry changed");
+                        Need(mainRect.Left - navRect.Right == 8 && mainRect.Top - headRect.Bottom == 6 && footRect.Top - navRect.Bottom == 6 && autoRect.Left - footRect.Right == 8 && autoRect.Bottom == layoutRect.Bottom, "named grid line placement or gaps changed");
+                        var lead = BlockOuter(view, "area-line-lead");
+                        var story = BlockOuter(view, "area-line-story");
+                        var implicitOne = BlockOuter(view, "implicit-row-one");
+                        var implicitThree = BlockOuter(view, "implicit-row-three");
+                        Need(lead.Width == 96 && story.Width == 96 && story.Left - lead.Right == 8 && implicitThree.Top > implicitOne.Bottom && ColoredSamples(image) > 0, "area-generated lines, implicit numeric rows, or paint changed");
+                    }
+                }
+                return "Gnc/Rnc/Gx/Rx templates plus Gn/Ge/Rn/Re item names, area-generated edges, unique validation, repeats, definite-first placement, bounds, paint, hits, and flow";
+            });
             AddProbe(probes, "Forms and validation", delegate
             {
                 var engine = new E();
@@ -1135,7 +1168,7 @@ namespace Lea.Bench
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
             Capability(builder, "Flexbox", "Supported subset", "Row/row-reverse and fixed-height column/column-reverse containers, content/border-box pixel bases, stable -64..64 order on nowrap rows and bounded columns, bounded row wrap, fixed/equal-share/weighted grow and integer weighted-shrink slots, explicit pixel min/max floors, pixel row/column gaps, start/center/end/space-between/space-around/space-evenly justification, and container/item stretch/start/center/end cross alignment; no intrinsic min-content sizing, fractional factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis alignment, or auto-height column reordering guarantee");
-            Capability(builder, "CSS Grid", "Supported subset", "Grid/inline-grid with up to eight fixed-pixel or integer-fr tracks per explicit axis, simple repeat and minmax(0, Nfr), pixel gaps, bounded row-major occupancy, two-axis numeric starts/spans, validated 8x8 named-area templates, dot cells, definite-first placement, implicit tracks, stable order, auto-height settling, and shared nested paint/hit/reflow; no escaped or arbitrary named lines, dense/column flow, intrinsic or percentage tracks, auto-fit/fill, or subgrid");
+            Capability(builder, "CSS Grid", "Supported subset", "Grid/inline-grid with up to eight fixed-pixel or integer-fr tracks per explicit axis, simple repeat and minmax(0, Nfr), pixel gaps, bounded row-major occupancy, two-axis numeric starts/spans, validated 8x8 named-area templates, unique explicit named lines, area-generated start/end lines, definite-first placement, implicit tracks, stable order, auto-height settling, and shared nested paint/hit/reflow; no escaped or repeated-name occurrence indexes, dense/column flow, intrinsic or percentage tracks, auto-fit/fill, or subgrid");
             Capability(builder, "Canvas and SVG", "Not supported", "Future compatibility work; no silent fallback claim");
             Capability(builder, "Audio and video", "Not supported", "Future optional module");
             Capability(builder, "Developer diagnostics", "Supported", "Bounded summary, node, CSS, request, message, and variable snapshots");

@@ -218,9 +218,25 @@ case-sensitive area name. Templates are limited to 8x8 cells, 16 names,
 must have the same cell count, dot runs are null cells, and repeated names must
 form one filled rectangle. Definite named/numeric items reserve cells before
 automatic items, and area dimensions can create equal-share implicit tracks.
-Escaped identifiers, named lines, implicit `-start/-end` line references,
-intrinsic/percentage tracks, auto-fit/fill, dense or column flow, and subgrid
-remain outside this subset.
+
+Bracket groups in `grid-template-columns/rows` add bounded named lines without
+allocating maps for unnamed templates. `Gnc/Rnc` count explicit column/row
+names, while `Gx(name)` and `Rx(name)` return a one-based line index or zero.
+Each item exposes column start/end names through `Gn/Ge` and row start/end names
+through `Rn/Re`; existing `Gl/Gs/Rl/Rs` continue to carry numeric starts and
+spans. Shorthands accept `name/name`, `name/span N`, `span N/name`,
+`auto/name`, and `number/name`, and the four longhands accept exact names.
+A bare area name first resolves its generated `name-start/name-end` edges, and
+`Gx/Rx` expose those generated names directly without counting them in
+`Gnc/Rnc`.
+
+Explicit names are case-sensitive and unique per axis. A template keeps at most
+16 names, eight names on one line, 32 characters per explicit name, eight
+tracks, and 512 source characters. Simple repeat groups can sit between named
+outer lines. Duplicate, reserved, malformed, oversized, and excess names reject
+the whole declaration while preserving a prior valid value. Escaped names,
+repeated-name occurrence indexes, named spans, intrinsic/percentage tracks,
+auto-fit/fill, dense or column flow, and subgrid remain outside this subset.
 
 Document lookup stays short and bounded. `E.Id(page, id)` finds the first ID,
 `E.Q(page, selector)` finds the first document-order selector match, and
