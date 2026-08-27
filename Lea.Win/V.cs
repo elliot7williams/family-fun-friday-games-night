@@ -663,6 +663,8 @@ namespace Lea.Win
             pe.Graphics.Clear(BackColor);
             if (At.S != null && !Hidden(At.S) && At.S.Bg.Length > 0 && At.S.Op > 0)
                 using (var brush = new SolidBrush(PaintColor(pageBackground, At.S.Op))) pe.Graphics.FillRectangle(brush, ClientRectangle);
+            if (At.S != null && !Hidden(At.S) && At.S.Gi != null && At.S.Op > 0)
+                PaintGradient(pe.Graphics, ClientRectangle, At.S, pageColor, At.S.Op);
             if (layoutDirty || layoutWidth != ClientSize.Width) Lay(pe.Graphics);
             PlaceEditor();
 
@@ -2644,6 +2646,7 @@ namespace Lea.Win
                             using (var path = RoundedPath(rect, style, 0, 0, 0, 0)) graphics.FillPath(brush, path);
                         else graphics.FillRectangle(brush, rect);
                     }
+                if (background && style.Gi != null) PaintGradient(graphics, rect, style, CssColor(style.F, pageColor), opacity);
                 if (background && shadows) PaintShadows(graphics, rect, style, CssColor(style.F, pageColor), opacity, true);
 
                 var top = BorderWidth(style, style.Bt);
@@ -2752,6 +2755,85 @@ namespace Lea.Win
             var alpha = Math.Max(0, Math.Min(255, (int)Math.Round(color.A * alphaPart / (double)Math.Max(1, alphaWhole))));
             if (alpha == 0) return;
             using (var brush = new SolidBrush(Color.FromArgb(alpha, color.R, color.G, color.B))) graphics.FillRegion(brush, region);
+        }
+
+        private static void PaintGradient(Graphics graphics, Rectangle rect, S style, Color currentColor, int opacity)
+        {
+            if (style == null || style.Gi == null || style.Gi.Ss == null || style.Gi.Ss.Count < 2 || rect.Width < 1 || rect.Height < 1) return;
+            var blend = GradientBlend(style.Gi, currentColor, opacity);
+            if (blend == null || blend.Colors.Length < 2) return;
+            using (var brush = GradientBrush(style.Gi, rect, blend))
+            {
+                if (brush == null) return;
+                if (HasRadius(style))
+                    using (var path = RoundedPath(rect, style, 0, 0, 0, 0)) graphics.FillPath(brush, path);
+                else graphics.FillRectangle(brush, rect);
+            }
+        }
+
+        private static Brush GradientBrush(Gi gradient, Rectangle rect, ColorBlend blend)
+        {
+            if (gradient.K == "l")
+            {
+                var brush = new LinearGradientBrush(rect, blend.Colors[0], blend.Colors[blend.Colors.Length - 1], gradient.A - 90F, true);
+                brush.InterpolationColors = blend;
+                return brush;
+            }
+            var centerX = rect.Left + rect.Width * Math.Max(0, Math.Min(100, gradient.X)) / 100F;
+            var centerY = rect.Top + rect.Height * Math.Max(0, Math.Min(100, gradient.Y)) / 100F;
+            var dx = Math.Max(Math.Abs(centerX - rect.Left), Math.Abs(rect.Right - centerX));
+            var dy = Math.Max(Math.Abs(centerY - rect.Top), Math.Abs(rect.Bottom - centerY));
+            var radius = Math.Max(1F, (float)Math.Sqrt(dx * dx + dy * dy));
+            using (var circle = new GraphicsPath())
+            {
+                circle.AddEllipse(centerX - radius, centerY - radius, radius * 2F, radius * 2F);
+                var brush = new PathGradientBrush(circle);
+                brush.CenterPoint = new PointF(centerX, centerY);
+                brush.CenterColor = blend.Colors[0];
+                brush.SurroundColors = new[] { blend.Colors[blend.Colors.Length - 1] };
+                brush.InterpolationColors = ReverseGradientBlend(blend);
+                return brush;
+            }
+        }
+
+        private static ColorBlend ReverseGradientBlend(ColorBlend source)
+        {
+            var count = source.Colors.Length;
+            var positions = new float[count];
+            var colors = new Color[count];
+            for (var index = 0; index < count; index++)
+            {
+                positions[index] = 1F - source.Positions[count - index - 1];
+                colors[index] = source.Colors[count - index - 1];
+            }
+            positions[0] = 0F;
+            positions[count - 1] = 1F;
+            return new ColorBlend(count) { Positions = positions, Colors = colors };
+        }
+
+        private static ColorBlend GradientBlend(Gi gradient, Color currentColor, int opacity)
+        {
+            var positions = new List<float>();
+            var colors = new List<Color>();
+            foreach (var stop in gradient.Ss)
+            {
+                var position = Math.Max(0F, Math.Min(1F, stop.P / 100F));
+                var color = PaintColor(CssColor(stop.C, currentColor), opacity);
+                if (positions.Count > 0 && position <= positions[positions.Count - 1])
+                {
+                    var previous = positions[positions.Count - 1];
+                    if (previous >= 1F) { colors[colors.Count - 1] = color; continue; }
+                    position = Math.Min(1F, previous + .0001F);
+                }
+                positions.Add(position);
+                colors.Add(color);
+            }
+            if (positions.Count < 2) return null;
+            if (positions[0] > 0F) { positions.Insert(0, 0F); colors.Insert(0, colors[0]); }
+            else positions[0] = 0F;
+            if (positions[positions.Count - 1] < 1F) { positions.Add(1F); colors.Add(colors[colors.Count - 1]); }
+            else positions[positions.Count - 1] = 1F;
+            return new ColorBlend(positions.Count) { Positions = positions.ToArray(), Colors = colors.ToArray() };
         }
 
         private static bool HasRadius(S style)
@@ -3558,6 +3640,7 @@ namespace Lea.Win
             if (field.K == "range")
             {
                 PaintFieldBackground(graphics, rect, field.S, background);
+                PaintGradient(graphics, rect, field.S, foreground, opacity);
                 PaintShadows(graphics, rect, field.S, foreground, opacity, true);
                 var rangeBorder = field.Ok ? Color.FromArgb(165, 165, 165) : Color.FromArgb(185, 28, 28);
                 PaintFieldOutline(graphics, rect, field.S, PaintColor(rangeBorder, opacity), field.Ok ? 1F : 2F);
@@ -3571,6 +3654,7 @@ namespace Lea.Win
             }
 
             PaintFieldBackground(graphics, rect, field.S, background);
+            PaintGradient(graphics, rect, field.S, foreground, opacity);
             PaintShadows(graphics, rect, field.S, foreground, opacity, true);
             var border = !field.Ok ? Color.FromArgb(185, 28, 28) : box.K == "button" ? Color.FromArgb(145, 145, 145) : Color.FromArgb(165, 165, 165);
             var outline = field.Ok ? rect : new Rectangle(rect.X + 1, rect.Y + 1, Math.Max(1, rect.Width - 2), Math.Max(1, rect.Height - 2));

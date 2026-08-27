@@ -63,6 +63,10 @@ LeaForge is where we can grow the more full-featured browser.
 - bounded rounded outer/inset CSS box shadows through compact `S.Sw` and
   `Sw.X/Y/B/R/C/I`, atomic four-entry lists, alpha/current colors, variables,
   priority/reset/bounds, ordinary fields, and a 12-band blur ceiling
+- bounded linear/radial CSS background gradients through compact `S.Gi`,
+  `Gi.K/A/X/Y/Ss`, and `Cs.C/P`, with one atomic layer, eight normalized stops,
+  alpha/current colors, variables, priority/reset/bounds, rounded page/box/field
+  paint, opacity, clipping, and resize-safe hit geometry
 - bounded `flex`/`inline-flex` row and column flow with compact
   `Fd/Jc/Ai/As/Gp/Wr/Rg/Fg/Sh/Fb/Or` state, stable order and reversal,
   fixed/equal-share/weighted grow and shrink slots, explicit pixel min/max

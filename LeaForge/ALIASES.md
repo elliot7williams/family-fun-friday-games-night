@@ -613,6 +613,21 @@ painter caps soft shadows at 12 bands, respects rounded corners, opacity and
 ancestor overflow, supports outer and inset field shadows, and leaves layout,
 document height, accessibility rectangles, and hits unchanged.
 
+CSS background images use the non-inherited `S.Gi` alias. A compact `Gi` uses
+`K=l/r` for linear or radial kind, `A` for the CSS angle, `X/Y` for a radial
+percentage origin, and `Ss` for up to eight `Cs` color stops. Each `Cs` stores
+its authored color in `C` and normalized 0..1 position in `P`. Lea accepts one
+atomic `linear-gradient()` or `radial-gradient()` layer in `background` or
+`background-image`; omitted positions interpolate between explicit stops.
+Linear heads accept integer `deg` values or `to` direction keywords. Radial
+heads accept `circle`/`ellipse` and keyword or percentage origins after `at`.
+Named, hex, `rgb()`/`rgba()`, `transparent`, and `currentColor` colors share the
+bounded color parser. Reset values clear the image; malformed, overlong,
+multiple-layer, repeating, length-stop, or over-eight-stop declarations preserve
+the previous computed image. Page, rounded-box, and ordinary-field painters
+apply effective opacity and ancestor clipping without changing layout,
+accessibility bounds, document height, or hits.
+
 Positioning stays compact: `Pn` is `s/r/a/f` for static, relative, absolute, or
 fixed; `Tp/Rt/Bm/Lt` are nullable signed pixel offsets, and `Zi` is the bounded
 z-index. The `inset` shorthand expands atomically into those four offsets;

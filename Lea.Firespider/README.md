@@ -247,6 +247,11 @@ Hosted Lea pages also expose bounded CSS box shadows through `S.Sw` and compact
 existing rounded border-box fixture and verifies that visual shadows do not
 alter the host-visible rectangle.
 
+Hosted Lea pages expose bounded CSS background gradients through `S.Gi`,
+`Gi.K/A/X/Y/Ss`, and `Cs.C/P` as well. The host smoke compiles a linear gradient
+onto the same rounded box and verifies its kind, angle, normalized stops, and
+colors through the public model without adding adapter-side paint logic.
+
 `Smoke.cs` loads two compiled Firespider forms off-screen and verifies Lea-first
 New Tab creation, the explicit legacy fallback, Inspector open/refresh/clear and legacy isolation, diagnostics,
 script/style, host-controlled `go`, and safe click execution, alert routing,

@@ -10,6 +10,7 @@ namespace Lea.Engine
 
         public string F { get; internal set; }
         public string Bg { get; internal set; }
+        public Gi Gi { get; internal set; }
         public int Fs { get; internal set; }
         public string Ff { get; internal set; }
         public bool B { get; internal set; }

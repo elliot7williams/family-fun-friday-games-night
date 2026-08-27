@@ -3036,6 +3036,55 @@ namespace Lea.Tests
                     view.Size = new Size(260, 1200);
                     Paint(view);
                     Ok(BlockOuterRect(view, BlockById(view.At, "outer")).Right <= view.ClientSize.Width - 1, "shadow boxes reflow without layout expansion");
+                    var gradientPath = Path.Combine(root, "LeaForge", "test-pages", "background-gradients.html");
+                    var gradientPage = engine.Go(gradientPath);
+                    Ok(gradientPage.S.Gi != null && gradientPage.S.Gi.K == "l" && gradientPage.S.Gi.A == 90 && gradientPage.S.Gi.Ss.Count == 2, "page gradient compact model");
+                    var linearGradient = BlockById(gradientPage, "linear").S.Gi;
+                    Ok(linearGradient != null && linearGradient.K == "l" && linearGradient.A == 90 && linearGradient.X == 50 && linearGradient.Y == 50 && linearGradient.Ss.Count == 3 &&
+                        linearGradient.Ss[0].C == "#dc2626" && linearGradient.Ss[0].P == 0 && linearGradient.Ss[1].P == 50 && linearGradient.Ss[2].P == 100, "linear gradient aliases and stops");
+                    var cssRadialGradient = BlockById(gradientPage, "radial").S.Gi;
+                    Ok(cssRadialGradient != null && cssRadialGradient.K == "r" && cssRadialGradient.X == 25 && cssRadialGradient.Y == 50 && cssRadialGradient.Ss.Count == 2, "radial gradient center aliases");
+                    var gradientField = FieldById(gradientPage, "field").S.Gi;
+                    Ok(gradientField != null && gradientField.A == 90 && gradientField.Ss.Count == 2, "field gradient model");
+                    var atomicGradient = BlockById(gradientPage, "atomic").S.Gi;
+                    Ok(atomicGradient != null && atomicGradient.A == 90 && atomicGradient.Ss[0].P == 10 && atomicGradient.Ss[1].P == 90, "invalid gradient preserves prior state atomically");
+                    var priorityGradient = BlockById(gradientPage, "priority").S.Gi;
+                    Ok(priorityGradient != null && priorityGradient.A == 90 && priorityGradient.Ss[0].C == "#0f4c81" && priorityGradient.Ss[1].C == "#16a34a", "important custom-property gradient cascade");
+                    Ok(BlockById(gradientPage, "current").S.Gi.Ss[0].C == "currentColor" && BlockById(gradientPage, "reset").S.Gi == null, "currentColor and none gradient state");
+                    var boundedGradient = BlockById(gradientPage, "bounded").S.Gi;
+                    Ok(boundedGradient.Ss[0].P == 0 && boundedGradient.Ss[1].P == 100, "bounded gradient stop positions");
+                    var normalizedGradient = BlockById(gradientPage, "normalized").S.Gi;
+                    Ok(normalizedGradient.Ss.Count == 4 && normalizedGradient.Ss[0].P == 0 && normalizedGradient.Ss[1].P == 40 && normalizedGradient.Ss[2].P == 80 && normalizedGradient.Ss[3].P == 100, "implicit gradient stop normalization");
+                    var limitedGradient = BlockById(gradientPage, "limit").S.Gi;
+                    var shorthandGradient = BlockById(gradientPage, "shorthand").S;
+                    Ok(limitedGradient.Ss.Count == 2 && shorthandGradient.Gi != null && shorthandGradient.Bg.Length == 0 && BlockById(gradientPage, "child").S.Gi == null,
+                        "gradient stop cap, shorthand reset, and noninheritance");
+                    Ok(BlockById(gradientPage, "alpha").S.Op == 50, "gradient effective opacity model");
+                    view.Size = new Size(720, 1200);
+                    view.Go(gradientPath);
+                    using (var gradientPaint = Render(view))
+                    {
+                        Ok(ColorDistance(gradientPaint.GetPixel(2, 2), Color.White) < 20 &&
+                            ColorDistance(gradientPaint.GetPixel(717, 2), Color.FromArgb(226, 232, 240)) < 30, "page background gradient paint");
+                        var linear = BlockOuterRect(view, BlockById(view.At, "linear"));
+                        Ok(ColorDistance(gradientPaint.GetPixel(linear.Left + 8, linear.Top + linear.Height / 2), Color.FromArgb(220, 38, 38)) < 45 &&
+                            ColorDistance(gradientPaint.GetPixel(linear.Left + linear.Width / 2, linear.Top + linear.Height / 2), Color.FromArgb(245, 158, 11)) < 45 &&
+                            ColorDistance(gradientPaint.GetPixel(linear.Right - 8, linear.Top + linear.Height / 2), Color.FromArgb(22, 163, 74)) < 45, "three-stop linear gradient paint");
+                        Ok(ColorDistance(gradientPaint.GetPixel(linear.Left, linear.Top), Color.FromArgb(220, 38, 38)) > 80, "rounded gradient corner clip");
+                        Eq(linear, HitRect(view, "second.html"), "gradient does not expand link hit geometry");
+                        var vertical = BlockOuterRect(view, BlockById(view.At, "vertical"));
+                        Ok(ColorDistance(gradientPaint.GetPixel(vertical.Left + vertical.Width / 2, vertical.Top + 6), Color.FromArgb(37, 99, 235)) < 55 &&
+                            ColorDistance(gradientPaint.GetPixel(vertical.Left + vertical.Width / 2, vertical.Bottom - 7), Color.FromArgb(220, 38, 38)) < 55, "directional vertical gradient paint");
+                        var radial = BlockOuterRect(view, BlockById(view.At, "radial"));
+                        Ok(ColorDistance(gradientPaint.GetPixel(radial.Left + radial.Width / 4, radial.Top + radial.Height / 2), Color.FromArgb(254, 240, 138)) < 35 &&
+                            ColorDistance(gradientPaint.GetPixel(radial.Right - 10, radial.Top + radial.Height / 2), Color.FromArgb(124, 58, 237)) < 50, "off-center radial gradient paint");
+                        var field = BlockRect(view, FieldBlock(view.At, FieldById(view.At, "field")));
+                        Ok(ColorDistance(gradientPaint.GetPixel(field.Left + 10, field.Bottom - 8), Color.FromArgb(153, 246, 228)) < 35 &&
+                            ColorDistance(gradientPaint.GetPixel(field.Right - 10, field.Bottom - 8), Color.FromArgb(103, 232, 249)) < 35, "rounded field gradient paint");
+                    }
+                    view.Size = new Size(280, 1200);
+                    Paint(view);
+                    Ok(BlockOuterRect(view, BlockById(view.At, "linear")).Right <= view.ClientSize.Width - 1, "gradient boxes reflow without layout expansion");
                     view.Size = new Size(720, 760);
                     var boxes = Path.Combine(root, "LeaForge", "test-pages", "boxes.html");
                     var boxPage = engine.Go(boxes);
@@ -4621,6 +4670,7 @@ namespace Lea.Tests
                 if (args.Length > 5) SaveStateRender(statePath, args[5]);
                 Console.WriteLine("Lea CSS radius smoke passed: compact ellipse aliases, atomic cascade, normalized paint, overflow, fields, links, and resize.");
                 Console.WriteLine("Lea CSS shadow smoke passed: compact aliases, atomic lists, bounded blur, alpha colors, outer/inset paint, fields, hits, and resize.");
+                Console.WriteLine("Lea CSS gradient smoke passed: compact image/stop aliases, atomic cascade, normalized stops, linear/radial/page/field paint, hits, and resize.");
 
                     Console.WriteLine("Lea smoke passed: bounded has relational selectors with strict lists, maximum specificity, descendant/child/adjacent/following and complex chains, queries, dynamic focus rebuilds, retained fields, WinForms geometry, and traversal/part limits, bounded nth-child of-S filters with strict compound lists, maximum specificity, forward/reverse counting, queries, dynamic form-state rebuilds, retained fields, WinForms geometry, and nesting/test limits, bounded precompiled An+B and reverse structural selectors with stylesheet/query parity, specificity, selector-list composition, type filtering, WinForms geometry, and invalid limits, bounded is, where, and list-not selector functions with maximum/zero specificity, forgiving/strict parsing, queries, dynamic state, WinForms geometry, and retained fields, bounded CSS important cascade with compiled priority, G.Ic diagnostics, stylesheet/inline tiers, custom properties, hover/media rebuilds, and retained fields, bounded inherited CSS custom properties with compiled declarations, S.Vc/Cv and G.Vc aliases, nested and cycle fallbacks, hover/media rebuilds, and retained fields, bounded responsive CSS media queries with viewport aliases, live resize, diagnostics, and retained fields, optional bounded persistent cache with restart reuse, validators, private isolation, atomic recovery, LRU entry/byte ceilings and host aliases, bounded content-box and border-box geometry, body and ID-scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, shrink, reverse flow, and resize, semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;

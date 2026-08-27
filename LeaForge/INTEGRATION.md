@@ -265,6 +265,16 @@ variables, important tiers, resets, and ancestor overflow use the retained box
 painter. Shadows are visual only, so host layout, `V.Rb`/`V.Rc`, accessibility
 bounds, document height, and link/control hits remain stable.
 
+CSS background gradients are available through non-inherited `S.Gi`. Hosts can
+inspect `Gi.K/A/X/Y/Ss` for one linear/radial image and `Cs.C/P` for up to eight
+normalized color stops. The parser applies `background` and `background-image`
+atomically, so invalid or over-limit input does not partially replace an
+existing image. The custom view paints gradients on page backgrounds, rounded
+boxes, and ordinary fields with effective opacity and inherited clipping;
+layout rectangles, accessibility bounds, document height, and hit routes stay
+unchanged. Repeating or layered gradients, pixel stops, and radial size keywords
+remain explicit compatibility limits.
+
 Lea's bounded flex subset uses `S.D=flex/inline-flex` and compact
 `S.Fd/Jc/Ai/As/Gp/Wr/Rg/Fg/Sh/Fb/Or` values. The model preserves direct element items
 under their visual container, while `V` allocates fixed, equal-share auto,

@@ -112,7 +112,7 @@ namespace Lea.Bench
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
                 "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html", "svg.html", "svg-geometry.html", "svg-gradients.html", "svg-use-clips.html", "svg-strokes.html",
-                "box-sizing.html", "border-radius.html", "box-shadows.html"
+                "box-sizing.html", "border-radius.html", "box-shadows.html", "background-gradients.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -823,6 +823,42 @@ namespace Lea.Bench
                     using (var image = Draw(view)) Need(BlockOuter(view, "outer").Right <= view.ClientSize.Width - 1, "shadow narrow reflow changed");
                 }
                 return "S.Sw with X/Y/B/R/C/I aliases, four-layer cap, atomic parsing, variables, priority/reset/bounds, alpha/current colors, rounded outer/inset/field paint, unchanged hits, and resize";
+            });
+            AddProbe(probes, "Bounded CSS background gradients", delegate
+            {
+                var path = Path.Combine(folder, "background-gradients.html");
+                var page = new E().Go(path);
+                var linear = page.Bs.First(block => block.El != null && block.El.Av("id") == "linear");
+                var radial = page.Bs.First(block => block.El != null && block.El.Av("id") == "radial");
+                var atomic = page.Bs.First(block => block.El != null && block.El.Av("id") == "atomic");
+                var normalized = page.Bs.First(block => block.El != null && block.El.Av("id") == "normalized");
+                var limit = page.Bs.First(block => block.El != null && block.El.Av("id") == "limit");
+                var field = page.Fs.First(item => item.El != null && item.El.Av("id") == "field");
+                Need(page.S.Gi != null && page.S.Gi.K == "l" && page.S.Gi.Ss.Count == 2, "page gradient model changed");
+                Need(linear.S.Gi != null && linear.S.Gi.K == "l" && linear.S.Gi.A == 90 && linear.S.Gi.Ss.Count == 3 && linear.S.Gi.Ss[1].P == 50, "linear gradient aliases changed");
+                Need(radial.S.Gi != null && radial.S.Gi.K == "r" && radial.S.Gi.X == 25 && radial.S.Gi.Y == 50, "radial gradient aliases changed");
+                Need(atomic.S.Gi != null && atomic.S.Gi.Ss[0].P == 10 && normalized.S.Gi.Ss[1].P == 40 && limit.S.Gi.Ss.Count == 2, "gradient atomic fallback, normalization, or cap changed");
+                Need(field.S.Gi != null && field.S.Gi.A == 90 && field.S.Gi.Ss.Count == 2, "field gradient model changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1200);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var linearRect = BlockOuter(view, "linear");
+                        var radialRect = BlockOuter(view, "radial");
+                        var fieldRect = BlockContent(view, "field");
+                        Need(ColorDistance(image.GetPixel(2, 2), Color.White) < 20 && ColorDistance(image.GetPixel(717, 2), Color.FromArgb(226, 232, 240)) < 30, "page gradient paint changed");
+                        Need(ColorDistance(image.GetPixel(linearRect.Left + 8, linearRect.Top + linearRect.Height / 2), Color.FromArgb(220, 38, 38)) < 45 &&
+                            ColorDistance(image.GetPixel(linearRect.Right - 8, linearRect.Top + linearRect.Height / 2), Color.FromArgb(22, 163, 74)) < 45, "linear gradient paint changed");
+                        Need(ColorDistance(image.GetPixel(radialRect.Left + radialRect.Width / 4, radialRect.Top + radialRect.Height / 2), Color.FromArgb(254, 240, 138)) < 35 &&
+                            ColorDistance(image.GetPixel(radialRect.Right - 10, radialRect.Top + radialRect.Height / 2), Color.FromArgb(124, 58, 237)) < 50, "radial gradient paint changed");
+                        Need(ColorDistance(image.GetPixel(fieldRect.Left + 10, fieldRect.Bottom - 8), Color.FromArgb(153, 246, 228)) < 35, "field gradient paint changed");
+                    }
+                    view.Size = new Size(280, 1200);
+                    using (var image = Draw(view)) Need(BlockOuter(view, "linear").Right <= view.ClientSize.Width - 1, "gradient narrow reflow changed");
+                }
+                return "S.Gi and Gi.K/A/X/Y/Ss plus Cs.C/P aliases, one-layer/eight-stop caps, atomic parsing, variables, priority/reset/bounds, normalized alpha/current colors, rounded linear/radial/page/field paint, unchanged hits, and resize";
             });
             AddProbe(probes, "Bounded flex layout", delegate
             {
@@ -1536,8 +1572,8 @@ namespace Lea.Bench
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box, circular/elliptical radii, bounded box shadows, and text styles, visibility, positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
-            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/overflow/fields/shadows, inline, row/column flex, bounded grid, table, form, image, inline vector, clipping, scroll, and stacking renderer");
+            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box, circular/elliptical radii, bounded box shadows and one-layer linear/radial gradients, and text styles, visibility, positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
+            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/overflow/fields/shadows/gradients, inline, row/column flex, bounded grid, table, form, image, inline vector, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");

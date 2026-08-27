@@ -34,6 +34,8 @@ namespace Lea.Engine
         private const int MaxCustomValue = 512;
         private const int MaxVarDepth = 8;
         private const int MaxVarValue = 1024;
+        private const int MaxGradientText = 1024;
+        private const int MaxGradientStops = 8;
         private const int MaxPost = 10 * 1024 * 1024;
         private const long MaxDownload = 64L * 1024 * 1024;
         private const int MaxFind = 256;
@@ -3189,7 +3191,9 @@ namespace Lea.Engine
                 string value;
                 if (!VarValue(style, declaration.V, out value)) continue;
                 if (name == "color") style.F = value;
-                else if (name == "background" || name == "background-color") style.Bg = value;
+                else if (name == "background") Background(style, value);
+                else if (name == "background-color") style.Bg = value;
+                else if (name == "background-image") GradientImage(style, value);
                 else if (name == "font-family") FontFamily(style, value);
                 else if (name == "font-weight") style.B = value.Equals("bold", StringComparison.OrdinalIgnoreCase) || value == "700" || value == "800" || value == "900";
                 else if (name == "font-style") style.I = value.Equals("italic", StringComparison.OrdinalIgnoreCase) || value.Equals("oblique", StringComparison.OrdinalIgnoreCase);
@@ -4583,6 +4587,165 @@ namespace Lea.Engine
             }
             style.Sw.Clear();
             foreach (var shadow in shadows) style.Sw.Add(shadow);
+        }
+
+        private static void Background(S style, string value)
+        {
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            if (GradientSource(lower))
+            {
+                if (GradientImage(style, source)) style.Bg = "";
+                return;
+            }
+            if (lower == "none" || RadiusReset(lower)) { style.Bg = ""; style.Gi = null; return; }
+            style.Bg = source;
+            style.Gi = null;
+        }
+
+        private static bool GradientImage(S style, string value)
+        {
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            if (lower == "none" || RadiusReset(lower)) { style.Gi = null; return true; }
+            Gi gradient;
+            if (source.Length == 0 || source.Length > MaxGradientText || !Gradient(source, out gradient)) return false;
+            style.Gi = gradient;
+            return true;
+        }
+
+        private static bool GradientSource(string value)
+        {
+            return value.StartsWith("linear-gradient(", StringComparison.Ordinal) || value.StartsWith("radial-gradient(", StringComparison.Ordinal);
+        }
+
+        private static bool Gradient(string source, out Gi gradient)
+        {
+            gradient = null;
+            var match = Regex.Match(source ?? "", "^(?<k>linear|radial)-gradient\\((?<v>.*)\\)$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+            if (!match.Success) return false;
+            List<string> groups;
+            if (!ShadowParts(match.Groups["v"].Value, ',', out groups) || groups.Count < 2 || groups.Count > MaxGradientStops + 1) return false;
+            var result = new Gi { K = match.Groups["k"].Value.Equals("radial", StringComparison.OrdinalIgnoreCase) ? "r" : "l" };
+            var first = 0;
+            if (result.K == "l")
+            {
+                int angle;
+                if (LinearGradientHead(groups[0], out angle)) { result.A = angle; first = 1; }
+            }
+            else
+            {
+                int x;
+                int y;
+                if (RadialGradientHead(groups[0], out x, out y)) { result.X = x; result.Y = y; first = 1; }
+            }
+            if (groups.Count - first < 2 || groups.Count - first > MaxGradientStops) return false;
+            var colors = new List<string>();
+            var positions = new List<int>();
+            for (var index = first; index < groups.Count; index++)
+            {
+                string color;
+                int position;
+                if (!GradientStop(groups[index], out color, out position)) return false;
+                colors.Add(color);
+                positions.Add(position);
+            }
+            NormalizeGradientStops(positions);
+            for (var index = 0; index < colors.Count; index++) result.Ss.Add(new Cs(colors[index], positions[index]));
+            gradient = result;
+            return true;
+        }
+
+        private static bool LinearGradientHead(string value, out int angle)
+        {
+            angle = 180;
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            var degrees = Regex.Match(source, "^(?<n>[+-]?[0-9]{1,4})(?:deg)$");
+            int number;
+            if (degrees.Success && Int32.TryParse(degrees.Groups["n"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out number))
+            {
+                angle = ((number % 360) + 360) % 360;
+                return true;
+            }
+            if (source == "to top") angle = 0;
+            else if (source == "to top right" || source == "to right top") angle = 45;
+            else if (source == "to right") angle = 90;
+            else if (source == "to bottom right" || source == "to right bottom") angle = 135;
+            else if (source == "to bottom") angle = 180;
+            else if (source == "to bottom left" || source == "to left bottom") angle = 225;
+            else if (source == "to left") angle = 270;
+            else if (source == "to top left" || source == "to left top") angle = 315;
+            else return false;
+            return true;
+        }
+
+        private static bool RadialGradientHead(string value, out int x, out int y)
+        {
+            x = 50;
+            y = 50;
+            var source = Regex.Replace((value ?? "").Trim().ToLowerInvariant(), "\\s+", " ");
+            if (!(source == "circle" || source == "ellipse" || source.StartsWith("circle at ", StringComparison.Ordinal) ||
+                source.StartsWith("ellipse at ", StringComparison.Ordinal) || source.StartsWith("at ", StringComparison.Ordinal))) return false;
+            if (source == "circle" || source == "ellipse") return true;
+            var at = source.IndexOf(" at ", StringComparison.Ordinal);
+            var position = at >= 0 ? source.Substring(at + 4) : source.Substring(3);
+            var parts = position.Split(' ');
+            if (parts.Length < 1 || parts.Length > 2) return false;
+            if (parts.Length == 1)
+            {
+                if (GradientCoordinate(parts[0], true, out x)) return true;
+                return GradientCoordinate(parts[0], false, out y);
+            }
+            if (GradientCoordinate(parts[0], true, out x) && GradientCoordinate(parts[1], false, out y)) return true;
+            return GradientCoordinate(parts[0], false, out y) && GradientCoordinate(parts[1], true, out x);
+        }
+
+        private static bool GradientCoordinate(string value, bool horizontal, out int coordinate)
+        {
+            coordinate = 50;
+            if (value == "center") return true;
+            if (horizontal && value == "left" || !horizontal && value == "top") { coordinate = 0; return true; }
+            if (horizontal && value == "right" || !horizontal && value == "bottom") { coordinate = 100; return true; }
+            return GradientPercent(value, out coordinate);
+        }
+
+        private static bool GradientStop(string value, out string color, out int position)
+        {
+            color = "";
+            position = -1;
+            List<string> parts;
+            if (!ShadowParts((value ?? "").Trim(), '\0', out parts) || parts.Count < 1 || parts.Count > 2 || !ShadowColor(parts[0])) return false;
+            if (parts.Count == 2 && !GradientPercent(parts[1], out position)) return false;
+            color = parts[0];
+            return true;
+        }
+
+        private static bool GradientPercent(string value, out int position)
+        {
+            position = 0;
+            var match = Regex.Match(value ?? "", "^(?<n>[+-]?[0-9]{1,4})%$");
+            int number;
+            if (!match.Success || !Int32.TryParse(match.Groups["n"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out number)) return false;
+            position = Math.Max(0, Math.Min(100, number));
+            return true;
+        }
+
+        private static void NormalizeGradientStops(List<int> positions)
+        {
+            if (positions.Count == 0) return;
+            if (positions[0] < 0) positions[0] = 0;
+            if (positions[positions.Count - 1] < 0) positions[positions.Count - 1] = 100;
+            var last = positions[0];
+            for (var index = 1; index < positions.Count; index++)
+            {
+                if (positions[index] >= 0) { positions[index] = Math.Max(last, positions[index]); last = positions[index]; continue; }
+                var end = index + 1;
+                while (end < positions.Count && positions[end] < 0) end++;
+                var target = end < positions.Count ? Math.Max(last, positions[end]) : 100;
+                var count = end - index + 1;
+                for (var fill = index; fill < end; fill++) positions[fill] = last + (target - last) * (fill - index + 1) / count;
+                index = end - 1;
+            }
         }
 
         private static bool ShadowValue(string source, out Sw shadow)
