@@ -45,6 +45,7 @@
     <Compile Include="P.cs" />
     <Compile Include="Pc.cs" />
     <Compile Include="S.cs" />
+    <Compile Include="Sw.cs" />
     <Compile Include="Tb.cs" />
     <Compile Include="Tc.cs" />
     <Compile Include="Tr.cs" />

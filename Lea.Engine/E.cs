@@ -3280,6 +3280,7 @@ namespace Lea.Engine
                 else if (name == "border-top-right-radius") BorderCornerRadius(style, value, 1);
                 else if (name == "border-bottom-right-radius") BorderCornerRadius(style, value, 2);
                 else if (name == "border-bottom-left-radius") BorderCornerRadius(style, value, 3);
+                else if (name == "box-shadow") BoxShadow(style, value);
                 else if (name == "font-size")
                 {
                     var size = Regex.Match(value, "(?<n>[0-9]{1,3})(?:px)?", RegexOptions.IgnoreCase);
@@ -4563,6 +4564,152 @@ namespace Lea.Engine
             else if (corner == 1) { style.R1 = horizontal; style.Q1 = vertical; }
             else if (corner == 2) { style.R2 = horizontal; style.Q2 = vertical; }
             else { style.R3 = horizontal; style.Q3 = vertical; }
+        }
+
+        private static void BoxShadow(S style, string value)
+        {
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            if (lower == "none" || RadiusReset(lower)) { style.Sw.Clear(); return; }
+            if (source.Length == 0 || source.Length > 512) return;
+            List<string> groups;
+            if (!ShadowParts(source, ',', out groups) || groups.Count < 1 || groups.Count > 4) return;
+            var shadows = new List<Sw>();
+            foreach (var group in groups)
+            {
+                Sw shadow;
+                if (!ShadowValue(group, out shadow)) return;
+                shadows.Add(shadow);
+            }
+            style.Sw.Clear();
+            foreach (var shadow in shadows) style.Sw.Add(shadow);
+        }
+
+        private static bool ShadowValue(string source, out Sw shadow)
+        {
+            shadow = null;
+            List<string> parts;
+            if (!ShadowParts(source, '\0', out parts) || parts.Count < 2 || parts.Count > 6) return false;
+            var lengths = new List<int>();
+            var inset = false;
+            var color = "";
+            foreach (var raw in parts)
+            {
+                var part = raw.Trim();
+                if (part.Equals("inset", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (inset) return false;
+                    inset = true;
+                    continue;
+                }
+                int length;
+                if (ShadowLength(part, out length))
+                {
+                    if (lengths.Count == 4) return false;
+                    lengths.Add(length);
+                    continue;
+                }
+                if (color.Length > 0 || !ShadowColor(part)) return false;
+                color = part;
+            }
+            if (lengths.Count < 2 || lengths.Count > 4 || (lengths.Count > 2 && lengths[2] < 0)) return false;
+            shadow = new Sw
+            {
+                X = ShadowBound(lengths[0], 512),
+                Y = ShadowBound(lengths[1], 512),
+                B = lengths.Count > 2 ? Math.Min(lengths[2], 128) : 0,
+                R = lengths.Count > 3 ? ShadowBound(lengths[3], 512) : 0,
+                C = color,
+                I = inset
+            };
+            return true;
+        }
+
+        private static bool ShadowLength(string value, out int length)
+        {
+            length = 0;
+            var match = Regex.Match(value ?? "", "^(?<n>[+-]?[0-9]{1,4})(?:px)?$", RegexOptions.IgnoreCase);
+            return match.Success && Int32.TryParse(match.Groups["n"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out length);
+        }
+
+        private static int ShadowBound(int value, int limit)
+        {
+            return Math.Max(-limit, Math.Min(limit, value));
+        }
+
+        private static bool ShadowColor(string value)
+        {
+            if (String.IsNullOrWhiteSpace(value) || value.Length > 64) return false;
+            var source = value.Trim();
+            if (Regex.IsMatch(source, "^#[0-9a-f]{3}(?:[0-9a-f])?$|^#[0-9a-f]{6}(?:[0-9a-f]{2})?$", RegexOptions.IgnoreCase)) return true;
+            if (Regex.IsMatch(source, "^[a-z]{1,32}$", RegexOptions.IgnoreCase)) return true;
+            return ShadowFunctionColor(source);
+        }
+
+        private static bool ShadowFunctionColor(string source)
+        {
+            var match = Regex.Match(source ?? "", "^rgba?\\((?<v>[^()]{1,48})\\)$", RegexOptions.IgnoreCase);
+            if (!match.Success) return false;
+            var body = match.Groups["v"].Value.Trim();
+            string[] channels;
+            string alpha = null;
+            if (body.IndexOf(',') >= 0)
+            {
+                var values = body.Split(',');
+                if (values.Length < 3 || values.Length > 4) return false;
+                channels = new string[] { values[0].Trim(), values[1].Trim(), values[2].Trim() };
+                if (values.Length == 4) alpha = values[3].Trim();
+            }
+            else
+            {
+                var slash = body.IndexOf('/');
+                if (slash >= 0)
+                {
+                    if (body.IndexOf('/', slash + 1) >= 0) return false;
+                    alpha = body.Substring(slash + 1).Trim();
+                    body = body.Substring(0, slash).Trim();
+                }
+                channels = Regex.Split(body, "\\s+");
+                if (channels.Length != 3) return false;
+            }
+            return ShadowColorNumber(channels[0]) && ShadowColorNumber(channels[1]) && ShadowColorNumber(channels[2]) &&
+                (alpha == null || ShadowColorNumber(alpha));
+        }
+
+        private static bool ShadowColorNumber(string source)
+        {
+            if (String.IsNullOrWhiteSpace(source)) return false;
+            if (source.EndsWith("%", StringComparison.Ordinal)) source = source.Substring(0, source.Length - 1);
+            double number;
+            return Double.TryParse(source, NumberStyles.Float, CultureInfo.InvariantCulture, out number) && !Double.IsNaN(number) && !Double.IsInfinity(number);
+        }
+
+        private static bool ShadowParts(string source, char separator, out List<string> parts)
+        {
+            parts = new List<string>();
+            var start = 0;
+            var quote = '\0';
+            var parentheses = 0;
+            for (var index = 0; index <= source.Length; index++)
+            {
+                var end = index == source.Length;
+                var value = end ? separator : source[index];
+                if (!end && quote != '\0')
+                {
+                    if (value == quote && (index == 0 || source[index - 1] != '\\')) quote = '\0';
+                    continue;
+                }
+                if (!end && (value == '\'' || value == '"')) { quote = value; continue; }
+                if (!end && value == '(') { parentheses++; continue; }
+                if (!end && value == ')') { if (parentheses == 0) return false; parentheses--; continue; }
+                var split = end || (parentheses == 0 && (separator == '\0' ? Char.IsWhiteSpace(value) : value == separator));
+                if (!split) continue;
+                var part = source.Substring(start, index - start).Trim();
+                if (part.Length > 0) parts.Add(part);
+                else if (separator != '\0') return false;
+                start = index + 1;
+            }
+            return quote == '\0' && parentheses == 0;
         }
 
         private static void SetBorder(S style, int side, int width)

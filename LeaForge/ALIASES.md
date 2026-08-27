@@ -601,6 +601,18 @@ invalid declarations preserve prior state. The shared path paints backgrounds,
 solid/dashed/dotted borders, inherited rounded overflow clips, and ordinary
 form fields without changing rectangular layout or link bounds.
 
+Box shadows use the non-inherited `S.Sw` list. Each `Sw` entry stores horizontal
+and vertical offsets in `X/Y`, blur in `B`, spread in `R`, authored color in
+`C`, and inset state in `I`. CSS `box-shadow` accepts one to four comma-separated
+entries atomically, with two required and up to four pixel or compact unitless
+lengths. Offsets and spread are signed and clamp to 512 pixels; blur is
+nonnegative and clamps to 128 pixels. Named and 3/4/6/8-digit hex colors,
+`rgb()`/`rgba()` comma or space/slash forms, `transparent`, and `currentColor`
+are accepted. `none` and CSS-wide reset values clear the list. The WinForms
+painter caps soft shadows at 12 bands, respects rounded corners, opacity and
+ancestor overflow, supports outer and inset field shadows, and leaves layout,
+document height, accessibility rectangles, and hits unchanged.
+
 Positioning stays compact: `Pn` is `s/r/a/f` for static, relative, absolute, or
 fixed; `Tp/Rt/Bm/Lt` are nullable signed pixel offsets, and `Zi` is the bounded
 z-index. The `inset` shorthand expands atomically into those four offsets;

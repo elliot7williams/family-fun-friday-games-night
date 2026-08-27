@@ -2631,10 +2631,12 @@ namespace Lea.Win
         {
             if (style == null) return;
             var rounded = HasRadius(style);
+            var shadows = style.Sw != null && style.Sw.Count > 0;
             var smoothing = graphics.SmoothingMode;
-            if (rounded) graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            if (rounded || shadows) graphics.SmoothingMode = SmoothingMode.AntiAlias;
             try
             {
+                if (shadows) PaintShadows(graphics, rect, style, CssColor(style.F, pageColor), opacity, false);
                 if (background && style.Bg.Length > 0)
                     using (var brush = new SolidBrush(PaintColor(CssColor(style.Bg, pageBackground), opacity)))
                     {
@@ -2642,6 +2644,7 @@ namespace Lea.Win
                             using (var path = RoundedPath(rect, style, 0, 0, 0, 0)) graphics.FillPath(brush, path);
                         else graphics.FillRectangle(brush, rect);
                     }
+                if (background && shadows) PaintShadows(graphics, rect, style, CssColor(style.F, pageColor), opacity, true);
 
                 var top = BorderWidth(style, style.Bt);
                 var right = BorderWidth(style, style.Br);
@@ -2658,7 +2661,97 @@ namespace Lea.Win
                     PaintBorder(graphics, rect, left, 3, color, style.Bs);
                 }
             }
-            finally { if (rounded) graphics.SmoothingMode = smoothing; }
+            finally { if (rounded || shadows) graphics.SmoothingMode = smoothing; }
+        }
+
+        private static void PaintShadows(Graphics graphics, Rectangle rect, S style, Color currentColor, int opacity, bool inset)
+        {
+            if (style == null || style.Sw == null || style.Sw.Count == 0 || rect.Width < 1 || rect.Height < 1) return;
+            using (var owner = RoundedPath(rect, style, 0, 0, 0, 0))
+            {
+                for (var index = style.Sw.Count - 1; index >= 0; index--)
+                {
+                    var shadow = style.Sw[index];
+                    if (shadow == null || shadow.I != inset) continue;
+                    var color = PaintColor(CssColor(shadow.C, currentColor), opacity);
+                    if (color.A == 0) continue;
+                    if (inset) PaintInsetShadow(graphics, rect, style, shadow, owner, color);
+                    else PaintOuterShadow(graphics, rect, style, shadow, owner, color);
+                }
+            }
+        }
+
+        private static void PaintOuterShadow(Graphics graphics, Rectangle rect, S style, Sw shadow, GraphicsPath owner, Color color)
+        {
+            var steps = Math.Min(12, Math.Max(0, shadow.B));
+            for (var step = steps; step > 0; step--)
+            {
+                var grow = shadow.R + (int)Math.Ceiling(shadow.B * step / (double)steps);
+                var next = shadow.R + (int)Math.Ceiling(shadow.B * (step - 1) / (double)steps);
+                using (var shape = ShadowPath(rect, style, shadow, grow, false))
+                using (var inside = ShadowPath(rect, style, shadow, next, false))
+                {
+                    if (shape.PointCount == 0) continue;
+                    using (var region = new Region(shape))
+                    {
+                        if (inside.PointCount > 0) region.Exclude(inside);
+                        region.Exclude(owner);
+                        FillShadow(graphics, region, color, steps - step + 1, steps + 1);
+                    }
+                }
+            }
+            using (var shape = ShadowPath(rect, style, shadow, shadow.R, false))
+            {
+                if (shape.PointCount == 0) return;
+                using (var region = new Region(shape))
+                {
+                    region.Exclude(owner);
+                    FillShadow(graphics, region, color, 1, 1);
+                }
+            }
+        }
+
+        private static void PaintInsetShadow(Graphics graphics, Rectangle rect, S style, Sw shadow, GraphicsPath owner, Color color)
+        {
+            using (var hole = ShadowPath(rect, style, shadow, shadow.R, true))
+            using (var region = new Region(owner))
+            {
+                if (hole.PointCount > 0) region.Exclude(hole);
+                FillShadow(graphics, region, color, 1, 1);
+            }
+            var steps = Math.Min(12, Math.Max(0, shadow.B));
+            for (var step = 0; step < steps; step++)
+            {
+                var grow = shadow.R + (int)Math.Floor(shadow.B * step / (double)steps);
+                var next = shadow.R + (int)Math.Floor(shadow.B * (step + 1) / (double)steps);
+                using (var shape = ShadowPath(rect, style, shadow, grow, true))
+                using (var inside = ShadowPath(rect, style, shadow, next, true))
+                {
+                    if (shape.PointCount == 0) continue;
+                    using (var region = new Region(shape))
+                    {
+                        if (inside.PointCount > 0) region.Exclude(inside);
+                        region.Intersect(owner);
+                        FillShadow(graphics, region, color, steps - step, steps + 1);
+                    }
+                }
+            }
+        }
+
+        private static GraphicsPath ShadowPath(Rectangle rect, S style, Sw shadow, int grow, bool inset)
+        {
+            var shape = rect;
+            shape.Inflate(inset ? -grow : grow, inset ? -grow : grow);
+            shape.Offset(shadow.X, shadow.Y);
+            return shape.Width < 1 || shape.Height < 1 ? new GraphicsPath() :
+                RoundedPath(shape, style, inset ? grow : -grow, inset ? grow : -grow, inset ? grow : -grow, inset ? grow : -grow);
+        }
+
+        private static void FillShadow(Graphics graphics, Region region, Color color, int alphaPart, int alphaWhole)
+        {
+            var alpha = Math.Max(0, Math.Min(255, (int)Math.Round(color.A * alphaPart / (double)Math.Max(1, alphaWhole))));
+            if (alpha == 0) return;
+            using (var brush = new SolidBrush(Color.FromArgb(alpha, color.R, color.G, color.B))) graphics.FillRegion(brush, region);
         }
 
         private static bool HasRadius(S style)
@@ -3465,6 +3558,7 @@ namespace Lea.Win
             if (field.K == "range")
             {
                 PaintFieldBackground(graphics, rect, field.S, background);
+                PaintShadows(graphics, rect, field.S, foreground, opacity, true);
                 var rangeBorder = field.Ok ? Color.FromArgb(165, 165, 165) : Color.FromArgb(185, 28, 28);
                 PaintFieldOutline(graphics, rect, field.S, PaintColor(rangeBorder, opacity), field.Ok ? 1F : 2F);
                 var track = new Rectangle(rect.X + 12, rect.Top + rect.Height / 2 - 2, Math.Max(1, rect.Width - 24), 4);
@@ -3477,6 +3571,7 @@ namespace Lea.Win
             }
 
             PaintFieldBackground(graphics, rect, field.S, background);
+            PaintShadows(graphics, rect, field.S, foreground, opacity, true);
             var border = !field.Ok ? Color.FromArgb(185, 28, 28) : box.K == "button" ? Color.FromArgb(145, 145, 145) : Color.FromArgb(165, 165, 165);
             var outline = field.Ok ? rect : new Rectangle(rect.X + 1, rect.Y + 1, Math.Max(1, rect.Width - 2), Math.Max(1, rect.Height - 2));
             PaintFieldOutline(graphics, outline, field.S, PaintColor(border, opacity), field.Ok ? 1F : 2F);
@@ -4929,8 +5024,89 @@ namespace Lea.Win
         private static Color CssColor(string value, Color fallback)
         {
             if (String.IsNullOrWhiteSpace(value)) return fallback;
-            try { return ColorTranslator.FromHtml(value.Trim()); }
+            var source = value.Trim();
+            if (source.Equals("currentcolor", StringComparison.OrdinalIgnoreCase)) return fallback;
+            if (source.Equals("transparent", StringComparison.OrdinalIgnoreCase)) return Color.Transparent;
+            Color color;
+            if (CssHexColor(source, out color) || CssFunctionColor(source, out color)) return color;
+            try { return ColorTranslator.FromHtml(source); }
             catch { return fallback; }
+        }
+
+        private static bool CssHexColor(string source, out Color color)
+        {
+            color = Color.Empty;
+            if (String.IsNullOrEmpty(source) || source[0] != '#' || (source.Length != 4 && source.Length != 5 && source.Length != 7 && source.Length != 9)) return false;
+            try
+            {
+                var shortForm = source.Length < 6;
+                var red = Convert.ToInt32(source.Substring(1, shortForm ? 1 : 2), 16);
+                var green = Convert.ToInt32(source.Substring(shortForm ? 2 : 3, shortForm ? 1 : 2), 16);
+                var blue = Convert.ToInt32(source.Substring(shortForm ? 3 : 5, shortForm ? 1 : 2), 16);
+                var alpha = source.Length == 5 ? Convert.ToInt32(source.Substring(4, 1), 16) : source.Length == 9 ? Convert.ToInt32(source.Substring(7, 2), 16) : 255;
+                if (shortForm) { red *= 17; green *= 17; blue *= 17; if (source.Length == 5) alpha *= 17; }
+                color = Color.FromArgb(alpha, red, green, blue);
+                return true;
+            }
+            catch (FormatException) { return false; }
+        }
+
+        private static bool CssFunctionColor(string source, out Color color)
+        {
+            color = Color.Empty;
+            var match = Regex.Match(source ?? "", "^rgba?\\((?<v>[^()]*)\\)$", RegexOptions.IgnoreCase);
+            if (!match.Success) return false;
+            var body = match.Groups["v"].Value.Trim();
+            string[] channels;
+            string alpha = null;
+            if (body.IndexOf(',') >= 0)
+            {
+                var values = body.Split(',');
+                if (values.Length < 3 || values.Length > 4) return false;
+                channels = new string[] { values[0].Trim(), values[1].Trim(), values[2].Trim() };
+                if (values.Length == 4) alpha = values[3].Trim();
+            }
+            else
+            {
+                var slash = body.IndexOf('/');
+                if (slash >= 0)
+                {
+                    if (body.IndexOf('/', slash + 1) >= 0) return false;
+                    alpha = body.Substring(slash + 1).Trim();
+                    body = body.Substring(0, slash).Trim();
+                }
+                channels = Regex.Split(body, "\\s+");
+                if (channels.Length != 3) return false;
+            }
+            int red;
+            int green;
+            int blue;
+            int opacity;
+            if (!CssColorChannel(channels[0], out red) || !CssColorChannel(channels[1], out green) || !CssColorChannel(channels[2], out blue) || !CssAlpha(alpha, out opacity)) return false;
+            color = Color.FromArgb(opacity, red, green, blue);
+            return true;
+        }
+
+        private static bool CssColorChannel(string source, out int value)
+        {
+            value = 0;
+            if (String.IsNullOrWhiteSpace(source)) return false;
+            var percent = source.EndsWith("%", StringComparison.Ordinal);
+            double number;
+            if (!Double.TryParse(percent ? source.Substring(0, source.Length - 1) : source, NumberStyles.Float, CultureInfo.InvariantCulture, out number) || Double.IsNaN(number) || Double.IsInfinity(number)) return false;
+            value = (int)Math.Round(Math.Max(0D, Math.Min(255D, percent ? number * 2.55D : number)));
+            return true;
+        }
+
+        private static bool CssAlpha(string source, out int value)
+        {
+            value = 255;
+            if (String.IsNullOrWhiteSpace(source)) return true;
+            var percent = source.EndsWith("%", StringComparison.Ordinal);
+            double number;
+            if (!Double.TryParse(percent ? source.Substring(0, source.Length - 1) : source, NumberStyles.Float, CultureInfo.InvariantCulture, out number) || Double.IsNaN(number) || Double.IsInfinity(number)) return false;
+            value = (int)Math.Round(255D * Math.Max(0D, Math.Min(1D, percent ? number / 100D : number)));
+            return true;
         }
 
         private void OnChanged()

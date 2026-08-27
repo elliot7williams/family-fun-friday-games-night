@@ -2989,6 +2989,53 @@ namespace Lea.Tests
                     view.Size = new Size(300, 1200);
                     Paint(view);
                     Ok(BlockOuterRect(view, BlockById(view.At, "dashed")).Right <= view.ClientSize.Width - 1, "rounded boxes reflow narrowly");
+                    var shadowPath = Path.Combine(root, "LeaForge", "test-pages", "box-shadows.html");
+                    var shadowPage = engine.Go(shadowPath);
+                    var outerShadow = BlockById(shadowPage, "outer").S.Sw;
+                    Ok(outerShadow.Count == 2 && outerShadow[0].X == 12 && outerShadow[0].Y == 8 && outerShadow[0].B == 0 && outerShadow[0].R == 0 && outerShadow[0].C == "#dc2626" && !outerShadow[0].I &&
+                        outerShadow[1].X == -8 && outerShadow[1].C == "#2563eb", "outer box-shadow compact aliases and authored order");
+                    var softShadow = BlockById(shadowPage, "soft").S.Sw[0];
+                    Ok(softShadow.X == 0 && softShadow.Y == 0 && softShadow.B == 12 && softShadow.R == 4 && softShadow.C == "rgba(15, 23, 42, 0.5)", "blur, spread, and alpha color shadow aliases");
+                    var insetShadow = BlockById(shadowPage, "inset").S.Sw[0];
+                    Ok(insetShadow.I && insetShadow.X == 10 && insetShadow.B == 0 && insetShadow.R == 0, "inset box-shadow compact alias");
+                    var fieldShadow = FieldById(shadowPage, "field").S.Sw;
+                    Ok(fieldShadow.Count == 2 && !fieldShadow[0].I && fieldShadow[1].I && fieldShadow[1].X == 7, "field outer and inset shadow model");
+                    Ok(BlockById(shadowPage, "shadow-clip-child").S.Op == 50 && BlockById(shadowPage, "shadow-clip-child").S.Sw.Count == 1, "shadow effective opacity and overflow fixture model");
+                    var atomicShadow = BlockById(shadowPage, "atomic").S.Sw;
+                    Ok(atomicShadow.Count == 1 && atomicShadow[0].X == 3 && atomicShadow[0].Y == 4 && atomicShadow[0].B == 5 && atomicShadow[0].R == 6 && atomicShadow[0].C == "#be123c", "invalid functional color preserves shadow list atomically");
+                    var priorityShadow = BlockById(shadowPage, "priority").S.Sw;
+                    Ok(priorityShadow.Count == 1 && priorityShadow[0].X == 7 && priorityShadow[0].Y == 5 && priorityShadow[0].C == "#0f4c81", "important custom-property shadow cascade");
+                    Ok(BlockById(shadowPage, "current").S.Sw[0].C == "currentColor" && BlockById(shadowPage, "reset").S.Sw.Count == 0, "currentColor and none shadow state");
+                    var boundedShadow = BlockById(shadowPage, "bounded").S.Sw[0];
+                    Ok(boundedShadow.X == 512 && boundedShadow.Y == -512 && boundedShadow.B == 128 && boundedShadow.R == -512, "bounded oversized shadow aliases");
+                    var limitShadow = BlockById(shadowPage, "limit").S.Sw;
+                    Ok(limitShadow.Count == 1 && limitShadow[0].X == 2 && limitShadow[0].Y == 3 && BlockById(shadowPage, "child").S.Sw.Count == 0, "shadow list cap and noninheritance");
+                    view.Size = new Size(720, 1200);
+                    view.Go(shadowPath);
+                    using (var shadowPaint = Render(view))
+                    {
+                        var outer = BlockOuterRect(view, BlockById(view.At, "outer"));
+                        Ok(ColorDistance(shadowPaint.GetPixel(outer.Right + 6, outer.Top + outer.Height / 2 + 4), Color.FromArgb(220, 38, 38)) < 24 &&
+                            ColorDistance(shadowPaint.GetPixel(outer.Left - 5, outer.Top + outer.Height / 2), Color.FromArgb(37, 99, 235)) < 24, "ordered outer shadow paint");
+                        Eq(outer, HitRect(view, "second.html"), "shadows do not expand link hit geometry");
+                        var soft = BlockOuterRect(view, BlockById(view.At, "soft"));
+                        Ok(ColorDistance(shadowPaint.GetPixel(soft.Right + 8, soft.Top + soft.Height / 2), Color.White) > 12, "bounded blur shadow paint");
+                        var inset = BlockOuterRect(view, BlockById(view.At, "inset"));
+                        Ok(ColorDistance(shadowPaint.GetPixel(inset.Left + 4, inset.Top + inset.Height / 2), Color.FromArgb(22, 163, 74)) < 24 &&
+                            ColorDistance(CenterPixel(shadowPaint, inset), Color.FromArgb(253, 230, 138)) < 12, "inset shadow and background paint");
+                        var alpha = BlockOuterRect(view, BlockById(view.At, "alpha"));
+                        Ok(ColorDistance(shadowPaint.GetPixel(alpha.Right + 4, alpha.Top + alpha.Height / 2), Color.FromArgb(135, 139, 149)) < 20, "space/slash alpha shadow color paint");
+                        var field = BlockRect(view, FieldBlock(view.At, FieldById(view.At, "field")));
+                        Ok(ColorDistance(shadowPaint.GetPixel(field.Left + 5, field.Top + field.Height / 2), Color.FromArgb(13, 148, 136)) < 30 &&
+                            ColorDistance(CenterPixel(shadowPaint, field), Color.FromArgb(207, 250, 254)) < 18 &&
+                            ColorDistance(shadowPaint.GetPixel(field.Right + 3, field.Top + field.Height / 2 + 2), Color.FromArgb(124, 58, 237)) < 30, "field outer and inset shadow paint");
+                        var clipper = BlockRect(view, BlockById(view.At, "shadow-clipper"));
+                        Ok(ColorDistance(shadowPaint.GetPixel(clipper.Left + 160, clipper.Top + clipper.Height / 2), Color.FromArgb(223, 135, 139)) < 30 &&
+                            ColorDistance(shadowPaint.GetPixel(clipper.Right + 3, clipper.Top + clipper.Height / 2), Color.White) < 18, "effective shadow opacity and ancestor overflow clip paint");
+                    }
+                    view.Size = new Size(260, 1200);
+                    Paint(view);
+                    Ok(BlockOuterRect(view, BlockById(view.At, "outer")).Right <= view.ClientSize.Width - 1, "shadow boxes reflow without layout expansion");
                     view.Size = new Size(720, 760);
                     var boxes = Path.Combine(root, "LeaForge", "test-pages", "boxes.html");
                     var boxPage = engine.Go(boxes);
@@ -4573,6 +4620,7 @@ namespace Lea.Tests
                 if (args.Length > 4) SaveRender(tokenPath, args[4]);
                 if (args.Length > 5) SaveStateRender(statePath, args[5]);
                 Console.WriteLine("Lea CSS radius smoke passed: compact ellipse aliases, atomic cascade, normalized paint, overflow, fields, links, and resize.");
+                Console.WriteLine("Lea CSS shadow smoke passed: compact aliases, atomic lists, bounded blur, alpha colors, outer/inset paint, fields, hits, and resize.");
 
                     Console.WriteLine("Lea smoke passed: bounded has relational selectors with strict lists, maximum specificity, descendant/child/adjacent/following and complex chains, queries, dynamic focus rebuilds, retained fields, WinForms geometry, and traversal/part limits, bounded nth-child of-S filters with strict compound lists, maximum specificity, forward/reverse counting, queries, dynamic form-state rebuilds, retained fields, WinForms geometry, and nesting/test limits, bounded precompiled An+B and reverse structural selectors with stylesheet/query parity, specificity, selector-list composition, type filtering, WinForms geometry, and invalid limits, bounded is, where, and list-not selector functions with maximum/zero specificity, forgiving/strict parsing, queries, dynamic state, WinForms geometry, and retained fields, bounded CSS important cascade with compiled priority, G.Ic diagnostics, stylesheet/inline tiers, custom properties, hover/media rebuilds, and retained fields, bounded inherited CSS custom properties with compiled declarations, S.Vc/Cv and G.Vc aliases, nested and cycle fallbacks, hover/media rebuilds, and retained fields, bounded responsive CSS media queries with viewport aliases, live resize, diagnostics, and retained fields, optional bounded persistent cache with restart reuse, validators, private isolation, atomic recovery, LRU entry/byte ceilings and host aliases, bounded content-box and border-box geometry, body and ID-scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, shrink, reverse flow, and resize, semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;

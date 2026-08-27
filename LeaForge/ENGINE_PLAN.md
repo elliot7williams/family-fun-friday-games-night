@@ -338,7 +338,17 @@ non-empty bridge survives both direct and external MTA clients. Continue host
 coverage and bounded HTML/CSS compatibility work without adding another browser
 runtime.
 
-The latest completed milestone adds bounded CSS corner radii through compact
+The latest completed milestone adds bounded CSS box shadows through compact
+`S.Sw` lists and `Sw.X/Y/B/R/C/I` offsets, blur, spread, color, and inset state.
+Atomic lists accept up to four entries; offsets and spread cap at 512 pixels,
+blur caps at 128 pixels, and painting uses at most 12 concentric bands. Hex,
+named, `rgb()`/`rgba()`, modern slash alpha, `currentColor`, variables,
+important tiers, resets, malformed preservation, and noninheritance feed one
+rounded outer/inset painter. Exact alpha/blur/field pixels, unchanged layout and
+link hits, resize, benchmark, and Firespider host coverage remain on the
+existing retained box surface.
+
+The previous completed milestone adds bounded CSS corner radii through compact
 clockwise `S.R0/R1/R2/R3` horizontal and `Q0/Q1/Q2/Q3` vertical state. Atomic
 pixel/percentage circular and elliptical shorthands, corner longhands, custom
 properties, important/reset behavior, malformed preservation, and strict value

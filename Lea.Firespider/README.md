@@ -242,6 +242,11 @@ resources do not need to be changed for that tooling mismatch.
 The adapter is kept here as the clean source of record because the live
 Firespider working tree contains unrelated in-progress changes.
 
+Hosted Lea pages also expose bounded CSS box shadows through `S.Sw` and compact
+`Sw.X/Y/B/R/C/I` state. The host smoke compiles outer plus inset shadows on its
+existing rounded border-box fixture and verifies that visual shadows do not
+alter the host-visible rectangle.
+
 `Smoke.cs` loads two compiled Firespider forms off-screen and verifies Lea-first
 New Tab creation, the explicit legacy fallback, Inspector open/refresh/clear and legacy isolation, diagnostics,
 script/style, host-controlled `go`, and safe click execution, alert routing,

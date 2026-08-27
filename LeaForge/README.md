@@ -60,6 +60,9 @@ LeaForge is where we can grow the more full-featured browser.
 - default HTML `hidden` rendering suppression plus focus, autofocus, and access-key exclusion
 - responsive `<picture>`/`srcset` selection and bounded base64 embedded images
 - compact CSS cascade for colors, fonts, boxes, overflow, and inline styles
+- bounded rounded outer/inset CSS box shadows through compact `S.Sw` and
+  `Sw.X/Y/B/R/C/I`, atomic four-entry lists, alpha/current colors, variables,
+  priority/reset/bounds, ordinary fields, and a 12-band blur ceiling
 - bounded `flex`/`inline-flex` row and column flow with compact
   `Fd/Jc/Ai/As/Gp/Wr/Rg/Fg/Sh/Fb/Or` state, stable order and reversal,
   fixed/equal-share/weighted grow and shrink slots, explicit pixel min/max

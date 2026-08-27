@@ -256,6 +256,15 @@ retaining the existing rectangular layout, link bounds, and responsive reflow.
 Pixels cap at 2,000 and percentages at 1,000; malformed declarations preserve
 the previous computed state.
 
+CSS box shadows are available through the non-inherited `S.Sw` list. Each
+compact `Sw` exposes `X/Y` offsets, `B` blur, `R` spread, `C` color, and `I`
+inset state. Lea accepts up to four entries atomically, caps signed offsets and
+spread at 512 pixels, blur at 128 pixels, and soft rendering at 12 bands.
+Rounded outer/inset shadows, alpha and `currentColor`, ordinary fields,
+variables, important tiers, resets, and ancestor overflow use the retained box
+painter. Shadows are visual only, so host layout, `V.Rb`/`V.Rc`, accessibility
+bounds, document height, and link/control hits remain stable.
+
 Lea's bounded flex subset uses `S.D=flex/inline-flex` and compact
 `S.Fd/Jc/Ai/As/Gp/Wr/Rg/Fg/Sh/Fb/Or` values. The model preserves direct element items
 under their visual container, while `V` allocates fixed, equal-share auto,

@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Box Shadow Test</title>
+  <style>
+    :root { --host-shadow: 7px 5px 0 #0f4c81; }
+    body { width: 640px; color: #172033; background: #ffffff; }
+    h1 { color: #0f766e; }
+    .sample { display: block; width: 180px; height: 52px; margin: 28px; background: #fef3c7; border-radius: 16px; }
+    #outer { box-shadow: 12px 8px 0 0 #dc2626, -8px 0 0 0 #2563eb; }
+    #soft { box-shadow: 0 0 12px 4px rgba(15, 23, 42, 0.5); }
+    #inset { background: #fde68a; box-shadow: inset 10px 0 0 0 #16a34a; }
+    #alpha { box-shadow: 8px 0 0 rgba(15 23 42 / 50%); }
+    #field { width: 200px; height: 40px; color: #164e63; background: #cffafe; border-radius: 12px; box-shadow: 6px 4px 0 #7c3aed, inset 7px 0 0 #0d9488; }
+    #shadow-clipper { width: 180px; height: 60px; overflow: hidden; background: #e2e8f0; border-radius: 14px; }
+    #shadow-clip-child { width: 120px; height: 36px; margin: 8px 0 0 8px; background: #ffffff; opacity: 0.5; box-shadow: 40px 0 0 #dc2626; }
+    #atomic { box-shadow: 3px 4px 5px 6px #be123c; box-shadow: 1px 2px rgb(bad, 0, 0); }
+    #priority { color: #0f4c81; box-shadow: var(--host-shadow) !important; box-shadow: 1px 1px red; }
+    #current { color: #c2410c; box-shadow: 6px 0 0 currentColor; }
+    #reset { box-shadow: 4px 4px #111827; box-shadow: none; }
+    #bounded { box-shadow: 900px -900px 300px -900px #111827; }
+    #limit { box-shadow: 2px 3px #166534; box-shadow: 1px 1px red, 2px 2px blue, 3px 3px green, 4px 4px black, 5px 5px gray; }
+    #parent { box-shadow: 4px 4px #111827; }
+    #child { width: 90px; height: 20px; background: #e0f2fe; }
+  </style>
+</head>
+<body>
+  <h1>Bounded box shadows</h1>
+  <a id="outer" class="sample" href="second.html">Two outer shadows</a>
+  <p id="soft" class="sample">Bounded soft shadow</p>
+  <p id="inset" class="sample">Inset shadow</p>
+  <p id="alpha" class="sample">Modern alpha color</p>
+  <input id="field" value="Shadowed field">
+  <div id="shadow-clipper"><p id="shadow-clip-child">Clipped alpha shadow.</p></div>
+  <p id="atomic">Invalid shadow preserves the valid list.</p>
+  <p id="priority">Important variable shadow.</p>
+  <p id="current">Current color shadow.</p>
+  <p id="reset">No shadow after reset.</p>
+  <p id="bounded">Bounded oversized values.</p>
+  <p id="limit">Five shadows are rejected atomically.</p>
+  <div id="parent"><p id="child">No inherited shadow.</p></div>
+</body>
+</html>

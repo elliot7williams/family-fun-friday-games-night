@@ -112,7 +112,7 @@ namespace Lea.Bench
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
                 "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html", "svg.html", "svg-geometry.html", "svg-gradients.html", "svg-use-clips.html", "svg-strokes.html",
-                "box-sizing.html", "border-radius.html"
+                "box-sizing.html", "border-radius.html", "box-shadows.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -789,6 +789,40 @@ namespace Lea.Bench
                     using (var image = Draw(view)) Need(BlockOuter(view, "dashed").Right <= view.ClientSize.Width - 1, "rounded narrow reflow changed");
                 }
                 return "S.R0-R3/Q0-Q3 aliases, atomic pixel/percentage ellipses, longhands, variables, important/reset/bounds, normalized solid/dashed paint, overflow clips, fields, links, and resize";
+            });
+            AddProbe(probes, "Bounded CSS box shadows", delegate
+            {
+                var path = Path.Combine(folder, "box-shadows.html");
+                var page = new E().Go(path);
+                var outer = page.Bs.First(block => block.El != null && block.El.Av("id") == "outer");
+                var soft = page.Bs.First(block => block.El != null && block.El.Av("id") == "soft");
+                var inset = page.Bs.First(block => block.El != null && block.El.Av("id") == "inset");
+                var atomic = page.Bs.First(block => block.El != null && block.El.Av("id") == "atomic");
+                var clipChild = page.Bs.First(block => block.El != null && block.El.Av("id") == "shadow-clip-child");
+                var field = page.Fs.First(item => item.El != null && item.El.Av("id") == "field");
+                Need(outer.S.Sw.Count == 2 && outer.S.Sw[0].X == 12 && outer.S.Sw[1].X == -8, "outer shadow aliases changed");
+                Need(soft.S.Sw.Count == 1 && soft.S.Sw[0].B == 12 && soft.S.Sw[0].R == 4, "blur/spread shadow aliases changed");
+                Need(inset.S.Sw.Count == 1 && inset.S.Sw[0].I && atomic.S.Sw.Count == 1 && atomic.S.Sw[0].X == 3, "inset or atomic fallback changed");
+                Need(field.S.Sw.Count == 2 && field.S.Sw[1].I, "field shadow model changed");
+                Need(clipChild.S.Op == 50 && clipChild.S.Sw.Count == 1, "shadow opacity or overflow fixture model changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1200);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var outerRect = BlockOuter(view, "outer");
+                        var insetRect = BlockOuter(view, "inset");
+                        var clipRect = BlockContent(view, "shadow-clipper");
+                        Need(ColorDistance(image.GetPixel(outerRect.Right + 6, outerRect.Top + outerRect.Height / 2 + 4), Color.FromArgb(220, 38, 38)) < 24, "outer shadow paint changed");
+                        Need(ColorDistance(image.GetPixel(insetRect.Left + 4, insetRect.Top + insetRect.Height / 2), Color.FromArgb(22, 163, 74)) < 24, "inset shadow paint changed");
+                        Need(ColorDistance(image.GetPixel(clipRect.Left + 160, clipRect.Top + clipRect.Height / 2), Color.FromArgb(223, 135, 139)) < 30 &&
+                            ColorDistance(image.GetPixel(clipRect.Right + 3, clipRect.Top + clipRect.Height / 2), Color.White) < 18, "shadow opacity or overflow clip paint changed");
+                    }
+                    view.Size = new Size(260, 1200);
+                    using (var image = Draw(view)) Need(BlockOuter(view, "outer").Right <= view.ClientSize.Width - 1, "shadow narrow reflow changed");
+                }
+                return "S.Sw with X/Y/B/R/C/I aliases, four-layer cap, atomic parsing, variables, priority/reset/bounds, alpha/current colors, rounded outer/inset/field paint, unchanged hits, and resize";
             });
             AddProbe(probes, "Bounded flex layout", delegate
             {
@@ -1502,8 +1536,8 @@ namespace Lea.Bench
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box, circular/elliptical radii, and text styles, visibility, positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
-            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/overflow/fields, inline, row/column flex, bounded grid, table, form, image, inline vector, clipping, scroll, and stacking renderer");
+            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box, circular/elliptical radii, bounded box shadows, and text styles, visibility, positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
+            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/overflow/fields/shadows, inline, row/column flex, bounded grid, table, form, image, inline vector, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");

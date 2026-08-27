@@ -88,6 +88,7 @@ namespace Lea.Engine
         public int Q1 { get; internal set; }
         public int Q2 { get; internal set; }
         public int Q3 { get; internal set; }
+        public IList<Sw> Sw { get; private set; }
         internal int Ao { get; set; }
         internal bool Zo { get; set; }
         internal bool Zs { get; set; }
@@ -207,6 +208,7 @@ namespace Lea.Engine
             Pn = "";
             Bc = "";
             Bs = "";
+            Sw = new List<Sw>();
         }
 
         internal S Inherit()
