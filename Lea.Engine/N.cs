@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Lea.Engine
@@ -23,6 +24,7 @@ namespace Lea.Engine
         internal bool Hv { get; set; }
         internal bool Fc { get; set; }
         internal string Mk { get; set; }
+        internal Uri Bu { get; set; }
 
         public string Av(string name)
         {

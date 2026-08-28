@@ -252,6 +252,12 @@ Hosted Lea pages expose bounded CSS background gradients through `S.Gi`,
 onto the same rounded box and verifies its kind, angle, normalized stops, and
 colors through the public model without adding adapter-side paint logic.
 
+Hosted Lea pages expose bounded bitmap backgrounds through `S.Bi` and compact
+`Bi.U/R/X/Y/Xp/Yp/W/H/Wp/Hp/Wa/Ha/K` state. The host smoke compiles a data
+image with no-repeat, bottom-right positioning, pixel sizing, and rounded
+clipping, then verifies both the public model and exact custom-surface pixels.
+Firespider adds no image control or adapter-side background painter.
+
 `Smoke.cs` loads two compiled Firespider forms off-screen and verifies Lea-first
 New Tab creation, the explicit legacy fallback, Inspector open/refresh/clear and legacy isolation, diagnostics,
 script/style, host-controlled `go`, and safe click execution, alert routing,

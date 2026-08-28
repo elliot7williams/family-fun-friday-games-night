@@ -112,7 +112,7 @@ namespace Lea.Bench
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
                 "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html", "svg.html", "svg-geometry.html", "svg-gradients.html", "svg-use-clips.html", "svg-strokes.html",
-                "box-sizing.html", "border-radius.html", "box-shadows.html", "background-gradients.html"
+                "box-sizing.html", "border-radius.html", "box-shadows.html", "background-gradients.html", "background-images.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -859,6 +859,61 @@ namespace Lea.Bench
                     using (var image = Draw(view)) Need(BlockOuter(view, "linear").Right <= view.ClientSize.Width - 1, "gradient narrow reflow changed");
                 }
                 return "S.Gi and Gi.K/A/X/Y/Ss plus Cs.C/P aliases, one-layer/eight-stop caps, atomic parsing, variables, priority/reset/bounds, normalized alpha/current colors, rounded linear/radial/page/field paint, unchanged hits, and resize";
+            });
+            AddProbe(probes, "Bounded CSS bitmap backgrounds", delegate
+            {
+                var path = Path.Combine(folder, "background-images.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var repeat = page.Bs.First(block => block.El != null && block.El.Av("id") == "repeat");
+                var positioned = page.Bs.First(block => block.El != null && block.El.Av("id") == "no-repeat");
+                var atomic = page.Bs.First(block => block.El != null && block.El.Av("id") == "atomic");
+                var shorthand = page.Bs.First(block => block.El != null && block.El.Av("id") == "shorthand");
+                var external = page.Bs.First(block => block.El != null && block.El.Av("id") == "external-image");
+                Need(page.S.Bi != null && page.S.Bi.R == "n" && page.S.Bi.X == 100 && page.S.Bi.Y == 100 && page.S.Bi.W == 24 && page.S.Bi.H == 24,
+                    "page bitmap aliases changed");
+                Need(repeat.S.Bi != null && repeat.S.Bi.U.Scheme == "data" && repeat.S.Bi.R == "b" && repeat.S.Bi.W == 12 && repeat.S.Bi.H == 12,
+                    "repeated bitmap aliases changed");
+                Need(positioned.S.Bi != null && positioned.S.Bi.R == "n" && positioned.S.Bi.X == 100 && positioned.S.Bi.Y == 100 && positioned.S.Bi.W == 30 && positioned.S.Bi.H == 20,
+                    "positioned bitmap aliases changed");
+                Need(atomic.S.Bi != null && atomic.S.Bi.U == repeat.S.Bi.U && shorthand.S.Bi != null && shorthand.S.Bi.R == "n" && shorthand.S.Bi.W == 26 && shorthand.S.Bi.H == 22,
+                    "bitmap atomic fallback or shorthand changed");
+                Need(external.S.Bi != null && external.S.Bi.U == new Uri(Path.GetFullPath(Path.Combine(root, "assets", "lea.ico"))),
+                    "linked stylesheet bitmap origin changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1400);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var repeatRect = BlockOuter(view, "repeat");
+                        var positionedRect = BlockOuter(view, "no-repeat");
+                        var roundedRect = BlockOuter(view, "rounded");
+                        var fieldRect = BlockContent(view, "field");
+                        Need(ColorDistance(image.GetPixel(repeatRect.Right - 6, repeatRect.Bottom - 6), Color.FromArgb(23, 107, 77)) < 4,
+                            "repeated bitmap paint changed");
+                        Need(ColorDistance(image.GetPixel(positionedRect.Right - 6, positionedRect.Bottom - 6), Color.FromArgb(23, 107, 77)) < 4 &&
+                            ColorDistance(image.GetPixel(positionedRect.Left + 5, positionedRect.Bottom - 6), Color.White) < 8,
+                            "positioned bitmap paint changed");
+                        Need(ColorDistance(image.GetPixel(roundedRect.Left, roundedRect.Top), Color.White) < 8 &&
+                            ColorDistance(image.GetPixel(roundedRect.Left + roundedRect.Width / 2, roundedRect.Top + roundedRect.Height / 2), Color.FromArgb(23, 107, 77)) < 4,
+                            "rounded bitmap clip changed");
+                        Need(ColorDistance(image.GetPixel(fieldRect.Right - 8, fieldRect.Top + fieldRect.Height / 2), Color.FromArgb(23, 107, 77)) < 8,
+                            "field bitmap paint changed");
+                        Need(ColorDistance(image.GetPixel(image.Width - 8, image.Height - 8), Color.FromArgb(126, 34, 206)) < 4,
+                            "page bitmap paint changed");
+                    }
+                    view.Size = new Size(350, 1800);
+                    using (var image = Draw(view))
+                    {
+                        var dynamicRect = BlockOuter(view, "dynamic");
+                        Need(dynamicRect.Bottom <= image.Height &&
+                            ColorDistance(image.GetPixel(dynamicRect.Left + dynamicRect.Width / 2, dynamicRect.Top + dynamicRect.Height / 2), Color.FromArgb(126, 34, 206)) < 4,
+                            "responsive bitmap paint changed");
+                        Need(BlockOuter(view, "repeat").Right <= view.ClientSize.Width - 1, "bitmap narrow reflow changed");
+                    }
+                }
+                return "S.Bi with U/R/X/Y/Xp/Yp/W/H/Wp/Hp/Wa/Ha/K aliases, bounded data/file loading, stylesheet/custom-property origins, atomic URL/position/size/shorthand parsing, repeat/axis/cover/contain/page/field paint, rounded clips, opacity, and resize";
             });
             AddProbe(probes, "Bounded flex layout", delegate
             {

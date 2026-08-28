@@ -10,6 +10,7 @@ namespace Lea.Engine
 
         public string F { get; internal set; }
         public string Bg { get; internal set; }
+        public Bi Bi { get; internal set; }
         public Gi Gi { get; internal set; }
         public int Fs { get; internal set; }
         public string Ff { get; internal set; }
@@ -95,6 +96,7 @@ namespace Lea.Engine
         internal bool Zs { get; set; }
         internal bool Zt { get; set; }
         internal Dictionary<string, string> Vr { get; set; }
+        internal Dictionary<string, Uri> Vo { get; set; }
         internal int[] Gd { get; set; }
         internal int[] Rd { get; set; }
         internal int[] Gad { get; set; }
@@ -216,6 +218,7 @@ namespace Lea.Engine
         {
             var style = new S { F = F, Fs = Fs, Ff = Ff, B = B, I = I, Td = Td, Ta = Ta, Lh = Lh, Lm = Lm, Ws = Ws, Wb = Wb, Vi = Vi, Op = Op, Ao = Op };
             style.Vr = Vr;
+            style.Vo = Vo;
             return style;
         }
     }

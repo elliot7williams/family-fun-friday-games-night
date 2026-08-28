@@ -265,6 +265,17 @@ variables, important tiers, resets, and ancestor overflow use the retained box
 painter. Shadows are visual only, so host layout, `V.Rb`/`V.Rc`, accessibility
 bounds, document height, and link/control hits remain stable.
 
+CSS bitmap backgrounds are available through non-inherited `S.Bi`. Hosts can
+inspect `Bi.U/R/X/Y/Xp/Yp/W/H/Wp/Hp/Wa/Ha/K` for one resolved image, repeat
+mode, position, size, and cover/contain state. The parser applies `background`,
+`background-image`, `background-repeat`, `background-position`, and
+`background-size` atomically; linked styles and direct custom-property values
+retain their own URL origin. The custom view loads bounded data/file/HTTP(S)
+resources through its existing 24-entry cache and paints them on pages, rounded
+boxes, and ordinary fields with effective opacity and inherited clipping.
+Layout, accessibility bounds, document height, and host hit routes remain
+unchanged.
+
 CSS background gradients are available through non-inherited `S.Gi`. Hosts can
 inspect `Gi.K/A/X/Y/Ss` for one linear/radial image and `Cs.C/P` for up to eight
 normalized color stops. The parser applies `background` and `background-image`

@@ -36,6 +36,8 @@ namespace Lea.Engine
         private const int MaxVarValue = 1024;
         private const int MaxGradientText = 1024;
         private const int MaxGradientStops = 8;
+        private const int MaxBackgroundText = 4096;
+        private const int MaxBackgroundLength = 2000;
         private const int MaxPost = 10 * 1024 * 1024;
         private const long MaxDownload = 64L * 1024 * 1024;
         private const int MaxFind = 256;
@@ -1094,14 +1096,14 @@ namespace Lea.Engine
         private P Parse(Ld load)
         {
             var page = Page(load);
-            Complete(page, Css(page.D, StyleSheets(page.D, page.Bu)));
+            Complete(page, Css(page.D, page.Bu, StyleSheets(page.D, page.Bu)));
             return page;
         }
 
         private async Task<P> ParseA(Ld load)
         {
             var page = Page(load);
-            Complete(page, Css(page.D, await StyleSheetsA(page.D, page.Bu)));
+            Complete(page, Css(page.D, page.Bu, await StyleSheetsA(page.D, page.Bu)));
             return page;
         }
 
@@ -1122,6 +1124,7 @@ namespace Lea.Engine
             p.Ca = load.Ca;
             p.D = Tree(reply.H);
             p.Bu = DocumentBase(p.D, reply.U);
+            p.D.Bu = p.Bu;
             var title = Find(p.D, "title");
             p.T = Clean(NodeText(title));
             if (p.T.Length == 0) p.T = reply.U.IsFile ? Path.GetFileName(reply.U.LocalPath) : reply.U.Host;
@@ -1636,7 +1639,8 @@ namespace Lea.Engine
         private static bool VisualContext(S style)
         {
             return LayoutContext(style) || style != null &&
-                (style.Bg.Length > 0 || style.Mt != 0 || style.Mr != 0 || style.Mb != 0 || style.Ml != 0 ||
+                (style.Bg.Length > 0 || style.Gi != null || style.Bi != null && style.Bi.U != null ||
+                 style.Mt != 0 || style.Mr != 0 || style.Mb != 0 || style.Ml != 0 ||
                  style.Pt != 0 || style.Pr != 0 || style.Pb != 0 || style.Pl != 0 || style.W > 0 || style.H > 0 ||
                  style.Wn > 0 || style.Wx > 0 || style.Hn > 0 || style.Hx > 0 ||
                  style.Bt > 0 || style.Br > 0 || style.Bb > 0 || style.Bl > 0);
@@ -2067,9 +2071,9 @@ namespace Lea.Engine
             foreach (var child in node.C) AddText(child, text);
         }
 
-        private Dictionary<N, string> StyleSheets(N root, Uri baseUrl)
+        private Dictionary<N, Sc> StyleSheets(N root, Uri baseUrl)
         {
-            var sheets = new Dictionary<N, string>();
+            var sheets = new Dictionary<N, Sc>();
             var count = 0;
             foreach (var link in StyleLinks(root))
             {
@@ -2080,7 +2084,7 @@ namespace Lea.Engine
                 {
                     var load = Fetch(url);
                     if (!UsableCss(load.R)) { DropCache(url); continue; }
-                    sheets[link] = load.R.H;
+                    sheets[link] = new Sc(load.R.H, load.R.U);
                 }
                 catch (WebException) { }
                 catch (IOException) { }
@@ -2091,9 +2095,9 @@ namespace Lea.Engine
             return sheets;
         }
 
-        private async Task<Dictionary<N, string>> StyleSheetsA(N root, Uri baseUrl)
+        private async Task<Dictionary<N, Sc>> StyleSheetsA(N root, Uri baseUrl)
         {
-            var sheets = new Dictionary<N, string>();
+            var sheets = new Dictionary<N, Sc>();
             var count = 0;
             foreach (var link in StyleLinks(root))
             {
@@ -2104,7 +2108,7 @@ namespace Lea.Engine
                 {
                     var load = await FetchA(url);
                     if (!UsableCss(load.R)) { DropCache(url); continue; }
-                    sheets[link] = load.R.H;
+                    sheets[link] = new Sc(load.R.H, load.R.U);
                 }
                 catch (WebException error)
                 {
@@ -2149,29 +2153,34 @@ namespace Lea.Engine
             return reply != null && reply.St >= 200 && reply.St < 300 && reply.Ct == "text/css" && reply.Sz <= MaxCss;
         }
 
-        private static List<R> Css(N root, IDictionary<N, string> sheets)
+        private static List<R> Css(N root, Uri baseUrl, IDictionary<N, Sc> sheets)
         {
             var rules = new List<R>();
             var order = 0;
-            CssRules(root, sheets, rules, ref order);
+            CssRules(root, baseUrl, sheets, rules, ref order);
             rules.Sort(delegate(R a, R b) { var byWeight = a.W.CompareTo(b.W); return byWeight != 0 ? byWeight : a.O.CompareTo(b.O); });
             return rules;
         }
 
-        private static void CssRules(N node, IDictionary<N, string> sheets, List<R> rules, ref int order)
+        private static void CssRules(N node, Uri baseUrl, IDictionary<N, Sc> sheets, List<R> rules, ref int order)
         {
             string source = null;
+            var origin = baseUrl;
             if (node.K == "style") source = RawText(node);
-            else if (sheets != null) sheets.TryGetValue(node, out source);
+            else if (sheets != null)
+            {
+                Sc sheet;
+                if (sheets.TryGetValue(node, out sheet) && sheet != null) { source = sheet.X; origin = sheet.U; }
+            }
             if (source != null)
             {
                 var media = CssMedia(node.Av("media"));
-                if (media.Length > 0) CssSource(source, rules, ref order, media, 0);
+                if (media.Length > 0) CssSource(source, origin, rules, ref order, media, 0);
             }
-            foreach (var child in node.C) CssRules(child, sheets, rules, ref order);
+            foreach (var child in node.C) CssRules(child, baseUrl, sheets, rules, ref order);
         }
 
-        private static void CssSource(string source, List<R> rules, ref int order, Mc[] media, int depth)
+        private static void CssSource(string source, Uri origin, List<R> rules, ref int order, Mc[] media, int depth)
         {
             if (String.IsNullOrEmpty(source) || media == null || media.Length == 0 || depth > MaxMediaDepth) return;
             var at = 0;
@@ -2185,15 +2194,15 @@ namespace Lea.Engine
                 {
                     if (depth == MaxMediaDepth) continue;
                     var nested = CssIntersect(media, CssMedia(Regex.Replace(query, "^@media", "", RegexOptions.IgnoreCase)));
-                    if (nested.Length > 0) CssSource(body, rules, ref order, nested, depth + 1);
+                    if (nested.Length > 0) CssSource(body, origin, rules, ref order, nested, depth + 1);
                     continue;
                 }
                 if (query[0] == '@') continue;
-                CssRule(query, CssClean(body), rules, ref order, media);
+                CssRule(query, CssClean(body), origin, rules, ref order, media);
             }
         }
 
-        private static void CssRule(string selectors, string declarations, List<R> rules, ref int order, Mc[] media)
+        private static void CssRule(string selectors, string declarations, Uri origin, List<R> rules, ref int order, Mc[] media)
         {
             if (String.IsNullOrWhiteSpace(declarations) || declarations.Length > 64 * 1024) return;
             foreach (var selector in CssGroups(selectors))
@@ -2211,7 +2220,7 @@ namespace Lea.Engine
                     simple.Add(value);
                 }
                 if (simple.Count == parts.Count)
-                    rules.Add(new R(query, declarations, Spec(simple), order++, simple.ToArray(), joins.ToArray(), media));
+                    rules.Add(new R(query, declarations, origin, Spec(simple), order++, simple.ToArray(), joins.ToArray(), media));
             }
         }
 
@@ -3136,7 +3145,7 @@ namespace Lea.Engine
             var matched = new List<R>();
             foreach (var rule in rules)
                 if (MatchCss(node, rule)) matched.Add(rule);
-            var inline = CssDeclarations(node.Av("style"));
+            var inline = CssDeclarations(node.Av("style"), StyleOrigin(node));
             foreach (var rule in matched) Custom(style, inherited, rule.Ds, false);
             Custom(style, inherited, inline, false);
             foreach (var rule in matched) Custom(style, inherited, rule.Ds, true);
@@ -3151,6 +3160,13 @@ namespace Lea.Engine
             return style;
         }
 
+        private static Uri StyleOrigin(N node)
+        {
+            var root = node;
+            while (root != null && root.Up != null) root = root.Up;
+            return root == null ? null : root.Bu;
+        }
+
         private static void Custom(S style, S inherited, Pd[] declarations, bool important)
         {
             foreach (var declaration in declarations)
@@ -3159,20 +3175,40 @@ namespace Lea.Engine
                 var value = declaration.V;
                 if (value.Equals("initial", StringComparison.OrdinalIgnoreCase))
                 {
-                    if (style.Vr != null && style.Vr.ContainsKey(declaration.N)) VarWrite(style, inherited).Remove(declaration.N);
+                    if (style.Vr != null && style.Vr.ContainsKey(declaration.N)) VarRemove(style, inherited, declaration.N);
                     continue;
                 }
                 if (value.Equals("inherit", StringComparison.OrdinalIgnoreCase) || value.Equals("unset", StringComparison.OrdinalIgnoreCase) ||
                     value.Equals("revert", StringComparison.OrdinalIgnoreCase) || value.Equals("revert-layer", StringComparison.OrdinalIgnoreCase))
                 {
                     string parent;
-                    if (inherited != null && inherited.Vr != null && inherited.Vr.TryGetValue(declaration.N, out parent)) VarWrite(style, inherited)[declaration.N] = parent;
-                    else if (style.Vr != null && style.Vr.ContainsKey(declaration.N)) VarWrite(style, inherited).Remove(declaration.N);
+                    if (inherited != null && inherited.Vr != null && inherited.Vr.TryGetValue(declaration.N, out parent))
+                    {
+                        Uri origin = null;
+                        if (inherited.Vo != null) inherited.Vo.TryGetValue(declaration.N, out origin);
+                        VarSet(style, inherited, declaration.N, parent, origin);
+                    }
+                    else if (style.Vr != null && style.Vr.ContainsKey(declaration.N)) VarRemove(style, inherited, declaration.N);
                     continue;
                 }
                 if (value.Length == 0 || value.Length > MaxCustomValue) continue;
-                if (style.Vr == null || style.Vr.ContainsKey(declaration.N) || style.Vr.Count < MaxCustomProperties) VarWrite(style, inherited)[declaration.N] = value;
+                if (style.Vr == null || style.Vr.ContainsKey(declaration.N) || style.Vr.Count < MaxCustomProperties)
+                    VarSet(style, inherited, declaration.N, value, declaration.U);
             }
+        }
+
+        private static void VarSet(S style, S inherited, string name, string value, Uri origin)
+        {
+            VarWrite(style, inherited)[name] = value;
+            var origins = VarOriginWrite(style, inherited);
+            if (origin == null) origins.Remove(name);
+            else origins[name] = origin;
+        }
+
+        private static void VarRemove(S style, S inherited, string name)
+        {
+            VarWrite(style, inherited).Remove(name);
+            VarOriginWrite(style, inherited).Remove(name);
         }
 
         private static Dictionary<string, string> VarWrite(S style, S inherited)
@@ -3182,6 +3218,13 @@ namespace Lea.Engine
             return style.Vr;
         }
 
+        private static Dictionary<string, Uri> VarOriginWrite(S style, S inherited)
+        {
+            if (style.Vo == null) style.Vo = new Dictionary<string, Uri>(StringComparer.Ordinal);
+            else if (inherited != null && Object.ReferenceEquals(style.Vo, inherited.Vo)) style.Vo = new Dictionary<string, Uri>(style.Vo, StringComparer.Ordinal);
+            return style.Vo;
+        }
+
         private static void Decls(S style, Pd[] declarations, bool important)
         {
             foreach (var declaration in declarations)
@@ -3189,11 +3232,15 @@ namespace Lea.Engine
                 if (declaration.C || declaration.I != important) continue;
                 var name = declaration.N;
                 string value;
-                if (!VarValue(style, declaration.V, out value)) continue;
+                Uri origin;
+                if (!VarValue(style, declaration.V, declaration.U, out value, out origin)) continue;
                 if (name == "color") style.F = value;
-                else if (name == "background") Background(style, value);
+                else if (name == "background") Background(style, value, origin);
                 else if (name == "background-color") style.Bg = value;
-                else if (name == "background-image") GradientImage(style, value);
+                else if (name == "background-image") BackgroundImage(style, value, origin);
+                else if (name == "background-repeat") BackgroundRepeat(style, value);
+                else if (name == "background-position") BackgroundPosition(style, value);
+                else if (name == "background-size") BackgroundSize(style, value);
                 else if (name == "font-family") FontFamily(style, value);
                 else if (name == "font-weight") style.B = value.Equals("bold", StringComparison.OrdinalIgnoreCase) || value == "700" || value == "800" || value == "900";
                 else if (name == "font-style") style.I = value.Equals("italic", StringComparison.OrdinalIgnoreCase) || value.Equals("oblique", StringComparison.OrdinalIgnoreCase);
@@ -3296,6 +3343,11 @@ namespace Lea.Engine
 
         private static Pd[] CssDeclarations(string declarations)
         {
+            return CssDeclarations(declarations, null);
+        }
+
+        private static Pd[] CssDeclarations(string declarations, Uri origin)
+        {
             var source = CssClean(declarations ?? "");
             if (source.Length == 0 || source.Length > 64 * 1024) return NoDeclarations;
             var result = new List<Pd>();
@@ -3315,14 +3367,14 @@ namespace Lea.Engine
                 if (!end && value == '(') { parentheses++; continue; }
                 if (!end && value == ')' && parentheses > 0) { parentheses--; continue; }
                 if (value != ';' || parentheses != 0) continue;
-                CssDeclaration(source.Substring(start, index - start), result);
+                CssDeclaration(source.Substring(start, index - start), origin, result);
                 if (result.Count == MaxCssDeclarations) break;
                 start = index + 1;
             }
             return result.ToArray();
         }
 
-        private static void CssDeclaration(string source, IList<Pd> result)
+        private static void CssDeclaration(string source, Uri origin, IList<Pd> result)
         {
             var quote = '\0';
             var parentheses = 0;
@@ -3348,7 +3400,7 @@ namespace Lea.Engine
             string declarationValue;
             var important = CssImportant(source.Substring(split + 1), out declarationValue);
             if (declarationValue.Length == 0) return;
-            result.Add(new Pd(name, declarationValue, custom, important));
+            result.Add(new Pd(name, declarationValue, origin, custom, important));
         }
 
         private static bool CssImportant(string source, out string value)
@@ -3392,6 +3444,17 @@ namespace Lea.Engine
             value = source ?? "";
             if (value.IndexOf("var(", StringComparison.OrdinalIgnoreCase) < 0) return true;
             return ResolveVars(style, value, new HashSet<string>(StringComparer.Ordinal), 0, out value);
+        }
+
+        private static bool VarValue(S style, string source, Uri origin, out string value, out Uri valueOrigin)
+        {
+            valueOrigin = origin;
+            if (!VarValue(style, source, out value)) return false;
+            var match = Regex.Match((source ?? "").Trim(), "^var\\(\\s*(?<n>--[A-Za-z0-9_-]{1,64})\\s*\\)$", RegexOptions.IgnoreCase);
+            Uri customOrigin;
+            if (match.Success && style != null && style.Vo != null && style.Vo.TryGetValue(match.Groups["n"].Value, out customOrigin))
+                valueOrigin = customOrigin;
+            return true;
         }
 
         private static bool ResolveVars(S style, string source, HashSet<string> stack, int depth, out string value)
@@ -4589,29 +4652,323 @@ namespace Lea.Engine
             foreach (var shadow in shadows) style.Sw.Add(shadow);
         }
 
-        private static void Background(S style, string value)
+        private static void Background(S style, string value, Uri origin)
         {
             var source = (value ?? "").Trim();
-            var lower = source.ToLowerInvariant();
-            if (GradientSource(lower))
-            {
-                if (GradientImage(style, source)) style.Bg = "";
-                return;
-            }
-            if (lower == "none" || RadiusReset(lower)) { style.Bg = ""; style.Gi = null; return; }
-            style.Bg = source;
-            style.Gi = null;
+            if (source.Length == 0 || source.Length > MaxBackgroundText) return;
+            var next = new S();
+            if (!BackgroundValue(next, source, origin)) return;
+            style.Bg = next.Bg;
+            style.Gi = next.Gi;
+            style.Bi = next.Bi;
         }
 
-        private static bool GradientImage(S style, string value)
+        private static bool BackgroundValue(S style, string source, Uri origin)
+        {
+            var lower = source.ToLowerInvariant();
+            if (lower == "none" || RadiusReset(lower)) { style.Bg = ""; style.Gi = null; style.Bi = null; return true; }
+            List<string> parts;
+            if (!BackgroundParts(source, out parts) || parts.Count == 0) return false;
+            var bitmap = new Bi();
+            Gi gradient = null;
+            var position = new List<string>();
+            var size = new List<string>();
+            var color = "";
+            var image = false;
+            var geometry = false;
+            var repeatSeen = false;
+            var slash = false;
+            foreach (var raw in parts)
+            {
+                var part = raw.Trim();
+                var token = part.ToLowerInvariant();
+                if (part == "/")
+                {
+                    if (slash || position.Count == 0) return false;
+                    slash = true;
+                    continue;
+                }
+                if (slash)
+                {
+                    if (size.Count == 2) return false;
+                    size.Add(part);
+                    continue;
+                }
+                if (GradientSource(token))
+                {
+                    if (image || !Gradient(part, out gradient)) return false;
+                    image = true;
+                    continue;
+                }
+                Uri url;
+                if (BitmapUri(part, origin, out url))
+                {
+                    if (image) return false;
+                    bitmap.U = url;
+                    image = true;
+                    continue;
+                }
+                if (token == "none" && !image) { image = true; continue; }
+                string repeat;
+                if (BackgroundRepeatValue(token, out repeat))
+                {
+                    if (repeatSeen) return false;
+                    bitmap.R = repeat;
+                    repeatSeen = true;
+                    geometry = true;
+                    continue;
+                }
+                if (BackgroundPositionToken(token))
+                {
+                    if (position.Count == 2) return false;
+                    position.Add(part);
+                    geometry = true;
+                    continue;
+                }
+                if (color.Length == 0 && ShadowColor(part)) { color = part; continue; }
+                return false;
+            }
+            if (slash && size.Count == 0) return false;
+            if (position.Count > 0 && !BackgroundPosition(bitmap, position)) return false;
+            if (size.Count > 0 && !BackgroundSize(bitmap, size)) return false;
+            style.Bg = color;
+            style.Gi = gradient;
+            style.Bi = bitmap.U != null || geometry ? bitmap : null;
+            return true;
+        }
+
+        private static bool BackgroundImage(S style, string value, Uri origin)
         {
             var source = (value ?? "").Trim();
             var lower = source.ToLowerInvariant();
-            if (lower == "none" || RadiusReset(lower)) { style.Gi = null; return true; }
+            if (lower == "none" || RadiusReset(lower))
+            {
+                style.Gi = null;
+                if (style.Bi != null) style.Bi.U = null;
+                return true;
+            }
             Gi gradient;
-            if (source.Length == 0 || source.Length > MaxGradientText || !Gradient(source, out gradient)) return false;
-            style.Gi = gradient;
+            if (source.Length <= MaxGradientText && Gradient(source, out gradient))
+            {
+                style.Gi = gradient;
+                if (style.Bi != null) style.Bi.U = null;
+                return true;
+            }
+            Uri url;
+            if (source.Length == 0 || source.Length > MaxBackgroundText || !BitmapUri(source, origin, out url)) return false;
+            var bitmap = BackgroundBitmap(style).Copy();
+            bitmap.U = url;
+            style.Bi = bitmap;
+            style.Gi = null;
             return true;
+        }
+
+        private static void BackgroundRepeat(S style, string value)
+        {
+            var token = (value ?? "").Trim().ToLowerInvariant();
+            string repeat;
+            if (RadiusReset(token)) repeat = "b";
+            else if (!BackgroundRepeatValue(token, out repeat)) return;
+            var bitmap = BackgroundBitmap(style).Copy();
+            bitmap.R = repeat;
+            style.Bi = bitmap;
+        }
+
+        private static bool BackgroundRepeatValue(string value, out string repeat)
+        {
+            repeat = "";
+            if (value == "repeat") repeat = "b";
+            else if (value == "repeat-x") repeat = "x";
+            else if (value == "repeat-y") repeat = "y";
+            else if (value == "no-repeat") repeat = "n";
+            else return false;
+            return true;
+        }
+
+        private static void BackgroundPosition(S style, string value)
+        {
+            var source = (value ?? "").Trim();
+            var bitmap = BackgroundBitmap(style).Copy();
+            if (RadiusReset(source.ToLowerInvariant()))
+            {
+                bitmap.X = 0;
+                bitmap.Y = 0;
+                bitmap.Xp = true;
+                bitmap.Yp = true;
+                style.Bi = bitmap;
+                return;
+            }
+            List<string> parts;
+            if (!ShadowParts(source, '\0', out parts) || !BackgroundPosition(bitmap, parts)) return;
+            style.Bi = bitmap;
+        }
+
+        private static bool BackgroundPosition(Bi bitmap, IList<string> parts)
+        {
+            if (parts == null || parts.Count < 1 || parts.Count > 2) return false;
+            int x = 50;
+            int y = 50;
+            var xp = true;
+            var yp = true;
+            if (parts.Count == 1)
+            {
+                var token = parts[0].Trim().ToLowerInvariant();
+                if (token == "top" || token == "bottom")
+                {
+                    if (!BackgroundPositionValue(token, false, out y, out yp)) return false;
+                }
+                else if (!BackgroundPositionValue(token, true, out x, out xp)) return false;
+            }
+            else if (!(BackgroundPositionValue(parts[0].Trim().ToLowerInvariant(), true, out x, out xp) &&
+                       BackgroundPositionValue(parts[1].Trim().ToLowerInvariant(), false, out y, out yp)))
+            {
+                if (!(BackgroundPositionValue(parts[0].Trim().ToLowerInvariant(), false, out y, out yp) &&
+                      BackgroundPositionValue(parts[1].Trim().ToLowerInvariant(), true, out x, out xp))) return false;
+            }
+            bitmap.X = x;
+            bitmap.Y = y;
+            bitmap.Xp = xp;
+            bitmap.Yp = yp;
+            return true;
+        }
+
+        private static bool BackgroundPositionValue(string value, bool horizontal, out int number, out bool percent)
+        {
+            number = 0;
+            percent = true;
+            if (value == "center") { number = 50; return true; }
+            if ((horizontal && value == "left") || (!horizontal && value == "top")) return true;
+            if (horizontal && value == "right" || !horizontal && value == "bottom") { number = 100; return true; }
+            var match = Regex.Match(value ?? "", "^(?<n>[+-]?[0-9]{1,4})(?<u>%|px)?$", RegexOptions.IgnoreCase);
+            int parsed;
+            if (!match.Success || !Int32.TryParse(match.Groups["n"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out parsed)) return false;
+            percent = match.Groups["u"].Value == "%";
+            number = percent ? Math.Max(-1000, Math.Min(1000, parsed)) : Math.Max(-MaxBackgroundLength, Math.Min(MaxBackgroundLength, parsed));
+            return true;
+        }
+
+        private static bool BackgroundPositionToken(string value)
+        {
+            int number;
+            bool percent;
+            return value == "top" || value == "bottom" || BackgroundPositionValue(value, true, out number, out percent);
+        }
+
+        private static void BackgroundSize(S style, string value)
+        {
+            var source = (value ?? "").Trim();
+            var bitmap = BackgroundBitmap(style).Copy();
+            if (RadiusReset(source.ToLowerInvariant()))
+            {
+                BackgroundSizeReset(bitmap);
+                style.Bi = bitmap;
+                return;
+            }
+            List<string> parts;
+            if (!ShadowParts(source, '\0', out parts) || !BackgroundSize(bitmap, parts)) return;
+            style.Bi = bitmap;
+        }
+
+        private static bool BackgroundSize(Bi bitmap, IList<string> parts)
+        {
+            if (parts == null || parts.Count < 1 || parts.Count > 2) return false;
+            var first = parts[0].Trim().ToLowerInvariant();
+            if (parts.Count == 1 && (first == "cover" || first == "contain"))
+            {
+                BackgroundSizeReset(bitmap);
+                bitmap.K = first == "cover" ? "c" : "n";
+                return true;
+            }
+            int width;
+            int height = 0;
+            bool widthPercent;
+            bool heightPercent = false;
+            bool widthAuto;
+            bool heightAuto = true;
+            if (!BackgroundSizeValue(first, out width, out widthPercent, out widthAuto)) return false;
+            if (parts.Count == 2 && !BackgroundSizeValue(parts[1].Trim().ToLowerInvariant(), out height, out heightPercent, out heightAuto)) return false;
+            bitmap.W = width;
+            bitmap.H = height;
+            bitmap.Wp = widthPercent;
+            bitmap.Hp = heightPercent;
+            bitmap.Wa = widthAuto;
+            bitmap.Ha = heightAuto;
+            bitmap.K = "";
+            return true;
+        }
+
+        private static bool BackgroundSizeValue(string value, out int number, out bool percent, out bool auto)
+        {
+            number = 0;
+            percent = false;
+            auto = value == "auto";
+            if (auto) return true;
+            var match = Regex.Match(value ?? "", "^(?<n>[0-9]{1,4})(?<u>%|px)?$", RegexOptions.IgnoreCase);
+            int parsed;
+            if (!match.Success || !Int32.TryParse(match.Groups["n"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out parsed)) return false;
+            percent = match.Groups["u"].Value == "%";
+            number = Math.Min(percent ? 1000 : MaxBackgroundLength, parsed);
+            return true;
+        }
+
+        private static void BackgroundSizeReset(Bi bitmap)
+        {
+            bitmap.W = 0;
+            bitmap.H = 0;
+            bitmap.Wp = false;
+            bitmap.Hp = false;
+            bitmap.Wa = true;
+            bitmap.Ha = true;
+            bitmap.K = "";
+        }
+
+        private static Bi BackgroundBitmap(S style)
+        {
+            return style.Bi ?? new Bi();
+        }
+
+        private static bool BitmapUri(string value, Uri origin, out Uri url)
+        {
+            url = null;
+            var match = Regex.Match((value ?? "").Trim(), "^url\\((?<u>.*)\\)$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+            if (!match.Success) return false;
+            var source = match.Groups["u"].Value.Trim();
+            if (source.Length >= 2 && ((source[0] == '\'' && source[source.Length - 1] == '\'') || (source[0] == '"' && source[source.Length - 1] == '"')))
+                source = source.Substring(1, source.Length - 2).Trim();
+            if (source.Length == 0 || source.Length > MaxBackgroundText || source.IndexOfAny(new char[] { '\r', '\n', '\0' }) >= 0) return false;
+            if (!(Uri.TryCreate(source, UriKind.Absolute, out url) || origin != null && Uri.TryCreate(origin, source, out url))) return false;
+            if (!(url.IsFile || url.Scheme == Uri.UriSchemeHttp || url.Scheme == Uri.UriSchemeHttps || url.Scheme.Equals("data", StringComparison.OrdinalIgnoreCase))) return false;
+            if (url.IsFile && origin != null && !origin.IsFile) return false;
+            return true;
+        }
+
+        private static bool BackgroundParts(string source, out List<string> parts)
+        {
+            parts = new List<string>();
+            var start = 0;
+            var quote = '\0';
+            var depth = 0;
+            for (var index = 0; index <= (source ?? "").Length; index++)
+            {
+                var end = index == source.Length;
+                var value = end ? '\0' : source[index];
+                if (!end && quote != '\0')
+                {
+                    if (value == quote && (index == 0 || source[index - 1] != '\\')) quote = '\0';
+                    continue;
+                }
+                if (!end && (value == '\'' || value == '"')) { quote = value; continue; }
+                if (!end && value == '(') { depth++; continue; }
+                if (!end && value == ')') { if (depth == 0) return false; depth--; continue; }
+                if (!end && value == ',' && depth == 0) return false;
+                var split = end || depth == 0 && (Char.IsWhiteSpace(value) || value == '/');
+                if (!split) continue;
+                var part = source.Substring(start, index - start).Trim();
+                if (part.Length > 0) parts.Add(part);
+                if (!end && value == '/') parts.Add("/");
+                start = index + 1;
+            }
+            return quote == '\0' && depth == 0;
         }
 
         private static bool GradientSource(string value)
@@ -7408,13 +7765,15 @@ namespace Lea.Engine
         {
             public readonly string N;
             public readonly string V;
+            public readonly Uri U;
             public readonly bool C;
             public readonly bool I;
 
-            public Pd(string name, string value, bool custom, bool important)
+            public Pd(string name, string value, Uri origin, bool custom, bool important)
             {
                 N = name;
                 V = value;
+                U = origin;
                 C = custom;
                 I = important;
             }
@@ -7483,6 +7842,18 @@ namespace Lea.Engine
             }
         }
 
+        private sealed class Sc
+        {
+            public readonly string X;
+            public readonly Uri U;
+
+            public Sc(string source, Uri origin)
+            {
+                X = source ?? "";
+                U = origin;
+            }
+        }
+
         private sealed class R
         {
             public readonly string Q;
@@ -7496,11 +7867,11 @@ namespace Lea.Engine
             public readonly Pd[] Ds;
 
             public R(string query, string values, int weight, int order, Se[] parts, char[] joins)
-                : this(query, values, weight, order, parts, joins, new Mc[] { new Mc(0, 0) })
+                : this(query, values, null, weight, order, parts, joins, new Mc[] { new Mc(0, 0) })
             {
             }
 
-            public R(string query, string values, int weight, int order, Se[] parts, char[] joins, Mc[] media)
+            public R(string query, string values, Uri origin, int weight, int order, Se[] parts, char[] joins, Mc[] media)
             {
                 Q = query;
                 V = values;
@@ -7509,7 +7880,7 @@ namespace Lea.Engine
                 P = parts;
                 J = joins;
                 M = media ?? new Mc[0];
-                Ds = CssDeclarations(values);
+                Ds = CssDeclarations(values, origin);
                 var labels = new List<string>();
                 foreach (var condition in M)
                     if (condition.D.Length > 0) labels.Add(condition.D);

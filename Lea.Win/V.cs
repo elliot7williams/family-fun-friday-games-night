@@ -463,6 +463,7 @@ namespace Lea.Win
 
         private P Show(P page, bool done, int preserveScroll = -1)
         {
+            picStop = false;
             CloseChoices();
             ClearFind(false);
             hover = null;
@@ -658,11 +659,15 @@ namespace Lea.Win
                 return;
             }
 
+            QueuePics(At);
+
             var pageColor = CssColor(At.S == null ? "" : At.S.F, ForeColor);
             var pageBackground = CssColor(At.S == null ? "" : At.S.Bg, BackColor);
             pe.Graphics.Clear(BackColor);
             if (At.S != null && !Hidden(At.S) && At.S.Bg.Length > 0 && At.S.Op > 0)
                 using (var brush = new SolidBrush(PaintColor(pageBackground, At.S.Op))) pe.Graphics.FillRectangle(brush, ClientRectangle);
+            if (At.S != null && !Hidden(At.S) && At.S.Bi != null && At.S.Op > 0)
+                PaintBitmapBackground(pe.Graphics, ClientRectangle, At.S, At.S.Op);
             if (At.S != null && !Hidden(At.S) && At.S.Gi != null && At.S.Op > 0)
                 PaintGradient(pe.Graphics, ClientRectangle, At.S, pageColor, At.S.Op);
             if (layoutDirty || layoutWidth != ClientSize.Width) Lay(pe.Graphics);
@@ -2629,7 +2634,7 @@ namespace Lea.Win
             return new Size(width, block.S != null && block.S.H > 0 ? Math.Max(1, BoxContentHeight(block.S, block.S.H)) : 72);
         }
 
-        private static void PaintBox(Graphics graphics, Rectangle rect, S style, Color pageBackground, Color pageColor, int opacity, bool background)
+        private void PaintBox(Graphics graphics, Rectangle rect, S style, Color pageBackground, Color pageColor, int opacity, bool background)
         {
             if (style == null) return;
             var rounded = HasRadius(style);
@@ -2646,6 +2651,7 @@ namespace Lea.Win
                             using (var path = RoundedPath(rect, style, 0, 0, 0, 0)) graphics.FillPath(brush, path);
                         else graphics.FillRectangle(brush, rect);
                     }
+                if (background && style.Bi != null) PaintBitmapBackground(graphics, rect, style, opacity);
                 if (background && style.Gi != null) PaintGradient(graphics, rect, style, CssColor(style.F, pageColor), opacity);
                 if (background && shadows) PaintShadows(graphics, rect, style, CssColor(style.F, pageColor), opacity, true);
 
@@ -2755,6 +2761,98 @@ namespace Lea.Win
             var alpha = Math.Max(0, Math.Min(255, (int)Math.Round(color.A * alphaPart / (double)Math.Max(1, alphaWhole))));
             if (alpha == 0) return;
             using (var brush = new SolidBrush(Color.FromArgb(alpha, color.R, color.G, color.B))) graphics.FillRegion(brush, region);
+        }
+
+        private void PaintBitmapBackground(Graphics graphics, Rectangle rect, S style, int opacity)
+        {
+            if (style == null || style.Bi == null || style.Bi.U == null || rect.Width < 1 || rect.Height < 1 || opacity <= 0) return;
+            Image image;
+            if (!pics.TryGetValue(style.Bi.U.AbsoluteUri, out image) || image == null || image.Width < 1 || image.Height < 1) return;
+            var size = BackgroundImageSize(style.Bi, image, rect.Size);
+            if (size.Width < 1 || size.Height < 1) return;
+            var left = BackgroundImageOffset(rect.Left, rect.Width - size.Width, style.Bi.X, style.Bi.Xp);
+            var top = BackgroundImageOffset(rect.Top, rect.Height - size.Height, style.Bi.Y, style.Bi.Yp);
+            var state = graphics.Save();
+            var interpolation = graphics.InterpolationMode;
+            var offset = graphics.PixelOffsetMode;
+            try
+            {
+                graphics.SetClip(rect, CombineMode.Intersect);
+                if (HasRadius(style))
+                    using (var path = RoundedPath(rect, style, 0, 0, 0, 0)) graphics.SetClip(path, CombineMode.Intersect);
+                var tiny = image.Width < 4 || image.Height < 4;
+                graphics.InterpolationMode = tiny ? InterpolationMode.NearestNeighbor : InterpolationMode.HighQualityBicubic;
+                graphics.PixelOffsetMode = tiny ? PixelOffsetMode.Half : PixelOffsetMode.HighQuality;
+                if (style.Bi.R == "n")
+                {
+                    PaintImage(graphics, image, new Rectangle(left, top, size.Width, size.Height), opacity);
+                    return;
+                }
+                using (var attributes = BackgroundImageAttributes(opacity))
+                using (var brush = new TextureBrush(image, new Rectangle(0, 0, image.Width, image.Height), attributes))
+                using (var matrix = new Matrix(size.Width / (float)image.Width, 0F, 0F, size.Height / (float)image.Height, left, top))
+                {
+                    brush.Transform = matrix;
+                    Rectangle fill;
+                    if (style.Bi.R == "x") fill = Rectangle.Intersect(rect, new Rectangle(rect.Left, top, rect.Width, size.Height));
+                    else if (style.Bi.R == "y") fill = Rectangle.Intersect(rect, new Rectangle(left, rect.Top, size.Width, rect.Height));
+                    else fill = rect;
+                    if (!fill.IsEmpty) graphics.FillRectangle(brush, fill);
+                }
+            }
+            finally
+            {
+                graphics.InterpolationMode = interpolation;
+                graphics.PixelOffsetMode = offset;
+                graphics.Restore(state);
+            }
+        }
+
+        private static Size BackgroundImageSize(Bi bitmap, Image image, Size box)
+        {
+            var sourceWidth = Math.Max(1, image.Width);
+            var sourceHeight = Math.Max(1, image.Height);
+            double width;
+            double height;
+            if (bitmap.K == "c" || bitmap.K == "n")
+            {
+                var horizontal = box.Width / (double)sourceWidth;
+                var vertical = box.Height / (double)sourceHeight;
+                var scale = bitmap.K == "c" ? Math.Max(horizontal, vertical) : Math.Min(horizontal, vertical);
+                width = sourceWidth * scale;
+                height = sourceHeight * scale;
+            }
+            else
+            {
+                width = bitmap.Wa ? 0D : bitmap.Wp ? box.Width * bitmap.W / 100D : bitmap.W;
+                height = bitmap.Ha ? 0D : bitmap.Hp ? box.Height * bitmap.H / 100D : bitmap.H;
+                if (bitmap.Wa && bitmap.Ha) { width = sourceWidth; height = sourceHeight; }
+                else if (bitmap.Wa) width = height * sourceWidth / sourceHeight;
+                else if (bitmap.Ha) height = width * sourceHeight / sourceWidth;
+            }
+            if (width <= 0D || height <= 0D || Double.IsNaN(width) || Double.IsNaN(height) || Double.IsInfinity(width) || Double.IsInfinity(height)) return Size.Empty;
+            return new Size(Math.Max(1, Math.Min(8192, (int)Math.Round(width))), Math.Max(1, Math.Min(8192, (int)Math.Round(height))));
+        }
+
+        private static int BackgroundImageOffset(int start, int free, int value, bool percent)
+        {
+            var offset = percent ? free * (double)value / 100D : value;
+            if (offset > Int32.MaxValue - (double)start) return Int32.MaxValue;
+            if (offset < Int32.MinValue - (double)start) return Int32.MinValue;
+            return start + (int)Math.Round(offset);
+        }
+
+        private static ImageAttributes BackgroundImageAttributes(int opacity)
+        {
+            var attributes = new ImageAttributes();
+            attributes.SetWrapMode(WrapMode.Tile);
+            if (opacity < 100)
+            {
+                var matrix = new ColorMatrix();
+                matrix.Matrix33 = Math.Max(0, Math.Min(100, opacity)) / 100F;
+                attributes.SetColorMatrix(matrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
+            }
+            return attributes;
         }
 
         private static void PaintGradient(Graphics graphics, Rectangle rect, S style, Color currentColor, int opacity)
@@ -3640,6 +3738,7 @@ namespace Lea.Win
             if (field.K == "range")
             {
                 PaintFieldBackground(graphics, rect, field.S, background);
+                PaintBitmapBackground(graphics, rect, field.S, opacity);
                 PaintGradient(graphics, rect, field.S, foreground, opacity);
                 PaintShadows(graphics, rect, field.S, foreground, opacity, true);
                 var rangeBorder = field.Ok ? Color.FromArgb(165, 165, 165) : Color.FromArgb(185, 28, 28);
@@ -3654,6 +3753,7 @@ namespace Lea.Win
             }
 
             PaintFieldBackground(graphics, rect, field.S, background);
+            PaintBitmapBackground(graphics, rect, field.S, opacity);
             PaintGradient(graphics, rect, field.S, foreground, opacity);
             PaintShadows(graphics, rect, field.S, foreground, opacity, true);
             var border = !field.Ok ? Color.FromArgb(185, 28, 28) : box.K == "button" ? Color.FromArgb(145, 145, 145) : Color.FromArgb(165, 165, 165);
@@ -3745,26 +3845,25 @@ namespace Lea.Win
             picBusy = true;
             try
             {
-                foreach (var block in page.Bs)
+                foreach (var source in PicSources(page))
                 {
                     if (picStop) break;
-                    if (block.K != "img" || block.U == null) continue;
-                    var key = block.U.AbsoluteUri;
+                    var key = source.AbsoluteUri;
                     if (pics.ContainsKey(key)) continue;
                     Image image = null;
                     try
                     {
                         byte[] data;
-                        if (block.U.Scheme.Equals("data", StringComparison.OrdinalIgnoreCase)) data = EmbeddedPic(block.U);
-                        else if (block.U.IsFile)
+                        if (source.Scheme.Equals("data", StringComparison.OrdinalIgnoreCase)) data = EmbeddedPic(source);
+                        else if (source.IsFile)
                         {
-                            var path = block.U.LocalPath;
+                            var path = source.LocalPath;
                             data = await Task.Factory.StartNew(delegate { return File.ReadAllBytes(path); });
                         }
                         else
                         {
                             picWeb.Headers[HttpRequestHeader.UserAgent] = "Lea/0.2";
-                            data = await picWeb.DownloadDataTaskAsync(block.U);
+                            data = await picWeb.DownloadDataTaskAsync(source);
                         }
                         if (data == null || data.Length == 0 || data.Length > PicBytes) throw new InvalidDataException("Image resource is empty or too large.");
                         using (var stream = new MemoryStream(data))
@@ -3775,6 +3874,60 @@ namespace Lea.Win
                 }
             }
             finally { picBusy = false; }
+        }
+
+        private static IList<Uri> PicSources(P page)
+        {
+            var result = new List<Uri>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            AddPicSource(result, seen, page == null || page.S == null || page.S.Bi == null ? null : page.S.Bi.U);
+            if (page != null)
+            {
+                foreach (var block in page.Bs)
+                {
+                    if (block.K == "img") AddPicSource(result, seen, block.U);
+                    AddPicSource(result, seen, block.S == null || block.S.Bi == null ? null : block.S.Bi.U);
+                    if (result.Count == PicLimit) break;
+                }
+                if (result.Count < PicLimit)
+                    foreach (var field in page.Fs)
+                    {
+                        AddPicSource(result, seen, field.S == null || field.S.Bi == null ? null : field.S.Bi.U);
+                        if (result.Count == PicLimit) break;
+                    }
+            }
+            return result;
+        }
+
+        private static void AddPicSource(ICollection<Uri> result, ISet<string> seen, Uri source)
+        {
+            if (source == null || result.Count >= PicLimit || !seen.Add(source.AbsoluteUri)) return;
+            result.Add(source);
+        }
+
+        private bool MissingPic(P page)
+        {
+            foreach (var source in PicSources(page))
+                if (!pics.ContainsKey(source.AbsoluteUri)) return true;
+            return false;
+        }
+
+        private void QueuePics(P page)
+        {
+            if (page == null || picBusy || picStop || !MissingPic(page)) return;
+            LoadPicsLater(page);
+        }
+
+        private async void LoadPicsLater(P page)
+        {
+            try
+            {
+                await PicsA(page);
+                if (Object.ReferenceEquals(page, At)) Invalidate();
+            }
+            catch (OperationCanceledException) { }
+            catch (WebException) { }
+            catch (IOException) { }
         }
 
         private static byte[] EmbeddedPic(Uri url)
@@ -5094,8 +5247,12 @@ namespace Lea.Win
 
         private static void PaintImage(Graphics graphics, Image image, Rectangle rect, int opacity)
         {
-            if (opacity >= 100) { graphics.DrawImage(image, rect); return; }
-            if (opacity <= 0) return;
+            if (image == null || opacity <= 0 || rect.Width < 1 || rect.Height < 1 || image.Width < 1 || image.Height < 1) return;
+            if (opacity >= 100)
+            {
+                graphics.DrawImage(image, rect, 0, 0, image.Width, image.Height, GraphicsUnit.Pixel);
+                return;
+            }
             using (var attributes = new ImageAttributes())
             {
                 var matrix = new ColorMatrix();

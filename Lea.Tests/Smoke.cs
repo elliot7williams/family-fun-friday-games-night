@@ -3085,6 +3085,45 @@ namespace Lea.Tests
                     view.Size = new Size(280, 1200);
                     Paint(view);
                     Ok(BlockOuterRect(view, BlockById(view.At, "linear")).Right <= view.ClientSize.Width - 1, "gradient boxes reflow without layout expansion");
+
+                    var bitmapPath = Path.Combine(root, "LeaForge", "test-pages", "background-images.html");
+                    var bitmapEngine = new E();
+                    var bitmapPage = bitmapEngine.Go(bitmapPath);
+                    Ok(bitmapPage.S.Bi != null && bitmapPage.S.Bi.R == "n" && bitmapPage.S.Bi.X == 100 && bitmapPage.S.Bi.Y == 100 &&
+                        bitmapPage.S.Bi.Xp && bitmapPage.S.Bi.Yp && bitmapPage.S.Bi.W == 24 && bitmapPage.S.Bi.H == 24,
+                        "page bitmap compact aliases");
+                    var repeatBitmap = BlockById(bitmapPage, "repeat").S.Bi;
+                    Ok(repeatBitmap != null && repeatBitmap.U != null && repeatBitmap.U.Scheme == "data" && repeatBitmap.R == "b" &&
+                        repeatBitmap.W == 12 && repeatBitmap.H == 12, "custom-property bitmap and repeat aliases");
+                    var positionedBitmap = BlockById(bitmapPage, "no-repeat").S.Bi;
+                    Ok(positionedBitmap != null && positionedBitmap.R == "n" && positionedBitmap.X == 100 && positionedBitmap.Y == 100 &&
+                        positionedBitmap.W == 30 && positionedBitmap.H == 20, "positioned no-repeat bitmap aliases");
+                    Ok(BlockById(bitmapPage, "repeat-x").S.Bi.R == "x" && BlockById(bitmapPage, "repeat-y").S.Bi.R == "y",
+                        "axis repeat aliases");
+                    Ok(BlockById(bitmapPage, "cover").S.Bi.K == "c" && BlockById(bitmapPage, "contain").S.Bi.K == "n",
+                        "cover and contain aliases");
+                    Ok(BlockById(bitmapPage, "atomic").S.Bi.U == repeatBitmap.U, "invalid bitmap URL preserves prior state atomically");
+                    var atomicPosition = BlockById(bitmapPage, "position-atomic").S.Bi;
+                    Ok(atomicPosition.X == 25 && atomicPosition.Y == 75 && atomicPosition.Xp && atomicPosition.Yp,
+                        "invalid bitmap position preserves prior state atomically");
+                    var atomicSize = BlockById(bitmapPage, "size-atomic").S.Bi;
+                    Ok(atomicSize.W == 40 && atomicSize.Wp && atomicSize.Ha, "invalid bitmap size preserves prior state atomically");
+                    var shorthandBitmap = BlockById(bitmapPage, "shorthand").S;
+                    Ok(shorthandBitmap.Bg == "#ffffff" && shorthandBitmap.Bi != null && shorthandBitmap.Bi.R == "n" &&
+                        shorthandBitmap.Bi.X == 100 && shorthandBitmap.Bi.Y == 100 && shorthandBitmap.Bi.W == 26 && shorthandBitmap.Bi.H == 22,
+                        "atomic bitmap background shorthand");
+                    var resetBitmap = BlockById(bitmapPage, "reset").S.Bi;
+                    Ok((resetBitmap == null || resetBitmap.U == null) && BlockById(bitmapPage, "child").S.Bi == null,
+                        "bitmap reset and noninheritance");
+                    Eq(new Uri(Path.GetFullPath(Path.Combine(root, "assets", "lea.ico"))), BlockById(bitmapPage, "external-image").S.Bi.U,
+                        "linked stylesheet bitmap origin");
+                    Ok(BlockById(bitmapPage, "dynamic").S.Bi == null, "wide bitmap media state");
+                    bitmapEngine.Vw = 350;
+                    Ok(BlockById(bitmapPage, "dynamic").S.Bi != null && BlockById(bitmapPage, "dynamic").S.Bi.K == "c",
+                        "responsive bitmap media state");
+
+                    BitmapBackgroundPaintSmoke(bitmapPath);
+
                     view.Size = new Size(720, 760);
                     var boxes = Path.Combine(root, "LeaForge", "test-pages", "boxes.html");
                     var boxPage = engine.Go(boxes);
@@ -3459,7 +3498,9 @@ namespace Lea.Tests
                     using (var mediaPaint = Render(view))
                     {
                         Eq(11, view.At.Bs.Count, "responsive media render blocks");
-                        Eq(4, PicCount(view), "deduplicated responsive image cache");
+                        Ok(PicCount(view) <= 24 && PicCached(view, view.At.Bs[2].U) && PicCached(view, view.At.Bs[4].U) &&
+                            PicCached(view, view.At.Bs[6].U) && PicCached(view, view.At.Bs[8].U),
+                            "bounded deduplicated responsive image cache keys");
                         var embeddedBox = BlockRect(view, view.At.Bs[2]);
                         var densityBox = BlockRect(view, view.At.Bs[4]);
                         var pictureBox = BlockRect(view, view.At.Bs[6]);
@@ -4671,6 +4712,7 @@ namespace Lea.Tests
                 Console.WriteLine("Lea CSS radius smoke passed: compact ellipse aliases, atomic cascade, normalized paint, overflow, fields, links, and resize.");
                 Console.WriteLine("Lea CSS shadow smoke passed: compact aliases, atomic lists, bounded blur, alpha colors, outer/inset paint, fields, hits, and resize.");
                 Console.WriteLine("Lea CSS gradient smoke passed: compact image/stop aliases, atomic cascade, normalized stops, linear/radial/page/field paint, hits, and resize.");
+                Console.WriteLine("Lea CSS bitmap smoke passed: compact aliases, stylesheet origins, atomic cascade, bounded image loading, repeat/size/position/page/field paint, clipping, opacity, hits, and resize.");
 
                     Console.WriteLine("Lea smoke passed: bounded has relational selectors with strict lists, maximum specificity, descendant/child/adjacent/following and complex chains, queries, dynamic focus rebuilds, retained fields, WinForms geometry, and traversal/part limits, bounded nth-child of-S filters with strict compound lists, maximum specificity, forward/reverse counting, queries, dynamic form-state rebuilds, retained fields, WinForms geometry, and nesting/test limits, bounded precompiled An+B and reverse structural selectors with stylesheet/query parity, specificity, selector-list composition, type filtering, WinForms geometry, and invalid limits, bounded is, where, and list-not selector functions with maximum/zero specificity, forgiving/strict parsing, queries, dynamic state, WinForms geometry, and retained fields, bounded CSS important cascade with compiled priority, G.Ic diagnostics, stylesheet/inline tiers, custom properties, hover/media rebuilds, and retained fields, bounded inherited CSS custom properties with compiled declarations, S.Vc/Cv and G.Vc aliases, nested and cycle fallbacks, hover/media rebuilds, and retained fields, bounded responsive CSS media queries with viewport aliases, live resize, diagnostics, and retained fields, optional bounded persistent cache with restart reuse, validators, private isolation, atomic recovery, LRU entry/byte ceilings and host aliases, bounded content-box and border-box geometry, body and ID-scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, shrink, reverse flow, and resize, semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
@@ -4685,6 +4727,90 @@ namespace Lea.Tests
         private static void Paint(V view)
         {
             using (var image = Render(view)) { }
+        }
+
+        private static void BitmapBackgroundPaintSmoke(string path)
+        {
+            using (var syncView = new V())
+            {
+                syncView.Size = new Size(720, 500);
+                syncView.St();
+                syncView.Go(path);
+                using (var paint = Render(syncView))
+                {
+                    var repeat = BlockOuterRect(syncView, BlockById(syncView.At, "repeat"));
+                    Ok(ColorDistance(CenterPixel(paint, repeat), Color.FromArgb(23, 107, 77)) < 4,
+                        "synchronous bitmap navigation resumes after stop");
+                }
+            }
+            using (var view = new V())
+            {
+                view.Size = new Size(720, 1400);
+                var load = view.GoA(path);
+                while (!load.IsCompleted)
+                {
+                    Application.DoEvents();
+                    Thread.Sleep(2);
+                }
+                load.GetAwaiter().GetResult();
+                Eq(3, PicCount(view), "deduplicated bitmap background cache");
+                Ok(PicCached(view, view.At.S.Bi.U) &&
+                    PicCached(view, BlockById(view.At, "repeat").S.Bi.U) &&
+                    PicCached(view, BlockById(view.At, "external-image").S.Bi.U),
+                    "deduplicated bitmap background cache keys");
+                using (var paint = Render(view))
+                {
+                    var repeat = BlockOuterRect(view, BlockById(view.At, "repeat"));
+                    Ok(ColorDistance(CenterPixel(paint, repeat), Color.FromArgb(23, 107, 77)) < 4, "repeated bitmap paint");
+                    Eq(repeat, HitRect(view, "second.html"), "bitmap does not expand link hit geometry");
+                    var noRepeat = BlockOuterRect(view, BlockById(view.At, "no-repeat"));
+                    Ok(ColorDistance(paint.GetPixel(noRepeat.Right - 6, noRepeat.Bottom - 6), Color.FromArgb(23, 107, 77)) < 4 &&
+                        ColorDistance(paint.GetPixel(noRepeat.Left + 5, noRepeat.Bottom - 6), Color.White) < 8,
+                        "positioned no-repeat bitmap paint");
+                    var repeatX = BlockOuterRect(view, BlockById(view.At, "repeat-x"));
+                    Ok(ColorDistance(paint.GetPixel(repeatX.Right - 5, repeatX.Top + repeatX.Height / 2), Color.FromArgb(23, 107, 77)) < 4 &&
+                        ColorDistance(paint.GetPixel(repeatX.Right - 5, repeatX.Bottom - 5), Color.White) < 8,
+                        "horizontal repeat bitmap paint");
+                    var repeatY = BlockOuterRect(view, BlockById(view.At, "repeat-y"));
+                    Ok(ColorDistance(paint.GetPixel(repeatY.Left + repeatY.Width / 2, repeatY.Bottom - 5), Color.FromArgb(23, 107, 77)) < 4 &&
+                        ColorDistance(paint.GetPixel(repeatY.Left + 5, repeatY.Bottom - 5), Color.White) < 8,
+                        "vertical repeat bitmap paint");
+                    var cover = BlockOuterRect(view, BlockById(view.At, "cover"));
+                    var contain = BlockOuterRect(view, BlockById(view.At, "contain"));
+                    Ok(ColorDistance(CenterPixel(paint, cover), Color.FromArgb(23, 107, 77)) < 4 &&
+                        ColorDistance(CenterPixel(paint, contain), Color.FromArgb(23, 107, 77)) < 4 &&
+                        ColorDistance(paint.GetPixel(contain.Left + 5, contain.Bottom - 5), Color.White) < 8,
+                        "cover and contain bitmap paint");
+                    var rounded = BlockOuterRect(view, BlockById(view.At, "rounded"));
+                    Ok(ColorDistance(paint.GetPixel(rounded.Left, rounded.Top), Color.White) < 8 &&
+                        ColorDistance(CenterPixel(paint, rounded), Color.FromArgb(23, 107, 77)) < 4,
+                        "rounded bitmap clipping");
+                    var field = BlockRect(view, FieldBlock(view.At, FieldById(view.At, "field")));
+                    Ok(ColorDistance(paint.GetPixel(field.Right - 8, field.Top + field.Height / 2), Color.FromArgb(23, 107, 77)) < 8,
+                        "field bitmap paint");
+                    var alpha = BlockOuterRect(view, BlockById(view.At, "alpha"));
+                    Ok(ColorDistance(CenterPixel(paint, alpha), Color.FromArgb(139, 181, 166)) < 12, "effective bitmap opacity paint");
+                    var shorthand = BlockOuterRect(view, BlockById(view.At, "shorthand"));
+                    Ok(ColorDistance(paint.GetPixel(shorthand.Right - 6, shorthand.Bottom - 6), Color.FromArgb(23, 107, 77)) < 4 &&
+                        ColorDistance(paint.GetPixel(shorthand.Left + 5, shorthand.Bottom - 6), Color.White) < 8,
+                        "bitmap shorthand paint");
+                    var external = BlockOuterRect(view, BlockById(view.At, "external-image"));
+                    Ok(ColorDistance(CenterPixel(paint, external), Color.White) > 30, "linked stylesheet bitmap paint");
+                    Ok(ColorDistance(paint.GetPixel(paint.Width - 8, paint.Height - 8), Color.FromArgb(126, 34, 206)) < 4,
+                        "page bitmap paint");
+                }
+                view.Size = new Size(350, 1800);
+                Application.DoEvents();
+                using (var paint = Render(view))
+                {
+                    var dynamic = BlockOuterRect(view, BlockById(view.At, "dynamic"));
+                    Ok(!dynamic.IsEmpty && dynamic.Bottom <= paint.Height &&
+                        ColorDistance(CenterPixel(paint, dynamic), Color.FromArgb(126, 34, 206)) < 4,
+                        "responsive bitmap load and paint");
+                    Ok(BlockOuterRect(view, BlockById(view.At, "repeat")).Right <= view.ClientSize.Width - 1,
+                        "bitmap boxes reflow without layout expansion");
+                }
+            }
         }
 
         private static AutomationElement AutomationById(AutomationElement root, string id)
@@ -5275,6 +5401,14 @@ namespace Lea.Tests
             var values = field == null ? null : field.GetValue(view) as System.Collections.IDictionary;
             if (values == null) throw new InvalidOperationException("image cache unavailable");
             return values.Count;
+        }
+
+        private static bool PicCached(V view, Uri source)
+        {
+            var field = typeof(V).GetField("pics", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = field == null ? null : field.GetValue(view) as System.Collections.IDictionary;
+            if (values == null) throw new InvalidOperationException("image cache unavailable");
+            return source != null && values.Contains(source.AbsoluteUri);
         }
 
         private static System.Collections.IEnumerable LayoutBoxes(V view)

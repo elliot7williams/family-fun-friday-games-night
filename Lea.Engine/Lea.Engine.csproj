@@ -30,6 +30,7 @@
     <Compile Include="Ar.cs" />
     <Compile Include="Ax.cs" />
     <Compile Include="B.cs" />
+    <Compile Include="Bi.cs" />
     <Compile Include="D.cs" />
     <Compile Include="Dv.cs" />
     <Compile Include="E.cs" />

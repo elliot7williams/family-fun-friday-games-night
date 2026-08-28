@@ -338,7 +338,19 @@ non-empty bridge survives both direct and external MTA clients. Continue host
 coverage and bounded HTML/CSS compatibility work without adding another browser
 runtime.
 
-The latest completed milestone adds bounded CSS background gradients through
+The latest completed milestone adds bounded CSS bitmap backgrounds through
+compact `S.Bi` and `Bi.U/R/X/Y/Xp/Yp/W/H/Wp/Hp/Wa/Ha/K` state. One atomic
+layer accepts bounded data, local file, HTTP, or HTTPS URLs; repeat, repeat-x,
+repeat-y, or no-repeat; pixel or percentage positions and sizes; auto,
+cover, and contain sizing; linked-stylesheet and custom-property origins;
+variables, important tiers, resets, malformed preservation, and
+noninheritance. The existing 24-entry, 4 MB-per-image cache now feeds rounded
+page, box, and ordinary-field paint with effective opacity, ancestor clipping,
+responsive loading, stable layout/hits, benchmark, and Firespider host
+coverage. Multiple layers and attachment/origin/clip/blend modes remain outside
+this bounded subset.
+
+The previous completed milestone adds bounded CSS background gradients through
 compact `S.Gi`, `Gi.K/A/X/Y/Ss`, and `Cs.C/P` state. One atomic linear or radial
 layer accepts up to eight normalized stops, integer degree or direction heads,
 and centered or percentage radial origins. Supported colors include named,

@@ -613,7 +613,22 @@ painter caps soft shadows at 12 bands, respects rounded corners, opacity and
 ancestor overflow, supports outer and inset field shadows, and leaves layout,
 document height, accessibility rectangles, and hits unchanged.
 
-CSS background images use the non-inherited `S.Gi` alias. A compact `Gi` uses
+CSS bitmap backgrounds use the non-inherited `S.Bi` alias. A compact `Bi` uses
+`U` for the resolved image URL and `R=b/x/y/n` for both-axis, horizontal,
+vertical, or no repeat. `X/Y` store position values and `Xp/Yp` mark percentage
+units. `W/H` store image size values, `Wp/Hp` mark percentages, `Wa/Ha` mark
+auto dimensions, and `K=c/n` selects cover or contain. Lea accepts one atomic
+`url()` layer in `background` or `background-image`, repeat keywords,
+one/two-value pixel or percentage positions, one/two-value pixel/percentage/
+auto sizes after `/`, and cover/contain. URLs resolve against the declaration's
+document, linked stylesheet, or direct custom-property origin and are limited
+to bounded data images, local files for local origins, HTTP, or HTTPS. Page,
+rounded-box, and ordinary-field painters share the existing 24-entry cache,
+4 MB resource ceiling, effective opacity, clipping, and responsive loading.
+Multiple layers, attachment, origin/clip, blending, and arbitrary file access
+from remote styles remain outside this subset.
+
+CSS background gradients use the non-inherited `S.Gi` alias. A compact `Gi` uses
 `K=l/r` for linear or radial kind, `A` for the CSS angle, `X/Y` for a radial
 percentage origin, and `Ss` for up to eight `Cs` color stops. Each `Cs` stores
 its authored color in `C` and normalized 0..1 position in `P`. Lea accepts one
