@@ -338,7 +338,19 @@ non-empty bridge survives both direct and external MTA clients. Continue host
 coverage and bounded HTML/CSS compatibility work without adding another browser
 runtime.
 
-The latest completed milestone adds bounded inherited CSS pointer interaction
+The latest completed milestone adds bounded inherited CSS `text-transform`
+through compact `S.Tt=n/u/l/c` state and shared `E.Tx` presentation handling.
+Strict none/uppercase/lowercase/capitalize parsing, variables, important tiers,
+CSS-wide inheritance/resets, malformed preservation, inline overrides,
+multiline text, tables, semantic values, buttons, unfocused controls, dynamic
+hover, and responsive rebuilds share the retained text path. DOM text, mutable
+field and option values, form submission, and focused native editor text keep
+their authored casing. UI Automation keeps logical source text while mapping
+case-transformed visual segments back to geometry. Exact engine, renderer,
+automation, editor, benchmark, and compiled Firespider coverage use
+`text-transform.html`.
+
+The previous completed milestone adds bounded inherited CSS pointer interaction
 through compact `S.Cu/Pe` state. Ten cursor codes cover automatic/default,
 pointer, text, wait/progress, crosshair, move, help, not-allowed, and horizontal
 or vertical resize families; `pointer-events:auto/none` supplies one mouse gate.
@@ -827,6 +839,12 @@ the original one-box path; only requested text flow enters the word-line pass.
 `V` caches up to 32 resolved Windows families. `S.Td` uses `n/u/s/us` for none,
 underline, strike, or both. CSS `text-decoration`/`text-decoration-line`, plain
 link overrides, and native `u/s/strike/del` tags share the same paint path.
+
+Inherited `S.Tt=n/u/l/c` stores bounded none, uppercase, lowercase, or
+capitalize presentation state. One invariant `E.Tx` helper transforms block,
+inline, table, value, button, placeholder, option-label, and unfocused field
+display strings while raw DOM and form values remain unchanged. Dynamic and
+responsive rebuilds recompute display text and retain mutable field identity.
 
 CSS relationship matching supports descendant, direct-child (`>`), and
 adjacent-element (`+`) combinators with or without spaces. Matching runs from

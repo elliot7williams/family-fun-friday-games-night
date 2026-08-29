@@ -3924,6 +3924,7 @@ namespace Lea.Win
             var placeholder = text.Length == 0 && field.P.Length > 0;
             if (placeholder) text = field.P;
             if (field.K == "password" && !placeholder) text = new string('*', text.Length);
+            text = E.Tx(text, field.S);
             var textColor = placeholder ? Color.FromArgb(130, 130, 130) : foreground;
             var flags = box.K == "button" ? TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding : TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak | TextFormatFlags.NoPadding;
             var pad = box.K == "button" ? 2 : 7;
@@ -3941,7 +3942,7 @@ namespace Lea.Win
                 using (var brush = new SolidBrush(PaintColor(Color.FromArgb(240, 242, 245), opacity))) graphics.FillRectangle(brush, button);
                 using (var pen = new Pen(PaintColor(Color.FromArgb(145, 145, 145), opacity))) graphics.DrawRectangle(pen, button.X, button.Y, Math.Max(0, button.Width - 1), Math.Max(0, button.Height - 1));
                 using (var font = BoxFont(box.K, field.S, false))
-                    PaintText(graphics, "Browse", font, button, foreground, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding, opacity);
+                    PaintText(graphics, E.Tx("Browse", field.S), font, button, foreground, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding, opacity);
             }
             else if (field.K == "color")
             {
@@ -4839,6 +4840,7 @@ namespace Lea.Win
                 var index = i;
                 var option = field.Os[i];
                 var label = option.T.Length == 0 ? option.V.Length == 0 ? "(empty)" : option.V : option.T;
+                label = E.Tx(label, field.S);
                 var item = new ToolStripMenuItem(label);
                 item.Enabled = !option.Ds;
                 item.Checked = index == OptionIndex(field);
@@ -5776,7 +5778,7 @@ namespace Lea.Win
             foreach (var part in parts)
             {
                 if (at >= text.Length) break;
-                var found = text.IndexOf(part.X, at, StringComparison.Ordinal);
+                var found = text.IndexOf(part.X, at, StringComparison.OrdinalIgnoreCase);
                 if (found < 0) continue;
                 part.S = found;
                 part.E = Math.Min(text.Length, found + part.X.Length);

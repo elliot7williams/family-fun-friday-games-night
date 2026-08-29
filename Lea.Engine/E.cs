@@ -3246,6 +3246,7 @@ namespace Lea.Engine
                 else if (name == "font-style") style.I = value.Equals("italic", StringComparison.OrdinalIgnoreCase) || value.Equals("oblique", StringComparison.OrdinalIgnoreCase);
                 else if (name == "text-decoration" || name == "text-decoration-line") TextDecoration(style, value);
                 else if (name == "text-align") TextAlign(style, value);
+                else if (name == "text-transform") TextTransform(style, value);
                 else if (name == "line-height") LineHeight(style, value);
                 else if (name == "white-space") WhiteSpace(style, value);
                 else if (name == "word-break" || name == "overflow-wrap" || name == "word-wrap") WordBreak(style, value, name == "word-break");
@@ -4369,6 +4370,16 @@ namespace Lea.Engine
             else if (align == "initial") style.Ta = "";
         }
 
+        private static void TextTransform(S style, string value)
+        {
+            var mode = (value ?? "").Trim().ToLowerInvariant();
+            if (mode == "inherit" || mode == "unset") return;
+            if (mode == "none" || mode == "initial" || mode == "revert") style.Tt = "n";
+            else if (mode == "uppercase") style.Tt = "u";
+            else if (mode == "lowercase") style.Tt = "l";
+            else if (mode == "capitalize") style.Tt = "c";
+        }
+
         private static void LineHeight(S style, string value)
         {
             var source = (value ?? "").Trim().ToLowerInvariant();
@@ -5471,7 +5482,7 @@ namespace Lea.Engine
             var kind = node.K;
             if (kind == "#text")
             {
-                var loose = Clean(node.X);
+                var loose = TextValue(node.X, inherited);
                 if (loose.Length > 0) page.Bs.Add(new B { K = "p", X = loose, S = inherited, El = node.Up });
                 return;
             }
@@ -7257,8 +7268,41 @@ namespace Lea.Engine
 
         private static string TextValue(string value, S style)
         {
+            return Tx(TextSpace(value, style), style);
+        }
+
+        private static string TextSpace(string value, S style)
+        {
             if (!PreservesLines(style)) return Clean(value);
             return (value ?? "").Replace("\r\n", "\n").Replace('\r', '\n');
+        }
+
+        // Tx applies Lea's compact inherited text-transform state to presentation text.
+        public static string Tx(string value, S style)
+        {
+            var text = value ?? "";
+            var mode = style == null ? "n" : style.Tt;
+            if (mode == "u") return text.ToUpperInvariant();
+            if (mode == "l") return text.ToLowerInvariant();
+            if (mode != "c" || text.Length == 0) return text;
+
+            var result = new StringBuilder(text.Length);
+            var start = true;
+            foreach (var ch in text)
+            {
+                if (start && Char.IsLetter(ch))
+                {
+                    result.Append(Char.ToUpperInvariant(ch));
+                    start = false;
+                }
+                else
+                {
+                    result.Append(ch);
+                    if (Char.IsLetterOrDigit(ch)) start = false;
+                }
+                if (Char.IsWhiteSpace(ch) || ch == '-') start = true;
+            }
+            return result.ToString();
         }
 
         private static void AddNestedBlocks(P page, N node, Uri baseUrl, List<R> rules, S inherited)
@@ -7328,7 +7372,7 @@ namespace Lea.Engine
             {
                 foreach (var run in block.Is)
                 {
-                    if (run.K != "br") run.X = TextValue(WebUtility.HtmlDecode(run.X ?? ""), block.S);
+                    if (run.K != "br") run.X = Tx(TextSpace(WebUtility.HtmlDecode(run.X ?? ""), block.S), run.S);
                     if (run.K != "br" && run.X.Length == 0) continue;
                     var previous = clean.Count == 0 ? null : clean[clean.Count - 1];
                     if (previous != null && previous.K != "br" && previous.K == run.K && previous.U == run.U && Object.ReferenceEquals(previous.S, run.S) && Object.ReferenceEquals(previous.Dv, run.Dv) && Object.ReferenceEquals(previous.El, run.El)) previous.X += run.X;
@@ -7369,7 +7413,7 @@ namespace Lea.Engine
                     lineHasText = true;
                 }
                 if (text.Length == 0) continue;
-                run.X = text.ToString();
+                run.X = Tx(text.ToString(), run.S);
                 var previous = clean.Count == 0 ? null : clean[clean.Count - 1];
                 if (previous != null && previous.K != "br" && previous.K == run.K && previous.U == run.U && Object.ReferenceEquals(previous.S, run.S) && Object.ReferenceEquals(previous.Dv, run.Dv) && Object.ReferenceEquals(previous.El, run.El)) previous.X += run.X;
                 else clean.Add(run);
@@ -7598,6 +7642,7 @@ namespace Lea.Engine
             var blockKind = node.K == "button" || kind == "submit" || kind == "reset" || kind == "button" ? "button" : node.K;
             var text = node.K == "button" && buttonText.Length > 0 ? buttonText : blockKind == "button" ? value : node.Av("aria-label");
             if (blockKind == "button" && text.Length == 0) text = kind == "reset" ? "Reset" : kind == "submit" ? "Submit" : "Button";
+            if (blockKind == "button") text = Tx(text, style);
             page.Bs.Add(new B { K = blockKind, X = text, S = style, I = field, El = node });
         }
 

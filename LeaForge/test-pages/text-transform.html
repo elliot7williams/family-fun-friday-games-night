@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Text Transform</title>
+  <style>
+    :root { --lea-case: lowercase; }
+    body { margin: 24px; color: #172033; background: #ffffff; font-family: "Segoe UI", sans-serif; text-transform: capitalize; }
+    .sample { width: 310px; min-height: 28px; margin: 6px 0; padding: 5px; border: 1px solid #94a3b8; background: #f8fafc; }
+    #upper { text-transform: uppercase; }
+    #lower { text-transform: lowercase; }
+    #none { text-transform: none; }
+    #inline { text-transform: uppercase; }
+    #inline-low { text-transform: lowercase; }
+    #inline-cap { text-transform: capitalize; }
+    #inline-none { text-transform: none; }
+    #invalid { text-transform: capitalize; text-transform: sideways; }
+    #reset { text-transform: uppercase; text-transform: initial; }
+    #unset-parent { text-transform: uppercase; }
+    #unset-child { text-transform: lowercase; text-transform: unset; }
+    #variable { text-transform: var(--lea-case); }
+    #priority { text-transform: uppercase !important; }
+    #preserved { text-transform: uppercase; white-space: pre-line; }
+    #cell { text-transform: lowercase; }
+    #button { text-transform: uppercase; width: 170px; height: 34px; }
+    #field { text-transform: lowercase; width: 210px; height: 34px; margin: 6px 0; }
+    #placeholder { text-transform: capitalize; width: 210px; height: 34px; margin: 6px 0; }
+    #choice { text-transform: uppercase; width: 210px; height: 34px; margin: 6px 0; }
+    #dynamic { text-transform: lowercase; }
+    #dynamic:hover { text-transform: uppercase; }
+    #responsive { text-transform: uppercase; }
+    @media (max-width: 420px) {
+      #responsive { text-transform: lowercase; }
+    }
+  </style>
+</head>
+<body>
+  <h1 id="inherited">inherited heading text</h1>
+  <p id="upper" class="sample">Upper MiXeD Text</p>
+  <p id="lower" class="sample">Lower MiXeD Text</p>
+  <p id="none" class="sample">None MiXeD Text</p>
+  <p id="inline" class="sample">Start <span id="inline-low">MiXeD LOW</span> <span id="inline-cap">lea-engine words</span> <span id="inline-none">Raw MiXeD</span> End</p>
+  <p id="invalid" class="sample">invalid preserves capitalize</p>
+  <p id="reset" class="sample">Initial Reset MiXeD</p>
+  <p id="unset-parent" class="sample">Parent <span id="unset-child">unset child text</span></p>
+  <p id="variable" class="sample">Variable MiXeD Text</p>
+  <p id="priority" class="sample" style="text-transform:lowercase">Important MiXeD Text</p>
+  <pre id="preserved" class="sample">first Line
+second Line</pre>
+  <table><tr><td id="cell" class="sample">Cell MiXeD Text</td></tr></table>
+  <button id="button" name="send" value="Send MiXeD">Send MiXeD</button>
+  <input id="field" name="query" value="Field MiXeD Text">
+  <input id="placeholder" name="empty" placeholder="placeholder mixed text">
+  <select id="choice" name="choice"><option value="raw-choice">Choice MiXeD Text</option></select>
+  <p id="dynamic" class="sample">Dynamic MiXeD Text</p>
+  <p id="responsive" class="sample">Responsive MiXeD Text</p>
+  <p id="after-transform" class="sample">after transform content</p>
+</body>
+</html>

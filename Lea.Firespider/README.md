@@ -282,6 +282,14 @@ live element enters the retained hit list, and checks WinForms cursor mapping
 plus underlying fallthrough. Keyboard and accessibility routes stay owned by
 Lea and require no Firespider-side event filter.
 
+Hosted Lea text uses inherited `S.Tt=n/u/l/c` for none, uppercase, lowercase,
+and capitalize presentation plus shared `E.Tx` host conversion. The host smoke
+compiles an uppercase block with a lowercase inline run, a lowercase field,
+and a responsive transform. It verifies compact aliases, transformed retained
+text, exact raw field casing, field identity across narrow/wide rebuilds, and
+restored display state. Firespider needs no adapter-side text conversion, and
+submitted or focused field values remain authored rather than transformed.
+
 `Smoke.cs` loads two compiled Firespider forms off-screen and verifies Lea-first
 New Tab creation, the explicit legacy fallback, Inspector open/refresh/clear and legacy isolation, diagnostics,
 script/style, host-controlled `go`, and safe click execution, alert routing,

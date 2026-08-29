@@ -1440,6 +1440,50 @@ namespace Lea.Tests
                 Eq("Times New Roman|s", styledCell.S.Ff, "table cell font family");
                 Eq("u", styledCell.S.Td, "table cell decoration");
 
+                var transformPath = Path.Combine(root, "LeaForge", "test-pages", "text-transform.html");
+                var transformEngine = new E { Vw = 720 };
+                var transformPage = transformEngine.Go(transformPath);
+                Eq(19, transformPage.Bs.Count, "text transform block count");
+                Ok(transformPage.S.Tt == "c" && BlockById(transformPage, "inherited").S.Tt == "c" &&
+                    BlockById(transformPage, "inherited").X == "Inherited Heading Text", "inherited capitalize alias and text");
+                Ok(BlockById(transformPage, "upper").S.Tt == "u" && BlockById(transformPage, "upper").X == "UPPER MIXED TEXT" &&
+                    BlockById(transformPage, "lower").S.Tt == "l" && BlockById(transformPage, "lower").X == "lower mixed text" &&
+                    BlockById(transformPage, "none").S.Tt == "n" && BlockById(transformPage, "none").X == "None MiXeD Text",
+                    "uppercase lowercase and none presentation text");
+                var transformInline = BlockById(transformPage, "inline");
+                Eq(5, transformInline.Is.Count, "text transform inline run count");
+                Ok(transformInline.X == "START mixed low Lea-Engine Words Raw MiXeD END" &&
+                    transformInline.Is[0].S.Tt == "u" && transformInline.Is[1].S.Tt == "l" &&
+                    transformInline.Is[2].S.Tt == "c" && transformInline.Is[3].S.Tt == "n",
+                    "inline text transform overrides and compact aliases");
+                Ok(BlockById(transformPage, "invalid").S.Tt == "c" && BlockById(transformPage, "invalid").X == "Invalid Preserves Capitalize" &&
+                    BlockById(transformPage, "reset").S.Tt == "n" && BlockById(transformPage, "reset").X == "Initial Reset MiXeD" &&
+                    BlockById(transformPage, "unset-parent").Is[1].S.Tt == "l",
+                    "invalid preservation and CSS-wide text transform resets");
+                Ok(BlockById(transformPage, "variable").S.Tt == "l" && BlockById(transformPage, "variable").X == "variable mixed text" &&
+                    BlockById(transformPage, "priority").S.Tt == "u" && BlockById(transformPage, "priority").X == "IMPORTANT MIXED TEXT",
+                    "text transform variables and important cascade");
+                Ok(BlockById(transformPage, "preserved").X == "FIRST LINE\nSECOND LINE" &&
+                    BlockById(transformPage, "cell").X == "cell mixed text", "multiline and table text transforms");
+                var transformField = FieldById(transformPage, "field");
+                Ok(BlockById(transformPage, "button").X == "SEND MIXED" && FieldById(transformPage, "button").V == "Send MiXeD" &&
+                    transformField.V == "Field MiXeD Text" && E.Tx(transformField.V, transformField.S) == "field mixed text" &&
+                    E.Tx(FieldById(transformPage, "placeholder").P, FieldById(transformPage, "placeholder").S) == "Placeholder Mixed Text" &&
+                    E.Tx(FieldById(transformPage, "choice").Os[0].T, FieldById(transformPage, "choice").S) == "CHOICE MIXED TEXT",
+                    "transformed controls preserve raw form values");
+                Ok(transformPage.X.Contains("Upper MiXeD Text") && transformPage.X.Contains("Send MiXeD"),
+                    "document text remains authored rather than presentation transformed");
+                transformEngine.Dy(transformPage, ById(transformPage.D, "dynamic"), null);
+                Ok(BlockById(transformPage, "dynamic").S.Tt == "u" && BlockById(transformPage, "dynamic").X == "DYNAMIC MIXED TEXT" &&
+                    Object.ReferenceEquals(transformField, FieldById(transformPage, "field")), "dynamic transform rebuild and field retention");
+                transformEngine.Dy(transformPage, null, null);
+                Eq("dynamic mixed text", BlockById(transformPage, "dynamic").X, "dynamic transform restore");
+                transformEngine.Vw = 350;
+                Ok(BlockById(transformPage, "responsive").S.Tt == "l" && BlockById(transformPage, "responsive").X == "responsive mixed text" &&
+                    Object.ReferenceEquals(transformField, FieldById(transformPage, "field")), "responsive transform rebuild and field retention");
+
+                TextTransformSmoke(transformPath);
+
                 var recoveryPath = Path.Combine(root, "LeaForge", "test-pages", "recovery.html");
                 var recoveryPage = engine.Go(recoveryPath);
                 Eq(23, recoveryPage.Bs.Count, "recovered block count");
@@ -5185,6 +5229,73 @@ namespace Lea.Tests
                 }
             }
             Console.WriteLine("Lea CSS outline smoke passed: compact aliases, atomic cascade, focus, clipping, fields, exact paint, and resize.");
+        }
+
+        private static void TextTransformSmoke(string path)
+        {
+            using (var view = new V())
+            {
+                view.Size = new Size(720, 2300);
+                view.CreateControl();
+                view.Go(path);
+                var retained = FieldById(view.At, "field");
+                Rectangle dynamicRect;
+                using (var paint = Render(view))
+                {
+                    var upperRect = BlockOuterRect(view, BlockById(view.At, "upper"));
+                    var fieldRect = BlockOuterRect(view, FieldBlock(view.At, retained));
+                    var buttonRect = BlockOuterRect(view, BlockById(view.At, "button"));
+                    dynamicRect = BlockOuterRect(view, BlockById(view.At, "dynamic"));
+                    Ok(!upperRect.IsEmpty && !fieldRect.IsEmpty && !buttonRect.IsEmpty && !dynamicRect.IsEmpty &&
+                        ColorDistance(paint.GetPixel(upperRect.Left + 3, upperRect.Top + 3), Color.FromArgb(248, 250, 252)) < 12,
+                        "text transform layout and paint");
+                }
+
+                var automation = typeof(V).GetMethod("AutomationText", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(view, null);
+                var automationType = automation.GetType();
+                var source = (string)automationType.GetField("X").GetValue(automation);
+                var parts = automationType.GetField("Ps").GetValue(automation) as System.Collections.IEnumerable;
+                var mappedUpper = false;
+                foreach (var part in parts)
+                {
+                    var type = part.GetType();
+                    var element = type.GetField("El").GetValue(part) as N;
+                    var text = (string)type.GetField("X").GetValue(part);
+                    var start = (int)type.GetField("S").GetValue(part);
+                    var end = (int)type.GetField("E").GetValue(part);
+                    if (element != null && element.Av("id") == "upper" && text == "UPPER MIXED TEXT" && end > start &&
+                        source.Substring(start, end - start).Equals(text, StringComparison.OrdinalIgnoreCase)) mappedUpper = true;
+                }
+                Ok(mappedUpper, "transformed visual text maps to authored UI Automation text");
+
+                Move(view, dynamicRect);
+                Ok(BlockById(view.At, "dynamic").S.Tt == "u" && BlockById(view.At, "dynamic").X == "DYNAMIC MIXED TEXT",
+                    "hover text transform repaint");
+
+                var startEdit = typeof(V).GetMethod("StartEdit", BindingFlags.Instance | BindingFlags.NonPublic);
+                if (startEdit == null) throw new InvalidOperationException("native editor entry point unavailable");
+                startEdit.Invoke(view, new object[] { FieldById(view.At, "field") });
+                Application.DoEvents();
+                var editor = Editor(view);
+                Ok(editor.Text == "Field MiXeD Text", "native editor exposes raw transformed field value");
+                editor.Text = "Retained MiXeD Value";
+                Eq("Retained MiXeD Value", retained.V, "text transform editor preserves authored casing");
+
+                view.Size = new Size(350, 2600);
+                Application.DoEvents();
+                using (var paint = Render(view))
+                {
+                    var responsive = BlockOuterRect(view, BlockById(view.At, "responsive"));
+                    var after = BlockOuterRect(view, BlockById(view.At, "after-transform"));
+                    Ok(BlockById(view.At, "responsive").S.Tt == "l" && BlockById(view.At, "responsive").X == "responsive mixed text" &&
+                        Object.ReferenceEquals(retained, FieldById(view.At, "field")) && retained.V == "Retained MiXeD Value" &&
+                        E.Tx(retained.V, retained.S) == "retained mixed value", "responsive transform and raw field retention");
+                    Ok(!responsive.IsEmpty && after.Top >= responsive.Bottom &&
+                        ColorDistance(paint.GetPixel(responsive.Left + 3, responsive.Top + 3), Color.FromArgb(248, 250, 252)) < 12,
+                        "responsive text transform paint and following flow");
+                }
+            }
+            Console.WriteLine("Lea text transform smoke passed: compact inherited aliases, inline overrides, controls, automation mapping, hover, raw editing, and resize.");
         }
 
         private static void PointerInteractionSmoke(string path)

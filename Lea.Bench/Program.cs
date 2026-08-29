@@ -112,7 +112,7 @@ namespace Lea.Bench
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
                 "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html", "svg.html", "svg-geometry.html", "svg-gradients.html", "svg-use-clips.html", "svg-strokes.html",
-                "box-sizing.html", "border-radius.html", "box-shadows.html", "background-gradients.html", "background-images.html", "object-fit.html", "aspect-ratio.html", "outlines.html", "pointer-interaction.html"
+                "box-sizing.html", "border-radius.html", "box-shadows.html", "background-gradients.html", "background-images.html", "object-fit.html", "aspect-ratio.html", "outlines.html", "pointer-interaction.html", "text-transform.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -1101,6 +1101,59 @@ namespace Lea.Bench
                 }
                 return "S.Cu/Pe inherited aliases, bounded cursor keywords, variables/priority/reset/invalid preservation, pointer-disabled link/field hits and hover, child re-enable, semantic cursors, keyboard/accessibility stability, and resize";
             });
+            AddProbe(probes, "Bounded text transform", delegate
+            {
+                var path = Path.Combine(folder, "text-transform.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                var inherited = page.Bs.First(block => block.El != null && block.El.Av("id") == "inherited");
+                var upper = page.Bs.First(block => block.El != null && block.El.Av("id") == "upper");
+                var lower = page.Bs.First(block => block.El != null && block.El.Av("id") == "lower");
+                var inline = page.Bs.First(block => block.El != null && block.El.Av("id") == "inline");
+                var invalid = page.Bs.First(block => block.El != null && block.El.Av("id") == "invalid");
+                var reset = page.Bs.First(block => block.El != null && block.El.Av("id") == "reset");
+                var variable = page.Bs.First(block => block.El != null && block.El.Av("id") == "variable");
+                var priority = page.Bs.First(block => block.El != null && block.El.Av("id") == "priority");
+                var field = page.Fs.First(item => item.El != null && item.El.Av("id") == "field");
+                Need(page.S.Tt == "c" && inherited.X == "Inherited Heading Text" && upper.S.Tt == "u" && upper.X == "UPPER MIXED TEXT" &&
+                    lower.S.Tt == "l" && lower.X == "lower mixed text", "text transform aliases or inheritance changed");
+                Need(inline.Is.Count == 5 && inline.X == "START mixed low Lea-Engine Words Raw MiXeD END" &&
+                    inline.Is[1].S.Tt == "l" && inline.Is[2].S.Tt == "c" && inline.Is[3].S.Tt == "n",
+                    "inline text transform runs changed");
+                Need(invalid.S.Tt == "c" && reset.S.Tt == "n" && variable.S.Tt == "l" && priority.S.Tt == "u",
+                    "text transform cascade behavior changed");
+                Need(field.V == "Field MiXeD Text" && E.Tx(field.V, field.S) == "field mixed text" && page.X.Contains("Upper MiXeD Text"),
+                    "raw form or document text changed");
+                engine.Dy(page, ById(page.D, "dynamic"), null);
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "dynamic").X == "DYNAMIC MIXED TEXT",
+                    "dynamic text transform changed");
+                engine.Vw = 350;
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "responsive").X == "responsive mixed text" &&
+                    Object.ReferenceEquals(field, page.Fs.First(item => item.El != null && item.El.Av("id") == "field")),
+                    "responsive transform or retained field changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 2300);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var upperRect = BlockOuter(view, "upper");
+                        Need(!upperRect.IsEmpty && ColorDistance(image.GetPixel(upperRect.Left + 3, upperRect.Top + 3), Color.FromArgb(248, 250, 252)) < 12,
+                            "text transform paint changed");
+                    }
+                    var dynamicRect = BlockOuter(view, "dynamic");
+                    Move(view, dynamicRect);
+                    Need(view.At.Bs.First(block => block.El != null && block.El.Av("id") == "dynamic").X == "DYNAMIC MIXED TEXT",
+                        "text transform hover repaint changed");
+                    view.Size = new Size(350, 2600);
+                    using (var image = Draw(view))
+                    {
+                        var responsive = view.At.Bs.First(block => block.El != null && block.El.Av("id") == "responsive");
+                        Need(responsive.S.Tt == "l" && responsive.X == "responsive mixed text", "text transform resize changed");
+                    }
+                }
+                return "S.Tt n/u/l/c inherited alias, strict none/upper/lower/capitalize parsing, inline overrides, variables/priority/resets/invalid preservation, multiline/table/control presentation, raw DOM/form retention, hover, paint, and resize";
+            });
             AddProbe(probes, "Bounded flex layout", delegate
             {
                 var path = Path.Combine(folder, "flex.html");
@@ -1813,8 +1866,8 @@ namespace Lea.Bench
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box, circular/elliptical radii, bounded outlines, box shadows and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, and text styles, visibility, positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
-            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, inline, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
+            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box, circular/elliptical radii, bounded outlines, box shadows and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform and text styles, visibility, positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
+            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients, invariant transformed presentation text with raw form retention, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, inline, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");

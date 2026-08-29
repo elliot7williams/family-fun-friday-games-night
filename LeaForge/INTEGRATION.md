@@ -226,6 +226,15 @@ blocks and table cells, centers glyphs within taller lines, and justifies only
 wrapped non-final lines. Blocks without these properties retain the native
 single-box text path.
 
+Inherited `S.Tt` uses `n/u/l/c` for `text-transform:none`, uppercase,
+lowercase, or capitalize. Hosts can call `E.Tx(text, style)` when they need the
+same bounded presentation string. Lea transforms retained block/inline/table
+text, semantic value labels, buttons, placeholders, option labels, and
+unfocused field paint while preserving authored `P.X`, node text, `Fi.V`,
+option values, and submitted form data. Focused native editors show the raw
+value. Dynamic hover and viewport rebuilds retain field identity, and UI
+Automation maps the transformed visual case back to authored logical text.
+
 `S.Ws` carries compact `n/nw/p/pw/pl` white-space modes. Lea preserves explicit
 spaces and line breaks for `pre`/`pre-wrap`, keeps line breaks while collapsing
 spaces for `pre-line`, and disables soft wrapping for `nowrap`/`pre`. `S.Ov`

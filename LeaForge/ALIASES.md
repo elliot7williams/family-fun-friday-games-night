@@ -478,7 +478,8 @@ font size, `Ff` is a font fallback list, `B` is bold, `I` is italic, and `D` is
 display behavior. `Td` is decoration using `n/u/s/us` for none, underline,
 strike, or both. Generic `Ff` entries use `ss/s/m/c/f/ui` for sans-serif,
 serif, monospace, cursive, fantasy, and system UI. `Ta` is
-text alignment using `l/c/r/j`; `Lh` is pixel line height and `Lm` is a bounded
+text alignment using `l/c/r/j`; `Tt` is inherited text transformation using
+`n/u/l/c` for none, uppercase, lowercase, and capitalize. `Lh` is pixel line height and `Lm` is a bounded
 percentage multiplier. Lea accepts CSS pixel, percentage, and unitless line
 heights, then keeps each painted line tall enough for its largest font.
 `Ws` is white-space mode using `n/nw/p/pw/pl` for normal, nowrap, pre,
@@ -492,6 +493,20 @@ Text blocks keep compatible flattened text in `B.X`. When nested markup needs
 separate painting, `B.Is` exposes compact `Ir` inline runs; each run uses `K`
 (kind), `X` (text), `U` (optional link), and `S` (computed style). Plain text
 leaves `Is` empty and stays on the original one-box layout path.
+
+CSS `text-transform` accepts only `none`, `uppercase`, `lowercase`, and
+`capitalize` plus CSS-wide inherit/reset values. Unknown values preserve the
+prior computed state; custom properties, important tiers, hover/focus, and
+pixel-width media rebuilds use the normal cascade. `E.Tx(text, style)` exposes
+the same compact presentation transform to hosts. Lea applies it to block and
+inline display strings, table cells, semantic values, buttons, placeholders,
+select labels, and unfocused field paint without changing `N.X`, `P.X`,
+`Fi.V`, option values, or form submission. The native editor deliberately
+shows and stores the raw value while focused. UI Automation retains authored
+document text and maps case-transformed visual segments with ordinal
+case-insensitive matching. Capitalization is deterministic and invariant; it
+starts words at the beginning, after whitespace, and after a hyphen rather
+than implementing locale-specific CSS casing rules.
 
 List-item blocks expose `B.Mk` as their paint-ready marker. Unordered lists use
 `-`; ordered lists use invariant decimal text ending in `.`. Ordered `start` and

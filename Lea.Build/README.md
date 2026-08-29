@@ -34,6 +34,12 @@ Run `Backup-Lea.ps1` to create a dated, source-only ZIP in the Documents
 `Lea Source Backups` folder. Git and GitHub remain the main version history;
 the ZIP is an additional local copy without `bin`, `obj`, or `dist` files.
 
+Run `Backup-Firespider.ps1` to create the matching source-only host ZIP from
+`L:\Firespider Internet` in the Documents `Firespider Source Backups` folder.
+It excludes Git/editor/build/cache output and compiled binaries while retaining
+the VB project, Lea adapter, resources, configuration, installer source, and
+design assets. Pass `-Source` only when the host checkout moves.
+
 ## Compatibility And Performance
 
 `Lea.Bench` is the repeatable .NET Framework report runner. After a Release
