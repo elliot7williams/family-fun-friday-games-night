@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **43**
+Post-1.0 hardening milestones completed: **44**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -14,8 +14,8 @@ modern web platform.
 | Core and alias API | 10% | 10% | Compact API, bounded diagnostics, repeatable reports, history, projects, backups |
 | Networking | 10% | 10% | Bounded request deadlines and downloads, private cookies, typed errors, validators, compression, memory LRU and optional persistent cache |
 | HTML and document tree | 20% | 20% | Bounded tokens, queries, base URLs and fragments, raw/RCDATA text, entities, recovery, HTML-hidden suppression, semantic accessibility, blocks, lists, disclosures, gauges, values, time/edit metadata, responsive image maps, tabindex focus, autofocus/access keys, tables |
-| CSS | 15% | 15% | Compiled relationship, bounded strict relational/functional, An+B/reverse, and filtered structural selectors, declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, dynamic hover/focus, content/border sizing, circular/elliptical radii, bounded box shadows, gradients, bitmap backgrounds, object fitting and aspect ratios, visibility/opacity, fonts, overflow, boxes, bounded ordered flex and two-axis grid properties |
-| Layout and painting | 20% | 20% | Shared content/border and aspect-ratio geometry, normalized rounded backgrounds/borders/overflow/fields/shadows/gradients/bitmaps, fitted raster images and maps, ordered flex rows/columns, bounded grid tracks/spans, distribution, alignment, wrapping, grow/shrink, clipping, reflow, painting |
+| CSS | 15% | 15% | Compiled relationship, bounded strict relational/functional, An+B/reverse, and filtered structural selectors, declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, dynamic hover/focus, content/border sizing, circular/elliptical radii, bounded outlines, box shadows, gradients, bitmap backgrounds, object fitting and aspect ratios, visibility/opacity, fonts, overflow, boxes, bounded ordered flex and two-axis grid properties |
+| Layout and painting | 20% | 20% | Shared content/border and aspect-ratio geometry, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients/bitmaps, fitted raster images and maps, ordered flex rows/columns, bounded grid tracks/spans, distribution, alignment, wrapping, grow/shrink, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Bounded multipart files, richer widgets, validation, responsive and fitted images, GET/POST submit |
 | Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/body and ID-scoped style/alert, class, visibility, disclosure, field-state, and focus commands |
 | Firespider integration and reliability | 10% | 10% | Lea-first New Tab/Ctrl+T, explicit legacy fallback, Inspector with Access view, MSAA/UIA surfaces including read-only text, host-safe focus shortcuts, navigation, sessions, source, host smokes |
@@ -29,6 +29,18 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded CSS outlines through compact non-inherited `S.Ow/Os/Oc/Oo`
+  width, style, color, and signed-offset aliases. Atomic shorthand and
+  longhands accept solid, dashed, dotted, and automatic focus styles; widths
+  cap at 32 pixels and offsets at -64..64. Named, hex, `rgb()`/`rgba()`, alpha,
+  `currentColor`, variables, important tiers, CSS-wide resets, malformed
+  preservation, responsive rules, and dynamic `:focus` share the existing
+  cascade. Rounded boxes, images, fields, retained nested owners, opacity, and
+  ancestor overflow share one paint path while layout, hits, accessibility
+  bounds, and following flow remain unchanged. Exact pixels, field retention,
+  resize, benchmark, and compiled Firespider coverage bring the suite to 54
+  fixtures and 53 executable probes.
 
 - Added bounded CSS `aspect-ratio` sizing through compact non-inherited
   `S.Rw/Rh/Ra` preferred-width, preferred-height, and intrinsic-auto aliases.

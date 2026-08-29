@@ -112,7 +112,7 @@ namespace Lea.Bench
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
                 "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html", "svg.html", "svg-geometry.html", "svg-gradients.html", "svg-use-clips.html", "svg-strokes.html",
-                "box-sizing.html", "border-radius.html", "box-shadows.html", "background-gradients.html", "background-images.html", "object-fit.html", "aspect-ratio.html"
+                "box-sizing.html", "border-radius.html", "box-shadows.html", "background-gradients.html", "background-images.html", "object-fit.html", "aspect-ratio.html", "outlines.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -1003,6 +1003,47 @@ namespace Lea.Bench
                 }
                 return "S.Rw/Rh/Ra aliases, bounded atomic parsing and reset/noninheritance, intrinsic media fallback, content/border-box, fields, flex/grid/table layout, paint, and resize";
             });
+            AddProbe(probes, "Bounded CSS outlines", delegate
+            {
+                var path = Path.Combine(folder, "outlines.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var solid = page.Bs.First(block => block.El != null && block.El.Av("id") == "solid");
+                var atomic = page.Bs.First(block => block.El != null && block.El.Av("id") == "atomic");
+                var reset = page.Bs.First(block => block.El != null && block.El.Av("id") == "reset");
+                var child = page.Bs.First(block => block.El != null && block.El.Av("id") == "outline-child");
+                Need(solid.S.Ow == 4 && solid.S.Os == "s" && solid.S.Oc == "#a13b18" && solid.S.Oo == 3,
+                    "outline aliases changed");
+                Need(atomic.S.Ow == 2 && atomic.S.Os == "s" && reset.S.Ow == 3 && reset.S.Os == "n" && child.S.Ow == 0,
+                    "outline atomic reset or noninheritance changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1900);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var rect = BlockOuter(view, "solid");
+                        Need(rect.Size == new Size(160, 50) &&
+                            ColorDistance(image.GetPixel(rect.Left - 5, rect.Top + rect.Height / 2), Color.FromArgb(161, 59, 24)) < 16,
+                            "outline geometry or paint changed");
+                    }
+                    Need(view.Js("fo('focus-field')") == 1, "outline focus command changed");
+                    using (var image = Draw(view))
+                    {
+                        var field = BlockOuter(view, "focus-field");
+                        Need(ColorDistance(image.GetPixel(field.Left - 7, field.Top + field.Height / 2), Color.FromArgb(220, 38, 38)) < 24,
+                            "focused field outline changed");
+                    }
+                    view.Size = new Size(350, 2300);
+                    using (var image = Draw(view))
+                    {
+                        var responsive = view.At.Bs.First(block => block.El != null && block.El.Av("id") == "responsive");
+                        Need(responsive.S.Ow == 6 && responsive.S.Os == "o" && responsive.S.Oo == 5,
+                            "responsive outline changed");
+                    }
+                }
+                return "S.Ow/Os/Oc/Oo aliases, atomic shorthand/longhands, variables/priority/reset/noninheritance, solid/dashed/dotted/auto and signed offsets, rounded box/field focus paint, clipping, stable geometry, and resize";
+            });
             AddProbe(probes, "Bounded flex layout", delegate
             {
                 var path = Path.Combine(folder, "flex.html");
@@ -1715,8 +1756,8 @@ namespace Lea.Bench
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box, circular/elliptical radii, bounded box shadows and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, and text styles, visibility, positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
-            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/overflow/fields/shadows/gradients, fitted raster images and maps, shared aspect-ratio sizing, inline, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
+            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box, circular/elliptical radii, bounded outlines, box shadows and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, and text styles, visibility, positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
+            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients, fitted raster images and maps, shared aspect-ratio sizing, inline, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");

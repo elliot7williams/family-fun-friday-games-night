@@ -90,6 +90,10 @@ namespace Lea.Engine
         public int Bl { get; internal set; }
         public string Bc { get; internal set; }
         public string Bs { get; internal set; }
+        public int Ow { get; internal set; }
+        public string Os { get; internal set; }
+        public string Oc { get; internal set; }
+        public int Oo { get; internal set; }
         public int R0 { get; internal set; }
         public int R1 { get; internal set; }
         public int R2 { get; internal set; }
@@ -225,6 +229,8 @@ namespace Lea.Engine
             Pn = "";
             Bc = "";
             Bs = "";
+            Os = "n";
+            Oc = "";
             Sw = new List<Sw>();
         }
 

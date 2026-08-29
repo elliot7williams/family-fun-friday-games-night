@@ -338,7 +338,17 @@ non-empty bridge survives both direct and external MTA clients. Continue host
 coverage and bounded HTML/CSS compatibility work without adding another browser
 runtime.
 
-The latest completed milestone adds bounded CSS `aspect-ratio` through compact
+The latest completed milestone adds bounded CSS outlines through compact
+non-inherited `S.Ow/Os/Oc/Oo` state. Atomic shorthand and longhands accept
+solid, dashed, dotted, and auto style, 0..32 pixel width, signed -64..64 pixel
+offset, named/hex/functional alpha colors, `currentColor`, variables, important
+tiers, CSS-wide resets, malformed preservation, responsive rules, and dynamic
+`:focus`. Rounded boxes, images, fields, opacity, stacking, and ancestor
+overflow share one painter; layout, hits, accessibility bounds, native editor
+placement, and following flow remain stable. Exact pixels, retained focus,
+benchmark, and compiled Firespider coverage use `outlines.html`.
+
+The previous completed milestone adds bounded CSS `aspect-ratio` through compact
 non-inherited `S.Rw/Rh/Ra` state. One positive number or two-part ratio plus
 optional intrinsic `auto` fallback compiles atomically under strict digit,
 component, and resolved-ratio bounds. Variables, important tiers, CSS-wide
@@ -349,7 +359,7 @@ grid, and table minimums while explicit dimensions and min/max clamps win.
 Exact geometry, pixels, benchmark, and compiled Firespider coverage use
 `aspect-ratio.html`.
 
-The previous completed milestone adds bounded replaced-image fitting through
+The earlier completed milestone adds bounded replaced-image fitting through
 compact `S.Of=f/c/v/n/s` and `Ox/Oy/Oxp/Oyp` state. Fill, contain, cover, none,
 and scale-down use one 8,192-pixel-capped positioned object rectangle with
 keyword, signed pixel, unitless compact pixel, or percentage coordinates.

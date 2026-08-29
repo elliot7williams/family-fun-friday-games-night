@@ -3195,6 +3195,47 @@ namespace Lea.Tests
 
                     AspectRatioPaintSmoke(ratioPath);
 
+                    var outlinePath = Path.Combine(root, "LeaForge", "test-pages", "outlines.html");
+                    var outlineEngine = new E();
+                    var outlinePage = outlineEngine.Go(outlinePath);
+                    var solidOutline = BlockById(outlinePage, "solid").S;
+                    var dashedOutline = BlockById(outlinePage, "dashed").S;
+                    var dottedOutline = BlockById(outlinePage, "dotted").S;
+                    Ok(solidOutline.Ow == 4 && solidOutline.Os == "s" && solidOutline.Oc == "#a13b18" && solidOutline.Oo == 3 &&
+                        dashedOutline.Ow == 3 && dashedOutline.Os == "d" && dottedOutline.Ow == 4 && dottedOutline.Os == "o",
+                        "outline compact aliases");
+                    var atomicOutline = BlockById(outlinePage, "atomic").S;
+                    var longhandOutline = BlockById(outlinePage, "longhand").S;
+                    var resetOutline = BlockById(outlinePage, "reset").S;
+                    Ok(atomicOutline.Ow == 2 && atomicOutline.Os == "s" && atomicOutline.Oc == "#176b4d" &&
+                        longhandOutline.Ow == 5 && longhandOutline.Os == "s" && longhandOutline.Oo == 6 &&
+                        resetOutline.Ow == 3 && resetOutline.Os == "n" && resetOutline.Oc.Length == 0,
+                        "outline atomic invalid preservation, longhands, and reset");
+                    Ok(BlockById(outlinePage, "outline-parent").S.Ow == 3 && BlockById(outlinePage, "outline-child").S.Ow == 0 &&
+                        BlockById(outlinePage, "outline-child").S.Os == "n",
+                        "outline noninheritance");
+                    var variableOutline = BlockById(outlinePage, "variable").S;
+                    var priorityOutline = BlockById(outlinePage, "priority").S;
+                    Ok(variableOutline.Ow == 3 && variableOutline.Os == "d" && variableOutline.Oo == 4 &&
+                        priorityOutline.Ow == 5 && priorityOutline.Os == "s" && priorityOutline.Oc == "#176b4d",
+                        "outline variables and important cascade");
+                    var retainedOutlineField = FieldById(outlinePage, "focus-field");
+                    retainedOutlineField.V = "Retained focused outline";
+                    outlineEngine.Dy(outlinePage, null, ById(outlinePage.D, "focus-field"));
+                    Ok(retainedOutlineField.S.Ow == 4 && retainedOutlineField.S.Os == "s" && retainedOutlineField.S.Oo == 5 &&
+                        Object.ReferenceEquals(retainedOutlineField, FieldById(outlinePage, "focus-field")) && retainedOutlineField.V == "Retained focused outline",
+                        "dynamic focus outline and retained field");
+                    outlineEngine.Dy(outlinePage, null, null);
+                    Ok(retainedOutlineField.S.Os == "n" && retainedOutlineField.S.Ow == 3,
+                        "dynamic focus outline reset");
+                    Ok(BlockById(outlinePage, "responsive").S.Ow == 2 && BlockById(outlinePage, "responsive").S.Os == "s",
+                        "wide responsive outline state");
+                    outlineEngine.Vw = 350;
+                    Ok(BlockById(outlinePage, "responsive").S.Ow == 6 && BlockById(outlinePage, "responsive").S.Os == "o" && BlockById(outlinePage, "responsive").S.Oo == 5,
+                        "narrow responsive outline state");
+
+                    OutlinePaintSmoke(outlinePath);
+
                     view.Size = new Size(720, 760);
                     var boxes = Path.Combine(root, "LeaForge", "test-pages", "boxes.html");
                     var boxPage = engine.Go(boxes);
@@ -5045,6 +5086,75 @@ namespace Lea.Tests
                 }
             }
             Console.WriteLine("Lea aspect-ratio smoke passed: compact aliases, intrinsic fallback, shared box/flex/grid/table geometry, paint, and resize.");
+        }
+
+        private static void OutlinePaintSmoke(string path)
+        {
+            using (var view = new V())
+            {
+                view.Size = new Size(720, 1900);
+                view.Go(path);
+                using (var paint = Render(view))
+                {
+                    var solid = BlockOuterRect(view, BlockById(view.At, "solid"));
+                    var dashed = BlockOuterRect(view, BlockById(view.At, "dashed"));
+                    var dotted = BlockOuterRect(view, BlockById(view.At, "dotted"));
+                    var negative = BlockOuterRect(view, BlockById(view.At, "negative"));
+                    var atomic = BlockOuterRect(view, BlockById(view.At, "atomic"));
+                    var longhand = BlockOuterRect(view, BlockById(view.At, "longhand"));
+                    Eq(new Size(160, 50), solid.Size, "outline leaves layout size unchanged");
+                    Ok(ColorDistance(paint.GetPixel(solid.Left - 5, solid.Top + solid.Height / 2), Color.FromArgb(161, 59, 24)) < 16 &&
+                        ColorDistance(paint.GetPixel(solid.Left - 1, solid.Top + solid.Height / 2), Color.White) < 12,
+                        "positive offset solid outline and gap paint");
+                    var dashedBand = new Rectangle(dashed.Left - 6, dashed.Top - 6, dashed.Width + 12, 8);
+                    var dottedBand = new Rectangle(dotted.Left - 8, dotted.Top - 8, dotted.Width + 16, 10);
+                    Ok(HasColor(paint, dashedBand, Color.FromArgb(23, 107, 77)), "dashed outline paint");
+                    Ok(HasColor(paint, dottedBand, Color.FromArgb(37, 99, 235)), "rounded dotted outline paint");
+                    Ok(ColorDistance(paint.GetPixel(negative.Left + 4, negative.Top + negative.Height / 2), Color.FromArgb(124, 58, 237)) < 20 &&
+                        ColorDistance(paint.GetPixel(negative.Left - 2, negative.Top + negative.Height / 2), Color.White) < 12,
+                        "negative outline offset paints inward");
+                    Ok(ColorDistance(paint.GetPixel(atomic.Left - 1, atomic.Top + atomic.Height / 2), Color.FromArgb(23, 107, 77)) < 20,
+                        "invalid shorthand preserves prior outline paint");
+                    Ok(ColorDistance(paint.GetPixel(longhand.Left - 9, longhand.Top + longhand.Height / 2), Color.FromArgb(92, 138, 240)) < 36,
+                        "alpha longhand outline paint");
+                    Eq(BlockOuterRect(view, BlockById(view.At, "solid")).Size, BlockOuterRect(view, BlockById(view.At, "layout-plain")).Size,
+                        "outlined and plain peers retain equal geometry");
+
+                    var clipper = BlockRect(view, BlockById(view.At, "clipper"));
+                    var clipped = BlockOuterRect(view, BlockById(view.At, "clip-child"));
+                    Ok(ColorDistance(paint.GetPixel(clipped.Left + clipped.Width / 2, clipped.Top - 8), Color.FromArgb(220, 38, 38)) < 24 &&
+                        ColorDistance(paint.GetPixel(clipped.Left - 8, clipped.Top + clipped.Height / 2), Color.FromArgb(191, 219, 254)) < 20 &&
+                        clipper.Contains(clipped),
+                        "ancestor overflow clips child outline without changing geometry");
+                }
+
+                var beforeFocus = BlockOuterRect(view, FieldBlock(view.At, FieldById(view.At, "focus-field")));
+                Eq(1, view.Js("fo('focus-field')"), "focus outline command");
+                Application.DoEvents();
+                using (var focusPaint = Render(view))
+                {
+                    var focused = BlockOuterRect(view, FieldBlock(view.At, FieldById(view.At, "focus-field")));
+                    Eq(beforeFocus, focused, "focus outline keeps field geometry stable");
+                    Ok(FieldById(view.At, "focus-field").S.Ow == 4 && FieldById(view.At, "focus-field").S.Os == "s" &&
+                        ColorDistance(focusPaint.GetPixel(focused.Left - 7, focused.Top + focused.Height / 2), Color.FromArgb(220, 38, 38)) < 24,
+                        "dynamic focus outline field paint");
+                }
+
+                view.Size = new Size(350, 2300);
+                Application.DoEvents();
+                using (var paint = Render(view))
+                {
+                    var responsive = BlockOuterRect(view, BlockById(view.At, "responsive"));
+                    var band = responsive;
+                    band.Inflate(12, 12);
+                    Ok(BlockById(view.At, "responsive").S.Ow == 6 && BlockById(view.At, "responsive").S.Os == "o" &&
+                        HasColor(paint, band, Color.FromArgb(37, 99, 235)),
+                        "responsive dotted outline repaint");
+                    Ok(BlockOuterRect(view, BlockById(view.At, "after-outline")).Top > responsive.Bottom,
+                        "outline preserves following narrow flow");
+                }
+            }
+            Console.WriteLine("Lea CSS outline smoke passed: compact aliases, atomic cascade, focus, clipping, fields, exact paint, and resize.");
         }
 
         private static AutomationElement AutomationById(AutomationElement root, string id)

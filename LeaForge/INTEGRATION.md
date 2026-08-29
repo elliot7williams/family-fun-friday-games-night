@@ -256,6 +256,15 @@ retaining the existing rectangular layout, link bounds, and responsive reflow.
 Pixels cap at 2,000 and percentages at 1,000; malformed declarations preserve
 the previous computed state.
 
+CSS outlines are available through non-inherited `S.Ow/Os/Oc/Oo`. Hosts can
+inspect bounded width, compact none/solid/dashed/dotted/auto style, authored
+color, and signed offset without performing paint calculations. Atomic
+shorthand/longhands, variables, important tiers, resets, responsive rules, and
+dynamic `:focus` all rebuild through the existing style path. `V` paints
+rounded box, image, and field outlines with opacity and ancestor clipping while
+leaving `V.Rb`/`V.Rc`, hit routes, accessibility bounds, native editor
+placement, document height, and following flow unchanged.
+
 CSS box shadows are available through the non-inherited `S.Sw` list. Each
 compact `Sw` exposes `X/Y` offsets, `B` blur, `R` spread, `C` color, and `I`
 inset state. Lea accepts up to four entries atomically, caps signed offsets and

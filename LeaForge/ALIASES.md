@@ -601,6 +601,21 @@ invalid declarations preserve prior state. The shared path paints backgrounds,
 solid/dashed/dotted borders, inherited rounded overflow clips, and ordinary
 form fields without changing rectangular layout or link bounds.
 
+CSS outlines use non-inherited `S.Ow/Os/Oc/Oo`. `Ow` stores the 0..32 pixel
+width, `Os=n/s/d/o/a` stores none, solid, dashed, dotted, or automatic style,
+`Oc` stores the authored color, and `Oo` stores a signed -64..64 pixel offset.
+The `outline` shorthand accepts up to three unordered width/style/color parts
+atomically; `outline-width`, `outline-style`, `outline-color`, and
+`outline-offset` update their individual state. Named, 3/4/6/8-digit hex,
+`rgb()`/`rgba()` comma or space/slash colors, alpha, transparent, and
+`currentColor` share the bounded color path. Variables, important tiers,
+CSS-wide resets, malformed preservation, responsive rules, and dynamic
+`:focus` rebuilds use the normal cascade. The custom painter follows rounded
+corners, opacity, stacking, and ancestor overflow for boxes, images, and
+ordinary fields. Positive or negative outlines remain visual only: box sizes,
+document flow, hit regions, accessibility bounds, and native editors do not
+grow around them.
+
 Box shadows use the non-inherited `S.Sw` list. Each `Sw` entry stores horizontal
 and vertical offsets in `X/Y`, blur in `B`, spread in `R`, authored color in
 `C`, and inset state in `I`. CSS `box-shadow` accepts one to four comma-separated

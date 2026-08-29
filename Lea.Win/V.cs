@@ -684,7 +684,8 @@ namespace Lea.Win
                     rect.Offset(0, -sy);
                     content.Offset(0, -sy);
                 }
-                if (rect.Bottom < 0 || rect.Top > ClientSize.Height) continue;
+                var outlineExtent = OutlineExtent(box.S);
+                if (rect.Bottom + outlineExtent < 0 || rect.Top - outlineExtent > ClientSize.Height) continue;
                 if (Hidden(box.S)) continue;
                 var opacity = box.S == null ? 100 : box.S.Op;
                 var clip = box.Clip;
@@ -2744,18 +2745,54 @@ namespace Lea.Win
                 var right = BorderWidth(style, style.Br);
                 var bottom = BorderWidth(style, style.Bb);
                 var left = BorderWidth(style, style.Bl);
-                if (top + right + bottom + left == 0) return;
-                var color = PaintColor(CssColor(style.Bc, CssColor(style.F, pageColor)), opacity);
-                if (rounded) PaintRoundedBorder(graphics, rect, style, top, right, bottom, left, color);
-                else
+                if (top + right + bottom + left > 0)
                 {
-                    PaintBorder(graphics, rect, top, 0, color, style.Bs);
-                    PaintBorder(graphics, rect, right, 1, color, style.Bs);
-                    PaintBorder(graphics, rect, bottom, 2, color, style.Bs);
-                    PaintBorder(graphics, rect, left, 3, color, style.Bs);
+                    var color = PaintColor(CssColor(style.Bc, CssColor(style.F, pageColor)), opacity);
+                    if (rounded) PaintRoundedBorder(graphics, rect, style, top, right, bottom, left, color);
+                    else
+                    {
+                        PaintBorder(graphics, rect, top, 0, color, style.Bs);
+                        PaintBorder(graphics, rect, right, 1, color, style.Bs);
+                        PaintBorder(graphics, rect, bottom, 2, color, style.Bs);
+                        PaintBorder(graphics, rect, left, 3, color, style.Bs);
+                    }
                 }
+                PaintOutline(graphics, rect, style, CssColor(style.F, pageColor), opacity);
             }
             finally { if (rounded || shadows) graphics.SmoothingMode = smoothing; }
+        }
+
+        private static int OutlineExtent(S style)
+        {
+            return style == null || style.Ow < 1 || style.Os == "n" ? 0 : Math.Max(0, style.Oo) + Math.Min(32, style.Ow);
+        }
+
+        private static void PaintOutline(Graphics graphics, Rectangle rect, S style, Color currentColor, int opacity)
+        {
+            if (style == null || style.Ow < 1 || style.Os == "n" || rect.Width < 1 || rect.Height < 1) return;
+            var width = Math.Max(1, Math.Min(32, style.Ow));
+            var grow = style.Oo + (width + 1) / 2;
+            var outline = rect;
+            outline.Inflate(grow, grow);
+            if (outline.Width < 2 || outline.Height < 2) return;
+            var color = PaintColor(CssColor(style.Oc, currentColor), opacity);
+            using (var pen = new Pen(color, width))
+            {
+                if (style.Os == "d") pen.DashStyle = DashStyle.Dash;
+                else if (style.Os == "o" || style.Os == "a") pen.DashStyle = DashStyle.Dot;
+                if (!HasRadius(style))
+                {
+                    graphics.DrawRectangle(pen, outline.X, outline.Y, Math.Max(1, outline.Width - 1), Math.Max(1, outline.Height - 1));
+                    return;
+                }
+                var smoothing = graphics.SmoothingMode;
+                try
+                {
+                    graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                    using (var path = RoundedPath(outline, style, -grow, -grow, -grow, -grow)) graphics.DrawPath(pen, path);
+                }
+                finally { graphics.SmoothingMode = smoothing; }
+            }
         }
 
         private static void PaintShadows(Graphics graphics, Rectangle rect, S style, Color currentColor, int opacity, bool inset)

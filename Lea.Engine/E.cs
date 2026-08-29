@@ -1643,7 +1643,7 @@ namespace Lea.Engine
                  style.Mt != 0 || style.Mr != 0 || style.Mb != 0 || style.Ml != 0 ||
                  style.Pt != 0 || style.Pr != 0 || style.Pb != 0 || style.Pl != 0 || style.W > 0 || style.H > 0 ||
                  style.Wn > 0 || style.Wx > 0 || style.Hn > 0 || style.Hx > 0 || style.Rw > 0D && style.Rh > 0D ||
-                 style.Bt > 0 || style.Br > 0 || style.Bb > 0 || style.Bl > 0);
+                 style.Bt > 0 || style.Br > 0 || style.Bb > 0 || style.Bl > 0 || style.Ow > 0 && style.Os != "n");
         }
 
         private static bool Owns(N root, N node)
@@ -3329,6 +3329,11 @@ namespace Lea.Engine
                 else if (name == "border-left-width") style.Bl = Px(value);
                 else if (name == "border-color") style.Bc = value;
                 else if (name == "border-style") style.Bs = value.ToLowerInvariant();
+                else if (name == "outline") Outline(style, value);
+                else if (name == "outline-width") OutlineWidth(style, value);
+                else if (name == "outline-style") OutlineStyle(style, value);
+                else if (name == "outline-color") OutlineColor(style, value);
+                else if (name == "outline-offset") OutlineOffset(style, value);
                 else if (name == "border-radius") BorderRadius(style, value);
                 else if (name == "border-top-left-radius") BorderCornerRadius(style, value, 0);
                 else if (name == "border-top-right-radius") BorderCornerRadius(style, value, 1);
@@ -4558,6 +4563,111 @@ namespace Lea.Engine
             var match = Regex.Match(value ?? "", "^(?<n>[0-9]{1,3})(?:px)?$", RegexOptions.IgnoreCase);
             int number;
             return match.Success && int.TryParse(match.Groups["n"].Value, out number) ? Math.Min(number, 100) : -1;
+        }
+
+        private static void Outline(S style, string value)
+        {
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            if (RadiusReset(lower))
+            {
+                SetOutline(style, 3, "n", "");
+                return;
+            }
+            List<string> parts;
+            if (source.Length == 0 || source.Length > 128 || !ShadowParts(source, '\0', out parts) || parts.Count < 1 || parts.Count > 3) return;
+            var width = 3;
+            var outlineStyle = "n";
+            var color = "";
+            var hasWidth = false;
+            var hasStyle = false;
+            var hasColor = false;
+            foreach (var part in parts)
+            {
+                int parsedWidth;
+                string parsedStyle;
+                if (OutlineWidthValue(part, out parsedWidth))
+                {
+                    if (hasWidth) return;
+                    width = parsedWidth;
+                    hasWidth = true;
+                }
+                else if (OutlineStyleValue(part, out parsedStyle))
+                {
+                    if (hasStyle) return;
+                    outlineStyle = parsedStyle;
+                    hasStyle = true;
+                }
+                else if (ShadowColor(part))
+                {
+                    if (hasColor) return;
+                    color = part;
+                    hasColor = true;
+                }
+                else return;
+            }
+            SetOutline(style, width, outlineStyle, color);
+        }
+
+        private static void OutlineWidth(S style, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (RadiusReset(source)) { style.Ow = 3; return; }
+            int width;
+            if (OutlineWidthValue(source, out width)) style.Ow = width;
+        }
+
+        private static bool OutlineWidthValue(string value, out int width)
+        {
+            width = 0;
+            var parsed = BorderPx((value ?? "").Trim().ToLowerInvariant());
+            if (parsed < 0 || parsed > 32) return false;
+            width = parsed;
+            return true;
+        }
+
+        private static void OutlineStyle(S style, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (RadiusReset(source)) { style.Os = "n"; return; }
+            string outlineStyle;
+            if (OutlineStyleValue(source, out outlineStyle)) style.Os = outlineStyle;
+        }
+
+        private static bool OutlineStyleValue(string value, out string outlineStyle)
+        {
+            outlineStyle = "";
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "none" || source == "hidden") outlineStyle = "n";
+            else if (source == "solid") outlineStyle = "s";
+            else if (source == "dashed") outlineStyle = "d";
+            else if (source == "dotted") outlineStyle = "o";
+            else if (source == "auto") outlineStyle = "a";
+            return outlineStyle.Length > 0;
+        }
+
+        private static void OutlineColor(S style, string value)
+        {
+            var source = (value ?? "").Trim();
+            if (RadiusReset(source.ToLowerInvariant())) { style.Oc = ""; return; }
+            if (ShadowColor(source)) style.Oc = source;
+        }
+
+        private static void OutlineOffset(S style, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (RadiusReset(source)) { style.Oo = 0; return; }
+            var match = Regex.Match(source, "^(?<n>[+-]?[0-9]{1,3})(?:px)?$");
+            int offset;
+            if (match.Success && Int32.TryParse(match.Groups["n"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out offset) && offset >= -64 && offset <= 64)
+                style.Oo = offset;
+        }
+
+        private static void SetOutline(S style, int width, string outlineStyle, string color)
+        {
+            style.Ow = width;
+            style.Os = outlineStyle;
+            style.Oc = color ?? "";
         }
 
         private static void BorderRadius(S style, string value)
