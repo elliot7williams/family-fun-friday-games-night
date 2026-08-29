@@ -265,6 +265,17 @@ rounded box, image, and field outlines with opacity and ancestor clipping while
 leaving `V.Rb`/`V.Rc`, hit routes, accessibility bounds, native editor
 placement, document height, and following flow unchanged.
 
+Inherited pointer interaction is available through `S.Cu/Pe`. Hosts can inspect
+the compact automatic/default, pointer, text, wait, crosshair, move, help,
+not-allowed, and axis-resize cursor state without translating CSS keywords.
+`Pe=false` removes that element from Lea's retained mouse hover and click path;
+eligible content underneath can receive the pointer instead. Links, summaries,
+ordinary fields, fitted image maps, and linked SVG shapes share the gate.
+Variables, important declarations, resets, invalid preservation, dynamic hover,
+and responsive rebuilds use the existing computed-style path. Layout, paint,
+keyboard focus, access keys, and semantic accessibility remain unchanged, so a
+host does not need a second input or cursor implementation.
+
 CSS box shadows are available through the non-inherited `S.Sw` list. Each
 compact `Sw` exposes `X/Y` offsets, `B` blur, `R` spread, `C` color, and `I`
 inset state. Lea accepts up to four entries atomically, caps signed offsets and

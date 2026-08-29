@@ -338,7 +338,19 @@ non-empty bridge survives both direct and external MTA clients. Continue host
 coverage and bounded HTML/CSS compatibility work without adding another browser
 runtime.
 
-The latest completed milestone adds bounded CSS outlines through compact
+The latest completed milestone adds bounded inherited CSS pointer interaction
+through compact `S.Cu/Pe` state. Ten cursor codes cover automatic/default,
+pointer, text, wait/progress, crosshair, move, help, not-allowed, and horizontal
+or vertical resize families; `pointer-events:auto/none` supplies one mouse gate.
+Variables, important tiers, inherit/reset behavior, invalid preservation,
+dynamic hover, and responsive rebuilds share the compiled cascade. Retained
+boxes, links, summaries, fields, fitted image maps, and linked SVG shapes use
+one z-ordered gate with underlying fallthrough, while paint, layout, keyboard
+focus, access keys, and accessibility bounds remain stable. Exact cursor, hit,
+hover, click, field, benchmark, and compiled Firespider coverage use
+`pointer-interaction.html`.
+
+The previous completed milestone adds bounded CSS outlines through compact
 non-inherited `S.Ow/Os/Oc/Oo` state. Atomic shorthand and longhands accept
 solid, dashed, dotted, and auto style, 0..32 pixel width, signed -64..64 pixel
 offset, named/hex/functional alpha colors, `currentColor`, variables, important
@@ -348,7 +360,7 @@ overflow share one painter; layout, hits, accessibility bounds, native editor
 placement, and following flow remain stable. Exact pixels, retained focus,
 benchmark, and compiled Firespider coverage use `outlines.html`.
 
-The previous completed milestone adds bounded CSS `aspect-ratio` through compact
+The earlier completed milestone adds bounded CSS `aspect-ratio` through compact
 non-inherited `S.Rw/Rh/Ra` state. One positive number or two-part ratio plus
 optional intrinsic `auto` fallback compiles atomically under strict digit,
 component, and resolved-ratio bounds. Variables, important tiers, CSS-wide

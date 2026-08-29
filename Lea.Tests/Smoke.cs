@@ -3236,6 +3236,36 @@ namespace Lea.Tests
 
                     OutlinePaintSmoke(outlinePath);
 
+                    var pointerPath = Path.Combine(root, "LeaForge", "test-pages", "pointer-interaction.html");
+                    var pointerEngine = new E();
+                    var pointerPage = pointerEngine.Go(pointerPath);
+                    Ok(pointerPage.S.Cu == "c" && pointerPage.S.Pe && BlockById(pointerPage, "inherited").S.Cu == "c" && BlockById(pointerPage, "inherited").S.Pe,
+                        "inherited cursor and pointer-event defaults");
+                    Ok(BlockById(pointerPage, "pointer").S.Cu == "p" && BlockById(pointerPage, "text").S.Cu == "t" &&
+                        BlockById(pointerPage, "wait").S.Cu == "w" && BlockById(pointerPage, "move").S.Cu == "m" &&
+                        BlockById(pointerPage, "resize-x").S.Cu == "e" && BlockById(pointerPage, "resize-y").S.Cu == "s" &&
+                        BlockById(pointerPage, "forbidden").S.Cu == "n" && BlockById(pointerPage, "hover-cursor").S.Cu == "p",
+                        "compact cursor keyword aliases");
+                    Ok(BlockById(pointerPage, "invalid-cursor").S.Cu == "h" && !BlockById(pointerPage, "invalid-events").S.Pe &&
+                        BlockById(pointerPage, "reset").S.Cu.Length == 0 && BlockById(pointerPage, "reset").S.Pe,
+                        "invalid pointer preservation and CSS-wide reset");
+                    Ok(BlockById(pointerPage, "variable").S.Cu == "p" && !BlockById(pointerPage, "variable").S.Pe &&
+                        BlockById(pointerPage, "priority").S.Cu == "w" && !BlockById(pointerPage, "priority").S.Pe,
+                        "pointer variables and important cascade");
+                    Ok(!BlockById(pointerPage, "none-parent").S.Pe && !BlockById(pointerPage, "none-child").S.Pe &&
+                        BlockById(pointerPage, "none-child").S.Cu == "n" && BlockById(pointerPage, "auto-child").S.Pe && BlockById(pointerPage, "auto-child").S.Cu == "h",
+                        "pointer-event inheritance and child re-enable");
+                    Ok(!FieldById(pointerPage, "dead-field").S.Pe && FieldById(pointerPage, "dead-field").S.Cu == "t" &&
+                        FieldById(pointerPage, "live-field").S.Pe && FieldById(pointerPage, "live-field").S.Cu == "t",
+                        "field pointer aliases");
+                    Ok(BlockById(pointerPage, "responsive").S.Cu == "d" && BlockById(pointerPage, "responsive").S.Pe,
+                        "wide responsive pointer state");
+                    pointerEngine.Vw = 350;
+                    Ok(BlockById(pointerPage, "responsive").S.Cu == "w" && !BlockById(pointerPage, "responsive").S.Pe,
+                        "narrow responsive pointer state");
+
+                    PointerInteractionSmoke(pointerPath);
+
                     view.Size = new Size(720, 760);
                     var boxes = Path.Combine(root, "LeaForge", "test-pages", "boxes.html");
                     var boxPage = engine.Go(boxes);
@@ -5157,6 +5187,126 @@ namespace Lea.Tests
             Console.WriteLine("Lea CSS outline smoke passed: compact aliases, atomic cascade, focus, clipping, fields, exact paint, and resize.");
         }
 
+        private static void PointerInteractionSmoke(string path)
+        {
+            using (var view = new V())
+            {
+                view.Size = new Size(720, 2200);
+                view.Go(path);
+                Rectangle inheritedRect;
+                Rectangle pointerRect;
+                Rectangle textRect;
+                Rectangle waitRect;
+                Rectangle moveRect;
+                Rectangle resizeXRect;
+                Rectangle resizeYRect;
+                Rectangle forbiddenRect;
+                Rectangle hoverCursorRect;
+                Rectangle invalidCursorRect;
+                Rectangle noneChildRect;
+                Rectangle autoChildRect;
+                Rectangle deadLinkRect;
+                Rectangle liveLinkRect;
+                Rectangle deadFieldRect;
+                Rectangle liveFieldRect;
+                using (var paint = Render(view))
+                {
+                    var dead = BlockOuterRect(view, BlockById(view.At, "dead-link"));
+                    var live = BlockOuterRect(view, BlockById(view.At, "live-link"));
+                    inheritedRect = BlockOuterRect(view, BlockById(view.At, "inherited"));
+                    pointerRect = BlockOuterRect(view, BlockById(view.At, "pointer"));
+                    textRect = BlockOuterRect(view, BlockById(view.At, "text"));
+                    waitRect = BlockOuterRect(view, BlockById(view.At, "wait"));
+                    moveRect = BlockOuterRect(view, BlockById(view.At, "move"));
+                    resizeXRect = BlockOuterRect(view, BlockById(view.At, "resize-x"));
+                    resizeYRect = BlockOuterRect(view, BlockById(view.At, "resize-y"));
+                    forbiddenRect = BlockOuterRect(view, BlockById(view.At, "forbidden"));
+                    hoverCursorRect = BlockOuterRect(view, BlockById(view.At, "hover-cursor"));
+                    invalidCursorRect = BlockOuterRect(view, BlockById(view.At, "invalid-cursor"));
+                    noneChildRect = BlockOuterRect(view, BlockById(view.At, "none-child"));
+                    autoChildRect = BlockOuterRect(view, BlockById(view.At, "auto-child"));
+                    deadLinkRect = dead;
+                    liveLinkRect = live;
+                    deadFieldRect = BlockOuterRect(view, BlockById(view.At, "dead-field"));
+                    liveFieldRect = BlockOuterRect(view, BlockById(view.At, "live-field"));
+                    Eq(new Size(202, 46), dead.Size, "pointer suppression leaves link layout unchanged");
+                    Ok(ColorDistance(CenterPixel(paint, dead), Color.FromArgb(248, 250, 252)) < 12,
+                        "pointer-disabled link still paints");
+                    Eq(Rectangle.Empty, HitElementRect(view, "dead-link"), "pointer-disabled link has no mouse hit");
+                    Ok(!HitElementRect(view, "live-link").IsEmpty && HitRect(view, "second.html").IsEmpty && !HitRect(view, "forms.html").IsEmpty,
+                        "live link hit remains while disabled link is absent");
+                    Eq(Rectangle.Empty, HitElementRect(view, "dead-field"), "pointer-disabled field has no mouse hit");
+                    Ok(!HitElementRect(view, "live-field").IsEmpty && live.Width == dead.Width,
+                        "live field and link mouse hits remain bounded");
+                }
+
+                Move(view, inheritedRect);
+                Eq(Cursors.Cross, view.Cursor, "inherited crosshair cursor");
+                Move(view, pointerRect);
+                Eq(Cursors.Hand, view.Cursor, "pointer cursor mapping");
+                Move(view, textRect);
+                Eq(Cursors.IBeam, view.Cursor, "text cursor mapping");
+                Move(view, waitRect);
+                Eq(Cursors.WaitCursor, view.Cursor, "wait cursor mapping");
+                Move(view, moveRect);
+                Eq(Cursors.SizeAll, view.Cursor, "move cursor mapping");
+                Move(view, resizeXRect);
+                Eq(Cursors.SizeWE, view.Cursor, "horizontal resize cursor mapping");
+                Move(view, resizeYRect);
+                Eq(Cursors.SizeNS, view.Cursor, "vertical resize cursor mapping");
+                Move(view, forbiddenRect);
+                Eq(Cursors.No, view.Cursor, "not-allowed cursor mapping");
+                Move(view, hoverCursorRect);
+                Eq(Cursors.Help, view.Cursor, "dynamic hover cursor applies immediately");
+                Eq("h", BlockById(view.At, "hover-cursor").S.Cu, "dynamic hover cursor model");
+                Move(view, invalidCursorRect);
+                Eq(Cursors.Help, view.Cursor, "invalid cursor preserves prior help mapping");
+
+                Move(view, noneChildRect);
+                Eq(Cursors.Cross, view.Cursor, "pointer-disabled subtree falls through to page cursor");
+                Move(view, autoChildRect);
+                Eq(Cursors.Help, view.Cursor, "pointer-event child re-enable and cursor override");
+                Move(view, deadFieldRect);
+                Eq(Cursors.Cross, view.Cursor, "pointer-disabled field falls through");
+                Move(view, liveFieldRect);
+                Eq(Cursors.IBeam, view.Cursor, "live field text cursor");
+
+                var before = view.U;
+                Move(view, deadLinkRect);
+                Eq(Cursors.Cross, view.Cursor, "pointer-disabled link suppresses semantic hand cursor");
+                Click(view, deadLinkRect);
+                Application.DoEvents();
+                Eq(before, view.U, "pointer-disabled link click is inert");
+                Ok(BlockById(view.At, "dead-link").S.Bg == "#f8fafc", "pointer-disabled link does not enter hover state");
+
+                Move(view, liveLinkRect);
+                Eq(Cursors.Hand, view.Cursor, "automatic live link semantic cursor");
+                Ok(BlockById(view.At, "live-link").S.Bg == "#dff6e9", "live link hover remains dynamic");
+
+                Eq(1, view.Js("fo('dead-field')"), "pointer-disabled field remains keyboard focusable");
+                Application.DoEvents();
+                Ok(view.Ke != null && view.Ke.Av("id") == "dead-field" && !view.Kb.IsEmpty &&
+                    !view.Ab(view.Ax(FieldById(view.At, "dead-field").El)).IsEmpty,
+                    "pointer suppression preserves keyboard and accessibility bounds");
+
+                view.Size = new Size(350, 2600);
+                Application.DoEvents();
+                using (var paint = Render(view))
+                {
+                    var responsive = BlockOuterRect(view, BlockById(view.At, "responsive"));
+                    var after = BlockOuterRect(view, BlockById(view.At, "after-pointer"));
+                    Ok(BlockById(view.At, "responsive").S.Cu == "w" && !BlockById(view.At, "responsive").S.Pe &&
+                        ColorDistance(CenterPixel(paint, responsive), Color.FromArgb(248, 250, 252)) < 12,
+                        "responsive pointer state preserves paint");
+                    Move(view, responsive);
+                    Eq(Cursors.Cross, view.Cursor, "responsive pointer suppression falls through");
+                    Ok(after.Top >= responsive.Bottom,
+                        "pointer properties preserve following narrow flow");
+                }
+            }
+            Console.WriteLine("Lea pointer interaction smoke passed: compact cursor and pointer-event aliases, inheritance, hover, hits, keyboard, accessibility, and resize.");
+        }
+
         private static AutomationElement AutomationById(AutomationElement root, string id)
         {
             var element = root.FindFirst(TreeScope.Descendants, new PropertyCondition(AutomationElement.AutomationIdProperty, id));
@@ -5573,6 +5723,21 @@ namespace Lea.Tests
                 var type = value.GetType();
                 var url = type.GetField("U").GetValue(value) as Uri;
                 if (url != null && Path.GetFileName(url.LocalPath).Equals(file, StringComparison.OrdinalIgnoreCase))
+                    return (Rectangle)type.GetField("R").GetValue(value);
+            }
+            return Rectangle.Empty;
+        }
+
+        private static Rectangle HitElementRect(V view, string id)
+        {
+            var member = typeof(V).GetField("hits", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = member == null ? null : member.GetValue(view) as System.Collections.IEnumerable;
+            if (values == null) throw new InvalidOperationException("element hit values unavailable");
+            foreach (var value in values)
+            {
+                var type = value.GetType();
+                var element = type.GetField("El").GetValue(value) as N;
+                if (element != null && element.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase))
                     return (Rectangle)type.GetField("R").GetValue(value);
             }
             return Rectangle.Empty;

@@ -3250,6 +3250,8 @@ namespace Lea.Engine
                 else if (name == "white-space") WhiteSpace(style, value);
                 else if (name == "word-break" || name == "overflow-wrap" || name == "word-wrap") WordBreak(style, value, name == "word-break");
                 else if (name == "overflow") Overflow(style, value);
+                else if (name == "cursor") CursorStyle(style, value);
+                else if (name == "pointer-events") PointerEvents(style, value);
                 else if (name == "object-fit") ObjectFit(style, value);
                 else if (name == "object-position") ObjectPosition(style, value);
                 else if (name == "visibility") Visibility(style, value);
@@ -4412,6 +4414,31 @@ namespace Lea.Engine
             else if (mode == "break-word") style.Wb = "b";
             else if (mode == "anywhere" || (direct && mode == "break-all")) style.Wb = "a";
             else if (direct && mode == "keep-all") style.Wb = "k";
+        }
+
+        private static void CursorStyle(S style, string value)
+        {
+            var mode = (value ?? "").Trim().ToLowerInvariant();
+            if (mode == "inherit" || mode == "unset") return;
+            if (mode == "auto" || mode == "initial" || mode == "revert") style.Cu = "";
+            else if (mode == "default") style.Cu = "d";
+            else if (mode == "pointer" || mode == "grab" || mode == "grabbing") style.Cu = "p";
+            else if (mode == "text" || mode == "vertical-text") style.Cu = "t";
+            else if (mode == "wait" || mode == "progress") style.Cu = "w";
+            else if (mode == "crosshair") style.Cu = "c";
+            else if (mode == "move" || mode == "all-scroll") style.Cu = "m";
+            else if (mode == "help") style.Cu = "h";
+            else if (mode == "not-allowed" || mode == "no-drop") style.Cu = "n";
+            else if (mode == "ew-resize" || mode == "e-resize" || mode == "w-resize" || mode == "col-resize") style.Cu = "e";
+            else if (mode == "ns-resize" || mode == "n-resize" || mode == "s-resize" || mode == "row-resize") style.Cu = "s";
+        }
+
+        private static void PointerEvents(S style, string value)
+        {
+            var mode = (value ?? "").Trim().ToLowerInvariant();
+            if (mode == "inherit" || mode == "unset") return;
+            if (mode == "auto" || mode == "initial" || mode == "revert") style.Pe = true;
+            else if (mode == "none") style.Pe = false;
         }
 
         private static void Overflow(S style, string value)

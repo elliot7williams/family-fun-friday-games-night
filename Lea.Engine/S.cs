@@ -23,6 +23,8 @@ namespace Lea.Engine
         public string Ws { get; internal set; }
         public string Wb { get; internal set; }
         public string Ov { get; internal set; }
+        public string Cu { get; internal set; }
+        public bool Pe { get; internal set; }
         public string Of { get; internal set; }
         public int Ox { get; internal set; }
         public int Oy { get; internal set; }
@@ -196,6 +198,8 @@ namespace Lea.Engine
             Ws = "";
             Wb = "";
             Ov = "";
+            Cu = "";
+            Pe = true;
             Of = "f";
             Ox = 50;
             Oy = 50;
@@ -236,7 +240,7 @@ namespace Lea.Engine
 
         internal S Inherit()
         {
-            var style = new S { F = F, Fs = Fs, Ff = Ff, B = B, I = I, Td = Td, Ta = Ta, Lh = Lh, Lm = Lm, Ws = Ws, Wb = Wb, Vi = Vi, Op = Op, Ao = Op };
+            var style = new S { F = F, Fs = Fs, Ff = Ff, B = B, I = I, Td = Td, Ta = Ta, Lh = Lh, Lm = Lm, Ws = Ws, Wb = Wb, Cu = Cu, Pe = Pe, Vi = Vi, Op = Op, Ao = Op };
             style.Vr = Vr;
             style.Vo = Vo;
             return style;

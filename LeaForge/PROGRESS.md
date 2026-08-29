@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **44**
+Post-1.0 hardening milestones completed: **45**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -14,8 +14,8 @@ modern web platform.
 | Core and alias API | 10% | 10% | Compact API, bounded diagnostics, repeatable reports, history, projects, backups |
 | Networking | 10% | 10% | Bounded request deadlines and downloads, private cookies, typed errors, validators, compression, memory LRU and optional persistent cache |
 | HTML and document tree | 20% | 20% | Bounded tokens, queries, base URLs and fragments, raw/RCDATA text, entities, recovery, HTML-hidden suppression, semantic accessibility, blocks, lists, disclosures, gauges, values, time/edit metadata, responsive image maps, tabindex focus, autofocus/access keys, tables |
-| CSS | 15% | 15% | Compiled relationship, bounded strict relational/functional, An+B/reverse, and filtered structural selectors, declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, dynamic hover/focus, content/border sizing, circular/elliptical radii, bounded outlines, box shadows, gradients, bitmap backgrounds, object fitting and aspect ratios, visibility/opacity, fonts, overflow, boxes, bounded ordered flex and two-axis grid properties |
-| Layout and painting | 20% | 20% | Shared content/border and aspect-ratio geometry, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients/bitmaps, fitted raster images and maps, ordered flex rows/columns, bounded grid tracks/spans, distribution, alignment, wrapping, grow/shrink, clipping, reflow, painting |
+| CSS | 15% | 15% | Compiled relationship, bounded strict relational/functional, An+B/reverse, and filtered structural selectors, declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, dynamic hover/focus, inherited cursor/pointer interaction, content/border sizing, circular/elliptical radii, bounded outlines, box shadows, gradients, bitmap backgrounds, object fitting and aspect ratios, visibility/opacity, fonts, overflow, boxes, bounded ordered flex and two-axis grid properties |
+| Layout and painting | 20% | 20% | Shared content/border and aspect-ratio geometry, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients/bitmaps, pointer-gated retained hits with underlying fallthrough, fitted raster images and maps, ordered flex rows/columns, bounded grid tracks/spans, distribution, alignment, wrapping, grow/shrink, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Bounded multipart files, richer widgets, validation, responsive and fitted images, GET/POST submit |
 | Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/body and ID-scoped style/alert, class, visibility, disclosure, field-state, and focus commands |
 | Firespider integration and reliability | 10% | 10% | Lea-first New Tab/Ctrl+T, explicit legacy fallback, Inspector with Access view, MSAA/UIA surfaces including read-only text, host-safe focus shortcuts, navigation, sessions, source, host smokes |
@@ -29,6 +29,19 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded inherited CSS pointer interaction through compact `S.Cu/Pe`.
+  Automatic/default, pointer, text, wait/progress, crosshair, move, help,
+  not-allowed, and horizontal/vertical resize cursor families map to ten small
+  states; `pointer-events:auto/none` controls one boolean mouse gate. Variables,
+  important tiers, CSS-wide inheritance/resets, invalid preservation, dynamic
+  hover, and responsive rules share the compiled cascade. Retained boxes,
+  links, summaries, fields, fitted image maps, and linked SVG shapes use one
+  z-ordered gate with eligible underlying fallthrough. Paint, geometry,
+  keyboard focus, access keys, and accessibility bounds remain available.
+  Exact cursor, hover, hit, click, field, focus, responsive, benchmark, and
+  compiled Firespider coverage bring the suite to 55 fixtures and 54 executable
+  probes.
 
 - Added bounded CSS outlines through compact non-inherited `S.Ow/Os/Oc/Oo`
   width, style, color, and signed-offset aliases. Atomic shorthand and

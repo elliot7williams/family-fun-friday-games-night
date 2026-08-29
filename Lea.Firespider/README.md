@@ -275,6 +275,13 @@ state. The host smoke compiles a positive-offset solid outline, verifies its
 public aliases and unchanged `150x44` box geometry, and samples the exact paint
 outside that box. Firespider adds no outline calculations or extra control.
 
+Hosted Lea pages expose inherited CSS cursor and pointer targeting through
+compact `S.Cu/Pe` state. The host smoke compiles one live pointer link and one
+mouse-inert not-allowed link, verifies their public aliases, confirms only the
+live element enters the retained hit list, and checks WinForms cursor mapping
+plus underlying fallthrough. Keyboard and accessibility routes stay owned by
+Lea and require no Firespider-side event filter.
+
 `Smoke.cs` loads two compiled Firespider forms off-screen and verifies Lea-first
 New Tab creation, the explicit legacy fallback, Inspector open/refresh/clear and legacy isolation, diagnostics,
 script/style, host-controlled `go`, and safe click execution, alert routing,

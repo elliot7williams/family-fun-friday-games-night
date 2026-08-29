@@ -41,6 +41,8 @@ namespace Lea.Firespider
                     .Replace("<p id='host-bitmap'", "<p id='host-ratio' class='host-ratio'>Ratio host</p><p id='host-bitmap'")
                     .Replace("</style>", ".host-outline{width:150px;height:44px;outline:4px solid #a13b18;outline-offset:3px;background:#dff6e9}</style>")
                     .Replace("<p id='host-ratio'", "<p id='host-outline' class='host-outline'>Outline host</p><p id='host-ratio'")
+                    .Replace("</style>", ".host-pointer-live,.host-pointer-dead{display:block;width:150px;height:32px}.host-pointer-live{cursor:pointer}.host-pointer-dead{cursor:not-allowed;pointer-events:none}</style>")
+                    .Replace("<p id='host-outline'", "<a id='host-pointer-live' class='host-pointer-live' href='#state'>Live pointer host</a><a id='host-pointer-dead' class='host-pointer-dead' href='#state'>Disabled pointer host</a><p id='host-outline'")
                     .Replace(".host-flex{display:flex;width:300px;height:60px;gap:8px;justify-content:space-between;align-items:center}", ".host-flex{display:flex;width:300px;height:60px;flex-wrap:wrap;gap:6px 8px;justify-content:space-between;align-items:center}")
                     .Replace(".host-flex p{width:70px;height:20px}", ".host-flex p{flex:1 1 180px;height:20px}.host-flex #host-flex-b{flex-shrink:2;min-width:80px}.host-flex-column{display:flex;width:180px;height:100px;flex-direction:column-reverse;row-gap:5px;justify-content:space-evenly;align-items:flex-end}.host-flex-column p{width:70px;margin:0;flex:0 1 60px;min-height:30px}.host-flex-column #host-flex-column-a{order:2;align-self:center}.host-flex-column #host-flex-column-b{order:-1}")
                     .Replace("</style>", ".host-grid{display:grid;width:300px;grid-template-columns:100px 1fr 2fr;gap:7px 10px}.host-grid p{height:20px;margin:0}.host-grid #host-grid-span{grid-column:2/span 2}.host-grid-rows{display:grid;width:300px;height:120px;grid-template-columns:1fr 2fr;grid-template-rows:30px 1fr;gap:6px 8px}.host-grid-rows p{margin:0}.host-grid-rows #host-grid-row-a{grid-column:1/span 2;grid-row:1}.host-grid-rows #host-grid-row-b{grid-column:2;grid-row:2}.host-grid-rows #host-grid-row-c{grid-column:1;grid-row-start:2;grid-row-end:span 1}:root{--host-color:#0f4c81;--host-width:155px;--host-pad:7px}.host-var{--host-color:#0f4c81!important;color:var(--host-color)!important;width:var(--host-width)!important;padding:var(--host-pad)}:is(.host-var,#host-never){border-left:4px solid #176b4d}:where(#host-var){padding-left:2px}.host-var:not(.missing,[data-off]){font-weight:bold}#host-flex>p:nth-child(2n+1){border-right:3px solid #176b4d}#host-flex>p:nth-last-child(-n+1){padding-left:9px}#host-flex-column>p:nth-last-of-type(2n){color:#a13b18}#host-flex>p:nth-child(1 of #host-flex-a,#host-flex-b){border-bottom:3px solid #176b4d}#host-flex>p:nth-last-child(1 of #host-flex-a,#host-flex-b){border-top:2px solid #a13b18}#host-has:has(> .host-direct){width:146px;border-left:5px solid #176b4d}#host-has:has(> .host-body .host-ready[data-host=ready]){padding-right:6px}#host-flex:has(+ #host-has){border-top:4px solid #a13b18}#host-has:has(input:focus){background:#dff6e9;font-weight:bold}.host-media{display:none}@media screen and (max-width:500px){:root{--host-width:110px;--host-pad:4px}#host-media{display:block;width:120px;background:#e8f4ef}#host-box{display:none}}</style>")
@@ -211,8 +213,22 @@ namespace Lea.Firespider
                         hostColumnA.S.Sh == 1 && hostColumnA.S.Fb == 60 && hostColumnA.S.Hn == 30 && Object.ReferenceEquals(hostColumnA.Up, hostColumn),
                         "Firespider bounded distributed column-reverse model");
                     host.Dock = DockStyle.None;
-                    host.Size = new System.Drawing.Size(720, 560);
+                    host.Size = new System.Drawing.Size(720, 720);
                     Application.DoEvents();
+                    host.Sc(-Int32.MaxValue);
+                    PaintView(host);
+                    var hostPointerLive = BlockById(host.At, "host-pointer-live");
+                    var hostPointerDead = BlockById(host.At, "host-pointer-dead");
+                    var hostPointerLiveRect = BlockOuter(host, "host-pointer-live");
+                    var hostPointerDeadRect = BlockOuter(host, "host-pointer-dead");
+                    Check(hostPointerLive.S.Cu == "p" && hostPointerLive.S.Pe && hostPointerDead.S.Cu == "n" && !hostPointerDead.S.Pe,
+                        "Firespider compact cursor and pointer-event aliases");
+                    Check(!ElementHit(host, "host-pointer-live").IsEmpty && ElementHit(host, "host-pointer-dead").IsEmpty,
+                        "Firespider pointer-event retained hit gate");
+                    MoveView(host, hostPointerLiveRect);
+                    Check(Object.ReferenceEquals(host.Cursor, Cursors.Hand), "Firespider pointer cursor mapping");
+                    MoveView(host, hostPointerDeadRect);
+                    Check(Object.ReferenceEquals(host.Cursor, Cursors.Default), "Firespider pointer-disabled cursor fallthrough");
                     PaintView(host);
                     var hostOutline = BlockById(host.At, "host-outline");
                     Check(hostOutline.S.Ow == 4 && hostOutline.S.Os == "s" && hostOutline.S.Oc == "#a13b18" && hostOutline.S.Oo == 3 &&
@@ -566,9 +582,9 @@ namespace Lea.Firespider
                     Check(restoredTabs.TabCount == beforeMiddle - 1 && FindLea(restoredTabs) == null, "middle-click Lea tab close");
                 }
 
-                Console.WriteLine("Firespider CSS paint smoke passed: compact outline, radius, shadow, gradient, bitmap-background, object-fit, and aspect-ratio aliases reached the compiled host.");
+                Console.WriteLine("Firespider CSS interaction and paint smoke passed: compact pointer, outline, radius, shadow, gradient, bitmap-background, object-fit, and aspect-ratio aliases reached the compiled host.");
 
-                Console.WriteLine("Firespider Lea smoke passed: bounded CSS outlines with compact aliases and exact non-layout host paint, bounded CSS aspect ratios with compact aliases and exact host geometry/paint, bounded CSS object-fit and object-position with compact aliases, exact fitted paint, and image-map keyboard/accessibility geometry, bounded CSS bitmap backgrounds with compact aliases and exact host paint, bounded inline SVG aliases, winding, stroke styles, geometry, links, and graphic accessibility, bounded has relational selectors with strict lists, maximum specificity, descendant/child/adjacent and complex host relationships, focus rebuilds, retained fields, queries, Inspector, and geometry, bounded nth-child of-S filters with strict lists, maximum specificity, forward/reverse computed styles, queries, Inspector, and host geometry, bounded precompiled An+B and reverse structural selectors with computed styles, queries, Inspector, and host geometry, bounded is, where, and list-not selector functions with specificity, queries, Inspector, and host geometry, bounded CSS important cascade with G.Ic diagnostics, custom properties, inline, responsive values, Inspector counts, and retained fields, bounded inherited CSS custom properties with S.Vc/Cv and G.Vc aliases, responsive values, Inspector counts, and retained fields, bounded responsive CSS media queries with viewport aliases and retained fields, optional bounded persistent cache aliases and Inspector diagnostics, bounded content-box and border-box geometry, scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, and shrink, semantic accessibility, protected values, rendered bounds, MSAA and UI Automation providers, value, table/grid, and read-only logical text patterns plus Access inspector, bounded autofocus and access keys, keyboard focus and activation, responsive image maps, compact time/edit metadata, output/data values and safe rebuilds, progress and meter gauges, disclosure commands, retained same-page fragments, Lea-first New Tab and explicit legacy fallback, host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
+                Console.WriteLine("Firespider Lea smoke passed: bounded inherited cursor and pointer-event aliases with host hit gating and fallthrough, bounded CSS outlines with compact aliases and exact non-layout host paint, bounded CSS aspect ratios with compact aliases and exact host geometry/paint, bounded CSS object-fit and object-position with compact aliases, exact fitted paint, and image-map keyboard/accessibility geometry, bounded CSS bitmap backgrounds with compact aliases and exact host paint, bounded inline SVG aliases, winding, stroke styles, geometry, links, and graphic accessibility, bounded has relational selectors with strict lists, maximum specificity, descendant/child/adjacent and complex host relationships, focus rebuilds, retained fields, queries, Inspector, and geometry, bounded nth-child of-S filters with strict lists, maximum specificity, forward/reverse computed styles, queries, Inspector, and host geometry, bounded precompiled An+B and reverse structural selectors with computed styles, queries, Inspector, and host geometry, bounded is, where, and list-not selector functions with specificity, queries, Inspector, and host geometry, bounded CSS important cascade with G.Ic diagnostics, custom properties, inline, responsive values, Inspector counts, and retained fields, bounded inherited CSS custom properties with S.Vc/Cv and G.Vc aliases, responsive values, Inspector counts, and retained fields, bounded responsive CSS media queries with viewport aliases and retained fields, optional bounded persistent cache aliases and Inspector diagnostics, bounded content-box and border-box geometry, scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, and shrink, semantic accessibility, protected values, rendered bounds, MSAA and UI Automation providers, value, table/grid, and read-only logical text patterns plus Access inspector, bounded autofocus and access keys, keyboard focus and activation, responsive image maps, compact time/edit metadata, output/data values and safe rebuilds, progress and meter gauges, disclosure commands, retained same-page fragments, Lea-first New Tab and explicit legacy fallback, host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
                 return 0;
             }
             catch (Exception error)
@@ -666,6 +682,28 @@ namespace Lea.Firespider
                 if (!links || type.GetField("U").GetValue(value) != null) count++;
             }
             return count;
+        }
+
+        private static System.Drawing.Rectangle ElementHit(V view, string id)
+        {
+            var member = typeof(V).GetField("hits", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = member == null ? null : member.GetValue(view) as System.Collections.IEnumerable;
+            if (values == null) throw new InvalidOperationException("Missing Lea pointer hits");
+            foreach (var value in values)
+            {
+                var type = value.GetType();
+                var element = type.GetField("El").GetValue(value) as N;
+                if (element != null && element.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase))
+                    return (System.Drawing.Rectangle)type.GetField("R").GetValue(value);
+            }
+            return System.Drawing.Rectangle.Empty;
+        }
+
+        private static void MoveView(V view, System.Drawing.Rectangle rect)
+        {
+            var method = typeof(V).GetMethod("OnMouseMove", BindingFlags.Instance | BindingFlags.NonPublic);
+            Check(method != null, "Lea mouse move route");
+            method.Invoke(view, new object[] { new MouseEventArgs(MouseButtons.None, 0, rect.Left + rect.Width / 2, rect.Top + rect.Height / 2 - view.Sy, 0) });
         }
 
         private static void PaintView(V view)

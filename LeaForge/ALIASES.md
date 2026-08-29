@@ -616,6 +616,22 @@ ordinary fields. Positive or negative outlines remain visual only: box sizes,
 document flow, hit regions, accessibility bounds, and native editors do not
 grow around them.
 
+Pointer interaction uses inherited `S.Cu/Pe`. `Cu` is empty for CSS `auto`, or
+`d/p/t/w/c/m/h/n/e/s` for default, pointer, text, wait/progress, crosshair,
+move, help, not-allowed, horizontal resize, and vertical resize. Common grab,
+all-scroll, no-drop, row/column-resize, and directional-resize keywords fold
+into those same compact states. `Pe` is true initially; bounded
+`pointer-events:auto/none` enables or suppresses mouse targeting for retained
+boxes, links, summaries, fields, fitted image maps, and linked SVG shapes.
+Both properties inherit, accept custom properties and important tiers, and
+preserve prior state for unknown values. `inherit`/`unset` keep inherited
+state, while `initial`/`revert` restore automatic cursor or enabled pointer
+events. The WinForms view maps `Cu` to built-in cursors and lets disabled boxes
+fall through to an eligible box underneath. `Pe=false` does not change paint,
+layout, keyboard focus, access keys, or accessibility bounds. Cursor image
+URLs and SVG-specific painted/fill/stroke pointer modes remain outside this
+bounded subset.
+
 Box shadows use the non-inherited `S.Sw` list. Each `Sw` entry stores horizontal
 and vertical offsets in `X/Y`, blur in `B`, spread in `R`, authored color in
 `C`, and inset state in `I`. CSS `box-shadow` accepts one to four comma-separated

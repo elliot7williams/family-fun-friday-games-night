@@ -112,7 +112,7 @@ namespace Lea.Bench
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
                 "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html", "svg.html", "svg-geometry.html", "svg-gradients.html", "svg-use-clips.html", "svg-strokes.html",
-                "box-sizing.html", "border-radius.html", "box-shadows.html", "background-gradients.html", "background-images.html", "object-fit.html", "aspect-ratio.html", "outlines.html"
+                "box-sizing.html", "border-radius.html", "box-shadows.html", "background-gradients.html", "background-images.html", "object-fit.html", "aspect-ratio.html", "outlines.html", "pointer-interaction.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -1044,6 +1044,63 @@ namespace Lea.Bench
                 }
                 return "S.Ow/Os/Oc/Oo aliases, atomic shorthand/longhands, variables/priority/reset/noninheritance, solid/dashed/dotted/auto and signed offsets, rounded box/field focus paint, clipping, stable geometry, and resize";
             });
+            AddProbe(probes, "Bounded pointer interaction", delegate
+            {
+                var path = Path.Combine(folder, "pointer-interaction.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var pointer = page.Bs.First(block => block.El != null && block.El.Av("id") == "pointer");
+                var reset = page.Bs.First(block => block.El != null && block.El.Av("id") == "reset");
+                var variable = page.Bs.First(block => block.El != null && block.El.Av("id") == "variable");
+                var child = page.Bs.First(block => block.El != null && block.El.Av("id") == "none-child");
+                var enabled = page.Bs.First(block => block.El != null && block.El.Av("id") == "auto-child");
+                var hoverCursor = page.Bs.First(block => block.El != null && block.El.Av("id") == "hover-cursor");
+                Need(page.S.Cu == "c" && page.S.Pe && pointer.S.Cu == "p" && pointer.S.Pe && hoverCursor.S.Cu == "p",
+                    "cursor aliases or inheritance changed");
+                Need(reset.S.Cu.Length == 0 && reset.S.Pe && variable.S.Cu == "p" && !variable.S.Pe,
+                    "pointer reset, variables, or event gate changed");
+                Need(child.S.Cu == "n" && !child.S.Pe && enabled.S.Cu == "h" && enabled.S.Pe,
+                    "pointer subtree inheritance or re-enable changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 2200);
+                    view.Go(path);
+                    Rectangle pointerRect;
+                    Rectangle hoverCursorRect;
+                    Rectangle deadRect;
+                    Rectangle enabledRect;
+                    using (var image = Draw(view))
+                    {
+                        pointerRect = BlockOuter(view, "pointer");
+                        hoverCursorRect = BlockOuter(view, "hover-cursor");
+                        deadRect = BlockOuter(view, "dead-link");
+                        enabledRect = BlockOuter(view, "auto-child");
+                        Need(deadRect.Size == new Size(202, 46) && ElementHit(view, "dead-link").IsEmpty &&
+                            !ElementHit(view, "live-link").IsEmpty && ElementHit(view, "dead-field").IsEmpty && !ElementHit(view, "live-field").IsEmpty,
+                            "pointer hit gating or stable geometry changed");
+                    }
+                    Move(view, pointerRect);
+                    Need(Object.ReferenceEquals(view.Cursor, Cursors.Hand), "pointer cursor mapping changed");
+                    Move(view, hoverCursorRect);
+                    Need(Object.ReferenceEquals(view.Cursor, Cursors.Help) &&
+                        view.At.Bs.First(block => block.El != null && block.El.Av("id") == "hover-cursor").S.Cu == "h",
+                        "dynamic hover cursor changed");
+                    Move(view, deadRect);
+                    Need(Object.ReferenceEquals(view.Cursor, Cursors.Cross), "pointer fallthrough cursor changed");
+                    Move(view, enabledRect);
+                    Need(Object.ReferenceEquals(view.Cursor, Cursors.Help), "pointer child cursor changed");
+                    Need(view.Js("fo('dead-field')") == 1 && view.Ke != null && view.Ke.Av("id") == "dead-field" && !view.Kb.IsEmpty,
+                        "pointer suppression changed keyboard focus");
+                    view.Size = new Size(350, 2600);
+                    using (var image = Draw(view))
+                    {
+                        var responsive = view.At.Bs.First(block => block.El != null && block.El.Av("id") == "responsive");
+                        Need(responsive.S.Cu == "w" && !responsive.S.Pe,
+                            "responsive pointer state changed");
+                    }
+                }
+                return "S.Cu/Pe inherited aliases, bounded cursor keywords, variables/priority/reset/invalid preservation, pointer-disabled link/field hits and hover, child re-enable, semantic cursors, keyboard/accessibility stability, and resize";
+            });
             AddProbe(probes, "Bounded flex layout", delegate
             {
                 var path = Path.Combine(folder, "flex.html");
@@ -1756,8 +1813,8 @@ namespace Lea.Bench
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box, circular/elliptical radii, bounded outlines, box shadows and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, and text styles, visibility, positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
-            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients, fitted raster images and maps, shared aspect-ratio sizing, inline, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
+            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box, circular/elliptical radii, bounded outlines, box shadows and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, and text styles, visibility, positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
+            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, inline, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
@@ -1875,6 +1932,28 @@ namespace Lea.Bench
         private static int ColorDistance(Color left, Color right)
         {
             return Math.Abs(left.R - right.R) + Math.Abs(left.G - right.G) + Math.Abs(left.B - right.B);
+        }
+
+        private static void Move(V view, Rectangle rect)
+        {
+            var method = typeof(V).GetMethod("OnMouseMove", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (method == null) throw new InvalidOperationException("Mouse move route unavailable");
+            method.Invoke(view, new object[] { new MouseEventArgs(MouseButtons.None, 0, rect.Left + rect.Width / 2, rect.Top + rect.Height / 2, 0) });
+        }
+
+        private static Rectangle ElementHit(V view, string id)
+        {
+            var member = typeof(V).GetField("hits", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = member == null ? null : member.GetValue(view) as System.Collections.IEnumerable;
+            if (values != null)
+                foreach (var value in values)
+                {
+                    var type = value.GetType();
+                    var element = type.GetField("El").GetValue(value) as N;
+                    if (element != null && element.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase))
+                        return (Rectangle)type.GetField("R").GetValue(value);
+                }
+            return Rectangle.Empty;
         }
 
         private static Rectangle FragmentHit(V view, string fragment)

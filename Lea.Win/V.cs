@@ -729,7 +729,7 @@ namespace Lea.Win
                     {
                         if (opacity > 0) PaintField(pe.Graphics, box, content, pageColor, opacity);
                         var fieldHit = VisibleRect(rect, clip);
-                        if (!fieldHit.IsEmpty) hits.Add(new Hit(fieldHit, null, box));
+                        if (PointerEnabled(box.S) && !fieldHit.IsEmpty) hits.Add(new Hit(fieldHit, null, box));
                         continue;
                     }
 
@@ -742,12 +742,12 @@ namespace Lea.Win
                         if (opacity > 0) PaintText(pe.Graphics, box.X, font, content, color, flags, opacity);
                     }
 
-                    if (box.U != null)
+                    if (box.U != null && PointerEnabled(box.S))
                     {
                         var hit = VisibleRect(rect, clip);
                         if (!hit.IsEmpty) hits.Add(new Hit(hit, box.U, null, box.El));
                     }
-                    else if (box.B != null && box.B.K == "summary" && !String.IsNullOrEmpty(box.B.Mk))
+                    else if (PointerEnabled(box.S) && box.B != null && box.B.K == "summary" && !String.IsNullOrEmpty(box.B.Mk))
                     {
                         var hit = VisibleRect(rect, clip);
                         if (!hit.IsEmpty) hits.Add(new Hit(hit, null, box, box.El));
@@ -3282,7 +3282,7 @@ namespace Lea.Win
                                             }
                                     }
                             }
-                            if (shape.U != null)
+                            if (shape.U != null && PointerEnabled(box.S))
                             {
                                 var bounds = Rectangle.Ceiling(path.GetBounds());
                                 var padding = VectorStrokePadding(shape, stroke, strokeScale);
@@ -3724,7 +3724,7 @@ namespace Lea.Win
 
         private void AddMapHits(Bx box, Rectangle imageRect, Rectangle clip)
         {
-            if (box == null || box.B == null || box.B.Mp == null || imageRect.Width < 1 || imageRect.Height < 1) return;
+            if (box == null || !PointerEnabled(box.S) || box.B == null || box.B.Mp == null || imageRect.Width < 1 || imageRect.Height < 1) return;
             var image = PicObjectRect(box.B, imageRect);
             var visible = VisibleRect(Rectangle.Intersect(imageRect, image), clip);
             if (visible.IsEmpty) return;
@@ -4147,9 +4147,10 @@ namespace Lea.Win
             SetHover(hit != null && hit.A != null ? hit.El : box == null ? null : box.El);
             var summary = box != null && box.B != null && box.B.K == "summary" && !String.IsNullOrEmpty(box.B.Mk);
             var link = hit != null && hit.U != null || box != null && box.U != null;
-            Cursor = box == null || (!summary && !link && (box.B == null || box.B.I == null))
+            var fallback = box == null || (!summary && !link && (box.B == null || box.B.I == null))
                 ? Cursors.Default
                 : box.B != null && CanEdit(box.B.I) ? Cursors.IBeam : Cursors.Hand;
+            Cursor = PointerCursor(PointerStyle(box), fallback);
         }
 
         protected override void OnMouseLeave(EventArgs e)
@@ -4165,7 +4166,8 @@ namespace Lea.Win
             var hit = HitAt(e.Location);
             if (hit == null)
             {
-                var target = FocusAt(e.Location);
+                var box = BoxAt(e.Location);
+                var target = box == null ? null : FocusAt(e.Location, box.El);
                 EndEdit(false);
                 if (target != null)
                 {
@@ -4194,7 +4196,7 @@ namespace Lea.Win
                 else if (hit.A != null)
                 {
                     EndEdit(false);
-                    var target = FocusAt(e.Location);
+                    var target = FocusAt(e.Location, hit.El);
                     if (target != null)
                     {
                         Focus();
@@ -4581,11 +4583,13 @@ namespace Lea.Win
             return target ?? FocusTarget(FocusTargets(false));
         }
 
-        private Kt FocusAt(Point point)
+        private Kt FocusAt(Point point, N preferred = null)
         {
             Kt found = null;
             var size = Int64.MaxValue;
             foreach (var target in FocusTargets(false))
+            {
+                if (preferred != null && !Object.ReferenceEquals(target.El, preferred) && !OwnsElement(target.El, preferred) && !OwnsElement(preferred, target.El)) continue;
                 foreach (var region in target.Rs)
                 {
                     var rect = ScreenRect(region);
@@ -4595,6 +4599,7 @@ namespace Lea.Win
                     found = target;
                     size = area;
                 }
+            }
             return found;
         }
 
@@ -5336,7 +5341,7 @@ namespace Lea.Win
             for (var i = boxes.Count - 1; i >= 0; i--)
             {
                 var box = boxes[i];
-                if (box.El == null || Hidden(box.S)) continue;
+                if (box.El == null || Hidden(box.S) || !PointerEnabled(box.S)) continue;
                 var at = point;
                 if (!box.Fx) at.Offset(0, sy);
                 var rect = VisibleRect(box.R, box.Clip);
@@ -5373,6 +5378,40 @@ namespace Lea.Win
         private static bool Hidden(S style)
         {
             return style != null && (style.Vi == "h" || style.Vi == "c");
+        }
+
+        private static bool PointerEnabled(S style)
+        {
+            return style == null || style.Pe;
+        }
+
+        private S PointerStyle(Bx box)
+        {
+            if (box == null) return At == null ? null : At.S;
+            if (At == null) return box.S;
+            var element = box.B != null && box.B.I != null ? box.B.I.El : box.B != null ? box.B.El : box.El;
+            if (element == null) return box.S;
+            foreach (var field in At.Fs)
+                if (Object.ReferenceEquals(field.El, element)) return field.S;
+            foreach (var block in At.Bs)
+                if (Object.ReferenceEquals(block.El, element)) return block.S;
+            return box.S;
+        }
+
+        private static Cursor PointerCursor(S style, Cursor fallback)
+        {
+            var cursor = style == null ? "" : style.Cu;
+            if (cursor == "d") return Cursors.Default;
+            if (cursor == "p") return Cursors.Hand;
+            if (cursor == "t") return Cursors.IBeam;
+            if (cursor == "w") return Cursors.WaitCursor;
+            if (cursor == "c") return Cursors.Cross;
+            if (cursor == "m") return Cursors.SizeAll;
+            if (cursor == "h") return Cursors.Help;
+            if (cursor == "n") return Cursors.No;
+            if (cursor == "e") return Cursors.SizeWE;
+            if (cursor == "s") return Cursors.SizeNS;
+            return fallback;
         }
 
         private static bool HtmlHidden(N element)
