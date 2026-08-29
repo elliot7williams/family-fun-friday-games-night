@@ -3124,6 +3124,43 @@ namespace Lea.Tests
 
                     BitmapBackgroundPaintSmoke(bitmapPath);
 
+                    var objectPath = Path.Combine(root, "LeaForge", "test-pages", "object-fit.html");
+                    var objectEngine = new E();
+                    var objectPage = objectEngine.Go(objectPath);
+                    Eq("f", BlockById(objectPage, "fill").S.Of, "fill object-fit alias");
+                    Eq("c", BlockById(objectPage, "contain").S.Of, "contain object-fit alias");
+                    Eq("v", BlockById(objectPage, "cover-left").S.Of, "cover object-fit alias");
+                    Eq("n", BlockById(objectPage, "none").S.Of, "none object-fit alias");
+                    Eq("s", BlockById(objectPage, "scale-down").S.Of, "scale-down object-fit alias");
+                    var coverLeftStyle = BlockById(objectPage, "cover-left").S;
+                    var coverRightStyle = BlockById(objectPage, "cover-right").S;
+                    Ok(coverLeftStyle.Ox == 0 && coverLeftStyle.Oy == 0 && coverLeftStyle.Oxp && coverLeftStyle.Oyp &&
+                        coverRightStyle.Ox == 100 && coverRightStyle.Oy == 100 && coverRightStyle.Oxp && coverRightStyle.Oyp,
+                        "keyword object-position aliases");
+                    var noneStyle = BlockById(objectPage, "none").S;
+                    Ok(noneStyle.Ox == 25 && noneStyle.Oy == 75 && noneStyle.Oxp && noneStyle.Oyp,
+                        "percentage object-position aliases");
+                    var atomicPositionStyle = BlockById(objectPage, "position-atomic").S;
+                    Ok(atomicPositionStyle.Ox == 13 && atomicPositionStyle.Oy == 7 && !atomicPositionStyle.Oxp && !atomicPositionStyle.Oyp,
+                        "pixel position and invalid preservation");
+                    Ok(BlockById(objectPage, "atomic").S.Of == "c" && BlockById(objectPage, "reset").S.Of == "f" &&
+                        BlockById(objectPage, "reset").S.Ox == 50 && BlockById(objectPage, "reset").S.Oy == 50,
+                        "atomic object fit and reset state");
+                    Ok(objectPage.S.Of == "v" && objectPage.S.Ox == 100 && objectPage.S.Oy == 100 && BlockById(objectPage, "child").S.Of == "f" &&
+                        BlockById(objectPage, "child").S.Ox == 50 && BlockById(objectPage, "child").S.Oy == 50,
+                        "object fit and position noninheritance");
+                    var variableObjectStyle = BlockById(objectPage, "variable").S;
+                    var priorityObjectStyle = BlockById(objectPage, "priority").S;
+                    Ok(variableObjectStyle.Of == "v" && variableObjectStyle.Ox == 100 && variableObjectStyle.Oy == 50 &&
+                        priorityObjectStyle.Of == "c" && priorityObjectStyle.Ox == 0 && priorityObjectStyle.Oy == 0,
+                        "variable and important object geometry");
+                    Ok(BlockById(objectPage, "dynamic").S.Of == "c", "wide responsive object fit state");
+                    objectEngine.Vw = 350;
+                    Ok(BlockById(objectPage, "dynamic").S.Of == "v" && BlockById(objectPage, "dynamic").S.Ox == 100 && BlockById(objectPage, "dynamic").S.Oy == 100,
+                        "narrow responsive object fit state");
+
+                    ObjectFitPaintSmoke(objectPath);
+
                     view.Size = new Size(720, 760);
                     var boxes = Path.Combine(root, "LeaForge", "test-pages", "boxes.html");
                     var boxPage = engine.Go(boxes);
@@ -4811,6 +4848,84 @@ namespace Lea.Tests
                         "bitmap boxes reflow without layout expansion");
                 }
             }
+        }
+
+        private static void ObjectFitPaintSmoke(string path)
+        {
+            using (var view = new V())
+            {
+                view.Size = new Size(720, 1800);
+                var load = view.GoA(path);
+                while (!load.IsCompleted)
+                {
+                    Application.DoEvents();
+                    Thread.Sleep(2);
+                }
+                load.GetAwaiter().GetResult();
+                Eq(1, PicCount(view), "deduplicated fitted image cache");
+                using (var paint = Render(view))
+                {
+                    var fill = BlockRect(view, BlockById(view.At, "fill"));
+                    Ok(ColorDistance(paint.GetPixel(fill.Left + 15, fill.Top + 15), Color.FromArgb(220, 38, 38)) < 12 &&
+                        ColorDistance(paint.GetPixel(fill.Right - 15, fill.Bottom - 15), Color.FromArgb(37, 99, 235)) < 12,
+                        "fill image paint");
+                    var contain = BlockRect(view, BlockById(view.At, "contain"));
+                    Ok(ColorDistance(paint.GetPixel(contain.Left + 10, contain.Top + 10), Color.White) < 8 &&
+                        ColorDistance(paint.GetPixel(contain.Left + 20, contain.Top + contain.Height / 2), Color.FromArgb(220, 38, 38)) < 16 &&
+                        ColorDistance(paint.GetPixel(contain.Right - 20, contain.Top + contain.Height / 2), Color.FromArgb(37, 99, 235)) < 16,
+                        "contain letterbox paint");
+                    var coverLeft = BlockRect(view, BlockById(view.At, "cover-left"));
+                    var coverRight = BlockRect(view, BlockById(view.At, "cover-right"));
+                    var coverLeftRed = paint.GetPixel(coverLeft.Left + 20, coverLeft.Top + 20);
+                    var coverLeftBlue = paint.GetPixel(coverLeft.Right - 10, coverLeft.Top + 20);
+                    var coverRightRed = paint.GetPixel(coverRight.Left + 5, coverRight.Top + 20);
+                    var coverRightBlue = paint.GetPixel(coverRight.Left + 60, coverRight.Top + 20);
+                    Ok(ColorDistance(coverLeftRed, Color.FromArgb(220, 38, 38)) < 16 &&
+                        ColorDistance(coverLeftBlue, Color.FromArgb(37, 99, 235)) < 45 &&
+                        ColorDistance(coverRightRed, Color.FromArgb(220, 38, 38)) < 16 &&
+                        ColorDistance(coverRightBlue, Color.FromArgb(37, 99, 235)) < 16,
+                        "positioned cover crop paint: " + coverLeftRed + "/" + coverLeftBlue + "/" + coverRightRed + "/" + coverRightBlue);
+                    var none = BlockRect(view, BlockById(view.At, "none"));
+                    Ok(ColorDistance(paint.GetPixel(none.Left + 5, none.Top + 5), Color.White) < 8 &&
+                        ColorDistance(paint.GetPixel(none.Left + 29, none.Top + 42), Color.FromArgb(220, 38, 38)) < 16 &&
+                        ColorDistance(paint.GetPixel(none.Left + 41, none.Top + 42), Color.FromArgb(37, 99, 235)) < 16,
+                        "intrinsic none position paint");
+                    var scale = BlockRect(view, BlockById(view.At, "scale-down"));
+                    Ok(ColorDistance(paint.GetPixel(scale.Left + 1, scale.Top + 1), Color.White) < 8 &&
+                        ColorDistance(paint.GetPixel(scale.Left + 2, scale.Top + 6), Color.FromArgb(220, 38, 38)) < 20 &&
+                        ColorDistance(paint.GetPixel(scale.Right - 2, scale.Top + 6), Color.FromArgb(37, 99, 235)) < 20,
+                        "scale-down paint");
+                    var priority = BlockRect(view, BlockById(view.At, "priority"));
+                    Ok(ColorDistance(paint.GetPixel(priority.Left + 10, priority.Top + 10), Color.FromArgb(220, 38, 38)) < 16 &&
+                        ColorDistance(paint.GetPixel(priority.Left + 10, priority.Bottom - 10), Color.White) < 8,
+                        "important top-positioned contain paint");
+
+                    var mapped = BlockRect(view, BlockById(view.At, "mapped-fit"));
+                    var leftArea = AreaHitRect(view, "fit-left");
+                    var defaultArea = AreaHitRect(view, "fit-default");
+                    Eq(new Rectangle(mapped.Left, mapped.Top + 20, 80, 80), leftArea, "fitted map rectangle geometry");
+                    Eq(new Rectangle(mapped.Left, mapped.Top + 20, 160, 80), defaultArea, "fitted default map excludes letterbox");
+                    Eq("", AreaAt(view, new Point(mapped.Left + 20, mapped.Top + 5)), "image-map letterbox is inert");
+                    Eq("fit-left", AreaAt(view, new Point(mapped.Left + 20, mapped.Top + 40)), "fitted image-map point transform");
+                    var fitArea = BlockById(view.At, "mapped-fit").Mp.As[0];
+                    Eq(leftArea, view.Ab(view.Ax(fitArea.El)), "fitted image-map accessibility bounds");
+                    Eq(2, view.Kn, "fitted image-map keyboard target count");
+                    Eq(1, view.Kf(), "fitted image-map keyboard focus index");
+                    Eq("fit-left", view.Ke.Av("id"), "fitted image-map keyboard element");
+                    Eq(leftArea, view.Kb, "fitted image-map keyboard bounds");
+                }
+
+                view.Size = new Size(350, 1800);
+                Application.DoEvents();
+                using (var paint = Render(view))
+                {
+                    var dynamic = BlockRect(view, BlockById(view.At, "dynamic"));
+                    Ok(BlockById(view.At, "dynamic").S.Of == "v" &&
+                        ColorDistance(paint.GetPixel(dynamic.Left + dynamic.Width / 2, dynamic.Top + dynamic.Height / 2), Color.FromArgb(37, 99, 235)) < 24,
+                        "responsive object fit repaint");
+                }
+            }
+            Console.WriteLine("Lea object-fit smoke passed: compact fit/position aliases, bounded paint, image-map geometry, accessibility, keyboard, and resize.");
         }
 
         private static AutomationElement AutomationById(AutomationElement root, string id)

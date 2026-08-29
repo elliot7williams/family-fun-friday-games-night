@@ -360,10 +360,12 @@ namespace Lea.Win
                     AddAccessibleBounds(ref result, box.R, box.Clip, box.Fx);
                 if (box.B == null || box.B.Mp == null || item.El == null || item.El.K != "area") continue;
                 var source = MapSourceSize(box.B, box.C);
+                var image = PicObjectRect(box.B, box.C);
+                var visible = Rectangle.Intersect(box.C, image);
                 foreach (var area in box.B.Mp.As)
                 {
                     if (!Object.ReferenceEquals(area.El, item.El)) continue;
-                    var rect = MapBounds(area, box.C, source);
+                    var rect = Rectangle.Intersect(visible, MapBounds(area, image, source));
                     AddAccessibleBounds(ref result, rect, box.Clip, box.Fx);
                 }
             }
@@ -3083,20 +3085,23 @@ namespace Lea.Win
             Image image;
             if (box.B != null && box.B.U != null && pics.TryGetValue(box.B.U.AbsoluteUri, out image) && image != null)
             {
-                var size = PicSize(box.B, rect.Width);
+                var objectRect = ObjectRect(box.S, new SizeF(image.Width, image.Height), rect);
                 var tiny = image.Width < 4 || image.Height < 4;
+                var state = graphics.Save();
                 var interpolation = graphics.InterpolationMode;
                 var offset = graphics.PixelOffsetMode;
                 try
                 {
+                    graphics.SetClip(rect, CombineMode.Intersect);
                     graphics.InterpolationMode = tiny ? InterpolationMode.NearestNeighbor : InterpolationMode.HighQualityBicubic;
                     graphics.PixelOffsetMode = tiny ? PixelOffsetMode.Half : PixelOffsetMode.HighQuality;
-                    PaintImage(graphics, image, new Rectangle(rect.X, rect.Y, Math.Min(rect.Width, size.Width), Math.Min(rect.Height, size.Height)), opacity);
+                    PaintImage(graphics, image, objectRect, opacity);
                 }
                 finally
                 {
                     graphics.InterpolationMode = interpolation;
                     graphics.PixelOffsetMode = offset;
+                    graphics.Restore(state);
                 }
                 return;
             }
@@ -3600,15 +3605,50 @@ namespace Lea.Win
         private void AddMapHits(Bx box, Rectangle imageRect, Rectangle clip)
         {
             if (box == null || box.B == null || box.B.Mp == null || imageRect.Width < 1 || imageRect.Height < 1) return;
-            var visible = VisibleRect(imageRect, clip);
+            var image = PicObjectRect(box.B, imageRect);
+            var visible = VisibleRect(Rectangle.Intersect(imageRect, image), clip);
             if (visible.IsEmpty) return;
             var source = MapSourceSize(box.B, imageRect);
             for (var index = box.B.Mp.As.Count - 1; index >= 0; index--)
             {
                 var area = box.B.Mp.As[index];
-                var bounds = Rectangle.Intersect(visible, MapBounds(area, imageRect, source));
-                if (!bounds.IsEmpty) hits.Add(new Hit(bounds, area.U, null, area.El, area, imageRect, source));
+                var bounds = Rectangle.Intersect(visible, MapBounds(area, image, source));
+                if (!bounds.IsEmpty) hits.Add(new Hit(bounds, area.U, null, area.El, area, image, source));
             }
+        }
+
+        private Rectangle PicObjectRect(B block, Rectangle rect)
+        {
+            Image image;
+            if (block != null && block.U != null && pics.TryGetValue(block.U.AbsoluteUri, out image) && image != null && image.Width > 0 && image.Height > 0)
+                return ObjectRect(block.S, new SizeF(image.Width, image.Height), rect);
+            return ObjectRect(block == null ? null : block.S, block == null ? rect.Size : MapSourceSize(block, rect), rect);
+        }
+
+        private static Rectangle ObjectRect(S style, SizeF source, Rectangle box)
+        {
+            if (box.Width < 1 || box.Height < 1 || source.Width <= 0F || source.Height <= 0F) return Rectangle.Empty;
+            var fit = style == null ? "f" : style.Of;
+            double width = box.Width;
+            double height = box.Height;
+            if (fit != "f")
+            {
+                var horizontal = box.Width / (double)source.Width;
+                var vertical = box.Height / (double)source.Height;
+                double scale;
+                if (fit == "v") scale = Math.Max(horizontal, vertical);
+                else if (fit == "c") scale = Math.Min(horizontal, vertical);
+                else if (fit == "s") scale = Math.Min(1D, Math.Min(horizontal, vertical));
+                else scale = 1D;
+                width = source.Width * scale;
+                height = source.Height * scale;
+            }
+            if (width <= 0D || height <= 0D || Double.IsNaN(width) || Double.IsNaN(height) || Double.IsInfinity(width) || Double.IsInfinity(height)) return Rectangle.Empty;
+            var objectWidth = Math.Max(1, Math.Min(8192, (int)Math.Round(width)));
+            var objectHeight = Math.Max(1, Math.Min(8192, (int)Math.Round(height)));
+            var left = BackgroundImageOffset(box.Left, box.Width - objectWidth, style == null ? 50 : style.Ox, style == null || style.Oxp);
+            var top = BackgroundImageOffset(box.Top, box.Height - objectHeight, style == null ? 50 : style.Oy, style == null || style.Oyp);
+            return new Rectangle(left, top, objectWidth, objectHeight);
         }
 
         private SizeF MapSourceSize(B block, Rectangle imageRect)
@@ -4345,6 +4385,8 @@ namespace Lea.Win
                 if (mapRegions == MaxKeyMapRegions) break;
                 if (box.Title || box.B == null || box.B.Mp == null || Hidden(box.S) || HtmlHidden(box.El)) continue;
                 var source = MapSourceSize(box.B, box.C);
+                var image = PicObjectRect(box.B, box.C);
+                var visible = Rectangle.Intersect(box.C, image);
                 foreach (var area in box.B.Mp.As)
                 {
                     if (mapRegions == MaxKeyMapRegions) break;
@@ -4353,7 +4395,7 @@ namespace Lea.Win
                     var tab = e.Ti(area.El);
                     if (area.U == null && !tab.HasValue) continue;
                     if (sequential && tab.HasValue && tab.Value < 0) continue;
-                    var rect = MapBounds(area, box.C, source);
+                    var rect = Rectangle.Intersect(visible, MapBounds(area, image, source));
                     if (!box.Clip.IsEmpty) rect = Rectangle.Intersect(rect, box.Clip);
                     if (rect.IsEmpty) continue;
                     int value;

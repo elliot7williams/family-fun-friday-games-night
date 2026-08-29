@@ -338,7 +338,18 @@ non-empty bridge survives both direct and external MTA clients. Continue host
 coverage and bounded HTML/CSS compatibility work without adding another browser
 runtime.
 
-The latest completed milestone adds bounded CSS bitmap backgrounds through
+The latest completed milestone adds bounded replaced-image fitting through
+compact `S.Of=f/c/v/n/s` and `Ox/Oy/Oxp/Oyp` state. Fill, contain, cover, none,
+and scale-down use one 8,192-pixel-capped positioned object rectangle with
+keyword, signed pixel, unitless compact pixel, or percentage coordinates.
+Variables, important tiers, resets, invalid preservation, noninheritance, and
+responsive rebuilds share the existing cascade. Clipped raster paint and
+image-map pointer, keyboard, and accessibility geometry share that rectangle,
+so letterboxes are inert and cropped source coordinates remain aligned without
+changing layout. Exact pixels, benchmark, and compiled Firespider coverage use
+`object-fit.html`.
+
+The previous completed milestone adds bounded CSS bitmap backgrounds through
 compact `S.Bi` and `Bi.U/R/X/Y/Xp/Yp/W/H/Wp/Hp/Wa/Ha/K` state. One atomic
 layer accepts bounded data, local file, HTTP, or HTTPS URLs; repeat, repeat-x,
 repeat-y, or no-repeat; pixel or percentage positions and sizes; auto,

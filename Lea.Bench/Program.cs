@@ -112,7 +112,7 @@ namespace Lea.Bench
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
                 "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html", "svg.html", "svg-geometry.html", "svg-gradients.html", "svg-use-clips.html", "svg-strokes.html",
-                "box-sizing.html", "border-radius.html", "box-shadows.html", "background-gradients.html", "background-images.html"
+                "box-sizing.html", "border-radius.html", "box-shadows.html", "background-gradients.html", "background-images.html", "object-fit.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -915,6 +915,55 @@ namespace Lea.Bench
                 }
                 return "S.Bi with U/R/X/Y/Xp/Yp/W/H/Wp/Hp/Wa/Ha/K aliases, bounded data/file loading, stylesheet/custom-property origins, atomic URL/position/size/shorthand parsing, repeat/axis/cover/contain/page/field paint, rounded clips, opacity, and resize";
             });
+            AddProbe(probes, "Bounded replaced-image fitting", delegate
+            {
+                var path = Path.Combine(folder, "object-fit.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var fill = page.Bs.First(block => block.El != null && block.El.Av("id") == "fill");
+                var contain = page.Bs.First(block => block.El != null && block.El.Av("id") == "contain");
+                var cover = page.Bs.First(block => block.El != null && block.El.Av("id") == "cover-right");
+                var none = page.Bs.First(block => block.El != null && block.El.Av("id") == "none");
+                var down = page.Bs.First(block => block.El != null && block.El.Av("id") == "scale-down");
+                var atomic = page.Bs.First(block => block.El != null && block.El.Av("id") == "atomic");
+                var reset = page.Bs.First(block => block.El != null && block.El.Av("id") == "reset");
+                var child = page.Bs.First(block => block.El != null && block.El.Av("id") == "child");
+                Need(fill.S.Of == "f" && contain.S.Of == "c" && cover.S.Of == "v" && none.S.Of == "n" && down.S.Of == "s",
+                    "object-fit aliases changed");
+                Need(cover.S.Ox == 100 && cover.S.Oy == 100 && cover.S.Oxp && cover.S.Oyp &&
+                    none.S.Ox == 25 && none.S.Oy == 75 && none.S.Oxp && none.S.Oyp,
+                    "object-position aliases changed");
+                Need(atomic.S.Of == "c" && reset.S.Of == "f" && reset.S.Ox == 50 && reset.S.Oy == 50 && child.S.Of == "f",
+                    "object geometry atomic reset or noninheritance changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1800);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var containRect = BlockContent(view, "contain");
+                        var coverRect = BlockContent(view, "cover-right");
+                        var mappedRect = BlockContent(view, "mapped-fit");
+                        var mappedBlock = view.At.Bs.First(block => block.El != null && block.El.Av("id") == "mapped-fit");
+                        var mapBounds = view.Ab(view.Ax(mappedBlock.Mp.As[0].El));
+                        Need(ColorDistance(image.GetPixel(containRect.Left + 10, containRect.Top + 10), Color.White) < 8 &&
+                            ColorDistance(image.GetPixel(containRect.Left + 20, containRect.Top + containRect.Height / 2), Color.FromArgb(220, 38, 38)) < 20,
+                            "object contain paint changed");
+                        Need(ColorDistance(image.GetPixel(coverRect.Left + 60, coverRect.Top + 20), Color.FromArgb(37, 99, 235)) < 20,
+                            "positioned object cover paint changed");
+                        Need(mapBounds == new Rectangle(mappedRect.Left, mappedRect.Top + 20, 80, 80) && view.Kn == 2 && view.Kf() == 1 && view.Kb == mapBounds,
+                            "fitted image-map geometry changed");
+                    }
+                    view.Size = new Size(350, 1800);
+                    using (var image = Draw(view))
+                    {
+                        var dynamic = view.At.Bs.First(block => block.El != null && block.El.Av("id") == "dynamic");
+                        Need(dynamic.S.Of == "v" && dynamic.S.Ox == 100 && dynamic.S.Oy == 100,
+                            "responsive object geometry changed");
+                    }
+                }
+                return "S.Of=f/c/v/n/s with Ox/Oy/Oxp/Oyp aliases, atomic variables/priority/reset/noninheritance, clipped fill/contain/cover/none/scale-down paint, fitted map pointer/accessibility/keyboard geometry, and resize";
+            });
             AddProbe(probes, "Bounded flex layout", delegate
             {
                 var path = Path.Combine(folder, "flex.html");
@@ -1627,8 +1676,8 @@ namespace Lea.Bench
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box, circular/elliptical radii, bounded box shadows and one-layer linear/radial gradients, and text styles, visibility, positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
-            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/overflow/fields/shadows/gradients, inline, row/column flex, bounded grid, table, form, image, inline vector, clipping, scroll, and stacking renderer");
+            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box, circular/elliptical radii, bounded box shadows and one-layer linear/radial gradients, object fit/position, and text styles, visibility, positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
+            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/overflow/fields/shadows/gradients, fitted raster images and maps, inline, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
@@ -1643,7 +1692,7 @@ namespace Lea.Bench
             Capability(builder, "Progress and meter gauges", "Supported", "Compact Vm values, finite normalization, meter quality regions, inherited styles, table cells, and custom paint");
             Capability(builder, "Output and data values", "Supported", "Compact Dv values, bounded references and text, host aliases, inline/block/table ownership, and safe rebuilds");
             Capability(builder, "Time and edit metadata", "Supported", "Compact Dv t/i/r values, bounded datetime and citation aliases, safe schemes, native decorations, inline/block/table ownership, and safe rebuilds");
-            Capability(builder, "Image maps", "Supported subset", "Compact Mp/Ar models, rect/circle/poly/default and dead areas, bounded coordinates, scaled custom hit regions, area links/downloads, and safe rebuilds");
+            Capability(builder, "Image maps", "Supported subset", "Compact Mp/Ar models, rect/circle/poly/default and dead areas, bounded coordinates, object-fit-aware scaled and cropped hit regions, area links/downloads, and safe rebuilds");
             Capability(builder, "Keyboard focus", "Supported subset", "Bounded tabindex order, links, image-map areas, fields, summaries, visible focus, scrolling, wrapping, and host activation aliases");
             Capability(builder, "Focus shortcuts", "Supported subset", "Bounded autofocus candidates and ASCII access-key alternatives with conflict resolution, Alt+Shift labels, host-safe matching, focus, and activation");
             Capability(builder, "Accessibility", "Supported subset", "Bounded Ax hierarchy with MSAA and native UI Automation fragments, roles, names, live protected state, rendered bounds, focus, invoke/value/toggle/selection/disclosure/range/scroll and Tb/Tc-backed grid/table/item patterns, plus read-only logical TextPattern document/child/point ranges with visual-line and partial-range geometry; visible-range arrays use an empty fallback, and this is not the complete platform mapping standards");

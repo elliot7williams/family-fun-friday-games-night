@@ -276,6 +276,18 @@ boxes, and ordinary fields with effective opacity and inherited clipping.
 Layout, accessibility bounds, document height, and host hit routes remain
 unchanged.
 
+Raster `<img>` fitting is available through non-inherited `S.Of` and
+`S.Ox/Oy/Oxp/Oyp`. `Of=f/c/v/n/s` represents fill, contain, cover, none, and
+scale-down; `Ox/Oy` plus the percentage flags represent the centered initial
+`object-position`. The engine accepts bounded keyword, pixel, unitless compact
+pixel, and percentage positions, custom properties, important declarations,
+resets, and responsive rebuilds. The WinForms view computes one capped fitted
+rectangle inside the existing image content box and clips overflowing cover or
+none paint. Image maps use that same rectangle for pointer hits, sequential
+focus bounds, and semantic accessibility, excluding letterboxes and preserving
+cropped source-coordinate transforms. Hosts need no additional control or
+adapter code, and image layout dimensions remain unchanged.
+
 CSS background gradients are available through non-inherited `S.Gi`. Hosts can
 inspect `Gi.K/A/X/Y/Ss` for one linear/radial image and `Cs.C/P` for up to eight
 normalized color stops. The parser applies `background` and `background-image`

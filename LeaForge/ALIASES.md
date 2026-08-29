@@ -628,6 +628,19 @@ rounded-box, and ordinary-field painters share the existing 24-entry cache,
 Multiple layers, attachment, origin/clip, blending, and arbitrary file access
 from remote styles remain outside this subset.
 
+Replaced raster images use non-inherited compact `S.Of=f/c/v/n/s` for CSS
+`object-fit:fill/contain/cover/none/scale-down`. `Ox/Oy` store each
+`object-position` coordinate and `Oxp/Oyp` mark percentage rather than pixel
+units; the initial position is centered at `50% 50%`. One or two bounded
+keyword, signed pixel, compact unitless-pixel, or percentage values are
+accepted. Variables, important tiers, CSS-wide reset values, responsive rules,
+and malformed-declaration preservation share the computed-style cascade. The
+custom view caps fitted dimensions at 8,192 pixels and clips paint to the image
+content box. Image-map hit tests, focus rings, and accessibility bounds reuse
+the same positioned object rectangle, so contain/none letterboxes are inert
+and cover crops retain correct source-coordinate mapping. These properties do
+not change the element's layout dimensions.
+
 CSS background gradients use the non-inherited `S.Gi` alias. A compact `Gi` uses
 `K=l/r` for linear or radial kind, `A` for the CSS angle, `X/Y` for a radial
 percentage origin, and `Ss` for up to eight `Cs` color stops. Each `Cs` stores

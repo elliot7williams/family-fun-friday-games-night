@@ -258,6 +258,13 @@ image with no-repeat, bottom-right positioning, pixel sizing, and rounded
 clipping, then verifies both the public model and exact custom-surface pixels.
 Firespider adds no image control or adapter-side background painter.
 
+Hosted Lea raster images expose bounded `object-fit` and `object-position`
+through compact `S.Of=f/c/v/n/s` and `Ox/Oy/Oxp/Oyp` state. The host smoke
+compiles a two-color image with contain/center fitting, verifies letterbox and
+source pixels on the custom surface, and confirms that mapped-area keyboard and
+accessibility rectangles follow the fitted pixels. Firespider needs no native
+image control or adapter-side fitting logic.
+
 `Smoke.cs` loads two compiled Firespider forms off-screen and verifies Lea-first
 New Tab creation, the explicit legacy fallback, Inspector open/refresh/clear and legacy isolation, diagnostics,
 script/style, host-controlled `go`, and safe click execution, alert routing,

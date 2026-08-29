@@ -23,6 +23,11 @@ namespace Lea.Engine
         public string Ws { get; internal set; }
         public string Wb { get; internal set; }
         public string Ov { get; internal set; }
+        public string Of { get; internal set; }
+        public int Ox { get; internal set; }
+        public int Oy { get; internal set; }
+        public bool Oxp { get; internal set; }
+        public bool Oyp { get; internal set; }
         public string Vi { get; internal set; }
         public string Cp { get; internal set; }
         public int Op { get; internal set; }
@@ -184,6 +189,11 @@ namespace Lea.Engine
             Ws = "";
             Wb = "";
             Ov = "";
+            Of = "f";
+            Ox = 50;
+            Oy = 50;
+            Oxp = true;
+            Oyp = true;
             Vi = "";
             Cp = "";
             Op = 100;

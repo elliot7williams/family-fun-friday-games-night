@@ -3250,6 +3250,8 @@ namespace Lea.Engine
                 else if (name == "white-space") WhiteSpace(style, value);
                 else if (name == "word-break" || name == "overflow-wrap" || name == "word-wrap") WordBreak(style, value, name == "word-break");
                 else if (name == "overflow") Overflow(style, value);
+                else if (name == "object-fit") ObjectFit(style, value);
+                else if (name == "object-position") ObjectPosition(style, value);
                 else if (name == "visibility") Visibility(style, value);
                 else if (name == "clip-path" && value.Length <= 128) style.Cp = value;
                 else if (name == "opacity") Opacity(style, value);
@@ -4852,6 +4854,37 @@ namespace Lea.Engine
             int number;
             bool percent;
             return value == "top" || value == "bottom" || BackgroundPositionValue(value, true, out number, out percent);
+        }
+
+        private static void ObjectFit(S style, string value)
+        {
+            var token = (value ?? "").Trim().ToLowerInvariant();
+            if (RadiusReset(token)) style.Of = "f";
+            else if (token == "fill") style.Of = "f";
+            else if (token == "contain") style.Of = "c";
+            else if (token == "cover") style.Of = "v";
+            else if (token == "none") style.Of = "n";
+            else if (token == "scale-down") style.Of = "s";
+        }
+
+        private static void ObjectPosition(S style, string value)
+        {
+            var source = (value ?? "").Trim();
+            if (RadiusReset(source.ToLowerInvariant()))
+            {
+                style.Ox = 50;
+                style.Oy = 50;
+                style.Oxp = true;
+                style.Oyp = true;
+                return;
+            }
+            List<string> parts;
+            var position = new Bi();
+            if (!ShadowParts(source, '\0', out parts) || !BackgroundPosition(position, parts)) return;
+            style.Ox = position.X;
+            style.Oy = position.Y;
+            style.Oxp = position.Xp;
+            style.Oyp = position.Yp;
         }
 
         private static void BackgroundSize(S style, string value)
