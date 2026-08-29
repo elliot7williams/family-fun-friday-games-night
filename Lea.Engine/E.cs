@@ -1642,7 +1642,7 @@ namespace Lea.Engine
                 (style.Bg.Length > 0 || style.Gi != null || style.Bi != null && style.Bi.U != null ||
                  style.Mt != 0 || style.Mr != 0 || style.Mb != 0 || style.Ml != 0 ||
                  style.Pt != 0 || style.Pr != 0 || style.Pb != 0 || style.Pl != 0 || style.W > 0 || style.H > 0 ||
-                 style.Wn > 0 || style.Wx > 0 || style.Hn > 0 || style.Hx > 0 ||
+                 style.Wn > 0 || style.Wx > 0 || style.Hn > 0 || style.Hx > 0 || style.Rw > 0D && style.Rh > 0D ||
                  style.Bt > 0 || style.Br > 0 || style.Bb > 0 || style.Bl > 0);
         }
 
@@ -3316,6 +3316,7 @@ namespace Lea.Engine
                 else if (name == "max-width") style.Wx = Px(value);
                 else if (name == "min-height") style.Hn = Px(value);
                 else if (name == "max-height") style.Hx = Px(value);
+                else if (name == "aspect-ratio") AspectRatio(style, value);
                 else if (name == "border") Border(style, value, 0);
                 else if (name == "border-top") Border(style, value, 1);
                 else if (name == "border-right") Border(style, value, 2);
@@ -4885,6 +4886,60 @@ namespace Lea.Engine
             style.Oy = position.Y;
             style.Oxp = position.Xp;
             style.Oyp = position.Yp;
+        }
+
+        private static void AspectRatio(S style, string value)
+        {
+            var source = Regex.Replace((value ?? "").Trim().ToLowerInvariant(), "\\s*/\\s*", "/");
+            if (source == "auto" || RadiusReset(source))
+            {
+                style.Rw = 0D;
+                style.Rh = 0D;
+                style.Ra = true;
+                return;
+            }
+            var parts = Regex.Split(source, "\\s+");
+            if (parts.Length < 1 || parts.Length > 2) return;
+            var auto = false;
+            var ratio = "";
+            foreach (var part in parts)
+            {
+                if (part == "auto")
+                {
+                    if (auto) return;
+                    auto = true;
+                }
+                else
+                {
+                    if (ratio.Length > 0) return;
+                    ratio = part;
+                }
+            }
+            double width;
+            double height;
+            if (!AspectRatioValue(ratio, out width, out height)) return;
+            style.Rw = width;
+            style.Rh = height;
+            style.Ra = auto;
+        }
+
+        private static bool AspectRatioValue(string value, out double width, out double height)
+        {
+            width = 0D;
+            height = 0D;
+            var parts = (value ?? "").Split('/');
+            if (parts.Length < 1 || parts.Length > 2 || !AspectRatioNumber(parts[0], out width)) return false;
+            if (parts.Length == 1) height = 1D;
+            else if (!AspectRatioNumber(parts[1], out height)) return false;
+            var ratio = width / height;
+            return ratio >= 0.001D && ratio <= 1000D;
+        }
+
+        private static bool AspectRatioNumber(string value, out double number)
+        {
+            number = 0D;
+            if (!Regex.IsMatch(value ?? "", "^(?:[0-9]{1,4}(?:\\.[0-9]{0,3})?|\\.[0-9]{1,3})$")) return false;
+            return Double.TryParse(value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out number) && number > 0D && number <= 10000D;
         }
 
         private static void BackgroundSize(S style, string value)

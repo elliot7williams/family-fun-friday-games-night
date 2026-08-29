@@ -81,6 +81,9 @@ namespace Lea.Engine
         public int Wx { get; internal set; }
         public int Hn { get; internal set; }
         public int Hx { get; internal set; }
+        public double Rw { get; internal set; }
+        public double Rh { get; internal set; }
+        public bool Ra { get; internal set; }
         public int Bt { get; internal set; }
         public int Br { get; internal set; }
         public int Bb { get; internal set; }
@@ -218,6 +221,7 @@ namespace Lea.Engine
             Re = "";
             An = "";
             Bz = "c";
+            Ra = true;
             Pn = "";
             Bc = "";
             Bs = "";

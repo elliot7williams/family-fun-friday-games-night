@@ -3161,6 +3161,40 @@ namespace Lea.Tests
 
                     ObjectFitPaintSmoke(objectPath);
 
+                    var ratioPath = Path.Combine(root, "LeaForge", "test-pages", "aspect-ratio.html");
+                    var ratioEngine = new E();
+                    var ratioPage = ratioEngine.Go(ratioPath);
+                    var wideRatio = BlockById(ratioPage, "wide").S;
+                    var tallRatio = BlockById(ratioPage, "tall").S;
+                    Ok(wideRatio.Rw == 16D && wideRatio.Rh == 9D && !wideRatio.Ra &&
+                        tallRatio.Rw == 3D && tallRatio.Rh == 4D && !tallRatio.Ra,
+                        "aspect-ratio fraction aliases");
+                    var autoRatio = BlockById(ratioPage, "auto-image").S;
+                    var fallbackRatio = BlockById(ratioPage, "fallback-image").S;
+                    Ok(autoRatio.Rw == 1D && autoRatio.Rh == 1D && autoRatio.Ra &&
+                        fallbackRatio.Rw == 4D && fallbackRatio.Rh == 3D && fallbackRatio.Ra,
+                        "auto intrinsic ratio aliases");
+                    var atomicRatio = BlockById(ratioPage, "atomic").S;
+                    var resetRatio = BlockById(ratioPage, "reset").S;
+                    Ok(atomicRatio.Rw == 1.5D && atomicRatio.Rh == 1D && !atomicRatio.Ra &&
+                        resetRatio.Rw == 0D && resetRatio.Rh == 0D && resetRatio.Ra &&
+                        BlockById(ratioPage, "dot-ratio").S.Rw == .5D,
+                        "decimal ratio forms, invalid preservation, and reset");
+                    Ok(BlockById(ratioPage, "ratio-parent").S.Rw == 3D && BlockById(ratioPage, "ratio-child").S.Rw == 0D,
+                        "aspect-ratio noninheritance");
+                    var variableRatio = BlockById(ratioPage, "variable").S;
+                    var priorityRatio = BlockById(ratioPage, "priority").S;
+                    Ok(variableRatio.Rw == 5D && variableRatio.Rh == 2D && !variableRatio.Ra &&
+                        priorityRatio.Rw == 2D && priorityRatio.Rh == 1D,
+                        "variable and important aspect ratio");
+                    Ok(BlockById(ratioPage, "dynamic").S.Rw == 4D && BlockById(ratioPage, "dynamic").S.Rh == 1D,
+                        "wide responsive aspect ratio state");
+                    ratioEngine.Vw = 350;
+                    Ok(BlockById(ratioPage, "dynamic").S.Rw == 1D && BlockById(ratioPage, "dynamic").S.Rh == 1D,
+                        "narrow responsive aspect ratio state");
+
+                    AspectRatioPaintSmoke(ratioPath);
+
                     view.Size = new Size(720, 760);
                     var boxes = Path.Combine(root, "LeaForge", "test-pages", "boxes.html");
                     var boxPage = engine.Go(boxes);
@@ -4926,6 +4960,91 @@ namespace Lea.Tests
                 }
             }
             Console.WriteLine("Lea object-fit smoke passed: compact fit/position aliases, bounded paint, image-map geometry, accessibility, keyboard, and resize.");
+        }
+
+        private static void AspectRatioPaintSmoke(string path)
+        {
+            using (var view = new V())
+            {
+                view.Size = new Size(720, 3600);
+                var load = view.GoA(path);
+                while (!load.IsCompleted)
+                {
+                    Application.DoEvents();
+                    Thread.Sleep(2);
+                }
+                load.GetAwaiter().GetResult();
+                using (var paint = Render(view))
+                {
+                    Eq(new Size(240, 135), BlockRect(view, BlockById(view.At, "wide")).Size, "width-driven aspect ratio geometry");
+                    Eq(new Size(90, 120), BlockRect(view, BlockById(view.At, "tall")).Size, "height-driven aspect ratio geometry");
+                    Eq(new Size(120, 60), BlockRect(view, BlockById(view.At, "content-box")).Size, "content-box ratio content geometry");
+                    Eq(new Size(144, 84), BlockOuterRect(view, BlockById(view.At, "content-box")).Size, "content-box ratio outer geometry");
+                    Eq(new Size(120, 60), BlockRect(view, BlockById(view.At, "border-box")).Size, "border-box ratio content geometry");
+                    Eq(new Size(144, 84), BlockOuterRect(view, BlockById(view.At, "border-box")).Size, "border-box ratio outer geometry");
+                    Eq(new Size(120, 50), BlockRect(view, BlockById(view.At, "both")).Size, "explicit dimensions override ratio");
+                    Eq(new Size(200, 70), BlockRect(view, BlockById(view.At, "minimum")).Size, "ratio minimum-height constraint");
+                    Eq(new Size(200, 80), BlockRect(view, BlockById(view.At, "maximum")).Size, "ratio maximum-height constraint");
+                    Eq(new Size(140, 60), BlockRect(view, BlockById(view.At, "minimum-width")).Size, "ratio minimum-width constraint");
+                    Eq(new Size(150, 100), BlockRect(view, BlockById(view.At, "maximum-width")).Size, "ratio maximum-width constraint");
+                    Eq(new Size(120, 240), BlockRect(view, BlockById(view.At, "dot-ratio")).Size, "leading-decimal ratio geometry");
+                    Ok(BlockRect(view, BlockById(view.At, "text-ratio")).Height > 15, "ratio text preserves content minimum");
+                    var owner = BlockRect(view, BlockById(view.At, "owner"));
+                    var ownerChild = BlockOuterRect(view, BlockById(view.At, "owner-child"));
+                    Eq(new Size(200, 100), owner.Size, "ratio owner minimum geometry");
+                    Ok(owner.Contains(ownerChild) && BlockOuterRect(view, BlockById(view.At, "after-owner")).Top > BlockOuterRect(view, BlockById(view.At, "owner")).Bottom,
+                        "ratio owner contains child and advances flow");
+
+                    var ratioImage = BlockRect(view, BlockById(view.At, "ratio-image"));
+                    var autoImage = BlockRect(view, BlockById(view.At, "auto-image"));
+                    Eq(new Size(100, 100), ratioImage.Size, "explicit ratio replaces raster intrinsic ratio");
+                    Eq(new Size(100, 50), autoImage.Size, "auto ratio keeps raster intrinsic ratio");
+                    Eq(new Size(100, 75), BlockRect(view, BlockById(view.At, "fallback-image")).Size, "missing raster ratio fallback");
+                    Eq(new Size(107, 80), BlockRect(view, BlockById(view.At, "height-image")).Size, "height-driven raster ratio");
+                    Eq(new Size(120, 120), BlockRect(view, BlockById(view.At, "ratio-svg")).Size, "explicit ratio replaces vector intrinsic ratio");
+                    Eq(new Size(120, 40), BlockRect(view, FieldBlock(view.At, FieldById(view.At, "ratio-field"))).Size, "field aspect ratio geometry");
+                    Ok(ColorDistance(paint.GetPixel(ratioImage.Left + 15, ratioImage.Top + ratioImage.Height / 2), Color.FromArgb(220, 38, 38)) < 20 &&
+                        ColorDistance(paint.GetPixel(ratioImage.Right - 15, ratioImage.Top + ratioImage.Height / 2), Color.FromArgb(37, 99, 235)) < 20,
+                        "ratio raster paint");
+
+                    var flex = BlockRect(view, BlockById(view.At, "ratio-flex"));
+                    var flexRatio = BlockOuterRect(view, BlockById(view.At, "flex-ratio"));
+                    var flexFixed = BlockOuterRect(view, BlockById(view.At, "flex-fixed"));
+                    Eq(new Size(120, 60), flexRatio.Size, "ratio flex basis geometry");
+                    Ok(flexFixed.Size == new Size(80, 30) && flexFixed.Left - flexRatio.Right == 28 && flex.Height >= 68,
+                        "ratio flex sibling placement: " + flex + "/" + flexRatio + "/" + flexFixed);
+                    var flexColumn = BlockRect(view, BlockById(view.At, "ratio-flex-column"));
+                    var flexColumnRatio = BlockOuterRect(view, BlockById(view.At, "flex-column-ratio"));
+                    var flexColumnFixed = BlockOuterRect(view, BlockById(view.At, "flex-column-fixed"));
+                    Eq(new Size(120, 80), flexColumnRatio.Size, "ratio column-flex basis geometry");
+                    Ok(flexColumnFixed.Size == new Size(60, 40) && flexColumnFixed.Top - flexColumnRatio.Bottom == 18 && flexColumn.Height == 180,
+                        "ratio column-flex sibling placement: " + flexColumn + "/" + flexColumnRatio + "/" + flexColumnFixed);
+                    var grid = BlockRect(view, BlockById(view.At, "ratio-grid"));
+                    var gridRatio = BlockOuterRect(view, BlockById(view.At, "grid-ratio"));
+                    var gridFixed = BlockOuterRect(view, BlockById(view.At, "grid-fixed"));
+                    Eq(new Size(132, 66), gridRatio.Size, "ratio grid item geometry");
+                    Ok(gridFixed.Size == new Size(132, 30) && gridFixed.Left - gridRatio.Right == 28 && grid.Height >= 74 &&
+                        BlockOuterRect(view, BlockById(view.At, "after-grid")).Top > BlockOuterRect(view, BlockById(view.At, "ratio-grid")).Bottom,
+                        "ratio grid row and following flow: " + grid + "/" + gridRatio + "/" + gridFixed);
+                    Eq(new Size(240, 120), BlockRect(view, BlockById(view.At, "ratio-table")).Size, "ratio table preferred minimum");
+                    Eq(new Size(120, 80), BlockRect(view, BlockById(view.At, "atomic")).Size, "atomic decimal ratio geometry");
+                    Ok(BlockRect(view, BlockById(view.At, "reset")).Height < 60, "reset ratio returns natural height");
+                    Eq(new Size(180, 60), BlockRect(view, BlockById(view.At, "ratio-parent")).Size, "ratio parent geometry");
+                    Eq(new Size(150, 60), BlockRect(view, BlockById(view.At, "variable")).Size, "variable ratio geometry");
+                    Eq(new Size(160, 80), BlockRect(view, BlockById(view.At, "priority")).Size, "important ratio geometry");
+                    Eq(new Size(200, 50), BlockRect(view, BlockById(view.At, "dynamic")).Size, "wide responsive ratio geometry");
+                }
+
+                view.Size = new Size(350, 4200);
+                Application.DoEvents();
+                using (var paint = Render(view))
+                {
+                    var dynamic = BlockRect(view, BlockById(view.At, "dynamic"));
+                    Eq(new Size(200, 200), dynamic.Size, "narrow responsive ratio geometry");
+                    Ok(ColorDistance(CenterPixel(paint, dynamic), Color.FromArgb(223, 246, 233)) < 16, "responsive ratio repaint");
+                }
+            }
+            Console.WriteLine("Lea aspect-ratio smoke passed: compact aliases, intrinsic fallback, shared box/flex/grid/table geometry, paint, and resize.");
         }
 
         private static AutomationElement AutomationById(AutomationElement root, string id)

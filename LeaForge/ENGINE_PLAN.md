@@ -338,7 +338,18 @@ non-empty bridge survives both direct and external MTA clients. Continue host
 coverage and bounded HTML/CSS compatibility work without adding another browser
 runtime.
 
-The latest completed milestone adds bounded replaced-image fitting through
+The latest completed milestone adds bounded CSS `aspect-ratio` through compact
+non-inherited `S.Rw/Rh/Ra` state. One positive number or two-part ratio plus
+optional intrinsic `auto` fallback compiles atomically under strict digit,
+component, and resolved-ratio bounds. Variables, important tiers, CSS-wide
+resets, malformed preservation, and responsive rebuilds share the existing
+cascade. One 8,192-pixel-capped resolver serves content/border boxes, normal
+and nested flow, text minimums, raster/SVG intrinsic sizing, fields, flex,
+grid, and table minimums while explicit dimensions and min/max clamps win.
+Exact geometry, pixels, benchmark, and compiled Firespider coverage use
+`aspect-ratio.html`.
+
+The previous completed milestone adds bounded replaced-image fitting through
 compact `S.Of=f/c/v/n/s` and `Ox/Oy/Oxp/Oyp` state. Fill, contain, cover, none,
 and scale-down use one 8,192-pixel-capped positioned object rectangle with
 keyword, signed pixel, unitless compact pixel, or percentage coordinates.
@@ -349,7 +360,7 @@ so letterboxes are inert and cropped source coordinates remain aligned without
 changing layout. Exact pixels, benchmark, and compiled Firespider coverage use
 `object-fit.html`.
 
-The previous completed milestone adds bounded CSS bitmap backgrounds through
+The earlier completed milestone adds bounded CSS bitmap backgrounds through
 compact `S.Bi` and `Bi.U/R/X/Y/Xp/Yp/W/H/Wp/Hp/Wa/Ha/K` state. One atomic
 layer accepts bounded data, local file, HTTP, or HTTPS URLs; repeat, repeat-x,
 repeat-y, or no-repeat; pixel or percentage positions and sizes; auto,

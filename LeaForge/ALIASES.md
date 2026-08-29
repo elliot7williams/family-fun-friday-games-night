@@ -641,6 +641,20 @@ the same positioned object rectangle, so contain/none letterboxes are inert
 and cover crops retain correct source-coordinate mapping. These properties do
 not change the element's layout dimensions.
 
+CSS aspect-ratio sizing uses non-inherited `S.Rw/Rh/Ra`. `Rw` and `Rh` store
+the positive preferred width and height components; `Ra` records an authored
+`auto` preference so a loaded raster or vector keeps its intrinsic ratio and a
+missing resource can use the supplied fallback. Lea accepts one positive
+number or `A/B`, with optional `auto` before or after the ratio. Each component
+has up to four integer and three fractional digits, permits compact `.5` and
+`1.` forms, is capped at 10,000, and the
+resolved ratio stays between 0.001 and 1,000. Variables, important tiers,
+CSS-wide resets, responsive rules, malformed-declaration preservation, and
+noninheritance share the existing cascade. Explicit width or height can derive
+the opposite auto axis; two explicit axes win. Content/border boxes, min/max
+clamps, text minimums, nested owners, raster/SVG media, fields, flex, grid, and
+table minimums use the same 8,192-pixel-capped resolution path.
+
 CSS background gradients use the non-inherited `S.Gi` alias. A compact `Gi` uses
 `K=l/r` for linear or radial kind, `A` for the CSS angle, `X/Y` for a radial
 percentage origin, and `Ss` for up to eight `Cs` color stops. Each `Cs` stores

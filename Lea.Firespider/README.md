@@ -265,6 +265,11 @@ source pixels on the custom surface, and confirms that mapped-area keyboard and
 accessibility rectangles follow the fitted pixels. Firespider needs no native
 image control or adapter-side fitting logic.
 
+Hosted Lea pages expose bounded CSS `aspect-ratio` through compact
+`S.Rw/Rh/Ra` state. The host smoke compiles a `2/1` ratio, verifies the public
+aliases and exact `160x80` custom-surface geometry, and samples the painted
+background. Firespider adds no ratio calculations or extra native control.
+
 `Smoke.cs` loads two compiled Firespider forms off-screen and verifies Lea-first
 New Tab creation, the explicit legacy fallback, Inspector open/refresh/clear and legacy isolation, diagnostics,
 script/style, host-controlled `go`, and safe click execution, alert routing,

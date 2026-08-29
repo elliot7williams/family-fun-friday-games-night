@@ -112,7 +112,7 @@ namespace Lea.Bench
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
                 "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html", "svg.html", "svg-geometry.html", "svg-gradients.html", "svg-use-clips.html", "svg-strokes.html",
-                "box-sizing.html", "border-radius.html", "box-shadows.html", "background-gradients.html", "background-images.html", "object-fit.html"
+                "box-sizing.html", "border-radius.html", "box-shadows.html", "background-gradients.html", "background-images.html", "object-fit.html", "aspect-ratio.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -964,6 +964,45 @@ namespace Lea.Bench
                 }
                 return "S.Of=f/c/v/n/s with Ox/Oy/Oxp/Oyp aliases, atomic variables/priority/reset/noninheritance, clipped fill/contain/cover/none/scale-down paint, fitted map pointer/accessibility/keyboard geometry, and resize";
             });
+            AddProbe(probes, "Bounded CSS aspect ratios", delegate
+            {
+                var path = Path.Combine(folder, "aspect-ratio.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var wide = page.Bs.First(block => block.El != null && block.El.Av("id") == "wide");
+                var autoImage = page.Bs.First(block => block.El != null && block.El.Av("id") == "auto-image");
+                var fallback = page.Bs.First(block => block.El != null && block.El.Av("id") == "fallback-image");
+                var reset = page.Bs.First(block => block.El != null && block.El.Av("id") == "reset");
+                var child = page.Bs.First(block => block.El != null && block.El.Av("id") == "ratio-child");
+                Need(wide.S.Rw == 16D && wide.S.Rh == 9D && !wide.S.Ra,
+                    "aspect-ratio aliases changed");
+                Need(autoImage.S.Rw == 1D && autoImage.S.Rh == 1D && autoImage.S.Ra &&
+                    fallback.S.Rw == 4D && fallback.S.Rh == 3D && fallback.S.Ra,
+                    "intrinsic ratio fallback changed");
+                Need(reset.S.Rw == 0D && reset.S.Rh == 0D && reset.S.Ra &&
+                    child.S.Rw == 0D && child.S.Rh == 0D,
+                    "aspect ratio reset or noninheritance changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 3600);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        Need(BlockContent(view, "wide").Size == new Size(240, 135) &&
+                            BlockContent(view, "auto-image").Size == new Size(100, 50) &&
+                            BlockContent(view, "fallback-image").Size == new Size(100, 75) &&
+                            BlockOuter(view, "ratio-table").Size == new Size(240, 120),
+                            "aspect ratio shared layout changed");
+                    }
+                    view.Size = new Size(350, 4200);
+                    using (var image = Draw(view))
+                    {
+                        Need(BlockContent(view, "dynamic").Size == new Size(200, 200),
+                            "responsive aspect ratio changed");
+                    }
+                }
+                return "S.Rw/Rh/Ra aliases, bounded atomic parsing and reset/noninheritance, intrinsic media fallback, content/border-box, fields, flex/grid/table layout, paint, and resize";
+            });
             AddProbe(probes, "Bounded flex layout", delegate
             {
                 var path = Path.Combine(folder, "flex.html");
@@ -1676,8 +1715,8 @@ namespace Lea.Bench
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box, circular/elliptical radii, bounded box shadows and one-layer linear/radial gradients, object fit/position, and text styles, visibility, positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
-            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/overflow/fields/shadows/gradients, fitted raster images and maps, inline, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
+            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box, circular/elliptical radii, bounded box shadows and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, and text styles, visibility, positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
+            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/overflow/fields/shadows/gradients, fitted raster images and maps, shared aspect-ratio sizing, inline, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");

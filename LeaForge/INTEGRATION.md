@@ -288,6 +288,16 @@ focus bounds, and semantic accessibility, excluding letterboxes and preserving
 cropped source-coordinate transforms. Hosts need no additional control or
 adapter code, and image layout dimensions remain unchanged.
 
+CSS `aspect-ratio` is available through non-inherited `S.Rw/Rh/Ra`. `Rw/Rh`
+hold the positive preferred ratio components and `Ra` records optional
+intrinsic `auto` preference. The bounded parser accepts one number or `A/B`,
+variables, important declarations, resets, and responsive rebuilds atomically.
+Hosts do not perform ratio math: `V` applies one capped resolver to content- and
+border-box blocks, raster/SVG intrinsic fallback, fields, flex items, grid
+items, and table minimums. Explicit dimensions and min/max constraints remain
+authoritative, and normal text can grow past its preferred ratio rather than
+overlap following content.
+
 CSS background gradients are available through non-inherited `S.Gi`. Hosts can
 inspect `Gi.K/A/X/Y/Ss` for one linear/radial image and `Cs.C/P` for up to eight
 normalized color stops. The parser applies `background` and `background-image`

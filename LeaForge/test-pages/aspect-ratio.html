@@ -1,0 +1,80 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Aspect Ratio Test</title>
+  <style>
+    body { background: #ffffff; color: #123047; }
+    .ratio { display: block; margin: 4px; background: #dff6e9; }
+    #wide { width: 240px; aspect-ratio: 16 / 9; }
+    #tall { height: 120px; aspect-ratio: 3 / 4; }
+    #content-box { box-sizing: content-box; width: 120px; padding: 10px; border: 2px solid #176b4d; aspect-ratio: 2 / 1; }
+    #border-box { box-sizing: border-box; width: 144px; padding: 10px; border: 2px solid #176b4d; aspect-ratio: 12 / 7; }
+    #both { width: 120px; height: 50px; aspect-ratio: 1 / 1; }
+    #minimum { width: 200px; min-height: 70px; aspect-ratio: 4 / 1; }
+    #maximum { width: 200px; max-height: 80px; aspect-ratio: 2 / 1; }
+    #minimum-width { height: 60px; min-width: 140px; aspect-ratio: 2 / 1; }
+    #maximum-width { height: 100px; max-width: 150px; aspect-ratio: 2 / 1; }
+    #dot-ratio { width: 120px; aspect-ratio: .5; }
+    #text-ratio { width: 120px; aspect-ratio: 8 / 1; }
+    #owner { width: 200px; aspect-ratio: 2 / 1; background: #edf7f2; }
+    #owner-child { width: 80px; height: 40px; background: #bfdbfe; }
+    #ratio-image { width: 100px; aspect-ratio: 1 / 1; }
+    #auto-image { width: 100px; aspect-ratio: auto 1 / 1; }
+    #fallback-image { width: 100px; aspect-ratio: 4 / 3 auto; }
+    #height-image { height: 80px; aspect-ratio: 4 / 3; }
+    #ratio-svg { width: 120px; aspect-ratio: 1 / 1; }
+    #ratio-field { width: 120px; aspect-ratio: 3 / 1; }
+    #ratio-flex { display: flex; width: 260px; gap: 20px; align-items: start; }
+    #flex-ratio { height: 60px; aspect-ratio: 2 / 1; flex: 0 0 auto; }
+    #flex-fixed { width: 80px; height: 30px; flex: 0 0 auto; }
+    #ratio-flex-column { display: flex; flex-direction: column; width: 180px; height: 180px; gap: 10px; align-items: start; }
+    #flex-column-ratio { width: 120px; aspect-ratio: 3 / 2; flex: 0 0 auto; }
+    #flex-column-fixed { width: 60px; height: 40px; flex: 0 0 auto; }
+    #ratio-grid { display: grid; width: 300px; grid-template-columns: 140px 140px; gap: 20px; align-items: start; }
+    #grid-ratio { aspect-ratio: 2 / 1; }
+    #grid-fixed { height: 30px; }
+    #ratio-table { width: 240px; aspect-ratio: 2 / 1; }
+    #atomic { width: 120px; aspect-ratio: 1.5; aspect-ratio: 1000 / 0.5; }
+    #reset { width: 120px; aspect-ratio: 1 / 1; aspect-ratio: unset; }
+    #ratio-parent { width: 180px; aspect-ratio: 3 / 1; }
+    #ratio-child { width: 90px; }
+    #variable { --lea-ratio: 5 / 2; width: 150px; aspect-ratio: var(--lea-ratio); }
+    #priority { width: 160px; aspect-ratio: 2 / 1 !important; }
+    #dynamic { width: 200px; aspect-ratio: 4 / 1; }
+    @media screen and (max-width: 400px) { #dynamic { aspect-ratio: 1 / 1; } }
+  </style>
+</head>
+<body>
+  <div id="wide" class="ratio">Wide</div>
+  <div id="tall" class="ratio">Tall</div>
+  <div id="content-box" class="ratio">Content box</div>
+  <div id="border-box" class="ratio">Border box</div>
+  <div id="both" class="ratio">Both explicit</div>
+  <div id="minimum" class="ratio">Minimum</div>
+  <div id="maximum" class="ratio">Maximum</div>
+  <div id="minimum-width" class="ratio">Minimum width</div>
+  <div id="maximum-width" class="ratio">Maximum width</div>
+  <div id="dot-ratio" class="ratio">Leading decimal</div>
+  <p id="text-ratio" class="ratio">Aspect ratio remains a preferred size when this text needs additional lines.</p>
+  <section id="owner" class="ratio"><div id="owner-child">Child</div></section>
+  <p id="after-owner">After owner</p>
+  <img id="ratio-image" class="ratio" alt="Ratio image" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAApSURBVDhPY7ijpvafGKya/JooPGogboxNMzY8aiBujE0zNkxlA1//BwCR7MvUhfG8CgAAAABJRU5ErkJggg==">
+  <img id="auto-image" class="ratio" alt="Auto image" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAApSURBVDhPY7ijpvafGKya/JooPGogboxNMzY8aiBujE0zNkxlA1//BwCR7MvUhfG8CgAAAABJRU5ErkJggg==">
+  <img id="fallback-image" class="ratio" alt="Fallback image" src="missing-ratio.png">
+  <img id="height-image" class="ratio" alt="Height image" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAApSURBVDhPY7ijpvafGKya/JooPGogboxNMzY8aiBujE0zNkxlA1//BwCR7MvUhfG8CgAAAABJRU5ErkJggg==">
+  <svg id="ratio-svg" class="ratio" viewBox="0 0 200 100" aria-label="Ratio vector"><rect width="200" height="100" fill="#176b4d"></rect></svg>
+  <input id="ratio-field" value="Ratio field">
+  <section id="ratio-flex"><div id="flex-ratio" class="ratio">Flex ratio</div><div id="flex-fixed" class="ratio">Flex fixed</div></section>
+  <section id="ratio-flex-column"><div id="flex-column-ratio" class="ratio">Column ratio</div><div id="flex-column-fixed" class="ratio">Column fixed</div></section>
+  <section id="ratio-grid"><div id="grid-ratio" class="ratio">Grid ratio</div><div id="grid-fixed" class="ratio">Grid fixed</div></section>
+  <p id="after-grid">After grid</p>
+  <table id="ratio-table"><tbody><tr><td>Ratio table</td><td>Cell</td></tr></tbody></table>
+  <div id="atomic" class="ratio">Atomic</div>
+  <div id="reset" class="ratio">Reset</div>
+  <section id="ratio-parent" class="ratio"><div id="ratio-child" class="ratio">Child default</div></section>
+  <div id="variable" class="ratio">Variable</div>
+  <div id="priority" class="ratio" style="aspect-ratio:1/1">Priority</div>
+  <div id="dynamic" class="ratio">Dynamic</div>
+</body>
+</html>
