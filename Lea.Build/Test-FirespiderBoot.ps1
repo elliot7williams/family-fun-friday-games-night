@@ -1,6 +1,6 @@
 param(
     [string]$Root = 'L:\Firespider Internet',
-    [ValidateSet('all', 'clean', 'lea', 'legacy', 'recovery', 'private', 'second', 'limit', 'invalid', 'slow', 'locked', 'menus', 'commands', 'navigation', 'links', 'suspend', 'groups', 'lazy', 'lazy-background', 'lazy-all', 'bulk', 'windows', 'watch')]
+    [ValidateSet('all', 'clean', 'lea', 'legacy', 'recovery', 'private', 'second', 'limit', 'invalid', 'slow', 'locked', 'menus', 'commands', 'navigation', 'links', 'suspend', 'groups', 'lazy', 'lazy-background', 'lazy-all', 'bulk', 'windows', 'watch', 'domains', 'domain-private')]
     [string]$Case = 'all',
     [switch]$Profile
 )
@@ -8,19 +8,21 @@ param(
 $ErrorActionPreference = 'Stop'
 $Case = $Case.ToLowerInvariant()
 $rootPath = (Resolve-Path -LiteralPath $Root).Path
+# Double trailing backslashes before the closing native argument quote.
+$rootArgument = '"' + $rootPath + ('\' * ($rootPath.Length - $rootPath.TrimEnd('\').Length)) + '"'
 $compiler = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
 $source = Join-Path $PSScriptRoot '..\Lea.Firespider\Boot.cs'
 $exe = Join-Path $rootPath 'Lea.Firespider.Boot.exe'
 & $compiler /nologo /target:exe "/out:$exe" /reference:System.dll /reference:System.Core.dll /reference:System.Drawing.dll /reference:System.Windows.Forms.dll /reference:System.Configuration.dll "/reference:$rootPath\Lea.Win.dll" "/reference:$rootPath\Lea.Engine.dll" $source
 if ($LASTEXITCODE -ne 0) { throw 'Firespider boot smoke compilation failed' }
-$cases = if ($Case -eq 'all') { @('clean', 'lea', 'legacy', 'recovery', 'private', 'second', 'limit', 'invalid', 'slow', 'locked', 'menus', 'commands', 'navigation', 'links', 'suspend', 'groups', 'lazy', 'lazy-background', 'lazy-all', 'bulk', 'windows', 'watch') } else { @($Case) }
+$cases = if ($Case -eq 'all') { @('clean', 'lea', 'legacy', 'recovery', 'private', 'second', 'limit', 'invalid', 'slow', 'locked', 'menus', 'commands', 'navigation', 'links', 'suspend', 'groups', 'lazy', 'lazy-background', 'lazy-all', 'bulk', 'windows', 'watch', 'domains', 'domain-private') } else { @($Case) }
 foreach ($name in $cases) {
     $log = Join-Path ([IO.Path]::GetTempPath()) ("lea-boot-$([Guid]::NewGuid().ToString('N'))")
     $process = $null
     $oldProfile = $env:LEA_FIRESPIDER_PROFILE
     try {
         if ($Profile) { $env:LEA_FIRESPIDER_PROFILE = '1' }
-        $process = Start-Process -FilePath $exe -WorkingDirectory $rootPath -ArgumentList @(('"' + $rootPath + '"'), $name) -WindowStyle Hidden -PassThru -RedirectStandardOutput "$log.out" -RedirectStandardError "$log.err"
+        $process = Start-Process -FilePath $exe -WorkingDirectory $rootPath -ArgumentList @($rootArgument, $name) -WindowStyle Hidden -PassThru -RedirectStandardOutput "$log.out" -RedirectStandardError "$log.err"
         # Keep the native handle so Windows PowerShell can read the exit code.
         $null = $process.Handle
         if (-not $process.WaitForExit(60000)) {

@@ -83,11 +83,12 @@ suite. Source for the corresponding host edits is retained in
 `Lea.Firespider/Startup-host.patch`, with reproduction notes in
 `LeaForge/STARTUP_RELIABILITY.md`.
 
-`Test-FirespiderBoot.ps1 -Root <host-root>` adds twenty-two real form-start cases,
+`Test-FirespiderBoot.ps1 -Root <host-root>` adds twenty-four real form-start cases,
 including private startup, restore precedence, second windows, a gated slow
 HTTP response, and locked-session shutdown. It compiles `Lea.Firespider/Boot.cs`
 beside the test host and runs separate off-screen processes with a sixty-second
 watchdog. Use `-Case clean` for a single case. See `LeaForge/LEA_STARTUP.md`.
+Native argument quoting accepts host paths with or without a trailing separator.
 `-Case menus` verifies nested layout and error cleanup. `-Profile` reports
 constructor/phase timings, root layout counts, and a deterministic menu-tree
 signature without enabling profiling in normal browser use. The EXE test
@@ -121,3 +122,10 @@ documents, metadata, privacy, and bounds. `-Case windows` invokes last/recent
 closed-window routes with exact request counts and snapshot checks. `-Case watch`
 verifies two bounded unread batches, duplicate/case-sensitive URLs, preserved
 read state, and older unread records. See `LeaForge/BULK_OPENING.md`.
+
+`-Case domains` covers visible-domain matching, both reload menus, paused/busy
+skips, retained fields, mixed-engine commands, bookmarks/shortcut, private copies,
+and close disposal. `-Case domain-private` checks seeded private new windows,
+lazy behavior, exact requests, twelve-tab creation limits, and bounded exports
+with control-character/surrogate and row-limit checks. OS clipboard and Save
+dialog interaction are not automated. See `LeaForge/DOMAIN_COMMANDS.md`.

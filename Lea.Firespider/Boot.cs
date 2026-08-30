@@ -44,7 +44,7 @@ namespace Lea.Firespider
             var forms = new List<Form>();
             try
             {
-                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch" }.Contains(mode), "unknown boot case: " + mode);
+                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch", "domains", "domain-private" }.Contains(mode), "unknown boot case: " + mode);
                 Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
                 Application.ThreadException += (sender, error) => UiErrors.Add(error.Exception);
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", session);
@@ -230,6 +230,8 @@ namespace Lea.Firespider
                 if (mode == "bulk") CheckBulk(form, settings, page);
                 if (mode == "windows") CheckWindows(form, settings, page, forms);
                 if (mode == "watch") CheckWatch(form, settings, page);
+                if (mode == "domains") CheckDomains(form, settings, page);
+                if (mode == "domain-private") CheckDomainPrivate(form, settings, page, forms);
                 if (lazySite != null) CheckLazyStartup(form, lazySite, expected, mode == "lazy-all");
                 Check(UiErrors.Count == 0, "UI thread exceptions: " + String.Join(" | ", UiErrors.Select(error => error.Message).ToArray()));
                 if (mode == "locked")
@@ -468,6 +470,205 @@ namespace Lea.Firespider
                 Check(tabs.SelectedTab.Controls[0] is V && ((V)tabs.SelectedTab.Controls[0]).U.AbsoluteUri == site.Url, "legacy source did not open domain in Lea");
             }
             Console.WriteLine("PASS links: loopback domain navigation, port/IPv6 normalization, bounded single/batch paste, order, and privacy");
+        }
+
+        private static void CheckDomains(Form form, ApplicationSettingsBase settings, string page)
+        {
+            using (var firstSite = new LoopbackSite())
+            using (var secondSite = new LoopbackSite())
+            {
+                var tabs = Member<TabControl>(form, "k");
+                var first = tabs.SelectedTab;
+                var firstView = (V)first.Controls[0];
+                firstView.Go(firstSite.Url + "first");
+                Call(form, "qleaNew", secondSite.Url + "second");
+                WaitLea(tabs);
+                var second = tabs.SelectedTab;
+                tabs.SelectedTab = first;
+                Menu(form, "Reload Tabs From Same Domain").PerformClick();
+                WaitLea(tabs);
+                Check(firstSite.Hits == 2 && secondSite.Hits == 2, "same-domain reload did not reach both Lea tabs across ports");
+                Menu(form, "Reload All Tabs From Same Domain").PerformClick();
+                WaitLea(tabs);
+                Check(firstSite.Hits == 3 && secondSite.Hits == 3, "second same-domain reload route");
+                firstSite.DelayMs = 400;
+                Call(form, "qleaReload", firstView);
+                Wait(() => firstSite.Hits == 4 && firstView.Busy, "busy domain fixture");
+                Menu(form, "Reload Tabs From Same Domain").PerformClick();
+                var report = Member<Label>(form, "su").Text;
+                WaitLea(tabs);
+                firstSite.DelayMs = 0;
+                Check(firstSite.Hits == 4 && secondSite.Hits == 4 && report.Contains("1 busy or suspended"), "domain reload did not skip busy context");
+
+                var formsPage = Path.Combine(Path.GetDirectoryName(new Uri(page).LocalPath), "..", "test-pages", "forms.html");
+                Call(form, "qleaNew", formsPage);
+                WaitLea(tabs);
+                var unrelated = tabs.SelectedTab;
+                var editor = (V)unrelated.Controls[0];
+                editor.At.Fs[0].V = "domain unsent value";
+                settings["lazyRestoreMode"] = "all";
+                Call(form, "qlazyopenurls", new List<string> { firstSite.Url + "paused", firstSite.Url.Replace("127.0.0.1", "localhost") + "other-host" });
+                var paused = tabs.SelectedTab;
+                var otherHost = tabs.TabPages[tabs.TabCount - 1];
+                Set(form, "pv", true);
+                Call(form, "qlazyopenurls", new List<string> { secondSite.Url + "private-domain" });
+                var privateTab = tabs.SelectedTab;
+                Set(form, "pv", false);
+                Call(form, "qleaNew", firstSite.Url + "hidden");
+                WaitLea(tabs);
+                var hidden = tabs.SelectedTab;
+                var hiddenView = (V)hidden.Controls[0];
+                settings["tg"] = Collection("Hidden|" + Color.Teal.ToArgb() + "|active|" + Call(form, "qb64", firstSite.Url + "hidden"));
+                Call(form, "qcollapsegroup", "Hidden");
+                tabs.SelectedTab = first;
+                var matches = (List<TabPage>)Call(form, "qleaDomainTabs");
+                Check(matches.SequenceEqual(new[] { first, second, paused, privateTab }), "domain matcher included hidden/file/other-host tabs");
+                Check((string)Call(form, "qleaSite", "https://EXAMPLE.test:443/a") == "example.test" &&
+                    (string)Call(form, "qleaSite", "http://b\u00fccher.test/a") == (string)Call(form, "qleaSite", "https://xn--bcher-kva.test/b"), "case/IDN domain normalization");
+                Check((string)Call(form, "qleaSite", page) == "" && (string)Call(form, "qleaSite", "https://example.test/" + new string('x', 4096)) == "", "domain accepted file/overlong URL");
+                var hitsA = firstSite.Hits;
+                var hitsB = secondSite.Hits;
+                Menu(form, "Reload Tabs From Same Domain").PerformClick();
+                report = Member<Label>(form, "su").Text;
+                WaitLea(tabs);
+                Check(firstSite.Hits == hitsA + 1 && secondSite.Hits == hitsB + 1 && report.Contains("2 busy or suspended") &&
+                    paused.Controls[0] is Panel && privateTab.Controls[0] is Panel, "domain reload woke deferred/hidden tabs");
+                var originalPage = firstView.At;
+                var count = tabs.TabCount;
+                Menu(form, "Duplicate Tabs From Same Domain").PerformClick();
+                WaitLea(tabs);
+                var copies = tabs.TabPages.Cast<TabPage>().Skip(count).ToArray();
+                Check(copies.Length == 4 && tabs.SelectedTab == copies[0] && copies.All(tab => tab.Controls[0] is V), "domain duplicate engine/count/selection");
+                Check(((V)copies[3].Controls[0]).Pv && copies.Take(3).All(tab => !((V)tab.Controls[0]).Pv), "domain duplicate private flags");
+                Check(firstView.At == originalPage && paused.Controls[0] is Panel && privateTab.Controls[0] is Panel && editor.At.Fs[0].V == "domain unsent value", "domain duplicate changed original state");
+                tabs.SelectedTab = first;
+                Menu(form, "Bookmark Tabs From Same Domain").PerformClick();
+                Check(((StringCollection)settings["bm"]).Count == 8, "domain bookmarks omitted paused/private/duplicated URLs");
+                var shortcut = new KeyEventArgs(Keys.Control | Keys.Shift | Keys.B);
+                Call(form, "q8", form, shortcut);
+                Check(shortcut.SuppressKeyPress && ((StringCollection)settings["bm"]).Count == 16, "domain bookmark keyboard route");
+                Call(form, "q143", form, EventArgs.Empty);
+                Check(((StringCollection)settings["bm"]).Contains(firstSite.Url), "domain root bookmark dropped port");
+                first.Text = "Title\r\nInjected\tText";
+                var text = (string)Call(form, "qleaDomainText", false);
+                var snapshot = (string)Call(form, "qleaDomainText", true);
+                Check(text.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).Length == 8 && text.Contains("Title  Injected Text") &&
+                    !text.Contains("other-host") && !text.Contains("hidden") && !text.Contains("forms.html"), "domain copy payload/sanitization/matching");
+                Check(snapshot.Contains("Domain Root: " + firstSite.Url) && snapshot.Contains("Current URL: " + firstView.U.AbsoluteUri), "domain snapshot root/port/current URL");
+                Menu(form, "Jump To Next Tab With Same Domain").PerformClick();
+                Check(tabs.SelectedTab == second, "domain jump did not skip unrelated tabs");
+                tabs.SelectedTab = copies[3];
+                Menu(form, "Jump To Next Tab With Same Domain").PerformClick();
+                Check(tabs.SelectedTab == first, "domain jump did not wrap");
+                settings["rc"] = new StringCollection();
+                var removed = ((List<TabPage>)Call(form, "qleaDomainTabs")).Where(tab => tab != first).ToArray();
+                var menus = removed.Select(tab => tab.Controls[0].ContextMenuStrip).Where(menu => menu != null).ToArray();
+                Menu(form, "Close Tabs From Same Domain").PerformClick();
+                Check(tabs.SelectedTab == first && removed.All(tab => tab.IsDisposed) && menus.All(menu => menu.IsDisposed) &&
+                    !hidden.IsDisposed && !hiddenView.IsDisposed && otherHost.Controls[0] is Panel && editor.At.Fs[0].V == "domain unsent value", "domain close ownership/selection/hidden preservation");
+                Check(!((StringCollection)settings["rc"]).Cast<string>().Any(url => url.Contains("private-domain")), "domain close wrote private history");
+                Check(!Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module => module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)), "native domain commands loaded MSHTML");
+                tabs.SelectedTab = unrelated;
+                count = tabs.TabCount;
+                var windows = Application.OpenForms.Count;
+                foreach (var action in new[] { "rl", "cl", "dp", "wn", "nx", "bm" }) Call(form, "qleaDomainAction", action);
+                Check(tabs.TabCount == count && Application.OpenForms.Count == windows && (string)Call(form, "qleaDomainText", false) == "", "file-domain commands changed browser state");
+
+                Call(form, "q3", secondSite.Url + "legacy");
+                var legacyTab = tabs.SelectedTab;
+                var legacy = (WebBrowser)legacyTab.Controls[0];
+                Wait(() => legacy.Url != null && legacy.ReadyState == WebBrowserReadyState.Complete, "domain legacy fixture");
+                hitsA = firstSite.Hits;
+                hitsB = secondSite.Hits;
+                Menu(form, "Reload All Tabs From Same Domain").PerformClick();
+                Wait(() => firstSite.Hits == hitsA + 1 && secondSite.Hits == hitsB + 1 && !firstView.Busy && !legacy.IsBusy, "mixed domain reload");
+                Menu(form, "Duplicate Tabs From Same Domain").PerformClick();
+                WaitLea(tabs);
+                Check(!legacy.IsDisposed && tabs.SelectedTab.Controls[0] is V, "mixed domain duplicate replaced source engine");
+                tabs.SelectedTab = first;
+                Menu(form, "Close Tabs From Same Domain").PerformClick();
+                Check(legacy.IsDisposed && legacyTab.IsDisposed && !firstView.IsDisposed, "mixed domain close did not dispose legacy view");
+                Console.WriteLine("PASS domains: exact reloads, busy/paused skips, host matching, retained fields, copies/privacy, bookmarks/shortcut, exports, jump, and mixed disposal");
+            }
+        }
+
+        private static void SelectDeferred(Form form, TabPage tab)
+        {
+            var batch = (bool)Member<object>(form, "qleaGroupChange");
+            Set(form, "qleaGroupChange", true);
+            try { Member<TabControl>(form, "k").SelectedTab = tab; }
+            finally { Set(form, "qleaGroupChange", batch); }
+        }
+
+        private static void CheckDomainPrivate(Form form, ApplicationSettingsBase settings, string page, List<Form> forms)
+        {
+            using (var site = new LoopbackSite())
+            {
+                var tabs = Member<TabControl>(form, "k");
+                var original = tabs.SelectedTab.Controls[0];
+                settings["lazyRestoreMode"] = "all";
+                settings["nf"] = site.Url + "unexpected-home";
+                Set(form, "pv", true);
+                Call(form, "qlazyopenurls", new List<string> { site.Url + "source-0" });
+                Set(form, "pv", false);
+                Call(form, "qlazyopenurls", Enumerable.Range(1, 11).Select(index => site.Url + "source-" + index).ToList());
+                Call(form, "qlazyopenurls", Enumerable.Range(12, 8).Select(index => site.Url + "source-" + index).ToList());
+                var sources = tabs.TabPages.Cast<TabPage>().Skip(1).ToArray();
+                SelectDeferred(form, sources[0]);
+                Menu(form, "Open All Tabs From Same Domain In New Window").PerformClick();
+                var report = Member<Label>(form, "su").Text;
+                var window = NewWindow(form, forms);
+                var restored = Member<TabControl>(window, "k");
+                Observe(300);
+                Check(restored.TabCount == 12 && restored.TabPages.Cast<TabPage>().All(tab => tab.Controls[0] is Panel) && site.Hits == 0 &&
+                    (string)Call(window, "qleaUrl", restored.TabPages[0]) == site.Url + "source-0", "domain window dropped first URL, exceeded bound, or loaded default page");
+                Check((bool)Member<object>(window, "pv") && !(bool)Member<object>(form, "pv") && report.Contains("8 skipped"), "domain window privacy upgrade or bounded report");
+                Set(window, "pv", false);
+                Check(restored.TabPages.Cast<TabPage>().All(tab => (bool)Call(window, "qleaPrivate", tab)), "private domain window lost deferred privacy");
+                Call(window, "qleaSaveSession");
+                var session = Environment.GetEnvironmentVariable("LEA_FIRESPIDER_SESSION");
+                Check(!File.Exists(session) || !File.ReadAllText(session).Contains(site.Url), "private domain window entered automatic sessions");
+                window.Close();
+                Check(sources.All(tab => tab.Controls[0] is Panel) && !original.IsDisposed, "domain window changed source documents");
+                var count = tabs.TabCount;
+                Menu(form, "Duplicate Tabs From Same Domain").PerformClick();
+                report = Member<Label>(form, "su").Text;
+                WaitLea(tabs);
+                var copies = tabs.TabPages.Cast<TabPage>().Skip(count).ToArray();
+                Check(copies.Length == 12 && site.Hits == 12 && ((V)copies[0].Controls[0]).Pv && copies.Skip(1).All(tab => !((V)tab.Controls[0]).Pv) &&
+                    report.Contains("8 skipped") && sources.All(tab => tab.Controls[0] is Panel), "domain duplicate bound/eager policy/per-source privacy");
+                for (var batch = 0; batch < 2; batch++)
+                    Call(form, "qlazyopenurls", Enumerable.Range(batch * 12, 12).Select(index => site.Url + "long-" + index + "?q=" + new string('x', 3900)).ToList());
+                SelectDeferred(form, sources[0]);
+                sources[0].Text = new string('\u00e9', 300);
+                foreach (var snapshot in new[] { false, true })
+                {
+                    var text = (string)Call(form, "qleaDomainText", snapshot);
+                    Check(Encoding.UTF8.GetByteCount(text) <= 65536 && text.Contains("omitted by export limits") &&
+                        !text.Contains("long-23?") && !text.Contains(new string('\u00e9', 257)), "domain export byte/title limits");
+                }
+                Check(site.Hits == 12 && sources.All(tab => tab.Controls[0] is Panel), "domain exports woke deferred pages");
+                Check((string)Call(form, "qleaDomainLine", "A\0B\nC", 5) == "A B C" &&
+                    (string)Call(form, "qleaDomainLine", "A\ud83d\ude00B", 2) == "A", "domain label controls/surrogate boundary");
+                foreach (var tab in tabs.TabPages.Cast<TabPage>().Where(tab => ((string)Call(form, "qleaUrl", tab)).Contains("long-")).ToArray())
+                    Call(form, "qleaDrop", tab);
+                var extra = new List<TabPage>();
+                for (var index = 0; index < 260; index++)
+                {
+                    var tab = new TabPage("Lea");
+                    Call(form, "qleaPlaceholder", tab, site.Url + "row-" + index, false);
+                    tabs.TabPages.Add(tab);
+                    extra.Add(tab);
+                }
+                var bounded = (string)Call(form, "qleaDomainText", false);
+                var omitted = ((List<TabPage>)Call(form, "qleaDomainTabs")).Count - 256;
+                Check(bounded.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).Length == 257 &&
+                    bounded.Contains("[" + omitted + " tab(s) omitted") && Encoding.UTF8.GetByteCount(bounded) < 65536, "domain export row ceiling");
+                foreach (var tab in extra) Call(form, "qleaDrop", tab);
+                Call(form, "qfeature6prunestate");
+                Check(!Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module => module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)), "domain window loaded legacy engine");
+                Console.WriteLine("PASS private domains: first URL, seeded lazy window, privacy upgrade, bounded eager duplicates, sticky flags, original views, and UTF-8 export limits");
+            }
         }
 
         private static void CheckBulk(Form form, ApplicationSettingsBase settings, string page)
@@ -957,6 +1158,7 @@ namespace Lea.Firespider
             private Exception error;
             private readonly int firstDelay;
             private int hits;
+            public volatile int DelayMs;
             public readonly string Url;
             public int Hits { get { return Interlocked.CompareExchange(ref hits, 0, 0); } }
 
@@ -988,6 +1190,7 @@ namespace Lea.Firespider
                             Check(end == 0x0d0a0d0a, "loopback request header bound");
                             Interlocked.Increment(ref hits);
                             if (request == 0 && firstDelay > 0) Thread.Sleep(firstDelay);
+                            if (request > 0 && DelayMs > 0) Thread.Sleep(DelayMs);
                             var body = Encoding.UTF8.GetBytes("<title>Lea navigation</title><p>Local test</p>");
                             var header = Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: " + body.Length + "\r\nConnection: close\r\n\r\n");
                             try

@@ -17,14 +17,20 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
+Milestone 57 migrates the same-domain command family to Lea-aware matching,
+including mixed-engine disposal, paused/busy reload skips, private copies,
+seeded private new windows, and bounded exports. Snapshot cancellation no
+longer writes a default file. Two new Boot cases bring the suite to 24; see
+`DOMAIN_COMMANDS.md` and `Domain-commands-host.patch`. Next migrate pop-ups,
+split view, remaining DOM-based host commands, and automatic hibernation.
+
 Milestone 56 migrates shared bulk opening, workspaces/protected sessions,
 closed-window commands, and unread watch batches to Lea. It fixes reproduced
 first-document replacement and a closed-window legacy cast, seeds restored
 windows without default requests, and retains private/hidden/paused snapshots.
 Watch records remain unread when skipped and preserve case-sensitive URLs.
 Three new Boot cases bring the suite to 22; see `BULK_OPENING.md` and
-`Bulk-opening-host.patch`. Next migrate same-domain operations, pop-ups, split
-view, DOM-based host commands, and automatic hibernation.
+`Bulk-opening-host.patch`. Milestone 57 follows with same-domain operations.
 
 Milestone 55 makes the existing off/background/all saved-session policies native
 to Lea. Deferred tabs create only placeholders; loopback tests confirm one/zero
@@ -74,7 +80,7 @@ failures. The tracked adapter, `Lea.Firespider/Startup-host.patch`, eighteen
 focused host checks, and `Lea.Build/Test-FirespiderStartup.ps1` retain both the
 fixes and their reproduction paths. See `STARTUP_RELIABILITY.md`.
 
-1. Continue migrating advanced group/session/window routes, same-domain bulk
+1. Continue migrating advanced group/session/window routes, pop-up/split-view
    operations, and DOM-dependent commands; keep distinguishing legacy-only
    commands from Lea-supported ones and host timing from engine-only timing.
 2. Keep the stable empty UI Automation visible-range fallback until a native-safe

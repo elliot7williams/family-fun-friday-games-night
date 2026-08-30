@@ -1,0 +1,314 @@
+diff --git a/1.vb b/1.vb
+index ef9bcbf..b078753 100644
+--- a/1.vb
++++ b/1.vb
+@@ -6459,23 +6459,15 @@ Partial Class j
+     End Sub
+     Sub q143(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+-            Dim u As Uri = CType(k.SelectedTab.Controls.Item(0), WebBrowser).Url
+-            Dim du As String = u.Scheme & "://" & u.Host & "/"
+-            My.Settings.bm.Add(du)
+-            Dim fv As New ToolStripMenuItem
+-            fv.Text = du
+-            fv.Tag = du
+-            fv.Image = My.Resources.F9
+-            fv.BackgroundImage = My.Resources.F2
+-            fv.BackgroundImageLayout = ImageLayout.Stretch
+-            fv.ForeColor = Color.White
+-            AddHandler fv.Click, AddressOf z2
+-            AddHandler fv.MouseHover, AddressOf z2
+-            RB.DropDownItems.Add(fv)
++            Dim address As Uri = qleaDomain()
++            If address Is Nothing Then Return
++            My.Settings.bm.Add(address.AbsoluteUri)
+             My.Settings.Save()
++            qrb()
+             su.Visible = True
+             su.Text = "Current domain bookmarked"
+         Catch ex As Exception
++            qlog(ex)
+         End Try
+     End Sub
+     Sub q144(ByVal sender As Object, ByVal e As EventArgs)
+@@ -6485,20 +6477,9 @@ Partial Class j
+     End Sub
+     Sub q145(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+-            Dim u As Uri = CType(k.SelectedTab.Controls.Item(0), WebBrowser).Url
+-            For q As Integer = 0 To k.TabPages.Count - 1
+-                If k.TabPages(q).Controls.Count > 0 Then
+-                    Dim wb As WebBrowser = CType(k.TabPages(q).Controls.Item(0), WebBrowser)
+-                    If Not wb.Url Is Nothing Then
+-                        If wb.Url.Host = u.Host Then
+-                            wb.Refresh()
+-                        End If
+-                    End If
+-                End If
+-            Next q
+-            su.Visible = True
+-            su.Text = "Same-domain tabs reloaded"
++            qleaDomainAction("rl")
+         Catch ex As Exception
++            qlog(ex)
+         End Try
+     End Sub
+     Sub q146(ByVal sender As Object, ByVal e As EventArgs)
+@@ -6508,22 +6489,15 @@ Partial Class j
+     End Sub
+     Sub q147(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+-            Dim u As Uri = CType(k.SelectedTab.Controls.Item(0), WebBrowser).Url
+-            Dim tx As String = ""
+-            For q As Integer = 0 To k.TabPages.Count - 1
+-                If k.TabPages(q).Controls.Count > 0 Then
+-                    Dim wb As WebBrowser = CType(k.TabPages(q).Controls.Item(0), WebBrowser)
+-                    If Not wb.Url Is Nothing Then
+-                        If wb.Url.Host = u.Host Then
+-                            tx &= wb.DocumentTitle & " - " & wb.Url.ToString & vbCrLf
+-                        End If
+-                    End If
+-                End If
+-            Next q
+-            Clipboard.SetText(tx)
++            Dim text As String = qleaDomainText(False)
++            If text = "" Then Return
++            Clipboard.SetText(text)
+             su.Visible = True
+             su.Text = "Same-domain tabs copied"
+         Catch ex As Exception
++            qlog(ex)
++            su.Visible = True
++            su.Text = "Same-domain tabs could not be copied"
+         End Try
+     End Sub
+     Sub q148(ByVal sender As Object, ByVal e As EventArgs)
+@@ -6533,28 +6507,9 @@ Partial Class j
+     End Sub
+     Sub q149(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+-            Dim u As Uri = CType(k.SelectedTab.Controls.Item(0), WebBrowser).Url
+-            Dim st As TabPage = k.SelectedTab
+-            For q As Integer = k.TabPages.Count - 1 To 0 Step -1
+-                If k.TabPages(q) Is st Then
+-                ElseIf k.TabPages(q).Controls.Count > 0 Then
+-                    Dim wb As WebBrowser = CType(k.TabPages(q).Controls.Item(0), WebBrowser)
+-                    If Not wb.Url Is Nothing Then
+-                        If wb.Url.Host = u.Host Then
+-                            rca(wb.Url.ToString)
+-                            k.TabPages.RemoveAt(q)
+-                            I = I - 1
+-                            Dim tz As Size = k.ItemSize
+-                            tz.Width += 6
+-                            k.ItemSize = tz
+-                        End If
+-                    End If
+-                End If
+-            Next q
+-            k.SelectedTab = st
+-            su.Visible = True
+-            su.Text = "Same-domain tabs closed"
++            qleaDomainAction("cl")
+         Catch ex As Exception
++            qlog(ex)
+         End Try
+     End Sub
+     Sub q150(ByVal sender As Object, ByVal e As EventArgs)
+@@ -6564,39 +6519,21 @@ Partial Class j
+     End Sub
+     Sub q151(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+-            Dim u As Uri = CType(k.SelectedTab.Controls.Item(0), WebBrowser).Url
+-            Dim du As String = u.Scheme & "://" & u.Host & "/"
+-            Dim SX As New SaveFileDialog()
+-            qsavefolder(SX)
+-            SX.FileName = "Firespider Domain Snapshot.txt"
+-            SX.Filter = "Text File [*.txt*]|*.txt|All Files [*.*]|*.*"
+-            SX.CheckPathExists = True
+-            SX.Title = "Save Current Domain Snapshot"
+-            SX.ShowDialog(Me)
+-            If SX.FileName = "" Then Exit Sub
+-            Dim mySW As New System.IO.StreamWriter(SX.FileName, False)
+-            mySW.WriteLine("Firespider Domain Snapshot")
+-            mySW.WriteLine("Current URL: " & u.ToString)
+-            mySW.WriteLine("Domain Root: " & du)
+-            mySW.WriteLine("Homepage: " & My.Settings.h)
+-            mySW.WriteLine("")
+-            mySW.WriteLine("Matching Tabs")
+-            For q As Integer = 0 To k.TabPages.Count - 1
+-                If k.TabPages(q).Controls.Count > 0 Then
+-                    Dim wb As WebBrowser = CType(k.TabPages(q).Controls.Item(0), WebBrowser)
+-                    If Not wb.Url Is Nothing Then
+-                        If wb.Url.Host = u.Host Then
+-                            mySW.WriteLine((q + 1).ToString & ". " & wb.DocumentTitle)
+-                            mySW.WriteLine("   " & wb.Url.ToString)
+-                        End If
+-                    End If
+-                End If
+-            Next q
+-            mySW.Flush()
+-            mySW.Close()
++            Dim text As String = qleaDomainText(True)
++            If text = "" Then Return
++            Using dialog As New SaveFileDialog()
++                qsavefolder(dialog)
++                dialog.FileName = "Firespider Domain Snapshot.txt"
++                dialog.Filter = "Text File [*.txt*]|*.txt|All Files [*.*]|*.*"
++                dialog.CheckPathExists = True
++                dialog.Title = "Save Current Domain Snapshot"
++                If dialog.ShowDialog(Me) <> DialogResult.OK Then Return
++                System.IO.File.WriteAllText(dialog.FileName, text, System.Text.Encoding.UTF8)
++            End Using
+             su.Visible = True
+             su.Text = "Domain snapshot saved"
+         Catch ex As Exception
++            qlog(ex)
+         End Try
+     End Sub
+     Sub q152(ByVal sender As Object, ByVal e As EventArgs)
+@@ -6828,32 +6765,9 @@ Partial Class j
+     End Sub
+     Sub q171(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+-            Dim u As Uri = CType(k.SelectedTab.Controls.Item(0), WebBrowser).Url
+-            For q As Integer = 0 To k.TabPages.Count - 1
+-                If k.TabPages(q).Controls.Count > 0 Then
+-                    Dim wb As WebBrowser = CType(k.TabPages(q).Controls.Item(0), WebBrowser)
+-                    If Not wb.Url Is Nothing Then
+-                        If wb.Url.Host = u.Host Then
+-                            My.Settings.bm.Add(wb.Url.ToString)
+-                            Dim fv As New ToolStripMenuItem
+-                            fv.Text = k.TabPages(q).Text
+-                            If fv.Text = "" Then fv.Text = wb.Url.ToString
+-                            fv.Tag = wb.Url.ToString
+-                            fv.Image = My.Resources.F9
+-                            fv.BackgroundImage = My.Resources.F2
+-                            fv.BackgroundImageLayout = ImageLayout.Stretch
+-                            fv.ForeColor = Color.White
+-                            AddHandler fv.Click, AddressOf z2
+-                            AddHandler fv.MouseHover, AddressOf z2
+-                            RB.DropDownItems.Add(fv)
+-                        End If
+-                    End If
+-                End If
+-            Next q
+-            My.Settings.Save()
+-            su.Visible = True
+-            su.Text = "Same-domain tabs bookmarked"
++            qleaDomainAction("bm")
+         Catch ex As Exception
++            qlog(ex)
+         End Try
+     End Sub
+     Sub q172(ByVal sender As Object, ByVal e As EventArgs)
+@@ -8501,31 +8415,9 @@ Partial Class j
+     ' --- Open All Tabs From Same Domain In New Window ---
+     Sub q299(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+-            Dim wb As WebBrowser = CType(k.SelectedTab.Controls.Item(0), WebBrowser)
+-            If wb.Url Is Nothing Then Exit Sub
+-            Dim dom As String = wb.Url.Host
+-            Dim urls As New List(Of String)
+-            For q As Integer = 0 To k.TabPages.Count - 1
+-                If k.TabPages(q).Controls.Count > 0 Then
+-                    Dim wbq As WebBrowser = CType(k.TabPages(q).Controls.Item(0), WebBrowser)
+-                    If wbq.Url IsNot Nothing AndAlso wbq.Url.Host = dom Then
+-                        urls.Add(wbq.Url.ToString)
+-                    End If
+-                End If
+-            Next q
+-            If urls.Count = 0 Then
+-                su.Visible = True
+-                su.Text = "No matching domain tabs found"
+-                Exit Sub
+-            End If
+-            Dim nw As New j
+-            nw.Show()
+-            For qi As Integer = 1 To urls.Count - 1
+-                nw.q3(urls(qi))
+-            Next qi
+-            su.Visible = True
+-            su.Text = urls.Count.ToString & " tab(s) opened in new window"
++            qleaDomainAction("wn")
+         Catch ex As Exception
++            qlog(ex)
+         End Try
+     End Sub
+     Sub q300(ByVal sender As Object, ByVal e As EventArgs)
+@@ -10040,22 +9932,9 @@ Partial Class j
+     ' --- Reload All Tabs From Same Domain ---
+     Sub q419(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+-            Dim wb As WebBrowser = CType(k.SelectedTab.Controls.Item(0), WebBrowser)
+-            If wb.Url Is Nothing Then Exit Sub
+-            Dim dom As String = wb.Url.Host
+-            Dim count As Integer = 0
+-            For q As Integer = 0 To k.TabPages.Count - 1
+-                If k.TabPages(q).Controls.Count > 0 Then
+-                    Dim wbq As WebBrowser = CType(k.TabPages(q).Controls.Item(0), WebBrowser)
+-                    If wbq.Url IsNot Nothing AndAlso wbq.Url.Host = dom Then
+-                        wbq.Refresh()
+-                        count += 1
+-                    End If
+-                End If
+-            Next q
+-            su.Visible = True
+-            su.Text = count.ToString & " same-domain tab(s) reloaded"
++            qleaDomainAction("rl")
+         Catch ex As Exception
++            qlog(ex)
+         End Try
+     End Sub
+     Sub q420(ByVal sender As Object, ByVal e As EventArgs)
+@@ -10910,28 +10789,9 @@ Partial Class j
+     ' --- Jump To Next Tab With Same Domain ---
+     Sub q477(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+-            Dim wb As WebBrowser = CType(k.SelectedTab.Controls.Item(0), WebBrowser)
+-            If wb.Url Is Nothing Then Exit Sub
+-            Dim dom As String = wb.Url.Host
+-            Dim cur As Integer = k.SelectedIndex
+-            For i As Integer = 1 To k.TabPages.Count - 1
+-                Dim next_idx As Integer = (cur + i) Mod k.TabPages.Count
+-                If k.TabPages(next_idx).Controls.Count > 0 Then
+-                    Dim wbq As WebBrowser = CType(k.TabPages(next_idx).Controls.Item(0), WebBrowser)
+-                    If wbq.Url IsNot Nothing AndAlso wbq.Url.Host = dom Then
+-                        k.SelectedIndex = next_idx
+-                        k.SelectedTab.Text = wbq.DocumentTitle
+-                        Text = ProductName & " - " & k.SelectedTab.Text
+-                        c.Text = wbq.Url.ToString
+-                        su.Visible = True
+-                        su.Text = "Jumped to next tab: " & dom
+-                        Exit Sub
+-                    End If
+-                End If
+-            Next i
+-            su.Visible = True
+-            su.Text = "No other tab found for: " & dom
++            qleaDomainAction("nx")
+         Catch ex As Exception
++            qlog(ex)
+         End Try
+     End Sub
+     Sub q478(ByVal sender As Object, ByVal e As EventArgs)
+@@ -15384,19 +15244,7 @@ Partial Class j
+     ' --- Duplicate Tabs From Same Domain ---
+     Sub q750(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+-            Dim current As WebBrowser = CType(k.SelectedTab.Controls.Item(0), WebBrowser)
+-            If current.Url Is Nothing OrElse current.Url.Host = "" Then Exit Sub
+-            Dim urls As New List(Of String)
+-            For i As Integer = 0 To k.TabPages.Count - 1
+-                If k.TabPages(i).Controls.Count = 0 Then Continue For
+-                Dim wb As WebBrowser = CType(k.TabPages(i).Controls.Item(0), WebBrowser)
+-                If wb.Url IsNot Nothing AndAlso wb.Url.Host.Equals(current.Url.Host, StringComparison.OrdinalIgnoreCase) Then urls.Add(wb.Url.ToString)
+-            Next i
+-            For Each url As String In urls
+-                q3(url)
+-            Next url
+-            su.Visible = True
+-            su.Text = urls.Count.ToString & " same-domain tab(s) duplicated"
++            qleaDomainAction("dp")
+         Catch ex As Exception
+             qlog(ex)
+         End Try

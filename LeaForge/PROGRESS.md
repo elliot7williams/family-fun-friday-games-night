@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **56**
+Post-1.0 hardening milestones completed: **57**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,14 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Migrated same-domain reload, close, bookmark, duplicate, next-tab, new-window,
+  copy, and snapshot commands to Lea-aware paths. Matching includes active,
+  paused, and mixed-engine visible tabs; hidden tabs stay untouched. Copies
+  preserve privacy and fields, new windows retain the first URL without a
+  default request, and exports are bounded by rows and UTF-8 bytes. Fixed
+  snapshot cancellation falling through to a write. Two new Boot cases bring
+  the suite to 24. See `DOMAIN_COMMANDS.md` for evidence and remaining scope.
 
 - Migrated shared bulk/workspace/protected-session opening, last/recent closed
   windows, and unread watch batches to Lea. Fixed reproduced first-tab loss and

@@ -262,6 +262,138 @@ Partial Class j
         Return New UriBuilder(address.Scheme, address.Host, address.Port).Uri
     End Function
 
+    Private Function qleaSite(ByVal target As String) As String
+        Dim address As Uri = Nothing
+        If Not Uri.TryCreate(qleaSessionTarget(target), UriKind.Absolute, address) Then Return ""
+        If address.Scheme <> Uri.UriSchemeHttp AndAlso address.Scheme <> Uri.UriSchemeHttps Then Return ""
+        Try
+            Return address.IdnHost
+        Catch ex As UriFormatException
+            Return ""
+        End Try
+    End Function
+
+    Private Function qleaDomainTabs() As List(Of TabPage)
+        Dim result As New List(Of TabPage)()
+        Dim site As String = qleaSite(qleaUrl(qleaSelectedTab()))
+        If site = "" Then Return result
+        For Each tab As TabPage In k.TabPages
+            If String.Equals(site, qleaSite(qleaUrl(tab)), StringComparison.OrdinalIgnoreCase) Then result.Add(tab)
+        Next
+        Return result
+    End Function
+
+    Private Sub qleaDomainAction(ByVal command As String)
+        Dim selected As TabPage = qleaSelectedTab()
+        Dim matches As List(Of TabPage) = qleaDomainTabs()
+        su.Visible = True
+        If matches.Count = 0 Then
+            su.Text = "No HTTP or HTTPS domain selected"
+            Return
+        End If
+        Dim count As Integer = 0
+        Select Case command
+            Case "rl"
+                For Each tab As TabPage In matches
+                    If suspendedGroupUrls.ContainsKey(tab) Then Continue For
+                    Dim host As Global.Lea.Win.V = qleaHost(tab)
+                    If host IsNot Nothing Then
+                        If host.Busy Then Continue For
+                        If pv Then host.Pv = True
+                        qleaReload(host)
+                    Else
+                        Dim browser As WebBrowser = TryCast(tab.Controls(0), WebBrowser)
+                        If browser Is Nothing OrElse browser.IsBusy Then Continue For
+                        browser.Refresh()
+                    End If
+                    count += 1
+                Next
+                su.Text = count.ToString & " same-domain tab(s) reloaded; " & (matches.Count - count).ToString & " busy or suspended tab(s) skipped"
+            Case "cl"
+                For Each tab As TabPage In matches.AsEnumerable().Reverse()
+                    If tab Is selected Then Continue For
+                    qleaClose(tab)
+                    count += 1
+                Next
+                k.SelectedTab = selected
+                qleaTabChanged(k, EventArgs.Empty)
+                su.Text = count.ToString & " same-domain tab(s) closed"
+            Case "bm"
+                For Each tab As TabPage In matches
+                    My.Settings.bm.Add(qleaUrl(tab))
+                Next
+                My.Settings.Save()
+                qrb()
+                su.Text = matches.Count.ToString & " same-domain tab(s) bookmarked"
+            Case "dp"
+                Dim bytes As Integer = 0
+                Dim first As TabPage = Nothing
+                For Each tab As TabPage In matches
+                    If count >= qleaSessionTabs Then Exit For
+                    Dim target As String = qleaSessionTarget(qleaUrl(tab))
+                    If target = "" Then Continue For
+                    Dim size As Integer = Encoding.UTF8.GetByteCount(target & Environment.NewLine)
+                    If bytes + size > qleaSessionBytes Then Continue For
+                    Dim host As Global.Lea.Win.V = qleaCreate(target, pv OrElse qleaPrivate(tab))
+                    If first Is Nothing Then first = DirectCast(host.Parent, TabPage)
+                    bytes += size
+                    count += 1
+                Next
+                If first IsNot Nothing Then k.SelectedTab = first
+                su.Text = count.ToString & " same-domain Lea tab(s) duplicated; " & (matches.Count - count).ToString & " skipped by Lea limits"
+            Case "wn"
+                Dim privateWindow As Boolean = matches.Any(Function(tab) qleaPrivate(tab))
+                Dim window As j = qleaWindow(matches.Select(Function(tab) qleaUrl(tab)), privateWindow)
+                count = If(window Is Nothing, 0, window.k.TabCount)
+                su.Text = count.ToString & " same-domain Lea tab(s) opened in a new window; " & (matches.Count - count).ToString & " skipped by Lea limits"
+            Case "nx"
+                If matches.Count = 1 Then
+                    su.Text = "No other tab found for this domain"
+                    Return
+                End If
+                k.SelectedTab = matches((matches.IndexOf(selected) + 1) Mod matches.Count)
+                qleaTabChanged(k, EventArgs.Empty)
+                su.Text = "Jumped to next same-domain tab"
+        End Select
+    End Sub
+
+    Private Function qleaDomainLine(ByVal value As String, ByVal limit As Integer) As String
+        value = If(value, "")
+        Dim length As Integer = Math.Min(value.Length, Math.Max(0, limit))
+        If length > 0 AndAlso Char.IsHighSurrogate(value(length - 1)) Then length -= 1
+        Dim chars As Char() = value.ToCharArray(0, length)
+        For index As Integer = 0 To chars.Length - 1
+            If Char.IsControl(chars(index)) Then chars(index) = " "c
+        Next
+        Return New String(chars)
+    End Function
+
+    Private Function qleaDomainText(ByVal snapshot As Boolean) As String
+        Dim matches As List(Of TabPage) = qleaDomainTabs()
+        If matches.Count = 0 Then Return ""
+        Dim text As New StringBuilder()
+        If snapshot Then
+            text.AppendLine("Firespider Domain Snapshot")
+            text.AppendLine("Current URL: " & qleaDomainLine(qleaUrl(qleaSelectedTab()), qleaSessionUrl))
+            text.AppendLine("Domain Root: " & qleaDomain().AbsoluteUri)
+            text.AppendLine("Homepage: " & qleaDomainLine(My.Settings.h, qleaSessionUrl))
+            text.AppendLine()
+            text.AppendLine("Matching Tabs")
+        End If
+        Dim bytes As Integer = Encoding.UTF8.GetByteCount(text.ToString())
+        Dim count As Integer = 0
+        For Each tab As TabPage In matches
+            Dim line As String = qleaDomainLine(tab.Text, 256) & " - " & qleaUrl(tab) & Environment.NewLine
+            Dim size As Integer = Encoding.UTF8.GetByteCount(line)
+            If count >= 256 OrElse bytes + size > qleaSessionBytes - 128 Then Exit For
+            text.Append(line)
+            bytes += size
+            count += 1
+        Next
+        If count < matches.Count Then text.AppendLine("[" & (matches.Count - count).ToString & " tab(s) omitted by export limits]")
+        Return text.ToString()
+    End Function
+
     Private Sub qleaPaste(ByVal value As String, ByVal multiple As Boolean)
         su.Visible = True
         value = If(value, "")
@@ -1213,12 +1345,12 @@ Partial Class j
         Return targets
     End Function
 
-    Private Function qleaWindow(ByVal values As IEnumerable(Of String)) As j
+    Private Function qleaWindow(ByVal values As IEnumerable(Of String), Optional ByVal privateWindow As Boolean = False) As j
         Dim targets As List(Of String) = qleaTargets(values)
         If targets.Count = 0 Then Return Nothing
         Dim window As New j
         window.qleaInitial = targets
-        window.pv = pv
+        window.pv = pv OrElse privateWindow
         Try
             window.Show()
             Return window
