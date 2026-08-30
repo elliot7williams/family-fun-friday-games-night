@@ -246,6 +246,16 @@ native editors and select popups keep native Windows spacing. Zero-spacing
 pages retain their existing fast path; complex-script/bidi tracking and
 fractional or relative spacing units remain outside this implementation.
 
+Non-inherited `S.To=c/e` exposes clip/ellipsis text overflow. A non-visible
+overflow mode and a line wider than its content box are both required. Lea
+keeps original layout and pointer targets, including collapsed link spaces,
+and paints a shortened text-element prefix plus a synthetic marker. No host
+string shortening is needed. Document and form values remain authored; UI
+Automation retains full logical text and uses the painted prefix for visible
+text rectangles. Native controls and SVG text keep their existing behavior.
+The current path is horizontal left-to-right and does not implement custom
+markers, two-ended overflow, line clamping, or bidi layout.
+
 `S.Ws` carries compact `n/nw/p/pw/pl` white-space modes. Lea preserves explicit
 spaces and line breaks for `pre`/`pre-wrap`, keeps line breaks while collapsing
 spaces for `pre-line`, and disables soft wrapping for `nowrap`/`pre`. `S.Ov`

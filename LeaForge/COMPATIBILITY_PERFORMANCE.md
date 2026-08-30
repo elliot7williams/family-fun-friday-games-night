@@ -10,16 +10,16 @@ These are repeatable local diagnostic samples, not performance promises. Re-run 
 
 | Measurement | Result |
 | --- | ---: |
-| Clean process + engine + first page median | 488.582 ms |
-| Clean process + engine + first page p95 | 592.910 ms |
-| Local page load median | 3.142 ms |
-| Local page load p95 | 9.555 ms |
-| Layout + bitmap paint median | 29.327 ms |
-| Layout + bitmap paint p95 | 73.602 ms |
-| Retained managed memory | 14638.8 KB for 285 loaded pages |
-| Retained managed memory per page | 51.4 KB |
-| Engine runtime DLLs | 454.5 KB |
-| Engine runtime GZip estimate | 191.6 KB (42.1% of raw) |
+| Clean process + engine + first page median | 500.067 ms |
+| Clean process + engine + first page p95 | 574.294 ms |
+| Local page load median | 4.273 ms |
+| Local page load p95 | 17.566 ms |
+| Layout + bitmap paint median | 38.883 ms |
+| Layout + bitmap paint p95 | 123.593 ms |
+| Retained managed memory | 15022.3 KB for 290 loaded pages |
+| Retained managed memory per page | 51.8 KB |
+| Engine runtime DLLs | 456.5 KB |
+| Engine runtime GZip estimate | 192.5 KB (42.2% of raw) |
 
 ## Fixture Loads
 
@@ -27,63 +27,64 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 
 | Fixture | Bytes | Nodes | CSS rules | Median | p95 |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| `index.html` | 1032 | 19 | 1 | 3.323 ms | 5.690 ms |
-| `recovery.html` | 1040 | 39 | 0 | 2.541 ms | 3.518 ms |
-| `html-tokens.html` | 943 | 15 | 2 | 2.223 ms | 2.790 ms |
-| `selectors.html` | 1017 | 20 | 10 | 2.185 ms | 2.763 ms |
-| `selector-functions.html` | 2586 | 23 | 18 | 4.259 ms | 6.820 ms |
-| `selector-arithmetic.html` | 1955 | 25 | 18 | 3.663 ms | 5.171 ms |
-| `selector-filtered-position.html` | 2375 | 25 | 13 | 5.230 ms | 7.256 ms |
-| `selector-relational.html` | 2027 | 28 | 15 | 3.442 ms | 4.304 ms |
-| `layout.html` | 616 | 9 | 4 | 0.818 ms | 1.396 ms |
-| `tables.html` | 894 | 28 | 6 | 1.650 ms | 2.664 ms |
-| `forms.html` | 1566 | 25 | 7 | 2.304 ms | 3.907 ms |
-| `events-vars.html` | 1132 | 14 | 5 | 2.498 ms | 3.354 ms |
-| `responsive-media.html` | 2575 | 21 | 5 | 2.805 ms | 3.432 ms |
-| `media-queries.html` | 2229 | 24 | 16 | 2.799 ms | 5.388 ms |
-| `custom-properties.html` | 2890 | 23 | 17 | 3.122 ms | 4.678 ms |
-| `important-cascade.html` | 2748 | 19 | 16 | 2.511 ms | 5.357 ms |
-| `stacking-contexts.html` | 3149 | 32 | 22 | 4.073 ms | 6.339 ms |
-| `external.html` | 502 | 12 | 6 | 1.600 ms | 2.785 ms |
-| `base-url.html` | 819 | 17 | 5 | 1.118 ms | 1.809 ms |
-| `class-commands.html` | 1169 | 15 | 4 | 1.438 ms | 2.073 ms |
-| `go-command.html` | 971 | 12 | 6 | 1.732 ms | 6.767 ms |
-| `lists.html` | 1849 | 39 | 5 | 2.265 ms | 3.148 ms |
-| `disclosure.html` | 2270 | 34 | 9 | 2.638 ms | 3.209 ms |
-| `fragments.html` | 2234 | 31 | 11 | 2.443 ms | 3.083 ms |
-| `gauges.html` | 2115 | 25 | 14 | 2.081 ms | 2.751 ms |
-| `values.html` | 1734 | 26 | 7 | 1.421 ms | 1.931 ms |
-| `time-edits.html` | 1966 | 27 | 7 | 1.658 ms | 2.119 ms |
-| `image-maps.html` | 2569 | 30 | 6 | 1.691 ms | 2.233 ms |
-| `keyboard-focus.html` | 3721 | 41 | 18 | 3.756 ms | 4.452 ms |
-| `focus-shortcuts.html` | 1838 | 20 | 13 | 1.907 ms | 2.363 ms |
-| `accessibility.html` | 3148 | 60 | 4 | 2.486 ms | 3.219 ms |
-| `state-commands.html` | 2711 | 37 | 9 | 4.990 ms | 5.562 ms |
-| `flex.html` | 6942 | 57 | 57 | 10.279 ms | 11.310 ms |
-| `grid.html` | 5699 | 62 | 37 | 11.518 ms | 12.354 ms |
-| `grid-areas.html` | 3189 | 31 | 20 | 5.473 ms | 6.343 ms |
-| `grid-lines.html` | 5342 | 45 | 31 | 9.133 ms | 10.560 ms |
-| `grid-flow.html` | 4271 | 45 | 38 | 8.712 ms | 10.308 ms |
-| `grid-auto-tracks.html` | 4332 | 41 | 25 | 6.696 ms | 8.101 ms |
-| `grid-shorthand.html` | 5060 | 48 | 33 | 9.468 ms | 10.422 ms |
-| `grid-alignment.html` | 3129 | 27 | 23 | 4.127 ms | 4.994 ms |
-| `grid-content-alignment.html` | 2723 | 37 | 18 | 5.076 ms | 6.558 ms |
-| `svg.html` | 1775 | 25 | 4 | 2.104 ms | 2.623 ms |
-| `svg-geometry.html` | 2470 | 31 | 2 | 3.027 ms | 3.658 ms |
-| `svg-gradients.html` | 3238 | 43 | 3 | 2.647 ms | 3.789 ms |
-| `svg-use-clips.html` | 2947 | 48 | 3 | 3.177 ms | 3.811 ms |
-| `svg-strokes.html` | 2832 | 28 | 5 | 2.513 ms | 3.425 ms |
-| `box-sizing.html` | 2744 | 20 | 13 | 3.655 ms | 5.269 ms |
-| `border-radius.html` | 1695 | 16 | 12 | 3.103 ms | 3.575 ms |
-| `box-shadows.html` | 2445 | 22 | 19 | 4.327 ms | 6.286 ms |
-| `background-gradients.html` | 2943 | 22 | 19 | 3.828 ms | 5.555 ms |
-| `background-images.html` | 4326 | 26 | 23 | 5.070 ms | 5.840 ms |
-| `object-fit.html` | 5828 | 25 | 16 | 3.002 ms | 3.721 ms |
-| `aspect-ratio.html` | 5640 | 49 | 38 | 7.440 ms | 8.430 ms |
-| `outlines.html` | 2871 | 23 | 19 | 3.848 ms | 7.067 ms |
-| `pointer-interaction.html` | 3471 | 30 | 27 | 5.607 ms | 6.305 ms |
-| `text-transform.html` | 3150 | 32 | 25 | 4.207 ms | 5.292 ms |
-| `text-spacing.html` | 3942 | 33 | 26 | 5.623 ms | 7.479 ms |
+| `index.html` | 1032 | 19 | 1 | 3.037 ms | 5.173 ms |
+| `recovery.html` | 1040 | 39 | 0 | 1.887 ms | 2.332 ms |
+| `html-tokens.html` | 943 | 15 | 2 | 1.516 ms | 2.260 ms |
+| `selectors.html` | 1017 | 20 | 10 | 1.830 ms | 2.468 ms |
+| `selector-functions.html` | 2586 | 23 | 18 | 4.094 ms | 4.952 ms |
+| `selector-arithmetic.html` | 1955 | 25 | 18 | 4.262 ms | 8.428 ms |
+| `selector-filtered-position.html` | 2375 | 25 | 13 | 5.160 ms | 10.895 ms |
+| `selector-relational.html` | 2027 | 28 | 15 | 2.584 ms | 3.483 ms |
+| `layout.html` | 616 | 9 | 4 | 1.388 ms | 6.854 ms |
+| `tables.html` | 894 | 28 | 6 | 1.840 ms | 2.758 ms |
+| `forms.html` | 1566 | 25 | 7 | 1.942 ms | 3.774 ms |
+| `events-vars.html` | 1132 | 14 | 5 | 2.488 ms | 3.189 ms |
+| `responsive-media.html` | 2575 | 21 | 5 | 2.439 ms | 3.204 ms |
+| `media-queries.html` | 2229 | 24 | 16 | 3.511 ms | 14.248 ms |
+| `custom-properties.html` | 2890 | 23 | 17 | 4.639 ms | 5.717 ms |
+| `important-cascade.html` | 2748 | 19 | 16 | 3.024 ms | 4.280 ms |
+| `stacking-contexts.html` | 3149 | 32 | 22 | 4.804 ms | 21.935 ms |
+| `external.html` | 502 | 12 | 6 | 2.712 ms | 45.943 ms |
+| `base-url.html` | 819 | 17 | 5 | 2.370 ms | 11.747 ms |
+| `class-commands.html` | 1169 | 15 | 4 | 2.609 ms | 5.374 ms |
+| `go-command.html` | 971 | 12 | 6 | 2.914 ms | 7.294 ms |
+| `lists.html` | 1849 | 39 | 5 | 4.429 ms | 5.694 ms |
+| `disclosure.html` | 2270 | 34 | 9 | 5.523 ms | 29.528 ms |
+| `fragments.html` | 2234 | 31 | 11 | 4.147 ms | 58.413 ms |
+| `gauges.html` | 2115 | 25 | 14 | 4.052 ms | 38.951 ms |
+| `values.html` | 1734 | 26 | 7 | 2.693 ms | 3.226 ms |
+| `time-edits.html` | 1966 | 27 | 7 | 2.793 ms | 3.974 ms |
+| `image-maps.html` | 2569 | 30 | 6 | 3.111 ms | 22.291 ms |
+| `keyboard-focus.html` | 3721 | 41 | 18 | 6.890 ms | 9.068 ms |
+| `focus-shortcuts.html` | 1838 | 20 | 13 | 3.773 ms | 17.822 ms |
+| `accessibility.html` | 3148 | 60 | 4 | 4.494 ms | 5.754 ms |
+| `state-commands.html` | 2711 | 37 | 9 | 9.249 ms | 39.895 ms |
+| `flex.html` | 6942 | 57 | 57 | 17.872 ms | 41.685 ms |
+| `grid.html` | 5699 | 62 | 37 | 19.697 ms | 27.293 ms |
+| `grid-areas.html` | 3189 | 31 | 20 | 8.220 ms | 9.651 ms |
+| `grid-lines.html` | 5342 | 45 | 31 | 16.267 ms | 41.791 ms |
+| `grid-flow.html` | 4271 | 45 | 38 | 14.820 ms | 16.875 ms |
+| `grid-auto-tracks.html` | 4332 | 41 | 25 | 11.108 ms | 17.692 ms |
+| `grid-shorthand.html` | 5060 | 48 | 33 | 16.294 ms | 30.559 ms |
+| `grid-alignment.html` | 3129 | 27 | 23 | 6.998 ms | 11.615 ms |
+| `grid-content-alignment.html` | 2723 | 37 | 18 | 8.943 ms | 21.500 ms |
+| `svg.html` | 1775 | 25 | 4 | 3.305 ms | 5.687 ms |
+| `svg-geometry.html` | 2470 | 31 | 2 | 5.227 ms | 14.137 ms |
+| `svg-gradients.html` | 3238 | 43 | 3 | 4.760 ms | 6.601 ms |
+| `svg-use-clips.html` | 2947 | 48 | 3 | 3.124 ms | 8.846 ms |
+| `svg-strokes.html` | 2832 | 28 | 5 | 3.273 ms | 11.488 ms |
+| `box-sizing.html` | 2744 | 20 | 13 | 3.015 ms | 4.733 ms |
+| `border-radius.html` | 1695 | 16 | 12 | 2.928 ms | 3.587 ms |
+| `box-shadows.html` | 2445 | 22 | 19 | 3.527 ms | 6.242 ms |
+| `background-gradients.html` | 2943 | 22 | 19 | 4.891 ms | 6.292 ms |
+| `background-images.html` | 4326 | 26 | 23 | 6.831 ms | 9.584 ms |
+| `object-fit.html` | 5828 | 25 | 16 | 3.308 ms | 5.012 ms |
+| `aspect-ratio.html` | 5640 | 49 | 38 | 7.750 ms | 16.430 ms |
+| `outlines.html` | 2871 | 23 | 19 | 3.982 ms | 6.698 ms |
+| `pointer-interaction.html` | 3471 | 30 | 27 | 7.001 ms | 12.447 ms |
+| `text-transform.html` | 3150 | 32 | 25 | 6.452 ms | 13.969 ms |
+| `text-spacing.html` | 3942 | 33 | 26 | 6.380 ms | 9.681 ms |
+| `text-overflow.html` | 3878 | 34 | 26 | 9.821 ms | 15.083 ms |
 
 ## Executable Probes
 
@@ -122,6 +123,7 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 | Bounded pointer interaction | PASS | S.Cu/Pe inherited aliases, bounded cursor keywords, variables/priority/reset/invalid preservation, pointer-disabled link/field hits and hover, child re-enable, semantic cursors, keyboard/accessibility stability, and resize |
 | Bounded text transform | PASS | S.Tt n/u/l/c inherited alias, strict none/upper/lower/capitalize parsing, inline overrides, variables/priority/resets/invalid preservation, multiline/table/control presentation, raw DOM/form retention, hover, paint, and resize |
 | Bounded text spacing | PASS | S.Ls/Wg inherited signed pixel aliases, strict normal/reset/bounds/invalid preservation, inline overrides, variables/priority, shared wrap and paint metrics, raw form retention, hover, and resize |
+| Bounded text overflow | PASS | S.To c/e non-inherited alias, strict clip/ellipsis, inherit/reset/invalid/variable/important cascade, paint-only inline/table/multiline truncation, preserved authored text, hover, and resize |
 | Bounded flex layout | PASS | Fd/Jc/Ai/As/Gp/Wr/Rg/Fg/Sh/Fb/Or aliases, stable row order, column/reverse flow, around/evenly distribution, item alignment, fixed, auto, wrapped, growing, shrinking, protected, and locked slots, hits, resize, and following flow |
 | Bounded grid layout | PASS | Gd/Gc/Gv columns, Rd/Rc/Rv rows, Gl/Gs and Rl/Rs two-axis placement, bounded px/fr/repeat/minmax tracks, gaps, spans, occupancy, paint, resize, and flow |
 | Bounded named grid areas | PASS | Aa/Ar/Ac/Ag area templates plus An item names, rectangular validation, dot cells, definite-first placement, implicit columns, bounds, paint, hits, and flow |
@@ -156,6 +158,7 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 | CSS | Partial | Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box, circular/elliptical radii, bounded outlines, box shadows and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing and text styles, visibility, positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid |
 | Layout and painting | Partial | Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, inline, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer |
 | Forms | Supported subset | GET/POST, validation, text/select/choice/file/range/date/color/time-family controls |
+| Text overflow | Supported subset | Non-inherited clip/ellipsis; paint-only bounded text-element prefixes for clipped overflowing horizontal LTR lines, inline runs and tables; retained layout/link targets and full logical automation text; no native-control, bidi, custom-marker, or line-clamp additions |
 | Lea command scripting | Supported | Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands |
 | General JavaScript and DOM APIs | Not supported | Lea deliberately does not execute arbitrary JavaScript |
 | Flexbox | Supported subset | Row/row-reverse and fixed-height column/column-reverse containers, content/border-box pixel bases, stable -64..64 order on nowrap rows and bounded columns, bounded row wrap, fixed/equal-share/weighted grow and integer weighted-shrink slots, explicit pixel min/max floors, pixel row/column gaps, start/center/end/space-between/space-around/space-evenly justification, and container/item stretch/start/center/end cross alignment; no intrinsic min-content sizing, fractional factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis alignment, or auto-height column reordering guarantee |
@@ -178,10 +181,10 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 
 | Artifact | Bytes | Size |
 | --- | ---: | ---: |
-| `Lea.Engine.dll` | 263168 | 257.0 KB |
-| `Lea.Win.dll` | 202240 | 197.5 KB |
+| `Lea.Engine.dll` | 263680 | 257.5 KB |
+| `Lea.Win.dll` | 203776 | 199.0 KB |
 | `Lea.Win.Test.exe` | 394752 | 385.5 KB |
-| `Lea.Bench.exe` | 192512 | 188.0 KB |
+| `Lea.Bench.exe` | 195584 | 191.0 KB |
 | `Firespider Internet 19.exe` | 1111040 | 1085.0 KB |
 
 The engine runtime size is `Lea.Engine.dll` plus `Lea.Win.dll`. Test and report executables are listed separately and are not required when embedding Lea in Firespider.

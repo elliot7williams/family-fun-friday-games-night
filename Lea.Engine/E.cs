@@ -3253,6 +3253,7 @@ namespace Lea.Engine
                 else if (name == "white-space") WhiteSpace(style, value);
                 else if (name == "word-break" || name == "overflow-wrap" || name == "word-wrap") WordBreak(style, value, name == "word-break");
                 else if (name == "overflow") Overflow(style, value);
+                else if (name == "text-overflow") TextOverflow(style, inherited, value);
                 else if (name == "cursor") CursorStyle(style, value);
                 else if (name == "pointer-events") PointerEvents(style, value);
                 else if (name == "object-fit") ObjectFit(style, value);
@@ -4476,6 +4477,14 @@ namespace Lea.Engine
             if (mode == "inherit" || mode == "unset") return;
             if (mode == "auto" || mode == "initial" || mode == "revert") style.Pe = true;
             else if (mode == "none") style.Pe = false;
+        }
+
+        private static void TextOverflow(S style, S inherited, string value)
+        {
+            var mode = (value ?? "").Trim().ToLowerInvariant();
+            if (mode == "inherit") style.To = inherited == null ? "c" : inherited.To;
+            else if (mode == "clip" || mode == "initial" || mode == "unset" || mode == "revert") style.To = "c";
+            else if (mode == "ellipsis") style.To = "e";
         }
 
         private static void Overflow(S style, string value)

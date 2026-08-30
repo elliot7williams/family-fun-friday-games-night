@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **47**
+Post-1.0 hardening milestones completed: **48**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,16 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded non-inherited CSS text overflow through compact `S.To=c/e`
+  clip/ellipsis state. Strict values, explicit inheritance, resets, invalid
+  preservation, variables, important tiers, hover, and responsive rules feed
+  paint-only text-element truncation. Original line sizes, authored text, and
+  pointer targets remain intact, including corrected collapsed link spaces.
+  Synthetic markers, first-character clipping, mixed inline runs, explicit
+  and unbreakable lines, tables, automation prefixes, and retained form state
+  have engine, renderer, benchmark, and compiled Firespider coverage. The suite
+  now has 58 fixtures and 57 executable compatibility probes.
 
 - Added bounded inherited CSS letter and word spacing through compact
   `S.Ls/Wg` signed -32..128 pixel state. Strict normal/reset parsing,

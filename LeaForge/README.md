@@ -39,6 +39,8 @@ LeaForge is where we can grow the more full-featured browser.
   shared `E.Tx`, with inline/control presentation and raw DOM/form preservation
 - inherited signed pixel letter/word spacing through compact `S.Ls/Wg`, with
   shared wrapping, inline boundaries, control paint, and retained geometry
+- non-inherited clip/ellipsis text overflow through compact `S.To=c/e`, with
+  paint-only truncation, retained link targets, and authored automation text
 - inherited left/center/right/justify alignment and pixel/relative line spacing
 - external stylesheets with document-order cascade and shared bounded caching
 - compiled relationship, attribute, structural, link, and form-state selectors,

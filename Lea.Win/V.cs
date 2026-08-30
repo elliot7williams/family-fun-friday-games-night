@@ -700,7 +700,7 @@ namespace Lea.Win
                         pe.Graphics.SetClip(clip, CombineMode.Intersect);
                         ApplyRoundedOverflowClips(pe.Graphics, box);
                     }
-                    if (opacity > 0 && !box.Title && (!box.Inline || box.B == null || box.B.Is.Count > 0)) PaintBox(pe.Graphics, rect, box.S, pageBackground, pageColor, opacity, box.B == null || box.B.I == null);
+                    if (opacity > 0 && !box.Title && !EllipsisMarker(box) && (!box.Inline || box.B == null || box.B.Is.Count > 0)) PaintBox(pe.Graphics, rect, box.S, pageBackground, pageColor, opacity, box.B == null || box.B.I == null);
                     if (opacity > 0 && box.Fm) PaintFind(pe.Graphics, VisibleRect(content, clip), box.Fa);
                     if (box.B != null && box.B.Vg != null)
                     {
@@ -739,9 +739,10 @@ namespace Lea.Win
                         if (box.S != null) color = CssColor(box.S.F, color);
                         var flags = box.Inline ? TextFormatFlags.SingleLine | TextFormatFlags.NoPadding : TextFormatFlags.WordBreak | TextFormatFlags.NoPadding;
                         if (!clip.IsEmpty) flags |= TextFormatFlags.PreserveGraphicsClipping;
-                        if (opacity > 0) PaintText(pe.Graphics, box.X, font, content, color, flags, opacity, box.S);
+                        if (opacity > 0) PaintText(pe.Graphics, box.Px ?? box.X, font, content, color, flags, opacity, box.S);
                     }
 
+                    if (EllipsisMarker(box)) continue;
                     if (box.U != null && PointerEnabled(box.S))
                     {
                         var hit = VisibleRect(rect, clip);
@@ -2412,6 +2413,7 @@ namespace Lea.Win
             var y = 0;
             for (var lineIndex = 0; lineIndex < lines.Count; lineIndex++)
             {
+                var first = layout.Count;
                 var current = lines[lineIndex];
                 var align = block.S == null ? "" : block.S.Ta;
                 var justify = align == "j" && lineIndex < lines.Count - 1 && !current.Br;
@@ -2436,10 +2438,82 @@ namespace Lea.Win
                     x += atomWidth;
                     previous = atom;
                 }
+                EllipsizeLine(graphics, block, layout, first, width, y, current.H);
                 y += current.H;
             }
             height = Math.Max(baseHeight, y);
             return layout;
+        }
+
+        private void EllipsizeLine(Graphics graphics, B block, List<Ix> layout, int first, int width, int top, int height)
+        {
+            if (block.S == null || block.S.To != "e" || !ClipsOverflow(block.S) || first == layout.Count) return;
+            var overflow = false;
+            for (var index = first; index < layout.Count; index++)
+                if (layout[index].R.Right > width) { overflow = true; break; }
+            if (!overflow) return;
+
+            using (var markerFont = BoxFont(block.K, block.S, false, block.U != null))
+            {
+                var markerWidth = TextWidth(graphics, "\u2026", markerFont, block.S);
+                var end = 0;
+                S lastStyle = null;
+                var lastWidth = 0;
+                var stopped = false;
+                // Keep layout and hit rectangles intact; only replace the painted suffix.
+                for (var index = first; index < layout.Count; index++)
+                {
+                    var part = layout[index];
+                    if (stopped) { part.Px = ""; continue; }
+                    var gap = TextGap(part.R.Width, part.S, block.S);
+                    if (part.R.Right + gap + markerWidth <= width)
+                    {
+                        end = part.R.Right;
+                        lastStyle = part.S;
+                        lastWidth = part.R.Width;
+                        continue;
+                    }
+                    using (var font = BoxFont(part.K, part.S, false, part.U != null, block.K))
+                    {
+                        part.Px = EllipsisPrefix(graphics, part.X, font, part.S, block.S,
+                            width - part.R.Left, markerWidth, index == first);
+                        if (part.Px.Length > 0)
+                        {
+                            lastWidth = TextWidth(graphics, part.Px, font, part.S);
+                            end = part.R.Left + lastWidth;
+                            lastStyle = part.S;
+                        }
+                    }
+                    stopped = true;
+                }
+                var x = end + (lastWidth > 0 ? TextGap(lastWidth, lastStyle, block.S) : 0);
+                var rect = new Rectangle(x, top + Math.Max(0, (height - markerFont.Height) / 2), markerWidth, markerFont.Height);
+                layout.Add(new Ix(block.K, "", block.U, block.S, rect, block.El) { Px = "\u2026" });
+            }
+        }
+
+        private static string EllipsisPrefix(Graphics graphics, string text, Font font, S style, S markerStyle, int available, int markerWidth, bool first)
+        {
+            var ends = new List<int> { 0 };
+            var elements = StringInfo.GetTextElementEnumerator(text);
+            while (ends.Count <= 8192 && elements.MoveNext())
+                ends.Add(elements.ElementIndex + elements.GetTextElement().Length);
+            var low = 0;
+            var high = ends.Count - 1;
+            while (low < high)
+            {
+                var middle = (low + high + 1) / 2;
+                var measured = TextWidth(graphics, text.Substring(0, ends[middle]), font, style);
+                if (measured + TextGap(measured, style, markerStyle) + markerWidth <= available) low = middle;
+                else high = middle - 1;
+            }
+            if (first && low == 0 && ends.Count > 1) low = 1;
+            return text.Substring(0, ends[low]);
+        }
+
+        private static bool EllipsisMarker(Bx box)
+        {
+            return box != null && box.X.Length == 0 && box.Px != null;
         }
 
         private void AddInlineText(Graphics graphics, List<Il> lines, ref Il line, ref Ia pending, string kind, string value, Uri url, S style, string baseKind, N element, int width, int baseHeight, string space, bool wrap, ref bool endedWithBreak)
@@ -2466,7 +2540,9 @@ namespace Lea.Win
                 if (Char.IsWhiteSpace(value[index]))
                 {
                     while (index < value.Length && Char.IsWhiteSpace(value[index]) && (space != "pl" || LineBreak(value, index) == 0)) index++;
-                    pending = InlineAtom(graphics, kind, " ", null, style, baseKind, element);
+                    var spaceUrl = url != null && line.As.Count > 0 &&
+                        Object.ReferenceEquals(LinkElement(line.As[line.As.Count - 1].El), LinkElement(element)) ? url : null;
+                    pending = InlineAtom(graphics, kind, " ", spaceUrl, style, baseKind, element);
                     continue;
                 }
 
@@ -2649,7 +2725,7 @@ namespace Lea.Win
             {
                 var rect = part.R;
                 rect.Offset(content.X, content.Y);
-                boxes.Add(new Bx(part.K, part.X, part.U, part.S, rect, false, block, true, clip, part.El));
+                boxes.Add(new Bx(part.K, part.X, part.U, part.S, rect, false, block, true, clip, part.El) { Px = part.Px });
             }
         }
 
@@ -4478,7 +4554,7 @@ namespace Lea.Win
 
             foreach (var box in boxes)
             {
-                if (box.Title || box.El == null || Hidden(box.S) || HtmlHidden(box.El)) continue;
+                if (box.Title || EllipsisMarker(box) || box.El == null || Hidden(box.S) || HtmlHidden(box.El)) continue;
                 var element = box.El;
                 var url = box.U;
                 var action = (Bx)null;
@@ -5996,7 +6072,11 @@ namespace Lea.Win
             var field = box.B == null ? null : box.B.I;
             if (box.Inline || field != null || box.C.Width < 2)
             {
-                parts.Add(new Us(value, box.R, box.Clip, box.Fx, box.El, order, sequence++));
+                var rect = box.R;
+                if (box.Px != null)
+                    using (var font = BoxFont(box.K, box.S, false, box.U != null, box.B == null ? null : box.B.K))
+                        rect.Width = Math.Min(rect.Width, TextWidth(graphics, box.Px, font, box.S));
+                parts.Add(new Us(value, rect, box.Clip, box.Fx, box.El, order, sequence++));
                 return;
             }
 
@@ -6072,7 +6152,7 @@ namespace Lea.Win
                 var field = box.B.I;
                 if (field.K != "checkbox" && field.K != "radio" && box.K != "button") return "";
             }
-            var value = box.X;
+            var value = box.Px ?? box.X;
             if (box.B != null && box.B.Mk.Length > 0)
             {
                 var prefix = box.B.Mk + " ";
@@ -7498,6 +7578,7 @@ namespace Lea.Win
         {
             public readonly string K;
             public readonly string X;
+            public string Px;
             public readonly Uri U;
             public readonly S S;
             public Rectangle R;
@@ -7571,6 +7652,7 @@ namespace Lea.Win
         {
             public readonly string K;
             public readonly string X;
+            public string Px;
             public readonly Uri U;
             public readonly S S;
             public readonly Rectangle R;

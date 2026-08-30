@@ -23,7 +23,7 @@ namespace Lea.Tests
         {
             try
             {
-                var root = args.Length > 0 ? args[0] : Directory.GetCurrentDirectory();
+                var root = Path.GetFullPath(args.Length > 0 ? args[0] : Directory.GetCurrentDirectory());
                 var forms = Path.Combine(root, "LeaForge", "test-pages", "forms.html");
                 var engine = new E();
                 var page = engine.Go(forms);
@@ -1529,6 +1529,7 @@ namespace Lea.Tests
                     Object.ReferenceEquals(spacingField, FieldById(spacingPage, "field")), "responsive spacing rebuild and field retention");
 
                 TextSpacingSmoke(spacingPath);
+                TextOverflowSmoke(Path.Combine(root, "LeaForge", "test-pages", "text-overflow.html"));
 
                 var recoveryPath = Path.Combine(root, "LeaForge", "test-pages", "recovery.html");
                 var recoveryPage = engine.Go(recoveryPath);
@@ -3461,9 +3462,18 @@ namespace Lea.Tests
                     Ok(SameInlineHeights(view, view.At.Bs[0]), "heading inline runs retain heading size");
                     var inlineLink = LinkRect(view, "second.html");
                     Ok(!inlineLink.IsEmpty && inlineBlock.Contains(new Point(inlineLink.Left, inlineLink.Top)), "inline link stays inside paragraph");
-                    Eq(3, LinkBoxes(view, "second.html"), "only inline link words are clickable");
-                    Click(view, inlineLink);
-                    WaitFor(delegate { return view.T == "LeaForge Second Page"; }, "inline link navigation");
+                    Eq(3, LinkBoxes(view, "second.html", true), "three inline link words retain their targets");
+                    var inlineLinkSpace = Rectangle.Empty;
+                    foreach (var value in LayoutBoxes(view))
+                    {
+                        var type = value.GetType();
+                        var url = type.GetField("U").GetValue(value) as Uri;
+                        if ((string)type.GetField("X").GetValue(value) == " " && url != null && Path.GetFileName(url.LocalPath) == "second.html")
+                            inlineLinkSpace = (Rectangle)type.GetField("R").GetValue(value);
+                    }
+                    Ok(!inlineLinkSpace.IsEmpty, "inline link keeps whitespace geometry");
+                    Click(view, inlineLinkSpace);
+                    WaitFor(delegate { return view.T == "LeaForge Second Page"; }, "inline link whitespace navigation");
                     view.Size = new Size(420, 760);
                     view.Go(textPath);
                     Paint(view);
@@ -4067,7 +4077,7 @@ namespace Lea.Tests
                     using (var nestedPaint = Render(view))
                     {
                         Eq(42, view.Bc, "nested context layout boxes");
-                        Eq(16, HitCount(view, false), "nested context link hits");
+                        Eq(26, HitCount(view, false), "nested context link hits include ten visible internal spaces");
                         var low = BlockRect(view, view.At.Bs[1]);
                         var clipper = BlockRect(view, view.At.Bs[2]);
                         var cropped = BlockRect(view, view.At.Bs[3]);
@@ -5461,6 +5471,150 @@ namespace Lea.Tests
             Console.WriteLine("Lea text spacing smoke passed: compact inherited aliases, signed metrics, inline controls, automation mapping, hover, raw editing, and resize.");
         }
 
+        private static void TextOverflowSmoke(string path)
+        {
+            var engine = new E { Vw = 720 };
+            var page = engine.Go(path);
+            Eq("c", page.S.To, "text overflow defaults to clip");
+            foreach (var id in new[] { "clip", "noninherited", "unset", "initial", "revert", "dynamic", "responsive" })
+                Eq("c", BlockById(page, id).S.To, "text overflow clip/reset " + id);
+            foreach (var id in new[] { "ellipsis", "inherited", "invalid", "variable", "important" })
+                Eq("e", BlockById(page, id).S.To, "text overflow ellipsis/cascade " + id);
+            Eq("e", BlockById(page, "overflow-table").Tb.Rs[0].Cs[0].S.To, "table text overflow style");
+            var retained = FieldById(page, "field");
+            engine.Dy(page, ById(page.D, "dynamic"), null);
+            Eq("e", BlockById(page, "dynamic").S.To, "text overflow hover cascade");
+            engine.Vw = 350;
+            Eq("e", BlockById(page, "responsive").S.To, "text overflow media cascade");
+            Ok(Object.ReferenceEquals(retained, FieldById(page, "field")), "text overflow retains form identity");
+
+            using (var view = new V())
+            {
+                view.Size = new Size(720, 3200);
+                view.CreateControl();
+                view.Go(path);
+                var raw = view.At.X;
+                retained = FieldById(view.At, "field");
+                Rectangle dynamicRect;
+                using (var paint = Render(view))
+                {
+                    foreach (var id in new[] { "clip", "short", "visible", "noninherited", "unset", "initial", "revert", "dynamic", "responsive" })
+                        Eq(0, OverflowParts(view, id, true).Count, "no ellipsis marker " + id);
+                    foreach (var id in new[] { "ellipsis", "spaced", "negative", "inline", "inherited", "invalid", "variable", "important", "cell", "tiny", "cluster" })
+                        Eq(1, OverflowParts(view, id, true).Count, "one ellipsis marker " + id);
+                    Eq(2, OverflowParts(view, "pre", true).Count, "explicit lines each receive ellipsis");
+                    Eq(2, OverflowParts(view, "wrapped", true).Count, "unbreakable wrapped lines receive ellipsis");
+                    var clipped = OverflowParts(view, "clip", false);
+                    var ellipsed = OverflowParts(view, "ellipsis", false);
+                    Eq(clipped.Count, ellipsed.Count, "ellipsis preserves retained atom count");
+                    for (var index = 0; index < clipped.Count; index++)
+                    {
+                        var type = clipped[index].GetType();
+                        Eq(type.GetField("X").GetValue(clipped[index]), type.GetField("X").GetValue(ellipsed[index]), "ellipsis keeps authored atoms");
+                        Eq(((Rectangle)type.GetField("R").GetValue(clipped[index])).Size,
+                            ((Rectangle)type.GetField("R").GetValue(ellipsed[index])).Size, "ellipsis keeps layout sizes");
+                    }
+                    Eq(BlockOuterRect(view, BlockById(view.At, "clip")).Height,
+                        BlockOuterRect(view, BlockById(view.At, "ellipsis")).Height, "ellipsis does not change flow height");
+                    var marker = OverflowParts(view, "ellipsis", true)[0];
+                    var markerRect = (Rectangle)marker.GetType().GetField("R").GetValue(marker);
+                    var content = BlockRect(view, BlockById(view.At, "ellipsis"));
+                    Ok(content.Contains(markerRect), "ellipsis marker fits content: " + markerRect + " in " + content);
+                    marker.GetType().GetField("Px").SetValue(marker, "");
+                    try
+                    {
+                        using (var withoutMarker = Render(view))
+                        {
+                            var ink = 0;
+                            for (var y = markerRect.Top; y < markerRect.Bottom; y++)
+                                for (var x = markerRect.Left; x < markerRect.Right; x++)
+                                    if (ColorDistance(withoutMarker.GetPixel(x, y), paint.GetPixel(x, y)) > 30) ink++;
+                            Ok(ink > 0, "ellipsis adds real glyph pixels on the same rendering surface");
+                        }
+                    }
+                    finally { marker.GetType().GetField("Px").SetValue(marker, "\u2026"); }
+                    var tiny = OverflowParts(view, "tiny", false)[0];
+                    Eq("W", tiny.GetType().GetField("Px").GetValue(tiny), "first overflowing character is clipped rather than removed");
+                    var cluster = OverflowParts(view, "cluster", false)[0];
+                    var prefix = (string)cluster.GetType().GetField("Px").GetValue(cluster);
+                    Ok(prefix.Length >= 2 && prefix.Length % 2 == 0 && prefix.EndsWith("e\u0301", StringComparison.Ordinal), "ellipsis preserves combining text elements");
+
+                    var linkMarker = OverflowParts(view, "inline", true)[0];
+                    var inlineParts = OverflowParts(view, "inline", false);
+                    Eq(" ", (string)inlineParts[1].GetType().GetField("X").GetValue(inlineParts[1]), "space preceding inline link");
+                    Ok(inlineParts[1].GetType().GetField("U").GetValue(inlineParts[1]) == null, "space preceding inline link is not clickable");
+                    var linkRect = (Rectangle)linkMarker.GetType().GetField("R").GetValue(linkMarker);
+                    var hitPoint = new Point(linkRect.Left + linkRect.Width / 2, linkRect.Top + linkRect.Height / 2);
+                    var hits = typeof(V).GetField("hits", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(view) as System.Collections.IEnumerable;
+                    var linked = false;
+                    foreach (var hit in hits)
+                    {
+                        var type = hit.GetType();
+                        var url = type.GetField("U").GetValue(hit) as Uri;
+                        if (url != null && url.Fragment == "#target" && ((Rectangle)type.GetField("R").GetValue(hit)).Contains(hitPoint)) linked = true;
+                    }
+                    Ok(linked, "ellipsis pointer target remains the elided link");
+                    dynamicRect = BlockOuterRect(view, BlockById(view.At, "dynamic"));
+                }
+
+                var automation = typeof(V).GetMethod("AutomationText", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(view, null);
+                var logical = (string)automation.GetType().GetField("X").GetValue(automation);
+                Eq(raw, view.At.X, "ellipsis does not mutate document text");
+                Ok(logical.Contains("Alpha beta gamma delta epsilon ending") && logical.IndexOf('\u2026') < 0,
+                    "UI Automation keeps full logical text without synthetic markers");
+                var segments = automation.GetType().GetField("Ps").GetValue(automation) as System.Collections.IEnumerable;
+                var visible = false;
+                foreach (var segment in segments)
+                {
+                    var type = segment.GetType();
+                    var element = type.GetField("El").GetValue(segment) as N;
+                    if (element == null || element.Av("id") != "ellipsis") continue;
+                    var value = (string)type.GetField("X").GetValue(segment);
+                    var start = (int)type.GetField("S").GetValue(segment);
+                    var end = (int)type.GetField("E").GetValue(segment);
+                    var rect = (Rectangle)type.GetField("R").GetValue(segment);
+                    Ok(value.Length > 0 && value != "\u2026" && logical.Substring(start, end - start) == value,
+                        "ellipsis automation segment maps to authored prefix");
+                    Ok(rect.Right <= BlockRect(view, BlockById(view.At, "ellipsis")).Right, "ellipsis automation segment uses painted prefix width");
+                    visible = true;
+                }
+                Ok(visible, "ellipsis retains visible automation text");
+
+                Move(view, dynamicRect);
+                using (var paint = Render(view)) Eq(1, OverflowParts(view, "dynamic", true).Count, "hover repaints ellipsis");
+                Move(view, new Point(0, 0));
+                using (var paint = Render(view)) Eq(0, OverflowParts(view, "dynamic", true).Count, "hover restores clip");
+                retained.V = "Retained after overflow resize";
+                view.Size = new Size(350, 3400);
+                Application.DoEvents();
+                using (var paint = Render(view))
+                {
+                    Eq(1, OverflowParts(view, "responsive", true).Count, "responsive ellipsis rebuild");
+                    Ok(Object.ReferenceEquals(retained, FieldById(view.At, "field")) && retained.V == "Retained after overflow resize",
+                        "ellipsis resize retains authored form state");
+                    Ok(!BlockOuterRect(view, BlockById(view.At, "target")).IsEmpty, "following content remains laid out");
+                }
+            }
+            Console.WriteLine("Lea text overflow smoke passed: compact clip/ellipsis alias, cascade, paint-only truncation, graphemes, original hits, automation, tables, hover, and resize.");
+        }
+
+        private static List<object> OverflowParts(V view, string id, bool markers)
+        {
+            var values = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(view) as System.Collections.IEnumerable;
+            var result = new List<object>();
+            foreach (var value in values)
+            {
+                var type = value.GetType();
+                var block = type.GetField("B").GetValue(value) as B;
+                var element = type.GetField("El").GetValue(value) as N;
+                if (!(bool)type.GetField("Inline").GetValue(value) ||
+                    (block == null || block.El == null || block.El.Av("id") != id) && (element == null || element.Av("id") != id)) continue;
+                var marker = (string)type.GetField("X").GetValue(value) == "" && type.GetField("Px").GetValue(value) != null;
+                if (marker == markers) result.Add(value);
+            }
+            return result;
+        }
+
         private static void PointerInteractionSmoke(string path)
         {
             using (var view = new V())
@@ -5826,14 +5980,15 @@ namespace Lea.Tests
             return Rectangle.Empty;
         }
 
-        private static int LinkBoxes(V view, string file)
+        private static int LinkBoxes(V view, string file, bool wordsOnly = false)
         {
             var count = 0;
             foreach (var value in LayoutBoxes(view))
             {
                 var type = value.GetType();
                 var url = type.GetField("U").GetValue(value) as Uri;
-                if (url != null && Path.GetFileName(url.LocalPath).Equals(file, StringComparison.OrdinalIgnoreCase)) count++;
+                if (url != null && Path.GetFileName(url.LocalPath).Equals(file, StringComparison.OrdinalIgnoreCase) &&
+                    (!wordsOnly || ((string)type.GetField("X").GetValue(value)).Trim().Length > 0)) count++;
             }
             return count;
         }

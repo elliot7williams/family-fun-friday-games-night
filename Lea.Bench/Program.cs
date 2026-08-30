@@ -112,7 +112,7 @@ namespace Lea.Bench
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
                 "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html", "svg.html", "svg-geometry.html", "svg-gradients.html", "svg-use-clips.html", "svg-strokes.html",
-                "box-sizing.html", "border-radius.html", "box-shadows.html", "background-gradients.html", "background-images.html", "object-fit.html", "aspect-ratio.html", "outlines.html", "pointer-interaction.html", "text-transform.html", "text-spacing.html"
+                "box-sizing.html", "border-radius.html", "box-shadows.html", "background-gradients.html", "background-images.html", "object-fit.html", "aspect-ratio.html", "outlines.html", "pointer-interaction.html", "text-transform.html", "text-spacing.html", "text-overflow.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -1211,6 +1211,37 @@ namespace Lea.Bench
                 }
                 return "S.Ls/Wg inherited signed pixel aliases, strict normal/reset/bounds/invalid preservation, inline overrides, variables/priority, shared wrap and paint metrics, raw form retention, hover, and resize";
             });
+            AddProbe(probes, "Bounded text overflow", delegate
+            {
+                var path = Path.Combine(folder, "text-overflow.html");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 3200);
+                    view.Go(path);
+                    var field = view.At.Fs.First(item => item.El != null && item.El.Av("id") == "field");
+                    var block = view.At.Bs.First(item => item.El != null && item.El.Av("id") == "ellipsis");
+                    Need(view.At.S.To == "c" && block.S.To == "e" && view.At.X.Contains("Alpha beta gamma delta epsilon ending"),
+                        "text overflow aliases or authored text changed");
+                    using (var image = Draw(view))
+                    {
+                        Need(EllipsisCount(view, "clip") == 0 && EllipsisCount(view, "ellipsis") == 1 &&
+                            EllipsisCount(view, "short") == 0 && EllipsisCount(view, "visible") == 0 &&
+                            EllipsisCount(view, "pre") == 2 && EllipsisCount(view, "inline") == 1 &&
+                            EllipsisCount(view, "cell") == 1 && EllipsisCount(view, "inherited") == 1 &&
+                            EllipsisCount(view, "noninherited") == 0 && EllipsisCount(view, "invalid") == 1 &&
+                            EllipsisCount(view, "important") == 1 && ColoredSamples(image) > 0,
+                            "ellipsis paint, cascade, or retained line behavior changed");
+                    }
+                    Move(view, BlockOuter(view, "dynamic"));
+                    using (var image = Draw(view)) Need(EllipsisCount(view, "dynamic") == 1, "ellipsis hover changed");
+                    view.Size = new Size(350, 3400);
+                    using (var image = Draw(view))
+                        Need(EllipsisCount(view, "responsive") == 1 &&
+                            Object.ReferenceEquals(field, view.At.Fs.First(item => item.El != null && item.El.Av("id") == "field")),
+                            "ellipsis resize or field retention changed");
+                }
+                return "S.To c/e non-inherited alias, strict clip/ellipsis, inherit/reset/invalid/variable/important cascade, paint-only inline/table/multiline truncation, preserved authored text, hover, and resize";
+            });
             AddProbe(probes, "Bounded flex layout", delegate
             {
                 var path = Path.Combine(folder, "flex.html");
@@ -1926,6 +1957,7 @@ namespace Lea.Bench
             Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box, circular/elliptical radii, bounded outlines, box shadows and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing and text styles, visibility, positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, inline, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
+            Capability(builder, "Text overflow", "Supported subset", "Non-inherited clip/ellipsis; paint-only bounded text-element prefixes for clipped overflowing horizontal LTR lines, inline runs and tables; retained layout/link targets and full logical automation text; no native-control, bidi, custom-marker, or line-clamp additions");
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
             Capability(builder, "Flexbox", "Supported subset", "Row/row-reverse and fixed-height column/column-reverse containers, content/border-box pixel bases, stable -64..64 order on nowrap rows and bounded columns, bounded row wrap, fixed/equal-share/weighted grow and integer weighted-shrink slots, explicit pixel min/max floors, pixel row/column gaps, start/center/end/space-between/space-around/space-evenly justification, and container/item stretch/start/center/end cross alignment; no intrinsic min-content sizing, fractional factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis alignment, or auto-height column reordering guarantee");
@@ -2109,6 +2141,20 @@ namespace Lea.Bench
                         return (Rectangle)type.GetField("C").GetValue(value);
                 }
             throw new InvalidOperationException("Missing content block " + id);
+        }
+
+        private static int EllipsisCount(V view, string id)
+        {
+            var values = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(view) as System.Collections.IEnumerable;
+            var count = 0;
+            foreach (var value in values)
+            {
+                var type = value.GetType();
+                var element = type.GetField("El").GetValue(value) as N;
+                if (element != null && element.Av("id") == id && (string)type.GetField("X").GetValue(value) == "" &&
+                    (string)type.GetField("Px").GetValue(value) == "\u2026") count++;
+            }
+            return count;
         }
 
         private static Rectangle InlineBounds(V view, string id)

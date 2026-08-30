@@ -26,6 +26,7 @@ namespace Lea.Engine
         public string Ws { get; internal set; }
         public string Wb { get; internal set; }
         public string Ov { get; internal set; }
+        public string To { get; internal set; }
         public string Cu { get; internal set; }
         public bool Pe { get; internal set; }
         public string Of { get; internal set; }
@@ -202,6 +203,7 @@ namespace Lea.Engine
             Ws = "";
             Wb = "";
             Ov = "";
+            To = "c";
             Cu = "";
             Pe = true;
             Of = "f";

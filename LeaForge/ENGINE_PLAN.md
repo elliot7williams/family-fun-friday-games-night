@@ -338,7 +338,18 @@ non-empty bridge survives both direct and external MTA clients. Continue host
 coverage and bounded HTML/CSS compatibility work without adding another browser
 runtime.
 
-The latest completed milestone adds bounded inherited `letter-spacing` and
+The latest completed milestone adds bounded `text-overflow` through non-inherited
+`S.To=c/e` clip/ellipsis state. Strict values, explicit inheritance, CSS-wide
+resets, invalid preservation, variables, priority, hover, and responsive rules
+feed paint-only truncation for overflowing clipped lines. Original line sizes,
+authored text, and pointer targets survive; collapsed spaces inside links now
+retain their target. Synthetic markers and bounded text-element prefixes cover
+blocks, mixed inline runs, explicit lines, unbreakable words, and tables.
+Logical automation text stays complete while visible text geometry follows
+the painted prefix. Native controls, SVG text, two-ended/custom markers, line
+clamping, and bidi/vertical layout remain outside this feature.
+
+The preceding completed milestone adds bounded inherited `letter-spacing` and
 `word-spacing` through compact `S.Ls/Wg`. Signed -32..128 integer pixels,
 normal/reset values, parent-restoring inherit/unset/revert, invalid preservation,
 variables, priority, inline overrides, and responsive rules share the cascade.

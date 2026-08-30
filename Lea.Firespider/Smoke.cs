@@ -47,6 +47,8 @@ namespace Lea.Firespider
                     .Replace("</body>", "<p id='host-transform' class='host-transform'>Host <span>MiXeD TEXT</span></p><input id='host-transform-field' class='host-transform-field' name='host-transform-field' value='Host Field MiXeD'><p id='host-transform-responsive' class='host-transform-responsive'>Responsive Host MiXeD</p></body>")
                     .Replace("</style>", ".host-spacing-normal,.host-spacing-wide{width:240px;text-align:left}.host-spacing-normal{letter-spacing:0;word-spacing:0}.host-spacing-wide{letter-spacing:4px;word-spacing:9px}.host-spacing-field{width:220px;height:32px;letter-spacing:2px;word-spacing:6px}.host-spacing-responsive{letter-spacing:5px;word-spacing:10px}@media screen and (max-width:500px){.host-spacing-responsive{letter-spacing:-1px;word-spacing:0}}</style>")
                     .Replace("</body>", "<p id='host-spacing-normal' class='host-spacing-normal'>Host spacing words</p><p id='host-spacing-wide' class='host-spacing-wide'>Host spacing words</p><input id='host-spacing-field' class='host-spacing-field' name='host-spacing-field' value='Host raw words'><p id='host-spacing-responsive' class='host-spacing-responsive'>Responsive host spacing</p></body>")
+                    .Replace("</style>", ".host-overflow{width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.host-overflow-responsive{text-overflow:clip}@media screen and (max-width:500px){.host-overflow-responsive{text-overflow:ellipsis}}</style>")
+                    .Replace("</body>", "<p id='host-overflow' class='host-overflow'>Host overflow keeps this entire authored sentence</p><p id='host-overflow-responsive' class='host-overflow host-overflow-responsive'>Responsive host overflow keeps its full text</p></body>")
                     .Replace(".host-flex{display:flex;width:300px;height:60px;gap:8px;justify-content:space-between;align-items:center}", ".host-flex{display:flex;width:300px;height:60px;flex-wrap:wrap;gap:6px 8px;justify-content:space-between;align-items:center}")
                     .Replace(".host-flex p{width:70px;height:20px}", ".host-flex p{flex:1 1 180px;height:20px}.host-flex #host-flex-b{flex-shrink:2;min-width:80px}.host-flex-column{display:flex;width:180px;height:100px;flex-direction:column-reverse;row-gap:5px;justify-content:space-evenly;align-items:flex-end}.host-flex-column p{width:70px;margin:0;flex:0 1 60px;min-height:30px}.host-flex-column #host-flex-column-a{order:2;align-self:center}.host-flex-column #host-flex-column-b{order:-1}")
                     .Replace("</style>", ".host-grid{display:grid;width:300px;grid-template-columns:100px 1fr 2fr;gap:7px 10px}.host-grid p{height:20px;margin:0}.host-grid #host-grid-span{grid-column:2/span 2}.host-grid-rows{display:grid;width:300px;height:120px;grid-template-columns:1fr 2fr;grid-template-rows:30px 1fr;gap:6px 8px}.host-grid-rows p{margin:0}.host-grid-rows #host-grid-row-a{grid-column:1/span 2;grid-row:1}.host-grid-rows #host-grid-row-b{grid-column:2;grid-row:2}.host-grid-rows #host-grid-row-c{grid-column:1;grid-row-start:2;grid-row-end:span 1}:root{--host-color:#0f4c81;--host-width:155px;--host-pad:7px}.host-var{--host-color:#0f4c81!important;color:var(--host-color)!important;width:var(--host-width)!important;padding:var(--host-pad)}:is(.host-var,#host-never){border-left:4px solid #176b4d}:where(#host-var){padding-left:2px}.host-var:not(.missing,[data-off]){font-weight:bold}#host-flex>p:nth-child(2n+1){border-right:3px solid #176b4d}#host-flex>p:nth-last-child(-n+1){padding-left:9px}#host-flex-column>p:nth-last-of-type(2n){color:#a13b18}#host-flex>p:nth-child(1 of #host-flex-a,#host-flex-b){border-bottom:3px solid #176b4d}#host-flex>p:nth-last-child(1 of #host-flex-a,#host-flex-b){border-top:2px solid #a13b18}#host-has:has(> .host-direct){width:146px;border-left:5px solid #176b4d}#host-has:has(> .host-body .host-ready[data-host=ready]){padding-right:6px}#host-flex:has(+ #host-has){border-top:4px solid #a13b18}#host-has:has(input:focus){background:#dff6e9;font-weight:bold}.host-media{display:none}@media screen and (max-width:500px){:root{--host-width:110px;--host-pad:4px}#host-media{display:block;width:120px;background:#e8f4ef}#host-box{display:none}}</style>")
@@ -249,6 +251,9 @@ namespace Lea.Firespider
                         InlineBounds(host, "host-spacing-wide").Width > InlineBounds(host, "host-spacing-normal").Width,
                         "Firespider bounded text spacing aliases, retained metrics, and raw control state");
                     hostSpacingField.V = "Retained host raw words";
+                    Check(BlockById(host.At, "host-overflow").S.To == "e" && EllipsisCount(host, "host-overflow") == 1 &&
+                        EllipsisCount(host, "host-overflow-responsive") == 0 && host.At.X.Contains("Host overflow keeps this entire authored sentence"),
+                        "Firespider text overflow alias, painted marker, and authored text");
                     var hostOutline = BlockById(host.At, "host-outline");
                     Check(hostOutline.S.Ow == 4 && hostOutline.S.Os == "s" && hostOutline.S.Oc == "#a13b18" && hostOutline.S.Oo == 3 &&
                         BlockOuter(host, "host-outline").Size == new System.Drawing.Size(150, 44),
@@ -426,6 +431,8 @@ namespace Lea.Firespider
                     Check(BlockById(host.At, "host-spacing-responsive").S.Ls == -1 && BlockById(host.At, "host-spacing-responsive").S.Wg == 0 &&
                         Object.ReferenceEquals(hostSpacingField, FieldById(host.At, "host-spacing-field")) && hostSpacingField.V == "Retained host raw words",
                         "Firespider responsive text spacing and raw field retention");
+                    Check(BlockById(host.At, "host-overflow-responsive").S.To == "e" && EllipsisCount(host, "host-overflow-responsive") == 1,
+                        "Firespider narrow text overflow marker");
                     host.Size = new System.Drawing.Size(720, 560);
                     Application.DoEvents();
                     PaintView(host);
@@ -434,6 +441,8 @@ namespace Lea.Firespider
                         Object.ReferenceEquals(hostTransformField, FieldById(host.At, "host-transform-field")), "Firespider wide text transform restore");
                     Check(BlockById(host.At, "host-spacing-responsive").S.Ls == 5 && BlockById(host.At, "host-spacing-responsive").S.Wg == 10 &&
                         Object.ReferenceEquals(hostSpacingField, FieldById(host.At, "host-spacing-field")), "Firespider wide text spacing restore");
+                    Check(BlockById(host.At, "host-overflow-responsive").S.To == "c" && EllipsisCount(host, "host-overflow-responsive") == 0,
+                        "Firespider wide text overflow restore");
                     Check(BlockById(host.At, "host-progress").Vm.R == 0.4D && BlockById(host.At, "host-meter").Vm.R == 0.75D, "Firespider compact gauge models");
                     Check(host.At.Dvs.Count == 4 && ValueById(host.At, "host-output").V == "Host total" && ValueById(host.At, "host-data").V == "lea-host", "Firespider compact output and data models");
                     Check(ValueById(host.At, "host-time").K == "t" && ValueById(host.At, "host-time").Dt == "2026-08-21", "Firespider compact time model");
@@ -611,7 +620,7 @@ namespace Lea.Firespider
                     Check(restoredTabs.TabCount == beforeMiddle - 1 && FindLea(restoredTabs) == null, "middle-click Lea tab close");
                 }
 
-                Console.WriteLine("Firespider CSS interaction and paint smoke passed: compact text-spacing, text-transform, pointer, outline, radius, shadow, gradient, bitmap-background, object-fit, and aspect-ratio aliases reached the compiled host.");
+                Console.WriteLine("Firespider CSS interaction and paint smoke passed: compact text-overflow, text-spacing, text-transform, pointer, outline, radius, shadow, gradient, bitmap-background, object-fit, and aspect-ratio aliases reached the compiled host.");
 
                 Console.WriteLine("Firespider Lea smoke passed: bounded inherited cursor and pointer-event aliases with host hit gating and fallthrough, bounded CSS outlines with compact aliases and exact non-layout host paint, bounded CSS aspect ratios with compact aliases and exact host geometry/paint, bounded CSS object-fit and object-position with compact aliases, exact fitted paint, and image-map keyboard/accessibility geometry, bounded CSS bitmap backgrounds with compact aliases and exact host paint, bounded inline SVG aliases, winding, stroke styles, geometry, links, and graphic accessibility, bounded has relational selectors with strict lists, maximum specificity, descendant/child/adjacent and complex host relationships, focus rebuilds, retained fields, queries, Inspector, and geometry, bounded nth-child of-S filters with strict lists, maximum specificity, forward/reverse computed styles, queries, Inspector, and host geometry, bounded precompiled An+B and reverse structural selectors with computed styles, queries, Inspector, and host geometry, bounded is, where, and list-not selector functions with specificity, queries, Inspector, and host geometry, bounded CSS important cascade with G.Ic diagnostics, custom properties, inline, responsive values, Inspector counts, and retained fields, bounded inherited CSS custom properties with S.Vc/Cv and G.Vc aliases, responsive values, Inspector counts, and retained fields, bounded responsive CSS media queries with viewport aliases and retained fields, optional bounded persistent cache aliases and Inspector diagnostics, bounded content-box and border-box geometry, scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, and shrink, semantic accessibility, protected values, rendered bounds, MSAA and UI Automation providers, value, table/grid, and read-only logical text patterns plus Access inspector, bounded autofocus and access keys, keyboard focus and activation, responsive image maps, compact time/edit metadata, output/data values and safe rebuilds, progress and meter gauges, disclosure commands, retained same-page fragments, Lea-first New Tab and explicit legacy fallback, host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
                 return 0;
@@ -682,6 +691,20 @@ namespace Lea.Firespider
                 return (System.Drawing.Rectangle)type.GetField("R").GetValue(value);
             }
             return System.Drawing.Rectangle.Empty;
+        }
+
+        private static int EllipsisCount(V view, string id)
+        {
+            var values = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(view) as System.Collections.IEnumerable;
+            var count = 0;
+            foreach (var value in values)
+            {
+                var type = value.GetType();
+                var element = type.GetField("El").GetValue(value) as N;
+                if (element != null && element.Av("id") == id && (string)type.GetField("X").GetValue(value) == "" &&
+                    (string)type.GetField("Px").GetValue(value) == "\u2026") count++;
+            }
+            return count;
         }
 
         private static System.Drawing.Rectangle InlineBounds(V view, string id)

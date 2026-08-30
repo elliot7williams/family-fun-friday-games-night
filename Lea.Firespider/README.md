@@ -297,6 +297,12 @@ identity through narrow/wide rebuilds. Layout and paint remain Lea-owned;
 Firespider adds no text-spacing calculations or additional native controls.
 Focused native editors and choice popups keep Windows' native text spacing.
 
+Hosted block text supports non-inherited `S.To=c/e` clip/ellipsis overflow.
+The compiled smoke checks synthetic markers, responsive restoration, and full
+authored text retention. Ellipsis is a Lea paint operation; the adapter keeps
+the same document, tab, and field objects and does not truncate page strings.
+Native controls retain their existing presentation and editing behavior.
+
 `Smoke.cs` loads two compiled Firespider forms off-screen and verifies Lea-first
 New Tab creation, the explicit legacy fallback, Inspector open/refresh/clear and legacy isolation, diagnostics,
 script/style, host-controlled `go`, and safe click execution, alert routing,

@@ -527,6 +527,23 @@ full bidi tracking, and script-specific shaping are not implemented here.
 The spacing model follows the supported parts of
 [CSS Text spacing](https://www.w3.org/TR/css-text-3/#spacing).
 
+`To` is non-inherited text overflow: `c/e` means clip/ellipsis and defaults to
+clip. CSS `text-overflow` accepts those two full keywords, explicit `inherit`,
+and initial/unset/revert resets. Unsupported strings or multiple values preserve
+the preceding declaration; variables and important, hover, and media rules work
+through the ordinary cascade. Ellipsis requires non-visible overflow and an
+actually overflowing line; it does not enable clipping or disable wrapping.
+Lea retains original line sizes, text, and pointer rectangles while painting
+bounded .NET text-element prefixes and a block-styled U+2026 marker. Collapsed
+spaces inside links keep their link target. Logical automation text remains
+complete, and visual text segments map only to painted prefixes. The first
+character is retained and clipped in very narrow boxes. Blocks, inline runs,
+explicit lines, unbreakable wrapped words, and table cells share this path.
+Prefix searches examine at most 8,192 text elements. Native controls, SVG text,
+two-ended/custom-string overflow, line clamping, bidi/vertical layout, and
+complex-script baseline behavior are not added by this feature.
+See [CSS Overflow text-overflow](https://www.w3.org/TR/css-overflow-3/#text-overflow).
+
 List-item blocks expose `B.Mk` as their paint-ready marker. Unordered lists use
 `-`; ordered lists use invariant decimal text ending in `.`. Ordered `start` and
 per-item `value` integers are limited to -999999 through 999999, and increments

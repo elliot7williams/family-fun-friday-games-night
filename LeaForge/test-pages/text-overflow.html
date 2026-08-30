@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Text Overflow</title>
+  <style>
+    :root { --lea-overflow: ellipsis; }
+    body { margin: 20px; color: #173127; background: #fff; font-family: "Segoe UI", sans-serif; }
+    .sample { width: 180px; margin: 6px 0; padding: 4px; border: 1px solid #80968c; background: #f3f8f5; white-space: nowrap; overflow: hidden; }
+    .ellipsis { text-overflow: ellipsis; }
+    #clip { text-overflow: clip; }
+    #visible { width: 100px; overflow: visible; }
+    #wrapped { white-space: normal; word-break: normal; }
+    #pre { white-space: pre; }
+    #spaced { letter-spacing: 3px; word-spacing: 7px; text-transform: uppercase; }
+    #negative { letter-spacing: -1px; }
+    #inline a { color: #b32a47; font-weight: bold; }
+    #parent { text-overflow: ellipsis; }
+    #inherited { text-overflow: clip; text-overflow: inherit; }
+    #unset { text-overflow: ellipsis; text-overflow: unset; }
+    #initial { text-overflow: ellipsis; text-overflow: initial; }
+    #revert { text-overflow: ellipsis; text-overflow: revert; }
+    #invalid { text-overflow: ellipsis; text-overflow: fade; text-overflow: clip ellipsis; }
+    #variable { text-overflow: var(--lea-overflow); }
+    #important { text-overflow: ellipsis !important; }
+    #dynamic { text-overflow: clip; }
+    #dynamic:hover { text-overflow: ellipsis; }
+    #responsive { text-overflow: clip; }
+    #tiny { width: 2px; }
+    #cluster { width: 45px; }
+    #field { width: 180px; margin: 6px 0; }
+    #overflow-table { width: 190px; }
+    @media (max-width: 420px) { #responsive { text-overflow: ellipsis; } }
+  </style>
+</head>
+<body>
+  <p id="clip" class="sample">Alpha beta gamma delta epsilon ending</p>
+  <p id="ellipsis" class="sample ellipsis">Alpha beta gamma delta epsilon ending</p>
+  <p id="short" class="sample ellipsis">Short text</p>
+  <p id="visible" class="sample ellipsis">Visible overflow stays visible</p>
+  <p id="wrapped" class="sample ellipsis">VeryLongUnbreakableOverflowWord OneMoreUnbreakableOverflowWord</p>
+  <pre id="pre" class="sample ellipsis">First explicit overflowing line with words
+Second explicit overflowing line with words</pre>
+  <p id="spaced" class="sample ellipsis">Spaced letters with raw mixed Case</p>
+  <p id="negative" class="sample ellipsis">Negative spacing keeps a readable ending in this long line</p>
+  <p id="inline" class="sample ellipsis">Intro <a id="link" href="#target">Linked overflow text retains its target</a> Tail</p>
+  <section id="parent">
+    <p id="noninherited" class="sample">Child does not inherit text overflow by default</p>
+    <p id="inherited" class="sample">Explicit inheritance restores parent ellipsis</p>
+  </section>
+  <p id="unset" class="sample">Unset returns text overflow to clipping</p>
+  <p id="initial" class="sample">Initial returns text overflow to clipping</p>
+  <p id="revert" class="sample">Revert returns text overflow to clipping</p>
+  <p id="invalid" class="sample">Invalid declarations preserve the ellipsis value</p>
+  <p id="variable" class="sample">Variables feed the text overflow cascade</p>
+  <p id="important" class="sample" style="text-overflow:clip">Important declarations preserve the ellipsis value</p>
+  <table id="overflow-table"><tr><td id="cell" class="sample ellipsis">Table cell text overflows with an ellipsis</td></tr></table>
+  <p id="dynamic" class="sample">Hover switches clipped text into ellipsis</p>
+  <p id="responsive" class="sample">Responsive text changes when the viewport is narrow</p>
+  <p id="tiny" class="sample ellipsis">Wide first character remains clipped</p>
+  <p id="cluster" class="sample ellipsis">e&#x301;e&#x301;e&#x301;e&#x301;e&#x301;e&#x301;e&#x301;e&#x301;e&#x301;e&#x301;</p>
+  <input id="field" name="query" value="Retained raw form value">
+  <p id="target" class="sample">Following content remains in flow</p>
+</body>
+</html>
