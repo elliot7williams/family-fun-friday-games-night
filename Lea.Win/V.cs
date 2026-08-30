@@ -149,6 +149,23 @@ namespace Lea.Win
         public int Tm { get { return e.Tm; } set { e.Tm = value; } }
         public bool Pv { get { return e.Pv; } set { e.Pv = value; } }
         public bool Je { get { return e.Je; } set { e.Je = value; } }
+        private Func<Uri, bool> navigationGuard;
+        public Func<Uri, bool> Ng
+        {
+            get { return navigationGuard; }
+            set
+            {
+                if (value != null) CheckOpen();
+                navigationGuard = value;
+                e.Ng = value == null ? null : (Func<Uri, bool>)AllowNavigation;
+            }
+        }
+
+        private bool AllowNavigation(Uri url)
+        {
+            var guard = navigationGuard;
+            return !closed && guard != null && guard(url) && !closed;
+        }
         public string Am { get; private set; }
         public string Fq { get { return findQuery; } }
         public int Fn { get { return findMatches.Count; } }
@@ -6599,6 +6616,8 @@ namespace Lea.Win
             if (disposing && !closed)
             {
                 closed = true;
+                e.Ng = null;
+                navigationGuard = null;
                 picStop = true;
                 e.St();
                 picWeb.CancelAsync();

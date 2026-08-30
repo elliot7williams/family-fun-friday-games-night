@@ -278,6 +278,31 @@ namespace Lea.Bench
                 }
                 return "128-entry history, zero-fetch page retention, encoded/named targets, hidden reveal, table placement, and resize coverage";
             });
+            AddProbe(probes, "Host navigation guard", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "forms.html"));
+                engine.Ng = url => false;
+                foreach (var action in new Action[] { () => engine.Go(page.U), () => engine.Rl(), () => engine.Fg("#blocked") })
+                {
+                    var rejected = false;
+                    try { action(); } catch (Er error) { rejected = error.K == "blocked" && !error.Rt; }
+                    Need(rejected && engine.At == page && !engine.CanBk && !engine.Busy, "navigation guard changed retained state");
+                }
+                using (var view = NewView())
+                {
+                    view.Go(Path.Combine(folder, "forms.html"));
+                    var retained = view.At;
+                    view.Ng = url => false;
+                    var rejected = false;
+                    try { view.GoA(Path.Combine(folder, "index.html")).GetAwaiter().GetResult(); }
+                    catch (Er error) { rejected = error.K == "blocked"; }
+                    Need(rejected && view.At == retained && !view.Busy, "view guard alias or async rejection failed");
+                    view.Dispose();
+                    Need(view.Ng == null, "disposed view retained host policy");
+                }
+                return "Ng policy, typed rejection, retained page/history, async view alias, and disposal; not a redirect/resource firewall";
+            });
             AddProbe(probes, "Bounded progress and meter gauges", delegate
             {
                 var page = new E().Go(Path.Combine(folder, "gauges.html"));

@@ -13,6 +13,7 @@
       <Private>True</Private>
     </Reference>
     <Compile Include="$(MSBuildThisFileDirectory)..\FirespiderLea.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\FirespiderSplit.vb" />
     <Content Include="$(MSBuildThisFileDirectory)start.html">
       <Link>Lea\start.html</Link>
       <TargetPath>Lea\start.html</TargetPath>

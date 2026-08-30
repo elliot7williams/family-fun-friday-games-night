@@ -24,12 +24,20 @@ seconds; this is host initialization, not arbitrary network-page readiness.
 `Startup-layout-host.patch` and the matching adapter retain the change.
 See `LeaForge/STARTUP_PERFORMANCE.md` for samples, scope, and regression checks.
 
+Side-By-Side Tab View now creates two independent Lea panes with source privacy,
+asynchronous loading, bidirectional scroll sync, and bounded in-memory text
+comparison. Owner closure cancels requests and disposes views/timer/results.
+`FirespiderSplit.vb` is compiled by the updated targets file. Its `V.Ng` policy
+uses existing host navigation rules; legacy DOM post-processing remains unported.
+The Boot suite now has 27 cases. See `LeaForge/SPLIT_VIEW.md` and the following
+`Split-view-host.patch` for integration steps, bounds, and policy limitations.
+
 Same-domain commands now match visible active, paused, and legacy tabs by exact
 IDN-normalized HTTP/HTTPS hostname. Reload skips busy/paused views; copies use
 Lea and preserve privacy; seeded new windows retain the first URL and lazy
 policy. Copy/snapshot exports are bounded, and Save cancellation is respected.
 `Domain-commands-host.patch` follows `Bulk-opening-host.patch`; the Boot suite
-now has 24 cases. See `LeaForge/DOMAIN_COMMANDS.md` for behavior and limitations.
+had 24 cases at that milestone. See `LeaForge/DOMAIN_COMMANDS.md` for details.
 
 Shared bulk opening and unread-watchlist batches now append bounded Lea tabs
 without replacing existing documents. Workspaces/protected sessions honor lazy

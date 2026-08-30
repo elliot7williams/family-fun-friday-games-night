@@ -17,12 +17,22 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
+Milestone 58 makes split view Lea-native: independent private contexts,
+asynchronous loads, synchronized scrolling, bounded in-memory comparisons, and
+owner-close cancellation/disposal. `E.Ng/V.Ng` adds a compact optional document
+navigation guard; split view uses it for existing host rules. Three Boot cases
+bring the suite to 27, with 58 compatibility probes. See `SPLIT_VIEW.md` and
+`Split-view-host.patch`. One recovery run reported an unidentified legacy cast;
+nine isolated repeats passed, and Boot now retains full exception stacks. Keep
+that issue open. Next diagnose the callback and address general Lea navigation
+policy, pop-ups, redirect/resource policy, DOM tools, and automatic hibernation.
+
 Milestone 57 migrates the same-domain command family to Lea-aware matching,
 including mixed-engine disposal, paused/busy reload skips, private copies,
 seeded private new windows, and bounded exports. Snapshot cancellation no
 longer writes a default file. Two new Boot cases bring the suite to 24; see
-`DOMAIN_COMMANDS.md` and `Domain-commands-host.patch`. Next migrate pop-ups,
-split view, remaining DOM-based host commands, and automatic hibernation.
+`DOMAIN_COMMANDS.md` and `Domain-commands-host.patch`. Milestone 58 follows with
+split view and its navigation policy hook.
 
 Milestone 56 migrates shared bulk opening, workspaces/protected sessions,
 closed-window commands, and unread watch batches to Lea. It fixes reproduced

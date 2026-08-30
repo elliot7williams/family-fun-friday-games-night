@@ -44,7 +44,7 @@ namespace Lea.Firespider
             var forms = new List<Form>();
             try
             {
-                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch", "domains", "domain-private" }.Contains(mode), "unknown boot case: " + mode);
+                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch", "domains", "domain-private", "split", "split-life", "split-limits" }.Contains(mode), "unknown boot case: " + mode);
                 Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
                 Application.ThreadException += (sender, error) => UiErrors.Add(error.Exception);
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", session);
@@ -232,8 +232,11 @@ namespace Lea.Firespider
                 if (mode == "watch") CheckWatch(form, settings, page);
                 if (mode == "domains") CheckDomains(form, settings, page);
                 if (mode == "domain-private") CheckDomainPrivate(form, settings, page, forms);
+                if (mode == "split") CheckSplit(form, settings, page, forms);
+                if (mode == "split-life") CheckSplitLife(form, settings, page, forms);
+                if (mode == "split-limits") CheckSplitLimits(form, settings, page, forms);
                 if (lazySite != null) CheckLazyStartup(form, lazySite, expected, mode == "lazy-all");
-                Check(UiErrors.Count == 0, "UI thread exceptions: " + String.Join(" | ", UiErrors.Select(error => error.Message).ToArray()));
+                Check(UiErrors.Count == 0, "UI thread exceptions: " + String.Join(" | ", UiErrors.Select(error => error.ToString()).ToArray()));
                 if (mode == "locked")
                 {
                     form.Close();
@@ -246,7 +249,8 @@ namespace Lea.Firespider
             {
                 Console.Error.WriteLine("FAIL Lea boot " + mode + ": " + error.GetBaseException());
                 foreach (var form in forms)
-                    if (!form.IsDisposed) Console.Error.WriteLine("Host status: " + Member<Label>(form, "su").Text);
+                    if (!form.IsDisposed && form.GetType().GetField("su", Members) != null)
+                        Console.Error.WriteLine("Host status: " + Member<Label>(form, "su").Text);
                 if (File.Exists(log)) Console.Error.WriteLine(File.ReadAllText(log));
                 return 1;
             }
@@ -470,6 +474,306 @@ namespace Lea.Firespider
                 Check(tabs.SelectedTab.Controls[0] is V && ((V)tabs.SelectedTab.Controls[0]).U.AbsoluteUri == site.Url, "legacy source did not open domain in Lea");
             }
             Console.WriteLine("PASS links: loopback domain navigation, port/IPv6 normalization, bounded single/batch paste, order, and privacy");
+        }
+
+        private static void CheckSplit(Form form, ApplicationSettingsBase settings, string page, List<Form> forms)
+        {
+            settings["bs"] = new StringCollection();
+            settings["cfEnabled"] = "";
+            settings["cfx"] = new StringCollection();
+            var folder = Path.Combine(Path.GetTempPath(), "lea-split-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(folder);
+            try
+            {
+                using (var site = new LoopbackSite())
+                {
+                    var leftPath = Path.Combine(folder, "left.html");
+                    var rightPath = Path.Combine(folder, "right.html");
+                    var filler = String.Concat(Enumerable.Range(0, 100).Select(index => "<p>Shared row " + index + "</p>").ToArray());
+                    File.WriteAllText(leftPath, "<!doctype html><html><head><title>Left sample</title><style>p{margin:12px} .hidden{visibility:hidden}</style></head><body><h1>Shared heading</h1><p>Left marker &lt;script&gt;</p><p>Shared words</p><p class=hidden>Hidden secret</p><div style='visibility:hidden'><p style='visibility:visible'>Visible child</p></div><table><tr><td>Left cell</td></tr></table><a id=blocked href='" + site.Url + "blocked'>Blocked link</a><form method=get action='" + site.Url + "get'><input name=term value=initial><input type=submit></form><form method=post action='" + site.Url + "post'><input name=term value=initial><input type=submit></form><form method=post enctype='multipart/form-data' action='" + site.Url + "multipart'><input name=term value=initial><input type=submit></form>" + filler + "</body></html>");
+                    File.WriteAllText(rightPath, "<!doctype html><html><head><title>Right sample</title></head><body><h1>Shared heading</h1><p>Right marker</p><p>shared WORDS</p><p>Shared words</p>" + filler + "</body></html>");
+                    var tabs = Member<TabControl>(form, "k");
+                    var source = (V)tabs.SelectedTab.Controls[0];
+                    source.Go(leftPath);
+                    source.At.Fs[0].V = "unsent owner value";
+                    Set(form, "pv", true);
+                    Call(form, "qleaNew", rightPath);
+                    WaitLea(tabs);
+                    var privateSource = (V)tabs.SelectedTab.Controls[0];
+                    Set(form, "pv", false);
+                    Menu(form, "Side-By-Side Tab View").PerformClick();
+                    var split = SplitWindow(forms);
+                    WaitSplit(split);
+                    var left = Member<V>(split, "leftBrowser");
+                    var right = Member<V>(split, "rightBrowser");
+                    Check(left != source && right != privateSource && !left.Pv && right.Pv && source.At.Fs[0].V == "unsent owner value", "split context/source privacy and field retention");
+                    Check(left.U.LocalPath == leftPath && right.U.LocalPath == rightPath && left.At.Fs[0].V == "initial", "split copies should freshly load each selected URL");
+                    DrawSplit(split, "split-desktop.png");
+                    var sync = Member<CheckBox>(split, "syncScroll");
+                    sync.Checked = true;
+                    left.Sc(180);
+                    Call(split, "qsynctick", split, EventArgs.Empty);
+                    Check(left.Sy == 180 && right.Sy == 180, "left-to-right scroll synchronization");
+                    right.Sc(90);
+                    Call(split, "qsynctick", split, EventArgs.Empty);
+                    Check(left.Sy == 270 && right.Sy == 270, "right-to-left scroll synchronization");
+                    sync.Checked = false;
+                    left.Sc(50);
+                    Call(split, "qsynctick", split, EventArgs.Empty);
+                    Check(left.Sy == 320 && right.Sy == 270, "disabled scroll synchronization");
+                    Member<Button>(split, "differenceButton").PerformClick();
+                    var difference = Member<Form>(split, "differenceWindow");
+                    var leftText = difference.Controls.Find("LeftOnly", true).Cast<TextBox>().Single().Text;
+                    var rightText = difference.Controls.Find("RightOnly", true).Cast<TextBox>().Single().Text;
+                    Check(leftText.Contains("Left marker <script>") && leftText.Contains("Left cell") && leftText.Contains("Visible child") &&
+                        !leftText.Contains("Shared words") && !leftText.Contains("Hidden secret") && !leftText.Contains("unsent owner value") && rightText == "Right marker", "in-memory comparison text/table/visibility/case semantics; left=" + leftText + "; right=" + rightText);
+                    Check(!Directory.GetFiles(folder).Any(path => path.Contains("Differences")) && tabs.TabCount == 2, "comparison created a browser tab or fixture file");
+                    Member<Button>(split, "differenceButton").PerformClick();
+                    Check(difference.IsDisposed && Member<Form>(split, "differenceWindow") != difference, "comparison reuse should dispose previous window");
+
+                    settings["bs"] = Collection("127.0.0.1");
+                    var original = left.At;
+                    CheckBlocked(() => left.Go(site.Url), "split direct navigation");
+                    CheckBlocked(() => left.GoA(site.Url).GetAwaiter().GetResult(), "split async navigation");
+                    foreach (var submit in left.At.Fs.Where(field => field.K == "submit"))
+                    {
+                        CheckBlocked(() => left.Sm(submit), "split form submission");
+                        CheckBlocked(() => left.SmA(submit).GetAwaiter().GetResult(), "split async form submission");
+                    }
+                    for (var index = 0; index < left.Kn && left.Ke != left.Id("blocked"); index++) left.Kf();
+                    Check(left.Ke == left.Id("blocked"), "split keyboard link fixture");
+                    CheckBlocked(() => left.Ka().GetAwaiter().GetResult(), "split keyboard link navigation");
+                    left.Js("go('" + site.Url + "script')");
+                    Observe(100);
+                    Check(site.Hits == 0 && left.At == original && !left.Busy && Member<Label>(split, "status").Text.Contains("blocked"), "split navigation guard bypassed or changed document");
+                    settings["bs"] = new StringCollection();
+                    settings["cfEnabled"] = "e";
+                    settings["cf"] = Collection("contains|guarded");
+                    CheckBlocked(() => right.Go(site.Url + "guarded"), "split content-filter navigation");
+                    settings["cfEnabled"] = "";
+                    settings["cf"] = new StringCollection();
+                    var work = left.GoA(site.Url + "allowed");
+                    Wait(() => work.IsCompleted, "allowed split navigation");
+                    work.GetAwaiter().GetResult();
+                    Check(site.Hits == 1 && left.U.AbsoluteUri == site.Url + "allowed" && source.U.LocalPath == leftPath, "allowed split link changed source tab or request count");
+
+                    Member<ComboBox>(split, "leftChoice").SelectedIndex = 1;
+                    WaitSplit(split);
+                    var copied = Member<V>(split, "leftBrowser");
+                    Check(left.IsDisposed && left.Ng == null && copied.Pv && copied.U.LocalPath == rightPath && !right.IsDisposed, "split choice replacement leaked context or lost privacy");
+                    sync.Checked = true;
+                    DrawSplit(split, null);
+                    copied.Sc(100000);
+                    Call(split, "qsynctick", split, EventArgs.Empty);
+                    var beforeLeft = copied.Sy;
+                    var beforeRight = right.Sy;
+                    Call(split, "qsynctick", split, EventArgs.Empty);
+                    Check(copied.Sy == beforeLeft && right.Sy == beforeRight, "clamped scroll positions oscillate");
+                    split.Size = split.MinimumSize;
+                    DrawSplit(split, "split-small.png");
+                    var layout = Member<SplitContainer>(split, "split");
+                    Check(layout.Panel1.Width >= 180 && layout.Panel2.Width >= 180 && Member<Button>(split, "differenceButton").Width >= 130, "small split toolbar/pane geometry");
+                    difference = Member<Form>(split, "differenceWindow");
+                    split.Close();
+                    Check(split.IsDisposed && copied.IsDisposed && right.IsDisposed && difference.IsDisposed &&
+                        !Member<System.Windows.Forms.Timer>(split, "syncTimer").Enabled && !source.IsDisposed && !privateSource.IsDisposed, "split close lifecycle or source isolation");
+                    Check(!Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module => module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)), "Lea split view loaded MSHTML");
+                    Console.WriteLine("PASS split: native panes, privacy, field retention, guard/link/forms, bidirectional scroll, in-memory comparison, bounded layout, and disposal");
+                }
+            }
+            finally { Directory.Delete(folder, true); }
+        }
+
+        private static void CheckSplitLife(Form form, ApplicationSettingsBase settings, string page, List<Form> forms)
+        {
+            settings["bs"] = new StringCollection();
+            settings["cfEnabled"] = "";
+            using (var site = new LoopbackSite(1200))
+            using (var closingSite = new LoopbackSite(1200))
+            {
+                var tabs = Member<TabControl>(form, "k");
+                var original = (V)tabs.SelectedTab.Controls[0];
+                settings["lazyRestoreMode"] = "all";
+                Set(form, "pv", true);
+                Call(form, "qlazyopenurls", new List<string> { site.Url + "private" });
+                var privateTab = tabs.SelectedTab;
+                Set(form, "pv", false);
+                Call(form, "qlazyopenurls", new List<string> { page + "#hidden" });
+                var hidden = tabs.SelectedTab;
+                settings["tg"] = Collection("Split hidden|" + Color.Teal.ToArgb() + "|active|" + Call(form, "qb64", page + "#hidden"));
+                Call(form, "qcollapsegroup", "Split hidden");
+                var invalid = new TabPage("Invalid");
+                Call(form, "qleaPlaceholder", invalid, "javascript:alert(1)", false);
+                tabs.TabPages.Add(invalid);
+                var empty = new TabPage("Empty");
+                tabs.TabPages.Add(empty);
+                Call(form, "q862", form, EventArgs.Empty);
+                var split = SplitWindow(forms);
+                Wait(() => Member<Control>(split, "rightBrowser") is V && site.Hits == 1, "split pending request started");
+                var pending = Member<V>(split, "rightBrowser");
+                Check(pending.Busy && pending.Pv && privateTab.Controls[0] is Panel && hidden.Controls[0] is Panel &&
+                    Member<ComboBox>(split, "leftChoice").Items.Count == 2 && !Member<Button>(split, "differenceButton").Enabled, "split deferred/hidden/invalid source handling");
+                Member<ComboBox>(split, "rightChoice").SelectedIndex = 0;
+                WaitSplit(split);
+                Check(pending.IsDisposed && pending.Ng == null && !Member<V>(split, "rightBrowser").Pv && !original.IsDisposed &&
+                    privateTab.Controls[0] is Panel, "split pending replacement cancellation and fresh public context");
+                var right = Member<V>(split, "rightBrowser");
+                Set(form, "pv", true);
+                right.Go(page + "#private-navigation");
+                Set(form, "pv", false);
+                Check(right.Pv, "split navigation did not retain global private upgrade");
+                Member<ComboBox>(split, "rightChoice").SelectedIndex = 1;
+                WaitSplit(split);
+                Check(right.IsDisposed && Member<V>(split, "rightBrowser").Pv, "private source choice state");
+                Member<ComboBox>(split, "rightChoice").SelectedIndex = 0;
+                WaitSplit(split);
+                Check(!Member<V>(split, "rightBrowser").Pv, "new public context reused private renderer");
+                Member<Button>(split, "differenceButton").PerformClick();
+                var comparison = Member<Form>(split, "differenceWindow");
+                Check(comparison != null && tabs.TabCount == 4, "comparison should stay outside browser sessions");
+                Call(form, "qleaSaveSession");
+                var session = Environment.GetEnvironmentVariable("LEA_FIRESPIDER_SESSION");
+                Check(!File.ReadAllText(session).Contains(site.Url), "split/private source URL entered automatic session");
+
+                var left = Member<V>(split, "leftBrowser");
+                var work = left.GoA(closingSite.Url + "pending-close");
+                Wait(() => closingSite.Hits == 1 && left.Busy, "owner-close pending split request");
+                form.Close();
+                Wait(() => work.IsCompleted, "owner-close pending work cancellation");
+                var cancelled = false;
+                try { work.GetAwaiter().GetResult(); } catch (Lea.Engine.Er error) { cancelled = error.K == "cancel"; }
+                Check(cancelled && form.IsDisposed && split.IsDisposed && left.IsDisposed && comparison.IsDisposed && left.Ng == null &&
+                    !Member<System.Windows.Forms.Timer>(split, "syncTimer").Enabled, "owner closure did not dispose/cancel owned split surfaces");
+                Check(!Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module => module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)), "split lifecycle loaded legacy engine");
+                Console.WriteLine("PASS split lifecycle: hidden/deferred sources, async replacement, private context upgrades/reset, session isolation, owner-close cancellation, and timer disposal");
+            }
+        }
+
+        private static void CheckSplitLimits(Form form, ApplicationSettingsBase settings, string page, List<Form> forms)
+        {
+            var folder = Path.Combine(Path.GetTempPath(), "lea-split-limits-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(folder);
+            try
+            {
+                var leftPath = Path.Combine(folder, "left.html");
+                var rightPath = Path.Combine(folder, "right.html");
+                File.WriteAllText(leftPath, "<html><body>" + String.Concat(Enumerable.Range(0, 180).Select(index => "<p>Left row " + index + "</p>").ToArray()) + "</body></html>");
+                File.WriteAllText(rightPath, "<html><body>" + String.Concat(Enumerable.Range(0, 180).Select(index => "<p>Right row " + index + "</p>").ToArray()) + "</body></html>");
+                var tabs = Member<TabControl>(form, "k");
+                ((V)tabs.SelectedTab.Controls[0]).Go(leftPath);
+                Call(form, "qleaNew", rightPath);
+                WaitLea(tabs);
+                Call(form, "q862", form, EventArgs.Empty);
+                var split = SplitWindow(forms);
+                WaitSplit(split);
+                Member<Button>(split, "differenceButton").PerformClick();
+                var difference = Member<Form>(split, "differenceWindow");
+                foreach (var name in new[] { "LeftOnly", "RightOnly" })
+                {
+                    var text = difference.Controls.Find(name, true).Cast<TextBox>().Single();
+                    Check(text.Lines.Length == 150 && text.AccessibleName.Contains("limited") && Encoding.UTF8.GetByteCount(text.Text) < 65536,
+                        "comparison difference count/byte limits");
+                }
+                var extractor = split.GetType().GetMethod("qtext", BindingFlags.Static | BindingFlags.NonPublic);
+                var normalize = split.GetType().GetMethod("qline", BindingFlags.Static | BindingFlags.NonPublic);
+                Check((string)normalize.Invoke(null, new object[] { "A\0B\nC", 5 }) == "A B C" &&
+                    (string)normalize.Invoke(null, new object[] { "A\ud83d\ude00B", 2 }) == "A", "comparison control/surrogate boundary");
+                var huge = Path.Combine(folder, "huge.html");
+                using (var view = new V())
+                {
+                    File.WriteAllText(huge, "<html><body>" + String.Concat(Enumerable.Range(0, 20).Select(index => "<p>" + index + " " + new string('\u00e9', 5000) + "</p>").ToArray()) + "</body></html>", Encoding.UTF8);
+                    view.Go(huge);
+                    var args = new object[] { view, false };
+                    var lines = (List<string>)extractor.Invoke(null, args);
+                    Check((bool)args[1] && lines.Count > 0 && lines.All(line => line.Length <= 4096) &&
+                        Encoding.UTF8.GetByteCount(String.Join(Environment.NewLine, lines.ToArray())) < 65536, "comparison long-line/UTF-8 limits");
+                    File.WriteAllText(huge, "<html><body>" + String.Concat(Enumerable.Range(0, 2300).Select(index => "<p>Row " + index + "</p>").ToArray()) + "</body></html>");
+                    view.Go(huge);
+                    args = new object[] { view, false };
+                    lines = (List<string>)extractor.Invoke(null, args);
+                    Check((bool)args[1] && lines.Count == 2048 && lines[0] == "Row 0", "comparison unique-block ceiling");
+                }
+                split.Close();
+                var extra = new List<TabPage>();
+                for (var index = 0; index < 260; index++)
+                {
+                    var tab = new TabPage("Lea");
+                    Call(form, "qleaPlaceholder", tab, page + "#candidate-" + index, false);
+                    tab.Text = new string('t', 400);
+                    tabs.TabPages.Add(tab);
+                    extra.Add(tab);
+                }
+                Call(form, "q862", form, EventArgs.Empty);
+                split = SplitWindow(forms);
+                WaitSplit(split);
+                var choices = Member<ComboBox>(split, "leftChoice").Items.Cast<object>().ToArray();
+                Check(choices.Length == 256 && choices.All(choice => Member<string>(choice, "Label").Length <= 256), "split candidate/label ceiling");
+                split.Close();
+                foreach (var tab in extra) Call(form, "qleaDrop", tab);
+                extra.Clear();
+                for (var index = 0; index < 20; index++)
+                {
+                    var tab = new TabPage("Lea");
+                    Call(form, "qleaPlaceholder", tab, "http://127.0.0.1:1/" + index + "?q=" + new string('x', 3900), false);
+                    tabs.TabPages.Add(tab);
+                    extra.Add(tab);
+                }
+                Call(form, "q862", form, EventArgs.Empty);
+                split = SplitWindow(forms);
+                WaitSplit(split);
+                choices = Member<ComboBox>(split, "leftChoice").Items.Cast<object>().ToArray();
+                Check(choices.Length < 22 && choices.Length > 2 && choices.Sum(choice => Encoding.UTF8.GetByteCount(Member<string>(choice, "Url"))) <= 65536 &&
+                    extra.All(tab => tab.Controls[0] is Panel), "split URL-byte ceiling or unselected deferred loads");
+                split.Close();
+                foreach (var tab in tabs.TabPages.Cast<TabPage>().ToArray()) Call(form, "qleaDrop", tab);
+                Call(form, "qfeature6prunestate");
+                Call(form, "q862", form, EventArgs.Empty);
+                Check(!Application.OpenForms.Cast<Form>().Any(window => window.GetType().Name == "SplitBrowserForm") &&
+                    Member<Label>(form, "su").Text.Contains("No supported tabs"), "empty split source guard");
+                Console.WriteLine("PASS split limits: 150 differences, 2048 blocks, UTF-8/line/control bounds, 256 candidates, 64 KiB URLs, deferred isolation, and empty input");
+            }
+            finally { Directory.Delete(folder, true); }
+        }
+
+        private static Form SplitWindow(List<Form> forms)
+        {
+            var split = Application.OpenForms.Cast<Form>().FirstOrDefault(window => window.GetType().Name == "SplitBrowserForm" && !forms.Contains(window));
+            Check(split != null, "split-view command did not open a window");
+            split.Opacity = 0;
+            split.ShowInTaskbar = false;
+            split.Location = new Point(-30000, -30000);
+            forms.Add(split);
+            return split;
+        }
+
+        private static void WaitSplit(Form split)
+        {
+            Wait(() => Member<Control>(split, "leftBrowser") is V && Member<Control>(split, "rightBrowser") is V,
+                "split view still creates legacy browser controls");
+            Wait(() => Member<V>(split, "leftBrowser").At != null && !Member<V>(split, "leftBrowser").Busy &&
+                Member<V>(split, "rightBrowser").At != null && !Member<V>(split, "rightBrowser").Busy, "split pane loads");
+        }
+
+        private static void CheckBlocked(Action action, string name)
+        {
+            var blocked = false;
+            try { action(); } catch (Lea.Engine.Er error) { blocked = error.K == "blocked"; }
+            Check(blocked, name + " was not rejected");
+        }
+
+        private static void DrawSplit(Form split, string file)
+        {
+            split.PerformLayout();
+            using (var bitmap = new Bitmap(split.Width, split.Height))
+            {
+                split.DrawToBitmap(bitmap, new Rectangle(Point.Empty, bitmap.Size));
+                var colors = new HashSet<int>();
+                for (var y = 50; y < bitmap.Height - 30; y += 7)
+                    for (var x = 10; x < bitmap.Width - 10; x += 7) colors.Add(bitmap.GetPixel(x, y).ToArgb());
+                Check(colors.Count > 12, "split paint is blank");
+                var folder = Environment.GetEnvironmentVariable("LEA_SPLIT_SHOTS");
+                if (file != null && !String.IsNullOrEmpty(folder)) { Directory.CreateDirectory(folder); bitmap.Save(Path.Combine(folder, file)); }
+            }
         }
 
         private static void CheckDomains(Form form, ApplicationSettingsBase settings, string page)

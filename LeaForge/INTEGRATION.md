@@ -7,15 +7,29 @@ any other browser engine.
 ## Firespider host
 
 Firespider Internet is currently a VB.NET WinForms application targeting .NET
-Framework 4.6.1. Its browser surface is `System.Windows.Forms.WebBrowser`, and
-the main navigation, tab creation, and document events are concentrated in
-`1.vb`. Lea should replace that control behind a small adapter boundary instead
-of rewriting the browser menus and settings all at once.
+Framework 4.6.1. Normal tabs and split view now use `Lea.Win.V`; explicit legacy
+tabs and several unmigrated tools still use `System.Windows.Forms.WebBrowser`.
+Main host commands remain concentrated in `1.vb`, with Lea-specific routing in
+`FirespiderLea.vb` and split-window ownership in `FirespiderSplit.vb`.
 
-The first compatibility library is now in `../Lea.Engine`. It targets .NET
-Framework 4.6.1 and exposes `E`, `P`, and `Ln` with the short Lea API. It is a
-foundation for integration. `../Lea.Win` now provides the first custom `V`
-WinForms view, and `../Lea.Win.Test` is its isolated test browser.
+`../Lea.Engine` targets .NET Framework 4.6.1 and exposes `E`, `P`, and the short
+Lea API. `../Lea.Win` provides the custom `V` WinForms view, and
+`../Lea.Win.Test` is its isolated test browser.
+
+The current Firespider target expects this layout relative to the VB project:
+
+```text
+FirespiderLea.vb
+FirespiderSplit.vb
+Lea/FirespiderLea.targets
+Lea/Lea.Engine.dll
+Lea/Lea.Win.dll
+Lea/start.html
+```
+
+Import `Lea/FirespiderLea.targets` after applying the matching host patches. It
+adds both VB source files and the Lea/framework references; do not separately
+add duplicate Compile items for those files. Keep the DLLs from the same build.
 
 ## Development reference
 
@@ -33,16 +47,17 @@ WinForms adapter, tests, and test browser directly.
 </ItemGroup>
 ```
 
-## Planned public shape
+## Current public shape
 
 ```csharp
-var e = LeaForge.L.E();
-var p = e.Go("https://example.com");
+var e = new Lea.Engine.E();
+var p = await e.GoA("https://example.com");
 ```
 
-The final integration API will keep this compact surface while the internal
-engine is split into clear modules. A UI adapter will let a user's own WinForms
-or WPF window host Lea's layout and paint output.
+For WinForms rendering, add a `new Lea.Win.V()` to your form with
+`Dock = DockStyle.Fill` and call its `GoA` method. WPF embedding is not supplied
+by this integration. The host controls the UI and navigation policy; Lea owns
+the supported document model, layout, and painting.
 
 Browser UI code should use `GoA` and `RlA` so network waits do not freeze the
 window. `St` cancels the active request. The synchronous `Go` and `Rl` aliases
@@ -50,6 +65,15 @@ remain available for small tools and deterministic local tests.
 `E.Tm` and `V.Tm` configure the request deadline in milliseconds; the compact
 property defaults to 15,000 and clamps to 100 through 60,000. It applies to
 synchronous and asynchronous HTTP page, POST, stylesheet, and download work.
+
+`E.Ng` and `V.Ng` optionally accept a synchronous `Func<Uri, bool>` host policy
+for explicit document navigation. False raises `Er.K="blocked"` before a page
+fetch/history change; null allows the usual behavior. GET, POST/multipart,
+reload, fragments, and Back/Forward use the guard. Keep callbacks short and do
+not re-enter navigation. `V` releases the delegate on disposal and rejects
+authorization if the callback disposes it. This is not a redirect, subresource,
+or download firewall. Firespider split view installs it; general Lea tabs do not
+yet do so. See `SPLIT_VIEW.md` for tested behavior and scope.
 
 Safe page code can call `go(url)` to request, but not perform, navigation.
 Headless integrations call `E.Gt(page)` once after `Js`/`Ck`. WinForms hosts

@@ -1,0 +1,195 @@
+diff --git a/BrowserFeatures2.vb b/BrowserFeatures2.vb
+index c33aca7..1970d3b 100644
+--- a/BrowserFeatures2.vb
++++ b/BrowserFeatures2.vb
+@@ -215,20 +215,7 @@ Partial Class j
+     ' --- Side-By-Side Tab View ---
+     Sub q862(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+-            Dim choices As New List(Of SplitTabChoice)
+-            For i As Integer = 0 To k.TabPages.Count - 1
+-                If k.TabPages(i).Controls.Count = 0 Then Continue For
+-                Dim wb As WebBrowser = TryCast(k.TabPages(i).Controls(0), WebBrowser)
+-                Dim url As String = qpersistedtaburl(k.TabPages(i), wb)
+-                If url <> "" Then choices.Add(New SplitTabChoice(k.TabPages(i).Text, url))
+-            Next i
+-            If choices.Count = 0 Then
+-                su.Visible = True
+-                su.Text = "No tabs are available for split view"
+-                Exit Sub
+-            End If
+-            Dim splitView As New SplitBrowserForm(Me, choices)
+-            splitView.Show(Me)
++            qleaSplit()
+         Catch ex As Exception
+             qlog(ex)
+         End Try
+@@ -237,19 +224,6 @@ Partial Class j
+         If My.Settings.t = "e" Then q862(sender, e)
+     End Sub
+ 
+-    Friend Sub qsplitnavigating(ByVal sender As Object, ByVal e As WebBrowserNavigatingEventArgs)
+-        qnavigationblocked(e)
+-    End Sub
+-    Friend Sub qsplitcomplete(ByVal sender As Object, ByVal e As WebBrowserDocumentCompletedEventArgs)
+-        Dim wb As WebBrowser = TryCast(sender, WebBrowser)
+-        qapplydomain(wb)
+-        qapplyusercontent(wb)
+-        qapplycontentfilters(wb)
+-        qapplypermissions(wb)
+-        qapplyannotations(wb)
+-        qrestoreform(wb)
+-    End Sub
+-
+     ' --- Download Details And Checksums ---
+     Friend Sub qtrackdownload(ByVal path As String)
+         Try
+@@ -658,148 +632,6 @@ Partial Class j
+     End Function
+ End Class
+ 
+-Friend Class SplitTabChoice
+-    Public Label As String
+-    Public Url As String
+-    Sub New(ByVal tabLabel As String, ByVal tabUrl As String)
+-        Label = tabLabel
+-        Url = tabUrl
+-    End Sub
+-    Public Overrides Function ToString() As String
+-        Return Label & " — " & Url
+-    End Function
+-End Class
+-
+-Friend Class SplitBrowserForm
+-    Inherits Form
+-    Dim ownerForm As j
+-    Dim choices As List(Of SplitTabChoice)
+-    Dim leftChoice As New ComboBox
+-    Dim rightChoice As New ComboBox
+-    Dim syncScroll As New CheckBox
+-    Dim differenceButton As New Button
+-    Dim leftBrowser As New WebBrowser
+-    Dim rightBrowser As New WebBrowser
+-    Dim split As New SplitContainer
+-    Dim syncTimer As New Timer
+-    Dim lastLeftY As Integer = 0
+-    Dim lastRightY As Integer = 0
+-
+-    Sub New(ByVal browser As j, ByVal tabs As List(Of SplitTabChoice))
+-        ownerForm = browser
+-        choices = tabs
+-        Text = "Side-By-Side Tab View"
+-        StartPosition = FormStartPosition.CenterParent
+-        Size = New Size(1100, 700)
+-        Dim top As New TableLayoutPanel
+-        top.Dock = DockStyle.Top
+-        top.Height = 38
+-        top.ColumnCount = 4
+-        top.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 45.0!))
+-        top.ColumnStyles.Add(New ColumnStyle(SizeType.Percent, 45.0!))
+-        top.ColumnStyles.Add(New ColumnStyle(SizeType.Absolute, 100.0!))
+-        top.ColumnStyles.Add(New ColumnStyle(SizeType.Absolute, 150.0!))
+-        leftChoice.Dock = DockStyle.Fill
+-        rightChoice.Dock = DockStyle.Fill
+-        leftChoice.DropDownStyle = ComboBoxStyle.DropDownList
+-        rightChoice.DropDownStyle = ComboBoxStyle.DropDownList
+-        For Each choice As SplitTabChoice In choices
+-            leftChoice.Items.Add(choice)
+-            rightChoice.Items.Add(choice)
+-        Next choice
+-        syncScroll.Text = "Sync scroll"
+-        syncScroll.Dock = DockStyle.Fill
+-        syncScroll.Checked = My.Settings.splitSync = "e"
+-        differenceButton.Text = "Text Differences"
+-        differenceButton.Dock = DockStyle.Fill
+-        top.Controls.Add(leftChoice, 0, 0)
+-        top.Controls.Add(rightChoice, 1, 0)
+-        top.Controls.Add(syncScroll, 2, 0)
+-        top.Controls.Add(differenceButton, 3, 0)
+-        split.Dock = DockStyle.Fill
+-        split.Orientation = Orientation.Vertical
+-        split.SplitterDistance = 540
+-        leftBrowser.Dock = DockStyle.Fill
+-        rightBrowser.Dock = DockStyle.Fill
+-        leftBrowser.ScriptErrorsSuppressed = True
+-        rightBrowser.ScriptErrorsSuppressed = True
+-        split.Panel1.Controls.Add(leftBrowser)
+-        split.Panel2.Controls.Add(rightBrowser)
+-        Controls.Add(split)
+-        Controls.Add(top)
+-        AddHandler leftChoice.SelectedIndexChanged, AddressOf qleft
+-        AddHandler rightChoice.SelectedIndexChanged, AddressOf qright
+-        AddHandler syncScroll.CheckedChanged, AddressOf qsyncchanged
+-        AddHandler differenceButton.Click, AddressOf qdifference
+-        AddHandler leftBrowser.Navigating, AddressOf ownerForm.qsplitnavigating
+-        AddHandler rightBrowser.Navigating, AddressOf ownerForm.qsplitnavigating
+-        AddHandler leftBrowser.DocumentCompleted, AddressOf ownerForm.qsplitcomplete
+-        AddHandler rightBrowser.DocumentCompleted, AddressOf ownerForm.qsplitcomplete
+-        AddHandler leftBrowser.NewWindow, AddressOf ownerForm.qpopup
+-        AddHandler rightBrowser.NewWindow, AddressOf ownerForm.qpopup
+-        syncTimer.Interval = 350
+-        AddHandler syncTimer.Tick, AddressOf qsynctick
+-        AddHandler FormClosed, Sub() syncTimer.Stop()
+-        syncTimer.Start()
+-        leftChoice.SelectedIndex = 0
+-        rightChoice.SelectedIndex = If(choices.Count > 1, 1, 0)
+-    End Sub
+-    Sub qleft(ByVal sender As Object, ByVal e As EventArgs)
+-        Dim selected As SplitTabChoice = TryCast(leftChoice.SelectedItem, SplitTabChoice)
+-        If selected IsNot Nothing Then leftBrowser.Navigate(selected.Url)
+-    End Sub
+-    Sub qright(ByVal sender As Object, ByVal e As EventArgs)
+-        Dim selected As SplitTabChoice = TryCast(rightChoice.SelectedItem, SplitTabChoice)
+-        If selected IsNot Nothing Then rightBrowser.Navigate(selected.Url)
+-    End Sub
+-    Sub qsyncchanged(ByVal sender As Object, ByVal e As EventArgs)
+-        My.Settings.splitSync = If(syncScroll.Checked, "e", "")
+-        My.Settings.Save()
+-    End Sub
+-    Sub qsynctick(ByVal sender As Object, ByVal e As EventArgs)
+-        If syncScroll.Checked = False Then Exit Sub
+-        Try
+-            If leftBrowser.Document Is Nothing OrElse rightBrowser.Document Is Nothing Then Exit Sub
+-            Dim leftY As Integer = leftBrowser.Document.Window.Position.Y
+-            Dim rightY As Integer = rightBrowser.Document.Window.Position.Y
+-            If leftY <> lastLeftY Then
+-                rightBrowser.Document.Window.ScrollTo(rightBrowser.Document.Window.Position.X, leftY)
+-            ElseIf rightY <> lastRightY Then
+-                leftBrowser.Document.Window.ScrollTo(leftBrowser.Document.Window.Position.X, rightY)
+-            End If
+-            lastLeftY = leftBrowser.Document.Window.Position.Y
+-            lastRightY = rightBrowser.Document.Window.Position.Y
+-        Catch
+-        End Try
+-    End Sub
+-    Sub qdifference(ByVal sender As Object, ByVal e As EventArgs)
+-        Try
+-            If leftBrowser.Document Is Nothing OrElse rightBrowser.Document Is Nothing OrElse leftBrowser.Document.Body Is Nothing OrElse rightBrowser.Document.Body Is Nothing Then Exit Sub
+-            Dim leftLines As String() = leftBrowser.Document.Body.InnerText.Split(New String() {vbCrLf, vbLf}, StringSplitOptions.RemoveEmptyEntries)
+-            Dim rightLines As String() = rightBrowser.Document.Body.InnerText.Split(New String() {vbCrLf, vbLf}, StringSplitOptions.RemoveEmptyEntries)
+-            Dim leftSet As New HashSet(Of String)(leftLines.Select(Function(value) value.Trim).Where(Function(value) value <> ""), StringComparer.OrdinalIgnoreCase)
+-            Dim rightSet As New HashSet(Of String)(rightLines.Select(Function(value) value.Trim).Where(Function(value) value <> ""), StringComparer.OrdinalIgnoreCase)
+-            Dim leftOnly As String() = leftSet.Where(Function(value) rightSet.Contains(value) = False).Take(150).ToArray
+-            Dim rightOnly As String() = rightSet.Where(Function(value) leftSet.Contains(value) = False).Take(150).ToArray
+-            Dim html As New StringBuilder
+-            html.Append("<!doctype html><html><head><meta charset=""utf-8""><title>Firespider Text Differences</title><style>body{font:16px Segoe UI,Arial;margin:30px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.panel{padding:18px;background:#f4f4f4}li{margin:7px 0}</style></head><body><h1>Text Differences</h1><p>Unique normalized lines are shown; formatting differences are ignored.</p><div class=""grid""><section class=""panel""><h2>Left only (" & leftOnly.Length.ToString & ")</h2><ul>")
+-            For Each line As String In leftOnly
+-                html.Append("<li>" & System.Net.WebUtility.HtmlEncode(line) & "</li>")
+-            Next line
+-            html.Append("</ul></section><section class=""panel""><h2>Right only (" & rightOnly.Length.ToString & ")</h2><ul>")
+-            For Each line As String In rightOnly
+-                html.Append("<li>" & System.Net.WebUtility.HtmlEncode(line) & "</li>")
+-            Next line
+-            html.Append("</ul></section></div></body></html>")
+-            Dim path As String = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "Firespider Differences " & Guid.NewGuid().ToString("N") & ".html")
+-            System.IO.File.WriteAllText(path, html.ToString, Encoding.UTF8)
+-            ownerForm.q3(New Uri(path).AbsoluteUri)
+-        Catch ex As Exception
+-            MessageBox.Show("The two pages could not be compared.", "Text Differences", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+-        End Try
+-    End Sub
+-End Class
+-
+ Friend Class DownloadQueueRecord
+     Public Path As String
+     Public Source As String

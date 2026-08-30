@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **57**
+Post-1.0 hardening milestones completed: **58**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,15 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Replaced split view's legacy controls with independent Lea panes, retained
+  private source flags, asynchronous loading, synchronized scrolling, bounded
+  source lists, and explicit disposal/cancellation. Text comparison stays in
+  memory with bounded read-only results. Compact `E.Ng/V.Ng` guards explicit
+  page navigation without changing retained state on rejection. Three Boot
+  cases bring the suite to 27; the guard adds a 58th compatibility probe. See
+  `SPLIT_VIEW.md` for tests, policy boundaries, an unresolved intermittent
+  recovery-time legacy cast, and remaining DOM migration work.
 
 - Migrated same-domain reload, close, bookmark, duplicate, next-tab, new-window,
   copy, and snapshot commands to Lea-aware paths. Matching includes active,

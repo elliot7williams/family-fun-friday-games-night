@@ -83,7 +83,7 @@ suite. Source for the corresponding host edits is retained in
 `Lea.Firespider/Startup-host.patch`, with reproduction notes in
 `LeaForge/STARTUP_RELIABILITY.md`.
 
-`Test-FirespiderBoot.ps1 -Root <host-root>` adds twenty-four real form-start cases,
+`Test-FirespiderBoot.ps1 -Root <host-root>` adds twenty-seven real form-start cases,
 including private startup, restore precedence, second windows, a gated slow
 HTTP response, and locked-session shutdown. It compiles `Lea.Firespider/Boot.cs`
 beside the test host and runs separate off-screen processes with a sixty-second
@@ -129,3 +129,10 @@ and close disposal. `-Case domain-private` checks seeded private new windows,
 lazy behavior, exact requests, twelve-tab creation limits, and bounded exports
 with control-character/surrogate and row-limit checks. OS clipboard and Save
 dialog interaction are not automated. See `LeaForge/DOMAIN_COMMANDS.md`.
+
+`-Case split` exercises independent Lea panes, private sources, fields, scroll
+sync, comparison, host navigation rules, and disposal. `-Case split-life` adds
+pending-load replacement, deferred sources, sticky privacy, and owner-close
+cancellation. `-Case split-limits` covers comparison/source-list byte and count
+ceilings. `LEA_SPLIT_SHOTS` optionally names an output folder for desktop and
+small-window screenshots. See `LeaForge/SPLIT_VIEW.md` for unsupported routes.

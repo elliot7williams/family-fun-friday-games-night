@@ -119,6 +119,8 @@ namespace Lea.Engine
         public bool CanBk { get { return at > 0; } }
         public bool CanFw { get { return at < hs.Count - 1; } }
         public bool Busy { get { return busy; } }
+        // Optional host guard for document navigation, not redirects or resources.
+        public Func<Uri, bool> Ng { get; set; }
         public int Vw
         {
             get { return vw; }
@@ -521,6 +523,7 @@ namespace Lea.Engine
             if (url == null) throw new ArgumentNullException("url");
             var page = At;
             if (page == null || !SameDocument(page.U, url) || !FragmentNavigation(page.U, url)) return 0;
+            CheckNavigation(url);
             if (!String.Equals(page.U.AbsoluteUri, url.AbsoluteUri, StringComparison.OrdinalIgnoreCase)) Push(page, url);
             return 1;
         }
@@ -536,6 +539,7 @@ namespace Lea.Engine
         {
             if (url == null) throw new ArgumentNullException("url");
             if (!SameAddress(At == null ? null : At.U, url) && Fg(url) != 0) return At;
+            CheckNavigation(url);
             var p = Read(url);
             Push(p);
             return p;
@@ -549,6 +553,7 @@ namespace Lea.Engine
         public P Po(Uri url, string data)
         {
             if (url == null) throw new ArgumentNullException("url");
+            CheckNavigation(url);
             var p = Post(url, Encoding.UTF8.GetBytes(data ?? ""), "application/x-www-form-urlencoded; charset=utf-8");
             Push(p);
             return p;
@@ -562,6 +567,7 @@ namespace Lea.Engine
         public P Pb(Uri url, byte[] data, string type)
         {
             if (url == null) throw new ArgumentNullException("url");
+            CheckNavigation(url);
             var p = Post(url, data, type);
             Push(p);
             return p;
@@ -578,6 +584,7 @@ namespace Lea.Engine
         {
             if (url == null) throw new ArgumentNullException("url");
             if (!SameAddress(At == null ? null : At.U, url) && Fg(url) != 0) return At;
+            CheckNavigation(url);
             var p = await ReadA(url);
             Push(p);
             return p;
@@ -591,6 +598,7 @@ namespace Lea.Engine
         public async Task<P> PoA(Uri url, string data)
         {
             if (url == null) throw new ArgumentNullException("url");
+            CheckNavigation(url);
             var p = await PostA(url, Encoding.UTF8.GetBytes(data ?? ""), "application/x-www-form-urlencoded; charset=utf-8");
             Push(p);
             return p;
@@ -604,6 +612,7 @@ namespace Lea.Engine
         public async Task<P> PbA(Uri url, byte[] data, string type)
         {
             if (url == null) throw new ArgumentNullException("url");
+            CheckNavigation(url);
             var p = await PostA(url, data, type);
             Push(p);
             return p;
@@ -667,6 +676,13 @@ namespace Lea.Engine
             }
         }
 
+        private void CheckNavigation(Uri url)
+        {
+            var guard = Ng;
+            if (guard != null && !guard(url))
+                throw new Er("blocked", url, 0, false, "Lea navigation was blocked by its host.", null);
+        }
+
         private void Push(P p)
         {
             Push(p, p == null ? null : p.U);
@@ -684,7 +700,7 @@ namespace Lea.Engine
 
         public P Bk()
         {
-            if (CanBk) at--;
+            if (CanBk) { CheckNavigation(hs[at - 1].U); at--; }
             var page = At;
             ApplyViewport(page);
             return page;
@@ -692,7 +708,7 @@ namespace Lea.Engine
 
         public P Fw()
         {
-            if (CanFw) at++;
+            if (CanFw) { CheckNavigation(hs[at + 1].U); at++; }
             var page = At;
             ApplyViewport(page);
             return page;
@@ -701,6 +717,7 @@ namespace Lea.Engine
         public P Rl()
         {
             if (At == null) return null;
+            CheckNavigation(At.U);
             var p = Read(At.U, true);
             hs[at] = new He(p, p.U);
             return p;
@@ -709,6 +726,7 @@ namespace Lea.Engine
         public async Task<P> RlA()
         {
             if (At == null) return null;
+            CheckNavigation(At.U);
             var p = await ReadA(At.U, true);
             hs[at] = new He(p, p.U);
             return p;

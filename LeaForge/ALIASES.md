@@ -7,6 +7,10 @@ read and quick to write.
 
 - Core objects use one letter: `L` is the entry point, `E` is the engine, `P` is a page.
 - Actions use two or three letters: `Go`, `GoA`, `Bk`, `Fw`, `Rl`, `RlA`, `St`, and `At`.
+- `Ng` is an optional host navigation guard on `E` and `V`: `Func<Uri, bool>`.
+  False rejects explicit document navigation with `Er.K="blocked"`; null keeps
+  normal behavior. It covers page GET/POST, history, fragments, and reload, not
+  redirects or resource requests. See `SPLIT_VIEW.md` for its callback contract.
 - Page values use one or two letters: `U`, `T`, `H`, `Q`, `D`, `N`, `Bs`, and `Ls`.
 - Page commands use one or two letters: `t`, `a`, `bg`, `fg`, `fs`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`.
 - New public aliases should be no more than three letters.

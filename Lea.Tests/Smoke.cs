@@ -25,6 +25,7 @@ namespace Lea.Tests
             try
             {
                 var root = Path.GetFullPath(args.Length > 0 ? args[0] : Directory.GetCurrentDirectory());
+                CheckNavigationGuard(root);
                 CheckDisposal(root);
                 using (var slow = new CompressedServer())
                 {
@@ -6474,6 +6475,77 @@ namespace Lea.Tests
                 lock (pending) { if (pending.Count == 0) return; next = pending.Dequeue(); }
                 TryExecuteTask(next);
             }
+        }
+
+        private static void CheckNavigationGuard(string root)
+        {
+            var forms = Path.Combine(root, "LeaForge", "test-pages", "forms.html");
+            var next = Path.Combine(root, "LeaForge", "test-pages", "index.html");
+            var engine = new E();
+            var first = engine.Go(forms);
+            using (var server = new CompressedServer())
+            {
+                var thread = Thread.CurrentThread.ManagedThreadId;
+                var calls = 0;
+                engine.Ng = url => { Eq(thread, Thread.CurrentThread.ManagedThreadId, "navigation guard calling thread"); calls++; return false; };
+                Action[] actions = {
+                    () => engine.Go(server.U), () => engine.Go(server.U.AbsoluteUri),
+                    () => engine.GoA(server.U).GetAwaiter().GetResult(), () => engine.GoA(server.U.AbsoluteUri).GetAwaiter().GetResult(),
+                    () => engine.Po(server.U, "secret=1"), () => engine.PoA(server.U, "secret=1").GetAwaiter().GetResult(),
+                    () => engine.Pb(server.U, new byte[] { 1 }, "application/octet-stream"),
+                    () => engine.PbA(server.U, new byte[] { 1 }, "application/octet-stream").GetAwaiter().GetResult(),
+                    () => engine.Rl(), () => engine.RlA().GetAwaiter().GetResult(),
+                    () => engine.Fg(new Uri(first.U.AbsoluteUri + "#blocked")), () => engine.Go("#blocked"),
+                    () => engine.GoA("#blocked").GetAwaiter().GetResult(), () => engine.Go(forms)
+                };
+                foreach (var action in actions)
+                {
+                    var error = Fails(action, "host navigation rejection");
+                    Eq("blocked", error.K, "navigation error kind");
+                    Ok(!error.Rt && error.U != null && engine.At == first && !engine.Busy && !engine.CanBk, "blocked navigation preserves document/history/state");
+                }
+                Eq(actions.Length, calls, "guard runs once per blocked navigation");
+                Eq(0, server.Hits, "blocked GET/POST sends no requests");
+                engine.Ng = url => { throw new InvalidOperationException("guard failure"); };
+                var threw = false;
+                try { engine.Go(server.U); } catch (InvalidOperationException) { threw = true; }
+                Ok(threw && server.Hits == 0 && engine.At == first, "guard exceptions fail closed");
+                engine.Ng = null;
+                var second = engine.Go(next);
+                engine.Ng = url => false;
+                Eq("blocked", Fails(() => engine.Bk(), "blocked Back").K, "Back guard");
+                Ok(engine.At == second && engine.CanBk && !engine.CanFw, "blocked Back preserves history position");
+                engine.Ng = url => true;
+                engine.Bk();
+                engine.Ng = url => false;
+                Eq("blocked", Fails(() => engine.Fw(), "blocked Forward").K, "Forward guard");
+                Ok(engine.At == first && engine.CanFw, "blocked Forward preserves history position");
+                engine.Ng = url => true;
+                engine.Go(server.U);
+                Eq(1, server.Hits, "allowed navigation reaches network");
+                engine.Ng = url => false;
+                Eq("blocked", Fails(() => engine.Go(server.U), "guard before cache").K, "cached navigation guard");
+                Eq(1, server.Hits, "rejected cached navigation adds no request");
+            }
+            var view = new V();
+            view.Go(forms);
+            var page = view.At;
+            var changed = 0;
+            view.Changed += delegate { changed++; };
+            view.Ng = url => false;
+            Eq("blocked", Fails(() => view.Go(next), "view guard").K, "view guard alias");
+            Eq("blocked", Fails(() => view.GoA(next).GetAwaiter().GetResult(), "async view guard").K, "async view guard alias");
+            Ok(view.At == page && changed == 0 && !view.Busy, "view rejection preserves presentation");
+            view.Dispose();
+            Ok(view.Ng == null, "view disposal releases host guard");
+            using (var server = new CompressedServer())
+            using (var closing = new V())
+            {
+                closing.Ng = url => { closing.Dispose(); return true; };
+                Eq("blocked", Fails(() => closing.GoA(server.U).GetAwaiter().GetResult(), "guard callback disposal").K, "disposed guard cannot authorize navigation");
+                Ok(server.Hits == 0 && closing.Ng == null && closing.IsDisposed, "guard callback disposal sends no request and releases policy");
+            }
+            Console.WriteLine("Lea navigation guard smoke passed: compact Ng alias, blocked GET/POST/fragments/history/reload/cache, caller-thread policy, state retention, and disposal.");
         }
 
         private static void WaitFor(Func<bool> ready, string name)
