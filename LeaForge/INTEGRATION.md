@@ -235,6 +235,17 @@ option values, and submitted form data. Focused native editors show the raw
 value. Dynamic hover and viewport rebuilds retain field identity, and UI
 Automation maps the transformed visual case back to authored logical text.
 
+Inherited `S.Ls/Wg` exposes letter and word spacing as signed integer pixels
+bounded to -32..128. Normal/initial resets and parent-restoring inherit/unset/
+revert values share the compiled cascade. Retained text measurement, wrapping,
+inline boundary gaps, button sizing, and glyph painting use the same metrics,
+so hosts receive updated hit, find, focus, and automation rectangles without
+adapter-side spacing code. Blocks, inline runs, table cells, and unfocused
+controls support the feature; authored field values remain unchanged. Focused
+native editors and select popups keep native Windows spacing. Zero-spacing
+pages retain their existing fast path; complex-script/bidi tracking and
+fractional or relative spacing units remain outside this implementation.
+
 `S.Ws` carries compact `n/nw/p/pw/pl` white-space modes. Lea preserves explicit
 spaces and line breaks for `pre`/`pre-wrap`, keeps line breaks while collapsing
 spaces for `pre-line`, and disables soft wrapping for `nowrap`/`pre`. `S.Ov`

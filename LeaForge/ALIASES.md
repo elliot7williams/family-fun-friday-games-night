@@ -479,7 +479,9 @@ display behavior. `Td` is decoration using `n/u/s/us` for none, underline,
 strike, or both. Generic `Ff` entries use `ss/s/m/c/f/ui` for sans-serif,
 serif, monospace, cursive, fantasy, and system UI. `Ta` is
 text alignment using `l/c/r/j`; `Tt` is inherited text transformation using
-`n/u/l/c` for none, uppercase, lowercase, and capitalize. `Lh` is pixel line height and `Lm` is a bounded
+`n/u/l/c` for none, uppercase, lowercase, and capitalize. `Ls` is inherited
+letter spacing and `Wg` is inherited word spacing in signed pixels.
+`Lh` is pixel line height and `Lm` is a bounded
 percentage multiplier. Lea accepts CSS pixel, percentage, and unitless line
 heights, then keeps each painted line tall enough for its largest font.
 `Ws` is white-space mode using `n/nw/p/pw/pl` for normal, nowrap, pre,
@@ -507,6 +509,23 @@ document text and maps case-transformed visual segments with ordinal
 case-insensitive matching. Capitalization is deterministic and invariant; it
 starts words at the beginning, after whitespace, and after a hyphen rather
 than implementing locale-specific CSS casing rules.
+
+CSS `letter-spacing` and `word-spacing` accept `normal`, integer pixels from
+-32 through 128, and unitless zero. Invalid values preserve the previous
+declaration; `normal`/`initial` reset to zero, while `inherit`/`unset`/`revert`
+restore the parent's computed value even after earlier declarations. Variables,
+important tiers, inline overrides, hover, and media queries use the same cascade.
+The renderer shares measurement between wrapping, button sizing, and painting.
+Tracking uses .NET text elements, omits line-edge gaps, and averages adjacent
+inline values with integer rounding. Word-only spacing preserves shaped word
+runs and adjusts spaces and non-breaking spaces. Individual advances retain a
+one-pixel floor and measured runs cap at 8,192 pixels. Unspaced content retains
+the existing fast path. Raw DOM/form values and automation text are unchanged;
+the retained rectangles reflect the new layout. Focused native editors and
+native select popups retain Windows text spacing. Fractional/relative units,
+full bidi tracking, and script-specific shaping are not implemented here.
+The spacing model follows the supported parts of
+[CSS Text spacing](https://www.w3.org/TR/css-text-3/#spacing).
 
 List-item blocks expose `B.Mk` as their paint-ready marker. Unordered lists use
 `-`; ordered lists use invariant decimal text ending in `.`. Ordered `start` and

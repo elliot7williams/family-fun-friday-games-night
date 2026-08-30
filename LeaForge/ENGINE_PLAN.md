@@ -61,7 +61,7 @@ Dg/Dcl  diagnostics/clear request activity
 2. Implement the cascade and inheritance with a small priority model. (First specificity/source-order cascade added.)
    (`link rel=stylesheet` and inline `style` blocks now enter that source order
    together; linked CSS uses cookies, compression, validators, and shared LRU caching.)
-3. Add colors, fonts, spacing, borders, width, height, display, visibility, opacity, and overflow. (Colors, fallback font families, underline/strike decorations, margins, padding, backgrounds, `display:none`, inherited visibility, bounded opacity, borders, non-inherited content/border-box pixel sizing, pixel width/height bounds, text alignment, line height, word breaking, white-space modes, and clipped overflow are active.)
+3. Add colors, fonts, spacing, borders, width, height, display, visibility, opacity, and overflow. (Colors, fallback font families, underline/strike decorations, margins, padding, backgrounds, `display:none`, inherited visibility, bounded opacity, borders, non-inherited content/border-box pixel sizing, pixel width/height bounds, text alignment, transformation, signed letter/word spacing, line height, word breaking, white-space modes, and clipped overflow are active.)
 4. Replace one-WinForms-control-per-node rendering with lightweight layout boxes. (Reusable `Bx` layout pass added.)
 5. Paint text, backgrounds, borders, links, controls, and images onto one surface. (Text, nested bold/italic inline runs, backgrounds, solid/dashed/dotted borders, links, images, and basic form controls are active.)
 6. Add scrolling and hit testing from layout boxes. (Visible-box painting and bounded vertical scrolling added.)
@@ -338,7 +338,20 @@ non-empty bridge survives both direct and external MTA clients. Continue host
 coverage and bounded HTML/CSS compatibility work without adding another browser
 runtime.
 
-The latest completed milestone adds bounded inherited CSS `text-transform`
+The latest completed milestone adds bounded inherited `letter-spacing` and
+`word-spacing` through compact `S.Ls/Wg`. Signed -32..128 integer pixels,
+normal/reset values, parent-restoring inherit/unset/revert, invalid preservation,
+variables, priority, inline overrides, and responsive rules share the cascade.
+Retained line layout, button sizing, glyph paint, hit/focus/find rectangles,
+and automation geometry use shared metrics with no line-edge tracking and
+rounded average inline boundary gaps. Word-only spacing preserves shaped words;
+zero-spacing pages retain the fast path. Blocks, tables, unfocused controls,
+hover reflow, authored field retention, and exact text-element metrics are
+covered by `text-spacing.html`, the benchmark, and compiled Firespider smoke.
+Native editor/popup spacing, full bidi/complex-script tracking, and relative or
+fractional spacing units remain outside this milestone.
+
+The preceding completed milestone adds bounded inherited CSS `text-transform`
 through compact `S.Tt=n/u/l/c` state and shared `E.Tx` presentation handling.
 Strict none/uppercase/lowercase/capitalize parsing, variables, important tiers,
 CSS-wide inheritance/resets, malformed preservation, inline overrides,
@@ -845,6 +858,12 @@ capitalize presentation state. One invariant `E.Tx` helper transforms block,
 inline, table, value, button, placeholder, option-label, and unfocused field
 display strings while raw DOM and form values remain unchanged. Dynamic and
 responsive rebuilds recompute display text and retain mutable field identity.
+
+Inherited `S.Ls/Wg` adds bounded integer-pixel letter and word spacing to the
+same text path. Layout and paint share text-element advances, line-edge gap
+suppression, rounded inline boundary averages, and shaped word-only runs.
+Tables, buttons, custom fields, responsive rebuilds, and automation bounds
+reuse retained ownership while raw authored text stays unchanged.
 
 CSS relationship matching supports descendant, direct-child (`>`), and
 adjacent-element (`+`) combinators with or without spaces. Matching runs from

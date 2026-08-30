@@ -112,7 +112,7 @@ namespace Lea.Bench
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
                 "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html", "svg.html", "svg-geometry.html", "svg-gradients.html", "svg-use-clips.html", "svg-strokes.html",
-                "box-sizing.html", "border-radius.html", "box-shadows.html", "background-gradients.html", "background-images.html", "object-fit.html", "aspect-ratio.html", "outlines.html", "pointer-interaction.html", "text-transform.html"
+                "box-sizing.html", "border-radius.html", "box-shadows.html", "background-gradients.html", "background-images.html", "object-fit.html", "aspect-ratio.html", "outlines.html", "pointer-interaction.html", "text-transform.html", "text-spacing.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -1154,6 +1154,63 @@ namespace Lea.Bench
                 }
                 return "S.Tt n/u/l/c inherited alias, strict none/upper/lower/capitalize parsing, inline overrides, variables/priority/resets/invalid preservation, multiline/table/control presentation, raw DOM/form retention, hover, paint, and resize";
             });
+            AddProbe(probes, "Bounded text spacing", delegate
+            {
+                var path = Path.Combine(folder, "text-spacing.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                var positive = page.Bs.First(block => block.El != null && block.El.Av("id") == "positive");
+                var negative = page.Bs.First(block => block.El != null && block.El.Av("id") == "negative");
+                var inline = page.Bs.First(block => block.El != null && block.El.Av("id") == "inline");
+                var invalid = page.Bs.First(block => block.El != null && block.El.Av("id") == "invalid");
+                var bounded = page.Bs.First(block => block.El != null && block.El.Av("id") == "bounded");
+                var variable = page.Bs.First(block => block.El != null && block.El.Av("id") == "variable");
+                var priority = page.Bs.First(block => block.El != null && block.El.Av("id") == "priority");
+                var field = page.Fs.First(item => item.El != null && item.El.Av("id") == "field");
+                Need(page.S.Ls == 1 && page.S.Wg == 2 && positive.S.Ls == 3 && positive.S.Wg == 8 &&
+                    negative.S.Ls == -2 && negative.S.Wg == -4, "text spacing aliases or inheritance changed");
+                Need(inline.Is.Count == 4 && inline.Is[1].S.Ls == 6 && inline.Is[1].S.Wg == 12 &&
+                    inline.Is[2].S.Ls == 0 && inline.Is[2].S.Wg == 0, "inline text spacing runs changed");
+                Need(invalid.S.Ls == 5 && invalid.S.Wg == 7 && bounded.S.Ls == 1 && bounded.S.Wg == 2 &&
+                    variable.S.Ls == 4 && variable.S.Wg == 9 && priority.S.Ls == 7 && priority.S.Wg == 11,
+                    "text spacing cascade or bounds changed");
+                Need(field.V == "Field raw words" && page.Fs.First(item => item.El != null && item.El.Av("id") == "button").V == "Send raw words",
+                    "spaced form values changed");
+                engine.Dy(page, ById(page.D, "dynamic"), null);
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "dynamic").S.Ls == 8 &&
+                    Object.ReferenceEquals(field, page.Fs.First(item => item.El != null && item.El.Av("id") == "field")),
+                    "dynamic text spacing changed");
+                engine.Vw = 350;
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "responsive").S.Ls == -1 &&
+                    Object.ReferenceEquals(field, page.Fs.First(item => item.El != null && item.El.Av("id") == "field")),
+                    "responsive spacing or retained field changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 2600);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var normalWidth = InlineBounds(view, "normal").Width;
+                        var positiveWidth = InlineBounds(view, "positive").Width;
+                        var negativeWidth = InlineBounds(view, "negative").Width;
+                        Need(positiveWidth > normalWidth && normalWidth > negativeWidth && ColoredSamples(image) > 0,
+                            "text spacing metric or paint changed");
+                    }
+                    var dynamicRect = BlockOuter(view, "dynamic");
+                    Move(view, dynamicRect);
+                    using (var image = Draw(view))
+                        Need(view.At.Bs.First(block => block.El != null && block.El.Av("id") == "dynamic").S.Wg == 14,
+                            "text spacing hover repaint changed");
+                    view.Size = new Size(350, 2900);
+                    using (var image = Draw(view))
+                    {
+                        var responsive = view.At.Bs.First(block => block.El != null && block.El.Av("id") == "responsive");
+                        Need(responsive.S.Ls == -1 && responsive.S.Wg == 0 && !BlockOuter(view, "after-spacing").IsEmpty,
+                            "text spacing resize changed");
+                    }
+                }
+                return "S.Ls/Wg inherited signed pixel aliases, strict normal/reset/bounds/invalid preservation, inline overrides, variables/priority, shared wrap and paint metrics, raw form retention, hover, and resize";
+            });
             AddProbe(probes, "Bounded flex layout", delegate
             {
                 var path = Path.Combine(folder, "flex.html");
@@ -1866,8 +1923,8 @@ namespace Lea.Bench
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box, circular/elliptical radii, bounded outlines, box shadows and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform and text styles, visibility, positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
-            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients, invariant transformed presentation text with raw form retention, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, inline, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
+            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, content/border box, circular/elliptical radii, bounded outlines, box shadows and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing and text styles, visibility, positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
+            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, inline, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
@@ -2052,6 +2109,24 @@ namespace Lea.Bench
                         return (Rectangle)type.GetField("C").GetValue(value);
                 }
             throw new InvalidOperationException("Missing content block " + id);
+        }
+
+        private static Rectangle InlineBounds(V view, string id)
+        {
+            var field = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = field == null ? null : field.GetValue(view) as System.Collections.IEnumerable;
+            var result = Rectangle.Empty;
+            if (values != null)
+                foreach (var value in values)
+                {
+                    var type = value.GetType();
+                    var block = type.GetField("B").GetValue(value) as B;
+                    if (block == null || block.El == null || block.El.Av("id") != id || !(bool)type.GetField("Inline").GetValue(value)) continue;
+                    var rect = (Rectangle)type.GetField("R").GetValue(value);
+                    result = result.IsEmpty ? rect : Rectangle.Union(result, rect);
+                }
+            if (result.IsEmpty) throw new InvalidOperationException("Missing inline layout block " + id);
+            return result;
         }
 
         private static N ById(N node, string id)

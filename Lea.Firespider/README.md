@@ -290,6 +290,13 @@ text, exact raw field casing, field identity across narrow/wide rebuilds, and
 restored display state. Firespider needs no adapter-side text conversion, and
 submitted or focused field values remain authored rather than transformed.
 
+Hosted text also exposes inherited `S.Ls/Wg` letter and word spacing. The host
+smoke compares retained widths for identical normal and spaced text, checks
+signed responsive values and custom-field aliases, and verifies raw field
+identity through narrow/wide rebuilds. Layout and paint remain Lea-owned;
+Firespider adds no text-spacing calculations or additional native controls.
+Focused native editors and choice popups keep Windows' native text spacing.
+
 `Smoke.cs` loads two compiled Firespider forms off-screen and verifies Lea-first
 New Tab creation, the explicit legacy fallback, Inspector open/refresh/clear and legacy isolation, diagnostics,
 script/style, host-controlled `go`, and safe click execution, alert routing,

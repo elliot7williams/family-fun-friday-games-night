@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Text Spacing</title>
+  <style>
+    :root { --lea-letter: 4px; --lea-word: 9px; }
+    body { margin: 24px; color: #172033; background: #ffffff; font-family: "Segoe UI", sans-serif; letter-spacing: 1px; word-spacing: 2px; }
+    .sample { width: 260px; min-height: 28px; margin: 6px 0; padding: 5px; border: 1px solid #94a3b8; background: #f8fafc; }
+    #normal { letter-spacing: normal; word-spacing: normal; text-align: left; }
+    #positive { letter-spacing: 3px; word-spacing: 8px; }
+    #negative { letter-spacing: -2px; word-spacing: -4px; }
+    #word-only { letter-spacing: normal; word-spacing: 9px; }
+    #inline { letter-spacing: 2px; word-spacing: 5px; }
+    #inline-wide { letter-spacing: 6px; word-spacing: 12px; }
+    #inline-normal { letter-spacing: normal; word-spacing: normal; }
+    #invalid { letter-spacing: 5px; letter-spacing: loose; word-spacing: 7px; word-spacing: 1em; }
+    #bounded { letter-spacing: 129px; word-spacing: -33px; }
+    #reset { letter-spacing: 8px; letter-spacing: initial; word-spacing: 9px; word-spacing: initial; }
+    #unset-parent { letter-spacing: 3px; word-spacing: 6px; }
+    #unset-child { letter-spacing: 20px; letter-spacing: unset; word-spacing: 25px; word-spacing: inherit; }
+    #variable { letter-spacing: var(--lea-letter); word-spacing: var(--lea-word); }
+    #priority { letter-spacing: 7px !important; word-spacing: 11px !important; }
+    #preserved { letter-spacing: 2px; word-spacing: 6px; white-space: pre-wrap; }
+    #cell { letter-spacing: 3px; word-spacing: 7px; }
+    #button { letter-spacing: 3px; word-spacing: 7px; min-width: 190px; height: 34px; }
+    #field { letter-spacing: 2px; word-spacing: 6px; width: 230px; height: 34px; margin: 6px 0; }
+    #placeholder { letter-spacing: 2px; word-spacing: 5px; width: 230px; height: 34px; margin: 6px 0; }
+    #choice { letter-spacing: 2px; word-spacing: 8px; width: 230px; height: 34px; margin: 6px 0; }
+    #dynamic { letter-spacing: 1px; word-spacing: 2px; }
+    #dynamic:hover { letter-spacing: 8px; word-spacing: 14px; }
+    #responsive { letter-spacing: 5px; word-spacing: 10px; }
+    @media (max-width: 420px) {
+      #responsive { letter-spacing: -1px; word-spacing: 0; }
+    }
+  </style>
+</head>
+<body>
+  <h1 id="inherited">Inherited heading words</h1>
+  <p id="normal" class="sample">Spacing words compare</p>
+  <p id="positive" class="sample">Spacing words compare</p>
+  <p id="negative" class="sample">Spacing words compare</p>
+  <p id="word-only" class="sample">Shaped words &amp; glyphs</p>
+  <p id="inline" class="sample">Base <span id="inline-wide">Wide words</span> <span id="inline-normal">Normal words</span> End</p>
+  <p id="invalid" class="sample">Invalid values preserve earlier spacing</p>
+  <p id="bounded" class="sample">Out of range values preserve inheritance</p>
+  <p id="reset" class="sample">Initial spacing reset</p>
+  <p id="unset-parent" class="sample">Parent <span id="unset-child">inherited child words</span></p>
+  <p id="variable" class="sample">Variable spacing words</p>
+  <p id="priority" class="sample" style="letter-spacing:0;word-spacing:0">Important spacing words</p>
+  <pre id="preserved" class="sample">first  spaced line
+second spaced line</pre>
+  <table id="spacing-table"><tr><td id="cell" class="sample">Cell spacing words wrap safely</td></tr></table>
+  <button id="button" name="send" value="Send raw words">Send spaced words</button>
+  <input id="field" name="query" value="Field raw words">
+  <input id="placeholder" name="empty" placeholder="Placeholder spaced words">
+  <select id="choice" name="choice"><option value="raw-choice">Choice spaced words</option></select>
+  <p id="dynamic" class="sample">Dynamic spacing words</p>
+  <p id="responsive" class="sample">Responsive spacing words wrap during resize</p>
+  <p id="after-spacing" class="sample">Following content remains in flow</p>
+</body>
+</html>

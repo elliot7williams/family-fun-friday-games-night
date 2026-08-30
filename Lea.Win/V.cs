@@ -739,7 +739,7 @@ namespace Lea.Win
                         if (box.S != null) color = CssColor(box.S.F, color);
                         var flags = box.Inline ? TextFormatFlags.SingleLine | TextFormatFlags.NoPadding : TextFormatFlags.WordBreak | TextFormatFlags.NoPadding;
                         if (!clip.IsEmpty) flags |= TextFormatFlags.PreserveGraphicsClipping;
-                        if (opacity > 0) PaintText(pe.Graphics, box.X, font, content, color, flags, opacity);
+                        if (opacity > 0) PaintText(pe.Graphics, box.X, font, content, color, flags, opacity, box.S);
                     }
 
                     if (box.U != null && PointerEnabled(box.S))
@@ -908,7 +908,7 @@ namespace Lea.Win
                             height = block.K == "textarea" ? Math.Max(84, font.Height * 3 + 12) : block.I.K == "checkbox" || block.I.K == "radio" ? Math.Max(24, font.Height + 4) : Math.Max(32, font.Height + 12);
                             if (block.K == "button")
                             {
-                                var buttonWidth = TextRenderer.MeasureText(graphics, block.X, font, Size.Empty, TextFormatFlags.NoPadding).Width + 28;
+                                var buttonWidth = TextWidth(graphics, block.X, font, bs) + 28;
                                 if (bs == null || bs.W == 0) bw = Math.Min(bw, Math.Max(88, buttonWidth));
                             }
                         }
@@ -2421,8 +2421,10 @@ namespace Lea.Win
                 var each = spaces == 0 ? 0 : stretch / spaces;
                 var remainder = spaces == 0 ? 0 : stretch % spaces;
                 var x = align == "c" ? Math.Max(0, (width - current.W) / 2) : align == "r" ? Math.Max(0, width - current.W) : 0;
+                Ia previous = null;
                 foreach (var atom in current.As)
                 {
+                    if (previous != null) x += InlineGap(previous, atom);
                     var atomWidth = atom.W;
                     if (justify && atom.X == " ")
                     {
@@ -2432,6 +2434,7 @@ namespace Lea.Win
                     var rect = new Rectangle(x, y + Math.Max(0, (current.H - atom.H) / 2), atomWidth, atom.H);
                     layout.Add(new Ix(atom.K, atom.X, atom.U, atom.S, rect, atom.El));
                     x += atomWidth;
+                    previous = atom;
                 }
                 y += current.H;
             }
@@ -2524,7 +2527,7 @@ namespace Lea.Win
             var breaking = String.IsNullOrEmpty(mode) ? "b" : mode;
             if (breaking == "n" || breaking == "k")
             {
-                var gap = line.As.Count > 0 && pending != null ? pending.W : 0;
+                var gap = PendingWidth(line, pending, word);
                 if (line.As.Count > 0 && line.W + gap + word.W > width)
                 {
                     FinishInlineLine(lines, ref line, baseHeight, false);
@@ -2538,7 +2541,7 @@ namespace Lea.Win
 
             if (breaking != "a" && word.W <= width)
             {
-                var gap = line.As.Count > 0 && pending != null ? pending.W : 0;
+                var gap = PendingWidth(line, pending, word);
                 if (line.As.Count > 0 && line.W + gap + word.W > width)
                 {
                     FinishInlineLine(lines, ref line, baseHeight, false);
@@ -2553,28 +2556,33 @@ namespace Lea.Win
             if (breaking == "b" && line.As.Count > 0) FinishInlineLine(lines, ref line, baseHeight, false);
             if (breaking == "a" && line.As.Count > 0 && pending != null)
             {
-                if (line.W + pending.W >= width) FinishInlineLine(lines, ref line, baseHeight, false);
+                if (line.W + InlineGap(line.As[line.As.Count - 1], pending) + pending.W >= width) FinishInlineLine(lines, ref line, baseHeight, false);
                 else AddInlineAtom(line, pending);
             }
             pending = null;
             var piece = new StringBuilder();
             var pieceWidth = 0;
+            var previousWidth = 0;
             var elements = StringInfo.GetTextElementEnumerator(word.X);
             while (elements.MoveNext())
             {
                 var text = elements.GetTextElement();
                 var character = InlineAtom(graphics, word.K, text, word.U, word.S, word.Z, word.El);
-                if (piece.Length > 0 && line.W + pieceWidth + character.W > width)
+                var gap = piece.Length == 0 ? 0 : TextGap(previousWidth, word.S, word.S);
+                var leading = line.As.Count == 0 ? 0 : InlineGap(line.As[line.As.Count - 1], word);
+                if (piece.Length > 0 && line.W + leading + pieceWidth + gap + character.W > width)
                 {
                     AddInlineAtom(line, InlineAtom(graphics, word.K, piece.ToString(), word.U, word.S, word.Z, word.El));
                     FinishInlineLine(lines, ref line, baseHeight, false);
                     piece.Clear();
                     pieceWidth = 0;
+                    gap = 0;
                 }
-                else if (piece.Length == 0 && line.As.Count > 0 && line.W + character.W > width)
+                else if (piece.Length == 0 && line.As.Count > 0 && line.W + leading + character.W > width)
                     FinishInlineLine(lines, ref line, baseHeight, false);
                 piece.Append(text);
-                pieceWidth += character.W;
+                pieceWidth += gap + character.W;
+                previousWidth = character.W;
             }
             if (piece.Length > 0) AddInlineAtom(line, InlineAtom(graphics, word.K, piece.ToString(), word.U, word.S, word.Z, word.El));
         }
@@ -2583,16 +2591,29 @@ namespace Lea.Win
         {
             using (var font = BoxFont(kind, style, false, url != null, baseKind))
             {
-                var width = TextRenderer.MeasureText(graphics, text, font, Size.Empty, TextFormatFlags.SingleLine | TextFormatFlags.NoPadding).Width;
+                var width = TextWidth(graphics, text, font, style);
                 return new Ia(kind, text, url, style, baseKind, Math.Max(1, width), font.Height, CssLineHeight(style, font.Height), element);
             }
         }
 
         private static void AddInlineAtom(Il line, Ia atom)
         {
+            if (line.As.Count > 0) line.W += InlineGap(line.As[line.As.Count - 1], atom);
             line.As.Add(atom);
             line.W += atom.W;
             line.H = Math.Max(line.H, atom.L);
+        }
+
+        private static int InlineGap(Ia left, Ia right)
+        {
+            return TextGap(left.W, left.S, right.S);
+        }
+
+        private static int PendingWidth(Il line, Ia pending, Ia word)
+        {
+            if (line.As.Count == 0) return 0;
+            var last = line.As[line.As.Count - 1];
+            return pending == null ? InlineGap(last, word) : InlineGap(last, pending) + pending.W + InlineGap(pending, word);
         }
 
         private static void FinishInlineLine(List<Il> lines, ref Il line, int baseHeight, bool force, bool broken = false)
@@ -2609,7 +2630,7 @@ namespace Lea.Win
         private static bool NeedsFlow(B block)
         {
             var style = block == null ? null : block.S;
-            return block != null && (block.Is.Count > 0 || (style != null && (style.Ta.Length > 0 || style.Lh > 0 || style.Lm > 0 || style.Ws.Length > 0 || style.Wb.Length > 0 || style.Ov.Length > 0)));
+            return block != null && (block.Is.Count > 0 || (style != null && (style.Ta.Length > 0 || style.Ls != 0 || style.Wg != 0 || style.Lh > 0 || style.Lm > 0 || style.Ws.Length > 0 || style.Wb.Length > 0 || style.Ov.Length > 0)));
         }
 
         private static int CssLineHeight(S style, int nativeHeight)
@@ -3228,7 +3249,7 @@ namespace Lea.Win
 
             using (var brush = new SolidBrush(PaintColor(Color.FromArgb(20, color), opacity))) graphics.FillRectangle(brush, rect);
             using (var pen = new Pen(PaintColor(Color.FromArgb(80, color), opacity))) graphics.DrawRectangle(pen, rect.X, rect.Y, rect.Width - 1, rect.Height - 1);
-            PaintText(graphics, box.X.Length == 0 ? "Image unavailable" : box.X, Font, new Rectangle(rect.X + 8, rect.Y + 8, rect.Width - 16, rect.Height - 16), color, TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, opacity);
+            PaintText(graphics, box.X.Length == 0 ? "Image unavailable" : box.X, Font, new Rectangle(rect.X + 8, rect.Y + 8, rect.Width - 16, rect.Height - 16), color, TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, opacity, box.S);
         }
 
         private void PaintVector(Graphics graphics, Bx box, Rectangle rect, Color color, int opacity, Rectangle clip)
@@ -3891,7 +3912,7 @@ namespace Lea.Win
                     }
                 }
                 using (var font = BoxFont(box.K, field.S, false))
-                    PaintText(graphics, box.X, font, new Rectangle(rect.X + 24, rect.Y, Math.Max(1, rect.Width - 24), rect.Height), foreground, TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding, opacity);
+                    PaintText(graphics, box.X, font, new Rectangle(rect.X + 24, rect.Y, Math.Max(1, rect.Width - 24), rect.Height), foreground, TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding, opacity, field.S);
                 return;
             }
 
@@ -3942,7 +3963,7 @@ namespace Lea.Win
                 using (var brush = new SolidBrush(PaintColor(Color.FromArgb(240, 242, 245), opacity))) graphics.FillRectangle(brush, button);
                 using (var pen = new Pen(PaintColor(Color.FromArgb(145, 145, 145), opacity))) graphics.DrawRectangle(pen, button.X, button.Y, Math.Max(0, button.Width - 1), Math.Max(0, button.Height - 1));
                 using (var font = BoxFont(box.K, field.S, false))
-                    PaintText(graphics, E.Tx("Browse", field.S), font, button, foreground, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding, opacity);
+                    PaintText(graphics, E.Tx("Browse", field.S), font, button, foreground, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPadding, opacity, field.S);
             }
             else if (field.K == "color")
             {
@@ -3952,7 +3973,7 @@ namespace Lea.Win
                 textLeft += 30;
             }
             using (var font = BoxFont(box.K, field.S, false))
-                PaintText(graphics, box.K == "button" ? box.X : text, font, new Rectangle(textLeft, rect.Y + 3, Math.Max(1, rect.Right - textLeft - pad - reserve), Math.Max(1, rect.Height - 6)), textColor, flags, opacity);
+                PaintText(graphics, box.K == "button" ? box.X : text, font, new Rectangle(textLeft, rect.Y + 3, Math.Max(1, rect.Right - textLeft - pad - reserve), Math.Max(1, rect.Height - 6)), textColor, flags, opacity, field.S);
         }
 
         private static void PaintFieldBackground(Graphics graphics, Rectangle rect, S style, Color color)
@@ -5429,8 +5450,82 @@ namespace Lea.Win
             return Color.FromArgb(alpha, color.R, color.G, color.B);
         }
 
-        private static void PaintText(Graphics graphics, string text, Font font, Rectangle rect, Color color, TextFormatFlags flags, int opacity)
+        private static bool TextSpaced(S style)
         {
+            return style != null && (style.Ls != 0 || style.Wg != 0);
+        }
+
+        private static int TextWidth(Graphics graphics, string text, Font font, S style)
+        {
+            int last;
+            return TextWidth(graphics, text, font, style, out last);
+        }
+
+        private static int TextWidth(Graphics graphics, string text, Font font, S style, out int last)
+        {
+            text = text ?? "";
+            last = 0;
+            if (!TextSpaced(style))
+                return TextRenderer.MeasureText(graphics, text, font, Size.Empty, TextFormatFlags.SingleLine | TextFormatFlags.NoPadding).Width;
+            var width = 0;
+            foreach (var element in SpacingUnits(text, style))
+            {
+                var current = SpacingUnitWidth(graphics, element, font, style);
+                width += (last == 0 ? 0 : TextGap(last, style, style)) + current;
+                last = current;
+                if (width >= 8192) return 8192;
+            }
+            return Math.Max(1, width);
+        }
+
+        private static int TextGap(int leftWidth, S left, S right)
+        {
+            var spacing = ((left == null ? 0 : left.Ls) + (right == null ? 0 : right.Ls)) / 2D;
+            return Math.Max(1 - leftWidth, (int)Math.Round(spacing, MidpointRounding.AwayFromZero));
+        }
+
+        private static IEnumerable<string> SpacingUnits(string text, S style)
+        {
+            if (style.Ls == 0)
+            {
+                var start = 0;
+                for (var index = 0; index < text.Length; index++)
+                {
+                    if (text[index] != ' ' && text[index] != '\u00a0') continue;
+                    if (index > start) yield return text.Substring(start, index - start);
+                    yield return text[index].ToString();
+                    start = index + 1;
+                }
+                if (start < text.Length) yield return text.Substring(start);
+                yield break;
+            }
+            var elements = StringInfo.GetTextElementEnumerator(text);
+            while (elements.MoveNext()) yield return elements.GetTextElement();
+        }
+
+        private static int SpacingUnitWidth(Graphics graphics, string text, Font font, S style)
+        {
+            var native = TextRenderer.MeasureText(graphics, text, font, Size.Empty,
+                TextFormatFlags.SingleLine | TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix).Width;
+            var spaces = 0;
+            foreach (var ch in text) if (ch == ' ' || ch == '\u00a0') spaces++;
+            return Math.Max(1, native + spaces * style.Wg);
+        }
+
+        private static bool TextSpaceElement(string value)
+        {
+            if (String.IsNullOrEmpty(value)) return false;
+            foreach (var ch in value) if (!Char.IsWhiteSpace(ch)) return false;
+            return true;
+        }
+
+        private static void PaintText(Graphics graphics, string text, Font font, Rectangle rect, Color color, TextFormatFlags flags, int opacity, S style = null)
+        {
+            if (TextSpaced(style))
+            {
+                PaintSpacedText(graphics, text, font, rect, color, flags, opacity, style);
+                return;
+            }
             if (opacity >= 100)
             {
                 TextRenderer.DrawText(graphics, text, font, rect, color, flags);
@@ -5445,6 +5540,114 @@ namespace Lea.Win
                 else if ((flags & TextFormatFlags.Right) != 0) format.Alignment = StringAlignment.Far;
                 if ((flags & TextFormatFlags.VerticalCenter) != 0) format.LineAlignment = StringAlignment.Center;
                 graphics.DrawString(text ?? "", font, brush, rect, format);
+            }
+        }
+
+        private static void PaintSpacedText(Graphics graphics, string text, Font font, Rectangle rect, Color color, TextFormatFlags flags, int opacity, S style)
+        {
+            if (opacity <= 0 || rect.Width < 1 || rect.Height < 1) return;
+            var lines = SpacedTextLines(graphics, text, font, style, rect.Width,
+                (flags & TextFormatFlags.SingleLine) == 0 && (flags & TextFormatFlags.WordBreak) != 0,
+                Math.Max(1, rect.Height / Math.Max(1, font.Height) + 1));
+            var totalHeight = Math.Max(font.Height, lines.Count * font.Height);
+            var y = (flags & TextFormatFlags.VerticalCenter) != 0 ? rect.Top + Math.Max(0, (rect.Height - totalHeight) / 2) : rect.Top;
+            var state = graphics.Save();
+            try
+            {
+                graphics.SetClip(rect, CombineMode.Intersect);
+                foreach (var line in lines)
+                {
+                    if (y >= rect.Bottom) break;
+                    var width = TextWidth(graphics, line, font, style);
+                    var x = (flags & TextFormatFlags.HorizontalCenter) != 0 ? rect.Left + Math.Max(0, (rect.Width - width) / 2) :
+                        (flags & TextFormatFlags.Right) != 0 ? rect.Right - width : rect.Left;
+                    PaintSpacedLine(graphics, line, font, x, y, rect, color, opacity, style);
+                    y += font.Height;
+                }
+            }
+            finally { graphics.Restore(state); }
+        }
+
+        private static IList<string> SpacedTextLines(Graphics graphics, string text, Font font, S style, int width, bool wrap, int maxLines)
+        {
+            var result = new List<string>();
+            var source = (text ?? "").Replace("\r\n", "\n").Replace('\r', '\n');
+            if (!wrap)
+            {
+                result.Add(source.Replace('\n', ' '));
+                return result;
+            }
+            foreach (var paragraph in source.Split('\n'))
+            {
+                var line = new StringBuilder();
+                var lineWidth = 0;
+                var lastWidth = 0;
+                foreach (Match match in Regex.Matches(paragraph, "\\S+|\\s+"))
+                {
+                    var token = match.Value;
+                    int tokenLast;
+                    var tokenWidth = TextWidth(graphics, token, font, style, out tokenLast);
+                    var gap = line.Length == 0 ? 0 : TextGap(lastWidth, style, style);
+                    if (line.Length > 0 && !TextSpaceElement(token) && lineWidth + gap + tokenWidth > width)
+                    {
+                        result.Add(line.ToString().TrimEnd());
+                        if (result.Count >= maxLines) return result;
+                        line.Clear();
+                        lineWidth = 0;
+                        gap = 0;
+                    }
+                    if (tokenWidth <= width || TextSpaceElement(token))
+                    {
+                        if (line.Length == 0 && TextSpaceElement(token)) continue;
+                        line.Append(token);
+                        lineWidth += gap + tokenWidth;
+                        lastWidth = tokenLast;
+                        continue;
+                    }
+                    var elements = StringInfo.GetTextElementEnumerator(token);
+                    while (elements.MoveNext())
+                    {
+                        var element = elements.GetTextElement();
+                        var elementWidth = TextWidth(graphics, element, font, style);
+                        gap = line.Length == 0 ? 0 : TextGap(lastWidth, style, style);
+                        if (line.Length > 0 && lineWidth + gap + elementWidth > width)
+                        {
+                            result.Add(line.ToString());
+                            if (result.Count >= maxLines) return result;
+                            line.Clear();
+                            lineWidth = 0;
+                            gap = 0;
+                        }
+                        line.Append(element);
+                        lineWidth += gap + elementWidth;
+                        lastWidth = elementWidth;
+                    }
+                }
+                result.Add(line.ToString().TrimEnd());
+                if (result.Count >= maxLines) return result;
+            }
+            if (result.Count == 0) result.Add("");
+            return result;
+        }
+
+        private static void PaintSpacedLine(Graphics graphics, string text, Font font, int x, int y, Rectangle clip, Color color, int opacity, S style)
+        {
+            using (var format = opacity < 100 ? (StringFormat)StringFormat.GenericTypographic.Clone() : null)
+            using (var brush = opacity < 100 ? new SolidBrush(PaintColor(color, opacity)) : null)
+            {
+                var last = 0;
+                foreach (var element in SpacingUnits(text ?? "", style))
+                {
+                    if (last > 0) x += TextGap(last, style, style);
+                    if (x >= clip.Right) break;
+                    var current = SpacingUnitWidth(graphics, element, font, style);
+                    if (opacity >= 100)
+                        TextRenderer.DrawText(graphics, element, font, new Rectangle(x, y, Math.Max(1, clip.Right - x), font.Height), color,
+                            TextFormatFlags.SingleLine | TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix | TextFormatFlags.PreserveGraphicsClipping);
+                    else graphics.DrawString(element, font, brush, new PointF(x, y), format);
+                    x += current;
+                    last = current;
+                }
             }
         }
 

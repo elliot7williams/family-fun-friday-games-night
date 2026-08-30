@@ -3152,10 +3152,10 @@ namespace Lea.Engine
             Custom(style, inherited, inline, true);
             TagStyle(style, node.K);
             if (node.A.ContainsKey("hidden")) style.D = "none";
-            foreach (var rule in matched) Decls(style, rule.Ds, false);
-            Decls(style, inline, false);
-            foreach (var rule in matched) Decls(style, rule.Ds, true);
-            Decls(style, inline, true);
+            foreach (var rule in matched) Decls(style, inherited, rule.Ds, false);
+            Decls(style, inherited, inline, false);
+            foreach (var rule in matched) Decls(style, inherited, rule.Ds, true);
+            Decls(style, inherited, inline, true);
             if (node.A.ContainsKey("data-lea-hidden")) style.D = "none";
             return style;
         }
@@ -3225,7 +3225,7 @@ namespace Lea.Engine
             return style.Vo;
         }
 
-        private static void Decls(S style, Pd[] declarations, bool important)
+        private static void Decls(S style, S inherited, Pd[] declarations, bool important)
         {
             foreach (var declaration in declarations)
             {
@@ -3247,6 +3247,8 @@ namespace Lea.Engine
                 else if (name == "text-decoration" || name == "text-decoration-line") TextDecoration(style, value);
                 else if (name == "text-align") TextAlign(style, value);
                 else if (name == "text-transform") TextTransform(style, value);
+                else if (name == "letter-spacing") TextSpacing(style, inherited, value, true);
+                else if (name == "word-spacing") TextSpacing(style, inherited, value, false);
                 else if (name == "line-height") LineHeight(style, value);
                 else if (name == "white-space") WhiteSpace(style, value);
                 else if (name == "word-break" || name == "overflow-wrap" || name == "word-wrap") WordBreak(style, value, name == "word-break");
@@ -4378,6 +4380,30 @@ namespace Lea.Engine
             else if (mode == "uppercase") style.Tt = "u";
             else if (mode == "lowercase") style.Tt = "l";
             else if (mode == "capitalize") style.Tt = "c";
+        }
+
+        private static void TextSpacing(S style, S inherited, string value, bool letters)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "inherit" || source == "unset" || source == "revert")
+            {
+                if (letters) style.Ls = inherited == null ? 0 : inherited.Ls;
+                else style.Wg = inherited == null ? 0 : inherited.Wg;
+                return;
+            }
+            if (source == "normal" || source == "initial")
+            {
+                if (letters) style.Ls = 0;
+                else style.Wg = 0;
+                return;
+            }
+
+            var match = Regex.Match(source, "^(?<n>[+-]?[0-9]{1,3})(?<u>px)?$");
+            int number;
+            if (!match.Success || !Int32.TryParse(match.Groups["n"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out number) ||
+                number != 0 && match.Groups["u"].Value != "px" || number < -32 || number > 128) return;
+            if (letters) style.Ls = number;
+            else style.Wg = number;
         }
 
         private static void LineHeight(S style, string value)

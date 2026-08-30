@@ -37,6 +37,8 @@ LeaForge is where we can grow the more full-featured browser.
 - inherited font-family fallbacks plus underline and line-through decoration
 - inherited bounded text transformation through compact `S.Tt=n/u/l/c` and
   shared `E.Tx`, with inline/control presentation and raw DOM/form preservation
+- inherited signed pixel letter/word spacing through compact `S.Ls/Wg`, with
+  shared wrapping, inline boundaries, control paint, and retained geometry
 - inherited left/center/right/justify alignment and pixel/relative line spacing
 - external stylesheets with document-order cascade and shared bounded caching
 - compiled relationship, attribute, structural, link, and form-state selectors,

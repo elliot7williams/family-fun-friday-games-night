@@ -1484,6 +1484,52 @@ namespace Lea.Tests
 
                 TextTransformSmoke(transformPath);
 
+                var spacingPath = Path.Combine(root, "LeaForge", "test-pages", "text-spacing.html");
+                var spacingEngine = new E { Vw = 720 };
+                var spacingPage = spacingEngine.Go(spacingPath);
+                Eq(21, spacingPage.Bs.Count, "text spacing block count");
+                Ok(spacingPage.S.Ls == 1 && spacingPage.S.Wg == 2 &&
+                    BlockById(spacingPage, "inherited").S.Ls == 1 && BlockById(spacingPage, "inherited").S.Wg == 2,
+                    "inherited letter and word spacing aliases");
+                Ok(BlockById(spacingPage, "normal").S.Ls == 0 && BlockById(spacingPage, "normal").S.Wg == 0 &&
+                    BlockById(spacingPage, "positive").S.Ls == 3 && BlockById(spacingPage, "positive").S.Wg == 8 &&
+                    BlockById(spacingPage, "negative").S.Ls == -2 && BlockById(spacingPage, "negative").S.Wg == -4,
+                    "normal positive and negative spacing values");
+                var spacingInline = BlockById(spacingPage, "inline");
+                Ok(spacingInline.Is.Count == 4 && spacingInline.Is[0].S.Ls == 2 && spacingInline.Is[0].S.Wg == 5 &&
+                    spacingInline.Is[1].S.Ls == 6 && spacingInline.Is[1].S.Wg == 12 &&
+                    spacingInline.Is[2].S.Ls == 0 && spacingInline.Is[2].S.Wg == 0,
+                    "inline spacing overrides and resets");
+                Ok(BlockById(spacingPage, "invalid").S.Ls == 5 && BlockById(spacingPage, "invalid").S.Wg == 7 &&
+                    BlockById(spacingPage, "bounded").S.Ls == 1 && BlockById(spacingPage, "bounded").S.Wg == 2 &&
+                    BlockById(spacingPage, "reset").S.Ls == 0 && BlockById(spacingPage, "reset").S.Wg == 0,
+                    "invalid bounded and CSS-wide spacing behavior");
+                var spacingUnset = BlockById(spacingPage, "unset-parent");
+                Ok(spacingUnset.Is.Count == 2 && spacingUnset.Is[1].S.Ls == 3 && spacingUnset.Is[1].S.Wg == 6,
+                    "inherited unset spacing behavior");
+                Ok(BlockById(spacingPage, "variable").S.Ls == 4 && BlockById(spacingPage, "variable").S.Wg == 9 &&
+                    BlockById(spacingPage, "priority").S.Ls == 7 && BlockById(spacingPage, "priority").S.Wg == 11,
+                    "spacing variables and important cascade");
+                var spacingCell = BlockById(spacingPage, "spacing-table").Tb.Rs[0].Cs[0];
+                Ok(spacingCell.S.Ls == 3 && spacingCell.S.Wg == 7 && spacingCell.X == "Cell spacing words wrap safely",
+                    "table cell spacing model");
+                var spacingField = FieldById(spacingPage, "field");
+                Ok(FieldById(spacingPage, "button").V == "Send raw words" && spacingField.V == "Field raw words" &&
+                    FieldById(spacingPage, "placeholder").P == "Placeholder spaced words" &&
+                    FieldById(spacingPage, "choice").Os[0].T == "Choice spaced words",
+                    "spaced controls preserve authored form values");
+                spacingEngine.Dy(spacingPage, ById(spacingPage.D, "dynamic"), null);
+                Ok(BlockById(spacingPage, "dynamic").S.Ls == 8 && BlockById(spacingPage, "dynamic").S.Wg == 14 &&
+                    Object.ReferenceEquals(spacingField, FieldById(spacingPage, "field")), "dynamic spacing rebuild and field retention");
+                spacingEngine.Dy(spacingPage, null, null);
+                Ok(BlockById(spacingPage, "dynamic").S.Ls == 1 && BlockById(spacingPage, "dynamic").S.Wg == 2,
+                    "dynamic spacing restore");
+                spacingEngine.Vw = 350;
+                Ok(BlockById(spacingPage, "responsive").S.Ls == -1 && BlockById(spacingPage, "responsive").S.Wg == 0 &&
+                    Object.ReferenceEquals(spacingField, FieldById(spacingPage, "field")), "responsive spacing rebuild and field retention");
+
+                TextSpacingSmoke(spacingPath);
+
                 var recoveryPath = Path.Combine(root, "LeaForge", "test-pages", "recovery.html");
                 var recoveryPage = engine.Go(recoveryPath);
                 Eq(23, recoveryPage.Bs.Count, "recovered block count");
@@ -5296,6 +5342,123 @@ namespace Lea.Tests
                 }
             }
             Console.WriteLine("Lea text transform smoke passed: compact inherited aliases, inline overrides, controls, automation mapping, hover, raw editing, and resize.");
+        }
+
+        private static void TextSpacingSmoke(string path)
+        {
+            using (var view = new V())
+            {
+                view.Size = new Size(720, 2600);
+                view.CreateControl();
+                view.Go(path);
+                var normal = BlockById(view.At, "normal");
+                var positive = BlockById(view.At, "positive");
+                var negative = BlockById(view.At, "negative");
+                var retained = FieldById(view.At, "field");
+                var dynamic = BlockById(view.At, "dynamic");
+                Rectangle[] normalLines;
+                Rectangle[] positiveLines;
+                Rectangle[] negativeLines;
+                Rectangle[] dynamicBefore;
+                Rectangle dynamicRect;
+                using (var paint = Render(view))
+                {
+                    normalLines = TextLines(view, normal);
+                    positiveLines = TextLines(view, positive);
+                    negativeLines = TextLines(view, negative);
+                    dynamicBefore = TextLines(view, dynamic);
+                    dynamicRect = BlockOuterRect(view, dynamic);
+                    var fieldRect = BlockOuterRect(view, FieldBlock(view.At, retained));
+                    var buttonRect = BlockOuterRect(view, BlockById(view.At, "button"));
+                    Ok(normalLines.Length == 1 && positiveLines.Length == 1 && negativeLines.Length == 1 &&
+                        positiveLines[0].Width > normalLines[0].Width && normalLines[0].Width > negativeLines[0].Width,
+                        "text spacing shared positive normal and negative metrics");
+                    Ok(TextLines(view, BlockById(view.At, "inline")).Length > 0 &&
+                        TextLines(view, BlockById(view.At, "preserved")).Length == 2,
+                        "inline override and preserved-line spacing layout");
+                    Ok(!fieldRect.IsEmpty && !buttonRect.IsEmpty &&
+                        HasColor(paint, positiveLines[0], Color.FromArgb(23, 32, 51)) &&
+                        HasColor(paint, fieldRect, Color.FromArgb(23, 32, 51)) &&
+                        HasColor(paint, buttonRect, Color.FromArgb(23, 32, 51)),
+                        "spaced block field and button glyph paint");
+                    var measure = typeof(V).GetMethod("TextWidth", BindingFlags.Static | BindingFlags.NonPublic, null,
+                        new Type[] { typeof(Graphics), typeof(string), typeof(Font), typeof(S) }, null);
+                    using (var graphics = Graphics.FromImage(paint))
+                    using (var font = RenderFont(view, "p", positive.S))
+                    {
+                        var flags = TextFormatFlags.SingleLine | TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix;
+                        var a = TextRenderer.MeasureText(graphics, "A", font, Size.Empty, flags).Width;
+                        var space = TextRenderer.MeasureText(graphics, " ", font, Size.Empty, flags).Width;
+                        Eq(a, (int)measure.Invoke(null, new object[] { graphics, "A", font, positive.S }), "single glyph has no edge tracking");
+                        Eq(a * 2 + 3, (int)measure.Invoke(null, new object[] { graphics, "AA", font, positive.S }), "tracking only between glyphs");
+                        Eq(a * 2 + space + 8 + 6, (int)measure.Invoke(null, new object[] { graphics, "A A", font, positive.S }), "word and letter gaps combine");
+                        var cluster = "e\u0301";
+                        Eq(TextRenderer.MeasureText(graphics, cluster, font, Size.Empty, flags).Width,
+                            (int)measure.Invoke(null, new object[] { graphics, cluster, font, positive.S }), "combining cluster remains intact");
+                        Eq(8192, (int)measure.Invoke(null, new object[] { graphics, new string('A', 2000), font, positive.S }), "spaced run width ceiling");
+                        var gap = typeof(V).GetMethod("TextGap", BindingFlags.Static | BindingFlags.NonPublic);
+                        Eq(1, (int)gap.Invoke(null, new object[] { 10, positive.S, negative.S }), "mixed inline tracking uses rounded average");
+                        var wordOnly = BlockById(view.At, "word-only").S;
+                        Eq(TextRenderer.MeasureText(graphics, "office", font, Size.Empty, flags).Width,
+                            (int)measure.Invoke(null, new object[] { graphics, "office", font, wordOnly }), "word-only spacing preserves shaped words");
+                    }
+                }
+
+                var automation = typeof(V).GetMethod("AutomationText", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(view, null);
+                var automationType = automation.GetType();
+                var source = (string)automationType.GetField("X").GetValue(automation);
+                var parts = automationType.GetField("Ps").GetValue(automation) as System.Collections.IEnumerable;
+                var mappedPositive = false;
+                foreach (var part in parts)
+                {
+                    var type = part.GetType();
+                    var element = type.GetField("El").GetValue(part) as N;
+                    var text = (string)type.GetField("X").GetValue(part);
+                    var start = (int)type.GetField("S").GetValue(part);
+                    var end = (int)type.GetField("E").GetValue(part);
+                    var rect = (Rectangle)type.GetField("R").GetValue(part);
+                    if (element != null && element.Av("id") == "positive" && end > start && !rect.IsEmpty &&
+                        source.Substring(start, end - start) == text) mappedPositive = true;
+                }
+                Ok(mappedPositive, "spaced visual segments map to authored UI Automation text");
+
+                Move(view, dynamicRect);
+                Rectangle[] dynamicAfter;
+                using (var hoverPaint = Render(view)) dynamicAfter = TextLines(view, BlockById(view.At, "dynamic"));
+                var dynamicExpanded = dynamicAfter.Length > dynamicBefore.Length;
+                if (!dynamicExpanded && dynamicAfter.Length > 0 && dynamicBefore.Length > 0)
+                    dynamicExpanded = dynamicAfter[0].Width > dynamicBefore[0].Width;
+                Ok(BlockById(view.At, "dynamic").S.Ls == 8 && BlockById(view.At, "dynamic").S.Wg == 14 &&
+                    dynamicBefore.Length == 1 && dynamicAfter.Length > 0 && dynamicExpanded,
+                    "hover spacing rebuilds measured geometry");
+
+                var startEdit = typeof(V).GetMethod("StartEdit", BindingFlags.Instance | BindingFlags.NonPublic);
+                if (startEdit == null) throw new InvalidOperationException("native editor entry point unavailable");
+                startEdit.Invoke(view, new object[] { retained });
+                Application.DoEvents();
+                var editor = Editor(view);
+                Ok(editor.Text == "Field raw words", "native editor exposes raw spaced field value");
+                editor.Text = "Retained raw words";
+                Eq("Retained raw words", retained.V, "spacing editor preserves authored value");
+
+                view.Size = new Size(350, 2900);
+                Application.DoEvents();
+                using (var paint = Render(view))
+                {
+                    var responsiveBlock = BlockById(view.At, "responsive");
+                    var responsive = BlockOuterRect(view, responsiveBlock);
+                    var responsiveLines = TextLines(view, responsiveBlock);
+                    var after = BlockOuterRect(view, BlockById(view.At, "after-spacing"));
+                    Ok(responsiveBlock.S.Ls == -1 && responsiveBlock.S.Wg == 0 &&
+                        Object.ReferenceEquals(retained, FieldById(view.At, "field")) && retained.V == "Retained raw words",
+                        "responsive spacing and raw field retention");
+                    Ok(responsiveLines.Length > 0 && LinesFitWidth(responsiveLines, BlockRect(view, responsiveBlock)) &&
+                        !responsive.IsEmpty && after.Top >= responsive.Bottom &&
+                        HasColor(paint, responsive, Color.FromArgb(23, 32, 51)),
+                        "responsive spacing paint and following flow");
+                }
+            }
+            Console.WriteLine("Lea text spacing smoke passed: compact inherited aliases, signed metrics, inline controls, automation mapping, hover, raw editing, and resize.");
         }
 
         private static void PointerInteractionSmoke(string path)
