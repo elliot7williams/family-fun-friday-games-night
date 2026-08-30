@@ -1,0 +1,207 @@
+diff --git a/1.vb b/1.vb
+index 5f1e4f0..ef9bcbf 100644
+--- a/1.vb
++++ b/1.vb
+@@ -15371,28 +15371,9 @@ Partial Class j
+     ' --- Reopen Last Closed Window ---
+     Sub q748(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+-            Dim urls As New List(Of String)
+-            For Each url As String In My.Settings.lcw
+-                If qvurl(url) Then urls.Add(url)
+-            Next url
+-            If urls.Count = 0 Then
+-                su.Visible = True
+-                su.Text = "No closed window saved"
+-                Exit Sub
+-            End If
+-            Dim nw As New j
+-            nw.Show()
+-            While nw.k.TabPages.Count > 1
+-                nw.k.TabPages.RemoveAt(nw.k.TabPages.Count - 1)
+-            End While
+-            nw.I = nw.k.TabPages.Count
+-            nw.k.SelectedIndex = 0
+-            CType(nw.k.SelectedTab.Controls.Item(0), WebBrowser).Navigate(urls(0))
+-            For i As Integer = 1 To urls.Count - 1
+-                nw.q3(urls(i))
+-            Next i
++            Dim nw As j = qleaWindow(My.Settings.lcw.Cast(Of String)())
+             su.Visible = True
+-            su.Text = "Last closed window reopened"
++            su.Text = If(nw Is Nothing, "No supported closed-window URLs", nw.k.TabCount.ToString & " Lea tab(s) reopened in a new window")
+         Catch ex As Exception
+             qlog(ex)
+         End Try
+diff --git a/BrowserFeatures.vb b/BrowserFeatures.vb
+index 5910348..93b5230 100644
+--- a/BrowserFeatures.vb
++++ b/BrowserFeatures.vb
+@@ -461,16 +461,9 @@ Partial Class j
+     Sub q821(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+             Dim values As String() = CType(sender, ToolStripMenuItem).Tag.ToString.Split(ControlChars.Tab)
+-            Dim urls As New List(Of String)
+-            For i As Integer = 1 To values.Length - 1
+-                If qvurl(values(i)) Then urls.Add(values(i))
+-            Next i
+-            If urls.Count = 0 Then Exit Sub
+-            Dim window As New j
+-            window.Show()
+-            window.qopenurls(urls)
++            Dim window As j = qleaWindow(values.Skip(1))
+             su.Visible = True
+-            su.Text = "Closed window reopened"
++            su.Text = If(window Is Nothing, "No supported closed-window URLs", window.k.TabCount.ToString & " Lea tab(s) reopened in a new window")
+         Catch ex As Exception
+             qlog(ex)
+         End Try
+@@ -972,12 +965,9 @@ Partial Class j
+         Try
+             If pv Then Exit Sub
+             My.Settings.recovery.Clear()
+-            For Each tab As TabPage In qalltabs()
+-                If tab.Controls.Count = 0 Then Continue For
+-                Dim wb As WebBrowser = TryCast(tab.Controls(0), WebBrowser)
+-                Dim url As String = qpersistedtaburl(tab, wb)
+-                If url <> "" Then My.Settings.recovery.Add(url)
+-            Next tab
++            For Each url As String In qleaSavedUrls()
++                My.Settings.recovery.Add(url)
++            Next
+             My.Settings.recoveryTime = Now.ToString("yyyy-MM-dd HH:mm:ss")
+             My.Settings.Save()
+         Catch ex As Exception
+@@ -992,20 +982,14 @@ Partial Class j
+             lastWindowClosing = featureWindows = 0
+             My.Settings.cleanExit = If(lastWindowClosing, "e", "")
+             qfeature3closing(lastWindowClosing)
+-            Dim urls As New List(Of String)
+             If pv = False Then
+-                For Each tab As TabPage In k.TabPages
+-                    If tab.Controls.Count = 0 Then Continue For
+-                    Dim wb As WebBrowser = TryCast(tab.Controls(0), WebBrowser)
+-                    Dim url As String = qpersistedtaburl(tab, wb)
+-                    If url <> "" Then urls.Add(url)
+-                Next tab
++                Dim urls As List(Of String) = qleaSavedUrls()
++                My.Settings.recovery.Clear()
+                 If urls.Count > 0 Then
+                     My.Settings.cwh.Insert(0, Now.ToString("yyyy-MM-dd HH:mm") & ControlChars.Tab & String.Join(ControlChars.Tab, urls.ToArray))
+                     While My.Settings.cwh.Count > 5
+                         My.Settings.cwh.RemoveAt(My.Settings.cwh.Count - 1)
+                     End While
+-                    My.Settings.recovery.Clear()
+                     For Each url As String In urls
+                         My.Settings.recovery.Add(url)
+                     Next url
+@@ -1044,18 +1028,9 @@ Partial Class j
+         If all OrElse My.Settings.ce.Contains("analytics") Then My.Settings.analytics.Clear()
+     End Sub
+ 
+-    Friend Sub qopenurls(ByVal urls As List(Of String))
+-        If urls.Count = 0 Then Exit Sub
+-        If k.TabPages.Count = 0 Then
+-            q3(urls(0))
+-        Else
+-            k.SelectedIndex = 0
+-            q1(urls(0))
+-        End If
+-        For i As Integer = 1 To urls.Count - 1
+-            q3(urls(i))
+-        Next i
+-    End Sub
++    Friend Function qopenurls(ByVal urls As List(Of String)) As Integer
++        Return qleaRestoreUrls(urls, True)
++    End Function
+ End Class
+ 
+ Friend Class FirespiderCommand
+diff --git a/BrowserFeatures2.vb b/BrowserFeatures2.vb
+index deec12e..c33aca7 100644
+--- a/BrowserFeatures2.vb
++++ b/BrowserFeatures2.vb
+@@ -193,7 +193,7 @@ Partial Class j
+             If fields.Length <> 3 OrElse fields(0).Equals(name, StringComparison.OrdinalIgnoreCase) = False Then Continue For
+             found = True
+             Dim value As String = qunb64(fields(2))
+-            If fields(1) = "T" AndAlso qvurl(value) Then urls.Add(value)
++            If fields(1) = "T" Then urls.Add(value)
+             If fields(1) = "M" AndAlso My.Settings.bm.Contains(value) = False Then My.Settings.bm.Add(value)
+             If fields(1) = "R" AndAlso My.Settings.rl.Contains(value) = False Then My.Settings.rl.Add(value)
+             If fields(1) = "D" AndAlso My.Settings.dp.Contains(value) = False Then My.Settings.dp.Add(value)
+@@ -206,9 +206,10 @@ Partial Class j
+         End If
+         My.Settings.Save()
+         qrb()
+-        If urls.Count > 0 Then qopenurls(urls)
++        Dim opened As Integer = qleaRestoreSaved(urls, True)
+         su.Visible = True
+-        su.Text = "Workspace profile opened: " & name
++        su.Text = "Workspace profile opened: " & name & "; " & opened.ToString & " Lea tab(s) restored"
++        If opened < urls.Count Then su.Text &= "; " & (urls.Count - opened).ToString & " URL(s) skipped by Lea limits"
+     End Sub
+ 
+     ' --- Side-By-Side Tab View ---
+@@ -476,7 +477,7 @@ Partial Class j
+                     If fields.Length = 3 Then
+                         If fields(0) = "bookmark" Then q1(fields(2))
+                         If fields(0) = "note" Then Clipboard.SetText(fields(2)) : MessageBox.Show("Protected note copied to the clipboard.", fields(1), MessageBoxButtons.OK, MessageBoxIcon.Information)
+-                        If fields(0) = "session" Then qopenurls(fields(2).Split(ControlChars.Tab).Where(Function(value) qvurl(value)).ToList)
++                        If fields(0) = "session" Then qleaRestoreSaved(fields(2).Split(ControlChars.Tab), True)
+                     End If
+                 End If
+             End If
+diff --git a/BrowserFeatures8.vb b/BrowserFeatures8.vb
+index 1f05210..75f3623 100644
+--- a/BrowserFeatures8.vb
++++ b/BrowserFeatures8.vb
+@@ -891,27 +891,37 @@ Partial Class j
+ 
+     Friend Sub q8openunreadwatchitems()
+         Dim urls As New List(Of String)
+-        Dim seenUrls As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
++        Dim records As New List(Of Feature8WatchItem)
++        Dim seenUrls As New HashSet(Of String)(StringComparer.Ordinal)
+         For i As Integer = My.Settings.watchItems.Count - 1 To 0 Step -1
++            If My.Settings.watchItems.Count - i > 500 Then Exit For
+             Dim item As Feature8WatchItem = q8parsewatchitem(My.Settings.watchItems(i))
+             If item Is Nothing OrElse item.Unread = False Then Continue For
+-            If seenUrls.Add(item.Url) AndAlso urls.Count < 20 Then urls.Add(item.Url)
+-            If seenUrls.Contains(item.Url) Then
+-                item.Unread = False
+-                My.Settings.watchItems(i) = q8serializewatchitem(item)
+-            End If
+-            If urls.Count >= 20 Then Exit For
++            Dim target As String = qleaSessionTarget(item.Url)
++            If target = "" Then Continue For
++            item.SettingIndex = i
++            records.Add(item)
++            If urls.Count < 20 AndAlso seenUrls.Add(target) Then urls.Add(target)
+         Next i
+         If urls.Count = 0 Then
+             su.Visible = True
+-            su.Text = "The watchlist has no unread items"
++            su.Text = "The watchlist has no supported unread URLs in this batch"
+             Exit Sub
+         End If
++        Dim targets As List(Of String) = qleaTargets(urls)
++        Dim opened As Integer = qopenurls(targets)
++        Dim accepted As New HashSet(Of String)(targets.Take(opened), StringComparer.Ordinal)
++        Dim marked As Integer = 0
++        For Each item As Feature8WatchItem In records
++            If Not accepted.Contains(qleaSessionTarget(item.Url)) Then Continue For
++            item.Unread = False
++            My.Settings.watchItems(item.SettingIndex) = q8serializewatchitem(item)
++            marked += 1
++        Next
+         My.Settings.Save()
+         RaiseEvent q8watchchanged()
+-        qopenurls(urls)
+         su.Visible = True
+-        su.Text = urls.Count.ToString & " unread watch item(s) opened and marked read"
++        su.Text = opened.ToString & " Lea watch tab(s) opened; " & marked.ToString & " item(s) marked read"
+     End Sub
+ 
+     ' --- Address-Bar Alias Manager ---
+warning: in the working copy of 'L:/Firespider Internet/BrowserFeatures8.vb', LF will be replaced by CRLF the next time Git touches it

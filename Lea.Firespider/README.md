@@ -24,6 +24,14 @@ seconds; this is host initialization, not arbitrary network-page readiness.
 `Startup-layout-host.patch` and the matching adapter retain the change.
 See `LeaForge/STARTUP_PERFORMANCE.md` for samples, scope, and regression checks.
 
+Shared bulk opening and unread-watchlist batches now append bounded Lea tabs
+without replacing existing documents. Workspaces/protected sessions honor lazy
+restore; last/recent closed windows start directly from saved targets without
+loading a default page. Hidden/paused ordinary URLs enter bounded snapshots,
+while private Lea URLs stay excluded. Watch items skipped by limits stay unread.
+`Bulk-opening-host.patch` follows `Lazy-restore-host.patch`; the Boot suite now
+has 22 cases. See `LeaForge/BULK_OPENING.md` for verified behavior and limitations.
+
 Saved sessions now honor the existing `lazyRestoreMode=off/background/all`
 policy in Lea. Background loads only the first new page; all initially creates
 only placeholders, with no renderer or page requests. Explicit opens preserve
@@ -31,7 +39,7 @@ existing tabs and fields; identity switching replaces old contexts instead.
 Private flags survive deferred resume. The default remains off. The nineteen-case
 Boot suite and six actual-EXE startup cases cover these routes, including the
 Resume button. `Lazy-restore-host.patch` follows `Suspension-host.patch`.
-See `LeaForge/LAZY_RESTORE.md` for bounds and remaining legacy bulk routes.
+See `LeaForge/LAZY_RESTORE.md` for bounds and the original milestone's scope.
 
 Lea tabs can now suspend into lightweight placeholders and resume in Lea on
 the same tab. Current/background/group/overview commands preserve the URL and

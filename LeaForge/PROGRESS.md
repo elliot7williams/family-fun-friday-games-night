@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **55**
+Post-1.0 hardening milestones completed: **56**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,15 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Migrated shared bulk/workspace/protected-session opening, last/recent closed
+  windows, and unread watch batches to Lea. Fixed reproduced first-tab loss and
+  a closed-window legacy cast. Explicit opens retain existing forms; seeded new
+  windows avoid default requests and honor private/lazy state. Bounded snapshots
+  include hidden/paused Lea URLs while excluding private ones. Watch batches
+  retain skipped unread records and case-sensitive paths. Three new Boot cases
+  bring the suite to 22. A step-scheduled disposal fixture replaces a reproduced
+  test race. See `BULK_OPENING.md` for verification and remaining migration scope.
 
 - Added bounded Lea-native lazy session restoration under the existing off,
   background, and all policies. Deferred tabs create no renderer or page request

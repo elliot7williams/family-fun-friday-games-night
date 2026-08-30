@@ -17,6 +17,7 @@ Partial Class j
     Private Shared qleaSessionRestored As Boolean
     Private qleaStarted As Boolean
     Private qleaStarting As Boolean
+    Private qleaInitial As List(Of String)
     Private ReadOnly qleaClock As System.Diagnostics.Stopwatch = If(Environment.GetEnvironmentVariable("LEA_FIRESPIDER_PROFILE") = "1", System.Diagnostics.Stopwatch.StartNew(), Nothing)
     Private qleaTimings As List(Of String)
     Private ReadOnly qleaPaused As New Dictionary(Of TabPage, Boolean)()
@@ -73,6 +74,11 @@ Partial Class j
         Try
             qleaInit(Me, EventArgs.Empty)
             If My.Settings.ps = "e" Then pv = True
+            If qleaInitial IsNot Nothing Then
+                Dim initial As List(Of String) = qleaInitial
+                qleaInitial = Nothing
+                If qleaRestoreSaved(initial, True) > 0 Then Return
+            End If
             If Not qleaSessionRestored Then
                 qleaSessionRestored = True
                 If Not pv Then
@@ -1156,19 +1162,7 @@ Partial Class j
 
     Private Function qleaRestoreBatch(ByVal values As IEnumerable(Of String), ByVal allowPrivate As Boolean, ByVal mode As String, ByVal replaceExisting As Boolean) As Integer
         If (pv AndAlso Not allowPrivate) OrElse values Is Nothing Then Return 0
-        Dim targets As New List(Of String)()
-        Dim visited As Integer = 0
-        Dim bytes As Integer = 0
-        For Each value In values
-            If targets.Count >= qleaSessionTabs OrElse visited >= 256 Then Exit For
-            visited += 1
-            Dim target = qleaSessionTarget(value)
-            If target.Length = 0 Then Continue For
-            Dim size = Encoding.UTF8.GetByteCount(target & Environment.NewLine)
-            If bytes + size > qleaSessionBytes Then Continue For
-            targets.Add(target)
-            bytes += size
-        Next
+        Dim targets As List(Of String) = qleaTargets(values)
         If targets.Count = 0 Then Return 0
         Dim previous As List(Of TabPage) = If(replaceExisting, qalltabs(), New List(Of TabPage)())
         Dim batch As Boolean = qleaGroupChange
@@ -1199,6 +1193,44 @@ Partial Class j
             qleaGroupChange = batch
         End Try
         Return targets.Count
+    End Function
+
+    Private Function qleaTargets(ByVal values As IEnumerable(Of String)) As List(Of String)
+        Dim targets As New List(Of String)()
+        If values Is Nothing Then Return targets
+        Dim visited As Integer = 0
+        Dim bytes As Integer = 0
+        For Each value In values
+            If targets.Count >= qleaSessionTabs OrElse visited >= 256 Then Exit For
+            visited += 1
+            Dim target = qleaSessionTarget(value)
+            If target.Length = 0 Then Continue For
+            Dim size = Encoding.UTF8.GetByteCount(target & Environment.NewLine)
+            If bytes + size > qleaSessionBytes Then Continue For
+            targets.Add(target)
+            bytes += size
+        Next
+        Return targets
+    End Function
+
+    Private Function qleaWindow(ByVal values As IEnumerable(Of String)) As j
+        Dim targets As List(Of String) = qleaTargets(values)
+        If targets.Count = 0 Then Return Nothing
+        Dim window As New j
+        window.qleaInitial = targets
+        window.pv = pv
+        Try
+            window.Show()
+            Return window
+        Catch
+            window.Dispose()
+            Throw
+        End Try
+    End Function
+
+    Private Function qleaSavedUrls() As List(Of String)
+        If pv Then Return New List(Of String)()
+        Return qleaTargets(qalltabs().Where(Function(tab) Not qleaPrivate(tab)).Select(Function(tab) qleaUrl(tab)))
     End Function
 
     Private Function qleaReadSession() As List(Of String)
@@ -1270,6 +1302,9 @@ Partial Class j
             If pv = False Then
                 My.Settings.ls.Clear()
                 My.Settings.lcw.Clear()
+                For Each url As String In qleaSavedUrls()
+                    My.Settings.lcw.Add(url)
+                Next
                 For Each tab As TabPage In k.TabPages
                     If tab.Controls.Count = 0 Then Continue For
                     Dim browser = TryCast(tab.Controls(0), WebBrowser)
@@ -1277,7 +1312,6 @@ Partial Class j
                     Dim savedUrl As String = qpersistedtaburl(tab, browser)
                     If savedUrl <> "" Then
                         My.Settings.ls.Add(savedUrl)
-                        My.Settings.lcw.Add(savedUrl)
                     End If
                 Next
             End If

@@ -83,7 +83,7 @@ suite. Source for the corresponding host edits is retained in
 `Lea.Firespider/Startup-host.patch`, with reproduction notes in
 `LeaForge/STARTUP_RELIABILITY.md`.
 
-`Test-FirespiderBoot.ps1 -Root <host-root>` adds nineteen real form-start cases,
+`Test-FirespiderBoot.ps1 -Root <host-root>` adds twenty-two real form-start cases,
 including private startup, restore precedence, second windows, a gated slow
 HTTP response, and locked-session shutdown. It compiles `Lea.Firespider/Boot.cs`
 beside the test host and runs separate off-screen processes with a sixty-second
@@ -115,3 +115,9 @@ See `LeaForge/SUSPENSION.md` for reload semantics and remaining legacy paths.
 private placeholders, eager clipboard batches, and mixed/hidden identity
 replacement. `-Case lazy-background` and `-Case lazy-all` count loopback requests
 at startup, selection, Reload, and Resume All. See `LeaForge/LAZY_RESTORE.md`.
+
+`-Case bulk` covers direct eager and workspace lazy restoration, preserved
+documents, metadata, privacy, and bounds. `-Case windows` invokes last/recent
+closed-window routes with exact request counts and snapshot checks. `-Case watch`
+verifies two bounded unread batches, duplicate/case-sensitive URLs, preserved
+read state, and older unread records. See `LeaForge/BULK_OPENING.md`.

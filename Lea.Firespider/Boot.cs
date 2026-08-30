@@ -44,7 +44,7 @@ namespace Lea.Firespider
             var forms = new List<Form>();
             try
             {
-                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all" }.Contains(mode), "unknown boot case: " + mode);
+                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch" }.Contains(mode), "unknown boot case: " + mode);
                 Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
                 Application.ThreadException += (sender, error) => UiErrors.Add(error.Exception);
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", session);
@@ -63,7 +63,7 @@ namespace Lea.Firespider
                     saved[property.Name] = strings == null ? value : Collection(strings.Cast<string>().ToArray());
                 }
                 var page = new Uri(Path.Combine(root, "Lea", "start.html")).AbsoluteUri;
-                foreach (var name in new[] { "dashboard", "rs", "ps", "recoveryEnabled", "t", "rws", "backupEnabled", "frEnabled", "portableMode", "hibernateEnabled" })
+                foreach (var name in new[] { "dashboard", "rs", "ps", "recoveryEnabled", "t", "rws", "backupEnabled", "frEnabled", "portableMode", "hibernateEnabled", "watchEnabled" })
                     settings[name] = "";
                 foreach (var name in new[] { "s", "sc", "ls", "recovery", "bm", "tg" }) settings[name] = new StringCollection();
                 settings["nf"] = page;
@@ -227,6 +227,9 @@ namespace Lea.Firespider
                 if (mode == "suspend") CheckSuspension(form, settings, page);
                 if (mode == "groups") CheckGroups(form, settings, page);
                 if (mode == "lazy") CheckLazyCommands(form, settings, page);
+                if (mode == "bulk") CheckBulk(form, settings, page);
+                if (mode == "windows") CheckWindows(form, settings, page, forms);
+                if (mode == "watch") CheckWatch(form, settings, page);
                 if (lazySite != null) CheckLazyStartup(form, lazySite, expected, mode == "lazy-all");
                 Check(UiErrors.Count == 0, "UI thread exceptions: " + String.Join(" | ", UiErrors.Select(error => error.Message).ToArray()));
                 if (mode == "locked")
@@ -465,6 +468,183 @@ namespace Lea.Firespider
                 Check(tabs.SelectedTab.Controls[0] is V && ((V)tabs.SelectedTab.Controls[0]).U.AbsoluteUri == site.Url, "legacy source did not open domain in Lea");
             }
             Console.WriteLine("PASS links: loopback domain navigation, port/IPv6 normalization, bounded single/batch paste, order, and privacy");
+        }
+
+        private static void CheckBulk(Form form, ApplicationSettingsBase settings, string page)
+        {
+            var tabs = Member<TabControl>(form, "k");
+            var original = tabs.SelectedTab;
+            var view = (V)original.Controls[0];
+            view.Go(Path.Combine(Path.GetDirectoryName(new Uri(page).LocalPath), "..", "test-pages", "forms.html"));
+            view.At.Fs[0].V = "bulk unsent value";
+            Call(form, "qopenurls", new List<string> { page + "#bulk-one", page + "#bulk-two" });
+            WaitLea(tabs);
+            Check(tabs.TabCount == 3 && original.Controls[0] == view && view.At.Fs[0].V == "bulk unsent value" &&
+                tabs.TabPages.Cast<TabPage>().All(tab => tab.Controls[0] is V), "bulk opening replaced the first document or created legacy tabs");
+            Check(tabs.SelectedIndex == 1, "bulk did not select its first new tab");
+            Check((int)Call(form, "qopenurls", (object)null) == 0 &&
+                (int)Call(form, "qopenurls", new List<string> { "about:blank", "javascript:alert(1)", "invalid" }) == 0 && tabs.TabCount == 3,
+                "invalid bulk input changed tabs");
+            settings["lazyRestoreMode"] = "all";
+            var count = tabs.TabCount;
+            Check((int)Call(form, "qopenurls", Enumerable.Range(0, 20).Select(index => page + "#bulk-" + index).ToList()) == 12, "bulk tab bound");
+            WaitLea(tabs);
+            Check(tabs.TabCount == count + 12 && tabs.TabPages.Cast<TabPage>().Skip(count).All(tab => tab.Controls[0] is V), "direct bulk opening incorrectly became lazy");
+            settings["bm"] = Collection("Existing|" + page);
+            settings["wp"] = Collection("Test|T|" + Call(form, "qb64", page + "#workspace-one"),
+                "Test|T|" + Call(form, "qb64", page + "#workspace-two"), "Test|T|" + Call(form, "qb64", "about:blank"),
+                "Test|M|" + Call(form, "qb64", "Workspace|" + page));
+            var records = ((StringCollection)settings["wp"]).Cast<string>().ToArray();
+            count = tabs.TabCount;
+            Call(form, "qopenworkspace", "Test");
+            Check(tabs.TabCount == count + 2 && tabs.SelectedIndex == count && tabs.TabPages[count].Controls[0] is Panel &&
+                tabs.TabPages[count + 1].Controls[0] is Panel, "workspace did not append Lea lazy tabs");
+            Check(Member<Label>(form, "su").Text.Contains("1 URL(s) skipped") && ((StringCollection)settings["bm"]).Count == 2 &&
+                ((StringCollection)settings["wp"]).Cast<string>().SequenceEqual(records), "workspace metadata, source preservation, or report");
+            Call(form, "qopenworkspace", "Missing");
+            Check(tabs.TabCount == count + 2, "missing workspace changed tabs");
+            Check(original.Controls[0] == view && view.At.Fs[0].V == "bulk unsent value", "workspace changed existing fields");
+            Check(!Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module => module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)), "bulk/workspace loaded legacy engine");
+            Set(form, "pv", true);
+            Call(form, "qopenurls", new List<string> { page + "#private-bulk" });
+            WaitLea(tabs);
+            Check(((V)tabs.SelectedTab.Controls[0]).Pv, "bulk opening lost private state");
+            Set(form, "pv", false);
+            Call(form, "q3", page + "#explicit-legacy");
+            var legacy = (WebBrowser)tabs.SelectedTab.Controls[0];
+            Wait(() => legacy.Url != null && legacy.ReadyState == WebBrowserReadyState.Complete, "bulk legacy fixture");
+            var legacyUrl = legacy.Url;
+            Call(form, "qopenurls", new List<string> { page + "#after-legacy" });
+            WaitLea(tabs);
+            Check(tabs.SelectedTab.Controls[0] is V && !legacy.IsDisposed && legacy.Url == legacyUrl && view.At.Fs[0].V == "bulk unsent value",
+                "bulk did not preserve mixed-engine documents");
+            Console.WriteLine("PASS bulk: preserved documents, eager bounded batches, private views, mixed engines, lazy workspaces, metadata, and counts");
+        }
+
+        private static void CheckWindows(Form form, ApplicationSettingsBase settings, string page, List<Form> forms)
+        {
+            using (var site = new LoopbackSite())
+            {
+                var original = Member<TabControl>(form, "k").SelectedTab.Controls[0];
+                settings["nf"] = site.Url + "unexpected-home";
+                settings["lazyRestoreMode"] = "all";
+                var urls = new[] { site.Url + "window-one", site.Url + "window-two" };
+                settings["lcw"] = Collection(urls);
+                Call(form, "q748", form, EventArgs.Empty);
+                var window = NewWindow(form, forms);
+                var tabs = Member<TabControl>(window, "k");
+                Observe(400);
+                Check(tabs.TabCount == 2 && tabs.SelectedIndex == 0 && tabs.TabPages.Cast<TabPage>().All(tab => tab.Controls[0] is Panel) && site.Hits == 0,
+                    "last-window restore created a default/legacy page or loaded deferred URLs");
+                Check(Member<List<string>>(window, "qleaInitial") == null, "window retained initial URL seed");
+                Member<ToolStripItem>(window, "re").PerformClick();
+                WaitLea(tabs);
+                Check(site.Hits == 1, "window resume request count");
+                settings["tg"] = Collection("Hidden|" + Color.Teal.ToArgb() + "|active|" + Call(window, "qb64", urls[0]));
+                Call(window, "qcollapsegroup", "Hidden");
+                Set(window, "pv", true);
+                Call(window, "qlazyopenurls", new List<string> { site.Url + "private-window" });
+                Set(window, "pv", false);
+                Call(window, "qrecoverysnapshot");
+                Check(((StringCollection)settings["recovery"]).Cast<string>().OrderBy(value => value).SequenceEqual(urls.OrderBy(value => value)),
+                    "recovery omitted hidden/paused URLs or saved private URLs");
+                window.Close();
+                Check(window.IsDisposed && ((StringCollection)settings["lcw"]).Cast<string>().OrderBy(value => value).SequenceEqual(urls.OrderBy(value => value)),
+                    "closed-window snapshot omitted Lea/hidden/paused state or leaked private URLs");
+                var raw = ((StringCollection)settings["cwh"])[0];
+                Check(!raw.Contains("private-window") && raw.Split('\t').Length == 3, "recent window snapshot privacy/bounds");
+                settings["tg"] = new StringCollection();
+                settings["lazyRestoreMode"] = "background";
+                Set(form, "pv", true);
+                var history = (ToolStripMenuItem)Menu(form, "Recently Closed Windows");
+                Call(form, "q820", history, EventArgs.Empty);
+                history.DropDownItems[0].PerformClick();
+                var recent = NewWindow(form, forms);
+                var recentTabs = Member<TabControl>(recent, "k");
+                WaitLea(recentTabs);
+                Check(recentTabs.TabCount == 2 && recentTabs.TabPages[0].Controls[0] is V && recentTabs.TabPages[1].Controls[0] is Panel &&
+                    ((V)recentTabs.TabPages[0].Controls[0]).Pv && (bool)Call(recent, "qleaPrivate", recentTabs.TabPages[1]), "recent window engine/policy/private inheritance");
+                Check(site.Hits == 2, "recent-window restore loaded an unwanted default page");
+                recent.Close();
+                Set(form, "pv", false);
+                Check(((StringCollection)settings["cwh"])[0] == raw, "private reopened window entered recent history");
+                var windows = Application.OpenForms.Count;
+                settings["lcw"] = Collection(Enumerable.Repeat("invalid", 256).Concat(new[] { page }).ToArray());
+                Call(form, "q748", form, EventArgs.Empty);
+                Check(Application.OpenForms.Count == windows, "window restore scan bound or invalid-input side effects");
+                Check(Member<TabControl>(form, "k").SelectedTab.Controls[0] == original && !original.IsDisposed, "window restore changed origin tab");
+                Check(!Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module => module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)), "window restore loaded MSHTML");
+            }
+            Console.WriteLine("PASS windows: actual last/recent commands, no default requests, lazy policies, private inheritance, hidden snapshots, and bounds");
+        }
+
+        private static Form NewWindow(Form origin, List<Form> forms)
+        {
+            var created = Application.OpenForms.Cast<Form>().Where(candidate => candidate.GetType() == origin.GetType() && !forms.Contains(candidate)).ToArray();
+            foreach (var candidate in created) { candidate.Opacity = 0; candidate.ShowInTaskbar = false; forms.Add(candidate); }
+            Check(created.Length == 1, "closed-window command did not create exactly one window");
+            return created[0];
+        }
+
+        private static string WatchRecord(int id, string url, bool unread = true)
+        {
+            Func<string, string> encode = value => Convert.ToBase64String(Encoding.UTF8.GetBytes(value));
+            return String.Join("|", new[] { "v1", encode("source"), encode(id.ToString()), encode(url), encode("Item " + id), "", unread ? "u" : "r", "", encode("page") });
+        }
+
+        private static void CheckWatch(Form form, ApplicationSettingsBase settings, string page)
+        {
+            using (var site = new LoopbackSite())
+            {
+                var tabs = Member<TabControl>(form, "k");
+                var original = tabs.SelectedTab;
+                var originalView = (V)original.Controls[0];
+                originalView.Go(Path.Combine(Path.GetDirectoryName(new Uri(page).LocalPath), "..", "test-pages", "forms.html"));
+                originalView.At.Fs[0].V = "watch unsent value";
+                var records = Enumerable.Range(0, 18).Select(index => WatchRecord(index, site.Url + "item-" + index)).ToList();
+                records.Add(WatchRecord(18, site.Url + "Case"));
+                records.Add(WatchRecord(19, site.Url + "case"));
+                records.Add(WatchRecord(20, site.Url + "case"));
+                records.Add(WatchRecord(21, site.Url + new string('x', 4096)));
+                settings["watchItems"] = Collection(records.ToArray());
+                settings["lazyRestoreMode"] = "all";
+                Call(form, "q8openunreadwatchitems");
+                var report = Member<Label>(form, "su").Text;
+                WaitLea(tabs);
+                Check(tabs.TabCount == 13 && tabs.TabPages.Cast<TabPage>().All(tab => tab.Controls[0] is V) && site.Hits == 12, "watch batch engine, bound, or eager requests");
+                var accepted = new HashSet<string>(tabs.TabPages.Cast<TabPage>().Skip(1).Select(tab => ((V)tab.Controls[0]).U.AbsoluteUri), StringComparer.Ordinal);
+                Check(accepted.Contains(site.Url + "Case") && accepted.Contains(site.Url + "case"), "watch URL deduplication ignored case-sensitive paths");
+                var changed = ((StringCollection)settings["watchItems"]).Cast<string>().ToArray();
+                var marked = 0;
+                for (var index = 0; index < changed.Length; index++)
+                {
+                    var fields = changed[index].Split('|');
+                    var url = Encoding.UTF8.GetString(Convert.FromBase64String(fields[3]));
+                    Check((fields[6] == "r") == accepted.Contains(url), "watch marked a skipped URL read: " + index);
+                    if (fields[6] == "r") marked++;
+                    fields[6] = "u";
+                    Check(String.Join("|", fields) == records[index], "watch altered unrelated record data");
+                }
+                Check(marked == 13 && report.Contains("13 item(s) marked read"), "watch duplicate count/report: " + marked + "; " + report);
+                Check(original.Controls[0] == originalView && originalView.At.Fs[0].V == "watch unsent value", "watch overwrote current form data");
+                Call(form, "q8openunreadwatchitems");
+                WaitLea(tabs);
+                Check(tabs.TabCount == 21 && site.Hits == 20 && ((StringCollection)settings["watchItems"])[21] == records[21], "watch second batch lost skipped items or accepted overlong URL");
+                var before = tabs.TabCount;
+                Call(form, "q8openunreadwatchitems");
+                Check(tabs.TabCount == before, "empty eligible watch batch opened a tab");
+                settings["watchItems"] = Collection(new[] { WatchRecord(100, site.Url + "old-unread") }.Concat(
+                    Enumerable.Range(0, 499).Select(index => WatchRecord(200 + index, site.Url + "read-" + index, false))).ToArray());
+                Call(form, "q8openunreadwatchitems");
+                WaitLea(tabs);
+                Check(tabs.TabCount == before + 1 && site.Hits == 21, "watch starved an older unread item behind read records");
+                before = tabs.TabCount;
+                settings["watchItems"] = Collection(new[] { WatchRecord(100, site.Url + "beyond-scan") }.Concat(Enumerable.Repeat("invalid", 500)).ToArray());
+                Call(form, "q8openunreadwatchitems");
+                Check(tabs.TabCount == before && ((StringCollection)settings["watchItems"])[0].Split('|')[6] == "u", "watch exceeded scan bound");
+                Check(!Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module => module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)), "watch batch loaded legacy engine");
+            }
+            Console.WriteLine("PASS watch: exact eager requests, bounded batches, case-sensitive deduplication, skipped/read state, retained fields, and scan limits");
         }
 
         private static void CheckLazyStartup(Form form, LoopbackSite site, string[] urls, bool all)

@@ -8,6 +8,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Automation;
 using System.Windows.Automation.Text;
 using System.Windows.Forms;
@@ -6420,9 +6421,14 @@ namespace Lea.Tests
             }
             using (var view = new V())
             {
-                var work = view.GoA(source);
+                // Hold the file task until disposal; a small file can otherwise finish first.
+                var scheduler = new StepScheduler();
+                var start = Task.Factory.StartNew(() => view.GoA(source), CancellationToken.None, TaskCreationOptions.None, scheduler);
+                scheduler.Step();
+                var work = start.Result;
+                Ok(!work.IsCompleted && view.Busy, "local load held before disposal");
                 view.Dispose();
-                WaitFor(() => work.IsCompleted, "disposed local load completion");
+                WaitFor(() => { scheduler.Step(); return work.IsCompleted; }, "disposed local load completion");
                 Eq("cancel", Fails(() => work.GetAwaiter().GetResult(), "local load cancellation").K, "local cancellation before parsing");
                 Ok(view.At == null, "disposed local load did not publish a page");
             }
@@ -6454,6 +6460,20 @@ namespace Lea.Tests
                 Eq(0, images.Count, "disposed image load did not repopulate released cache");
             }
             Console.WriteLine("Lea disposal smoke passed: local/CSS/image cancellation, callback disposal, and navigation rejection.");
+        }
+
+        private sealed class StepScheduler : TaskScheduler
+        {
+            private readonly Queue<Task> pending = new Queue<Task>();
+            protected override void QueueTask(Task task) { lock (pending) pending.Enqueue(task); }
+            protected override bool TryExecuteTaskInline(Task task, bool queued) { return false; }
+            protected override IEnumerable<Task> GetScheduledTasks() { lock (pending) return pending.ToArray(); }
+            public void Step()
+            {
+                Task next;
+                lock (pending) { if (pending.Count == 0) return; next = pending.Dequeue(); }
+                TryExecuteTask(next);
+            }
         }
 
         private static void WaitFor(Func<bool> ready, string name)

@@ -17,14 +17,23 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
+Milestone 56 migrates shared bulk opening, workspaces/protected sessions,
+closed-window commands, and unread watch batches to Lea. It fixes reproduced
+first-document replacement and a closed-window legacy cast, seeds restored
+windows without default requests, and retains private/hidden/paused snapshots.
+Watch records remain unread when skipped and preserve case-sensitive URLs.
+Three new Boot cases bring the suite to 22; see `BULK_OPENING.md` and
+`Bulk-opening-host.patch`. Next migrate same-domain operations, pop-ups, split
+view, DOM-based host commands, and automatic hibernation.
+
 Milestone 55 makes the existing off/background/all saved-session policies native
 to Lea. Deferred tabs create only placeholders; loopback tests confirm one/zero
 initial page requests for background/all. Explicit restore preserves existing
 documents; identity switches replace old mixed/private/hidden contexts. Three
 new Boot cases bring the suite to nineteen, and all six EXE startup scenarios
 pass, including Resume-button activation. See `LAZY_RESTORE.md` and
-`Lazy-restore-host.patch`. Legacy `qopenurls` bulk/workspace/closed-window routes,
-automatic hibernation, and retained document snapshots remain future work.
+`Lazy-restore-host.patch`. Milestone 56 extends it to bulk/workspace/closed-window
+routes; automatic hibernation and retained document snapshots remain future work.
 
 Milestone 54 adds Lea-native tab/group/overview suspension and fresh-view resume,
 preserving private state and hidden/paused session URLs. Core cancellation and
