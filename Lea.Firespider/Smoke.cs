@@ -610,6 +610,7 @@ namespace Lea.Firespider
                 {
                     restoredForm.CreateControl();
                     type.GetMethod("qleaInit", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(restoredForm, new object[] { restoredForm, EventArgs.Empty });
+                    type.GetMethod("qleaRestoreSession", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(restoredForm, null);
                     var restoredTabs = Member<TabControl>(restoredForm, "k");
                     var restored = FindLea(restoredTabs);
                     Check(restored != null && restored.U != null && restored.U.AbsoluteUri == savedUrl, "Lea session restored");

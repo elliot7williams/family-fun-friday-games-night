@@ -10,6 +10,14 @@ Its timer status handler is also routed safely across startup, empty, Lea, and
 legacy-tab states, so it never dereferences a missing control or casts a Lea
 view to the legacy `WebBrowser` type.
 
+Normal first-window startup, toolbar New Tab, and Help now use Lea too. Startup
+selects accepted crash-recovery URLs, a saved Lea session, legacy saved URLs
+converted into Lea tabs, or one configured new-tab target, in that order.
+Only the first non-private window restores; private startup skips recovery
+prompts and saved URLs. Startup loads asynchronously before visibility and
+selects the first restored page. Lea URLs also enter ordinary recovery snapshots.
+See `LeaForge/LEA_STARTUP.md` for exact limits and the real form-start tests.
+
 Milestone 49 also fixes late legacy Navigating/Navigated/DocumentCompleted
 callbacks while a Lea tab is selected, background progress updates, owner-tab
 locking, missing-tab notification ticks, and incorrectly typed address/search
@@ -247,8 +255,8 @@ clip definitions/references, stylesheet stroke aliases, and graphic accessibilit
 The host project imports `Lea/FirespiderLea.targets`, which adds the two DLL
 references, compiles `FirespiderLea.vb`, and copies `start.html` to the output
 `Lea` folder. Lea tabs use no Chromium, WebView, Safari, or hidden browser
-control. Firespider still has its legacy initial-page and explicit fallback
-paths; this milestone does not make the entire host Lea-only.
+control. The normal initial-page path now uses Lea. The explicit fallback and
+advanced legacy-only commands remain; the entire host is not yet Lea-only.
 If SDK `dotnet build` forces old binary `.resx` files through its newer resource
 serializer, build this legacy host with the installed .NET Framework MSBuild:
 `%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe`. Lea source and

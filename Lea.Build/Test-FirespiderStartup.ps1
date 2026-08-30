@@ -9,9 +9,15 @@ param(
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
+Add-Type -AssemblyName System.Configuration
 $rootPath = (Resolve-Path -LiteralPath $Root).Path
 $exe = Join-Path $rootPath 'Firespider Internet 19.exe'
 if (-not (Test-Path -LiteralPath $exe)) { throw "Missing browser: $exe" }
+$map = New-Object System.Configuration.ExeConfigurationFileMap
+$map.ExeConfigFilename = "$exe.config"
+$config = [System.Configuration.ConfigurationManager]::OpenMappedExeConfiguration($map, [System.Configuration.ConfigurationUserLevel]::None)
+$settings = $config.GetSection('userSettings/Firespider_Internet.My.MySettings')
+if (-not $settings -or $settings.Settings.Count -eq 0) { throw 'Missing executable settings section' }
 $cases = if ($Scenario -eq 'all') { @('clean', 'restored', 'locked', 'oversized') } else { @($Scenario) }
 $oldSession = $env:LEA_FIRESPIDER_SESSION
 foreach ($case in $cases) {
@@ -19,6 +25,9 @@ foreach ($case in $cases) {
     $process = $null
     $lock = $null
     try {
+        if (Get-Process -Name 'Firespider Internet 19' -ErrorAction SilentlyContinue) {
+            throw 'Close the existing Firespider process before running executable startup checks'
+        }
         $env:LEA_FIRESPIDER_SESSION = $session
         if ($case -eq 'restored') {
             $page = Join-Path $rootPath 'Lea\start.html'
@@ -32,29 +41,39 @@ foreach ($case in $cases) {
         }
         $process = Start-Process -FilePath $exe -WorkingDirectory $rootPath -WindowStyle Hidden -PassThru
         Start-Sleep -Seconds $Seconds
-        $process.Refresh()
-        if ($process.HasExited) { throw "$case startup exited early: $($process.ExitCode)" }
-        if (-not $process.Responding) { throw "$case startup stopped responding" }
         $condition = New-Object System.Windows.Automation.PropertyCondition(
             [System.Windows.Automation.AutomationElement]::ProcessIdProperty, $process.Id)
-        $windows = [System.Windows.Automation.AutomationElement]::RootElement.FindAll(
-            [System.Windows.Automation.TreeScope]::Children, $condition)
-        if ($windows.Count -eq 0) { throw "$case startup has no accessible window" }
-        $names = New-Object 'System.Collections.Generic.List[string]'
-        foreach ($window in $windows) {
-            $names.Add($window.Current.Name)
-            $nodes = $window.FindAll([System.Windows.Automation.TreeScope]::Descendants,
-                [System.Windows.Automation.Condition]::TrueCondition)
-            foreach ($node in $nodes) { $names.Add($node.Current.Name) }
+        $until = [DateTime]::UtcNow.AddSeconds(60)
+        $lea = $false
+        do {
+            $lea = $false
+            $process.Refresh()
+            if ($process.HasExited) { throw "$case startup exited early: $($process.ExitCode)" }
+            $windows = [System.Windows.Automation.AutomationElement]::RootElement.FindAll(
+                [System.Windows.Automation.TreeScope]::Children, $condition)
+            $names = New-Object 'System.Collections.Generic.List[string]'
+            foreach ($window in $windows) {
+                $names.Add($window.Current.Name)
+                $nodes = $window.FindAll([System.Windows.Automation.TreeScope]::Descendants,
+                    [System.Windows.Automation.Condition]::TrueCondition)
+                foreach ($node in $nodes) {
+                    $names.Add($node.Current.Name)
+                    if ($node.Current.ClassName -eq 'Lea.Win.V') { $lea = $true }
+                }
+            }
+            $errors = @($names | Where-Object {
+                $_ -match 'InvalidCastException|NullReferenceException|Unhandled exception|just-in-time|Unable to cast|An error has occurred in the script|Automatic Crash Recovery'
+            })
+            if ($errors.Count -gt 0) { throw "$case startup error dialog: $($errors -join ' | ')" }
+            $ready = $lea -and ($case -ne 'restored' -or $names.Contains('Lea in Firespider'))
+            if (-not $ready) { Start-Sleep -Milliseconds 250 }
+        } while (-not $ready -and [DateTime]::UtcNow -lt $until)
+        if (-not $ready) { throw "$case startup did not expose a ready Lea document" }
+        if (-not $process.Responding) { throw "$case startup stopped responding" }
+        if (@($process.Modules | Where-Object { $_.ModuleName -ieq 'mshtml.dll' }).Count -gt 0) {
+            throw "$case startup loaded the legacy MSHTML engine"
         }
-        $errors = @($names | Where-Object {
-            $_ -match 'InvalidCastException|NullReferenceException|Unhandled exception|just-in-time|Unable to cast|An error has occurred in the script'
-        })
-        if ($errors.Count -gt 0) { throw "$case startup error dialog: $($errors -join ' | ')" }
-        if ($case -eq 'restored' -and -not ($names -contains 'Lea in Firespider')) {
-            throw 'Saved Lea tabs did not appear in the executable startup test'
-        }
-        [PSCustomObject]@{ Scenario = $case; Responsive = $true; Windows = $windows.Count; Title = $process.MainWindowTitle }
+        [PSCustomObject]@{ Scenario = $case; Responsive = $true; Lea = $lea; LegacyEngine = $false; Title = $process.MainWindowTitle }
     }
     finally {
         if ($process -and -not $process.HasExited) {

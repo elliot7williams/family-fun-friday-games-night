@@ -15,6 +15,8 @@ Partial Class j
     Private qleaInspectorAccess As TextBox
     Private qleaInspectorTips As ToolTip
     Private Shared qleaSessionRestored As Boolean
+    Private qleaStarted As Boolean
+    Private qleaStarting As Boolean
     Private Const qleaSessionTabs As Integer = 12
     Private Const qleaSessionBytes As Integer = 65536
     Private Const qleaSessionUrl As Integer = 4096
@@ -42,10 +44,41 @@ Partial Class j
         If inspectorIndex < 0 Then inspectorIndex = v.DropDownItems.Count
         v.DropDownItems.Insert(inspectorIndex, qleaInspectorMenu)
         qleaWire()
-        If Not qleaSessionRestored Then
-            qleaSessionRestored = True
-            qleaRestoreSession()
-        End If
+    End Sub
+
+    Private Sub qleaShown(ByVal sender As Object, ByVal e As EventArgs) Handles Me.Shown
+        qleaStartup()
+    End Sub
+
+    Private Sub qleaStartup()
+        If qleaStarted Then Return
+        qleaStarted = True
+        qleaStarting = True
+        Try
+            qleaInit(Me, EventArgs.Empty)
+            If My.Settings.ps = "e" Then pv = True
+            If Not qleaSessionRestored Then
+                qleaSessionRestored = True
+                If Not pv Then
+                    If recoveryRequested AndAlso My.Settings.recovery IsNot Nothing Then
+                        Dim recovered = qleaRestoreUrls(My.Settings.recovery.Cast(Of String)())
+                        If recovered > 0 Then
+                            su.Visible = True
+                            su.Text = "Recovered " & recovered.ToString() & " Lea tab(s)"
+                            Return
+                        End If
+                    End If
+                    If qleaRestoreSession() > 0 Then Return
+                    If My.Settings.rs = "e" AndAlso My.Settings.ls IsNot Nothing Then
+                        Dim restored = qleaRestoreUrls(My.Settings.ls.Cast(Of String)())
+                        If restored > 0 Then Return
+                    End If
+                End If
+            End If
+            qleaNew(qntu())
+        Finally
+            qleaStarting = False
+        End Try
     End Sub
 
     Private Sub qleaWire()
@@ -87,6 +120,8 @@ Partial Class j
         RemoveHandler Me.FormClosing, AddressOf q9
         RemoveHandler N.Click, AddressOf nc
         RemoveHandler N.MouseHover, AddressOf nh
+        RemoveHandler zx.Click, AddressOf zk
+        RemoveHandler zx.MouseHover, AddressOf zh
 
         AddHandler b.Click, AddressOf qleaBackClick
         AddHandler b.MouseHover, AddressOf qleaBackHover
@@ -125,6 +160,8 @@ Partial Class j
         AddHandler FI.MouseHover, AddressOf qleaFindHover
         AddHandler N.Click, AddressOf qleaNewClick
         AddHandler N.MouseHover, AddressOf qleaNewHover
+        AddHandler zx.Click, AddressOf qleaNewClick
+        AddHandler zx.MouseHover, AddressOf qleaNewHover
         AddHandler k.MouseDown, AddressOf qleaTabMouseDown
         AddHandler Me.FormClosing, AddressOf qleaClosing
     End Sub
@@ -226,7 +263,7 @@ Partial Class j
         closeMenu.Items.Add(closeItem)
         host.ContextMenuStrip = closeMenu
         If String.IsNullOrWhiteSpace(target) Then target = qleaStart()
-        If Visible Then qleaLoad(host, target) Else host.Go(target)
+        If Visible OrElse qleaStarting Then qleaLoad(host, target) Else host.Go(target)
         Return host
     End Function
 
@@ -879,49 +916,73 @@ Partial Class j
         File.WriteAllLines(sessionFile, urls.ToArray(), New System.Text.UTF8Encoding(False))
     End Sub
 
-    Private Sub qleaRestoreSession()
-        If pv Then Return
+    Private Function qleaSessionTarget(ByVal value As String) As String
+        Dim target = If(value, "").Trim()
+        If target.Length = 0 OrElse target.Length > qleaSessionUrl Then Return ""
+        Dim address As Uri = Nothing
+        If Not Uri.TryCreate(target, UriKind.Absolute, address) Then Return ""
+        If address.Scheme <> Uri.UriSchemeHttp AndAlso address.Scheme <> Uri.UriSchemeHttps AndAlso address.Scheme <> Uri.UriSchemeFile Then Return ""
+        If address.AbsoluteUri.Length > qleaSessionUrl Then Return ""
+        Return address.AbsoluteUri
+    End Function
+
+    Private Function qleaRestoreUrls(ByVal values As IEnumerable(Of String)) As Integer
+        If pv OrElse values Is Nothing Then Return 0
+        Dim restored = 0
+        Dim visited = 0
+        Dim bytes = 0
+        Dim first As TabPage = Nothing
+        For Each value In values
+            If restored >= qleaSessionTabs OrElse visited >= 256 Then Exit For
+            visited += 1
+            Dim target = qleaSessionTarget(value)
+            If target.Length = 0 Then Continue For
+            Dim size = Encoding.UTF8.GetByteCount(target & Environment.NewLine)
+            If bytes + size > qleaSessionBytes Then Continue For
+            Dim host = qleaNew(target)
+            If first Is Nothing Then first = TryCast(host.Parent, TabPage)
+            bytes += size
+            restored += 1
+        Next
+        If first IsNot Nothing Then k.SelectedTab = first
+        Return restored
+    End Function
+
+    Private Function qleaRestoreSession() As Integer
+        If pv Then Return 0
         Dim urls As New List(Of String)()
         Try
             Dim path = qleaSessionPath()
-            If Not File.Exists(path) Then Return
+            If Not File.Exists(path) Then Return 0
             Using stream As New FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read)
                 If stream.Length > qleaSessionBytes Then
                     qleaSessionError("Saved session is too large; skipped")
-                    Return
+                    Return 0
                 End If
                 Using reader As New StreamReader(stream, Encoding.UTF8, True)
                     While Not reader.EndOfStream AndAlso urls.Count < qleaSessionTabs
-                        Dim target = reader.ReadLine().Trim()
-                        If target.Length = 0 OrElse target.Length > qleaSessionUrl Then Continue While
-                        Dim address As Uri = Nothing
-                        If Not Uri.TryCreate(target, UriKind.Absolute, address) Then Continue While
-                        If address.Scheme <> Uri.UriSchemeHttp AndAlso address.Scheme <> Uri.UriSchemeHttps AndAlso address.Scheme <> Uri.UriSchemeFile Then Continue While
-                        If address.AbsoluteUri.Length > qleaSessionUrl Then Continue While
-                        urls.Add(address.AbsoluteUri)
+                        Dim target = qleaSessionTarget(reader.ReadLine())
+                        If target.Length > 0 Then urls.Add(target)
                     End While
                 End Using
             End Using
         Catch ex As IOException
             qleaSessionError("Saved session could not be read; skipped")
-            Return
+            Return 0
         Catch ex As UnauthorizedAccessException
             qleaSessionError("Saved session is not accessible; skipped")
-            Return
+            Return 0
         Catch ex As System.Security.SecurityException
             qleaSessionError("Saved session is not accessible; skipped")
-            Return
+            Return 0
         End Try
-        Dim restored = 0
-        For Each savedTarget In urls
-            qleaNew(savedTarget)
-            restored += 1
-        Next
+        Dim restored = qleaRestoreUrls(urls)
         If restored > 0 Then
             su.Visible = True
             su.Text = "Restored " & restored.ToString() & " Lea tab(s)"
         End If
-    End Sub
+        Return restored
+    End Function
 
     Private Sub qleaSessionError(ByVal message As String)
         su.Visible = True
@@ -931,7 +992,15 @@ Partial Class j
     Private Sub qleaClosing(ByVal sender As Object, ByVal e As FormClosingEventArgs)
         Try
             If qleaInspectorWindow IsNot Nothing Then qleaInspectorWindow.Close()
-            qleaSaveSession()
+            Try
+                qleaSaveSession()
+            Catch ex As IOException
+                qlog(ex)
+            Catch ex As UnauthorizedAccessException
+                qlog(ex)
+            Catch ex As System.Security.SecurityException
+                qlog(ex)
+            End Try
             qfeatureclosing()
             If pv = False Then
                 My.Settings.ls.Clear()

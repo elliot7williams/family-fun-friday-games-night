@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **49**
+Post-1.0 hardening milestones completed: **50**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,20 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Moved normal Firespider first-page startup, toolbar New Tab, and Help onto
+  Lea. One bounded restore path prioritizes accepted crash recovery, Lea
+  sessions, and legacy URLs converted to Lea tabs; it selects the first page,
+  avoids duplicate restoration in later windows, and honors private startup.
+  Requests can remain pending while the window opens, and recovery snapshots
+  now retain Lea URLs. Real EXE tests also exposed and fixed the legacy .NET
+  reader's rejection of compact settings XML, preserving all 89 values, and
+  session-write failures skipping normal shutdown. Ten form-start cases,
+  four standalone startup cases, eighteen event/session regressions, full
+  engine/host suites, and all 57 compatibility probes passed. Default startup
+  exposes a Lea document without loading MSHTML. Existing host initialization
+  still takes roughly 11-19 seconds in the form harness; profiling that cost
+  remains next work, not a claimed speedup. See `LEA_STARTUP.md`.
 
 - Hardened Firespider startup and mixed-engine events. Regression tests first
   reproduced Lea-to-WebBrowser casts in three legacy callbacks, invalid

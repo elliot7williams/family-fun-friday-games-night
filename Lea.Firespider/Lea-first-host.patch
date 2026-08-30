@@ -1,0 +1,78 @@
+diff --git a/1.vb b/1.vb
+--- a/1.vb
++++ b/1.vb
+@@ -271,13 +271,11 @@ Partial Class j
+         End If
+     End Sub
+     Sub g5(ByVal sender As System.Object, ByVal e As EventArgs) Handles HT.Click
+-        zx.PerformClick()
+-        CType(k.SelectedTab.Controls.Item(0), WebBrowser).Navigate("http://firespiderinternet.weebly.com/help.html")
++        qleaNew("http://firespiderinternet.weebly.com/help.html")
+     End Sub
+     Sub f5(ByVal sender As Object, ByVal e As EventArgs) Handles HT.MouseHover
+         If My.Settings.t = "e" Then
+-            zx.PerformClick()
+-            CType(k.SelectedTab.Controls.Item(0), WebBrowser).Navigate("http://firespiderinternet.weebly.com/help.html")
++            g5(sender, e)
+         End If
+     End Sub
+     Sub g6(ByVal sender As System.Object, ByVal e As EventArgs) Handles SH.Click
+@@ -580,6 +578,7 @@ Partial Class j
+             mf = Me
+             u8(mf)
+             qawl()
++            If My.Settings.ps = "e" Then pv = True
+             qfeaturestartup()
+             If My.Settings.i = Color.Black Then
+             Else
+@@ -4161,25 +4160,7 @@ Partial Class j
+             AddHandler vss.MouseHover, AddressOf q808
+             ot.DropDownItems.Add(vss)
+             qfeatures()
+-            Dim B As New WebBrowser
+-            k.TabPages.Add("New Page")
+-            B.Dock = DockStyle.Fill
+-            k.SelectedTab.Controls.Add(B)
+-            AddHandler B.Navigating, AddressOf nn
+-            AddHandler B.Navigated, AddressOf nv
+-            AddHandler B.DocumentCompleted, AddressOf n0
+-            AddHandler B.ProgressChanged, AddressOf q14
+-            AddHandler B.NewWindow, AddressOf qpopup
+-            I = I + 1
+-            If recoveryRequested AndAlso My.Settings.recovery.Count > 0 Then
+-                qlazyopenurls(My.Settings.recovery.Cast(Of String)().ToList)
+-                su.Visible = True
+-                su.Text = "Recovered " & My.Settings.recovery.Count.ToString & " tab(s)"
+-            ElseIf My.Settings.rs = "e" And My.Settings.ls.Count > 0 Then
+-                qlazyopenurls(My.Settings.ls.Cast(Of String)().ToList)
+-            Else
+-                CType(k.SelectedTab.Controls.Item(0), WebBrowser).Navigate(qntu())
+-            End If
++            qleaStartup()
+             Dim tz As Size = k.ItemSize
+             tz.Width = 240
+             tz.Height += 3
+diff --git a/BrowserFeatures.vb b/BrowserFeatures.vb
+--- a/BrowserFeatures.vb
++++ b/BrowserFeatures.vb
+@@ -15,7 +15,7 @@ Partial Class j
+         Try
+             featureWindows += 1
+             If featureSessionStarted = False Then
+-                If My.Settings.recoveryEnabled = "e" AndAlso My.Settings.cleanExit <> "e" AndAlso My.Settings.recovery.Count > 0 Then
++                If Not pv AndAlso My.Settings.recoveryEnabled = "e" AndAlso My.Settings.cleanExit <> "e" AndAlso My.Settings.recovery.Count > 0 Then
+                     Dim detail As String = If(My.Settings.recoveryTime = "", "the previous run", My.Settings.recoveryTime)
+                     recoveryRequested = MessageBox.Show("Firespider did not close normally. Restore " & My.Settings.recovery.Count.ToString & " tab(s) saved " & detail & "?", "Automatic Crash Recovery", MessageBoxButtons.YesNo, MessageBoxIcon.Question) = DialogResult.Yes
+                 End If
+diff --git a/BrowserFeatures3.vb b/BrowserFeatures3.vb
+--- a/BrowserFeatures3.vb
++++ b/BrowserFeatures3.vb
+@@ -61,6 +61,8 @@ Partial Class j
+ 
+     Friend Function qpersistedtaburl(ByVal tab As TabPage, ByVal wb As WebBrowser) As String
+         If tab IsNot Nothing AndAlso suspendedGroupUrls.ContainsKey(tab) Then Return suspendedGroupUrls(tab)
++        Dim host = qleaHost(tab)
++        If host IsNot Nothing AndAlso host.U IsNot Nothing Then Return host.U.AbsoluteUri
+         If wb IsNot Nothing AndAlso wb.Url IsNot Nothing Then Return wb.Url.ToString
+         Return ""
+     End Function

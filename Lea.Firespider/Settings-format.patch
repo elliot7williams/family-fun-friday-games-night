@@ -1,0 +1,312 @@
+diff --git a/app.config b/app.config
+--- a/app.config
++++ b/app.config
+@@ -137,65 +137,249 @@
+             <setting name="ep" serializeAs="String">
+                 <value />
+             </setting>
+-            <setting name="fc" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="recovery" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="recoveryTime" serializeAs="String"><value /></setting>
+-            <setting name="cleanExit" serializeAs="String"><value>e</value></setting>
+-            <setting name="recoveryEnabled" serializeAs="String"><value>e</value></setting>
+-            <setting name="cwh" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="rl" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="dashboard" serializeAs="String"><value /></setting>
+-            <setting name="dp" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="df" serializeAs="String"><value /></setting>
+-            <setting name="ce" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="bs" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="popup" serializeAs="String"><value>block</value></setting>
+-            <setting name="externalConfirm" serializeAs="String"><value>e</value></setting>
+-            <setting name="perm" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="wp" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="dq" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="us" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="scriptPreview" serializeAs="String"><value>e</value></setting>
+-            <setting name="vault" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="archives" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="splitSync" serializeAs="String"><value>e</value></setting>
+-            <setting name="tg" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="tv" serializeAs="String"><value /></setting>
+-            <setting name="sc" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="cf" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="cfx" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="cfEnabled" serializeAs="String"><value>e</value></setting>
+-            <setting name="af" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="backupEnabled" serializeAs="String"><value /></setting>
+-            <setting name="backupInterval" serializeAs="String"><value>daily</value></setting>
+-            <setting name="backupFolder" serializeAs="String"><value /></setting>
+-            <setting name="backupTime" serializeAs="String"><value /></setting>
+-            <setting name="backupKeep" serializeAs="String"><value>7</value></setting>
+-            <setting name="fr" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="frEnabled" serializeAs="String"><value>e</value></setting>
+-            <setting name="bmt" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="an" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="idp" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="activeIdentity" serializeAs="String"><value>Default</value></setting>
+-            <setting name="portableMode" serializeAs="String"><value /></setting>
+-            <setting name="au" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="analytics" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="analyticsEnabled" serializeAs="String"><value>e</value></setting>
+-            <setting name="hibernateEnabled" serializeAs="String"><value /></setting>
+-            <setting name="hibernateMinutes" serializeAs="String"><value>30</value></setting>
+-            <setting name="hibernateExceptions" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="lazyRestoreMode" serializeAs="String"><value>off</value></setting>
+-            <setting name="research" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="archiveVersions" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="archiveRetention" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="watchSources" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="watchItems" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="watchEnabled" serializeAs="String"><value /></setting>
+-            <setting name="aliases" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="downloadSafety" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="quarantineFolder" serializeAs="String"><value /></setting>
+-            <setting name="trustedHashes" serializeAs="Xml"><value><ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" /></value></setting>
+-            <setting name="chromeMode" serializeAs="String"><value>legacy</value></setting>
++            <setting name="fc" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="recovery" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="recoveryTime" serializeAs="String">
++                <value />
++            </setting>
++            <setting name="cleanExit" serializeAs="String">
++                <value>e</value>
++            </setting>
++            <setting name="recoveryEnabled" serializeAs="String">
++                <value>e</value>
++            </setting>
++            <setting name="cwh" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="rl" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="dashboard" serializeAs="String">
++                <value />
++            </setting>
++            <setting name="dp" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="df" serializeAs="String">
++                <value />
++            </setting>
++            <setting name="ce" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="bs" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="popup" serializeAs="String">
++                <value>block</value>
++            </setting>
++            <setting name="externalConfirm" serializeAs="String">
++                <value>e</value>
++            </setting>
++            <setting name="perm" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="wp" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="dq" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="us" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="scriptPreview" serializeAs="String">
++                <value>e</value>
++            </setting>
++            <setting name="vault" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="archives" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="splitSync" serializeAs="String">
++                <value>e</value>
++            </setting>
++            <setting name="tg" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="tv" serializeAs="String">
++                <value />
++            </setting>
++            <setting name="sc" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="cf" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="cfx" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="cfEnabled" serializeAs="String">
++                <value>e</value>
++            </setting>
++            <setting name="af" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="backupEnabled" serializeAs="String">
++                <value />
++            </setting>
++            <setting name="backupInterval" serializeAs="String">
++                <value>daily</value>
++            </setting>
++            <setting name="backupFolder" serializeAs="String">
++                <value />
++            </setting>
++            <setting name="backupTime" serializeAs="String">
++                <value />
++            </setting>
++            <setting name="backupKeep" serializeAs="String">
++                <value>7</value>
++            </setting>
++            <setting name="fr" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="frEnabled" serializeAs="String">
++                <value>e</value>
++            </setting>
++            <setting name="bmt" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="an" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="idp" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="activeIdentity" serializeAs="String">
++                <value>Default</value>
++            </setting>
++            <setting name="portableMode" serializeAs="String">
++                <value />
++            </setting>
++            <setting name="au" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="analytics" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="analyticsEnabled" serializeAs="String">
++                <value>e</value>
++            </setting>
++            <setting name="hibernateEnabled" serializeAs="String">
++                <value />
++            </setting>
++            <setting name="hibernateMinutes" serializeAs="String">
++                <value>30</value>
++            </setting>
++            <setting name="hibernateExceptions" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="lazyRestoreMode" serializeAs="String">
++                <value>off</value>
++            </setting>
++            <setting name="research" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="archiveVersions" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="archiveRetention" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="watchSources" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="watchItems" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="watchEnabled" serializeAs="String">
++                <value />
++            </setting>
++            <setting name="aliases" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="downloadSafety" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="quarantineFolder" serializeAs="String">
++                <value />
++            </setting>
++            <setting name="trustedHashes" serializeAs="Xml">
++                <value>
++                    <ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
++                </value>
++            </setting>
++            <setting name="chromeMode" serializeAs="String">
++                <value>legacy</value>
++            </setting>
+         </Firespider_Internet.My.MySettings>
+     </userSettings>
+ </configuration>

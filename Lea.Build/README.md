@@ -63,8 +63,10 @@ powershell.exe -NoProfile -STA -File .\Lea.Build\Test-FirespiderStartup.ps1 -Roo
 ```
 
 The default checks clean, restored, locked, and oversized temporary sessions,
-waits eight seconds per launch, and inspects responsiveness and UI Automation
-for exception dialogs. Use `-Scenario clean` for one launch. It never closes
+validates the EXE config, observes for at least eight seconds, then waits up to
+sixty more seconds for a Lea UI Automation document. It checks responsiveness,
+error dialogs, and absence of MSHTML. Use `-Scenario clean` for one launch.
+It refuses to run alongside an existing Firespider instance and never closes
 an existing browser process, and restores the session environment override.
 The browser can still update its ordinary profile settings when it closes;
 use an extracted runtime test directory for isolated package checks.
@@ -74,3 +76,9 @@ event/session regressions off-screen. Omitting `--startup` runs the full host
 suite. Source for the corresponding host edits is retained in
 `Lea.Firespider/Startup-host.patch`, with reproduction notes in
 `LeaForge/STARTUP_RELIABILITY.md`.
+
+`Test-FirespiderBoot.ps1 -Root <host-root>` adds ten real form-start cases,
+including private startup, restore precedence, second windows, a gated slow
+HTTP response, and locked-session shutdown. It compiles `Lea.Firespider/Boot.cs`
+beside the test host and runs separate off-screen processes with a sixty-second
+watchdog. Use `-Case clean` for a single case. See `LeaForge/LEA_STARTUP.md`.
