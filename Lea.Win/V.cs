@@ -6,6 +6,7 @@ using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -54,6 +55,7 @@ namespace Lea.Win
         private bool layoutDirty = true;
         private bool picBusy;
         private bool picStop;
+        private bool closed;
         private Fi edit;
         private Font editFont;
         private string editStart = "";
@@ -102,10 +104,19 @@ namespace Lea.Win
             return new Va(this);
         }
 
+        [DllImport("UIAutomationCore.dll", EntryPoint = "UiaReturnRawElementProvider", ExactSpelling = true)]
+        private static extern IntPtr ReleaseProvider(IntPtr window, IntPtr wParam, IntPtr lParam, IntPtr provider);
+
         protected override void WndProc(ref Message message)
         {
+            if (message.Msg == 0x0002)
+            {
+                // Release UI Automation's native provider event-map references.
+                ReleaseProvider(message.HWnd, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
+            }
             if (message.Msg == 0x003D && message.LParam.ToInt64() == AutomationInteropProvider.RootObjectId)
             {
+                if (closed) { message.Result = IntPtr.Zero; return; }
                 message.Result = AutomationInteropProvider.ReturnRawElementProvider(Handle, message.WParam, message.LParam, UiRoot);
                 return;
             }
@@ -163,132 +174,132 @@ namespace Lea.Win
 
         public P Go(string input)
         {
+            CheckOpen();
             Cursor = Cursors.WaitCursor;
             try
             {
                 if (Fg(input) != 0) return At;
                 return Show(e.Go(input), true);
             }
-            finally { Cursor = Cursors.Default; }
+            finally { if (!closed) Cursor = Cursors.Default; }
         }
 
         public P Go(Uri url)
         {
+            CheckOpen();
             Cursor = Cursors.WaitCursor;
             try
             {
                 if (Fg(url) != 0) return At;
                 return Show(e.Go(url), true);
             }
-            finally { Cursor = Cursors.Default; }
+            finally { if (!closed) Cursor = Cursors.Default; }
         }
 
         public P Po(Uri url, string data)
         {
+            CheckOpen();
             Cursor = Cursors.WaitCursor;
             try { return Show(e.Po(url, data), true); }
-            finally { Cursor = Cursors.Default; }
+            finally { if (!closed) Cursor = Cursors.Default; }
         }
 
         public P Pb(Uri url, byte[] data, string type)
         {
+            CheckOpen();
             Cursor = Cursors.WaitCursor;
             try { return Show(e.Pb(url, data, type), true); }
-            finally { Cursor = Cursors.Default; }
+            finally { if (!closed) Cursor = Cursors.Default; }
         }
 
         public async Task<P> GoA(string input)
         {
+            CheckOpen();
             Cursor = Cursors.WaitCursor;
             picStop = false;
             try
             {
                 if (Fg(input) != 0) return At;
-                var page = Show(await e.GoA(input), false);
-                await PicsA(page);
-                Dirty();
-                Invalidate();
-                if (Done != null) Done(this, EventArgs.Empty);
-                GoRequest(page);
-                return page;
+                return await ShowA(e.GoA(input));
             }
-            finally { Cursor = Cursors.Default; }
+            finally { if (!closed) Cursor = Cursors.Default; }
         }
 
         public async Task<P> GoA(Uri url)
         {
+            CheckOpen();
             Cursor = Cursors.WaitCursor;
             picStop = false;
             try
             {
                 if (Fg(url) != 0) return At;
-                var page = Show(await e.GoA(url), false);
-                await PicsA(page);
-                Dirty();
-                Invalidate();
-                if (Done != null) Done(this, EventArgs.Empty);
-                GoRequest(page);
-                return page;
+                return await ShowA(e.GoA(url));
             }
-            finally { Cursor = Cursors.Default; }
+            finally { if (!closed) Cursor = Cursors.Default; }
         }
 
         public async Task<P> PoA(Uri url, string data)
         {
+            CheckOpen();
             Cursor = Cursors.WaitCursor;
             picStop = false;
             try
             {
-                var page = Show(await e.PoA(url, data), false);
-                await PicsA(page);
-                Dirty();
-                Invalidate();
-                if (Done != null) Done(this, EventArgs.Empty);
-                GoRequest(page);
-                return page;
+                return await ShowA(e.PoA(url, data));
             }
-            finally { Cursor = Cursors.Default; }
+            finally { if (!closed) Cursor = Cursors.Default; }
         }
 
         public async Task<P> PbA(Uri url, byte[] data, string type)
         {
+            CheckOpen();
             Cursor = Cursors.WaitCursor;
             picStop = false;
             try
             {
-                var page = Show(await e.PbA(url, data, type), false);
-                await PicsA(page);
-                Dirty();
-                Invalidate();
-                if (Done != null) Done(this, EventArgs.Empty);
-                GoRequest(page);
-                return page;
+                return await ShowA(e.PbA(url, data, type));
             }
-            finally { Cursor = Cursors.Default; }
+            finally { if (!closed) Cursor = Cursors.Default; }
         }
 
-        public P Bk() { return Show(e.Bk(), false); }
-        public P Fw() { return Show(e.Fw(), false); }
-        public P Rl() { return Show(e.Rl(), true); }
+        public P Bk() { CheckOpen(); return Show(e.Bk(), false); }
+        public P Fw() { CheckOpen(); return Show(e.Fw(), false); }
+        public P Rl() { CheckOpen(); return Show(e.Rl(), true); }
 
         public async Task<P> RlA()
         {
+            CheckOpen();
             picStop = false;
-            var page = Show(await e.RlA(), false);
+            return await ShowA(e.RlA());
+        }
+
+        private async Task<P> ShowA(Task<P> work)
+        {
+            var page = await work;
+            if (closed) return page;
+            Show(page, false);
+            if (closed) return page;
             await PicsA(page);
+            if (closed) return page;
             Dirty();
             Invalidate();
             if (Done != null) Done(this, EventArgs.Empty);
-            GoRequest(page);
+            if (!closed) GoRequest(page);
             return page;
         }
 
         public void St()
         {
+            if (closed) return;
             picStop = true;
             e.St();
             picWeb.CancelAsync();
             Cursor = Cursors.Default;
+        }
+
+        private void CheckOpen()
+        {
+            if (closed) throw new ObjectDisposedException("Lea.Win.V");
         }
 
         public void Cl() { e.Cl(); }
@@ -395,6 +406,7 @@ namespace Lea.Win
             Dirty();
             if (!ApplyCommandFocus(At)) KeepValidFocus();
             OnChanged();
+            if (closed) return count;
             Invalidate();
             NotifyAccessibility(AccessibleEvents.Reorder);
             Alerts(At);
@@ -404,30 +416,34 @@ namespace Lea.Win
 
         public D Dl(string input, string path)
         {
+            CheckOpen();
             Cursor = Cursors.WaitCursor;
             try { return Ld = e.Dl(input, path); }
-            finally { Cursor = Cursors.Default; }
+            finally { if (!closed) Cursor = Cursors.Default; }
         }
 
         public D Dl(Uri url, string path)
         {
+            CheckOpen();
             Cursor = Cursors.WaitCursor;
             try { return Ld = e.Dl(url, path); }
-            finally { Cursor = Cursors.Default; }
+            finally { if (!closed) Cursor = Cursors.Default; }
         }
 
         public async Task<D> DlA(string input, string path)
         {
+            CheckOpen();
             Cursor = Cursors.WaitCursor;
             try { return Ld = await e.DlA(input, path); }
-            finally { Cursor = Cursors.Default; }
+            finally { if (!closed) Cursor = Cursors.Default; }
         }
 
         public async Task<D> DlA(Uri url, string path)
         {
+            CheckOpen();
             Cursor = Cursors.WaitCursor;
             try { return Ld = await e.DlA(url, path); }
-            finally { Cursor = Cursors.Default; }
+            finally { if (!closed) Cursor = Cursors.Default; }
         }
 
         public int Fd(string query)
@@ -465,6 +481,7 @@ namespace Lea.Win
 
         private P Show(P page, bool done, int preserveScroll = -1)
         {
+            if (closed) return page;
             picStop = false;
             CloseChoices();
             ClearFind(false);
@@ -482,11 +499,12 @@ namespace Lea.Win
             if (!scrolled && preserveScroll >= 0 && page != null && page.U != null && page.U.Fragment.Length > 0)
                 sy = Math.Max(0, Math.Min(MaxScroll(), preserveScroll));
             OnChanged();
+            if (closed) return page;
             Invalidate();
             NotifyAccessibility(AccessibleEvents.Reorder);
             Alerts(page);
-            if (done && Done != null) Done(this, EventArgs.Empty);
-            if (done) GoRequest(page);
+            if (!closed && done && Done != null) Done(this, EventArgs.Empty);
+            if (!closed && done) GoRequest(page);
             return page;
         }
 
@@ -536,7 +554,7 @@ namespace Lea.Win
 
         private bool GoRequest(P page)
         {
-            if (page == null) return false;
+            if (closed || page == null) return false;
             var target = e.Gt(page);
             if (target == null) return false;
             Gu = target;
@@ -547,7 +565,7 @@ namespace Lea.Win
 
         private void Alerts(P page)
         {
-            if (page == null || page.Ms.Count == 0) return;
+            if (closed || page == null || page.Ms.Count == 0) return;
             int shown;
             if (!alerts.TryGetValue(page, out shown))
             {
@@ -556,7 +574,7 @@ namespace Lea.Win
                 alertOrder.Enqueue(page);
                 while (alertOrder.Count > 32) alerts.Remove(alertOrder.Dequeue());
             }
-            while (alerts.TryGetValue(page, out shown) && shown < page.Ms.Count)
+            while (!closed && alerts.TryGetValue(page, out shown) && shown < page.Ms.Count)
             {
                 Am = page.Ms[shown];
                 alerts[page] = shown + 1;
@@ -566,7 +584,7 @@ namespace Lea.Win
 
         private void EnsureLayout()
         {
-            if (At == null || (!layoutDirty && layoutWidth == ClientSize.Width)) return;
+            if (closed || At == null || (!layoutDirty && layoutWidth == ClientSize.Width)) return;
             if (!IsHandleCreated) CreateControl();
             using (var graphics = CreateGraphics()) Lay(graphics);
         }
@@ -4099,13 +4117,13 @@ namespace Lea.Win
 
         private async Task PicsA(P page)
         {
-            if (page == null) return;
+            if (closed || page == null) return;
             picBusy = true;
             try
             {
                 foreach (var source in PicSources(page))
                 {
-                    if (picStop) break;
+                    if (closed || picStop) break;
                     var key = source.AbsoluteUri;
                     if (pics.ContainsKey(key)) continue;
                     Image image = null;
@@ -4123,11 +4141,17 @@ namespace Lea.Win
                             picWeb.Headers[HttpRequestHeader.UserAgent] = "Lea/0.2";
                             data = await picWeb.DownloadDataTaskAsync(source);
                         }
+                        if (closed || picStop) break;
                         if (data == null || data.Length == 0 || data.Length > PicBytes) throw new InvalidDataException("Image resource is empty or too large.");
                         using (var stream = new MemoryStream(data))
                         using (var loaded = Image.FromStream(stream)) image = new Bitmap(loaded);
                     }
                     catch { image = null; }
+                    if (closed)
+                    {
+                        if (image != null) image.Dispose();
+                        break;
+                    }
                     StorePic(key, image);
                 }
             }
@@ -4172,7 +4196,7 @@ namespace Lea.Win
 
         private void QueuePics(P page)
         {
-            if (page == null || picBusy || picStop || !MissingPic(page)) return;
+            if (closed || page == null || picBusy || picStop || !MissingPic(page)) return;
             LoadPicsLater(page);
         }
 
@@ -4181,7 +4205,7 @@ namespace Lea.Win
             try
             {
                 await PicsA(page);
-                if (Object.ReferenceEquals(page, At)) Invalidate();
+                if (!closed && Object.ReferenceEquals(page, At)) Invalidate();
             }
             catch (OperationCanceledException) { }
             catch (WebException) { }
@@ -5138,12 +5162,14 @@ namespace Lea.Win
 
         public P Sm(Fi button)
         {
+            CheckOpen();
             EndEdit(false);
             if (button == null || (!button.Nv && !Vf(button))) return At;
             if (!ValidForm(button)) return At;
             var data = FormData(button);
             var multipart = button.M == "post" && button.En == "m" && CanPost(button.U) ? MultipartData(button) : null;
             if (Sb != null) Sb(this, EventArgs.Empty);
+            if (closed) return At;
             if (button.M == "get") return Go(FormUri(button, data));
             if (button.M != "post" || !CanPost(button.U)) return At;
             if (button.En != "m") return Po(button.U, data);
@@ -5152,12 +5178,14 @@ namespace Lea.Win
 
         public async Task<P> SmA(Fi button)
         {
+            CheckOpen();
             EndEdit(false);
             if (button == null || (!button.Nv && !Vf(button))) return At;
             if (!ValidForm(button)) return At;
             var data = FormData(button);
             var multipart = button.M == "post" && button.En == "m" && CanPost(button.U) ? MultipartData(button) : null;
             if (Sb != null) Sb(this, EventArgs.Empty);
+            if (closed) return At;
             if (button.M == "get") return await GoA(FormUri(button, data));
             if (button.M != "post" || !CanPost(button.U)) return At;
             if (button.En != "m") return await PoA(button.U, data);
@@ -5834,11 +5862,12 @@ namespace Lea.Win
 
         private void OnChanged()
         {
-            if (Changed != null) Changed(this, EventArgs.Empty);
+            if (!closed && Changed != null) Changed(this, EventArgs.Empty);
         }
 
         private void NotifyAccessibility(AccessibleEvents kind)
         {
+            if (closed) return;
             if (IsHandleCreated) AccessibilityNotifyClients(kind, -1);
             if (!IsHandleCreated || !AutomationInteropProvider.ClientsAreListening) return;
             try
@@ -5863,6 +5892,7 @@ namespace Lea.Win
 
         private void NotifyAutomation(Ax item, AutomationProperty property, object oldValue, object newValue)
         {
+            if (closed) return;
             if (!IsHandleCreated || !AutomationInteropProvider.ClientsAreListening) return;
             item = CurrentAccessibility(item);
             if (item == null) return;
@@ -6566,8 +6596,12 @@ namespace Lea.Win
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
+            if (disposing && !closed)
             {
+                closed = true;
+                picStop = true;
+                e.St();
+                picWeb.CancelAsync();
                 CloseChoices();
                 picWeb.Dispose();
                 if (editFont != null) editFont.Dispose();

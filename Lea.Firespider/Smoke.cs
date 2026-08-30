@@ -166,7 +166,9 @@ namespace Lea.Firespider
                     Check(host.Pv && host.Kc == 0, "Firespider private mode routed to Lea cookies");
                     privateField.SetValue(form, false);
                     currentLea.Invoke(form, null);
-                    Check(!host.Pv, "Firespider normal cookie mode restored");
+                    Check(host.Pv, "Firespider existing private view is not downgraded");
+                    host.Pv = false;
+                    Check(!host.Pv, "explicit Lea cookie-mode reset remains available to embedders");
                     tick.Invoke(timer, new object[] { EventArgs.Empty });
                     var start = Path.Combine(root, "Lea", "start.html");
                     var opened = (bool)type.GetMethod("qleaOpenPath", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(form, new object[] { openPage });

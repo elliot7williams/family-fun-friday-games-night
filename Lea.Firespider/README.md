@@ -24,6 +24,14 @@ seconds; this is host initialization, not arbitrary network-page readiness.
 `Startup-layout-host.patch` and the matching adapter retain the change.
 See `LeaForge/STARTUP_PERFORMANCE.md` for samples, scope, and regression checks.
 
+Lea tabs can now suspend into lightweight placeholders and resume in Lea on
+the same tab. Current/background/group/overview commands preserve the URL and
+private flag, dispose old views, and cancel pending requests. Hidden/paused
+tabs participate in bounded automatic sessions; private URLs remain excluded.
+Reload is visible again. `Suspension-host.patch` follows `Navigation-host.patch`.
+The sixteen-case Boot suite includes lifecycle and saved-group startup tests.
+See `LeaForge/SUSPENSION.md` for fresh-reload semantics and unmigrated routes.
+
 Lea Home now honors the saved homepage, and the original hidden/disabled Home
 menu is available. Homepage/site-root new tabs, previous-session restoration,
 and bounded clipboard URL opening use Lea. Site roots retain ports and IPv6;
@@ -62,8 +70,10 @@ skipped with a status message, without changing the original file during the
 restore operation. Invalid entries and unsupported schemes are ignored.
 
 Firespider's private-mode flag also drives `V.Pv`. Normal Lea cookies stay in
-their bounded in-memory jar, while each private session starts empty and is
-destroyed when private mode ends. Page cache is cleared between those contexts.
+their bounded in-memory jar. Existing private Lea views remain private when
+the global flag is turned off; new ordinary tabs start ordinary contexts.
+Explicit embedder changes to `V.Pv` reset the private jar, restore the separate
+normal jar when leaving private mode, and clear the page cache.
 Lea's persistent cache is still opt-in through `V.Cd`; `Cx/Cb` set entry/byte
 ceilings, `Dc/Db` report its footprint, and `Cdl()` clears only Lea entries.
 Private tabs never read or write that directory.

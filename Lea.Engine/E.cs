@@ -978,6 +978,7 @@ namespace Lea.Engine
                 DropCache(url);
                 web.Headers[HttpRequestHeader.ContentType] = BodyType(type);
                 var bytes = await NetA(web.UploadDataTaskAsync(url, "POST", data ?? new byte[0]));
+                CheckStop();
                 var reply = ReadWeb(url, bytes);
                 DropCache(reply.U);
                 var load = Track("POST", new Ld(reply, false), "net");
@@ -1037,11 +1038,17 @@ namespace Lea.Engine
 
         private async Task<Ld> FetchA(Uri url, bool fresh = false)
         {
+            CheckStop();
             Cr reply;
             Cr stale = null;
             var diskHit = false;
             if (!url.IsFile && !fresh && GetCache(url, out reply, out stale, out diskHit)) return Track("GET", new Ld(reply, true), diskHit ? "disk" : "cache");
-            if (url.IsFile) return Track("GET", new Ld(await Task.Factory.StartNew(delegate { return ReadFile(url); }), false), "file");
+            if (url.IsFile)
+            {
+                var local = await Task.Factory.StartNew(delegate { return ReadFile(url); });
+                CheckStop();
+                return Track("GET", new Ld(local, false), "file");
+            }
 
             if (fresh) stale = null;
             var staleDisk = stale != null && diskHit;
@@ -1055,6 +1062,7 @@ namespace Lea.Engine
                     if (stale == null || !web.Nm(error)) throw;
                     bytes = new byte[0];
                 }
+                CheckStop();
                 var notModified = web.St == 304 && stale != null;
                 reply = notModified ? Revalidated(stale) : ReadWeb(url, bytes);
                 PutCache(url, reply);
@@ -1102,9 +1110,17 @@ namespace Lea.Engine
 
         private async Task<P> ParseA(Ld load)
         {
+            CheckStop();
             var page = Page(load);
-            Complete(page, Css(page.D, page.Bu, await StyleSheetsA(page.D, page.Bu)));
+            var sheets = await StyleSheetsA(page.D, page.Bu);
+            CheckStop();
+            Complete(page, Css(page.D, page.Bu, sheets));
             return page;
+        }
+
+        private void CheckStop()
+        {
+            if (stopped) throw new OperationCanceledException("Lea stopped loading.");
         }
 
         private static P Page(Ld load)

@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **53**
+Post-1.0 hardening milestones completed: **54**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,17 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added Lea-native tab/group/overview suspension and same-tab fresh-view resume,
+  pending-load cancellation, hidden/paused automatic sessions, private-state
+  retention, and paused close/duplicate routes. Restored the hidden Reload menu.
+  Local/CSS/image continuations and callback disposal are guarded. Native UI
+  Automation teardown fixes a reproduced retained-view regression; a weak-
+  reference test now confirms collection. Sixteen Boot cases, full engine and
+  host suites, 57 compatibility probes, and four real EXE startup cases passed.
+  The newly reported startup popup was not reproduced. The prior timer cast
+  remains guarded and tested. See `SUSPENSION.md` for unsaved-state and migration
+  limits; archive size is not a runtime-speed claim.
 
 - Migrated saved/default Home, previous-session reopening, both left-close
   variants, tab-list selection, and clipboard/site-root navigation to Lea-aware

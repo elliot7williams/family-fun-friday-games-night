@@ -17,6 +17,14 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
+Milestone 54 adds Lea-native tab/group/overview suspension and fresh-view resume,
+preserving private state and hidden/paused session URLs. Core cancellation and
+post-disposal callback guards prevent late presentation. Native UI Automation
+teardown fixes a reproduced retained-renderer regression. Reload is visible
+again; two Boot cases bring the suite to sixteen. See `SUSPENSION.md` and
+`Suspension-host.patch`. Automatic hibernation eligibility, advanced lazy restore,
+and retained DOM/form/history snapshots remain future work.
+
 Milestone 53 fixes saved-homepage handling and the hidden/disabled Home menu,
 migrates previous-session and clipboard/site-root opening, and unifies both
 left-close variants. Existing pages survive explicit restore; ports/IPv6,

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Configuration;
@@ -9,6 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -41,7 +43,7 @@ namespace Lea.Firespider
             var forms = new List<Form>();
             try
             {
-                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links" }.Contains(mode), "unknown boot case: " + mode);
+                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups" }.Contains(mode), "unknown boot case: " + mode);
                 Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
                 Application.ThreadException += (sender, error) => UiErrors.Add(error.Exception);
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", session);
@@ -62,7 +64,7 @@ namespace Lea.Firespider
                 var page = new Uri(Path.Combine(root, "Lea", "start.html")).AbsoluteUri;
                 foreach (var name in new[] { "dashboard", "rs", "ps", "recoveryEnabled", "t", "rws", "backupEnabled", "frEnabled", "portableMode", "hibernateEnabled" })
                     settings[name] = "";
-                foreach (var name in new[] { "s", "sc", "ls", "recovery", "bm" }) settings[name] = new StringCollection();
+                foreach (var name in new[] { "s", "sc", "ls", "recovery", "bm", "tg" }) settings[name] = new StringCollection();
                 settings["nf"] = page;
                 settings["h"] = page;
                 settings["se"] = "http://127.0.0.1:1/?q=";
@@ -210,6 +212,8 @@ namespace Lea.Firespider
                 if (mode == "commands") CheckCommands(form, settings, page);
                 if (mode == "navigation") CheckNavigation(form, settings, page);
                 if (mode == "links") CheckLinks(form, settings, page);
+                if (mode == "suspend") CheckSuspension(form, settings, page);
+                if (mode == "groups") CheckGroups(form, settings, page);
                 Check(UiErrors.Count == 0, "UI thread exceptions: " + String.Join(" | ", UiErrors.Select(error => error.Message).ToArray()));
                 if (mode == "locked")
                 {
@@ -448,16 +452,198 @@ namespace Lea.Firespider
             Console.WriteLine("PASS links: loopback domain navigation, port/IPv6 normalization, bounded single/batch paste, order, and privacy");
         }
 
+        private static void CheckSuspension(Form form, ApplicationSettingsBase settings, string page)
+        {
+            var tabs = Member<TabControl>(form, "k");
+            var tab = tabs.SelectedTab;
+            var view = (V)tab.Controls[0];
+            var menu = view.ContextMenuStrip;
+            var paused = Member<Dictionary<TabPage, bool>>(form, "qleaPaused");
+            var urls = Member<Dictionary<TabPage, string>>(form, "suspendedGroupUrls");
+            Menu(form, "Suspend Or Resume Current Tab").PerformClick();
+            Check(view.IsDisposed && menu.IsDisposed && tab.Controls.Count == 1 && tab.Controls[0] is Panel,
+                "suspension did not dispose renderer/menu and replace with lightweight placeholder");
+            Check(urls[tab] == page && paused.ContainsKey(tab), "suspension lost target");
+            Call(form, "tk", form, EventArgs.Empty);
+            Call(form, "qleaTick", form, EventArgs.Empty);
+            Check(!Member<ToolStripItem>(form, "b").Enabled && !Member<ToolStripItem>(form, "f").Enabled, "paused navigation buttons remained enabled");
+            Check(!(bool)Call(form, "qsuspendtab", tab), "duplicate suspension accepted");
+            var placeholder = tab.Controls[0];
+            ((Button)placeholder.Controls[0]).PerformClick();
+            WaitLea(tabs);
+            Check(tabs.SelectedTab == tab && tab.Controls[0] is V && tab.Controls[0] != view && placeholder.IsDisposed &&
+                ((V)tab.Controls[0]).U.AbsoluteUri == page && !paused.ContainsKey(tab), "Resume did not preserve tab and recreate Lea");
+
+            Menu(form, "Suspend Or Resume Current Tab").PerformClick();
+            urls[tab] = "javascript:alert(1)";
+            Check(!(bool)Call(form, "qfeature6resumetab", tab) && tab.Controls[0] is Panel, "invalid resume target destroyed placeholder");
+            urls[tab] = page;
+            Check(Member<ToolStripItem>(form, "re").Enabled && Member<ToolStripItem>(form, "re").Available, "Reload menu disabled or hidden");
+            Member<ToolStripItem>(form, "re").PerformClick();
+            Check(tab.Controls[0] is V, "Reload menu did not resume placeholder");
+            WaitLea(tabs);
+            Menu(form, "Suspend Or Resume Current Tab").PerformClick();
+            Check(tab.Controls[0] is Panel, "resumed tab did not suspend again before replacement navigation");
+            Call(form, "q1", page + "#replacement");
+            WaitLea(tabs);
+            Check(((V)tab.Controls[0]).U.AbsoluteUri == page + "#replacement" && !((V)tab.Controls[0]).CanBk,
+                "explicit replacement URL=" + ((V)tab.Controls[0]).U.AbsoluteUri + "; CanBk=" + ((V)tab.Controls[0]).CanBk);
+            Menu(form, "Suspend Or Resume Current Tab").PerformClick();
+            settings["h"] = page + "#home";
+            Member<ToolStripItem>(form, "HO").PerformClick();
+            WaitLea(tabs);
+            Check(((V)tab.Controls[0]).U.AbsoluteUri == page + "#home", "paused Home target");
+
+            Set(form, "pv", true);
+            var secret = (V)Call(form, "qleaNew", page + "#private-paused");
+            var secretTab = tabs.SelectedTab;
+            WaitLea(tabs);
+            Set(form, "pv", false);
+            Check((bool)Call(form, "qsuspendtab", secretTab) && paused[secretTab], "private suspension flag");
+            Call(form, "qleaSaveSession");
+            var session = Environment.GetEnvironmentVariable("LEA_FIRESPIDER_SESSION");
+            Check(!File.ReadAllText(session).Contains("private-paused"), "paused private URL leaked to automatic session");
+            Menu(form, "Duplicate Tab").PerformClick();
+            WaitLea(tabs);
+            Check(((V)tabs.SelectedTab.Controls[0]).Pv && tabs.SelectedTab.Controls[0] is V, "private paused duplicate changed engine/privacy");
+            tabs.SelectedTab = secretTab;
+            WaitLea(tabs);
+            Call(form, "qleaTick", form, EventArgs.Empty);
+            Check(secret.IsDisposed && ((V)secretTab.Controls[0]).Pv, "resume/timer downgraded private view");
+            settings["rc"] = new StringCollection();
+            Call(form, "qsuspendtab", secretTab);
+            Call(form, "qleaTabMouseDown", tabs, new MouseEventArgs(MouseButtons.Middle, 1, 1, 1, 0));
+            Check(secretTab.IsDisposed && !paused.ContainsKey(secretTab) && !urls.ContainsKey(secretTab) &&
+                ((StringCollection)settings["rc"]).Count == 0, "paused middle-close cleanup or privacy");
+
+            using (var site = new LoopbackSite(1000))
+            {
+                var pending = (V)Call(form, "qleaNew", site.Url + "pending");
+                var pendingTab = tabs.SelectedTab;
+                Wait(() => site.Hits == 1 && pending.Busy, "pending initial navigation");
+                Check((bool)Call(form, "qsuspendtab", pendingTab) && urls[pendingTab] == site.Url + "pending", "pending navigation target lost on suspension");
+                Wait(() => !pending.Busy, "pending navigation canceled");
+                Check(pending.IsDisposed && pendingTab.Controls[0] is Panel, "canceled request recreated view");
+                Call(form, "qfeature6resumetab", pendingTab);
+                WaitLea(tabs);
+                Check(((V)pendingTab.Controls[0]).U.AbsoluteUri == site.Url + "pending", "pending URL did not resume");
+            }
+            TabPage released;
+            var weak = SuspendCollectible(form, page, out released);
+            Check(Member<Dictionary<V, string>>(form, "qleaPending").Count == 0, "host retained completed navigation");
+            Wait(() => { GC.Collect(); GC.WaitForPendingFinalizers(); GC.Collect(); return Collected(weak); }, "suspended renderer retained in host state");
+            tabs.SelectedTab = tab;
+            Check(released.Controls[0] is Panel, "background tab resumed without selection");
+            tabs.SelectedTab = released;
+            WaitLea(tabs);
+            Check(released.Controls[0] is V, "selection resumed background tab in old engine");
+            Check(!Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module => module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)), "suspension loaded legacy engine");
+            Console.WriteLine("PASS suspension: disposal/collection, cancellation, resume/menu/selection, navigation, privacy, duplicate, and close");
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static bool Collected(WeakReference weak) { return !weak.IsAlive; }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static WeakReference SuspendCollectible(Form form, string page, out TabPage tab)
+        {
+            var view = (V)Call(form, "qleaNew", page + "#collectible");
+            tab = Member<TabControl>(form, "k").SelectedTab;
+            Wait(() => !view.Busy, "collectible view load");
+            var weak = new WeakReference(view);
+            Check((bool)Call(form, "qsuspendtab", tab), "collectible view suspension");
+            view = null;
+            return weak;
+        }
+
+        private static void CheckGroups(Form form, ApplicationSettingsBase settings, string page)
+        {
+            var tabs = Member<TabControl>(form, "k");
+            var first = tabs.SelectedTab;
+            Call(form, "qleaNew", page + "#group-two");
+            var second = tabs.SelectedTab;
+            WaitLea(tabs);
+            settings["tg"] = Collection("Test|" + Color.Teal.ToArgb() + "|suspended|" + Call(form, "qb64", page),
+                "Test|" + Color.Teal.ToArgb() + "|suspended|" + Call(form, "qb64", page + "#group-two"));
+            // Exercise the saved-group startup timer, including a second tick.
+            Call(form, "qgrouploadtick", form, EventArgs.Empty);
+            Call(form, "qgrouploadtick", form, EventArgs.Empty);
+            Check(first.Controls[0] is Panel && second.Controls[0] is Panel && first.ToolTipText == "Tab group: Test", "startup saved group did not suspend Lea");
+            Call(form, "tk", form, EventArgs.Empty);
+            Call(form, "qleaTick", form, EventArgs.Empty);
+            Call(form, "qcollapsegroup", "Test");
+            var hidden = Member<Dictionary<string, List<TabPage>>>(form, "hiddenGroupTabs");
+            Check(tabs.TabCount == 1 && tabs.SelectedTab.Controls[0] is V && hidden["Test"].Count == 2 &&
+                first.Controls[0] is Panel && second.Controls[0] is Panel, "collapse-all lost placeholders or Lea fallback");
+            WaitLea(tabs);
+            Call(form, "qleaSaveSession");
+            Check(File.ReadAllText(Environment.GetEnvironmentVariable("LEA_FIRESPIDER_SESSION")).Contains("#group-two"), "hidden suspended URL omitted from session");
+            Call(form, "qfeature6prunestate");
+            Check(Member<Dictionary<TabPage, bool>>(form, "qleaPaused").ContainsKey(first), "pruning lost hidden tab ownership");
+            Call(form, "qresumegroup", "Test");
+            Wait(() => first.Controls[0] is V && !((V)first.Controls[0]).Busy && second.Controls[0] is V && !((V)second.Controls[0]).Busy, "hidden group resume");
+            Check(tabs.TabCount == 1, "hidden resume expanded group unexpectedly");
+            Call(form, "qexpandgroup", "Test");
+            Call(form, "qexpandgroup", "Test");
+            Check(tabs.TabCount == 3 && tabs.TabPages.Contains(first) && tabs.TabPages.Contains(second) && !hidden.ContainsKey("Test"), "expand duplicated/replaced tabs");
+            Check(first.ToolTipText == "Tab group: Test" && first.BackColor.ToArgb() == Color.Teal.ToArgb(), "group styling not retained");
+
+            Overview(form, "qoverviewsuspend", first, second);
+            Check(first.Controls[0] is Panel && second.Controls[0] is Panel, "overview suspend omitted Lea");
+            Overview(form, "qoverviewreload", first, second);
+            WaitLea(tabs);
+            Check(first.Controls[0] is V && second.Controls[0] is V, "overview reload replaced Lea engine");
+            Set(form, "pv", true);
+            Call(form, "qleaNew", page + "#private-overview");
+            var secret = tabs.SelectedTab;
+            WaitLea(tabs);
+            Set(form, "pv", false);
+            Call(form, "qsuspendtab", secret);
+            settings["rc"] = new StringCollection();
+            Overview(form, "qoverviewclose", secret);
+            Check(secret.IsDisposed && ((StringCollection)settings["rc"]).Count == 0, "overview close leaked private URL");
+            Call(form, "qcollapsegroup", "Test");
+            Overview(form, "qoverviewclose", first, second);
+            Check(first.IsDisposed && second.IsDisposed && tabs.TabCount == 1 && !form.IsDisposed, "overview hidden close failed ownership cleanup");
+            Check(!Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module => module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)), "group routes loaded legacy engine");
+            Console.WriteLine("PASS groups: startup restore timer, collapse/expand, hidden suspension/session/resume, overview, privacy, and cleanup");
+        }
+
+        private static void Overview(Form form, string command, params TabPage[] selected)
+        {
+            var records = (IList)Call(form, "qoverviewitems");
+            var subset = (IList)Activator.CreateInstance(records.GetType());
+            try
+            {
+                foreach (var record in records)
+                    if (selected.Contains(Member<TabPage>(record, "Tab"))) subset.Add(record);
+                Check(subset.Count == selected.Length, "overview omitted owned tabs");
+                Call(form, command, subset);
+            }
+            finally
+            {
+                foreach (var record in records)
+                {
+                    var bitmap = Member<Bitmap>(record, "Thumbnail");
+                    if (bitmap != null) bitmap.Dispose();
+                }
+            }
+        }
+
         private sealed class LoopbackSite : IDisposable
         {
             private readonly TcpListener listener = new TcpListener(IPAddress.Loopback, 0);
             private readonly Thread worker;
             private volatile bool stopped;
             private Exception error;
+            private readonly int firstDelay;
+            private int hits;
             public readonly string Url;
+            public int Hits { get { return Interlocked.CompareExchange(ref hits, 0, 0); } }
 
-            public LoopbackSite()
+            public LoopbackSite(int delay = 0)
             {
+                firstDelay = delay;
                 listener.Start();
                 Url = "http://127.0.0.1:" + ((IPEndPoint)listener.LocalEndpoint).Port + "/";
                 worker = new Thread(Serve) { IsBackground = true };
@@ -481,10 +667,16 @@ namespace Lea.Firespider
                                 end = (end << 8) | next;
                             }
                             Check(end == 0x0d0a0d0a, "loopback request header bound");
+                            Interlocked.Increment(ref hits);
+                            if (request == 0 && firstDelay > 0) Thread.Sleep(firstDelay);
                             var body = Encoding.UTF8.GetBytes("<title>Lea navigation</title><p>Local test</p>");
                             var header = Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: " + body.Length + "\r\nConnection: close\r\n\r\n");
-                            stream.Write(header, 0, header.Length);
-                            stream.Write(body, 0, body.Length);
+                            try
+                            {
+                                stream.Write(header, 0, header.Length);
+                                stream.Write(body, 0, body.Length);
+                            }
+                            catch (IOException) { if (request != 0 || firstDelay == 0) throw; }
                         }
                 }
                 catch (Exception failure) { if (!stopped) error = failure; }

@@ -24,6 +24,22 @@ namespace Lea.Tests
             try
             {
                 var root = Path.GetFullPath(args.Length > 0 ? args[0] : Directory.GetCurrentDirectory());
+                CheckDisposal(root);
+                using (var slow = new CompressedServer())
+                {
+                    var disposingView = new V();
+                    var events = 0;
+                    disposingView.Changed += delegate { events++; };
+                    disposingView.Done += delegate { events++; };
+                    var work = disposingView.GoA(new Uri(slow.U, "?delay=1000&dispose=1"));
+                    WaitFor(delegate { return slow.Hits == 1; }, "view disposal request started");
+                    disposingView.Dispose();
+                    var before = events;
+                    WaitFor(delegate { return work.IsCompleted; }, "disposed view request completion");
+                    Eq("cancel", Fails(delegate { work.GetAwaiter().GetResult(); }, "disposed view cancels document request").K, "disposed view cancellation kind");
+                    Eq(before, events, "disposed view emits no late callbacks");
+                    disposingView.Dispose();
+                }
                 var forms = Path.Combine(root, "LeaForge", "test-pages", "forms.html");
                 var engine = new E();
                 var page = engine.Go(forms);
@@ -6372,6 +6388,74 @@ namespace Lea.Tests
             return count;
         }
 
+        private static void CheckDisposal(string root)
+        {
+            var source = Path.Combine(root, "LeaForge", "test-pages", "script-bridge.html");
+            using (var view = new V())
+            {
+                var alerts = 0;
+                var done = 0;
+                view.Al += delegate { alerts++; view.Dispose(); };
+                view.Done += delegate { done++; };
+                view.Go(source);
+                Eq(1, alerts, "disposing in first alert suppresses remaining alerts");
+                Eq(0, done, "disposing in alert suppresses completion");
+                Ok(!view.IsHandleCreated, "disposed alert view has no native handle");
+            }
+            using (var view = new V())
+            {
+                var late = 0;
+                view.Changed += delegate { view.Dispose(); };
+                view.Al += delegate { late++; };
+                view.Done += delegate { late++; };
+                var work = view.GoA(source);
+                WaitFor(() => work.IsCompleted, "dispose from async Changed completion");
+                work.GetAwaiter().GetResult();
+                Eq(0, late, "disposing in Changed suppresses alerts and completion");
+                view.St();
+                var rejected = false;
+                try { view.Go(source); }
+                catch (ObjectDisposedException) { rejected = true; }
+                Ok(rejected, "disposed view rejects new navigation");
+            }
+            using (var view = new V())
+            {
+                var work = view.GoA(source);
+                view.Dispose();
+                WaitFor(() => work.IsCompleted, "disposed local load completion");
+                Eq("cancel", Fails(() => work.GetAwaiter().GetResult(), "local load cancellation").K, "local cancellation before parsing");
+                Ok(view.At == null, "disposed local load did not publish a page");
+            }
+            using (var server = new CompressedServer())
+            using (var view = new V())
+            {
+                var events = 0;
+                view.Changed += delegate { events++; };
+                view.Done += delegate { events++; };
+                var work = view.GoA(new Uri(server.U, "?external-page=slow"));
+                WaitFor(() => server.Hits == 2, "pending stylesheet request");
+                view.Dispose();
+                WaitFor(() => work.IsCompleted, "disposed stylesheet load completion");
+                Eq("cancel", Fails(() => work.GetAwaiter().GetResult(), "stylesheet cancellation").K, "stylesheet cancellation kind");
+                Eq(0, events, "disposed stylesheet load did not publish callbacks");
+            }
+            using (var server = new CompressedServer())
+            using (var view = new V())
+            {
+                var events = 0;
+                view.Done += delegate { events++; };
+                var work = view.GoA(new Uri(server.U, "?image-page=1"));
+                WaitFor(() => server.Hits == 2, "pending image request");
+                view.Dispose();
+                WaitFor(() => work.IsCompleted, "disposed image request completion");
+                work.GetAwaiter().GetResult();
+                Eq(0, events, "disposed image load did not emit completion");
+                var images = (Dictionary<string, Image>)typeof(V).GetField("pics", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(view);
+                Eq(0, images.Count, "disposed image load did not repopulate released cache");
+            }
+            Console.WriteLine("Lea disposal smoke passed: local/CSS/image cancellation, callback disposal, and navigation rejection.");
+        }
+
         private static void WaitFor(Func<bool> ready, string name)
         {
             var end = DateTime.UtcNow.AddSeconds(3);
@@ -6533,6 +6617,7 @@ namespace Lea.Tests
                         {
                             var variant = QueryValue(request, "external-page");
                             var links = variant == "large" ? "<link rel='stylesheet' href='/large.css'>" : "<link rel='stylesheet' href='/style.css?v=" + variant + "'>";
+                            if (variant == "slow") links = "<link rel='stylesheet' href='/style.css?delay=1000'>";
                             if (variant == "limit")
                             {
                                 var many = new StringBuilder();
@@ -6547,6 +6632,8 @@ namespace Lea.Tests
                                 "<input type='file' name='upload' accept='.txt' required><input name='note' value='lea'>" +
                                 "<input type='checkbox' name='keep' value='yes' checked><button type='submit' name='send' value='upload'>Upload</button></form></body></html>";
                         }
+                        else if (request.IndexOf("image-page=1", StringComparison.OrdinalIgnoreCase) >= 0)
+                            html = "<title>Pending image</title><img src='/page?delay=1000&image=1'>";
                         else if (request.IndexOf("form=1", StringComparison.OrdinalIgnoreCase) >= 0)
                         {
                             html = "<html><head><title>Lea POST Form</title></head><body><form action='/page?post=1' method='post'>" +

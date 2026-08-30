@@ -1,0 +1,254 @@
+diff --git a/BrowserFeatures3.vb b/BrowserFeatures3.vb
+index 0e4a559..2a44566 100644
+--- a/BrowserFeatures3.vb
++++ b/BrowserFeatures3.vb
+@@ -102,15 +102,13 @@ Partial Class j
+                 Dim selection As String = InputBox("Enter CURRENT, DOMAIN, or ALL to choose tabs:", "Create Tab Group", "CURRENT").Trim.ToUpperInvariant
+                 Dim urls As New List(Of String)
+                 Dim currentHost As String = ""
+-                If k.SelectedTab IsNot Nothing AndAlso k.SelectedTab.Controls.Count > 0 Then
+-                    Dim current As WebBrowser = TryCast(k.SelectedTab.Controls(0), WebBrowser)
+-                    If current IsNot Nothing AndAlso current.Url IsNot Nothing Then currentHost = current.Url.Host
+-                End If
++                Dim current As Uri = qleaDomain()
++                If current IsNot Nothing Then currentHost = current.Host
+                 For Each tab As TabPage In k.TabPages
+-                    If tab.Controls.Count = 0 Then Continue For
+-                    Dim wb As WebBrowser = TryCast(tab.Controls(0), WebBrowser)
+-                    If wb Is Nothing OrElse wb.Url Is Nothing Then Continue For
+-                    If selection = "ALL" OrElse (selection = "CURRENT" AndAlso tab Is k.SelectedTab) OrElse (selection = "DOMAIN" AndAlso wb.Url.Host.Equals(currentHost, StringComparison.OrdinalIgnoreCase)) Then urls.Add(wb.Url.ToString)
++                    Dim url As String = qleaSessionTarget(qleaUrl(tab))
++                    If url = "" Then Continue For
++                    Dim address As New Uri(url)
++                    If selection = "ALL" OrElse (selection = "CURRENT" AndAlso tab Is k.SelectedTab) OrElse (selection = "DOMAIN" AndAlso currentHost <> "" AndAlso Not address.IsFile AndAlso address.Host.Equals(currentHost, StringComparison.OrdinalIgnoreCase)) Then urls.Add(url)
+                 Next tab
+                 If urls.Count = 0 Then Exit Sub
+                 qdeletegrouprecords(name)
+@@ -201,10 +199,9 @@ Partial Class j
+     End Sub
+ 
+     Function qtabingroup(ByVal tab As TabPage, ByVal name As String) As Boolean
+-        If tab Is Nothing OrElse tab.Controls.Count = 0 Then Return False
+-        Dim wb As WebBrowser = TryCast(tab.Controls(0), WebBrowser)
+-        If wb Is Nothing Then Return False
+-        Dim url As String = If(suspendedGroupUrls.ContainsKey(tab), suspendedGroupUrls(tab), If(wb.Url Is Nothing, "", wb.Url.ToString))
++        If tab Is Nothing OrElse tab.IsDisposed Then Return False
++        Dim url As String = qleaUrl(tab)
++        If url = "" Then Return False
+         Return qgroupurls(name).Any(Function(groupUrl) groupUrl.Equals(url, StringComparison.OrdinalIgnoreCase))
+     End Function
+ 
+@@ -215,14 +212,19 @@ Partial Class j
+             If qtabingroup(tab, name) Then matching.Add(tab)
+         Next tab
+         If matching.Count = 0 Then Exit Sub
+-        If matching.Count >= k.TabPages.Count Then q3("about:blank")
++        If matching.Count >= k.TabPages.Count Then qleaNew(qleaStart())
+         hiddenGroupTabs(name) = New List(Of TabPage)
+-        For Each tab As TabPage In matching
+-            If k.TabPages.Contains(tab) Then
+-                hiddenGroupTabs(name).Add(tab)
+-                k.TabPages.Remove(tab)
+-            End If
+-        Next tab
++        qleaGroupChange = True
++        Try
++            For Each tab As TabPage In matching
++                If k.TabPages.Contains(tab) Then
++                    hiddenGroupTabs(name).Add(tab)
++                    k.TabPages.Remove(tab)
++                End If
++            Next tab
++        Finally
++            qleaGroupChange = False
++        End Try
+         I = k.TabPages.Count
+         qsetgroupstate(name, "collapsed")
+         su.Visible = True
+@@ -232,7 +234,7 @@ Partial Class j
+     Sub qexpandgroup(ByVal name As String)
+         If hiddenGroupTabs.ContainsKey(name) Then
+             For Each tab As TabPage In hiddenGroupTabs(name)
+-                If k.TabPages.Contains(tab) = False Then k.TabPages.Add(tab)
++                If Not tab.IsDisposed AndAlso k.TabPages.Contains(tab) = False Then k.TabPages.Add(tab)
+             Next tab
+             hiddenGroupTabs.Remove(name)
+             I = k.TabPages.Count
+@@ -245,15 +247,7 @@ Partial Class j
+         qexpandgroup(name)
+         Dim suspended As Integer = 0
+         For Each tab As TabPage In k.TabPages
+-            If qtabingroup(tab, name) AndAlso tab.Controls.Count > 0 Then
+-                Dim wb As WebBrowser = TryCast(tab.Controls(0), WebBrowser)
+-                If wb IsNot Nothing AndAlso wb.Url IsNot Nothing Then
+-                    suspendedGroupUrls(tab) = wb.Url.ToString
+-                    wb.Navigate("about:blank")
+-                    tab.Text = "[Suspended] " & name
+-                    suspended += 1
+-                End If
+-            End If
++            If qtabingroup(tab, name) AndAlso qsuspendtab(tab) Then suspended += 1
+         Next tab
+         qsetgroupstate(name, "suspended")
+         su.Visible = True
+@@ -264,11 +258,7 @@ Partial Class j
+         Dim resumed As Integer = 0
+         For Each tab As TabPage In suspendedGroupUrls.Keys.ToArray
+             If qgroupurls(name).Any(Function(url) url.Equals(suspendedGroupUrls(tab), StringComparison.OrdinalIgnoreCase)) Then
+-                Dim wb As WebBrowser = TryCast(tab.Controls(0), WebBrowser)
+-                Dim url As String = suspendedGroupUrls(tab)
+-                suspendedGroupUrls.Remove(tab)
+-                If wb IsNot Nothing Then wb.Navigate(url)
+-                resumed += 1
++                If qfeature6resumetab(tab) Then resumed += 1
+             End If
+         Next tab
+         If qgroupstate(name) = "suspended" Then qsetgroupstate(name, "active")
+@@ -277,13 +267,20 @@ Partial Class j
+     End Sub
+ 
+     Friend Sub qapplytabgroup(ByVal wb As WebBrowser)
++        If wb IsNot Nothing Then qapplygrouptab(TryCast(wb.Parent, TabPage))
++    End Sub
++
++    Private Sub qapplygrouptab(ByVal tab As TabPage)
+         Try
+-            If wb Is Nothing OrElse wb.Url Is Nothing Then Exit Sub
+-            Dim tab As TabPage = TryCast(wb.Parent, TabPage)
+-            If tab Is Nothing Then Exit Sub
++            If tab Is Nothing OrElse tab.IsDisposed Then Exit Sub
++            tab.BackColor = SystemColors.Control
++            tab.ToolTipText = ""
++            If tab.Text.StartsWith("● ") Then tab.Text = tab.Text.Substring(2)
++            Dim url As String = qleaUrl(tab)
++            If url = "" Then Return
+             For Each raw As String In My.Settings.tg
+                 Dim fields As String() = raw.Split(New Char() {"|"c}, 4)
+-                If fields.Length <> 4 OrElse qunb64(fields(3)).Equals(wb.Url.ToString, StringComparison.OrdinalIgnoreCase) = False Then Continue For
++                If fields.Length <> 4 OrElse qunb64(fields(3)).Equals(url, StringComparison.OrdinalIgnoreCase) = False Then Continue For
+                 Dim argb As Integer = Color.Orange.ToArgb
+                 Integer.TryParse(fields(1), argb)
+                 tab.BackColor = Color.FromArgb(argb)
+@@ -298,10 +295,7 @@ Partial Class j
+ 
+     Sub qapplyalltabgroups()
+         For Each tab As TabPage In k.TabPages
+-            tab.BackColor = SystemColors.Control
+-            tab.ToolTipText = ""
+-            If tab.Text.StartsWith("● ") Then tab.Text = tab.Text.Substring(2)
+-            If tab.Controls.Count > 0 Then qapplytabgroup(TryCast(tab.Controls(0), WebBrowser))
++            qapplygrouptab(tab)
+         Next tab
+     End Sub
+ 
+diff --git a/BrowserFeatures4.vb b/BrowserFeatures4.vb
+index 370db46..213b522 100644
+--- a/BrowserFeatures4.vb
++++ b/BrowserFeatures4.vb
+@@ -166,24 +166,25 @@ Partial Class j
+     End Function
+ 
+     Friend Sub qoverviewclose(ByVal records As List(Of TabOverviewRecord))
+-        If records.Count >= qalltabs().Count Then q3("about:blank")
++        If k.TabPages.Cast(Of TabPage)().All(Function(tab) records.Any(Function(record) record.Tab Is tab)) Then qleaNew(qleaStart())
+         For Each record As TabOverviewRecord In records
+-            If record.Url <> "" Then My.Settings.rc.Insert(0, record.Url)
+-            For Each hidden As List(Of TabPage) In hiddenGroupTabs.Values
+-                hidden.Remove(record.Tab)
+-            Next hidden
+-            suspendedGroupUrls.Remove(record.Tab)
+-            If k.TabPages.Contains(record.Tab) Then k.TabPages.Remove(record.Tab)
+-            record.Tab.Dispose()
++            qleaClose(record.Tab)
+         Next record
+-        While My.Settings.rc.Count > 20
+-            My.Settings.rc.RemoveAt(My.Settings.rc.Count - 1)
+-        End While
+         I = k.TabPages.Count
+         My.Settings.Save()
+     End Sub
+     Friend Sub qoverviewreload(ByVal records As List(Of TabOverviewRecord))
+         For Each record As TabOverviewRecord In records
++            If record.Tab.IsDisposed Then Continue For
++            If suspendedGroupUrls.ContainsKey(record.Tab) Then
++                qfeature6resumetab(record.Tab)
++                Continue For
++            End If
++            Dim host As Global.Lea.Win.V = qleaHost(record.Tab)
++            If host IsNot Nothing Then
++                qleaReload(host)
++                Continue For
++            End If
+             If record.Tab.Controls.Count > 0 Then
+                 Dim wb As WebBrowser = TryCast(record.Tab.Controls(0), WebBrowser)
+                 If wb IsNot Nothing Then
+@@ -200,11 +201,7 @@ Partial Class j
+     End Sub
+     Friend Sub qoverviewsuspend(ByVal records As List(Of TabOverviewRecord))
+         For Each record As TabOverviewRecord In records
+-            If record.Tab.Controls.Count = 0 OrElse record.Url = "" Then Continue For
+-            Dim wb As WebBrowser = TryCast(record.Tab.Controls(0), WebBrowser)
+-            suspendedGroupUrls(record.Tab) = record.Url
+-            wb.Navigate("about:blank")
+-            record.Tab.Text = "[Suspended] " & record.Title
++            If Not record.Tab.IsDisposed Then qsuspendtab(record.Tab)
+         Next record
+     End Sub
+     Friend Sub qoverviewarchive(ByVal records As List(Of TabOverviewRecord))
+diff --git a/BrowserFeatures5.vb b/BrowserFeatures5.vb
+index efdfd6e..63ad2e7 100644
+--- a/BrowserFeatures5.vb
++++ b/BrowserFeatures5.vb
+@@ -81,9 +81,7 @@ Partial Class j
+             Dim tab As TabPage = k.SelectedTab
+             Dim wb As WebBrowser = TryCast(tab.Controls(0), WebBrowser)
+             If suspendedGroupUrls.ContainsKey(tab) Then
+-                Dim url As String = suspendedGroupUrls(tab)
+-                suspendedGroupUrls.Remove(tab)
+-                If wb IsNot Nothing Then wb.Navigate(url)
++                If Not qfeature6resumetab(tab) Then Exit Sub
+                 su.Visible = True
+                 su.Text = "Tab resumed"
+             ElseIf qsuspendtab(tab) Then
+@@ -200,6 +198,7 @@ Partial Class j
+ 
+     Function qsuspendtab(ByVal tab As TabPage) As Boolean
+         If tab Is Nothing OrElse tab.Controls.Count = 0 OrElse suspendedGroupUrls.ContainsKey(tab) Then Return False
++        If qleaHost(tab) IsNot Nothing Then Return qleaSuspend(tab)
+         Dim wb As WebBrowser = TryCast(tab.Controls(0), WebBrowser)
+         If wb Is Nothing OrElse wb.Url Is Nothing OrElse wb.Url.ToString = "about:blank" Then Return False
+         Dim title As String = If(tab.Text = "", wb.Url.Host, tab.Text)
+diff --git a/BrowserFeatures6.vb b/BrowserFeatures6.vb
+index 8cc1e49..7ddd29b 100644
+--- a/BrowserFeatures6.vb
++++ b/BrowserFeatures6.vb
+@@ -476,6 +476,7 @@ Partial Class j
+     Function qfeature6resumetab(ByVal tab As TabPage) As Boolean
+         Try
+             If tab Is Nothing OrElse tab.IsDisposed OrElse suspendedGroupUrls.ContainsKey(tab) = False Then Return False
++            If qleaPaused.ContainsKey(tab) Then Return qleaResume(tab, True) IsNot Nothing
+             Dim url As String = suspendedGroupUrls(tab)
+             If tab.Controls.Count = 0 Then
+                 tab.Controls.Add(qfeature6newbrowser())
+@@ -594,7 +595,7 @@ Partial Class j
+                 feature6IdleSince(selected) = Now
+                 feature6MruTabs.Remove(selected)
+                 feature6MruTabs.Insert(0, selected)
+-                If suspendedGroupUrls.ContainsKey(selected) Then
++                If Not qleaGroupChange AndAlso suspendedGroupUrls.ContainsKey(selected) Then
+                     If qfeature6resumetab(selected) Then
+                         su.Visible = True
+                         su.Text = "Suspended tab resumed"
+@@ -680,6 +681,12 @@ Partial Class j
+     End Sub
+ 
+     Sub qfeature6prunestate()
++        For Each tab As TabPage In qleaPaused.Keys.ToArray()
++            If tab.IsDisposed OrElse Not qalltabs().Contains(tab) Then
++                qleaPaused.Remove(tab)
++                suspendedGroupUrls.Remove(tab)
++            End If
++        Next
+         For i As Integer = feature6MruTabs.Count - 1 To 0 Step -1
+             Dim tab As TabPage = feature6MruTabs(i)
+             If tab Is Nothing OrElse tab.IsDisposed OrElse k.TabPages.Contains(tab) = False Then feature6MruTabs.RemoveAt(i)

@@ -78,7 +78,7 @@ suite. Source for the corresponding host edits is retained in
 `Lea.Firespider/Startup-host.patch`, with reproduction notes in
 `LeaForge/STARTUP_RELIABILITY.md`.
 
-`Test-FirespiderBoot.ps1 -Root <host-root>` adds fourteen real form-start cases,
+`Test-FirespiderBoot.ps1 -Root <host-root>` adds sixteen real form-start cases,
 including private startup, restore precedence, second windows, a gated slow
 HTTP response, and locked-session shutdown. It compiles `Lea.Firespider/Boot.cs`
 beside the test host and runs separate off-screen processes with a sixty-second
@@ -100,3 +100,8 @@ loopback site-root navigation, IPv6/port handling, and bounded single/batch URL
 opening without reading or overwriting the user's clipboard. The runner retains
 the process handle and drains redirected output before checking completion.
 See `LeaForge/NAVIGATION_COMMANDS.md` for exact behavior and test boundaries.
+
+`-Case suspend` checks native Lea disposal/collection, cancellation, private
+resume, navigation, duplicate, and close. `-Case groups` checks the saved-group
+startup timer, collapse/expand, hidden ownership, sessions, and overview routes.
+See `LeaForge/SUSPENSION.md` for reload semantics and remaining legacy paths.

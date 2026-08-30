@@ -19,6 +19,9 @@ Partial Class j
     Private qleaStarting As Boolean
     Private ReadOnly qleaClock As System.Diagnostics.Stopwatch = If(Environment.GetEnvironmentVariable("LEA_FIRESPIDER_PROFILE") = "1", System.Diagnostics.Stopwatch.StartNew(), Nothing)
     Private qleaTimings As List(Of String)
+    Private ReadOnly qleaPaused As New Dictionary(Of TabPage, Boolean)()
+    Private ReadOnly qleaPending As New Dictionary(Of Global.Lea.Win.V, String)()
+    Private qleaGroupChange As Boolean
     Private Const qleaSessionTabs As Integer = 12
     Private Const qleaSessionBytes As Integer = 65536
     Private Const qleaSessionUrl As Integer = 4096
@@ -36,6 +39,8 @@ Partial Class j
         CT.Available = True
         HO.Available = True
         HO.Enabled = True
+        re.Available = True
+        re.Enabled = True
         qleaMenu = New ToolStripMenuItem("New Legacy Tab")
         qleaMenu.Image = My.Resources.F9
         qleaMenu.BackColor = Color.White
@@ -181,7 +186,7 @@ Partial Class j
         Dim tab = qleaSelectedTab()
         If tab Is Nothing OrElse tab.Controls.Count = 0 Then Return Nothing
         Dim host = TryCast(tab.Controls(0), Global.Lea.Win.V)
-        If host IsNot Nothing Then host.Pv = pv
+        If host IsNot Nothing AndAlso pv Then host.Pv = True
         Return host
     End Function
 
@@ -207,7 +212,11 @@ Partial Class j
         Dim tab = qleaSelectedTab()
         Dim target = qleaUrl(tab)
         If target.Length = 0 Then Return
-        If qleaHost(tab) IsNot Nothing Then qleaNew(target) Else q3(target)
+        If qleaHost(tab) IsNot Nothing OrElse qleaPaused.ContainsKey(tab) Then
+            qleaCreate(target, pv OrElse qleaPrivate(tab))
+        Else
+            q3(target)
+        End If
     End Sub
 
     Private Sub qleaReopen()
@@ -285,6 +294,16 @@ Partial Class j
 
     Private Function qleaDo(ByVal command As String, Optional ByVal value As String = "") As Boolean
         Dim host = qleaAt()
+        Dim selected As TabPage = qleaSelectedTab()
+        If host Is Nothing AndAlso selected IsNot Nothing AndAlso qleaPaused.ContainsKey(selected) Then
+            If command = "reload" Then
+                qleaResume(selected, True)
+                Return True
+            End If
+            If command = "go" OrElse command = "search" OrElse command = "home" Then
+                host = qleaResume(selected, False)
+            End If
+        End If
         If host Is Nothing Then
             Dim tab = qleaSelectedTab()
             Return tab Is Nothing OrElse tab.Controls.Count = 0 OrElse Not TypeOf tab.Controls(0) Is WebBrowser
@@ -327,15 +346,26 @@ Partial Class j
     End Sub
 
     Private Function qleaNew(ByVal target As String) As Global.Lea.Win.V
+        Return qleaCreate(target, pv)
+    End Function
+
+    Private Function qleaCreate(ByVal target As String, ByVal privateView As Boolean) As Global.Lea.Win.V
         Dim tab As New TabPage("Lea")
-        Dim host As New Global.Lea.Win.V()
-        host.Pv = pv
-        host.Dock = DockStyle.Fill
-        tab.Tag = "lea"
-        tab.Controls.Add(host)
+        Dim host As Global.Lea.Win.V = qleaMount(tab, privateView)
         k.TabPages.Add(tab)
         k.SelectedTab = tab
         I += 1
+        If String.IsNullOrWhiteSpace(target) Then target = qleaStart()
+        If Visible OrElse qleaStarting Then qleaLoad(host, target) Else host.Go(target)
+        Return host
+    End Function
+
+    Private Function qleaMount(ByVal tab As TabPage, ByVal privateView As Boolean) As Global.Lea.Win.V
+        Dim host As New Global.Lea.Win.V()
+        host.Pv = privateView
+        host.Dock = DockStyle.Fill
+        If tab.Tag Is Nothing Then tab.Tag = "lea"
+        tab.Controls.Add(host)
         AddHandler host.Changed, AddressOf qleaChanged
         AddHandler host.Done, AddressOf qleaDone
         AddHandler host.Al, AddressOf qleaAlert
@@ -351,9 +381,67 @@ Partial Class j
         closeMenu.Items.Add(New ToolStripSeparator())
         closeMenu.Items.Add(closeItem)
         host.ContextMenuStrip = closeMenu
-        If String.IsNullOrWhiteSpace(target) Then target = qleaStart()
-        If Visible OrElse qleaStarting Then qleaLoad(host, target) Else host.Go(target)
         Return host
+    End Function
+
+    Private Function qleaSuspend(ByVal tab As TabPage) As Boolean
+        If tab Is Nothing OrElse tab.IsDisposed OrElse qleaPaused.ContainsKey(tab) OrElse Not qalltabs().Contains(tab) Then Return False
+        Dim host As Global.Lea.Win.V = qleaHost(tab)
+        If host Is Nothing OrElse host.IsDisposed Then Return False
+        Dim target As String = qleaUrl(tab)
+        qleaPending.TryGetValue(host, target)
+        If String.IsNullOrWhiteSpace(target) Then target = qleaUrl(tab)
+        target = qleaSessionTarget(target)
+        If target = "" Then Return False
+        Dim placeholder As New Panel With {.Dock = DockStyle.Fill, .BackColor = SystemColors.Window}
+        Dim button As New Button With {.Text = "Resume", .AutoSize = True, .Location = New Point(16, 16)}
+        AddHandler button.Click, Sub() qleaResume(tab, True)
+        placeholder.Controls.Add(button)
+        qleaPaused(tab) = host.Pv OrElse pv
+        suspendedGroupUrls(tab) = target
+        RemoveHandler host.Changed, AddressOf qleaChanged
+        RemoveHandler host.Done, AddressOf qleaDone
+        RemoveHandler host.Al, AddressOf qleaAlert
+        RemoveHandler host.Dr, AddressOf qleaDownload
+        RemoveHandler host.Gr, AddressOf qleaGoRequest
+        qleaPending.Remove(host)
+        tab.Controls.Remove(host)
+        Dim menu As ContextMenuStrip = host.ContextMenuStrip
+        host.ContextMenuStrip = Nothing
+        If menu IsNot Nothing Then menu.Dispose()
+        host.Dispose()
+        tab.Controls.Add(placeholder)
+        tab.Text = "[Suspended] " & qfeature6tablabel(target)
+        qapplygrouptab(tab)
+        qleaTabChanged(k, EventArgs.Empty)
+        Return True
+    End Function
+
+    Private Function qleaResume(ByVal tab As TabPage, ByVal navigate As Boolean) As Global.Lea.Win.V
+        If tab Is Nothing OrElse tab.IsDisposed OrElse Not qleaPaused.ContainsKey(tab) Then Return Nothing
+        If Not qalltabs().Contains(tab) Then Return Nothing
+        Dim target As String = ""
+        If Not suspendedGroupUrls.TryGetValue(tab, target) Then Return Nothing
+        target = qleaSessionTarget(target)
+        If target = "" Then Return Nothing
+        Dim privateView As Boolean = qleaPaused(tab) OrElse pv
+        For Each control As Control In tab.Controls.Cast(Of Control)().ToArray()
+            tab.Controls.Remove(control)
+            control.Dispose()
+        Next
+        Dim host As Global.Lea.Win.V = qleaMount(tab, privateView)
+        qleaPaused.Remove(tab)
+        suspendedGroupUrls.Remove(tab)
+        feature6LazyTabs.Remove(tab)
+        feature6IdleSince(tab) = Now
+        If navigate Then qleaLoad(host, target)
+        Return host
+    End Function
+
+    Private Function qleaPrivate(ByVal tab As TabPage) As Boolean
+        If qleaPaused.ContainsKey(tab) Then Return qleaPaused(tab)
+        Dim host As Global.Lea.Win.V = qleaHost(tab)
+        Return host IsNot Nothing AndAlso host.Pv
     End Function
 
     Private Function qleaStart() As String
@@ -390,15 +478,21 @@ Partial Class j
     End Sub
 
     Private Async Function qleaLoadA(ByVal host As Global.Lea.Win.V, ByVal target As String) As Threading.Tasks.Task
+        If host Is Nothing OrElse host.IsDisposed OrElse IsDisposed Then Return
+        Dim owned As Boolean = Not qleaPending.ContainsKey(host)
+        If owned Then qleaPending(host) = qleaSessionTarget(target)
         Try
             su.Visible = True
             su.Text = "Lea loading"
             r.Image = My.Resources.F7
             Await host.GoA(target)
         Catch ex As Exception
+            If host.IsDisposed OrElse IsDisposed Then Return
             su.Visible = True
             su.Text = "Lea: " & ex.Message
             r.Image = My.Resources.F8
+        Finally
+            If owned Then qleaPending.Remove(host)
         End Try
     End Function
 
@@ -409,6 +503,7 @@ Partial Class j
             r.Image = My.Resources.F7
             Await host.RlA()
         Catch ex As Exception
+            If host.IsDisposed OrElse IsDisposed Then Return
             su.Visible = True
             su.Text = "Lea: " & ex.Message
             r.Image = My.Resources.F8
@@ -426,6 +521,7 @@ Partial Class j
         su.Visible = False
         Dim host = TryCast(sender, Global.Lea.Win.V)
         qleaState(host)
+        If host IsNot Nothing Then qapplygrouptab(TryCast(host.Parent, TabPage))
         qleaInspectorFollow(host)
     End Sub
 
@@ -755,7 +851,7 @@ Partial Class j
     Private Sub qleaState(ByVal host As Global.Lea.Win.V)
         If host Is Nothing Then Return
         Dim tab = TryCast(host.Parent, TabPage)
-        If tab IsNot Nothing Then tab.Text = If(String.IsNullOrWhiteSpace(host.T), "Lea", host.T)
+        If tab IsNot Nothing Then tab.Text = If(tab.ToolTipText.StartsWith("Tab group:", StringComparison.OrdinalIgnoreCase), ChrW(&H25CF) & " ", "") & If(String.IsNullOrWhiteSpace(host.T), "Lea", host.T)
         If k.SelectedTab IsNot tab Then Return
         c.Text = If(host.U Is Nothing, "", host.U.ToString())
         Text = ProductName & " - " & If(tab Is Nothing, "Lea", tab.Text)
@@ -766,6 +862,17 @@ Partial Class j
     End Sub
 
     Private Sub qleaTabChanged(ByVal sender As Object, ByVal e As EventArgs) Handles k.SelectedIndexChanged
+        Dim selected As TabPage = qleaSelectedTab()
+        If selected IsNot Nothing AndAlso qleaPaused.ContainsKey(selected) Then
+            c.Text = qleaUrl(selected)
+            Text = ProductName & " - " & selected.Text
+            b.Enabled = False
+            BT.Enabled = False
+            f.Enabled = False
+            FT.Enabled = False
+            If qleaInspectorWindow IsNot Nothing Then qleaInspectorSnapshot()
+            Return
+        End If
         Dim host = qleaAt()
         If host IsNot Nothing Then
             qleaState(host)
@@ -806,7 +913,8 @@ Partial Class j
     End Sub
 
     Private Sub qleaTabMouseDown(ByVal sender As Object, ByVal e As MouseEventArgs)
-        If qleaAt() Is Nothing Then Return
+        Dim tab As TabPage = qleaSelectedTab()
+        If tab Is Nothing OrElse (qleaAt() Is Nothing AndAlso Not qleaPaused.ContainsKey(tab)) Then Return
         If e.Button = MouseButtons.Middle Then
             qleaClose(k.SelectedTab)
             Return
@@ -990,11 +1098,12 @@ Partial Class j
         End If
         Dim urls As New List(Of String)()
         Dim bytes As Integer = 0
-        For Each tab As TabPage In k.TabPages
+        For Each tab As TabPage In qalltabs()
             If urls.Count >= qleaSessionTabs Then Exit For
             Dim host = qleaHost(tab)
-            If host Is Nothing OrElse host.Pv OrElse host.U Is Nothing Then Continue For
-            Dim target = host.U.AbsoluteUri
+            If (host Is Nothing AndAlso Not qleaPaused.ContainsKey(tab)) OrElse qleaPrivate(tab) Then Continue For
+            Dim target As String = qleaSessionTarget(qleaUrl(tab))
+            If target = "" Then Continue For
             If target.Length > qleaSessionUrl Then Continue For
             Dim size = Encoding.UTF8.GetByteCount(target & Environment.NewLine)
             If bytes + size > qleaSessionBytes Then Continue For
@@ -1145,17 +1254,18 @@ Partial Class j
     End Sub
 
     Private Sub qleaClose(ByVal tab As TabPage)
-        If tab Is Nothing OrElse Not k.TabPages.Contains(tab) Then Return
+        If tab Is Nothing OrElse tab.IsDisposed OrElse Not qalltabs().Contains(tab) Then Return
         Dim host = qleaHost(tab)
         Dim legacy = tab.Controls.Count > 0 AndAlso TypeOf tab.Controls(0) Is WebBrowser
-        If Not pv AndAlso (host Is Nothing OrElse Not host.Pv) Then rca(qleaUrl(tab))
-        If k.TabCount = 1 Then
+        If Not pv AndAlso Not qleaPrivate(tab) Then rca(qleaUrl(tab))
+        If k.TabPages.Contains(tab) AndAlso k.TabCount = 1 Then
             Close()
             Return
         End If
         k.TabPages.Remove(tab)
         tab.Dispose()
         suspendedGroupUrls.Remove(tab)
+        qleaPaused.Remove(tab)
         For Each hidden As List(Of TabPage) In hiddenGroupTabs.Values
             hidden.Remove(tab)
         Next
