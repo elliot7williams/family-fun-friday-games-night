@@ -26,7 +26,7 @@ namespace Lea.Firespider
         private static int Main(string[] args)
         {
             var root = Path.GetFullPath(args.Length > 0 ? args[0] : AppDomain.CurrentDomain.BaseDirectory);
-            var mode = args.Length > 1 ? args[1] : "clean";
+            var mode = (args.Length > 1 ? args[1] : "clean").ToLowerInvariant();
             var session = Path.Combine(Path.GetTempPath(), "lea-boot-" + Guid.NewGuid().ToString("N") + ".txt");
             var log = session + ".log";
             var oldSession = Environment.GetEnvironmentVariable("LEA_FIRESPIDER_SESSION");
@@ -41,6 +41,7 @@ namespace Lea.Firespider
             var forms = new List<Form>();
             try
             {
+                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands" }.Contains(mode), "unknown boot case: " + mode);
                 Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
                 Application.ThreadException += (sender, error) => UiErrors.Add(error.Exception);
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", session);
@@ -64,6 +65,7 @@ namespace Lea.Firespider
                 foreach (var name in new[] { "s", "sc", "ls", "recovery", "bm" }) settings[name] = new StringCollection();
                 settings["nf"] = page;
                 settings["h"] = page;
+                settings["se"] = "http://127.0.0.1:1/?q=";
                 settings["cleanExit"] = "e";
                 settings["el"] = "e";
                 settings["ep"] = log;
@@ -205,6 +207,7 @@ namespace Lea.Firespider
                     legacy.PerformClick();
                     Check(tabs.SelectedTab.Controls[0] is WebBrowser, "explicit legacy fallback was lost");
                 }
+                if (mode == "commands") CheckCommands(form, settings, page);
                 Check(UiErrors.Count == 0, "UI thread exceptions: " + String.Join(" | ", UiErrors.Select(error => error.Message).ToArray()));
                 if (mode == "locked")
                 {
@@ -257,6 +260,186 @@ namespace Lea.Firespider
             var result = new StringCollection();
             result.AddRange(values);
             return result;
+        }
+
+        private static void CheckCommands(Form form, ApplicationSettingsBase settings, string page)
+        {
+            var tabs = Member<TabControl>(form, "k");
+            settings["rc"] = new StringCollection();
+            settings["ns"] = new StringCollection();
+            Menu(form, "Duplicate Tab").PerformClick();
+            Check(tabs.TabCount == 2 && tabs.SelectedTab.Controls[0] is V, "Duplicate Tab did not create a Lea tab");
+            Wait(() => tabs.TabPages.Cast<TabPage>().All(tab => !((V)tab.Controls[0]).Busy), "duplicate load");
+            Check(((V)tabs.SelectedTab.Controls[0]).U.AbsoluteUri == page, "duplicate URL");
+            Console.WriteLine("PASS commands: duplicate Lea tab");
+
+            var first = tabs.TabPages[0];
+            var closed = tabs.SelectedTab;
+            Check(Member<ToolStripItem>(form, "CT").Available, "Close Tab remains hidden");
+            var closeKey = new KeyEventArgs(Keys.Control | Keys.W);
+            Call(form, "q8", form, closeKey);
+            Check(closeKey.SuppressKeyPress, "close shortcut was not consumed");
+            var recent = (StringCollection)settings["rc"];
+            Check(closed.IsDisposed && tabs.TabCount == 1 && recent.Count == 1 && recent[0] == page,
+                "close did not dispose/record Lea tab: disposed=" + closed.IsDisposed + "; tabs=" + tabs.TabCount + "; recent=" + String.Join(",", recent.Cast<string>().ToArray()));
+            recent.Insert(0, "javascript:alert(1)");
+            var key = new KeyEventArgs(Keys.Control | Keys.Shift | Keys.T);
+            Call(form, "q8", form, key);
+            Check(key.SuppressKeyPress && tabs.TabCount == 2 && tabs.SelectedTab.Controls[0] is V, "keyboard reopen did not use Lea");
+            WaitLea(tabs);
+            Check(recent.Count == 0 && ((V)tabs.SelectedTab.Controls[0]).U.AbsoluteUri == page, "reopen did not consume valid history and skip invalid URL");
+            Menu(form, "Reopen Closed Tab").PerformClick();
+            Check(tabs.TabCount == 2, "empty reopen repeated stale last URL");
+            Member<ToolStripItem>(form, "CT").PerformClick();
+            Call(form, "q161", form, EventArgs.Empty);
+            Member<ToolStripDropDownItem>(form, "RC").DropDownItems[0].PerformClick();
+            Check(tabs.TabCount == 2 && tabs.SelectedTab.Controls[0] is V, "recently closed menu used legacy engine");
+            WaitLea(tabs);
+            Console.WriteLine("PASS commands: close, keyboard reopen, invalid history, and recent-tab menu");
+
+            recent.Clear();
+            Set(form, "pv", true);
+            var secret = (V)Call(form, "qleaNew", page + "#private");
+            var secretTab = (TabPage)secret.Parent;
+            WaitLea(tabs);
+            Set(form, "pv", false);
+            tabs.SelectedTab = first;
+            Call(form, "qleaSaveSession");
+            Check(!File.ReadAllText(Environment.GetEnvironmentVariable("LEA_FIRESPIDER_SESSION")).Contains("#private"), "background private tab leaked into automatic session");
+            Call(form, "qleaClose", secretTab);
+            Check(secret.IsDisposed && recent.Count == 0, "background private close leaked recent history");
+            Set(form, "pv", true);
+            Call(form, "rca", page + "#private-history");
+            Check(recent.Count == 0, "private legacy history leaked");
+            Set(form, "pv", false);
+            Console.WriteLine("PASS commands: private close and automatic-session isolation");
+
+            Call(form, "q1", page.Replace("%20", " ") + "#bookmark");
+            Wait(() => ((V)first.Controls[0]).U.AbsoluteUri == page + "#bookmark" && !((V)first.Controls[0]).Busy, "engine-aware URL navigation");
+            settings["bm"] = new StringCollection();
+            Member<ToolStripItem>(form, "BP").PerformClick();
+            Check(((StringCollection)settings["bm"]).Contains(page + "#bookmark"), "bookmark current omitted Lea URL");
+            settings["bm"] = new StringCollection();
+            Menu(form, "Bookmark All Tabs").PerformClick();
+            Check(((StringCollection)settings["bm"]).Count == 2, "bookmark all omitted Lea tabs");
+            var reloads = 0;
+            foreach (TabPage tab in tabs.TabPages) ((V)tab.Controls[0]).Done += (sender, change) => reloads++;
+            Menu(form, "Reload All Tabs").PerformClick();
+            Wait(() => reloads == 2 && tabs.TabPages.Cast<TabPage>().All(tab => !((V)tab.Controls[0]).Busy), "reload all Lea tabs");
+            Console.WriteLine("PASS commands: current/all bookmarks, URL navigation, and reload all");
+
+            var tabWidth = tabs.ItemSize.Width;
+            Call(form, "q3", page + "#legacy");
+            var legacy = (WebBrowser)tabs.SelectedTab.Controls[0];
+            Wait(() => legacy.Url != null && legacy.ReadyState == WebBrowserReadyState.Complete, "explicit legacy load");
+            Menu(form, "Duplicate Tab").PerformClick();
+            Check(tabs.SelectedTab.Controls[0] is WebBrowser, "legacy duplication changed engines");
+            var duplicateLegacy = (WebBrowser)tabs.SelectedTab.Controls[0];
+            Wait(() => duplicateLegacy.Url != null && duplicateLegacy.Url.AbsoluteUri == page + "#legacy", "legacy duplicate changed the URL into a search");
+            var removed = tabs.TabPages.Cast<TabPage>().Skip(1).ToArray();
+            tabs.SelectedTab = first;
+            Menu(form, "Close Tabs To The Right").PerformClick();
+            Check(tabs.TabCount == 1 && tabs.SelectedTab == first && removed.All(tab => tab.IsDisposed), "mixed right-close did not dispose all targets");
+            Check((int)form.GetType().GetField("I", Members).GetValue(form) == 1, "right-close left stale tab count");
+            Check(tabs.ItemSize.Width == tabWidth, "legacy close did not restore tab width");
+            Call(form, "q3", page + "#kept");
+            var keptLegacy = tabs.SelectedTab;
+            var extra = (V)Call(form, "qleaNew", page + "#extra");
+            tabs.SelectedTab = keptLegacy;
+            Menu(form, "Close Other Tabs").PerformClick();
+            Check(tabs.TabCount == 1 && tabs.SelectedTab == keptLegacy && first.IsDisposed && extra.IsDisposed, "mixed close-other did not preserve selected legacy tab");
+            Console.WriteLine("PASS commands: engine-preserving duplicate and mixed bulk-close disposal");
+
+            Call(form, "qleaNew", page + "#session");
+            WaitLea(tabs);
+            var keptBrowser = (WebBrowser)keptLegacy.Controls[0];
+            Wait(() => keptBrowser.Url != null && keptBrowser.ReadyState == WebBrowserReadyState.Complete, "named-session legacy source");
+            Call(form, "qsavesession", "  Pair|one  ");
+            Call(form, "qsavesession", "  Pair|one  ");
+            var named = (StringCollection)settings["ns"];
+            Check(named.Count == 2 && named.Cast<string>().All(value => value.StartsWith("Pair-one|")), "named save/replace omitted Lea or failed normalized replacement");
+            Call(form, "qopensession", "pair-one");
+            Check(tabs.TabCount == 4 && tabs.SelectedIndex == 2 && tabs.TabPages.Cast<TabPage>().Skip(2).All(tab => tab.Controls[0] is V), "named session did not append/select Lea tabs");
+            WaitLea(tabs);
+            Check(((V)tabs.TabPages[2].Controls[0]).U.AbsoluteUri == page + "#kept" && ((V)tabs.TabPages[3].Controls[0]).U.AbsoluteUri == page + "#session", "named session URL order");
+            Check(keptLegacy.Controls[0] == keptBrowser && !keptBrowser.IsDisposed, "named open replaced an existing tab");
+            named.Clear();
+            named.Add("Limit|javascript:alert(1)");
+            named.Add("Limit|https://example.invalid/" + new string('x', 4096));
+            foreach (var index in Enumerable.Range(0, 20)) named.Add("Limit|" + page + "#" + index);
+            Call(form, "qopensession", "Limit");
+            Check(tabs.TabCount == 16 && named.Count == 22 && Member<Label>(form, "su").Text.Contains("10 URL(s) skipped"), "named open limits/reporting changed saved records");
+            WaitLea(tabs);
+            Set(form, "pv", true);
+            named.Clear();
+            named.Add("Private|" + page + "#private-open");
+            Call(form, "qopensession", "Private");
+            Check(tabs.TabCount == 17 && ((V)tabs.SelectedTab.Controls[0]).Pv, "explicit private session open was blocked or non-private");
+            WaitLea(tabs);
+            Set(form, "pv", false);
+            Console.WriteLine("PASS commands: mixed named save/replace, Lea restore, limits, and explicit private open");
+
+            var session = Environment.GetEnvironmentVariable("LEA_FIRESPIDER_SESSION");
+            File.WriteAllText(session, page);
+            settings["ls"] = Collection(page);
+            Call(form, "qleaClearSession");
+            Check(!File.Exists(session) && ((StringCollection)settings["ls"]).Count == 0, "clear saved session left Lea data");
+            using (var locked = new FileStream(session, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
+            {
+                settings["ls"] = Collection(page);
+                var rejected = false;
+                try { Call(form, "qleaClearSession"); }
+                catch (TargetInvocationException error) { rejected = error.InnerException is IOException; }
+                Check(rejected && ((StringCollection)settings["ls"]).Count == 1, "locked clear partially erased saved settings");
+            }
+            foreach (var tab in tabs.TabPages.Cast<TabPage>().ToArray()) { tabs.TabPages.Remove(tab); tab.Dispose(); }
+            Call(form, "q4", form, EventArgs.Empty);
+            Call(form, "q16", form, EventArgs.Empty);
+            Call(form, "q33", form, EventArgs.Empty);
+            Call(form, "q22", form, EventArgs.Empty);
+            Call(form, "pc", form, EventArgs.Empty);
+            Check(tabs.TabCount == 0, "empty-tab commands created unintended controls");
+            Console.WriteLine("PASS commands: saved-session clearing, locked-file preservation, and empty tabs");
+            Set(form, "I", 0);
+            Call(form, "q3", page);
+            Member<ToolStripItem>(form, "CT").PerformClick();
+            Check(form.IsDisposed && (string)settings["cleanExit"] == "e", "last legacy tab did not close through normal cleanup");
+            Console.WriteLine("PASS commands: last legacy tab closes normally without terminating the harness");
+        }
+
+        private static object Call(Form form, string name, params object[] args)
+        {
+            return form.GetType().GetMethod(name, Members).Invoke(form, args);
+        }
+
+        private static void Set(Form form, string name, object value)
+        {
+            form.GetType().GetField(name, Members).SetValue(form, value);
+        }
+
+        private static void WaitLea(TabControl tabs)
+        {
+            Wait(() => tabs.TabPages.Cast<TabPage>().Select(tab => tab.Controls[0]).OfType<V>().All(view => view.At != null && !view.Busy), "Lea command page loads");
+        }
+
+        private static ToolStripItem Menu(Form form, string text)
+        {
+            var found = FindMenu(Member<ToolStripDropDownItem>(form, "m"), text);
+            Check(found != null, "menu not found: " + text);
+            return found;
+        }
+
+        private static ToolStripItem FindMenu(ToolStripDropDownItem root, string text)
+        {
+            foreach (ToolStripItem item in root.DropDownItems)
+            {
+                if (item.Text.Replace("&", "") == text) return item;
+                var child = item as ToolStripDropDownItem;
+                if (child == null) continue;
+                var found = FindMenu(child, text);
+                if (found != null) return found;
+            }
+            return null;
         }
 
         private static string MenuSignature(ToolStripDropDownItem root)

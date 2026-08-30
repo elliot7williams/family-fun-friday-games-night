@@ -17,6 +17,13 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
+Milestone 52 routes common duplicate, close/reopen, bookmark, reload-all, and
+named-session commands through Lea-aware helpers. Close Tab is visible again;
+last-legacy-tab closure uses normal cleanup. Private Lea views no longer enter
+recent history or automatic session snapshots through these paths. The new
+twelfth Boot case and `Tab-session-host.patch` are documented in
+`TAB_SESSION_COMMANDS.md`, including explicit private opens and restore limits.
+
 Milestone 51 profiles the slow host startup and batches root/category menu
 layout with Finally cleanup. Five matched before/after samples reduce median
 Form.Show from 14.062 to 1.683 seconds, retaining the same 552-item menu tree.
@@ -34,8 +41,9 @@ failures. The tracked adapter, `Lea.Firespider/Startup-host.patch`, eighteen
 focused host checks, and `Lea.Build/Test-FirespiderStartup.ps1` retain both the
 fixes and their reproduction paths. See `STARTUP_RELIABILITY.md`.
 
-1. Move remaining common tab/session commands through the engine-aware adapter;
-   keep tracking host startup separately from engine-only timing.
+1. Continue migrating the previous-session menu, left-close variants, and
+   remaining clipboard/home/domain routes; keep distinguishing legacy-only
+   commands from Lea-supported ones and host timing from engine-only timing.
 2. Keep the stable empty UI Automation visible-range fallback until a native-safe
    non-empty bridge survives direct plus external MTA clients.
 3. Keep strengthening host tests as more legacy tab routes move to Lea.

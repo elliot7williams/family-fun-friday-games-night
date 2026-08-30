@@ -33,6 +33,7 @@ Partial Class j
         If qleaMenu IsNot Nothing Then Return
         N.Text = "New Lea Tab"
         N.ToolTipText = "Open a new Lea tab"
+        CT.Available = True
         qleaMenu = New ToolStripMenuItem("New Legacy Tab")
         qleaMenu.Image = My.Resources.F9
         qleaMenu.BackColor = Color.White
@@ -194,6 +195,48 @@ Partial Class j
         Return TryCast(tab.Controls(0), Global.Lea.Win.V)
     End Function
 
+    Private Function qleaUrl(ByVal tab As TabPage) As String
+        If tab Is Nothing OrElse tab.IsDisposed Then Return ""
+        Dim browser = If(tab.Controls.Count = 0, Nothing, TryCast(tab.Controls(0), WebBrowser))
+        Return qpersistedtaburl(tab, browser)
+    End Function
+
+    Private Sub qleaDuplicate()
+        Dim tab = qleaSelectedTab()
+        Dim target = qleaUrl(tab)
+        If target.Length = 0 Then Return
+        If qleaHost(tab) IsNot Nothing Then qleaNew(target) Else q3(target)
+    End Sub
+
+    Private Sub qleaReopen()
+        Dim target As String = ""
+        If My.Settings.rc.Count = 0 Then
+            target = qleaSessionTarget(lu)
+            lu = ""
+        Else
+            For visited As Integer = 0 To 24
+                If My.Settings.rc.Count = 0 Then Exit For
+                target = qleaSessionTarget(My.Settings.rc(0))
+                My.Settings.rc.RemoveAt(0)
+                If target.Length > 0 Then Exit For
+            Next
+            lu = If(My.Settings.rc.Count = 0, "", My.Settings.rc(0))
+        End If
+        If target.Length > 0 Then qleaNew(target)
+    End Sub
+
+    Private Sub qleaCloseGroup(ByVal rightOnly As Boolean)
+        Dim selected = qleaSelectedTab()
+        If selected Is Nothing Then Return
+        Dim first = If(rightOnly, k.SelectedIndex + 1, 0)
+        For index As Integer = k.TabCount - 1 To first Step -1
+            Dim tab = k.TabPages(index)
+            If tab IsNot selected Then qleaClose(tab)
+        Next
+        k.SelectedTab = selected
+        qleaTabChanged(k, EventArgs.Empty)
+    End Sub
+
     Private Function qleaLegacyTab(ByVal browser As WebBrowser) As TabPage
         If browser Is Nothing OrElse browser.IsDisposed OrElse k Is Nothing Then Return Nothing
         Dim tab = TryCast(browser.Parent, TabPage)
@@ -287,8 +330,12 @@ Partial Class j
         Dim aliasAddress As String = ""
         If qresolvealias(value, aliasAddress) Then value = aliasAddress
         If value.Length = 0 Then Return
-        If searchOnly OrElse value.Contains(" ") OrElse Not value.Contains(".") Then
+        Dim address As Uri = Nothing
+        Dim absolute = Uri.TryCreate(value, UriKind.Absolute, address) AndAlso (address.Scheme = Uri.UriSchemeHttp OrElse address.Scheme = Uri.UriSchemeHttps OrElse address.Scheme = Uri.UriSchemeFile OrElse address.Scheme = "about")
+        If searchOnly OrElse (Not absolute AndAlso (value.Contains(" ") OrElse Not value.Contains("."))) Then
             value = My.Settings.se & Uri.EscapeDataString(value)
+        ElseIf absolute Then
+            value = address.AbsoluteUri
         ElseIf Not value.Contains("://") AndAlso Not value.StartsWith("about:") AndAlso Not value.StartsWith("file:") Then
             value = "http://" & value
         End If
@@ -712,11 +759,7 @@ Partial Class j
     End Sub
 
     Private Sub qleaCloseMenuClick(ByVal sender As Object, ByVal e As EventArgs)
-        If qleaAt() Is Nothing Then
-            h5(sender, e)
-            Return
-        End If
-        qleaClose(k.SelectedTab)
+        qleaClose(qleaSelectedTab())
     End Sub
 
     Private Sub qleaTabMouseDown(ByVal sender As Object, ByVal e As MouseEventArgs)
@@ -907,7 +950,7 @@ Partial Class j
         For Each tab As TabPage In k.TabPages
             If urls.Count >= qleaSessionTabs Then Exit For
             Dim host = qleaHost(tab)
-            If host Is Nothing OrElse host.U Is Nothing Then Continue For
+            If host Is Nothing OrElse host.Pv OrElse host.U Is Nothing Then Continue For
             Dim target = host.U.AbsoluteUri
             If target.Length > qleaSessionUrl Then Continue For
             Dim size = Encoding.UTF8.GetByteCount(target & Environment.NewLine)
@@ -924,6 +967,13 @@ Partial Class j
         File.WriteAllLines(sessionFile, urls.ToArray(), New System.Text.UTF8Encoding(False))
     End Sub
 
+    Private Sub qleaClearSession()
+        Dim path = qleaSessionPath()
+        If File.Exists(path) Then File.Delete(path)
+        My.Settings.ls.Clear()
+        My.Settings.Save()
+    End Sub
+
     Private Function qleaSessionTarget(ByVal value As String) As String
         Dim target = If(value, "").Trim()
         If target.Length = 0 OrElse target.Length > qleaSessionUrl Then Return ""
@@ -934,8 +984,8 @@ Partial Class j
         Return address.AbsoluteUri
     End Function
 
-    Private Function qleaRestoreUrls(ByVal values As IEnumerable(Of String)) As Integer
-        If pv OrElse values Is Nothing Then Return 0
+    Private Function qleaRestoreUrls(ByVal values As IEnumerable(Of String), Optional ByVal allowPrivate As Boolean = False) As Integer
+        If (pv AndAlso Not allowPrivate) OrElse values Is Nothing Then Return 0
         Dim restored = 0
         Dim visited = 0
         Dim bytes = 0
@@ -1041,13 +1091,26 @@ Partial Class j
 
     Private Sub qleaClose(ByVal tab As TabPage)
         If tab Is Nothing OrElse Not k.TabPages.Contains(tab) Then Return
+        Dim host = qleaHost(tab)
+        Dim legacy = tab.Controls.Count > 0 AndAlso TypeOf tab.Controls(0) Is WebBrowser
+        If Not pv AndAlso (host Is Nothing OrElse Not host.Pv) Then rca(qleaUrl(tab))
         If k.TabCount = 1 Then
             Close()
             Return
         End If
         k.TabPages.Remove(tab)
         tab.Dispose()
-        I = Math.Max(0, I - 1)
+        suspendedGroupUrls.Remove(tab)
+        For Each hidden As List(Of TabPage) In hiddenGroupTabs.Values
+            hidden.Remove(tab)
+        Next
+        qfeature6prunestate()
+        I = k.TabCount
+        If legacy Then
+            Dim size = k.ItemSize
+            size.Width += 6
+            k.ItemSize = size
+        End If
         qleaTabChanged(k, EventArgs.Empty)
     End Sub
 

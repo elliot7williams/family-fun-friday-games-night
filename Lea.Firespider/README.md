@@ -24,6 +24,13 @@ seconds; this is host initialization, not arbitrary network-page readiness.
 `Startup-layout-host.patch` and the matching adapter retain the change.
 See `LeaForge/STARTUP_PERFORMANCE.md` for samples, scope, and regression checks.
 
+Duplicate, close/reopen, close-other/right, bookmarks, reload-all, and named
+sessions now use engine-aware host paths. Close Tab is no longer hidden, and
+the last legacy tab closes through normal cleanup. Private Lea URLs are excluded
+from recent history and automatic session saving; explicit named-session opens
+can create private views. See `LeaForge/TAB_SESSION_COMMANDS.md` and the matching
+`Tab-session-host.patch` for details and the commands regression case.
+
 Milestone 49 also fixes late legacy Navigating/Navigated/DocumentCompleted
 callbacks while a Lea tab is selected, background progress updates, owner-tab
 locking, missing-tab notification ticks, and incorrectly typed address/search

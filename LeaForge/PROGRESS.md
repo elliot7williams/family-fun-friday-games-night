@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **51**
+Post-1.0 hardening milestones completed: **52**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,19 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Migrated common Firespider duplicate, close/reopen, bookmark, reload-all,
+  and named-session commands to engine-aware paths. Exposed the hidden Close
+  Tab command, retained legacy duplication and tab sizing, and replaced its
+  last-tab abrupt termination with normal cleanup. Mixed bulk closes dispose
+  controls and prune retained state. Navigation recognizes absolute file URLs
+  before search heuristics. Recent history and automatic Lea session saves
+  exclude private Lea URLs; explicit private named-session opening works.
+  Named opens preserve existing tabs/records, enforce Lea restore bounds, and
+  report skipped URLs. Clear Saved Session now includes the Lea file with
+  locked-file preservation. Twelve boot cases, including real command/shortcut
+  checks and a mandatory completion marker, plus full engine/host and four EXE
+  startup suites passed. See `TAB_SESSION_COMMANDS.md` for coverage and limits.
 
 - Profiled and reduced Firespider's startup menu-layout cost. Root and category
   dropdowns now batch layout with Finally cleanup, retaining the same 552-item

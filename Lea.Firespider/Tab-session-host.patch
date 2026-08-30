@@ -1,0 +1,274 @@
+diff --git a/1.vb b/1.vb
+index ade76a5..ace6363 100644
+--- a/1.vb
++++ b/1.vb
+@@ -556,9 +556,9 @@ Partial Class j
+     Dim it As Integer = 0
+     Sub pc(ByVal sender As System.Object, ByVal e As EventArgs) Handles BP.Click
+         Try
+-            Dim wb As WebBrowser = CType(k.SelectedTab.Controls.Item(0), WebBrowser)
+-            If wb.Url Is Nothing Then Exit Sub
+-            My.Settings.bm.Add(wb.Url.ToString)
++            Dim url = qleaUrl(qleaSelectedTab())
++            If url = "" Then Exit Sub
++            My.Settings.bm.Add(url)
+             My.Settings.Save()
+             qrb()
+         Catch ex As Exception
+@@ -4860,9 +4860,13 @@ Partial Class j
+     End Sub
+     Sub q1(ByVal u As String)
+         Try
++            If qleaDo("go", u) Then Return
+             Dim aliasAddress As String = ""
+             If qresolvealias(u, aliasAddress) Then u = aliasAddress
+-            If u = "" Then
++            Dim address As Uri = Nothing
++            If Uri.TryCreate(u, UriKind.Absolute, address) AndAlso (address.Scheme = Uri.UriSchemeHttp OrElse address.Scheme = Uri.UriSchemeHttps OrElse address.Scheme = Uri.UriSchemeFile OrElse address.Scheme = "about") Then
++                CType(k.SelectedTab.Controls.Item(0), WebBrowser).Navigate(address.AbsoluteUri)
++            ElseIf u = "" Then
+             ElseIf u.Contains(" ") Or u.Contains(".") = False Then
+                 CType(k.SelectedTab.Controls.Item(0), WebBrowser).Navigate(My.Settings.se & Uri.EscapeDataString(u))
+             ElseIf u.Contains("://") Or u.StartsWith("about:") Or u.StartsWith("file:") Then
+@@ -4911,7 +4915,7 @@ Partial Class j
+     End Sub
+     Sub q4(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+-            q3(CType(k.SelectedTab.Controls.Item(0), WebBrowser).Url.ToString)
++            qleaDuplicate()
+         Catch ex As Exception
+         End Try
+     End Sub
+@@ -4921,13 +4925,7 @@ Partial Class j
+         End If
+     End Sub
+     Sub q6(ByVal sender As Object, ByVal e As EventArgs)
+-        If My.Settings.rc.Count > 0 Then
+-            q3(My.Settings.rc.Item(0))
+-            My.Settings.rc.RemoveAt(0)
+-        ElseIf lu = "" Then
+-        Else
+-            q3(lu)
+-        End If
++        qleaReopen()
+     End Sub
+     Sub q7(ByVal sender As Object, ByVal e As EventArgs)
+         If My.Settings.t = "e" Then
+@@ -5108,25 +5106,7 @@ Partial Class j
+     End Sub
+     Sub q16(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+-            Dim tp As TabPage = k.SelectedTab
+-            For q As Integer = k.TabPages.Count - 1 To 0 Step -1
+-                If k.TabPages(q) Is tp Then
+-                Else
+-                    If k.TabPages(q).Controls.Count > 0 Then
+-                        Dim wb As WebBrowser = CType(k.TabPages(q).Controls.Item(0), WebBrowser)
+-                        If Not wb.Url Is Nothing Then rca(wb.Url.ToString)
+-                    End If
+-                    k.TabPages.RemoveAt(q)
+-                    I = I - 1
+-                    Dim tz As Size = k.ItemSize
+-                    tz.Width += 6
+-                    k.ItemSize = tz
+-                End If
+-            Next q
+-            k.SelectedTab = tp
+-            k.SelectedTab.Text = CType(k.SelectedTab.Controls.Item(0), WebBrowser).DocumentTitle
+-            Text = ProductName & " - " & k.SelectedTab.Text
+-            c.Text = CType(k.SelectedTab.Controls.Item(0), WebBrowser).Url.ToString
++            qleaCloseGroup(False)
+         Catch ex As Exception
+         End Try
+     End Sub
+@@ -5175,11 +5155,16 @@ Partial Class j
+     End Sub
+     Sub q22(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+-            For q As Integer = 0 To k.TabPages.Count - 1
+-                If k.TabPages(q).Controls.Count > 0 Then
+-                    CType(k.TabPages(q).Controls.Item(0), WebBrowser).Refresh()
++            For Each tab As TabPage In k.TabPages
++                If tab.Controls.Count = 0 OrElse suspendedGroupUrls.ContainsKey(tab) Then Continue For
++                Dim host = qleaHost(tab)
++                If host IsNot Nothing Then
++                    qleaReload(host)
++                Else
++                    Dim browser = TryCast(tab.Controls(0), WebBrowser)
++                    If browser IsNot Nothing Then browser.Refresh()
+                 End If
+-            Next q
++            Next
+         Catch ex As Exception
+         End Try
+     End Sub
+@@ -5253,11 +5238,13 @@ Partial Class j
+     Sub q29(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+             If MessageBox.Show("Clear the saved tab session?", "Clear Saved Session", MessageBoxButtons.YesNo, MessageBoxIcon.Question) <> DialogResult.Yes Then Exit Sub
+-            My.Settings.ls.Clear()
+-            My.Settings.Save()
++            qleaClearSession()
+             su.Visible = True
+             su.Text = "Saved session cleared"
+         Catch ex As Exception
++            qlog(ex)
++            su.Visible = True
++            su.Text = "Saved session could not be cleared"
+         End Try
+     End Sub
+     Sub q30(ByVal sender As Object, ByVal e As EventArgs)
+@@ -5269,13 +5256,13 @@ Partial Class j
+         Try
+             For q As Integer = 0 To k.TabPages.Count - 1
+                 If k.TabPages(q).Controls.Count > 0 Then
+-                    Dim wb As WebBrowser = CType(k.TabPages(q).Controls.Item(0), WebBrowser)
+-                    If Not wb.Url Is Nothing Then
+-                        My.Settings.bm.Add(wb.Url.ToString)
++                    Dim url = qleaUrl(k.TabPages(q))
++                    If url <> "" Then
++                        My.Settings.bm.Add(url)
+                         Dim fv As New ToolStripMenuItem
+                         fv.Text = k.TabPages(q).Text
+-                        If fv.Text = "" Then fv.Text = wb.Url.ToString
+-                        fv.Tag = wb.Url.ToString
++                        If fv.Text = "" Then fv.Text = url
++                        fv.Tag = url
+                         fv.Image = My.Resources.F9
+                         fv.BackgroundImage = My.Resources.F2
+                         fv.BackgroundImageLayout = ImageLayout.Stretch
+@@ -5299,20 +5286,7 @@ Partial Class j
+     End Sub
+     Sub q33(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+-            For q As Integer = k.TabPages.Count - 1 To k.SelectedIndex + 1 Step -1
+-                If k.TabPages(q).Controls.Count > 0 Then
+-                    Dim wb As WebBrowser = CType(k.TabPages(q).Controls.Item(0), WebBrowser)
+-                    If Not wb.Url Is Nothing Then rca(wb.Url.ToString)
+-                End If
+-                k.TabPages.RemoveAt(q)
+-                I = I - 1
+-                Dim tz As Size = k.ItemSize
+-                tz.Width += 6
+-                k.ItemSize = tz
+-            Next q
+-            k.SelectedTab.Text = CType(k.SelectedTab.Controls.Item(0), WebBrowser).DocumentTitle
+-            Text = ProductName & " - " & k.SelectedTab.Text
+-            c.Text = CType(k.SelectedTab.Controls.Item(0), WebBrowser).Url.ToString
++            qleaCloseGroup(True)
+         Catch ex As Exception
+         End Try
+     End Sub
+@@ -6730,6 +6704,8 @@ Partial Class j
+     End Sub
+     Sub rca(ByVal u As String)
+         Try
++            If pv Then Return
++            u = qleaSessionTarget(u)
+             If u = "" Then
+             Else
+                 lu = u
+@@ -6767,7 +6743,8 @@ Partial Class j
+         If RC.DropDownItems.Count > 0 Then RC.ShowDropDown()
+     End Sub
+     Sub q163(ByVal sender As ToolStripMenuItem, ByVal ByVale As EventArgs)
+-        q3(sender.Tag.ToString)
++        Dim target = qleaSessionTarget(TryCast(sender.Tag, String))
++        If target <> "" Then qleaNew(target)
+     End Sub
+     Sub q164(ByVal sender As Object, ByVal e As EventArgs) Handles RC.MouseHover
+         If My.Settings.t = "e" Then
+@@ -15372,22 +15349,7 @@ Partial Class j
+             Dim name As String = InputBox("Enter a name for this tab session:", "Save Named Session", "Session " & Now.ToString("yyyy-MM-dd"))
+             name = name.Trim.Replace("|", "-")
+             If name = "" Then Exit Sub
+-            For i As Integer = My.Settings.ns.Count - 1 To 0 Step -1
+-                If My.Settings.ns.Item(i).StartsWith(name & "|", StringComparison.OrdinalIgnoreCase) Then My.Settings.ns.RemoveAt(i)
+-            Next i
+-            Dim saved As Integer = 0
+-            For Each sessionTab As TabPage In qalltabs()
+-                If sessionTab.Controls.Count = 0 Then Continue For
+-                Dim wb As WebBrowser = CType(sessionTab.Controls.Item(0), WebBrowser)
+-                Dim savedUrl As String = qpersistedtaburl(sessionTab, wb)
+-                If savedUrl <> "" Then
+-                    My.Settings.ns.Add(name & "|" & savedUrl)
+-                    saved += 1
+-                End If
+-            Next sessionTab
+-            My.Settings.Save()
+-            su.Visible = True
+-            su.Text = saved.ToString & " tab(s) saved as " & name
++            qsavesession(name)
+         Catch ex As Exception
+             qlog(ex)
+         End Try
+@@ -15414,25 +15376,7 @@ Partial Class j
+             Dim prompt As String = "Enter a saved session name:" & vbCrLf & String.Join(vbCrLf, names.ToArray)
+             Dim selected As String = InputBox(prompt, "Open Named Session", names(0))
+             If selected = "" Then Exit Sub
+-            Dim urls As New List(Of String)
+-            For Each entry As String In My.Settings.ns
+-                Dim split As Integer = entry.IndexOf("|"c)
+-                If split > 0 AndAlso entry.Substring(0, split).Equals(selected, StringComparison.OrdinalIgnoreCase) Then
+-                    Dim url As String = entry.Substring(split + 1)
+-                    If qvurl(url) Then urls.Add(url)
+-                End If
+-            Next entry
+-            If urls.Count = 0 Then
+-                su.Visible = True
+-                su.Text = "Named session not found"
+-                Exit Sub
+-            End If
+-            q1(urls(0))
+-            For i As Integer = 1 To urls.Count - 1
+-                q3(urls(i))
+-            Next i
+-            su.Visible = True
+-            su.Text = urls.Count.ToString & " tab(s) opened from " & selected
++            qopensession(selected)
+         Catch ex As Exception
+             qlog(ex)
+         End Try
+diff --git a/BrowserFeatures.vb b/BrowserFeatures.vb
+index 5f50b50..e72c797 100644
+--- a/BrowserFeatures.vb
++++ b/BrowserFeatures.vb
+@@ -328,14 +328,15 @@ Partial Class j
+     End Function
+ 
+     Sub qsavesession(ByVal name As String)
++        name = If(name, "").Trim.Replace("|", "-")
++        If name = "" Then Return
+         For i As Integer = My.Settings.ns.Count - 1 To 0 Step -1
+             If My.Settings.ns(i).StartsWith(name & "|", StringComparison.OrdinalIgnoreCase) Then My.Settings.ns.RemoveAt(i)
+         Next i
+         Dim saved As Integer = 0
+         For Each tab As TabPage In qalltabs()
+             If tab.Controls.Count = 0 Then Continue For
+-            Dim wb As WebBrowser = TryCast(tab.Controls(0), WebBrowser)
+-            Dim url As String = qpersistedtaburl(tab, wb)
++            Dim url As String = qleaUrl(tab)
+             If url <> "" Then
+                 My.Settings.ns.Add(name.Replace("|", "-") & "|" & url)
+                 saved += 1
+@@ -347,6 +348,7 @@ Partial Class j
+     End Sub
+ 
+     Sub qopensession(ByVal name As String)
++        name = If(name, "").Trim()
+         Dim urls As New List(Of String)
+         For Each entry As String In My.Settings.ns
+             Dim split As Integer = entry.IndexOf("|"c)
+@@ -357,9 +359,10 @@ Partial Class j
+             su.Text = "Named session not found"
+             Exit Sub
+         End If
+-        qopenurls(urls)
++        Dim opened = qleaRestoreUrls(urls, True)
+         su.Visible = True
+-        su.Text = urls.Count.ToString & " tab(s) opened from " & name
++        su.Text = opened.ToString & " Lea tab(s) opened from " & name
++        If opened < urls.Count Then su.Text &= "; " & (urls.Count - opened).ToString & " URL(s) skipped by Lea limits"
+     End Sub
+ 
+     Sub q816(ByVal sender As Object, ByVal e As EventArgs)
