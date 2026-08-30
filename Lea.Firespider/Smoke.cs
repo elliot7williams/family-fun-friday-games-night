@@ -19,9 +19,11 @@ namespace Lea.Firespider
             PropertyInfo newTabSetting = null;
             PropertyInfo dashboardSetting = null;
             PropertyInfo shortcutSetting = null;
+            PropertyInfo lazySetting = null;
             string oldNewTab = null;
             string oldDashboard = null;
             object oldShortcuts = null;
+            object oldLazy = null;
             var session = Path.Combine(Path.GetTempPath(), "lea-firespider-smoke-" + Guid.NewGuid().ToString("N") + ".txt");
             var openPage = Path.Combine(Path.GetTempPath(), "lea-firespider-open-" + Guid.NewGuid().ToString("N") + ".html");
             var mapPage = Path.Combine(Path.GetTempPath(), "lea-firespider-map-" + Guid.NewGuid().ToString("N") + ".html");
@@ -79,12 +81,15 @@ namespace Lea.Firespider
                 newTabSetting = settingsType.GetProperty("nf", BindingFlags.Instance | BindingFlags.Public);
                 dashboardSetting = settingsType.GetProperty("dashboard", BindingFlags.Instance | BindingFlags.Public);
                 shortcutSetting = settingsType.GetProperty("sc", BindingFlags.Instance | BindingFlags.Public);
+                lazySetting = settingsType.GetProperty("lazyRestoreMode", BindingFlags.Instance | BindingFlags.Public);
                 oldNewTab = (string)newTabSetting.GetValue(settings, null);
                 oldDashboard = (string)dashboardSetting.GetValue(settings, null);
                 oldShortcuts = shortcutSetting.GetValue(settings, null);
+                oldLazy = lazySetting.GetValue(settings, null);
                 newTabSetting.SetValue(settings, new Uri(Path.Combine(root, "Lea", "start.html")).AbsoluteUri, null);
                 dashboardSetting.SetValue(settings, "", null);
                 shortcutSetting.SetValue(settings, new System.Collections.Specialized.StringCollection(), null);
+                lazySetting.SetValue(settings, "off", null);
                 string savedUrl;
                 using (var form = (Form)Activator.CreateInstance(type, true))
                 {
@@ -644,6 +649,7 @@ namespace Lea.Firespider
                 if (settings != null && newTabSetting != null) newTabSetting.SetValue(settings, oldNewTab, null);
                 if (settings != null && dashboardSetting != null) dashboardSetting.SetValue(settings, oldDashboard, null);
                 if (settings != null && shortcutSetting != null) shortcutSetting.SetValue(settings, oldShortcuts, null);
+                if (settings != null && lazySetting != null) lazySetting.SetValue(settings, oldLazy, null);
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", oldSession);
                 if (File.Exists(session)) File.Delete(session);
                 if (File.Exists(openPage)) File.Delete(openPage);

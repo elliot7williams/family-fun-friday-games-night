@@ -24,12 +24,21 @@ seconds; this is host initialization, not arbitrary network-page readiness.
 `Startup-layout-host.patch` and the matching adapter retain the change.
 See `LeaForge/STARTUP_PERFORMANCE.md` for samples, scope, and regression checks.
 
+Saved sessions now honor the existing `lazyRestoreMode=off/background/all`
+policy in Lea. Background loads only the first new page; all initially creates
+only placeholders, with no renderer or page requests. Explicit opens preserve
+existing tabs and fields; identity switching replaces old contexts instead.
+Private flags survive deferred resume. The default remains off. The nineteen-case
+Boot suite and six actual-EXE startup cases cover these routes, including the
+Resume button. `Lazy-restore-host.patch` follows `Suspension-host.patch`.
+See `LeaForge/LAZY_RESTORE.md` for bounds and remaining legacy bulk routes.
+
 Lea tabs can now suspend into lightweight placeholders and resume in Lea on
 the same tab. Current/background/group/overview commands preserve the URL and
 private flag, dispose old views, and cancel pending requests. Hidden/paused
 tabs participate in bounded automatic sessions; private URLs remain excluded.
 Reload is visible again. `Suspension-host.patch` follows `Navigation-host.patch`.
-The sixteen-case Boot suite includes lifecycle and saved-group startup tests.
+The Boot suite includes lifecycle and saved-group startup tests.
 See `LeaForge/SUSPENSION.md` for fresh-reload semantics and unmigrated routes.
 
 Lea Home now honors the saved homepage, and the original hidden/disabled Home

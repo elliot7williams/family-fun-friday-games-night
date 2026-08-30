@@ -62,11 +62,16 @@ Run the executable checks with Windows PowerShell and the built host root:
 powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File .\Lea.Build\Test-FirespiderStartup.ps1 -Root 'L:\Firespider Internet'
 ```
 
-The default checks clean, restored, locked, and oversized temporary sessions,
+The default checks clean, restored, locked, oversized, lazy-background, and
+lazy-all temporary sessions,
 validates the EXE config, polls from process launch for a Lea UI Automation
 document, and observes for at least eight seconds. The overall readiness limit
 is that observation period plus sixty seconds. It checks responsiveness,
 error dialogs, and absence of MSHTML. Use `-Scenario clean` for one launch.
+Lazy cases copy the runtime into a temporary directory with isolated default
+settings; lazy-all also invokes the Resume button and waits for a Lea document.
+Native tab-count/button messages have bounded timeouts for older WinForms
+controls that expose only window-level UI Automation panes.
 It refuses to run alongside an existing Firespider instance and never closes
 an existing browser process, and restores the session environment override.
 The browser can still update its ordinary profile settings when it closes;
@@ -78,7 +83,7 @@ suite. Source for the corresponding host edits is retained in
 `Lea.Firespider/Startup-host.patch`, with reproduction notes in
 `LeaForge/STARTUP_RELIABILITY.md`.
 
-`Test-FirespiderBoot.ps1 -Root <host-root>` adds sixteen real form-start cases,
+`Test-FirespiderBoot.ps1 -Root <host-root>` adds nineteen real form-start cases,
 including private startup, restore precedence, second windows, a gated slow
 HTTP response, and locked-session shutdown. It compiles `Lea.Firespider/Boot.cs`
 beside the test host and runs separate off-screen processes with a sixty-second
@@ -105,3 +110,8 @@ See `LeaForge/NAVIGATION_COMMANDS.md` for exact behavior and test boundaries.
 resume, navigation, duplicate, and close. `-Case groups` checks the saved-group
 startup timer, collapse/expand, hidden ownership, sessions, and overview routes.
 See `LeaForge/SUSPENSION.md` for reload semantics and remaining legacy paths.
+
+`-Case lazy` covers saved-session policy, preserved documents, URL bounds,
+private placeholders, eager clipboard batches, and mixed/hidden identity
+replacement. `-Case lazy-background` and `-Case lazy-all` count loopback requests
+at startup, selection, Reload, and Resume All. See `LeaForge/LAZY_RESTORE.md`.

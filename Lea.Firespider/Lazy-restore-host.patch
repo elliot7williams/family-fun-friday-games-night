@@ -1,0 +1,186 @@
+diff --git a/BrowserFeatures.vb b/BrowserFeatures.vb
+index e72c797..5910348 100644
+--- a/BrowserFeatures.vb
++++ b/BrowserFeatures.vb
+@@ -359,7 +359,7 @@ Partial Class j
+             su.Text = "Named session not found"
+             Exit Sub
+         End If
+-        Dim opened = qleaRestoreUrls(urls, True)
++        Dim opened = qleaRestoreSaved(urls, True)
+         su.Visible = True
+         su.Text = opened.ToString & " Lea tab(s) opened from " & name
+         If opened < urls.Count Then su.Text &= "; " & (urls.Count - opened).ToString & " URL(s) skipped by Lea limits"
+diff --git a/BrowserFeatures4.vb b/BrowserFeatures4.vb
+index 213b522..e7f2d46 100644
+--- a/BrowserFeatures4.vb
++++ b/BrowserFeatures4.vb
+@@ -527,20 +527,11 @@ Partial Class j
+                 If values IsNot Nothing Then values.Add(value)
+             End If
+         Next raw
+-        For Each hidden As List(Of TabPage) In hiddenGroupTabs.Values
+-            For Each tab As TabPage In hidden
+-                tab.Dispose()
+-            Next tab
+-        Next hidden
++        If My.Settings.ps = "e" Then pv = True
++        If qleaRestoreSaved(urls, True, True) = 0 Then
++            qleaRestoreSaved(New String() {New Uri(qleaStart()).AbsoluteUri}, True, True)
++        End If
+         hiddenGroupTabs.Clear()
+-        suspendedGroupUrls.Clear()
+-        While k.TabPages.Count > 1
+-            Dim removed As TabPage = k.TabPages(k.TabPages.Count - 1)
+-            k.TabPages.Remove(removed)
+-            removed.Dispose()
+-        End While
+-        I = k.TabPages.Count
+-        If urls.Count > 0 Then qlazyopenurls(urls) Else q1(qntu())
+         My.Settings.activeIdentity = name
+         My.Settings.Save()
+         c.Items.Clear()
+diff --git a/BrowserFeatures6.vb b/BrowserFeatures6.vb
+index 7ddd29b..701cda7 100644
+--- a/BrowserFeatures6.vb
++++ b/BrowserFeatures6.vb
+@@ -361,44 +361,21 @@ Partial Class j
+         If My.Settings.t = "e" Then q927(sender, e)
+     End Sub
+ 
+-    Friend Sub qlazyopenurls(ByVal urls As List(Of String))
++    Friend Function qlazyopenurls(ByVal urls As List(Of String)) As Integer
+         Try
+-            If urls Is Nothing OrElse urls.Count = 0 Then Exit Sub
+-            Dim restoreUrls As New List(Of String)
+-            For Each url As String In urls
+-                If url IsNot Nothing AndAlso url.Trim <> "" Then restoreUrls.Add(url.Trim)
+-            Next url
+-            If restoreUrls.Count = 0 Then Exit Sub
++            If urls Is Nothing OrElse urls.Count = 0 Then Return 0
+             Dim mode As String = qfeature6lazymode()
+-            If mode = "off" OrElse (mode = "background" AndAlso restoreUrls.Count = 1) Then
+-                qopenurls(restoreUrls)
+-                Exit Sub
+-            End If
+-            Dim firstTab As TabPage = qfeature6firstrestoretab()
+-            If firstTab Is Nothing Then Exit Sub
+-            suspendedGroupUrls.Remove(firstTab)
+-            feature6LazyTabs.Remove(firstTab)
+-            k.SelectedTab = firstTab
+-            If mode = "all" Then
+-                qfeature6makeplaceholder(firstTab, restoreUrls(0))
+-            Else
+-                q1(restoreUrls(0))
+-            End If
+-            For i As Integer = 1 To restoreUrls.Count - 1
+-                qfeature6addplaceholder(restoreUrls(i))
+-            Next i
+-            I = k.TabPages.Count
+-            k.SelectedTab = firstTab
++            Dim restored As Integer = qleaRestoreSaved(urls, True)
++            Dim deferred As Integer = If(mode = "all", restored, If(mode = "background", Math.Max(0, restored - 1), 0))
+             su.Visible = True
+-            If mode = "all" Then
+-                su.Text = restoreUrls.Count.ToString & " tab(s) restored as suspended placeholders"
+-            Else
+-                su.Text = "First restored tab loaded; " & (restoreUrls.Count - 1).ToString & " background tab(s) suspended"
+-            End If
++            su.Text = restored.ToString & " Lea tab(s) restored; " & deferred.ToString & " deferred"
++            If restored < urls.Count Then su.Text &= "; " & (urls.Count - restored).ToString & " URL(s) skipped by Lea limits"
++            Return restored
+         Catch ex As Exception
+             qlog(ex)
++            Return 0
+         End Try
+-    End Sub
++    End Function
+ 
+     Function qfeature6lazymode() As String
+         Dim mode As String = If(My.Settings.lazyRestoreMode, "").Trim.ToLowerInvariant
+@@ -406,25 +383,6 @@ Partial Class j
+         Return mode
+     End Function
+ 
+-    Function qfeature6firstrestoretab() As TabPage
+-        If k.TabPages.Count = 0 Then
+-            Dim tab As New TabPage("New Tab")
+-            Dim wb As WebBrowser = qfeature6newbrowser()
+-            tab.Controls.Add(wb)
+-            k.TabPages.Add(tab)
+-            I = k.TabPages.Count
+-            Return tab
+-        End If
+-        Dim firstTab As TabPage = k.TabPages(0)
+-        If firstTab.Controls.Count = 0 Then
+-            firstTab.Controls.Add(qfeature6newbrowser())
+-        ElseIf TryCast(firstTab.Controls(0), WebBrowser) Is Nothing Then
+-            firstTab.Controls.Clear()
+-            firstTab.Controls.Add(qfeature6newbrowser())
+-        End If
+-        Return firstTab
+-    End Function
+-
+     Function qfeature6newbrowser() As WebBrowser
+         Dim wb As New WebBrowser
+         wb.Dock = DockStyle.Fill
+@@ -437,42 +395,6 @@ Partial Class j
+         Return wb
+     End Function
+ 
+-    Sub qfeature6addplaceholder(ByVal url As String)
+-        Dim tab As New TabPage("[Suspended] " & qfeature6tablabel(url))
+-        Dim wb As WebBrowser = qfeature6newbrowser()
+-        tab.Controls.Add(wb)
+-        k.TabPages.Add(tab)
+-        suspendedGroupUrls(tab) = url
+-        feature6LazyTabs.Add(tab)
+-        feature6IdleSince(tab) = Now
+-        I = k.TabPages.Count
+-        Dim tabSize As Size = k.ItemSize
+-        If I <= 20 Then
+-            tabSize.Width -= 6
+-        ElseIf I >= 30 Then
+-            tabSize.Width += 8
+-        End If
+-        k.ItemSize = tabSize
+-    End Sub
+-
+-    Sub qfeature6makeplaceholder(ByVal tab As TabPage, ByVal url As String)
+-        If tab Is Nothing Then Exit Sub
+-        Dim wb As WebBrowser = Nothing
+-        If tab.Controls.Count > 0 Then wb = TryCast(tab.Controls(0), WebBrowser)
+-        If wb Is Nothing Then
+-            wb = qfeature6newbrowser()
+-            tab.Controls.Add(wb)
+-        Else
+-            qfeature6wirebrowser(wb)
+-        End If
+-        suspendedGroupUrls(tab) = url
+-        feature6LazyTabs.Add(tab)
+-        feature6IdleSince(tab) = Now
+-        wb.Stop()
+-        If wb.Url IsNot Nothing OrElse wb.Document IsNot Nothing Then wb.Navigate("about:blank")
+-        tab.Text = "[Suspended] " & qfeature6tablabel(url)
+-    End Sub
+-
+     Function qfeature6resumetab(ByVal tab As TabPage) As Boolean
+         Try
+             If tab Is Nothing OrElse tab.IsDisposed OrElse suspendedGroupUrls.ContainsKey(tab) = False Then Return False
+diff --git a/BrowserFeatures7.vb b/BrowserFeatures7.vb
+index 286e93a..3350d9e 100644
+--- a/BrowserFeatures7.vb
++++ b/BrowserFeatures7.vb
+@@ -41,9 +41,10 @@ Partial Class j
+                         su.Visible = True
+                         su.Text = "This research collection has no web pages to open"
+                     Else
+-                        qlazyopenurls(urls)
++                        Dim opened As Integer = qlazyopenurls(urls)
+                         su.Visible = True
+-                        su.Text = urls.Count.ToString & " research page(s) opened"
++                        su.Text = opened.ToString & " Lea research tab(s) restored"
++                        If opened < urls.Count Then su.Text &= "; " & (urls.Count - opened).ToString & " URL(s) skipped by Lea limits"
+                     End If
+                 ElseIf action = "RENAME" Then
+                     Dim name As String = InputBox("Enter the new collection name:", "Rename Research Collection", collection.Name).Trim

@@ -37,13 +37,14 @@ namespace Lea.Firespider
             TcpListener server = null;
             Thread worker = null;
             FileStream sessionLock = null;
+            LoopbackSite lazySite = null;
             var release = new ManualResetEvent(false);
             var requested = new ManualResetEvent(false);
             var responded = new ManualResetEvent(false);
             var forms = new List<Form>();
             try
             {
-                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups" }.Contains(mode), "unknown boot case: " + mode);
+                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all" }.Contains(mode), "unknown boot case: " + mode);
                 Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
                 Application.ThreadException += (sender, error) => UiErrors.Add(error.Exception);
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", session);
@@ -73,6 +74,13 @@ namespace Lea.Firespider
                 settings["ep"] = log;
                 settings["lazyRestoreMode"] = "off";
                 var expected = new[] { page };
+                if (mode == "lazy-background" || mode == "lazy-all")
+                {
+                    lazySite = new LoopbackSite();
+                    settings["lazyRestoreMode"] = mode.Substring(5);
+                    expected = new[] { lazySite.Url + "first", lazySite.Url + "second", lazySite.Url + "third" };
+                    File.WriteAllLines(session, expected);
+                }
                 if (mode == "lea" || mode == "second" || mode == "private")
                 {
                     File.WriteAllLines(session, new[] { page + "#one", page + "#two" });
@@ -161,8 +169,12 @@ namespace Lea.Firespider
                 }
                 var tabs = Member<TabControl>(form, "k");
                 Check(tabs.TabCount == expected.Length, "startup tab count: " + tabs.TabCount + " expected " + expected.Length);
-                foreach (TabPage tab in tabs.TabPages)
-                    Check(tab.Controls.Count == 1 && tab.Controls[0] is V, "startup created a non-Lea tab");
+                for (var index = 0; index < tabs.TabCount; index++)
+                {
+                    var tab = tabs.TabPages[index];
+                    var deferred = mode == "lazy-all" || (mode == "lazy-background" && index > 0);
+                    Check(tab.Controls.Count == 1 && (deferred ? tab.Controls[0] is Panel : tab.Controls[0] is V), "startup created an unexpected tab engine/state");
+                }
                 if (mode == "slow")
                 {
                     Wait(() => requested.WaitOne(0) && ((V)tabs.TabPages[0].Controls[0]).Busy, "asynchronous startup request");
@@ -170,9 +182,9 @@ namespace Lea.Firespider
                     Check(form.IsHandleCreated && form.Visible, "window unavailable during startup request");
                     release.Set();
                 }
-                Wait(() => tabs.TabPages.Cast<TabPage>().All(tab => ((V)tab.Controls[0]).At != null && !((V)tab.Controls[0]).Busy), "startup page loads");
+                WaitLea(tabs);
                 for (var index = 0; index < expected.Length; index++)
-                    Check(((V)tabs.TabPages[index].Controls[0]).U.AbsoluteUri == expected[index], "startup URL ordering");
+                    Check((string)Call(form, "qleaUrl", tabs.TabPages[index]) == expected[index], "startup URL ordering");
                 Check(tabs.SelectedIndex == 0, "startup did not select first restored page");
                 if (mode == "menus")
                 {
@@ -214,6 +226,8 @@ namespace Lea.Firespider
                 if (mode == "links") CheckLinks(form, settings, page);
                 if (mode == "suspend") CheckSuspension(form, settings, page);
                 if (mode == "groups") CheckGroups(form, settings, page);
+                if (mode == "lazy") CheckLazyCommands(form, settings, page);
+                if (lazySite != null) CheckLazyStartup(form, lazySite, expected, mode == "lazy-all");
                 Check(UiErrors.Count == 0, "UI thread exceptions: " + String.Join(" | ", UiErrors.Select(error => error.Message).ToArray()));
                 if (mode == "locked")
                 {
@@ -254,6 +268,7 @@ namespace Lea.Firespider
                     release.Dispose();
                     requested.Dispose();
                     responded.Dispose();
+                    if (lazySite != null) lazySite.Dispose();
                 }
             }
         }
@@ -450,6 +465,130 @@ namespace Lea.Firespider
                 Check(tabs.SelectedTab.Controls[0] is V && ((V)tabs.SelectedTab.Controls[0]).U.AbsoluteUri == site.Url, "legacy source did not open domain in Lea");
             }
             Console.WriteLine("PASS links: loopback domain navigation, port/IPv6 normalization, bounded single/batch paste, order, and privacy");
+        }
+
+        private static void CheckLazyStartup(Form form, LoopbackSite site, string[] urls, bool all)
+        {
+            var tabs = Member<TabControl>(form, "k");
+            var pages = tabs.TabPages.Cast<TabPage>().ToArray();
+            var initialRequests = all ? 0 : 1;
+            Observe(1500);
+            Check(site.Hits == initialRequests, "deferred startup issued unexpected requests: " + site.Hits);
+            Check(Member<HashSet<TabPage>>(form, "feature6LazyTabs").Count == (all ? 3 : 2), "deferred startup bookkeeping");
+            Call(form, "qleaTick", form, EventArgs.Empty);
+            Call(form, "tk", form, EventArgs.Empty);
+            Call(form, "qleaSaveSession");
+            Check(File.ReadAllLines(Environment.GetEnvironmentVariable("LEA_FIRESPIDER_SESSION")).SequenceEqual(urls), "deferred startup session URL ordering");
+            Member<ToolStripItem>(form, "re").PerformClick();
+            Wait(() => site.Hits == initialRequests + 1 && pages[0].Controls[0] is V && !((V)pages[0].Controls[0]).Busy, "deferred first-page reload");
+            Check(pages[1].Controls[0] is Panel && pages[2].Controls[0] is Panel, "Reload woke other deferred tabs");
+            tabs.SelectedTab = pages[2];
+            WaitLea(tabs);
+            Check(site.Hits == initialRequests + 2 && pages[1].Controls[0] is Panel, "selecting one deferred tab loaded others");
+            var third = pages[2].Controls[0];
+            tabs.SelectedTab = pages[0];
+            tabs.SelectedTab = pages[2];
+            Observe(250);
+            Check(pages[2].Controls[0] == third && site.Hits == initialRequests + 2, "reselecting resumed tab reloaded it");
+            Menu(form, "Resume All Suspended Tabs").PerformClick();
+            WaitLea(tabs);
+            Check(site.Hits == initialRequests + 3 && pages.All(tab => tab.Controls[0] is V), "resume-all did not load exactly the remaining page");
+            Check(Member<HashSet<TabPage>>(form, "feature6LazyTabs").Count == 0, "resume-all left stale deferred state");
+            Check(!Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module => module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)), "lazy startup loaded legacy engine");
+            Console.WriteLine("PASS lazy startup: mode=" + (all ? "all" : "background") + "; initial requests=" + initialRequests + "; exact on-demand requests, sessions, and resume-all");
+        }
+
+        private static void Observe(int milliseconds)
+        {
+            var watch = Stopwatch.StartNew();
+            while (watch.ElapsedMilliseconds < milliseconds) { Application.DoEvents(); Thread.Sleep(10); }
+        }
+
+        private static void CheckLazyCommands(Form form, ApplicationSettingsBase settings, string page)
+        {
+            var tabs = Member<TabControl>(form, "k");
+            var original = tabs.SelectedTab;
+            var originalView = (V)original.Controls[0];
+            originalView.Go(Path.Combine(Path.GetDirectoryName(new Uri(page).LocalPath), "..", "test-pages", "forms.html"));
+            originalView.At.Fs[0].V = "unsent value";
+            settings["lazyRestoreMode"] = "all";
+            var opened = (int)Call(form, "qlazyopenurls", new List<string> { "javascript:alert(1)", page + "#one", page + "#two" });
+            Check(opened == 2 && tabs.TabCount == 3 && original.Controls[0] == originalView && !originalView.IsDisposed &&
+                originalView.At.Fs[0].V == "unsent value", "lazy restore replaced existing content or unsent data");
+            Check(tabs.SelectedIndex == 1 && tabs.TabPages[1].Controls[0] is Panel && tabs.TabPages[2].Controls[0] is Panel,
+                "lazy restore did not select first Lea placeholder");
+            Observe(250);
+            Check(tabs.TabPages[1].Controls[0] is Panel && Member<Label>(form, "su").Text.Contains("1 URL(s) skipped"), "all-mode woke selected placeholder or lost bounded report");
+            var count = tabs.TabCount;
+            settings["ns"] = Collection("Lazy|" + page + "#named-first", "Lazy|" + page + "#named-second");
+            settings["lazyRestoreMode"] = "background";
+            Call(form, "qopensession", "Lazy");
+            WaitLea(tabs);
+            Check(tabs.TabCount == count + 2 && tabs.SelectedIndex == count && tabs.TabPages[count].Controls[0] is V &&
+                tabs.TabPages[count + 1].Controls[0] is Panel, "named-session lazy policy or append semantics");
+            count = tabs.TabCount;
+            settings["lazyRestoreMode"] = "all";
+            File.WriteAllLines(Environment.GetEnvironmentVariable("LEA_FIRESPIDER_SESSION"), new[] { page + "#previous" });
+            Member<ToolStripItem>(form, "RP").PerformClick();
+            Check(tabs.TabCount == count + 1 && tabs.SelectedTab.Controls[0] is Panel, "previous-session lazy policy");
+            settings["lazyRestoreMode"] = "invalid-policy";
+            Call(form, "qlazyopenurls", new List<string> { page + "#eager" });
+            WaitLea(tabs);
+            Check(tabs.SelectedTab.Controls[0] is V, "invalid lazy policy did not fall back to off");
+            settings["lazyRestoreMode"] = "all";
+            count = tabs.TabCount;
+            opened = (int)Call(form, "qlazyopenurls", Enumerable.Range(0, 20).Select(index => page + "#limit" + index).ToList());
+            Check(opened == 12 && tabs.TabCount == count + 12 && tabs.TabPages.Cast<TabPage>().Skip(count).All(tab => tab.Controls[0] is Panel), "lazy restore exceeded tab bound or created renderers");
+            count = tabs.TabCount;
+            opened = (int)Call(form, "qlazyopenurls", Enumerable.Repeat("invalid", 256).Concat(new[] { page }).ToList());
+            Check(opened == 0 && tabs.TabCount == count, "lazy restore exceeded scan bound");
+            Check((int)Call(form, "qlazyopenurls", (object)null) == 0, "null lazy input");
+            Check((int)Call(form, "qlazyopenurls", new List<string> { " ", "data:text/html,x", "http://localhost/" + new string('x', 4096) }) == 0 && tabs.TabCount == count, "invalid lazy inputs altered tabs");
+            Call(form, "qleaPaste", page + "#clipboard-eager", true);
+            WaitLea(tabs);
+            Check(tabs.SelectedTab.Controls[0] is V, "session policy incorrectly deferred clipboard opens");
+            tabs.SelectedTab = original;
+            Menu(form, "Close Other Tabs").PerformClick();
+            Check(original.Controls[0] == originalView && originalView.At.Fs[0].V == "unsent value", "restore commands changed original document");
+
+            Set(form, "pv", true);
+            Call(form, "qlazyopenurls", new List<string> { page + "#private-lazy-one", page + "#private-lazy-two" });
+            var privateTab = tabs.SelectedTab;
+            Set(form, "pv", false);
+            Call(form, "qleaSaveSession");
+            Check(!File.ReadAllText(Environment.GetEnvironmentVariable("LEA_FIRESPIDER_SESSION")).Contains("private-lazy"), "deferred private URL entered automatic session");
+            Member<ToolStripItem>(form, "re").PerformClick();
+            WaitLea(tabs);
+            Check(privateTab.Controls[0] is V && ((V)privateTab.Controls[0]).Pv, "private lazy resume lost context");
+            Check(!Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module => module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)), "lazy restore loaded legacy engine");
+            Console.WriteLine("PASS lazy commands: preserve documents, named/previous policy, bounds, eager clipboard, and private deferred tabs");
+
+            settings["tg"] = Collection("Old|" + Color.Teal.ToArgb() + "|active|" + Call(form, "qb64", originalView.U.AbsoluteUri));
+            Call(form, "qcollapsegroup", "Old");
+            Call(form, "q3", page);
+            var legacy = (WebBrowser)tabs.SelectedTab.Controls[0];
+            Wait(() => legacy.Url != null && legacy.ReadyState == WebBrowserReadyState.Complete, "identity legacy fixture");
+            var oldTabs = (List<TabPage>)Call(form, "qalltabs");
+            var oldMenu = originalView.ContextMenuStrip;
+            settings["idp"] = Collection("Lazy|I|" + Call(form, "qb64", "identity"),
+                "Lazy|@lazyRestoreMode|" + Call(form, "qb64", "all"), "Lazy|@ps|" + Call(form, "qb64", "e"),
+                "Lazy|tabs|" + Call(form, "qb64", page + "#identity-one"), "Lazy|tabs|" + Call(form, "qb64", page + "#identity-two"));
+            Call(form, "qloadidentity", "Lazy");
+            Check(tabs.TabCount == 2 && tabs.TabPages.Cast<TabPage>().All(tab => tab.Controls[0] is Panel) &&
+                oldTabs.All(tab => tab.IsDisposed) && originalView.IsDisposed && oldMenu.IsDisposed && legacy.IsDisposed, "identity restore retained old views or wrong tab state");
+            Check((string)settings["activeIdentity"] == "Lazy" && Member<Dictionary<string, List<TabPage>>>(form, "hiddenGroupTabs").Count == 0 &&
+                Member<Dictionary<TabPage, bool>>(form, "qleaPaused").Count == 2 && Member<HashSet<TabPage>>(form, "feature6LazyTabs").Count == 2,
+                "identity restore left stale ownership state");
+            Check(((StringCollection)settings["rc"]).Count == 0, "identity replacement wrote old URLs into new recent history");
+            Member<ToolStripItem>(form, "re").PerformClick();
+            WaitLea(tabs);
+            Check(((V)tabs.SelectedTab.Controls[0]).Pv, "private identity did not initialize private Lea");
+            var prior = tabs.TabPages.Cast<TabPage>().ToArray();
+            settings["idp"] = Collection("Empty|I|" + Call(form, "qb64", "identity"), "Empty|@lazyRestoreMode|" + Call(form, "qb64", "all"));
+            Call(form, "qloadidentity", "Empty");
+            Check(tabs.TabCount == 1 && tabs.SelectedTab.Controls[0] is Panel && prior.All(tab => tab.IsDisposed) &&
+                (string)Call(form, "qleaUrl", tabs.SelectedTab) == page, "empty identity fallback retained old context");
+            Console.WriteLine("PASS lazy identities: mixed/hidden/private disposal, fresh contexts, bookkeeping, and empty fallback");
         }
 
         private static void CheckSuspension(Form form, ApplicationSettingsBase settings, string page)

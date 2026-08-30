@@ -77,7 +77,7 @@ Partial Class j
                 qleaSessionRestored = True
                 If Not pv Then
                     If recoveryRequested AndAlso My.Settings.recovery IsNot Nothing Then
-                        Dim recovered = qleaRestoreUrls(My.Settings.recovery.Cast(Of String)())
+                        Dim recovered = qleaRestoreSaved(My.Settings.recovery.Cast(Of String)())
                         If recovered > 0 Then
                             su.Visible = True
                             su.Text = "Recovered " & recovered.ToString() & " Lea tab(s)"
@@ -86,7 +86,7 @@ Partial Class j
                     End If
                     If qleaRestoreSession() > 0 Then Return
                     If My.Settings.rs = "e" AndAlso My.Settings.ls IsNot Nothing Then
-                        Dim restored = qleaRestoreUrls(My.Settings.ls.Cast(Of String)())
+                        Dim restored = qleaRestoreSaved(My.Settings.ls.Cast(Of String)())
                         If restored > 0 Then Return
                     End If
                 End If
@@ -393,29 +393,38 @@ Partial Class j
         If String.IsNullOrWhiteSpace(target) Then target = qleaUrl(tab)
         target = qleaSessionTarget(target)
         If target = "" Then Return False
-        Dim placeholder As New Panel With {.Dock = DockStyle.Fill, .BackColor = SystemColors.Window}
+        Dim privateView As Boolean = host.Pv OrElse pv
+        qleaRelease(host)
+        qleaPlaceholder(tab, target, privateView)
+        qleaTabChanged(k, EventArgs.Empty)
+        Return True
+    End Function
+
+    Private Sub qleaPlaceholder(ByVal tab As TabPage, ByVal target As String, ByVal privateView As Boolean)
+        Dim placeholder As New Panel With {.Dock = DockStyle.Fill, .BackColor = SystemColors.Window, .AccessibleName = "Lea suspended tab"}
         Dim button As New Button With {.Text = "Resume", .AutoSize = True, .Location = New Point(16, 16)}
         AddHandler button.Click, Sub() qleaResume(tab, True)
         placeholder.Controls.Add(button)
-        qleaPaused(tab) = host.Pv OrElse pv
+        qleaPaused(tab) = privateView
         suspendedGroupUrls(tab) = target
+        tab.Controls.Add(placeholder)
+        tab.Text = "[Suspended] " & qfeature6tablabel(target)
+        qapplygrouptab(tab)
+    End Sub
+
+    Private Sub qleaRelease(ByVal host As Global.Lea.Win.V)
         RemoveHandler host.Changed, AddressOf qleaChanged
         RemoveHandler host.Done, AddressOf qleaDone
         RemoveHandler host.Al, AddressOf qleaAlert
         RemoveHandler host.Dr, AddressOf qleaDownload
         RemoveHandler host.Gr, AddressOf qleaGoRequest
         qleaPending.Remove(host)
-        tab.Controls.Remove(host)
+        If host.Parent IsNot Nothing Then host.Parent.Controls.Remove(host)
         Dim menu As ContextMenuStrip = host.ContextMenuStrip
         host.ContextMenuStrip = Nothing
         If menu IsNot Nothing Then menu.Dispose()
         host.Dispose()
-        tab.Controls.Add(placeholder)
-        tab.Text = "[Suspended] " & qfeature6tablabel(target)
-        qapplygrouptab(tab)
-        qleaTabChanged(k, EventArgs.Empty)
-        Return True
-    End Function
+    End Sub
 
     Private Function qleaResume(ByVal tab As TabPage, ByVal navigate As Boolean) As Global.Lea.Win.V
         If tab Is Nothing OrElse tab.IsDisposed OrElse Not qleaPaused.ContainsKey(tab) Then Return Nothing
@@ -900,6 +909,7 @@ Partial Class j
         End If
 
         Dim tab = qleaSelectedTab()
+        If tab IsNot Nothing AndAlso qleaPaused.ContainsKey(tab) Then Return
         If tab Is Nothing OrElse tab.Controls.Count = 0 Then
             su.Text = "Ready"
             Return
@@ -1137,25 +1147,58 @@ Partial Class j
     End Function
 
     Private Function qleaRestoreUrls(ByVal values As IEnumerable(Of String), Optional ByVal allowPrivate As Boolean = False) As Integer
+        Return qleaRestoreBatch(values, allowPrivate, "off", False)
+    End Function
+
+    Private Function qleaRestoreSaved(ByVal values As IEnumerable(Of String), Optional ByVal allowPrivate As Boolean = False, Optional ByVal replaceExisting As Boolean = False) As Integer
+        Return qleaRestoreBatch(values, allowPrivate, qfeature6lazymode(), replaceExisting)
+    End Function
+
+    Private Function qleaRestoreBatch(ByVal values As IEnumerable(Of String), ByVal allowPrivate As Boolean, ByVal mode As String, ByVal replaceExisting As Boolean) As Integer
         If (pv AndAlso Not allowPrivate) OrElse values Is Nothing Then Return 0
-        Dim restored = 0
-        Dim visited = 0
-        Dim bytes = 0
-        Dim first As TabPage = Nothing
+        Dim targets As New List(Of String)()
+        Dim visited As Integer = 0
+        Dim bytes As Integer = 0
         For Each value In values
-            If restored >= qleaSessionTabs OrElse visited >= 256 Then Exit For
+            If targets.Count >= qleaSessionTabs OrElse visited >= 256 Then Exit For
             visited += 1
             Dim target = qleaSessionTarget(value)
             If target.Length = 0 Then Continue For
             Dim size = Encoding.UTF8.GetByteCount(target & Environment.NewLine)
             If bytes + size > qleaSessionBytes Then Continue For
-            Dim host = qleaNew(target)
-            If first Is Nothing Then first = TryCast(host.Parent, TabPage)
+            targets.Add(target)
             bytes += size
-            restored += 1
         Next
-        If first IsNot Nothing Then k.SelectedTab = first
-        Return restored
+        If targets.Count = 0 Then Return 0
+        Dim previous As List(Of TabPage) = If(replaceExisting, qalltabs(), New List(Of TabPage)())
+        Dim batch As Boolean = qleaGroupChange
+        qleaGroupChange = True
+        Try
+            Dim first As TabPage = Nothing
+            For Each target As String In targets
+                Dim tab As TabPage
+                If mode = "all" OrElse (mode = "background" AndAlso first IsNot Nothing) Then
+                    tab = New TabPage("Lea") With {.Tag = "lea"}
+                    qleaPlaceholder(tab, target, pv)
+                    feature6LazyTabs.Add(tab)
+                    k.TabPages.Add(tab)
+                Else
+                    Dim host As Global.Lea.Win.V = qleaNew(target)
+                    tab = DirectCast(host.Parent, TabPage)
+                End If
+                If first Is Nothing Then first = tab
+            Next
+            k.SelectedTab = first
+            For Each tab As TabPage In previous
+                qleaDrop(tab)
+            Next
+            I = k.TabCount
+            qfeature6prunestate()
+            qleaTabChanged(k, EventArgs.Empty)
+        Finally
+            qleaGroupChange = batch
+        End Try
+        Return targets.Count
     End Function
 
     Private Function qleaReadSession() As List(Of String)
@@ -1190,15 +1233,15 @@ Partial Class j
     Private Sub qleaPreviousSession()
         Dim urls = qleaReadSession()
         If urls Is Nothing Then Return
-        Dim restored = qleaRestoreUrls(urls, True)
-        If restored = 0 AndAlso My.Settings.ls IsNot Nothing Then restored = qleaRestoreUrls(My.Settings.ls.Cast(Of String)(), True)
+        Dim restored = qleaRestoreSaved(urls, True)
+        If restored = 0 AndAlso My.Settings.ls IsNot Nothing Then restored = qleaRestoreSaved(My.Settings.ls.Cast(Of String)(), True)
         su.Visible = True
         su.Text = If(restored = 0, "No supported saved session", "Restored " & restored.ToString() & " Lea tab(s)")
     End Sub
 
     Private Function qleaRestoreSession() As Integer
         If pv Then Return 0
-        Dim restored = qleaRestoreUrls(qleaReadSession())
+        Dim restored = qleaRestoreSaved(qleaReadSession())
         If restored > 0 Then
             su.Visible = True
             su.Text = "Restored " & restored.ToString() & " Lea tab(s)"
@@ -1255,20 +1298,13 @@ Partial Class j
 
     Private Sub qleaClose(ByVal tab As TabPage)
         If tab Is Nothing OrElse tab.IsDisposed OrElse Not qalltabs().Contains(tab) Then Return
-        Dim host = qleaHost(tab)
         Dim legacy = tab.Controls.Count > 0 AndAlso TypeOf tab.Controls(0) Is WebBrowser
         If Not pv AndAlso Not qleaPrivate(tab) Then rca(qleaUrl(tab))
         If k.TabPages.Contains(tab) AndAlso k.TabCount = 1 Then
             Close()
             Return
         End If
-        k.TabPages.Remove(tab)
-        tab.Dispose()
-        suspendedGroupUrls.Remove(tab)
-        qleaPaused.Remove(tab)
-        For Each hidden As List(Of TabPage) In hiddenGroupTabs.Values
-            hidden.Remove(tab)
-        Next
+        qleaDrop(tab)
         qfeature6prunestate()
         I = k.TabCount
         If legacy Then
@@ -1277,6 +1313,18 @@ Partial Class j
             k.ItemSize = size
         End If
         qleaTabChanged(k, EventArgs.Empty)
+    End Sub
+
+    Private Sub qleaDrop(ByVal tab As TabPage)
+        Dim host As Global.Lea.Win.V = qleaHost(tab)
+        If host IsNot Nothing Then qleaRelease(host)
+        k.TabPages.Remove(tab)
+        tab.Dispose()
+        suspendedGroupUrls.Remove(tab)
+        qleaPaused.Remove(tab)
+        For Each hidden As List(Of TabPage) In hiddenGroupTabs.Values
+            hidden.Remove(tab)
+        Next
     End Sub
 
     Private Sub qleaBackClick(ByVal s As Object, ByVal e As EventArgs)

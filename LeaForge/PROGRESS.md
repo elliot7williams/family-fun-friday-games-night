@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **54**
+Post-1.0 hardening milestones completed: **55**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,15 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded Lea-native lazy session restoration under the existing off,
+  background, and all policies. Deferred tabs create no renderer or page request
+  until resumed. Explicit sessions preserve existing fields; identity switches
+  replace old mixed/hidden/private contexts and menus. Private deferred sessions,
+  batch limits, eager clipboard behavior, accurate restore counts, and status
+  retention are covered. All 19 Boot cases, six real EXE startup scenarios,
+  full engine/host suites, and 57 compatibility probes passed. See
+  `LAZY_RESTORE.md` for remaining legacy routes and startup-report limitations.
 
 - Added Lea-native tab/group/overview suspension and same-tab fresh-view resume,
   pending-load cancellation, hidden/paused automatic sessions, private-state
