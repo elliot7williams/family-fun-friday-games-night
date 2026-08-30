@@ -87,7 +87,8 @@ after milestone 51 and requires the matching FirespiderLea.vb. Applying the patc
 to a baseline source copy reproduces the live files. Full source backups retain
 the rest of the existing host checkout; unrelated changes are not reverted.
 
-This is not every Firespider command. Older left-close variants, the previous-
-session menu, several clipboard/home/domain operations, and advanced legacy
-session/placeholder routes still need migration. Lea still does not implement
+Milestone 53 subsequently migrates both left-close variants, the previous-session
+menu, and selected clipboard/home/domain operations; see `NAVIGATION_COMMANDS.md`.
+This is not every Firespider command. Advanced legacy session/placeholder and
+same-domain bulk routes still need migration. Lea still does not implement
 the full modern web platform or a general JavaScript VM.

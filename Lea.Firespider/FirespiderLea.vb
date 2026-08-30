@@ -34,6 +34,8 @@ Partial Class j
         N.Text = "New Lea Tab"
         N.ToolTipText = "Open a new Lea tab"
         CT.Available = True
+        HO.Available = True
+        HO.Enabled = True
         qleaMenu = New ToolStripMenuItem("New Legacy Tab")
         qleaMenu.Image = My.Resources.F9
         qleaMenu.BackColor = Color.White
@@ -225,16 +227,52 @@ Partial Class j
         If target.Length > 0 Then qleaNew(target)
     End Sub
 
-    Private Sub qleaCloseGroup(ByVal rightOnly As Boolean)
+    Private Sub qleaCloseGroup(ByVal side As String)
         Dim selected = qleaSelectedTab()
         If selected Is Nothing Then Return
-        Dim first = If(rightOnly, k.SelectedIndex + 1, 0)
-        For index As Integer = k.TabCount - 1 To first Step -1
+        Dim first = If(side = "r", k.SelectedIndex + 1, 0)
+        Dim last = If(side = "l", k.SelectedIndex - 1, k.TabCount - 1)
+        For index As Integer = last To first Step -1
             Dim tab = k.TabPages(index)
             If tab IsNot selected Then qleaClose(tab)
         Next
         k.SelectedTab = selected
         qleaTabChanged(k, EventArgs.Empty)
+    End Sub
+
+    Private Function qleaDomain() As Uri
+        Dim address As Uri = Nothing
+        If Not Uri.TryCreate(qleaUrl(qleaSelectedTab()), UriKind.Absolute, address) Then Return Nothing
+        If address.Scheme <> Uri.UriSchemeHttp AndAlso address.Scheme <> Uri.UriSchemeHttps Then Return Nothing
+        Return New UriBuilder(address.Scheme, address.Host, address.Port).Uri
+    End Function
+
+    Private Sub qleaPaste(ByVal value As String, ByVal multiple As Boolean)
+        su.Visible = True
+        value = If(value, "")
+        If value.Length > qleaSessionBytes OrElse Encoding.UTF8.GetByteCount(value) > qleaSessionBytes Then
+            su.Text = "Clipboard text is too large; no tabs opened"
+            Return
+        End If
+        If String.IsNullOrWhiteSpace(value) Then
+            su.Text = "Clipboard is empty"
+            Return
+        End If
+        If Not multiple Then
+            Dim target = qleaSessionTarget(value)
+            If target = "" AndAlso value.Length <= qleaSessionUrl AndAlso qvl(value) Then target = qleaSessionTarget("http://" & value.Trim())
+            If target = "" Then
+                su.Text = "Clipboard is not a supported link"
+                Return
+            End If
+            qleaNew(target)
+            su.Text = "Clipboard link opened in Lea"
+            Return
+        End If
+        Dim matches As System.Text.RegularExpressions.MatchCollection = System.Text.RegularExpressions.Regex.Matches(value, "(?:https?://|file:///)[^\s""'<>]+", System.Text.RegularExpressions.RegexOptions.IgnoreCase Or System.Text.RegularExpressions.RegexOptions.CultureInvariant)
+        Dim opened = qleaRestoreUrls(matches.Cast(Of System.Text.RegularExpressions.Match)().Select(Function(match) match.Value), True)
+        su.Text = opened.ToString() & " Lea link(s) opened from clipboard"
+        If matches.Count > opened Then su.Text &= "; " & (matches.Count - opened).ToString() & " URL(s) skipped by Lea limits"
     End Sub
 
     Private Function qleaLegacyTab(ByVal browser As WebBrowser) As TabPage
@@ -261,7 +299,7 @@ Partial Class j
             Case "search"
                 qleaOpen(host, value, True)
             Case "home"
-                qleaLoad(host, qleaStart())
+                qleaOpen(host, qleaHome(), False)
             Case "reload"
                 If host.Busy Then host.St() Else qleaReload(host)
             Case "stop"
@@ -323,6 +361,11 @@ Partial Class j
         If File.Exists(localPage) Then Return localPage
         If Not String.IsNullOrWhiteSpace(My.Settings.h) Then Return My.Settings.h
         Return "https://example.com"
+    End Function
+
+    Private Function qleaHome() As String
+        If Not String.IsNullOrWhiteSpace(My.Settings.h) Then Return My.Settings.h.Trim()
+        Return qleaStart()
     End Function
 
     Private Async Sub qleaOpen(ByVal host As Global.Lea.Win.V, ByVal input As String, ByVal searchOnly As Boolean)
@@ -1006,35 +1049,47 @@ Partial Class j
         Return restored
     End Function
 
-    Private Function qleaRestoreSession() As Integer
-        If pv Then Return 0
+    Private Function qleaReadSession() As List(Of String)
         Dim urls As New List(Of String)()
         Try
             Dim path = qleaSessionPath()
-            If Not File.Exists(path) Then Return 0
+            If Not File.Exists(path) Then Return urls
             Using stream As New FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read)
                 If stream.Length > qleaSessionBytes Then
                     qleaSessionError("Saved session is too large; skipped")
-                    Return 0
+                    Return Nothing
                 End If
                 Using reader As New StreamReader(stream, Encoding.UTF8, True)
-                    While Not reader.EndOfStream AndAlso urls.Count < qleaSessionTabs
-                        Dim target = qleaSessionTarget(reader.ReadLine())
-                        If target.Length > 0 Then urls.Add(target)
+                    While Not reader.EndOfStream AndAlso urls.Count < 256
+                        urls.Add(reader.ReadLine())
                     End While
                 End Using
             End Using
         Catch ex As IOException
             qleaSessionError("Saved session could not be read; skipped")
-            Return 0
+            Return Nothing
         Catch ex As UnauthorizedAccessException
             qleaSessionError("Saved session is not accessible; skipped")
-            Return 0
+            Return Nothing
         Catch ex As System.Security.SecurityException
             qleaSessionError("Saved session is not accessible; skipped")
-            Return 0
+            Return Nothing
         End Try
-        Dim restored = qleaRestoreUrls(urls)
+        Return urls
+    End Function
+
+    Private Sub qleaPreviousSession()
+        Dim urls = qleaReadSession()
+        If urls Is Nothing Then Return
+        Dim restored = qleaRestoreUrls(urls, True)
+        If restored = 0 AndAlso My.Settings.ls IsNot Nothing Then restored = qleaRestoreUrls(My.Settings.ls.Cast(Of String)(), True)
+        su.Visible = True
+        su.Text = If(restored = 0, "No supported saved session", "Restored " & restored.ToString() & " Lea tab(s)")
+    End Sub
+
+    Private Function qleaRestoreSession() As Integer
+        If pv Then Return 0
+        Dim restored = qleaRestoreUrls(qleaReadSession())
         If restored > 0 Then
             su.Visible = True
             su.Text = "Restored " & restored.ToString() & " Lea tab(s)"

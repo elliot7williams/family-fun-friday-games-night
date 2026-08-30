@@ -24,6 +24,15 @@ seconds; this is host initialization, not arbitrary network-page readiness.
 `Startup-layout-host.patch` and the matching adapter retain the change.
 See `LeaForge/STARTUP_PERFORMANCE.md` for samples, scope, and regression checks.
 
+Lea Home now honors the saved homepage, and the original hidden/disabled Home
+menu is available. Homepage/site-root new tabs, previous-session restoration,
+and bounded clipboard URL opening use Lea. Site roots retain ports and IPv6;
+both left-close variants share mixed-engine disposal and private-history guards.
+`Navigation-host.patch` follows the milestone 52 host patch. The two new Boot
+cases bring the form-start suite to fourteen. See `LeaForge/NAVIGATION_COMMANDS.md`
+for behavior, bounds, and the distinction between clipboard parsing tests and
+unautomated OS clipboard I/O.
+
 Duplicate, close/reopen, close-other/right, bookmarks, reload-all, and named
 sessions now use engine-aware host paths. Close Tab is no longer hidden, and
 the last legacy tab closes through normal cleanup. Private Lea URLs are excluded

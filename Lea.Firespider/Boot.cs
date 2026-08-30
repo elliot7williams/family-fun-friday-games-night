@@ -41,7 +41,7 @@ namespace Lea.Firespider
             var forms = new List<Form>();
             try
             {
-                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands" }.Contains(mode), "unknown boot case: " + mode);
+                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links" }.Contains(mode), "unknown boot case: " + mode);
                 Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
                 Application.ThreadException += (sender, error) => UiErrors.Add(error.Exception);
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", session);
@@ -208,6 +208,8 @@ namespace Lea.Firespider
                     Check(tabs.SelectedTab.Controls[0] is WebBrowser, "explicit legacy fallback was lost");
                 }
                 if (mode == "commands") CheckCommands(form, settings, page);
+                if (mode == "navigation") CheckNavigation(form, settings, page);
+                if (mode == "links") CheckLinks(form, settings, page);
                 Check(UiErrors.Count == 0, "UI thread exceptions: " + String.Join(" | ", UiErrors.Select(error => error.Message).ToArray()));
                 if (mode == "locked")
                 {
@@ -230,19 +232,25 @@ namespace Lea.Firespider
                 release.Set();
                 if (server != null) server.Stop();
                 if (worker != null) worker.Join(3000);
-                foreach (var form in forms) { form.Close(); form.Dispose(); }
-                if (sessionLock != null) sessionLock.Dispose();
-                if (settings != null)
+                try
                 {
-                    foreach (var pair in saved) settings[pair.Key] = pair.Value;
-                    settings.Save();
+                    foreach (var form in forms) { form.Close(); form.Dispose(); }
                 }
-                Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", oldSession);
-                if (File.Exists(session)) File.Delete(session);
-                if (File.Exists(log)) File.Delete(log);
-                release.Dispose();
-                requested.Dispose();
-                responded.Dispose();
+                finally
+                {
+                    if (sessionLock != null) sessionLock.Dispose();
+                    if (settings != null)
+                    {
+                        foreach (var pair in saved) settings[pair.Key] = pair.Value;
+                        settings.Save();
+                    }
+                    Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", oldSession);
+                    if (File.Exists(session)) File.Delete(session);
+                    if (File.Exists(log)) File.Delete(log);
+                    release.Dispose();
+                    requested.Dispose();
+                    responded.Dispose();
+                }
             }
         }
 
@@ -260,6 +268,235 @@ namespace Lea.Firespider
             var result = new StringCollection();
             result.AddRange(values);
             return result;
+        }
+
+        private static void CheckNavigation(Form form, ApplicationSettingsBase settings, string page)
+        {
+            var tabs = Member<TabControl>(form, "k");
+            var first = tabs.SelectedTab;
+            var view = (V)first.Controls[0];
+            settings["h"] = page + "#home";
+            Member<ToolStripItem>(form, "h").PerformClick();
+            Wait(() => view.U.AbsoluteUri == page + "#home" && !view.Busy, "Home ignored the saved homepage");
+            Menu(form, "Use Current Page As Home").PerformClick();
+            Check((string)settings["h"] == page + "#home", "save homepage omitted Lea URL");
+            Call(form, "q1", page + "#away");
+            Wait(() => view.U.AbsoluteUri == page + "#away" && !view.Busy, "homepage test navigation");
+            Member<ToolStripItem>(form, "HO").PerformClick();
+            Wait(() => view.U.AbsoluteUri == page + "#home" && !view.Busy, "Home menu ignored saved homepage");
+            Menu(form, "Open Homepage In New Tab").PerformClick();
+            WaitLea(tabs);
+            Check(tabs.TabCount == 2 && ((V)tabs.SelectedTab.Controls[0]).U.AbsoluteUri == page + "#home", "new homepage did not use Lea");
+            settings["h"] = "";
+            Member<ToolStripItem>(form, "HO").PerformClick();
+            Wait(() => ((V)tabs.SelectedTab.Controls[0]).U.AbsoluteUri == page && !((V)tabs.SelectedTab.Controls[0]).Busy, "blank homepage fallback");
+            Call(form, "q24", form, EventArgs.Empty);
+            Member<ToolStripDropDownItem>(form, "tl").DropDownItems[0].PerformClick();
+            Check(tabs.SelectedTab == first && Member<ToolStripComboBox>(form, "c").Text.Contains("#home"), "tab-list selection did not update Lea address");
+            Check(Call(form, "qleaDomain") == null, "local file was treated as a web domain");
+            Menu(form, "Set Homepage To Current Domain").PerformClick();
+            Check((string)settings["h"] == "", "file domain overwrote homepage");
+            Console.WriteLine("PASS navigation: saved/default home, new Lea homepage, tab list, and local-file domain guard");
+
+            var session = Environment.GetEnvironmentVariable("LEA_FIRESPIDER_SESSION");
+            settings["ls"] = Collection(page + "#legacy-saved");
+            File.WriteAllLines(session, new[] { "javascript:alert(1)", page + "#one", page + "#two" });
+            Member<ToolStripItem>(form, "RP").PerformClick();
+            WaitLea(tabs);
+            Check(tabs.TabCount == 4 && tabs.SelectedIndex == 2 && ((V)tabs.TabPages[2].Controls[0]).U.AbsoluteUri == page + "#one" &&
+                ((V)tabs.TabPages[3].Controls[0]).U.AbsoluteUri == page + "#two", "previous session did not prefer and append Lea snapshot");
+            Check(first.Controls[0] == view && view.U.AbsoluteUri == page + "#home", "previous session replaced current content");
+            File.Delete(session);
+            Member<ToolStripItem>(form, "RP").PerformClick();
+            WaitLea(tabs);
+            Check(tabs.TabCount == 5 && ((V)tabs.SelectedTab.Controls[0]).U.AbsoluteUri == page + "#legacy-saved", "previous legacy snapshot did not reopen as Lea");
+            File.WriteAllText(session, page + "#private-restore");
+            Set(form, "pv", true);
+            Member<ToolStripItem>(form, "RP").PerformClick();
+            WaitLea(tabs);
+            Check(tabs.TabCount == 6 && ((V)tabs.SelectedTab.Controls[0]).Pv, "explicit private previous-session restoration");
+            Set(form, "pv", false);
+            File.WriteAllLines(session, Enumerable.Range(0, 20).Select(index => page + "#limit-" + index).ToArray());
+            Member<ToolStripItem>(form, "RP").PerformClick();
+            WaitLea(tabs);
+            Check(tabs.TabCount == 18 && File.ReadAllLines(session).Length == 20, "previous-session limit or saved records changed");
+            var count = tabs.TabCount;
+            using (var locked = new FileStream(session, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+            {
+                Member<ToolStripItem>(form, "RP").PerformClick();
+                Check(tabs.TabCount == count && Member<Label>(form, "su").Text.Contains("could not be read"), "locked session silently fell back or lost error status");
+            }
+            File.WriteAllText(session, new string('x', 65537));
+            Member<ToolStripItem>(form, "RP").PerformClick();
+            Check(tabs.TabCount == count && new FileInfo(session).Length == 65537, "oversized session was opened or changed");
+            settings["ls"] = new StringCollection();
+            File.WriteAllLines(session, Enumerable.Repeat("invalid", 256).Concat(new[] { page }).ToArray());
+            Member<ToolStripItem>(form, "RP").PerformClick();
+            Check(tabs.TabCount == count, "session scan exceeded 256 candidates");
+            File.Delete(session);
+            Member<ToolStripItem>(form, "RP").PerformClick();
+            Check(tabs.TabCount == count && Member<Label>(form, "su").Text.Contains("No supported"), "empty session changed tabs");
+            Check(!Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module => module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)), "navigation commands loaded legacy engine");
+            Console.WriteLine("PASS navigation: Lea/legacy snapshots, private opens, append/order, bounds, locked and empty sessions");
+
+            tabs.SelectedTab = first;
+            Menu(form, "Close Other Tabs").PerformClick();
+            var width = tabs.ItemSize.Width;
+            Call(form, "q3", page);
+            var old = tabs.SelectedTab;
+            Call(form, "qleaNew", page + "#kept");
+            var kept = tabs.SelectedTab;
+            Call(form, "qleaNew", page + "#right");
+            var right = tabs.SelectedTab;
+            WaitLea(tabs);
+            tabs.SelectedTab = kept;
+            Menu(form, "Close Tabs Left Of Current").PerformClick();
+            Check(tabs.TabCount == 2 && tabs.SelectedTab == kept && first.IsDisposed && old.IsDisposed && !right.IsDisposed && tabs.ItemSize.Width == width,
+                "first mixed left-close failed disposal, selection, or sizing");
+            settings["rc"] = new StringCollection();
+            Set(form, "pv", true);
+            var secret = (V)Call(form, "qleaNew", page + "#private-left");
+            Set(form, "pv", false);
+            Call(form, "q3", page);
+            var legacy = tabs.SelectedTab;
+            var browser = (WebBrowser)legacy.Controls[0];
+            Wait(() => browser.Url != null && browser.ReadyState == WebBrowserReadyState.Complete, "left-close legacy page load");
+            Call(form, "qleaNew", page + "#retained-right");
+            var retained = tabs.SelectedTab;
+            WaitLea(tabs);
+            tabs.SelectedTab = legacy;
+            Menu(form, "Close Tabs To The Left").PerformClick();
+            Check(tabs.TabCount == 2 && tabs.SelectedTab == legacy && kept.IsDisposed && right.IsDisposed && secret.IsDisposed && !retained.IsDisposed &&
+                (int)form.GetType().GetField("I", Members).GetValue(form) == 2, "second mixed left-close failed disposal or bookkeeping");
+            Check(!((StringCollection)settings["rc"]).Cast<string>().Any(value => value.Contains("private-left")), "left-close leaked private URL");
+            Menu(form, "Close Tabs To The Left").PerformClick();
+            Check(tabs.TabCount == 2, "left edge closed unintended tabs");
+            using (var stale = new ToolStripMenuItem { Tag = first }) Call(form, "q25", stale, EventArgs.Empty);
+            Check(tabs.SelectedTab == legacy, "stale tab-list entry changed selection");
+            Console.WriteLine("PASS navigation: both mixed-engine left-close menus, private history, stable counts, and stale tab selection");
+        }
+
+        private static void CheckLinks(Form form, ApplicationSettingsBase settings, string page)
+        {
+            var tabs = Member<TabControl>(form, "k");
+            var first = tabs.SelectedTab;
+            var view = (V)first.Controls[0];
+            using (var site = new LoopbackSite())
+            {
+                Call(form, "q1", site.Url + "path?q=one#part");
+                Wait(() => view.U.AbsoluteUri == site.Url + "path?q=one#part" && !view.Busy, "domain source navigation");
+                Check(((Uri)Call(form, "qleaDomain")).AbsoluteUri == site.Url, "domain root lost port or retained path/query/fragment");
+                Menu(form, "Set Homepage To Current Domain").PerformClick();
+                Check((string)settings["h"] == site.Url, "domain homepage lost port");
+                Menu(form, "Quick Open Current Domain").PerformClick();
+                Wait(() => view.U.AbsoluteUri == site.Url && !view.Busy, "quick domain navigation");
+                Menu(form, "Open Current Domain In New Tab").PerformClick();
+                WaitLea(tabs);
+                Check(tabs.TabCount == 2 && tabs.SelectedTab.Controls[0] is V && ((V)tabs.SelectedTab.Controls[0]).U.AbsoluteUri == site.Url, "domain new-tab engine or URL");
+                tabs.SelectedTab = first;
+                var suspended = Member<Dictionary<TabPage, string>>(form, "suspendedGroupUrls");
+                try
+                {
+                    suspended[first] = "https://user:password@[::1]:8443/a?q=b#c";
+                    var domain = (Uri)Call(form, "qleaDomain");
+                    Check(domain.Scheme == "https" && domain.Port == 8443 && IPAddress.Parse(domain.Host.Trim('[', ']')).Equals(IPAddress.IPv6Loopback) &&
+                        domain.PathAndQuery == "/" && domain.Fragment == "" && domain.UserInfo == "", "domain normalization lost IPv6/port or retained credentials: " + domain.AbsoluteUri);
+                }
+                finally { suspended.Remove(first); }
+                Call(form, "qleaPaste", page.Replace("%20", " ") + "#single", false);
+                WaitLea(tabs);
+                Check(tabs.TabCount == 3 && ((V)tabs.SelectedTab.Controls[0]).U.AbsoluteUri == page + "#single", "single raw-space file clipboard URL");
+                Call(form, "qleaPaste", site.Url.Substring("http://".Length) + "bare", false);
+                WaitLea(tabs);
+                Check(tabs.TabCount == 4 && ((V)tabs.SelectedTab.Controls[0]).U.AbsoluteUri == site.Url + "bare", "bare clipboard host/port URL");
+                var count = tabs.TabCount;
+                foreach (var invalid in new[] { "", "not a link", "javascript:alert(1)", "data:text/html,test", "ssh://localhost/", "https://example.invalid/" + new string('x', 4096) })
+                    Call(form, "qleaPaste", invalid, false);
+                Check(tabs.TabCount == count, "invalid single clipboard input created a tab");
+                Call(form, "qleaPaste", new string('x', 65537), true);
+                Check(tabs.TabCount == count && Member<Label>(form, "su").Text.Contains("too large"), "character clipboard bound");
+                Call(form, "qleaPaste", new string('\u0800', 30000), true);
+                Check(tabs.TabCount == count && Member<Label>(form, "su").Text.Contains("too large"), "UTF-8 clipboard bound");
+                var batch = "<a href=\"" + site.Url.Replace("http:", "HTTP:") + "batch\">link</a>\n" +
+                    String.Join("\n", Enumerable.Range(0, 19).Select(index => page + "#batch-" + index).ToArray());
+                Call(form, "qleaPaste", batch, true);
+                Check(tabs.TabCount == count + 12 && tabs.SelectedIndex == count && Member<Label>(form, "su").Text.Contains("8 URL(s) skipped"), "batch URL limits/reporting/selection");
+                WaitLea(tabs);
+                Check(((V)tabs.TabPages[count].Controls[0]).U.AbsoluteUri == site.Url + "batch" && ((V)tabs.TabPages[count + 1].Controls[0]).U.AbsoluteUri == page + "#batch-0", "case-insensitive batch extraction and order");
+                count = tabs.TabCount;
+                Call(form, "qleaPaste", String.Join("\n", Enumerable.Repeat("http://[]/", 256).Concat(new[] { site.Url + "beyond" }).ToArray()), true);
+                Check(tabs.TabCount == count, "clipboard batch exceeded 256 candidates");
+                Set(form, "pv", true);
+                Call(form, "qleaPaste", page + "#private-paste", false);
+                WaitLea(tabs);
+                Check(((V)tabs.SelectedTab.Controls[0]).Pv, "private single paste created public view");
+                Call(form, "qleaPaste", page + "#private-batch", true);
+                WaitLea(tabs);
+                Check(((V)tabs.SelectedTab.Controls[0]).Pv, "private batch paste created public view");
+                Set(form, "pv", false);
+                Check(tabs.TabPages.Cast<TabPage>().All(tab => tab.Controls[0] is V), "link opening created legacy controls");
+                Call(form, "q3", site.Url + "legacy?q=one#part");
+                var legacy = (WebBrowser)tabs.SelectedTab.Controls[0];
+                Wait(() => legacy.Url != null && legacy.ReadyState == WebBrowserReadyState.Complete, "legacy domain source");
+                Menu(form, "Quick Open Current Domain").PerformClick();
+                Wait(() => legacy.Url.AbsoluteUri == site.Url && legacy.ReadyState == WebBrowserReadyState.Complete, "legacy site-root navigation");
+                Check(tabs.SelectedTab.Controls[0] == legacy, "current domain navigation replaced legacy engine");
+                Menu(form, "Open Current Domain In New Tab").PerformClick();
+                WaitLea(tabs);
+                Check(tabs.SelectedTab.Controls[0] is V && ((V)tabs.SelectedTab.Controls[0]).U.AbsoluteUri == site.Url, "legacy source did not open domain in Lea");
+            }
+            Console.WriteLine("PASS links: loopback domain navigation, port/IPv6 normalization, bounded single/batch paste, order, and privacy");
+        }
+
+        private sealed class LoopbackSite : IDisposable
+        {
+            private readonly TcpListener listener = new TcpListener(IPAddress.Loopback, 0);
+            private readonly Thread worker;
+            private volatile bool stopped;
+            private Exception error;
+            public readonly string Url;
+
+            public LoopbackSite()
+            {
+                listener.Start();
+                Url = "http://127.0.0.1:" + ((IPEndPoint)listener.LocalEndpoint).Port + "/";
+                worker = new Thread(Serve) { IsBackground = true };
+                worker.Start();
+            }
+
+            private void Serve()
+            {
+                try
+                {
+                    for (var request = 0; request < 128 && !stopped; request++)
+                        using (var client = listener.AcceptTcpClient())
+                        using (var stream = client.GetStream())
+                        {
+                            stream.ReadTimeout = 3000;
+                            var end = 0;
+                            for (var bytes = 0; bytes < 16384 && end != 0x0d0a0d0a; bytes++)
+                            {
+                                var next = stream.ReadByte();
+                                if (next < 0) throw new IOException("Incomplete loopback request");
+                                end = (end << 8) | next;
+                            }
+                            Check(end == 0x0d0a0d0a, "loopback request header bound");
+                            var body = Encoding.UTF8.GetBytes("<title>Lea navigation</title><p>Local test</p>");
+                            var header = Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: " + body.Length + "\r\nConnection: close\r\n\r\n");
+                            stream.Write(header, 0, header.Length);
+                            stream.Write(body, 0, body.Length);
+                        }
+                }
+                catch (Exception failure) { if (!stopped) error = failure; }
+            }
+
+            public void Dispose()
+            {
+                stopped = true;
+                listener.Stop();
+                Check(worker.Join(4000), "loopback server shutdown");
+                Check(error == null, "loopback server: " + error);
+            }
         }
 
         private static void CheckCommands(Form form, ApplicationSettingsBase settings, string page)

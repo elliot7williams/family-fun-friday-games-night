@@ -1,0 +1,229 @@
+diff --git a/1.vb b/1.vb
+index ace6363..5f1e4f0 100644
+--- a/1.vb
++++ b/1.vb
+@@ -5074,7 +5074,9 @@ Partial Class j
+     End Sub
+     Sub q11(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+-            My.Settings.h = CType(k.SelectedTab.Controls.Item(0), WebBrowser).Url.ToString
++            Dim target = qleaSessionTarget(qleaUrl(qleaSelectedTab()))
++            If target = "" Then Return
++            My.Settings.h = target
+             My.Settings.Save()
+             su.Visible = True
+             su.Text = "Home page saved"
+@@ -5106,7 +5108,7 @@ Partial Class j
+     End Sub
+     Sub q16(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+-            qleaCloseGroup(False)
++            qleaCloseGroup("a")
+         Catch ex As Exception
+         End Try
+     End Sub
+@@ -5142,7 +5144,9 @@ Partial Class j
+     End Sub
+     Sub q20(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+-            Clipboard.SetText(CType(k.SelectedTab.Controls.Item(0), WebBrowser).Url.ToString)
++            Dim target = qleaUrl(qleaSelectedTab())
++            If target = "" Then Return
++            Clipboard.SetText(target)
+             su.Visible = True
+             su.Text = "Page link copied"
+         Catch ex As Exception
+@@ -5194,10 +5198,10 @@ Partial Class j
+     End Sub
+     Sub q25(ByVal sender As ToolStripMenuItem, ByVal e As EventArgs)
+         Try
+-            k.SelectedTab = CType(sender.Tag, TabPage)
+-            k.SelectedTab.Text = CType(k.SelectedTab.Controls.Item(0), WebBrowser).DocumentTitle
+-            Text = ProductName & " - " & k.SelectedTab.Text
+-            c.Text = CType(k.SelectedTab.Controls.Item(0), WebBrowser).Url.ToString
++            Dim tab = TryCast(sender.Tag, TabPage)
++            If tab Is Nothing OrElse tab.IsDisposed OrElse Not k.TabPages.Contains(tab) Then Return
++            k.SelectedTab = tab
++            qleaTabChanged(k, EventArgs.Empty)
+         Catch ex As Exception
+         End Try
+     End Sub
+@@ -5286,7 +5290,7 @@ Partial Class j
+     End Sub
+     Sub q33(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+-            qleaCloseGroup(True)
++            qleaCloseGroup("r")
+         Catch ex As Exception
+         End Try
+     End Sub
+@@ -5845,21 +5849,7 @@ Partial Class j
+     End Sub
+     Sub q85(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+-            Dim ix As Integer = k.SelectedIndex
+-            For q As Integer = ix - 1 To 0 Step -1
+-                If k.TabPages(q).Controls.Count > 0 Then
+-                    Dim wb As WebBrowser = CType(k.TabPages(q).Controls.Item(0), WebBrowser)
+-                    If Not wb.Url Is Nothing Then rca(wb.Url.ToString)
+-                End If
+-                k.TabPages.RemoveAt(q)
+-                I = I - 1
+-                Dim tz As Size = k.ItemSize
+-                tz.Width += 6
+-                k.ItemSize = tz
+-            Next q
+-            k.SelectedTab.Text = CType(k.SelectedTab.Controls.Item(0), WebBrowser).DocumentTitle
+-            Text = ProductName & " - " & k.SelectedTab.Text
+-            c.Text = CType(k.SelectedTab.Controls.Item(0), WebBrowser).Url.ToString
++            qleaCloseGroup("l")
+         Catch ex As Exception
+         End Try
+     End Sub
+@@ -6012,7 +6002,7 @@ Partial Class j
+     End Sub
+     Sub q101(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+-            q3(My.Settings.h)
++            qleaNew(qleaHome())
+         Catch ex As Exception
+         End Try
+     End Sub
+@@ -6105,7 +6095,9 @@ Partial Class j
+     End Sub
+     Sub q111(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+-            Clipboard.SetText(CType(k.SelectedTab.Controls.Item(0), WebBrowser).Url.Host)
++            Dim address = qleaDomain()
++            If address Is Nothing Then Return
++            Clipboard.SetText(address.Host)
+             su.Visible = True
+             su.Text = "Current domain copied"
+         Catch ex As Exception
+@@ -6231,8 +6223,8 @@ Partial Class j
+     End Sub
+     Sub q123(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+-            Dim u As Uri = CType(k.SelectedTab.Controls.Item(0), WebBrowser).Url
+-            CType(k.SelectedTab.Controls.Item(0), WebBrowser).Navigate(u.Scheme & "://" & u.Host & "/")
++            Dim address = qleaDomain()
++            If address IsNot Nothing Then q1(address.AbsoluteUri)
+         Catch ex As Exception
+         End Try
+     End Sub
+@@ -6289,8 +6281,9 @@ Partial Class j
+     End Sub
+     Sub q129(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+-            Dim u As Uri = CType(k.SelectedTab.Controls.Item(0), WebBrowser).Url
+-            My.Settings.h = u.Scheme & "://" & u.Host & "/"
++            Dim address = qleaDomain()
++            If address Is Nothing Then Return
++            My.Settings.h = address.AbsoluteUri
+             My.Settings.Save()
+             su.Visible = True
+             su.Text = "Homepage set to current domain"
+@@ -6405,8 +6398,8 @@ Partial Class j
+     End Sub
+     Sub q139(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+-            Dim u As Uri = CType(k.SelectedTab.Controls.Item(0), WebBrowser).Url
+-            q3(u.Scheme & "://" & u.Host & "/")
++            Dim address = qleaDomain()
++            If address IsNot Nothing Then qleaNew(address.AbsoluteUri)
+         Catch ex As Exception
+         End Try
+     End Sub
+@@ -6753,17 +6746,7 @@ Partial Class j
+     End Sub
+     Sub q165(ByVal sender As Object, ByVal e As EventArgs) Handles RP.Click
+         Try
+-            If My.Settings.ls.Count = 0 Then
+-                su.Visible = True
+-                su.Text = "No saved session"
+-            Else
+-                CType(k.SelectedTab.Controls.Item(0), WebBrowser).Navigate(My.Settings.ls.Item(0))
+-                For q As Integer = 1 To My.Settings.ls.Count - 1
+-                    q3(My.Settings.ls.Item(q))
+-                Next q
+-                su.Visible = True
+-                su.Text = "Previous session restored"
+-            End If
++            qleaPreviousSession()
+         Catch ex As Exception
+         End Try
+     End Sub
+@@ -7758,18 +7741,7 @@ Partial Class j
+     End Sub
+     Sub q239(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+-            Dim u As String = Clipboard.GetText.Trim
+-            If u = "" Then
+-                su.Visible = True
+-                su.Text = "Clipboard is empty"
+-            ElseIf qvl(u) = False Then
+-                su.Visible = True
+-                su.Text = "Clipboard is not a link"
+-            Else
+-                q3(u)
+-                su.Visible = True
+-                su.Text = "Clipboard link opened"
+-            End If
++            qleaPaste(Clipboard.GetText(), False)
+         Catch ex As Exception
+         End Try
+     End Sub
+@@ -8757,25 +8729,12 @@ Partial Class j
+     Sub q313(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+             Dim cur As Integer = k.SelectedIndex
+-            If cur = 0 Then
++            If cur <= 0 Then
+                 su.Visible = True
+                 su.Text = "No tabs to the left"
+                 Exit Sub
+             End If
+-            For q As Integer = cur - 1 To 0 Step -1
+-                If k.TabPages(q).Controls.Count > 0 Then
+-                    Dim wb As WebBrowser = CType(k.TabPages(q).Controls.Item(0), WebBrowser)
+-                    If wb.Url IsNot Nothing Then rca(wb.Url.ToString)
+-                End If
+-                k.TabPages.RemoveAt(q)
+-                I = I - 1
+-                Dim tz As Size = k.ItemSize
+-                tz.Width += 6
+-                k.ItemSize = tz
+-            Next q
+-            k.SelectedTab.Text = CType(k.SelectedTab.Controls.Item(0), WebBrowser).DocumentTitle
+-            Text = ProductName & " - " & k.SelectedTab.Text
+-            c.Text = CType(k.SelectedTab.Controls.Item(0), WebBrowser).Url.ToString
++            qleaCloseGroup("l")
+             su.Visible = True
+             su.Text = "Tabs to the left closed"
+         Catch ex As Exception
+@@ -9274,24 +9233,7 @@ Partial Class j
+     ' --- Open Links From Clipboard In Tabs ---
+     Sub q351(ByVal sender As Object, ByVal e As EventArgs)
+         Try
+-            Dim text As String = Clipboard.GetText.Trim
+-            If text = "" Then
+-                su.Visible = True
+-                su.Text = "Clipboard is empty"
+-                Exit Sub
+-            End If
+-            Dim rx As New System.Text.RegularExpressions.Regex("https?://[^\s""'<>]+")
+-            Dim matches As System.Text.RegularExpressions.MatchCollection = rx.Matches(text)
+-            If matches.Count = 0 Then
+-                su.Visible = True
+-                su.Text = "No URLs found in clipboard"
+-                Exit Sub
+-            End If
+-            For Each m As System.Text.RegularExpressions.Match In matches
+-                q3(m.Value)
+-            Next
+-            su.Visible = True
+-            su.Text = matches.Count.ToString & " link(s) opened from clipboard"
++            qleaPaste(Clipboard.GetText(), True)
+         Catch ex As Exception
+         End Try
+     End Sub

@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **52**
+Post-1.0 hardening milestones completed: **53**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,16 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Migrated saved/default Home, previous-session reopening, both left-close
+  variants, tab-list selection, and clipboard/site-root navigation to Lea-aware
+  paths. Enabled the hidden Home menu, preserved existing tabs during explicit
+  restore, retained ports/IPv6 while dropping root-URL credentials, and bounded
+  clipboard text and session scanning. Private explicit opens and mixed-engine
+  disposal have compiled-host coverage. Fourteen boot cases, the full engine
+  and host suites, and four real EXE startup scenarios passed. The launcher now
+  retains process exit codes under Windows PowerShell. See
+  `NAVIGATION_COMMANDS.md` for limits and unautomated clipboard OS I/O.
 
 - Migrated common Firespider duplicate, close/reopen, bookmark, reload-all,
   and named-session commands to engine-aware paths. Exposed the hidden Close

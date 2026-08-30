@@ -17,6 +17,13 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
+Milestone 53 fixes saved-homepage handling and the hidden/disabled Home menu,
+migrates previous-session and clipboard/site-root opening, and unifies both
+left-close variants. Existing pages survive explicit restore; ports/IPv6,
+private opens, text/session bounds, and mixed-engine disposal are covered by
+the new navigation/links Boot cases. `NAVIGATION_COMMANDS.md` and
+`Navigation-host.patch` document the fourteen-case suite and remaining limits.
+
 Milestone 52 routes common duplicate, close/reopen, bookmark, reload-all, and
 named-session commands through Lea-aware helpers. Close Tab is visible again;
 last-legacy-tab closure uses normal cleanup. Private Lea views no longer enter
@@ -41,8 +48,8 @@ failures. The tracked adapter, `Lea.Firespider/Startup-host.patch`, eighteen
 focused host checks, and `Lea.Build/Test-FirespiderStartup.ps1` retain both the
 fixes and their reproduction paths. See `STARTUP_RELIABILITY.md`.
 
-1. Continue migrating the previous-session menu, left-close variants, and
-   remaining clipboard/home/domain routes; keep distinguishing legacy-only
+1. Continue migrating advanced group/session/window routes, same-domain bulk
+   operations, and DOM-dependent commands; keep distinguishing legacy-only
    commands from Lea-supported ones and host timing from engine-only timing.
 2. Keep the stable empty UI Automation visible-range fallback until a native-safe
    non-empty bridge survives direct plus external MTA clients.
