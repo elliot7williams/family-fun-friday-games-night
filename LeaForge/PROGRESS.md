@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **48**
+Post-1.0 hardening milestones completed: **49**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,18 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Hardened Firespider startup and mixed-engine events. Regression tests first
+  reproduced Lea-to-WebBrowser casts in three legacy callbacks, invalid
+  selection-event casts, a missing-tab timer fault, background progress/lock
+  misrouting, and session-file failures. Callbacks now validate their owning
+  tab, selected-tab chrome stays isolated, selection handlers accept EventArgs,
+  and empty-tab navigation is harmless. Session I/O is bounded to 64 KiB,
+  twelve URLs, and 4,096 characters per URL, with readable status on I/O errors.
+  Eighteen focused host checks, the full engine/host suites, all 57 compatibility
+  probes, and clean/restored/locked/oversized executable startup checks passed.
+  This milestone changes host reliability, not the supported HTML/CSS subset
+  or engine speed. See `STARTUP_RELIABILITY.md` for reproduction and limits.
 
 - Added bounded non-inherited CSS text overflow through compact `S.To=c/e`
   clip/ellipsis state. Strict values, explicit inheritance, resets, invalid

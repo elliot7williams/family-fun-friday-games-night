@@ -71,7 +71,7 @@ namespace Lea.Firespider
                     .Replace("<p id='class-state'>", "<p id='host-var' class='host-var' style='--host-color:#a13b18;color:#a13b18;width:199px'>Important property host</p><p id='host-media' class='host-media'>Responsive host</p><p id='host-box' class='host-box'>Border-box host</p><section id='host-flex-column' class='host-flex-column'><p id='host-flex-column-a'>Column A</p><p id='host-flex-column-b'>Column B</p></section><svg id='host-svg' width='160' height='80' viewBox='0 0 80 40'><title>Firespider host vector</title><rect x='2' y='2' width='20' height='16' fill='#d7263d'></rect><circle cx='34' cy='10' r='8' fill='#10b981'></circle><path d='M46 2 h28 v16 H46 z' fill='#f59e0b'></path><a href='#state'><rect x='12' y='24' width='56' height='12' fill='#0369a1'></rect></a></svg><p id='class-state'>")
                     .Replace("</svg><p id='class-state'>", "<path d='M2 32 C8 20 14 20 20 32 S32 44 38 32' fill='none' stroke='#7c3aed' stroke-width='2'></path><g transform='translate(58 26)'><g transform='scale(1.5)'><rect x='0' y='0' width='10' height='6' fill='#db2777'></rect></g></g><defs><linearGradient id='host-linear'><stop offset='0' stop-color='#dc2626'></stop><stop offset='1' stop-color='#2563eb'></stop></linearGradient><radialGradient id='host-radial'><stop offset='0' stop-color='#f8fafc'></stop><stop offset='1' stop-color='#7c3aed'></stop></radialGradient><g id='host-reuse'><rect x='0' y='0' width='10' height='8'></rect><circle cx='7' cy='4' r='2' fill='#f8fafc'></circle></g><clipPath id='host-half' clipPathUnits='objectBoundingBox' clip-rule='evenodd'><rect x='0' y='0' width='.5' height='1'></rect></clipPath></defs><rect x='40' y='24' width='14' height='10' fill='url(#host-linear)'></rect><circle cx='69' cy='10' r='7' fill='url(#host-radial)'></circle><use href='#host-reuse' x='26' y='27' fill='#0d9488'></use><rect x='46' y='27' width='10' height='8' fill='#f59e0b' clip-path='url(#host-half)'></rect><path class='host-stroke' d='M2 20 H22' fill-rule='evenodd'></path></svg><p id='class-state'>");
                 File.WriteAllText(openPage, openMarkup);
-                var root = args.Length > 0 ? args[0] : AppDomain.CurrentDomain.BaseDirectory;
+                var root = Path.GetFullPath(args.Length > 0 ? args[0] : AppDomain.CurrentDomain.BaseDirectory);
                 var assembly = Assembly.LoadFrom(Path.Combine(root, "Firespider Internet 19.exe"));
                 var type = assembly.GetType("Firespider_Internet.j", true);
                 var settingsType = assembly.GetType("Firespider_Internet.My.MySettings", true);
@@ -135,6 +135,12 @@ namespace Lea.Firespider
                     legacyMenu.PerformClick();
                     Check(tabs.SelectedTab != null && tabs.SelectedTab.Controls.Count > 0 && tabs.SelectedTab.Controls[0] is WebBrowser, "explicit legacy tab fallback");
                     tabs.SelectedTab = primaryLeaTab;
+                    StartupEvents(form, session);
+                    if (args.Length > 1 && args[1] == "--startup")
+                    {
+                        Console.WriteLine("Firespider startup regression smoke passed.");
+                        return 0;
+                    }
                     Check(host.Tm == 15000, "Firespider Lea request timeout");
                     host.Tm = 1;
                     Check(host.Tm == 100, "Firespider Lea request timeout forwarding");
@@ -662,6 +668,170 @@ namespace Lea.Firespider
                 if (found != null) return found;
             }
             return null;
+        }
+
+        private static void StartupEvents(Form form, string session)
+        {
+            var flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+            var tabs = Member<TabControl>(form, "k");
+            var selected = tabs.SelectedTab;
+            var address = Member<ToolStripComboBox>(form, "c");
+            var search = Member<ToolStripComboBox>(form, "x");
+            var failures = new System.Collections.Generic.List<string>();
+            Action<string, Action> test = (name, action) =>
+            {
+                try { action(); Console.WriteLine("PASS startup: " + name); }
+                catch (Exception error)
+                {
+                    var cause = error.GetBaseException();
+                    failures.Add(name + ": " + cause.GetType().Name + ": " + cause.Message);
+                    Console.WriteLine("FAIL startup: " + failures[failures.Count - 1]);
+                }
+            };
+            Action<string, object, EventArgs> call = (name, sender, args) =>
+                form.GetType().GetMethod(name, flags).Invoke(form, new object[] { sender, args });
+            test("address selection event", () => typeof(ToolStripComboBox).GetMethod("OnSelectedIndexChanged", flags)
+                .Invoke(address, new object[] { EventArgs.Empty }));
+            test("search selection event", () => typeof(ToolStripComboBox).GetMethod("OnSelectedIndexChanged", flags)
+                .Invoke(search, new object[] { EventArgs.Empty }));
+            using (var legacyTab = new TabPage("Background legacy"))
+            using (var browser = new WebBrowser())
+            {
+                legacyTab.Controls.Add(browser);
+                tabs.TabPages.Add(legacyTab);
+                tabs.SelectedTab = selected;
+                var title = form.Text;
+                var url = address.Text;
+                var progress = Member<Control>(form, "LO").Size;
+                var destination = new Uri("about:blank");
+                test("background legacy navigating", () => call("nn", browser, new WebBrowserNavigatingEventArgs(destination, "")));
+                test("background legacy navigated", () => call("nv", browser, new WebBrowserNavigatedEventArgs(destination)));
+                test("background legacy completed", () => call("n0", browser, new WebBrowserDocumentCompletedEventArgs(destination)));
+                test("background legacy progress", () =>
+                {
+                    call("q14", browser, new WebBrowserProgressChangedEventArgs(50, 100));
+                    Check(Member<Control>(form, "LO").Size == progress, "background progress changed selected tab chrome");
+                });
+                test("Lea chrome survives background callbacks", () => Check(form.Text == title && address.Text == url &&
+                    tabs.SelectedTab == selected, "background callback replaced Lea title, URL, or selection"));
+                test("active legacy navigation and progress", () =>
+                {
+                    tabs.SelectedTab = legacyTab;
+                    try
+                    {
+                        var args = new WebBrowserNavigatingEventArgs(destination, "");
+                        call("nn", browser, args);
+                        Check(!args.Cancel && legacyTab.Text == "Please Wait...", "active legacy navigation was lost");
+                        call("q14", browser, new WebBrowserProgressChangedEventArgs(50, 100));
+                        Check(Member<Control>(form, "LO").Width == Convert.ToInt32(form.Width * .5), "active legacy progress was lost");
+                    }
+                    finally { tabs.SelectedTab = selected; }
+                });
+                legacyTab.Tag = "locked";
+                test("background lock belongs to sender", () =>
+                {
+                    var args = new WebBrowserNavigatingEventArgs(destination, "");
+                    call("nn", browser, args);
+                    Check(args.Cancel, "background locked tab was allowed to navigate");
+                });
+                legacyTab.Tag = null;
+                selected.Tag = "locked";
+                test("selected Lea lock does not lock other tabs", () =>
+                {
+                    var args = new WebBrowserNavigatingEventArgs(destination, "");
+                    call("nn", browser, args);
+                    Check(!args.Cancel, "unrelated selected tab cancelled background navigation");
+                });
+                selected.Tag = "lea";
+                tabs.TabPages.Remove(legacyTab);
+                test("detached legacy callbacks", () =>
+                {
+                    var args = new WebBrowserNavigatingEventArgs(destination, "");
+                    call("nn", browser, args);
+                    Check(args.Cancel, "detached browser navigation was not cancelled");
+                    call("nv", browser, new WebBrowserNavigatedEventArgs(destination));
+                    call("n0", browser, new WebBrowserDocumentCompletedEventArgs(destination));
+                });
+                test("wrong-engine callback sender", () =>
+                {
+                    var args = new WebBrowserNavigatingEventArgs(destination, "");
+                    call("nn", selected.Controls[0], args);
+                    Check(args.Cancel, "wrong-engine navigation sender was accepted");
+                    call("nv", selected.Controls[0], new WebBrowserNavigatedEventArgs(destination));
+                    call("n0", selected.Controls[0], new WebBrowserDocumentCompletedEventArgs(destination));
+                });
+            }
+            test("empty-tab notification timer", () =>
+            {
+                tabs.SelectedIndex = -1;
+                try
+                {
+                    var timer = Member<Timer>(form, "ti");
+                    typeof(Timer).GetMethod("OnTick", flags).Invoke(timer, new object[] { EventArgs.Empty });
+                }
+                finally { tabs.SelectedTab = selected; }
+            });
+            test("empty-tab navigation commands", () =>
+            {
+                tabs.SelectedIndex = -1;
+                try
+                {
+                    foreach (var name in new[] { "qleaBackClick", "qleaForwardClick", "qleaHomeClick", "qleaReloadClick", "qleaStopClick" })
+                        call(name, form, EventArgs.Empty);
+                }
+                finally { tabs.SelectedTab = selected; }
+            });
+            test("locked session file", () =>
+            {
+                using (var stream = new FileStream(session, FileMode.Create, FileAccess.ReadWrite, FileShare.None))
+                    form.GetType().GetMethod("qleaRestoreSession", flags).Invoke(form, null);
+            });
+            test("oversized session file", () =>
+            {
+                using (var stream = new FileStream(session, FileMode.Create)) stream.SetLength(65537);
+                var count = tabs.TabCount;
+                form.GetType().GetMethod("qleaRestoreSession", flags).Invoke(form, null);
+                Check(tabs.TabCount == count && Member<Label>(form, "su").Text.Contains("session"), "oversized session was not reported");
+            });
+            test("invalid and overlong session URLs", () =>
+            {
+                var count = tabs.TabCount;
+                File.WriteAllLines(session, new[] { "", "not a url", "javascript:alert(1)", "about:blank", "https://example.invalid/" + new string('a', 4096) });
+                form.GetType().GetMethod("qleaRestoreSession", flags).Invoke(form, null);
+                Check(tabs.TabCount == count, "invalid session entry opened a tab");
+            });
+            test("session restore/save limits and private mode", () =>
+            {
+                var count = tabs.TabCount;
+                var urls = new string[14];
+                for (var index = 0; index < urls.Length; index++) urls[index] = ((V)selected.Controls[0]).U.AbsoluteUri;
+                File.WriteAllLines(session, urls);
+                var privacy = form.GetType().GetField("pv", flags);
+                var oldPrivacy = privacy.GetValue(form);
+                try
+                {
+                    privacy.SetValue(form, true);
+                    form.GetType().GetMethod("qleaRestoreSession", flags).Invoke(form, null);
+                    Check(tabs.TabCount == count, "private mode restored a saved session");
+                    privacy.SetValue(form, false);
+                    form.GetType().GetMethod("qleaRestoreSession", flags).Invoke(form, null);
+                    Check(tabs.TabCount == count + 12, "session did not restore exactly twelve tabs");
+                    form.GetType().GetMethod("qleaSaveSession", flags).Invoke(form, null);
+                    Check(File.ReadAllLines(session).Length == 12 && new FileInfo(session).Length <= 65536, "saved session exceeded limits");
+                    privacy.SetValue(form, true);
+                    form.GetType().GetMethod("qleaSaveSession", flags).Invoke(form, null);
+                    Check(!File.Exists(session), "private mode retained the session file");
+                }
+                finally
+                {
+                    privacy.SetValue(form, oldPrivacy);
+                    while (tabs.TabCount > count)
+                        form.GetType().GetMethod("qleaClose", flags).Invoke(form, new object[] { tabs.TabPages[tabs.TabCount - 1] });
+                    tabs.SelectedTab = selected;
+                }
+            });
+            File.Delete(session);
+            Check(failures.Count == 0, String.Join("\n", failures.ToArray()));
         }
 
         private static B BlockById(P page, string id)

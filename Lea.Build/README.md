@@ -53,3 +53,24 @@ Its compact switches are `-r` for repository root, `-o` for report output,
 `-n` for iterations, and optional `-b` for a Firespider executable path.
 The same runner recognizes an extracted Lea runtime package and measures its
 local DLLs and Firespider executable without requiring a source solution.
+
+## Firespider Startup Checks
+
+Run the executable checks with Windows PowerShell and the built host root:
+
+```powershell
+powershell.exe -NoProfile -STA -File .\Lea.Build\Test-FirespiderStartup.ps1 -Root 'L:\Firespider Internet'
+```
+
+The default checks clean, restored, locked, and oversized temporary sessions,
+waits eight seconds per launch, and inspects responsiveness and UI Automation
+for exception dialogs. Use `-Scenario clean` for one launch. It never closes
+an existing browser process, and restores the session environment override.
+The browser can still update its ordinary profile settings when it closes;
+use an extracted runtime test directory for isolated package checks.
+
+The compiled `Lea.Firespider.Smoke.exe <host-root> --startup` runs eighteen
+event/session regressions off-screen. Omitting `--startup` runs the full host
+suite. Source for the corresponding host edits is retained in
+`Lea.Firespider/Startup-host.patch`, with reproduction notes in
+`LeaForge/STARTUP_RELIABILITY.md`.

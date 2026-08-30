@@ -1,0 +1,122 @@
+diff --git a/1.vb b/1.vb
+--- a/1.vb
++++ b/1.vb
+@@ -4318,7 +4318,11 @@ Partial Class j
+         End Try
+     End Sub
+     Sub nv(ByVal sender As Object, ByVal e As WebBrowserNavigatedEventArgs)
+-        CType(k.SelectedTab.Controls.Item(0), WebBrowser).ScriptErrorsSuppressed = True
++        Dim browser = TryCast(sender, WebBrowser)
++        Dim tab = qleaLegacyTab(browser)
++        If tab Is Nothing Then Return
++        browser.ScriptErrorsSuppressed = True
++        If tab IsNot k.SelectedTab Then Return
+         On Error Resume Next
+         LO.Size = New Size(1, 2)
+         r.Image = My.Resources.F8
+@@ -4350,6 +4354,13 @@ Partial Class j
+         g.Enabled = False
+     End Sub
+     Sub nn(ByVal sender As Object, ByVal e As WebBrowserNavigatingEventArgs)
++        Dim browser = TryCast(sender, WebBrowser)
++        Dim tab = qleaLegacyTab(browser)
++        If tab Is Nothing Then
++            e.Cancel = True
++            Return
++        End If
++        browser.ScriptErrorsSuppressed = True
+         If qnavigationblocked(e) Then Exit Sub
+         If wo = True Then
+             e.Cancel = True
+@@ -4357,13 +4368,13 @@ Partial Class j
+             su.Text = "Work offline - navigation blocked"
+             Exit Sub
+         End If
+-        If k.SelectedTab.Tag = "locked" Then
++        If CStr(tab.Tag) = "locked" Then
+             e.Cancel = True
+             su.Visible = True
+             su.Text = "Tab is locked - navigation blocked"
+             Exit Sub
+         End If
+-        CType(k.SelectedTab.Controls.Item(0), WebBrowser).ScriptErrorsSuppressed = True
++        If tab IsNot k.SelectedTab Then Return
+         On Error Resume Next
+         Text = ProductName & " Loading..."
+         k.SelectedTab.Text = "Please Wait..."
+@@ -4588,6 +4599,7 @@ Partial Class j
+         End If
+     End Sub
+     Sub j8(ByVal sender As System.Object, ByVal e As EventArgs) Handles ti.Tick
++        If k Is Nothing OrElse k.SelectedTab Is Nothing Then Return
+         If k.SelectedTab.Text = "(1) Facebook" Then
+             My.Computer.Audio.Play(My.Resources.sr, AudioPlayMode.Background)
+             si.Image = My.Resources.F2
+@@ -4616,7 +4628,7 @@ Partial Class j
+             s.Enabled = True
+         End If
+     End Sub
+-    Sub oi2(ByVal sender As Object, ByVal e As KeyEventArgs) Handles x.SelectedIndexChanged
++    Sub oi2(ByVal sender As Object, ByVal e As EventArgs) Handles x.SelectedIndexChanged
+         If x.Text = "" Then
+             s.Enabled = False
+         ElseIf x.Text = "search" Then
+@@ -4639,7 +4651,7 @@ Partial Class j
+             g.Enabled = True
+         End If
+     End Sub
+-    Sub oi1(ByVal sender As Object, ByVal e As KeyEventArgs) Handles c.SelectedIndexChanged
++    Sub oi1(ByVal sender As Object, ByVal e As EventArgs) Handles c.SelectedIndexChanged
+         If c.Text = "" Then
+             g.Enabled = False
+         Else
+@@ -4787,17 +4799,23 @@ Partial Class j
+         End Try
+     End Sub
+     Sub n0(ByVal sender As Object, ByVal e As WebBrowserDocumentCompletedEventArgs)
+-        CType(k.SelectedTab.Controls.Item(0), WebBrowser).ScriptErrorsSuppressed = True
++        Dim browser = TryCast(sender, WebBrowser)
++        Dim tab = qleaLegacyTab(browser)
++        If tab Is Nothing Then Return
++        browser.ScriptErrorsSuppressed = True
+         On Error Resume Next
+-        LO.Size = New Size(1, 2)
+-        r.Image = My.Resources.F8
+-        su.Visible = False
+-        k.SelectedTab.Text = CType(k.SelectedTab.Controls.Item(0), WebBrowser).DocumentTitle
+-        Text = ProductName & " - " & k.SelectedTab.Text
+-        c.Text = CType(k.SelectedTab.Controls.Item(0), WebBrowser).Url.ToString
++        tab.Text = browser.DocumentTitle
+         If pv = False Then
+-            qash(c.Text)
+-            qash(k.SelectedTab.Text)
++            If browser.Url IsNot Nothing Then qash(browser.Url.ToString())
++            qash(tab.Text)
++        End If
++        If tab Is k.SelectedTab Then
++            LO.Size = New Size(1, 2)
++            r.Image = My.Resources.F8
++            su.Visible = False
++            Text = ProductName & " - " & tab.Text
++            If browser.Url IsNot Nothing Then c.Text = browser.Url.ToString()
++            g.Enabled = False
+         End If
+         qapplydomain(CType(sender, WebBrowser))
+         qapplyusercontent(CType(sender, WebBrowser))
+@@ -4810,7 +4828,6 @@ Partial Class j
+             qanalyticsvisit(CType(sender, WebBrowser))
+             If k.SelectedTab IsNot Nothing AndAlso k.SelectedTab.Controls.Count > 0 AndAlso k.SelectedTab.Controls(0) Is sender Then qapplysitechrome(CType(sender, WebBrowser))
+         End If
+-        g.Enabled = False
+     End Sub
+     Sub y5(sender As Object, e As EventArgs) Handles y3.Click
+         y9.Show()
+@@ -5078,6 +5095,8 @@ Partial Class j
+         End If
+     End Sub
+     Sub q14(ByVal sender As Object, ByVal e As WebBrowserProgressChangedEventArgs)
++        Dim tab = qleaLegacyTab(TryCast(sender, WebBrowser))
++        If tab Is Nothing OrElse tab IsNot k.SelectedTab Then Return
+         Try
+             If e.MaximumProgress > 0 And e.CurrentProgress > 0 Then
+                 Dim sz As Integer = CInt((e.CurrentProgress / e.MaximumProgress) * Size.Width)

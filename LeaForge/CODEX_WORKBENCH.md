@@ -17,6 +17,11 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
+Milestone 49 fixes reproduced Firespider startup and mixed-engine callback
+failures. The tracked adapter, `Lea.Firespider/Startup-host.patch`, eighteen
+focused host checks, and `Lea.Build/Test-FirespiderStartup.ps1` retain both the
+fixes and their reproduction paths. See `STARTUP_RELIABILITY.md`.
+
 1. Keep the stable empty UI Automation visible-range fallback until a native-safe
    non-empty bridge survives direct plus external MTA clients.
 2. Keep strengthening host tests as more legacy tab routes move to Lea.

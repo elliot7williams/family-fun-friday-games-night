@@ -10,6 +10,14 @@ Its timer status handler is also routed safely across startup, empty, Lea, and
 legacy-tab states, so it never dereferences a missing control or casts a Lea
 view to the legacy `WebBrowser` type.
 
+Milestone 49 also fixes late legacy Navigating/Navigated/DocumentCompleted
+callbacks while a Lea tab is selected, background progress updates, owner-tab
+locking, missing-tab notification ticks, and incorrectly typed address/search
+selection handlers. `Startup-host.patch` records only this milestone's edits
+to the existing host `1.vb`; it requires the matching `FirespiderLea.vb` helper.
+Apply it only after `git apply --check --ignore-space-change` succeeds in the
+host checkout. It is already applied to `L:\Firespider Internet`.
+
 Firespider's Close Tab command, tab-strip close target, and middle-click now
 close Lea tabs safely. The existing Page Source window displays Lea's raw `V.H`
 HTML. Open File loads local pages into the selected Lea view, Save Page writes
@@ -17,6 +25,11 @@ that source as UTF-8, and Send Link builds its message from Lea's title and URL.
 Up to 12 Lea URLs restore from `%LocalAppData%\Firespider Internet\Lea.session`;
 private mode deletes that file instead of saving it. Legacy session settings
 remain owned by Firespider.
+
+Both saving and restoration are capped at twelve URLs, 4,096 characters per
+URL, and 64 KiB per file. Oversized, locked, or inaccessible session files are
+skipped with a status message, without changing the original file during the
+restore operation. Invalid entries and unsupported schemes are ignored.
 
 Firespider's private-mode flag also drives `V.Pv`. Normal Lea cookies stay in
 their bounded in-memory jar, while each private session starts empty and is
@@ -233,7 +246,9 @@ clip definitions/references, stylesheet stroke aliases, and graphic accessibilit
 
 The host project imports `Lea/FirespiderLea.targets`, which adds the two DLL
 references, compiles `FirespiderLea.vb`, and copies `start.html` to the output
-`Lea` folder. No Chromium, WebView, Safari, or hidden browser control is used.
+`Lea` folder. Lea tabs use no Chromium, WebView, Safari, or hidden browser
+control. Firespider still has its legacy initial-page and explicit fallback
+paths; this milestone does not make the entire host Lea-only.
 If SDK `dotnet build` forces old binary `.resx` files through its newer resource
 serializer, build this legacy host with the installed .NET Framework MSBuild:
 `%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe`. Lea source and
@@ -311,3 +326,9 @@ autofocus/access keys, keyboard navigation, local
 open, find cycling, streamed download saves, page save, send-link metadata,
 close routes, source, and session restoration using temporary files rather than
 the user's data.
+
+Pass a host root and `--startup` to the compiled smoke for its eighteen focused
+startup regressions only. The full smoke includes them by default. The separate
+`Lea.Build/Test-FirespiderStartup.ps1` launches the actual EXE for clean, restored,
+locked-session, and oversized-session cases and checks responsiveness and UIA
+error-dialog text. It closes only the processes it starts.

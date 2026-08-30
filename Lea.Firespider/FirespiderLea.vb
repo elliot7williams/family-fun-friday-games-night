@@ -15,6 +15,9 @@ Partial Class j
     Private qleaInspectorAccess As TextBox
     Private qleaInspectorTips As ToolTip
     Private Shared qleaSessionRestored As Boolean
+    Private Const qleaSessionTabs As Integer = 12
+    Private Const qleaSessionBytes As Integer = 65536
+    Private Const qleaSessionUrl As Integer = 4096
 
     Private Sub qleaInit(ByVal sender As Object, ByVal e As EventArgs) Handles Me.Load
         If qleaMenu IsNot Nothing Then Return
@@ -146,9 +149,20 @@ Partial Class j
         Return TryCast(tab.Controls(0), Global.Lea.Win.V)
     End Function
 
+    Private Function qleaLegacyTab(ByVal browser As WebBrowser) As TabPage
+        If browser Is Nothing OrElse browser.IsDisposed OrElse k Is Nothing Then Return Nothing
+        Dim tab = TryCast(browser.Parent, TabPage)
+        If tab Is Nothing OrElse tab.IsDisposed OrElse Not k.TabPages.Contains(tab) Then Return Nothing
+        If tab.Controls.Count = 0 OrElse tab.Controls(0) IsNot browser Then Return Nothing
+        Return tab
+    End Function
+
     Private Function qleaDo(ByVal command As String, Optional ByVal value As String = "") As Boolean
         Dim host = qleaAt()
-        If host Is Nothing Then Return False
+        If host Is Nothing Then
+            Dim tab = qleaSelectedTab()
+            Return tab Is Nothing OrElse tab.Controls.Count = 0 OrElse Not TypeOf tab.Controls(0) Is WebBrowser
+        End If
         Select Case command
             Case "bk"
                 host.Bk()
@@ -170,9 +184,8 @@ Partial Class j
     End Function
 
     Private Function qleaHover(ByVal command As String, Optional ByVal value As String = "") As Boolean
-        If qleaAt() Is Nothing Then Return False
-        If My.Settings.t = "e" Then qleaDo(command, value)
-        Return True
+        If My.Settings.t <> "e" Then Return True
+        Return qleaDo(command, value)
     End Function
 
     Private Sub qleaNewClick(ByVal sender As Object, ByVal e As EventArgs)
@@ -845,9 +858,17 @@ Partial Class j
             Return
         End If
         Dim urls As New List(Of String)()
+        Dim bytes As Integer = 0
         For Each tab As TabPage In k.TabPages
+            If urls.Count >= qleaSessionTabs Then Exit For
             Dim host = qleaHost(tab)
-            If host IsNot Nothing AndAlso host.U IsNot Nothing Then urls.Add(host.U.AbsoluteUri)
+            If host Is Nothing OrElse host.U Is Nothing Then Continue For
+            Dim target = host.U.AbsoluteUri
+            If target.Length > qleaSessionUrl Then Continue For
+            Dim size = Encoding.UTF8.GetByteCount(target & Environment.NewLine)
+            If bytes + size > qleaSessionBytes Then Continue For
+            urls.Add(target)
+            bytes += size
         Next
         If urls.Count = 0 Then
             If File.Exists(sessionFile) Then File.Delete(sessionFile)
@@ -860,22 +881,51 @@ Partial Class j
 
     Private Sub qleaRestoreSession()
         If pv Then Return
-        Dim path = qleaSessionPath()
-        If Not File.Exists(path) Then Return
+        Dim urls As New List(Of String)()
+        Try
+            Dim path = qleaSessionPath()
+            If Not File.Exists(path) Then Return
+            Using stream As New FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read)
+                If stream.Length > qleaSessionBytes Then
+                    qleaSessionError("Saved session is too large; skipped")
+                    Return
+                End If
+                Using reader As New StreamReader(stream, Encoding.UTF8, True)
+                    While Not reader.EndOfStream AndAlso urls.Count < qleaSessionTabs
+                        Dim target = reader.ReadLine().Trim()
+                        If target.Length = 0 OrElse target.Length > qleaSessionUrl Then Continue While
+                        Dim address As Uri = Nothing
+                        If Not Uri.TryCreate(target, UriKind.Absolute, address) Then Continue While
+                        If address.Scheme <> Uri.UriSchemeHttp AndAlso address.Scheme <> Uri.UriSchemeHttps AndAlso address.Scheme <> Uri.UriSchemeFile Then Continue While
+                        If address.AbsoluteUri.Length > qleaSessionUrl Then Continue While
+                        urls.Add(address.AbsoluteUri)
+                    End While
+                End Using
+            End Using
+        Catch ex As IOException
+            qleaSessionError("Saved session could not be read; skipped")
+            Return
+        Catch ex As UnauthorizedAccessException
+            qleaSessionError("Saved session is not accessible; skipped")
+            Return
+        Catch ex As System.Security.SecurityException
+            qleaSessionError("Saved session is not accessible; skipped")
+            Return
+        End Try
         Dim restored = 0
-        For Each line In File.ReadAllLines(path)
-            If restored >= 12 Then Exit For
-            Dim target = If(line, "").Trim()
-            Dim address As Uri = Nothing
-            If Not Uri.TryCreate(target, UriKind.Absolute, address) Then Continue For
-            If address.Scheme <> Uri.UriSchemeHttp AndAlso address.Scheme <> Uri.UriSchemeHttps AndAlso address.Scheme <> Uri.UriSchemeFile Then Continue For
-            qleaNew(address.AbsoluteUri)
+        For Each savedTarget In urls
+            qleaNew(savedTarget)
             restored += 1
         Next
         If restored > 0 Then
             su.Visible = True
             su.Text = "Restored " & restored.ToString() & " Lea tab(s)"
         End If
+    End Sub
+
+    Private Sub qleaSessionError(ByVal message As String)
+        su.Visible = True
+        su.Text = message
     End Sub
 
     Private Sub qleaClosing(ByVal sender As Object, ByVal e As FormClosingEventArgs)
