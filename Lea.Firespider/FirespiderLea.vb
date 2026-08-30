@@ -17,9 +17,17 @@ Partial Class j
     Private Shared qleaSessionRestored As Boolean
     Private qleaStarted As Boolean
     Private qleaStarting As Boolean
+    Private ReadOnly qleaClock As System.Diagnostics.Stopwatch = If(Environment.GetEnvironmentVariable("LEA_FIRESPIDER_PROFILE") = "1", System.Diagnostics.Stopwatch.StartNew(), Nothing)
+    Private qleaTimings As List(Of String)
     Private Const qleaSessionTabs As Integer = 12
     Private Const qleaSessionBytes As Integer = 65536
     Private Const qleaSessionUrl As Integer = 4096
+
+    Private Sub qleaMark(ByVal phase As String)
+        If qleaClock Is Nothing Then Return
+        If qleaTimings Is Nothing Then qleaTimings = New List(Of String)()
+        If qleaTimings.Count < 32 Then qleaTimings.Add(phase & "=" & qleaClock.ElapsedMilliseconds.ToString(System.Globalization.CultureInfo.InvariantCulture))
+    End Sub
 
     Private Sub qleaInit(ByVal sender As Object, ByVal e As EventArgs) Handles Me.Load
         If qleaMenu IsNot Nothing Then Return

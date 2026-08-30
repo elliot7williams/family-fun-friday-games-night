@@ -1,0 +1,123 @@
+diff --git a/1.vb b/1.vb
+--- a/1.vb
++++ b/1.vb
+@@ -574,12 +574,15 @@ Partial Class j
+         End Try
+     End Sub
+     Sub jl(ByVal sender As Object, ByVal e As EventArgs) Handles Me.Load
++        Dim menuLayouts As New List(Of ToolStrip)()
+         Try
++            qleaMark("load-enter")
+             mf = Me
+             u8(mf)
+             qawl()
+             If My.Settings.ps = "e" Then pv = True
+             qfeaturestartup()
++            qleaMark("startup-settings")
+             If My.Settings.i = Color.Black Then
+             Else
+                 q.BackgroundImage = Nothing
+@@ -616,6 +619,12 @@ Partial Class j
+                     x.Items.Add(My.Settings.s.Item(q))
+                 End If
+             Next q
++            qleaMark("menus-start")
++            For Each root As ToolStripDropDownItem In New ToolStripDropDownItem() {m, fl, Me.e, v, hi, bo, ot, he}
++                Dim layout = root.DropDown
++                layout.SuspendLayout()
++                menuLayouts.Add(layout)
++            Next
+             Dim du As New ToolStripMenuItem
+             du.Text = "Duplicate Tab"
+             du.Image = My.Resources.F9
+@@ -4159,8 +4168,11 @@ Partial Class j
+             AddHandler vss.Click, AddressOf q807
+             AddHandler vss.MouseHover, AddressOf q808
+             ot.DropDownItems.Add(vss)
++            qleaMark("menus-base")
+             qfeatures()
++            qleaMark("menus-ready")
+             qleaStartup()
++            qleaMark("lea-started")
+             Dim tz As Size = k.ItemSize
+             tz.Width = 240
+             tz.Height += 3
+@@ -4179,8 +4191,14 @@ Partial Class j
+             qacm()
+             qfeature3loaded()
+             g.Enabled = False
++            qleaMark("load-exit")
+         Catch ex As Exception
+             qlog(ex)
++        Finally
++            For index As Integer = menuLayouts.Count - 1 To 0 Step -1
++                menuLayouts(index).ResumeLayout(True)
++            Next
++            qleaMark("menus-resumed")
+         End Try
+     End Sub
+     Sub ki(ByVal sender As Object, ByVal e As DrawItemEventArgs) Handles k.DrawItem
+diff --git a/BrowserFeatures.vb b/BrowserFeatures.vb
+--- a/BrowserFeatures.vb
++++ b/BrowserFeatures.vb
+@@ -60,9 +60,12 @@ Partial Class j
+             ot.DropDownItems.Add(qnewitem("Pop-up Policy", AddressOf q854, AddressOf q855))
+             ot.DropDownItems.Add(qnewitem("External Protocol Confirmation", AddressOf q856, AddressOf q857))
+             qfeatures2()
++            qleaMark("menus-features")
+             qremoveitem(fl, "Reopen Last Closed Window")
+             qdedupe()
++            qleaMark("menus-deduped")
+             qorganizemenus()
++            qleaMark("menus-organized")
+             fav = qnewitem("Favorites", Nothing, Nothing)
+             AddHandler fav.DropDownOpening, AddressOf q811
+             m.DropDownItems.Insert(0, fav)
+@@ -118,22 +121,29 @@ Partial Class j
+         Next oldItem
+         root.DropDownItems.Clear()
+         Dim parents As New Dictionary(Of String, ToolStripMenuItem)(StringComparer.OrdinalIgnoreCase)
+-        For Each category As String In categories
+-            Dim parent As New ToolStripMenuItem(category)
+-            parent.Image = My.Resources.F9
+-            parent.BackColor = Color.White
+-            parent.ForeColor = Color.Black
+-            parent.Padding = New Padding(0)
+-            parents.Add(category, parent)
+-            root.DropDownItems.Add(parent)
+-        Next category
+-        For Each item As ToolStripMenuItem In oldItems
+-            Dim category As String = qmenucategory(root.Text, item.Text)
+-            If parents.ContainsKey(category) = False Then category = "Other"
+-            parents(category).DropDownItems.Add(item)
+-        Next item
+-        For i As Integer = root.DropDownItems.Count - 1 To 0 Step -1
+-            Dim parent As ToolStripMenuItem = CType(root.DropDownItems(i), ToolStripMenuItem)
+-            If parent.DropDownItems.Count = 0 Then root.DropDownItems.RemoveAt(i)
+-        Next i
++        Try
++            For Each category As String In categories
++                Dim parent As New ToolStripMenuItem(category)
++                parent.Image = My.Resources.F9
++                parent.BackColor = Color.White
++                parent.ForeColor = Color.Black
++                parent.Padding = New Padding(0)
++                parents.Add(category, parent)
++                parent.DropDown.SuspendLayout()
++                root.DropDownItems.Add(parent)
++            Next category
++            For Each item As ToolStripMenuItem In oldItems
++                Dim category As String = qmenucategory(root.Text, item.Text)
++                If parents.ContainsKey(category) = False Then category = "Other"
++                parents(category).DropDownItems.Add(item)
++            Next item
++            For i As Integer = root.DropDownItems.Count - 1 To 0 Step -1
++                Dim parent As ToolStripMenuItem = CType(root.DropDownItems(i), ToolStripMenuItem)
++                If parent.DropDownItems.Count = 0 Then root.DropDownItems.RemoveAt(i)
++            Next i
++        Finally
++            For Each parent As ToolStripMenuItem In parents.Values
++                parent.DropDown.ResumeLayout(True)
++            Next
++        End Try
+     End Sub

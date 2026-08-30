@@ -75,7 +75,8 @@ the additional copy of the otherwise dirty Firespider checkout.
 This is not a startup-speed claim. The real form harness observed roughly
 11-19 seconds inside Form.Show including existing host initialization, distinct
 from the small engine-only startup sample in COMPATIBILITY_PERFORMANCE.md.
-Profile that host work next before attributing it to menus, settings, or layout.
+Milestone 51 profiles and improves that cost; see STARTUP_PERFORMANCE.md for
+the paired menu-layout measurements and remaining startup costs.
 Advanced legacy-only commands and lazy/hibernated legacy placeholders still need
 migration; this milestone does not claim every Firespider feature is Lea-only
 or that Lea implements the full modern web platform.

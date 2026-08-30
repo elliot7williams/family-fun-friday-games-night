@@ -17,6 +17,13 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
+Milestone 51 profiles the slow host startup and batches root/category menu
+layout with Finally cleanup. Five matched before/after samples reduce median
+Form.Show from 14.062 to 1.683 seconds, retaining the same 552-item menu tree.
+The new eleventh Boot case checks nested layout and failure cleanup. Opt-in
+phase diagnostics and real EXE readiness timing are documented in
+`STARTUP_PERFORMANCE.md`; engine DLLs and HTML/CSS behavior are unchanged.
+
 Milestone 50 moves normal first-page and primary new-tab startup onto Lea,
 unifies bounded restore precedence, preserves Lea recovery URLs, and fixes the
 EXE's compressed-settings parsing and failed-session-save shutdown paths.
@@ -27,8 +34,8 @@ failures. The tracked adapter, `Lea.Firespider/Startup-host.patch`, eighteen
 focused host checks, and `Lea.Build/Test-FirespiderStartup.ps1` retain both the
 fixes and their reproduction paths. See `STARTUP_RELIABILITY.md`.
 
-1. Profile the real Firespider form initialization cost measured by Boot.cs;
-   distinguish it from the engine-only startup sample before optimizing.
+1. Move remaining common tab/session commands through the engine-aware adapter;
+   keep tracking host startup separately from engine-only timing.
 2. Keep the stable empty UI Automation visible-range fallback until a native-safe
    non-empty bridge survives direct plus external MTA clients.
 3. Keep strengthening host tests as more legacy tab routes move to Lea.

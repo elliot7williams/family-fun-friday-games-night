@@ -59,12 +59,13 @@ local DLLs and Firespider executable without requiring a source solution.
 Run the executable checks with Windows PowerShell and the built host root:
 
 ```powershell
-powershell.exe -NoProfile -STA -File .\Lea.Build\Test-FirespiderStartup.ps1 -Root 'L:\Firespider Internet'
+powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File .\Lea.Build\Test-FirespiderStartup.ps1 -Root 'L:\Firespider Internet'
 ```
 
 The default checks clean, restored, locked, and oversized temporary sessions,
-validates the EXE config, observes for at least eight seconds, then waits up to
-sixty more seconds for a Lea UI Automation document. It checks responsiveness,
+validates the EXE config, polls from process launch for a Lea UI Automation
+document, and observes for at least eight seconds. The overall readiness limit
+is that observation period plus sixty seconds. It checks responsiveness,
 error dialogs, and absence of MSHTML. Use `-Scenario clean` for one launch.
 It refuses to run alongside an existing Firespider instance and never closes
 an existing browser process, and restores the session environment override.
@@ -77,8 +78,13 @@ suite. Source for the corresponding host edits is retained in
 `Lea.Firespider/Startup-host.patch`, with reproduction notes in
 `LeaForge/STARTUP_RELIABILITY.md`.
 
-`Test-FirespiderBoot.ps1 -Root <host-root>` adds ten real form-start cases,
+`Test-FirespiderBoot.ps1 -Root <host-root>` adds eleven real form-start cases,
 including private startup, restore precedence, second windows, a gated slow
 HTTP response, and locked-session shutdown. It compiles `Lea.Firespider/Boot.cs`
 beside the test host and runs separate off-screen processes with a sixty-second
 watchdog. Use `-Case clean` for a single case. See `LeaForge/LEA_STARTUP.md`.
+`-Case menus` verifies nested layout and error cleanup. `-Profile` reports
+constructor/phase timings, root layout counts, and a deterministic menu-tree
+signature without enabling profiling in normal browser use. The EXE test
+also reports `ReadyMs` and `ObservedMs`. See `LeaForge/STARTUP_PERFORMANCE.md`
+for the paired startup measurements and their limits.

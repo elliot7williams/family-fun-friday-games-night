@@ -39,11 +39,11 @@ foreach ($case in $cases) {
             $stream = [IO.File]::Create($session)
             try { $stream.SetLength(65537) } finally { $stream.Dispose() }
         }
+        $watch = [Diagnostics.Stopwatch]::StartNew()
         $process = Start-Process -FilePath $exe -WorkingDirectory $rootPath -WindowStyle Hidden -PassThru
-        Start-Sleep -Seconds $Seconds
         $condition = New-Object System.Windows.Automation.PropertyCondition(
             [System.Windows.Automation.AutomationElement]::ProcessIdProperty, $process.Id)
-        $until = [DateTime]::UtcNow.AddSeconds(60)
+        $firstReady = -1L
         $lea = $false
         do {
             $lea = $false
@@ -66,14 +66,16 @@ foreach ($case in $cases) {
             })
             if ($errors.Count -gt 0) { throw "$case startup error dialog: $($errors -join ' | ')" }
             $ready = $lea -and ($case -ne 'restored' -or $names.Contains('Lea in Firespider'))
-            if (-not $ready) { Start-Sleep -Milliseconds 250 }
-        } while (-not $ready -and [DateTime]::UtcNow -lt $until)
+            if ($ready -and $firstReady -lt 0) { $firstReady = $watch.ElapsedMilliseconds }
+            $observed = $ready -and $watch.Elapsed.TotalSeconds -ge $Seconds
+            if (-not $observed) { Start-Sleep -Milliseconds 250 }
+        } while (-not $observed -and $watch.Elapsed.TotalSeconds -lt ($Seconds + 60))
         if (-not $ready) { throw "$case startup did not expose a ready Lea document" }
         if (-not $process.Responding) { throw "$case startup stopped responding" }
         if (@($process.Modules | Where-Object { $_.ModuleName -ieq 'mshtml.dll' }).Count -gt 0) {
             throw "$case startup loaded the legacy MSHTML engine"
         }
-        [PSCustomObject]@{ Scenario = $case; Responsive = $true; Lea = $lea; LegacyEngine = $false; Title = $process.MainWindowTitle }
+        [PSCustomObject]@{ Scenario = $case; Responsive = $true; Lea = $lea; LegacyEngine = $false; ReadyMs = $firstReady; ObservedMs = $watch.ElapsedMilliseconds; Title = $process.MainWindowTitle }
     }
     finally {
         if ($process -and -not $process.HasExited) {

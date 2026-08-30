@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
@@ -136,12 +137,24 @@ namespace Lea.Firespider
                     worker.IsBackground = true;
                     worker.Start();
                 }
+                var construction = Stopwatch.StartNew();
                 var form = (Form)Activator.CreateInstance(type);
+                construction.Stop();
                 forms.Add(form);
+                var layouts = 0;
+                if (Environment.GetEnvironmentVariable("LEA_FIRESPIDER_PROFILE") == "1")
+                    foreach (var name in new[] { "m", "fl", "e", "v", "hi", "bo", "ot", "he" })
+                        Member<ToolStripDropDownItem>(form, name).DropDown.Layout += (sender, change) => layouts++;
                 if (mode == "recovery" || mode == "private") type.GetField("recoveryRequested", Members).SetValue(form, true);
                 var watch = Stopwatch.StartNew();
                 Show(form);
                 watch.Stop();
+                if (Environment.GetEnvironmentVariable("LEA_FIRESPIDER_PROFILE") == "1")
+                {
+                    var timings = (List<string>)type.GetField("qleaTimings", Members).GetValue(form);
+                    Console.WriteLine("PROFILE Construct=" + construction.ElapsedMilliseconds + " ms; " + String.Join("; ", timings.ToArray()));
+                    Console.WriteLine("PROFILE RootLayouts=" + layouts + "; " + MenuSignature(Member<ToolStripDropDownItem>(form, "m")));
+                }
                 var tabs = Member<TabControl>(form, "k");
                 Check(tabs.TabCount == expected.Length, "startup tab count: " + tabs.TabCount + " expected " + expected.Length);
                 foreach (TabPage tab in tabs.TabPages)
@@ -157,6 +170,18 @@ namespace Lea.Firespider
                 for (var index = 0; index < expected.Length; index++)
                     Check(((V)tabs.TabPages[index].Controls[0]).U.AbsoluteUri == expected[index], "startup URL ordering");
                 Check(tabs.SelectedIndex == 0, "startup did not select first restored page");
+                if (mode == "menus")
+                {
+                    CheckMenuLayouts(Member<ToolStripDropDownItem>(form, "m"));
+                    using (var menu = new ToolStripMenuItem("Test"))
+                    {
+                        var rejected = false;
+                        try { type.GetMethod("qorganizeroot", Members).Invoke(form, new object[] { menu, new[] { "Other", "Other" } }); }
+                        catch (TargetInvocationException error) { rejected = error.InnerException is ArgumentException; }
+                        Check(rejected, "menu failure probe did not reach the duplicate-category path");
+                        CheckMenuLayouts(menu);
+                    }
+                }
                 Check(!Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module =>
                     module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)), "startup loaded the legacy MSHTML engine");
                 if (mode == "private") Check(((V)tabs.TabPages[0].Controls[0]).Pv, "private startup view was not private");
@@ -232,6 +257,53 @@ namespace Lea.Firespider
             var result = new StringCollection();
             result.AddRange(values);
             return result;
+        }
+
+        private static string MenuSignature(ToolStripDropDownItem root)
+        {
+            var count = 0;
+            using (var stream = new MemoryStream())
+            using (var writer = new BinaryWriter(stream))
+            using (var hash = SHA256.Create())
+            {
+                WriteMenu(writer, root, ref count);
+                writer.Flush();
+                return "MenuItems=" + count + "; MenuSHA256=" + BitConverter.ToString(hash.ComputeHash(stream.ToArray())).Replace("-", "");
+            }
+        }
+
+        private static void CheckMenuLayouts(ToolStripDropDownItem root)
+        {
+            if (root.DropDownItems.Count == 0) return;
+            var layouts = 0;
+            LayoutEventHandler handler = (sender, change) => layouts++;
+            root.DropDown.Layout += handler;
+            try { root.DropDown.PerformLayout(); }
+            finally { root.DropDown.Layout -= handler; }
+            Check(layouts > 0, "menu layout remained suspended: " + root.Text);
+            foreach (ToolStripItem item in root.DropDownItems)
+            {
+                if (item.Available) Check(item.Bounds.Width > 0 && item.Bounds.Height > 0, "empty menu item bounds: " + item.Text);
+                var child = item as ToolStripDropDownItem;
+                if (child != null) CheckMenuLayouts(child);
+            }
+        }
+
+        private static void WriteMenu(BinaryWriter writer, ToolStripItem item, ref int count)
+        {
+            Check(++count <= 4096, "menu tree exceeds profile bound");
+            writer.Write(item.GetType().FullName);
+            writer.Write(item.Name ?? "");
+            writer.Write(item.Text ?? "");
+            writer.Write(item.Enabled);
+            writer.Write(item.Image != null);
+            var menu = item as ToolStripMenuItem;
+            writer.Write(menu == null ? -1 : (int)menu.CheckState);
+            writer.Write(menu == null ? -1 : (int)menu.ShortcutKeys);
+            var drop = item as ToolStripDropDownItem;
+            writer.Write(drop == null ? -1 : drop.DropDownItems.Count);
+            if (drop != null)
+                foreach (ToolStripItem child in drop.DropDownItems) WriteMenu(writer, child, ref count);
         }
 
         private static T Member<T>(object target, string name) where T : class

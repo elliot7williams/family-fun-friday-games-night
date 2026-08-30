@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **50**
+Post-1.0 hardening milestones completed: **51**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,18 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Profiled and reduced Firespider's startup menu-layout cost. Root and category
+  dropdowns now batch layout with Finally cleanup, retaining the same 552-item
+  command tree. Five alternating fresh-process samples reduced median
+  Form.Show from 14.062 to 1.683 seconds (88.0% less time), and root layout
+  events from 1,075 to 8. Eleven form-start cases include nested-menu bounds,
+  resumed layout, and forced category-build failure cleanup; the full engine
+  and compiled host suites and four standalone EXE startup scenarios passed.
+  Opt-in, bounded phase timing performs no file I/O; EXE tests now report
+  readiness while still observing for delayed dialogs. This changes host
+  startup, not engine DLLs or web-platform compatibility. See
+  `STARTUP_PERFORMANCE.md` for measurements and limits.
 
 - Moved normal Firespider first-page startup, toolbar New Tab, and Help onto
   Lea. One bounded restore path prioritizes accepted crash recovery, Lea

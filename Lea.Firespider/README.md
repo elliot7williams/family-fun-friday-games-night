@@ -18,6 +18,12 @@ prompts and saved URLs. Startup loads asynchronously before visibility and
 selects the first restored page. Lea URLs also enter ordinary recovery snapshots.
 See `LeaForge/LEA_STARTUP.md` for exact limits and the real form-start tests.
 
+Startup menu creation now batches WinForms layout while retaining every
+command. Matched local profiles reduced median Form.Show from 14.06 to 1.68
+seconds; this is host initialization, not arbitrary network-page readiness.
+`Startup-layout-host.patch` and the matching adapter retain the change.
+See `LeaForge/STARTUP_PERFORMANCE.md` for samples, scope, and regression checks.
+
 Milestone 49 also fixes late legacy Navigating/Navigated/DocumentCompleted
 callbacks while a Lea tab is selected, background progress updates, owner-tab
 locking, missing-tab notification ticks, and incorrectly typed address/search
