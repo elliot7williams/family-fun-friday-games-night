@@ -19,6 +19,9 @@ namespace Lea.Engine
         private const int MaxCss = 256 * 1024;
         private const int MaxStyleLinks = 8;
         private const int MaxCssRules = 1024;
+        private const int MaxHostSheets = 8;
+        private const int MaxHostSheet = 64 * 1024;
+        private const int MaxHostCss = 128 * 1024;
         private const int MaxMediaDepth = 4;
         private const int MaxMediaGroups = 8;
         private const int MaxViewport = 8192;
@@ -99,6 +102,7 @@ namespace Lea.Engine
         private static readonly Pd[] NoDeclarations = new Pd[0];
         private static readonly Se[] NoSelectors = new Se[0];
         private static readonly Hr[] NoRelatives = new Hr[0];
+        private static readonly Encoding HostUtf8 = new UTF8Encoding(false, true);
         private readonly W web = new W();
         private readonly Pc disk = new Pc();
         private readonly List<He> hs = new List<He>();
@@ -222,6 +226,78 @@ namespace Lea.Engine
             foreach (var field in page.Fs) if (field.El != null) fields[field.El] = field;
             Rebuild(page, rules, fields);
             return page;
+        }
+
+        // Ss installs or replaces a bounded named author sheet without changing the DOM.
+        public int Ss(P page, string key, string source)
+        {
+            QueryPage(page);
+            if (!SheetKey(key) || source == null || source.Length > MaxHostSheet) return 0;
+            int bytes;
+            try { bytes = HostUtf8.GetByteCount(source); }
+            catch (EncoderFallbackException) { return 0; }
+            if (bytes > MaxHostSheet) return 0;
+            var authored = page.Rb as List<R>;
+            if (authored == null) return 0;
+            var sheets = page.Rh as List<Sh>;
+            var next = sheets == null ? new List<Sh>() : new List<Sh>(sheets);
+            var index = -1;
+            var length = bytes;
+            var count = authored.Count;
+            for (var at = 0; at < next.Count; at++)
+            {
+                if (next[at].K == key)
+                {
+                    if (next[at].X == source) return 1;
+                    index = at;
+                }
+                else { length += next[at].Sz; count += next[at].Rs.Count; }
+            }
+            if (length > MaxHostCss || index < 0 && next.Count == MaxHostSheets) return 0;
+            var compiled = new List<R>();
+            var order = 0;
+            CssSource(source, page.Bu ?? page.U, compiled, ref order, CssMedia(""), 0, MaxCssRules + 1);
+            if (count + compiled.Count > MaxCssRules) return 0;
+            var sheet = new Sh(key, source, bytes, compiled);
+            if (index < 0) next.Add(sheet); else next[index] = sheet;
+            SetSheets(page, authored, next);
+            return 1;
+        }
+
+        public int Sd(P page, string key)
+        {
+            QueryPage(page);
+            if (!SheetKey(key)) return 0;
+            var sheets = page.Rh as List<Sh>;
+            if (sheets == null) return 0;
+            var index = sheets.FindIndex(sheet => sheet.K == key);
+            if (index < 0) return 0;
+            var next = new List<Sh>(sheets);
+            next.RemoveAt(index);
+            SetSheets(page, (List<R>)page.Rb, next);
+            return 1;
+        }
+
+        private static bool SheetKey(string key)
+        {
+            if (String.IsNullOrEmpty(key) || key.Length > 32) return false;
+            foreach (var value in key)
+                if (!(value >= 'a' && value <= 'z' || value >= 'A' && value <= 'Z' ||
+                    value >= '0' && value <= '9' || value == '-' || value == '_')) return false;
+            return true;
+        }
+
+        private void SetSheets(P page, List<R> authored, List<Sh> sheets)
+        {
+            var all = new List<R>(authored);
+            var order = authored.Count;
+            foreach (var sheet in sheets)
+                foreach (var rule in sheet.Rs) all.Add(new R(rule, order++));
+            all.Sort(CompareRules);
+            page.Rh = sheets.Count == 0 ? null : sheets;
+            page.Sn = sheets.Count;
+            page.Ra = all;
+            ApplyViewport(page);
         }
 
         // Js runs only Lea's bounded allow-listed page commands.
@@ -355,6 +431,7 @@ namespace Lea.Engine
                 L = page.Ls.Count,
                 F = page.Fs.Count,
                 C = rules == null ? 0 : rules.Count,
+                Sn = page.Sn,
                 J = page.Jc,
                 V = page.Vs.Count,
                 M = page.Ms.Count,
@@ -1199,6 +1276,7 @@ namespace Lea.Engine
 
         private void Complete(P p, List<R> rules)
         {
+            p.Rb = rules;
             p.Ra = rules;
             p.Vw = vw;
             var active = MediaRules(rules, vw);
@@ -2216,8 +2294,14 @@ namespace Lea.Engine
             var rules = new List<R>();
             var order = 0;
             CssRules(root, baseUrl, sheets, rules, ref order);
-            rules.Sort(delegate(R a, R b) { var byWeight = a.W.CompareTo(b.W); return byWeight != 0 ? byWeight : a.O.CompareTo(b.O); });
+            rules.Sort(CompareRules);
             return rules;
+        }
+
+        private static int CompareRules(R left, R right)
+        {
+            var weight = left.W.CompareTo(right.W);
+            return weight != 0 ? weight : left.O.CompareTo(right.O);
         }
 
         private static void CssRules(N node, Uri baseUrl, IDictionary<N, Sc> sheets, List<R> rules, ref int order)
@@ -2238,13 +2322,13 @@ namespace Lea.Engine
             foreach (var child in node.C) CssRules(child, baseUrl, sheets, rules, ref order);
         }
 
-        private static void CssSource(string source, Uri origin, List<R> rules, ref int order, Mc[] media, int depth)
+        private static void CssSource(string source, Uri origin, List<R> rules, ref int order, Mc[] media, int depth, int limit = MaxCssRules)
         {
             if (String.IsNullOrEmpty(source) || media == null || media.Length == 0 || depth > MaxMediaDepth) return;
             var at = 0;
             string header;
             string body;
-            while (rules.Count < MaxCssRules && CssBlock(source, ref at, out header, out body))
+            while (rules.Count < limit && CssBlock(source, ref at, out header, out body))
             {
                 var query = CssClean(header).Trim();
                 if (query.Length == 0) continue;
@@ -2252,20 +2336,20 @@ namespace Lea.Engine
                 {
                     if (depth == MaxMediaDepth) continue;
                     var nested = CssIntersect(media, CssMedia(Regex.Replace(query, "^@media", "", RegexOptions.IgnoreCase)));
-                    if (nested.Length > 0) CssSource(body, origin, rules, ref order, nested, depth + 1);
+                    if (nested.Length > 0) CssSource(body, origin, rules, ref order, nested, depth + 1, limit);
                     continue;
                 }
                 if (query[0] == '@') continue;
-                CssRule(query, CssClean(body), origin, rules, ref order, media);
+                CssRule(query, CssClean(body), origin, rules, ref order, media, limit);
             }
         }
 
-        private static void CssRule(string selectors, string declarations, Uri origin, List<R> rules, ref int order, Mc[] media)
+        private static void CssRule(string selectors, string declarations, Uri origin, List<R> rules, ref int order, Mc[] media, int limit = MaxCssRules)
         {
             if (String.IsNullOrWhiteSpace(declarations) || declarations.Length > 64 * 1024) return;
             foreach (var selector in CssGroups(selectors))
             {
-                if (rules.Count == MaxCssRules) return;
+                if (rules.Count >= limit) return;
                 var query = selector.Trim();
                 var parts = new List<string>();
                 var joins = new List<char>();
@@ -8217,6 +8301,16 @@ namespace Lea.Engine
             }
         }
 
+        private sealed class Sh
+        {
+            public readonly string K;
+            public readonly string X;
+            public readonly int Sz;
+            public readonly List<R> Rs;
+
+            public Sh(string key, string source, int bytes, List<R> rules) { K = key; X = source; Sz = bytes; Rs = rules; }
+        }
+
         private sealed class R
         {
             public readonly string Q;
@@ -8228,6 +8322,12 @@ namespace Lea.Engine
             public readonly Mc[] M;
             public readonly string Md;
             public readonly Pd[] Ds;
+
+            public R(R rule, int order)
+            {
+                Q = rule.Q; V = rule.V; W = rule.W; O = order;
+                P = rule.P; J = rule.J; M = rule.M; Md = rule.Md; Ds = rule.Ds;
+            }
 
             public R(string query, string values, int weight, int order, Se[] parts, char[] joins)
                 : this(query, values, null, weight, order, parts, joins, new Mc[] { new Mc(0, 0) })

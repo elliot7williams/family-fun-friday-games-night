@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **63**
+Post-1.0 hardening milestones completed: **64**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,25 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added compact `Ss/Sd/Sn` named native CSS with byte/rule limits, atomic
+  replacement, retained documents/fields/history, and live media/font updates.
+  Firespider now applies matching saved CSS and startup/timer previews without
+  a legacy DOM. Fixed a reproduced preview queue surviving failed requests;
+  missing records and closed/paused views are guarded. Core, isolated native
+  editing, and compiled host suites pass; all 64 probes pass across 61 fixtures.
+  Engine DLLs total 485 KiB. All 37 Boot cases passed across combined/focused
+  runs, but not in one clean combined run: an editor password Copy/Cut assertion
+  failed, followed by a toolbar-focus assertion on a focused run. Four later
+  isolated runtime 164 editor runs and three runtime 163 comparison runs passed.
+  Those early assertions did not distinguish clipboard changes from field
+  changes; added diagnostics do, without logging field or clipboard contents.
+  Their cause remains unconfirmed, as do the older fragment/recovery issues.
+  Six real EXE launch scenarios pass, including deferred-tab resume, with
+  responsive windows and no MSHTML or startup error dialogs observed.
+  See `NATIVE_STYLESHEETS.md`. Runtime 164 is isolated and source-backed-up;
+  installed runtime 157 remains unchanged. The scoped baseline stays at 100%,
+  not a percentage of complete modern-web support.
 
 - Fixed reproduced selected-text loss when Windows clipboard access fails.
   Compact `V.Pa(text)` shares bounded native insertion, one-level undo, Unicode
@@ -570,6 +589,8 @@ modern web platform.
 
 ## Next gains
 
+- Investigate the intermittent editor/clipboard assertions, initial fragment
+  placement, and still-unattributed recovery cast with retained diagnostics.
 - Add a native-safe non-empty visible-range bridge outside the .NET Framework
   managed provider array boundary; retain the stable empty fallback until range
   handles survive both in-process and external MTA clients.

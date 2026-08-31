@@ -17,11 +17,14 @@ status, undo/redo, and clipboard release recovery.
 The matching view DLL is sufficient; no new host patch is required. See
 `LeaForge/PASTE_SAFETY.md` for bounds and remaining issues.
 
-Saved style automation no longer casts Lea to `WebBrowser` at startup or on its
-timer. Legacy style/script preview reports its unsupported Lea state without
-changing the document or creating a legacy renderer. Apply
-`Style-startup-host.patch` to `BrowserFeatures2.vb`; the `style-start` regression
-brings the Boot suite to 36 cases. See `LeaForge/STYLE_STARTUP_SAFETY.md`.
+Saved CSS and previews now use `Ss/Sd/Sn` directly on Lea. Startup/timer previews
+never cast Lea to `WebBrowser`; a loading preview belongs to one request and
+is cleared on completion/failure/close. Named replacement retains the document,
+fields, native undo, and privacy. Arbitrary saved JavaScript remains unsupported.
+Apply `Style-startup-host.patch` then `Native-styles-host.patch` to
+`BrowserFeatures2.vb`, with the matching adapter and DLLs. The `styles` and
+`style-start` regressions are part of the 37-case Boot suite. See
+`LeaForge/NATIVE_STYLESHEETS.md` for bounds and remaining issues.
 
 Lea now participates in the existing opt-in eligible-tab hibernation policy.
 Compact `E.Ud/V.Ud` protects retained field data; privacy, cookies, history, script state,

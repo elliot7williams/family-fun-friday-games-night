@@ -61,6 +61,7 @@ namespace Lea.Win
         private bool editRedo;
         private bool editReplay;
         private Font editFont;
+        private S editStyle;
         private string editStart = "";
         private bool editLock;
         private ContextMenuStrip choices;
@@ -175,6 +176,7 @@ namespace Lea.Win
         public bool CanFw { get { return e.CanFw; } }
         public bool Busy { get { return e.Busy || picBusy; } }
         public bool Ud { get { return closed || e.Ud(At); } }
+        public int Sn { get { return At == null ? 0 : At.Sn; } }
         public int Cm { get { return e.Cm; } set { e.Cm = value; } }
         public int Cc { get { return e.Cc; } }
         public int Ch { get { return e.Ch; } }
@@ -546,6 +548,34 @@ namespace Lea.Win
             return Commands(e.Js(At, code));
         }
 
+        public int Ss(string key, string source)
+        {
+            if (closed || At == null) return 0;
+            var page = At;
+            var style = page.S;
+            var sheets = page.Sn;
+            var count = e.Ss(page, key, source);
+            return count == 0 || style == page.S && sheets == page.Sn ? count : SheetChanged(count);
+        }
+
+        public int Sd(string key)
+        {
+            return closed || At == null ? 0 : SheetChanged(e.Sd(At, key));
+        }
+
+        private int SheetChanged(int count)
+        {
+            if (count == 0) return 0;
+            Dirty();
+            KeepValidFocus();
+            EnsureLayout();
+            PlaceEditor();
+            Invalidate();
+            OnChanged();
+            if (!closed) NotifyAccessibility(AccessibleEvents.Reorder);
+            return count;
+        }
+
         public int Ck(N element)
         {
             if (At == null) return 0;
@@ -900,6 +930,7 @@ namespace Lea.Win
         {
             base.OnFontChanged(e);
             if (fontNames != null) fontNames.Clear();
+            editStyle = null;
             Dirty();
             Invalidate();
         }
@@ -5271,6 +5302,17 @@ namespace Lea.Win
             ed.MaxLength = field.Mx > 0 ? field.Mx : 32767;
             ed.PasswordChar = field.K == "password" ? '*' : '\0';
             ed.BackColor = field.Ok ? Color.White : Color.FromArgb(255, 241, 242);
+            SetEditFont(field);
+            ed.Text = field.V;
+            editLock = false;
+            PlaceEditor();
+            if (!ed.Visible) return;
+            ed.Focus();
+            ed.SelectAll();
+        }
+
+        private void SetEditFont(Fi field)
+        {
             var nextFont = BoxFont(field.K, field.S, false);
             if (editFont != null && editFont.Equals(nextFont)) nextFont.Dispose();
             else
@@ -5281,12 +5323,7 @@ namespace Lea.Win
                 editFont = nextFont;
                 if (oldFont != null) oldFont.Dispose();
             }
-            ed.Text = field.V;
-            editLock = false;
-            PlaceEditor();
-            if (!ed.Visible) return;
-            ed.Focus();
-            ed.SelectAll();
+            editStyle = field.S;
         }
 
         private void ForgetEdit()
@@ -5371,6 +5408,7 @@ namespace Lea.Win
                     ed.Visible = false;
                     return;
                 }
+                if (!Object.ReferenceEquals(editStyle, edit.S)) SetEditFont(edit);
                 var rect = box.C;
                 var clip = box.Clip;
                 if (!box.Fx)

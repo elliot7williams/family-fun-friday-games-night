@@ -1,5 +1,11 @@
 # Saved Style Startup Safety
 
+Update: milestone 64 adds native CSS preview and saved matching styles through
+`Ss/Sd/Sn`, while retaining the guards below. CSS can now apply directly or
+queue for the active request; arbitrary saved JavaScript still cannot run in
+Lea. See `NATIVE_STYLESHEETS.md` for the current contract. The behavior section
+below records the narrower milestone 63 fix.
+
 Milestone 63 / runtime 163 fixes a reproduced Firespider startup and timer
 failure in the saved style preview path. This is a host integration fix;
 Lea does not gain a legacy DOM or a second rendering engine.

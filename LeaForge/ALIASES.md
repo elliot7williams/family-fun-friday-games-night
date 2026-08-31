@@ -18,6 +18,9 @@ read and quick to write.
 - Page values use one or two letters: `U`, `T`, `H`, `Q`, `D`, `N`, `Bs`, and `Ls`.
 - Page commands use one or two letters: `t`, `a`, `bg`, `fg`, `fs`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`.
 - New public aliases should be no more than three letters.
+- `E.Ss(page, key, css)` / `V.Ss(key, css)` set a bounded named native sheet;
+  `Sd` removes it and `P/V/G.Sn` counts named sheets. Replacement preserves
+  order, document identity, and retained fields. See `NATIVE_STYLESHEETS.md`.
 - `V.Pa(text)` pastes bounded host-supplied text with native undo and the same
   target protections as guarded `Ec("pa")`, without reading the clipboard.
   This is a view command, separate from `Fi.Pa` patterns. See `PASTE_SAFETY.md`.

@@ -22,6 +22,7 @@ Partial Class j
     Private qleaTimings As List(Of String)
     Private ReadOnly qleaPaused As New Dictionary(Of TabPage, Boolean)()
     Private ReadOnly qleaPending As New Dictionary(Of Global.Lea.Win.V, String)()
+    Private ReadOnly qleaPreviewStyles As New Dictionary(Of Global.Lea.Win.V, KeyValuePair(Of String, String))()
     Private qleaGroupChange As Boolean
     Private Const qleaSessionTabs As Integer = 12
     Private Const qleaSessionBytes As Integer = 65536
@@ -310,7 +311,7 @@ Partial Class j
     Private Function qleaHibernateEligible(ByVal host As Global.Lea.Win.V) As Boolean
         If host Is Nothing OrElse host.IsDisposed OrElse host.Pv OrElse host.Busy OrElse host.At Is Nothing OrElse host.Le IsNot Nothing Then Return False
         If host.U Is Nothing OrElse qleaSessionTarget(host.U.AbsoluteUri) = "" OrElse qfeature6domainexcepted(host.U) Then Return False
-        If host.Ud OrElse host.Kc > 0 OrElse host.CanBk OrElse host.CanFw OrElse host.Sy <> 0 OrElse host.At.Jc > 0 OrElse host.Ke IsNot Nothing Then Return False
+        If host.Ud OrElse host.Sn > 0 OrElse host.Kc > 0 OrElse host.CanBk OrElse host.CanFw OrElse host.Sy <> 0 OrElse host.At.Jc > 0 OrElse host.Ke IsNot Nothing Then Return False
         If host.Qa("details,audio,video,[contenteditable]").Count > 0 Then Return False
         Return True
     End Function
@@ -615,6 +616,7 @@ Partial Class j
                   End Function
         AddHandler host.Changed, AddressOf qleaChanged
         AddHandler host.Done, AddressOf qleaDone
+        AddHandler host.Disposed, AddressOf qleaStylesDisposed
         AddHandler host.Al, AddressOf qleaAlert
         AddHandler host.Dr, AddressOf qleaDownload
         AddHandler host.Gr, AddressOf qleaGoRequest
@@ -663,11 +665,13 @@ Partial Class j
     Private Sub qleaRelease(ByVal host As Global.Lea.Win.V)
         RemoveHandler host.Changed, AddressOf qleaChanged
         RemoveHandler host.Done, AddressOf qleaDone
+        RemoveHandler host.Disposed, AddressOf qleaStylesDisposed
         RemoveHandler host.Al, AddressOf qleaAlert
         RemoveHandler host.Dr, AddressOf qleaDownload
         RemoveHandler host.Gr, AddressOf qleaGoRequest
         RemoveHandler host.Fe, AddressOf qleaFailed
         qleaPending.Remove(host)
+        qleaPreviewStyles.Remove(host)
         If host.Parent IsNot Nothing Then host.Parent.Controls.Remove(host)
         Dim menu As ContextMenuStrip = host.ContextMenuStrip
         host.ContextMenuStrip = Nothing
@@ -771,7 +775,10 @@ Partial Class j
             su.Text = "Lea: " & ex.Message
             r.Image = My.Resources.F8
         Finally
-            If owned Then qleaPending.Remove(host)
+            If owned Then
+                qleaPending.Remove(host)
+                qleaPreviewStyles.Remove(host)
+            End If
         End Try
     End Function
 
@@ -815,8 +822,134 @@ Partial Class j
         End If
         qleaState(host)
         If host IsNot Nothing Then qapplygrouptab(TryCast(host.Parent, TabPage))
+        qleaStylesDone(host)
         qleaInspectorFollow(host)
     End Sub
+
+    Private Function qleaStyleText(ByVal encoded As String) As String
+        If encoded Is Nothing OrElse encoded.Length > 98304 Then Return Nothing
+        Try
+            Dim bytes As Byte() = Convert.FromBase64String(encoded)
+            If bytes.Length > 65536 Then Return Nothing
+            Return New UTF8Encoding(False, True).GetString(bytes)
+        Catch ex As FormatException
+            Return Nothing
+        Catch ex As DecoderFallbackException
+            Return Nothing
+        End Try
+    End Function
+
+    Private Function qleaStyleOwner(ByVal host As Global.Lea.Win.V) As Boolean
+        If host Is Nothing OrElse host.IsDisposed Then Return False
+        Dim tab As TabPage = TryCast(host.Parent, TabPage)
+        Return qleaOwned(tab) AndAlso qleaHost(tab) Is host
+    End Function
+
+    Private Sub qleaStyleStatus(ByVal host As Global.Lea.Win.V, ByVal message As String)
+        If Not qleaStyleOwner(host) OrElse host IsNot qleaAt() Then Return
+        su.Visible = True
+        su.Text = message
+    End Sub
+
+    Private Sub qleaPreviewStyle(ByVal host As Global.Lea.Win.V, ByVal encoded As String)
+        If Not qleaStyleOwner(host) Then Return
+        Dim source As String = qleaStyleText(encoded)
+        If source Is Nothing Then
+            qleaStyleStatus(host, "Lea style preview is invalid or exceeds 64 KiB")
+            Return
+        End If
+        If host.Busy OrElse host.At Is Nothing Then
+            Dim target As String = Nothing
+            If qleaPending.TryGetValue(host, target) Then
+                qleaPreviewStyles(host) = New KeyValuePair(Of String, String)(target, source)
+                qleaStyleStatus(host, "Lea style preview queued for the loading page")
+            Else
+                qleaStyleStatus(host, "Wait for the Lea page to finish loading before previewing CSS")
+            End If
+            Return
+        End If
+        Dim accepted As Integer = host.Ss("fs-preview", source)
+        qleaStyleStatus(host, If(accepted = 1, "Lea style preview applied", "Lea style preview exceeds stylesheet limits"))
+    End Sub
+
+    Private Sub qleaStylesDone(ByVal host As Global.Lea.Win.V)
+        If Not qleaStyleOwner(host) OrElse host.At Is Nothing Then Return
+        Dim page As Global.Lea.Engine.P = host.At
+        Dim queued As KeyValuePair(Of String, String)
+        Dim pending As String = Nothing
+        Dim preview As Boolean = qleaPreviewStyles.TryGetValue(host, queued) AndAlso qleaPending.TryGetValue(host, pending) AndAlso pending = queued.Key
+        qleaPreviewStyles.Remove(host)
+        Dim sources As New List(Of String)()
+        Dim site As String = qdomain(qleaSite(host.U.AbsoluteUri))
+        Dim limited As Boolean = False
+        If site <> "" AndAlso My.Settings.us IsNot Nothing Then
+            limited = My.Settings.us.Count > 256
+            Dim scanned As Integer = 0
+            For index As Integer = 0 To Math.Min(256, My.Settings.us.Count) - 1
+                Dim raw As String = My.Settings.us(index)
+                If raw Is Nothing Then Continue For
+                If raw.Length > 100000 Then
+                    limited = True
+                    Continue For
+                End If
+                scanned += raw.Length
+                If scanned > 1048576 Then
+                    limited = True
+                    Exit For
+                End If
+                Dim fields As String() = raw.Split(New Char() {"|"c}, 4)
+                If fields.Length <> 4 OrElse fields(1) <> "style" OrElse fields(2) <> "e" Then Continue For
+                If Not qleaStyleMatches(site, fields(0)) Then Continue For
+                Dim source As String = qleaStyleText(fields(3))
+                If source Is Nothing Then
+                    limited = True
+                    Continue For
+                End If
+                If sources.Count = 7 Then
+                    limited = True
+                    Exit For
+                End If
+                sources.Add(source)
+            Next
+        End If
+        For index As Integer = 0 To 6
+            If Not qleaStyleOwner(host) OrElse host.At IsNot page Then Return
+            Dim key As String = "fs-saved-" & index.ToString(Globalization.CultureInfo.InvariantCulture)
+            If index < sources.Count Then
+                If host.Ss(key, sources(index)) = 0 Then limited = True
+            Else
+                host.Sd(key)
+            End If
+        Next
+        If Not qleaStyleOwner(host) OrElse host.At IsNot page Then Return
+        If preview Then
+            If host.Ss("fs-preview", queued.Value) = 0 Then limited = True
+        End If
+        If limited Then qleaStyleStatus(host, "Some saved Lea styles exceed stylesheet limits")
+    End Sub
+
+    Private Sub qleaStylesDisposed(ByVal sender As Object, ByVal e As EventArgs)
+        Dim host As Global.Lea.Win.V = TryCast(sender, Global.Lea.Win.V)
+        If host IsNot Nothing Then qleaPreviewStyles.Remove(host)
+    End Sub
+
+    Private Function qleaStyleMatches(ByVal site As String, ByVal pattern As String) As Boolean
+        If String.IsNullOrEmpty(site) OrElse String.IsNullOrEmpty(pattern) OrElse pattern.Length > 4096 Then Return False
+        site = qdomain(site)
+        Dim domain As String = qdomain(pattern)
+        If domain.Length = 0 OrElse domain.Length > 253 Then Return False
+        Dim siteIp As System.Net.IPAddress = Nothing
+        Dim domainIp As System.Net.IPAddress = Nothing
+        If System.Net.IPAddress.TryParse(site.Trim("["c, "]"c), siteIp) Then
+            Return System.Net.IPAddress.TryParse(domain.Trim("["c, "]"c), domainIp) AndAlso siteIp.Equals(domainIp)
+        End If
+        Try
+            domain = New Globalization.IdnMapping With {.UseStd3AsciiRules = True}.GetAscii(domain)
+        Catch ex As ArgumentException
+            Return False
+        End Try
+        Return site.Equals(domain, StringComparison.OrdinalIgnoreCase) OrElse site.EndsWith("." & domain, StringComparison.OrdinalIgnoreCase)
+    End Function
 
     Private Function qleaStatus(ByVal host As Global.Lea.Win.V) As String
         If host.Busy Then Return "Lea loading"
@@ -1624,6 +1757,8 @@ Partial Class j
             My.Settings.Save()
         Catch ex As Exception
             qlog(ex)
+        Finally
+            qleaPreviewStyles.Clear()
         End Try
     End Sub
 

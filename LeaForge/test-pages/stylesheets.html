@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+<head>
+  <title>Lea Live Stylesheets</title>
+  <style>
+    body { color: #24313a; background: #ffffff; }
+    #panel { color: #176b4d; width: 260px; background: #edf8f2; }
+    #field { width: 240px; height: 38px; }
+    #space { height: 700px; }
+  </style>
+</head>
+<body>
+  <h1>Live stylesheets</h1>
+  <p id="panel" class="tone">A retained document with replaceable host styles.</p>
+  <p id="inline" style="color:#123f8c">Inline style</p>
+  <p id="important" style="color:#123f8c !important">Important inline style</p>
+  <input id="field" value="Original field">
+  <textarea id="notes">Original notes</textarea>
+  <details id="closed"><summary>Retained disclosure</summary><input id="hidden-field" value="Hidden default"></details>
+  <div id="space"></div>
+  <p id="target">Scroll target</p>
+</body>
+</html>

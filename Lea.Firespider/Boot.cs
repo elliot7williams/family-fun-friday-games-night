@@ -44,7 +44,7 @@ namespace Lea.Firespider
             var forms = new List<Form>();
             try
             {
-                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch", "domains", "domain-private", "split", "split-life", "split-limits", "edit", "paste", "policy", "policy-start", "failures", "failure-start", "hibernate", "hibernate-start", "style-start" }.Contains(mode), "unknown boot case: " + mode);
+                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch", "domains", "domain-private", "split", "split-life", "split-limits", "edit", "paste", "policy", "policy-start", "failures", "failure-start", "hibernate", "hibernate-start", "style-start", "styles" }.Contains(mode), "unknown boot case: " + mode);
                 Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
                 Application.ThreadException += (sender, error) => UiErrors.Add(error.Exception);
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", session);
@@ -65,7 +65,7 @@ namespace Lea.Firespider
                 var page = new Uri(Path.Combine(root, "Lea", "start.html")).AbsoluteUri;
                 foreach (var name in new[] { "dashboard", "rs", "ps", "recoveryEnabled", "t", "rws", "backupEnabled", "frEnabled", "portableMode", "hibernateEnabled", "watchEnabled" })
                     settings[name] = "";
-                foreach (var name in new[] { "s", "sc", "ls", "recovery", "bm", "tg" }) settings[name] = new StringCollection();
+                foreach (var name in new[] { "s", "sc", "ls", "recovery", "bm", "tg", "us", "au" }) settings[name] = new StringCollection();
                 settings["nf"] = page;
                 settings["h"] = page;
                 settings["se"] = "http://127.0.0.1:1/?q=";
@@ -74,6 +74,21 @@ namespace Lea.Firespider
                 settings["ep"] = log;
                 settings["lazyRestoreMode"] = "off";
                 var expected = new[] { page };
+                if (mode == "styles")
+                {
+                    lazySite = new LoopbackSite { Html = File.ReadAllText(Path.Combine(root, "test-pages", "stylesheets.html")) };
+                    lazySite.Release.Reset();
+                    settings["bs"] = new StringCollection();
+                    settings["cfEnabled"] = "";
+                    settings["us"] = Collection(
+                        "127.0.0.1|style|e|" + EncodeStyle("body{background:#edf8f2}"),
+                        "0.0.1|style|e|" + EncodeStyle("body{background:#000000}"),
+                        "http://127.0.0.1/|style|e|" + EncodeStyle("#panel{color:#075fa8}"),
+                        "127.0.0.1|style||" + EncodeStyle("body{background:#000000}"),
+                        "127.0.0.1|script|e|" + EncodeStyle("document.title='Unexpected script'"));
+                    expected = new[] { lazySite.Url + "styles" };
+                    File.WriteAllLines(session, expected);
+                }
                 if (mode == "style-start")
                 {
                     settings["us"] = Collection("example.invalid|style|e|" + Convert.ToBase64String(Encoding.UTF8.GetBytes("body { color: red; }")));
@@ -222,6 +237,15 @@ namespace Lea.Firespider
                     Wait(() => !((V)tabs.TabPages[0].Controls[0]).Busy && ((V)tabs.TabPages[1].Controls[0]).At != null, "blocked/allowed startup completion");
                     Check(((V)tabs.TabPages[0].Controls[0]).At == null && lazySite.Hits == 0, "blocked startup made a request or committed a page");
                 }
+                else if (mode == "styles")
+                {
+                    var loading = (V)tabs.TabPages[0].Controls[0];
+                    Wait(() => lazySite.Hits == 1 && loading.Busy, "gated stylesheet startup");
+                    Call(form, "qleaPreviewStyle", loading, EncodeStyle("#panel{width:188px}"));
+                    Check(loading.At == null && Member<IDictionary>(form, "qleaPreviewStyles").Count == 1, "startup preview was not queued");
+                    lazySite.Release.Set();
+                    WaitLea(tabs);
+                }
                 else WaitLea(tabs);
                 for (var index = 0; index < expected.Length; index++)
                 {
@@ -281,6 +305,7 @@ namespace Lea.Firespider
                 if (mode == "edit") CheckEdit(form, settings, page);
                 if (mode == "paste") CheckPaste(form, settings, page);
                 if (mode == "style-start") CheckStyleStartup(form, settings, log);
+                if (mode == "styles") CheckStyles(form, settings, lazySite);
                 if (mode == "policy") CheckPolicy(form, settings, page, forms);
                 if (mode == "failures") CheckFailures(form, settings, page);
                 if (mode == "hibernate") CheckHibernation(form, settings, page);
@@ -312,7 +337,7 @@ namespace Lea.Firespider
                     Check(lazySite.Hits == 2 && ((V)tabs.TabPages[0].Controls[0]).Le == null, "failed first page could not be retried through Reload");
                     Console.WriteLine("PASS failed startup: unavailable saved page, working sibling, address/session retention, and Reload recovery");
                 }
-                else if (lazySite != null) CheckLazyStartup(form, lazySite, expected, mode == "lazy-all");
+                else if (lazySite != null && mode != "styles") CheckLazyStartup(form, lazySite, expected, mode == "lazy-all");
                 Check(UiErrors.Count == 0, "UI thread exceptions: " + String.Join(" | ", UiErrors.Select(error => error.ToString()).ToArray()));
                 if (mode == "locked")
                 {
@@ -359,6 +384,87 @@ namespace Lea.Firespider
             }
         }
 
+        private static string EncodeStyle(string source)
+        {
+            return Convert.ToBase64String(Encoding.UTF8.GetBytes(source));
+        }
+
+        private static void CheckStyles(Form form, ApplicationSettingsBase settings, LoopbackSite site)
+        {
+            var tabs = Member<TabControl>(form, "k");
+            var view = (V)tabs.SelectedTab.Controls[0];
+            var page = view.At;
+            var html = page.H;
+            Func<string, Lea.Engine.B> block = id => view.At.Bs.First(item => item.El != null && item.El.Av("id") == id);
+            Check(view.Sn == 3 && page.S.Bg == "#edf8f2" && block("panel").S.F == "#075fa8" && block("panel").S.W == 188,
+                "matching saved CSS or queued preview was not applied natively");
+            Check(Member<IDictionary>(form, "qleaPreviewStyles").Count == 0 && view.T == "Lea Live Stylesheets", "startup preview queue or script isolation");
+            Check((bool)Call(form, "qleaStyleMatches", "blog.example.test", "example.test") &&
+                !(bool)Call(form, "qleaStyleMatches", "notexample.test", "example.test") &&
+                !(bool)Call(form, "qleaStyleMatches", "127.0.0.1", "0.0.1") &&
+                (bool)Call(form, "qleaStyleMatches", "::1", "[::1]") &&
+                (bool)Call(form, "qleaStyleMatches", "xn--bcher-kva.example", "b\u00fccher.example"), "saved CSS domain/IDN/IP matching");
+            var field = page.Fs.First(item => item.El.Av("id") == "field");
+            typeof(V).GetMethod("StartEdit", Members).Invoke(view, new object[] { field });
+            view.Pa("Retained host stylesheet data");
+            var editor = (TextBox)typeof(V).GetField("ed", Members).GetValue(view);
+            editor.Select(2, 3);
+            Call(form, "qleaPreviewStyle", view, EncodeStyle("#field{width:310px;font-size:18px}"));
+            Check(view.Sn == 3 && field.V == "Retained host stylesheet data" && editor.SelectionStart == 2 && editor.SelectionLength == 3 && view.Ce("un"),
+                "preview replacement lost the native field or undo");
+            Check(view.At == page && page.H == html && site.Hits == 1, "style preview replaced or refetched the document");
+            Call(form, "qleaPreviewStyle", view, "%%%invalid%%%");
+            Check(field.S.W == 310 && Member<Label>(form, "su").Text.Contains("invalid"), "malformed saved CSS encoding replaced the current preview");
+            Call(form, "qleaPreviewStyle", view, EncodeStyle(new string('x', 65537)));
+            Check(field.S.W == 310 && Member<Label>(form, "su").Text.Contains("64 KiB"), "oversized decoded preview replaced valid CSS");
+            Call(form, "qleaPreviewStyle", view, EncodeStyle(new string('\u00e9', 32769)));
+            Check(field.S.W == 310 && Member<Label>(form, "su").Text.Contains("64 KiB"), "UTF-8 byte overflow replaced valid CSS");
+            Check((string)Call(form, "qleaStyleText", EncodeStyle(new string('\u00e9', 32768))) != null &&
+                Call(form, "qleaStyleText", Convert.ToBase64String(new byte[] { 0xff })) == null, "saved CSS UTF-8 boundary and invalid encoding");
+            view.Sd("fs-preview");
+            ((StringCollection)settings["us"]).Clear();
+            Call(form, "qleaStylesDone", view);
+            Check(view.Sn == 0 && field.V == "Retained host stylesheet data" && view.At == page, "removed saved rules did not release named sheets");
+            var sources = (StringCollection)settings["us"];
+            for (var index = 0; index < 8; index++) sources.Add("127.0.0.1|style|e|" + EncodeStyle("#panel{width:" + (200 + index) + "px}"));
+            Call(form, "qleaStylesDone", view);
+            Check(view.Sn == 7 && block("panel").S.W == 206 && Member<Label>(form, "su").Text.Contains("limits"), "saved-style match ceiling");
+            sources.Clear();
+            Call(form, "qleaStylesDone", view);
+            view.Pv = true;
+            sources.Add("127.0.0.1|style|e|" + EncodeStyle("body{background:#edf8f2}"));
+            Call(form, "qleaStylesDone", view);
+            Check(view.Pv && view.Sn == 1, "saved styles lost the private context");
+            using (var slow = new LoopbackSite(1000))
+            {
+                var closing = (V)Call(form, "qleaNew", slow.Url);
+                Wait(() => slow.Hits == 1 && closing.Busy, "queued preview close request");
+                Call(form, "qleaPreviewStyle", closing, EncodeStyle("body{color:#ff0000}"));
+                Check(Member<IDictionary>(form, "qleaPreviewStyles").Contains(closing), "closing view did not retain a pending preview");
+                Call(form, "qleaClose", (TabPage)closing.Parent);
+                Check(closing.IsDisposed && !Member<IDictionary>(form, "qleaPreviewStyles").Contains(closing), "closed view retained its CSS queue");
+            }
+            sources.Clear();
+            using (var failed = new LoopbackSite(500) { Status = 503 })
+            {
+                var loading = (V)Call(form, "qleaNew", failed.Url);
+                Wait(() => failed.Hits == 1 && loading.Busy, "failed preview request");
+                Call(form, "qleaPreviewStyle", loading, EncodeStyle("body{color:#ff0000}"));
+                Wait(() => loading.Le != null && !Member<IDictionary>(form, "qleaPending").Contains(loading), "failed preview page completion");
+                Check(!Member<IDictionary>(form, "qleaPreviewStyles").Contains(loading), "failed load retained its queued style preview");
+                Call(form, "q1", site.Url + "replacement");
+                WaitLea(tabs);
+                Wait(() => !Member<IDictionary>(form, "qleaPending").Contains(loading), "replacement style callback completion");
+                Check(loading.Sn == 0 && loading.At.S.F != "#ff0000" && !Member<IDictionary>(form, "qleaPreviewStyles").Contains(loading),
+                    "stale failed-request preview leaked into another navigation: url=" + loading.U + "; sheets=" + loading.Sn +
+                    "; color=" + loading.At.S.F + "; queued=" + Member<IDictionary>(form, "qleaPreviewStyles").Contains(loading) +
+                    "; pending=" + Member<IDictionary>(form, "qleaPending")[loading]);
+                Call(form, "qleaClose", (TabPage)loading.Parent);
+            }
+            Check(!Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module => module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)), "native saved CSS loaded MSHTML");
+            Console.WriteLine("PASS native styles: matched saved CSS, gated startup preview, replacement, fields/undo, bounds, private state, IDN/IP domains, close cleanup, failed-navigation isolation, and no MSHTML");
+        }
+
         private static void CheckStyleStartup(Form form, ApplicationSettingsBase settings, string log)
         {
             var tabs = Member<TabControl>(form, "k");
@@ -367,6 +473,7 @@ namespace Lea.Firespider
             var page = view.At;
             var styles = (StringCollection)settings["us"];
             var originalStyle = styles[0];
+            Check(page.Sn == 1 && page.S.F == "red", "saved STARTUP rule did not apply through Lea");
             var timer = Member<System.Windows.Forms.Timer>(form, "automationTimer");
             Check(timer.Enabled && timer.Interval == 60000, "automation timer did not start");
             try
@@ -380,12 +487,19 @@ namespace Lea.Firespider
             Check((bool)form.GetType().GetField("feature6Loaded", Members).GetValue(form), "saved startup style skipped later tab initialization");
             Check(!File.Exists(log) || !File.ReadAllText(log).Contains("Unable to cast object"), "saved startup style logged a legacy cast");
             Call(form, "qpreviewusercontent", 0);
-            Check(Member<Label>(form, "su").Text.Contains("requires a legacy tab"), "Lea preview limitation was not reported");
+            Check(Member<Label>(form, "su").Text.Contains("Lea style preview applied") && view.Sn == 1 && view.At.S.F == "red", "native Lea preview did not replace its named sheet");
             Check(Object.ReferenceEquals(view.At, page) && styles[0] == originalStyle && tab.Controls[0] == view,
-                "skipped legacy style changed the Lea page or saved rule");
+                "native style preview replaced the Lea page or changed its saved rule");
             styles.Add("example.invalid|script|e|" + Convert.ToBase64String(Encoding.UTF8.GetBytes("document.title = 'Unexpected legacy preview';")));
             Call(form, "qpreviewusercontent", 1);
             Check(Object.ReferenceEquals(view.At, page) && view.T != "Unexpected legacy preview", "legacy script preview changed Lea");
+            Check(Member<Label>(form, "su").Text.Contains("requires a legacy tab"), "unsupported JavaScript preview was not reported");
+            styles[0] = null;
+            Call(form, "qpreviewusercontent", 0);
+            settings["us"] = null;
+            try { Call(form, "qpreviewusercontent", 0); }
+            finally { settings["us"] = styles; styles[0] = originalStyle; }
+            Check(view.Sn == 1 && view.At == page, "missing saved styles changed the page");
             Check((bool)Call(form, "qleaSuspend", tab), "style fixture could not suspend Lea");
             Check(tab.Controls[0] is Panel, "style fixture could not pause Lea");
             Call(form, "qpreviewusercontent", 0);
@@ -404,7 +518,7 @@ namespace Lea.Firespider
             finally { tabs.TabPages.Add(tab); tabs.SelectedTab = tab; }
             Check(!Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module => module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)),
                 "skipping legacy preview loaded MSHTML");
-            Console.WriteLine("PASS style startup: saved STARTUP rule, accelerated real timer callback, Lea/paused/empty guards, retained rules and page, explicit unsupported status, no MSHTML");
+            Console.WriteLine("PASS style startup: native saved STARTUP style and timer preview, named replacement, paused/empty guards, retained rules/page, unsupported script status, no MSHTML");
         }
 
         private static void Show(Form form)
@@ -475,7 +589,12 @@ namespace Lea.Firespider
                     menu.ShowDropDown();
                     foreach (var name in names) Member<ToolStripItem>(form, name).PerformClick();
                     menu.HideDropDown();
-                    Check(field.V == "page field stays" && Clipboard.GetText() == "toolbar clipboard", "toolbar focus edited the previous page field");
+                    var afterToolbar = Clipboard.GetText();
+                    Check(field.V == "page field stays" && afterToolbar == "toolbar clipboard",
+                        "toolbar focus edit state: chrome=" + chrome + "; retained=" + (field.V == "page field stays") +
+                        "; clipboardUnchanged=" + (afterToolbar == "toolbar clipboard") + "; clipboardLength=" + afterToolbar.Length +
+                        "; toolbarFocus=" + Member<ToolStripComboBox>(form, chrome).ComboBox.ContainsFocus +
+                        "; editorVisible=" + editor.Visible);
                 }
                 startEdit.Invoke(view, new object[] { field });
                 editor.Text = "hover selection";
@@ -497,9 +616,17 @@ namespace Lea.Firespider
                 settings["t"] = "";
                 var secret = view.At.Fs.Single(item => item.El.Av("id") == "secret");
                 startEdit.Invoke(view, new object[] { secret });
+                Check(secret.V == "private value" && !view.Ce("cp") && !view.Ce("cu"),
+                    "password edit setup: retained=" + (secret.V == "private value") + "; kind=" + secret.K +
+                    "; copy=" + view.Ce("cp") + "; cut=" + view.Ce("cu"));
                 Member<ToolStripItem>(form, "CO").PerformClick();
                 Member<ToolStripItem>(form, "CU").PerformClick();
-                Check(secret.V == "private value" && Clipboard.GetText() == "hover selection", "host exposed password through Copy or Cut");
+                var afterProtected = Clipboard.GetText();
+                Check(secret.V == "private value" && afterProtected == "hover selection",
+                    "password Copy/Cut state: retained=" + (secret.V == "private value") +
+                    "; clipboardUnchanged=" + (afterProtected == "hover selection") +
+                    "; clipboardHasFixtureSecret=" + afterProtected.Contains("private value") +
+                    "; clipboardLength=" + afterProtected.Length);
                 var readOnly = view.At.Fs.Single(item => item.El.Av("id") == "readonly");
                 startEdit.Invoke(view, new object[] { readOnly });
                 foreach (var name in new[] { "CU", "PA", "D", "U", "RD" }) Member<ToolStripItem>(form, name).PerformClick();
@@ -658,6 +785,9 @@ namespace Lea.Firespider
                 Check(!(bool)Call(form, "qfeature6tabeligible", background), "protected Lea tab eligible: " + protection);
             }
             background.Tag = "lea";
+            view.Ss("hibernation", "body{color:#123456}");
+            Check(!(bool)Call(form, "qfeature6tabeligible", background), "host stylesheet state allowed URL-only hibernation");
+            view.Sd("hibernation");
             background.ToolTipText = "Tab group: Test";
             Check(!(bool)Call(form, "qfeature6tabeligible", background), "grouped Lea tab eligible");
             background.ToolTipText = "";
@@ -2173,6 +2303,7 @@ namespace Lea.Firespider
             public volatile int DelayMs;
             public volatile int Status = 200;
             public volatile bool SetCookie;
+            public volatile string Html;
             public readonly ManualResetEvent Release = new ManualResetEvent(true);
             public readonly string Url;
             public int Hits { get { return Interlocked.CompareExchange(ref hits, 0, 0); } }
@@ -2207,7 +2338,7 @@ namespace Lea.Firespider
                             Check(Release.WaitOne(10000), "loopback response gate timeout");
                             if (request == 0 && firstDelay > 0) Thread.Sleep(firstDelay);
                             if (request > 0 && DelayMs > 0) Thread.Sleep(DelayMs);
-                            var body = Encoding.UTF8.GetBytes("<title>Lea navigation</title><p>Local test</p>");
+                            var body = Encoding.UTF8.GetBytes(Html ?? "<title>Lea navigation</title><p>Local test</p>");
                             var header = Encoding.ASCII.GetBytes("HTTP/1.1 " + Status + " Test\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: " + body.Length + "\r\n" +
                                 (SetCookie ? "Set-Cookie: hibernate=retained; Path=/\r\n" : "") + "Connection: close\r\n\r\n");
                             try

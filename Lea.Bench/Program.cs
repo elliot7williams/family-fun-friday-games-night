@@ -107,7 +107,7 @@ namespace Lea.Bench
             var names = new[]
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
-                "tables.html", "forms.html", "editing.html", "retained-data.html", "events-vars.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
+                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "events-vars.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -1855,6 +1855,22 @@ namespace Lea.Bench
                     Need(view.Pa("blocked") == 0, "Pa ran after disposal");
                 }
                 return "Pa host-supplied text, maxlength/Unicode, multiline, native undo, protected/disposed targets; no clipboard access";
+            });
+            AddProbe(probes, "Named native stylesheets", delegate
+            {
+                using (var view = NewView())
+                {
+                    view.Go(Path.Combine(folder, "stylesheets.html"));
+                    var page = view.At;
+                    var field = page.Fs.First(item => item.El.Av("id") == "field");
+                    field.V = "Retained stylesheet data";
+                    Need(view.Ss("theme", "#panel{width:222px;background:#d7263d}") == 1 && view.Sn == 1 && view.Dg().Sn == 1, "Ss/Sn diagnostics");
+                    using (var image = Draw(view)) { }
+                    Need(page.Bs.First(item => item.El != null && item.El.Av("id") == "panel").S.W == 222, "injected rule did not reach renderer");
+                    Need(view.Ss("theme", new string('x', 65537)) == 0 && view.Sn == 1, "oversized sheet changed retained state");
+                    Need(view.Sd("theme") == 1 && view.Sn == 0 && field.V == "Retained stylesheet data" && page.Fs.Contains(field), "Sd lost retained fields");
+                }
+                return "Ss/Sd/Sn named sheets, native computed/paint route, atomic source bound, retained field identity, and diagnostics";
             });
             AddProbe(probes, "Bounded Lea scripting", delegate
             {

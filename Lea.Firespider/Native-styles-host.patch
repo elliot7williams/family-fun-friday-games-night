@@ -1,0 +1,24 @@
+diff --git a/BrowserFeatures2.vb b/BrowserFeatures2.vb
+--- a/BrowserFeatures2.vb
++++ b/BrowserFeatures2.vb
+@@ -378,7 +378,18 @@ Partial Class j
+     Sub qpreviewusercontent(ByVal index As Integer)
+-        If index < 0 OrElse index >= My.Settings.us.Count Then Exit Sub
+-        Dim fields As String() = My.Settings.us(index).Split(New Char() {"|"c}, 4)
++        If My.Settings.us Is Nothing OrElse index < 0 OrElse index >= My.Settings.us.Count Then Exit Sub
++        Dim raw As String = My.Settings.us(index)
++        If raw Is Nothing Then Exit Sub
++        Dim fields As String() = raw.Split(New Char() {"|"c}, 4)
+         If fields.Length <> 4 Then Exit Sub
+         Dim tab As TabPage = qleaSelectedTab()
++        Dim lea As Global.Lea.Win.V = qleaHost(tab)
++        If lea IsNot Nothing Then
++            If fields(1) = "style" Then
++                qleaPreviewStyle(lea, fields(3))
++            Else
++                qleaStyleStatus(lea, "Saved script preview requires a legacy tab; Lea page unchanged")
++            End If
++            Exit Sub
++        End If
+         Dim wb As WebBrowser = If(tab Is Nothing OrElse tab.Controls.Count = 0, Nothing, TryCast(tab.Controls(0), WebBrowser))
+         If wb Is Nothing OrElse wb.IsDisposed Then

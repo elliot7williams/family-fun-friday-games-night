@@ -28,6 +28,7 @@ namespace Lea.Tests
                 if (args.Length > 1 && args[1] == "--clip") { CheckClipboardContention(root); return 0; }
                 if (args.Length > 1 && args[1] == "--paste") { CheckPasteText(root); return 0; }
                 if (args.Length > 1 && args[1] == "--fragment") { CheckFragmentStartup(root); return 0; }
+                if (args.Length > 1 && args[1] == "--sheets") { CheckSheets(root); return 0; }
                 var coreOnly = args.Length > 1 && args[1] == "--core";
                 if (coreOnly)
                 {
@@ -38,6 +39,7 @@ namespace Lea.Tests
                 if (!coreOnly) { CheckClipboardContention(root); CheckEditCommands(root); }
                 if (args.Length > 1 && args[1] == "--edit") return 0;
                 CheckPasteText(root);
+                CheckSheets(root);
                 CheckNavigationGuard(root);
                 CheckLoadFailures(root);
                 CheckRetainedData(root);
@@ -6501,6 +6503,153 @@ namespace Lea.Tests
 
         [System.Runtime.InteropServices.DllImport("user32.dll", EntryPoint = "SendMessageW", ExactSpelling = true)]
         private static extern IntPtr NativeEdit(IntPtr window, int message, IntPtr wParam, IntPtr lParam);
+
+        private static void CheckSheets(string root)
+        {
+            var path = Path.Combine(root, "LeaForge", "test-pages", "stylesheets.html");
+            var engine = new E();
+            var page = engine.Go(path);
+            var html = page.H;
+            var document = page.D;
+            var requests = engine.Dg(page).Rs.Count;
+            var field = FieldById(page, "field");
+            field.V = "Retained field";
+            engine.Js(page, "v('kept','yes')");
+            var commands = page.Jc;
+            var source = "body{--accent:#a13b18}#panel{color:var(--accent);width:180px}#inline{color:#ff0000}#important{color:#ff0000!important}@media(max-width:480px){#panel{width:130px}}";
+            Eq(1, engine.Ss(page, "theme", source), "Ss accepts named CSS");
+            Eq(1, page.Sn, "P.Sn sheet count");
+            Eq(1, engine.Dg(page).Sn, "G.Sn sheet count");
+            Eq("#a13b18", BlockById(page, "panel").S.F, "host sheet and custom property cascade");
+            Eq("#123f8c", BlockById(page, "inline").S.F, "normal inline priority retained");
+            Eq("#123f8c", BlockById(page, "important").S.F, "important inline priority retained");
+            Eq(180, BlockById(page, "panel").S.W, "host sheet width");
+            Ok(page.D == document && page.H == html && page.Jc == commands && page.Vs["kept"] == "yes", "Ss preserves DOM/source/command state");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained field", "Ss preserves field identity/value");
+            Eq(requests, engine.Dg(page).Rs.Count, "Ss does not refetch document or stylesheet");
+            Eq(1, engine.Ss(page, "theme", source), "same sheet is accepted idempotently");
+            Eq(1, page.Sn, "same key does not accumulate sheets");
+            engine.Vw = 320;
+            Eq(130, BlockById(page, "panel").S.W, "injected media query activates");
+            engine.Vw = 640;
+            Eq(180, BlockById(page, "panel").S.W, "injected media query deactivates");
+            engine.Ss(page, "later", "#panel{color:#075fa8}");
+            engine.Ss(page, "theme", "#panel{color:#990000;width:190px}");
+            Eq("#075fa8", BlockById(page, "panel").S.F, "replacement preserves sheet order");
+            Eq(1, engine.Sd(page, "later"), "Sd removes one sheet");
+            Eq("#990000", BlockById(page, "panel").S.F, "removal reveals earlier sheet");
+            Eq(0, engine.Sd(page, "missing"), "missing sheet removal is inert");
+            engine.Ss(page, "theme", ".tone{color:#ff0000}");
+            Eq("#176b4d", BlockById(page, "panel").S.F, "authored specificity beats later weaker host rule");
+            engine.Ss(page, "theme", "#inline{color:#880088!important}");
+            Eq("#880088", BlockById(page, "inline").S.F, "host important beats normal inline");
+            engine.Ss(page, "theme", "#panel:focus{color:#112233}#panel:hover{width:197px}");
+            var panel = engine.Id(page, "panel");
+            engine.Dy(page, panel, panel);
+            Eq("#112233", BlockById(page, "panel").S.F, "dynamic focus uses injected rules");
+            Eq(197, BlockById(page, "panel").S.W, "dynamic hover uses injected rules");
+            engine.Dy(page, null, null);
+            engine.Ss(page, "theme", "#field{display:none}");
+            Ok(!page.Fs.Contains(field), "injected display none removes rendered field");
+            engine.Sd(page, "theme");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained field", "removing hidden style restores retained field");
+            engine.Je = false;
+            Eq(1, engine.Ss(page, "theme", "#panel{width:177px}"), "host CSS works with page scripting disabled");
+            engine.Go(Path.Combine(root, "LeaForge", "test-pages", "second.html"));
+            Eq(0, engine.At.Sn, "new document does not inherit host sheets");
+            engine.Bk();
+            Ok(engine.At == page && page.Sn == 1 && BlockById(page, "panel").S.W == 177, "history retains named styles");
+            Eq(0, engine.Ss(page, "theme", new string('x', 65537)), "oversized replacement rejected");
+            Eq(177, BlockById(page, "panel").S.W, "rejected replacement is atomic");
+            Eq(0, engine.Ss(page, "bad key", ""), "sheet key syntax is bounded");
+            Eq(0, engine.Ss(page, new string('a', 33), ""), "sheet key length bounded");
+            Eq(0, engine.Ss(page, "theme", null), "null sheet does not delete existing state");
+            var foreignRejected = false;
+            try { new E().Ss(page, "foreign", ""); } catch (ArgumentException) { foreignRejected = true; }
+            Ok(foreignRejected, "stylesheet requires owning engine");
+            engine.Sd(page, "theme");
+            for (var index = 0; index < 8; index++) Eq(1, engine.Ss(page, "s" + index, ""), "sheet slot " + index);
+            Eq(0, engine.Ss(page, "overflow", ""), "eight-sheet ceiling");
+            for (var index = 0; index < 8; index++) engine.Sd(page, "s" + index);
+            Eq(1, engine.Ss(page, "large1", new string(' ', 65536)), "first maximum source");
+            Eq(1, engine.Ss(page, "large2", new string(' ', 65536)), "second maximum source");
+            Eq(0, engine.Ss(page, "large3", " "), "total source ceiling");
+            engine.Sd(page, "large1"); engine.Sd(page, "large2");
+            var unicode = new string('\u00e9', 32768);
+            Eq(1, engine.Ss(page, "unicode", unicode), "UTF-8 source byte boundary accepted");
+            Eq(0, engine.Ss(page, "unicode", unicode + "\u00e9"), "UTF-8 source byte overflow rejected");
+            Eq(0, engine.Ss(page, "unicode", "\ud800"), "invalid Unicode source rejected");
+            Eq(1, page.Sn, "invalid replacement retains named sheet");
+            engine.Ss(page, "ascii", new string(' ', 65536));
+            Eq(0, engine.Ss(page, "extra", " "), "aggregate limit uses UTF-8 bytes");
+            engine.Sd(page, "unicode"); engine.Sd(page, "ascii");
+            var authored = engine.Dg(page).C;
+            var rules = new StringBuilder();
+            for (var index = authored; index < 1024; index++) rules.Append("#panel{width:178px}");
+            Eq(1, engine.Ss(page, "rules", rules.ToString()), "global CSS rule boundary");
+            Eq(1024, engine.Dg(page).C, "authored and host rules share one ceiling");
+            Eq(0, engine.Ss(page, "extra", "#panel{width:199px}"), "no rule overflow evicts authored or earlier sheets");
+            rules.Append("#panel{width:199px}");
+            Eq(0, engine.Ss(page, "rules", rules.ToString()), "replacement rejects extra parsed rule");
+            Eq(178, BlockById(page, "panel").S.W, "rule-bound rejection preserves style");
+            engine.Sd(page, "rules");
+            Eq(0, page.Sn, "all sheets removed");
+            Eq(260, BlockById(page, "panel").S.W, "authored CSS restored");
+            engine.Ss(page, "resource", "@import 'never.css';#panel{background-image:url('image.png')}");
+            Eq(new Uri(page.Bu ?? page.U, "image.png"), BlockById(page, "panel").S.Bi.U, "host CSS uses document base URL");
+            Eq(requests + 1, engine.Dg(page).Rs.Count, "host @import causes no fetch");
+
+            using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-30000, -30000), Size = new Size(700, 700) })
+            using (var view = new V())
+            {
+                form.Controls.Add(view);
+                form.Show();
+                view.Go(path);
+                Paint(view);
+                var nativeField = FieldById(view.At, "field");
+                var start = typeof(V).GetMethod("StartEdit", BindingFlags.Instance | BindingFlags.NonPublic);
+                start.Invoke(view, new object[] { nativeField });
+                view.Pa("Native retained text");
+                var editor = Editor(view);
+                editor.Select(2, 4);
+                var changed = 0;
+                var edited = 0;
+                view.Changed += delegate { changed++; };
+                view.Ed += delegate { edited++; };
+                Eq(1, view.Ss("host", "#field{width:320px;font-size:20px}#panel{background:#d7263d}@media(max-width:480px){#field{font-size:24px}}"), "V.Ss accepted");
+                Eq(1, view.Sn, "V.Sn sheet count");
+                Ok(editor.SelectionStart == 2 && editor.SelectionLength == 4 && view.Ce("un") && edited == 0 && changed == 1,
+                    "live CSS preserves native selection/undo and emits no edit event");
+                Eq(20F, editor.Font.Size, "live CSS updates native editor font");
+                view.Ss("host", "#field{width:320px;font-size:20px}#panel{background:#d7263d}@media(max-width:480px){#field{font-size:24px}}");
+                Eq(1, changed, "identical sheet avoids another layout notification");
+                using (var rendered = Render(view))
+                    Ok(HasColor(rendered, BlockRect(view, BlockById(view.At, "panel")), Color.FromArgb(215, 38, 61)), "injected CSS paints through Lea");
+                form.Size = new Size(400, 700);
+                Paint(view);
+                Eq(24F, editor.Font.Size, "injected media CSS updates active editor font after resize");
+                view.Ec("un");
+                Eq("Original field", nativeField.V, "stylesheet/font changes preserve native undo");
+                view.Ec("re");
+                Eq("Native retained text", nativeField.V, "stylesheet/font changes preserve native redo");
+                view.Ss("host", "#field{display:none}");
+                Ok(!editor.Visible && !view.At.Fs.Contains(nativeField), "hidden native editor closes");
+                view.Sd("host");
+                Eq("Native retained text", FieldById(view.At, "field").V, "view hidden style removal retains data");
+                view.Fg("#target");
+                var scroll = view.Sy;
+                view.Ss("paint", "#panel{background:#075fa8}");
+                Eq(scroll, view.Sy, "paint-only sheet update does not jump to top");
+                var done = 0;
+                view.Done += delegate { done++; };
+                view.Sd("paint");
+                Eq(0, done, "stylesheet mutation does not report document load");
+                view.Changed += delegate { view.Dispose(); };
+                Eq(1, view.Ss("closing", "#panel{color:#112233}"), "stylesheet callback can dispose view");
+                Ok(view.IsDisposed && view.Ss("late", "") == 0 && view.Sd("closing") == 0, "disposed stylesheet methods are inert");
+            }
+            Console.WriteLine("Lea stylesheet smoke passed: Ss/Sd/Sn, cascade, media, source/field/history retention, named replacement/removal, limits, native paint/font/undo, scroll, and callback disposal.");
+        }
 
         private static void CheckPasteText(string root)
         {

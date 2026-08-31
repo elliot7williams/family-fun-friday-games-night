@@ -12,6 +12,8 @@ LeaForge is where we can grow the more full-featured browser.
 
 ## Current Features
 
+- compact `Ss/Sd/Sn` named native CSS, retained editors, saved Firespider styles,
+  and request-scoped startup previews; see `NATIVE_STYLESHEETS.md`
 - guarded Firespider saved-style startup/timer callbacks without legacy casts
   or automatic fallback; see `STYLE_STARTUP_SAFETY.md`
 - guarded clipboard paste and compact `Pa(text)` host insertion with native
