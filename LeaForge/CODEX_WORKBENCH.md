@@ -17,6 +17,18 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
+Milestone 60 installs the existing `V.Ng` hook on main Lea tabs, enforcing host
+rules, offline/locked state, and live ownership. Denied resume retains its
+placeholder, including blocked address/search/Home commands. Later requests
+do not reuse its one-time initial approval.
+Expected native keyboard/accessibility denials no longer become unhandled
+callbacks, while public API errors stay visible. Two new Boot cases bring the
+suite to 30; the runner has 60 compatibility probes across 59 fixtures.
+Runtime 160 remains isolated and root runtime 157 is unchanged. See
+`NAVIGATION_POLICY.md`. Next investigate the intermittent recovery cast and
+continue redirect/resource/download policy, native error pages, printing,
+properties, toolbar editing, popup handling, DOM tools, and hibernation.
+
 Milestone 59 adds `V.Ce/Ec` with two-letter native field commands and migrates
 Firespider's seven Edit menu commands. It fixes the reproduced `j.c9` Lea cast,
 an equal-font disposal exception, and non-undoable deletion. Tests cover real

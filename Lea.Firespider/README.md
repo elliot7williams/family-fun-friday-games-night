@@ -10,10 +10,17 @@ Its timer status handler is also routed safely across startup, empty, Lea, and
 legacy-tab states, so it never dereferences a missing control or casts a Lea
 view to the legacy `WebBrowser` type.
 
+Ordinary Lea tabs now install `V.Ng` for blocked sites, navigation filters,
+offline/locked state, and live tab ownership. Denied resume retains its saved
+target and placeholder. Expected denials no longer escape Back/Forward,
+unshown initial loads, or native keyboard/accessibility activation. The
+`policy` and `policy-start` Boot cases bring the suite to 30. See
+`LeaForge/NAVIGATION_POLICY.md`; the intermittent recovery cast remains open.
+
 The seven Edit commands now route native Lea fields through `V.Ce/Ec`, with
 selection retention when opening menus, native one-level undo/redo, read-only
 and password protection, and safe paused/empty-tab behavior. Explicit legacy
-tabs keep their document editing path. The `edit` Boot case brings the suite
+tabs keep their document editing path. The `edit` Boot case brought the suite
 to 28 cases. See `LeaForge/NATIVE_EDITING.md` for confirmed fixes and the still
 unidentified intermittent recovery cast.
 

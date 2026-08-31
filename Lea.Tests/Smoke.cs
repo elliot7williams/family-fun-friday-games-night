@@ -6666,6 +6666,28 @@ namespace Lea.Tests
                 Eq("blocked", Fails(() => closing.GoA(server.U).GetAwaiter().GetResult(), "guard callback disposal").K, "disposed guard cannot authorize navigation");
                 Ok(server.Hits == 0 && closing.Ng == null && closing.IsDisposed, "guard callback disposal sends no request and releases policy");
             }
+            using (var input = new V { Size = new Size(640, 480) })
+            {
+                input.Go(Path.Combine(root, "LeaForge", "test-pages", "focus-shortcuts.html"));
+                Paint(input);
+                var retained = input.At;
+                var calls = 0;
+                input.Ng = url => { calls++; return false; };
+                var access = Key(input, Keys.Alt | Keys.Shift | Keys.G);
+                var enter = Key(input, Keys.Enter);
+                Ok(access.Handled && access.SuppressKeyPress && enter.Handled && enter.SuppressKeyPress &&
+                    calls == 2 && input.At == retained && input.U.Fragment == "", "blocked native keyboard input is consumed without navigation");
+                Eq("blocked", Fails(() => input.Ka().GetAwaiter().GetResult(), "programmatic activation rejection").K, "public activation retains typed errors");
+                var boundary = typeof(V).GetMethod("InputActivationA", BindingFlags.Instance | BindingFlags.NonPublic);
+                Func<Task<int>> failure = () => { throw new InvalidOperationException("host policy bug"); };
+                var escaped = false;
+                try { ((Task<int>)boundary.Invoke(input, new object[] { failure })).GetAwaiter().GetResult(); }
+                catch (InvalidOperationException error) { escaped = error.Message == "host policy bug"; }
+                Ok(escaped, "input boundary must not swallow unexpected failures");
+                input.Ng = url => true;
+                Key(input, Keys.Enter);
+                Ok(input.U.Fragment == "#target", "allowed keyboard activation still navigates");
+            }
             Console.WriteLine("Lea navigation guard smoke passed: compact Ng alias, blocked GET/POST/fragments/history/reload/cache, caller-thread policy, state retention, and disposal.");
         }
 

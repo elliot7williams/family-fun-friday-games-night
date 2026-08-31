@@ -4439,7 +4439,7 @@ namespace Lea.Win
             base.OnKeyDown(e);
             if (e.Alt && e.Shift && !e.Control)
             {
-                if (await Aa(KeyText(e.KeyData)) == 0) return;
+                if (await InputActivationA(() => Aa(KeyText(e.KeyData))) == 0) return;
                 e.SuppressKeyPress = true;
                 e.Handled = true;
                 return;
@@ -4459,9 +4459,19 @@ namespace Lea.Win
             var field = target.B != null && target.B.B != null ? target.B.B.I : null;
             if (e.KeyCode == Keys.Space && link) return;
             if (!link && !summary && field == null) return;
-            if (await Ka() == 0) return;
+            if (await InputActivationA(Ka) == 0) return;
             e.SuppressKeyPress = true;
             e.Handled = true;
+        }
+
+        private async Task<int> InputActivationA(Func<Task<int>> activate)
+        {
+            try { return await activate(); }
+            catch (Er error)
+            {
+                if (error.K != "blocked") throw;
+                return 1;
+            }
         }
 
         // Kf moves through Lea's bounded sequential keyboard targets.
@@ -6490,7 +6500,7 @@ namespace Lea.Win
         private async void ActivateAccessibility(Ax item)
         {
             if (!FocusAccessibility(item)) return;
-            await Ka();
+            await InputActivationA(Ka);
         }
 
         private T OnUi<T>(Func<T> work)

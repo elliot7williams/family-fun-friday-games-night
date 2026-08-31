@@ -303,6 +303,30 @@ namespace Lea.Bench
                 }
                 return "Ng policy, typed rejection, retained page/history, async view alias, and disposal; not a redirect/resource firewall";
             });
+            AddProbe(probes, "Blocked native input", delegate
+            {
+                using (var view = NewView())
+                {
+                    view.Go(Path.Combine(folder, "focus-shortcuts.html"));
+                    using (var bitmap = Draw(view)) Need(ColoredSamples(bitmap) > 0, "input fixture is blank");
+                    var retained = view.At;
+                    var calls = 0;
+                    view.Ng = url => { calls++; return false; };
+                    var keyDown = typeof(V).GetMethod("OnKeyDown", BindingFlags.Instance | BindingFlags.NonPublic);
+                    foreach (var key in new[] { Keys.Alt | Keys.Shift | Keys.G, Keys.Enter })
+                    {
+                        var args = new KeyEventArgs(key);
+                        keyDown.Invoke(view, new object[] { args });
+                        Application.DoEvents();
+                        Need(args.Handled && args.SuppressKeyPress, "blocked keyboard input was not consumed");
+                    }
+                    Need(calls == 2 && view.At == retained && view.U.Fragment == "", "blocked input changed page/history");
+                    var rejected = false;
+                    try { view.Ka().GetAwaiter().GetResult(); } catch (Er error) { rejected = error.K == "blocked"; }
+                    Need(rejected, "public activation hid its rejection");
+                }
+                return "Expected Ng denials stay out of native keyboard callbacks; public Ka still reports blocked";
+            });
             AddProbe(probes, "Bounded progress and meter gauges", delegate
             {
                 var page = new E().Go(Path.Combine(folder, "gauges.html"));

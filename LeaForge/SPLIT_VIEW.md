@@ -48,8 +48,9 @@ Split view uses this guard to consult existing blocked-site/content-navigation
 rules, including direct navigation, links, script requests, and form submission.
 The guard is not a network firewall or sandbox: HTTP redirects, subresources,
 and direct downloads are outside its engine-level scope. Split downloads consult
-the host before showing their Save dialog. General Firespider Lea tabs do not
-yet install this new optional policy automatically.
+the host before showing their Save dialog. Milestone 60 also installs the policy
+on ordinary Firespider Lea tabs; see `NAVIGATION_POLICY.md` for their ownership,
+offline/lock, resume, and input-error handling.
 
 ## In-Memory Comparison
 
@@ -101,8 +102,8 @@ Both files must be retained when embedding the integration in Visual Studio.
 
 Legacy post-load DOM injectors for user CSS, annotations, permission mutations,
 and form restoration are not ported by this change. Split pages use Lea's own
-supported HTML/CSS/forms behavior. Pop-up/target-window parity, general host
-navigation policy, redirects/resources, other DOM tools, and automatic
+supported HTML/CSS/forms behavior. Pop-up/target-window parity,
+redirects/resources, other DOM tools, and automatic
 hibernation remain future work. OS download dialogs are not automated. The
 reported popup's exact callback has not been identified by this milestone.
 Compression and short names do not establish runtime speed gains.

@@ -489,29 +489,47 @@ Partial Class j
                 Return True
             End If
             If command = "go" OrElse command = "search" OrElse command = "home" Then
-                host = qleaResume(selected, False)
+                Dim target As String = qleaInput(If(command = "home", qleaHome(), value), command = "search")
+                If target.Length = 0 Then Return True
+                Dim address As Uri = Nothing
+                If Not Uri.TryCreate(target, UriKind.Absolute, address) Then
+                    su.Visible = True
+                    su.Text = "Lea: invalid address"
+                    Return True
+                End If
+                If Not qleaAllowed(selected, address) Then Return True
+                host = qleaResumeTo(selected, False, address)
+                If host IsNot Nothing Then
+                    qleaLoad(host, target)
+                    qleaState(host)
+                End If
+                Return True
             End If
         End If
         If host Is Nothing Then
             Dim tab = qleaSelectedTab()
             Return tab Is Nothing OrElse tab.Controls.Count = 0 OrElse Not TypeOf tab.Controls(0) Is WebBrowser
         End If
-        Select Case command
-            Case "bk"
-                host.Bk()
-            Case "fw"
-                host.Fw()
-            Case "go"
-                qleaOpen(host, value, False)
-            Case "search"
-                qleaOpen(host, value, True)
-            Case "home"
-                qleaOpen(host, qleaHome(), False)
-            Case "reload"
-                If host.Busy Then host.St() Else qleaReload(host)
-            Case "stop"
-                host.St()
-        End Select
+        Try
+            Select Case command
+                Case "bk"
+                    host.Bk()
+                Case "fw"
+                    host.Fw()
+                Case "go"
+                    qleaOpen(host, value, False)
+                Case "search"
+                    qleaOpen(host, value, True)
+                Case "home"
+                    qleaOpen(host, qleaHome(), False)
+                Case "reload"
+                    If host.Busy Then host.St() Else qleaReload(host)
+                Case "stop"
+                    host.St()
+            End Select
+        Catch ex As Global.Lea.Engine.Er When ex.K = "blocked"
+            r.Image = My.Resources.F8
+        End Try
         qleaState(host)
         Return True
     End Function
@@ -544,16 +562,47 @@ Partial Class j
         k.SelectedTab = tab
         I += 1
         If String.IsNullOrWhiteSpace(target) Then target = qleaStart()
-        If Visible OrElse qleaStarting Then qleaLoad(host, target) Else host.Go(target)
+        If Visible OrElse qleaStarting Then
+            qleaLoad(host, target)
+        Else
+            Try
+                host.Go(target)
+            Catch ex As Global.Lea.Engine.Er When ex.K = "blocked"
+                r.Image = My.Resources.F8
+            End Try
+        End If
         Return host
     End Function
 
-    Private Function qleaMount(ByVal tab As TabPage, ByVal privateView As Boolean) As Global.Lea.Win.V
+    Private Function qleaOwned(ByVal tab As TabPage) As Boolean
+        Return Not IsDisposed AndAlso Not Disposing AndAlso tab IsNot Nothing AndAlso Not tab.IsDisposed AndAlso qalltabs().Contains(tab)
+    End Function
+
+    Private Function qleaAllowed(ByVal tab As TabPage, ByVal address As Uri) As Boolean
+        If address Is Nothing OrElse Not qleaOwned(tab) Then Return False
+        If wo OrElse String.Equals(TryCast(tab.Tag, String), "locked", StringComparison.Ordinal) Then
+            su.Visible = True
+            su.Text = If(wo, "Work offline - navigation blocked", "Tab is locked - navigation blocked")
+            Return False
+        End If
+        If qnavigationblocked(New WebBrowserNavigatingEventArgs(address, "")) Then Return False
+        Return qleaOwned(tab)
+    End Function
+
+    Private Function qleaMount(ByVal tab As TabPage, ByVal privateView As Boolean, Optional ByVal approved As Uri = Nothing) As Global.Lea.Win.V
         Dim host As New Global.Lea.Win.V()
         host.Pv = privateView
         host.Dock = DockStyle.Fill
         If tab.Tag Is Nothing Then tab.Tag = "lea"
         tab.Controls.Add(host)
+        host.Ng = Function(address As Uri) As Boolean
+                      Dim initial As Uri = approved
+                      approved = Nothing
+                      If Not qleaOwned(tab) OrElse qleaHost(tab) IsNot host Then Return False
+                      ' Resume checks before destroying its placeholder; consume that approval once.
+                      Dim allowed As Boolean = (initial IsNot Nothing AndAlso address IsNot Nothing AndAlso String.Equals(initial.AbsoluteUri, address.AbsoluteUri, StringComparison.Ordinal)) OrElse qleaAllowed(tab, address)
+                      Return allowed AndAlso qleaOwned(tab) AndAlso qleaHost(tab) Is host
+                  End Function
         AddHandler host.Changed, AddressOf qleaChanged
         AddHandler host.Done, AddressOf qleaDone
         AddHandler host.Al, AddressOf qleaAlert
@@ -615,18 +664,26 @@ Partial Class j
     End Sub
 
     Private Function qleaResume(ByVal tab As TabPage, ByVal navigate As Boolean) As Global.Lea.Win.V
+        Return qleaResumeTo(tab, navigate, Nothing)
+    End Function
+
+    Private Function qleaResumeTo(ByVal tab As TabPage, ByVal navigate As Boolean, ByVal approved As Uri) As Global.Lea.Win.V
         If tab Is Nothing OrElse tab.IsDisposed OrElse Not qleaPaused.ContainsKey(tab) Then Return Nothing
         If Not qalltabs().Contains(tab) Then Return Nothing
         Dim target As String = ""
         If Not suspendedGroupUrls.TryGetValue(tab, target) Then Return Nothing
         target = qleaSessionTarget(target)
         If target = "" Then Return Nothing
+        If navigate Then
+            approved = New Uri(target)
+            If Not qleaAllowed(tab, approved) Then Return Nothing
+        End If
         Dim privateView As Boolean = qleaPaused(tab) OrElse pv
         For Each control As Control In tab.Controls.Cast(Of Control)().ToArray()
             tab.Controls.Remove(control)
             control.Dispose()
         Next
-        Dim host As Global.Lea.Win.V = qleaMount(tab, privateView)
+        Dim host As Global.Lea.Win.V = qleaMount(tab, privateView, approved)
         qleaPaused.Remove(tab)
         suspendedGroupUrls.Remove(tab)
         feature6LazyTabs.Remove(tab)
@@ -653,13 +710,13 @@ Partial Class j
         Return qleaStart()
     End Function
 
-    Private Async Sub qleaOpen(ByVal host As Global.Lea.Win.V, ByVal input As String, ByVal searchOnly As Boolean)
-        Dim value = If(input, "").Trim()
+    Private Function qleaInput(ByVal input As String, ByVal searchOnly As Boolean) As String
+        Dim value As String = If(input, "").Trim()
         Dim aliasAddress As String = ""
         If qresolvealias(value, aliasAddress) Then value = aliasAddress
-        If value.Length = 0 Then Return
+        If value.Length = 0 Then Return ""
         Dim address As Uri = Nothing
-        Dim absolute = Uri.TryCreate(value, UriKind.Absolute, address) AndAlso (address.Scheme = Uri.UriSchemeHttp OrElse address.Scheme = Uri.UriSchemeHttps OrElse address.Scheme = Uri.UriSchemeFile OrElse address.Scheme = "about")
+        Dim absolute As Boolean = Uri.TryCreate(value, UriKind.Absolute, address) AndAlso (address.Scheme = Uri.UriSchemeHttp OrElse address.Scheme = Uri.UriSchemeHttps OrElse address.Scheme = Uri.UriSchemeFile OrElse address.Scheme = "about")
         If searchOnly OrElse (Not absolute AndAlso (value.Contains(" ") OrElse Not value.Contains("."))) Then
             value = My.Settings.se & Uri.EscapeDataString(value)
         ElseIf absolute Then
@@ -667,6 +724,12 @@ Partial Class j
         ElseIf Not value.Contains("://") AndAlso Not value.StartsWith("about:") AndAlso Not value.StartsWith("file:") Then
             value = "http://" & value
         End If
+        Return value
+    End Function
+
+    Private Async Sub qleaOpen(ByVal host As Global.Lea.Win.V, ByVal input As String, ByVal searchOnly As Boolean)
+        Dim value As String = qleaInput(input, searchOnly)
+        If value.Length = 0 Then Return
         Await qleaLoadA(host, value)
     End Sub
 
@@ -683,6 +746,8 @@ Partial Class j
             su.Text = "Lea loading"
             r.Image = My.Resources.F7
             Await host.GoA(target)
+        Catch ex As Global.Lea.Engine.Er When ex.K = "blocked"
+            If Not IsDisposed Then r.Image = My.Resources.F8
         Catch ex As Exception
             If host.IsDisposed OrElse IsDisposed Then Return
             su.Visible = True
@@ -699,6 +764,8 @@ Partial Class j
             su.Text = "Lea loading"
             r.Image = My.Resources.F7
             Await host.RlA()
+        Catch ex As Global.Lea.Engine.Er When ex.K = "blocked"
+            If Not IsDisposed Then r.Image = My.Resources.F8
         Catch ex As Exception
             If host.IsDisposed OrElse IsDisposed Then Return
             su.Visible = True

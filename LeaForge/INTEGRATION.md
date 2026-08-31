@@ -72,8 +72,11 @@ fetch/history change; null allows the usual behavior. GET, POST/multipart,
 reload, fragments, and Back/Forward use the guard. Keep callbacks short and do
 not re-enter navigation. `V` releases the delegate on disposal and rejects
 authorization if the callback disposes it. This is not a redirect, subresource,
-or download firewall. Firespider split view installs it; general Lea tabs do not
-yet do so. See `SPLIT_VIEW.md` for tested behavior and scope.
+or download firewall. Firespider installs it on ordinary and split-view Lea tabs.
+Ordinary tabs enforce ownership, offline/lock state, and existing host rules;
+denied resume retains its placeholder. Native keyboard/accessibility callbacks
+handle expected denials while public APIs keep reporting them. See
+`NAVIGATION_POLICY.md` and `SPLIT_VIEW.md` for tested behavior and scope.
 
 Use `V.Ce(code)` and `V.Ec(code)` on the UI thread for native field editing.
 The two-letter commands `cp/cu/pa/sa/de/un/re` cover copy, cut, paste, select-all,

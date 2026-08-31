@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **59**
+Post-1.0 hardening milestones completed: **60**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,16 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Installed compact `V.Ng` policy on ordinary Firespider Lea tabs for blocked
+  sites, navigation filters, offline/locked state, and live ownership. Hidden
+  and private tabs retain policy; denied Resume/address/search/Home preserve
+  suspended targets and placeholders.
+  Fixed reproduced unhandled keyboard navigation denials and handled expected
+  errors in native accessibility and host history/initial-load callbacks.
+  Thirty Boot cases and sixty compatibility probes pass, including blocked
+  saved-URL startup with an allowed sibling. The intermittent recovery cast
+  remains unidentified; see `NAVIGATION_POLICY.md` for explicit policy limits.
 
 - Added compact `V.Ce/Ec` native field commands for copy, cut, paste,
   select-all, delete, undo, and redo. Firespider's real Edit menu no longer

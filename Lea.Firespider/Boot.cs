@@ -44,7 +44,7 @@ namespace Lea.Firespider
             var forms = new List<Form>();
             try
             {
-                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch", "domains", "domain-private", "split", "split-life", "split-limits", "edit" }.Contains(mode), "unknown boot case: " + mode);
+                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch", "domains", "domain-private", "split", "split-life", "split-limits", "edit", "policy", "policy-start" }.Contains(mode), "unknown boot case: " + mode);
                 Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
                 Application.ThreadException += (sender, error) => UiErrors.Add(error.Exception);
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", session);
@@ -74,6 +74,13 @@ namespace Lea.Firespider
                 settings["ep"] = log;
                 settings["lazyRestoreMode"] = "off";
                 var expected = new[] { page };
+                if (mode == "policy-start")
+                {
+                    lazySite = new LoopbackSite();
+                    settings["bs"] = Collection("127.0.0.1");
+                    expected = new[] { lazySite.Url + "blocked-start", page };
+                    File.WriteAllLines(session, expected);
+                }
                 if (mode == "lazy-background" || mode == "lazy-all")
                 {
                     lazySite = new LoopbackSite();
@@ -184,9 +191,17 @@ namespace Lea.Firespider
                     Check(form.IsHandleCreated && form.Visible, "window unavailable during startup request");
                     release.Set();
                 }
-                WaitLea(tabs);
+                if (mode == "policy-start")
+                {
+                    Wait(() => !((V)tabs.TabPages[0].Controls[0]).Busy && ((V)tabs.TabPages[1].Controls[0]).At != null, "blocked/allowed startup completion");
+                    Check(((V)tabs.TabPages[0].Controls[0]).At == null && lazySite.Hits == 0, "blocked startup made a request or committed a page");
+                }
+                else WaitLea(tabs);
                 for (var index = 0; index < expected.Length; index++)
+                {
+                    if (mode == "policy-start" && index == 0) continue;
                     Check((string)Call(form, "qleaUrl", tabs.TabPages[index]) == expected[index], "startup URL ordering");
+                }
                 Check(tabs.SelectedIndex == 0, "startup did not select first restored page");
                 if (mode == "menus")
                 {
@@ -238,6 +253,7 @@ namespace Lea.Firespider
                 if (mode == "split-life") CheckSplitLife(form, settings, page, forms);
                 if (mode == "split-limits") CheckSplitLimits(form, settings, page, forms);
                 if (mode == "edit") CheckEdit(form, settings, page);
+                if (mode == "policy") CheckPolicy(form, settings, page, forms);
                 if (mode == "recovery")
                 {
                     var idle = Stopwatch.StartNew();
@@ -246,7 +262,14 @@ namespace Lea.Firespider
                         "live recovery timer did not retain restored Lea URLs");
                     Console.WriteLine("PASS recovery idle: 35 seconds of event pumping and the real 30-second snapshot timer");
                 }
-                if (lazySite != null) CheckLazyStartup(form, lazySite, expected, mode == "lazy-all");
+                if (mode == "policy-start")
+                {
+                    Call(form, "q1", page);
+                    WaitLea(tabs);
+                    Check(lazySite.Hits == 0 && ((V)tabs.TabPages[0].Controls[0]).U.AbsoluteUri == page, "blocked startup tab could not navigate afterward");
+                    Console.WriteLine("PASS policy startup: blocked saved URL makes no request; allowed sibling and later navigation remain usable");
+                }
+                else if (lazySite != null) CheckLazyStartup(form, lazySite, expected, mode == "lazy-all");
                 Check(UiErrors.Count == 0, "UI thread exceptions: " + String.Join(" | ", UiErrors.Select(error => error.ToString()).ToArray()));
                 if (mode == "locked")
                 {
@@ -411,6 +434,170 @@ namespace Lea.Firespider
                 if (original == null) Clipboard.Clear(); else Clipboard.SetDataObject(clipboard, true);
             }
             Console.WriteLine("PASS edit: real menu/hover dispatch, selection, undo/redo, clipboard, readonly/password, paused/empty tabs, and explicit legacy fallback");
+        }
+
+        private static void CheckPolicy(Form form, ApplicationSettingsBase settings, string page, List<Form> forms)
+        {
+            settings["bs"] = new StringCollection();
+            settings["cfEnabled"] = "";
+            settings["cfx"] = new StringCollection();
+            settings["externalConfirm"] = "";
+            var fixture = Path.Combine(Path.GetTempPath(), "lea-policy-" + Guid.NewGuid().ToString("N") + ".html");
+            try
+            {
+                using (var site = new LoopbackSite())
+                {
+                    File.WriteAllText(fixture, "<title>Navigation rules</title><a id=blocked accesskey=b href='" + site.Url + "link'>Blocked link</a>" +
+                        "<form method=get action='" + site.Url + "get'><input name=term value=initial><input type=submit></form>" +
+                        "<form method=post action='" + site.Url + "post'><input name=term value=initial><input type=submit></form>" +
+                        "<form method=post enctype='multipart/form-data' action='" + site.Url + "multipart'><input name=term value=initial><input type=submit></form>");
+                    var tabs = Member<TabControl>(form, "k");
+                    var tab = tabs.SelectedTab;
+                    var view = (V)tab.Controls[0];
+                    view.Go(fixture);
+                    var original = view.At;
+                    settings["bs"] = Collection("127.0.0.1");
+                    CheckBlocked(() => view.Go(site.Url), "main-tab direct navigation");
+                    CheckBlocked(() => view.GoA(new Uri(site.Url)).GetAwaiter().GetResult(), "main-tab async navigation");
+                    foreach (var submit in view.At.Fs.Where(field => field.K == "submit"))
+                    {
+                        CheckBlocked(() => view.Sm(submit), "main-tab form submission");
+                        CheckBlocked(() => view.SmA(submit).GetAwaiter().GetResult(), "main-tab async form submission");
+                    }
+                    for (var index = 0; index < view.Kn && view.Ke != view.Id("blocked"); index++) view.Kf();
+                    Check(view.Ke == view.Id("blocked"), "policy keyboard link fixture");
+                    CheckBlocked(() => view.Ka().GetAwaiter().GetResult(), "keyboard API rejection");
+                    foreach (var key in new[] { Keys.Enter, Keys.Alt | Keys.Shift | Keys.B })
+                    {
+                        var args = new KeyEventArgs(key);
+                        typeof(V).GetMethod("OnKeyDown", Members).Invoke(view, new object[] { args });
+                        Observe(50);
+                        Check(args.Handled && args.SuppressKeyPress && UiErrors.Count == 0, "blocked keyboard activation escaped to UI thread");
+                    }
+                    var policyCalls = 0;
+                    var policy = view.Ng;
+                    view.Ng = address => { policyCalls++; return policy(address); };
+                    var accessible = view.Ax(view.Id("blocked"));
+                    Check(accessible != null, "policy accessible link fixture");
+                    typeof(V).GetMethod("ActivateAccessibility", Members).Invoke(view, new object[] { accessible });
+                    Observe(50);
+                    Check(policyCalls == 1 && UiErrors.Count == 0, "blocked accessibility activation escaped or skipped policy");
+                    view.Js("go('" + site.Url + "script')");
+                    Call(form, "q1", site.Url + "address");
+                    settings["h"] = site.Url + "home";
+                    Member<ToolStripItem>(form, "HO").PerformClick();
+                    Observe(100);
+                    Check(site.Hits == 0 && view.At == original && !view.Busy && UiErrors.Count == 0, "denial sent a request, changed page, or raised a popup");
+
+                    settings["bs"] = Collection("example.test");
+                    Check(!view.Ng(new Uri("https://child.example.test/")) && view.Ng(new Uri("https://notexample.test/")), "blocked domain boundary");
+                    settings["bs"] = new StringCollection();
+                    settings["cfEnabled"] = "e";
+                    settings["cf"] = Collection("contains|guarded");
+                    CheckBlocked(() => view.Go(site.Url + "guarded"), "main-tab content filter");
+                    settings["cfx"] = Collection("127.0.0.1");
+                    Check(view.Ng(new Uri(site.Url + "guarded")), "content-filter exception");
+                    settings["cfEnabled"] = "";
+                    settings["cfx"] = new StringCollection();
+
+                    view.Go(site.Url + "first");
+                    view.Go(site.Url + "second");
+                    var last = view.At;
+                    var hits = site.Hits;
+                    settings["bs"] = Collection("127.0.0.1");
+                    Member<ToolStripItem>(form, "BT").PerformClick();
+                    Member<ToolStripItem>(form, "re").PerformClick();
+                    Check(view.At == last && !view.CanFw && site.Hits == hits, "blocked Back/Reload changed history or fetched");
+                    settings["bs"] = new StringCollection();
+                    view.Bk();
+                    var first = view.At;
+                    settings["bs"] = Collection("127.0.0.1");
+                    Member<ToolStripItem>(form, "FT").PerformClick();
+                    Check(view.At == first && view.CanFw && site.Hits == hits, "blocked Forward changed history");
+                    settings["bs"] = new StringCollection();
+                    Set(form, "wo", true);
+                    CheckBlocked(() => view.Go(page), "offline file navigation");
+                    CheckBlocked(() => view.Go("#offline"), "offline retained fragment");
+                    Call(form, "q1", site.Url + "offline");
+                    Check(view.At == first && site.Hits == hits, "offline navigation changed state");
+                    Set(form, "wo", false);
+                    tab.Tag = "locked";
+                    CheckBlocked(() => view.Go(page), "locked-tab navigation");
+                    Member<ToolStripItem>(form, "BT").PerformClick();
+                    Check(view.At == first, "locked Back changed state");
+                    tab.Tag = "lea";
+
+                    Set(form, "pv", true);
+                    var secret = (V)Call(form, "qleaNew", page);
+                    Set(form, "pv", false);
+                    WaitLea(tabs);
+                    settings["bs"] = Collection("127.0.0.1");
+                    Check(secret.Pv && secret.Ng != null, "private view policy missing");
+                    CheckBlocked(() => secret.Go(site.Url), "private tab policy");
+                    var hidden = Member<Dictionary<string, List<TabPage>>>(form, "hiddenGroupTabs");
+                    hidden["Policy"] = new List<TabPage> { tab };
+                    tabs.TabPages.Remove(tab);
+                    CheckBlocked(() => view.Go(site.Url), "hidden tab policy");
+                    settings["bs"] = new StringCollection();
+                    view.Go(page);
+                    Check(view.U.AbsoluteUri == page, "owned hidden tab denied allowed navigation");
+                    hidden.Remove("Policy");
+                    CheckBlocked(() => view.Go(site.Url), "detached tab policy");
+                    tabs.TabPages.Add(tab);
+                    tabs.SelectedTab = tab;
+                    view.Go(site.Url + "resume");
+                    Call(form, "qleaSuspend", tab);
+                    settings["bs"] = Collection("127.0.0.1");
+                    var placeholder = tab.Controls[0];
+                    var target = (string)Call(form, "qleaUrl", tab);
+                    var before = site.Hits;
+                    Check(Call(form, "qleaResume", tab, true) == null && tab.Controls[0] == placeholder &&
+                        (string)Call(form, "qleaUrl", tab) == target && site.Hits == before, "denied resume lost placeholder or saved target");
+                    settings["se"] = site.Url + "search?q=";
+                    foreach (var command in new[] { "go", "search", "home" })
+                    {
+                        Call(form, "qleaDo", command, site.Url + "paused-blocked");
+                        Check(tab.Controls[0] == placeholder && (string)Call(form, "qleaUrl", tab) == target && site.Hits == before,
+                            "denied paused " + command + " lost the saved page");
+                    }
+                    settings["bs"] = new StringCollection();
+                    tab.Tag = "locked";
+                    Call(form, "qleaDo", "go", page);
+                    Check(tab.Controls[0] == placeholder, "locked paused address replaced placeholder");
+                    tab.Tag = "lea";
+                    Set(form, "wo", true);
+                    Call(form, "qleaDo", "home", "");
+                    Check(tab.Controls[0] == placeholder, "offline paused Home replaced placeholder");
+                    Set(form, "wo", false);
+                    settings["bs"] = new StringCollection();
+                    var resumed = (V)Call(form, "qleaResume", tab, true);
+                    WaitLea(tabs);
+                    Check(resumed != view && view.IsDisposed && view.Ng == null && resumed.Ng != null && resumed.U.AbsoluteUri == target, "resume did not install/release policy");
+                    settings["bs"] = Collection("127.0.0.1");
+                    var resumedPage = resumed.At;
+                    var resumedHits = site.Hits;
+                    CheckBlocked(() => resumed.Rl(), "resume approval must be consumed once");
+                    Check(resumed.At == resumedPage && site.Hits == resumedHits, "resume approval bypassed later policy");
+                    Call(form, "qleaSuspend", tab);
+                    Call(form, "qleaDo", "go", "");
+                    Check(tab.Controls[0] is Panel, "empty paused address replaced placeholder");
+                    Call(form, "qleaDo", "go", page + "#replacement");
+                    WaitLea(tabs);
+                    Check(resumed.IsDisposed && ((V)tab.Controls[0]).U.AbsoluteUri == page + "#replacement", "allowed paused address did not replace its saved target");
+
+                    var unopened = (Form)Activator.CreateInstance(form.GetType());
+                    forms.Add(unopened);
+                    settings["bs"] = Collection("127.0.0.1");
+                    var empty = (V)Call(unopened, "qleaNew", site.Url + "unshown");
+                    Check(empty.At == null && !empty.Busy && Member<Label>(unopened, "su").Text.Contains("blocked"), "unshown denied initial navigation failed");
+                    var retainedGuard = empty.Ng;
+                    unopened.Dispose();
+                    Check(empty.IsDisposed && empty.Ng == null && !retainedGuard(new Uri(site.Url)), "closed owner still authorizes navigation");
+                    Check(!Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module => module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)), "main-tab policy loaded MSHTML");
+                    Console.WriteLine("PASS policy: domains/filters, GET/POST/multipart, keyboard/accessibility/script, history, offline/lock, private/hidden/paused, ownership and lifecycle");
+                }
+            }
+            finally { if (File.Exists(fixture)) File.Delete(fixture); }
         }
 
         private static void CheckNavigation(Form form, ApplicationSettingsBase settings, string page)
