@@ -107,7 +107,7 @@ namespace Lea.Bench
             var names = new[]
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
-                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "events-vars.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
+                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "events-vars.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -1890,6 +1890,22 @@ namespace Lea.Bench
                     Need(!view.Cn, "disposed view accepts navigation");
                 }
                 return "Cn admission, Busy through presentation, ready callback, and disposed guard; deterministic overlap/handoff regressions run in Lea.Tests --loads";
+            });
+            AddProbe(probes, "Bounded picture retention", delegate
+            {
+                using (var view = NewView())
+                {
+                    var work = view.GoA(Path.Combine(folder, "image-loading.html"));
+                    var end = DateTime.UtcNow.AddSeconds(10);
+                    while (!work.IsCompleted && DateTime.UtcNow < end) { Application.DoEvents(); Thread.Sleep(2); }
+                    Need(work.IsCompleted, "picture fixture timeout");
+                    work.GetAwaiter().GetResult();
+                    using (var image = Draw(view)) { }
+                    Need(view.Ic == 1 && view.Ib == 4 && view.At.Fs[0].V == "Retained image data", "deduplicated picture accounting or field data changed");
+                    view.Go(Path.Combine(folder, "second.html"));
+                    Need(view.Ic == 0 && view.Ib == 0, "unreferenced image memory retained");
+                }
+                return "Ic/Ib bitmap count/bytes, shared embedded source, retained fields, native paint, and page replacement; streaming/deadline/cache-limit regressions run in Lea.Tests --pics";
             });
             AddProbe(probes, "Bounded Lea scripting", delegate
             {

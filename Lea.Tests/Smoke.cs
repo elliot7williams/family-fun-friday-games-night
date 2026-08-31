@@ -30,6 +30,7 @@ namespace Lea.Tests
                 if (args.Length > 1 && args[1] == "--fragment") { CheckFragmentStartup(root); return 0; }
                 if (args.Length > 1 && args[1] == "--sheets") { CheckSheets(root); return 0; }
                 if (args.Length > 1 && args[1] == "--loads") { CheckLoadLifecycle(root); return 0; }
+                if (args.Length > 1 && args[1] == "--pics") { CheckPictureLimits(root); return 0; }
                 var coreOnly = args.Length > 1 && args[1] == "--core";
                 if (coreOnly)
                 {
@@ -42,6 +43,7 @@ namespace Lea.Tests
                 CheckPasteText(root);
                 CheckSheets(root);
                 CheckLoadLifecycle(root);
+                CheckPictureLimits(root);
                 CheckNavigationGuard(root);
                 CheckLoadFailures(root);
                 CheckRetainedData(root);
@@ -6483,6 +6485,315 @@ namespace Lea.Tests
             Console.WriteLine("Lea disposal smoke passed: local/CSS/image cancellation, callback disposal, and navigation rejection.");
         }
 
+        private static void CheckPictureLimits(string root)
+        {
+            using (var gate = new ManualResetEvent(false))
+            using (var server = new CompressedServer { ImageGate = gate })
+            using (var view = new V { Tm = 300 })
+            {
+                var work = view.GoA(new Uri(server.U, "?image-page=valid"));
+                try
+                {
+                    WaitFor(() => server.Hits == 2, "stalled image request");
+                    var until = DateTime.UtcNow.AddMilliseconds(900);
+                    while (!work.IsCompleted && DateTime.UtcNow < until) { Application.DoEvents(); Thread.Sleep(5); }
+                    Ok(work.IsCompleted && view.Cn && !view.Busy && !gate.WaitOne(0), "picture pass respects Tm while response headers are held");
+                    Ok(work.GetAwaiter().GetResult() == view.At && view.Le == null, "image timeout does not fail the document");
+                }
+                finally
+                {
+                    view.St();
+                    WaitFor(() => work.IsCompleted, "stalled image cleanup");
+                }
+            }
+            foreach (var mode in new[] { "body", "declared", "overflow", "zip-limit", "truncated", "status", "gzip", "deflate", "case" })
+            using (var server = new PictureServer(mode, PicturePng(3, 2, Color.SeaGreen)))
+            using (var view = new V { Size = new Size(640, 480), Tm = mode == "body" ? 300 : 5000 })
+            {
+                var ready = 0;
+                view.Done += delegate { ready++; };
+                var clock = System.Diagnostics.Stopwatch.StartNew();
+                var work = view.GoA(server.U);
+                WaitFor(() => work.IsCompleted, "picture resource mode " + mode);
+                work.GetAwaiter().GetResult();
+                if (mode == "declared" || mode == "overflow")
+                    Ok(clock.ElapsedMilliseconds < 2000, "oversized image rejects before the deadline or end of body " + mode);
+                if (mode == "body") Ok(clock.ElapsedMilliseconds < 800 && server.Pictures == 1, "three pictures share one Tm budget");
+                var loaded = mode == "gzip" || mode == "deflate" || mode == "case";
+                Eq(loaded ? mode == "case" ? 2 : 1 : 0, view.Ic, "decoded picture count " + mode);
+                Eq(loaded ? mode == "case" ? 48L : 24L : 0L, view.Ib, "decoded picture accounting " + mode);
+                Ok(view.Cn && !view.Busy && view.Le == null && ready == 1 && view.At.Fs[0].V == "Retained image field",
+                    "nonfatal picture completion preserves document " + mode);
+                var requests = server.Pictures;
+                for (var pass = 0; pass < 3; pass++) { Paint(view); Application.DoEvents(); }
+                Eq(requests, server.Pictures, "failed picture does not refetch on paint " + mode);
+                if (mode == "case")
+                {
+                    var images = (Dictionary<string, Image>)typeof(V).GetField("pics", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(view);
+                    Ok(images.ContainsKey(new Uri(server.U, "/pic").AbsoluteUri) && images.ContainsKey(new Uri(server.U, "/PIC").AbsoluteUri),
+                        "image URL path case is preserved");
+                }
+                if (mode == "truncated")
+                {
+                    server.Recovered = true;
+                    work = view.RlA();
+                    WaitFor(() => work.IsCompleted, "failed image retry on Reload");
+                    work.GetAwaiter().GetResult();
+                    Ok(server.Pictures == 2 && view.Ic == 1 && view.Ib == 24, "Reload retries a failed image without a new URL");
+                }
+            }
+            using (var server = new PictureServer("budget", PicturePng(2048, 2048, Color.SeaGreen)))
+            using (var view = new V { Size = new Size(640, 480) })
+            {
+                var work = view.GoA(server.U);
+                WaitFor(() => work.IsCompleted, "bitmap cache budget");
+                work.GetAwaiter().GetResult();
+                Ok(view.Ic == 2 && view.Ib == 32L * 1024 * 1024 && server.Pictures == 3, "32 MiB cache retains only fitting bitmaps");
+                for (var pass = 0; pass < 3; pass++) { Paint(view); Application.DoEvents(); }
+                Eq(3, server.Pictures, "full bitmap budget does not evict/refetch current images");
+                view.Go(Path.Combine(root, "LeaForge", "test-pages", "second.html"));
+                Ok(view.Ic == 0 && view.Ib == 0, "sync page replacement releases unreferenced bitmaps");
+            }
+            using (var server = new PictureServer("plain", PicturePng(8193, 1, Color.SeaGreen)))
+            using (var view = new V())
+            {
+                var work = view.GoA(server.U);
+                WaitFor(() => work.IsCompleted, "bitmap dimension limit");
+                work.GetAwaiter().GetResult();
+                Ok(view.Ic == 0 && view.Ib == 0 && view.Le == null, "oversized dimensions do not enter retained bitmap cache");
+            }
+            foreach (var dispose in new[] { false, true })
+            using (var server = new PictureServer("body", PicturePng(3, 2, Color.SeaGreen)))
+            using (var good = new PictureServer("plain", PicturePng(3, 2, Color.SeaGreen)))
+            using (var view = new V())
+            {
+                var ready = 0;
+                view.Done += delegate { ready++; };
+                var work = view.GoA(server.U);
+                WaitFor(() => server.Pictures == 1, "cancellable picture body");
+                if (dispose) view.Dispose(); else view.St();
+                WaitFor(() => work.IsCompleted, "cancelled picture body completion");
+                work.GetAwaiter().GetResult();
+                Ok(view.Ic == 0 && view.Ib == 0 && ready == (dispose ? 0 : 1), "cancelled picture does not repopulate cache or publish after disposal");
+                if (!dispose)
+                {
+                    work = view.GoA(good.U);
+                    WaitFor(() => work.IsCompleted, "navigation after stopped picture");
+                    work.GetAwaiter().GetResult();
+                    Ok(view.Ic == 1 && view.Ib == 24 && view.Cn, "stopped image stream does not block successor");
+                }
+            }
+            var copy = typeof(V).GetMethod("PictureBytes", BindingFlags.Instance | BindingFlags.NonPublic);
+            using (var view = new V())
+            using (var bytes = new MemoryStream(new byte[4 * 1024 * 1024]))
+            {
+                var work = (Task<byte[]>)copy.Invoke(view, new object[] { bytes, bytes.Length, Task.Delay(5000) });
+                WaitFor(() => work.IsCompleted, "exact picture byte ceiling");
+                Eq(4 * 1024 * 1024, work.GetAwaiter().GetResult().Length, "exact picture byte ceiling accepted");
+            }
+            using (var view = new V())
+            using (var bytes = new MemoryStream(new byte[4 * 1024 * 1024 + 32768]))
+            {
+                var work = (Task<byte[]>)copy.Invoke(view, new object[] { bytes, -1L, Task.Delay(5000) });
+                WaitFor(() => work.IsCompleted, "unknown length picture ceiling");
+                var rejected = false;
+                try { work.GetAwaiter().GetResult(); }
+                catch (InvalidDataException) { rejected = true; }
+                Ok(rejected && bytes.Position == 4 * 1024 * 1024 + 1, "unknown-length reads stop at exactly one byte over the limit");
+            }
+            using (var timer = new CancellationTokenSource())
+            using (var view = new V())
+            using (var stream = new MemoryStream(new byte[1]))
+            {
+                typeof(V).GetField("picBudget", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(view, timer);
+                var opening = new TaskCompletionSource<Stream>();
+                var wait = typeof(V).GetMethod("PictureWait", BindingFlags.Instance | BindingFlags.NonPublic).MakeGenericMethod(typeof(Stream));
+                var work = (Task<Stream>)wait.Invoke(view, new object[] { opening.Task, Task.Delay(5000, timer.Token) });
+                view.St();
+                WaitFor(() => work.IsCompleted, "Stop interrupts an opening resource wait");
+                var stopped = false;
+                try { work.GetAwaiter().GetResult(); }
+                catch (TimeoutException) { stopped = true; }
+                Ok(stopped && !opening.Task.IsCompleted, "Stop does not await a late platform open");
+                opening.SetResult(stream);
+                WaitFor(() => !stream.CanRead, "late resource is disposed");
+            }
+            var picturePath = Path.Combine(Path.GetTempPath(), "lea-picture-origin-" + Guid.NewGuid().ToString("N") + ".png");
+            var pagePath = picturePath + ".html";
+            try
+            {
+                File.WriteAllBytes(picturePath, PicturePng(3, 2, Color.SeaGreen));
+                var address = new Uri(picturePath).AbsoluteUri;
+                File.WriteAllText(pagePath, "<html><body><img src='" + address + "'></body></html>");
+                using (var server = new PictureServer("plain", PicturePng(3, 2, Color.SeaGreen)) { ImageSource = address })
+                using (var view = new V())
+                {
+                    var work = view.GoA(pagePath);
+                    WaitFor(() => work.IsCompleted, "allowed local picture");
+                    work.GetAwaiter().GetResult();
+                    Ok(view.Ic == 1 && view.Ib == 24, "local documents retain local picture support");
+                    work = view.GoA(server.U);
+                    WaitFor(() => work.IsCompleted, "remote picture origin check");
+                    work.GetAwaiter().GetResult();
+                    Ok(view.Ic == 0 && view.Ib == 0 && server.Pictures == 0, "remote pages cannot reuse or read a local picture");
+                }
+                File.WriteAllText(pagePath, "<html><body><img src='file://example.invalid/share/sample.png'></body></html>");
+                var page = new E().Go(pagePath);
+                var sources = (IList<Uri>)typeof(V).GetMethod("PicSources", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, new object[] { page });
+                Eq(0, sources.Count, "UNC pictures are rejected without opening a network share");
+            }
+            finally
+            {
+                if (File.Exists(pagePath)) File.Delete(pagePath);
+                if (File.Exists(picturePath)) File.Delete(picturePath);
+            }
+            Console.WriteLine("Lea picture limit smoke passed.");
+        }
+
+        private static byte[] PicturePng(int width, int height, Color color)
+        {
+            using (var bitmap = new Bitmap(width, height))
+            using (var graphics = Graphics.FromImage(bitmap))
+            using (var output = new MemoryStream())
+            {
+                graphics.Clear(color);
+                bitmap.Save(output, System.Drawing.Imaging.ImageFormat.Png);
+                return output.ToArray();
+            }
+        }
+
+        private sealed class PictureServer : IDisposable
+        {
+            private readonly TcpListener listener = new TcpListener(IPAddress.Loopback, 0);
+            private readonly ManualResetEvent stop = new ManualResetEvent(false);
+            private readonly Thread worker;
+            private readonly string mode;
+            private readonly byte[] data;
+            private Exception error;
+            private int pictures;
+            public volatile bool Recovered;
+            public volatile string ImageSource;
+            public readonly Uri U;
+            public int Pictures { get { return Interlocked.CompareExchange(ref pictures, 0, 0); } }
+
+            public PictureServer(string mode, byte[] data)
+            {
+                this.mode = mode;
+                this.data = data;
+                listener.Start();
+                U = new Uri("http://127.0.0.1:" + ((IPEndPoint)listener.LocalEndpoint).Port + "/page");
+                worker = new Thread(Serve) { IsBackground = true };
+                worker.Start();
+            }
+
+            private void Serve()
+            {
+                try
+                {
+                    while (!stop.WaitOne(0))
+                    using (var client = listener.AcceptTcpClient())
+                    using (var stream = client.GetStream())
+                    {
+                        stream.ReadTimeout = 2000;
+                        stream.WriteTimeout = 2000;
+                        var head = new StringBuilder();
+                        var end = 0;
+                        for (var i = 0; i < 16384 && end != 0x0d0a0d0a; i++)
+                        {
+                            var value = stream.ReadByte();
+                            if (value < 0) throw new IOException("Incomplete picture fixture request");
+                            head.Append((char)value);
+                            end = (end << 8) | value;
+                        }
+                        if (end != 0x0d0a0d0a) throw new IOException("Picture fixture request header bound");
+                        if (head.ToString().StartsWith("GET /page ", StringComparison.Ordinal))
+                        {
+                            var extra = mode == "budget" || mode == "body" ? "<img src='/pic2'><img src='/pic3'>" : mode == "case" ? "<img src='/PIC'>" : "";
+                            var html = Encoding.UTF8.GetBytes("<html><head><title>Lea Picture Limits</title></head><body><input id='field' value='Retained image field'><img src='" + (ImageSource ?? "/pic") + "' width='24' height='16'>" + extra + "</body></html>");
+                            Header(stream, html.Length, "text/html", "");
+                            stream.Write(html, 0, html.Length);
+                            continue;
+                        }
+                        Interlocked.Increment(ref pictures);
+                        try
+                        {
+                            if (mode == "declared")
+                            {
+                                Header(stream, 4 * 1024 * 1024 + 1, "image/png", "");
+                                stop.WaitOne();
+                            }
+                            else if (mode == "body")
+                            {
+                                Header(stream, data.Length, "image/png", "");
+                                stream.Write(data, 0, 1);
+                                stop.WaitOne();
+                            }
+                            else if (mode == "overflow")
+                            {
+                                Header(stream, -1, "image/png", "");
+                                var buffer = new byte[32768];
+                                for (var i = 0; i < 129; i++) stream.Write(buffer, 0, buffer.Length);
+                                stop.WaitOne();
+                            }
+                            else if (mode == "status")
+                            {
+                                Header(stream, data.Length, "image/png", "", 503);
+                                stream.Write(data, 0, data.Length);
+                            }
+                            else if (mode == "truncated" && !Recovered)
+                            {
+                                Header(stream, data.Length, "image/png", "");
+                                stream.Write(data, 0, 1);
+                            }
+                            else
+                            {
+                                var body = data;
+                                var encoding = "";
+                                if (mode == "gzip" || mode == "deflate" || mode == "zip-limit")
+                                {
+                                    encoding = mode == "deflate" ? "deflate" : "gzip";
+                                    using (var output = new MemoryStream())
+                                    {
+                                        using (Stream zip = encoding == "gzip" ? (Stream)new GZipStream(output, CompressionMode.Compress, true) : new DeflateStream(output, CompressionMode.Compress, true))
+                                        {
+                                            if (mode == "zip-limit")
+                                            {
+                                                var buffer = new byte[32768];
+                                                for (var i = 0; i < 129; i++) zip.Write(buffer, 0, buffer.Length);
+                                            }
+                                            else zip.Write(body, 0, body.Length);
+                                        }
+                                        body = output.ToArray();
+                                    }
+                                }
+                                Header(stream, body.Length, "image/png", encoding);
+                                stream.Write(body, 0, body.Length);
+                            }
+                        }
+                        catch (IOException) { } // Size limits, Stop, and timeouts intentionally disconnect picture requests.
+                    }
+                }
+                catch (Exception failure) { if (!stop.WaitOne(0)) error = failure; }
+            }
+
+            private static void Header(Stream stream, int length, string type, string encoding, int status = 200)
+            {
+                var header = Encoding.ASCII.GetBytes("HTTP/1.1 " + status + " Test\r\nContent-Type: " + type + "\r\n" +
+                    (length < 0 ? "" : "Content-Length: " + length + "\r\n") +
+                    (encoding.Length == 0 ? "" : "Content-Encoding: " + encoding + "\r\n") + "Connection: close\r\n\r\n");
+                stream.Write(header, 0, header.Length);
+            }
+
+            public void Dispose()
+            {
+                stop.Set();
+                listener.Stop();
+                var ended = worker.Join(4000);
+                stop.Dispose();
+                Ok(ended && error == null, "picture fixture cleanup: " + error);
+            }
+        }
+
         private static void CheckLoadLifecycle(string root)
         {
             var source = Path.Combine(root, "LeaForge", "test-pages", "load-lifecycle.html");
@@ -6615,35 +6926,51 @@ namespace Lea.Tests
 
         private static void CheckDownloadLifecycle(string source)
         {
+            foreach (var remote in new[] { false, true })
             foreach (var uri in new[] { false, true })
+            using (var gate = new ManualResetEvent(false))
+            using (var server = new CompressedServer { RequestGate = gate })
             using (var view = new V())
             {
                 var scheduler = new StepScheduler();
                 var context = SynchronizationContext.Current;
                 var output = Path.Combine(Path.GetTempPath(), "lea-download-life-" + Guid.NewGuid().ToString("N"));
+                Task<D> work = null;
                 try
                 {
                     SynchronizationContext.SetSynchronizationContext(null);
-                    var work = Task.Factory.StartNew(() => uri ? view.DlA(new Uri(source), output) : view.DlA(source, output),
+                    var input = remote ? server.U.AbsoluteUri : source;
+                    work = Task.Factory.StartNew(() => uri ? view.DlA(new Uri(input), output) : view.DlA(input, output),
                         CancellationToken.None, TaskCreationOptions.None, scheduler).Unwrap();
                     scheduler.Step();
                     var observed = false;
-                    for (var step = 0; step < 100 && !work.IsCompleted; step++)
+                    var deadline = DateTime.UtcNow.AddSeconds(5);
+                    while (!work.IsCompleted && DateTime.UtcNow < deadline)
                     {
                         observed = true;
                         Ok(view.Busy && !view.Cn, "download retains view ownership through completion");
                         LoadBusyRejected(() => view.Go(source));
+                        if (remote) gate.Set();
                         SynchronizationContext.SetSynchronizationContext(null);
                         scheduler.Step();
                         Thread.Sleep(1);
                     }
-                    Ok(observed && work.IsCompleted, "controlled download completes");
+                    Ok((!remote || observed) && work.IsCompleted, "controlled download completes: " + work.Status + "; network=" + remote);
                     Ok(work.GetAwaiter().GetResult() == view.Ld && !view.Busy && view.Cn && File.Exists(output), "download result and admission restored");
                     view.Dispose();
                     Ok(!view.Cn, "disposed view rejects admission");
                 }
                 finally
                 {
+                    view.St();
+                    var deadline = DateTime.UtcNow.AddSeconds(5);
+                    while (work != null && !work.IsCompleted && DateTime.UtcNow < deadline)
+                    {
+                        SynchronizationContext.SetSynchronizationContext(null);
+                        scheduler.Step();
+                        Thread.Sleep(1);
+                    }
+                    if (work != null && work.IsFaulted) { var ignored = work.Exception; }
                     SynchronizationContext.SetSynchronizationContext(context);
                     if (File.Exists(output)) File.Delete(output);
                 }
@@ -7650,6 +7977,7 @@ namespace Lea.Tests
             public string LastIfModifiedSince { get { lock (state) return lastIfModifiedSince; } }
             public string LastCookie { get { lock (state) return lastCookie; } }
             public ManualResetEvent ImageGate;
+            public ManualResetEvent RequestGate;
 
             public CompressedServer()
             {
@@ -7718,6 +8046,7 @@ namespace Lea.Tests
                             lastCookie = cookie;
                         }
                         var delay = IntValue(QueryValue(request, "delay"));
+                        if (RequestGate != null && WaitHandle.WaitAny(new WaitHandle[] { stop, RequestGate }, 5000) != 1) return;
                         if (ImageGate != null && (QueryValue(request, "image") == "1" || QueryValue(request, "pixel") == "1") &&
                             WaitHandle.WaitAny(new WaitHandle[] { stop, ImageGate }, 5000) != 1) return;
                         if (delay > 0 && stop.WaitOne(Math.Min(delay, 2000))) return;

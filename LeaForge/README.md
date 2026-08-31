@@ -12,6 +12,8 @@ LeaForge is where we can grow the more full-featured browser.
 
 ## Current Features
 
+- bounded streaming picture reads, one pass deadline, gzip/deflate images,
+  retained bitmap budgets, failed-image retry, and `Ic/Ib`; see `PICTURE_LIMITS.md`
 - compact `Cn` navigation admission, owned async view completion, coordinated
   picture handoff, and Firespider callback/reload tracking; see `LOAD_LIFECYCLE.md`
 - compact `Ss/Sd/Sn` named native CSS, retained editors, saved Firespider styles,

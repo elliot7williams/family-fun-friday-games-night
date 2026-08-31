@@ -44,7 +44,7 @@ namespace Lea.Firespider
             var forms = new List<Form>();
             try
             {
-                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch", "domains", "domain-private", "split", "split-life", "split-limits", "edit", "paste", "policy", "policy-start", "failures", "failure-start", "hibernate", "hibernate-start", "style-start", "styles", "load-life" }.Contains(mode), "unknown boot case: " + mode);
+                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch", "domains", "domain-private", "split", "split-life", "split-limits", "edit", "paste", "policy", "policy-start", "failures", "failure-start", "hibernate", "hibernate-start", "style-start", "styles", "load-life", "pictures" }.Contains(mode), "unknown boot case: " + mode);
                 Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
                 Application.ThreadException += (sender, error) => UiErrors.Add(error.Exception);
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", session);
@@ -307,6 +307,7 @@ namespace Lea.Firespider
                 if (mode == "style-start") CheckStyleStartup(form, settings, log);
                 if (mode == "styles") CheckStyles(form, settings, lazySite);
                 if (mode == "load-life") CheckLoadLifecycle(form, settings);
+                if (mode == "pictures") CheckPictures(form, settings);
                 if (mode == "policy") CheckPolicy(form, settings, page, forms);
                 if (mode == "failures") CheckFailures(form, settings, page);
                 if (mode == "hibernate") CheckHibernation(form, settings, page);
@@ -383,6 +384,39 @@ namespace Lea.Firespider
                     if (lazySite != null) lazySite.Dispose();
                 }
             }
+        }
+
+        private static void CheckPictures(Form form, ApplicationSettingsBase settings)
+        {
+            settings["bs"] = new StringCollection();
+            settings["cfEnabled"] = "";
+            var tabs = Member<TabControl>(form, "k");
+            using (var page = new LoopbackSite())
+            using (var picture = new LoopbackSite())
+            {
+                page.Html = "<html><head><title>Lea Bounded Pictures</title></head><body><input id='field' value='Retained picture field'><img src='" + picture.Url + "' alt='Unavailable sample'></body></html>";
+                page.Release.Reset();
+                picture.Release.Reset();
+                V view = null;
+                try
+                {
+                    view = (V)Call(form, "qleaNew", page.Url);
+                    view.Tm = 300;
+                    page.Release.Set();
+                    Wait(() => picture.Hits == 1, "startup picture request");
+                    WaitLea(tabs);
+                    Check(!picture.Release.WaitOne(0) && view.Cn && !view.Busy && view.Le == null && view.Ic == 0 && view.Ib == 0,
+                        "stalled picture prevented native startup completion");
+                    Check(view.T == "Lea Bounded Pictures" && view.At.Fs[0].V == "Retained picture field", "picture timeout lost title or field data");
+                    Call(form, "qleaTick", form, EventArgs.Empty);
+                    Check(Member<IDictionary>(form, "qleaLoads").Count == 0 && Member<IDictionary>(form, "qleaPending").Count == 0,
+                        "picture timeout left host request ownership behind");
+                    Check(UiErrors.Count == 0 && !Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module => module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)),
+                        "picture timeout raised a startup exception or loaded MSHTML");
+                }
+                finally { if (view != null && !view.IsDisposed) Call(form, "qleaClose", (TabPage)view.Parent); }
+            }
+            Console.WriteLine("PASS pictures: stalled HTTP image, bounded startup completion, Ic/Ib, retained title/field, timer/request cleanup, and no MSHTML");
         }
 
         private static void CheckLoadLifecycle(Form form, ApplicationSettingsBase settings)

@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **65**
+Post-1.0 hardening milestones completed: **66**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,23 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded streaming picture reads, a shared asynchronous pass deadline,
+  cancellation with late-resource disposal, and a 32 MiB retained bitmap budget.
+  Compact `Ic/Ib` counters expose retained images and estimated pixel bytes;
+  case-sensitive cache keys, failed-image Reload retry, and local-file origin
+  checks prevent stale reuse and repaint/refetch loops. Stalled images no longer
+  hold successful document completion and Firespider request cleanup indefinitely.
+  Final picture, core, isolated editor, and compiled host suites pass, along with
+  66 probes across 63 fixtures, all 39 Boot cases in one combined run, and six
+  actual EXE launch scenarios. No startup dialogs or MSHTML were observed in
+  those EXE scenarios, including deferred-tab resume. DLLs total 491.5 KiB
+  (208.3 KiB GZip estimate), not a speedup claim. Native decoder peaks and
+  document/CSS input buffering still need limits; earlier intermittent fragment,
+  recovery-cast, and editor/focus observations remain unconfirmed. See
+  `PICTURE_LIMITS.md`. Runtime 166 is isolated and source-backed-up; installed
+  runtime 157 remains unchanged. The scoped baseline stays at 100%, not full-web
+  compatibility.
 
 - Fixed reproduced async view-readiness and old-image cache races with compact
   `Cn` admission, request ownership through presentation, and coordinated picture

@@ -9,6 +9,7 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Automation;
 using System.Windows.Automation.Provider;
@@ -25,19 +26,19 @@ namespace Lea.Win
         private readonly List<Hit> hits = new List<Hit>();
         private readonly List<Bx> boxes = new List<Bx>();
         private readonly Dictionary<B, Bx> boxOwners = new Dictionary<B, Bx>();
-        private readonly WebClient picWeb = new WebClient();
-        private readonly Dictionary<string, Image> pics = new Dictionary<string, Image>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, Image> pics = new Dictionary<string, Image>(StringComparer.Ordinal);
         private readonly Dictionary<string, string> fontNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<P, int> alerts = new Dictionary<P, int>();
         private readonly Queue<P> alertOrder = new Queue<P>();
         private readonly List<Bx> findMatches = new List<Bx>();
-        private readonly Queue<string> picOrder = new Queue<string>();
         private readonly Et ed;
         private const int MaxKeyTargets = 256;
         private const int MaxKeyMapRegions = 4096;
         private const int MaxAccessTargets = 64;
         private const int PicLimit = 24;
         private const int PicBytes = 4 * 1024 * 1024;
+        private const int PicPixels = 8 * 1024 * 1024;
+        private const long PicMemory = 32L * 1024 * 1024;
         private const int FontLimit = 32;
         private const int UploadFiles = 8;
         private const int UploadFileBytes = 4 * 1024 * 1024;
@@ -58,6 +59,10 @@ namespace Lea.Win
         private Task picWork;
         private P picPage;
         private int picVersion;
+        private long picSize;
+        private WebRequest picRequest;
+        private Stream picStream;
+        private CancellationTokenSource picBudget;
         private object loadOwner;
         private bool closed;
         private Fi edit;
@@ -180,6 +185,8 @@ namespace Lea.Win
         public bool CanFw { get { return e.CanFw; } }
         public bool Busy { get { return loadOwner != null || e.Busy || picBusy; } }
         public bool Cn { get { return !closed && loadOwner == null && !e.Busy; } }
+        public long Ib { get { return picSize; } }
+        public int Ic { get { var count = 0; foreach (var item in pics.Values) if (item != null) count++; return count; } }
         public bool Ud { get { return closed || e.Ud(At); } }
         public int Sn { get { return At == null ? 0 : At.Sn; } }
         public int Cm { get { return e.Cm; } set { e.Cm = value; } }
@@ -753,6 +760,7 @@ namespace Lea.Win
         {
             if (closed) return page;
             if (picPage != null && picPage != page) CancelPics();
+            TrimPics(PicSources(page), preserveScroll < 0);
             ClearFailure();
             picStop = false;
             CloseChoices();
@@ -4406,7 +4414,112 @@ namespace Lea.Win
         private void CancelPics()
         {
             unchecked { picVersion++; }
-            picWeb.CancelAsync();
+            if (picBudget != null) picBudget.Cancel();
+            AbortPic();
+        }
+
+        private void AbortPic()
+        {
+            if (picRequest != null)
+                try { picRequest.Abort(); }
+                catch (WebException) { }
+                catch (ObjectDisposedException) { }
+            if (picStream != null)
+                try { picStream.Dispose(); }
+                catch (IOException) { }
+                catch (ObjectDisposedException) { }
+        }
+
+        private async Task<T> PictureWait<T>(Task<T> work, Task deadline)
+        {
+            if (await Task.WhenAny(work, deadline) != work && !work.IsCompleted)
+            {
+                AbortPic();
+                DiscardPicture(work);
+                throw new TimeoutException("Lea picture pass timed out.");
+            }
+            return await work;
+        }
+
+        private static void DiscardPicture<T>(Task<T> work)
+        {
+            work.ContinueWith(completed =>
+            {
+                if (completed.IsFaulted)
+                    foreach (var error in completed.Exception.Flatten().InnerExceptions) ClosePictureError(error);
+                else if (completed.Status == TaskStatus.RanToCompletion)
+                {
+                    var resource = (object)completed.Result as IDisposable;
+                    if (resource != null) resource.Dispose();
+                }
+            }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+        }
+
+        private static void ClosePictureError(Exception error)
+        {
+            var web = error as WebException;
+            if (web != null && web.Response != null) web.Response.Close();
+        }
+
+        private async Task<byte[]> ReadPicture(Uri source, Task deadline)
+        {
+            try
+            {
+                if (source.IsFile)
+                {
+                    var opening = Task.Factory.StartNew(() => new PictureFile(source.LocalPath), CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
+                    using (var file = await PictureWait(opening, deadline))
+                    {
+                        picStream = file.Stream;
+                        return await PictureBytes(file.Stream, file.Length, deadline);
+                    }
+                }
+                if (source.Scheme != "http" && source.Scheme != "https") throw new InvalidDataException("Unsupported image address.");
+                var request = (HttpWebRequest)WebRequest.Create(source);
+                picRequest = request;
+                request.UserAgent = "Lea/0.2";
+                request.Timeout = Tm;
+                request.ReadWriteTimeout = Tm;
+                request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+                using (var response = await PictureWait(request.GetResponseAsync(), deadline))
+                using (var input = response.GetResponseStream())
+                {
+                    picStream = input;
+                    return await PictureBytes(input, response.ContentLength, deadline);
+                }
+            }
+            catch (WebException error) { ClosePictureError(error); throw; }
+            finally { picStream = null; picRequest = null; }
+        }
+
+        private sealed class PictureFile : IDisposable
+        {
+            public readonly FileStream Stream;
+            public readonly long Length;
+            public PictureFile(string path)
+            {
+                Stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 32768, true);
+                try { Length = Stream.Length; }
+                catch { Stream.Dispose(); throw; }
+            }
+            public void Dispose() { Stream.Dispose(); }
+        }
+
+        private async Task<byte[]> PictureBytes(Stream input, long length, Task deadline)
+        {
+            if (length > PicBytes) throw new InvalidDataException("Image response exceeds 4 MiB.");
+            var buffer = new byte[32768];
+            using (var output = new MemoryStream())
+            {
+                while (true)
+                {
+                    if (deadline.IsCompleted) throw new TimeoutException("Lea picture pass timed out.");
+                    var count = await PictureWait(input.ReadAsync(buffer, 0, (int)Math.Min(buffer.Length, PicBytes - output.Length + 1)), deadline);
+                    if (count == 0) return output.ToArray();
+                    if (output.Length + count > PicBytes) throw new InvalidDataException("Image response exceeds 4 MiB.");
+                    output.Write(buffer, 0, count);
+                }
+            }
         }
 
         private async Task ReadPicsA(P page)
@@ -4415,34 +4528,38 @@ namespace Lea.Win
             var version = picVersion;
             picPage = page;
             picBusy = true;
+            using (var timer = new CancellationTokenSource())
             try
             {
-                foreach (var source in PicSources(page))
+                picBudget = timer;
+                var deadline = Task.Delay(Tm, timer.Token);
+                var sources = PicSources(page);
+                TrimPics(sources);
+                foreach (var source in sources)
                 {
                     if (closed || picStop || page != At || version != picVersion) break;
                     var key = source.AbsoluteUri;
                     if (pics.ContainsKey(key)) continue;
+                    if (deadline.IsCompleted) { StorePic(key, null); continue; }
                     Image image = null;
                     try
                     {
                         byte[] data;
                         if (source.Scheme.Equals("data", StringComparison.OrdinalIgnoreCase)) data = EmbeddedPic(source);
-                        else if (source.IsFile)
-                        {
-                            var path = source.LocalPath;
-                            data = await Task.Factory.StartNew(delegate { return File.ReadAllBytes(path); });
-                        }
-                        else
-                        {
-                            picWeb.Headers[HttpRequestHeader.UserAgent] = "Lea/0.2";
-                            data = await picWeb.DownloadDataTaskAsync(source);
-                        }
+                        else data = await ReadPicture(source, deadline);
                         if (closed || picStop || page != At || version != picVersion) break;
                         if (data == null || data.Length == 0 || data.Length > PicBytes) throw new InvalidDataException("Image resource is empty or too large.");
                         using (var stream = new MemoryStream(data))
-                        using (var loaded = Image.FromStream(stream)) image = new Bitmap(loaded);
+                        using (var loaded = Image.FromStream(stream))
+                        {
+                            var size = (long)loaded.Width * loaded.Height;
+                            if (loaded.Width > 8192 || loaded.Height > 8192 || size > PicPixels || size * 4 > PicMemory - picSize)
+                                throw new InvalidDataException("Decoded image exceeds the bitmap budget.");
+                            if (deadline.IsCompleted) throw new TimeoutException("Lea picture pass timed out.");
+                            image = new Bitmap(loaded);
+                        }
                     }
-                    catch { image = null; }
+                    catch { if (image != null) image.Dispose(); image = null; }
                     if (closed || picStop || page != At || version != picVersion)
                     {
                         if (image != null) image.Dispose();
@@ -4451,34 +4568,42 @@ namespace Lea.Win
                     StorePic(key, image);
                 }
             }
-            finally { picBusy = false; picPage = null; }
+            finally
+            {
+                if (Object.ReferenceEquals(picBudget, timer)) picBudget = null;
+                timer.Cancel();
+                picBusy = false;
+                picPage = null;
+            }
         }
 
         private static IList<Uri> PicSources(P page)
         {
             var result = new List<Uri>();
-            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            AddPicSource(result, seen, page == null || page.S == null || page.S.Bi == null ? null : page.S.Bi.U);
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            var origin = page == null ? null : page.U;
+            AddPicSource(result, seen, page == null || page.S == null || page.S.Bi == null ? null : page.S.Bi.U, origin);
             if (page != null)
             {
                 foreach (var block in page.Bs)
                 {
-                    if (block.K == "img") AddPicSource(result, seen, block.U);
-                    AddPicSource(result, seen, block.S == null || block.S.Bi == null ? null : block.S.Bi.U);
+                    if (block.K == "img") AddPicSource(result, seen, block.U, origin);
+                    AddPicSource(result, seen, block.S == null || block.S.Bi == null ? null : block.S.Bi.U, origin);
                     if (result.Count == PicLimit) break;
                 }
                 if (result.Count < PicLimit)
                     foreach (var field in page.Fs)
                     {
-                        AddPicSource(result, seen, field.S == null || field.S.Bi == null ? null : field.S.Bi.U);
+                        AddPicSource(result, seen, field.S == null || field.S.Bi == null ? null : field.S.Bi.U, origin);
                         if (result.Count == PicLimit) break;
                     }
             }
             return result;
         }
 
-        private static void AddPicSource(ICollection<Uri> result, ISet<string> seen, Uri source)
+        private static void AddPicSource(ICollection<Uri> result, ISet<string> seen, Uri source, Uri origin)
         {
+            if (source != null && source.IsFile && (source.IsUnc || origin == null || !origin.IsFile)) return;
             if (source == null || result.Count >= PicLimit || !seen.Add(source.AbsoluteUri)) return;
             result.Add(source);
         }
@@ -4527,15 +4652,28 @@ namespace Lea.Win
 
         private void StorePic(string key, Image image)
         {
+            DropPic(key);
             pics[key] = image;
-            picOrder.Enqueue(key);
-            while (picOrder.Count > PicLimit)
+            if (image != null) picSize += (long)image.Width * image.Height * 4;
+        }
+
+        private void TrimPics(IList<Uri> sources, bool retry = false)
+        {
+            var keys = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var source in sources) keys.Add(source.AbsoluteUri);
+            // Retain only referenced resources so a full budget cannot create a repaint/refetch loop.
+            foreach (var key in new List<string>(pics.Keys)) if (!keys.Contains(key) || (retry && pics[key] == null)) DropPic(key);
+        }
+
+        private void DropPic(string key)
+        {
+            Image image;
+            if (!pics.TryGetValue(key, out image)) return;
+            pics.Remove(key);
+            if (image != null)
             {
-                var old = picOrder.Dequeue();
-                Image removed;
-                if (!pics.TryGetValue(old, out removed)) continue;
-                pics.Remove(old);
-                if (removed != null) removed.Dispose();
+                picSize -= (long)image.Width * image.Height * 4;
+                image.Dispose();
             }
         }
 
@@ -6954,10 +7092,10 @@ namespace Lea.Win
                 e.St();
                 CancelPics();
                 CloseChoices();
-                picWeb.Dispose();
                 if (editFont != null) editFont.Dispose();
                 foreach (var image in pics.Values) if (image != null) image.Dispose();
                 pics.Clear();
+                picSize = 0;
             }
             base.Dispose(disposing);
         }

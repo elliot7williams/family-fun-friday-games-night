@@ -41,6 +41,10 @@ Dg/Dcl  diagnostics/clear request activity
    redirects, UTF-8, and common content types.
 4. Use bounded caches for pages, images, stylesheets, and decoded resources.
    (An eight-entry LRU decoded-payload cache with a 2 MB per-page ceiling is active.)
+   Native pictures now have 4 MiB streaming body limits, a shared pass deadline,
+   and a 32 MiB retained bitmap budget with compact `V.Ic/Ib` counters. These
+   do not bound native decoder peaks or document/CSS input buffering; see
+   `PICTURE_LIMITS.md` for the remaining resource work.
 5. Add cancellation and timeouts so a slow page cannot freeze the browser.
    (`GoA`, `RlA`, and `St` are now available in the compatibility engine.)
 
@@ -333,12 +337,24 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
+Prioritize streaming byte and decompression limits for document and linked-CSS
+input, including cancellation and local-file origin checks. Then investigate
+image decoder preflight/isolation and process-wide memory accounting. Keep the
+short public API, verify boundary behavior with hostile local fixtures, and
+measure performance rather than treating compression as an execution speedup.
+
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host
 coverage and bounded HTML/CSS compatibility work without adding another browser
 runtime.
 
-The latest completed milestone adds bounded `text-overflow` through non-inherited
+The current picture hardening adds 4 MiB streaming body limits, one asynchronous
+pass deadline, 32 MiB retained bitmap accounting through `Ic/Ib`, failed-image
+retry, and local-picture origin checks. See `PICTURE_LIMITS.md` for exact bounds
+and native decoder limitations. `PROGRESS.md` records verified milestone status
+and the separate Firespider startup checks.
+
+An earlier completed milestone adds bounded `text-overflow` through non-inherited
 `S.To=c/e` clip/ellipsis state. Strict values, explicit inheritance, CSS-wide
 resets, invalid preservation, variables, priority, hover, and responsive rules
 feed paint-only truncation for overflowing clipped lines. Original line sizes,

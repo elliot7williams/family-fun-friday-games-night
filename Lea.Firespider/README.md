@@ -10,6 +10,12 @@ Its timer status handler is also routed safely across startup, empty, Lea, and
 legacy-tab states, so it never dereferences a missing control or casts a Lea
 view to the legacy `WebBrowser` type.
 
+Pictures now finish with bounded response reads and a shared `Tm` deadline.
+The `pictures` Boot case checks that a stalled image does not leave a loaded
+native page busy or retain host request bookkeeping. `Ic/Ib` report retained
+bitmap count and bytes. Use the matching view DLL; no new VB adapter patch is
+needed. The Boot suite now contains 39 cases. See `LeaForge/PICTURE_LIMITS.md`.
+
 Navigation, Retry, and Reload now use request identity tracking. `V.Cn` rejects
 overlap before changing pending targets or preview CSS; an old completion cannot
 clear a page-command successor's state. Use the matching adapter and view DLL.
