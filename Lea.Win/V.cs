@@ -55,6 +55,10 @@ namespace Lea.Win
         private bool layoutDirty = true;
         private bool picBusy;
         private bool picStop;
+        private Task picWork;
+        private P picPage;
+        private int picVersion;
+        private object loadOwner;
         private bool closed;
         private Fi edit;
         private Fi heldEdit;
@@ -174,7 +178,8 @@ namespace Lea.Win
         public string Q { get { return At == null ? "" : At.Q; } }
         public bool CanBk { get { return e.CanBk; } }
         public bool CanFw { get { return e.CanFw; } }
-        public bool Busy { get { return e.Busy || picBusy; } }
+        public bool Busy { get { return loadOwner != null || e.Busy || picBusy; } }
+        public bool Cn { get { return !closed && loadOwner == null && !e.Busy; } }
         public bool Ud { get { return closed || e.Ud(At); } }
         public int Sn { get { return At == null ? 0 : At.Sn; } }
         public int Cm { get { return e.Cm; } set { e.Cm = value; } }
@@ -211,7 +216,7 @@ namespace Lea.Win
         }
         public string Am { get; private set; }
         public Er Le { get; private set; }
-        public bool Cr { get { return !closed && !e.Busy && retryTarget != null; } }
+        public bool Cr { get { return !closed && !Busy && retryTarget != null; } }
         public string Fq { get { return findQuery; } }
         public int Fn { get { return findMatches.Count; } }
         public int Fx { get { return findIndex < 0 ? 0 : findIndex + 1; } }
@@ -363,103 +368,73 @@ namespace Lea.Win
 
         public P Go(string input)
         {
-            CheckOpen();
+            CheckIdle();
             Cursor = Cursors.WaitCursor;
             try
             {
                 if (Fg(input) != 0) return At;
                 return Show(LoadCore(() => e.Go(input), true), true);
             }
-            finally { if (!closed) Cursor = Cursors.Default; }
+            finally { if (!closed && loadOwner == null) Cursor = Cursors.Default; }
         }
 
         public P Go(Uri url)
         {
-            CheckOpen();
+            CheckIdle();
             Cursor = Cursors.WaitCursor;
             try
             {
                 if (Fg(url) != 0) return At;
                 return Show(LoadCore(() => e.Go(url), true), true);
             }
-            finally { if (!closed) Cursor = Cursors.Default; }
+            finally { if (!closed && loadOwner == null) Cursor = Cursors.Default; }
         }
 
         public P Po(Uri url, string data)
         {
-            CheckOpen();
+            CheckIdle();
             Cursor = Cursors.WaitCursor;
             try { return Show(LoadCore(() => e.Po(url, data), false), true); }
-            finally { if (!closed) Cursor = Cursors.Default; }
+            finally { if (!closed && loadOwner == null) Cursor = Cursors.Default; }
         }
 
         public P Pb(Uri url, byte[] data, string type)
         {
-            CheckOpen();
+            CheckIdle();
             Cursor = Cursors.WaitCursor;
             try { return Show(LoadCore(() => e.Pb(url, data, type), false), true); }
-            finally { if (!closed) Cursor = Cursors.Default; }
+            finally { if (!closed && loadOwner == null) Cursor = Cursors.Default; }
         }
 
         public async Task<P> GoA(string input)
         {
-            CheckOpen();
-            Cursor = Cursors.WaitCursor;
-            picStop = false;
-            try
-            {
-                if (Fg(input) != 0) return At;
-                return await ShowA(LoadCoreA(() => e.GoA(input), true));
-            }
-            finally { if (!closed) Cursor = Cursors.Default; }
+            if (Fg(input) != 0) return At;
+            return await ShowA(() => e.GoA(input), true);
         }
 
         public async Task<P> GoA(Uri url)
         {
-            CheckOpen();
-            Cursor = Cursors.WaitCursor;
-            picStop = false;
-            try
-            {
-                if (Fg(url) != 0) return At;
-                return await ShowA(LoadCoreA(() => e.GoA(url), true));
-            }
-            finally { if (!closed) Cursor = Cursors.Default; }
+            if (Fg(url) != 0) return At;
+            return await ShowA(() => e.GoA(url), true);
         }
 
-        public async Task<P> PoA(Uri url, string data)
+        public Task<P> PoA(Uri url, string data)
         {
-            CheckOpen();
-            Cursor = Cursors.WaitCursor;
-            picStop = false;
-            try
-            {
-                return await ShowA(LoadCoreA(() => e.PoA(url, data), false));
-            }
-            finally { if (!closed) Cursor = Cursors.Default; }
+            return ShowA(() => e.PoA(url, data), false);
         }
 
-        public async Task<P> PbA(Uri url, byte[] data, string type)
+        public Task<P> PbA(Uri url, byte[] data, string type)
         {
-            CheckOpen();
-            Cursor = Cursors.WaitCursor;
-            picStop = false;
-            try
-            {
-                return await ShowA(LoadCoreA(() => e.PbA(url, data, type), false));
-            }
-            finally { if (!closed) Cursor = Cursors.Default; }
+            return ShowA(() => e.PbA(url, data, type), false);
         }
 
         public P Bk() { CheckOpen(); return Show(LoadCore(e.Bk, false), false); }
         public P Fw() { CheckOpen(); return Show(LoadCore(e.Fw, false), false); }
         public P Rl() { CheckOpen(); return Show(LoadCore(e.Rl, true), true); }
 
-        public async Task<P> RlA()
+        public Task<P> RlA()
         {
-            CheckOpen();
-            picStop = false;
-            return await ShowA(LoadCoreA(e.RlA, true));
+            return ShowA(e.RlA, true);
         }
 
         public Task<P> Ry()
@@ -471,18 +446,33 @@ namespace Lea.Win
 
         private T LoadCore<T>(Func<T> load, bool retry, bool clear = true)
         {
-            CheckOpen();
+            CheckIdle();
             if (clear) ClearFailure();
             try { return load(); }
             catch (Er error) { LoadFailed(error, retry); throw; }
         }
 
-        private async Task<P> LoadCoreA(Func<Task<P>> load, bool retry)
+        private void CheckIdle()
         {
             CheckOpen();
-            ClearFailure();
-            try { return await load(); }
-            catch (Er error) { LoadFailed(error, retry); throw; }
+            if (loadOwner != null || e.Busy) throw new LoadBusy();
+        }
+
+        private object StartLoad()
+        {
+            CheckIdle();
+            var owner = new object();
+            loadOwner = owner;
+            try { Cursor = Cursors.WaitCursor; CheckOpen(); }
+            catch { FinishLoad(owner); throw; }
+            return owner;
+        }
+
+        private void FinishLoad(object owner)
+        {
+            if (!Object.ReferenceEquals(loadOwner, owner)) return;
+            loadOwner = null;
+            if (!closed) Cursor = Cursors.Default;
         }
 
         private void ClearFailure()
@@ -509,19 +499,37 @@ namespace Lea.Win
             if (handler != null) handler(this, EventArgs.Empty);
         }
 
-        private async Task<P> ShowA(Task<P> work)
+        private async Task<P> ShowA(Func<Task<P>> load, bool retry)
         {
-            var page = await work;
-            if (closed) return page;
-            Show(page, false);
-            if (closed) return page;
-            await PicsA(page);
-            if (closed) return page;
-            Dirty();
-            Invalidate();
-            if (Done != null) Done(this, EventArgs.Empty);
-            if (!closed) GoRequest(page);
-            return page;
+            var owner = StartLoad();
+            ClearFailure();
+            picStop = false;
+            try
+            {
+                P page;
+                try { page = await load(); }
+                catch (Er error) { FinishLoad(owner); LoadFailed(error, retry); throw; }
+                if (closed) return page;
+                var stoppedPictures = picStop;
+                Show(page, false);
+                picStop |= stoppedPictures;
+                if (closed) return page;
+                await PicsA(page);
+                if (closed) return page;
+                Dirty();
+                Invalidate();
+                FinishLoad(owner);
+                var address = page == null ? null : page.U;
+                if (Done != null) Done(this, EventArgs.Empty);
+                if (!closed && loadOwner == null && At == page && (page == null || page.U == address)) GoRequest(page);
+                return page;
+            }
+            finally { FinishLoad(owner); }
+        }
+
+        private sealed class LoadBusy : InvalidOperationException
+        {
+            public LoadBusy() : base("Lea is still loading or downloading. Stop and wait for completion before navigating again.") { }
         }
 
         public void St()
@@ -529,7 +537,7 @@ namespace Lea.Win
             if (closed) return;
             picStop = true;
             e.St();
-            picWeb.CancelAsync();
+            CancelPics();
             Cursor = Cursors.Default;
         }
 
@@ -680,34 +688,32 @@ namespace Lea.Win
 
         public D Dl(string input, string path)
         {
-            CheckOpen();
+            CheckIdle();
             Cursor = Cursors.WaitCursor;
             try { return Ld = e.Dl(input, path); }
-            finally { if (!closed) Cursor = Cursors.Default; }
+            finally { if (!closed && loadOwner == null) Cursor = Cursors.Default; }
         }
 
         public D Dl(Uri url, string path)
         {
-            CheckOpen();
+            CheckIdle();
             Cursor = Cursors.WaitCursor;
             try { return Ld = e.Dl(url, path); }
-            finally { if (!closed) Cursor = Cursors.Default; }
+            finally { if (!closed && loadOwner == null) Cursor = Cursors.Default; }
         }
 
         public async Task<D> DlA(string input, string path)
         {
-            CheckOpen();
-            Cursor = Cursors.WaitCursor;
+            var owner = StartLoad();
             try { return Ld = await e.DlA(input, path); }
-            finally { if (!closed) Cursor = Cursors.Default; }
+            finally { FinishLoad(owner); }
         }
 
         public async Task<D> DlA(Uri url, string path)
         {
-            CheckOpen();
-            Cursor = Cursors.WaitCursor;
+            var owner = StartLoad();
             try { return Ld = await e.DlA(url, path); }
-            finally { if (!closed) Cursor = Cursors.Default; }
+            finally { FinishLoad(owner); }
         }
 
         public int Fd(string query)
@@ -746,6 +752,7 @@ namespace Lea.Win
         private P Show(P page, bool done, int preserveScroll = -1)
         {
             if (closed) return page;
+            if (picPage != null && picPage != page) CancelPics();
             ClearFailure();
             picStop = false;
             CloseChoices();
@@ -768,8 +775,9 @@ namespace Lea.Win
             Invalidate();
             NotifyAccessibility(AccessibleEvents.Reorder);
             Alerts(page);
+            var address = page == null ? null : page.U;
             if (!closed && done && Done != null) Done(this, EventArgs.Empty);
-            if (!closed && done) GoRequest(page);
+            if (!closed && done && loadOwner == null && At == page && (page == null || page.U == address)) GoRequest(page);
             return page;
         }
 
@@ -4383,13 +4391,35 @@ namespace Lea.Win
 
         private async Task PicsA(P page)
         {
+            while (picWork != null && !picWork.IsCompleted)
+            {
+                await picWork;
+                if (closed || picStop || page != At) return;
+            }
+            if (closed || picStop || page == null || page != At) return;
+            var work = ReadPicsA(page);
+            picWork = work;
+            try { await work; }
+            finally { if (Object.ReferenceEquals(picWork, work)) picWork = null; }
+        }
+
+        private void CancelPics()
+        {
+            unchecked { picVersion++; }
+            picWeb.CancelAsync();
+        }
+
+        private async Task ReadPicsA(P page)
+        {
             if (closed || page == null) return;
+            var version = picVersion;
+            picPage = page;
             picBusy = true;
             try
             {
                 foreach (var source in PicSources(page))
                 {
-                    if (closed || picStop) break;
+                    if (closed || picStop || page != At || version != picVersion) break;
                     var key = source.AbsoluteUri;
                     if (pics.ContainsKey(key)) continue;
                     Image image = null;
@@ -4407,13 +4437,13 @@ namespace Lea.Win
                             picWeb.Headers[HttpRequestHeader.UserAgent] = "Lea/0.2";
                             data = await picWeb.DownloadDataTaskAsync(source);
                         }
-                        if (closed || picStop) break;
+                        if (closed || picStop || page != At || version != picVersion) break;
                         if (data == null || data.Length == 0 || data.Length > PicBytes) throw new InvalidDataException("Image resource is empty or too large.");
                         using (var stream = new MemoryStream(data))
                         using (var loaded = Image.FromStream(stream)) image = new Bitmap(loaded);
                     }
                     catch { image = null; }
-                    if (closed)
+                    if (closed || picStop || page != At || version != picVersion)
                     {
                         if (image != null) image.Dispose();
                         break;
@@ -4421,7 +4451,7 @@ namespace Lea.Win
                     StorePic(key, image);
                 }
             }
-            finally { picBusy = false; }
+            finally { picBusy = false; picPage = null; }
         }
 
         private static IList<Uri> PicSources(P page)
@@ -4462,7 +4492,7 @@ namespace Lea.Win
 
         private void QueuePics(P page)
         {
-            if (closed || page == null || picBusy || picStop || !MissingPic(page)) return;
+            if (closed || page == null || loadOwner != null || picBusy || picStop || !MissingPic(page)) return;
             LoadPicsLater(page);
         }
 
@@ -4471,7 +4501,7 @@ namespace Lea.Win
             try
             {
                 await PicsA(page);
-                if (!closed && Object.ReferenceEquals(page, At)) Invalidate();
+                if (!closed) Invalidate();
             }
             catch (OperationCanceledException) { }
             catch (WebException) { }
@@ -4656,6 +4686,7 @@ namespace Lea.Win
         {
             try { return await activate(); }
             catch (Er) { return 1; }
+            catch (LoadBusy) { return 1; }
         }
 
         // Kf moves through Lea's bounded sequential keyboard targets.
@@ -6921,7 +6952,7 @@ namespace Lea.Win
                 navigationGuard = null;
                 picStop = true;
                 e.St();
-                picWeb.CancelAsync();
+                CancelPics();
                 CloseChoices();
                 picWeb.Dispose();
                 if (editFont != null) editFont.Dispose();

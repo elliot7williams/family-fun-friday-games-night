@@ -177,7 +177,7 @@ namespace Lea.Firespider
                     tick.Invoke(timer, new object[] { EventArgs.Empty });
                     var start = Path.Combine(root, "Lea", "start.html");
                     var opened = (bool)type.GetMethod("qleaOpenPath", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(form, new object[] { openPage });
-                    WaitFor(() => host.At != null && host.T == "Lea Open Route", "Firespider Open File routed to Lea");
+                    WaitFor(() => !host.Busy && host.At != null && host.T == "Lea Open Route", "Firespider Open File routed to Lea");
                     Check(opened, "Firespider Open File capability");
                     Check(host.Afs().Count == 2 && host.Af().Av("id") == "host-invalid-auto" && host.Ke.Av("id") == "host-auto", "Firespider bounded autofocus selection");
                     Check(host.An == 4 && host.Ak(ById(host.At.D, "host-value-update")) == "X" && host.Kl(ById(host.At.D, "host-action")) == "Alt+Shift+B", "Firespider assigned access-key aliases");
@@ -525,13 +525,13 @@ namespace Lea.Firespider
                     var goRequests = 0;
                     host.Gr += delegate { goRequests++; };
                     Check(host.Js("go('" + new Uri(start).AbsoluteUri + "')") == 1, "Firespider go command accepted");
-                    WaitFor(() => host.At != null && host.T == "Lea in Firespider", "Firespider go request routed by host");
+                    WaitFor(() => !host.Busy && host.At != null && host.T == "Lea in Firespider", "Firespider go request routed by host");
                     Check(goRequests == 1 && host.Gu == new Uri(start), "Firespider go request event and URL");
                     var address = Member<ToolStripComboBox>(form, "c");
                     address.Text = new Uri(start).AbsoluteUri;
                     var addressKey = new KeyEventArgs(Keys.Enter);
                     type.GetMethod("qleaAddressKeyDown", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(form, new object[] { address, addressKey });
-                    WaitFor(() => host.At != null && host.T == "Lea in Firespider", "address Enter routed to Lea");
+                    WaitFor(() => !host.Busy && host.At != null && host.T == "Lea in Firespider", "address Enter routed to Lea");
                     Check(addressKey.Handled && addressKey.SuppressKeyPress, "address Enter handled by Lea");
                     host.Go(start);
                     Check(host.CanBk, "Lea history before host Back");

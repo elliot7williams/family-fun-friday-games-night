@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **64**
+Post-1.0 hardening milestones completed: **65**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,22 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Fixed reproduced async view-readiness and old-image cache races with compact
+  `Cn` admission, request ownership through presentation, and coordinated picture
+  passes. Completion/failure callbacks can start successors without old cleanup
+  resetting their cursor or dispatching stale page commands. Firespider now owns
+  navigation/retry/reload bookkeeping by request identity; page-command successors
+  retain pending targets and preview CSS, while overlapping input is harmless.
+  Core, isolated native editing, and full compiled host suites pass, plus all
+  65 probes across 62 fixtures. All 38 Boot cases passed in one combined run,
+  and six real EXE scenarios passed with responsive windows, deferred resume,
+  no observed startup dialogs, and no MSHTML. DLLs total 484 KiB (204.8 KiB GZip
+  estimate), not a claim of increased execution speed. Test waits now distinguish
+  title/data commitment from view completion. Earlier intermittent fragment,
+  recovery-cast, and editor/clipboard/focus issues remain unconfirmed. See
+  `LOAD_LIFECYCLE.md`. Runtime 165 is isolated and source-backed-up; installed
+  runtime 157 is unchanged. The scoped baseline stays at 100%, not full-web support.
 
 - Added compact `Ss/Sd/Sn` named native CSS with byte/rule limits, atomic
   replacement, retained documents/fields/history, and live media/font updates.

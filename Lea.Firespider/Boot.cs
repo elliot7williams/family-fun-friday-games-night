@@ -44,7 +44,7 @@ namespace Lea.Firespider
             var forms = new List<Form>();
             try
             {
-                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch", "domains", "domain-private", "split", "split-life", "split-limits", "edit", "paste", "policy", "policy-start", "failures", "failure-start", "hibernate", "hibernate-start", "style-start", "styles" }.Contains(mode), "unknown boot case: " + mode);
+                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch", "domains", "domain-private", "split", "split-life", "split-limits", "edit", "paste", "policy", "policy-start", "failures", "failure-start", "hibernate", "hibernate-start", "style-start", "styles", "load-life" }.Contains(mode), "unknown boot case: " + mode);
                 Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
                 Application.ThreadException += (sender, error) => UiErrors.Add(error.Exception);
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", session);
@@ -306,6 +306,7 @@ namespace Lea.Firespider
                 if (mode == "paste") CheckPaste(form, settings, page);
                 if (mode == "style-start") CheckStyleStartup(form, settings, log);
                 if (mode == "styles") CheckStyles(form, settings, lazySite);
+                if (mode == "load-life") CheckLoadLifecycle(form, settings);
                 if (mode == "policy") CheckPolicy(form, settings, page, forms);
                 if (mode == "failures") CheckFailures(form, settings, page);
                 if (mode == "hibernate") CheckHibernation(form, settings, page);
@@ -382,6 +383,63 @@ namespace Lea.Firespider
                     if (lazySite != null) lazySite.Dispose();
                 }
             }
+        }
+
+        private static void CheckLoadLifecycle(Form form, ApplicationSettingsBase settings)
+        {
+            settings["bs"] = new StringCollection();
+            settings["cfEnabled"] = "";
+            var tabs = Member<TabControl>(form, "k");
+            using (var first = new LoopbackSite())
+            using (var second = new LoopbackSite())
+            {
+                first.Html = "<title>First callback page</title><script type='text/lea'>go('" + second.Url + "')</script><p>First</p>";
+                second.Html = "<html><head><title>Second callback page</title></head><body><input id='field' value='Retained successor'></body></html>";
+                first.Release.Reset();
+                second.Release.Reset();
+                V view = null;
+                try
+                {
+                    view = (V)Call(form, "qleaNew", first.Url);
+                    Wait(() => first.Hits == 1 && view.Busy, "first gated callback page");
+                    first.Release.Set();
+                    Wait(() => second.Hits == 1 && view.Busy, "page command starts successor request");
+                    var pending = Member<IDictionary>(form, "qleaPending");
+                    Check(pending.Contains(view) && (string)pending[view] == second.Url, "old completion cleared or mislabeled the successor request");
+                    Call(form, "qleaPreviewStyle", view, EncodeStyle("body{color:#075fa8}"));
+                    Check(Member<IDictionary>(form, "qleaPreviewStyles").Contains(view), "successor could not queue native CSS");
+                    Call(form, "q1", first.Url);
+                    Check(view.Busy && (string)pending[view] == second.Url && first.Hits == 1,
+                        "busy address navigation disturbed the current owner");
+                    second.Release.Set();
+                    WaitLea(tabs);
+                    Check(view.T == "Second callback page", "successor title changed");
+                    Check(view.Sn == 1, "successor named sheet count: " + view.Sn);
+                    Check(view.At.S.F == "#075fa8", "successor body color: " + view.At.S.F);
+                    Check(view.At.Fs.Count == 1 && view.At.Fs[0].V == "Retained successor", "successor fields changed");
+                    Check(Member<IDictionary>(form, "qleaLoads").Count == 0 && pending.Count == 0 &&
+                        Member<IDictionary>(form, "qleaPreviewStyles").Count == 0 && view.Cursor == Cursors.Default, "successor left request ownership behind");
+                    view.Cl();
+                    second.Release.Reset();
+                    Call(form, "qleaReload", view);
+                    Wait(() => second.Hits == 2 && view.Busy, "owned reload request");
+                    var loads = Member<IDictionary>(form, "qleaLoads");
+                    var reload = loads[view];
+                    Call(form, "qleaPreviewStyle", view, EncodeStyle("body{color:#a13b18}"));
+                    Call(form, "qleaReload", view);
+                    Check(Object.ReferenceEquals(loads[view], reload) && (string)pending[view] == second.Url,
+                        "overlapping reload replaced its active owner");
+                    second.Release.Set();
+                    WaitLea(tabs);
+                    Check(view.Sn == 1 && view.At.S.F == "#a13b18" && view.At.Fs[0].V == "Retained successor" &&
+                        loads.Count == 0 && pending.Count == 0 && Member<IDictionary>(form, "qleaPreviewStyles").Count == 0,
+                        "reload lost queued CSS/fields or left request ownership behind");
+                    Check(UiErrors.Count == 0 && !Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module => module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)),
+                        "native lifecycle raised a UI exception or loaded MSHTML");
+                }
+                finally { if (view != null && !view.IsDisposed) Call(form, "qleaClose", (TabPage)view.Parent); }
+            }
+            Console.WriteLine("PASS load lifecycle: page-command successor, request identity, queued CSS, busy input/reload isolation, final fields/cursor, cleanup, and no MSHTML");
         }
 
         private static string EncodeStyle(string source)
@@ -2520,7 +2578,8 @@ namespace Lea.Firespider
 
         private static void WaitLea(TabControl tabs)
         {
-            Wait(() => tabs.TabPages.Cast<TabPage>().Select(tab => tab.Controls[0]).OfType<V>().All(view => view.At != null && !view.Busy), "Lea command page loads");
+            var pending = Member<IDictionary>(tabs.FindForm(), "qleaPending");
+            Wait(() => tabs.TabPages.Cast<TabPage>().Select(tab => tab.Controls[0]).OfType<V>().All(view => view.At != null && !view.Busy && !pending.Contains(view)), "Lea command page loads and host callbacks");
         }
 
         private static ToolStripItem Menu(Form form, string text)

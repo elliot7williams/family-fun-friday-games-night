@@ -107,7 +107,7 @@ namespace Lea.Bench
             var names = new[]
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
-                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "events-vars.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
+                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "events-vars.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -1871,6 +1871,25 @@ namespace Lea.Bench
                     Need(view.Sd("theme") == 1 && view.Sn == 0 && field.V == "Retained stylesheet data" && page.Fs.Contains(field), "Sd lost retained fields");
                 }
                 return "Ss/Sd/Sn named sheets, native computed/paint route, atomic source bound, retained field identity, and diagnostics";
+            });
+            AddProbe(probes, "View load admission", delegate
+            {
+                using (var view = NewView())
+                {
+                    var ready = 0;
+                    view.Done += delegate { Need(view.Cn && !view.Busy, "Done before ready"); ready++; };
+                    Need(view.Cn, "new view cannot navigate");
+                    var work = view.GoA(Path.Combine(folder, "load-lifecycle.html"));
+                    Need(work.IsCompleted || (!view.Cn && view.Busy), "pending view load has no owner");
+                    var end = DateTime.UtcNow.AddSeconds(10);
+                    while (!work.IsCompleted && DateTime.UtcNow < end) { Application.DoEvents(); Thread.Sleep(2); }
+                    Need(work.IsCompleted, "view load timeout");
+                    work.GetAwaiter().GetResult();
+                    Need(ready == 1 && view.Cn && !view.Busy, "completion did not restore admission");
+                    view.Dispose();
+                    Need(!view.Cn, "disposed view accepts navigation");
+                }
+                return "Cn admission, Busy through presentation, ready callback, and disposed guard; deterministic overlap/handoff regressions run in Lea.Tests --loads";
             });
             AddProbe(probes, "Bounded Lea scripting", delegate
             {

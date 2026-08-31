@@ -29,6 +29,7 @@ namespace Lea.Tests
                 if (args.Length > 1 && args[1] == "--paste") { CheckPasteText(root); return 0; }
                 if (args.Length > 1 && args[1] == "--fragment") { CheckFragmentStartup(root); return 0; }
                 if (args.Length > 1 && args[1] == "--sheets") { CheckSheets(root); return 0; }
+                if (args.Length > 1 && args[1] == "--loads") { CheckLoadLifecycle(root); return 0; }
                 var coreOnly = args.Length > 1 && args[1] == "--core";
                 if (coreOnly)
                 {
@@ -40,6 +41,7 @@ namespace Lea.Tests
                 if (args.Length > 1 && args[1] == "--edit") return 0;
                 CheckPasteText(root);
                 CheckSheets(root);
+                CheckLoadLifecycle(root);
                 CheckNavigationGuard(root);
                 CheckLoadFailures(root);
                 CheckRetainedData(root);
@@ -1954,7 +1956,7 @@ namespace Lea.Tests
                     var eventLink = HitRect(view, "second.html");
                     Ok(!eventLink.IsEmpty, "nested safe event link hit target");
                     Click(view, eventLink);
-                    WaitFor(delegate { return view.T == "LeaForge Second Page"; }, "safe event link navigation");
+                    WaitFor(delegate { return !view.Busy && view.T == "LeaForge Second Page"; }, "safe event link navigation");
                     Eq("link", clickedEventPage.Vs["last"], "nested link click variable");
                     Eq(5, alertEvents, "nested link click alert event");
 
@@ -3487,7 +3489,7 @@ namespace Lea.Tests
                     view.Size = new Size(720, 760);
                     Paint(view);
                     Click(view, view.Rb(15));
-                    WaitFor(delegate { return view.T == "LeaForge Second Page"; }, "table cell link navigation");
+                    WaitFor(delegate { return !view.Busy && view.T == "LeaForge Second Page"; }, "table cell link navigation");
                     view.Size = new Size(300, 520);
                     view.Go(inlinePath);
                     Paint(view);
@@ -3508,7 +3510,7 @@ namespace Lea.Tests
                     }
                     Ok(!inlineLinkSpace.IsEmpty, "inline link keeps whitespace geometry");
                     Click(view, inlineLinkSpace);
-                    WaitFor(delegate { return view.T == "LeaForge Second Page"; }, "inline link whitespace navigation");
+                    WaitFor(delegate { return !view.Busy && view.T == "LeaForge Second Page"; }, "inline link whitespace navigation");
                     view.Size = new Size(420, 760);
                     view.Go(textPath);
                     Paint(view);
@@ -4031,7 +4033,7 @@ namespace Lea.Tests
                         Ok(ColorDistance(topPixel, Color.FromArgb(29, 78, 216)) < 4, "z-index top layer paint");
                         Click(view, new Rectangle(overlap.Right - 12, overlap.Bottom - 12, 4, 4));
                     }
-                    WaitFor(delegate { return view.T == "Lea Dynamic State"; }, "topmost overlap link navigation");
+                    WaitFor(delegate { return !view.Busy && view.T == "Lea Dynamic State"; }, "topmost overlap link navigation");
                     view.Size = new Size(720, 500);
                     view.Go(contextsPath);
                     using (var contextPaint = Render(view))
@@ -4071,7 +4073,7 @@ namespace Lea.Tests
                         Ok(ColorDistance(scrolledContextPaint.GetPixel(absolute.Left + absolute.Width / 2, absolute.Top + absolute.Height / 2), Color.FromArgb(185, 28, 28)) > 40, "absolute layer scrolls with document");
                         Click(view, HitRect(view, "dynamic-state.html"));
                     }
-                    WaitFor(delegate { return view.T == "Lea Dynamic State"; }, "fixed clipped link navigation after scroll");
+                    WaitFor(delegate { return !view.Busy && view.T == "Lea Dynamic State"; }, "fixed clipped link navigation after scroll");
                     view.Size = new Size(720, 500);
                     view.Go(positionValuesPath);
                     using (var positionValuesPaint = Render(view))
@@ -4106,7 +4108,7 @@ namespace Lea.Tests
                         Ok(ColorDistance(CenterPixel(positionValuesPaint, translateCover), Color.FromArgb(23, 107, 77)) < 4, "translated context traps high child below root cover");
                         Click(view, HitRect(view, "dynamic-state.html"));
                     }
-                    WaitFor(delegate { return view.T == "Lea Dynamic State"; }, "translated context overlap click");
+                    WaitFor(delegate { return !view.Busy && view.T == "Lea Dynamic State"; }, "translated context overlap click");
                     view.Size = new Size(720, 500);
                     view.Go(nestedPositionPath);
                     using (var nestedPaint = Render(view))
@@ -4139,7 +4141,7 @@ namespace Lea.Tests
                         Ok(BlockRect(view, view.At.Bs[9]).Top > low.Bottom, "nested children do not consume root flow slots");
                         Click(view, HitRect(view, "dynamic-state.html"));
                     }
-                    WaitFor(delegate { return view.T == "Lea Dynamic State"; }, "higher parent context wins overlap click");
+                    WaitFor(delegate { return !view.Busy && view.T == "Lea Dynamic State"; }, "higher parent context wins overlap click");
                     view.Go(nestedPositionPath);
                     Paint(view);
                     var fixedNestedBeforeScroll = BlockRect(view, view.At.Bs[8]);
@@ -4151,7 +4153,7 @@ namespace Lea.Tests
                         Ok(ColorDistance(CenterPixel(nestedScrollPaint, fixedNestedBeforeScroll), Color.FromArgb(29, 78, 216)) < 4, "fixed descendant remains painted after scroll");
                         Click(view, HitRect(view, "forms.html"));
                     }
-                    WaitFor(delegate { return view.T == "Lea Forms Test"; }, "fixed descendant link navigation after scroll");
+                    WaitFor(delegate { return !view.Busy && view.T == "Lea Forms Test"; }, "fixed descendant link navigation after scroll");
                     view.Size = new Size(720, 700);
                     view.Go(nestedFlowPath);
                     int wideOuterWidth;
@@ -4187,7 +4189,7 @@ namespace Lea.Tests
                         Ok(ColorDistance(nestedFlowPaint.GetPixel(outerBorder.Left + 4, outerBorder.Top + 4), Color.FromArgb(232, 245, 239)) < 4, "auto container background paints through padding");
                         Click(view, nestedLink);
                     }
-                    WaitFor(delegate { return view.T == "LeaForge Second Page"; }, "nested flow link navigation");
+                    WaitFor(delegate { return !view.Busy && view.T == "LeaForge Second Page"; }, "nested flow link navigation");
                     view.Size = new Size(320, 700);
                     view.Go(nestedFlowPath);
                     Paint(view);
@@ -4267,19 +4269,19 @@ namespace Lea.Tests
                         Ok(afterContext.Top > BlockOuterRect(view, view.At.Bs[13]).Bottom, "root flow follows positioned auto-height context");
                         Click(view, HitRect(view, "dynamic-state.html"));
                     }
-                    WaitFor(delegate { return view.T == "Lea Dynamic State"; }, "opacity context overlap click");
+                    WaitFor(delegate { return !view.Busy && view.T == "Lea Dynamic State"; }, "opacity context overlap click");
                     view.Go(stackingPath);
                     Paint(view);
                     Click(view, HitRect(view, "second.html"));
-                    WaitFor(delegate { return view.T == "LeaForge Second Page"; }, "isolation context overlap click");
+                    WaitFor(delegate { return !view.Busy && view.T == "LeaForge Second Page"; }, "isolation context overlap click");
                     view.Go(stackingPath);
                     Paint(view);
                     Click(view, HitRect(view, "form-widgets.html"));
-                    WaitFor(delegate { return view.T == "Lea Form Validation"; }, "z-index auto overlap click");
+                    WaitFor(delegate { return !view.Busy && view.T == "Lea Form Validation"; }, "z-index auto overlap click");
                     view.Go(stackingPath);
                     Paint(view);
                     Click(view, HitRect(view, "images.html"));
-                    WaitFor(delegate { return view.T == "Lea Image Test"; }, "numeric zero overlap click");
+                    WaitFor(delegate { return !view.Busy && view.T == "Lea Image Test"; }, "numeric zero overlap click");
                     view.Go(textStylePath);
                     Paint(view);
                     Eq(8, view.At.Bs.Count, "text style render blocks");
@@ -6481,6 +6483,195 @@ namespace Lea.Tests
             Console.WriteLine("Lea disposal smoke passed: local/CSS/image cancellation, callback disposal, and navigation rejection.");
         }
 
+        private static void CheckLoadLifecycle(string root)
+        {
+            var source = Path.Combine(root, "LeaForge", "test-pages", "load-lifecycle.html");
+            using (var view = new V())
+            {
+                var scheduler = new StepScheduler();
+                var done = 0;
+                var failures = 0;
+                view.Done += delegate { done++; Ok(!view.Busy && view.Cn, "Done sees ready state"); };
+                view.Fe += delegate { failures++; };
+                var context = SynchronizationContext.Current;
+                try
+                {
+                    SynchronizationContext.SetSynchronizationContext(null);
+                    var start = Task.Factory.StartNew(() => view.GoA(source), CancellationToken.None, TaskCreationOptions.None, scheduler);
+                    scheduler.Step();
+                    var work = start.Result;
+                    var sawCommitted = false;
+                    var checkedOverlap = false;
+                    for (var step = 0; step < 40 && !work.IsCompleted; step++)
+                    {
+                        if (view.At != null) sawCommitted = true;
+                        Ok((view.Busy && !view.Cn) || done == 1, "view stays busy until UI completion: step=" + step + "; page=" + (view.At != null) + "; done=" + done);
+                        if (!checkedOverlap && view.At != null && done == 0)
+                        {
+                            var retained = view.At;
+                            foreach (var action in new Action[] {
+                                () => view.Go(source), () => view.Go(new Uri(source)), () => view.Bk(), () => view.Fw(), () => view.Rl(),
+                                () => view.Fg("#target"), () => view.Po(new Uri("http://127.0.0.1:1/"), "blocked"),
+                                () => view.Pb(new Uri("http://127.0.0.1:1/"), new byte[0], "text/plain") })
+                                LoadBusyRejected(action);
+                            foreach (var action in new Func<Task<P>>[] {
+                                () => view.GoA(source), () => view.GoA(new Uri(source)), () => view.RlA(),
+                                () => view.PoA(new Uri("http://127.0.0.1:1/"), "blocked"),
+                                () => view.PbA(new Uri("http://127.0.0.1:1/"), new byte[0], "text/plain") })
+                            {
+                                var overlapping = action();
+                                Ok(overlapping.IsCompleted, "overlapping load rejects promptly");
+                                LoadBusyRejected(() => overlapping.GetAwaiter().GetResult());
+                            }
+                            var unused = Path.Combine(Path.GetTempPath(), "lea-busy-" + Guid.NewGuid().ToString("N"));
+                            LoadBusyRejected(() => view.Dl(source, unused));
+                            LoadBusyRejected(() => view.Dl(new Uri(source), unused));
+                            LoadBusyRejected(() => view.DlA(source, unused).GetAwaiter().GetResult());
+                            LoadBusyRejected(() => view.DlA(new Uri(source), unused).GetAwaiter().GetResult());
+                            Ok(!File.Exists(unused), "rejected downloads do not create output");
+                            var boundary = typeof(V).GetMethod("InputActivationA", BindingFlags.Instance | BindingFlags.NonPublic);
+                            Func<Task<int>> activation = async () => { await view.GoA(source); return 1; };
+                            Eq(1, ((Task<int>)boundary.Invoke(view, new object[] { activation })).GetAwaiter().GetResult(), "native input consumes busy rejection");
+                            Ok(view.At == retained && view.Busy && view.Cursor == Cursors.WaitCursor && failures == 0 && !view.Cr,
+                                "rejected overlap retains page, busy cursor, and failure state");
+                            checkedOverlap = true;
+                        }
+                        SynchronizationContext.SetSynchronizationContext(null);
+                        scheduler.Step();
+                    }
+                    Ok(work.IsCompleted && sawCommitted && checkedOverlap, "controlled load reached UI completion: state=" + work.Status + "; page=" + (view.At != null) + "; done=" + done);
+                    work.GetAwaiter().GetResult();
+                    Ok(!view.Busy && done == 1, "completed load reports ready exactly once");
+                }
+                finally { SynchronizationContext.SetSynchronizationContext(context); }
+            }
+            CheckLoadCallbacks(root);
+            CheckDownloadLifecycle(source);
+            CheckPictureHandoff();
+            Console.WriteLine("Lea load lifecycle smoke passed.");
+        }
+
+        private static void LoadBusyRejected(Action action)
+        {
+            var rejected = false;
+            try { action(); }
+            catch (InvalidOperationException error) { rejected = error.Message.StartsWith("Lea is still loading", StringComparison.Ordinal); }
+            Ok(rejected, "overlapping navigation has a predictable busy error");
+        }
+
+        private static void CheckLoadCallbacks(string root)
+        {
+            var source = Path.Combine(root, "LeaForge", "test-pages", "load-lifecycle.html");
+            foreach (var sync in new[] { false, true })
+            foreach (var fail in new[] { false, true })
+            using (var view = new V())
+            {
+                var scheduler = new StepScheduler();
+                var context = SynchronizationContext.Current;
+                Task<P> next = null;
+                var ready = 0;
+                var errors = 0;
+                var requests = 0;
+                view.Gr += delegate { requests++; };
+                view.Done += delegate
+                {
+                    ready++;
+                    if (!fail && next == null)
+                    {
+                        var engine = (E)typeof(V).GetField("e", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(view);
+                        engine.Js(view.At, "go('second.html')");
+                        next = view.GoA(source);
+                    }
+                };
+                view.Fe += delegate { errors++; Ok(!view.Busy, "failure callback follows view cleanup"); next = view.GoA(source); };
+                try
+                {
+                    SynchronizationContext.SetSynchronizationContext(null);
+                    var input = fail ? source + ".absent" : source;
+                    var first = sync ? Task.Factory.StartNew(() => view.Go(input), CancellationToken.None, TaskCreationOptions.None, scheduler) :
+                        Task.Factory.StartNew(() => view.GoA(input), CancellationToken.None, TaskCreationOptions.None, scheduler).Unwrap();
+                    scheduler.Step();
+                    var sawHandoff = false;
+                    for (var step = 0; step < 100 && (!first.IsCompleted || next == null || !next.IsCompleted); step++)
+                    {
+                        if (first.IsCompleted && next != null && !next.IsCompleted && view.Busy)
+                        {
+                            sawHandoff = true;
+                            Ok(view.Cursor == Cursors.WaitCursor && view.Le == null, "old completion does not clear the new load cursor or failure state");
+                        }
+                        SynchronizationContext.SetSynchronizationContext(null);
+                        scheduler.Step();
+                    }
+                    Ok(first.IsCompleted && next != null && next.IsCompleted && sawHandoff, "callback navigation completes both owned operations");
+                    if (fail) Fails(() => first.GetAwaiter().GetResult(), "first callback request failure");
+                    else first.GetAwaiter().GetResult();
+                    next.GetAwaiter().GetResult();
+                    Ok(!view.Busy && view.Le == null && ready == (fail ? 1 : 2) && errors == (fail ? 1 : 0), "callback completion counts and final ready state");
+                    Eq(0, requests, "old page does not dispatch go after callback navigation");
+                }
+                finally { SynchronizationContext.SetSynchronizationContext(context); }
+            }
+        }
+
+        private static void CheckDownloadLifecycle(string source)
+        {
+            foreach (var uri in new[] { false, true })
+            using (var view = new V())
+            {
+                var scheduler = new StepScheduler();
+                var context = SynchronizationContext.Current;
+                var output = Path.Combine(Path.GetTempPath(), "lea-download-life-" + Guid.NewGuid().ToString("N"));
+                try
+                {
+                    SynchronizationContext.SetSynchronizationContext(null);
+                    var work = Task.Factory.StartNew(() => uri ? view.DlA(new Uri(source), output) : view.DlA(source, output),
+                        CancellationToken.None, TaskCreationOptions.None, scheduler).Unwrap();
+                    scheduler.Step();
+                    var observed = false;
+                    for (var step = 0; step < 100 && !work.IsCompleted; step++)
+                    {
+                        observed = true;
+                        Ok(view.Busy && !view.Cn, "download retains view ownership through completion");
+                        LoadBusyRejected(() => view.Go(source));
+                        SynchronizationContext.SetSynchronizationContext(null);
+                        scheduler.Step();
+                        Thread.Sleep(1);
+                    }
+                    Ok(observed && work.IsCompleted, "controlled download completes");
+                    Ok(work.GetAwaiter().GetResult() == view.Ld && !view.Busy && view.Cn && File.Exists(output), "download result and admission restored");
+                    view.Dispose();
+                    Ok(!view.Cn, "disposed view rejects admission");
+                }
+                finally
+                {
+                    SynchronizationContext.SetSynchronizationContext(context);
+                    if (File.Exists(output)) File.Delete(output);
+                }
+            }
+        }
+
+        private static void CheckPictureHandoff()
+        {
+            using (var gate = new ManualResetEvent(false))
+            using (var first = new CompressedServer { ImageGate = gate })
+            using (var second = new CompressedServer())
+            using (var view = new V { Size = new Size(640, 480) })
+            {
+                view.Go(new Uri(first.U, "?image-page=1"));
+                Paint(view);
+                WaitFor(() => first.Hits == 2 && view.Busy, "held previous-page image");
+                Ok(view.Cn, "background pictures do not prevent navigation");
+                var work = view.GoA(new Uri(second.U, "?image-page=valid"));
+                WaitFor(() => work.IsCompleted, "new page and image completion");
+                work.GetAwaiter().GetResult();
+                var images = (Dictionary<string, Image>)typeof(V).GetField("pics", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(view);
+                Image loaded;
+                Ok(images.TryGetValue(new Uri(second.U, "?pixel=1").AbsoluteUri, out loaded) && loaded != null,
+                    "previous-page image work must not poison the new image cache");
+                Ok(!gate.WaitOne(0) && !view.Busy && second.Hits == 2, "image handoff does not wait for the held old response or duplicate requests");
+            }
+        }
+
         private sealed class StepScheduler : TaskScheduler
         {
             private readonly Queue<Task> pending = new Queue<Task>();
@@ -7458,6 +7649,7 @@ namespace Lea.Tests
             public string LastIfNoneMatch { get { lock (state) return lastIfNoneMatch; } }
             public string LastIfModifiedSince { get { lock (state) return lastIfModifiedSince; } }
             public string LastCookie { get { lock (state) return lastCookie; } }
+            public ManualResetEvent ImageGate;
 
             public CompressedServer()
             {
@@ -7526,7 +7718,17 @@ namespace Lea.Tests
                             lastCookie = cookie;
                         }
                         var delay = IntValue(QueryValue(request, "delay"));
+                        if (ImageGate != null && (QueryValue(request, "image") == "1" || QueryValue(request, "pixel") == "1") &&
+                            WaitHandle.WaitAny(new WaitHandle[] { stop, ImageGate }, 5000) != 1) return;
                         if (delay > 0 && stop.WaitOne(Math.Min(delay, 2000))) return;
+                        if (QueryValue(request, "pixel") == "1")
+                        {
+                            var pixel = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXYxDP9v0PAAM7Ac+IRop4AAAAAElFTkSuQmCC");
+                            var header = Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\nContent-Type: image/png\r\nContent-Length: " + pixel.Length + "\r\nConnection: close\r\n\r\n");
+                            stream.Write(header, 0, header.Length);
+                            stream.Write(pixel, 0, pixel.Length);
+                            continue;
+                        }
                         if (request.IndexOf("redirect=1", StringComparison.OrdinalIgnoreCase) >= 0)
                         {
                             var redirect = Encoding.ASCII.GetBytes("HTTP/1.1 302 Found\r\nLocation: /page?encoding=gzip&redirected=1\r\nContent-Length: 0\r\nConnection: close\r\n\r\n");
@@ -7585,6 +7787,8 @@ namespace Lea.Tests
                         }
                         else if (request.IndexOf("image-page=1", StringComparison.OrdinalIgnoreCase) >= 0)
                             html = "<title>Pending image</title><img src='/page?delay=1000&image=1'>";
+                        else if (request.IndexOf("image-page=valid", StringComparison.OrdinalIgnoreCase) >= 0)
+                            html = "<title>Valid image</title><img width='24' height='24' src='/page?pixel=1'>";
                         else if (request.IndexOf("form=1", StringComparison.OrdinalIgnoreCase) >= 0)
                         {
                             html = "<html><head><title>Lea POST Form</title></head><body><form action='/page?post=1' method='post'>" +

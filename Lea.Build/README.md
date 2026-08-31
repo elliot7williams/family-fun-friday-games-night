@@ -94,11 +94,15 @@ suite. Source for the corresponding host edits is retained in
 `Lea.Firespider/Startup-host.patch`, with reproduction notes in
 `LeaForge/STARTUP_RELIABILITY.md`.
 
-`Test-FirespiderBoot.ps1 -Root <host-root>` adds thirty-seven real form-start cases,
+`Test-FirespiderBoot.ps1 -Root <host-root>` adds thirty-eight real form-start cases,
 including private startup, restore precedence, second windows, a gated slow
 HTTP response, and locked-session shutdown. It compiles `Lea.Firespider/Boot.cs`
 beside the test host and runs separate off-screen processes with a sixty-second
 watchdog. Use `-Case clean` for a single case. See `LeaForge/LEA_STARTUP.md`.
+`-Case load-life` checks page-command successors, request ownership, queued CSS,
+busy address input, and cleanup. `Lea.Tests <root> --loads` adds deterministic
+view completion, callback, download, and image-handoff regressions. See
+`LeaForge/LOAD_LIFECYCLE.md`.
 `-Case edit` tests native field menu/hover commands, protected fields,
 paused/empty tabs, and the explicit legacy fallback; see `NATIVE_EDITING.md`.
 `-Case paste` checks guarded real-menu/native/keyboard paste under a held

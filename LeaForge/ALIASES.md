@@ -7,6 +7,9 @@ read and quick to write.
 
 - Core objects use one letter: `L` is the entry point, `E` is the engine, `P` is a page.
 - Actions use two or three letters: `Go`, `GoA`, `Bk`, `Fw`, `Rl`, `RlA`, `St`, and `At`.
+- `V.Cn` means can navigate: no active page operation/download and not disposed.
+  `Busy` also includes background pictures. Async ownership lasts through view
+  presentation; callback successors retain their own state. See `LOAD_LIFECYCLE.md`.
 - `V.Ce(code)` queries native field editing and `V.Ec(code)` runs it: `cp`, `cu`,
   `pa`, `sa`, `de`, `un`, and `re`. Commands are host-only, protect read-only and
   password fields, and retain a menu-blurred editor. See `NATIVE_EDITING.md`.
@@ -29,7 +32,7 @@ read and quick to write.
   do not serialize state or authorize tab disposal. See `HIBERNATION.md`.
 - `V.Fe` reports typed page-load failure; `V.Le` holds it, `V.Cr` reports an
   eligible explicit GET retry, and `V.Ry()` performs it. POST is never replayed
-  by Retry. Public navigation still throws `Er`. See `LOAD_FAILURES.md`.
+  by Retry. Page-load failures still throw `Er`. See `LOAD_FAILURES.md`.
 - Longer names may remain inside the engine when they make the implementation safer to maintain.
 
 ## Tiny example

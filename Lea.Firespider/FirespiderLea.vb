@@ -22,6 +22,7 @@ Partial Class j
     Private qleaTimings As List(Of String)
     Private ReadOnly qleaPaused As New Dictionary(Of TabPage, Boolean)()
     Private ReadOnly qleaPending As New Dictionary(Of Global.Lea.Win.V, String)()
+    Private ReadOnly qleaLoads As New Dictionary(Of Global.Lea.Win.V, Object)()
     Private ReadOnly qleaPreviewStyles As New Dictionary(Of Global.Lea.Win.V, KeyValuePair(Of String, String))()
     Private qleaGroupChange As Boolean
     Private Const qleaSessionTabs As Integer = 12
@@ -671,6 +672,7 @@ Partial Class j
         RemoveHandler host.Gr, AddressOf qleaGoRequest
         RemoveHandler host.Fe, AddressOf qleaFailed
         qleaPending.Remove(host)
+        qleaLoads.Remove(host)
         qleaPreviewStyles.Remove(host)
         If host.Parent IsNot Nothing Then host.Parent.Controls.Remove(host)
         Dim menu As ContextMenuStrip = host.ContextMenuStrip
@@ -753,29 +755,43 @@ Partial Class j
         Await qleaLoadA(host, target)
     End Sub
 
-    Private Async Function qleaLoadA(ByVal host As Global.Lea.Win.V, ByVal target As String, Optional ByVal retry As Boolean = False) As Threading.Tasks.Task
-        If host Is Nothing OrElse host.IsDisposed OrElse IsDisposed Then Return
-        Dim owned As Boolean = Not qleaPending.ContainsKey(host)
-        If owned Then qleaPending(host) = qleaSessionTarget(target)
+    Private Function qleaOwnLoad(ByVal host As Global.Lea.Win.V, ByVal request As Object) As Boolean
+        Dim current As Object = Nothing
+        Return qleaLoads.TryGetValue(host, current) AndAlso Object.ReferenceEquals(current, request)
+    End Function
+
+    Private Async Function qleaLoadA(ByVal host As Global.Lea.Win.V, ByVal target As String, Optional ByVal retry As Boolean = False, Optional ByVal reload As Boolean = False) As Threading.Tasks.Task
+        If host Is Nothing OrElse host.IsDisposed OrElse IsDisposed OrElse Not host.Cn Then Return
+        Dim request As New Object()
+        qleaLoads(host) = request
+        qleaPending(host) = qleaSessionTarget(target)
+        qleaPreviewStyles.Remove(host)
         Try
             If host Is qleaAt() Then
                 su.Visible = True
                 su.Text = "Lea loading"
                 r.Image = My.Resources.F7
             End If
-            If retry Then Await host.Ry() Else Await host.GoA(target)
+            If reload Then
+                Await host.RlA()
+            ElseIf retry Then
+                Await host.Ry()
+            Else
+                Await host.GoA(target)
+            End If
         Catch ex As Global.Lea.Engine.Er
-            If host.IsDisposed OrElse IsDisposed Then Return
+            If host.IsDisposed OrElse IsDisposed OrElse Not qleaOwnLoad(host, request) Then Return
             If host Is qleaAt() Then r.Image = My.Resources.F8
             If Object.ReferenceEquals(host.Le, ex) Then qleaFailed(host, EventArgs.Empty)
         Catch ex As Exception
-            If host.IsDisposed OrElse IsDisposed Then Return
+            If host.IsDisposed OrElse IsDisposed OrElse Not qleaOwnLoad(host, request) Then Return
             If host IsNot qleaAt() Then Return
             su.Visible = True
             su.Text = "Lea: " & ex.Message
             r.Image = My.Resources.F8
         Finally
-            If owned Then
+            If qleaOwnLoad(host, request) Then
+                qleaLoads.Remove(host)
                 qleaPending.Remove(host)
                 qleaPreviewStyles.Remove(host)
             End If
@@ -783,29 +799,13 @@ Partial Class j
     End Function
 
     Private Async Sub qleaReload(ByVal host As Global.Lea.Win.V)
-        If host Is Nothing OrElse host.IsDisposed OrElse IsDisposed Then Return
+        If host Is Nothing OrElse host.IsDisposed OrElse IsDisposed OrElse Not host.Cn Then Return
         If host.Cr Then
             Await qleaLoadA(host, host.Le.U.AbsoluteUri, True)
             Return
         End If
-        Try
-            If host Is qleaAt() Then
-                su.Visible = True
-                su.Text = "Lea loading"
-                r.Image = My.Resources.F7
-            End If
-            Await host.RlA()
-        Catch ex As Global.Lea.Engine.Er
-            If host.IsDisposed OrElse IsDisposed Then Return
-            If host Is qleaAt() Then r.Image = My.Resources.F8
-            If Object.ReferenceEquals(host.Le, ex) Then qleaFailed(host, EventArgs.Empty)
-        Catch ex As Exception
-            If host.IsDisposed OrElse IsDisposed Then Return
-            If host IsNot qleaAt() Then Return
-            su.Visible = True
-            su.Text = "Lea: " & ex.Message
-            r.Image = My.Resources.F8
-        End Try
+        Dim target As String = If(host.U Is Nothing, "", host.U.AbsoluteUri)
+        Await qleaLoadA(host, target, False, True)
     End Sub
 
     Private Sub qleaChanged(ByVal sender As Object, ByVal e As EventArgs)
@@ -930,7 +930,10 @@ Partial Class j
 
     Private Sub qleaStylesDisposed(ByVal sender As Object, ByVal e As EventArgs)
         Dim host As Global.Lea.Win.V = TryCast(sender, Global.Lea.Win.V)
-        If host IsNot Nothing Then qleaPreviewStyles.Remove(host)
+        If host Is Nothing Then Return
+        qleaLoads.Remove(host)
+        qleaPending.Remove(host)
+        qleaPreviewStyles.Remove(host)
     End Sub
 
     Private Function qleaStyleMatches(ByVal site As String, ByVal pattern As String) As Boolean
@@ -1758,6 +1761,8 @@ Partial Class j
         Catch ex As Exception
             qlog(ex)
         Finally
+            qleaLoads.Clear()
+            qleaPending.Clear()
             qleaPreviewStyles.Clear()
         End Try
     End Sub

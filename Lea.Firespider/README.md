@@ -10,6 +10,12 @@ Its timer status handler is also routed safely across startup, empty, Lea, and
 legacy-tab states, so it never dereferences a missing control or casts a Lea
 view to the legacy `WebBrowser` type.
 
+Navigation, Retry, and Reload now use request identity tracking. `V.Cn` rejects
+overlap before changing pending targets or preview CSS; an old completion cannot
+clear a page-command successor's state. Use the matching adapter and view DLL.
+The `load-life` Boot regression brings the suite to 38 cases. See
+`LeaForge/LOAD_LIFECYCLE.md` for the callback contract and remaining startup issues.
+
 Native Paste now preserves selected text when the clipboard is unavailable,
 using the shared guarded menu/message/keyboard path. `V.Pa(text)` supports
 clipboard-free host insertion. The `paste` Boot case checks the real menu,
@@ -23,7 +29,7 @@ is cleared on completion/failure/close. Named replacement retains the document,
 fields, native undo, and privacy. Arbitrary saved JavaScript remains unsupported.
 Apply `Style-startup-host.patch` then `Native-styles-host.patch` to
 `BrowserFeatures2.vb`, with the matching adapter and DLLs. The `styles` and
-`style-start` regressions are part of the 37-case Boot suite. See
+`style-start` regressions are part of the Boot suite. See
 `LeaForge/NATIVE_STYLESHEETS.md` for bounds and remaining issues.
 
 Lea now participates in the existing opt-in eligible-tab hibernation policy.

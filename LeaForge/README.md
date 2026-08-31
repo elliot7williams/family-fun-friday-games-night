@@ -12,6 +12,8 @@ LeaForge is where we can grow the more full-featured browser.
 
 ## Current Features
 
+- compact `Cn` navigation admission, owned async view completion, coordinated
+  picture handoff, and Firespider callback/reload tracking; see `LOAD_LIFECYCLE.md`
 - compact `Ss/Sd/Sn` named native CSS, retained editors, saved Firespider styles,
   and request-scoped startup previews; see `NATIVE_STYLESHEETS.md`
 - guarded Firespider saved-style startup/timer callbacks without legacy casts
