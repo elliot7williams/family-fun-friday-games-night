@@ -10,9 +10,9 @@ read and quick to write.
 - `V.Cn` means can navigate: no active page operation/download and not disposed.
   `Busy` also includes background pictures. Async ownership lasts through view
   presentation; callback successors retain their own state. See `LOAD_LIFECYCLE.md`.
-- `V.Ic` counts retained bitmaps and `V.Ib` reports their 32-bit pixel-byte
-  estimate. Images use bounded reads and one `Tm` deadline per pass. These
-  counters exclude temporary decoder memory; see `PICTURE_LIMITS.md`.
+- `V.Ic/Ib` report retained bitmaps/bytes. `Ip` is the per-image pixel ceiling;
+  `Im/It` configure/report shared Lea image bytes; `In/If` report native attempts
+  and current failed entries. See `PICTURE_LIMITS.md` and `IMAGE_PREFLIGHT.md`.
 - `V.Ce(code)` queries native field editing and `V.Ec(code)` runs it: `cp`, `cu`,
   `pa`, `sa`, `de`, `un`, and `re`. Commands are host-only, protect read-only and
   password fields, and retain a menu-blurred editor. See `NATIVE_EDITING.md`.

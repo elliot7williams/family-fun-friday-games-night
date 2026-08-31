@@ -5022,11 +5022,13 @@ namespace Lea.Tests
                 syncView.Size = new Size(720, 500);
                 syncView.St();
                 syncView.Go(path);
+                using (var firstPaint = Render(syncView)) { }
+                WaitFor(() => syncView.Ic == 3, "asynchronous bitmap decode after synchronous navigation");
                 using (var paint = Render(syncView))
                 {
                     var repeat = BlockOuterRect(syncView, BlockById(syncView.At, "repeat"));
                     Ok(ColorDistance(CenterPixel(paint, repeat), Color.FromArgb(23, 107, 77)) < 4,
-                        "synchronous bitmap navigation resumes after stop");
+                        "synchronous bitmap navigation resumes asynchronous pictures after stop");
                 }
             }
             using (var view = new V())
@@ -6903,6 +6905,59 @@ namespace Lea.Tests
 
         private static void CheckPictureLimits(string root)
         {
+            var preflight = typeof(V).Assembly.GetType("Lea.Win.Pi", false);
+            var inspect = preflight == null ? null : preflight.GetMethod("Rd", BindingFlags.Static | BindingFlags.Public);
+            Ok(inspect != null,
+                "bounded picture preflight is available before native decoding");
+            using (var aliases = new V())
+                Ok(aliases.Ip == 8 * 1024 * 1024 && aliases.Im == 128L * 1024 * 1024 && aliases.It == 0 && aliases.In == 0 && aliases.If == 0,
+                    "compact picture preflight and process-memory aliases");
+            var formats = new Dictionary<string, byte[]>
+            {
+                { "p", PictureBytes(System.Drawing.Imaging.ImageFormat.Png) },
+                { "j", PictureBytes(System.Drawing.Imaging.ImageFormat.Jpeg) },
+                { "g", PictureBytes(System.Drawing.Imaging.ImageFormat.Gif) },
+                { "b", PictureBytes(System.Drawing.Imaging.ImageFormat.Bmp) },
+                { "i", File.ReadAllBytes(Path.Combine(root, "assets", "lea.ico")) }
+            };
+            foreach (var format in formats)
+            {
+                var info = inspect.Invoke(null, new object[] { format.Value });
+                Eq(format.Key, (string)preflight.GetField("K").GetValue(info), "picture preflight format " + format.Key);
+                Ok((int)preflight.GetField("W").GetValue(info) > 0 && (int)preflight.GetField("H").GetValue(info) > 0 &&
+                    (long)preflight.GetField("R").GetValue(info) <= 64L * 1024 * 1024, "bounded picture preflight dimensions " + format.Key);
+                using (var server = new PictureServer("plain", format.Value))
+                using (var view = new V())
+                {
+                    var work = view.GoA(server.U);
+                    WaitFor(() => work.IsCompleted, "native format decode " + format.Key);
+                    work.GetAwaiter().GetResult();
+                    Ok(view.Ic == 1 && view.If == 0 && view.In == 1 && view.It == view.Ib && view.Ib > 0,
+                        "preflighted native format accounting " + format.Key);
+                    Ok((int)typeof(V).GetField("picNativeThread", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(view) !=
+                        Thread.CurrentThread.ManagedThreadId, "native image decode stays off the UI thread " + format.Key);
+                }
+                using (var released = new V()) Eq(0L, released.It, "format disposal releases process image bytes " + format.Key);
+            }
+            foreach (var hostile in new[]
+            {
+                PicturePngDimensions(8193, 1),
+                PicturePngDimensions(4096, 4096),
+                new byte[32],
+                PictureLongJpegHeader()
+            })
+            {
+                Ok(PreflightRejected(inspect, hostile), "hostile image rejected by preflight");
+                using (var server = new PictureServer("plain", hostile))
+                using (var view = new V())
+                {
+                    var work = view.GoA(server.U);
+                    WaitFor(() => work.IsCompleted, "hostile image integration");
+                    work.GetAwaiter().GetResult();
+                    Ok(view.Ic == 0 && view.If == 1 && view.In == 0 && view.It == 0 && view.Le == null,
+                        "hostile image never reaches native decoder");
+                }
+            }
             using (var gate = new ManualResetEvent(false))
             using (var server = new CompressedServer { ImageGate = gate })
             using (var view = new V { Tm = 300 })
@@ -6938,6 +6993,8 @@ namespace Lea.Tests
                 var loaded = mode == "gzip" || mode == "deflate" || mode == "case";
                 Eq(loaded ? mode == "case" ? 2 : 1 : 0, view.Ic, "decoded picture count " + mode);
                 Eq(loaded ? mode == "case" ? 48L : 24L : 0L, view.Ib, "decoded picture accounting " + mode);
+                Eq(loaded ? 0 : mode == "body" ? 3 : 1, view.If, "failed picture accounting " + mode);
+                Eq(loaded ? mode == "case" ? 2 : 1 : 0, view.In, "native decode admission " + mode);
                 Ok(view.Cn && !view.Busy && view.Le == null && ready == 1 && view.At.Fs[0].V == "Retained image field",
                     "nonfatal picture completion preserves document " + mode);
                 var requests = server.Pictures;
@@ -6965,11 +7022,42 @@ namespace Lea.Tests
                 WaitFor(() => work.IsCompleted, "bitmap cache budget");
                 work.GetAwaiter().GetResult();
                 Ok(view.Ic == 2 && view.Ib == 32L * 1024 * 1024 && server.Pictures == 3, "32 MiB cache retains only fitting bitmaps");
+                Ok(view.If == 1 && view.In == 2 && view.It == view.Ib, "per-view preflight and process accounting");
                 for (var pass = 0; pass < 3; pass++) { Paint(view); Application.DoEvents(); }
                 Eq(3, server.Pictures, "full bitmap budget does not evict/refetch current images");
                 view.Go(Path.Combine(root, "LeaForge", "test-pages", "second.html"));
                 Ok(view.Ic == 0 && view.Ib == 0, "sync page replacement releases unreferenced bitmaps");
             }
+            using (var firstServer = new PictureServer("budget", PicturePng(2048, 2048, Color.SeaGreen)))
+            using (var secondServer = new PictureServer("plain", PicturePng(2048, 2048, Color.MediumSeaGreen)))
+            using (var first = new V())
+            using (var second = new V())
+            {
+                var oldLimit = first.Im;
+                try
+                {
+                    first.Im = 64L * 1024 * 1024;
+                    var work = first.GoA(firstServer.U);
+                    WaitFor(() => work.IsCompleted, "shared image budget seed");
+                    work.GetAwaiter().GetResult();
+                    Ok(first.Ic == 2 && first.If == 1 && first.It == 32L * 1024 * 1024,
+                        "shared image budget retains bounded first view");
+                    work = second.GoA(secondServer.U);
+                    WaitFor(() => work.IsCompleted, "shared image budget rejection");
+                    work.GetAwaiter().GetResult();
+                    Ok(second.Ic == 0 && second.If == 1 && second.In == 0 && second.It == first.It,
+                        "shared image budget rejects before native decode");
+                    first.Dispose();
+                    Eq(0L, second.It, "disposing first view releases shared image bytes");
+                    work = second.RlA();
+                    WaitFor(() => work.IsCompleted, "shared image budget recovery");
+                    work.GetAwaiter().GetResult();
+                    Ok(second.Ic == 1 && second.If == 0 && second.In == 1 && second.It == second.Ib,
+                        "released shared image budget is reusable");
+                }
+                finally { second.Im = oldLimit; }
+            }
+            using (var released = new V()) Eq(0L, released.It, "all shared image reservations released");
             using (var server = new PictureServer("plain", PicturePng(8193, 1, Color.SeaGreen)))
             using (var view = new V())
             {
@@ -7076,6 +7164,58 @@ namespace Lea.Tests
                 bitmap.Save(output, System.Drawing.Imaging.ImageFormat.Png);
                 return output.ToArray();
             }
+        }
+
+        private static byte[] PictureBytes(System.Drawing.Imaging.ImageFormat format)
+        {
+            using (var bitmap = new Bitmap(3, 2))
+            using (var graphics = Graphics.FromImage(bitmap))
+            using (var output = new MemoryStream())
+            {
+                graphics.Clear(Color.SeaGreen);
+                bitmap.Save(output, format);
+                return output.ToArray();
+            }
+        }
+
+        private static byte[] PicturePngDimensions(int width, int height)
+        {
+            var data = PicturePng(3, 2, Color.SeaGreen);
+            WriteBig(data, 16, width);
+            WriteBig(data, 20, height);
+            return data;
+        }
+
+        private static void WriteBig(byte[] data, int at, int value)
+        {
+            data[at] = (byte)(value >> 24);
+            data[at + 1] = (byte)(value >> 16);
+            data[at + 2] = (byte)(value >> 8);
+            data[at + 3] = (byte)value;
+        }
+
+        private static byte[] PictureLongJpegHeader()
+        {
+            var data = new byte[270000];
+            data[0] = 0xff;
+            data[1] = 0xd8;
+            var at = 2;
+            while (at + 65537 < data.Length)
+            {
+                data[at] = 0xff;
+                data[at + 1] = 0xe1;
+                data[at + 2] = 0xff;
+                data[at + 3] = 0xff;
+                at += 65537;
+            }
+            return data;
+        }
+
+        private static bool PreflightRejected(MethodInfo inspect, byte[] data)
+        {
+            try { inspect.Invoke(null, new object[] { data }); }
+            catch (TargetInvocationException error) { return error.InnerException is InvalidDataException; }
+            return false;
         }
 
         private sealed class PictureServer : IDisposable

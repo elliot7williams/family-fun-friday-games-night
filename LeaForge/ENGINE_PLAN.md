@@ -41,9 +41,10 @@ Dg/Dcl  diagnostics/clear request activity
    redirects, UTF-8, and common content types.
 4. Use bounded caches for pages, images, stylesheets, and decoded resources.
    (An eight-entry LRU decoded-payload cache with a 2 MB per-page ceiling is active.)
-   Native pictures now have 4 MiB streaming body limits, a shared pass deadline,
-   and a 32 MiB retained bitmap budget with compact `V.Ic/Ib` counters. These
-   do not bound native decoder peaks. Document/POST bodies and linked CSS now
+   Native pictures now have 4 MiB streaming body limits, header preflight,
+   worker decoding, a shared pass deadline, 32 MiB per-view retention, and a
+   configurable 128 MiB process-wide Lea image budget through compact
+   `V.Ic/Ib/Ip/Im/It/In/If` aliases. Document/POST bodies and linked CSS now
    have 4 MiB/256 KiB wire/decoded bounds and shared I/O budgets; see
    `PICTURE_LIMITS.md` and `INPUT_LIMITS.md` for remaining resource work.
 5. Add cancellation and timeouts so a slow page cannot freeze the browser.
@@ -340,8 +341,8 @@ Support three simple Visual Studio paths:
 
 Document/linked-CSS streaming limits and exact path/query cache identity are
 implemented; see `INPUT_LIMITS.md` and `CACHE_IDENTITY.md` for verification.
-Next investigate image decoder preflight/isolation, process-wide memory
-accounting, and image cookie/cache integration. Keep the
+Next investigate killable helper-process decoder isolation, measured whole-process
+memory accounting, and image cookie/cache integration. Keep the
 short public API, verify boundary behavior with hostile local fixtures, and
 measure performance rather than treating compression as an execution speedup.
 
@@ -353,7 +354,7 @@ runtime.
 The current picture hardening adds 4 MiB streaming body limits, one asynchronous
 pass deadline, 32 MiB retained bitmap accounting through `Ic/Ib`, failed-image
 retry, and local-picture origin checks. See `PICTURE_LIMITS.md` for exact bounds
-and native decoder limitations. `PROGRESS.md` records verified milestone status
+and `IMAGE_PREFLIGHT.md` for header/worker/process admission. `PROGRESS.md` records verified milestone status
 and the separate Firespider startup checks.
 
 An earlier completed milestone adds bounded `text-overflow` through non-inherited

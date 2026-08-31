@@ -107,7 +107,7 @@ namespace Lea.Bench
             var names = new[]
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
-                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "input-loading.html", "cache-identity.html", "events-vars.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
+                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -932,7 +932,7 @@ namespace Lea.Bench
                 using (var view = NewView())
                 {
                     view.Size = new Size(720, 1400);
-                    view.Go(path);
+                    LoadView(view, path, "bitmap background fixture");
                     using (var image = Draw(view))
                     {
                         var repeatRect = BlockOuter(view, "repeat");
@@ -987,7 +987,7 @@ namespace Lea.Bench
                 using (var view = NewView())
                 {
                     view.Size = new Size(720, 1800);
-                    view.Go(path);
+                    LoadView(view, path, "object-fit fixture");
                     using (var image = Draw(view))
                     {
                         var containRect = BlockContent(view, "contain");
@@ -1034,7 +1034,7 @@ namespace Lea.Bench
                 using (var view = NewView())
                 {
                     view.Size = new Size(720, 3600);
-                    view.Go(path);
+                    LoadView(view, path, "aspect-ratio fixture");
                     using (var image = Draw(view))
                     {
                         Need(BlockContent(view, "wide").Size == new Size(240, 135) &&
@@ -1907,6 +1907,23 @@ namespace Lea.Bench
                 }
                 return "Ic/Ib bitmap count/bytes, shared embedded source, retained fields, native paint, and page replacement; streaming/deadline/cache-limit regressions run in Lea.Tests --pics";
             });
+            AddProbe(probes, "Native image preflight", delegate
+            {
+                using (var view = NewView())
+                {
+                    var work = view.GoA(Path.Combine(folder, "image-preflight.html"));
+                    var end = DateTime.UtcNow.AddSeconds(10);
+                    while (!work.IsCompleted && DateTime.UtcNow < end) { Application.DoEvents(); Thread.Sleep(2); }
+                    Need(work.IsCompleted, "image preflight fixture timeout");
+                    work.GetAwaiter().GetResult();
+                    using (var image = Draw(view)) Need(ColoredSamples(image) > 0, "image preflight fixture is blank");
+                    Need(view.Ip == 8388608 && view.Im == 128L * 1024 * 1024 && view.Ic == 1 && view.If == 1 &&
+                        view.In == 1 && view.Ib == 4 && view.It == 4 && view.At.Fs[0].V == "Retained preflight data",
+                        "image preflight aliases, native admission, or retained accounting changed");
+                }
+                using (var released = NewView()) Need(released.It == 0, "image preflight fixture leaked process reservation");
+                return "Pi format/dimension preflight, Ip/Im/It/In/If aliases, one native worker decode, one pre-native rejection, retained fields, paint, and disposal";
+            });
             AddProbe(probes, "Bounded document input", delegate
             {
                 using (var view = NewView())
@@ -2280,6 +2297,15 @@ namespace Lea.Bench
             var view = new V { Size = new Size(ViewWidth, ViewHeight) };
             view.CreateControl();
             return view;
+        }
+
+        private static void LoadView(V view, string path, string name)
+        {
+            var work = view.GoA(path);
+            var end = DateTime.UtcNow.AddSeconds(10);
+            while (!work.IsCompleted && DateTime.UtcNow < end) { Application.DoEvents(); Thread.Sleep(2); }
+            Need(work.IsCompleted, name + " timeout");
+            work.GetAwaiter().GetResult();
         }
 
         private static Bitmap Draw(V view)

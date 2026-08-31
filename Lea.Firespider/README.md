@@ -17,12 +17,16 @@ bitmap count and bytes. Use the matching view DLL; no new VB adapter patch is
 needed. See `LeaForge/PICTURE_LIMITS.md`.
 
 The `input` case adds typed oversized-page failure, recovery, shared stylesheet
-deadlines, `Hm/Csm`, and request cleanup. The Boot suite now contains 41 cases.
+deadlines, `Hm/Csm`, and request cleanup. The Boot suite now contains 42 cases.
 See `LeaForge/INPUT_LIMITS.md` for limits and remaining resource work.
 
 The `cache` case keeps path/query casing exact across selected-tab loads, shares
 only fragment variants, separates case-different navigation, and checks host
 request cleanup without MSHTML. See `LeaForge/CACHE_IDENTITY.md`.
+
+The `decode` case sends an over-axis PNG through a selected Lea tab and checks
+`Ip/Im/It/In/If`, retained form data, request cleanup, zero native admission,
+and no MSHTML. See `LeaForge/IMAGE_PREFLIGHT.md`.
 
 Navigation, Retry, and Reload now use request identity tracking. `V.Cn` rejects
 overlap before changing pending targets or preview CSS; an old completion cannot

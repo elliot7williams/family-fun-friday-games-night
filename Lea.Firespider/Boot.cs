@@ -44,7 +44,7 @@ namespace Lea.Firespider
             var forms = new List<Form>();
             try
             {
-                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch", "domains", "domain-private", "split", "split-life", "split-limits", "edit", "paste", "policy", "policy-start", "failures", "failure-start", "hibernate", "hibernate-start", "style-start", "styles", "load-life", "pictures", "input", "cache" }.Contains(mode), "unknown boot case: " + mode);
+                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch", "domains", "domain-private", "split", "split-life", "split-limits", "edit", "paste", "policy", "policy-start", "failures", "failure-start", "hibernate", "hibernate-start", "style-start", "styles", "load-life", "pictures", "decode", "input", "cache" }.Contains(mode), "unknown boot case: " + mode);
                 Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
                 Application.ThreadException += (sender, error) => UiErrors.Add(error.Exception);
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", session);
@@ -308,6 +308,7 @@ namespace Lea.Firespider
                 if (mode == "styles") CheckStyles(form, settings, lazySite);
                 if (mode == "load-life") CheckLoadLifecycle(form, settings);
                 if (mode == "pictures") CheckPictures(form, settings);
+                if (mode == "decode") CheckImageDecode(form, settings);
                 if (mode == "input") CheckInput(form, settings);
                 if (mode == "cache") CheckCacheIdentity(form, settings);
                 if (mode == "policy") CheckPolicy(form, settings, page, forms);
@@ -516,6 +517,48 @@ namespace Lea.Firespider
                 finally { if (view != null && !view.IsDisposed) Call(form, "qleaClose", (TabPage)view.Parent); }
             }
             Console.WriteLine("PASS pictures: stalled HTTP image, bounded startup completion, Ic/Ib, retained title/field, timer/request cleanup, and no MSHTML");
+        }
+
+        private static void CheckImageDecode(Form form, ApplicationSettingsBase settings)
+        {
+            settings["bs"] = new StringCollection();
+            settings["cfEnabled"] = "";
+            var tabs = Member<TabControl>(form, "k");
+            using (var page = new LoopbackSite())
+            using (var picture = new LoopbackSite { Body = OversizedPng(), ContentType = "image/png" })
+            {
+                page.Html = "<html><head><title>Lea Image Preflight</title></head><body><input id='field' value='Retained preflight field'><img src='" + picture.Url + "' alt='Rejected oversized image'></body></html>";
+                V view = null;
+                try
+                {
+                    view = (V)Call(form, "qleaNew", page.Url);
+                    Wait(() => picture.Hits == 1, "preflight picture request");
+                    WaitLea(tabs);
+                    Check(view.T == "Lea Image Preflight" && view.At.Fs[0].V == "Retained preflight field",
+                        "image preflight lost host page data");
+                    Check(view.Ip == 8 * 1024 * 1024 && view.Im == 128L * 1024 * 1024 && view.It == 0 &&
+                        view.Ic == 0 && view.If == 1 && view.In == 0 && view.Cn && !view.Busy && view.Le == null,
+                        "host image preflight aliases or native admission changed");
+                    Call(form, "qleaTick", form, EventArgs.Empty);
+                    Check(Member<IDictionary>(form, "qleaLoads").Count == 0 && Member<IDictionary>(form, "qleaPending").Count == 0,
+                        "image preflight left host request ownership behind");
+                    Check(UiErrors.Count == 0 && !Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module => module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)),
+                        "image preflight raised a startup exception or loaded MSHTML");
+                }
+                finally { if (view != null && !view.IsDisposed) Call(form, "qleaClose", (TabPage)view.Parent); }
+                if (view != null) Check(view.It == 0, "closing preflight tab leaked process image bytes");
+            }
+            Console.WriteLine("PASS image decode: bounded header preflight, compact aliases, zero native admission, host cleanup, and no MSHTML");
+        }
+
+        private static byte[] OversizedPng()
+        {
+            var data = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXYxDP9v0PAAM7Ac+IRop4AAAAAElFTkSuQmCC");
+            data[16] = 0;
+            data[17] = 0;
+            data[18] = 0x20;
+            data[19] = 0x01;
+            return data;
         }
 
         private static void CheckLoadLifecycle(Form form, ApplicationSettingsBase settings)
@@ -2498,6 +2541,8 @@ namespace Lea.Firespider
             public volatile int Status = 200;
             public volatile bool SetCookie;
             public volatile string Html;
+            public volatile byte[] Body;
+            public volatile string ContentType = "text/html; charset=utf-8";
             public readonly ManualResetEvent Release = new ManualResetEvent(true);
             public readonly string Url;
             public int Hits { get { return Interlocked.CompareExchange(ref hits, 0, 0); } }
@@ -2532,8 +2577,8 @@ namespace Lea.Firespider
                             Check(Release.WaitOne(10000), "loopback response gate timeout");
                             if (request == 0 && firstDelay > 0) Thread.Sleep(firstDelay);
                             if (request > 0 && DelayMs > 0) Thread.Sleep(DelayMs);
-                            var body = Encoding.UTF8.GetBytes(Html ?? "<title>Lea navigation</title><p>Local test</p>");
-                            var header = Encoding.ASCII.GetBytes("HTTP/1.1 " + Status + " Test\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: " + body.Length + "\r\n" +
+                            var body = Body ?? Encoding.UTF8.GetBytes(Html ?? "<title>Lea navigation</title><p>Local test</p>");
+                            var header = Encoding.ASCII.GetBytes("HTTP/1.1 " + Status + " Test\r\nContent-Type: " + ContentType + "\r\nContent-Length: " + body.Length + "\r\n" +
                                 (SetCookie ? "Set-Cookie: hibernate=retained; Path=/\r\n" : "") + "Connection: close\r\n\r\n");
                             try
                             {

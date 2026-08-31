@@ -5,6 +5,9 @@ streaming reads, a picture-pass deadline, and retained bitmap accounting. It
 uses Lea's existing .NET Framework networking and GDI+ environment, not another
 browser or a new package dependency.
 
+Milestone 69 / runtime 169 adds bounded format/dimension preflight, worker-thread
+native decoding, and process-wide Lea image admission. See `IMAGE_PREFLIGHT.md`.
+
 ## Compact API
 
 ```csharp
@@ -124,11 +127,11 @@ packaged separately; the installed runtime 157 EXE and root DLLs are unchanged.
 
 ## Remaining Work
 
-The 32 MiB figure is not a total-process or peak-memory guarantee. GDI+ opens the
-source before dimensions are inspected and may allocate temporary decoder
-memory or spend CPU time before Lea can reject it. Native decode remains on
-the UI thread and cannot be interrupted by this async deadline. Codec preflight,
-decode isolation, and process-wide budgets remain important future work.
+The 32 MiB figure remains the per-view retained limit. Runtime 169 inspects
+dimensions before GDI+, runs native decode on a worker, and adds shared estimated
+image-byte admission; see `IMAGE_PREFLIGHT.md`. That estimate is not a complete
+process/private-byte guarantee, and in-process native work cannot be terminated.
+Killable helper-process codecs and measured whole-process budgets remain future work.
 
 Milestone 67 adds separate bounded HTTP/file document and linked-CSS input;
 see `INPUT_LIMITS.md`. Images do not yet share the document cookie jar,

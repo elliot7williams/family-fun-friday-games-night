@@ -32,13 +32,16 @@ namespace Lea.Win
         private readonly Queue<P> alertOrder = new Queue<P>();
         private readonly List<Bx> findMatches = new List<Bx>();
         private readonly Et ed;
+        private static readonly object picMemoryGate = new object();
+        private static long picMemoryTotal;
+        private static long picMemoryLimit = 128L * 1024 * 1024;
         private const int MaxKeyTargets = 256;
         private const int MaxKeyMapRegions = 4096;
         private const int MaxAccessTargets = 64;
         private const int PicLimit = 24;
         private const int PicBytes = 4 * 1024 * 1024;
-        private const int PicPixels = 8 * 1024 * 1024;
         private const long PicMemory = 32L * 1024 * 1024;
+        private const long PicMemoryMaximum = 512L * 1024 * 1024;
         private const int FontLimit = 32;
         private const int UploadFiles = 8;
         private const int UploadFileBytes = 4 * 1024 * 1024;
@@ -60,6 +63,8 @@ namespace Lea.Win
         private P picPage;
         private int picVersion;
         private long picSize;
+        private int picNative;
+        private int picNativeThread;
         private WebRequest picRequest;
         private Stream picStream;
         private CancellationTokenSource picBudget;
@@ -186,9 +191,18 @@ namespace Lea.Win
         public bool Busy { get { return loadOwner != null || e.Busy || picBusy; } }
         public bool Cn { get { return !closed && loadOwner == null && !e.Busy; } }
         public long Ib { get { return picSize; } }
+        public long Im
+        {
+            get { lock (picMemoryGate) return picMemoryLimit; }
+            set { lock (picMemoryGate) picMemoryLimit = Math.Max(PicMemory, Math.Min(PicMemoryMaximum, value)); }
+        }
+        public long It { get { lock (picMemoryGate) return picMemoryTotal; } }
+        public int Ip { get { return Pi.Pixels; } }
+        public int In { get { return Interlocked.CompareExchange(ref picNative, 0, 0); } }
         public int Hm { get { return e.Hm; } }
         public int Csm { get { return e.Csm; } }
         public int Ic { get { var count = 0; foreach (var item in pics.Values) if (item != null) count++; return count; } }
+        public int If { get { var count = 0; foreach (var item in pics.Values) if (item == null) count++; return count; } }
         public bool Ud { get { return closed || e.Ud(At); } }
         public int Sn { get { return At == null ? 0 : At.Sn; } }
         public int Cm { get { return e.Cm; } set { e.Cm = value; } }
@@ -4544,6 +4558,7 @@ namespace Lea.Win
                     if (pics.ContainsKey(key)) continue;
                     if (deadline.IsCompleted) { StorePic(key, null); continue; }
                     Image image = null;
+                    long reserved = 0;
                     try
                     {
                         byte[] data;
@@ -4551,20 +4566,43 @@ namespace Lea.Win
                         else data = await ReadPicture(source, deadline);
                         if (closed || picStop || page != At || version != picVersion) break;
                         if (data == null || data.Length == 0 || data.Length > PicBytes) throw new InvalidDataException("Image resource is empty or too large.");
-                        using (var stream = new MemoryStream(data))
-                        using (var loaded = Image.FromStream(stream))
+                        var inspection = Task.Factory.StartNew(() => Pi.Rd(data), CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
+                        var info = await PictureWait(inspection, deadline);
+                        var expected = info.P * 4;
+                        if (expected > PicMemory - picSize || !ReservePic(info.R))
+                            throw new InvalidDataException("Decoded image exceeds the bitmap budget.");
+                        reserved = info.R;
+                        var decoding = DecodePicture(data);
+                        try { image = await PictureWait(decoding, deadline); }
+                        catch
                         {
-                            var size = (long)loaded.Width * loaded.Height;
-                            if (loaded.Width > 8192 || loaded.Height > 8192 || size > PicPixels || size * 4 > PicMemory - picSize)
-                                throw new InvalidDataException("Decoded image exceeds the bitmap budget.");
-                            if (deadline.IsCompleted) throw new TimeoutException("Lea picture pass timed out.");
-                            image = new Bitmap(loaded);
+                            if (!decoding.IsCompleted)
+                            {
+                                var late = reserved;
+                                reserved = 0;
+                                var release = decoding.ContinueWith(completed => ReleasePic(late), CancellationToken.None,
+                                    TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                            }
+                            throw;
                         }
+                        var size = (long)image.Width * image.Height;
+                        var retained = size * 4;
+                        if (image.Width > Pi.Axis || image.Height > Pi.Axis || size > Pi.Pixels || retained > PicMemory - picSize ||
+                            retained > info.R || !CommitPic(ref reserved, retained))
+                            throw new InvalidDataException("Decoded image exceeds its preflight or bitmap budget.");
+                        if (deadline.IsCompleted) throw new TimeoutException("Lea picture pass timed out.");
                     }
-                    catch { if (image != null) image.Dispose(); image = null; }
+                    catch
+                    {
+                        if (image != null) image.Dispose();
+                        if (reserved > 0) ReleasePic(reserved);
+                        image = null;
+                        reserved = 0;
+                    }
                     if (closed || picStop || page != At || version != picVersion)
                     {
                         if (image != null) image.Dispose();
+                        if (reserved > 0) ReleasePic(reserved);
                         break;
                     }
                     StorePic(key, image);
@@ -4577,6 +4615,48 @@ namespace Lea.Win
                 picBusy = false;
                 picPage = null;
             }
+        }
+
+        private Task<Image> DecodePicture(byte[] data)
+        {
+            return Task.Factory.StartNew(() =>
+            {
+                Interlocked.Increment(ref picNative);
+                Interlocked.Exchange(ref picNativeThread, Thread.CurrentThread.ManagedThreadId);
+                using (var stream = new MemoryStream(data, false))
+                using (var loaded = Image.FromStream(stream, false, true))
+                    return (Image)new Bitmap(loaded);
+            }, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
+        }
+
+        private static bool ReservePic(long size)
+        {
+            if (size < 1) return false;
+            lock (picMemoryGate)
+            {
+                if (size > picMemoryLimit - picMemoryTotal) return false;
+                picMemoryTotal += size;
+                return true;
+            }
+        }
+
+        private static bool CommitPic(ref long reserved, long retained)
+        {
+            if (reserved < 1 || retained < 1) return false;
+            lock (picMemoryGate)
+            {
+                var change = retained - reserved;
+                if (change > 0 && change > picMemoryLimit - picMemoryTotal) return false;
+                picMemoryTotal += change;
+                reserved = retained;
+                return true;
+            }
+        }
+
+        private static void ReleasePic(long size)
+        {
+            if (size < 1) return;
+            lock (picMemoryGate) picMemoryTotal = Math.Max(0, picMemoryTotal - size);
         }
 
         private static IList<Uri> PicSources(P page)
@@ -4674,7 +4754,9 @@ namespace Lea.Win
             pics.Remove(key);
             if (image != null)
             {
-                picSize -= (long)image.Width * image.Height * 4;
+                var size = (long)image.Width * image.Height * 4;
+                picSize -= size;
+                ReleasePic(size);
                 image.Dispose();
             }
         }
@@ -7095,9 +7177,7 @@ namespace Lea.Win
                 CancelPics();
                 CloseChoices();
                 if (editFont != null) editFont.Dispose();
-                foreach (var image in pics.Values) if (image != null) image.Dispose();
-                pics.Clear();
-                picSize = 0;
+                foreach (var key in new List<string>(pics.Keys)) DropPic(key);
             }
             base.Dispose(disposing);
         }

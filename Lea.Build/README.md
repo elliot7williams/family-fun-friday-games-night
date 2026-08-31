@@ -96,7 +96,7 @@ suite. Source for the corresponding host edits is retained in
 `Lea.Firespider/Startup-host.patch`, with reproduction notes in
 `LeaForge/STARTUP_RELIABILITY.md`.
 
-`Test-FirespiderBoot.ps1 -Root <host-root>` adds forty-one real form-start cases,
+`Test-FirespiderBoot.ps1 -Root <host-root>` adds forty-two real form-start cases,
 including private startup, restore precedence, second windows, a gated slow
 HTTP response, and locked-session shutdown. It compiles `Lea.Firespider/Boot.cs`
 beside the test host and runs separate off-screen processes with a sixty-second
@@ -111,6 +111,9 @@ boundaries, POST responses, timeouts, and cancellation; see `INPUT_LIMITS.md`.
 `-Case cache` checks exact path/query resources, fragment-only reuse,
 case-different navigation, host request cleanup, and no MSHTML. See
 `LeaForge/CACHE_IDENTITY.md`.
+`-Case decode` checks over-axis PNG preflight, `Ip/Im/It/In/If`, retained form
+data, host cleanup, and no native decode or MSHTML. See
+`LeaForge/IMAGE_PREFLIGHT.md`.
 `-Case load-life` checks page-command successors, request ownership, queued CSS,
 busy address input, and cleanup. `Lea.Tests <root> --loads` adds deterministic
 view completion, callback, download, and image-handoff regressions. See

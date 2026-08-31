@@ -12,6 +12,9 @@ LeaForge is where we can grow the more full-featured browser.
 
 ## Current Features
 
+- bounded PNG/JPEG/GIF/BMP/ICO preflight, worker-thread native decoding, shared
+  `Ip/Im/It/In/If` image diagnostics, and cross-view memory admission; see
+  `IMAGE_PREFLIGHT.md`
 - exact URI-normalized cache identity with case-sensitive path/query resources,
   fragment sharing, validator isolation, and persistent recovery; see
   `CACHE_IDENTITY.md`

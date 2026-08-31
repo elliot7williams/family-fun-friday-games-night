@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **68**
+Post-1.0 hardening milestones completed: **69**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,26 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded PNG/JPEG/GIF/BMP/ICO structural preflight before GDI+, moved
+  validation/copying to a worker task, and added atomic process-wide Lea image
+  reservations. Compact `Ip/Im/It/In/If` aliases expose the per-image pixel cap,
+  configurable 128 MiB shared limit, current reserved/retained estimate, native
+  attempts, and active failure sentinels. The existing 32 MiB per-view `Ic/Ib`
+  budget remains. Hostile dimensions and bounded JPEG headers stop with zero
+  native admission; multi-view exhaustion recovers after disposal or Reload.
+  Full picture, core, isolated editor, compiled host, and benchmark suites pass,
+  with 69 probes across 66 fixtures, all 42 Boot cases in one combined run, and
+  six actual EXE launch scenarios. Those EXE windows stayed responsive; no
+  startup error dialog or MSHTML was observed, including deferred-tab resume.
+  Engine DLLs total 509.5 KiB with a 216.9 KiB GZip estimate; current medians are
+  489.765 ms for a clean diagnostic process, 3.285 ms for local fixture loads,
+  and 31.072 ms for layout/paint, not a speedup claim. Killable helper-process
+  codecs, measured whole-process memory, image cookie/cache sharing, and full
+  modern-web behavior remain open. Earlier intermittent fragment, recovery-cast,
+  and editor/focus observations remain unconfirmed. See `IMAGE_PREFLIGHT.md`.
+  Runtime 169 is isolated and source-backed-up; installed runtime 157 remains
+  unchanged. The scoped baseline stays at 100%, not full-web compatibility.
 
 - Preserved exact cache resource identity after URI canonicalization. Memory and
   persistent entries, SHA-256 filenames, stored-key validation, validators,
