@@ -14,7 +14,11 @@ Pictures now finish with bounded response reads and a shared `Tm` deadline.
 The `pictures` Boot case checks that a stalled image does not leave a loaded
 native page busy or retain host request bookkeeping. `Ic/Ib` report retained
 bitmap count and bytes. Use the matching view DLL; no new VB adapter patch is
-needed. The Boot suite now contains 39 cases. See `LeaForge/PICTURE_LIMITS.md`.
+needed. See `LeaForge/PICTURE_LIMITS.md`.
+
+The `input` case adds typed oversized-page failure, recovery, shared stylesheet
+deadlines, `Hm/Csm`, and request cleanup. The Boot suite now contains 40 cases.
+See `LeaForge/INPUT_LIMITS.md` for limits and remaining resource work.
 
 Navigation, Retry, and Reload now use request identity tracking. `V.Cn` rejects
 overlap before changing pending targets or preview CSS; an old completion cannot

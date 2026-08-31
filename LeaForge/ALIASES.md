@@ -24,6 +24,9 @@ read and quick to write.
 - Page values use one or two letters: `U`, `T`, `H`, `Q`, `D`, `N`, `Bs`, and `Ls`.
 - Page commands use one or two letters: `t`, `a`, `bg`, `fg`, `fs`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`.
 - New public aliases should be no more than three letters.
+- `E/V.Hm` reports the 4 MiB document-body ceiling; `E/V.Csm` reports the
+  256 KiB linked-stylesheet ceiling. GET/POST input and optional CSS share
+  bounded reads and a captured `Tm` I/O budget. See `INPUT_LIMITS.md`.
 - `E.Ss(page, key, css)` / `V.Ss(key, css)` set a bounded named native sheet;
   `Sd` removes it and `P/V/G.Sn` counts named sheets. Replacement preserves
   order, document identity, and retained fields. See `NATIVE_STYLESHEETS.md`.

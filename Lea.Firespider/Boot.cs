@@ -44,7 +44,7 @@ namespace Lea.Firespider
             var forms = new List<Form>();
             try
             {
-                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch", "domains", "domain-private", "split", "split-life", "split-limits", "edit", "paste", "policy", "policy-start", "failures", "failure-start", "hibernate", "hibernate-start", "style-start", "styles", "load-life", "pictures" }.Contains(mode), "unknown boot case: " + mode);
+                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch", "domains", "domain-private", "split", "split-life", "split-limits", "edit", "paste", "policy", "policy-start", "failures", "failure-start", "hibernate", "hibernate-start", "style-start", "styles", "load-life", "pictures", "input" }.Contains(mode), "unknown boot case: " + mode);
                 Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
                 Application.ThreadException += (sender, error) => UiErrors.Add(error.Exception);
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", session);
@@ -308,6 +308,7 @@ namespace Lea.Firespider
                 if (mode == "styles") CheckStyles(form, settings, lazySite);
                 if (mode == "load-life") CheckLoadLifecycle(form, settings);
                 if (mode == "pictures") CheckPictures(form, settings);
+                if (mode == "input") CheckInput(form, settings);
                 if (mode == "policy") CheckPolicy(form, settings, page, forms);
                 if (mode == "failures") CheckFailures(form, settings, page);
                 if (mode == "hibernate") CheckHibernation(form, settings, page);
@@ -384,6 +385,49 @@ namespace Lea.Firespider
                     if (lazySite != null) lazySite.Dispose();
                 }
             }
+        }
+
+        private static void CheckInput(Form form, ApplicationSettingsBase settings)
+        {
+            settings["bs"] = new StringCollection();
+            settings["cfEnabled"] = "";
+            var tabs = Member<TabControl>(form, "k");
+            var path = Path.Combine(Path.GetTempPath(), "lea-boot-input-" + Guid.NewGuid().ToString("N") + ".html");
+            V view = null;
+            try
+            {
+                File.WriteAllText(path, new string(' ', 4194305), new UTF8Encoding(false));
+                view = (V)Call(form, "qleaNew", new Uri(path).AbsoluteUri);
+                Wait(() => view.Cn && !view.Busy && view.Le != null, "oversized startup input failure");
+                Check(view.Le.K == "large" && !view.Le.Rt && view.At == null && view.Hm == 4194304 && view.Csm == 262144,
+                    "oversized startup page did not report its bounded input failure");
+                Call(form, "qleaTick", form, EventArgs.Empty);
+                Check(Member<IDictionary>(form, "qleaLoads").Count == 0 && Member<IDictionary>(form, "qleaPending").Count == 0 && UiErrors.Count == 0,
+                    "oversized startup input leaked ownership or raised a popup");
+                using (var sheet = new LoopbackSite())
+                {
+                    sheet.Release.Reset();
+                    File.WriteAllText(path, "<html><head><title>Lea Input Budget</title><link rel='stylesheet' href='" + sheet.Url + "one'><link rel='stylesheet' href='" + sheet.Url + "two'></head><body><input value='Retained input field'></body></html>", new UTF8Encoding(false));
+                    view.Tm = 300;
+                    Call(form, "q1", new Uri(path).AbsoluteUri);
+                    Wait(() => sheet.Hits == 1, "startup stylesheet request");
+                    WaitLea(tabs);
+                    Check(!sheet.Release.WaitOne(0) && sheet.Hits == 1 && view.Cn && !view.Busy && view.Le == null &&
+                        view.T == "Lea Input Budget" && view.At.Fs[0].V == "Retained input field", "stalled CSS prevented successful page completion or recovery");
+                    Call(form, "qleaTick", form, EventArgs.Empty);
+                    Check(Member<IDictionary>(form, "qleaLoads").Count == 0 && Member<IDictionary>(form, "qleaPending").Count == 0 && UiErrors.Count == 0,
+                        "stylesheet timeout leaked host request state");
+                    Call(form, "qleaClose", (TabPage)view.Parent);
+                }
+                Check(!Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module => module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)),
+                    "input recovery loaded MSHTML");
+            }
+            finally
+            {
+                if (view != null && !view.IsDisposed) Call(form, "qleaClose", (TabPage)view.Parent);
+                if (File.Exists(path)) File.Delete(path);
+            }
+            Console.WriteLine("PASS input: oversized page, Hm/Csm, typed failure, next-navigation recovery, shared CSS deadline, fields, request cleanup, and no MSHTML");
         }
 
         private static void CheckPictures(Form form, ApplicationSettingsBase settings)
@@ -1552,9 +1596,11 @@ namespace Lea.Firespider
                 Member<ComboBox>(split, "rightChoice").SelectedIndex = 0;
                 WaitSplit(split);
                 Check(!Member<V>(split, "rightBrowser").Pv, "new public context reused private renderer");
-                Member<Button>(split, "differenceButton").PerformClick();
+                var differenceButton = Member<Button>(split, "differenceButton");
+                differenceButton.PerformClick();
                 var comparison = Member<Form>(split, "differenceWindow");
-                Check(comparison != null && tabs.TabCount == 4, "comparison should stay outside browser sessions");
+                Check(comparison != null && tabs.TabCount == 4, "comparison should stay outside browser sessions; enabled=" +
+                    differenceButton.Enabled + "; comparison=" + (comparison != null) + "; tabs=" + tabs.TabCount);
                 Call(form, "qleaSaveSession");
                 var session = Environment.GetEnvironmentVariable("LEA_FIRESPIDER_SESSION");
                 Check(!File.ReadAllText(session).Contains(site.Url), "split/private source URL entered automatic session");
@@ -1676,6 +1722,7 @@ namespace Lea.Firespider
                 "split view still creates legacy browser controls");
             Wait(() => Member<V>(split, "leftBrowser").At != null && !Member<V>(split, "leftBrowser").Busy &&
                 Member<V>(split, "rightBrowser").At != null && !Member<V>(split, "rightBrowser").Busy, "split pane loads");
+            Wait(() => Member<Button>(split, "differenceButton").Enabled, "split form ready state");
         }
 
         private static void CheckBlocked(Action action, string name)

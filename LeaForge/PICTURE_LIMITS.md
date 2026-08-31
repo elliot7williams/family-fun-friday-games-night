@@ -130,8 +130,8 @@ memory or spend CPU time before Lea can reject it. Native decode remains on
 the UI thread and cannot be interrupted by this async deadline. Codec preflight,
 decode isolation, and process-wide budgets remain important future work.
 
-HTTP/file input buffering for documents and linked CSS is separate and still
-needs streaming limits. Images do not yet share the document cookie jar,
+Milestone 67 adds separate bounded HTTP/file document and linked-CSS input;
+see `INPUT_LIMITS.md`. Images do not yet share the document cookie jar,
 HTTP validator cache, or request diagnostics. This milestone does not add
 sandboxing, CORS enforcement, new codecs, or complete modern-web compatibility.
 Compression and short aliases alone do not establish faster execution.

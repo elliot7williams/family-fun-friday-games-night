@@ -31,6 +31,7 @@ namespace Lea.Tests
                 if (args.Length > 1 && args[1] == "--sheets") { CheckSheets(root); return 0; }
                 if (args.Length > 1 && args[1] == "--loads") { CheckLoadLifecycle(root); return 0; }
                 if (args.Length > 1 && args[1] == "--pics") { CheckPictureLimits(root); return 0; }
+                if (args.Length > 1 && args[1] == "--input") { CheckInputLimits(root); return 0; }
                 var coreOnly = args.Length > 1 && args[1] == "--core";
                 if (coreOnly)
                 {
@@ -44,6 +45,7 @@ namespace Lea.Tests
                 CheckSheets(root);
                 CheckLoadLifecycle(root);
                 CheckPictureLimits(root);
+                CheckInputLimits(root);
                 CheckNavigationGuard(root);
                 CheckLoadFailures(root);
                 CheckRetainedData(root);
@@ -6485,6 +6487,324 @@ namespace Lea.Tests
             Console.WriteLine("Lea disposal smoke passed: local/CSS/image cancellation, callback disposal, and navigation rejection.");
         }
 
+        private static void CheckInputLimits(string root)
+        {
+            var path = Path.Combine(Path.GetTempPath(), "lea-input-" + Guid.NewGuid().ToString("N") + ".html");
+            try
+            {
+                File.WriteAllText(path, new string(' ', 4 * 1024 * 1024 + 1), new UTF8Encoding(false));
+                foreach (var asynchronous in new[] { false, true })
+                {
+                    var engine = new E();
+                    var retained = engine.Go(Path.Combine(root, "LeaForge", "test-pages", "second.html"));
+                    var error = Fails(delegate
+                    {
+                        if (!asynchronous) engine.Go(path);
+                        else
+                        {
+                            var work = engine.GoA(path);
+                            WaitFor(() => work.IsCompleted, "oversized local input completion");
+                            work.GetAwaiter().GetResult();
+                        }
+                    }, "oversized local document " + asynchronous);
+                    Ok(error.K == "large" && !error.Rt, "document input limit has a nonretryable typed error");
+                    Ok(engine.At == retained && !engine.Busy && !engine.CanBk, "oversized input preserves the prior page and history");
+                }
+            }
+            finally { if (File.Exists(path)) File.Delete(path); }
+            CheckHttpInput(root);
+            CheckInputBoundaries();
+            Console.WriteLine("Lea input limit smoke passed.");
+        }
+
+        private static P InputPage(E engine, Uri url, bool asynchronous, bool post = false)
+        {
+            if (!asynchronous) return post ? engine.Po(url, "field=value") : engine.Go(url);
+            var work = post ? engine.PoA(url, "field=value") : engine.GoA(url);
+            WaitFor(() => work.IsCompleted, "bounded HTTP input completion");
+            return work.GetAwaiter().GetResult();
+        }
+
+        private static byte[] InputBody(int length, bool css = false)
+        {
+            var prefix = css ? "body{background-color:#135724}" : "<html><head><title>Bounded Input</title></head><body><input value='Retained input'></body></html>";
+            return Encoding.ASCII.GetBytes(prefix + new string(' ', Math.Max(0, length - prefix.Length)));
+        }
+
+        private static void CheckHttpInput(string root)
+        {
+            var seed = Path.Combine(root, "LeaForge", "test-pages", "second.html");
+            foreach (var asynchronous in new[] { false, true })
+            foreach (var post in new[] { false, true })
+            foreach (var mode in new[] { "declared", "overflow", "gzip", "deflate" })
+            using (var server = new InputServer(mode, InputBody(4 * 1024 * 1024 + 1)))
+            {
+                var engine = new E { Tm = 5000 };
+                var retained = engine.Go(seed);
+                var clock = System.Diagnostics.Stopwatch.StartNew();
+                var error = Fails(() => InputPage(engine, server.U, asynchronous, post), "oversized HTTP input " + mode);
+                Ok(error.K == "large" && !error.Rt && engine.At == retained && !engine.Busy && !engine.CanBk,
+                    "HTTP/POST size rejection preserves history and readiness " + mode);
+                if (mode == "declared" || mode == "overflow") Ok(clock.ElapsedMilliseconds < 2000, "input rejects before held response ends " + mode);
+            }
+            foreach (var asynchronous in new[] { false, true })
+            foreach (var mode in new[] { "plain", "gzip", "deflate" })
+            using (var server = new InputServer(mode, InputBody(4 * 1024 * 1024)))
+            {
+                var engine = new E();
+                var page = InputPage(engine, server.U, asynchronous);
+                Ok(page.T == "Bounded Input" && page.Sz == engine.Hm && engine.Cc == 0 && page.Fs[0].V == "Retained input",
+                    "exact maximum document accepted without exceeding cache limit " + mode);
+            }
+            foreach (var asynchronous in new[] { false, true })
+            foreach (var mode in new[] { "headers", "trickle" })
+            using (var server = new InputServer(mode, InputBody(1024)))
+            {
+                var engine = new E { Tm = 300 };
+                var retained = engine.Go(seed);
+                var clock = System.Diagnostics.Stopwatch.StartNew();
+                var error = Fails(() => InputPage(engine, server.U, asynchronous), "HTTP input deadline " + mode);
+                Ok(error.K == "timeout" && error.Rt && clock.ElapsedMilliseconds < 1200 && !engine.Busy && engine.At == retained,
+                    "one input deadline bounds headers and trickling bytes " + mode);
+            }
+            foreach (var asynchronous in new[] { false, true })
+            foreach (var mode in new[] { "declared", "overflow", "gzip", "deflate", "trickle" })
+            using (var server = new InputServer(mode, InputBody(mode == "trickle" ? 1024 : 256 * 1024 + 1, true), "text/css"))
+            {
+                var extra = mode == "trickle" ? "<link rel='stylesheet' href='/two'><link rel='stylesheet' href='/three'>" : "";
+                server.PageMarkup = "<html><head><title>Optional CSS</title><link rel='stylesheet' href='/one'>" + extra + "</head><body><input value='Retained CSS input'></body></html>";
+                var engine = new E { Tm = mode == "trickle" ? 300 : 5000 };
+                var clock = System.Diagnostics.Stopwatch.StartNew();
+                var page = InputPage(engine, server.Page, asynchronous);
+                Ok(page.T == "Optional CSS" && page.Fs[0].V == "Retained CSS input" && page.S.Bg != "#135724" && engine.Cc == 0 && !engine.Busy,
+                    "optional oversized/stalled CSS preserves the page " + mode);
+                if (mode == "trickle") Ok(server.Hits == 1 && clock.ElapsedMilliseconds < 1200, "linked sheets share the remaining input budget");
+            }
+            foreach (var asynchronous in new[] { false, true })
+            using (var server = new InputServer("plain", InputBody(256 * 1024 + 1, true), "text/css") { Cacheable = true })
+            {
+                var engine = new E();
+                InputPage(engine, server.U, asynchronous);
+                Eq(1, engine.Cc, "large text/css document can occupy the document cache");
+                server.PageMarkup = "<html><head><link rel='stylesheet' href='/input'></head><body>Cache boundary</body></html>";
+                var page = InputPage(engine, server.Page, asynchronous);
+                Ok(page.S.Bg != "#135724" && server.Hits == 1 && engine.Cc == 0, "cached document cannot bypass stylesheet byte limit");
+            }
+            using (var server = new InputServer("headers", InputBody(1024)))
+            using (var good = new InputServer("plain", InputBody(1024)))
+            {
+                var engine = new E();
+                var retained = engine.Go(seed);
+                var work = engine.GoA(server.U);
+                WaitFor(() => server.Hits == 1, "pending input request");
+                var blocked = false;
+                try { engine.Go(seed); }
+                catch (InvalidOperationException) { blocked = true; }
+                Ok(blocked && engine.Busy, "sync document cannot overlap async resource ownership");
+                engine.St();
+                WaitFor(() => work.IsCompleted, "stopped input request");
+                var error = Fails(() => work.GetAwaiter().GetResult(), "stopped resource request");
+                Ok(error.K == "cancel" && !error.Rt && !engine.Busy && engine.At == retained, "Stop is distinct from timeout and retains the page");
+                Eq("Bounded Input", InputPage(engine, good.U, true).T, "next request succeeds after cancellation");
+            }
+            var path = Path.Combine(Path.GetTempPath(), "lea-css-origin-" + Guid.NewGuid().ToString("N") + ".css");
+            var html = path + ".html";
+            try
+            {
+                File.WriteAllText(path, "body{background-color:#135724}", new UTF8Encoding(false));
+                var fileUrl = new Uri(path).AbsoluteUri;
+                var markup = "<html><head><link rel='stylesheet' href='" + fileUrl + "'></head><body>Origin test</body></html>";
+                File.WriteAllText(html, markup, new UTF8Encoding(false));
+                var local = new E().Go(html);
+                Eq("#135724", local.S.Bg, "local documents retain local linked CSS");
+                foreach (var useBase in new[] { false, true })
+                using (var server = new InputServer("plain", InputBody(1024, true), "text/css"))
+                {
+                    server.PageMarkup = useBase ? markup.Replace("<head>", "<head><base href='" + fileUrl + "'>").Replace("href='" + fileUrl + "'></head>", "href='" + Path.GetFileName(path) + "'></head>") : markup;
+                    var page = InputPage(new E(), server.Page, true);
+                    Ok(page.S.Bg != "#135724" && server.Hits == 0, "remote document/base cannot grant local CSS access");
+                }
+                var link = (N)Activator.CreateInstance(typeof(N), BindingFlags.NonPublic | BindingFlags.Instance, null, new object[] { "link" }, null);
+                link.A["href"] = "file://example.invalid/share/sheet.css";
+                var method = typeof(E).GetMethod("StyleUrl", BindingFlags.Static | BindingFlags.NonPublic);
+                Ok(!(bool)method.Invoke(null, new object[] { link, new Uri(html), new Uri(html), null }), "UNC stylesheet rejected before I/O");
+            }
+            finally { if (File.Exists(html)) File.Delete(html); if (File.Exists(path)) File.Delete(path); }
+        }
+
+        private static void CheckInputBoundaries()
+        {
+            var engine = new E { Tm = 100 };
+            var begin = typeof(E).GetMethod("BeginInput", BindingFlags.NonPublic | BindingFlags.Instance);
+            var end = typeof(E).GetMethod("EndInput", BindingFlags.NonPublic | BindingFlags.Instance);
+            var classify = typeof(E).GetMethod("InputError", BindingFlags.NonPublic | BindingFlags.Instance);
+            begin.Invoke(engine, null);
+            try
+            {
+                var budget = (CancellationTokenSource)typeof(E).GetField("inputBudget", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(engine);
+                WaitFor(() => budget.IsCancellationRequested, "input classification deadline");
+                Func<Exception, Er> kind = failure => (Er)classify.Invoke(engine, new object[] { failure, new Uri("http://example.invalid/") });
+                Eq("timeout", kind(new OperationCanceledException()).K, "expired input classifies cancellation as timeout");
+                Eq("decode", kind(new InvalidDataException()).K, "timeout does not hide a distinct decode error");
+                Ok(kind(new InvalidOperationException()) == null, "timeout does not hide an internal exception");
+                engine.St();
+                Eq("cancel", kind(new InvalidDataException()).K, "Stop takes precedence over a known loading failure");
+                Ok(kind(new InvalidOperationException()) == null, "Stop does not hide an internal exception");
+            }
+            finally { end.Invoke(engine, null); }
+            var type = typeof(E).Assembly.GetType("Lea.Engine.Ri", true);
+            foreach (var asynchronous in new[] { false, true })
+            foreach (var length in new[] { -1L, 4097L })
+            using (var stream = new CountedInput(new byte[8192]))
+            {
+                var method = type.GetMethod(asynchronous ? "BytesA" : "Bytes", BindingFlags.Static | BindingFlags.NonPublic);
+                var error = Fails(delegate
+                {
+                    object result;
+                    try { result = method.Invoke(null, new object[] { stream, new Uri("http://example.invalid/"), length, "", 4096, CancellationToken.None }); }
+                    catch (TargetInvocationException failure) { throw failure.InnerException; }
+                    if (asynchronous) ((Task<byte[]>)result).GetAwaiter().GetResult();
+                }, "bounded input stream");
+                Ok(error.K == "large" && stream.ReadBytes == (length < 0 ? 4097 : 0), "declared input reads zero bytes; unknown input reads only the overflow byte");
+            }
+            using (var view = new V())
+            {
+                Ok(view.Hm == 4 * 1024 * 1024 && view.Csm == 256 * 1024, "compact view input limits match engine limits");
+            }
+        }
+
+        private sealed class CountedInput : MemoryStream
+        {
+            public int ReadBytes;
+            public CountedInput(byte[] bytes) : base(bytes) { }
+            public override int Read(byte[] buffer, int offset, int count)
+            {
+                var value = base.Read(buffer, offset, count);
+                ReadBytes += value;
+                return value;
+            }
+        }
+
+        private sealed class InputServer : IDisposable
+        {
+            private readonly TcpListener listener = new TcpListener(IPAddress.Loopback, 0);
+            private readonly ManualResetEvent stop = new ManualResetEvent(false);
+            private readonly Thread worker;
+            private readonly byte[] body;
+            private readonly string mode;
+            private readonly string type;
+            private Exception error;
+            private int hits;
+            public volatile string PageMarkup;
+            public volatile bool Cacheable;
+            public readonly Uri U;
+            public Uri Page { get { return new Uri(U, "/page"); } }
+            public int Hits { get { return Interlocked.CompareExchange(ref hits, 0, 0); } }
+
+            public InputServer(string mode, byte[] data, string type = "text/html")
+            {
+                this.mode = mode;
+                this.type = type;
+                body = data;
+                if (mode == "gzip" || mode == "deflate")
+                    using (var output = new MemoryStream())
+                    {
+                        using (Stream zip = mode == "gzip" ? (Stream)new GZipStream(output, CompressionMode.Compress, true) : new DeflateStream(output, CompressionMode.Compress, true))
+                            zip.Write(data, 0, data.Length);
+                        body = output.ToArray();
+                    }
+                listener.Start();
+                U = new Uri("http://127.0.0.1:" + ((IPEndPoint)listener.LocalEndpoint).Port + "/input");
+                worker = new Thread(Serve) { IsBackground = true };
+                worker.Start();
+            }
+
+            private void Serve()
+            {
+                try
+                {
+                    while (!stop.WaitOne(0))
+                    using (var client = listener.AcceptTcpClient())
+                    using (var stream = client.GetStream())
+                    try
+                    {
+                        stream.ReadTimeout = 2000;
+                        stream.WriteTimeout = 2000;
+                        var header = new StringBuilder();
+                        var end = 0;
+                        while (header.Length < 16384 && end != 0x0d0a0d0a)
+                        {
+                            var value = stream.ReadByte();
+                            if (value < 0) throw new IOException("Incomplete input fixture request");
+                            header.Append((char)value);
+                            end = (end << 8) | value;
+                        }
+                        if (end != 0x0d0a0d0a) throw new InvalidDataException("Input fixture headers too large");
+                        var text = header.ToString();
+                        if (text.IndexOf("100-continue", StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            var interim = Encoding.ASCII.GetBytes("HTTP/1.1 100 Continue\r\n\r\n");
+                            stream.Write(interim, 0, interim.Length);
+                        }
+                        foreach (var line in text.Split(new[] { "\r\n" }, StringSplitOptions.None))
+                            if (line.StartsWith("Content-Length:", StringComparison.OrdinalIgnoreCase))
+                            {
+                                int length;
+                                if (!Int32.TryParse(line.Substring(15).Trim(), out length) || length < 0 || length > 10 * 1024 * 1024)
+                                    throw new InvalidDataException("Input fixture request length");
+                                var buffer = new byte[32768];
+                                while (length > 0)
+                                {
+                                    var count = stream.Read(buffer, 0, Math.Min(buffer.Length, length));
+                                    if (count == 0) throw new IOException("Input fixture request ended early");
+                                    length -= count;
+                                }
+                            }
+                        if (text.StartsWith("GET /page ", StringComparison.Ordinal) && PageMarkup != null)
+                        {
+                            var page = Encoding.UTF8.GetBytes(PageMarkup);
+                            Header(stream, page.Length, "text/html", "", false);
+                            stream.Write(page, 0, page.Length);
+                            continue;
+                        }
+                        Interlocked.Increment(ref hits);
+                        if (mode == "headers") { stop.WaitOne(); continue; }
+                        Header(stream, mode == "overflow" ? -1 : body.Length, type, mode == "gzip" || mode == "deflate" ? mode : "", Cacheable);
+                        if (mode == "declared") { stop.WaitOne(); continue; }
+                        if (mode == "trickle")
+                        {
+                            var at = 0;
+                            while (!stop.WaitOne(80) && at < body.Length) stream.WriteByte(body[at++]);
+                            continue;
+                        }
+                        for (var at = 0; at < body.Length; at += 32768)
+                            stream.Write(body, at, Math.Min(32768, body.Length - at));
+                        if (mode == "overflow") stop.WaitOne();
+                    }
+                    catch (IOException) { }
+                }
+                catch (Exception failure) { if (!stop.WaitOne(0)) error = failure; }
+            }
+
+            private static void Header(Stream stream, int length, string type, string encoding, bool cache)
+            {
+                var text = "HTTP/1.1 200 OK\r\nContent-Type: " + type + "; charset=utf-8\r\nCache-Control: " + (cache ? "max-age=60" : "no-store") + "\r\nConnection: close\r\n";
+                if (length >= 0) text += "Content-Length: " + length + "\r\n";
+                if (encoding.Length > 0) text += "Content-Encoding: " + encoding + "\r\n";
+                var bytes = Encoding.ASCII.GetBytes(text + "\r\n");
+                stream.Write(bytes, 0, bytes.Length);
+            }
+
+            public void Dispose()
+            {
+                stop.Set();
+                listener.Stop();
+                Ok(worker.Join(5000), "input fixture worker stopped");
+                stop.Dispose();
+                if (error != null) throw new InvalidOperationException("Input fixture failed", error);
+            }
+        }
+
         private static void CheckPictureLimits(string root)
         {
             using (var gate = new ManualResetEvent(false))
@@ -6797,6 +7117,9 @@ namespace Lea.Tests
         private static void CheckLoadLifecycle(string root)
         {
             var source = Path.Combine(root, "LeaForge", "test-pages", "load-lifecycle.html");
+            using (var headers = new ManualResetEvent(false))
+            using (var pictures = new ManualResetEvent(false))
+            using (var server = new CompressedServer { RequestGate = headers, ImageGate = pictures })
             using (var view = new V())
             {
                 var scheduler = new StepScheduler();
@@ -6808,13 +7131,17 @@ namespace Lea.Tests
                 try
                 {
                     SynchronizationContext.SetSynchronizationContext(null);
-                    var start = Task.Factory.StartNew(() => view.GoA(source), CancellationToken.None, TaskCreationOptions.None, scheduler);
+                    var start = Task.Factory.StartNew(() => view.GoA(new Uri(server.U, "?image-page=valid")), CancellationToken.None, TaskCreationOptions.None, scheduler);
                     scheduler.Step();
                     var work = start.Result;
+                    Ok(!work.IsCompleted, "gated load starts pending");
+                    headers.Set();
                     var sawCommitted = false;
                     var checkedOverlap = false;
-                    for (var step = 0; step < 40 && !work.IsCompleted; step++)
+                    var deadline = DateTime.UtcNow.AddSeconds(5);
+                    for (var step = 0; DateTime.UtcNow < deadline && !work.IsCompleted; step++)
                     {
+                        if (checkedOverlap && server.Hits >= 2) pictures.Set();
                         if (view.At != null) sawCommitted = true;
                         Ok((view.Busy && !view.Cn) || done == 1, "view stays busy until UI completion: step=" + step + "; page=" + (view.At != null) + "; done=" + done);
                         if (!checkedOverlap && view.At != null && done == 0)
@@ -6849,8 +7176,9 @@ namespace Lea.Tests
                         }
                         SynchronizationContext.SetSynchronizationContext(null);
                         scheduler.Step();
+                        Thread.Sleep(1);
                     }
-                    Ok(work.IsCompleted && sawCommitted && checkedOverlap, "controlled load reached UI completion: state=" + work.Status + "; page=" + (view.At != null) + "; done=" + done);
+                    Ok(work.IsCompleted && sawCommitted && checkedOverlap, "controlled load reached UI completion: state=" + work.Status + "; page=" + (view.At != null) + "; done=" + done + "; committed=" + sawCommitted + "; overlap=" + checkedOverlap);
                     work.GetAwaiter().GetResult();
                     Ok(!view.Busy && done == 1, "completed load reports ready exactly once");
                 }
@@ -6875,6 +7203,9 @@ namespace Lea.Tests
             var source = Path.Combine(root, "LeaForge", "test-pages", "load-lifecycle.html");
             foreach (var sync in new[] { false, true })
             foreach (var fail in new[] { false, true })
+            foreach (var held in new[] { false, true })
+            using (var gate = new ManualResetEvent(false))
+            using (var server = new CompressedServer { RequestGate = gate })
             using (var view = new V())
             {
                 var scheduler = new StepScheduler();
@@ -6883,18 +7214,20 @@ namespace Lea.Tests
                 var ready = 0;
                 var errors = 0;
                 var requests = 0;
+                var started = false;
                 view.Gr += delegate { requests++; };
                 view.Done += delegate
                 {
                     ready++;
-                    if (!fail && next == null)
+                    if (!fail && !started)
                     {
+                        started = true;
                         var engine = (E)typeof(V).GetField("e", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(view);
                         engine.Js(view.At, "go('second.html')");
-                        next = view.GoA(source);
+                        next = held ? view.GoA(server.U) : view.GoA(source);
                     }
                 };
-                view.Fe += delegate { errors++; Ok(!view.Busy, "failure callback follows view cleanup"); next = view.GoA(source); };
+                view.Fe += delegate { errors++; Ok(!view.Busy, "failure callback follows view cleanup"); started = true; next = held ? view.GoA(server.U) : view.GoA(source); };
                 try
                 {
                     SynchronizationContext.SetSynchronizationContext(null);
@@ -6903,17 +7236,23 @@ namespace Lea.Tests
                         Task.Factory.StartNew(() => view.GoA(input), CancellationToken.None, TaskCreationOptions.None, scheduler).Unwrap();
                     scheduler.Step();
                     var sawHandoff = false;
-                    for (var step = 0; step < 100 && (!first.IsCompleted || next == null || !next.IsCompleted); step++)
+                    var deadline = DateTime.UtcNow.AddSeconds(5);
+                    while (DateTime.UtcNow < deadline && (!first.IsCompleted || next == null || !next.IsCompleted))
                     {
                         if (first.IsCompleted && next != null && !next.IsCompleted && view.Busy)
                         {
                             sawHandoff = true;
                             Ok(view.Cursor == Cursors.WaitCursor && view.Le == null, "old completion does not clear the new load cursor or failure state");
+                            if (held) gate.Set();
                         }
                         SynchronizationContext.SetSynchronizationContext(null);
                         scheduler.Step();
+                        Thread.Sleep(1);
                     }
-                    Ok(first.IsCompleted && next != null && next.IsCompleted && sawHandoff, "callback navigation completes both owned operations");
+                    // Local completion may be inline; the gated variant must expose pending ownership.
+                    Ok(first.IsCompleted && next != null && next.IsCompleted && (!held || sawHandoff),
+                        "callback navigation completes both owned operations: sync=" + sync + "; fail=" + fail + "; held=" + held + "; first=" + first.Status +
+                        "; next=" + (next == null ? "none" : next.Status.ToString()) + "; handoff=" + sawHandoff + "; busy=" + view.Busy + "; ready=" + ready + "; errors=" + errors);
                     if (fail) Fails(() => first.GetAwaiter().GetResult(), "first callback request failure");
                     else first.GetAwaiter().GetResult();
                     next.GetAwaiter().GetResult();

@@ -43,8 +43,9 @@ Dg/Dcl  diagnostics/clear request activity
    (An eight-entry LRU decoded-payload cache with a 2 MB per-page ceiling is active.)
    Native pictures now have 4 MiB streaming body limits, a shared pass deadline,
    and a 32 MiB retained bitmap budget with compact `V.Ic/Ib` counters. These
-   do not bound native decoder peaks or document/CSS input buffering; see
-   `PICTURE_LIMITS.md` for the remaining resource work.
+   do not bound native decoder peaks. Document/POST bodies and linked CSS now
+   have 4 MiB/256 KiB wire/decoded bounds and shared I/O budgets; see
+   `PICTURE_LIMITS.md` and `INPUT_LIMITS.md` for remaining resource work.
 5. Add cancellation and timeouts so a slow page cannot freeze the browser.
    (`GoA`, `RlA`, and `St` are now available in the compatibility engine.)
 
@@ -337,9 +338,10 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Prioritize streaming byte and decompression limits for document and linked-CSS
-input, including cancellation and local-file origin checks. Then investigate
-image decoder preflight/isolation and process-wide memory accounting. Keep the
+Document/linked-CSS streaming limits, decompression bounds, cancellation, and
+file-origin checks are implemented; see `INPUT_LIMITS.md` for verification.
+Next investigate image decoder preflight/isolation, HTTP cache key correctness,
+and process-wide memory accounting. Keep the
 short public API, verify boundary behavior with hostile local fixtures, and
 measure performance rather than treating compression as an execution speedup.
 

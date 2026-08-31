@@ -16,6 +16,7 @@ namespace Lea.Engine
     public sealed class E
     {
         private const int MaxCachePage = 2 * 1024 * 1024;
+        private const int MaxHtml = 4 * 1024 * 1024;
         private const int MaxCss = 256 * 1024;
         private const int MaxStyleLinks = 8;
         private const int MaxCssRules = 1024;
@@ -118,6 +119,8 @@ namespace Lea.Engine
         private bool je = true;
         private Stream download;
         private bool stopped;
+        private CancellationTokenSource inputBudget;
+        private Task inputEnd;
 
         public P At { get { return Current(); } }
         public bool CanBk { get { return at > 0; } }
@@ -160,6 +163,8 @@ namespace Lea.Engine
         public int Kc { get { return web.Kc; } }
         public int Km { get { return W.CookieMax; } }
         public long Dm { get { return MaxDownload; } }
+        public int Hm { get { return MaxHtml; } }
+        public int Csm { get { return MaxCss; } }
         public int Tm
         {
             get { return web.Tm; }
@@ -851,6 +856,7 @@ namespace Lea.Engine
         {
             if (!busy) return;
             stopped = true;
+            if (inputBudget != null) inputBudget.Cancel();
             web.CancelAsync();
             var active = download;
             if (active != null)
@@ -1026,37 +1032,36 @@ namespace Lea.Engine
 
         private P Read(Uri url, bool fresh = false)
         {
+            BeginInput();
             try
             {
                 return RequestedFragment(Parse(Fetch(url, fresh)), url);
             }
             catch (Exception error)
             {
-                var typed = LoadError(error, url);
+                var typed = InputError(error, url);
                 if (typed == null) throw;
                 throw typed;
             }
+            finally { EndInput(); }
         }
 
         private async Task<P> ReadA(Uri url, bool fresh = false)
         {
-            if (busy) throw new InvalidOperationException("Lea is already loading a page.");
-            busy = true;
-            stopped = false;
+            BeginInput();
             try
             {
                 return RequestedFragment(await ParseA(await FetchA(url, fresh)), url);
             }
             catch (Exception error)
             {
-                var typed = LoadError(error, url);
+                var typed = InputError(error, url);
                 if (typed == null) throw;
                 throw typed;
             }
             finally
             {
-                stopped = false;
-                busy = false;
+                EndInput();
             }
         }
 
@@ -1065,23 +1070,22 @@ namespace Lea.Engine
             if (url.Scheme != Uri.UriSchemeHttp && url.Scheme != Uri.UriSchemeHttps)
                 throw new Er("url", url, 0, false, "Lea POST requires an HTTP or HTTPS address.", null);
             if (data != null && data.Length > MaxPost) throw new ArgumentException("Lea request body is too large.", "data");
+            BeginInput();
             try
             {
                 DropCache(url);
-                web.Headers[HttpRequestHeader.ContentType] = BodyType(type);
-                var bytes = web.UploadData(url, "POST", data ?? new byte[0]);
-                var reply = ReadWeb(url, bytes);
+                var reply = web.ReadResource(url, data ?? new byte[0], BodyType(type), MaxHtml, cs, inputBudget.Token);
                 DropCache(reply.U);
                 var load = Track("POST", new Ld(reply, false), "net");
                 return Parse(load);
             }
             catch (Exception error)
             {
-                var typed = LoadError(error, url);
+                var typed = InputError(error, url);
                 if (typed == null) throw;
                 throw typed;
             }
-            finally { web.Headers.Remove(HttpRequestHeader.ContentType); }
+            finally { EndInput(); }
         }
 
         private async Task<P> PostA(Uri url, byte[] data, string type)
@@ -1089,31 +1093,25 @@ namespace Lea.Engine
             if (url.Scheme != Uri.UriSchemeHttp && url.Scheme != Uri.UriSchemeHttps)
                 throw new Er("url", url, 0, false, "Lea POST requires an HTTP or HTTPS address.", null);
             if (data != null && data.Length > MaxPost) throw new ArgumentException("Lea request body is too large.", "data");
-            if (busy) throw new InvalidOperationException("Lea is already loading a page.");
-            busy = true;
-            stopped = false;
+            BeginInput();
             try
             {
                 DropCache(url);
-                web.Headers[HttpRequestHeader.ContentType] = BodyType(type);
-                var bytes = await NetA(web.UploadDataTaskAsync(url, "POST", data ?? new byte[0]));
+                var reply = await InputWait(web.ReadResourceA(url, data ?? new byte[0], BodyType(type), MaxHtml, cs, inputBudget.Token));
                 CheckStop();
-                var reply = ReadWeb(url, bytes);
                 DropCache(reply.U);
                 var load = Track("POST", new Ld(reply, false), "net");
                 return await ParseA(load);
             }
             catch (Exception error)
             {
-                var typed = LoadError(error, url);
+                var typed = InputError(error, url);
                 if (typed == null) throw;
                 throw typed;
             }
             finally
             {
-                stopped = false;
-                busy = false;
-                web.Headers.Remove(HttpRequestHeader.ContentType);
+                EndInput();
             }
         }
 
@@ -1126,28 +1124,32 @@ namespace Lea.Engine
             return value;
         }
 
-        private Ld Fetch(Uri url, bool fresh = false)
+        private Ld Fetch(Uri url, bool fresh = false, int limit = MaxHtml)
         {
             Cr reply;
             Cr stale = null;
             var diskHit = false;
-            if (!url.IsFile && !fresh && GetCache(url, out reply, out stale, out diskHit)) return Track("GET", new Ld(reply, true), diskHit ? "disk" : "cache");
-            if (url.IsFile) return Track("GET", new Ld(ReadFile(url), false), "file");
+            if (!url.IsFile && !fresh && GetCache(url, out reply, out stale, out diskHit))
+            {
+                Ri.Check(url, reply.Sz, limit);
+                return Track("GET", new Ld(reply, true), diskHit ? "disk" : "cache");
+            }
+            if (url.IsFile) return Track("GET", new Ld(ReadFile(url, limit, inputBudget.Token), false), "file");
+            if (stale != null) Ri.Check(url, stale.Sz, limit);
 
             if (fresh) stale = null;
             var staleDisk = stale != null && diskHit;
             web.Va(stale == null ? "" : stale.Et, stale == null ? "" : stale.Lm);
-            byte[] bytes;
             try
             {
-                try { bytes = web.DownloadData(url); }
+                var notModified = false;
+                try { reply = web.ReadResource(url, null, null, limit, cs, inputBudget.Token); }
                 catch (WebException error)
                 {
                     if (stale == null || !web.Nm(error)) throw;
-                    bytes = new byte[0];
+                    notModified = true;
+                    reply = Revalidated(stale);
                 }
-                var notModified = web.St == 304 && stale != null;
-                reply = notModified ? Revalidated(stale) : ReadWeb(url, bytes);
                 PutCache(url, reply);
                 if (notModified) ch++;
                 return Track("GET", new Ld(reply, notModified), notModified ? staleDisk ? "disk304" : "304" : "net");
@@ -1155,40 +1157,89 @@ namespace Lea.Engine
             finally { web.Va("", ""); }
         }
 
-        private async Task<Ld> FetchA(Uri url, bool fresh = false)
+        private async Task<Ld> FetchA(Uri url, bool fresh = false, int limit = MaxHtml)
         {
             CheckStop();
             Cr reply;
             Cr stale = null;
             var diskHit = false;
-            if (!url.IsFile && !fresh && GetCache(url, out reply, out stale, out diskHit)) return Track("GET", new Ld(reply, true), diskHit ? "disk" : "cache");
+            if (!url.IsFile && !fresh && GetCache(url, out reply, out stale, out diskHit))
+            {
+                Ri.Check(url, reply.Sz, limit);
+                return Track("GET", new Ld(reply, true), diskHit ? "disk" : "cache");
+            }
             if (url.IsFile)
             {
-                var local = await Task.Factory.StartNew(delegate { return ReadFile(url); });
+                var token = inputBudget.Token;
+                var local = await InputWait(Task.Factory.StartNew(() => ReadFile(url, limit, token), CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default));
                 CheckStop();
                 return Track("GET", new Ld(local, false), "file");
             }
+            if (stale != null) Ri.Check(url, stale.Sz, limit);
 
             if (fresh) stale = null;
             var staleDisk = stale != null && diskHit;
             web.Va(stale == null ? "" : stale.Et, stale == null ? "" : stale.Lm);
-            byte[] bytes;
             try
             {
-                try { bytes = await NetA(web.DownloadDataTaskAsync(url)); }
+                var notModified = false;
+                try { reply = await InputWait(web.ReadResourceA(url, null, null, limit, cs, inputBudget.Token)); }
                 catch (WebException error)
                 {
                     if (stale == null || !web.Nm(error)) throw;
-                    bytes = new byte[0];
+                    notModified = true;
+                    reply = Revalidated(stale);
                 }
                 CheckStop();
-                var notModified = web.St == 304 && stale != null;
-                reply = notModified ? Revalidated(stale) : ReadWeb(url, bytes);
                 PutCache(url, reply);
                 if (notModified) ch++;
                 return Track("GET", new Ld(reply, notModified), notModified ? staleDisk ? "disk304" : "304" : "net");
             }
             finally { web.Va("", ""); }
+        }
+
+        private void BeginInput()
+        {
+            if (busy) throw new InvalidOperationException("Lea is already loading a page.");
+            busy = true;
+            stopped = false;
+            inputBudget = new CancellationTokenSource(Tm);
+            inputEnd = Task.Delay(Timeout.Infinite, inputBudget.Token);
+        }
+
+        private void EndInput()
+        {
+            inputBudget.Cancel();
+            inputBudget.Dispose();
+            inputBudget = null;
+            inputEnd = null;
+            stopped = false;
+            busy = false;
+        }
+
+        private async Task<T> InputWait<T>(Task<T> work)
+        {
+            if (await Task.WhenAny(work, inputEnd) != work && !work.IsCompleted)
+            {
+                Observe(work);
+                throw new OperationCanceledException("Lea input wait ended.");
+            }
+            return await work;
+        }
+
+        private Er InputError(Exception error, Uri url)
+        {
+            var webError = error as WebException;
+            var typed = LoadError(error, url);
+            var cancelled = error is OperationCanceledException || error is ObjectDisposedException ||
+                error is IOException && !(error is InvalidDataException) ||
+                webError != null && (webError.Status == WebExceptionStatus.RequestCanceled || webError.Status == WebExceptionStatus.Timeout);
+            if (stopped && typed != null || cancelled && (stopped || inputBudget != null && inputBudget.IsCancellationRequested))
+            {
+                return new Er(stopped ? "cancel" : "timeout", url, 0, !stopped,
+                    stopped ? "Lea stopped loading." : "Lea input loading timed out.", error);
+            }
+            return typed;
         }
 
         private async Task<T> NetA<T>(Task<T> work, Action cancel = null)
@@ -1216,14 +1267,18 @@ namespace Lea.Engine
             if (work == null) return;
             work.ContinueWith(delegate(Task completed)
             {
-                var ignored = completed.Exception;
+                foreach (var error in completed.Exception.Flatten().InnerExceptions)
+                {
+                    var webError = error as WebException;
+                    if (webError != null && webError.Response != null) webError.Response.Close();
+                }
             }, CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
         }
 
         private P Parse(Ld load)
         {
             var page = Page(load);
-            Complete(page, Css(page.D, page.Bu, StyleSheets(page.D, page.Bu)));
+            Complete(page, Css(page.D, page.Bu, StyleSheets(page.D, page.Bu, page.U)));
             return page;
         }
 
@@ -1231,7 +1286,7 @@ namespace Lea.Engine
         {
             CheckStop();
             var page = Page(load);
-            var sheets = await StyleSheetsA(page.D, page.Bu);
+            var sheets = await StyleSheetsA(page.D, page.Bu, page.U);
             CheckStop();
             Complete(page, Css(page.D, page.Bu, sheets));
             return page;
@@ -2207,56 +2262,58 @@ namespace Lea.Engine
             foreach (var child in node.C) AddText(child, text);
         }
 
-        private Dictionary<N, Sc> StyleSheets(N root, Uri baseUrl)
+        private Dictionary<N, Sc> StyleSheets(N root, Uri baseUrl, Uri origin)
         {
             var sheets = new Dictionary<N, Sc>();
             var count = 0;
             foreach (var link in StyleLinks(root))
             {
+                CheckStop();
+                if (inputBudget.IsCancellationRequested) break;
                 Uri url;
-                if (!StyleUrl(link, baseUrl, out url)) continue;
+                if (!StyleUrl(link, baseUrl, origin, out url)) continue;
                 if (count++ == MaxStyleLinks) break;
                 try
                 {
-                    var load = Fetch(url);
+                    var load = Fetch(url, false, MaxCss);
                     if (!UsableCss(load.R)) { DropCache(url); continue; }
                     sheets[link] = new Sc(load.R.H, load.R.U);
                 }
-                catch (WebException) { }
-                catch (IOException) { }
-                catch (UnauthorizedAccessException) { }
-                catch (NotSupportedException) { }
-                catch (ArgumentException) { }
+                catch (Exception error) { if (!SkipSheet(error, url)) throw; }
             }
             return sheets;
         }
 
-        private async Task<Dictionary<N, Sc>> StyleSheetsA(N root, Uri baseUrl)
+        private async Task<Dictionary<N, Sc>> StyleSheetsA(N root, Uri baseUrl, Uri origin)
         {
             var sheets = new Dictionary<N, Sc>();
             var count = 0;
             foreach (var link in StyleLinks(root))
             {
+                CheckStop();
+                if (inputBudget.IsCancellationRequested) break;
                 Uri url;
-                if (!StyleUrl(link, baseUrl, out url)) continue;
+                if (!StyleUrl(link, baseUrl, origin, out url)) continue;
                 if (count++ == MaxStyleLinks) break;
                 try
                 {
-                    var load = await FetchA(url);
+                    var load = await FetchA(url, false, MaxCss);
                     if (!UsableCss(load.R)) { DropCache(url); continue; }
                     sheets[link] = new Sc(load.R.H, load.R.U);
                 }
-                catch (WebException error)
-                {
-                    if (error.Status == WebExceptionStatus.RequestCanceled) throw;
-                }
-                catch (OperationCanceledException) { throw; }
-                catch (IOException) { }
-                catch (UnauthorizedAccessException) { }
-                catch (NotSupportedException) { }
-                catch (ArgumentException) { }
+                catch (Exception error) { if (!SkipSheet(error, url)) throw; }
             }
             return sheets;
+        }
+
+        private bool SkipSheet(Exception error, Uri url)
+        {
+            var typed = InputError(error, url);
+            if (typed == null && !(error is ArgumentException)) return false;
+            if (typed != null && typed.K == "cancel") throw typed;
+            DropCache(url);
+            Trace("GET", url, typed == null ? 0 : typed.St, "text/css", 0, typed == null ? "url" : typed.K);
+            return true;
         }
 
         private static List<N> StyleLinks(N root)
@@ -2276,11 +2333,12 @@ namespace Lea.Engine
             return links;
         }
 
-        private static bool StyleUrl(N link, Uri baseUrl, out Uri url)
+        private static bool StyleUrl(N link, Uri baseUrl, Uri origin, out Uri url)
         {
             url = null;
             var href = link.Av("href");
             if (href.Length == 0 || !Uri.TryCreate(baseUrl, href, out url)) return false;
+            if (url.IsFile && (url.IsUnc || origin == null || !origin.IsFile)) return false;
             return url.IsFile || url.Scheme == Uri.UriSchemeHttp || url.Scheme == Uri.UriSchemeHttps;
         }
 
@@ -7937,9 +7995,13 @@ namespace Lea.Engine
                 var response = webError.Response as HttpWebResponse;
                 if (response != null)
                 {
-                    var status = (int)response.StatusCode;
-                    var retryable = status == 408 || status == 429 || status >= 500;
-                    return new Er("http", response.ResponseUri ?? url, status, retryable, "Lea received HTTP " + status + ErrorAt(response.ResponseUri ?? url) + ".", error);
+                    try
+                    {
+                        var status = (int)response.StatusCode;
+                        var retryable = status == 408 || status == 429 || status >= 500;
+                        return new Er("http", response.ResponseUri ?? url, status, retryable, "Lea received HTTP " + status + ErrorAt(response.ResponseUri ?? url) + ".", error);
+                    }
+                    finally { response.Close(); }
                 }
                 if (webError.Status == WebExceptionStatus.Timeout)
                     return new Er("timeout", url, 0, true, "Lea timed out while loading" + ErrorAt(url) + ".", error);
@@ -8095,30 +8157,36 @@ namespace Lea.Engine
             return current.Fragment.Length > 0 || target.Fragment.Length > 0 || target.OriginalString.EndsWith("#", StringComparison.Ordinal);
         }
 
-        private static Cr ReadFile(Uri url)
+        private static Cr ReadFile(Uri url, int limit, CancellationToken token)
         {
+            token.ThrowIfCancellationRequested();
             var path = Local(url);
-            var bytes = File.ReadAllBytes(path);
+            byte[] bytes;
+            using (var input = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 32768))
+                bytes = Ri.Bytes(input, url, input.Length, "", limit, token);
             string charset;
             var html = Decode(bytes, "", out charset);
             return new Cr(url, html, 200, FileType(path), "", charset, bytes.Length, true, DateTime.MinValue, "", "");
         }
 
-        private Cr ReadWeb(Uri url, byte[] bytes)
+        private static Cr ReadWeb(Uri url, byte[] bytes, HttpWebResponse response, int cacheSeconds)
         {
-            var body = Expand(bytes, web.Ce);
             string charset;
-            var html = Decode(body, Charset(web.Ct), out charset);
-            return new Cr(web.U ?? url, html, web.St == 0 ? 200 : web.St, MediaType(web.Ct), web.Ce, charset, body.Length, web.Ns, FreshUntil(web.Cc, web.Ex), web.Et, web.Lm);
+            var headers = response.Headers;
+            var control = headers[HttpResponseHeader.CacheControl] ?? "";
+            var html = Decode(bytes, Charset(response.ContentType), out charset);
+            return new Cr(response.ResponseUri ?? url, html, (int)response.StatusCode, MediaType(response.ContentType), headers[HttpResponseHeader.ContentEncoding], charset, bytes.Length,
+                control.IndexOf("no-store", StringComparison.OrdinalIgnoreCase) >= 0,
+                FreshUntil(control, headers[HttpResponseHeader.Expires], cacheSeconds), headers[HttpResponseHeader.ETag], headers[HttpResponseHeader.LastModified]);
         }
 
         private Cr Revalidated(Cr stale)
         {
             return new Cr(web.U ?? stale.U, stale.H, stale.St, stale.Ct, stale.Ce, stale.Ch, stale.Sz, web.Ns,
-                FreshUntil(web.Cc, web.Ex), web.Et.Length == 0 ? stale.Et : web.Et, web.Lm.Length == 0 ? stale.Lm : web.Lm);
+                FreshUntil(web.Cc, web.Ex, cs), web.Et.Length == 0 ? stale.Et : web.Et, web.Lm.Length == 0 ? stale.Lm : web.Lm);
         }
 
-        private DateTime FreshUntil(string cacheControl, string expires)
+        private static DateTime FreshUntil(string cacheControl, string expires, int secondsDefault)
         {
             var control = cacheControl ?? "";
             if (Regex.IsMatch(control, "(?:^|,)\\s*(?:no-store|no-cache)\\b", RegexOptions.IgnoreCase)) return DateTime.MinValue;
@@ -8128,20 +8196,7 @@ namespace Lea.Engine
                 return DateTime.UtcNow.AddSeconds(Math.Min(604800L, seconds));
             DateTimeOffset expiry;
             if (DateTimeOffset.TryParse(expires ?? "", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out expiry)) return expiry.UtcDateTime;
-            return DateTime.UtcNow.AddSeconds(cs);
-        }
-
-        private static byte[] Expand(byte[] bytes, string contentEncoding)
-        {
-            var encoding = (contentEncoding ?? "").Trim().ToLowerInvariant();
-            if (encoding != "gzip" && encoding != "deflate") return bytes;
-            using (var input = new MemoryStream(bytes))
-            using (Stream zip = encoding == "gzip" ? (Stream)new GZipStream(input, CompressionMode.Decompress) : new DeflateStream(input, CompressionMode.Decompress))
-            using (var output = new MemoryStream())
-            {
-                zip.CopyTo(output);
-                return output.ToArray();
-            }
+            return DateTime.UtcNow.AddSeconds(secondsDefault);
         }
 
         private static string FileType(string path)
@@ -8580,8 +8635,57 @@ namespace Lea.Engine
             {
                 var response = error == null ? null : error.Response as HttpWebResponse;
                 if (response == null || response.StatusCode != HttpStatusCode.NotModified) return false;
-                Capture(response);
-                return true;
+                try { Capture(response); return true; }
+                finally { response.Close(); }
+            }
+
+            public Cr ReadResource(Uri url, byte[] data, string type, int limit, int cacheSeconds, CancellationToken token)
+            {
+                token.ThrowIfCancellationRequested();
+                var request = ResourceRequest(url, data, type);
+                using (token.Register(request.Abort))
+                {
+                    if (data != null)
+                        using (var output = request.GetRequestStream()) output.Write(data, 0, data.Length);
+                    using (var response = (HttpWebResponse)request.GetResponse())
+                    using (var source = response.GetResponseStream())
+                    {
+                        var bytes = Ri.Bytes(source, response.ResponseUri ?? url, response.ContentLength, response.Headers[HttpResponseHeader.ContentEncoding], limit, token);
+                        return ReadWeb(url, bytes, response, cacheSeconds);
+                    }
+                }
+            }
+
+            public async Task<Cr> ReadResourceA(Uri url, byte[] data, string type, int limit, int cacheSeconds, CancellationToken token)
+            {
+                token.ThrowIfCancellationRequested();
+                var request = ResourceRequest(url, data, type);
+                using (token.Register(request.Abort))
+                {
+                    if (data != null)
+                        using (var output = await request.GetRequestStreamAsync().ConfigureAwait(false))
+                            await output.WriteAsync(data, 0, data.Length, token).ConfigureAwait(false);
+                    using (var response = (HttpWebResponse)await request.GetResponseAsync().ConfigureAwait(false))
+                    using (var source = response.GetResponseStream())
+                    {
+                        var bytes = await Ri.BytesA(source, response.ResponseUri ?? url, response.ContentLength, response.Headers[HttpResponseHeader.ContentEncoding], limit, token).ConfigureAwait(false);
+                        return ReadWeb(url, bytes, response, cacheSeconds);
+                    }
+                }
+            }
+
+            private HttpWebRequest ResourceRequest(Uri url, byte[] data, string type)
+            {
+                if (url.Scheme != Uri.UriSchemeHttp && url.Scheme != Uri.UriSchemeHttps)
+                    throw new NotSupportedException("Lea document requests require HTTP or HTTPS.");
+                var request = (HttpWebRequest)GetWebRequest(url);
+                if (data != null)
+                {
+                    request.Method = "POST";
+                    request.ContentType = type;
+                    request.ContentLength = data.Length;
+                }
+                return request;
             }
 
             protected override WebRequest GetWebRequest(Uri address)

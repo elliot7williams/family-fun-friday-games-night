@@ -107,7 +107,7 @@ namespace Lea.Bench
             var names = new[]
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
-                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "events-vars.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
+                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "input-loading.html", "events-vars.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -1906,6 +1906,22 @@ namespace Lea.Bench
                     Need(view.Ic == 0 && view.Ib == 0, "unreferenced image memory retained");
                 }
                 return "Ic/Ib bitmap count/bytes, shared embedded source, retained fields, native paint, and page replacement; streaming/deadline/cache-limit regressions run in Lea.Tests --pics";
+            });
+            AddProbe(probes, "Bounded document input", delegate
+            {
+                using (var view = NewView())
+                {
+                    var work = view.GoA(Path.Combine(folder, "input-loading.html"));
+                    var end = DateTime.UtcNow.AddSeconds(10);
+                    while (!work.IsCompleted && DateTime.UtcNow < end) { Application.DoEvents(); Thread.Sleep(2); }
+                    Need(work.IsCompleted, "input fixture timeout");
+                    work.GetAwaiter().GetResult();
+                    using (var image = Draw(view)) { }
+                    Need(view.Hm == 4194304 && view.Csm == 262144 && view.Cn && !view.Busy && view.Le == null,
+                        "input limit aliases or completion changed");
+                    Need(view.At.S.Bg == "#f4f6f8" && view.At.Fs[0].V == "Retained bounded input", "linked CSS or retained input changed");
+                }
+                return "Hm/Csm document/sheet ceilings, local asynchronous input, linked CSS, native paint, and retained fields; wire/decoded/deadline/origin regressions run in Lea.Tests --input";
             });
             AddProbe(probes, "Bounded Lea scripting", delegate
             {

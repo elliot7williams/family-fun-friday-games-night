@@ -186,6 +186,8 @@ namespace Lea.Win
         public bool Busy { get { return loadOwner != null || e.Busy || picBusy; } }
         public bool Cn { get { return !closed && loadOwner == null && !e.Busy; } }
         public long Ib { get { return picSize; } }
+        public int Hm { get { return e.Hm; } }
+        public int Csm { get { return e.Csm; } }
         public int Ic { get { var count = 0; foreach (var item in pics.Values) if (item != null) count++; return count; } }
         public bool Ud { get { return closed || e.Ud(At); } }
         public int Sn { get { return At == null ? 0 : At.Sn; } }

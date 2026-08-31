@@ -12,6 +12,8 @@ LeaForge is where we can grow the more full-featured browser.
 
 ## Current Features
 
+- bounded document/POST and linked-CSS input, gzip/deflate expansion limits,
+  shared I/O budgets, local-sheet origins, and `Hm/Csm`; see `INPUT_LIMITS.md`
 - bounded streaming picture reads, one pass deadline, gzip/deflate images,
   retained bitmap budgets, failed-image retry, and `Ic/Ib`; see `PICTURE_LIMITS.md`
 - compact `Cn` navigation admission, owned async view completion, coordinated

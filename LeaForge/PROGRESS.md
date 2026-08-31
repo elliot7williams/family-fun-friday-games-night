@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **66**
+Post-1.0 hardening milestones completed: **67**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,28 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded streaming reads for local/HTTP documents, GET and POST responses,
+  and linked stylesheets. Compact `Hm/Csm` aliases expose the 4 MiB document and
+  256 KiB CSS ceilings. Known-length, unknown-length, gzip, and deflate input is
+  checked on both wire and decoded bytes; one captured `Tm` budget covers the
+  document and all optional sheets. Stop, overlap, cache reuse, local-file/UNC
+  origins, typed large/timeout/decode/cancel failures, retained-page recovery,
+  and exact-limit acceptance are covered. A split lifecycle startup test now
+  waits for the form's async ready state before invoking its comparison command.
+  Final input, core, isolated editor, compiled host, and benchmark suites pass,
+  with 67 probes across 64 fixtures, all 40 Boot cases in one combined run, and
+  six actual EXE launch scenarios. Those EXE windows stayed responsive; no
+  startup error dialog or MSHTML was observed, including deferred-tab resume.
+  Engine DLLs total 500.0 KiB with a 212.9 KiB GZip estimate; current medians are
+  792.480 ms for a clean diagnostic process, 4.159 ms for local fixture loads,
+  and 31.697 ms for layout/paint, not a speedup claim. Native decoder peaks,
+  process-wide memory, HTTP cache URL case handling, image cookie/cache sharing,
+  and full modern-web behavior remain open. Earlier intermittent fragment,
+  recovery-cast, and editor/focus observations remain unconfirmed. See
+  `INPUT_LIMITS.md`. Runtime 167 is isolated and source-backed-up; installed
+  runtime 157 remains unchanged. The scoped baseline stays at 100%, not full-web
+  compatibility.
 
 - Added bounded streaming picture reads, a shared asynchronous pass deadline,
   cancellation with late-resource disposal, and a 32 MiB retained bitmap budget.
