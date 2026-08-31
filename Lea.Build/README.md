@@ -59,8 +59,9 @@ local DLLs and Firespider executable without requiring a source solution.
 `Lea.Tests.exe <repository-root> --edit` runs native clipboard/editor checks
 alone. `--core` runs the remaining engine suite without accessing the system
 clipboard; the default still runs both. `--fragment` repeats initial fragment
-navigation 25 times. These modes support investigation of intermittent paste
-and fragment failures, not automatic retries or suppressed assertions. Windows
+navigation 25 times. `--clip` isolates the held-clipboard regression; `--paste`
+checks supplied text and field bounds without accessing the clipboard.
+These test modes do not retry or suppress failed assertions. Windows
 clipboard access can fail while another process holds it. Record separately
 which modes passed; a clipboard-free run is not a complete default-suite pass.
 
@@ -91,13 +92,19 @@ suite. Source for the corresponding host edits is retained in
 `Lea.Firespider/Startup-host.patch`, with reproduction notes in
 `LeaForge/STARTUP_RELIABILITY.md`.
 
-`Test-FirespiderBoot.ps1 -Root <host-root>` adds thirty-four real form-start cases,
+`Test-FirespiderBoot.ps1 -Root <host-root>` adds thirty-six real form-start cases,
 including private startup, restore precedence, second windows, a gated slow
 HTTP response, and locked-session shutdown. It compiles `Lea.Firespider/Boot.cs`
 beside the test host and runs separate off-screen processes with a sixty-second
 watchdog. Use `-Case clean` for a single case. See `LeaForge/LEA_STARTUP.md`.
 `-Case edit` tests native field menu/hover commands, protected fields,
 paused/empty tabs, and the explicit legacy fallback; see `NATIVE_EDITING.md`.
+`-Case paste` checks guarded real-menu/native/keyboard paste under a held
+clipboard lock, retained undo, release recovery, and compact `Pa` insertion;
+see `PASTE_SAFETY.md`.
+`-Case style-start` checks saved style automation at startup and through an
+accelerated real timer callback. It covers the legacy preview cast guard;
+see `STYLE_STARTUP_SAFETY.md` for unsupported-feature behavior and limits.
 `-Case recovery` also observes 35 seconds of UI events and validates the real
 30-second recovery snapshot timer against the restored Lea URLs.
 `-Case policy` checks main-tab rules, denied input/forms/history, private/hidden

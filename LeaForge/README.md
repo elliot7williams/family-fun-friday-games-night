@@ -12,6 +12,10 @@ LeaForge is where we can grow the more full-featured browser.
 
 ## Current Features
 
+- guarded Firespider saved-style startup/timer callbacks without legacy casts
+  or automatic fallback; see `STYLE_STARTUP_SAFETY.md`
+- guarded clipboard paste and compact `Pa(text)` host insertion with native
+  undo, bounded text, and protected targets; see `PASTE_SAFETY.md`
 - compact `Ud` retained-field protection and optional native Firespider
   hibernation for eligible idle tabs; see `HIBERNATION.md`
 - compact native load failures and explicit GET retry through `Fe/Le/Cr/Ry`,

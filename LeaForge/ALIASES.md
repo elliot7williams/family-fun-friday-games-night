@@ -18,6 +18,9 @@ read and quick to write.
 - Page values use one or two letters: `U`, `T`, `H`, `Q`, `D`, `N`, `Bs`, and `Ls`.
 - Page commands use one or two letters: `t`, `a`, `bg`, `fg`, `fs`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`.
 - New public aliases should be no more than three letters.
+- `V.Pa(text)` pastes bounded host-supplied text with native undo and the same
+  target protections as guarded `Ec("pa")`, without reading the clipboard.
+  This is a view command, separate from `Fi.Pa` patterns. See `PASTE_SAFETY.md`.
 - `E.Ud(page)` and `V.Ud` conservatively report field data worth retaining before
   a URL-only reload, including changed hidden fields and selected files. They
   do not serialize state or authorize tab disposal. See `HIBERNATION.md`.

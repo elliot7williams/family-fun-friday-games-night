@@ -44,7 +44,7 @@ namespace Lea.Firespider
             var forms = new List<Form>();
             try
             {
-                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch", "domains", "domain-private", "split", "split-life", "split-limits", "edit", "policy", "policy-start", "failures", "failure-start", "hibernate", "hibernate-start" }.Contains(mode), "unknown boot case: " + mode);
+                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch", "domains", "domain-private", "split", "split-life", "split-limits", "edit", "paste", "policy", "policy-start", "failures", "failure-start", "hibernate", "hibernate-start", "style-start" }.Contains(mode), "unknown boot case: " + mode);
                 Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
                 Application.ThreadException += (sender, error) => UiErrors.Add(error.Exception);
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", session);
@@ -74,6 +74,11 @@ namespace Lea.Firespider
                 settings["ep"] = log;
                 settings["lazyRestoreMode"] = "off";
                 var expected = new[] { page };
+                if (mode == "style-start")
+                {
+                    settings["us"] = Collection("example.invalid|style|e|" + Convert.ToBase64String(Encoding.UTF8.GetBytes("body { color: red; }")));
+                    settings["au"] = Collection("Startup style|STYLE|STARTUP|0|e|MQ==", "Timer style|STYLE|HOURLY|0|e|MQ==");
+                }
                 if (mode == "hibernate-start")
                 {
                     settings["hibernateEnabled"] = "e";
@@ -274,6 +279,8 @@ namespace Lea.Firespider
                 if (mode == "split-life") CheckSplitLife(form, settings, page, forms);
                 if (mode == "split-limits") CheckSplitLimits(form, settings, page, forms);
                 if (mode == "edit") CheckEdit(form, settings, page);
+                if (mode == "paste") CheckPaste(form, settings, page);
+                if (mode == "style-start") CheckStyleStartup(form, settings, log);
                 if (mode == "policy") CheckPolicy(form, settings, page, forms);
                 if (mode == "failures") CheckFailures(form, settings, page);
                 if (mode == "hibernate") CheckHibernation(form, settings, page);
@@ -350,6 +357,54 @@ namespace Lea.Firespider
                     if (lazySite != null) lazySite.Dispose();
                 }
             }
+        }
+
+        private static void CheckStyleStartup(Form form, ApplicationSettingsBase settings, string log)
+        {
+            var tabs = Member<TabControl>(form, "k");
+            var tab = tabs.SelectedTab;
+            var view = (V)tab.Controls[0];
+            var page = view.At;
+            var styles = (StringCollection)settings["us"];
+            var originalStyle = styles[0];
+            var timer = Member<System.Windows.Forms.Timer>(form, "automationTimer");
+            Check(timer.Enabled && timer.Interval == 60000, "automation timer did not start");
+            try
+            {
+                timer.Interval = 50;
+                Wait(() => UiErrors.Count > 0 || ((StringCollection)settings["au"])[1].Split('|')[3] != "0", "saved style timer execution");
+            }
+            finally { timer.Stop(); timer.Interval = 60000; }
+            Check(UiErrors.Count == 0, "saved style timer exceptions: " + String.Join(" | ", UiErrors.Select(error => error.ToString()).ToArray()));
+            Check(((StringCollection)settings["au"])[0].Split('|')[3] != "0", "saved startup style aborted initialization");
+            Check((bool)form.GetType().GetField("feature6Loaded", Members).GetValue(form), "saved startup style skipped later tab initialization");
+            Check(!File.Exists(log) || !File.ReadAllText(log).Contains("Unable to cast object"), "saved startup style logged a legacy cast");
+            Call(form, "qpreviewusercontent", 0);
+            Check(Member<Label>(form, "su").Text.Contains("requires a legacy tab"), "Lea preview limitation was not reported");
+            Check(Object.ReferenceEquals(view.At, page) && styles[0] == originalStyle && tab.Controls[0] == view,
+                "skipped legacy style changed the Lea page or saved rule");
+            styles.Add("example.invalid|script|e|" + Convert.ToBase64String(Encoding.UTF8.GetBytes("document.title = 'Unexpected legacy preview';")));
+            Call(form, "qpreviewusercontent", 1);
+            Check(Object.ReferenceEquals(view.At, page) && view.T != "Unexpected legacy preview", "legacy script preview changed Lea");
+            Check((bool)Call(form, "qleaSuspend", tab), "style fixture could not suspend Lea");
+            Check(tab.Controls[0] is Panel, "style fixture could not pause Lea");
+            Call(form, "qpreviewusercontent", 0);
+            tabs.TabPages.Remove(tab);
+            try
+            {
+                Call(form, "qpreviewusercontent", 0);
+                using (var empty = new TabPage())
+                {
+                    tabs.TabPages.Add(empty);
+                    tabs.SelectedTab = empty;
+                    Call(form, "qpreviewusercontent", 0);
+                    tabs.TabPages.Remove(empty);
+                }
+            }
+            finally { tabs.TabPages.Add(tab); tabs.SelectedTab = tab; }
+            Check(!Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module => module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)),
+                "skipping legacy preview loaded MSHTML");
+            Console.WriteLine("PASS style startup: saved STARTUP rule, accelerated real timer callback, Lea/paused/empty guards, retained rules and page, explicit unsupported status, no MSHTML");
         }
 
         private static void Show(Form form)
@@ -470,6 +525,92 @@ namespace Lea.Firespider
                 if (original == null) Clipboard.Clear(); else Clipboard.SetDataObject(clipboard, true);
             }
             Console.WriteLine("PASS edit: real menu/hover dispatch, selection, undo/redo, clipboard, readonly/password, paused/empty tabs, and explicit legacy fallback");
+        }
+
+        [System.Runtime.InteropServices.DllImport("user32.dll", EntryPoint = "OpenClipboard", ExactSpelling = true)]
+        private static extern bool ClipboardOpen(IntPtr owner);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll", EntryPoint = "CloseClipboard", ExactSpelling = true)]
+        private static extern bool ClipboardClose();
+
+        [System.Runtime.InteropServices.DllImport("user32.dll", EntryPoint = "SendMessageW", ExactSpelling = true)]
+        private static extern IntPtr NativeEdit(IntPtr window, int message, IntPtr wParam, IntPtr lParam);
+
+        private static void CheckPaste(Form form, ApplicationSettingsBase settings, string page)
+        {
+            settings["t"] = "";
+            var original = Clipboard.GetDataObject();
+            var clipboard = new DataObject();
+            if (original != null)
+                foreach (var format in original.GetFormats(false)) clipboard.SetData(format, false, original.GetData(format, false));
+            try
+            {
+                var tabs = Member<TabControl>(form, "k");
+                var view = (V)tabs.SelectedTab.Controls[0];
+                view.Go(Path.Combine(Path.GetDirectoryName(new Uri(page).LocalPath), "..", "test-pages", "editing.html"));
+                using (var paint = new Bitmap(view.Width, view.Height)) view.DrawToBitmap(paint, new Rectangle(Point.Empty, paint.Size));
+                var field = view.At.Fs.First(item => item.El.Av("id") == "text");
+                var start = typeof(V).GetMethod("StartEdit", Members);
+                start.Invoke(view, new object[] { field });
+                var editor = Member<TextBox>(view, "ed");
+                Check(view.Pa("Retained host edit") == 1, "host supplied paste unavailable");
+                editor.SelectAll();
+                using (var ready = new ManualResetEvent(false))
+                using (var release = new ManualResetEvent(false))
+                {
+                    var opened = false;
+                    var expired = false;
+                    var worker = new Thread(delegate()
+                    {
+                        try
+                        {
+                            for (var attempt = 0; attempt < 100 && !opened; attempt++)
+                            {
+                                opened = ClipboardOpen(IntPtr.Zero);
+                                if (!opened) Thread.Sleep(10);
+                            }
+                            ready.Set();
+                            if (opened) expired = !release.WaitOne(10000);
+                        }
+                        finally { if (opened) ClipboardClose(); }
+                    }) { IsBackground = true };
+                    worker.Start();
+                    try
+                    {
+                        Check(ready.WaitOne(2000) && opened, "host clipboard lock fixture failed");
+                        var menu = Member<ToolStripDropDownItem>(form, "e");
+                        menu.ShowDropDown();
+                        Application.DoEvents();
+                        Member<ToolStripItem>(form, "PA").PerformClick();
+                        menu.HideDropDown();
+                        Check(field.V == "Retained host edit" && view.Ce("un") && UiErrors.Count == 0, "host Paste lost text or undo while clipboard was locked");
+                        Check(Member<Label>(form, "su").Text.Contains("No available Lea field edit"), "host did not report unavailable Paste");
+                        NativeEdit(editor.Handle, 0x0302, IntPtr.Zero, IntPtr.Zero);
+                        var key = new KeyEventArgs(Keys.Control | Keys.V);
+                        typeof(V).GetMethod("EditKeyDown", Members).Invoke(view, new object[] { editor, key });
+                        Check(key.Handled && key.SuppressKeyPress && field.V == "Retained host edit", "host native/keyboard paste was not guarded");
+                        Member<ToolStripItem>(form, "U").PerformClick();
+                        Check(field.V == "Lea field text", "host blocked paste destroyed undo");
+                        Member<ToolStripItem>(form, "RD").PerformClick();
+                        Check(field.V == "Retained host edit", "host blocked paste destroyed redo");
+                    }
+                    finally
+                    {
+                        release.Set();
+                        Check(worker.Join(2000) && !expired, "host clipboard lock did not release normally");
+                    }
+                }
+                editor.SelectAll();
+                Clipboard.SetText("Host paste resumed");
+                Member<ToolStripItem>(form, "PA").PerformClick();
+                Check(field.V == "Host paste resumed", "host paste failed after clipboard release");
+                start.Invoke(view, new object[] { view.At.Fs.First(item => item.El.Av("id") == "readonly") });
+                Member<ToolStripItem>(form, "PA").PerformClick();
+                Check(view.At.Fs.First(item => item.El.Av("id") == "readonly").V == "Read only", "host paste changed readonly field");
+                Check(UiErrors.Count == 0 && !Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module => module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)), "guarded host paste raised a popup or loaded MSHTML");
+            }
+            finally { if (original == null) Clipboard.Clear(); else Clipboard.SetDataObject(clipboard, true); }
+            Console.WriteLine("PASS paste: locked clipboard through real menu/native/keyboard routes, retained text and undo, status, recovery, Pa, and readonly protection");
         }
 
         private static void CheckHibernationStartup(Form form, string[] urls)

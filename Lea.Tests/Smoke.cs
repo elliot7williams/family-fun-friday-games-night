@@ -25,6 +25,8 @@ namespace Lea.Tests
             try
             {
                 var root = Path.GetFullPath(args.Length > 0 ? args[0] : Directory.GetCurrentDirectory());
+                if (args.Length > 1 && args[1] == "--clip") { CheckClipboardContention(root); return 0; }
+                if (args.Length > 1 && args[1] == "--paste") { CheckPasteText(root); return 0; }
                 if (args.Length > 1 && args[1] == "--fragment") { CheckFragmentStartup(root); return 0; }
                 var coreOnly = args.Length > 1 && args[1] == "--core";
                 if (coreOnly)
@@ -33,8 +35,9 @@ namespace Lea.Tests
                     paths.RemoveAt(1);
                     args = paths.ToArray();
                 }
-                if (!coreOnly) CheckEditCommands(root);
+                if (!coreOnly) { CheckClipboardContention(root); CheckEditCommands(root); }
                 if (args.Length > 1 && args[1] == "--edit") return 0;
+                CheckPasteText(root);
                 CheckNavigationGuard(root);
                 CheckLoadFailures(root);
                 CheckRetainedData(root);
@@ -4410,8 +4413,9 @@ namespace Lea.Tests
 
                     view.Go(Path.Combine(root, "LeaForge", "test-pages", "second.html"));
                     view.Go(new Uri(new Uri(fragmentPath).AbsoluteUri + "#target"));
+                    var loadedFragmentState = FragmentState(view);
                     Paint(view);
-                    Ok(view.U.Fragment == "#target" && ElementVisible(view, ById(view.At.D, "target")), "initial cross-document URL fragment scrolls after load: " + FragmentState(view));
+                    Ok(view.U.Fragment == "#target" && ElementVisible(view, ById(view.At.D, "target")), "initial cross-document URL fragment before paint: " + loadedFragmentState + "; after paint: " + FragmentState(view));
 
                     view.Size = new Size(620, 900);
                     view.Go(gaugePath);
@@ -6489,6 +6493,230 @@ namespace Lea.Tests
             }
         }
 
+        [System.Runtime.InteropServices.DllImport("user32.dll", ExactSpelling = true)]
+        private static extern bool OpenClipboard(IntPtr owner);
+
+        [System.Runtime.InteropServices.DllImport("user32.dll", ExactSpelling = true)]
+        private static extern bool CloseClipboard();
+
+        [System.Runtime.InteropServices.DllImport("user32.dll", EntryPoint = "SendMessageW", ExactSpelling = true)]
+        private static extern IntPtr NativeEdit(IntPtr window, int message, IntPtr wParam, IntPtr lParam);
+
+        private static void CheckPasteText(string root)
+        {
+            using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-30000, -30000), Size = new Size(720, 800) })
+            using (var view = new V())
+            using (var other = new TextBox { Dock = DockStyle.Bottom })
+            {
+                form.Controls.Add(view);
+                form.Controls.Add(other);
+                form.Show();
+                var path = Path.Combine(root, "LeaForge", "test-pages", "editing.html");
+                view.Go(path);
+                Paint(view);
+                var editor = Editor(view);
+                var method = typeof(V).GetMethod("StartEdit", BindingFlags.Instance | BindingFlags.NonPublic);
+                Action<Fi> start = field => method.Invoke(view, new object[] { field });
+                var text = FieldById(view.At, "text");
+                Eq(0, view.Pa("unfocused"), "Pa requires an active or retained editor");
+                start(text);
+                editor.Select(4, 5);
+                other.Focus();
+                Eq(1, view.Pa("engine"), "Pa reactivates a menu-retained field");
+                Eq("Lea engine text", text.V, "Pa replaces only the retained selection");
+                Eq(1, view.Ec("un"), "Pa native undo");
+                Eq("Lea field text", text.V, "Pa undo value");
+                Eq(1, view.Ec("re"), "Pa native redo");
+                Eq("Lea engine text", text.V, "Pa redo value");
+                Ok(view.Pa(null) == 0 && view.Pa("") == 0 && text.V == "Lea engine text", "empty supplied text is inert");
+                editor.SelectAll();
+                Eq(0, view.Pa("\r\nNext"), "single-line newline-only prefix preserves selection");
+                Eq("Lea engine text", text.V, "empty normalized insertion preserves field");
+                Eq(1, view.Pa("First\r\nSecond"), "single-line supplied text");
+                Eq("First", text.V, "single-line paste stops at newline");
+                editor.SelectAll();
+                view.Pa("A\0B");
+                Eq("A", text.V, "supplied text stops at NUL");
+                editor.SelectAll();
+                view.Pa(new string('x', 65536));
+                Eq(32767, text.V.Length, "supplied text native field ceiling");
+                view.Ec("un");
+                Eq("A", text.V, "large paste preserves native undo");
+
+                var limited = FieldById(view.At, "limited");
+                start(limited);
+                editor.Select(4, 0);
+                view.Pa("abcdefghijk");
+                Eq("1234abcd", limited.V, "Pa respects remaining maxlength capacity");
+                editor.Select(editor.TextLength, 0);
+                Eq(0, view.Pa("more"), "full field rejects insertion without deletion");
+                Eq("1234abcd", limited.V, "full field retained");
+                editor.Text = "1234567";
+                editor.Select(7, 0);
+                Eq(0, view.Pa("\ud83d\ude00Z"), "surrogate pair must fit completely");
+                Eq("1234567", limited.V, "truncated surrogate does not replace selection");
+                editor.Text = "123456";
+                editor.Select(6, 0);
+                view.Pa("\ud83d\ude00Z");
+                Eq("123456\ud83d\ude00", limited.V, "complete surrogate fits at boundary");
+                editor.Text = "12345678";
+                editor.Select(2, 3);
+                view.Pa("abcde");
+                Eq("12abc678", limited.V, "selection replacement recovers capacity");
+
+                var notes = FieldById(view.At, "notes");
+                start(notes);
+                view.Pa("One\r\nTwo");
+                Eq("One\r\nTwo", notes.V, "Pa retains multiline breaks");
+                notes.El.A["maxlength"] = "2";
+                view.Js("ac('notes','bound-two')");
+                start(notes);
+                view.Pa("A\r\nB");
+                Eq("A", notes.V, "maxlength does not split CRLF");
+                notes.El.A["maxlength"] = "3";
+                view.Js("ac('notes','bound-three')");
+                start(notes);
+                view.Pa("A\r\nB");
+                Eq("A\r\n", notes.V, "complete CRLF fits at boundary");
+                var readOnly = FieldById(view.At, "readonly");
+                start(readOnly);
+                Eq(0, view.Pa("blocked"), "Pa rejects readonly fields");
+                Eq("Read only", readOnly.V, "readonly value retained");
+                var secret = FieldById(view.At, "secret");
+                start(secret);
+                view.Pa("new secret");
+                Eq("new secret", secret.V, "Pa permits password insertion");
+                start(text);
+                view.Js("ds('text')");
+                Eq(0, view.Pa("blocked"), "Pa rejects disabled field");
+                view.Js("en('text')");
+                start(text);
+                text.El.A["type"] = "checkbox";
+                view.Js("ac('text','changed-kind')");
+                Eq(0, view.Pa("blocked"), "Pa rejects a field changed to a non-text control");
+                text.El.A["type"] = "text";
+                view.Js("rc('text','changed-kind')");
+                start(text);
+                text.V = "external";
+                Eq(0, view.Pa("blocked"), "Pa rejects stale native value");
+                start(text);
+                view.Js("hd('text')");
+                Eq(0, view.Pa("blocked"), "Pa rejects hidden retained field");
+                view.Go(path);
+                Eq(0, view.Pa("blocked"), "navigation clears paste target");
+                start(FieldById(view.At, "text"));
+                view.Ed += delegate { view.Dispose(); };
+                Eq(1, view.Pa("closing"), "paste callback can dispose view");
+                Ok(view.IsDisposed && view.Pa("blocked") == 0, "disposed supplied paste is inert");
+            }
+            CheckPasteBeyondTabLimit();
+            Console.WriteLine("Lea supplied paste smoke passed: Pa, retained selection, undo/redo, text/Unicode bounds, protected fields, late form fields, navigation, and callback disposal.");
+        }
+
+        private static void CheckPasteBeyondTabLimit()
+        {
+            var path = Path.Combine(Path.GetTempPath(), "lea-paste-fields-" + Guid.NewGuid().ToString("N") + ".html");
+            try
+            {
+                var html = new StringBuilder("<title>Paste beyond keyboard list</title>");
+                for (var index = 0; index < 300; index++)
+                    html.Append("<input id=f").Append(index).Append(index == 299 ? " style='position:fixed;top:60px;left:30px;width:300px'" : "").Append(" value=retained>");
+                File.WriteAllText(path, html.ToString());
+                using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-30000, -30000), Size = new Size(720, 800) })
+                using (var view = new V())
+                {
+                    form.Controls.Add(view);
+                    form.Show();
+                    view.Go(path);
+                    Paint(view);
+                    Eq(256, view.Kn, "keyboard list retains its explicit bound");
+                    var field = FieldById(view.At, "f299");
+                    Click(view, BlockRect(view, BlockById(view.At, "f299")));
+                    Ok(Editor(view).Visible, "mouse opens a field beyond the keyboard list");
+                    Eq(1, view.Pa("Late field paste"), "active field beyond keyboard list accepts Pa");
+                    Eq("Late field paste", field.V, "late field value");
+                    Eq(1, view.Ec("un"), "late field native undo");
+                    Eq("retained", field.V, "late field undo value");
+                    view.Js("hd('f299')");
+                    Eq(0, view.Pa("blocked"), "late hidden field remains protected");
+                }
+            }
+            finally { if (File.Exists(path)) File.Delete(path); }
+        }
+
+        private static void CheckClipboardContention(string root)
+        {
+            using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-30000, -30000), Size = new Size(720, 800) })
+            using (var view = new V())
+            using (var ready = new ManualResetEvent(false))
+            using (var release = new ManualResetEvent(false))
+            {
+                form.Controls.Add(view);
+                form.Show();
+                view.Go(Path.Combine(root, "LeaForge", "test-pages", "editing.html"));
+                Paint(view);
+                var field = FieldById(view.At, "text");
+                typeof(V).GetMethod("StartEdit", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(view, new object[] { field });
+                var editor = Editor(view);
+                var opened = false;
+                var timedOut = false;
+                var worker = new Thread(delegate()
+                {
+                    try
+                    {
+                        for (var attempt = 0; attempt < 100 && !opened; attempt++)
+                        {
+                            opened = OpenClipboard(IntPtr.Zero);
+                            if (!opened) Thread.Sleep(10);
+                        }
+                        ready.Set();
+                        if (opened) timedOut = !release.WaitOne(10000);
+                    }
+                    finally { if (opened) CloseClipboard(); }
+                }) { IsBackground = true };
+                worker.Start();
+                try
+                {
+                    Ok(ready.WaitOne(2000) && opened, "clipboard contention fixture could not acquire lock");
+                    foreach (var code in new[] { "cp", "cu", "pa" })
+                    {
+                        editor.Text = "Original";
+                        editor.SelectAll();
+                        editor.Paste("Retained text");
+                        editor.SelectAll();
+                        var watch = System.Diagnostics.Stopwatch.StartNew();
+                        var result = view.Ec(code);
+                        Console.WriteLine("Locked clipboard: " + code + "; result=" + result + "; retained=" + (field.V == "Retained text") + "; ms=" + watch.ElapsedMilliseconds);
+                        Eq("Retained text", field.V, "unavailable clipboard must not change the field: " + code);
+                        Ok(editor.SelectionStart == 0 && editor.SelectionLength == 13 && view.Ce("un"), "clipboard rejection retains selection and undo: " + code);
+                        if (code == "pa") Eq(0, result, "unavailable clipboard is not dispatched");
+                    }
+                    Eq(IntPtr.Zero, NativeEdit(editor.Handle, 0x0302, IntPtr.Zero, IntPtr.Zero), "native WM_PASTE is guarded");
+                    Eq("Retained text", field.V, "native WM_PASTE retained text");
+                    var key = typeof(V).GetMethod("EditKeyDown", BindingFlags.Instance | BindingFlags.NonPublic);
+                    foreach (var chord in new[] { Keys.Control | Keys.V, Keys.Shift | Keys.Insert })
+                    {
+                        var args = new KeyEventArgs(chord);
+                        key.Invoke(view, new object[] { editor, args });
+                        Ok(args.Handled && args.SuppressKeyPress && field.V == "Retained text" && view.Ce("un"), "locked clipboard keyboard paste is consumed without losing text/undo");
+                    }
+                    view.Ec("un");
+                    Eq("Original", field.V, "blocked paste does not overwrite native undo");
+                    view.Ec("re");
+                    Eq("Retained text", field.V, "blocked paste does not overwrite native redo");
+                    var supplied = typeof(V).GetMethod("Pa");
+                    Ok(supplied != null, "supplied paste alias exists");
+                    Eq(1, (int)supplied.Invoke(view, new object[] { "Direct" }), "supplied paste does not need the locked clipboard");
+                }
+                finally
+                {
+                    release.Set();
+                    Ok(worker.Join(2000) && !timedOut, "clipboard contention lock did not release normally");
+                }
+            }
+            Console.WriteLine("Lea clipboard contention smoke passed.");
+        }
+
         private static void CheckEditCommands(string root)
         {
             var original = Clipboard.GetDataObject();
@@ -6598,12 +6826,113 @@ namespace Lea.Tests
                     view.Dispose();
                     Ok(!view.Ce("pa") && view.Ec("pa") == 0, "disposed edit command is inert");
                 }
+                CheckClipboardPasteCases(root);
             }
             finally
             {
                 if (original == null) Clipboard.Clear(); else Clipboard.SetDataObject(clipboard, true);
             }
             Console.WriteLine("Lea native editing smoke passed: aliases, menu focus, selection, clipboard, undo/redo, readonly/password, limits, stale values, and disposal.");
+        }
+
+        private static void CheckClipboardPasteCases(string root)
+        {
+            using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-30000, -30000), Size = new Size(720, 800) })
+            using (var view = new V())
+            {
+                form.Controls.Add(view);
+                form.Show();
+                var path = Path.Combine(root, "LeaForge", "test-pages", "editing.html");
+                view.Go(path);
+                Paint(view);
+                var field = FieldById(view.At, "text");
+                typeof(V).GetMethod("StartEdit", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(view, new object[] { field });
+                var editor = Editor(view);
+                var key = typeof(V).GetMethod("EditKeyDown", BindingFlags.Instance | BindingFlags.NonPublic);
+                var changes = 0;
+                view.Ed += delegate { changes++; };
+                foreach (var chord in new[] { Keys.None, Keys.Control | Keys.V, Keys.Shift | Keys.Insert })
+                {
+                    editor.Text = "Before";
+                    editor.SelectAll();
+                    Clipboard.SetText("Keyboard paste");
+                    changes = 0;
+                    if (chord == Keys.None) Eq(new IntPtr(1), NativeEdit(editor.Handle, 0x0302, IntPtr.Zero, IntPtr.Zero), "native WM_PASTE success");
+                    else
+                    {
+                        var args = new KeyEventArgs(chord);
+                        key.Invoke(view, new object[] { editor, args });
+                        Ok(args.Handled && args.SuppressKeyPress, "native paste shortcut is consumed");
+                    }
+                    Eq("Keyboard paste", field.V, "native message/keyboard clipboard paste");
+                    Eq(1, changes, "paste emits exactly one edit notification");
+                    view.Ec("un");
+                    Eq("Before", field.V, "clipboard paste native undo");
+                    view.Ec("re");
+                    Eq("Keyboard paste", field.V, "clipboard paste native redo");
+                }
+                editor.SelectAll();
+                Clipboard.Clear();
+                Eq(0, view.Ec("pa"), "empty clipboard is inert");
+                Eq("Keyboard paste", field.V, "empty clipboard retains selected text");
+                Clipboard.SetData("Lea.Paste.Test", "not a text format");
+                Eq(0, view.Ec("pa"), "non-text clipboard is inert");
+                Eq("Keyboard paste", field.V, "non-text clipboard retains selected text");
+                Clipboard.SetText("ANSI paste", TextDataFormat.Text);
+                CheckPaste(view, field, "ANSI paste", "Windows text format conversion");
+                editor.SelectAll();
+                Clipboard.SetText(new string('x', 65536));
+                Eq(1, view.Ec("pa"), "bounded clipboard prefix paste");
+                Eq(32767, field.V.Length, "clipboard text ceiling");
+                view.Ec("un");
+                Eq("ANSI paste", field.V, "large clipboard paste undo");
+                editor.SelectAll();
+                Clipboard.SetText("A\0B");
+                CheckPaste(view, field, "A", "clipboard NUL terminator");
+
+                var deferred = new DeferredClipboard();
+                deferred.SetText("Must not overwrite a new page");
+                Clipboard.SetDataObject(deferred, false);
+                var reads = 0;
+                deferred.Read = delegate { reads++; view.Go(path); };
+                Eq(0, view.Ec("pa"), "clipboard callback navigation cancels old paste");
+                Eq(1, reads, "delayed clipboard callback exercised");
+                Eq("Lea field text", FieldById(view.At, "text").V, "clipboard callback preserves new page fields");
+                foreach (var change in new[] { "value", "selection", "dispose" })
+                {
+                    field = FieldById(view.At, "text");
+                    typeof(V).GetMethod("StartEdit", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(view, new object[] { field });
+                    deferred = new DeferredClipboard();
+                    deferred.SetText("Stale clipboard text");
+                    Clipboard.SetDataObject(deferred, false);
+                    reads = 0;
+                    deferred.Read = delegate
+                    {
+                        reads++;
+                        if (change == "value") field.V = "Host value";
+                        else if (change == "selection") editor.Select(0, 0);
+                        else view.Dispose();
+                    };
+                    Eq(0, view.Ec("pa"), "clipboard callback cancels stale paste: " + change);
+                    Eq(1, reads, "clipboard callback was exercised: " + change);
+                    if (change == "value") Eq("Host value", field.V, "clipboard cannot overwrite host value");
+                    else if (change == "selection") Ok(editor.SelectionLength == 0 && field.V == "Host value", "clipboard cannot replace changed selection");
+                    else Ok(view.IsDisposed, "clipboard callback disposal completed");
+                }
+            }
+            Console.WriteLine("Lea clipboard paste smoke passed: WM_PASTE, shortcuts, single edit notification, undo/redo, empty/non-text, ANSI, bounded text, and deferred-owner navigation.");
+        }
+
+        private sealed class DeferredClipboard : DataObject
+        {
+            public Action Read;
+            public override object GetData(string format, bool autoConvert)
+            {
+                var action = Read;
+                Read = null;
+                if (action != null) action();
+                return base.GetData(format, autoConvert);
+            }
         }
 
         private static void CheckPaste(V view, Fi field, string expected, string name)

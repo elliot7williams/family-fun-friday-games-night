@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **62**
+Post-1.0 hardening milestones completed: **63**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,21 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Fixed reproduced selected-text loss when Windows clipboard access fails.
+  Compact `V.Pa(text)` shares bounded native insertion, one-level undo, Unicode
+  limits, target validation, and callback protection with guarded clipboard
+  paste. Native menu/message/keyboard routes share the fix, and mouse-edited
+  fields beyond the keyboard-list limit now accept edit commands. Also fixed
+  a reproduced Firespider saved-style automation startup/timer legacy cast;
+  unsupported preview leaves Lea unchanged and later initialization continues.
+  The release core and compiled host suites, 36 Boot cases, six real EXE launch
+  scenarios, and all 63 probes across 60 fixtures pass. Engine DLLs total
+  482 KiB. An intermittent initial-fragment failure recurred earlier in this
+  milestone and remains open with before/after-paint diagnostics. The earlier
+  stackless recovery observation cannot be conclusively attributed to the new
+  confirmed style cast. See `PASTE_SAFETY.md` and `STYLE_STARTUP_SAFETY.md`.
+  Runtime 163 is isolated; the installed runtime 157 remains unchanged.
 
 - Added compact `E.Ud/V.Ud` retained-field queries and Lea-aware optional
   Firespider hibernation. Eligible idle renderers are disposed and collectible;

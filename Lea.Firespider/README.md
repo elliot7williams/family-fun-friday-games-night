@@ -10,6 +10,19 @@ Its timer status handler is also routed safely across startup, empty, Lea, and
 legacy-tab states, so it never dereferences a missing control or casts a Lea
 view to the legacy `WebBrowser` type.
 
+Native Paste now preserves selected text when the clipboard is unavailable,
+using the shared guarded menu/message/keyboard path. `V.Pa(text)` supports
+clipboard-free host insertion. The `paste` Boot case checks the real menu,
+status, undo/redo, and clipboard release recovery.
+The matching view DLL is sufficient; no new host patch is required. See
+`LeaForge/PASTE_SAFETY.md` for bounds and remaining issues.
+
+Saved style automation no longer casts Lea to `WebBrowser` at startup or on its
+timer. Legacy style/script preview reports its unsupported Lea state without
+changing the document or creating a legacy renderer. Apply
+`Style-startup-host.patch` to `BrowserFeatures2.vb`; the `style-start` regression
+brings the Boot suite to 36 cases. See `LeaForge/STYLE_STARTUP_SAFETY.md`.
+
 Lea now participates in the existing opt-in eligible-tab hibernation policy.
 Compact `E.Ud/V.Ud` protects retained field data; privacy, cookies, history, script state,
 scrolling, busy/error states, and existing tab/domain protections also prevent

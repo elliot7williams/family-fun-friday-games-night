@@ -11,6 +11,10 @@ Framework 4.6.1. Normal tabs and split view now use `Lea.Win.V`; explicit legacy
 tabs and several unmigrated tools still use `System.Windows.Forms.WebBrowser`.
 Main host commands remain concentrated in `1.vb`, with Lea-specific routing in
 `FirespiderLea.vb` and split-window ownership in `FirespiderSplit.vb`.
+Saved style automation also needs `Style-startup-host.patch` in
+`BrowserFeatures2.vb` to avoid legacy casts at startup and on timer ticks. It
+reports unsupported Lea preview without creating a legacy renderer; see
+`STYLE_STARTUP_SAFETY.md`.
 
 `../Lea.Engine` targets .NET Framework 4.6.1 and exposes `E`, `P`, and the short
 Lea API. `../Lea.Win` provides the custom `V` WinForms view, and
@@ -90,6 +94,10 @@ uses the query with privacy, activity, history, and state exclusions under its
 existing opt-in hibernation policy. See `HIBERNATION.md`.
 
 Use `V.Ce(code)` and `V.Ec(code)` on the UI thread for native field editing.
+`V.Pa(text)` inserts supplied text without clipboard access, with native undo,
+maxlength/Unicode bounds, and the same target protections. Clipboard paste
+returns 0 when unavailable and preserves the selection; native messages and
+shortcuts share that guard. See `PASTE_SAFETY.md`.
 The two-letter commands `cp/cu/pa/sa/de/un/re` cover copy, cut, paste, select-all,
 delete, and one-level undo/redo. Firespider's Edit menu now uses these routes,
 including retained selection after opening its menu. These APIs do not provide

@@ -1834,6 +1834,28 @@ namespace Lea.Bench
                 }
                 return "Ce/Ec two-letter commands, native one-level undo/redo, readonly/password guards, shared-font field switching; probe does not touch clipboard";
             });
+            AddProbe(probes, "Bounded supplied paste", delegate
+            {
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1000);
+                    view.Go(Path.Combine(folder, "editing.html"));
+                    using (var image = Draw(view)) { }
+                    var start = typeof(V).GetMethod("StartEdit", BindingFlags.Instance | BindingFlags.NonPublic);
+                    var field = view.At.Fs.First(item => item.El.Av("id") == "limited");
+                    start.Invoke(view, new object[] { field });
+                    Need(view.Pa("1234567\ud83d\ude00") == 1 && field.V == "1234567", "Pa split a surrogate at maxlength");
+                    Need(view.Ec("un") == 1 && field.V == "1234", "Pa lost native undo");
+                    start.Invoke(view, new object[] { view.At.Fs.First(item => item.El.Av("id") == "notes") });
+                    Need(view.Pa("One\r\nTwo") == 1, "Pa multiline dispatch");
+                    Need(view.At.Fs.First(item => item.El.Av("id") == "notes").V == "One\r\nTwo", "Pa lost line breaks");
+                    start.Invoke(view, new object[] { view.At.Fs.First(item => item.El.Av("id") == "readonly") });
+                    Need(view.Pa("blocked") == 0, "Pa overwrote readonly field");
+                    view.Dispose();
+                    Need(view.Pa("blocked") == 0, "Pa ran after disposal");
+                }
+                return "Pa host-supplied text, maxlength/Unicode, multiline, native undo, protected/disposed targets; no clipboard access";
+            });
             AddProbe(probes, "Bounded Lea scripting", delegate
             {
                 var engine = new E();

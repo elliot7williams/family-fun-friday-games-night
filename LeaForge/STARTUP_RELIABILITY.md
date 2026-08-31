@@ -3,6 +3,10 @@
 Milestone 49, 2026-08-30. This is a host-integration hardening milestone, not
 an increase in full-web compatibility or a claimed rendering speedup.
 
+Milestone 63 additionally reproduces and fixes the saved-style automation
+startup/timer cast. See `STYLE_STARTUP_SAFETY.md` for that separate path,
+regression coverage, and the remaining stackless recovery observation.
+
 ## Reproduced Before The Fix
 
 The new smoke exercised the previously built Firespider executable and observed:

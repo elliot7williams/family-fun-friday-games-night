@@ -32,7 +32,7 @@ namespace Lea.Win
         private readonly Queue<P> alertOrder = new Queue<P>();
         private readonly List<Bx> findMatches = new List<Bx>();
         private readonly Queue<string> picOrder = new Queue<string>();
-        private readonly TextBox ed = new TextBox();
+        private readonly Et ed;
         private const int MaxKeyTargets = 256;
         private const int MaxKeyMapRegions = 4096;
         private const int MaxAccessTargets = 64;
@@ -84,6 +84,7 @@ namespace Lea.Win
 
         public V()
         {
+            ed = new Et(this);
             Am = "";
             Dn = "";
             DoubleBuffered = true;
@@ -114,6 +115,37 @@ namespace Lea.Win
 
         [DllImport("user32.dll", EntryPoint = "SendMessageW", ExactSpelling = true)]
         private static extern IntPtr EditMessage(IntPtr window, int message, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("user32.dll", EntryPoint = "SendMessageW", ExactSpelling = true, CharSet = CharSet.Unicode)]
+        private static extern IntPtr EditTextMessage(IntPtr window, int message, IntPtr wParam, string text);
+
+        [DllImport("user32.dll", ExactSpelling = true)]
+        private static extern bool OpenClipboard(IntPtr owner);
+        [DllImport("user32.dll", ExactSpelling = true)]
+        private static extern bool CloseClipboard();
+        [DllImport("user32.dll", ExactSpelling = true)]
+        private static extern IntPtr GetClipboardData(uint format);
+        [DllImport("kernel32.dll", ExactSpelling = true)]
+        private static extern UIntPtr GlobalSize(IntPtr memory);
+        [DllImport("kernel32.dll", ExactSpelling = true)]
+        private static extern IntPtr GlobalLock(IntPtr memory);
+        [DllImport("kernel32.dll", ExactSpelling = true)]
+        private static extern bool GlobalUnlock(IntPtr memory);
+
+        private sealed class Et : TextBox
+        {
+            private readonly V view;
+            public Et(V view) { this.view = view; }
+            protected override void WndProc(ref Message message)
+            {
+                if (message.Msg == 0x0302) // WM_PASTE also covers the native context menu.
+                {
+                    message.Result = new IntPtr(view.Ec("pa"));
+                    return;
+                }
+                base.WndProc(ref message);
+            }
+        }
 
         protected override void WndProc(ref Message message)
         {
@@ -205,10 +237,12 @@ namespace Lea.Win
         {
             var field = edit ?? heldEdit;
             if (closed || code == null || code.Length != 2 || At == null || field == null ||
-                !At.Fs.Contains(field) || field.Ds || field.V != ed.Text) return false;
+                !At.Fs.Contains(field) || field.Ds || !CanEdit(field) || field.V != ed.Text) return false;
+            EnsureLayout();
             var visible = false;
-            foreach (var target in FocusTargets(false))
-                if (target.El == field.El) { visible = true; break; }
+            foreach (var box in boxes)
+                if (box.B != null && box.B.I == field && !Hidden(box.S) && !HtmlHidden(field.El) && !KeyRect(box).IsEmpty)
+                { visible = true; break; }
             if (!visible) return false;
             switch (code.ToLowerInvariant())
             {
@@ -225,19 +259,13 @@ namespace Lea.Win
 
         public int Ec(string code)
         {
-            if (!Ce(code)) return 0;
-            edit = edit ?? heldEdit;
-            heldEdit = null;
-            SetFocus(edit.El);
-            PlaceEditor();
-            if (!ed.Visible) { EndEdit(false); return 0; }
-            ed.Focus();
+            if (!ReadyEdit(code)) return 0;
             switch (code.ToLowerInvariant())
             {
                 case "sa": ed.SelectAll(); break;
                 case "cp": ed.Copy(); break;
                 case "cu": ed.Cut(); break;
-                case "pa": ed.Paste(); break;
+                case "pa": return PasteEdit();
                 case "de":
                     var text = ed.Text;
                     var start = ed.SelectionStart;
@@ -255,6 +283,80 @@ namespace Lea.Win
                     break;
             }
             return 1;
+        }
+
+        public int Pa(string text)
+        {
+            return String.IsNullOrEmpty(text) || !ReadyEdit("pa") ? 0 : PasteText(text);
+        }
+
+        private bool ReadyEdit(string code)
+        {
+            if (editLock || !Ce(code)) return false;
+            var field = edit ?? heldEdit;
+            edit = field;
+            heldEdit = null;
+            SetFocus(field.El);
+            PlaceEditor();
+            if (!ed.Visible) { EndEdit(false); return false; }
+            ed.Focus();
+            return !closed && edit == field && Ce(code);
+        }
+
+        private int PasteEdit()
+        {
+            var field = edit;
+            if (field == null || editLock) return 0;
+            var page = At;
+            var before = ed.Text;
+            var start = ed.SelectionStart;
+            var selected = ed.SelectionLength;
+            var text = ReadPasteText(ed.Handle);
+            // Clipboard owners can render data synchronously; recheck after that call.
+            if (String.IsNullOrEmpty(text) || closed || At != page || edit != field || ed.Text != before ||
+                ed.SelectionStart != start || ed.SelectionLength != selected || !Ce("pa")) return 0;
+            return PasteText(text);
+        }
+
+        private int PasteText(string text)
+        {
+            var length = Math.Min(text.Length, Math.Max(0, Math.Min(32767, ed.MaxLength) - (ed.TextLength - ed.SelectionLength)));
+            for (var index = 0; index < length; index++)
+                if (text[index] == '\0' || (!ed.Multiline && (text[index] == '\r' || text[index] == '\n'))) { length = index; break; }
+            if (length > 0 && Char.IsHighSurrogate(text[length - 1])) length--;
+            if (length > 0 && length < text.Length && text[length - 1] == '\r' && text[length] == '\n') length--;
+            if (length == 0) return 0;
+            // EM_REPLACESEL preserves native undo without touching the control after callbacks.
+            EditTextMessage(ed.Handle, 0x00C2, new IntPtr(1), length == text.Length ? text : text.Substring(0, length));
+            return 1;
+        }
+
+        private static string ReadPasteText(IntPtr owner)
+        {
+            var opened = false;
+            for (var attempt = 0; attempt < 3 && !opened; attempt++)
+            {
+                if (attempt > 0) System.Threading.Thread.Sleep(5);
+                opened = OpenClipboard(owner);
+            }
+            if (!opened) return null;
+            try
+            {
+                var memory = GetClipboardData(13); // CF_UNICODETEXT includes Windows' text-format conversion.
+                if (memory == IntPtr.Zero) return null;
+                var count = (int)Math.Min(32768UL, GlobalSize(memory).ToUInt64() / 2);
+                if (count == 0) return null;
+                var pointer = GlobalLock(memory);
+                if (pointer == IntPtr.Zero) return null;
+                try
+                {
+                    var text = Marshal.PtrToStringUni(pointer, count);
+                    var end = text.IndexOf('\0');
+                    return end < 0 ? text : text.Substring(0, end);
+                }
+                finally { GlobalUnlock(memory); }
+            }
+            finally { CloseClipboard(); }
         }
 
         public P Go(string input)
@@ -5219,7 +5321,14 @@ namespace Lea.Win
 
         private async void EditKeyDown(object sender, KeyEventArgs args)
         {
-            if (args.Control && !args.Alt && !args.Shift && (args.KeyCode == Keys.Z || args.KeyCode == Keys.Y))
+            if (!args.Alt && ((args.Control && !args.Shift && args.KeyCode == Keys.V) ||
+                (args.Shift && !args.Control && args.KeyCode == Keys.Insert)))
+            {
+                args.SuppressKeyPress = true;
+                args.Handled = true;
+                Ec("pa");
+            }
+            else if (args.Control && !args.Alt && !args.Shift && (args.KeyCode == Keys.Z || args.KeyCode == Keys.Y))
             {
                 Ec(args.KeyCode == Keys.Z ? "un" : "re");
                 args.SuppressKeyPress = true;

@@ -1,0 +1,17 @@
+diff --git a/BrowserFeatures2.vb b/BrowserFeatures2.vb
+--- a/BrowserFeatures2.vb
++++ b/BrowserFeatures2.vb
+@@ -379,6 +379,12 @@ Partial Class j
+         If index < 0 OrElse index >= My.Settings.us.Count Then Exit Sub
+         Dim fields As String() = My.Settings.us(index).Split(New Char() {"|"c}, 4)
+         If fields.Length <> 4 Then Exit Sub
+-        Dim wb As WebBrowser = CType(k.SelectedTab.Controls(0), WebBrowser)
++        Dim tab As TabPage = qleaSelectedTab()
++        Dim wb As WebBrowser = If(tab Is Nothing OrElse tab.Controls.Count = 0, Nothing, TryCast(tab.Controls(0), WebBrowser))
++        If wb Is Nothing OrElse wb.IsDisposed Then
++            su.Visible = True
++            su.Text = "Saved style/script preview requires a legacy tab; Lea page unchanged"
++            Exit Sub
++        End If
+         qrunusercontent(wb, fields(1), qunb64(fields(3)))
+     End Sub

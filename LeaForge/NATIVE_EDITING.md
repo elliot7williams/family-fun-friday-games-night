@@ -4,12 +4,14 @@ Milestone 59 adds `V.Ce(code)` to query a field command and `V.Ec(code)` to run 
 Commands are case-insensitive, exactly two ASCII letters, and run on the view's
 UI thread. `Ec` returns 1 when dispatched, or 0 when unavailable. Unknown codes,
 missing/disabled/hidden fields, stale retained values, and disposed views return 0.
+Milestone 63 adds guarded clipboard paste and clipboard-free `V.Pa(text)`;
+see `PASTE_SAFETY.md` for the reproduced data-loss fix and exact bounds.
 
 | Code | Command |
 | --- | --- |
 | `cp` | Copy selected text |
 | `cu` | Cut selected text |
-| `pa` | Paste through the native text control |
+| `pa` | Read a bounded clipboard snapshot, then insert through the native control |
 | `sa` | Select all field text |
 | `de` | Delete selection or the next character |
 | `un` | Undo the last native edit |
@@ -17,7 +19,8 @@ missing/disabled/hidden fields, stale retained values, and disposed views return
 
 The existing single native TextBox remains the editor. No new text engine,
 per-field history collections, or browser dependency is added. Windows supplies
-clipboard handling, maximum-length paste, and a one-level undo buffer. Ctrl+Z
+the native text operations and one-level undo buffer; Lea guards clipboard
+reads and paste bounds. Ctrl+V/Shift+Insert share that guarded path. Ctrl+Z
 and Ctrl+Y share the undo/redo state. New edits invalidate redo; changing the
 field or page clears the buffer. This is not multi-level document undo.
 
@@ -29,8 +32,9 @@ refuse copy/cut without changing the clipboard or field. Delete expands partial
 UTF-16 surrogate boundaries. Ordinary native typing behavior is unchanged.
 
 The host-only commands are not exposed to page scripts. `Ce("pa")` checks the
-editable target without inspecting the clipboard. Clipboard or native-control
-exceptions may propagate to the caller; Firespider reports a bounded status and
+editable target without inspecting the clipboard. An unavailable/empty/non-text
+clipboard now returns 0 without replacing the selection. Unexpected host or native-control
+exceptions may still propagate to the caller; Firespider reports a bounded status and
 uses its existing error log. Hosts should call these APIs from the UI thread.
 
 ## Firespider Fixes
