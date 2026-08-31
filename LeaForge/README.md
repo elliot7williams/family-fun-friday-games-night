@@ -12,6 +12,8 @@ LeaForge is where we can grow the more full-featured browser.
 
 ## Current Features
 
+- compact `Ud` retained-field protection and optional native Firespider
+  hibernation for eligible idle tabs; see `HIBERNATION.md`
 - compact native load failures and explicit GET retry through `Fe/Le/Cr/Ry`,
   retained tabs/status, and no POST replay; see `LOAD_FAILURES.md`
 - tabs

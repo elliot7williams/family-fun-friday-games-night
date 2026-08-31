@@ -25,9 +25,19 @@ namespace Lea.Tests
             try
             {
                 var root = Path.GetFullPath(args.Length > 0 ? args[0] : Directory.GetCurrentDirectory());
-                CheckEditCommands(root);
+                if (args.Length > 1 && args[1] == "--fragment") { CheckFragmentStartup(root); return 0; }
+                var coreOnly = args.Length > 1 && args[1] == "--core";
+                if (coreOnly)
+                {
+                    var paths = new List<string>(args);
+                    paths.RemoveAt(1);
+                    args = paths.ToArray();
+                }
+                if (!coreOnly) CheckEditCommands(root);
+                if (args.Length > 1 && args[1] == "--edit") return 0;
                 CheckNavigationGuard(root);
                 CheckLoadFailures(root);
+                CheckRetainedData(root);
                 CheckDisposal(root);
                 using (var slow = new CompressedServer())
                 {
@@ -4401,7 +4411,7 @@ namespace Lea.Tests
                     view.Go(Path.Combine(root, "LeaForge", "test-pages", "second.html"));
                     view.Go(new Uri(new Uri(fragmentPath).AbsoluteUri + "#target"));
                     Paint(view);
-                    Ok(view.U.Fragment == "#target" && ElementVisible(view, ById(view.At.D, "target")), "initial cross-document URL fragment scrolls after load");
+                    Ok(view.U.Fragment == "#target" && ElementVisible(view, ById(view.At.D, "target")), "initial cross-document URL fragment scrolls after load: " + FragmentState(view));
 
                     view.Size = new Size(620, 900);
                     view.Go(gaugePath);
@@ -6525,8 +6535,7 @@ namespace Lea.Tests
                     Eq("Lea  text", field.V, "keyboard redo uses command state");
                     view.Ec("sa");
                     Clipboard.SetText("Replacement");
-                    view.Ec("pa");
-                    Eq("Replacement", field.V, "native paste replaces selection");
+                    CheckPaste(view, field, "Replacement", "native paste replaces selection");
                     Ok(!view.Ce("re"), "new edit clears redo");
                     editor.Select(0, 0);
                     view.Ec("de");
@@ -6561,13 +6570,11 @@ namespace Lea.Tests
                     start.Invoke(view, new object[] { limited });
                     editor.Select(4, 0);
                     Clipboard.SetText("abcdefghijk");
-                    view.Ec("pa");
-                    Eq("1234abcd", limited.V, "native paste respects maxlength");
+                    CheckPaste(view, limited, "1234abcd", "native paste respects maxlength");
                     var notes = FieldById(view.At, "notes");
                     start.Invoke(view, new object[] { notes });
                     Clipboard.SetText("One\r\nTwo");
-                    view.Ec("pa");
-                    Eq("One\r\nTwo", notes.V, "multiline paste");
+                    CheckPaste(view, notes, "One\r\nTwo", "multiline paste");
                     other.Focus();
                     notes.V = "external change";
                     Ok(!view.Ce("pa") && view.Ec("pa") == 0, "stale retained editor cannot overwrite programmatic value");
@@ -6597,6 +6604,25 @@ namespace Lea.Tests
                 if (original == null) Clipboard.Clear(); else Clipboard.SetDataObject(clipboard, true);
             }
             Console.WriteLine("Lea native editing smoke passed: aliases, menu focus, selection, clipboard, undo/redo, readonly/password, limits, stale values, and disposal.");
+        }
+
+        private static void CheckPaste(V view, Fi field, string expected, string name)
+        {
+            var pasted = view.Ec("pa");
+            if (pasted == 1 && field.V == expected) return;
+            var editor = Editor(view);
+            var flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            var editing = typeof(V).GetField("edit", flags).GetValue(view) as Fi;
+            var held = typeof(V).GetField("heldEdit", flags).GetValue(view) as Fi;
+            var clipboard = Clipboard.GetText();
+            using (var native = new TextBox { Multiline = true })
+            {
+                native.CreateControl();
+                native.Paste();
+                throw new InvalidOperationException(name + ": result=" + pasted + "; visible=" + editor.Visible + "; focused=" + editor.Focused +
+                    "; editing=" + (editing == null ? "null" : editing.El.Av("id")) + "; held=" + (held == null ? "null" : held.El.Av("id")) +
+                    "; field=" + field.V + "; text=" + editor.Text + "; clipboard=" + clipboard + "; native=" + native.Text);
+            }
         }
 
         private static void CheckNavigationGuard(string root)
@@ -6690,6 +6716,107 @@ namespace Lea.Tests
                 Ok(input.U.Fragment == "#target", "allowed keyboard activation still navigates");
             }
             Console.WriteLine("Lea navigation guard smoke passed: compact Ng alias, blocked GET/POST/fragments/history/reload/cache, caller-thread policy, state retention, and disposal.");
+        }
+
+        private static string FragmentState(V view)
+        {
+            var target = view.Id("target");
+            var rectangles = new List<string>();
+            foreach (var box in LayoutBoxes(view))
+                if (box.GetType().GetField("El").GetValue(box) == target)
+                    rectangles.Add(box.GetType().GetField("C").GetValue(box).ToString());
+            return "URL=" + view.U + "; size=" + view.Size + "; Sy=" + view.Sy + "; target=" + String.Join(",", rectangles.ToArray());
+        }
+
+        private static void CheckFragmentStartup(string root)
+        {
+            var path = Path.Combine(root, "LeaForge", "test-pages", "fragments.html");
+            using (var view = new V { Size = new Size(300, 420) })
+                for (var index = 0; index < 25; index++)
+                {
+                    view.Go(Path.Combine(root, "LeaForge", "test-pages", "second.html"));
+                    view.Go(new Uri(new Uri(path).AbsoluteUri + "#target"));
+                    Paint(view);
+                    Ok(view.U.Fragment == "#target" && ElementVisible(view, view.Id("target")), "fragment startup repeat " + index + ": " + FragmentState(view));
+                }
+            Console.WriteLine("Lea fragment startup repetitions passed.");
+        }
+
+        private static void CheckRetainedData(string root)
+        {
+            var source = Path.Combine(root, "LeaForge", "test-pages", "retained-data.html");
+            var engine = new E();
+            Ok(engine.Ud(null), "unknown document must be retained");
+            var page = engine.Go(source);
+            Ok(!engine.Ud(page), "pristine empty fields and default choices do not block hibernation");
+            foreach (var id in new[] { "text", "secret", "notes", "choice", "range", "color", "readonly", "disabled" })
+            {
+                var field = FieldById(page, id);
+                field.V = " ";
+                Ok(engine.Ud(page), "changed field including whitespace/read-only/disabled is retained: " + id);
+                field.V = field.D;
+                Ok(!engine.Ud(page), "restored field clears retained data: " + id);
+            }
+            foreach (var id in new[] { "check", "radio" })
+            {
+                var field = FieldById(page, id);
+                field.C = !field.Dc;
+                Ok(engine.Ud(page), "changed check/radio is retained");
+                field.C = field.Dc;
+            }
+            var select = FieldById(page, "choice");
+            select.Si++;
+            Ok(engine.Ud(page), "changed select index is retained independently of value");
+            select.Si = select.Di;
+            var file = FieldById(page, "file");
+            file.Fp.Add("private-file.txt");
+            Ok(engine.Ud(page), "selected file is retained without reading its contents");
+            file.Fp.Clear();
+            var text = FieldById(page, "text");
+            text.V = "Retain when hidden";
+            engine.Js(page, "hd('text')");
+            Ok(!page.Fs.Contains(text) && engine.Ud(page), "hidden retained fields cannot be lost");
+            engine.Js(page, "ds('text'); sh('text')");
+            Ok(engine.Ud(page), "disabling a changed field cannot make it disposable");
+            text.V = text.D;
+            Ok(!engine.Ud(page), "state query does not treat scripts themselves as field edits");
+            page.Fs.Add(null);
+            Ok(engine.Ud(page), "malformed host field list fails closed");
+            page.Fs.RemoveAt(page.Fs.Count - 1);
+            var count = page.Fs.Count;
+            while (page.Fs.Count <= 8192) page.Fs.Add(text);
+            Ok(engine.Ud(page), "retained-field scan is bounded");
+            while (page.Fs.Count > count) page.Fs.RemoveAt(page.Fs.Count - 1);
+            Ok(!engine.Ud(page), "bounded query does not mutate state");
+            var foreign = false;
+            try { new E().Ud(page); } catch (ArgumentException) { foreign = true; }
+            Ok(foreign, "retained-data query requires document ownership");
+            var prefilled = Path.Combine(Path.GetTempPath(), "lea-prefilled-" + Guid.NewGuid().ToString("N") + ".html");
+            try
+            {
+                File.WriteAllText(prefilled, "<input value='Initial data'>");
+                var valuePage = engine.Go(prefilled);
+                Ok(engine.Ud(valuePage), "editable prefilled values are conservatively retained");
+                valuePage.Fs[0].V = "";
+                Ok(engine.Ud(valuePage), "clearing a prefilled value is retained too");
+            }
+            finally { if (File.Exists(prefilled)) File.Delete(prefilled); }
+            using (var view = new V { Size = new Size(640, 480) })
+            {
+                Ok(view.Ud, "empty view retained-data state is conservative");
+                view.Go(source);
+                Paint(view);
+                Ok(!view.Ud, "native retained-data alias");
+                view.Aa("t").GetAwaiter().GetResult();
+                var editor = Editor(view);
+                Ok(editor.Visible, "retained data test opened native editor");
+                editor.Text = "Native edit";
+                Ok(view.Ud, "active native editor is included without ending edit");
+                Ok(editor.Visible && editor.Text == "Native edit", "query must not blur or mutate the editor");
+                view.Dispose();
+                Ok(view.Ud, "disposed view is never eligible for data discard");
+            }
+            Console.WriteLine("Lea retained-data smoke passed: Ud, defaults, changed/hidden/protected fields, selected files, native editing, ownership, and bounded scans.");
         }
 
         private static void CheckLoadFailures(string root)

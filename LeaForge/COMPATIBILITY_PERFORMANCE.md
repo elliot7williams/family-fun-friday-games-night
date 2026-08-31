@@ -10,16 +10,16 @@ These are repeatable local diagnostic samples, not performance promises. Re-run 
 
 | Measurement | Result |
 | --- | ---: |
-| Clean process + engine + first page median | 492.898 ms |
-| Clean process + engine + first page p95 | 569.344 ms |
-| Local page load median | 3.512 ms |
-| Local page load p95 | 11.335 ms |
-| Layout + bitmap paint median | 31.929 ms |
-| Layout + bitmap paint p95 | 108.569 ms |
-| Retained managed memory | 15142.9 KB for 295 loaded pages |
-| Retained managed memory per page | 51.3 KB |
-| Engine runtime DLLs | 479.5 KB |
-| Engine runtime GZip estimate | 202.1 KB (42.1% of raw) |
+| Clean process + engine + first page median | 485.673 ms |
+| Clean process + engine + first page p95 | 498.297 ms |
+| Local page load median | 3.861 ms |
+| Local page load p95 | 13.707 ms |
+| Layout + bitmap paint median | 36.526 ms |
+| Layout + bitmap paint p95 | 126.291 ms |
+| Retained managed memory | 15365.3 KB for 300 loaded pages |
+| Retained managed memory per page | 51.2 KB |
+| Engine runtime DLLs | 480.0 KB |
+| Engine runtime GZip estimate | 202.5 KB (42.2% of raw) |
 
 ## Fixture Loads
 
@@ -27,65 +27,66 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 
 | Fixture | Bytes | Nodes | CSS rules | Median | p95 |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| `index.html` | 1032 | 19 | 1 | 2.526 ms | 4.542 ms |
-| `recovery.html` | 1040 | 39 | 0 | 2.043 ms | 4.856 ms |
-| `html-tokens.html` | 943 | 15 | 2 | 1.239 ms | 1.742 ms |
-| `selectors.html` | 1017 | 20 | 10 | 1.315 ms | 2.383 ms |
-| `selector-functions.html` | 2586 | 23 | 18 | 3.170 ms | 4.060 ms |
-| `selector-arithmetic.html` | 1955 | 25 | 18 | 4.404 ms | 17.010 ms |
-| `selector-filtered-position.html` | 2375 | 25 | 13 | 4.317 ms | 6.471 ms |
-| `selector-relational.html` | 2027 | 28 | 15 | 3.350 ms | 4.257 ms |
-| `layout.html` | 616 | 9 | 4 | 0.792 ms | 0.971 ms |
-| `tables.html` | 894 | 28 | 6 | 2.459 ms | 7.507 ms |
-| `forms.html` | 1566 | 25 | 7 | 2.787 ms | 3.355 ms |
-| `editing.html` | 880 | 18 | 6 | 1.163 ms | 2.246 ms |
-| `events-vars.html` | 1132 | 14 | 5 | 2.716 ms | 3.741 ms |
-| `responsive-media.html` | 2575 | 21 | 5 | 2.075 ms | 2.712 ms |
-| `media-queries.html` | 2229 | 24 | 16 | 2.523 ms | 4.191 ms |
-| `custom-properties.html` | 2890 | 23 | 17 | 3.506 ms | 4.855 ms |
-| `important-cascade.html` | 2748 | 19 | 16 | 3.293 ms | 4.656 ms |
-| `stacking-contexts.html` | 3149 | 32 | 22 | 4.849 ms | 9.623 ms |
-| `external.html` | 502 | 12 | 6 | 1.975 ms | 2.488 ms |
-| `base-url.html` | 819 | 17 | 5 | 1.596 ms | 2.121 ms |
-| `class-commands.html` | 1169 | 15 | 4 | 1.559 ms | 3.249 ms |
-| `go-command.html` | 971 | 12 | 6 | 2.463 ms | 5.625 ms |
-| `lists.html` | 1849 | 39 | 5 | 2.570 ms | 3.223 ms |
-| `disclosure.html` | 2270 | 34 | 9 | 3.085 ms | 3.683 ms |
-| `fragments.html` | 2234 | 31 | 11 | 2.928 ms | 10.865 ms |
-| `gauges.html` | 2115 | 25 | 14 | 2.365 ms | 3.936 ms |
-| `values.html` | 1734 | 26 | 7 | 1.991 ms | 2.792 ms |
-| `time-edits.html` | 1966 | 27 | 7 | 2.560 ms | 3.388 ms |
-| `image-maps.html` | 2569 | 30 | 6 | 2.534 ms | 4.648 ms |
-| `keyboard-focus.html` | 3721 | 41 | 18 | 4.029 ms | 4.669 ms |
-| `focus-shortcuts.html` | 1838 | 20 | 13 | 2.380 ms | 3.377 ms |
-| `accessibility.html` | 3148 | 60 | 4 | 3.263 ms | 13.630 ms |
-| `state-commands.html` | 2711 | 37 | 9 | 5.619 ms | 9.645 ms |
-| `flex.html` | 6942 | 57 | 57 | 11.065 ms | 23.786 ms |
-| `grid.html` | 5699 | 62 | 37 | 12.394 ms | 22.173 ms |
-| `grid-areas.html` | 3189 | 31 | 20 | 7.440 ms | 13.672 ms |
-| `grid-lines.html` | 5342 | 45 | 31 | 12.976 ms | 14.806 ms |
-| `grid-flow.html` | 4271 | 45 | 38 | 8.869 ms | 22.236 ms |
-| `grid-auto-tracks.html` | 4332 | 41 | 25 | 9.909 ms | 15.289 ms |
-| `grid-shorthand.html` | 5060 | 48 | 33 | 9.617 ms | 20.957 ms |
-| `grid-alignment.html` | 3129 | 27 | 23 | 5.521 ms | 9.030 ms |
-| `grid-content-alignment.html` | 2723 | 37 | 18 | 5.821 ms | 8.817 ms |
-| `svg.html` | 1775 | 25 | 4 | 2.716 ms | 3.350 ms |
-| `svg-geometry.html` | 2470 | 31 | 2 | 3.570 ms | 11.335 ms |
-| `svg-gradients.html` | 3238 | 43 | 3 | 3.500 ms | 5.075 ms |
-| `svg-use-clips.html` | 2947 | 48 | 3 | 3.370 ms | 4.311 ms |
-| `svg-strokes.html` | 2832 | 28 | 5 | 3.872 ms | 7.360 ms |
-| `box-sizing.html` | 2744 | 20 | 13 | 4.005 ms | 5.775 ms |
-| `border-radius.html` | 1695 | 16 | 12 | 2.651 ms | 5.146 ms |
-| `box-shadows.html` | 2445 | 22 | 19 | 3.696 ms | 8.713 ms |
-| `background-gradients.html` | 2943 | 22 | 19 | 3.955 ms | 5.905 ms |
-| `background-images.html` | 4326 | 26 | 23 | 7.453 ms | 11.029 ms |
-| `object-fit.html` | 5828 | 25 | 16 | 4.513 ms | 5.747 ms |
-| `aspect-ratio.html` | 5640 | 49 | 38 | 9.617 ms | 12.846 ms |
-| `outlines.html` | 2871 | 23 | 19 | 5.111 ms | 8.489 ms |
-| `pointer-interaction.html` | 3471 | 30 | 27 | 6.243 ms | 9.715 ms |
-| `text-transform.html` | 3150 | 32 | 25 | 6.409 ms | 7.739 ms |
-| `text-spacing.html` | 3942 | 33 | 26 | 8.185 ms | 10.093 ms |
-| `text-overflow.html` | 3878 | 34 | 26 | 8.929 ms | 11.617 ms |
+| `index.html` | 1032 | 19 | 1 | 2.877 ms | 3.555 ms |
+| `recovery.html` | 1040 | 39 | 0 | 1.244 ms | 1.885 ms |
+| `html-tokens.html` | 943 | 15 | 2 | 1.301 ms | 1.749 ms |
+| `selectors.html` | 1017 | 20 | 10 | 1.656 ms | 3.459 ms |
+| `selector-functions.html` | 2586 | 23 | 18 | 2.975 ms | 4.926 ms |
+| `selector-arithmetic.html` | 1955 | 25 | 18 | 3.261 ms | 4.352 ms |
+| `selector-filtered-position.html` | 2375 | 25 | 13 | 4.371 ms | 12.377 ms |
+| `selector-relational.html` | 2027 | 28 | 15 | 2.903 ms | 4.303 ms |
+| `layout.html` | 616 | 9 | 4 | 0.871 ms | 1.212 ms |
+| `tables.html` | 894 | 28 | 6 | 2.150 ms | 3.277 ms |
+| `forms.html` | 1566 | 25 | 7 | 2.814 ms | 6.051 ms |
+| `editing.html` | 880 | 18 | 6 | 1.151 ms | 1.724 ms |
+| `retained-data.html` | 1254 | 32 | 4 | 2.292 ms | 3.982 ms |
+| `events-vars.html` | 1132 | 14 | 5 | 3.264 ms | 6.008 ms |
+| `responsive-media.html` | 2575 | 21 | 5 | 2.880 ms | 3.394 ms |
+| `media-queries.html` | 2229 | 24 | 16 | 3.714 ms | 8.842 ms |
+| `custom-properties.html` | 2890 | 23 | 17 | 4.354 ms | 7.529 ms |
+| `important-cascade.html` | 2748 | 19 | 16 | 3.999 ms | 6.693 ms |
+| `stacking-contexts.html` | 3149 | 32 | 22 | 8.790 ms | 20.244 ms |
+| `external.html` | 502 | 12 | 6 | 2.033 ms | 3.222 ms |
+| `base-url.html` | 819 | 17 | 5 | 2.119 ms | 4.462 ms |
+| `class-commands.html` | 1169 | 15 | 4 | 2.564 ms | 3.793 ms |
+| `go-command.html` | 971 | 12 | 6 | 2.502 ms | 3.179 ms |
+| `lists.html` | 1849 | 39 | 5 | 3.964 ms | 5.203 ms |
+| `disclosure.html` | 2270 | 34 | 9 | 3.496 ms | 4.869 ms |
+| `fragments.html` | 2234 | 31 | 11 | 3.968 ms | 6.442 ms |
+| `gauges.html` | 2115 | 25 | 14 | 2.800 ms | 4.498 ms |
+| `values.html` | 1734 | 26 | 7 | 2.364 ms | 3.403 ms |
+| `time-edits.html` | 1966 | 27 | 7 | 2.999 ms | 3.992 ms |
+| `image-maps.html` | 2569 | 30 | 6 | 3.270 ms | 8.276 ms |
+| `keyboard-focus.html` | 3721 | 41 | 18 | 6.700 ms | 7.664 ms |
+| `focus-shortcuts.html` | 1838 | 20 | 13 | 3.703 ms | 9.891 ms |
+| `accessibility.html` | 3148 | 60 | 4 | 4.217 ms | 6.056 ms |
+| `state-commands.html` | 2711 | 37 | 9 | 8.611 ms | 13.735 ms |
+| `flex.html` | 6942 | 57 | 57 | 17.057 ms | 19.179 ms |
+| `grid.html` | 5699 | 62 | 37 | 17.083 ms | 34.001 ms |
+| `grid-areas.html` | 3189 | 31 | 20 | 8.290 ms | 11.094 ms |
+| `grid-lines.html` | 5342 | 45 | 31 | 13.755 ms | 29.373 ms |
+| `grid-flow.html` | 4271 | 45 | 38 | 9.263 ms | 16.565 ms |
+| `grid-auto-tracks.html` | 4332 | 41 | 25 | 8.353 ms | 15.913 ms |
+| `grid-shorthand.html` | 5060 | 48 | 33 | 11.632 ms | 18.823 ms |
+| `grid-alignment.html` | 3129 | 27 | 23 | 4.504 ms | 6.602 ms |
+| `grid-content-alignment.html` | 2723 | 37 | 18 | 8.120 ms | 24.314 ms |
+| `svg.html` | 1775 | 25 | 4 | 2.136 ms | 3.262 ms |
+| `svg-geometry.html` | 2470 | 31 | 2 | 5.821 ms | 19.627 ms |
+| `svg-gradients.html` | 3238 | 43 | 3 | 2.994 ms | 5.306 ms |
+| `svg-use-clips.html` | 2947 | 48 | 3 | 4.049 ms | 5.497 ms |
+| `svg-strokes.html` | 2832 | 28 | 5 | 3.021 ms | 23.348 ms |
+| `box-sizing.html` | 2744 | 20 | 13 | 4.425 ms | 5.978 ms |
+| `border-radius.html` | 1695 | 16 | 12 | 3.283 ms | 4.105 ms |
+| `box-shadows.html` | 2445 | 22 | 19 | 5.207 ms | 10.978 ms |
+| `background-gradients.html` | 2943 | 22 | 19 | 4.030 ms | 6.387 ms |
+| `background-images.html` | 4326 | 26 | 23 | 7.784 ms | 16.173 ms |
+| `object-fit.html` | 5828 | 25 | 16 | 3.315 ms | 5.489 ms |
+| `aspect-ratio.html` | 5640 | 49 | 38 | 9.103 ms | 25.044 ms |
+| `outlines.html` | 2871 | 23 | 19 | 3.926 ms | 4.821 ms |
+| `pointer-interaction.html` | 3471 | 30 | 27 | 8.917 ms | 21.382 ms |
+| `text-transform.html` | 3150 | 32 | 25 | 6.583 ms | 8.394 ms |
+| `text-spacing.html` | 3942 | 33 | 26 | 7.369 ms | 29.050 ms |
+| `text-overflow.html` | 3878 | 34 | 26 | 10.156 ms | 12.938 ms |
 
 ## Executable Probes
 
@@ -151,6 +152,7 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 | Bounded element-state commands | PASS | hd/sh, ds/en, vl, ck, fo, op/cl/tg, retained fields, one pending focus target, and file-value rejection |
 | Find and local download | PASS | 3 text matches and atomic local download |
 | Bounded diagnostics | PASS | 42 node lines, 5 CSS lines, 1 request |
+| Retained field data | PASS | E.Ud/V.Ud; pristine choices, edited and hidden retained fields, selected files, read-only bounded query |
 | Native load failure and retry | PASS | Fe/Le typed failure, retained page, Cr/Ry explicit GET retry, and success reset |
 
 ## Compatibility Scope
@@ -186,11 +188,11 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 
 | Artifact | Bytes | Size |
 | --- | ---: | ---: |
-| `Lea.Engine.dll` | 271360 | 265.0 KB |
+| `Lea.Engine.dll` | 271872 | 265.5 KB |
 | `Lea.Win.dll` | 219648 | 214.5 KB |
 | `Lea.Win.Test.exe` | 395776 | 386.5 KB |
-| `Lea.Bench.exe` | 214016 | 209.0 KB |
-| `Firespider Internet 19.exe` | 1127936 | 1101.5 KB |
+| `Lea.Bench.exe` | 215552 | 210.5 KB |
+| `Firespider Internet 19.exe` | 1128448 | 1102.0 KB |
 
 The engine runtime size is `Lea.Engine.dll` plus `Lea.Win.dll`. Test and report executables are listed separately and are not required when embedding Lea in Firespider.
 

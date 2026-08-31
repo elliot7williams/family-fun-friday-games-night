@@ -44,7 +44,7 @@ namespace Lea.Firespider
             var forms = new List<Form>();
             try
             {
-                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch", "domains", "domain-private", "split", "split-life", "split-limits", "edit", "policy", "policy-start", "failures", "failure-start" }.Contains(mode), "unknown boot case: " + mode);
+                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch", "domains", "domain-private", "split", "split-life", "split-limits", "edit", "policy", "policy-start", "failures", "failure-start", "hibernate", "hibernate-start" }.Contains(mode), "unknown boot case: " + mode);
                 Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
                 Application.ThreadException += (sender, error) => UiErrors.Add(error.Exception);
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", session);
@@ -74,6 +74,14 @@ namespace Lea.Firespider
                 settings["ep"] = log;
                 settings["lazyRestoreMode"] = "off";
                 var expected = new[] { page };
+                if (mode == "hibernate-start")
+                {
+                    settings["hibernateEnabled"] = "e";
+                    settings["hibernateMinutes"] = "1";
+                    settings["hibernateExceptions"] = new StringCollection();
+                    expected = new[] { page, page + "#idle" };
+                    File.WriteAllLines(session, expected);
+                }
                 if (mode == "failure-start")
                 {
                     lazySite = new LoopbackSite(150) { Status = 503 };
@@ -268,6 +276,8 @@ namespace Lea.Firespider
                 if (mode == "edit") CheckEdit(form, settings, page);
                 if (mode == "policy") CheckPolicy(form, settings, page, forms);
                 if (mode == "failures") CheckFailures(form, settings, page);
+                if (mode == "hibernate") CheckHibernation(form, settings, page);
+                if (mode == "hibernate-start") CheckHibernationStartup(form, expected);
                 if (mode == "recovery")
                 {
                     var idle = Stopwatch.StartNew();
@@ -460,6 +470,167 @@ namespace Lea.Firespider
                 if (original == null) Clipboard.Clear(); else Clipboard.SetDataObject(clipboard, true);
             }
             Console.WriteLine("PASS edit: real menu/hover dispatch, selection, undo/redo, clipboard, readonly/password, paused/empty tabs, and explicit legacy fallback");
+        }
+
+        private static void CheckHibernationStartup(Form form, string[] urls)
+        {
+            var tabs = Member<TabControl>(form, "k");
+            var foreground = tabs.TabPages[0];
+            var background = tabs.TabPages[1];
+            var view = (V)background.Controls[0];
+            var timer = Member<System.Windows.Forms.Timer>(form, "feature6HibernateTimer");
+            Check(timer.Enabled && timer.Interval == 30000, "configured hibernation timer did not start");
+            var idle = Member<Dictionary<TabPage, DateTime>>(form, "feature6IdleSince");
+            idle[background] = DateTime.Now.AddMinutes(-2);
+            var watch = Stopwatch.StartNew();
+            while (!view.IsDisposed && UiErrors.Count == 0 && watch.ElapsedMilliseconds < 35000) { Application.DoEvents(); Thread.Sleep(20); }
+            Check(view.IsDisposed && background.Controls[0] is Panel && UiErrors.Count == 0, "real startup hibernation timer did not release idle Lea");
+            Check(tabs.SelectedTab == foreground && foreground.Controls[0] is V && (string)Call(form, "qleaUrl", background) == urls[1], "startup hibernation lost selection or saved target");
+            form.Close();
+            Check(form.IsDisposed && !timer.Enabled && idle.Count == 0, "closing did not stop hibernation timer and release bookkeeping");
+            Console.WriteLine("PASS hibernation startup: real 30-second policy timer, restored idle Lea release, foreground/URL retention, and close cleanup");
+        }
+
+        private static void CheckHibernation(Form form, ApplicationSettingsBase settings, string page)
+        {
+            var tabs = Member<TabControl>(form, "k");
+            var selected = tabs.SelectedTab;
+            settings["hibernateExceptions"] = new StringCollection();
+            settings["hibernateMinutes"] = "1";
+            var view = (V)Call(form, "qleaNew", page);
+            var background = (TabPage)view.Parent;
+            WaitLea(tabs);
+            tabs.SelectedTab = selected;
+            Check((bool)Call(form, "qfeature6tabeligible", background), "pristine background Lea tab is excluded from hibernation");
+            Menu(form, "Hibernate Eligible Tabs Now").PerformClick();
+            Check(view.IsDisposed && background.Controls.Count == 1 && background.Controls[0] is Panel, "hibernation did not release the native renderer");
+            Check(tabs.SelectedTab == selected && (string)Call(form, "qleaUrl", background) == page, "hibernation changed selection or lost the URL");
+            tabs.SelectedTab = background;
+            WaitLea(tabs);
+            Check(background.Controls[0] is V && background.Controls[0] != view, "selecting hibernated Lea did not create a fresh renderer");
+            view = (V)background.Controls[0];
+            Check(!(bool)Call(form, "qfeature6tabeligible", background), "selected tab eligible for automatic discard");
+            tabs.SelectedTab = selected;
+            foreach (var protection in new[] { "locked", "pinned" })
+            {
+                background.Tag = protection;
+                Check(!(bool)Call(form, "qfeature6tabeligible", background), "protected Lea tab eligible: " + protection);
+            }
+            background.Tag = "lea";
+            background.ToolTipText = "Tab group: Test";
+            Check(!(bool)Call(form, "qfeature6tabeligible", background), "grouped Lea tab eligible");
+            background.ToolTipText = "";
+            tabs.TabPages.Remove(background);
+            Check(!(bool)Call(form, "qfeature6tabeligible", background), "detached or hidden Lea tab eligible");
+            tabs.TabPages.Add(background);
+            view.Pv = true;
+            Check(!(bool)Call(form, "qfeature6tabeligible", background), "sticky private Lea tab eligible");
+            view.Pv = false;
+            Set(form, "pv", true);
+            Check(!(bool)Call(form, "qfeature6tabeligible", background), "global private mode allowed hibernation");
+            Set(form, "pv", false);
+            var idle = Member<Dictionary<TabPage, DateTime>>(form, "feature6IdleSince");
+            idle[background] = DateTime.Now;
+            Check((int)Call(form, "qfeature6hibernateeligible", true) == 0 && !view.IsDisposed, "recent background tab discarded before idle threshold");
+            idle[background] = DateTime.Now.AddMinutes(-2);
+            settings["hibernateEnabled"] = "";
+            Call(form, "qfeature6hibernatetick", form, EventArgs.Empty);
+            Check(!view.IsDisposed, "disabled timer policy discarded Lea tab");
+            settings["hibernateEnabled"] = "e";
+            Call(form, "qfeature6hibernatetick", form, EventArgs.Empty);
+            Check(view.IsDisposed && background.Controls[0] is Panel && Member<Label>(form, "su").Text.Contains("1 idle"), "timer did not hibernate eligible idle Lea tab");
+            Check((int)Call(form, "qfeature6hibernateeligible", true) == 0, "already paused Lea tab hibernated again");
+            tabs.SelectedTab = background;
+            WaitLea(tabs);
+            view = (V)background.Controls[0];
+            tabs.SelectedTab = selected;
+            view.Go(page + "#history");
+            Check(!(bool)Call(form, "qfeature6tabeligible", background), "retained history would be lost by automatic hibernation");
+            view.Bk();
+            Check(!(bool)Call(form, "qfeature6tabeligible", background), "forward history would be lost by automatic hibernation");
+            Call(form, "qleaClose", background);
+
+            var fixture = Path.Combine(Path.GetTempPath(), "lea-hibernate-" + Guid.NewGuid().ToString("N") + ".html");
+            try
+            {
+                File.WriteAllText(fixture, "<title>Hibernation data</title><input id=edit><p style='height:2400px'>Long reading page</p>");
+                view = (V)Call(form, "qleaNew", fixture);
+                background = (TabPage)view.Parent;
+                WaitLea(tabs);
+                tabs.SelectedTab = selected;
+                var field = view.At.Fs[0];
+                field.V = "Keep this text";
+                Check(!(bool)Call(form, "qfeature6tabeligible", background), "edited Lea data eligible");
+                field.V = "";
+                view.Sc(100);
+                Check(view.Sy > 0, "hibernation fixture did not scroll");
+                Check(!(bool)Call(form, "qfeature6tabeligible", background), "reading position eligible for discard");
+                view.Sc(-100000);
+                Check((bool)Call(form, "qfeature6tabeligible", background), "pristine empty-field page did not recover eligibility");
+                view.Js("hd('edit')");
+                Check(!(bool)Call(form, "qfeature6tabeligible", background), "script state eligible for discard");
+                Call(form, "qleaClose", background);
+                foreach (var html in new[] { "<details><summary>State</summary>Content</details>", "<audio></audio>", "<video></video>", "<div contenteditable>Editable</div>" })
+                {
+                    File.WriteAllText(fixture, "<title>Retained document</title>" + html);
+                    view = (V)Call(form, "qleaNew", fixture);
+                    background = (TabPage)view.Parent;
+                    WaitLea(tabs);
+                    tabs.SelectedTab = selected;
+                    Check(!(bool)Call(form, "qfeature6tabeligible", background), "non-field interactive state eligible for discard: " + html);
+                    Call(form, "qleaClose", background);
+                }
+                using (var site = new LoopbackSite())
+                {
+                    site.Release.Reset();
+                    view = (V)Call(form, "qleaNew", site.Url);
+                    background = (TabPage)view.Parent;
+                    tabs.SelectedTab = selected;
+                    Check(view.Busy && !(bool)Call(form, "qfeature6tabeligible", background), "in-flight first page eligible");
+                    site.Release.Set();
+                    WaitLea(tabs);
+                    settings["hibernateExceptions"] = Collection("127.0.0.1");
+                    Check(!(bool)Call(form, "qfeature6tabeligible", background), "domain exception ignored for Lea");
+                    settings["hibernateExceptions"] = Collection("example.test");
+                    Check((bool)Call(form, "qfeature6tabeligible", background), "unrelated exception blocked Lea");
+                    var download = Path.Combine(Path.GetTempPath(), "lea-hibernate-download-" + Guid.NewGuid().ToString("N") + ".bin");
+                    try
+                    {
+                        site.Release.Reset();
+                        site.SetCookie = true;
+                        var work = view.DlA(site.Url + "download", download);
+                        Wait(() => site.Hits == 2, "hibernation download started");
+                        Check(view.Busy && !(bool)Call(form, "qfeature6tabeligible", background), "active download eligible for discard");
+                        Check((int)Call(form, "qfeature6hibernateeligible", false) == 0 && !view.IsDisposed, "hibernation interrupted active download");
+                        site.Release.Set();
+                        Wait(() => work.IsCompleted, "retained download completion");
+                        Check(work.GetAwaiter().GetResult().Sz > 0 && File.Exists(download), "protected download did not finish");
+                        Check(view.Kc == 1 && !(bool)Call(form, "qfeature6tabeligible", background), "cookie context eligible for discard");
+                        site.SetCookie = false;
+                        view.Kcl();
+                        Check((bool)Call(form, "qfeature6tabeligible", background), "cleared cookie context did not recover eligibility");
+                    }
+                    finally { site.Release.Set(); if (File.Exists(download)) File.Delete(download); }
+                    site.Status = 503;
+                    try { view.Go(site.Url + "failed"); } catch (Lea.Engine.Er) { }
+                    Check(view.Le != null && !(bool)Call(form, "qfeature6tabeligible", background), "failed navigation/error state eligible");
+                    Call(form, "qleaClose", background);
+                }
+                using (var empty = new TabPage())
+                {
+                    tabs.TabPages.Add(empty);
+                    Check(!(bool)Call(form, "qfeature6tabeligible", empty), "empty tab eligible");
+                    tabs.TabPages.Remove(empty);
+                }
+            }
+            finally { if (File.Exists(fixture)) File.Delete(fixture); }
+            TabPage released;
+            var weak = SuspendCollectible(form, page, out released, true);
+            Wait(() => { GC.Collect(); GC.WaitForPendingFinalizers(); GC.Collect(); return Collected(weak); }, "hibernated renderer retained in host state");
+            Check(released.Controls[0] is Panel && tabs.SelectedTab == selected, "collectible hibernation resumed or changed selection");
+            Check(!Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module => module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)), "Lea hibernation loaded MSHTML");
+            settings["hibernateEnabled"] = "";
+            Console.WriteLine("PASS hibernation: native release/resume, idle/disabled timer policy, private/protected/grouped/edited/cookie/history/script/scroll/media/busy/error exclusions, and domain exceptions");
         }
 
         private static void CheckFailures(Form form, ApplicationSettingsBase settings, string page)
@@ -1759,13 +1930,19 @@ namespace Lea.Firespider
         private static bool Collected(WeakReference weak) { return !weak.IsAlive; }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static WeakReference SuspendCollectible(Form form, string page, out TabPage tab)
+        private static WeakReference SuspendCollectible(Form form, string page, out TabPage tab, bool hibernate = false)
         {
+            var previous = Member<TabControl>(form, "k").SelectedTab;
             var view = (V)Call(form, "qleaNew", page + "#collectible");
             tab = Member<TabControl>(form, "k").SelectedTab;
             Wait(() => !view.Busy, "collectible view load");
             var weak = new WeakReference(view);
-            Check((bool)Call(form, "qsuspendtab", tab), "collectible view suspension");
+            if (hibernate)
+            {
+                Member<TabControl>(form, "k").SelectedTab = previous;
+                Check((int)Call(form, "qfeature6hibernateeligible", false) == 1 && view.IsDisposed, "collectible native hibernation");
+            }
+            else Check((bool)Call(form, "qsuspendtab", tab), "collectible view suspension");
             view = null;
             return weak;
         }
@@ -1854,6 +2031,8 @@ namespace Lea.Firespider
             private int hits;
             public volatile int DelayMs;
             public volatile int Status = 200;
+            public volatile bool SetCookie;
+            public readonly ManualResetEvent Release = new ManualResetEvent(true);
             public readonly string Url;
             public int Hits { get { return Interlocked.CompareExchange(ref hits, 0, 0); } }
 
@@ -1884,10 +2063,12 @@ namespace Lea.Firespider
                             }
                             Check(end == 0x0d0a0d0a, "loopback request header bound");
                             Interlocked.Increment(ref hits);
+                            Check(Release.WaitOne(10000), "loopback response gate timeout");
                             if (request == 0 && firstDelay > 0) Thread.Sleep(firstDelay);
                             if (request > 0 && DelayMs > 0) Thread.Sleep(DelayMs);
                             var body = Encoding.UTF8.GetBytes("<title>Lea navigation</title><p>Local test</p>");
-                            var header = Encoding.ASCII.GetBytes("HTTP/1.1 " + Status + " Test\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: " + body.Length + "\r\nConnection: close\r\n\r\n");
+                            var header = Encoding.ASCII.GetBytes("HTTP/1.1 " + Status + " Test\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: " + body.Length + "\r\n" +
+                                (SetCookie ? "Set-Cookie: hibernate=retained; Path=/\r\n" : "") + "Connection: close\r\n\r\n");
                             try
                             {
                                 stream.Write(header, 0, header.Length);
@@ -1902,8 +2083,10 @@ namespace Lea.Firespider
             public void Dispose()
             {
                 stopped = true;
+                Release.Set();
                 listener.Stop();
                 Check(worker.Join(4000), "loopback server shutdown");
+                Release.Dispose();
                 Check(error == null, "loopback server: " + error);
             }
         }

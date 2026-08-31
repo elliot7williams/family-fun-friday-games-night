@@ -10,6 +10,14 @@ Its timer status handler is also routed safely across startup, empty, Lea, and
 legacy-tab states, so it never dereferences a missing control or casts a Lea
 view to the legacy `WebBrowser` type.
 
+Lea now participates in the existing opt-in eligible-tab hibernation policy.
+Compact `E.Ud/V.Ud` protects retained field data; privacy, cookies, history, script state,
+scrolling, busy/error states, and existing tab/domain protections also prevent
+automatic discard. Eligible renderers are disposed and resume on demand. The
+`hibernate` and `hibernate-start` Boot cases bring the suite to 34, including
+the real 30-second timer and renderer collection. Apply `Hibernation-host.patch`
+with the matching adapter and DLLs. See `LeaForge/HIBERNATION.md` for limits.
+
 Native document failures now publish `V.Fe/Le`; `V.Cr/Ry` supports explicit
 GET retry through Reload without replaying POST. Failed first pages retain
 their URL/session entry; timer ticks and background successes do not hide the

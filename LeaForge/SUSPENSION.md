@@ -1,5 +1,10 @@
 # Lea Tab Suspension
 
+Milestone 62 later adds conservative native eligibility to the existing
+optional hibernation policy through `Ud`; see `HIBERNATION.md`. Milestone 55
+added native lazy restoration; see `LAZY_RESTORE.md`. The following records
+the original milestone-54 suspension behavior and limits.
+
 Milestone 54 adds native Lea suspension to Firespider without adding a browser
 runtime or changing the short public navigation aliases. Use the matching
 adapter, engine DLLs, and `Lea.Firespider/Suspension-host.patch` together. The

@@ -300,6 +300,30 @@ namespace Lea.Engine
             return count;
         }
 
+        // Ud conservatively detects field data that a URL-only reload could lose.
+        public bool Ud(P page)
+        {
+            if (page == null) return true;
+            QueryPage(page);
+            if (page.Fr.Count + page.Fs.Count > MaxHtmlNodes) return true;
+            foreach (var field in page.Fr.Values) if (KeepField(field)) return true;
+            foreach (var field in page.Fs) if (KeepField(field)) return true;
+            return false;
+        }
+
+        private static bool KeepField(Fi field)
+        {
+            if (field == null || field.Fp.Count > 0 || field.C != field.Dc || field.Si != field.Di ||
+                !String.Equals(field.V, field.D, StringComparison.Ordinal)) return true;
+            if (field.Ds || field.Ro) return false;
+            switch (field.K)
+            {
+                case "checkbox": case "radio": case "select": case "range": case "color":
+                case "button": case "submit": case "reset": case "file": case "hidden": return false;
+                default: return !String.IsNullOrEmpty(field.V);
+            }
+        }
+
         // Gt returns and clears one bounded page navigation request.
         public Uri Gt(P page)
         {

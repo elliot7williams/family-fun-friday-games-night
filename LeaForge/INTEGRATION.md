@@ -83,6 +83,12 @@ failure. Public calls still throw the same `Er`. Offer explicit retry when
 `V.Cr` is true and await `V.Ry()`; it rechecks navigation policy and never
 replays POST. Cancellation does not emit failure. See `LOAD_FAILURES.md`.
 
+`E.Ud(page)` and `V.Ud` conservatively detect field data worth retaining before
+a URL-only reload, including hidden retained fields and selected file paths.
+They do not move focus, write data, or provide a full state snapshot. Firespider
+uses the query with privacy, activity, history, and state exclusions under its
+existing opt-in hibernation policy. See `HIBERNATION.md`.
+
 Use `V.Ce(code)` and `V.Ec(code)` on the UI thread for native field editing.
 The two-letter commands `cp/cu/pa/sa/de/un/re` cover copy, cut, paste, select-all,
 delete, and one-level undo/redo. Firespider's Edit menu now uses these routes,

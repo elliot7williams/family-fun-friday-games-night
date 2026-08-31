@@ -18,6 +18,9 @@ read and quick to write.
 - Page values use one or two letters: `U`, `T`, `H`, `Q`, `D`, `N`, `Bs`, and `Ls`.
 - Page commands use one or two letters: `t`, `a`, `bg`, `fg`, `fs`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`.
 - New public aliases should be no more than three letters.
+- `E.Ud(page)` and `V.Ud` conservatively report field data worth retaining before
+  a URL-only reload, including changed hidden fields and selected files. They
+  do not serialize state or authorize tab disposal. See `HIBERNATION.md`.
 - `V.Fe` reports typed page-load failure; `V.Le` holds it, `V.Cr` reports an
   eligible explicit GET retry, and `V.Ry()` performs it. POST is never replayed
   by Retry. Public navigation still throws `Er`. See `LOAD_FAILURES.md`.

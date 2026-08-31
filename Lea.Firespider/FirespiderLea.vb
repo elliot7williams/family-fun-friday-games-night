@@ -307,6 +307,14 @@ Partial Class j
         qleaTabChanged(k, EventArgs.Empty)
     End Sub
 
+    Private Function qleaHibernateEligible(ByVal host As Global.Lea.Win.V) As Boolean
+        If host Is Nothing OrElse host.IsDisposed OrElse host.Pv OrElse host.Busy OrElse host.At Is Nothing OrElse host.Le IsNot Nothing Then Return False
+        If host.U Is Nothing OrElse qleaSessionTarget(host.U.AbsoluteUri) = "" OrElse qfeature6domainexcepted(host.U) Then Return False
+        If host.Ud OrElse host.Kc > 0 OrElse host.CanBk OrElse host.CanFw OrElse host.Sy <> 0 OrElse host.At.Jc > 0 OrElse host.Ke IsNot Nothing Then Return False
+        If host.Qa("details,audio,video,[contenteditable]").Count > 0 Then Return False
+        Return True
+    End Function
+
     Private Function qleaDomain() As Uri
         Dim address As Uri = Nothing
         If Not Uri.TryCreate(qleaUrl(qleaSelectedTab()), UriKind.Absolute, address) Then Return Nothing

@@ -1,0 +1,13 @@
+diff --git a/BrowserFeatures6.vb b/BrowserFeatures6.vb
+index 701cda7..2037091 100644
+--- a/BrowserFeatures6.vb
++++ b/BrowserFeatures6.vb
+@@ -200,6 +200,8 @@ Partial Class j
+             Dim protection As String = If(tab.Tag Is Nothing, "", tab.Tag.ToString).Trim.ToLowerInvariant
+             If protection = "locked" OrElse protection = "pinned" Then Return False
+             If tab.ToolTipText.StartsWith("Tab group:", StringComparison.OrdinalIgnoreCase) Then Return False
++            Dim lea As Global.Lea.Win.V = qleaHost(tab)
++            If lea IsNot Nothing Then Return qleaHibernateEligible(lea)
+             Dim wb As WebBrowser = TryCast(tab.Controls(0), WebBrowser)
+             If wb Is Nothing OrElse wb.IsBusy OrElse wb.ReadyState <> WebBrowserReadyState.Complete OrElse wb.Url Is Nothing OrElse wb.Document Is Nothing Then Return False
+             If wb.Url.ToString = "about:blank" OrElse qfeature6domainexcepted(wb.Url) Then Return False

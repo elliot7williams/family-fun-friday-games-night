@@ -56,6 +56,14 @@ local DLLs and Firespider executable without requiring a source solution.
 
 ## Firespider Startup Checks
 
+`Lea.Tests.exe <repository-root> --edit` runs native clipboard/editor checks
+alone. `--core` runs the remaining engine suite without accessing the system
+clipboard; the default still runs both. `--fragment` repeats initial fragment
+navigation 25 times. These modes support investigation of intermittent paste
+and fragment failures, not automatic retries or suppressed assertions. Windows
+clipboard access can fail while another process holds it. Record separately
+which modes passed; a clipboard-free run is not a complete default-suite pass.
+
 Run the executable checks with Windows PowerShell and the built host root:
 
 ```powershell
@@ -83,7 +91,7 @@ suite. Source for the corresponding host edits is retained in
 `Lea.Firespider/Startup-host.patch`, with reproduction notes in
 `LeaForge/STARTUP_RELIABILITY.md`.
 
-`Test-FirespiderBoot.ps1 -Root <host-root>` adds thirty-two real form-start cases,
+`Test-FirespiderBoot.ps1 -Root <host-root>` adds thirty-four real form-start cases,
 including private startup, restore precedence, second windows, a gated slow
 HTTP response, and locked-session shutdown. It compiles `Lea.Firespider/Boot.cs`
 beside the test host and runs separate off-screen processes with a sixty-second
@@ -98,6 +106,9 @@ startup alongside an allowed page. See `LeaForge/NAVIGATION_POLICY.md`.
 `-Case failures` checks native load failures, retained edits/status, and Reload
 retry. `-Case failure-start` checks unavailable restored pages and recovery.
 See `LeaForge/LOAD_FAILURES.md` for the compact failure API and remaining limits.
+`-Case hibernate` checks retained-data exclusions, native renderer collection,
+and resume. `-Case hibernate-start` observes the actual 30-second policy timer
+after restoration and verifies closing cleanup. See `LeaForge/HIBERNATION.md`.
 Native argument quoting accepts host paths with or without a trailing separator.
 `-Case menus` verifies nested layout and error cleanup. `-Profile` reports
 constructor/phase timings, root layout counts, and a deterministic menu-tree

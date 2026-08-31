@@ -107,7 +107,7 @@ namespace Lea.Bench
             var names = new[]
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
-                "tables.html", "forms.html", "editing.html", "events-vars.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
+                "tables.html", "forms.html", "editing.html", "retained-data.html", "events-vars.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -1966,6 +1966,27 @@ namespace Lea.Bench
                 Need(snapshot.Ns.Count <= 512 && snapshot.Cs.Count <= 256 && snapshot.Rs.Count <= 32, "diagnostic bounds changed");
                 Need(snapshot.Rs.Count == 1 && snapshot.Vs.Count == 2, "diagnostic evidence is incomplete");
                 return snapshot.Ns.Count + " node lines, " + snapshot.Cs.Count + " CSS lines, " + snapshot.Rs.Count + " request";
+            });
+            AddProbe(probes, "Retained field data", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "retained-data.html"));
+                Need(!engine.Ud(page), "pristine defaults retained unnecessarily");
+                var field = page.Fs.First(item => item.El.Av("id") == "text");
+                field.V = "Keep this value";
+                Need(engine.Ud(page), "changed field not retained");
+                engine.Js(page, "hd('text')");
+                Need(!page.Fs.Contains(field) && engine.Ud(page), "hidden field data lost from query");
+                field.V = field.D;
+                Need(!engine.Ud(page), "restored value did not clear query");
+                using (var view = NewView())
+                {
+                    view.Go(Path.Combine(folder, "retained-data.html"));
+                    Need(!view.Ud, "native Ud default");
+                    view.At.Fs.First(item => item.K == "file").Fp.Add("not-read.txt");
+                    Need(view.Ud, "selected file not retained");
+                }
+                return "E.Ud/V.Ud; pristine choices, edited and hidden retained fields, selected files, read-only bounded query";
             });
             AddProbe(probes, "Native load failure and retry", delegate
             {

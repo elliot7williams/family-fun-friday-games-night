@@ -142,6 +142,7 @@ namespace Lea.Win
         public bool CanBk { get { return e.CanBk; } }
         public bool CanFw { get { return e.CanFw; } }
         public bool Busy { get { return e.Busy || picBusy; } }
+        public bool Ud { get { return closed || e.Ud(At); } }
         public int Cm { get { return e.Cm; } set { e.Cm = value; } }
         public int Cc { get { return e.Cc; } }
         public int Ch { get { return e.Ch; } }

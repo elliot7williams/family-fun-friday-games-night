@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **61**
+Post-1.0 hardening milestones completed: **62**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,18 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added compact `E.Ud/V.Ud` retained-field queries and Lea-aware optional
+  Firespider hibernation. Eligible idle renderers are disposed and collectible;
+  private/protected/edited/busy/error tabs, cookies, and non-restorable live state are
+  kept. The real 30-second timer, close cleanup, URL retention, and fresh-view
+  resume are covered. All 62 compatibility probes pass across 60 fixtures;
+  core-only and compiled host suites pass, with 12 separate editor passes and
+  300 focused fragment navigation cycles. Earlier intermittent paste/clipboard
+  failures and one initial-fragment failure remain unexplained; diagnostics and
+  independent test modes are retained. The 34-case Boot suite includes two
+  hibernation cases. The separate recovery cast is still open. See
+  `HIBERNATION.md`; the scoped baseline percentage is unchanged.
 
 - Added compact native document-failure state/notification `V.Le/Fe` and
   explicit GET retry `V.Cr/Ry`, with retained pages/edits/history, cancellation
