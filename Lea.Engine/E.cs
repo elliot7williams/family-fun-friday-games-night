@@ -107,7 +107,7 @@ namespace Lea.Engine
         private readonly W web = new W();
         private readonly Pc disk = new Pc();
         private readonly List<He> hs = new List<He>();
-        private readonly Dictionary<string, Cr> cache = new Dictionary<string, Cr>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, Cr> cache = new Dictionary<string, Cr>(StringComparer.Ordinal);
         private readonly List<string> lru = new List<string>();
         private readonly List<string> requests = new List<string>();
         private int at = -1;
@@ -630,7 +630,7 @@ namespace Lea.Engine
             var page = At;
             if (page == null || !SameDocument(page.U, url) || !FragmentNavigation(page.U, url)) return 0;
             CheckNavigation(url);
-            if (!String.Equals(page.U.AbsoluteUri, url.AbsoluteUri, StringComparison.OrdinalIgnoreCase)) Push(page, url);
+            if (!String.Equals(page.U.AbsoluteUri, url.AbsoluteUri, StringComparison.Ordinal)) Push(page, url);
             return 1;
         }
 
@@ -8138,12 +8138,12 @@ namespace Lea.Engine
 
         private static bool SameDocument(Uri left, Uri right)
         {
-            return left != null && right != null && String.Equals(CacheKey(left), CacheKey(right), StringComparison.OrdinalIgnoreCase);
+            return left != null && right != null && String.Equals(CacheKey(left), CacheKey(right), StringComparison.Ordinal);
         }
 
         private static bool SameAddress(Uri left, Uri right)
         {
-            return left != null && right != null && String.Equals(left.AbsoluteUri, right.AbsoluteUri, StringComparison.OrdinalIgnoreCase);
+            return left != null && right != null && String.Equals(left.AbsoluteUri, right.AbsoluteUri, StringComparison.Ordinal);
         }
 
         private static bool FragmentReference(string input)

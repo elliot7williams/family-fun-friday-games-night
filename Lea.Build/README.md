@@ -61,6 +61,8 @@ alone. `--core` runs the remaining engine suite without accessing the system
 clipboard; the default still runs both. `--fragment` repeats initial fragment
 navigation 25 times. `--clip` isolates the held-clipboard regression; `--paste`
 checks supplied text and field bounds without accessing the clipboard.
+`--cache` isolates exact path/query cache identity, fragment sharing, validators,
+linked CSS, and persistent restart behavior.
 `--sheets` isolates native named CSS, byte/rule limits, retained data,
 painting, and editor font/selection/undo. It is included in `--core`.
 These test modes do not retry or suppress failed assertions. Windows
@@ -94,7 +96,7 @@ suite. Source for the corresponding host edits is retained in
 `Lea.Firespider/Startup-host.patch`, with reproduction notes in
 `LeaForge/STARTUP_RELIABILITY.md`.
 
-`Test-FirespiderBoot.ps1 -Root <host-root>` adds forty real form-start cases,
+`Test-FirespiderBoot.ps1 -Root <host-root>` adds forty-one real form-start cases,
 including private startup, restore precedence, second windows, a gated slow
 HTTP response, and locked-session shutdown. It compiles `Lea.Firespider/Boot.cs`
 beside the test host and runs separate off-screen processes with a sixty-second
@@ -106,6 +108,9 @@ and late disposal. See `LeaForge/PICTURE_LIMITS.md` for remaining decoder/input 
 `-Case input` adds oversized-page failure/recovery and a shared linked-CSS
 deadline. `Lea.Tests <root> --input` checks wire/decoded/file/cache/origin
 boundaries, POST responses, timeouts, and cancellation; see `INPUT_LIMITS.md`.
+`-Case cache` checks exact path/query resources, fragment-only reuse,
+case-different navigation, host request cleanup, and no MSHTML. See
+`LeaForge/CACHE_IDENTITY.md`.
 `-Case load-life` checks page-command successors, request ownership, queued CSS,
 busy address input, and cleanup. `Lea.Tests <root> --loads` adds deterministic
 view completion, callback, download, and image-handoff regressions. See

@@ -833,11 +833,16 @@ External stylesheets share this same LRU and its aliases rather than creating a
 second hidden cache. Lea loads at most eight linked stylesheets per page and
 parses up to 256 KB from each response.
 
+Cache identity is exact without adding another alias. Lea canonicalizes the URI,
+compares path and query text ordinally, and removes only the fragment for a
+representation key. Case-different resources never share bodies or validators;
+fragment-only addresses still share the same response. See `CACHE_IDENTITY.md`.
+
 Persistent caching is opt-in: `Cd` is its directory and the empty default means
 no disk I/O. `Cx` is the entry ceiling (32 by default, clamped to 0-128), `Cb`
 is the byte ceiling (16 MB by default, clamped to 0-128 MB), and `Dc`/`Db`
 report current Lea entry count and bytes. `Cdl()` removes only versioned Lea
-cache files. Entries use gzip bodies, SHA-256 URL filenames, bounded metadata,
+cache files. Entries use gzip bodies, SHA-256 exact-URL filenames, bounded metadata,
 same-directory atomic replacement, and last-use timestamps for LRU trimming.
 Fresh entries survive a new `E`/`V`; stale ETag or Last-Modified entries retain
 conditional `304` reuse. Reload stays unconditional, `no-store` is removed,

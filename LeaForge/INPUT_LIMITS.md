@@ -127,7 +127,8 @@ subsequent combined 40-case run passed.
 Input byte limits are not total or peak memory limits. Byte arrays, decoded
 strings, document trees, history, cache entries, native images, and other tabs
 have separate lifetimes. Native image decoder preflight/isolation and a measured
-process-wide memory policy remain priorities. HTTP cache key case handling,
-image cookie/cache integration, richer encoding support, full JavaScript, and
-broader web-platform behavior still need work. Compression and short aliases
-alone do not establish faster execution.
+process-wide memory policy remain priorities. HTTP cache key case handling is
+now complete and covered by `CACHE_IDENTITY.md`. Image cookie/cache integration,
+richer encoding support, full JavaScript, and broader web-platform behavior
+still need work. Compression and short aliases alone do not establish faster
+execution.

@@ -12,6 +12,9 @@ LeaForge is where we can grow the more full-featured browser.
 
 ## Current Features
 
+- exact URI-normalized cache identity with case-sensitive path/query resources,
+  fragment sharing, validator isolation, and persistent recovery; see
+  `CACHE_IDENTITY.md`
 - bounded document/POST and linked-CSS input, gzip/deflate expansion limits,
   shared I/O budgets, local-sheet origins, and `Hm/Csm`; see `INPUT_LIMITS.md`
 - bounded streaming picture reads, one pass deadline, gzip/deflate images,
@@ -194,7 +197,9 @@ and limits used by future engine features.
 Normal navigation reuses bounded parsed or decoded representations. `E` and `V`
 stay memory-only until a host sets `Cd`; `Cx`/`Cb` bound persistent entries and
 bytes, `Dc`/`Db` report its footprint, and `Cdl()` clears only Lea cache files.
-The Reload button bypasses both cache layers and fetches the current page again.
+Path and query casing remain exact while fragments share one representation; see
+`CACHE_IDENTITY.md`. The Reload button bypasses both cache layers and fetches the
+current page again.
 
 ## Run
 

@@ -32,6 +32,7 @@ namespace Lea.Tests
                 if (args.Length > 1 && args[1] == "--loads") { CheckLoadLifecycle(root); return 0; }
                 if (args.Length > 1 && args[1] == "--pics") { CheckPictureLimits(root); return 0; }
                 if (args.Length > 1 && args[1] == "--input") { CheckInputLimits(root); return 0; }
+                if (args.Length > 1 && args[1] == "--cache") { CheckCacheIdentity(); return 0; }
                 var coreOnly = args.Length > 1 && args[1] == "--core";
                 if (coreOnly)
                 {
@@ -46,6 +47,7 @@ namespace Lea.Tests
                 CheckLoadLifecycle(root);
                 CheckPictureLimits(root);
                 CheckInputLimits(root);
+                CheckCacheIdentity();
                 CheckNavigationGuard(root);
                 CheckLoadFailures(root);
                 CheckRetainedData(root);
@@ -6448,8 +6450,15 @@ namespace Lea.Tests
             {
                 // Hold the file task until disposal; a small file can otherwise finish first.
                 var scheduler = new StepScheduler();
-                var start = Task.Factory.StartNew(() => view.GoA(source), CancellationToken.None, TaskCreationOptions.None, scheduler);
-                scheduler.Step();
+                var context = SynchronizationContext.Current;
+                Task<Task<P>> start;
+                try
+                {
+                    SynchronizationContext.SetSynchronizationContext(null);
+                    start = Task.Factory.StartNew(() => view.GoA(source), CancellationToken.None, TaskCreationOptions.None, scheduler);
+                    scheduler.Step();
+                }
+                finally { SynchronizationContext.SetSynchronizationContext(context); }
                 var work = start.Result;
                 Ok(!work.IsCompleted && view.Busy, "local load held before disposal");
                 view.Dispose();
@@ -6515,6 +6524,93 @@ namespace Lea.Tests
             CheckHttpInput(root);
             CheckInputBoundaries();
             Console.WriteLine("Lea input limit smoke passed.");
+        }
+
+        private static void CheckCacheIdentity()
+        {
+            using (var server = new CompressedServer())
+            {
+                var origin = "http://127.0.0.1:" + server.U.Port;
+                var memory = new E { Cm = 16 };
+                var start = server.Hits;
+                var pathUpper = new Uri(origin + "/CachePath?max-age=60&case-key=Path");
+                var pathLower = new Uri(origin + "/cachepath?max-age=60&case-key=Path");
+                var pathUpperPage = memory.Go(pathUpper);
+                var pathLowerWork = memory.GoA(pathLower);
+                WaitFor(() => pathLowerWork.IsCompleted, "path-case async cache request");
+                Ok(!pathUpperPage.Ca && !pathLowerWork.GetAwaiter().GetResult().Ca,
+                    "path-case resources stay distinct in memory cache");
+                Eq(start + 2, server.Hits, "path-case resources make separate requests");
+
+                start = server.Hits;
+                var queryUpper = new Uri(origin + "/cache-query?max-age=60&case-key=Query");
+                var queryLower = new Uri(origin + "/cache-query?max-age=60&case-key=query");
+                Eq("Case Query", memory.Go(queryUpper).T, "upper-case query response");
+                var queryPage = memory.Go(queryLower);
+                Ok(!queryPage.Ca && queryPage.T == "Case query", "query-case resources stay distinct in memory cache");
+                Eq(start + 2, server.Hits, "query-case resources make separate requests");
+
+                start = server.Hits;
+                var fragmentOne = new Uri(origin + "/fragment-cache?max-age=60&case-key=Fragment#one");
+                var fragmentTwo = new Uri(origin + "/fragment-cache?max-age=60&case-key=Fragment#two");
+                memory.Go(fragmentOne);
+                var fragmentPage = memory.Go(fragmentTwo);
+                Ok(!fragmentPage.Ca && fragmentPage.U.Fragment == "#two", "fragments share one exact resource representation");
+                Eq(start + 1, server.Hits, "fragment-only cache reuse avoids a request");
+
+                Eq(new Uri("HTTP://EXAMPLE.COM:80/Cache").AbsoluteUri, new Uri("http://example.com/Cache").AbsoluteUri,
+                    "URI canonicalization normalizes scheme, host, and default port");
+
+                start = server.Hits;
+                var validatorUpper = new Uri(origin + "/CaseValidator?etag=1&case-key=Validator");
+                var validatorLower = new Uri(origin + "/casevalidator?etag=1&case-key=Validator");
+                memory.Go(validatorUpper);
+                var validatorPage = memory.Go(validatorLower);
+                Ok(!validatorPage.Ca && server.LastIfNoneMatch.Length == 0,
+                    "case-different resource does not inherit another validator");
+                Eq(start + 2, server.Hits, "case-different validator resource uses a full request");
+
+                start = server.Hits;
+                var css = new E { Cm = 16 };
+                var upperSheet = css.Go(new Uri(server.U, "?external-case=Upper"));
+                var lowerSheetWork = css.GoA(new Uri(server.U, "?external-case=upper"));
+                WaitFor(() => lowerSheetWork.IsCompleted, "query-case async stylesheet request");
+                var lowerSheet = lowerSheetWork.GetAwaiter().GetResult();
+                Eq("#123456", upperSheet.S.Bg, "upper-case stylesheet resource");
+                Eq("#654321", lowerSheet.S.Bg, "lower-case stylesheet resource");
+                Eq(start + 4, server.Hits, "case-different linked stylesheets make separate requests");
+
+                start = server.Hits;
+                var navigation = new E();
+                navigation.Go(new Uri(origin + "/CaseNavigation?no-store=1&case-key=Navigation#one"));
+                var navigated = navigation.Go(new Uri(origin + "/casenavigation?no-store=1&case-key=Navigation#two"));
+                Ok(navigated.U.AbsolutePath == "/casenavigation" && navigated.U.Fragment == "#two",
+                    "case-different navigation retains the requested URL");
+                Eq(start + 2, server.Hits, "case-different navigation is not treated as fragment-only");
+
+                var diskRoot = Path.Combine(Path.GetTempPath(), "lea-cache-identity-" + Guid.NewGuid().ToString("N"));
+                try
+                {
+                    start = server.Hits;
+                    var diskUpper = new Uri(origin + "/DiskCache?max-age=60&case-key=Disk");
+                    var diskLower = new Uri(origin + "/diskcache?max-age=60&case-key=Disk");
+                    var seed = new E { Cd = diskRoot, Cm = 0 };
+                    Ok(!seed.Go(diskUpper).Ca && seed.Dc == 1, "persistent case identity seed");
+                    var restart = new E { Cd = diskRoot, Cm = 0 };
+                    var distinct = restart.Go(diskLower);
+                    Ok(!distinct.Ca && restart.Dc == 2, "persistent path-case resources use separate entries");
+                    Eq(start + 2, server.Hits, "persistent case-different resource uses network");
+                    var secondRestart = new E { Cd = diskRoot, Cm = 0 };
+                    Ok(secondRestart.Go(diskLower).Ca && secondRestart.Dc == 2,
+                        "exact persistent cache entry survives restart");
+                    Eq(start + 2, server.Hits, "exact persistent restart avoids network");
+                }
+                finally
+                {
+                    if (Directory.Exists(diskRoot)) Directory.Delete(diskRoot, true);
+                }
+            }
+            Console.WriteLine("Lea cache identity smoke passed.");
         }
 
         private static P InputPage(E engine, Uri url, bool asynchronous, bool post = false)
@@ -8430,10 +8526,21 @@ namespace Lea.Tests
                         var stylesheet = request.StartsWith("GET /style", StringComparison.OrdinalIgnoreCase) || request.StartsWith("GET /large.css", StringComparison.OrdinalIgnoreCase);
                         var largeStylesheet = request.StartsWith("GET /large.css", StringComparison.OrdinalIgnoreCase);
                         string html;
+                        var caseKey = QueryValue(request, "case-key");
                         if (largeStylesheet)
                             html = new String(' ', 270 * 1024) + "body{background:#ff0000}";
+                        else if (stylesheet && caseKey == "Upper")
+                            html = "body{background:#123456}";
+                        else if (stylesheet && caseKey == "upper")
+                            html = "body{background:#654321}";
                         else if (stylesheet)
                             html = "body{background:#0f6848;color:#ffffff}.remote{color:#a13b18;font-size:16px}";
+                        else if (request.IndexOf("external-case=", StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            var variant = QueryValue(request, "external-case");
+                            html = "<html><head><title>Case CSS " + variant + "</title><link rel='stylesheet' href='/StyleCase.css?case-key=" +
+                                variant + "'></head><body>Case stylesheet</body></html>";
+                        }
                         else if (request.IndexOf("external-page=", StringComparison.OrdinalIgnoreCase) >= 0)
                         {
                             var variant = QueryValue(request, "external-page");
@@ -8468,6 +8575,8 @@ namespace Lea.Tests
                             html = "<html><head><title>Lea POST</title></head><body><p>POST navigation worked.</p></body></html>";
                         else if (request.IndexOf("cookie=read", StringComparison.OrdinalIgnoreCase) >= 0)
                             html = "<html><head><title>Cookie " + (CookieValue(cookie, "sid").Length == 0 ? "empty" : CookieValue(cookie, "sid")) + "</title></head><body><p>Cookie response.</p></body></html>";
+                        else if (caseKey.Length > 0)
+                            html = "<html><head><title>Case " + caseKey + "</title></head><body>Case identity response.</body></html>";
                         else
                         {
                             var title = deflate ? "Lea deflate" : "Lea gzip";
@@ -8476,7 +8585,9 @@ namespace Lea.Tests
                         var source = Encoding.UTF8.GetBytes(html);
                         var badGzip = request.IndexOf("bad-gzip=1", StringComparison.OrdinalIgnoreCase) >= 0;
                         var body = badGzip ? Encoding.ASCII.GetBytes("not a gzip stream") : Compress(source, deflate);
-                        var noStore = request.IndexOf("no-store=1", StringComparison.OrdinalIgnoreCase) >= 0 || request.IndexOf("external-page=", StringComparison.OrdinalIgnoreCase) >= 0;
+                        var noStore = request.IndexOf("no-store=1", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            request.IndexOf("external-page=", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            request.IndexOf("external-case=", StringComparison.OrdinalIgnoreCase) >= 0;
                         var cookieRoute = request.IndexOf("cookie=", StringComparison.OrdinalIgnoreCase) >= 0;
                         var noCache = request.IndexOf("no-cache=1", StringComparison.OrdinalIgnoreCase) >= 0;
                         var maxAge = request.IndexOf("max-age=60", StringComparison.OrdinalIgnoreCase) >= 0 ? "Cache-Control: max-age=60\r\n" :

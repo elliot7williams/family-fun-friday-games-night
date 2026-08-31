@@ -338,10 +338,10 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Document/linked-CSS streaming limits, decompression bounds, cancellation, and
-file-origin checks are implemented; see `INPUT_LIMITS.md` for verification.
-Next investigate image decoder preflight/isolation, HTTP cache key correctness,
-and process-wide memory accounting. Keep the
+Document/linked-CSS streaming limits and exact path/query cache identity are
+implemented; see `INPUT_LIMITS.md` and `CACHE_IDENTITY.md` for verification.
+Next investigate image decoder preflight/isolation, process-wide memory
+accounting, and image cookie/cache integration. Keep the
 short public API, verify boundary behavior with hostile local fixtures, and
 measure performance rather than treating compression as an execution speedup.
 
@@ -571,6 +571,13 @@ The previous milestone added an optional gzip persistent cache behind the
 existing request layer. Compact `Cd/Cx/Cb/Dc/Db/Cdl` aliases retain a memory-only
 default, while atomic versioned records, LRU ceilings, validator reuse,
 private-mode isolation, and recovery are covered across the release suites.
+
+The current milestone makes representation identity ordinal after `Uri`
+canonicalization. Path and query casing stay distinct in memory, persistent
+filenames and metadata, validators, linked CSS, and navigation; fragments alone
+still share one representation. An older entry is reusable only when its stored
+exact key matches; case-mismatched collisions are rejected and no entries are
+silently migrated. See `CACHE_IDENTITY.md`.
 
 The previous milestone added non-inherited compact `S.Bz=c/b` state for
 `content-box` and `border-box`. One shared conversion now interprets pixel

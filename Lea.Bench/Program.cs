@@ -107,7 +107,7 @@ namespace Lea.Bench
             var names = new[]
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
-                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "input-loading.html", "events-vars.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
+                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "input-loading.html", "cache-identity.html", "events-vars.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -1922,6 +1922,30 @@ namespace Lea.Bench
                     Need(view.At.S.Bg == "#f4f6f8" && view.At.Fs[0].V == "Retained bounded input", "linked CSS or retained input changed");
                 }
                 return "Hm/Csm document/sheet ceilings, local asynchronous input, linked CSS, native paint, and retained fields; wire/decoded/deadline/origin regressions run in Lea.Tests --input";
+            });
+            AddProbe(probes, "Exact cache identity", delegate
+            {
+                var path = Path.Combine(folder, "cache-identity.html");
+                var page = new E().Go(path);
+                Need(page.Ls.Count == 4, "cache identity fixture links changed");
+                var keys = typeof(E).GetMethod("CacheKey", BindingFlags.Static | BindingFlags.NonPublic);
+                Need(keys != null, "cache key helper is unavailable");
+                var first = (string)keys.Invoke(null, new object[] { page.Ls[0].U });
+                var second = (string)keys.Invoke(null, new object[] { page.Ls[1].U });
+                var third = (string)keys.Invoke(null, new object[] { page.Ls[2].U });
+                var fragment = (string)keys.Invoke(null, new object[] { page.Ls[3].U });
+                Need(first != second && second != third && third == fragment,
+                    "path/query case or fragment representation identity changed");
+                Need(page.Ls[0].U.AbsolutePath.EndsWith("/Case/Resource.html", StringComparison.Ordinal) &&
+                    page.Ls[1].U.AbsolutePath.EndsWith("/case/Resource.html", StringComparison.Ordinal) &&
+                    page.Ls[1].U.Query == "?Mode=Upper" && page.Ls[2].U.Query == "?Mode=upper",
+                    "authored URL case was not retained");
+                using (var view = NewView())
+                {
+                    view.Go(path);
+                    using (var image = Draw(view)) Need(view.Bc > 0 && ColoredSamples(image) > 0, "cache identity fixture is blank");
+                }
+                return "ordinal path/query keys after URI canonicalization, fragment stripping, authored link case, native layout, and network/disk regressions in Lea.Tests --cache";
             });
             AddProbe(probes, "Bounded Lea scripting", delegate
             {

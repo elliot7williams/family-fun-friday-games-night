@@ -234,7 +234,7 @@ namespace Lea.Engine
         {
             using (var hash = SHA256.Create())
             {
-                var bytes = hash.ComputeHash(Utf8.GetBytes((key ?? "").ToUpperInvariant()));
+                var bytes = hash.ComputeHash(Utf8.GetBytes(key ?? ""));
                 var name = new StringBuilder(64);
                 foreach (var value in bytes) name.Append(value.ToString("x2"));
                 return Path.Combine(path, name + ".lea");
@@ -283,7 +283,7 @@ namespace Lea.Engine
             {
                 if (reader.ReadInt32() != Magic || reader.ReadInt32() != Version) throw new InvalidDataException("Lea cache entry version is invalid.");
                 var key = ReadText(reader, MaxKey);
-                if (!String.Equals(key, expectedKey, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("Lea cache key is invalid.");
+                if (!String.Equals(key, expectedKey, StringComparison.Ordinal)) throw new InvalidDataException("Lea cache key is invalid.");
                 var url = new Uri(ReadText(reader, MaxKey), UriKind.Absolute);
                 if (url.Scheme != Uri.UriSchemeHttp && url.Scheme != Uri.UriSchemeHttps) throw new InvalidDataException("Lea cache URL is invalid.");
                 var status = reader.ReadInt32();

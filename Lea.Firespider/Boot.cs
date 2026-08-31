@@ -44,7 +44,7 @@ namespace Lea.Firespider
             var forms = new List<Form>();
             try
             {
-                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch", "domains", "domain-private", "split", "split-life", "split-limits", "edit", "paste", "policy", "policy-start", "failures", "failure-start", "hibernate", "hibernate-start", "style-start", "styles", "load-life", "pictures", "input" }.Contains(mode), "unknown boot case: " + mode);
+                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch", "domains", "domain-private", "split", "split-life", "split-limits", "edit", "paste", "policy", "policy-start", "failures", "failure-start", "hibernate", "hibernate-start", "style-start", "styles", "load-life", "pictures", "input", "cache" }.Contains(mode), "unknown boot case: " + mode);
                 Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
                 Application.ThreadException += (sender, error) => UiErrors.Add(error.Exception);
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", session);
@@ -309,6 +309,7 @@ namespace Lea.Firespider
                 if (mode == "load-life") CheckLoadLifecycle(form, settings);
                 if (mode == "pictures") CheckPictures(form, settings);
                 if (mode == "input") CheckInput(form, settings);
+                if (mode == "cache") CheckCacheIdentity(form, settings);
                 if (mode == "policy") CheckPolicy(form, settings, page, forms);
                 if (mode == "failures") CheckFailures(form, settings, page);
                 if (mode == "hibernate") CheckHibernation(form, settings, page);
@@ -428,6 +429,60 @@ namespace Lea.Firespider
                 if (File.Exists(path)) File.Delete(path);
             }
             Console.WriteLine("PASS input: oversized page, Hm/Csm, typed failure, next-navigation recovery, shared CSS deadline, fields, request cleanup, and no MSHTML");
+        }
+
+        private static void CheckCacheIdentity(Form form, ApplicationSettingsBase settings)
+        {
+            settings["bs"] = new StringCollection();
+            settings["cfEnabled"] = "";
+            var tabs = Member<TabControl>(form, "k");
+            var view = (V)tabs.SelectedTab.Controls[0];
+            view.Cm = 16;
+            view.Cl();
+            using (var site = new LoopbackSite())
+            {
+                var hits = site.Hits;
+                site.Html = "<title>Cache Path Upper</title><p>Upper path</p>";
+                Call(form, "q1", site.Url + "CachePath?Mode=Same");
+                Wait(() => site.Hits == hits + 1 && !view.Busy && view.T == "Cache Path Upper", "upper-case cache path");
+                site.Html = "<title>Cache Path Lower</title><p>Lower path</p>";
+                Call(form, "q1", site.Url + "cachepath?Mode=Same");
+                Wait(() => site.Hits == hits + 2 && !view.Busy && view.T == "Cache Path Lower", "lower-case cache path");
+                Check(!view.At.Ca, "case-different host path reused a cached page");
+
+                hits = site.Hits;
+                site.Html = "<title>Cache Query Upper</title><p>Upper query</p>";
+                Call(form, "q1", site.Url + "cache-query?Mode=Upper");
+                Wait(() => site.Hits == hits + 1 && !view.Busy && view.T == "Cache Query Upper", "upper-case cache query");
+                site.Html = "<title>Cache Query Lower</title><p>Lower query</p>";
+                Call(form, "q1", site.Url + "cache-query?Mode=upper");
+                Wait(() => site.Hits == hits + 2 && !view.Busy && view.T == "Cache Query Lower", "lower-case cache query");
+
+                hits = site.Hits;
+                site.Html = "<title>Exact Fragment</title><h1 id='one'>One</h1><h2 id='two'>Two</h2>";
+                Call(form, "q1", site.Url + "fragment-cache?Mode=Same#one");
+                Wait(() => site.Hits == hits + 1 && !view.Busy && view.U.Fragment == "#one", "exact fragment seed");
+                Call(form, "q1", site.Url + "fragment-cache?Mode=Same#two");
+                Wait(() => !view.Busy && view.U.Fragment == "#two", "exact fragment navigation");
+                Check(site.Hits == hits + 1, "fragment-only host navigation fetched again");
+
+                hits = site.Hits;
+                site.Html = "<title>Navigation Upper</title><p>Upper navigation</p>";
+                Call(form, "q1", site.Url + "CaseNavigation?Mode=Same#one");
+                Wait(() => site.Hits == hits + 1 && !view.Busy && view.T == "Navigation Upper", "upper-case host navigation");
+                site.Html = "<title>Navigation Lower</title><p>Lower navigation</p>";
+                Call(form, "q1", site.Url + "casenavigation?Mode=Same#two");
+                Wait(() => site.Hits == hits + 2 && !view.Busy && view.T == "Navigation Lower", "lower-case host navigation");
+                Check(view.U.AbsolutePath.EndsWith("/casenavigation", StringComparison.Ordinal) && view.U.Fragment == "#two",
+                    "host navigation lost exact path or fragment case");
+            }
+            Call(form, "qleaTick", form, EventArgs.Empty);
+            Wait(() => Member<IDictionary>(form, "qleaLoads").Count == 0 && Member<IDictionary>(form, "qleaPending").Count == 0,
+                "cache identity host request cleanup");
+            Check(UiErrors.Count == 0, "cache identity raised a popup: " + String.Join(" | ", UiErrors.Select(error => error.Message).ToArray()));
+            Check(!Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module => module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)),
+                "cache identity loaded MSHTML");
+            Console.WriteLine("PASS cache identity: path/query case, exact fragments, navigation, host cleanup, and no MSHTML");
         }
 
         private static void CheckPictures(Form form, ApplicationSettingsBase settings)

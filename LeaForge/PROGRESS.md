@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **67**
+Post-1.0 hardening milestones completed: **68**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,25 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Preserved exact cache resource identity after URI canonicalization. Memory and
+  persistent entries, SHA-256 filenames, stored-key validation, validators,
+  linked CSS, same-document fragments, and navigation now compare path/query
+  text ordinally while fragment variants share one representation. Older
+  case-mismatched disk collisions are rejected rather than reused or migrated.
+  Full cache, core, isolated editor, compiled host, and benchmark suites pass,
+  with 68 probes
+  across 65 fixtures, all 41 Boot cases in one combined run, and six actual EXE
+  launch scenarios. Those EXE windows stayed responsive; no startup error dialog
+  or MSHTML was observed, including deferred-tab resume. Engine DLLs remain
+  exactly 500.0 KiB with a 212.9 KiB GZip estimate; current medians are 491.286
+  ms for a clean diagnostic process, 3.251 ms for local fixture loads, and 30.497
+  ms for layout/paint, not a speedup claim. Native decoder peaks, process-wide
+  memory, image cookie/cache sharing, `Vary`, and full modern-web behavior remain
+  open. Earlier intermittent fragment, recovery-cast, and editor/focus
+  observations remain unconfirmed. See `CACHE_IDENTITY.md`. Runtime 168 is
+  isolated and source-backed-up; installed runtime 157 remains unchanged. The
+  scoped baseline stays at 100%, not full-web compatibility.
 
 - Added bounded streaming reads for local/HTTP documents, GET and POST responses,
   and linked stylesheets. Compact `Hm/Csm` aliases expose the 4 MiB document and
