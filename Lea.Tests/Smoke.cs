@@ -27,6 +27,7 @@ namespace Lea.Tests
                 var root = Path.GetFullPath(args.Length > 0 ? args[0] : Directory.GetCurrentDirectory());
                 CheckEditCommands(root);
                 CheckNavigationGuard(root);
+                CheckLoadFailures(root);
                 CheckDisposal(root);
                 using (var slow = new CompressedServer())
                 {
@@ -6689,6 +6690,116 @@ namespace Lea.Tests
                 Ok(input.U.Fragment == "#target", "allowed keyboard activation still navigates");
             }
             Console.WriteLine("Lea navigation guard smoke passed: compact Ng alias, blocked GET/POST/fragments/history/reload/cache, caller-thread policy, state retention, and disposal.");
+        }
+
+        private static void CheckLoadFailures(string root)
+        {
+            var source = Path.Combine(root, "LeaForge", "test-pages", "forms.html");
+            var missing = Path.Combine(Path.GetTempPath(), "lea-retry-" + Guid.NewGuid().ToString("N") + ".html");
+            try
+            {
+                using (var view = new V())
+                using (var server = new CompressedServer())
+                {
+                    view.Go(source);
+                    var retained = view.At;
+                    var changes = 0;
+                    var failures = 0;
+                    Er notified = null;
+                    view.Changed += delegate { changes++; };
+                    view.Done += delegate { changes++; };
+                    view.Fe += delegate { failures++; notified = view.Le; Ok(!view.Busy, "failure follows request cleanup"); };
+                    var failure = Fails(() => view.Go(missing), "view missing file");
+                    Ok(failure == view.Le && failure == notified && view.Cr && failures == 1, "single typed failure notification and retry state");
+                    Ok(view.At == retained && changes == 0 && !view.CanBk, "failure preserves page, history, and successful events");
+                    Eq(0, view.Fg(new Uri(missing + "#other")), "cross-document fragment probe");
+                    Ok(view.Le == failure && view.Cr, "no-op fragment probe preserves failure");
+                    view.Ng = retryUrl => false;
+                    var denied = view.Ry();
+                    WaitFor(() => denied.IsCompleted, "denied retry completion");
+                    Eq("blocked", Fails(() => denied.GetAwaiter().GetResult(), "retry rechecks guard").K, "retry policy");
+                    File.WriteAllText(missing, "<title>Retry ready</title><p>Now available</p>");
+                    view.Ng = null;
+                    var retry = view.Ry();
+                    WaitFor(() => retry.IsCompleted, "explicit file retry");
+                    retry.GetAwaiter().GetResult();
+                    Ok(view.Le == null && !view.Cr && view.T == "Retry ready" && view.CanBk, "successful explicit retry clears failure and commits once");
+                    var before = changes;
+                    view.Ry().GetAwaiter().GetResult();
+                    Eq(before, changes, "ineligible retry does not reload");
+                    view.Go(source);
+                    retained = view.At;
+                    var url = new Uri(server.U, "?status=503");
+                    Action[] posts = {
+                        () => view.Po(url, "secret=one"),
+                        () => view.Pb(url, Encoding.UTF8.GetBytes("secret=two"), "application/octet-stream")
+                    };
+                    foreach (var post in posts)
+                    {
+                        Fails(post, "failed POST");
+                        var hits = server.Hits;
+                        Ok(view.Le.St == 503 && !view.Cr && view.At == retained, "POST retains page without retry target");
+                        view.Ry().GetAwaiter().GetResult();
+                        Eq(hits, server.Hits, "Retry must never replay a POST");
+                    }
+                    foreach (var task in new Func<Task<P>>[] {
+                        () => view.GoA(url), () => view.PoA(url, "secret=three"),
+                        () => view.PbA(url, new byte[] { 4 }, "application/octet-stream") })
+                    {
+                        var count = failures;
+                        var work = task();
+                        WaitFor(() => work.IsCompleted, "async failure completion");
+                        var error = Fails(() => work.GetAwaiter().GetResult(), "async view failure");
+                        Ok(error == view.Le && error == notified && failures == count + 1, "async failure identity and count");
+                        Eq(server.LastMethod == "GET", view.Cr, "only failed GET is retryable");
+                        Ok(view.At == retained, "async failure preserves page");
+                    }
+                    view.Go(missing);
+                    view.Ng = urlValue => false;
+                    Fails(() => view.Bk(), "blocked retained history");
+                    Ok(!view.Cr, "denied cached history does not become a GET retry");
+                    view.Ng = null;
+                    view.Bk();
+                    Ok(view.Le == null && !view.Cr, "successful retained history clears failure");
+                }
+                using (var view = new V())
+                {
+                    Fails(() => view.Go(""), "invalid first URL");
+                    Ok(view.Le.K == "url" && !view.Cr, "invalid URL cannot be retried");
+                }
+                using (var view = new V())
+                {
+                    view.Fe += delegate { view.Go(source); };
+                    Fails(() => view.Go(""), "failure callback navigation");
+                    Ok(view.T != "" && view.Le == null && !view.Cr, "callback navigation not overwritten by stale failure");
+                }
+                using (var view = new V())
+                {
+                    var count = 0;
+                    view.Fe += delegate { count++; view.Dispose(); };
+                    Fails(() => view.Go(""), "failure callback disposal");
+                    Ok(count == 1 && view.IsDisposed && view.Le == null && !view.Cr, "failure callback can dispose safely");
+                    Ok(typeof(V).GetField("Fe", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(view) == null, "disposal releases failure subscriptions");
+                }
+                foreach (var dispose in new[] { false, true })
+                using (var server = new CompressedServer())
+                using (var view = new V())
+                {
+                    view.Go(source);
+                    Fails(() => view.Go(missing + ".absent"), "failure before cancellation");
+                    var count = 0;
+                    view.Fe += delegate { count++; };
+                    var work = view.GoA(new Uri(server.U, "?delay=500"));
+                    WaitFor(() => server.Hits == 1, "cancellable request started");
+                    Ok(view.Le == null && !view.Cr, "new request clears old failure");
+                    if (dispose) view.Dispose(); else view.St();
+                    WaitFor(() => work.IsCompleted, "cancelled view load completion");
+                    Eq("cancel", Fails(() => work.GetAwaiter().GetResult(), "cancelled view load").K, "view cancellation kind");
+                    Ok(count == 0 && view.Le == null && !view.Cr, "cancel/dispose produces no failure notification or retry");
+                }
+            }
+            finally { if (File.Exists(missing)) File.Delete(missing); }
+            Console.WriteLine("Lea load failure smoke passed: Fe/Le/Cr/Ry, retained state, typed errors, explicit retry policy, no POST replay, callback navigation/disposal, and cancellation.");
         }
 
         private static void WaitFor(Func<bool> ready, string name)

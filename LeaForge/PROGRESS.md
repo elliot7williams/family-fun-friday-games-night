@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **60**
+Post-1.0 hardening milestones completed: **61**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,17 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added compact native document-failure state/notification `V.Le/Fe` and
+  explicit GET retry `V.Cr/Ry`, with retained pages/edits/history, cancellation
+  cleanup, UI-thread notification, and no POST replay. Fixed reproduced
+  unhandled HTTP failures from keyboard navigation and editor access keys;
+  keys are consumed before awaiting the network. Firespider keeps selected-tab
+  errors visible, preserves failed first-page addresses/sessions, and retries
+  through Reload. Split/test hosts also report failures. The Boot suite covers
+  32 cases and all 61 compatibility probes pass across 59 local fixtures.
+  This is separate from the still-unidentified recovery cast. See
+  `LOAD_FAILURES.md`; the scoped baseline percentage is unchanged.
 
 - Installed compact `V.Ng` policy on ordinary Firespider Lea tabs for blocked
   sites, navigation filters, offline/locked state, and live ownership. Hidden

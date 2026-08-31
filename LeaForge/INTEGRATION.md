@@ -78,6 +78,11 @@ denied resume retains its placeholder. Native keyboard/accessibility callbacks
 handle expected denials while public APIs keep reporting them. See
 `NAVIGATION_POLICY.md` and `SPLIT_VIEW.md` for tested behavior and scope.
 
+Subscribe `V.Fe` on the UI thread to display `V.Le` after a typed document-load
+failure. Public calls still throw the same `Er`. Offer explicit retry when
+`V.Cr` is true and await `V.Ry()`; it rechecks navigation policy and never
+replays POST. Cancellation does not emit failure. See `LOAD_FAILURES.md`.
+
 Use `V.Ce(code)` and `V.Ec(code)` on the UI thread for native field editing.
 The two-letter commands `cp/cu/pa/sa/de/un/re` cover copy, cut, paste, select-all,
 delete, and one-level undo/redo. Firespider's Edit menu now uses these routes,

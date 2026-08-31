@@ -60,7 +60,7 @@ namespace Lea.Win.Test
 
             SetButton(bk, "<", delegate { v.Bk(); });
             SetButton(fw, ">", delegate { v.Fw(); });
-            SetButton(rl, "R", async delegate { await TryGoA(delegate { return v.RlA(); }); });
+            SetButton(rl, "R", async delegate { await TryGoA(delegate { return v.Cr ? v.Ry() : v.RlA(); }); });
             SetButton(stp, "X", delegate { v.St(); st.Text = "Stopped"; });
             SetButton(dl, "D", delegate { Download(v.U, DownloadName(v.U)); });
             SetButton(ins, "I", delegate { ToggleInspector(); });
@@ -127,6 +127,7 @@ namespace Lea.Win.Test
             st.Dock = DockStyle.Bottom;
             st.Height = 24;
             st.Padding = new Padding(6, 3, 0, 0);
+            st.AutoEllipsis = true;
             st.Text = "Lea ready";
 
             v.Changed += delegate
@@ -140,6 +141,7 @@ namespace Lea.Win.Test
                 if (!split.Panel2Collapsed) RefreshInspector();
             };
             v.Al += delegate { st.Text = "Alert: " + v.Am; };
+            v.Fe += delegate { if (v.Le != null) st.Text = v.Le.Message; };
             v.Dr += delegate { Download(v.Du, v.Dn); };
             v.Gr += async delegate
             {

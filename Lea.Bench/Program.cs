@@ -1967,6 +1967,32 @@ namespace Lea.Bench
                 Need(snapshot.Rs.Count == 1 && snapshot.Vs.Count == 2, "diagnostic evidence is incomplete");
                 return snapshot.Ns.Count + " node lines, " + snapshot.Cs.Count + " CSS lines, " + snapshot.Rs.Count + " request";
             });
+            AddProbe(probes, "Native load failure and retry", delegate
+            {
+                var missing = Path.Combine(Path.GetTempPath(), "lea-probe-retry-" + Guid.NewGuid().ToString("N") + ".html");
+                try
+                {
+                    using (var view = NewView())
+                    {
+                        view.Go(Path.Combine(folder, "forms.html"));
+                        var retained = view.At;
+                        var notifications = 0;
+                        view.Fe += delegate { notifications++; };
+                        Er failure = null;
+                        try { view.Go(missing); } catch (Er error) { failure = error; }
+                        Need(failure != null && failure == view.Le && view.Cr && notifications == 1 && view.At == retained, "failed GET state changed");
+                        File.WriteAllText(missing, "<title>Retry probe</title><p>Available</p>");
+                        var work = view.Ry();
+                        var end = DateTime.UtcNow.AddSeconds(5);
+                        while (!work.IsCompleted && DateTime.UtcNow < end) { Application.DoEvents(); Thread.Sleep(2); }
+                        Need(work.IsCompleted, "retry timed out");
+                        work.GetAwaiter().GetResult();
+                        Need(view.Le == null && !view.Cr && view.T == "Retry probe" && notifications == 1, "successful retry state changed");
+                    }
+                    return "Fe/Le typed failure, retained page, Cr/Ry explicit GET retry, and success reset";
+                }
+                finally { if (File.Exists(missing)) File.Delete(missing); }
+            });
             return probes;
         }
 

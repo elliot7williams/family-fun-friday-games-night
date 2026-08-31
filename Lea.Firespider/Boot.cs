@@ -44,7 +44,7 @@ namespace Lea.Firespider
             var forms = new List<Form>();
             try
             {
-                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch", "domains", "domain-private", "split", "split-life", "split-limits", "edit", "policy", "policy-start" }.Contains(mode), "unknown boot case: " + mode);
+                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch", "domains", "domain-private", "split", "split-life", "split-limits", "edit", "policy", "policy-start", "failures", "failure-start" }.Contains(mode), "unknown boot case: " + mode);
                 Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
                 Application.ThreadException += (sender, error) => UiErrors.Add(error.Exception);
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", session);
@@ -74,6 +74,14 @@ namespace Lea.Firespider
                 settings["ep"] = log;
                 settings["lazyRestoreMode"] = "off";
                 var expected = new[] { page };
+                if (mode == "failure-start")
+                {
+                    lazySite = new LoopbackSite(150) { Status = 503 };
+                    settings["bs"] = new StringCollection();
+                    settings["cfEnabled"] = "";
+                    expected = new[] { lazySite.Url + "failed-start", page };
+                    File.WriteAllLines(session, expected);
+                }
                 if (mode == "policy-start")
                 {
                     lazySite = new LoopbackSite();
@@ -191,7 +199,12 @@ namespace Lea.Firespider
                     Check(form.IsHandleCreated && form.Visible, "window unavailable during startup request");
                     release.Set();
                 }
-                if (mode == "policy-start")
+                if (mode == "failure-start")
+                {
+                    Wait(() => ((V)tabs.TabPages[0].Controls[0]).Le != null && ((V)tabs.TabPages[1].Controls[0]).At != null, "unavailable/allowed startup completion");
+                    Check(((V)tabs.TabPages[0].Controls[0]).At == null && lazySite.Hits == 1, "failed startup committed a page or retried automatically");
+                }
+                else if (mode == "policy-start")
                 {
                     Wait(() => !((V)tabs.TabPages[0].Controls[0]).Busy && ((V)tabs.TabPages[1].Controls[0]).At != null, "blocked/allowed startup completion");
                     Check(((V)tabs.TabPages[0].Controls[0]).At == null && lazySite.Hits == 0, "blocked startup made a request or committed a page");
@@ -254,6 +267,7 @@ namespace Lea.Firespider
                 if (mode == "split-limits") CheckSplitLimits(form, settings, page, forms);
                 if (mode == "edit") CheckEdit(form, settings, page);
                 if (mode == "policy") CheckPolicy(form, settings, page, forms);
+                if (mode == "failures") CheckFailures(form, settings, page);
                 if (mode == "recovery")
                 {
                     var idle = Stopwatch.StartNew();
@@ -268,6 +282,18 @@ namespace Lea.Firespider
                     WaitLea(tabs);
                     Check(lazySite.Hits == 0 && ((V)tabs.TabPages[0].Controls[0]).U.AbsoluteUri == page, "blocked startup tab could not navigate afterward");
                     Console.WriteLine("PASS policy startup: blocked saved URL makes no request; allowed sibling and later navigation remain usable");
+                }
+                else if (mode == "failure-start")
+                {
+                    Call(form, "qleaTick", form, EventArgs.Empty);
+                    Check(Member<ToolStripComboBox>(form, "c").Text == expected[0] && Member<Label>(form, "su").Text.Contains("503"), "failed startup lost address or error status");
+                    Call(form, "qleaSaveSession");
+                    Check(File.ReadAllLines(session).SequenceEqual(expected), "failed startup URL lost from session");
+                    lazySite.Status = 200;
+                    Member<ToolStripItem>(form, "re").PerformClick();
+                    WaitLea(tabs);
+                    Check(lazySite.Hits == 2 && ((V)tabs.TabPages[0].Controls[0]).Le == null, "failed first page could not be retried through Reload");
+                    Console.WriteLine("PASS failed startup: unavailable saved page, working sibling, address/session retention, and Reload recovery");
                 }
                 else if (lazySite != null) CheckLazyStartup(form, lazySite, expected, mode == "lazy-all");
                 Check(UiErrors.Count == 0, "UI thread exceptions: " + String.Join(" | ", UiErrors.Select(error => error.ToString()).ToArray()));
@@ -434,6 +460,68 @@ namespace Lea.Firespider
                 if (original == null) Clipboard.Clear(); else Clipboard.SetDataObject(clipboard, true);
             }
             Console.WriteLine("PASS edit: real menu/hover dispatch, selection, undo/redo, clipboard, readonly/password, paused/empty tabs, and explicit legacy fallback");
+        }
+
+        private static void CheckFailures(Form form, ApplicationSettingsBase settings, string page)
+        {
+            settings["bs"] = new StringCollection();
+            settings["cfEnabled"] = "";
+            var path = Path.Combine(Path.GetTempPath(), "lea-failures-" + Guid.NewGuid().ToString("N") + ".html");
+            try
+            {
+                using (var site = new LoopbackSite(150))
+                {
+                    site.Status = 503;
+                    File.WriteAllText(path, "<title>Load failures</title><a id=bad accesskey=b href='" + site.Url + "unavailable'>Unavailable link</a><input id=editor accesskey=e value=retained><p>Retained page</p>");
+                    var tabs = Member<TabControl>(form, "k");
+                    var view = (V)tabs.SelectedTab.Controls[0];
+                    view.Go(path);
+                    var retained = view.At;
+                    var uiThread = Thread.CurrentThread.ManagedThreadId;
+                    var failureThread = 0;
+                    var failures = 0;
+                    view.Fe += delegate { failureThread = Thread.CurrentThread.ManagedThreadId; failures++; };
+                    view.Kf();
+                    Check(view.Ke == view.Id("bad"), "failure keyboard target");
+                    var args = new KeyEventArgs(Keys.Enter);
+                    typeof(V).GetMethod("OnKeyDown", Members).Invoke(view, new object[] { args });
+                    var claimed = args.Handled && args.SuppressKeyPress;
+                    Wait(() => site.Hits == 1 && failureThread != 0, "failed keyboard notification");
+                    Observe(100);
+                    Console.WriteLine("Failure input: UI=" + uiThread + "; Fe=" + failureThread + "; claimed before await=" + claimed);
+                    Check(args.Handled && args.SuppressKeyPress && UiErrors.Count == 0 && view.At == retained, "ordinary keyboard load failure escaped or lost the page");
+                    Check(claimed, "keyboard navigation was not claimed before awaiting the network");
+                    Check(failureThread == uiThread, "failure notification left the UI thread");
+                    Call(form, "qleaTick", form, EventArgs.Empty);
+                    Check(Member<Label>(form, "su").Text.Contains("503"), "failure status was replaced by ready");
+                    site.DelayMs = 100;
+                    view.Aa("e").GetAwaiter().GetResult();
+                    Check(Member<TextBox>(view, "ed").Visible, "failure test did not open the native editor");
+                    Member<TextBox>(view, "ed").Text = "edited before failure";
+                    var access = new KeyEventArgs(Keys.Alt | Keys.Shift | Keys.B);
+                    typeof(V).GetMethod("EditKeyDown", Members).Invoke(view, new object[] { view, access });
+                    Check(access.Handled && access.SuppressKeyPress, "editor access key not consumed before network");
+                    Wait(() => failures == 2, "editor access-key failure");
+                    Check(view.At == retained && UiErrors.Count == 0, "editor shortcut failure escaped or changed page");
+                    Check(view.At.Fs.First(field => field.El.Av("id") == "editor").V == "edited before failure", "failed navigation lost the edit");
+                    typeof(V).GetMethod("ActivateAccessibility", Members).Invoke(view, new object[] { view.Ax(view.Id("bad")) });
+                    Wait(() => failures == 3, "accessible link failure");
+                    Check(view.At == retained && UiErrors.Count == 0, "accessible failure escaped or changed page");
+                    var failedTab = tabs.SelectedTab;
+                    var background = (V)Call(form, "qleaNew", page);
+                    tabs.SelectedTab = failedTab;
+                    Wait(() => background.At != null && !background.Busy, "background successful page");
+                    Call(form, "qleaTick", form, EventArgs.Empty);
+                    Check(Member<Label>(form, "su").Text.Contains("503"), "background success hid foreground error");
+                    site.Status = 200;
+                    Member<ToolStripItem>(form, "re").PerformClick();
+                    Wait(() => view.U != null && view.U.AbsoluteUri == site.Url + "unavailable" && !view.Busy, "host Reload retry");
+                    Check(view.Le == null && !view.Cr && site.Hits == 4 && failures == 3, "successful GET retry did not clear failure or fetched twice");
+                    Check(UiErrors.Count == 0, "native failure/retry raised a popup");
+                    Console.WriteLine("PASS failures: keyboard/editor/accessibility errors, UI-thread notification, retained page/status, background completion, and explicit Reload retry");
+                }
+            }
+            finally { if (File.Exists(path)) File.Delete(path); }
         }
 
         private static void CheckPolicy(Form form, ApplicationSettingsBase settings, string page, List<Form> forms)
@@ -1765,6 +1853,7 @@ namespace Lea.Firespider
             private readonly int firstDelay;
             private int hits;
             public volatile int DelayMs;
+            public volatile int Status = 200;
             public readonly string Url;
             public int Hits { get { return Interlocked.CompareExchange(ref hits, 0, 0); } }
 
@@ -1798,7 +1887,7 @@ namespace Lea.Firespider
                             if (request == 0 && firstDelay > 0) Thread.Sleep(firstDelay);
                             if (request > 0 && DelayMs > 0) Thread.Sleep(DelayMs);
                             var body = Encoding.UTF8.GetBytes("<title>Lea navigation</title><p>Local test</p>");
-                            var header = Encoding.ASCII.GetBytes("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: " + body.Length + "\r\nConnection: close\r\n\r\n");
+                            var header = Encoding.ASCII.GetBytes("HTTP/1.1 " + Status + " Test\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: " + body.Length + "\r\nConnection: close\r\n\r\n");
                             try
                             {
                                 stream.Write(header, 0, header.Length);

@@ -33,6 +33,10 @@ dedicated per-tab error page is not part of this change.
 
 ## Input Error Handling
 
+Milestone 61 extends this boundary to typed loading failures and editor access
+keys, with `Fe/Le` status and explicit `Cr/Ry` retry. See `LOAD_FAILURES.md`.
+The following describes the original milestone-60 change.
+
 The previous renderer reproducibly let a rejected keyboard link escape through
 `V.OnKeyDown` as an unhandled `Er`. Native Enter/access-key and accessibility
 activation now handle only `Er.K="blocked"`. The key is consumed; the host's

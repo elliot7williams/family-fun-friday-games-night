@@ -71,6 +71,7 @@ namespace Lea.Win
         private int findIndex = -1;
         private int goRequests;
         private Ur ur;
+        private Uri retryTarget;
 
         public event EventHandler Done;
         public event EventHandler Changed;
@@ -79,6 +80,7 @@ namespace Lea.Win
         public event EventHandler Al;
         public event EventHandler Dr;
         public event EventHandler Gr;
+        public event EventHandler Fe;
 
         public V()
         {
@@ -173,6 +175,8 @@ namespace Lea.Win
             return !closed && guard != null && guard(url) && !closed;
         }
         public string Am { get; private set; }
+        public Er Le { get; private set; }
+        public bool Cr { get { return !closed && !e.Busy && retryTarget != null; } }
         public string Fq { get { return findQuery; } }
         public int Fn { get { return findMatches.Count; } }
         public int Fx { get { return findIndex < 0 ? 0 : findIndex + 1; } }
@@ -259,7 +263,7 @@ namespace Lea.Win
             try
             {
                 if (Fg(input) != 0) return At;
-                return Show(e.Go(input), true);
+                return Show(LoadCore(() => e.Go(input), true), true);
             }
             finally { if (!closed) Cursor = Cursors.Default; }
         }
@@ -271,7 +275,7 @@ namespace Lea.Win
             try
             {
                 if (Fg(url) != 0) return At;
-                return Show(e.Go(url), true);
+                return Show(LoadCore(() => e.Go(url), true), true);
             }
             finally { if (!closed) Cursor = Cursors.Default; }
         }
@@ -280,7 +284,7 @@ namespace Lea.Win
         {
             CheckOpen();
             Cursor = Cursors.WaitCursor;
-            try { return Show(e.Po(url, data), true); }
+            try { return Show(LoadCore(() => e.Po(url, data), false), true); }
             finally { if (!closed) Cursor = Cursors.Default; }
         }
 
@@ -288,7 +292,7 @@ namespace Lea.Win
         {
             CheckOpen();
             Cursor = Cursors.WaitCursor;
-            try { return Show(e.Pb(url, data, type), true); }
+            try { return Show(LoadCore(() => e.Pb(url, data, type), false), true); }
             finally { if (!closed) Cursor = Cursors.Default; }
         }
 
@@ -300,7 +304,7 @@ namespace Lea.Win
             try
             {
                 if (Fg(input) != 0) return At;
-                return await ShowA(e.GoA(input));
+                return await ShowA(LoadCoreA(() => e.GoA(input), true));
             }
             finally { if (!closed) Cursor = Cursors.Default; }
         }
@@ -313,7 +317,7 @@ namespace Lea.Win
             try
             {
                 if (Fg(url) != 0) return At;
-                return await ShowA(e.GoA(url));
+                return await ShowA(LoadCoreA(() => e.GoA(url), true));
             }
             finally { if (!closed) Cursor = Cursors.Default; }
         }
@@ -325,7 +329,7 @@ namespace Lea.Win
             picStop = false;
             try
             {
-                return await ShowA(e.PoA(url, data));
+                return await ShowA(LoadCoreA(() => e.PoA(url, data), false));
             }
             finally { if (!closed) Cursor = Cursors.Default; }
         }
@@ -337,20 +341,67 @@ namespace Lea.Win
             picStop = false;
             try
             {
-                return await ShowA(e.PbA(url, data, type));
+                return await ShowA(LoadCoreA(() => e.PbA(url, data, type), false));
             }
             finally { if (!closed) Cursor = Cursors.Default; }
         }
 
-        public P Bk() { CheckOpen(); return Show(e.Bk(), false); }
-        public P Fw() { CheckOpen(); return Show(e.Fw(), false); }
-        public P Rl() { CheckOpen(); return Show(e.Rl(), true); }
+        public P Bk() { CheckOpen(); return Show(LoadCore(e.Bk, false), false); }
+        public P Fw() { CheckOpen(); return Show(LoadCore(e.Fw, false), false); }
+        public P Rl() { CheckOpen(); return Show(LoadCore(e.Rl, true), true); }
 
         public async Task<P> RlA()
         {
             CheckOpen();
             picStop = false;
-            return await ShowA(e.RlA());
+            return await ShowA(LoadCoreA(e.RlA, true));
+        }
+
+        public Task<P> Ry()
+        {
+            CheckOpen();
+            var target = Cr ? retryTarget : null;
+            return target == null ? Task.FromResult(At) : GoA(target);
+        }
+
+        private T LoadCore<T>(Func<T> load, bool retry, bool clear = true)
+        {
+            CheckOpen();
+            if (clear) ClearFailure();
+            try { return load(); }
+            catch (Er error) { LoadFailed(error, retry); throw; }
+        }
+
+        private async Task<P> LoadCoreA(Func<Task<P>> load, bool retry)
+        {
+            CheckOpen();
+            ClearFailure();
+            try { return await load(); }
+            catch (Er error) { LoadFailed(error, retry); throw; }
+        }
+
+        private void ClearFailure()
+        {
+            Le = null;
+            retryTarget = null;
+        }
+
+        private void LoadFailed(Er error, bool retry)
+        {
+            if (closed) return;
+            if (InvokeRequired)
+            {
+                try { Invoke(new Action(() => LoadFailed(error, retry))); }
+                catch (InvalidOperationException) { if (!closed) throw; }
+                return;
+            }
+            if (error.K == "cancel") { ClearFailure(); return; }
+            Le = error;
+            var url = error.U;
+            retryTarget = retry && error.K != "url" && url != null && url.IsAbsoluteUri &&
+                (url.Scheme == "http" || url.Scheme == "https" || url.Scheme == "file" || url.Scheme == "about") ? url : null;
+            var handler = Fe;
+            if (handler != null) handler(this, EventArgs.Empty);
         }
 
         private async Task<P> ShowA(Task<P> work)
@@ -466,7 +517,7 @@ namespace Lea.Win
         public int Fg(string input)
         {
             var old = sy;
-            if (e.Fg(input) == 0) return 0;
+            if (LoadCore(() => e.Fg(input), true, false) == 0) return 0;
             Show(At, true, old);
             return 1;
         }
@@ -474,7 +525,7 @@ namespace Lea.Win
         public int Fg(Uri url)
         {
             var old = sy;
-            if (e.Fg(url) == 0) return 0;
+            if (LoadCore(() => e.Fg(url), true, false) == 0) return 0;
             Show(At, true, old);
             return 1;
         }
@@ -562,6 +613,7 @@ namespace Lea.Win
         private P Show(P page, bool done, int preserveScroll = -1)
         {
             if (closed) return page;
+            ClearFailure();
             picStop = false;
             CloseChoices();
             ClearFind(false);
@@ -4439,9 +4491,11 @@ namespace Lea.Win
             base.OnKeyDown(e);
             if (e.Alt && e.Shift && !e.Control)
             {
-                if (await InputActivationA(() => Aa(KeyText(e.KeyData))) == 0) return;
+                var key = KeyText(e.KeyData);
+                if (AccessTarget(key) == null) return;
                 e.SuppressKeyPress = true;
                 e.Handled = true;
+                await InputActivationA(() => Aa(key));
                 return;
             }
             if (e.KeyCode == Keys.Tab && !e.Control && !e.Alt)
@@ -4459,19 +4513,15 @@ namespace Lea.Win
             var field = target.B != null && target.B.B != null ? target.B.B.I : null;
             if (e.KeyCode == Keys.Space && link) return;
             if (!link && !summary && field == null) return;
-            if (await InputActivationA(Ka) == 0) return;
             e.SuppressKeyPress = true;
             e.Handled = true;
+            await InputActivationA(Ka);
         }
 
         private async Task<int> InputActivationA(Func<Task<int>> activate)
         {
             try { return await activate(); }
-            catch (Er error)
-            {
-                if (error.K != "blocked") throw;
-                return 1;
-            }
+            catch (Er) { return 1; }
         }
 
         // Kf moves through Lea's bounded sequential keyboard targets.
@@ -5176,9 +5226,11 @@ namespace Lea.Win
             }
             else if (args.Alt && args.Shift && !args.Control)
             {
-                if (await Aa(KeyText(args.KeyData)) == 0) return;
+                var key = KeyText(args.KeyData);
+                if (AccessTarget(key) == null) return;
                 args.SuppressKeyPress = true;
                 args.Handled = true;
+                await InputActivationA(() => Aa(key));
             }
             else if (args.KeyCode == Keys.Tab && !args.Control && !args.Alt)
             {
@@ -6713,6 +6765,8 @@ namespace Lea.Win
             if (disposing && !closed)
             {
                 closed = true;
+                ClearFailure();
+                Fe = null;
                 heldEdit = null;
                 edit = null;
                 e.Ng = null;

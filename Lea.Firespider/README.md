@@ -10,6 +10,13 @@ Its timer status handler is also routed safely across startup, empty, Lea, and
 legacy-tab states, so it never dereferences a missing control or casts a Lea
 view to the legacy `WebBrowser` type.
 
+Native document failures now publish `V.Fe/Le`; `V.Cr/Ry` supports explicit
+GET retry through Reload without replaying POST. Failed first pages retain
+their URL/session entry; timer ticks and background successes do not hide the
+selected error. Split/test hosts display failures too. The `failures` and
+`failure-start` Boot cases bring the suite to 32. See `LeaForge/LOAD_FAILURES.md`.
+The intermittent recovery cast remains unresolved.
+
 Ordinary Lea tabs now install `V.Ng` for blocked sites, navigation filters,
 offline/locked state, and live tab ownership. Denied resume retains its saved
 target and placeholder. Expected denials no longer escape Back/Forward,

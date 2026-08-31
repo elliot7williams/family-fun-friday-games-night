@@ -159,6 +159,7 @@ Friend Class SplitBrowserForm
         AddHandler view.Al, AddressOf qalert
         AddHandler view.Gr, AddressOf qgo
         AddHandler view.Dr, AddressOf qdownload
+        AddHandler view.Fe, AddressOf qfailed
         If left Then
             leftBrowser = view
             split.Panel1.Controls.Add(view)
@@ -200,6 +201,16 @@ Friend Class SplitBrowserForm
         lastLeftY = If(leftBrowser Is Nothing, 0, leftBrowser.Sy)
         lastRightY = If(rightBrowser Is Nothing, 0, rightBrowser.Sy)
         status.Text = "Lea ready"
+        If leftBrowser IsNot Nothing AndAlso leftBrowser.Le IsNot Nothing Then qfailed(leftBrowser, EventArgs.Empty)
+        If rightBrowser IsNot Nothing AndAlso rightBrowser.Le IsNot Nothing Then qfailed(rightBrowser, EventArgs.Empty)
+        qstate(sender, e)
+    End Sub
+
+    Private Sub qfailed(ByVal sender As Object, ByVal e As EventArgs)
+        Dim view As Global.Lea.Win.V = TryCast(sender, Global.Lea.Win.V)
+        If closed OrElse view Is Nothing OrElse view.IsDisposed OrElse view.Le Is Nothing Then Return
+        If view IsNot leftBrowser AndAlso view IsNot rightBrowser Then Return
+        status.Text = If(view Is leftBrowser, "Left: ", "Right: ") & qline(view.Le.Message, 256)
         qstate(sender, e)
     End Sub
 
@@ -340,6 +351,7 @@ Friend Class SplitBrowserForm
         RemoveHandler view.Al, AddressOf qalert
         RemoveHandler view.Gr, AddressOf qgo
         RemoveHandler view.Dr, AddressOf qdownload
+        RemoveHandler view.Fe, AddressOf qfailed
         view.Ng = Nothing
         If view.Parent IsNot Nothing Then view.Parent.Controls.Remove(view)
         view.Dispose()

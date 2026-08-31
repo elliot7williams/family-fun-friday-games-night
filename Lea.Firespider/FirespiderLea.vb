@@ -260,6 +260,8 @@ Partial Class j
 
     Private Function qleaUrl(ByVal tab As TabPage) As String
         If tab Is Nothing OrElse tab.IsDisposed Then Return ""
+        Dim host As Global.Lea.Win.V = qleaHost(tab)
+        If host IsNot Nothing AndAlso host.U Is Nothing AndAlso host.Cr AndAlso host.Le IsNot Nothing Then Return host.Le.U.AbsoluteUri
         Dim browser = If(tab.Controls.Count = 0, Nothing, TryCast(tab.Controls(0), WebBrowser))
         Return qpersistedtaburl(tab, browser)
     End Function
@@ -608,6 +610,7 @@ Partial Class j
         AddHandler host.Al, AddressOf qleaAlert
         AddHandler host.Dr, AddressOf qleaDownload
         AddHandler host.Gr, AddressOf qleaGoRequest
+        AddHandler host.Fe, AddressOf qleaFailed
 
         Dim closeMenu As New ContextMenuStrip()
         Dim inspectorItem As New ToolStripMenuItem("Lea Inspector")
@@ -655,6 +658,7 @@ Partial Class j
         RemoveHandler host.Al, AddressOf qleaAlert
         RemoveHandler host.Dr, AddressOf qleaDownload
         RemoveHandler host.Gr, AddressOf qleaGoRequest
+        RemoveHandler host.Fe, AddressOf qleaFailed
         qleaPending.Remove(host)
         If host.Parent IsNot Nothing Then host.Parent.Controls.Remove(host)
         Dim menu As ContextMenuStrip = host.ContextMenuStrip
@@ -737,19 +741,24 @@ Partial Class j
         Await qleaLoadA(host, target)
     End Sub
 
-    Private Async Function qleaLoadA(ByVal host As Global.Lea.Win.V, ByVal target As String) As Threading.Tasks.Task
+    Private Async Function qleaLoadA(ByVal host As Global.Lea.Win.V, ByVal target As String, Optional ByVal retry As Boolean = False) As Threading.Tasks.Task
         If host Is Nothing OrElse host.IsDisposed OrElse IsDisposed Then Return
         Dim owned As Boolean = Not qleaPending.ContainsKey(host)
         If owned Then qleaPending(host) = qleaSessionTarget(target)
         Try
-            su.Visible = True
-            su.Text = "Lea loading"
-            r.Image = My.Resources.F7
-            Await host.GoA(target)
-        Catch ex As Global.Lea.Engine.Er When ex.K = "blocked"
-            If Not IsDisposed Then r.Image = My.Resources.F8
+            If host Is qleaAt() Then
+                su.Visible = True
+                su.Text = "Lea loading"
+                r.Image = My.Resources.F7
+            End If
+            If retry Then Await host.Ry() Else Await host.GoA(target)
+        Catch ex As Global.Lea.Engine.Er
+            If host.IsDisposed OrElse IsDisposed Then Return
+            If host Is qleaAt() Then r.Image = My.Resources.F8
+            If Object.ReferenceEquals(host.Le, ex) Then qleaFailed(host, EventArgs.Empty)
         Catch ex As Exception
             If host.IsDisposed OrElse IsDisposed Then Return
+            If host IsNot qleaAt() Then Return
             su.Visible = True
             su.Text = "Lea: " & ex.Message
             r.Image = My.Resources.F8
@@ -759,15 +768,25 @@ Partial Class j
     End Function
 
     Private Async Sub qleaReload(ByVal host As Global.Lea.Win.V)
+        If host Is Nothing OrElse host.IsDisposed OrElse IsDisposed Then Return
+        If host.Cr Then
+            Await qleaLoadA(host, host.Le.U.AbsoluteUri, True)
+            Return
+        End If
         Try
-            su.Visible = True
-            su.Text = "Lea loading"
-            r.Image = My.Resources.F7
+            If host Is qleaAt() Then
+                su.Visible = True
+                su.Text = "Lea loading"
+                r.Image = My.Resources.F7
+            End If
             Await host.RlA()
-        Catch ex As Global.Lea.Engine.Er When ex.K = "blocked"
-            If Not IsDisposed Then r.Image = My.Resources.F8
+        Catch ex As Global.Lea.Engine.Er
+            If host.IsDisposed OrElse IsDisposed Then Return
+            If host Is qleaAt() Then r.Image = My.Resources.F8
+            If Object.ReferenceEquals(host.Le, ex) Then qleaFailed(host, EventArgs.Empty)
         Catch ex As Exception
             If host.IsDisposed OrElse IsDisposed Then Return
+            If host IsNot qleaAt() Then Return
             su.Visible = True
             su.Text = "Lea: " & ex.Message
             r.Image = My.Resources.F8
@@ -781,11 +800,30 @@ Partial Class j
     End Sub
 
     Private Sub qleaDone(ByVal sender As Object, ByVal e As EventArgs)
-        r.Image = My.Resources.F8
-        su.Visible = False
         Dim host = TryCast(sender, Global.Lea.Win.V)
+        If host Is qleaAt() Then
+            r.Image = My.Resources.F8
+            su.Visible = host IsNot Nothing AndAlso host.Le IsNot Nothing
+        End If
         qleaState(host)
         If host IsNot Nothing Then qapplygrouptab(TryCast(host.Parent, TabPage))
+        qleaInspectorFollow(host)
+    End Sub
+
+    Private Function qleaStatus(ByVal host As Global.Lea.Win.V) As String
+        If host.Busy Then Return "Lea loading"
+        If host.Le IsNot Nothing Then Return "Lea: " & qleaDomainLine(host.Le.Message, 256)
+        Return "Lea ready"
+    End Function
+
+    Private Sub qleaFailed(ByVal sender As Object, ByVal e As EventArgs)
+        Dim host As Global.Lea.Win.V = TryCast(sender, Global.Lea.Win.V)
+        If IsDisposed OrElse host Is Nothing OrElse host.IsDisposed OrElse host.Le Is Nothing Then Return
+        qleaState(host)
+        If host IsNot qleaAt() Then Return
+        su.Visible = True
+        su.Text = qleaStatus(host)
+        r.Image = My.Resources.F8
         qleaInspectorFollow(host)
     End Sub
 
@@ -1117,7 +1155,7 @@ Partial Class j
         Dim tab = TryCast(host.Parent, TabPage)
         If tab IsNot Nothing Then tab.Text = If(tab.ToolTipText.StartsWith("Tab group:", StringComparison.OrdinalIgnoreCase), ChrW(&H25CF) & " ", "") & If(String.IsNullOrWhiteSpace(host.T), "Lea", host.T)
         If k.SelectedTab IsNot tab Then Return
-        c.Text = If(host.U Is Nothing, "", host.U.ToString())
+        c.Text = qleaUrl(tab)
         Text = ProductName & " - " & If(tab Is Nothing, "Lea", tab.Text)
         b.Enabled = host.CanBk
         BT.Enabled = host.CanBk
@@ -1140,6 +1178,7 @@ Partial Class j
         Dim host = qleaAt()
         If host IsNot Nothing Then
             qleaState(host)
+            If host.Le IsNot Nothing Then qleaFailed(host, EventArgs.Empty)
             If qleaInspectorWindow IsNot Nothing Then qleaInspectorSnapshot()
             Return
         End If
@@ -1158,7 +1197,8 @@ Partial Class j
     Private Sub qleaTick(ByVal sender As Object, ByVal e As EventArgs)
         Dim host = qleaAt()
         If host IsNot Nothing Then
-            su.Text = If(host.Busy, "Lea loading", "Lea ready")
+            su.Text = qleaStatus(host)
+            If host.Le IsNot Nothing Then su.Visible = True
             qleaState(host)
             Return
         End If
