@@ -75,6 +75,12 @@ authorization if the callback disposes it. This is not a redirect, subresource,
 or download firewall. Firespider split view installs it; general Lea tabs do not
 yet do so. See `SPLIT_VIEW.md` for tested behavior and scope.
 
+Use `V.Ce(code)` and `V.Ec(code)` on the UI thread for native field editing.
+The two-letter commands `cp/cu/pa/sa/de/un/re` cover copy, cut, paste, select-all,
+delete, and one-level undo/redo. Firespider's Edit menu now uses these routes,
+including retained selection after opening its menu. These APIs do not provide
+document-body selection or contenteditable. See `NATIVE_EDITING.md`.
+
 Safe page code can call `go(url)` to request, but not perform, navigation.
 Headless integrations call `E.Gt(page)` once after `Js`/`Ck`. WinForms hosts
 subscribe to `V.Gr`, read the bounded target from `V.Gu`, and then choose whether

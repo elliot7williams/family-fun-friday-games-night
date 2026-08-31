@@ -107,7 +107,7 @@ namespace Lea.Bench
             var names = new[]
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
-                "tables.html", "forms.html", "events-vars.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
+                "tables.html", "forms.html", "editing.html", "events-vars.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -1788,6 +1788,27 @@ namespace Lea.Bench
                 Need(forms.Fs.Count == 9 && validation.Fs.Count == 12 && widgets.Fs.Count == 10, "field models changed");
                 Need(validation.Fs[0].Rq && validation.Fs[0].Ok, "validation state is missing");
                 return "31 fields across basic, validation, and richer-widget fixtures";
+            });
+            AddProbe(probes, "Native field edit commands", delegate
+            {
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1000);
+                    view.Go(Path.Combine(folder, "editing.html"));
+                    using (var image = Draw(view)) { }
+                    var start = typeof(V).GetMethod("StartEdit", BindingFlags.Instance | BindingFlags.NonPublic);
+                    var field = view.At.Fs.First(item => item.El.Av("id") == "text");
+                    start.Invoke(view, new object[] { field });
+                    Need(view.Ce("de") && view.Ec("de") == 1 && field.V == "", "selected field delete failed");
+                    Need(view.Ec("un") == 1 && field.V == "Lea field text" && !view.Ce("un") && view.Ce("re"), "native undo state failed");
+                    Need(view.Ec("re") == 1 && field.V == "", "native redo failed");
+                    start.Invoke(view, new object[] { view.At.Fs.First(item => item.El.Av("id") == "notes") });
+                    start.Invoke(view, new object[] { view.At.Fs.First(item => item.El.Av("id") == "readonly") });
+                    Need(view.Ce("cp") && !view.Ce("cu") && !view.Ce("pa"), "readonly command state failed");
+                    start.Invoke(view, new object[] { view.At.Fs.First(item => item.El.Av("id") == "secret") });
+                    Need(!view.Ce("cp") && !view.Ce("cu"), "password command state failed");
+                }
+                return "Ce/Ec two-letter commands, native one-level undo/redo, readonly/password guards, shared-font field switching; probe does not touch clipboard";
             });
             AddProbe(probes, "Bounded Lea scripting", delegate
             {

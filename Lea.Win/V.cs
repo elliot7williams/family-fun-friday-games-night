@@ -57,6 +57,9 @@ namespace Lea.Win
         private bool picStop;
         private bool closed;
         private Fi edit;
+        private Fi heldEdit;
+        private bool editRedo;
+        private bool editReplay;
         private Font editFont;
         private string editStart = "";
         private bool editLock;
@@ -93,7 +96,7 @@ namespace Lea.Win
             ed.BorderStyle = BorderStyle.FixedSingle;
             ed.TextChanged += EditChanged;
             ed.KeyDown += EditKeyDown;
-            ed.LostFocus += delegate { EndEdit(false); };
+            ed.LostFocus += delegate { EndEdit(false, true); };
             ed.MouseWheel += delegate(object sender, MouseEventArgs args) { Sc(-Math.Sign(args.Delta) * 72); };
             Controls.Add(ed);
             e.Vw = Math.Max(1, ClientSize.Width);
@@ -106,6 +109,9 @@ namespace Lea.Win
 
         [DllImport("UIAutomationCore.dll", EntryPoint = "UiaReturnRawElementProvider", ExactSpelling = true)]
         private static extern IntPtr ReleaseProvider(IntPtr window, IntPtr wParam, IntPtr lParam, IntPtr provider);
+
+        [DllImport("user32.dll", EntryPoint = "SendMessageW", ExactSpelling = true)]
+        private static extern IntPtr EditMessage(IntPtr window, int message, IntPtr wParam, IntPtr lParam);
 
         protected override void WndProc(ref Message message)
         {
@@ -188,6 +194,63 @@ namespace Lea.Win
         public Rectangle Rb(int index) { return index < 0 || index >= boxes.Count ? Rectangle.Empty : boxes[index].R; }
         public Rectangle Rc(int index) { return index < 0 || index >= boxes.Count ? Rectangle.Empty : boxes[index].C; }
         public Rectangle Fr { get { return FindRect(); } }
+
+        // Compact commands act only on this page's current or menu-retained editor.
+        public bool Ce(string code)
+        {
+            var field = edit ?? heldEdit;
+            if (closed || code == null || code.Length != 2 || At == null || field == null ||
+                !At.Fs.Contains(field) || field.Ds || field.V != ed.Text) return false;
+            var visible = false;
+            foreach (var target in FocusTargets(false))
+                if (target.El == field.El) { visible = true; break; }
+            if (!visible) return false;
+            switch (code.ToLowerInvariant())
+            {
+                case "sa": return ed.TextLength > 0;
+                case "cp": return field.K != "password" && ed.SelectionLength > 0;
+                case "cu": return !field.Ro && field.K != "password" && ed.SelectionLength > 0;
+                case "pa": return !field.Ro;
+                case "de": return !field.Ro && (ed.SelectionLength > 0 || ed.SelectionStart < ed.TextLength);
+                case "un": return !field.Ro && ed.CanUndo && !editRedo;
+                case "re": return !field.Ro && ed.CanUndo && editRedo;
+                default: return false;
+            }
+        }
+
+        public int Ec(string code)
+        {
+            if (!Ce(code)) return 0;
+            edit = edit ?? heldEdit;
+            heldEdit = null;
+            SetFocus(edit.El);
+            PlaceEditor();
+            if (!ed.Visible) { EndEdit(false); return 0; }
+            ed.Focus();
+            switch (code.ToLowerInvariant())
+            {
+                case "sa": ed.SelectAll(); break;
+                case "cp": ed.Copy(); break;
+                case "cu": ed.Cut(); break;
+                case "pa": ed.Paste(); break;
+                case "de":
+                    var text = ed.Text;
+                    var start = ed.SelectionStart;
+                    var end = Math.Min(text.Length, start + Math.Max(1, ed.SelectionLength));
+                    if (start > 0 && start < text.Length && Char.IsLowSurrogate(text[start]) && Char.IsHighSurrogate(text[start - 1])) start--;
+                    if (end > 0 && end < text.Length && Char.IsHighSurrogate(text[end - 1]) && Char.IsLowSurrogate(text[end])) end++;
+                    ed.Select(start, end - start);
+                    EditMessage(ed.Handle, 0x0303, IntPtr.Zero, IntPtr.Zero); // WM_CLEAR preserves native undo.
+                    break;
+                case "un":
+                case "re":
+                    editReplay = true;
+                    try { ed.Undo(); editRedo = !editRedo; }
+                    finally { editReplay = false; }
+                    break;
+            }
+            return 1;
+        }
 
         public P Go(string input)
         {
@@ -4404,6 +4467,7 @@ namespace Lea.Win
         // Kf moves through Lea's bounded sequential keyboard targets.
         public int Kf(bool back = false)
         {
+            ForgetEdit();
             var targets = FocusTargets(true);
             if (targets.Count == 0)
             {
@@ -4448,6 +4512,7 @@ namespace Lea.Win
         {
             var target = AccessTarget(key);
             if (target == null) return 0;
+            ForgetEdit();
             if (edit != null)
             {
                 edit = null;
@@ -5043,10 +5108,16 @@ namespace Lea.Win
             ed.MaxLength = field.Mx > 0 ? field.Mx : 32767;
             ed.PasswordChar = field.K == "password" ? '*' : '\0';
             ed.BackColor = field.Ok ? Color.White : Color.FromArgb(255, 241, 242);
-            var oldFont = editFont;
-            editFont = BoxFont(field.K, field.S, false);
-            ed.Font = editFont;
-            if (oldFont != null) oldFont.Dispose();
+            var nextFont = BoxFont(field.K, field.S, false);
+            if (editFont != null && editFont.Equals(nextFont)) nextFont.Dispose();
+            else
+            {
+                // WinForms may retain an equal Font instance in its property setter.
+                var oldFont = editFont;
+                ed.Font = nextFont;
+                editFont = nextFont;
+                if (oldFont != null) oldFont.Dispose();
+            }
             ed.Text = field.V;
             editLock = false;
             PlaceEditor();
@@ -5055,9 +5126,18 @@ namespace Lea.Win
             ed.SelectAll();
         }
 
-        private void EndEdit(bool restore)
+        private void ForgetEdit()
         {
+            heldEdit = null;
+            editRedo = false;
+            ed.ClearUndo();
+        }
+
+        private void EndEdit(bool restore, bool retain = false)
+        {
+            if (!retain) ForgetEdit();
             if (edit == null) return;
+            if (retain) heldEdit = edit;
             if (restore) edit.V = editStart;
             edit = null;
             ed.Visible = false;
@@ -5068,6 +5148,7 @@ namespace Lea.Win
         private void EditChanged(object sender, EventArgs args)
         {
             if (editLock || edit == null) return;
+            if (!editReplay) editRedo = false;
             edit.V = ed.Text;
             var restyle = ClearValidity(edit);
             OnEdited();
@@ -5077,7 +5158,13 @@ namespace Lea.Win
 
         private async void EditKeyDown(object sender, KeyEventArgs args)
         {
-            if (args.Alt && args.Shift && !args.Control)
+            if (args.Control && !args.Alt && !args.Shift && (args.KeyCode == Keys.Z || args.KeyCode == Keys.Y))
+            {
+                Ec(args.KeyCode == Keys.Z ? "un" : "re");
+                args.SuppressKeyPress = true;
+                args.Handled = true;
+            }
+            else if (args.Alt && args.Shift && !args.Control)
             {
                 if (await Aa(KeyText(args.KeyData)) == 0) return;
                 args.SuppressKeyPress = true;
@@ -6616,6 +6703,8 @@ namespace Lea.Win
             if (disposing && !closed)
             {
                 closed = true;
+                heldEdit = null;
+                edit = null;
                 e.Ng = null;
                 navigationGuard = null;
                 picStop = true;

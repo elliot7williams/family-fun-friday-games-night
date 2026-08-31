@@ -25,6 +25,7 @@ namespace Lea.Tests
             try
             {
                 var root = Path.GetFullPath(args.Length > 0 ? args[0] : Directory.GetCurrentDirectory());
+                CheckEditCommands(root);
                 CheckNavigationGuard(root);
                 CheckDisposal(root);
                 using (var slow = new CompressedServer())
@@ -6475,6 +6476,126 @@ namespace Lea.Tests
                 lock (pending) { if (pending.Count == 0) return; next = pending.Dequeue(); }
                 TryExecuteTask(next);
             }
+        }
+
+        private static void CheckEditCommands(string root)
+        {
+            var original = Clipboard.GetDataObject();
+            var clipboard = new DataObject();
+            if (original != null)
+                foreach (var format in original.GetFormats(false)) clipboard.SetData(format, false, original.GetData(format, false));
+            try
+            {
+                using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-30000, -30000), Size = new Size(720, 800) })
+                using (var view = new V())
+                using (var other = new TextBox { Dock = DockStyle.Bottom })
+                {
+                    form.Controls.Add(view);
+                    form.Controls.Add(other);
+                    form.Show();
+                    var path = Path.Combine(root, "LeaForge", "test-pages", "editing.html");
+                    view.Go(path);
+                    using (var paint = Render(view)) { }
+                    var start = typeof(V).GetMethod("StartEdit", BindingFlags.Instance | BindingFlags.NonPublic);
+                    var editor = Editor(view);
+                    var field = FieldById(view.At, "text");
+                    Ok(!view.Ce("cp") && view.Ec("cp") == 0 && view.Ec(null) == 0 && view.Ec("copy") == 0, "empty and invalid edit commands");
+                    start.Invoke(view, new object[] { field });
+                    editor.Select(4, 5);
+                    Eq(1, view.Ec("CP"), "compact case-insensitive copy");
+                    Eq("field", Clipboard.GetText(), "copy selected field text");
+                    other.Focus();
+                    Application.DoEvents();
+                    Ok(!editor.Visible && view.Ce("cp"), "menu focus retains editor selection");
+                    Eq(1, view.Ec("cu"), "retained cut");
+                    Eq("Lea  text", field.V, "cut updates live field");
+                    Ok(view.Ce("un") && !view.Ce("re"), "native undo state");
+                    view.Ec("un");
+                    Eq("Lea field text", field.V, "undo restores field");
+                    Ok(!view.Ce("un") && view.Ce("re"), "one-level redo state");
+                    view.Ec("re");
+                    Eq("Lea  text", field.V, "redo updates field");
+                    var key = typeof(V).GetMethod("EditKeyDown", BindingFlags.Instance | BindingFlags.NonPublic);
+                    var undoKey = new KeyEventArgs(Keys.Control | Keys.Z);
+                    key.Invoke(view, new object[] { editor, undoKey });
+                    Eq("Lea field text", field.V, "keyboard undo uses command state");
+                    Ok(undoKey.Handled && undoKey.SuppressKeyPress, "native undo does not run twice");
+                    key.Invoke(view, new object[] { editor, new KeyEventArgs(Keys.Control | Keys.Y) });
+                    Eq("Lea  text", field.V, "keyboard redo uses command state");
+                    view.Ec("sa");
+                    Clipboard.SetText("Replacement");
+                    view.Ec("pa");
+                    Eq("Replacement", field.V, "native paste replaces selection");
+                    Ok(!view.Ce("re"), "new edit clears redo");
+                    editor.Select(0, 0);
+                    view.Ec("de");
+                    Eq("eplacement", field.V, "delete without selection removes next character");
+                    Eq("Replacement", Clipboard.GetText(), "delete does not alter clipboard");
+                    Eq(1, view.Ec("un"), "delete enters native undo buffer");
+                    Eq("Replacement", field.V, "undo deleted character");
+                    Eq(1, view.Ec("re"), "redo deleted character");
+                    Eq("eplacement", field.V, "delete redo value");
+                    editor.Text = "A\ud83d\ude00B";
+                    editor.Select(1, 0);
+                    view.Ec("de");
+                    Eq("AB", field.V, "delete preserves surrogate boundaries");
+                    editor.Text = "A\ud83d\ude00B";
+                    editor.Select(2, 1);
+                    view.Ec("de");
+                    Eq("AB", field.V, "partial surrogate selection expands before delete");
+                    editor.SelectAll();
+                    view.Ec("de");
+                    Eq("", field.V, "delete selection");
+
+                    start.Invoke(view, new object[] { FieldById(view.At, "readonly") });
+                    Ok(view.Ce("cp") && !view.Ce("cu") && !view.Ce("pa") && !view.Ce("de") && !view.Ce("un"), "read-only edit policy");
+                    view.Ec("cp");
+                    Eq("Read only", Clipboard.GetText(), "read-only copy");
+                    var secret = FieldById(view.At, "secret");
+                    start.Invoke(view, new object[] { secret });
+                    Ok(!view.Ce("cp") && !view.Ce("cu") && view.Ec("cp") == 0 && view.Ec("cu") == 0, "password copy and cut refused");
+                    Eq("Read only", Clipboard.GetText(), "password commands preserve clipboard");
+                    Eq("private value", secret.V, "password cut retains value");
+                    var limited = FieldById(view.At, "limited");
+                    start.Invoke(view, new object[] { limited });
+                    editor.Select(4, 0);
+                    Clipboard.SetText("abcdefghijk");
+                    view.Ec("pa");
+                    Eq("1234abcd", limited.V, "native paste respects maxlength");
+                    var notes = FieldById(view.At, "notes");
+                    start.Invoke(view, new object[] { notes });
+                    Clipboard.SetText("One\r\nTwo");
+                    view.Ec("pa");
+                    Eq("One\r\nTwo", notes.V, "multiline paste");
+                    other.Focus();
+                    notes.V = "external change";
+                    Ok(!view.Ce("pa") && view.Ec("pa") == 0, "stale retained editor cannot overwrite programmatic value");
+                    start.Invoke(view, new object[] { field });
+                    editor.Text = "kept";
+                    other.Focus();
+                    view.Kf();
+                    Ok(!view.Ce("pa"), "keyboard focus change clears retained editor");
+                    start.Invoke(view, new object[] { field });
+                    other.Focus();
+                    view.Js("hd('text')");
+                    Ok(!view.Ce("pa") && view.Ec("de") == 0, "hidden field cannot be edited through retained commands");
+                    view.Js("sh('text')");
+                    using (var paint = Render(view)) { }
+                    start.Invoke(view, new object[] { field });
+                    other.Focus();
+                    view.Go(path);
+                    Ok(!view.Ce("pa") && field.V == "kept", "navigation drops retained editor without changing old fields");
+                    start.Invoke(view, new object[] { FieldById(view.At, "text") });
+                    other.Focus();
+                    view.Dispose();
+                    Ok(!view.Ce("pa") && view.Ec("pa") == 0, "disposed edit command is inert");
+                }
+            }
+            finally
+            {
+                if (original == null) Clipboard.Clear(); else Clipboard.SetDataObject(clipboard, true);
+            }
+            Console.WriteLine("Lea native editing smoke passed: aliases, menu focus, selection, clipboard, undo/redo, readonly/password, limits, stale values, and disposal.");
         }
 
         private static void CheckNavigationGuard(string root)

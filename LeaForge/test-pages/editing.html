@@ -1,0 +1,15 @@
+<!doctype html>
+<html><head><title>Lea Native Editing</title>
+<style>body { font: 16px Arial; color: #202326; background: #ffffff; padding: 20px; } input, textarea { display: block; width: 320px; margin: 10px 0; } textarea { height: 90px; } h1 { font-size: 24px; } .hidden { display: none; }</style>
+</head><body>
+<h1>Native Field Editing</h1>
+<form>
+<label for="text">Text</label><input id="text" name="text" value="Lea field text">
+<label for="notes">Notes</label><textarea id="notes" name="notes">First line
+Second line</textarea>
+<label for="readonly">Read only</label><input id="readonly" value="Read only" readonly>
+<label for="secret">Password</label><input id="secret" type="password" value="private value">
+<label for="limited">Eight characters</label><input id="limited" value="1234" maxlength="8">
+<input id="disabled" value="Disabled" disabled>
+</form>
+</body></html>

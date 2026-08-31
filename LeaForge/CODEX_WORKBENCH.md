@@ -17,6 +17,18 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
+Milestone 59 adds `V.Ce/Ec` with two-letter native field commands and migrates
+Firespider's seven Edit menu commands. It fixes the reproduced `j.c9` Lea cast,
+an equal-font disposal exception, and non-undoable deletion. Tests cover real
+menu/hover dispatch, toolbar-focus isolation, protected fields, stale values,
+and disposal. There are 28 Boot cases and 59 compatibility probes; recovery
+now pumps events for 35 seconds with its real snapshot timer enabled. Twenty
+additional runtime-158 recovery repeats passed without identifying the earlier
+intermittent callback. Runtime 159 remains an isolated test build; live root
+runtime 157 is unchanged. See `NATIVE_EDITING.md`. Next continue investigation
+of that callback and migrate remaining printing/properties/toolbar-edit routes,
+general navigation policy, pop-ups, DOM tools, and automatic hibernation.
+
 Milestone 58 makes split view Lea-native: independent private contexts,
 asynchronous loads, synchronized scrolling, bounded in-memory comparisons, and
 owner-close cancellation/disposal. `E.Ng/V.Ng` adds a compact optional document

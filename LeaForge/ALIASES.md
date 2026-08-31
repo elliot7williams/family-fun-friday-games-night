@@ -7,6 +7,9 @@ read and quick to write.
 
 - Core objects use one letter: `L` is the entry point, `E` is the engine, `P` is a page.
 - Actions use two or three letters: `Go`, `GoA`, `Bk`, `Fw`, `Rl`, `RlA`, `St`, and `At`.
+- `V.Ce(code)` queries native field editing and `V.Ec(code)` runs it: `cp`, `cu`,
+  `pa`, `sa`, `de`, `un`, and `re`. Commands are host-only, protect read-only and
+  password fields, and retain a menu-blurred editor. See `NATIVE_EDITING.md`.
 - `Ng` is an optional host navigation guard on `E` and `V`: `Func<Uri, bool>`.
   False rejects explicit document navigation with `Er.K="blocked"`; null keeps
   normal behavior. It covers page GET/POST, history, fragments, and reload, not

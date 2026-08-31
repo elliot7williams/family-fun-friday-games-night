@@ -10,6 +10,13 @@ Its timer status handler is also routed safely across startup, empty, Lea, and
 legacy-tab states, so it never dereferences a missing control or casts a Lea
 view to the legacy `WebBrowser` type.
 
+The seven Edit commands now route native Lea fields through `V.Ce/Ec`, with
+selection retention when opening menus, native one-level undo/redo, read-only
+and password protection, and safe paused/empty-tab behavior. Explicit legacy
+tabs keep their document editing path. The `edit` Boot case brings the suite
+to 28 cases. See `LeaForge/NATIVE_EDITING.md` for confirmed fixes and the still
+unidentified intermittent recovery cast.
+
 Normal first-window startup, toolbar New Tab, and Help now use Lea too. Startup
 selects accepted crash-recovery URLs, a saved Lea session, legacy saved URLs
 converted into Lea tabs, or one configured new-tab target, in that order.
@@ -29,7 +36,7 @@ asynchronous loading, bidirectional scroll sync, and bounded in-memory text
 comparison. Owner closure cancels requests and disposes views/timer/results.
 `FirespiderSplit.vb` is compiled by the updated targets file. Its `V.Ng` policy
 uses existing host navigation rules; legacy DOM post-processing remains unported.
-The Boot suite now has 27 cases. See `LeaForge/SPLIT_VIEW.md` and the following
+That milestone brought the Boot suite to 27 cases. See `LeaForge/SPLIT_VIEW.md` and the following
 `Split-view-host.patch` for integration steps, bounds, and policy limitations.
 
 Same-domain commands now match visible active, paused, and legacy tabs by exact

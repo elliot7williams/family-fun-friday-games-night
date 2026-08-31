@@ -144,6 +144,24 @@ Partial Class j
         RemoveHandler N.MouseHover, AddressOf nh
         RemoveHandler zx.Click, AddressOf zk
         RemoveHandler zx.MouseHover, AddressOf zh
+        RemoveHandler U.Click, AddressOf c5
+        RemoveHandler U.MouseHover, AddressOf c6
+        RemoveHandler RD.Click, AddressOf c7
+        RemoveHandler RD.MouseHover, AddressOf c8
+        RemoveHandler CO.Click, AddressOf c9
+        RemoveHandler CO.MouseHover, AddressOf d1
+        RemoveHandler CU.Click, AddressOf d2
+        RemoveHandler CU.MouseHover, AddressOf d3
+        RemoveHandler PA.Click, AddressOf d4
+        RemoveHandler PA.MouseHover, AddressOf d5
+        RemoveHandler SA.Click, AddressOf d6
+        RemoveHandler SA.MouseHover, AddressOf d7
+        RemoveHandler D.Click, AddressOf d8
+        RemoveHandler D.MouseHover, AddressOf d9
+        For Each item As ToolStripItem In New ToolStripItem() {U, RD, CO, CU, PA, SA, D}
+            AddHandler item.Click, AddressOf qleaEditClick
+            AddHandler item.MouseHover, AddressOf qleaEditHover
+        Next
 
         AddHandler b.Click, AddressOf qleaBackClick
         AddHandler b.MouseHover, AddressOf qleaBackHover
@@ -195,6 +213,38 @@ Partial Class j
         If host IsNot Nothing AndAlso pv Then host.Pv = True
         Return host
     End Function
+
+    Private Sub qleaEditClick(ByVal sender As Object, ByVal e As EventArgs)
+        Dim code As String = If(sender Is U, "un", If(sender Is RD, "re", If(sender Is CO, "cp", If(sender Is CU, "cu", If(sender Is PA, "pa", If(sender Is SA, "sa", "de"))))))
+        Try
+            If c.ComboBox.ContainsFocus OrElse x.ComboBox.ContainsFocus OrElse ActiveControl Is c.ComboBox OrElse ActiveControl Is x.ComboBox Then
+                su.Visible = True
+                su.Text = "Toolbar edit unavailable"
+                Return
+            End If
+            Dim view = qleaAt()
+            If view IsNot Nothing Then
+                If view.Ec(code) = 0 Then
+                    su.Visible = True
+                    su.Text = "No available Lea field edit for this command"
+                End If
+                Return
+            End If
+            Dim tab As TabPage = qleaSelectedTab()
+            Dim browser As WebBrowser = If(tab Is Nothing OrElse tab.Controls.Count = 0, Nothing, TryCast(tab.Controls(0), WebBrowser))
+            If browser Is Nothing OrElse browser.Document Is Nothing Then Return
+            Dim command As String = If(code = "un", "Undo", If(code = "re", "Redo", If(code = "cp", "Copy", If(code = "cu", "Cut", If(code = "pa", "Paste", If(code = "sa", "SelectAll", "Delete"))))))
+            browser.Document.ExecCommand(command, False, Nothing)
+        Catch ex As Exception
+            su.Visible = True
+            su.Text = "Edit command could not complete"
+            qlog(ex)
+        End Try
+    End Sub
+
+    Private Sub qleaEditHover(ByVal sender As Object, ByVal e As EventArgs)
+        If My.Settings.t = "e" Then qleaEditClick(sender, e)
+    End Sub
 
     Private Function qleaSelectedTab() As TabPage
         If k Is Nothing OrElse k.TabPages.Count = 0 Then Return Nothing

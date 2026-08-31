@@ -44,7 +44,7 @@ namespace Lea.Firespider
             var forms = new List<Form>();
             try
             {
-                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch", "domains", "domain-private", "split", "split-life", "split-limits" }.Contains(mode), "unknown boot case: " + mode);
+                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch", "domains", "domain-private", "split", "split-life", "split-limits", "edit" }.Contains(mode), "unknown boot case: " + mode);
                 Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
                 Application.ThreadException += (sender, error) => UiErrors.Add(error.Exception);
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", session);
@@ -96,6 +96,8 @@ namespace Lea.Firespider
                     {
                         expected = ((StringCollection)settings["recovery"]).Cast<string>().ToArray();
                         File.WriteAllLines(session, new[] { page + "#older-session" });
+                        settings["recoveryEnabled"] = "e";
+                        settings["recoveryTime"] = "";
                     }
                     if (mode == "private")
                     {
@@ -235,6 +237,15 @@ namespace Lea.Firespider
                 if (mode == "split") CheckSplit(form, settings, page, forms);
                 if (mode == "split-life") CheckSplitLife(form, settings, page, forms);
                 if (mode == "split-limits") CheckSplitLimits(form, settings, page, forms);
+                if (mode == "edit") CheckEdit(form, settings, page);
+                if (mode == "recovery")
+                {
+                    var idle = Stopwatch.StartNew();
+                    while (idle.ElapsedMilliseconds < 35000 && UiErrors.Count == 0) { Application.DoEvents(); Thread.Sleep(20); }
+                    Check((string)settings["recoveryTime"] != "" && ((StringCollection)settings["recovery"]).Cast<string>().SequenceEqual(expected),
+                        "live recovery timer did not retain restored Lea URLs");
+                    Console.WriteLine("PASS recovery idle: 35 seconds of event pumping and the real 30-second snapshot timer");
+                }
                 if (lazySite != null) CheckLazyStartup(form, lazySite, expected, mode == "lazy-all");
                 Check(UiErrors.Count == 0, "UI thread exceptions: " + String.Join(" | ", UiErrors.Select(error => error.ToString()).ToArray()));
                 if (mode == "locked")
@@ -296,6 +307,110 @@ namespace Lea.Firespider
             var result = new StringCollection();
             result.AddRange(values);
             return result;
+        }
+
+        private static void CheckEdit(Form form, ApplicationSettingsBase settings, string page)
+        {
+            var names = new[] { "CO", "CU", "PA", "SA", "D", "U", "RD" };
+            foreach (var name in names) Member<ToolStripItem>(form, name).PerformClick();
+            var original = Clipboard.GetDataObject();
+            var clipboard = new DataObject();
+            if (original != null)
+                foreach (var format in original.GetFormats(false)) clipboard.SetData(format, false, original.GetData(format, false));
+            try
+            {
+                var tabs = Member<TabControl>(form, "k");
+                var first = tabs.SelectedTab;
+                var view = (V)first.Controls[0];
+                view.Go(Path.Combine(Path.GetDirectoryName(new Uri(page).LocalPath), "..", "test-pages", "editing.html"));
+                using (var paint = new Bitmap(view.Width, view.Height)) view.DrawToBitmap(paint, new Rectangle(Point.Empty, paint.Size));
+                var field = view.At.Fs.Single(item => item.El.Av("id") == "text");
+                var editor = Member<TextBox>(view, "ed");
+                var startEdit = typeof(V).GetMethod("StartEdit", Members);
+                startEdit.Invoke(view, new object[] { field });
+                editor.Select(4, 5);
+                var menu = Member<ToolStripDropDownItem>(form, "e");
+                menu.ShowDropDown();
+                Application.DoEvents();
+                Member<ToolStripItem>(form, "CO").PerformClick();
+                menu.HideDropDown();
+                Check(Clipboard.GetText() == "field" && field.V == "Lea field text", "real Edit menu lost field selection");
+                Member<ToolStripItem>(form, "CU").PerformClick();
+                Check(field.V == "Lea  text", "host Cut did not edit Lea");
+                Member<ToolStripItem>(form, "U").PerformClick();
+                Check(field.V == "Lea field text", "host Undo did not restore Lea field");
+                Member<ToolStripItem>(form, "RD").PerformClick();
+                Check(field.V == "Lea  text", "host Redo did not replay Lea edit");
+                Member<ToolStripItem>(form, "SA").PerformClick();
+                Clipboard.SetText("host replacement");
+                Member<ToolStripItem>(form, "PA").PerformClick();
+                Check(field.V == "host replacement", "host Paste did not replace selected field");
+                Member<ToolStripItem>(form, "SA").PerformClick();
+                Member<ToolStripItem>(form, "D").PerformClick();
+                Check(field.V == "", "host Delete did not clear selected field");
+                Member<ToolStripItem>(form, "U").PerformClick();
+                Check(field.V == "host replacement" && Clipboard.GetText() == "host replacement", "host Delete lost undo or changed the clipboard");
+                Member<ToolStripItem>(form, "RD").PerformClick();
+                Check(field.V == "", "host Delete redo failed");
+                editor.Text = "page field stays";
+                editor.SelectAll();
+                Clipboard.SetText("toolbar clipboard");
+                foreach (var chrome in new[] { "c", "x" })
+                {
+                    Member<ToolStripComboBox>(form, chrome).ComboBox.Focus();
+                    menu.ShowDropDown();
+                    foreach (var name in names) Member<ToolStripItem>(form, name).PerformClick();
+                    menu.HideDropDown();
+                    Check(field.V == "page field stays" && Clipboard.GetText() == "toolbar clipboard", "toolbar focus edited the previous page field");
+                }
+                startEdit.Invoke(view, new object[] { field });
+                editor.Text = "hover selection";
+                editor.SelectAll();
+                Check(view.Ce("cp"), "hover fixture has no selected native field: " + editor.Visible + "/" + editor.SelectionLength + "/" + (field.V == editor.Text));
+                Clipboard.SetText("unchanged");
+                // ToolStrip raises MouseHover in HandleMouseHover, not OnMouseHover.
+                var hover = typeof(ToolStripItem).GetMethod("HandleMouseHover", Members);
+                var copy = Member<ToolStripItem>(form, "CO");
+                ((ToolStripDropDownItem)copy.OwnerItem).ShowDropDown();
+                copy.Select();
+                settings["t"] = "";
+                hover.Invoke(Member<ToolStripItem>(form, "CO"), new object[] { EventArgs.Empty });
+                Check(Clipboard.GetText() == "unchanged", "hover editing ran while disabled");
+                settings["t"] = "e";
+                hover.Invoke(Member<ToolStripItem>(form, "CO"), new object[] { EventArgs.Empty });
+                Check(Clipboard.GetText() == "hover selection", "enabled hover Copy ignored Lea editor: enabled=" + copy.Enabled + "; available=" + view.Ce("cp") + "; selection=" + editor.SelectionLength + "; matching=" + (field.V == editor.Text));
+                ((ToolStripDropDownItem)copy.OwnerItem).HideDropDown();
+                settings["t"] = "";
+                var secret = view.At.Fs.Single(item => item.El.Av("id") == "secret");
+                startEdit.Invoke(view, new object[] { secret });
+                Member<ToolStripItem>(form, "CO").PerformClick();
+                Member<ToolStripItem>(form, "CU").PerformClick();
+                Check(secret.V == "private value" && Clipboard.GetText() == "hover selection", "host exposed password through Copy or Cut");
+                var readOnly = view.At.Fs.Single(item => item.El.Av("id") == "readonly");
+                startEdit.Invoke(view, new object[] { readOnly });
+                foreach (var name in new[] { "CU", "PA", "D", "U", "RD" }) Member<ToolStripItem>(form, name).PerformClick();
+                Check(readOnly.V == "Read only", "host changed read-only field");
+                Check(!Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module => module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)),
+                    "native Edit commands loaded MSHTML");
+                Check((bool)Call(form, "qleaSuspend", first), "editing view did not suspend");
+                foreach (var name in names) Member<ToolStripItem>(form, name).PerformClick();
+                Check(first.Controls[0] is Panel && view.IsDisposed, "Edit commands resumed a paused tab");
+                Call(form, "q3", page);
+                var legacy = (WebBrowser)tabs.SelectedTab.Controls[0];
+                Wait(() => legacy.Document != null && legacy.ReadyState == WebBrowserReadyState.Complete, "explicit legacy edit page");
+                Member<ToolStripItem>(form, "SA").PerformClick();
+                Member<ToolStripItem>(form, "CO").PerformClick();
+                Check(Clipboard.GetText().Contains("Lea"), "explicit legacy Copy fallback was lost");
+                foreach (TabPage tab in tabs.TabPages.Cast<TabPage>().ToArray()) { tabs.TabPages.Remove(tab); tab.Dispose(); }
+                foreach (var name in names) Member<ToolStripItem>(form, name).PerformClick();
+                Check(tabs.TabCount == 0, "empty-window editing created a tab");
+            }
+            finally
+            {
+                settings["t"] = "";
+                if (original == null) Clipboard.Clear(); else Clipboard.SetDataObject(clipboard, true);
+            }
+            Console.WriteLine("PASS edit: real menu/hover dispatch, selection, undo/redo, clipboard, readonly/password, paused/empty tabs, and explicit legacy fallback");
         }
 
         private static void CheckNavigation(Form form, ApplicationSettingsBase settings, string page)
