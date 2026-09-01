@@ -6,6 +6,9 @@ UI thread. `Ec` returns 1 when dispatched, or 0 when unavailable. Unknown codes,
 missing/disabled/hidden fields, stale retained values, and disposed views return 0.
 Milestone 63 adds guarded clipboard paste and clipboard-free `V.Pa(text)`;
 see `PASTE_SAFETY.md` for the reproduced data-loss fix and exact bounds.
+Milestone 71 makes copy/cut use a bounded Lea-owned clipboard commit. A busy
+clipboard now returns 0 without stale success; cut clears the selected text only
+after the copied text is safely committed.
 
 | Code | Command |
 | --- | --- |
@@ -19,8 +22,8 @@ see `PASTE_SAFETY.md` for the reproduced data-loss fix and exact bounds.
 
 The existing single native TextBox remains the editor. No new text engine,
 per-field history collections, or browser dependency is added. Windows supplies
-the native text operations and one-level undo buffer; Lea guards clipboard
-reads and paste bounds. Ctrl+V/Shift+Insert share that guarded path. Ctrl+Z
+the native text control and one-level undo buffer; Lea guards clipboard reads,
+writes, and paste bounds. Ctrl+V/Shift+Insert share that guarded path. Ctrl+Z
 and Ctrl+Y share the undo/redo state. New edits invalidate redo; changing the
 field or page clears the buffer. This is not multi-level document undo.
 
@@ -36,6 +39,8 @@ editable target without inspecting the clipboard. An unavailable/empty/non-text
 clipboard now returns 0 without replacing the selection. Unexpected host or native-control
 exceptions may still propagate to the caller; Firespider reports a bounded status and
 uses its existing error log. Hosts should call these APIs from the UI thread.
+Copy/cut retry clipboard ownership for a bounded interval and likewise return 0
+without changing text, selection, or undo when another process retains it.
 
 ## Firespider Fixes
 
@@ -62,6 +67,9 @@ hidden targets, navigation, and disposal. The `edit` Boot case exercises actual
 menu wiring, drop-down focus, hover settings, paused/empty tabs, and explicit
 legacy fallback. The clipboard is materialized before testing and restored.
 The compatibility runner adds a clipboard-free native editing probe.
+The isolated editor suite locks the clipboard while running copy/cut/paste,
+requires bounded zero-result behavior, and injects deterministic reader
+callbacks for navigation, value, selection, and disposal ownership changes.
 The recovery Boot case now also enables its real snapshot timer and pumps UI
 events for 35 seconds, checking that the 30-second save retains both Lea URLs.
 

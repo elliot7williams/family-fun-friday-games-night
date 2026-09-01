@@ -13,11 +13,14 @@ read and quick to write.
 - `V.Ic/Ib` report retained bitmaps/bytes. `Ip` is the per-image pixel ceiling;
   `Im/It` configure/report shared Lea image bytes; `In/If` report native attempts
   and current failed entries. `Ie/Ii` expose the helper path/availability;
-  `Iw/Ik` report its last PID and cancellation kills. See `PICTURE_LIMITS.md`,
-  `IMAGE_PREFLIGHT.md`, and `IMAGE_ISOLATION.md`.
+  `Iw/Ik` report its last PID and cancellation kills. `Ij/Ih/Ipm` report Job
+  assignment, the hard worker-memory cap, and last sampled private bytes. See
+  `PICTURE_LIMITS.md`, `IMAGE_PREFLIGHT.md`, and `IMAGE_ISOLATION.md`.
 - `V.Ce(code)` queries native field editing and `V.Ec(code)` runs it: `cp`, `cu`,
   `pa`, `sa`, `de`, `un`, and `re`. Commands are host-only, protect read-only and
-  password fields, and retain a menu-blurred editor. See `NATIVE_EDITING.md`.
+  password fields, retain a menu-blurred editor, and return 0 without mutation
+  when a bounded copy/cut clipboard commit cannot acquire ownership. See
+  `NATIVE_EDITING.md`.
 - `Ng` is an optional host navigation guard on `E` and `V`: `Func<Uri, bool>`.
   False rejects explicit document navigation with `Er.K="blocked"`; null keeps
   normal behavior. It covers page GET/POST, history, fragments, and reload, not

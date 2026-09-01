@@ -5,6 +5,11 @@ browser process. Lea still performs bounded structural preflight in `Lea.Win`,
 then sends the accepted source to the required 7 KiB `Lea.Image.exe` helper.
 The helper returns validated raw pixels rather than another encoded image.
 
+Milestone 71 / runtime 171 assigns that helper to an unnamed Windows Job Object
+before sending request bytes. The Job allows one process, enforces a configurable
+hard process-memory ceiling, exits on an unhandled exception, and kills the
+helper when the browser loses or closes the Job handle.
+
 ## Compact API
 
 ```csharp
@@ -12,6 +17,9 @@ string decoder = view.Ie;
 bool isolated = view.Ii;
 int lastWorkerProcess = view.Iw;
 int killedWorkers = view.Ik;
+bool jobBound = view.Ij;
+long hardWorkerBytes = view.Ih;
+long lastPrivateBytes = view.Ipm;
 ```
 
 `Ie` is the image-helper executable path. It defaults to `Lea.Image.exe` beside
@@ -24,6 +32,17 @@ It remains available after the request for diagnostics. `Ik` counts helpers
 that this view terminated because Stop, replacement, disposal, or the shared
 picture deadline cancelled active native work.
 
+`Ij` confirms that the view's last admitted worker was assigned to its Job.
+Assignment is mandatory: if Job creation, limit configuration, or assignment
+fails, Lea terminates the unbounded process and stores the normal failed-image
+sentinel. Encoded image bytes are not sent to an unbounded helper.
+
+`Ih` configures the process-wide hard worker-memory ceiling. It defaults to
+192 MiB and clamps host values from 64 to 512 MiB. A changed value takes effect
+on the next admitted decode and causes the shared worker to restart under a new
+Job. `Ipm` is the private-byte value sampled from the last successful worker
+response; it is diagnostic rather than a peak or reservation counter.
+
 Existing image aliases retain their meanings. `In` counts admitted native
 decode requests, `If` counts current failed-image sentinels, `Ic/Ib` count
 retained bitmaps and estimated bytes, and `Ip/Im/It` expose the per-image pixel
@@ -33,7 +52,15 @@ cap plus shared reservation limit/current bytes.
 
 All Lea views share one reusable helper process and serialize decode requests
 through it. Reuse avoids starting a process for every image while keeping only
-one decoder process resident. A changed `Ie` path restarts that shared helper.
+one decoder process resident. A changed `Ie` path, helper arguments, or `Ih`
+limit restarts that shared helper.
+
+The host starts the helper with hidden redirected pipes, creates the Job, sets
+`ACTIVE_PROCESS`, `PROCESS_MEMORY`, `DIE_ON_UNHANDLED_EXCEPTION`, and
+`KILL_ON_JOB_CLOSE` limits, and assigns the process before writing the first
+request length. The one-process limit also prevents the decoder from creating a
+child process inside its inherited Job. Closing the handle kills a worker even
+when it is sleeping inside a native request and cannot observe pipe EOF.
 
 The private little-endian pipe protocol is deliberately small and bounded:
 
@@ -89,24 +116,29 @@ or third-party codec package is introduced.
 `Lea.Tests <root> --pics` covers PNG, JPEG, GIF, BMP, and ICO through a different
 PID, missing-helper failure, a forced two-second native stall killed by a 300 ms
 view budget, zero leaked reservation, clean restart, hostile preflight, shared
-memory admission, network limits, retry, Stop, disposal, and successor loads.
+memory admission, one-PID codec reuse, Job/cap aliases, cap clamping/restart,
+private-byte sampling, network limits, retry, Stop, disposal, and successor
+loads. A child test host then blocks its helper for 60 seconds, is terminated,
+and requires Job close to remove that exact helper PID within three seconds.
 
-The runtime 170 release run passes the full core and isolated editor suites, the
+The runtime 171 release run passes the full core and isolated editor suites, the
 compiled adapter smoke, 69 benchmark probes over 66 fixtures, all 42 Boot cases
 in one combined run, and all six actual EXE startup scenarios. The Boot `decode`
 case loads one valid image in the helper, rejects one over-axis PNG before
-admission, verifies host cleanup/no MSHTML, and checks child-process exit.
+admission, samples 8,466,432 private bytes under the 192 MiB cap, verifies host
+cleanup/no MSHTML, and checks child-process exit.
 
-The measured runtime files total 521.5 KiB with a 222.2 KiB GZip estimate. The
-report records 486.317 ms clean-process, 3.299 ms local-load, and 33.184 ms
+The measured runtime files total 525.5 KiB with a 224.0 KiB GZip estimate. The
+report records 477.096 ms clean-process, 3.156 ms local-load, and 31.199 ms
 layout/paint medians. These unpaired local samples are not speedup claims.
 
 ## Remaining Limits
 
-The helper is a killable process boundary, not a restricted-token or operating-
-system sandbox. It does not yet use a Job Object memory ceiling, AppContainer,
-low-integrity token, process mitigation policy, or measured private-byte cap.
-`It/Im` remain Lea estimates rather than total host-plus-helper memory.
+The helper is Job-bounded but is not a restricted-token or AppContainer sandbox.
+It still runs at the host user's integrity level and does not yet apply a custom
+ACL, process mitigation policy, CPU-time/rate limit, or network-denial token.
+`Ipm` is one post-response sample rather than peak private bytes. `It/Im` remain
+Lea estimates rather than total host-plus-helper memory.
 
 One shared worker deliberately serializes native decodes. Image requests still
 do not share the document cookie jar, validator cache, or request diagnostics.

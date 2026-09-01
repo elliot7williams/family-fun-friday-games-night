@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **70**
+Post-1.0 hardening milestones completed: **71**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,32 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added mandatory Windows Job Object ownership around `Lea.Image.exe` before
+  request bytes are sent. The Job permits one process, enforces a configurable
+  192 MiB default hard memory ceiling, exits on unhandled exceptions, and kills
+  the helper when its browser handle closes. Compact `Ij/Ih/Ipm` aliases expose
+  last Job assignment, a clamped 64-512 MiB cap, and last sampled private bytes;
+  changing the cap restarts the shared worker. Five codecs reuse one PID, cap
+  bounds/restart pass, and an abruptly terminated child test host proves that a
+  helper blocked for 60 seconds is removed by Job close. The real host sampled
+  8,466,432 helper private bytes under its cap. This milestone also replaces
+  silent native copy/cut success with bounded Lea-owned clipboard commits: busy
+  clipboard operations return 0 while preserving text, selection, and undo, and
+  cut mutates only after a successful write. Deterministic reader callbacks now
+  cover navigation/value/selection/disposal races without clipboard-manager
+  prefetch. Full picture, core, repeated isolated editor, compiled host, and
+  benchmark suites pass, with 69 probes across 66 fixtures, all 42 Boot cases in
+  one combined run, and six actual EXE launch scenarios. Those windows stayed
+  responsive; no startup error dialog, orphan helper, or MSHTML was observed.
+  Required runtime files total 525.5 KiB with a 224.0 KiB GZip estimate; current
+  medians are 477.096 ms clean-process, 3.156 ms local-load, and 31.199 ms
+  layout/paint, not a speedup claim. Restricted-token/AppContainer isolation,
+  process mitigations, peak whole-process memory, image cookie/cache sharing,
+  and full modern-web behavior remain open. See `IMAGE_ISOLATION.md` and
+  `NATIVE_EDITING.md`. Runtime 171 is isolated and source-backed-up; installed
+  runtime 157 remains unchanged. The scoped baseline stays at 100%, not
+  full-web compatibility.
 
 - Moved accepted PNG/JPEG/GIF/BMP/ICO native parsing out of Firespider into the
   required 7 KiB `Lea.Image.exe` helper. All views share one reusable serialized
@@ -705,8 +731,9 @@ modern web platform.
 
 - Investigate initial fragment placement and the still-unattributed recovery
   cast with retained diagnostics.
-- Add a restricted-token or Job Object boundary and measured private-byte cap
-  around `Lea.Image.exe` without expanding the public integration surface.
+- Add a restricted token or AppContainer boundary, process mitigations, and
+  peak private-byte sampling around `Lea.Image.exe` without expanding the
+  public integration surface.
 - Add a native-safe non-empty visible-range bridge outside the .NET Framework
   managed provider array boundary; retain the stable empty fallback until range
   handles survive both in-process and external MTA clients.

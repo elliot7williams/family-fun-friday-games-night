@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,6 +31,7 @@ namespace Lea.Tests
                 var root = Path.GetFullPath(args.Length > 0 ? args[0] : Directory.GetCurrentDirectory());
                 pages = Path.Combine(root, "LeaForge", "test-pages");
                 if (!Directory.Exists(pages)) pages = Path.Combine(root, "test-pages");
+                if (args.Length > 1 && args[1] == "--job-host") return ImageJobHost(root);
                 if (args.Length > 1 && args[1] == "--clip") { CheckClipboardContention(root); return 0; }
                 if (args.Length > 1 && args[1] == "--paste") { CheckPasteText(root); return 0; }
                 if (args.Length > 1 && args[1] == "--fragment") { CheckFragmentStartup(root); return 0; }
@@ -6911,13 +6914,16 @@ namespace Lea.Tests
             Ok(inspect != null,
                 "bounded picture preflight is available before native decoding");
             var isolated = typeof(V).Assembly.GetType("Lea.Win.Di", false);
+            var job = typeof(V).Assembly.GetType("Lea.Win.Jb", false);
             Ok(isolated != null && typeof(V).GetProperty("Ii") != null && typeof(V).GetProperty("Ie") != null &&
-                typeof(V).GetProperty("Iw") != null && typeof(V).GetProperty("Ik") != null,
-                "killable picture decoder and compact worker aliases are available");
+                typeof(V).GetProperty("Iw") != null && typeof(V).GetProperty("Ik") != null && job != null &&
+                typeof(V).GetProperty("Ij") != null && typeof(V).GetProperty("Ih") != null && typeof(V).GetProperty("Ipm") != null,
+                "job-bounded picture decoder and compact worker aliases are available");
             using (var aliases = new V())
                 Ok(aliases.Ip == 8 * 1024 * 1024 && aliases.Im == 128L * 1024 * 1024 && aliases.It == 0 &&
-                    aliases.In == 0 && aliases.If == 0 && aliases.Ii && File.Exists(aliases.Ie) && aliases.Iw == 0 && aliases.Ik == 0,
-                    "compact picture preflight, process-memory, and decoder aliases");
+                    aliases.In == 0 && aliases.If == 0 && aliases.Ii && File.Exists(aliases.Ie) && aliases.Iw == 0 && aliases.Ik == 0 &&
+                    !aliases.Ij && aliases.Ih == 192L * 1024 * 1024 && aliases.Ipm == 0,
+                    "compact picture preflight, process-memory, decoder, and job aliases");
             var formats = new Dictionary<string, byte[]>
             {
                 { "p", PictureBytes(System.Drawing.Imaging.ImageFormat.Png) },
@@ -6926,6 +6932,7 @@ namespace Lea.Tests
                 { "b", PictureBytes(System.Drawing.Imaging.ImageFormat.Bmp) },
                 { "i", File.ReadAllBytes(Path.Combine(root, "assets", "lea.ico")) }
             };
+            var formatWorkers = new HashSet<int>();
             foreach (var format in formats)
             {
                 var info = inspect.Invoke(null, new object[] { format.Value });
@@ -6939,11 +6946,14 @@ namespace Lea.Tests
                     WaitFor(() => work.IsCompleted, "native format decode " + format.Key);
                     work.GetAwaiter().GetResult();
                     Ok(view.Ic == 1 && view.If == 0 && view.In == 1 && view.It == view.Ib && view.Ib > 0 &&
-                        view.Ii && view.Iw > 0 && view.Iw != System.Diagnostics.Process.GetCurrentProcess().Id && view.Ik == 0,
-                        "preflighted native format accounting " + format.Key);
+                        view.Ii && view.Iw > 0 && view.Iw != System.Diagnostics.Process.GetCurrentProcess().Id && view.Ik == 0 &&
+                        view.Ij && view.Ih == 192L * 1024 * 1024 && view.Ipm > 0 && view.Ipm <= view.Ih,
+                        "preflighted job-bounded native format accounting " + format.Key);
+                    formatWorkers.Add(view.Iw);
                 }
                 using (var released = new V()) Eq(0L, released.It, "format disposal releases process image bytes " + format.Key);
             }
+            Eq(1, formatWorkers.Count, "one job-bounded helper is reused across native codecs");
             foreach (var hostile in new[]
             {
                 PicturePngDimensions(8193, 1),
@@ -6959,7 +6969,8 @@ namespace Lea.Tests
                     var work = view.GoA(server.U);
                     WaitFor(() => work.IsCompleted, "hostile image integration");
                     work.GetAwaiter().GetResult();
-                    Ok(view.Ic == 0 && view.If == 1 && view.In == 0 && view.Iw == 0 && view.Ik == 0 && view.It == 0 && view.Le == null,
+                    Ok(view.Ic == 0 && view.If == 1 && view.In == 0 && view.Iw == 0 && view.Ik == 0 && !view.Ij && view.Ipm == 0 &&
+                        view.It == 0 && view.Le == null,
                         "hostile image never reaches native decoder");
                 }
             }
@@ -6970,7 +6981,8 @@ namespace Lea.Tests
                 var work = view.GoA(server.U);
                 WaitFor(() => work.IsCompleted, "missing image worker");
                 work.GetAwaiter().GetResult();
-                Ok(view.Ic == 0 && view.If == 1 && view.In == 0 && view.Iw == 0 && view.Ik == 0 && view.It == 0 && view.Le == null,
+                Ok(view.Ic == 0 && view.If == 1 && view.In == 0 && view.Iw == 0 && view.Ik == 0 && !view.Ij && view.Ipm == 0 &&
+                    view.It == 0 && view.Le == null,
                     "missing decoder is a bounded nonfatal image failure");
             }
             using (var server = new PictureServer("plain", PicturePng(3, 2, Color.SeaGreen)))
@@ -6982,18 +6994,43 @@ namespace Lea.Tests
                 WaitFor(() => work.IsCompleted && view.It == 0, "stalled native decoder termination");
                 work.GetAwaiter().GetResult();
                 Ok(clock.ElapsedMilliseconds < 1800 && view.Ic == 0 && view.If == 1 && view.In == 1 &&
-                    view.Iw > 0 && view.Iw != System.Diagnostics.Process.GetCurrentProcess().Id && view.Ik == 1 && view.It == 0 && view.Le == null,
+                    view.Iw > 0 && view.Iw != System.Diagnostics.Process.GetCurrentProcess().Id && view.Ik == 1 && view.Ij &&
+                    view.Ipm == 0 && view.It == 0 && view.Le == null,
                     "decoder deadline kills the helper and releases its reservation");
             }
+            var restartWorker = 0;
             using (var server = new PictureServer("plain", PicturePng(3, 2, Color.MediumSeaGreen)))
             using (var view = new V())
             {
                 var work = view.GoA(server.U);
                 WaitFor(() => work.IsCompleted, "decoder restart after termination");
                 work.GetAwaiter().GetResult();
-                Ok(view.Ic == 1 && view.If == 0 && view.In == 1 && view.Iw > 0 && view.Ik == 0 && view.It == view.Ib,
+                Ok(view.Ic == 1 && view.If == 0 && view.In == 1 && view.Iw > 0 && view.Ik == 0 && view.Ij &&
+                    view.Ipm > 0 && view.Ipm <= view.Ih && view.It == view.Ib,
                     "decoder restarts cleanly after a killed helper");
+                restartWorker = view.Iw;
             }
+            using (var server = new PictureServer("plain", PicturePng(3, 2, Color.MediumSeaGreen)))
+            using (var view = new V())
+            {
+                var oldLimit = view.Ih;
+                try
+                {
+                    view.Ih = 1;
+                    Eq(64L * 1024 * 1024, view.Ih, "image worker hard-limit minimum");
+                    view.Ih = Int64.MaxValue;
+                    Eq(512L * 1024 * 1024, view.Ih, "image worker hard-limit maximum");
+                    view.Ih = 160L * 1024 * 1024;
+                    var work = view.GoA(server.U);
+                    WaitFor(() => work.IsCompleted, "decoder hard-limit restart");
+                    work.GetAwaiter().GetResult();
+                    Ok(view.Ic == 1 && view.If == 0 && view.Ij && view.Ih == 160L * 1024 * 1024 &&
+                        view.Ipm > 0 && view.Ipm <= view.Ih && view.Iw > 0 && view.Iw != restartWorker,
+                        "changed hard limit starts a newly bounded helper");
+                }
+                finally { view.Ih = oldLimit; }
+            }
+            CheckImageJobExit(root);
             using (var gate = new ManualResetEvent(false))
             using (var server = new CompressedServer { ImageGate = gate })
             using (var view = new V { Tm = 300 })
@@ -7188,6 +7225,92 @@ namespace Lea.Tests
                 if (File.Exists(picturePath)) File.Delete(picturePath);
             }
             Console.WriteLine("Lea picture limit smoke passed.");
+        }
+
+        private static int ImageJobHost(string root)
+        {
+            var page = Path.Combine(Path.GetTempPath(), "lea-image-job-host-" + Process.GetCurrentProcess().Id + ".html");
+            try
+            {
+                var source = Convert.ToBase64String(PicturePng(3, 2, Color.MediumSeaGreen));
+                File.WriteAllText(page, "<html><body><img src='data:image/png;base64," + source + "'></body></html>");
+                using (var view = new V { Tm = 60000 })
+                {
+                    typeof(V).GetField("picWorkerArgs", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(view, "--pipe --delay=60000");
+                    var work = view.GoA(page);
+                    var end = DateTime.UtcNow.AddSeconds(10);
+                    while (view.Iw == 0 && !work.IsCompleted && DateTime.UtcNow < end)
+                    {
+                        Application.DoEvents();
+                        Thread.Sleep(2);
+                    }
+                    if (view.Iw == 0 || !view.Ij) return 2;
+                    Console.WriteLine("worker=" + view.Iw);
+                    Console.Out.Flush();
+                    Thread.Sleep(Timeout.Infinite);
+                }
+                return 3;
+            }
+            finally { if (File.Exists(page)) File.Delete(page); }
+        }
+
+        private static void CheckImageJobExit(string root)
+        {
+            var executable = Assembly.GetExecutingAssembly().Location;
+            var start = new ProcessStartInfo(executable, "\"" + root.Replace("\"", "") + "\" --job-host")
+            {
+                WorkingDirectory = root,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            Process host = null;
+            var worker = 0;
+            try
+            {
+                host = Process.Start(start);
+                Ok(host != null, "image job child host started");
+                var line = host.StandardOutput.ReadLineAsync();
+                var end = DateTime.UtcNow.AddSeconds(12);
+                while (!line.IsCompleted && !host.HasExited && DateTime.UtcNow < end) Thread.Sleep(5);
+                Ok(line.IsCompleted && !host.HasExited, "image job child host reported its worker");
+                var value = line.Result ?? "";
+                Ok(value.StartsWith("worker=") && Int32.TryParse(value.Substring(7), out worker) && WorkerExists(worker),
+                    "image job child worker is active");
+                host.Kill();
+                Ok(host.WaitForExit(5000), "image job child host terminated");
+                end = DateTime.UtcNow.AddSeconds(3);
+                while (WorkerExists(worker) && DateTime.UtcNow < end) Thread.Sleep(10);
+                Ok(!WorkerExists(worker), "job close terminates a worker blocked inside its delay");
+            }
+            finally
+            {
+                if (host != null && !host.HasExited) try { host.Kill(); host.WaitForExit(5000); } catch { }
+                if (host != null)
+                {
+                    var page = Path.Combine(Path.GetTempPath(), "lea-image-job-host-" + host.Id + ".html");
+                    host.Dispose();
+                    if (File.Exists(page)) File.Delete(page);
+                }
+                if (WorkerExists(worker))
+                    try { using (var child = Process.GetProcessById(worker)) { child.Kill(); child.WaitForExit(5000); } }
+                    catch (ArgumentException) { }
+                    catch (InvalidOperationException) { }
+            }
+        }
+
+        private static bool WorkerExists(int process)
+        {
+            if (process < 1) return false;
+            try
+            {
+                using (var worker = Process.GetProcessById(process))
+                    return !worker.HasExited && worker.ProcessName.Equals("Lea.Image", StringComparison.OrdinalIgnoreCase);
+            }
+            catch (ArgumentException) { return false; }
+            catch (InvalidOperationException) { return false; }
         }
 
         private static byte[] PicturePng(int width, int height, Color color)
@@ -7989,9 +8112,10 @@ namespace Lea.Tests
                         var watch = System.Diagnostics.Stopwatch.StartNew();
                         var result = view.Ec(code);
                         Console.WriteLine("Locked clipboard: " + code + "; result=" + result + "; retained=" + (field.V == "Retained text") + "; ms=" + watch.ElapsedMilliseconds);
+                        Eq(0, result, "unavailable clipboard command is not dispatched: " + code);
+                        Ok(watch.ElapsedMilliseconds < 1000, "clipboard contention retry remains bounded: " + code);
                         Eq("Retained text", field.V, "unavailable clipboard must not change the field: " + code);
                         Ok(editor.SelectionStart == 0 && editor.SelectionLength == 13 && view.Ce("un"), "clipboard rejection retains selection and undo: " + code);
-                        if (code == "pa") Eq(0, result, "unavailable clipboard is not dispatched");
                     }
                     Eq(IntPtr.Zero, NativeEdit(editor.Handle, 0x0302, IntPtr.Zero, IntPtr.Zero), "native WM_PASTE is guarded");
                     Eq("Retained text", field.V, "native WM_PASTE retained text");
@@ -8043,12 +8167,12 @@ namespace Lea.Tests
                     Ok(!view.Ce("cp") && view.Ec("cp") == 0 && view.Ec(null) == 0 && view.Ec("copy") == 0, "empty and invalid edit commands");
                     start.Invoke(view, new object[] { field });
                     editor.Select(4, 5);
-                    Eq(1, view.Ec("CP"), "compact case-insensitive copy");
+                    Eq(1, EditCommand(view, "CP"), "compact case-insensitive copy");
                     Eq("field", Clipboard.GetText(), "copy selected field text");
                     other.Focus();
                     Application.DoEvents();
                     Ok(!editor.Visible && view.Ce("cp"), "menu focus retains editor selection");
-                    Eq(1, view.Ec("cu"), "retained cut");
+                    Eq(1, EditCommand(view, "cu"), "retained cut");
                     Eq("Lea  text", field.V, "cut updates live field");
                     Ok(view.Ce("un") && !view.Ce("re"), "native undo state");
                     view.Ec("un");
@@ -8089,7 +8213,7 @@ namespace Lea.Tests
 
                     start.Invoke(view, new object[] { FieldById(view.At, "readonly") });
                     Ok(view.Ce("cp") && !view.Ce("cu") && !view.Ce("pa") && !view.Ce("de") && !view.Ce("un"), "read-only edit policy");
-                    view.Ec("cp");
+                    Eq(1, EditCommand(view, "cp"), "read-only copy command");
                     Eq("Read only", Clipboard.GetText(), "read-only copy");
                     var secret = FieldById(view.At, "secret");
                     start.Invoke(view, new object[] { secret });
@@ -8146,7 +8270,28 @@ namespace Lea.Tests
 
         private static void SetClipboardData(object data, bool copy)
         {
-            Clipboard.SetDataObject(data, copy, 20, 25);
+            ExternalException failure = null;
+            for (var attempt = 0; attempt < 5; attempt++)
+                try { Clipboard.SetDataObject(data, copy, 20, 25); return; }
+                catch (ExternalException error)
+                {
+                    failure = error;
+                    Application.DoEvents();
+                    Thread.Sleep(50);
+                }
+            throw failure;
+        }
+
+        private static int EditCommand(V view, string code)
+        {
+            for (var attempt = 0; attempt < 5; attempt++)
+            {
+                var result = view.Ec(code);
+                if (result != 0) return result;
+                Application.DoEvents();
+                Thread.Sleep(50);
+            }
+            return 0;
         }
 
         private static void ClearClipboard()
@@ -8209,30 +8354,29 @@ namespace Lea.Tests
                 SetClipboardText("A\0B");
                 CheckPaste(view, field, "A", "clipboard NUL terminator");
 
-                var deferred = new DeferredClipboard();
-                deferred.SetText("Must not overwrite a new page");
-                SetClipboardData(deferred, false);
+                var flags = BindingFlags.Instance | BindingFlags.NonPublic;
+                var guardedPaste = typeof(V).GetMethod("PasteEdit", flags, null, new[] { typeof(Func<string>) }, null);
+                Ok(guardedPaste != null, "guarded paste reader is available");
                 var reads = 0;
-                deferred.Read = delegate { reads++; view.Go(path); };
-                Eq(0, view.Ec("pa"), "clipboard callback navigation cancels old paste");
+                Func<string> deferred = delegate { reads++; view.Go(path); return "Must not overwrite a new page"; };
+                Eq(0, (int)guardedPaste.Invoke(view, new object[] { deferred }), "clipboard callback navigation cancels old paste");
                 Eq(1, reads, "delayed clipboard callback exercised");
                 Eq("Lea field text", FieldById(view.At, "text").V, "clipboard callback preserves new page fields");
                 foreach (var change in new[] { "value", "selection", "dispose" })
                 {
                     field = FieldById(view.At, "text");
                     typeof(V).GetMethod("StartEdit", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(view, new object[] { field });
-                    deferred = new DeferredClipboard();
-                    deferred.SetText("Stale clipboard text");
-                    SetClipboardData(deferred, false);
+                    editor.SelectAll();
                     reads = 0;
-                    deferred.Read = delegate
+                    deferred = delegate
                     {
                         reads++;
                         if (change == "value") field.V = "Host value";
                         else if (change == "selection") editor.Select(0, 0);
                         else view.Dispose();
+                        return "Stale clipboard text";
                     };
-                    Eq(0, view.Ec("pa"), "clipboard callback cancels stale paste: " + change);
+                    Eq(0, (int)guardedPaste.Invoke(view, new object[] { deferred }), "clipboard callback cancels stale paste: " + change);
                     Eq(1, reads, "clipboard callback was exercised: " + change);
                     if (change == "value") Eq("Host value", field.V, "clipboard cannot overwrite host value");
                     else if (change == "selection") Ok(editor.SelectionLength == 0 && field.V == "Host value", "clipboard cannot replace changed selection");
@@ -8240,18 +8384,6 @@ namespace Lea.Tests
                 }
             }
             Console.WriteLine("Lea clipboard paste smoke passed: WM_PASTE, shortcuts, single edit notification, undo/redo, empty/non-text, ANSI, bounded text, and deferred-owner navigation.");
-        }
-
-        private sealed class DeferredClipboard : DataObject
-        {
-            public Action Read;
-            public override object GetData(string format, bool autoConvert)
-            {
-                var action = Read;
-                Read = null;
-                if (action != null) action();
-                return base.GetData(format, autoConvert);
-            }
         }
 
         private static void CheckPaste(V view, Fi field, string expected, string name)

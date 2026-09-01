@@ -15,12 +15,22 @@ namespace Lea.Win
     internal static class Di
     {
         private const int Magic = 0x3141454c;
+        private const long MinMemory = 64L * 1024 * 1024;
+        private const long MaxMemory = 512L * 1024 * 1024;
         private static readonly SemaphoreSlim one = new SemaphoreSlim(1, 1);
         private static readonly object state = new object();
+        private static long workerMemory = 192L * 1024 * 1024;
         private static Process worker;
+        private static Jb job;
         private static BinaryWriter input;
         private static BinaryReader output;
         private static string workerKey = "";
+
+        public static long L
+        {
+            get { return Interlocked.Read(ref workerMemory); }
+            set { Interlocked.Exchange(ref workerMemory, Math.Max(MinMemory, Math.Min(MaxMemory, value))); }
+        }
 
         public static string P(string configured)
         {
@@ -38,14 +48,14 @@ namespace Lea.Win
         }
 
         public static Task<Image> Rd(byte[] data, string path, string args, CancellationToken token,
-            Action<int> started, Action killed)
+            Action<int, bool> started, Action<long> measured, Action killed)
         {
-            return Task.Factory.StartNew(() => Read(data, path, args, token, started, killed),
+            return Task.Factory.StartNew(() => Read(data, path, args, token, started, measured, killed),
                 CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
         }
 
         private static Image Read(byte[] data, string path, string args, CancellationToken token,
-            Action<int> started, Action killed)
+            Action<int, bool> started, Action<long> measured, Action killed)
         {
             one.Wait(token);
             Process current = null;
@@ -53,7 +63,7 @@ namespace Lea.Win
             {
                 token.ThrowIfCancellationRequested();
                 current = Open(path, args);
-                if (started != null) started(current.Id);
+                if (started != null) started(current.Id, true);
                 using (token.Register(() =>
                 {
                     if (Stop(current) && killed != null) killed();
@@ -81,6 +91,8 @@ namespace Lea.Win
                         throw new InvalidDataException("Image worker dimensions exceed Lea's protocol limit.");
                     var bytes = Bytes(output, lengthPixels);
                     token.ThrowIfCancellationRequested();
+                    if (measured != null) measured(Private(current));
+                    token.ThrowIfCancellationRequested();
                     return Bitmap(width, height, bytes);
                 }
             }
@@ -95,12 +107,13 @@ namespace Lea.Win
         private static Process Open(string path, string args)
         {
             var full = P(path);
-            var key = full + "\0" + (args ?? "");
+            var limit = L;
+            var key = full + "\0" + (args ?? "") + "\0" + limit;
             lock (state)
             {
                 if (worker != null)
                 {
-                    try { if (!worker.HasExited && workerKey == key) return worker; }
+                    try { if (!worker.HasExited && workerKey == key && job != null) return worker; }
                     catch (InvalidOperationException) { }
                     Drop();
                 }
@@ -115,13 +128,44 @@ namespace Lea.Win
                     RedirectStandardError = true,
                     WorkingDirectory = Path.GetDirectoryName(full)
                 };
-                worker = Process.Start(start);
-                if (worker == null) throw new InvalidOperationException("Lea image worker did not start.");
-                input = new BinaryWriter(worker.StandardInput.BaseStream, Encoding.UTF8);
-                output = new BinaryReader(worker.StandardOutput.BaseStream, Encoding.UTF8);
-                workerKey = key;
-                return worker;
+                Process created = null;
+                Jb bounded = null;
+                BinaryWriter writer = null;
+                BinaryReader reader = null;
+                try
+                {
+                    created = Process.Start(start);
+                    if (created == null) throw new InvalidOperationException("Lea image worker did not start.");
+                    bounded = Jb.Add(created, limit);
+                    writer = new BinaryWriter(created.StandardInput.BaseStream, Encoding.UTF8);
+                    reader = new BinaryReader(created.StandardOutput.BaseStream, Encoding.UTF8);
+                    worker = created;
+                    job = bounded;
+                    input = writer;
+                    output = reader;
+                    workerKey = key;
+                    return worker;
+                }
+                catch
+                {
+                    if (writer != null) try { writer.Dispose(); } catch (IOException) { }
+                    if (reader != null) try { reader.Dispose(); } catch (IOException) { }
+                    if (bounded != null) bounded.Dispose();
+                    else if (created != null)
+                        try { if (!created.HasExited) created.Kill(); }
+                        catch (InvalidOperationException) { }
+                        catch (System.ComponentModel.Win32Exception) { }
+                    if (created != null) created.Dispose();
+                    throw;
+                }
             }
+        }
+
+        private static long Private(Process process)
+        {
+            try { process.Refresh(); return process.PrivateMemorySize64; }
+            catch (InvalidOperationException) { return 0; }
+            catch (System.ComponentModel.Win32Exception) { return 0; }
         }
 
         private static bool Stop(Process expected)
@@ -146,9 +190,11 @@ namespace Lea.Win
         {
             if (input != null) try { input.Dispose(); } catch (IOException) { }
             if (output != null) try { output.Dispose(); } catch (IOException) { }
+            if (job != null) job.Dispose();
             if (worker != null) worker.Dispose();
             input = null;
             output = null;
+            job = null;
             worker = null;
             workerKey = "";
         }

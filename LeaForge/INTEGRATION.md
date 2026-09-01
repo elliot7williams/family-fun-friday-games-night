@@ -99,7 +99,8 @@ Use `V.Ce(code)` and `V.Ec(code)` on the UI thread for native field editing.
 `V.Pa(text)` inserts supplied text without clipboard access, with native undo,
 maxlength/Unicode bounds, and the same target protections. Clipboard paste
 returns 0 when unavailable and preserves the selection; native messages and
-shortcuts share that guard. See `PASTE_SAFETY.md`.
+shortcuts share that guard. Copy/cut also use bounded clipboard retries and cut
+mutates only after the selected text is committed. See `PASTE_SAFETY.md`.
 The two-letter commands `cp/cu/pa/sa/de/un/re` cover copy, cut, paste, select-all,
 delete, and one-level undo/redo. Firespider's Edit menu now uses these routes,
 including retained selection after opening its menu. These APIs do not provide
@@ -586,7 +587,9 @@ screen-compatible `<picture><source>` fallbacks. Base64 PNG, JPEG, GIF, BMP,
 and icon data URLs decode under a 4 MB limit into the existing 24-entry image
 cache. Accepted codecs run in the shared killable `Lea.Image.exe` process and
 return bounded raw pixels; `Ie/Ii/Iw/Ik` expose helper path, availability, last
-PID, and cancellation kills. CSS width/height wins over HTML dimensions; otherwise `width` and
+PID, and cancellation kills. `Ij/Ih/Ipm` expose mandatory Job assignment, its
+64-512 MiB hard process-memory cap, and last sampled private bytes. CSS
+width/height wins over HTML dimensions; otherwise `width` and
 `height` attributes feed the same constrained layout path.
 
 Blocks and tables support lightweight `position:relative`, `position:absolute`,

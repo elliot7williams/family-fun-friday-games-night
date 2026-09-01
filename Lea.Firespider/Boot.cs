@@ -532,18 +532,21 @@ namespace Lea.Firespider
                     valid.Url + "' alt='Decoded image'><img src='" + picture.Url + "' alt='Rejected oversized image'></body></html>";
                 V view = null;
                 var worker = 0;
+                var privateMemory = 0L;
                 try
                 {
                     view = (V)Call(form, "qleaNew", page.Url);
                     Wait(() => valid.Hits == 1 && picture.Hits == 1, "isolated picture requests");
                     WaitLea(tabs);
                     worker = view.Iw;
+                    privateMemory = view.Ipm;
                     Check(view.T == "Lea Image Isolation" && view.At.Fs[0].V == "Retained preflight field",
                         "image preflight lost host page data");
                     Check(view.Ip == 8 * 1024 * 1024 && view.Im == 128L * 1024 * 1024 && view.It == view.Ib && view.Ib == 4 &&
                         view.Ii && File.Exists(view.Ie) && view.Ic == 1 && view.If == 1 && view.In == 1 && worker > 0 &&
-                        worker != Process.GetCurrentProcess().Id && view.Ik == 0 && view.Cn && !view.Busy && view.Le == null,
-                        "host image isolation aliases, decode, or preflight admission changed");
+                        worker != Process.GetCurrentProcess().Id && view.Ik == 0 && view.Ij && view.Ih == 192L * 1024 * 1024 &&
+                        view.Ipm > 0 && view.Ipm <= view.Ih && view.Cn && !view.Busy && view.Le == null,
+                        "host image job aliases, decode, or preflight admission changed");
                     Call(form, "qleaTick", form, EventArgs.Empty);
                     Check(Member<IDictionary>(form, "qleaLoads").Count == 0 && Member<IDictionary>(form, "qleaPending").Count == 0,
                         "image preflight left host request ownership behind");
@@ -552,7 +555,7 @@ namespace Lea.Firespider
                 }
                 finally { if (view != null && !view.IsDisposed) Call(form, "qleaClose", (TabPage)view.Parent); }
                 if (view != null) Check(view.It == 0, "closing preflight tab leaked process image bytes");
-                Console.WriteLine("PASS image decode: helper process pixels, bounded header preflight, compact aliases, host cleanup, and no MSHTML; worker=" + worker);
+                Console.WriteLine("PASS image decode: job-bounded helper pixels/private memory, header preflight, host cleanup, and no MSHTML; private=" + privateMemory + "; worker=" + worker);
             }
         }
 

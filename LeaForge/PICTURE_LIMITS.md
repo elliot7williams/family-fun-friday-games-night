@@ -12,6 +12,9 @@ Milestone 70 / runtime 170 moves native codec parsing into the required,
 killable `Lea.Image.exe` helper and returns bounded raw pixels. See
 `IMAGE_ISOLATION.md`.
 
+Milestone 71 / runtime 171 places that helper in a one-process Job Object with a
+64-512 MiB configurable hard memory ceiling and kill-on-close ownership.
+
 ## Compact API
 
 ```csharp
@@ -131,11 +134,12 @@ packaged separately; the installed runtime 157 EXE and root DLLs are unchanged.
 
 ## Remaining Work
 
-The 32 MiB figure remains the per-view retained limit. Runtime 170 preserves
-runtime 169's preflight/shared admission and moves accepted codec work to a
-killable shared helper; see `IMAGE_PREFLIGHT.md` and `IMAGE_ISOLATION.md`.
-The estimate is still not a complete host-plus-helper private-byte guarantee.
-Restricted-token/Job Object sandboxing and measured whole-process budgets remain.
+The 32 MiB figure remains the per-view retained limit. Runtime 171 preserves
+runtime 169's preflight/shared admission, keeps accepted codec work in the
+shared helper, and adds the separate `Ih` Job cap plus `Ipm` private-byte sample;
+see `IMAGE_PREFLIGHT.md` and `IMAGE_ISOLATION.md`. The estimates and sample are
+still not a complete host-plus-helper peak-memory measurement. Restricted-token
+sandboxing and measured whole-process budgets remain.
 
 Milestone 67 adds separate bounded HTTP/file document and linked-CSS input;
 see `INPUT_LIMITS.md`. Images do not yet share the document cookie jar,

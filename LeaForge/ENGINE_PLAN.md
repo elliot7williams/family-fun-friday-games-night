@@ -42,9 +42,9 @@ Dg/Dcl  diagnostics/clear request activity
 4. Use bounded caches for pages, images, stylesheets, and decoded resources.
    (An eight-entry LRU decoded-payload cache with a 2 MB per-page ceiling is active.)
    Native pictures now have 4 MiB streaming body limits, header preflight,
-   a shared killable decoder process, a shared pass deadline, 32 MiB per-view retention, and a
+   a shared Job-bounded decoder process, a shared pass deadline, 32 MiB per-view retention, and a
    configurable 128 MiB process-wide Lea image budget through compact
-   `V.Ic/Ib/Ip/Im/It/In/If/Ie/Ii/Iw/Ik` aliases. Document/POST bodies and linked CSS now
+   `V.Ic/Ib/Ip/Im/It/In/If/Ie/Ii/Iw/Ik/Ij/Ih/Ipm` aliases. Document/POST bodies and linked CSS now
    have 4 MiB/256 KiB wire/decoded bounds and shared I/O budgets; see
    `PICTURE_LIMITS.md` and `INPUT_LIMITS.md` for remaining resource work.
 5. Add cancellation and timeouts so a slow page cannot freeze the browser.
@@ -341,8 +341,8 @@ Support three simple Visual Studio paths:
 
 Document/linked-CSS streaming limits and exact path/query cache identity are
 implemented; see `INPUT_LIMITS.md` and `CACHE_IDENTITY.md` for verification.
-Next investigate killable helper-process decoder isolation, measured whole-process
-memory accounting, and image cookie/cache integration. Keep the
+Next investigate restricted-token helper isolation, peak/whole-process memory
+accounting, and image cookie/cache integration. Keep the
 short public API, verify boundary behavior with hostile local fixtures, and
 measure performance rather than treating compression as an execution speedup.
 

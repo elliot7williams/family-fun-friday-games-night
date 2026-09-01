@@ -66,6 +66,8 @@ namespace Lea.Win
         private int picNative;
         private int picWorker;
         private int picKilled;
+        private int picJob;
+        private long picWorkerMemory;
         private string picWorkerPath;
         private string picWorkerArgs = "--pipe";
         private WebRequest picRequest;
@@ -206,6 +208,9 @@ namespace Lea.Win
         public bool Ii { get { return File.Exists(Ie); } }
         public int Iw { get { return Interlocked.CompareExchange(ref picWorker, 0, 0); } }
         public int Ik { get { return Interlocked.CompareExchange(ref picKilled, 0, 0); } }
+        public bool Ij { get { return Interlocked.CompareExchange(ref picJob, 0, 0) != 0; } }
+        public long Ih { get { return Di.L; } set { Di.L = value; } }
+        public long Ipm { get { return Interlocked.Read(ref picWorkerMemory); } }
         public int Hm { get { return e.Hm; } }
         public int Csm { get { return e.Csm; } }
         public int Ic { get { var count = 0; foreach (var item in pics.Values) if (item != null) count++; return count; } }
@@ -300,8 +305,8 @@ namespace Lea.Win
             switch (code.ToLowerInvariant())
             {
                 case "sa": ed.SelectAll(); break;
-                case "cp": ed.Copy(); break;
-                case "cu": ed.Cut(); break;
+                case "cp": return CopyEdit(false);
+                case "cu": return CopyEdit(true);
                 case "pa": return PasteEdit();
                 case "de":
                     var text = ed.Text;
@@ -340,7 +345,32 @@ namespace Lea.Win
             return !closed && edit == field && Ce(code);
         }
 
+        private int CopyEdit(bool cut)
+        {
+            var field = edit;
+            if (field == null || editLock || ed.SelectionLength < 1) return 0;
+            var page = At;
+            var before = ed.Text;
+            var start = ed.SelectionStart;
+            var selected = ed.SelectionLength;
+            var text = ed.SelectedText;
+            var data = new DataObject();
+            data.SetText(text, TextDataFormat.UnicodeText);
+            try { Clipboard.SetDataObject(data, true, 10, 20); }
+            catch (ExternalException) { return 0; }
+            if (closed || At != page || edit != field || ed.Text != before || ed.SelectionStart != start ||
+                ed.SelectionLength != selected || !Ce(cut ? "cu" : "cp")) return 0;
+            if (cut) EditMessage(ed.Handle, 0x0303, IntPtr.Zero, IntPtr.Zero);
+            return 1;
+        }
+
         private int PasteEdit()
+        {
+            var owner = ed.Handle;
+            return PasteEdit(() => ReadPasteText(owner));
+        }
+
+        private int PasteEdit(Func<string> read)
         {
             var field = edit;
             if (field == null || editLock) return 0;
@@ -348,7 +378,7 @@ namespace Lea.Win
             var before = ed.Text;
             var start = ed.SelectionStart;
             var selected = ed.SelectionLength;
-            var text = ReadPasteText(ed.Handle);
+            var text = read();
             // Clipboard owners can render data synchronously; recheck after that call.
             if (String.IsNullOrEmpty(text) || closed || At != page || edit != field || ed.Text != before ||
                 ed.SelectionStart != start || ed.SelectionLength != selected || !Ce("pa")) return 0;
@@ -4631,7 +4661,13 @@ namespace Lea.Win
         private Task<Image> DecodePicture(byte[] data, CancellationToken token)
         {
             return Di.Rd(data, Ie, picWorkerArgs, token,
-                process => { Interlocked.Increment(ref picNative); Interlocked.Exchange(ref picWorker, process); },
+                (process, bounded) =>
+                {
+                    Interlocked.Increment(ref picNative);
+                    Interlocked.Exchange(ref picWorker, process);
+                    Interlocked.Exchange(ref picJob, bounded ? 1 : 0);
+                },
+                memory => Interlocked.Exchange(ref picWorkerMemory, memory),
                 () => Interlocked.Increment(ref picKilled));
         }
 

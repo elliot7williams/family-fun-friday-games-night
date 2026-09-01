@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Di.cs" />
+    <Compile Include="Jb.cs" />
     <Compile Include="Pi.cs" />
     <Compile Include="V.cs" />
   </ItemGroup>

@@ -1,9 +1,10 @@
 # Native Image Preflight
 
 Milestone 69 / runtime 169 introduced bounded picture structure validation and
-process-wide image reservations. Milestone 70 / runtime 170 keeps those gates
-and moves accepted native decoding into the killable `Lea.Image.exe` helper.
-See `IMAGE_ISOLATION.md` for the process and pipe contract.
+process-wide image reservations. Milestone 70 / runtime 170 moves accepted
+native decoding into `Lea.Image.exe`; milestone 71 / runtime 171 adds a hard
+Job Object process-memory ceiling. See `IMAGE_ISOLATION.md` for the process,
+Job, and pipe contract.
 
 ## Compact API
 
@@ -90,20 +91,21 @@ cleanup, helper exit with the host, no UI exception, and no MSHTML.
 accepted isolated decode, a pre-native rejection, paint, form retention, and
 disposal.
 
-The runtime 170 release run passes the focused picture suite, full core suite,
+The runtime 171 release run passes the focused picture suite, full core suite,
 isolated editor suite, compiled host suite, 69 benchmark probes over 66 fixtures,
 all 42 Boot cases in one combined run, and all six actual executable startup
-scenarios. Required runtime files total 521.5 KiB and have a 222.2 KiB GZip
-estimate. The report records 486.317 ms clean-process, 3.299 ms local-load, and
-33.184 ms layout/paint medians. These unpaired local samples are not speedup
+scenarios. Required runtime files total 525.5 KiB and have a 224.0 KiB GZip
+estimate. The report records 477.096 ms clean-process, 3.156 ms local-load, and
+31.199 ms layout/paint medians. These unpaired local samples are not speedup
 claims.
 
 ## Remaining Limits
 
 `It/Im` account only Lea's estimated native decode work and retained bitmap
 copies. They are not total-process, helper private-byte, GDI heap,
-source-byte-array, or GPU-memory measurements. The helper is killable but does
-not yet have a restricted token, Job Object memory ceiling, AppContainer, or
+source-byte-array, or GPU-memory measurements. `Ih` separately enforces the
+helper's Job memory cap and `Ipm` samples private bytes after a successful
+response. The helper does not yet have a restricted token, AppContainer, or
 process mitigation policy.
 
 Images still do not share the document cookie jar, validator cache, or request
