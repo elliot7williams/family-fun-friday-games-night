@@ -1921,12 +1921,13 @@ namespace Lea.Bench
                         view.In == 1 && view.Ib == 4 && view.It == 4 && view.Ii && File.Exists(view.Ie) &&
                         view.Iw > 0 && view.Iw != System.Diagnostics.Process.GetCurrentProcess().Id && view.Ik == 0 && view.Ij &&
                         view.Ih == 192L * 1024 * 1024 && view.Ipm > 0 && view.Ipm <= view.Ih && view.Irt && view.Ili &&
-                        view.Isp && view.Ihl && (view.Img & 3) == 3 && view.Ipk > 0 && view.Ipk <= view.Ih &&
+                        view.Isp && view.Ihl && view.Ias && view.Icp && view.Icr == 2500 &&
+                        (view.Img & 3) == 3 && view.Ipk > 0 && view.Ipk <= view.Ih &&
                         view.At.Fs[0].V == "Retained preflight data",
                         "image restricted-launch aliases, worker admission, or retained accounting changed");
                 }
                 using (var released = NewView()) Need(released.It == 0, "image preflight fixture leaked process reservation");
-                return "Pi preflight, Irt/Ili/Isp/Ihl/Img/Ipk restricted-worker aliases, one hardened native decode, one pre-native rejection, retained fields, paint, and disposal";
+                return "Pi preflight, Irt/Ili/Isp/Ihl/Ias/Icp/Icr/Img/Ipk hardened-worker aliases, one native decode, one pre-native rejection, retained fields, paint, and disposal";
             });
             AddProbe(probes, "Bounded document input", delegate
             {

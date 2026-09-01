@@ -7,6 +7,8 @@ Job Object process-memory ceiling. See `IMAGE_ISOLATION.md` for the process,
 Job, and pipe contract. Milestone 72 / runtime 172 adds a privilege-stripped
 low-integrity token, suspended Job assignment, an inherited-handle allowlist,
 process mitigations, and Job peak-memory reporting before image admission.
+Milestone 73 / runtime 173 adds verified startup ASLR and a configurable,
+read-back Job CPU hard cap before that suspended worker resumes.
 
 ## Compact API
 
@@ -93,12 +95,12 @@ cleanup, helper exit with the host, no UI exception, and no MSHTML.
 accepted isolated decode, a pre-native rejection, paint, form retention, and
 disposal.
 
-The runtime 172 release run passes the focused picture suite, full core suite,
+The runtime 173 release run passes the focused picture suite, full core suite,
 isolated editor suite, compiled host suite, 69 benchmark probes over 66 fixtures,
 all 42 Boot cases in one combined run, and all six actual executable startup
-scenarios. Required runtime files total 536.0 KiB and have a 228.8 KiB GZip
-estimate. The report records 521.959 ms clean-process, 3.323 ms local-load, and
-33.453 ms layout/paint medians. These unpaired local samples are not speedup
+scenarios. Required runtime files total 538.5 KiB and have a 229.7 KiB GZip
+estimate. The report records 499.587 ms clean-process, 3.231 ms local-load, and
+32.724 ms layout/paint medians. These unpaired local samples are not speedup
 claims.
 
 ## Remaining Limits
@@ -110,7 +112,8 @@ helper's Job memory cap and `Ipm` samples private bytes after a successful
 response. `Ipk` reports the Job's peak process bytes. The helper now has a
 privilege-stripped low-integrity token and required process mitigations, but it
 does not yet have an AppContainer, network-denial capability set, custom object
-ACL, CPU-rate limit, or combined host-plus-helper peak measurement.
+ACL, or combined host-plus-helper peak measurement. `Ias/Icp/Icr` expose its
+startup ASLR and configurable Job CPU hard cap.
 
 Images still do not share the document cookie jar, validator cache, or request
 diagnostics. Lea does not add new codecs, CORS, multi-frame playback, or full

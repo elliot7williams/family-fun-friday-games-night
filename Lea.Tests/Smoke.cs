@@ -6920,13 +6920,15 @@ namespace Lea.Tests
                 typeof(V).GetProperty("Iw") != null && typeof(V).GetProperty("Ik") != null && job != null &&
                 typeof(V).GetProperty("Ij") != null && typeof(V).GetProperty("Ih") != null && typeof(V).GetProperty("Ipm") != null &&
                 typeof(V).GetProperty("Irt") != null && typeof(V).GetProperty("Ili") != null && typeof(V).GetProperty("Isp") != null &&
-                typeof(V).GetProperty("Ihl") != null && typeof(V).GetProperty("Img") != null && typeof(V).GetProperty("Ipk") != null,
+                typeof(V).GetProperty("Ihl") != null && typeof(V).GetProperty("Ias") != null && typeof(V).GetProperty("Icp") != null &&
+                typeof(V).GetProperty("Icr") != null && typeof(V).GetProperty("Img") != null && typeof(V).GetProperty("Ipk") != null,
                 "job-bounded picture decoder and compact worker aliases are available");
             using (var aliases = new V())
                 Ok(aliases.Ip == 8 * 1024 * 1024 && aliases.Im == 128L * 1024 * 1024 && aliases.It == 0 &&
                     aliases.In == 0 && aliases.If == 0 && aliases.Ii && File.Exists(aliases.Ie) && aliases.Iw == 0 && aliases.Ik == 0 &&
                     !aliases.Ij && aliases.Ih == 192L * 1024 * 1024 && aliases.Ipm == 0 && !aliases.Irt && !aliases.Ili &&
-                    !aliases.Isp && !aliases.Ihl && aliases.Img == 0 && aliases.Ipk == 0,
+                    !aliases.Isp && !aliases.Ihl && !aliases.Ias && !aliases.Icp && aliases.Icr == 2500 &&
+                    aliases.Img == 0 && aliases.Ipk == 0,
                     "compact picture preflight, process-memory, decoder, and job aliases");
             var formats = new Dictionary<string, byte[]>
             {
@@ -6953,14 +6955,16 @@ namespace Lea.Tests
                     Ok(view.Ic == 1 && view.If == 0 && view.In == 1 && view.It == view.Ib && view.Ib > 0 &&
                         view.Ii && view.Iw > 0 && view.Iw != System.Diagnostics.Process.GetCurrentProcess().Id && view.Ik == 0 &&
                         view.Ij && view.Ih == 192L * 1024 * 1024 && view.Ipm > 0 && view.Ipm <= view.Ih && view.Irt && view.Ili &&
-                        view.Isp && view.Ihl && (view.Img & 3) == 3 && view.Ipk > 0 && view.Ipk <= view.Ih,
+                        view.Isp && view.Ihl && view.Ias && view.Icp && view.Icr == 2500 && (view.Img & 3) == 3 &&
+                        view.Ipk > 0 && view.Ipk <= view.Ih,
                         "preflighted restricted native format accounting " + format.Key + ": Ic=" + view.Ic + "; If=" + view.If +
                         "; In=" + view.In + "; Iw=" + view.Iw + "; Ij=" + view.Ij + "; Irt=" + view.Irt + "; Ili=" + view.Ili +
-                        "; Isp=" + view.Isp + "; Ihl=" + view.Ihl + "; Img=" + view.Img + "; Ipm=" + view.Ipm + "; Ipk=" + view.Ipk);
+                        "; Isp=" + view.Isp + "; Ihl=" + view.Ihl + "; Ias=" + view.Ias + "; Icp=" + view.Icp +
+                        "; Icr=" + view.Icr + "; Img=" + view.Img + "; Ipm=" + view.Ipm + "; Ipk=" + view.Ipk);
                     formatWorkers.Add(view.Iw);
                     if (!securityChecked)
                     {
-                        CheckImageWorkerSecurity(view.Iw, view.Img);
+                        CheckImageWorkerSecurity(view.Iw, view.Img, view.Icr);
                         securityChecked = true;
                     }
                 }
@@ -6983,7 +6987,8 @@ namespace Lea.Tests
                     WaitFor(() => work.IsCompleted, "hostile image integration");
                     work.GetAwaiter().GetResult();
                     Ok(view.Ic == 0 && view.If == 1 && view.In == 0 && view.Iw == 0 && view.Ik == 0 && !view.Ij && view.Ipm == 0 &&
-                        !view.Irt && !view.Ili && !view.Isp && !view.Ihl && view.Img == 0 && view.Ipk == 0 && view.It == 0 && view.Le == null,
+                        !view.Irt && !view.Ili && !view.Isp && !view.Ihl && !view.Ias && !view.Icp &&
+                        view.Img == 0 && view.Ipk == 0 && view.It == 0 && view.Le == null,
                         "hostile image never reaches native decoder");
                 }
             }
@@ -6995,7 +7000,8 @@ namespace Lea.Tests
                 WaitFor(() => work.IsCompleted, "missing image worker");
                 work.GetAwaiter().GetResult();
                 Ok(view.Ic == 0 && view.If == 1 && view.In == 0 && view.Iw == 0 && view.Ik == 0 && !view.Ij && view.Ipm == 0 &&
-                    !view.Irt && !view.Ili && !view.Isp && !view.Ihl && view.Img == 0 && view.Ipk == 0 && view.It == 0 && view.Le == null,
+                    !view.Irt && !view.Ili && !view.Isp && !view.Ihl && !view.Ias && !view.Icp &&
+                    view.Img == 0 && view.Ipk == 0 && view.It == 0 && view.Le == null,
                     "missing decoder is a bounded nonfatal image failure");
             }
             using (var server = new PictureServer("plain", PicturePng(3, 2, Color.SeaGreen)))
@@ -7007,10 +7013,12 @@ namespace Lea.Tests
                 WaitFor(() => work.IsCompleted, "unhardened image worker rejection");
                 work.GetAwaiter().GetResult();
                 Ok(clock.ElapsedMilliseconds < 2000 && view.Ic == 0 && view.If == 1 && view.In == 0 && view.Iw == 0 &&
-                    !view.Ij && !view.Irt && !view.Ili && !view.Isp && !view.Ihl && view.Img == 0 && view.Ipm == 0 && view.Ipk == 0,
+                    !view.Ij && !view.Irt && !view.Ili && !view.Isp && !view.Ihl && !view.Ias && !view.Icp &&
+                    view.Img == 0 && view.Ipm == 0 && view.Ipk == 0,
                     "invalid hardening handshake rejects the worker before image admission: ms=" + clock.ElapsedMilliseconds +
                     "; Ic=" + view.Ic + "; If=" + view.If + "; In=" + view.In + "; Iw=" + view.Iw + "; Ij=" + view.Ij +
                     "; Irt=" + view.Irt + "; Ili=" + view.Ili + "; Isp=" + view.Isp + "; Ihl=" + view.Ihl +
+                    "; Ias=" + view.Ias + "; Icp=" + view.Icp + "; Icr=" + view.Icr +
                     "; Img=" + view.Img + "; Ipm=" + view.Ipm + "; Ipk=" + view.Ipk);
             }
             using (var server = new PictureServer("plain", PicturePng(3, 2, Color.SeaGreen)))
@@ -7023,12 +7031,14 @@ namespace Lea.Tests
                 work.GetAwaiter().GetResult();
                 Ok(clock.ElapsedMilliseconds < 1800 && view.Ic == 0 && view.If == 1 && view.In == 1 &&
                     view.Iw > 0 && view.Iw != System.Diagnostics.Process.GetCurrentProcess().Id && view.Ik == 1 && view.Ij &&
-                    view.Irt && view.Ili && view.Isp && view.Ihl && (view.Img & 3) == 3 && view.Ipm == 0 && view.Ipk == 0 &&
+                    view.Irt && view.Ili && view.Isp && view.Ihl && view.Ias && view.Icp && view.Icr == 2500 &&
+                    (view.Img & 3) == 3 && view.Ipm == 0 && view.Ipk == 0 &&
                     view.It == 0 && view.Le == null,
                     "decoder deadline kills the helper and releases its reservation: ms=" + clock.ElapsedMilliseconds +
                     "; Ic=" + view.Ic + "; If=" + view.If + "; In=" + view.In + "; Iw=" + view.Iw + "; Ik=" + view.Ik +
                     "; Ij=" + view.Ij + "; Irt=" + view.Irt + "; Ili=" + view.Ili + "; Isp=" + view.Isp +
-                    "; Ihl=" + view.Ihl + "; Img=" + view.Img + "; Ipm=" + view.Ipm + "; Ipk=" + view.Ipk + "; It=" + view.It);
+                    "; Ihl=" + view.Ihl + "; Ias=" + view.Ias + "; Icp=" + view.Icp + "; Icr=" + view.Icr +
+                    "; Img=" + view.Img + "; Ipm=" + view.Ipm + "; Ipk=" + view.Ipk + "; It=" + view.It);
             }
             var restartWorker = 0;
             using (var server = new PictureServer("plain", PicturePng(3, 2, Color.MediumSeaGreen)))
@@ -7038,7 +7048,8 @@ namespace Lea.Tests
                 WaitFor(() => work.IsCompleted, "decoder restart after termination");
                 work.GetAwaiter().GetResult();
                 Ok(view.Ic == 1 && view.If == 0 && view.In == 1 && view.Iw > 0 && view.Ik == 0 && view.Ij && view.Irt &&
-                    view.Ili && view.Isp && view.Ihl && (view.Img & 3) == 3 && view.Ipm > 0 && view.Ipm <= view.Ih &&
+                    view.Ili && view.Isp && view.Ihl && view.Ias && view.Icp && view.Icr == 2500 &&
+                    (view.Img & 3) == 3 && view.Ipm > 0 && view.Ipm <= view.Ih &&
                     view.Ipk > 0 && view.Ipk <= view.Ih && view.It == view.Ib,
                     "decoder restarts cleanly after a killed helper");
                 restartWorker = view.Iw;
@@ -7058,11 +7069,33 @@ namespace Lea.Tests
                     WaitFor(() => work.IsCompleted, "decoder hard-limit restart");
                     work.GetAwaiter().GetResult();
                     Ok(view.Ic == 1 && view.If == 0 && view.Ij && view.Ih == 160L * 1024 * 1024 && view.Irt && view.Ili &&
-                        view.Isp && view.Ihl && (view.Img & 3) == 3 && view.Ipm > 0 && view.Ipm <= view.Ih &&
+                        view.Isp && view.Ihl && view.Ias && view.Icp && view.Icr == 2500 &&
+                        (view.Img & 3) == 3 && view.Ipm > 0 && view.Ipm <= view.Ih &&
                         view.Ipk > 0 && view.Ipk <= view.Ih && view.Iw > 0 && view.Iw != restartWorker,
                         "changed hard limit starts a newly bounded helper");
                 }
                 finally { view.Ih = oldLimit; }
+            }
+            using (var server = new PictureServer("plain", PicturePng(3, 2, Color.MediumSeaGreen)))
+            using (var view = new V())
+            {
+                var oldRate = view.Icr;
+                try
+                {
+                    view.Icr = 1;
+                    Eq(100, view.Icr, "image worker CPU-rate minimum");
+                    view.Icr = Int32.MaxValue;
+                    Eq(10000, view.Icr, "image worker CPU-rate maximum");
+                    view.Icr = 2000;
+                    var work = view.GoA(server.U);
+                    WaitFor(() => work.IsCompleted, "decoder CPU-rate restart");
+                    work.GetAwaiter().GetResult();
+                    Ok(view.Ic == 1 && view.If == 0 && view.Ij && view.Ias && view.Icp && view.Icr == 2000 &&
+                        view.Iw > 0 && view.Iw != restartWorker && view.Ipm > 0 && view.Ipk > 0,
+                        "changed CPU hard cap starts a newly rate-bounded helper");
+                    CheckImageWorkerSecurity(view.Iw, view.Img, view.Icr);
+                }
+                finally { view.Icr = oldRate; }
             }
             CheckImageJobExit(root);
             using (var gate = new ManualResetEvent(false))
@@ -7278,7 +7311,8 @@ namespace Lea.Tests
                         Application.DoEvents();
                         Thread.Sleep(2);
                     }
-                    if (view.Iw == 0 || !view.Ij || !view.Irt || !view.Ili || !view.Isp || !view.Ihl || (view.Img & 3) != 3) return 2;
+                    if (view.Iw == 0 || !view.Ij || !view.Irt || !view.Ili || !view.Isp || !view.Ihl ||
+                        !view.Ias || !view.Icp || view.Icr != 2500 || (view.Img & 3) != 3) return 2;
                     Console.WriteLine("worker=" + view.Iw);
                     Console.Out.Flush();
                     Thread.Sleep(Timeout.Infinite);
@@ -7301,7 +7335,7 @@ namespace Lea.Tests
             return 0;
         }
 
-        private static void CheckImageWorkerSecurity(int processId, int guards)
+        private static void CheckImageWorkerSecurity(int processId, int guards, int cpuRate)
         {
             using (var process = Process.GetProcessById(processId))
             {
@@ -7333,12 +7367,22 @@ namespace Lea.Tests
 
                 bool inJob;
                 Ok(IsProcessInJob(process.Handle, IntPtr.Zero, out inJob) && inJob, "worker is inside a Job after suspended launch");
+                Eq(3U, Mitigation(process.Handle, 1) & 3U, "forced relocation and bottom-up startup ASLR");
                 Ok((guards & 3) == 3, "required worker mitigation handshake bits");
                 Eq(3U, Mitigation(process.Handle, 3) & 3U, "permanent strict-handle mitigation");
                 Eq(1U, Mitigation(process.Handle, 6) & 1U, "legacy extension-point mitigation");
                 if ((guards & 4) != 0) Eq(7U, Mitigation(process.Handle, 10) & 7U, "image-load mitigation");
                 if ((guards & 8) != 0) Eq(1U, Mitigation(process.Handle, 13) & 1U, "child-process mitigation");
             }
+            var decoder = typeof(V).Assembly.GetType("Lea.Win.Di", true);
+            var worker = decoder.GetField("worker", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+            var job = worker.GetType().GetProperty("J").GetValue(worker, null);
+            var handle = (IntPtr)job.GetType().GetField("handle", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(job);
+            var cpu = new NativeCpuLimits();
+            Ok(QueryInformationJobObject(handle, 15, ref cpu, (uint)Marshal.SizeOf(typeof(NativeCpuLimits)), IntPtr.Zero),
+                "worker Job CPU policy can be inspected");
+            Eq(5U, cpu.ControlFlags & 5U, "worker Job CPU hard-cap flags");
+            Eq((uint)cpuRate, cpu.CpuRate, "worker Job CPU hard-cap rate");
         }
 
         private static IntPtr NativeTokenInfo(IntPtr token, int kind)
@@ -7364,6 +7408,9 @@ namespace Lea.Tests
 
         [StructLayout(LayoutKind.Sequential)]
         private struct NativeSidAttribute { public IntPtr Sid; public uint Attributes; }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct NativeCpuLimits { public uint ControlFlags; public uint CpuRate; }
 
         private static void CheckImageJobExit(string root)
         {
@@ -7912,6 +7959,11 @@ namespace Lea.Tests
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool IsProcessInJob(IntPtr process, IntPtr job, out bool result);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool QueryInformationJobObject(IntPtr job, int kind, ref NativeCpuLimits limits,
+            uint length, IntPtr returned);
 
         [DllImport("kernel32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]

@@ -591,8 +591,11 @@ PID, and cancellation kills. `Ij/Ih/Ipm` expose mandatory Job assignment, its
 64-512 MiB hard process-memory cap, and last sampled private bytes.
 `Irt/Ili/Isp/Ihl` confirm a privilege-stripped token, low integrity, assignment
 while the primary thread is suspended, and a three-pipe inherited-handle
-allowlist. `Img` is the helper mitigation handshake mask and `Ipk` is the Job's
-peak process-memory value. The helper must acknowledge required guards before
+allowlist. `Ias` confirms forced-relocation and bottom-up ASLR at creation;
+`Icp` confirms the Job CPU hard cap, while `Icr` configures its 100-10,000
+basis-point rate and restarts the shared worker when changed. `Img` is the
+helper mitigation handshake mask and `Ipk` is the Job's peak process-memory
+value. The helper must acknowledge required guards before
 the host sends encoded bytes. CSS
 width/height wins over HTML dimensions; otherwise `width` and
 `height` attributes feed the same constrained layout path.

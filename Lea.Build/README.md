@@ -112,9 +112,10 @@ boundaries, POST responses, timeouts, and cancellation; see `INPUT_LIMITS.md`.
 case-different navigation, host request cleanup, and no MSHTML. See
 `LeaForge/CACHE_IDENTITY.md`.
 `-Case decode` checks one valid helper decode, over-axis PNG preflight,
-`Ip/Im/It/In/If/Ie/Ii/Iw/Ik/Ij/Ih/Ipm/Irt/Ili/Isp/Ihl/Img/Ipk`, retained form
-data, restricted low-integrity launch, mitigation handshake, private/Job-peak
-memory, host cleanup, child-process exit, and no MSHTML. See
+`Ip/Im/It/In/If/Ie/Ii/Iw/Ik/Ij/Ih/Ipm/Irt/Ili/Isp/Ihl/Ias/Icp/Icr/Img/Ipk`,
+retained form data, restricted low-integrity launch, startup ASLR, Job CPU cap,
+mitigation handshake, private/Job-peak memory, host cleanup, child-process exit,
+and no MSHTML. See
 `LeaForge/IMAGE_ISOLATION.md`.
 `-Case load-life` checks page-command successors, request ownership, queued CSS,
 busy address input, and cleanup. `Lea.Tests <root> --loads` adds deterministic

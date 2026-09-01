@@ -21,6 +21,9 @@ namespace Lea.Win
         private const uint NoWindow = 0x08000000;
         private const uint ExtendedStartup = 0x00080000;
         private static readonly IntPtr HandleList = new IntPtr(0x00020002);
+        private static readonly IntPtr MitigationPolicy = new IntPtr(0x00020007);
+        // DEP, SEHOP, heap termination, and force/bottom-up/high-entropy ASLR.
+        private const long StartupPolicy = 0x00111105L;
 
         public Process P { get; private set; }
         public Stream I { get; private set; }
@@ -30,6 +33,7 @@ namespace Lea.Win
         public bool L { get; private set; }
         public bool S { get; private set; }
         public bool A { get; private set; }
+        public bool M { get; private set; }
         public bool Ready { get; set; }
         public int G { get; set; }
 
@@ -50,17 +54,19 @@ namespace Lea.Win
             L = true;
             S = true;
             A = true;
+            M = true;
             Task.Factory.StartNew(() => Drain(errors), default(System.Threading.CancellationToken),
                 TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
 
-        public static Rp Open(string path, string args, string directory, long memory)
+        public static Rp Open(string path, string args, string directory, long memory, int cpu)
         {
             IntPtr source = IntPtr.Zero;
             IntPtr restricted = IntPtr.Zero;
             IntPtr low = IntPtr.Zero;
             IntPtr attributes = IntPtr.Zero;
             IntPtr handles = IntPtr.Zero;
+            IntPtr mitigation = IntPtr.Zero;
             IntPtr childInput = IntPtr.Zero;
             IntPtr parentInput = IntPtr.Zero;
             IntPtr parentOutput = IntPtr.Zero;
@@ -96,10 +102,10 @@ namespace Lea.Win
                 Pipe(ref security, out parentError, out childError, false);
 
                 IntPtr attributeSize = IntPtr.Zero;
-                InitializeProcThreadAttributeList(IntPtr.Zero, 1, 0, ref attributeSize);
+                InitializeProcThreadAttributeList(IntPtr.Zero, 2, 0, ref attributeSize);
                 if (attributeSize == IntPtr.Zero) throw Error("Lea could not size its worker handle list.");
                 attributes = Marshal.AllocHGlobal(attributeSize);
-                if (!InitializeProcThreadAttributeList(attributes, 1, 0, ref attributeSize))
+                if (!InitializeProcThreadAttributeList(attributes, 2, 0, ref attributeSize))
                     throw Error("Lea could not create its worker handle list.");
                 handles = Marshal.AllocHGlobal(IntPtr.Size * 3);
                 Marshal.WriteIntPtr(handles, 0, childInput);
@@ -107,6 +113,10 @@ namespace Lea.Win
                 Marshal.WriteIntPtr(handles, IntPtr.Size * 2, childError);
                 if (!UpdateProcThreadAttribute(attributes, 0, HandleList, handles, new IntPtr(IntPtr.Size * 3),
                     IntPtr.Zero, IntPtr.Zero)) throw Error("Lea could not restrict inherited worker handles.");
+                mitigation = Marshal.AllocHGlobal(8);
+                Marshal.WriteInt64(mitigation, StartupPolicy);
+                if (!UpdateProcThreadAttribute(attributes, 0, MitigationPolicy, mitigation, new IntPtr(8),
+                    IntPtr.Zero, IntPtr.Zero)) throw Error("Lea could not set image-worker startup mitigations.");
 
                 var startup = new StartupInfoEx();
                 startup.Startup.Length = Marshal.SizeOf(typeof(StartupInfoEx));
@@ -121,11 +131,14 @@ namespace Lea.Win
                     Suspended | NoWindow | ExtendedStartup, IntPtr.Zero, directory, ref startup, out info))
                     throw Error("Lea could not start its restricted image worker.");
                 created = true;
+                var aslr = Aslr(info.Process);
+                if ((aslr & 3) != 3)
+                    throw new InvalidOperationException("Lea image-worker startup ASLR was not applied: policy=" + aslr + ".");
                 Close(ref childInput);
                 Close(ref childOutput);
                 Close(ref childError);
 
-                job = Jb.Add(info.Process, memory);
+                job = Jb.Add(info.Process, memory, cpu);
                 input = File(parentInput, FileAccess.Write);
                 parentInput = IntPtr.Zero;
                 output = File(parentOutput, FileAccess.Read);
@@ -160,6 +173,7 @@ namespace Lea.Win
                 Close(ref childError);
                 if (attributes != IntPtr.Zero) { DeleteProcThreadAttributeList(attributes); Marshal.FreeHGlobal(attributes); }
                 if (handles != IntPtr.Zero) Marshal.FreeHGlobal(handles);
+                if (mitigation != IntPtr.Zero) Marshal.FreeHGlobal(mitigation);
                 if (low != IntPtr.Zero) LocalFree(low);
                 Close(ref restricted);
                 Close(ref source);
@@ -245,6 +259,14 @@ namespace Lea.Win
                 return enabled <= 1;
             }
             finally { Marshal.FreeHGlobal(data); }
+        }
+
+        private static uint Aslr(IntPtr process)
+        {
+            uint policy;
+            if (!GetProcessMitigationPolicy(process, 1, out policy, new UIntPtr(4)))
+                throw Error("Lea could not verify image-worker startup ASLR.");
+            return policy;
         }
 
         private static IntPtr StringSid(string value)
@@ -346,6 +368,8 @@ namespace Lea.Win
             IntPtr size, IntPtr previous, IntPtr returned);
         [DllImport("kernel32.dll")] private static extern void DeleteProcThreadAttributeList(IntPtr list);
         [DllImport("kernel32.dll", SetLastError = true)] private static extern uint ResumeThread(IntPtr thread);
+        [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool GetProcessMitigationPolicy(IntPtr process, int kind, out uint policy, UIntPtr length);
         [DllImport("kernel32.dll")] [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool TerminateProcess(IntPtr process, uint exitCode);
         [DllImport("kernel32.dll")] private static extern IntPtr LocalFree(IntPtr value);

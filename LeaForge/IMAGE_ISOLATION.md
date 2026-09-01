@@ -16,6 +16,11 @@ starts suspended, enters the Job before its primary thread resumes, applies
 decoder-safe process mitigations, and must acknowledge those guards before the
 host sends encoded image bytes. The Job also reports peak process memory.
 
+Milestone 73 / runtime 173 adds creation-time DEP, SEHOP, heap-corruption
+termination, forced-relocation ASLR, and bottom-up ASLR before the suspended
+process exists. Its Job now enforces a configurable hard CPU-rate cap and
+verifies the applied flags/rate before assigning and resuming the helper.
+
 ## Compact API
 
 ```csharp
@@ -30,6 +35,9 @@ bool restrictedToken = view.Irt;
 bool lowIntegrity = view.Ili;
 bool suspendedJobPrebind = view.Isp;
 bool inheritedHandleList = view.Ihl;
+bool startupAslr = view.Ias;
+bool cpuPolicy = view.Icp;
+int cpuRateBasisPoints = view.Icr;
 int mitigationMask = view.Img;
 long peakWorkerBytes = view.Ipk;
 ```
@@ -62,6 +70,13 @@ assignment completed while the new process's primary thread was suspended.
 `Ihl` confirms that `PROC_THREAD_ATTRIBUTE_HANDLE_LIST` limited inheritance to
 stdin, stdout, and stderr pipes.
 
+`Ias` confirms that Windows reports forced-relocation and bottom-up ASLR on the
+suspended child. Lea also requests high-entropy ASLR; the current deliberately
+small 32-bit helper cannot use that 64-bit-only mode. `Icp` confirms that the
+Job accepted and returned an enabled hard CPU cap. `Icr` configures that cap in
+basis points: it defaults to 2500 (25.00%) and clamps from 100 through 10000
+(1.00%-100.00%). A changed rate restarts the shared worker at the next decode.
+
 `Img` is the helper's mitigation handshake. Bit 1 is permanent strict-handle
 checking and bit 2 disables legacy extension points; both are required before
 admission. Bit 4 blocks remote/low-integrity executable images and prefers
@@ -78,20 +93,25 @@ cap plus shared reservation limit/current bytes.
 
 All Lea views share one reusable helper process and serialize decode requests
 through it. Reuse avoids starting a process for every image while keeping only
-one decoder process resident. A changed `Ie` path, helper arguments, or `Ih`
-limit restarts that shared helper.
+one decoder process resident. A changed `Ie` path, helper arguments, `Ih`
+memory limit, or `Icr` CPU rate restarts that shared helper.
 
 The host creates a primary token with maximum privileges disabled, verifies that
 no more than the traversal privilege remains enabled, and sets its mandatory
 label to low integrity. It creates three anonymous pipes and uses an extended
 startup handle list so no other inheritable host handle enters the child. The
-helper is created hidden and suspended with `CreateProcessAsUser`.
+same extended startup request enables DEP, SEHOP, heap-corruption termination,
+forced relocation, bottom-up ASLR, and architecture-supported high-entropy
+ASLR. The helper is created hidden and suspended with `CreateProcessAsUser`,
+and Windows' ASLR policy is queried before admission.
 
 Before `ResumeThread`, the host creates the Job, sets `ACTIVE_PROCESS`,
-`PROCESS_MEMORY`, `DIE_ON_UNHANDLED_EXCEPTION`, and `KILL_ON_JOB_CLOSE`, and
-assigns the suspended process. The one-process limit and the helper's child
-policy prevent child creation. Closing the Job kills a worker even when it is
-sleeping inside native code and cannot observe pipe EOF.
+`PROCESS_MEMORY`, `DIE_ON_UNHANDLED_EXCEPTION`, and `KILL_ON_JOB_CLOSE`, then
+sets and reads back `CPU_RATE_CONTROL_ENABLE | CPU_RATE_CONTROL_HARD_CAP` with
+the requested `Icr` rate. Only then does it assign the suspended process. The
+one-process limit and the helper's child policy prevent child creation. Closing
+the Job kills a worker even when it is sleeping inside native code and cannot
+observe pipe EOF.
 
 After resume, the helper applies permanent strict-handle and extension-point
 policies plus supported image-load/child policies, then writes its marker and
@@ -155,23 +175,24 @@ or third-party codec package is introduced.
 `Lea.Tests <root> --pics` covers PNG, JPEG, GIF, BMP, and ICO through a different
 PID, missing-helper failure, a forced two-second native stall killed by a 300 ms
 view budget, zero leaked reservation, clean restart, hostile preflight, shared
-memory admission, one-PID codec reuse, Job/cap aliases, cap clamping/restart,
-private/Job-peak sampling, live token integrity/privilege inspection, live Job
-membership, each mitigation policy, an invalid-handshake helper, network limits,
-retry, Stop, disposal, and successor loads. A child test host then blocks its
+memory admission, one-PID codec reuse, Job/cap aliases, memory/CPU cap
+clamping/restart, private/Job-peak sampling, live token integrity/privilege
+inspection, live Job membership, queried ASLR and CPU policies, each helper
+mitigation, an invalid-handshake helper, network limits, retry, Stop, disposal,
+and successor loads. A child test host then blocks its
 helper for 60 seconds, is terminated,
 and requires Job close to remove that exact helper PID within three seconds.
 
-The runtime 172 release run passes the full core and isolated editor suites, the
+The runtime 173 release run passes the full core and isolated editor suites, the
 compiled adapter smoke, 69 benchmark probes over 66 fixtures, all 42 Boot cases
 in one combined run, and all six actual EXE startup scenarios. The Boot `decode`
 case loads one valid image in the helper, rejects one over-axis PNG before
-admission, reports all 15 current guard bits and samples 8,540,160 private/Job
-peak bytes under the 192 MiB cap, verifies host cleanup/no MSHTML, and checks
-child-process exit.
+admission, reports startup ASLR, the 2500 CPU rate, all 15 current guard bits,
+and 8,556,544 private/Job-peak bytes under the 192 MiB cap, verifies host
+cleanup/no MSHTML, and checks child-process exit.
 
-The measured runtime files total 536.0 KiB with a 228.8 KiB GZip estimate. The
-report records 521.959 ms clean-process, 3.323 ms local-load, and 33.453 ms
+The measured runtime files total 538.5 KiB with a 229.7 KiB GZip estimate. The
+report records 499.587 ms clean-process, 3.231 ms local-load, and 32.724 ms
 layout/paint medians. These unpaired local samples are not speedup claims.
 
 ## Remaining Limits
@@ -179,8 +200,8 @@ layout/paint medians. These unpaired local samples are not speedup claims.
 The helper is privilege-stripped and low integrity, but it is not an AppContainer
 or complete operating-system sandbox. It retains the user's read identity and
 network credentials and does not yet have a capability-denied network token,
-custom object ACL, CPU-time/rate limit, or startup ASLR policy. The restricting-
-SID experiment was not retained because it prevented the .NET CLR from loading;
+custom object ACL, or combined host/helper memory ceiling. The restricting-SID
+experiment was not retained because it prevented the .NET CLR from loading;
 the token boundary here is disabled privileges plus mandatory low integrity.
 `Ipm/Ipk` cover the helper, while `It/Im` remain Lea estimates rather than a
 combined host-plus-helper memory budget.

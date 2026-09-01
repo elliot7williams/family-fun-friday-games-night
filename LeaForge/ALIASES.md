@@ -15,9 +15,10 @@ read and quick to write.
   and current failed entries. `Ie/Ii` expose the helper path/availability;
   `Iw/Ik` report its last PID and cancellation kills. `Ij/Ih/Ipm` report Job
   assignment, the hard worker-memory cap, and last sampled private bytes.
-  `Irt/Ili/Isp/Ihl/Img/Ipk` report the privilege-stripped token, low integrity,
-  suspended Job prebind, inherited-handle allowlist, mitigation mask, and Job
-  peak process bytes. See
+  `Irt/Ili/Isp/Ihl/Ias/Icp/Icr/Img/Ipk` report the privilege-stripped token, low
+  integrity, suspended Job prebind, inherited-handle allowlist, startup ASLR,
+  active CPU hard-cap policy, configurable CPU rate in basis points, mitigation
+  mask, and Job peak process bytes. See
   `PICTURE_LIMITS.md`, `IMAGE_PREFLIGHT.md`, and `IMAGE_ISOLATION.md`.
 - `V.Ce(code)` queries native field editing and `V.Ec(code)` runs it: `cp`, `cu`,
   `pa`, `sa`, `de`, `un`, and `re`. Commands are host-only, protect read-only and

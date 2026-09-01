@@ -71,6 +71,8 @@ namespace Lea.Win
         private int picLow;
         private int picSuspended;
         private int picHandleList;
+        private int picAslr;
+        private int picCpu;
         private int picMitigations;
         private long picWorkerMemory;
         private long picWorkerPeak;
@@ -221,6 +223,9 @@ namespace Lea.Win
         public bool Ili { get { return Interlocked.CompareExchange(ref picLow, 0, 0) != 0; } }
         public bool Isp { get { return Interlocked.CompareExchange(ref picSuspended, 0, 0) != 0; } }
         public bool Ihl { get { return Interlocked.CompareExchange(ref picHandleList, 0, 0) != 0; } }
+        public bool Ias { get { return Interlocked.CompareExchange(ref picAslr, 0, 0) != 0; } }
+        public bool Icp { get { return Interlocked.CompareExchange(ref picCpu, 0, 0) != 0; } }
+        public int Icr { get { return Di.C; } set { Di.C = value; } }
         public int Img { get { return Interlocked.CompareExchange(ref picMitigations, 0, 0); } }
         public long Ipk { get { return Interlocked.Read(ref picWorkerPeak); } }
         public int Hm { get { return e.Hm; } }
@@ -4673,7 +4678,7 @@ namespace Lea.Win
         private Task<Image> DecodePicture(byte[] data, CancellationToken token)
         {
             return Di.Rd(data, Ie, picWorkerArgs, token,
-                (process, bounded, restricted, low, suspended, handles, guards) =>
+                (process, bounded, restricted, low, suspended, handles, aslr, cpu, guards) =>
                 {
                     Interlocked.Increment(ref picNative);
                     Interlocked.Exchange(ref picWorker, process);
@@ -4682,6 +4687,8 @@ namespace Lea.Win
                     Interlocked.Exchange(ref picLow, low ? 1 : 0);
                     Interlocked.Exchange(ref picSuspended, suspended ? 1 : 0);
                     Interlocked.Exchange(ref picHandleList, handles ? 1 : 0);
+                    Interlocked.Exchange(ref picAslr, aslr ? 1 : 0);
+                    Interlocked.Exchange(ref picCpu, cpu);
                     Interlocked.Exchange(ref picMitigations, guards);
                 },
                 (memory, peak) =>

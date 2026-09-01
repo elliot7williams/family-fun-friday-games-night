@@ -11,14 +11,19 @@ namespace Lea.Win
         private const uint ProcessMemory = 0x00000100;
         private const uint DieOnException = 0x00000400;
         private const uint KillOnClose = 0x00002000;
+        private const uint CpuEnable = 0x00000001;
+        private const uint CpuHardCap = 0x00000004;
         private readonly object gate = new object();
         private IntPtr handle;
 
-        private Jb(IntPtr value) { handle = value; }
+        public int C { get; private set; }
 
-        public static Jb Add(IntPtr process, long memory)
+        private Jb(IntPtr value, int cpu) { handle = value; C = cpu; }
+
+        public static Jb Add(IntPtr process, long memory, int cpu)
         {
             if (process == IntPtr.Zero) throw new ArgumentException("Image-worker process handle is required.", "process");
+            if (cpu < 100 || cpu > 10000) throw new ArgumentOutOfRangeException("cpu");
             var value = CreateJobObject(IntPtr.Zero, null);
             if (value == IntPtr.Zero) throw Error("Lea could not create the image-worker job.");
             try
@@ -29,9 +34,17 @@ namespace Lea.Win
                 limits.ProcessMemoryLimit = new UIntPtr((ulong)memory);
                 if (!SetInformationJobObject(value, 9, ref limits, (uint)Marshal.SizeOf(typeof(ExtendedLimits))))
                     throw Error("Lea could not limit the image-worker job.");
+                var cpuLimit = new CpuLimits { ControlFlags = CpuEnable | CpuHardCap, CpuRate = (uint)cpu };
+                if (!SetCpuInformation(value, 15, ref cpuLimit, (uint)Marshal.SizeOf(typeof(CpuLimits))))
+                    throw Error("Lea could not limit image-worker CPU rate.");
+                var applied = new CpuLimits();
+                if (!QueryCpuInformation(value, 15, ref applied, (uint)Marshal.SizeOf(typeof(CpuLimits)), IntPtr.Zero))
+                    throw Error("Lea could not verify image-worker CPU rate.");
+                if ((applied.ControlFlags & (CpuEnable | CpuHardCap)) != (CpuEnable | CpuHardCap) || applied.CpuRate != (uint)cpu)
+                    throw new InvalidOperationException("Lea image-worker CPU rate was not applied.");
                 if (!AssignProcessToJobObject(value, process))
                     throw Error("Lea could not assign the image worker to its job.");
-                return new Jb(value);
+                return new Jb(value, cpu);
             }
             catch
             {
@@ -106,12 +119,23 @@ namespace Lea.Win
             public UIntPtr PeakJobMemoryUsed;
         }
 
+        [StructLayout(LayoutKind.Sequential)]
+        private struct CpuLimits
+        {
+            public uint ControlFlags;
+            public uint CpuRate;
+        }
+
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern IntPtr CreateJobObject(IntPtr attributes, string name);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool SetInformationJobObject(IntPtr job, int kind, ref ExtendedLimits limits, uint length);
+
+        [DllImport("kernel32.dll", EntryPoint = "SetInformationJobObject", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool SetCpuInformation(IntPtr job, int kind, ref CpuLimits limits, uint length);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -120,6 +144,11 @@ namespace Lea.Win
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool QueryInformationJobObject(IntPtr job, int kind, ref ExtendedLimits limits,
+            uint length, IntPtr returned);
+
+        [DllImport("kernel32.dll", EntryPoint = "QueryInformationJobObject", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool QueryCpuInformation(IntPtr job, int kind, ref CpuLimits limits,
             uint length, IntPtr returned);
 
         [DllImport("kernel32.dll")]

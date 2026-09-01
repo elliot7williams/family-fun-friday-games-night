@@ -26,10 +26,10 @@ request cleanup without MSHTML. See `LeaForge/CACHE_IDENTITY.md`.
 
 The `decode` case sends one valid and one over-axis PNG through a selected Lea
 tab. It checks `Ip/Im/It/In/If`,
-`Ie/Ii/Iw/Ik/Ij/Ih/Ipm/Irt/Ili/Isp/Ihl/Img/Ipk`, raw pixels, restricted
-low-integrity suspended launch, process mitigations, private/Job-peak memory,
-pre-native hostile rejection, retained form data, request cleanup, child exit,
-and no MSHTML. See
+`Ie/Ii/Iw/Ik/Ij/Ih/Ipm/Irt/Ili/Isp/Ihl/Ias/Icp/Icr/Img/Ipk`, raw pixels,
+restricted low-integrity suspended launch, startup ASLR, a configurable Job CPU
+hard cap, process mitigations, private/Job-peak memory, pre-native hostile
+rejection, retained form data, request cleanup, child exit, and no MSHTML. See
 `LeaForge/IMAGE_ISOLATION.md`.
 
 Navigation, Retry, and Reload now use request identity tracking. `V.Cn` rejects
@@ -67,21 +67,23 @@ GET retry through Reload without replaying POST. Failed first pages retain
 their URL/session entry; timer ticks and background successes do not hide the
 selected error. Split/test hosts display failures too. The `failures` and
 `failure-start` Boot cases bring the suite to 32. See `LeaForge/LOAD_FAILURES.md`.
-The intermittent recovery cast remains unresolved.
+The recovery case now pumps the real 30-second snapshot timer for 35 seconds;
+the guarded Lea/legacy dispatch completes without the reported cast dialog.
 
 Ordinary Lea tabs now install `V.Ng` for blocked sites, navigation filters,
 offline/locked state, and live tab ownership. Denied resume retains its saved
 target and placeholder. Expected denials no longer escape Back/Forward,
 unshown initial loads, or native keyboard/accessibility activation. The
 `policy` and `policy-start` Boot cases bring the suite to 30. See
-`LeaForge/NAVIGATION_POLICY.md`; the intermittent recovery cast remains open.
+`LeaForge/NAVIGATION_POLICY.md`; the recovery timer remains in every combined
+Boot release run as regression coverage.
 
 The seven Edit commands now route native Lea fields through `V.Ce/Ec`, with
 selection retention when opening menus, native one-level undo/redo, read-only
 and password protection, and safe paused/empty-tab behavior. Explicit legacy
 tabs keep their document editing path. The `edit` Boot case brought the suite
-to 28 cases. See `LeaForge/NATIVE_EDITING.md` for confirmed fixes and the still
-unidentified intermittent recovery cast.
+to 28 cases. See `LeaForge/NATIVE_EDITING.md` for the original cast paths and
+their guarded engine-aware dispatch.
 
 Normal first-window startup, toolbar New Tab, and Help now use Lea too. Startup
 selects accepted crash-recovery URLs, a saved Lea session, legacy saved URLs

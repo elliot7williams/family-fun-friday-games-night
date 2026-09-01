@@ -45,7 +45,7 @@ Dg/Dcl  diagnostics/clear request activity
    a privilege-stripped low-integrity decoder process assigned to its Job while suspended,
    a shared pass deadline, 32 MiB per-view retention, and a
    configurable 128 MiB process-wide Lea image budget through compact
-   `V.Ic/Ib/Ip/Im/It/In/If/Ie/Ii/Iw/Ik/Ij/Ih/Ipm/Irt/Ili/Isp/Ihl/Img/Ipk` aliases. Document/POST bodies and linked CSS now
+   `V.Ic/Ib/Ip/Im/It/In/If/Ie/Ii/Iw/Ik/Ij/Ih/Ipm/Irt/Ili/Isp/Ihl/Ias/Icp/Icr/Img/Ipk` aliases. Document/POST bodies and linked CSS now
    have 4 MiB/256 KiB wire/decoded bounds and shared I/O budgets; see
    `PICTURE_LIMITS.md` and `INPUT_LIMITS.md` for remaining resource work.
 5. Add cancellation and timeouts so a slow page cannot freeze the browser.

@@ -19,9 +19,12 @@ namespace Lea.Win
         private const int RequiredGuards = 3;
         private const long MinMemory = 64L * 1024 * 1024;
         private const long MaxMemory = 512L * 1024 * 1024;
+        private const int MinCpu = 100;
+        private const int MaxCpu = 10000;
         private static readonly SemaphoreSlim one = new SemaphoreSlim(1, 1);
         private static readonly object state = new object();
         private static long workerMemory = 192L * 1024 * 1024;
+        private static int workerCpu = 2500;
         private static Rp worker;
         private static BinaryWriter input;
         private static BinaryReader output;
@@ -31,6 +34,12 @@ namespace Lea.Win
         {
             get { return Interlocked.Read(ref workerMemory); }
             set { Interlocked.Exchange(ref workerMemory, Math.Max(MinMemory, Math.Min(MaxMemory, value))); }
+        }
+
+        public static int C
+        {
+            get { return Interlocked.CompareExchange(ref workerCpu, 0, 0); }
+            set { Interlocked.Exchange(ref workerCpu, Math.Max(MinCpu, Math.Min(MaxCpu, value))); }
         }
 
         public static string P(string configured)
@@ -49,14 +58,14 @@ namespace Lea.Win
         }
 
         public static Task<Image> Rd(byte[] data, string path, string args, CancellationToken token,
-            Action<int, bool, bool, bool, bool, bool, int> started, Action<long, long> measured, Action killed)
+            Action<int, bool, bool, bool, bool, bool, bool, int, int> started, Action<long, long> measured, Action killed)
         {
             return Task.Factory.StartNew(() => Read(data, path, args, token, started, measured, killed),
                 CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
         }
 
         private static Image Read(byte[] data, string path, string args, CancellationToken token,
-            Action<int, bool, bool, bool, bool, bool, int> started, Action<long, long> measured, Action killed)
+            Action<int, bool, bool, bool, bool, bool, bool, int, int> started, Action<long, long> measured, Action killed)
         {
             one.Wait(token);
             Rp current = null;
@@ -80,7 +89,7 @@ namespace Lea.Win
                     }
                     token.ThrowIfCancellationRequested();
                     if (started != null) started(current.P.Id, current.J != null, current.R, current.L,
-                        current.S, current.A, current.G);
+                        current.S, current.A, current.M, current.J == null ? 0 : current.J.C, current.G);
                     input.Write(data.Length);
                     input.Write(data);
                     input.Flush();
@@ -120,7 +129,8 @@ namespace Lea.Win
         {
             var full = P(path);
             var limit = L;
-            var key = full + "\0" + (args ?? "") + "\0" + limit;
+            var cpu = C;
+            var key = full + "\0" + (args ?? "") + "\0" + limit + "\0" + cpu;
             lock (state)
             {
                 if (worker != null)
@@ -135,7 +145,7 @@ namespace Lea.Win
                 BinaryReader reader = null;
                 try
                 {
-                    created = Rp.Open(full, args ?? "--pipe", Path.GetDirectoryName(full), limit);
+                    created = Rp.Open(full, args ?? "--pipe", Path.GetDirectoryName(full), limit, cpu);
                     writer = new BinaryWriter(created.I, Encoding.UTF8);
                     reader = new BinaryReader(created.O, Encoding.UTF8);
                     worker = created;

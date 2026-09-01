@@ -15,7 +15,7 @@ LeaForge is where we can grow the more full-featured browser.
 - bounded PNG/JPEG/GIF/BMP/ICO preflight, restricted low-integrity
   `Lea.Image.exe` decoding, suspended Job prebinding, explicit inherited pipes,
   process mitigations, shared `Ip/Im/It/In/If` accounting, compact
-  `Ie/Ii/Iw/Ik/Ij/Ih/Ipm/Irt/Ili/Isp/Ihl/Img/Ipk` diagnostics, and cross-view
+  `Ie/Ii/Iw/Ik/Ij/Ih/Ipm/Irt/Ili/Isp/Ihl/Ias/Icp/Icr/Img/Ipk` diagnostics, and cross-view
   memory admission; see `IMAGE_PREFLIGHT.md` and
   `IMAGE_ISOLATION.md`
 - exact URI-normalized cache identity with case-sensitive path/query resources,

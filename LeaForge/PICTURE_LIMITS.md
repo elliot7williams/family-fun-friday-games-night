@@ -19,6 +19,9 @@ Milestone 72 / runtime 172 creates it with stripped privileges and low integrity
 assigns the Job before resuming its primary thread, inherits only three pipe
 handles, requires a process-mitigation handshake, and samples Job peak memory.
 
+Milestone 73 / runtime 173 adds verified creation-time ASLR and a configurable
+Job CPU hard cap before the suspended worker can run.
+
 ## Compact API
 
 ```csharp
@@ -138,14 +141,15 @@ packaged separately; the installed runtime 157 EXE and root DLLs are unchanged.
 
 ## Remaining Work
 
-The 32 MiB figure remains the per-view retained limit. Runtime 172 preserves
+The 32 MiB figure remains the per-view retained limit. Runtime 173 preserves
 runtime 169's preflight/shared admission, keeps accepted codec work in the
 shared helper, and retains the separate `Ih` Job cap plus `Ipm` private-byte
-sample. `Ipk` now adds Job-reported peak process bytes; `Irt/Ili/Isp/Ihl/Img`
-describe the restricted launch and mitigation handshake;
+sample. `Ipk` adds Job-reported peak process bytes;
+`Irt/Ili/Isp/Ihl/Ias/Icp/Icr/Img` describe the restricted launch, startup ASLR,
+CPU cap, and mitigation handshake;
 see `IMAGE_PREFLIGHT.md` and `IMAGE_ISOLATION.md`. The estimates and sample are
 still not a complete host-plus-helper peak-memory measurement. AppContainer,
-network denial, CPU-rate limits, and measured combined-process budgets remain.
+network denial, and measured combined-process budgets remain.
 
 Milestone 67 adds separate bounded HTTP/file document and linked-CSS input;
 see `INPUT_LIMITS.md`. Images do not yet share the document cookie jar,

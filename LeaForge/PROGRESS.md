@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **72**
+Post-1.0 hardening milestones completed: **73**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,29 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added verified process-creation mitigations and a Job CPU hard cap to the
+  image-helper boundary. The extended startup policy requests DEP, SEHOP,
+  heap-corruption termination, forced relocation, bottom-up ASLR, and
+  architecture-supported high-entropy ASLR; Windows must report forced
+  relocation plus bottom-up randomization while the process is still suspended.
+  The Job must then accept and read back enabled hard-cap flags and the exact
+  CPU rate before assignment/resume. Compact `Ias/Icp/Icr` aliases report startup
+  ASLR, active CPU policy, and a configurable 100-10,000 basis-point rate; 2500
+  (25.00%) is the default, and a change restarts the shared worker. Live tests
+  query both ASLR and the Job's private CPU policy, clamp both rate bounds, and
+  prove a changed rate gets a new PID. Full picture/core/host and benchmark
+  suites pass, with 69 probes over 66 fixtures, all 42 Boot cases in one combined
+  run, and all six real EXE startup scenarios. The recovery case pumped the real
+  30-second timer without the old cast dialog. Firespider reports ASLR true,
+  CPU 2500, all 15 helper guard bits, and 8,556,544 private/Job-peak bytes.
+  Required runtime files total 538.5 KiB with a 229.7 KiB GZip estimate; medians
+  are 499.587 ms clean-process, 3.231 ms local-load, and 32.724 ms layout/paint,
+  not a speedup claim. The helper remains outside an AppContainer and retains
+  user read/network identity; capability-denied networking, custom ACLs, and a
+  combined host/helper memory ceiling remain open. Runtime 173 is isolated and
+  source-backed-up; installed runtime 157 remains unchanged. The scoped baseline
+  stays at 100%, not full-web compatibility.
 
 - Replaced the normal image-helper launch with a compact native restricted
   launcher. `CreateRestrictedToken(DISABLE_MAX_PRIVILEGE)` leaves at most the
@@ -757,11 +780,10 @@ modern web platform.
 
 ## Next gains
 
-- Investigate initial fragment placement and the still-unattributed recovery
-  cast with retained diagnostics.
+- Investigate initial fragment placement with retained diagnostics.
 - Add an AppContainer or capability-denied network boundary, custom object ACLs,
-  startup ASLR policy, CPU-rate limits, and combined host/helper peak sampling
-  without expanding the public integration surface.
+  and combined host/helper peak sampling without expanding the public
+  integration surface.
 - Add a native-safe non-empty visible-range bridge outside the .NET Framework
   managed provider array boundary; retain the stable empty fallback until range
   handles survive both in-process and external MTA clients.
