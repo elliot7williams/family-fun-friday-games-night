@@ -15,6 +15,10 @@ killable `Lea.Image.exe` helper and returns bounded raw pixels. See
 Milestone 71 / runtime 171 places that helper in a one-process Job Object with a
 64-512 MiB configurable hard memory ceiling and kill-on-close ownership.
 
+Milestone 72 / runtime 172 creates it with stripped privileges and low integrity,
+assigns the Job before resuming its primary thread, inherits only three pipe
+handles, requires a process-mitigation handshake, and samples Job peak memory.
+
 ## Compact API
 
 ```csharp
@@ -134,15 +138,17 @@ packaged separately; the installed runtime 157 EXE and root DLLs are unchanged.
 
 ## Remaining Work
 
-The 32 MiB figure remains the per-view retained limit. Runtime 171 preserves
+The 32 MiB figure remains the per-view retained limit. Runtime 172 preserves
 runtime 169's preflight/shared admission, keeps accepted codec work in the
-shared helper, and adds the separate `Ih` Job cap plus `Ipm` private-byte sample;
+shared helper, and retains the separate `Ih` Job cap plus `Ipm` private-byte
+sample. `Ipk` now adds Job-reported peak process bytes; `Irt/Ili/Isp/Ihl/Img`
+describe the restricted launch and mitigation handshake;
 see `IMAGE_PREFLIGHT.md` and `IMAGE_ISOLATION.md`. The estimates and sample are
-still not a complete host-plus-helper peak-memory measurement. Restricted-token
-sandboxing and measured whole-process budgets remain.
+still not a complete host-plus-helper peak-memory measurement. AppContainer,
+network denial, CPU-rate limits, and measured combined-process budgets remain.
 
 Milestone 67 adds separate bounded HTTP/file document and linked-CSS input;
 see `INPUT_LIMITS.md`. Images do not yet share the document cookie jar,
-HTTP validator cache, or request diagnostics. This milestone does not add
-sandboxing, CORS enforcement, new codecs, or complete modern-web compatibility.
+HTTP validator cache, or request diagnostics. This milestone does not add an
+AppContainer, network denial, CORS enforcement, new codecs, or complete modern-web compatibility.
 Compression and short aliases alone do not establish faster execution.

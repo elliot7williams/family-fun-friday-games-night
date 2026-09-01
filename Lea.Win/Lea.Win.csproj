@@ -43,6 +43,7 @@
     <Compile Include="Di.cs" />
     <Compile Include="Jb.cs" />
     <Compile Include="Pi.cs" />
+    <Compile Include="Rp.cs" />
     <Compile Include="V.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -28,6 +28,7 @@ namespace Lea.Tests
         {
             try
             {
+                if (args.Length == 1 && args[0] == "--image-fake") return UnhardenedImageWorker();
                 var root = Path.GetFullPath(args.Length > 0 ? args[0] : Directory.GetCurrentDirectory());
                 pages = Path.Combine(root, "LeaForge", "test-pages");
                 if (!Directory.Exists(pages)) pages = Path.Combine(root, "test-pages");
@@ -6917,12 +6918,15 @@ namespace Lea.Tests
             var job = typeof(V).Assembly.GetType("Lea.Win.Jb", false);
             Ok(isolated != null && typeof(V).GetProperty("Ii") != null && typeof(V).GetProperty("Ie") != null &&
                 typeof(V).GetProperty("Iw") != null && typeof(V).GetProperty("Ik") != null && job != null &&
-                typeof(V).GetProperty("Ij") != null && typeof(V).GetProperty("Ih") != null && typeof(V).GetProperty("Ipm") != null,
+                typeof(V).GetProperty("Ij") != null && typeof(V).GetProperty("Ih") != null && typeof(V).GetProperty("Ipm") != null &&
+                typeof(V).GetProperty("Irt") != null && typeof(V).GetProperty("Ili") != null && typeof(V).GetProperty("Isp") != null &&
+                typeof(V).GetProperty("Ihl") != null && typeof(V).GetProperty("Img") != null && typeof(V).GetProperty("Ipk") != null,
                 "job-bounded picture decoder and compact worker aliases are available");
             using (var aliases = new V())
                 Ok(aliases.Ip == 8 * 1024 * 1024 && aliases.Im == 128L * 1024 * 1024 && aliases.It == 0 &&
                     aliases.In == 0 && aliases.If == 0 && aliases.Ii && File.Exists(aliases.Ie) && aliases.Iw == 0 && aliases.Ik == 0 &&
-                    !aliases.Ij && aliases.Ih == 192L * 1024 * 1024 && aliases.Ipm == 0,
+                    !aliases.Ij && aliases.Ih == 192L * 1024 * 1024 && aliases.Ipm == 0 && !aliases.Irt && !aliases.Ili &&
+                    !aliases.Isp && !aliases.Ihl && aliases.Img == 0 && aliases.Ipk == 0,
                     "compact picture preflight, process-memory, decoder, and job aliases");
             var formats = new Dictionary<string, byte[]>
             {
@@ -6933,6 +6937,7 @@ namespace Lea.Tests
                 { "i", File.ReadAllBytes(Path.Combine(root, "assets", "lea.ico")) }
             };
             var formatWorkers = new HashSet<int>();
+            var securityChecked = false;
             foreach (var format in formats)
             {
                 var info = inspect.Invoke(null, new object[] { format.Value });
@@ -6947,9 +6952,17 @@ namespace Lea.Tests
                     work.GetAwaiter().GetResult();
                     Ok(view.Ic == 1 && view.If == 0 && view.In == 1 && view.It == view.Ib && view.Ib > 0 &&
                         view.Ii && view.Iw > 0 && view.Iw != System.Diagnostics.Process.GetCurrentProcess().Id && view.Ik == 0 &&
-                        view.Ij && view.Ih == 192L * 1024 * 1024 && view.Ipm > 0 && view.Ipm <= view.Ih,
-                        "preflighted job-bounded native format accounting " + format.Key);
+                        view.Ij && view.Ih == 192L * 1024 * 1024 && view.Ipm > 0 && view.Ipm <= view.Ih && view.Irt && view.Ili &&
+                        view.Isp && view.Ihl && (view.Img & 3) == 3 && view.Ipk > 0 && view.Ipk <= view.Ih,
+                        "preflighted restricted native format accounting " + format.Key + ": Ic=" + view.Ic + "; If=" + view.If +
+                        "; In=" + view.In + "; Iw=" + view.Iw + "; Ij=" + view.Ij + "; Irt=" + view.Irt + "; Ili=" + view.Ili +
+                        "; Isp=" + view.Isp + "; Ihl=" + view.Ihl + "; Img=" + view.Img + "; Ipm=" + view.Ipm + "; Ipk=" + view.Ipk);
                     formatWorkers.Add(view.Iw);
+                    if (!securityChecked)
+                    {
+                        CheckImageWorkerSecurity(view.Iw, view.Img);
+                        securityChecked = true;
+                    }
                 }
                 using (var released = new V()) Eq(0L, released.It, "format disposal releases process image bytes " + format.Key);
             }
@@ -6970,7 +6983,7 @@ namespace Lea.Tests
                     WaitFor(() => work.IsCompleted, "hostile image integration");
                     work.GetAwaiter().GetResult();
                     Ok(view.Ic == 0 && view.If == 1 && view.In == 0 && view.Iw == 0 && view.Ik == 0 && !view.Ij && view.Ipm == 0 &&
-                        view.It == 0 && view.Le == null,
+                        !view.Irt && !view.Ili && !view.Isp && !view.Ihl && view.Img == 0 && view.Ipk == 0 && view.It == 0 && view.Le == null,
                         "hostile image never reaches native decoder");
                 }
             }
@@ -6982,8 +6995,23 @@ namespace Lea.Tests
                 WaitFor(() => work.IsCompleted, "missing image worker");
                 work.GetAwaiter().GetResult();
                 Ok(view.Ic == 0 && view.If == 1 && view.In == 0 && view.Iw == 0 && view.Ik == 0 && !view.Ij && view.Ipm == 0 &&
-                    view.It == 0 && view.Le == null,
+                    !view.Irt && !view.Ili && !view.Isp && !view.Ihl && view.Img == 0 && view.Ipk == 0 && view.It == 0 && view.Le == null,
                     "missing decoder is a bounded nonfatal image failure");
+            }
+            using (var server = new PictureServer("plain", PicturePng(3, 2, Color.SeaGreen)))
+            using (var view = new V { Ie = Assembly.GetExecutingAssembly().Location, Tm = 1000 })
+            {
+                typeof(V).GetField("picWorkerArgs", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(view, "--image-fake");
+                var clock = Stopwatch.StartNew();
+                var work = view.GoA(server.U);
+                WaitFor(() => work.IsCompleted, "unhardened image worker rejection");
+                work.GetAwaiter().GetResult();
+                Ok(clock.ElapsedMilliseconds < 2000 && view.Ic == 0 && view.If == 1 && view.In == 0 && view.Iw == 0 &&
+                    !view.Ij && !view.Irt && !view.Ili && !view.Isp && !view.Ihl && view.Img == 0 && view.Ipm == 0 && view.Ipk == 0,
+                    "invalid hardening handshake rejects the worker before image admission: ms=" + clock.ElapsedMilliseconds +
+                    "; Ic=" + view.Ic + "; If=" + view.If + "; In=" + view.In + "; Iw=" + view.Iw + "; Ij=" + view.Ij +
+                    "; Irt=" + view.Irt + "; Ili=" + view.Ili + "; Isp=" + view.Isp + "; Ihl=" + view.Ihl +
+                    "; Img=" + view.Img + "; Ipm=" + view.Ipm + "; Ipk=" + view.Ipk);
             }
             using (var server = new PictureServer("plain", PicturePng(3, 2, Color.SeaGreen)))
             using (var view = new V { Tm = 300 })
@@ -6995,8 +7023,12 @@ namespace Lea.Tests
                 work.GetAwaiter().GetResult();
                 Ok(clock.ElapsedMilliseconds < 1800 && view.Ic == 0 && view.If == 1 && view.In == 1 &&
                     view.Iw > 0 && view.Iw != System.Diagnostics.Process.GetCurrentProcess().Id && view.Ik == 1 && view.Ij &&
-                    view.Ipm == 0 && view.It == 0 && view.Le == null,
-                    "decoder deadline kills the helper and releases its reservation");
+                    view.Irt && view.Ili && view.Isp && view.Ihl && (view.Img & 3) == 3 && view.Ipm == 0 && view.Ipk == 0 &&
+                    view.It == 0 && view.Le == null,
+                    "decoder deadline kills the helper and releases its reservation: ms=" + clock.ElapsedMilliseconds +
+                    "; Ic=" + view.Ic + "; If=" + view.If + "; In=" + view.In + "; Iw=" + view.Iw + "; Ik=" + view.Ik +
+                    "; Ij=" + view.Ij + "; Irt=" + view.Irt + "; Ili=" + view.Ili + "; Isp=" + view.Isp +
+                    "; Ihl=" + view.Ihl + "; Img=" + view.Img + "; Ipm=" + view.Ipm + "; Ipk=" + view.Ipk + "; It=" + view.It);
             }
             var restartWorker = 0;
             using (var server = new PictureServer("plain", PicturePng(3, 2, Color.MediumSeaGreen)))
@@ -7005,8 +7037,9 @@ namespace Lea.Tests
                 var work = view.GoA(server.U);
                 WaitFor(() => work.IsCompleted, "decoder restart after termination");
                 work.GetAwaiter().GetResult();
-                Ok(view.Ic == 1 && view.If == 0 && view.In == 1 && view.Iw > 0 && view.Ik == 0 && view.Ij &&
-                    view.Ipm > 0 && view.Ipm <= view.Ih && view.It == view.Ib,
+                Ok(view.Ic == 1 && view.If == 0 && view.In == 1 && view.Iw > 0 && view.Ik == 0 && view.Ij && view.Irt &&
+                    view.Ili && view.Isp && view.Ihl && (view.Img & 3) == 3 && view.Ipm > 0 && view.Ipm <= view.Ih &&
+                    view.Ipk > 0 && view.Ipk <= view.Ih && view.It == view.Ib,
                     "decoder restarts cleanly after a killed helper");
                 restartWorker = view.Iw;
             }
@@ -7024,8 +7057,9 @@ namespace Lea.Tests
                     var work = view.GoA(server.U);
                     WaitFor(() => work.IsCompleted, "decoder hard-limit restart");
                     work.GetAwaiter().GetResult();
-                    Ok(view.Ic == 1 && view.If == 0 && view.Ij && view.Ih == 160L * 1024 * 1024 &&
-                        view.Ipm > 0 && view.Ipm <= view.Ih && view.Iw > 0 && view.Iw != restartWorker,
+                    Ok(view.Ic == 1 && view.If == 0 && view.Ij && view.Ih == 160L * 1024 * 1024 && view.Irt && view.Ili &&
+                        view.Isp && view.Ihl && (view.Img & 3) == 3 && view.Ipm > 0 && view.Ipm <= view.Ih &&
+                        view.Ipk > 0 && view.Ipk <= view.Ih && view.Iw > 0 && view.Iw != restartWorker,
                         "changed hard limit starts a newly bounded helper");
                 }
                 finally { view.Ih = oldLimit; }
@@ -7244,7 +7278,7 @@ namespace Lea.Tests
                         Application.DoEvents();
                         Thread.Sleep(2);
                     }
-                    if (view.Iw == 0 || !view.Ij) return 2;
+                    if (view.Iw == 0 || !view.Ij || !view.Irt || !view.Ili || !view.Isp || !view.Ihl || (view.Img & 3) != 3) return 2;
                     Console.WriteLine("worker=" + view.Iw);
                     Console.Out.Flush();
                     Thread.Sleep(Timeout.Infinite);
@@ -7253,6 +7287,83 @@ namespace Lea.Tests
             }
             finally { if (File.Exists(page)) File.Delete(page); }
         }
+
+        private static int UnhardenedImageWorker()
+        {
+            using (var output = Console.OpenStandardOutput())
+            using (var writer = new BinaryWriter(output, Encoding.UTF8))
+            {
+                writer.Write(0x3241454c);
+                writer.Write(0);
+                writer.Flush();
+                Thread.Sleep(60000);
+            }
+            return 0;
+        }
+
+        private static void CheckImageWorkerSecurity(int processId, int guards)
+        {
+            using (var process = Process.GetProcessById(processId))
+            {
+                IntPtr token;
+                Ok(OpenProcessToken(process.Handle, 8, out token), "image worker token can be inspected");
+                try
+                {
+                    var privileges = NativeTokenInfo(token, 3);
+                    try
+                    {
+                        var count = Marshal.ReadInt32(privileges);
+                        var enabled = 0;
+                        for (var index = 0; index < count; index++)
+                            if ((Marshal.ReadInt32(privileges, 4 + index * 12 + 8) & 2) != 0) enabled++;
+                        Ok(enabled <= 1, "restricted worker token retains at most traversal privilege");
+                    }
+                    finally { Marshal.FreeHGlobal(privileges); }
+
+                    var integrity = NativeTokenInfo(token, 25);
+                    try
+                    {
+                        var sid = Marshal.PtrToStructure<NativeSidAttribute>(integrity).Sid;
+                        var count = Marshal.ReadByte(GetSidSubAuthorityCount(sid));
+                        Eq(4096, Marshal.ReadInt32(GetSidSubAuthority(sid, count - 1)), "worker token is low integrity");
+                    }
+                    finally { Marshal.FreeHGlobal(integrity); }
+                }
+                finally { CloseHandle(token); }
+
+                bool inJob;
+                Ok(IsProcessInJob(process.Handle, IntPtr.Zero, out inJob) && inJob, "worker is inside a Job after suspended launch");
+                Ok((guards & 3) == 3, "required worker mitigation handshake bits");
+                Eq(3U, Mitigation(process.Handle, 3) & 3U, "permanent strict-handle mitigation");
+                Eq(1U, Mitigation(process.Handle, 6) & 1U, "legacy extension-point mitigation");
+                if ((guards & 4) != 0) Eq(7U, Mitigation(process.Handle, 10) & 7U, "image-load mitigation");
+                if ((guards & 8) != 0) Eq(1U, Mitigation(process.Handle, 13) & 1U, "child-process mitigation");
+            }
+        }
+
+        private static IntPtr NativeTokenInfo(IntPtr token, int kind)
+        {
+            uint size;
+            GetTokenInformation(token, kind, IntPtr.Zero, 0, out size);
+            Ok(size > 0, "worker token data has a bounded size");
+            var data = Marshal.AllocHGlobal((int)size);
+            if (!GetTokenInformation(token, kind, data, size, out size))
+            {
+                Marshal.FreeHGlobal(data);
+                throw new InvalidOperationException("Could not read worker token data: " + Marshal.GetLastWin32Error());
+            }
+            return data;
+        }
+
+        private static uint Mitigation(IntPtr process, int kind)
+        {
+            uint policy;
+            Ok(GetProcessMitigationPolicy(process, kind, out policy, new UIntPtr(4)), "worker mitigation policy " + kind);
+            return policy;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct NativeSidAttribute { public IntPtr Sid; public uint Attributes; }
 
         private static void CheckImageJobExit(string root)
         {
@@ -7779,6 +7890,32 @@ namespace Lea.Tests
 
         [System.Runtime.InteropServices.DllImport("user32.dll", EntryPoint = "SendMessageW", ExactSpelling = true)]
         private static extern IntPtr NativeEdit(IntPtr window, int message, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("advapi32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool OpenProcessToken(IntPtr process, uint access, out IntPtr token);
+
+        [DllImport("advapi32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool GetTokenInformation(IntPtr token, int kind, IntPtr data, uint length, out uint needed);
+
+        [DllImport("advapi32.dll")]
+        private static extern IntPtr GetSidSubAuthorityCount(IntPtr sid);
+
+        [DllImport("advapi32.dll")]
+        private static extern IntPtr GetSidSubAuthority(IntPtr sid, int index);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool GetProcessMitigationPolicy(IntPtr process, int kind, out uint policy, UIntPtr length);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool IsProcessInJob(IntPtr process, IntPtr job, out bool result);
+
+        [DllImport("kernel32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool CloseHandle(IntPtr value);
 
         private static void CheckSheets(string root)
         {

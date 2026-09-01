@@ -25,9 +25,11 @@ only fragment variants, separates case-different navigation, and checks host
 request cleanup without MSHTML. See `LeaForge/CACHE_IDENTITY.md`.
 
 The `decode` case sends one valid and one over-axis PNG through a selected Lea
-tab. It checks `Ip/Im/It/In/If`, `Ie/Ii/Iw/Ik/Ij/Ih/Ipm`, raw pixels and
-private memory from a Job-bounded PID, pre-native hostile rejection, retained
-form data, request cleanup, child exit, and no MSHTML. See
+tab. It checks `Ip/Im/It/In/If`,
+`Ie/Ii/Iw/Ik/Ij/Ih/Ipm/Irt/Ili/Isp/Ihl/Img/Ipk`, raw pixels, restricted
+low-integrity suspended launch, process mitigations, private/Job-peak memory,
+pre-native hostile rejection, retained form data, request cleanup, child exit,
+and no MSHTML. See
 `LeaForge/IMAGE_ISOLATION.md`.
 
 Navigation, Retry, and Reload now use request identity tracking. `V.Cn` rejects

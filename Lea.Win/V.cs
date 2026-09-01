@@ -67,7 +67,13 @@ namespace Lea.Win
         private int picWorker;
         private int picKilled;
         private int picJob;
+        private int picRestricted;
+        private int picLow;
+        private int picSuspended;
+        private int picHandleList;
+        private int picMitigations;
         private long picWorkerMemory;
+        private long picWorkerPeak;
         private string picWorkerPath;
         private string picWorkerArgs = "--pipe";
         private WebRequest picRequest;
@@ -211,6 +217,12 @@ namespace Lea.Win
         public bool Ij { get { return Interlocked.CompareExchange(ref picJob, 0, 0) != 0; } }
         public long Ih { get { return Di.L; } set { Di.L = value; } }
         public long Ipm { get { return Interlocked.Read(ref picWorkerMemory); } }
+        public bool Irt { get { return Interlocked.CompareExchange(ref picRestricted, 0, 0) != 0; } }
+        public bool Ili { get { return Interlocked.CompareExchange(ref picLow, 0, 0) != 0; } }
+        public bool Isp { get { return Interlocked.CompareExchange(ref picSuspended, 0, 0) != 0; } }
+        public bool Ihl { get { return Interlocked.CompareExchange(ref picHandleList, 0, 0) != 0; } }
+        public int Img { get { return Interlocked.CompareExchange(ref picMitigations, 0, 0); } }
+        public long Ipk { get { return Interlocked.Read(ref picWorkerPeak); } }
         public int Hm { get { return e.Hm; } }
         public int Csm { get { return e.Csm; } }
         public int Ic { get { var count = 0; foreach (var item in pics.Values) if (item != null) count++; return count; } }
@@ -4661,13 +4673,22 @@ namespace Lea.Win
         private Task<Image> DecodePicture(byte[] data, CancellationToken token)
         {
             return Di.Rd(data, Ie, picWorkerArgs, token,
-                (process, bounded) =>
+                (process, bounded, restricted, low, suspended, handles, guards) =>
                 {
                     Interlocked.Increment(ref picNative);
                     Interlocked.Exchange(ref picWorker, process);
                     Interlocked.Exchange(ref picJob, bounded ? 1 : 0);
+                    Interlocked.Exchange(ref picRestricted, restricted ? 1 : 0);
+                    Interlocked.Exchange(ref picLow, low ? 1 : 0);
+                    Interlocked.Exchange(ref picSuspended, suspended ? 1 : 0);
+                    Interlocked.Exchange(ref picHandleList, handles ? 1 : 0);
+                    Interlocked.Exchange(ref picMitigations, guards);
                 },
-                memory => Interlocked.Exchange(ref picWorkerMemory, memory),
+                (memory, peak) =>
+                {
+                    Interlocked.Exchange(ref picWorkerMemory, memory);
+                    Interlocked.Exchange(ref picWorkerPeak, peak);
+                },
                 () => Interlocked.Increment(ref picKilled));
         }
 

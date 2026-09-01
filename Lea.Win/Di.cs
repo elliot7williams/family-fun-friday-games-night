@@ -15,13 +15,14 @@ namespace Lea.Win
     internal static class Di
     {
         private const int Magic = 0x3141454c;
+        private const int Hello = 0x3241454c;
+        private const int RequiredGuards = 3;
         private const long MinMemory = 64L * 1024 * 1024;
         private const long MaxMemory = 512L * 1024 * 1024;
         private static readonly SemaphoreSlim one = new SemaphoreSlim(1, 1);
         private static readonly object state = new object();
         private static long workerMemory = 192L * 1024 * 1024;
-        private static Process worker;
-        private static Jb job;
+        private static Rp worker;
         private static BinaryWriter input;
         private static BinaryReader output;
         private static string workerKey = "";
@@ -48,27 +49,38 @@ namespace Lea.Win
         }
 
         public static Task<Image> Rd(byte[] data, string path, string args, CancellationToken token,
-            Action<int, bool> started, Action<long> measured, Action killed)
+            Action<int, bool, bool, bool, bool, bool, int> started, Action<long, long> measured, Action killed)
         {
             return Task.Factory.StartNew(() => Read(data, path, args, token, started, measured, killed),
                 CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
         }
 
         private static Image Read(byte[] data, string path, string args, CancellationToken token,
-            Action<int, bool> started, Action<long> measured, Action killed)
+            Action<int, bool, bool, bool, bool, bool, int> started, Action<long, long> measured, Action killed)
         {
             one.Wait(token);
-            Process current = null;
+            Rp current = null;
             try
             {
                 token.ThrowIfCancellationRequested();
                 current = Open(path, args);
-                if (started != null) started(current.Id, true);
                 using (token.Register(() =>
                 {
                     if (Stop(current) && killed != null) killed();
                 }))
                 {
+                    if (!current.Ready)
+                    {
+                        var hello = output.ReadInt32();
+                        var guards = output.ReadInt32();
+                        if (hello != Hello || (guards & RequiredGuards) != RequiredGuards)
+                            throw new InvalidDataException("Image worker hardening handshake is invalid.");
+                        current.G = guards;
+                        current.Ready = true;
+                    }
+                    token.ThrowIfCancellationRequested();
+                    if (started != null) started(current.P.Id, current.J != null, current.R, current.L,
+                        current.S, current.A, current.G);
                     input.Write(data.Length);
                     input.Write(data);
                     input.Flush();
@@ -91,7 +103,7 @@ namespace Lea.Win
                         throw new InvalidDataException("Image worker dimensions exceed Lea's protocol limit.");
                     var bytes = Bytes(output, lengthPixels);
                     token.ThrowIfCancellationRequested();
-                    if (measured != null) measured(Private(current));
+                    if (measured != null) measured(Private(current.P), current.J == null ? 0 : current.J.Peak);
                     token.ThrowIfCancellationRequested();
                     return Bitmap(width, height, bytes);
                 }
@@ -104,7 +116,7 @@ namespace Lea.Win
             finally { one.Release(); }
         }
 
-        private static Process Open(string path, string args)
+        private static Rp Open(string path, string args)
         {
             var full = P(path);
             var limit = L;
@@ -113,34 +125,20 @@ namespace Lea.Win
             {
                 if (worker != null)
                 {
-                    try { if (!worker.HasExited && workerKey == key && job != null) return worker; }
+                    try { if (!worker.P.HasExited && workerKey == key && worker.J != null) return worker; }
                     catch (InvalidOperationException) { }
                     Drop();
                 }
                 if (!File.Exists(full)) throw new FileNotFoundException("Lea image worker was not found.", full);
-                var start = new ProcessStartInfo(full, args ?? "--pipe")
-                {
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    WindowStyle = ProcessWindowStyle.Hidden,
-                    RedirectStandardInput = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    WorkingDirectory = Path.GetDirectoryName(full)
-                };
-                Process created = null;
-                Jb bounded = null;
+                Rp created = null;
                 BinaryWriter writer = null;
                 BinaryReader reader = null;
                 try
                 {
-                    created = Process.Start(start);
-                    if (created == null) throw new InvalidOperationException("Lea image worker did not start.");
-                    bounded = Jb.Add(created, limit);
-                    writer = new BinaryWriter(created.StandardInput.BaseStream, Encoding.UTF8);
-                    reader = new BinaryReader(created.StandardOutput.BaseStream, Encoding.UTF8);
+                    created = Rp.Open(full, args ?? "--pipe", Path.GetDirectoryName(full), limit);
+                    writer = new BinaryWriter(created.I, Encoding.UTF8);
+                    reader = new BinaryReader(created.O, Encoding.UTF8);
                     worker = created;
-                    job = bounded;
                     input = writer;
                     output = reader;
                     workerKey = key;
@@ -150,11 +148,6 @@ namespace Lea.Win
                 {
                     if (writer != null) try { writer.Dispose(); } catch (IOException) { }
                     if (reader != null) try { reader.Dispose(); } catch (IOException) { }
-                    if (bounded != null) bounded.Dispose();
-                    else if (created != null)
-                        try { if (!created.HasExited) created.Kill(); }
-                        catch (InvalidOperationException) { }
-                        catch (System.ComponentModel.Win32Exception) { }
                     if (created != null) created.Dispose();
                     throw;
                 }
@@ -168,7 +161,7 @@ namespace Lea.Win
             catch (System.ComponentModel.Win32Exception) { return 0; }
         }
 
-        private static bool Stop(Process expected)
+        private static bool Stop(Rp expected)
         {
             lock (state)
             {
@@ -176,8 +169,8 @@ namespace Lea.Win
                 var running = false;
                 try
                 {
-                    running = !worker.HasExited;
-                    if (running) worker.Kill();
+                    running = !worker.P.HasExited;
+                    if (running) worker.P.Kill();
                 }
                 catch (InvalidOperationException) { }
                 catch (System.ComponentModel.Win32Exception) { }
@@ -190,11 +183,9 @@ namespace Lea.Win
         {
             if (input != null) try { input.Dispose(); } catch (IOException) { }
             if (output != null) try { output.Dispose(); } catch (IOException) { }
-            if (job != null) job.Dispose();
             if (worker != null) worker.Dispose();
             input = null;
             output = null;
-            job = null;
             worker = null;
             workerKey = "";
         }

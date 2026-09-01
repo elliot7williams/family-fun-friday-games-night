@@ -4,7 +4,9 @@ Milestone 69 / runtime 169 introduced bounded picture structure validation and
 process-wide image reservations. Milestone 70 / runtime 170 moves accepted
 native decoding into `Lea.Image.exe`; milestone 71 / runtime 171 adds a hard
 Job Object process-memory ceiling. See `IMAGE_ISOLATION.md` for the process,
-Job, and pipe contract.
+Job, and pipe contract. Milestone 72 / runtime 172 adds a privilege-stripped
+low-integrity token, suspended Job assignment, an inherited-handle allowlist,
+process mitigations, and Job peak-memory reporting before image admission.
 
 ## Compact API
 
@@ -91,12 +93,12 @@ cleanup, helper exit with the host, no UI exception, and no MSHTML.
 accepted isolated decode, a pre-native rejection, paint, form retention, and
 disposal.
 
-The runtime 171 release run passes the focused picture suite, full core suite,
+The runtime 172 release run passes the focused picture suite, full core suite,
 isolated editor suite, compiled host suite, 69 benchmark probes over 66 fixtures,
 all 42 Boot cases in one combined run, and all six actual executable startup
-scenarios. Required runtime files total 525.5 KiB and have a 224.0 KiB GZip
-estimate. The report records 477.096 ms clean-process, 3.156 ms local-load, and
-31.199 ms layout/paint medians. These unpaired local samples are not speedup
+scenarios. Required runtime files total 536.0 KiB and have a 228.8 KiB GZip
+estimate. The report records 521.959 ms clean-process, 3.323 ms local-load, and
+33.453 ms layout/paint medians. These unpaired local samples are not speedup
 claims.
 
 ## Remaining Limits
@@ -105,8 +107,10 @@ claims.
 copies. They are not total-process, helper private-byte, GDI heap,
 source-byte-array, or GPU-memory measurements. `Ih` separately enforces the
 helper's Job memory cap and `Ipm` samples private bytes after a successful
-response. The helper does not yet have a restricted token, AppContainer, or
-process mitigation policy.
+response. `Ipk` reports the Job's peak process bytes. The helper now has a
+privilege-stripped low-integrity token and required process mitigations, but it
+does not yet have an AppContainer, network-denial capability set, custom object
+ACL, CPU-rate limit, or combined host-plus-helper peak measurement.
 
 Images still do not share the document cookie jar, validator cache, or request
 diagnostics. Lea does not add new codecs, CORS, multi-frame playback, or full

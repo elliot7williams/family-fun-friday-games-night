@@ -588,7 +588,12 @@ and icon data URLs decode under a 4 MB limit into the existing 24-entry image
 cache. Accepted codecs run in the shared killable `Lea.Image.exe` process and
 return bounded raw pixels; `Ie/Ii/Iw/Ik` expose helper path, availability, last
 PID, and cancellation kills. `Ij/Ih/Ipm` expose mandatory Job assignment, its
-64-512 MiB hard process-memory cap, and last sampled private bytes. CSS
+64-512 MiB hard process-memory cap, and last sampled private bytes.
+`Irt/Ili/Isp/Ihl` confirm a privilege-stripped token, low integrity, assignment
+while the primary thread is suspended, and a three-pipe inherited-handle
+allowlist. `Img` is the helper mitigation handshake mask and `Ipk` is the Job's
+peak process-memory value. The helper must acknowledge required guards before
+the host sends encoded bytes. CSS
 width/height wins over HTML dimensions; otherwise `width` and
 `height` attributes feed the same constrained layout path.
 

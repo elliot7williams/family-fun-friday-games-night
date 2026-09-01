@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **71**
+Post-1.0 hardening milestones completed: **72**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,34 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Replaced the normal image-helper launch with a compact native restricted
+  launcher. `CreateRestrictedToken(DISABLE_MAX_PRIVILEGE)` leaves at most the
+  traversal privilege enabled; the token is set to low integrity RID 4096.
+  Extended startup inherits only stdin/stdout/stderr, creates the helper hidden
+  and suspended, assigns the existing one-process/memory Job, and resumes only
+  after that boundary is active. The helper then permanently enables strict-
+  handle checks, disables legacy extension points, enables supported image-load
+  and child-process policies, and sends a required handshake before receiving
+  encoded bytes. Compact `Irt/Ili/Isp/Ihl/Img/Ipk` aliases expose each launch
+  guard and Job-reported peak process bytes. Live tests inspect the actual child
+  token, integrity SID, Job membership, and mitigation policies; an unguarded
+  fake worker fails before native admission. Five codecs still reuse one PID,
+  timeout/restart/cap and abrupt-host cleanup pass, and the real Firespider host
+  reports all 15 current guard bits with 8,540,160 private/Job-peak bytes under
+  its 192 MiB cap. Full picture/core/editor/WinForms, compiled adapter, and
+  benchmark suites pass, with 69 probes over 66 fixtures, all 42 Boot cases in
+  one combined run, and six real EXE startup scenarios. Those windows stayed
+  responsive; the 35-second recovery timer produced no startup cast dialog,
+  orphan helper, or MSHTML. Required runtime files total 536.0 KiB with a 228.8
+  KiB GZip estimate; medians are 521.959 ms clean-process, 3.323 ms local-load,
+  and 33.453 ms layout/paint, not a speedup claim. The helper is not yet an
+  AppContainer and retains user read/network identity; custom ACLs, network
+  denial, startup ASLR, CPU-rate limits, combined host/helper peak memory,
+  image cookie/cache sharing, and full modern-web behavior remain open. See
+  `IMAGE_ISOLATION.md`. Runtime 172 is isolated and source-backed-up; installed
+  runtime 157 remains unchanged. The scoped baseline stays at 100%, not full-web
+  compatibility.
 
 - Added mandatory Windows Job Object ownership around `Lea.Image.exe` before
   request bytes are sent. The Job permits one process, enforces a configurable
@@ -731,9 +759,9 @@ modern web platform.
 
 - Investigate initial fragment placement and the still-unattributed recovery
   cast with retained diagnostics.
-- Add a restricted token or AppContainer boundary, process mitigations, and
-  peak private-byte sampling around `Lea.Image.exe` without expanding the
-  public integration surface.
+- Add an AppContainer or capability-denied network boundary, custom object ACLs,
+  startup ASLR policy, CPU-rate limits, and combined host/helper peak sampling
+  without expanding the public integration surface.
 - Add a native-safe non-empty visible-range bridge outside the .NET Framework
   managed provider array boundary; retain the stable empty fallback until range
   handles survive both in-process and external MTA clients.

@@ -12,6 +12,7 @@ namespace Lea.Image
     internal static class Program
     {
         private const int Magic = 0x3141454c;
+        private const int Hello = 0x3241454c;
         private const int InputLimit = 4 * 1024 * 1024;
         private const int AxisLimit = 8192;
         private const long PixelLimit = 8L * 1024 * 1024;
@@ -30,6 +31,10 @@ namespace Lea.Image
                 using (var reader = new BinaryReader(input, Encoding.UTF8))
                 using (var writer = new BinaryWriter(output, Encoding.UTF8))
                 {
+                    var guards = Mg.Apply();
+                    writer.Write(Hello);
+                    writer.Write(guards);
+                    writer.Flush();
                     while (true)
                     {
                         int length;

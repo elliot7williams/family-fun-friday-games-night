@@ -1,8 +1,6 @@
 using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Threading;
 
 namespace Lea.Win
 {
@@ -13,13 +11,14 @@ namespace Lea.Win
         private const uint ProcessMemory = 0x00000100;
         private const uint DieOnException = 0x00000400;
         private const uint KillOnClose = 0x00002000;
+        private readonly object gate = new object();
         private IntPtr handle;
 
         private Jb(IntPtr value) { handle = value; }
 
-        public static Jb Add(Process process, long memory)
+        public static Jb Add(IntPtr process, long memory)
         {
-            if (process == null) throw new ArgumentNullException("process");
+            if (process == IntPtr.Zero) throw new ArgumentException("Image-worker process handle is required.", "process");
             var value = CreateJobObject(IntPtr.Zero, null);
             if (value == IntPtr.Zero) throw Error("Lea could not create the image-worker job.");
             try
@@ -30,7 +29,7 @@ namespace Lea.Win
                 limits.ProcessMemoryLimit = new UIntPtr((ulong)memory);
                 if (!SetInformationJobObject(value, 9, ref limits, (uint)Marshal.SizeOf(typeof(ExtendedLimits))))
                     throw Error("Lea could not limit the image-worker job.");
-                if (!AssignProcessToJobObject(value, process.Handle))
+                if (!AssignProcessToJobObject(value, process))
                     throw Error("Lea could not assign the image worker to its job.");
                 return new Jb(value);
             }
@@ -41,10 +40,29 @@ namespace Lea.Win
             }
         }
 
+        public long Peak
+        {
+            get
+            {
+                lock (gate)
+                {
+                    if (handle == IntPtr.Zero) return 0;
+                    var limits = new ExtendedLimits();
+                    if (!QueryInformationJobObject(handle, 9, ref limits,
+                        (uint)Marshal.SizeOf(typeof(ExtendedLimits)), IntPtr.Zero)) return 0;
+                    return unchecked((long)limits.PeakProcessMemoryUsed.ToUInt64());
+                }
+            }
+        }
+
         public void Dispose()
         {
-            var value = Interlocked.Exchange(ref handle, IntPtr.Zero);
-            if (value != IntPtr.Zero) CloseHandle(value);
+            lock (gate)
+            {
+                var value = handle;
+                handle = IntPtr.Zero;
+                if (value != IntPtr.Zero) CloseHandle(value);
+            }
         }
 
         private static Win32Exception Error(string message)
@@ -98,6 +116,11 @@ namespace Lea.Win
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool AssignProcessToJobObject(IntPtr job, IntPtr process);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool QueryInformationJobObject(IntPtr job, int kind, ref ExtendedLimits limits,
+            uint length, IntPtr returned);
 
         [DllImport("kernel32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]

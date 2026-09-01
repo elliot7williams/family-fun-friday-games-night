@@ -2,13 +2,19 @@
 
 Milestone 70 / runtime 170 moves accepted native picture codecs out of the
 browser process. Lea still performs bounded structural preflight in `Lea.Win`,
-then sends the accepted source to the required 7 KiB `Lea.Image.exe` helper.
+then sends the accepted source to the required 8 KiB `Lea.Image.exe` helper.
 The helper returns validated raw pixels rather than another encoded image.
 
 Milestone 71 / runtime 171 assigns that helper to an unnamed Windows Job Object
 before sending request bytes. The Job allows one process, enforces a configurable
 hard process-memory ceiling, exits on an unhandled exception, and kills the
 helper when the browser loses or closes the Job handle.
+
+Milestone 72 / runtime 172 creates the helper with a privilege-stripped token at
+low mandatory integrity. It inherits only the three protocol/error pipe handles,
+starts suspended, enters the Job before its primary thread resumes, applies
+decoder-safe process mitigations, and must acknowledge those guards before the
+host sends encoded image bytes. The Job also reports peak process memory.
 
 ## Compact API
 
@@ -20,6 +26,12 @@ int killedWorkers = view.Ik;
 bool jobBound = view.Ij;
 long hardWorkerBytes = view.Ih;
 long lastPrivateBytes = view.Ipm;
+bool restrictedToken = view.Irt;
+bool lowIntegrity = view.Ili;
+bool suspendedJobPrebind = view.Isp;
+bool inheritedHandleList = view.Ihl;
+int mitigationMask = view.Img;
+long peakWorkerBytes = view.Ipk;
 ```
 
 `Ie` is the image-helper executable path. It defaults to `Lea.Image.exe` beside
@@ -43,6 +55,20 @@ on the next admitted decode and causes the shared worker to restart under a new
 Job. `Ipm` is the private-byte value sampled from the last successful worker
 response; it is diagnostic rather than a peak or reservation counter.
 
+`Irt` confirms that `CreateRestrictedToken(DISABLE_MAX_PRIVILEGE)` produced the
+launch token and inspection found at most Windows' traversal privilege enabled.
+`Ili` confirms low mandatory integrity RID 4096. `Isp` confirms that Job
+assignment completed while the new process's primary thread was suspended.
+`Ihl` confirms that `PROC_THREAD_ATTRIBUTE_HANDLE_LIST` limited inheritance to
+stdin, stdout, and stderr pipes.
+
+`Img` is the helper's mitigation handshake. Bit 1 is permanent strict-handle
+checking and bit 2 disables legacy extension points; both are required before
+admission. Bit 4 blocks remote/low-integrity executable images and prefers
+System32, and bit 8 blocks child-process creation when those Windows 10 policies
+are available. `Ipk` is `PeakProcessMemoryUsed` queried from the Job after the
+last successful response; unlike `Ipm`, it tracks the worker lifetime peak.
+
 Existing image aliases retain their meanings. `In` counts admitted native
 decode requests, `If` counts current failed-image sentinels, `Ic/Ib` count
 retained bitmaps and estimated bytes, and `Ip/Im/It` expose the per-image pixel
@@ -55,21 +81,34 @@ through it. Reuse avoids starting a process for every image while keeping only
 one decoder process resident. A changed `Ie` path, helper arguments, or `Ih`
 limit restarts that shared helper.
 
-The host starts the helper with hidden redirected pipes, creates the Job, sets
-`ACTIVE_PROCESS`, `PROCESS_MEMORY`, `DIE_ON_UNHANDLED_EXCEPTION`, and
-`KILL_ON_JOB_CLOSE` limits, and assigns the process before writing the first
-request length. The one-process limit also prevents the decoder from creating a
-child process inside its inherited Job. Closing the handle kills a worker even
-when it is sleeping inside a native request and cannot observe pipe EOF.
+The host creates a primary token with maximum privileges disabled, verifies that
+no more than the traversal privilege remains enabled, and sets its mandatory
+label to low integrity. It creates three anonymous pipes and uses an extended
+startup handle list so no other inheritable host handle enters the child. The
+helper is created hidden and suspended with `CreateProcessAsUser`.
+
+Before `ResumeThread`, the host creates the Job, sets `ACTIVE_PROCESS`,
+`PROCESS_MEMORY`, `DIE_ON_UNHANDLED_EXCEPTION`, and `KILL_ON_JOB_CLOSE`, and
+assigns the suspended process. The one-process limit and the helper's child
+policy prevent child creation. Closing the Job kills a worker even when it is
+sleeping inside native code and cannot observe pipe EOF.
+
+After resume, the helper applies permanent strict-handle and extension-point
+policies plus supported image-load/child policies, then writes its marker and
+mask. The host requires the marker and base mask before writing the first source
+length. A missing/old/unhardened helper is killed and becomes a normal nonfatal
+failed image without receiving encoded bytes.
 
 The private little-endian pipe protocol is deliberately small and bounded:
 
-1. The host writes a 32-bit source length and at most 4 MiB of preflighted data.
-2. The helper decodes with GDI+, validates an 8,192-axis/8,388,608-pixel ceiling,
+1. The helper writes a startup marker and mitigation mask; the host validates
+   the required bits before image admission.
+2. The host writes a 32-bit source length and at most 4 MiB of preflighted data.
+3. The helper decodes with GDI+, validates an 8,192-axis/8,388,608-pixel ceiling,
    and paints the first image frame into 32-bit ARGB pixels.
-3. The helper writes a fixed marker, status, width, height, exact byte count,
+4. The helper writes a fixed marker, status, width, height, exact byte count,
    and at most 32 MiB of raw pixels.
-4. `Lea.Win` validates every response field before allocation, copies rows into
+5. `Lea.Win` validates every response field before allocation, copies rows into
    a new bitmap, and applies the existing preflight, per-view, and shared-memory
    checks before retention.
 
@@ -117,28 +156,34 @@ or third-party codec package is introduced.
 PID, missing-helper failure, a forced two-second native stall killed by a 300 ms
 view budget, zero leaked reservation, clean restart, hostile preflight, shared
 memory admission, one-PID codec reuse, Job/cap aliases, cap clamping/restart,
-private-byte sampling, network limits, retry, Stop, disposal, and successor
-loads. A child test host then blocks its helper for 60 seconds, is terminated,
+private/Job-peak sampling, live token integrity/privilege inspection, live Job
+membership, each mitigation policy, an invalid-handshake helper, network limits,
+retry, Stop, disposal, and successor loads. A child test host then blocks its
+helper for 60 seconds, is terminated,
 and requires Job close to remove that exact helper PID within three seconds.
 
-The runtime 171 release run passes the full core and isolated editor suites, the
+The runtime 172 release run passes the full core and isolated editor suites, the
 compiled adapter smoke, 69 benchmark probes over 66 fixtures, all 42 Boot cases
 in one combined run, and all six actual EXE startup scenarios. The Boot `decode`
 case loads one valid image in the helper, rejects one over-axis PNG before
-admission, samples 8,466,432 private bytes under the 192 MiB cap, verifies host
-cleanup/no MSHTML, and checks child-process exit.
+admission, reports all 15 current guard bits and samples 8,540,160 private/Job
+peak bytes under the 192 MiB cap, verifies host cleanup/no MSHTML, and checks
+child-process exit.
 
-The measured runtime files total 525.5 KiB with a 224.0 KiB GZip estimate. The
-report records 477.096 ms clean-process, 3.156 ms local-load, and 31.199 ms
+The measured runtime files total 536.0 KiB with a 228.8 KiB GZip estimate. The
+report records 521.959 ms clean-process, 3.323 ms local-load, and 33.453 ms
 layout/paint medians. These unpaired local samples are not speedup claims.
 
 ## Remaining Limits
 
-The helper is Job-bounded but is not a restricted-token or AppContainer sandbox.
-It still runs at the host user's integrity level and does not yet apply a custom
-ACL, process mitigation policy, CPU-time/rate limit, or network-denial token.
-`Ipm` is one post-response sample rather than peak private bytes. `It/Im` remain
-Lea estimates rather than total host-plus-helper memory.
+The helper is privilege-stripped and low integrity, but it is not an AppContainer
+or complete operating-system sandbox. It retains the user's read identity and
+network credentials and does not yet have a capability-denied network token,
+custom object ACL, CPU-time/rate limit, or startup ASLR policy. The restricting-
+SID experiment was not retained because it prevented the .NET CLR from loading;
+the token boundary here is disabled privileges plus mandatory low integrity.
+`Ipm/Ipk` cover the helper, while `It/Im` remain Lea estimates rather than a
+combined host-plus-helper memory budget.
 
 One shared worker deliberately serializes native decodes. Image requests still
 do not share the document cookie jar, validator cache, or request diagnostics.
