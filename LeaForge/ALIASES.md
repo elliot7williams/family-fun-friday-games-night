@@ -12,7 +12,9 @@ read and quick to write.
   presentation; callback successors retain their own state. See `LOAD_LIFECYCLE.md`.
 - `V.Ic/Ib` report retained bitmaps/bytes. `Ip` is the per-image pixel ceiling;
   `Im/It` configure/report shared Lea image bytes; `In/If` report native attempts
-  and current failed entries. See `PICTURE_LIMITS.md` and `IMAGE_PREFLIGHT.md`.
+  and current failed entries. `Ie/Ii` expose the helper path/availability;
+  `Iw/Ik` report its last PID and cancellation kills. See `PICTURE_LIMITS.md`,
+  `IMAGE_PREFLIGHT.md`, and `IMAGE_ISOLATION.md`.
 - `V.Ce(code)` queries native field editing and `V.Ec(code)` runs it: `cp`, `cu`,
   `pa`, `sa`, `de`, `un`, and `re`. Commands are host-only, protect read-only and
   password fields, and retain a menu-blurred editor. See `NATIVE_EDITING.md`.

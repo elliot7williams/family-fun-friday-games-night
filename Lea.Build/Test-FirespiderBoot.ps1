@@ -37,6 +37,18 @@ foreach ($name in $cases) {
         if (@($output | Where-Object { $_.StartsWith("PASS Lea boot: $name;") }).Count -ne 1) {
             throw "Firespider boot case exited without completing: $name"
         }
+        if ($name -eq 'decode') {
+            $workerLine = @($output | Where-Object { $_ -match '; worker=(\d+)$' })
+            if ($workerLine.Count -ne 1) { throw 'Image decode case did not report one worker process' }
+            $workerId = [int][regex]::Match($workerLine[0], 'worker=(\d+)$').Groups[1].Value
+            $until = [DateTime]::UtcNow.AddSeconds(3)
+            do {
+                $child = Get-Process -Id $workerId -ErrorAction SilentlyContinue
+                if (-not $child -or $child.ProcessName -ne 'Lea.Image') { break }
+                Start-Sleep -Milliseconds 25
+            } while ([DateTime]::UtcNow -lt $until)
+            if ($child -and $child.ProcessName -eq 'Lea.Image') { throw "Image worker remained after host exit: $workerId" }
+        }
     }
     finally {
         $env:LEA_FIRESPIDER_PROFILE = $oldProfile

@@ -525,20 +525,25 @@ namespace Lea.Firespider
             settings["cfEnabled"] = "";
             var tabs = Member<TabControl>(form, "k");
             using (var page = new LoopbackSite())
+            using (var valid = new LoopbackSite { Body = ValidPng(), ContentType = "image/png" })
             using (var picture = new LoopbackSite { Body = OversizedPng(), ContentType = "image/png" })
             {
-                page.Html = "<html><head><title>Lea Image Preflight</title></head><body><input id='field' value='Retained preflight field'><img src='" + picture.Url + "' alt='Rejected oversized image'></body></html>";
+                page.Html = "<html><head><title>Lea Image Isolation</title></head><body><input id='field' value='Retained preflight field'><img src='" +
+                    valid.Url + "' alt='Decoded image'><img src='" + picture.Url + "' alt='Rejected oversized image'></body></html>";
                 V view = null;
+                var worker = 0;
                 try
                 {
                     view = (V)Call(form, "qleaNew", page.Url);
-                    Wait(() => picture.Hits == 1, "preflight picture request");
+                    Wait(() => valid.Hits == 1 && picture.Hits == 1, "isolated picture requests");
                     WaitLea(tabs);
-                    Check(view.T == "Lea Image Preflight" && view.At.Fs[0].V == "Retained preflight field",
+                    worker = view.Iw;
+                    Check(view.T == "Lea Image Isolation" && view.At.Fs[0].V == "Retained preflight field",
                         "image preflight lost host page data");
-                    Check(view.Ip == 8 * 1024 * 1024 && view.Im == 128L * 1024 * 1024 && view.It == 0 &&
-                        view.Ic == 0 && view.If == 1 && view.In == 0 && view.Cn && !view.Busy && view.Le == null,
-                        "host image preflight aliases or native admission changed");
+                    Check(view.Ip == 8 * 1024 * 1024 && view.Im == 128L * 1024 * 1024 && view.It == view.Ib && view.Ib == 4 &&
+                        view.Ii && File.Exists(view.Ie) && view.Ic == 1 && view.If == 1 && view.In == 1 && worker > 0 &&
+                        worker != Process.GetCurrentProcess().Id && view.Ik == 0 && view.Cn && !view.Busy && view.Le == null,
+                        "host image isolation aliases, decode, or preflight admission changed");
                     Call(form, "qleaTick", form, EventArgs.Empty);
                     Check(Member<IDictionary>(form, "qleaLoads").Count == 0 && Member<IDictionary>(form, "qleaPending").Count == 0,
                         "image preflight left host request ownership behind");
@@ -547,13 +552,18 @@ namespace Lea.Firespider
                 }
                 finally { if (view != null && !view.IsDisposed) Call(form, "qleaClose", (TabPage)view.Parent); }
                 if (view != null) Check(view.It == 0, "closing preflight tab leaked process image bytes");
+                Console.WriteLine("PASS image decode: helper process pixels, bounded header preflight, compact aliases, host cleanup, and no MSHTML; worker=" + worker);
             }
-            Console.WriteLine("PASS image decode: bounded header preflight, compact aliases, zero native admission, host cleanup, and no MSHTML");
+        }
+
+        private static byte[] ValidPng()
+        {
+            return Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXYxDP9v0PAAM7Ac+IRop4AAAAAElFTkSuQmCC");
         }
 
         private static byte[] OversizedPng()
         {
-            var data = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXYxDP9v0PAAM7Ac+IRop4AAAAAElFTkSuQmCC");
+            var data = ValidPng();
             data[16] = 0;
             data[17] = 0;
             data[18] = 0x20;
@@ -2532,11 +2542,13 @@ namespace Lea.Firespider
         private sealed class LoopbackSite : IDisposable
         {
             private readonly TcpListener listener = new TcpListener(IPAddress.Loopback, 0);
+            private readonly object clientGate = new object();
             private readonly Thread worker;
             private volatile bool stopped;
             private Exception error;
             private readonly int firstDelay;
             private int hits;
+            private TcpClient activeClient;
             public volatile int DelayMs;
             public volatile int Status = 200;
             public volatile bool SetCookie;
@@ -2561,9 +2573,13 @@ namespace Lea.Firespider
                 try
                 {
                     for (var request = 0; request < 128 && !stopped; request++)
+                    {
+                        while (!stopped && !listener.Pending()) Thread.Sleep(5);
+                        if (stopped) break;
                         using (var client = listener.AcceptTcpClient())
                         using (var stream = client.GetStream())
                         {
+                            lock (clientGate) activeClient = client;
                             stream.ReadTimeout = 3000;
                             var end = 0;
                             for (var bytes = 0; bytes < 16384 && end != 0x0d0a0d0a; bytes++)
@@ -2587,6 +2603,7 @@ namespace Lea.Firespider
                             }
                             catch (IOException) { if (request != 0 || firstDelay == 0) throw; }
                         }
+                    }
                 }
                 catch (Exception failure) { if (!stopped) error = failure; }
             }
@@ -2596,6 +2613,7 @@ namespace Lea.Firespider
                 stopped = true;
                 Release.Set();
                 listener.Stop();
+                lock (clientGate) if (activeClient != null) activeClient.Close();
                 Check(worker.Join(4000), "loopback server shutdown");
                 Release.Dispose();
                 Check(error == null, "loopback server: " + error);

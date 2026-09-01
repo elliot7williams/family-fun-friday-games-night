@@ -8,6 +8,10 @@ browser or a new package dependency.
 Milestone 69 / runtime 169 adds bounded format/dimension preflight, worker-thread
 native decoding, and process-wide Lea image admission. See `IMAGE_PREFLIGHT.md`.
 
+Milestone 70 / runtime 170 moves native codec parsing into the required,
+killable `Lea.Image.exe` helper and returns bounded raw pixels. See
+`IMAGE_ISOLATION.md`.
+
 ## Compact API
 
 ```csharp
@@ -56,9 +60,9 @@ Before making the retained bitmap copy, Lea rejects dimensions above 8,192 on
 either axis, more than 8,388,608 pixels, or a copy that would exceed the view's
 32 MiB retained pixel budget. A 3,840 by 2,160 bitmap fits if the budget is free.
 
-The source stream stays alive through image decoding and copying, as required
-by [Image.FromStream](https://learn.microsoft.com/en-us/dotnet/api/system.drawing.image.fromstream?view=net-5.0).
-The decoded source and stream are then disposed; only the copied bitmap is held.
+The helper keeps its source stream alive through `Image.FromStream`, then sends
+validated 32-bit pixels to the host. The encoded source and native decoder stay
+outside Firespider; only the bounded copied bitmap is retained in the host.
 
 Only referenced cache entries survive a page transition or a subsequent picture
 pass. Repeated references share one image. URL path/query/Base64 case is preserved
@@ -127,11 +131,11 @@ packaged separately; the installed runtime 157 EXE and root DLLs are unchanged.
 
 ## Remaining Work
 
-The 32 MiB figure remains the per-view retained limit. Runtime 169 inspects
-dimensions before GDI+, runs native decode on a worker, and adds shared estimated
-image-byte admission; see `IMAGE_PREFLIGHT.md`. That estimate is not a complete
-process/private-byte guarantee, and in-process native work cannot be terminated.
-Killable helper-process codecs and measured whole-process budgets remain future work.
+The 32 MiB figure remains the per-view retained limit. Runtime 170 preserves
+runtime 169's preflight/shared admission and moves accepted codec work to a
+killable shared helper; see `IMAGE_PREFLIGHT.md` and `IMAGE_ISOLATION.md`.
+The estimate is still not a complete host-plus-helper private-byte guarantee.
+Restricted-token/Job Object sandboxing and measured whole-process budgets remain.
 
 Milestone 67 adds separate bounded HTTP/file document and linked-CSS input;
 see `INPUT_LIMITS.md`. Images do not yet share the document cookie jar,

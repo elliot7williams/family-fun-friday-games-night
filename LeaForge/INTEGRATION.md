@@ -28,12 +28,14 @@ FirespiderSplit.vb
 Lea/FirespiderLea.targets
 Lea/Lea.Engine.dll
 Lea/Lea.Win.dll
+Lea/Lea.Image.exe
 Lea/start.html
 ```
 
 Import `Lea/FirespiderLea.targets` after applying the matching host patches. It
-adds both VB source files and the Lea/framework references; do not separately
-add duplicate Compile items for those files. Keep the DLLs from the same build.
+adds both VB source files and the Lea/framework references, and copies the
+required image helper beside the browser EXE; do not separately add duplicate
+Compile items for those files. Keep all three runtime files from the same build.
 
 ## Development reference
 
@@ -582,7 +584,9 @@ missing, oversized, unsupported-media, and non-CSS links are skipped safely.
 Images accept `src`, compact `srcset` width/density candidates, and direct
 screen-compatible `<picture><source>` fallbacks. Base64 PNG, JPEG, GIF, BMP,
 and icon data URLs decode under a 4 MB limit into the existing 24-entry image
-cache. CSS width/height wins over HTML dimensions; otherwise `width` and
+cache. Accepted codecs run in the shared killable `Lea.Image.exe` process and
+return bounded raw pixels; `Ie/Ii/Iw/Ik` expose helper path, availability, last
+PID, and cancellation kills. CSS width/height wins over HTML dimensions; otherwise `width` and
 `height` attributes feed the same constrained layout path.
 
 Blocks and tables support lightweight `position:relative`, `position:absolute`,

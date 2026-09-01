@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **69**
+Post-1.0 hardening milestones completed: **70**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,26 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Moved accepted PNG/JPEG/GIF/BMP/ICO native parsing out of Firespider into the
+  required 7 KiB `Lea.Image.exe` helper. All views share one reusable serialized
+  worker; the compact `Ie/Ii/Iw/Ik` aliases expose its path, availability, last
+  PID, and cancellation kills. The bounded pipe returns validated raw 32-bit
+  pixels, missing/malformed helpers remain nonfatal, and a deadline, Stop,
+  replacement, or disposal can kill exact native work and restart cleanly.
+  Full picture, core, isolated editor, compiled host, and benchmark suites pass,
+  with 69 probes across 66 fixtures, all 42 Boot cases in one combined run, and
+  six actual EXE launch scenarios. Those windows stayed responsive; no startup
+  error dialog, orphan image helper, or MSHTML was observed, including deferred
+  runtime resume. Required runtime files total 521.5 KiB with a 222.2 KiB GZip
+  estimate; current medians are 486.317 ms for a clean diagnostic process,
+  3.299 ms for local fixture loads, and 33.184 ms for layout/paint, not a speedup
+  claim. Restricted-token/Job/AppContainer isolation, measured whole-process
+  memory, image cookie/cache sharing, and full modern-web behavior remain open.
+  Earlier intermittent fragment and recovery-cast observations remain
+  unconfirmed. See `IMAGE_ISOLATION.md`. Runtime 170 is isolated and
+  source-backed-up; installed runtime 157 remains unchanged. The scoped baseline
+  stays at 100%, not full-web compatibility.
 
 - Added bounded PNG/JPEG/GIF/BMP/ICO structural preflight before GDI+, moved
   validation/copying to a worker task, and added atomic process-wide Lea image
@@ -683,8 +703,10 @@ modern web platform.
 
 ## Next gains
 
-- Investigate the intermittent editor/clipboard assertions, initial fragment
-  placement, and still-unattributed recovery cast with retained diagnostics.
+- Investigate initial fragment placement and the still-unattributed recovery
+  cast with retained diagnostics.
+- Add a restricted-token or Job Object boundary and measured private-byte cap
+  around `Lea.Image.exe` without expanding the public integration surface.
 - Add a native-safe non-empty visible-range bridge outside the .NET Framework
   managed provider array boundary; retain the stable empty fallback until range
   handles survive both in-process and external MTA clients.

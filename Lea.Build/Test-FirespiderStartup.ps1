@@ -28,6 +28,8 @@ public static class LeaStartupControl {
 $rootPath = (Resolve-Path -LiteralPath $Root).Path
 $exe = Join-Path $rootPath 'Firespider Internet 19.exe'
 if (-not (Test-Path -LiteralPath $exe)) { throw "Missing browser: $exe" }
+$imageWorker = Join-Path $rootPath 'Lea.Image.exe'
+if (-not (Test-Path -LiteralPath $imageWorker)) { throw "Missing image worker: $imageWorker" }
 $map = New-Object System.Configuration.ExeConfigurationFileMap
 $map.ExeConfigFilename = "$exe.config"
 $config = [System.Configuration.ConfigurationManager]::OpenMappedExeConfiguration($map, [System.Configuration.ConfigurationUserLevel]::None)
@@ -52,7 +54,7 @@ foreach ($case in $cases) {
             # A fresh executable path isolates these default settings from the user's profile.
             $runtime = Join-Path ([IO.Path]::GetTempPath()) ("lea-startup-runtime-$([Guid]::NewGuid().ToString('N'))")
             New-Item -ItemType Directory -Path $runtime | Out-Null
-            foreach ($name in @('Firespider Internet 19.exe', 'Firespider Internet 19.exe.config', 'Lea.Engine.dll', 'Lea.Win.dll')) {
+            foreach ($name in @('Firespider Internet 19.exe', 'Firespider Internet 19.exe.config', 'Lea.Engine.dll', 'Lea.Win.dll', 'Lea.Image.exe')) {
                 Copy-Item -LiteralPath (Join-Path $rootPath $name) -Destination $runtime
             }
             $exe = Join-Path $runtime 'Firespider Internet 19.exe'

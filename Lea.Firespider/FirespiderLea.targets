@@ -20,4 +20,8 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <Target Name="CopyLeaImageWorker" AfterTargets="Build">
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)Lea.Image.exe"
+          DestinationFiles="$(TargetDir)Lea.Image.exe" SkipUnchangedFiles="true" />
+  </Target>
 </Project>

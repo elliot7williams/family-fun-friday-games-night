@@ -65,7 +65,7 @@ namespace Lea.Bench
 
         private static int StartupOnly(string root)
         {
-            var path = Path.Combine(root, "LeaForge", "test-pages", "index.html");
+            var path = Path.Combine(Pages(root), "index.html");
             return new E().Go(path).St == 200 ? 0 : 1;
         }
 
@@ -103,7 +103,7 @@ namespace Lea.Bench
 
         private static IList<string> FixturePaths(string root)
         {
-            var folder = Path.Combine(root, "LeaForge", "test-pages");
+            var folder = Pages(root);
             var names = new[]
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
@@ -210,7 +210,7 @@ namespace Lea.Bench
 
         private static IList<Probe> RunProbes(string root)
         {
-            var folder = Path.Combine(root, "LeaForge", "test-pages");
+            var folder = Pages(root);
             var probes = new List<Probe>();
             AddProbe(probes, "HTML tree and recovery", delegate
             {
@@ -1918,11 +1918,13 @@ namespace Lea.Bench
                     work.GetAwaiter().GetResult();
                     using (var image = Draw(view)) Need(ColoredSamples(image) > 0, "image preflight fixture is blank");
                     Need(view.Ip == 8388608 && view.Im == 128L * 1024 * 1024 && view.Ic == 1 && view.If == 1 &&
-                        view.In == 1 && view.Ib == 4 && view.It == 4 && view.At.Fs[0].V == "Retained preflight data",
-                        "image preflight aliases, native admission, or retained accounting changed");
+                        view.In == 1 && view.Ib == 4 && view.It == 4 && view.Ii && File.Exists(view.Ie) &&
+                        view.Iw > 0 && view.Iw != System.Diagnostics.Process.GetCurrentProcess().Id && view.Ik == 0 &&
+                        view.At.Fs[0].V == "Retained preflight data",
+                        "image isolation aliases, worker admission, or retained accounting changed");
                 }
                 using (var released = NewView()) Need(released.It == 0, "image preflight fixture leaked process reservation");
-                return "Pi format/dimension preflight, Ip/Im/It/In/If aliases, one native worker decode, one pre-native rejection, retained fields, paint, and disposal";
+                return "Pi preflight, Ie/Ii/Iw/Ik worker aliases, one isolated native decode, one pre-native rejection, retained fields, paint, and disposal";
             });
             AddProbe(probes, "Bounded document input", delegate
             {
@@ -2175,7 +2177,7 @@ namespace Lea.Bench
             builder.AppendLine("| Layout + bitmap paint p95 | " + P95(render.Times).ToString("0.000") + " ms |");
             builder.AppendLine("| Retained managed memory | " + Kb(memory.Bytes) + " KB for " + memory.Pages + " loaded pages |");
             builder.AppendLine("| Retained managed memory per page | " + Kb(memory.Pages == 0 ? 0 : memory.Bytes / memory.Pages) + " KB |");
-            builder.AppendLine("| Engine runtime DLLs | " + Kb(runtimeBytes) + " KB |");
+            builder.AppendLine("| Engine runtime files | " + Kb(runtimeBytes) + " KB |");
             builder.AppendLine("| Engine runtime GZip estimate | " + Kb(gzipBytes) + " KB (" + Ratio(gzipBytes, runtimeBytes) + ") |");
             builder.AppendLine();
             builder.AppendLine("## Fixture Loads");
@@ -2230,7 +2232,7 @@ namespace Lea.Bench
             foreach (var artifact in artifacts)
                 builder.AppendLine("| `" + artifact.Name + "` | " + artifact.Bytes + " | " + Kb(artifact.Bytes) + " KB |");
             builder.AppendLine();
-            builder.AppendLine("The engine runtime size is `Lea.Engine.dll` plus `Lea.Win.dll`. Test and report executables are listed separately and are not required when embedding Lea in Firespider.");
+            builder.AppendLine("The engine runtime size is `Lea.Engine.dll`, `Lea.Win.dll`, and the required `Lea.Image.exe` decoder helper. Test and report executables are listed separately and are not required when embedding Lea in Firespider.");
             builder.AppendLine();
             builder.AppendLine("## Re-run");
             builder.AppendLine();
@@ -2246,16 +2248,19 @@ namespace Lea.Bench
         {
             var enginePath = Path.Combine(root, "Lea.Engine", "bin", "Release", "Lea.Engine.dll");
             var winPath = Path.Combine(root, "Lea.Win", "bin", "Release", "Lea.Win.dll");
+            var imagePath = Path.Combine(root, "Lea.Image", "bin", "Release", "Lea.Image.exe");
             var winTestPath = Path.Combine(root, "Lea.Win.Test", "bin", "Release", "Lea.Win.Test.exe");
             var benchPath = Path.Combine(root, "Lea.Bench", "bin", "Release", "Lea.Bench.exe");
             if (!File.Exists(enginePath)) enginePath = Path.Combine(root, "Lea.Engine.dll");
             if (!File.Exists(winPath)) winPath = Path.Combine(root, "Lea.Win.dll");
+            if (!File.Exists(imagePath)) imagePath = Path.Combine(root, "Lea.Image.exe");
             if (!File.Exists(winTestPath)) winTestPath = Path.Combine(root, "Lea.Win.Test.exe");
             if (!File.Exists(benchPath)) benchPath = Path.Combine(root, "Lea.Bench.exe");
             var candidates = new List<Artifact>
             {
                 MakeArtifact("Lea.Engine.dll", enginePath, true),
                 MakeArtifact("Lea.Win.dll", winPath, true),
+                MakeArtifact("Lea.Image.exe", imagePath, true),
                 MakeArtifact("Lea.Win.Test.exe", winTestPath, false),
                 MakeArtifact("Lea.Bench.exe", benchPath, false)
             };
@@ -2462,10 +2467,17 @@ namespace Lea.Bench
                 if (File.Exists(Path.Combine(directory.FullName, "Lea.sln")) || (
                     File.Exists(Path.Combine(directory.FullName, "Lea.Engine.dll")) &&
                     File.Exists(Path.Combine(directory.FullName, "Lea.Win.dll")) &&
-                    Directory.Exists(Path.Combine(directory.FullName, "LeaForge", "test-pages")))) return directory.FullName;
+                    (Directory.Exists(Path.Combine(directory.FullName, "test-pages")) ||
+                    Directory.Exists(Path.Combine(directory.FullName, "LeaForge", "test-pages"))))) return directory.FullName;
                 directory = directory.Parent;
             }
             throw new DirectoryNotFoundException("Could not find a Lea source or runtime root. Pass it with -r.");
+        }
+
+        private static string Pages(string root)
+        {
+            var source = Path.Combine(root, "LeaForge", "test-pages");
+            return Directory.Exists(source) ? source : Path.Combine(root, "test-pages");
         }
 
         private static string F(double[] values) { return Median(values).ToString("0.000"); }

@@ -42,4 +42,8 @@
     <Compile Include="Program.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="CopyLeaImageWorker" AfterTargets="Build">
+    <Copy SourceFiles="..\Lea.Image\bin\$(Configuration)\Lea.Image.exe"
+          DestinationFiles="$(TargetDir)Lea.Image.exe" SkipUnchangedFiles="true" />
+  </Target>
 </Project>

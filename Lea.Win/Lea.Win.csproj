@@ -29,14 +29,24 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Lea.Image\Lea.Image.csproj">
+      <Project>{A4D0B8B2-3B79-4DA6-A5D6-000000000006}</Project>
+      <Name>Lea.Image</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
     <ProjectReference Include="..\Lea.Engine\Lea.Engine.csproj">
       <Project>{A4D0B8B2-3B79-4DA6-A5D6-000000000001}</Project>
       <Name>Lea.Engine</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Di.cs" />
     <Compile Include="Pi.cs" />
     <Compile Include="V.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="CopyLeaImageWorker" AfterTargets="Build">
+    <Copy SourceFiles="..\Lea.Image\bin\$(Configuration)\Lea.Image.exe"
+          DestinationFiles="$(TargetDir)Lea.Image.exe" SkipUnchangedFiles="true" />
+  </Target>
 </Project>

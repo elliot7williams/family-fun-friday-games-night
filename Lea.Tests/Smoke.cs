@@ -19,12 +19,16 @@ namespace Lea.Tests
 {
     internal static class Smoke
     {
+        private static string pages;
+
         [STAThread]
         private static int Main(string[] args)
         {
             try
             {
                 var root = Path.GetFullPath(args.Length > 0 ? args[0] : Directory.GetCurrentDirectory());
+                pages = Path.Combine(root, "LeaForge", "test-pages");
+                if (!Directory.Exists(pages)) pages = Path.Combine(root, "test-pages");
                 if (args.Length > 1 && args[1] == "--clip") { CheckClipboardContention(root); return 0; }
                 if (args.Length > 1 && args[1] == "--paste") { CheckPasteText(root); return 0; }
                 if (args.Length > 1 && args[1] == "--fragment") { CheckFragmentStartup(root); return 0; }
@@ -67,7 +71,7 @@ namespace Lea.Tests
                     Eq(before, events, "disposed view emits no late callbacks");
                     disposingView.Dispose();
                 }
-                var forms = Path.Combine(root, "LeaForge", "test-pages", "forms.html");
+                var forms = Path.Combine(pages, "forms.html");
                 var engine = new E();
                 var page = engine.Go(forms);
                 Eq(15000, engine.Tm, "default request timeout milliseconds");
@@ -89,7 +93,7 @@ namespace Lea.Tests
                 Ok(page.Fs[3].Os[2].Ds, "disabled option");
                 Ok(page.Fs[4].C && page.Fs[5].C && !page.Fs[6].C, "choice defaults");
 
-                var validationPath = Path.Combine(root, "LeaForge", "test-pages", "form-validation.html");
+                var validationPath = Path.Combine(pages, "form-validation.html");
                 var validationPage = engine.Go(validationPath);
                 Eq(12, validationPage.Fs.Count, "validation field count");
                 Eq("search,email,url,number,date,checkbox,radio,radio,select,submit,text,submit", Kinds(validationPage), "validation field kinds");
@@ -104,7 +108,7 @@ namespace Lea.Tests
                 Ok(validationPage.Fs[0].Ok && validationPage.Fs[0].Vm.Length == 0, "initial validation state");
                 Eq("#176b4d", validationPage.Fs[0].S.Bc, "initial valid pseudo selector");
 
-                var widgetsPath = Path.Combine(root, "LeaForge", "test-pages", "form-widgets.html");
+                var widgetsPath = Path.Combine(pages, "form-widgets.html");
                 var widgetsPage = engine.Go(widgetsPath);
                 Eq(10, widgetsPage.Fs.Count, "richer widget field count");
                 Eq("file,range,color,time,month,week,datetime-local,email,reset,submit", Kinds(widgetsPage), "richer widget kinds");
@@ -117,7 +121,7 @@ namespace Lea.Tests
                 Eq("#176b4d", widgetsPage.Fs[2].V, "color initial value");
                 Ok(widgetsPage.Fs[7].Mu, "multiple email alias");
 
-                var tablePage = engine.Go(Path.Combine(root, "LeaForge", "test-pages", "tables.html"));
+                var tablePage = engine.Go(Path.Combine(pages, "tables.html"));
                 Eq(3, tablePage.Bs.Count, "table page blocks");
                 Eq("table", tablePage.Bs[1].K, "table block kind");
                 var table = tablePage.Bs[1].Tb;
@@ -140,7 +144,7 @@ namespace Lea.Tests
                 Eq(1, table.Rs[1].Cs[0].S.Bt, "cell CSS border");
                 Eq(6, table.Rs[1].Cs[0].S.Pl, "cell CSS padding");
 
-                var externalPath = Path.Combine(root, "LeaForge", "test-pages", "external.html");
+                var externalPath = Path.Combine(pages, "external.html");
                 var externalPage = engine.Go(externalPath);
                 Eq("#edf7f2", externalPage.S.Bg, "external body background");
                 Eq(3, externalPage.Bs.Count, "external CSS hidden block");
@@ -149,9 +153,9 @@ namespace Lea.Tests
                 Eq("#7e22ce", externalPage.Bs[1].S.F, "later inline stylesheet order");
                 Ok(externalPage.Bs[1].S.B, "external inherited bold");
                 Eq("#a13b18", externalPage.Bs[2].S.F, "external class color");
-                Eq("Lea External CSS", new E().GoA(externalPath).GetAwaiter().GetResult().T, "async local external CSS");
+                Eq("Lea External CSS", Complete(new E().GoA(externalPath), "async local external CSS").T, "async local external CSS");
 
-                var basePath = Path.Combine(root, "LeaForge", "test-pages", "base-url.html");
+                var basePath = Path.Combine(pages, "base-url.html");
                 var basePage = engine.Go(basePath);
                 var responseUrl = new Uri(basePath);
                 var expectedBase = new Uri(responseUrl, "../");
@@ -164,11 +168,11 @@ namespace Lea.Tests
                 Eq(new Uri(expectedBase, "../assets/lea.ico"), BlockById(basePage, "base-image").U, "base URL image target");
                 Eq(new Uri(expectedBase, "test-pages/form-result.html"), FieldById(basePage, "base-submit").U, "base URL form target");
                 Eq(new Uri(expectedBase, "test-pages/download-sample.txt"), basePage.Ls[1].U, "base URL download target");
-                var asyncBasePage = new E().GoA(basePath).GetAwaiter().GetResult();
+                var asyncBasePage = Complete(new E().GoA(basePath), "async base page");
                 Eq(expectedBase, asyncBasePage.Bu, "async document base URL");
                 Eq("#edf7f2", asyncBasePage.S.Bg, "async base URL external stylesheet");
 
-                var scriptPath = Path.Combine(root, "LeaForge", "test-pages", "script-bridge.html");
+                var scriptPath = Path.Combine(pages, "script-bridge.html");
                 var scriptEngine = new E();
                 var scriptPage = scriptEngine.Go(scriptPath);
                 Eq("Lea Script Bridge", scriptPage.T, "script title assignment");
@@ -180,7 +184,7 @@ namespace Lea.Tests
                 Eq("#164e3f", scriptPage.S.F, "short foreground command");
                 Eq(20, scriptPage.S.Fs, "short font-size command");
                 Eq(3, scriptPage.Bs.Count, "script nodes stay out of page blocks");
-                Eq("Lea Script Bridge", new E().GoA(scriptPath).GetAwaiter().GetResult().T, "async page scripts");
+                Eq("Lea Script Bridge", Complete(new E().GoA(scriptPath), "async page scripts").T, "async page scripts");
 
                 var manualCommands = scriptEngine.Js(scriptPage, "t(\"Manual \\u004c\"); bg(\"#112233\"); fg(\"white\"); fs(22); a(\"Manual\\nalert\");");
                 Eq(5, manualCommands, "manual command count");
@@ -216,7 +220,7 @@ namespace Lea.Tests
                 Eq(16, alertEngine.Js(alertPage, alertCode.ToString()), "alert queue limit");
                 Eq(16, alertPage.Ms.Count, "bounded alert queue");
 
-                var eventPath = Path.Combine(root, "LeaForge", "test-pages", "events-vars.html");
+                var eventPath = Path.Combine(pages, "events-vars.html");
                 var eventEngine = new E();
                 var eventPage = eventEngine.Go(eventPath);
                 Eq("Lea safe events", eventPage.T, "variable-expanded page title");
@@ -256,8 +260,8 @@ namespace Lea.Tests
                 Eq(0, eventEngine.Ck(eventPage, ById(eventPage.D, "go")), "click commands respect script setting");
                 eventEngine.Je = true;
 
-                var goPath = Path.Combine(root, "LeaForge", "test-pages", "go-command.html");
-                var goTargetPath = Path.Combine(root, "LeaForge", "test-pages", "go-target.html");
+                var goPath = Path.Combine(pages, "go-command.html");
+                var goTargetPath = Path.Combine(pages, "go-target.html");
                 var goTarget = new Uri(goTargetPath);
                 var goEngine = new E();
                 var goPage = goEngine.Go(goPath);
@@ -278,7 +282,7 @@ namespace Lea.Tests
                 Eq(0, goEngine.Ck(goPage, ById(goPage.D, "relative")), "go command respects script setting");
                 goEngine.Je = true;
 
-                var classPath = Path.Combine(root, "LeaForge", "test-pages", "class-commands.html");
+                var classPath = Path.Combine(pages, "class-commands.html");
                 var classEngine = new E();
                 var classPage = classEngine.Go(classPath);
                 Eq(7, classPage.Jc, "page class and style command count");
@@ -327,7 +331,7 @@ namespace Lea.Tests
                 Eq("Click-preserved value", FieldById(clickClassPage, "field").V, "click class rebuild preserves field value");
                 Eq("Class state changed", clickClassPage.Ms[0], "click class alert");
 
-                var statePath = Path.Combine(root, "LeaForge", "test-pages", "state-commands.html");
+                var statePath = Path.Combine(pages, "state-commands.html");
                 var stateEngine = new E();
                 var statePage = stateEngine.Go(statePath);
                 Eq(9, statePage.Jc, "initial state command count");
@@ -399,13 +403,13 @@ namespace Lea.Tests
                 variablePage.Fs[1].V = "private-password-value";
                 Ok(!Has(variableEngine.Dg(variablePage).Ns, "private-password-value"), "diagnostics omit field values");
 
-                var findPath = Path.Combine(root, "LeaForge", "test-pages", "find-download.html");
+                var findPath = Path.Combine(pages, "find-download.html");
                 var findPage = engine.Go(findPath);
                 Eq(3, engine.Fd(findPage, "cobalt"), "engine page-text find count");
                 Eq(3, engine.Fd(findPage, "COBALT"), "engine find is case insensitive");
                 Eq(0, engine.Fd(findPage, "missing phrase"), "engine missing find count");
 
-                var downloadSource = Path.Combine(root, "LeaForge", "test-pages", "download-sample.txt");
+                var downloadSource = Path.Combine(pages, "download-sample.txt");
                 var downloadSync = Path.Combine(Path.GetTempPath(), "lea-download-" + Guid.NewGuid().ToString("N") + ".txt");
                 var downloadAsync = Path.Combine(Path.GetTempPath(), "lea-download-" + Guid.NewGuid().ToString("N") + ".txt");
                 try
@@ -428,7 +432,7 @@ namespace Lea.Tests
                     File.Delete(downloadAsync);
                 }
 
-                var inlinePath = Path.Combine(root, "LeaForge", "test-pages", "inline.html");
+                var inlinePath = Path.Combine(pages, "inline.html");
                 var inlinePage = engine.Go(inlinePath);
                 Eq(3, inlinePage.Bs.Count, "inline page avoids duplicate link block");
                 Eq(1, inlinePage.Ls.Count, "inline link count");
@@ -446,7 +450,7 @@ namespace Lea.Tests
                 Eq("br", inline.Is[9].K, "inline line break");
                 Eq(0, inlinePage.Bs[2].Is.Count, "plain text fast path");
 
-                var textPath = Path.Combine(root, "LeaForge", "test-pages", "text-layout.html");
+                var textPath = Path.Combine(pages, "text-layout.html");
                 var textPage = engine.Go(textPath);
                 Eq(5, textPage.Bs.Count, "text layout blocks");
                 Eq("c", textPage.Bs[1].S.Ta, "center alignment alias");
@@ -459,7 +463,7 @@ namespace Lea.Tests
                 Eq("r", textCell.S.Ta, "table cell alignment inheritance");
                 Eq(160, textCell.S.Lm, "unitless table-cell line height");
 
-                var whitePath = Path.Combine(root, "LeaForge", "test-pages", "white-space.html");
+                var whitePath = Path.Combine(pages, "white-space.html");
                 var whitePage = engine.Go(whitePath);
                 Eq(10, whitePage.Bs.Count, "white-space block count");
                 Eq("nw", whitePage.Bs[1].S.Ws, "nowrap alias");
@@ -478,7 +482,7 @@ namespace Lea.Tests
                 Eq("h", whiteCell.S.Ov, "table overflow alias");
                 Eq("Cell    keeps spaces\nand wraps compact table text across more lines.", whiteCell.X, "table white-space preservation");
 
-                var sizingPath = Path.Combine(root, "LeaForge", "test-pages", "sizing-breaks.html");
+                var sizingPath = Path.Combine(pages, "sizing-breaks.html");
                 var sizingPage = engine.Go(sizingPath);
                 Eq(10, sizingPage.Bs.Count, "sizing and word-break block count");
                 Eq(1, sizingPage.Fs.Count, "sizing field count");
@@ -498,7 +502,7 @@ namespace Lea.Tests
                 Eq(260, sizingPage.Bs[9].S.Wx, "table maximum width");
                 Eq("a", sizingPage.Bs[9].Tb.Rs[0].Cs[0].S.Wb, "table-cell anywhere wrap alias");
 
-                var visibilityPath = Path.Combine(root, "LeaForge", "test-pages", "visibility-opacity.html");
+                var visibilityPath = Path.Combine(pages, "visibility-opacity.html");
                 var visibilityPage = engine.Go(visibilityPath);
                 Eq(16, visibilityPage.Bs.Count, "visibility and opacity block count");
                 Eq(2, visibilityPage.Fs.Count, "visibility field count");
@@ -520,7 +524,7 @@ namespace Lea.Tests
                 Eq(50, visibilityPage.Bs[15].S.Op, "table effective opacity");
                 Eq(25, visibilityPage.Bs[15].Tb.Rs[0].Cs[0].S.Op, "table-cell effective opacity");
 
-                var dynamicPath = Path.Combine(root, "LeaForge", "test-pages", "dynamic-state.html");
+                var dynamicPath = Path.Combine(pages, "dynamic-state.html");
                 var dynamicPage = engine.Go(dynamicPath);
                 Eq(5, dynamicPage.Bs.Count, "dynamic state block count");
                 Eq(2, dynamicPage.Fs.Count, "dynamic state field count");
@@ -554,7 +558,7 @@ namespace Lea.Tests
                 Eq("Consolas|m", dynamicPage.Fs[0].S.Ff, "focus reset font");
                 Ok(Object.ReferenceEquals(savedField, dynamicPage.Fs[0]) && dynamicPage.Fs[0].V == "Edited value", "dynamic reset preserves field state");
 
-                var mediaPath = Path.Combine(root, "LeaForge", "test-pages", "responsive-media.html");
+                var mediaPath = Path.Combine(pages, "responsive-media.html");
                 var mediaPage = engine.Go(mediaPath);
                 Eq(11, mediaPage.Bs.Count, "responsive media block count");
                 Eq("h1,p,img,p,img,p,img,p,img,p,img", BlockKinds(mediaPage), "responsive media block kinds");
@@ -567,7 +571,7 @@ namespace Lea.Tests
                 Eq(130, mediaPage.Bs[10].S.W, "CSS image width overrides HTML");
                 Eq(44, mediaPage.Bs[10].S.H, "CSS image height overrides HTML");
 
-                var mediaQueryPath = Path.Combine(root, "LeaForge", "test-pages", "media-queries.html");
+                var mediaQueryPath = Path.Combine(pages, "media-queries.html");
                 var mediaQueryEngine = new E();
                 Eq(1024, mediaQueryEngine.Vw, "default viewport width alias");
                 var mediaQueryPage = mediaQueryEngine.Go(mediaQueryPath);
@@ -611,7 +615,7 @@ namespace Lea.Tests
                 mediaQueryEngine.Vw = Int32.MaxValue;
                 Eq(8192, mediaQueryEngine.Vw, "maximum viewport clamp");
 
-                var customPath = Path.Combine(root, "LeaForge", "test-pages", "custom-properties.html");
+                var customPath = Path.Combine(pages, "custom-properties.html");
                 var customEngine = new E();
                 var customPage = customEngine.Go(customPath);
                 Eq(19, customPage.S.Vc, "inherited custom property count alias");
@@ -664,7 +668,7 @@ namespace Lea.Tests
                     if (File.Exists(customLimitPath)) File.Delete(customLimitPath);
                 }
 
-                var importantPath = Path.Combine(root, "LeaForge", "test-pages", "important-cascade.html");
+                var importantPath = Path.Combine(pages, "important-cascade.html");
                 var importantEngine = new E();
                 var importantPage = importantEngine.Go(importantPath);
                 Eq(19, importantEngine.Dg(importantPage).Ic, "important declaration diagnostic alias");
@@ -698,7 +702,7 @@ namespace Lea.Tests
                 importantEngine.Vw = 840;
                 Ok(importantEngine.Dg(importantPage).Ic == 19 && BlockById(importantPage, "media").S.W == 205 && FieldById(importantPage, "field").S.W == 240, "wide important cascade restore");
 
-                var mapPath = Path.Combine(root, "LeaForge", "test-pages", "image-maps.html");
+                var mapPath = Path.Combine(pages, "image-maps.html");
                 var mapEngine = new E();
                 var mapPage = mapEngine.Go(mapPath);
                 Eq(2, mapPage.Mps.Count, "bounded unique image map collection");
@@ -757,7 +761,7 @@ namespace Lea.Tests
                     if (File.Exists(boundedMapPath)) File.Delete(boundedMapPath);
                 }
 
-                var keyboardPath = Path.Combine(root, "LeaForge", "test-pages", "keyboard-focus.html");
+                var keyboardPath = Path.Combine(pages, "keyboard-focus.html");
                 var keyboardEngine = new E();
                 var keyboardPage = keyboardEngine.Go(keyboardPath);
                 Eq((int?)1, keyboardEngine.Ti(ById(keyboardPage.D, "priority-one")), "positive tabindex alias");
@@ -773,7 +777,7 @@ namespace Lea.Tests
                 boundedTab.A["tabindex"] = "12345678901234567";
                 Eq((int?)null, keyboardEngine.Ti(boundedTab), "tabindex text length cap");
 
-                var shortcutPath = Path.Combine(root, "LeaForge", "test-pages", "focus-shortcuts.html");
+                var shortcutPath = Path.Combine(pages, "focus-shortcuts.html");
                 var shortcutEngine = new E();
                 var shortcutPage = shortcutEngine.Go(shortcutPath);
                 Eq(1, shortcutPage.Ls.Count, "HTML-hidden shortcut links stay out of rendered link model");
@@ -812,7 +816,7 @@ namespace Lea.Tests
                     if (File.Exists(boundedAutofocusPath)) File.Delete(boundedAutofocusPath);
                 }
 
-                var accessibilityPath = Path.Combine(root, "LeaForge", "test-pages", "accessibility.html");
+                var accessibilityPath = Path.Combine(pages, "accessibility.html");
                 var accessibilityEngine = new E();
                 var accessibilityPage = accessibilityEngine.Go(accessibilityPath);
                 Ok(accessibilityPage.Axs.Count > 20 && accessibilityPage.Axs.Count <= 512, "bounded accessibility list");
@@ -1132,11 +1136,11 @@ namespace Lea.Tests
                     if (File.Exists(boundedAccessibilityPath)) File.Delete(boundedAccessibilityPath);
                 }
 
-                var positioningPath = Path.Combine(root, "LeaForge", "test-pages", "positioning.html");
+                var positioningPath = Path.Combine(pages, "positioning.html");
                 var positioningPage = engine.Go(positioningPath);
                 Eq(6, positioningPage.Bs.Count, "positioning block count");
                 Eq(4, positioningPage.Ls.Count, "positioning link count");
-                var contextsPath = Path.Combine(root, "LeaForge", "test-pages", "position-contexts.html");
+                var contextsPath = Path.Combine(pages, "position-contexts.html");
                 var contextsPage = engine.Go(contextsPath);
                 Eq(13, contextsPage.Bs.Count, "position context block count");
                 Eq(3, contextsPage.Ls.Count, "position context link count");
@@ -1150,7 +1154,7 @@ namespace Lea.Tests
                 Eq("f", contextsPage.Bs[12].S.Pn, "fixed position alias");
                 Eq(-70, contextsPage.Bs[12].S.Rt, "negative fixed right offset");
                 Eq(18, contextsPage.Bs[12].S.Bm, "fixed bottom offset");
-                var positionValuesPath = Path.Combine(root, "LeaForge", "test-pages", "position-values.html");
+                var positionValuesPath = Path.Combine(pages, "position-values.html");
                 var positionValuesPage = engine.Go(positionValuesPath);
                 Eq(10, positionValuesPage.Bs.Count, "position values block count");
                 Eq(4, positionValuesPage.Ls.Count, "position values link count");
@@ -1170,7 +1174,7 @@ namespace Lea.Tests
                 Ok(positionValuesPage.Bs[6].S.Tx == 18 && positionValuesPage.Bs[6].S.Ty == 10 && positionValuesPage.Bs[6].S.Zc, "translate aliases create local context");
                 Ok(Object.ReferenceEquals(positionValuesPage.Bs[2].Up, positionValuesPage.Bs[1]) && Object.ReferenceEquals(positionValuesPage.Bs[3].Up, positionValuesPage.Bs[1]) && Object.ReferenceEquals(positionValuesPage.Bs[4].Up, positionValuesPage.Bs[1]), "inset children retain positioned owner");
                 Ok(Object.ReferenceEquals(positionValuesPage.Bs[7].Up, positionValuesPage.Bs[6]), "translated context owns high child");
-                var nestedPositionPath = Path.Combine(root, "LeaForge", "test-pages", "nested-positioning.html");
+                var nestedPositionPath = Path.Combine(pages, "nested-positioning.html");
                 var nestedPositionPage = engine.Go(nestedPositionPath);
                 Eq(15, nestedPositionPage.Bs.Count, "nested positioning block count");
                 Eq(4, nestedPositionPage.Ls.Count, "nested positioning link count");
@@ -1181,7 +1185,7 @@ namespace Lea.Tests
                 Ok(Object.ReferenceEquals(nestedPositionPage.Bs[6].Up, nestedPositionPage.Bs[5]), "stacked child parent alias");
                 Ok(Object.ReferenceEquals(nestedPositionPage.Bs[8].Up, nestedPositionPage.Bs[7]), "fixed child parent alias");
                 Ok(nestedPositionPage.Bs[9].Up == null, "root flow block has no context parent");
-                var nestedFlowPath = Path.Combine(root, "LeaForge", "test-pages", "nested-flow.html");
+                var nestedFlowPath = Path.Combine(pages, "nested-flow.html");
                 var nestedFlowPage = engine.Go(nestedFlowPath);
                 Eq(12, nestedFlowPage.Bs.Count, "nested flow block count");
                 Eq(1, nestedFlowPage.Ls.Count, "nested flow link count");
@@ -1193,7 +1197,7 @@ namespace Lea.Tests
                 Ok(Object.ReferenceEquals(nestedFlowPage.Bs[8].Up, nestedFlowPage.Bs[1]), "outer visual context resumes after nested subtree");
                 Ok(Object.ReferenceEquals(nestedFlowPage.Bs[10].Up, nestedFlowPage.Bs[9]), "mixed-content visual context owns child");
                 Ok(nestedFlowPage.Bs[11].Up == null, "following root block leaves visual contexts");
-                var nestedContentPath = Path.Combine(root, "LeaForge", "test-pages", "nested-content.html");
+                var nestedContentPath = Path.Combine(pages, "nested-content.html");
                 var nestedContentPage = engine.Go(nestedContentPath);
                 Eq(9, nestedContentPage.Bs.Count, "nested content block count");
                 Eq(2, nestedContentPage.Fs.Count, "nested content field count");
@@ -1203,7 +1207,7 @@ namespace Lea.Tests
                 Ok(Object.ReferenceEquals(nestedContentPage.Bs[5].Up, nestedContentPage.Bs[1]), "picture image belongs to visual parent");
                 Ok(Object.ReferenceEquals(nestedContentPage.Bs[6].Up, nestedContentPage.Bs[1]), "table belongs to visual parent");
                 Ok(Object.ReferenceEquals(nestedContentPage.Bs[7].Up, nestedContentPage.Bs[1]) && nestedContentPage.Bs[8].Up == null, "nested content exits visual parent cleanly");
-                var stackingPath = Path.Combine(root, "LeaForge", "test-pages", "stacking-contexts.html");
+                var stackingPath = Path.Combine(pages, "stacking-contexts.html");
                 var stackingPage = engine.Go(stackingPath);
                 Eq(17, stackingPage.Bs.Count, "stacking context block count");
                 Eq(9, stackingPage.Ls.Count, "stacking context link count");
@@ -1235,7 +1239,7 @@ namespace Lea.Tests
                 Eq(12, positioningPage.Bs[5].S.Lt.Value, "relative table left offset");
                 Eq(3, positioningPage.Bs[5].S.Zi, "relative table z-index");
 
-                var selectorPath = Path.Combine(root, "LeaForge", "test-pages", "selectors.html");
+                var selectorPath = Path.Combine(pages, "selectors.html");
                 var selectorPage = engine.Go(selectorPath);
                 Eq(12, selectorPage.Bs.Count, "relationship selector block count");
                 Eq("h1,p,p,p,p,div,div,div,h2,p,div,p", BlockKinds(selectorPage), "relationship selector block kinds");
@@ -1273,7 +1277,7 @@ namespace Lea.Tests
                 Eq(0, engine.Qa(selectorPage, "p,,div").Count, "invalid selector group rejected");
                 Ok(engine.Q(selectorPage, new String('x', 1025)) == null, "oversized selector rejected");
 
-                var negationPath = Path.Combine(root, "LeaForge", "test-pages", "selector-negation.html");
+                var negationPath = Path.Combine(pages, "selector-negation.html");
                 var negationPage = engine.Go(negationPath);
                 Eq(9, negationPage.Bs.Count, "general sibling and negation block count");
                 Eq(2, negationPage.Fs.Count, "negation field count");
@@ -1290,7 +1294,7 @@ namespace Lea.Tests
                 Ok(!negationPage.Fs[0].Ds && negationPage.Fs[0].S.B && negationPage.Fs[0].S.Bg == "#dff6e9", "negated disabled pseudo");
                 Ok(negationPage.Fs[1].Ds && negationPage.Fs[1].S.I && negationPage.Fs[1].S.F == "#8a4b22", "negated enabled pseudo");
 
-                var selectorFunctionPath = Path.Combine(root, "LeaForge", "test-pages", "selector-functions.html");
+                var selectorFunctionPath = Path.Combine(pages, "selector-functions.html");
                 var selectorFunctionEngine = new E();
                 var selectorFunctionPage = selectorFunctionEngine.Go(selectorFunctionPath);
                 Ok(BlockById(selectorFunctionPage, "card").S.F == "#0f4c81" && BlockById(selectorFunctionPage, "where-target").S.F == "#176b4d" && BlockById(selectorFunctionPage, "where-target").S.Pl == 9, "is maximum and where zero specificity");
@@ -1317,7 +1321,7 @@ namespace Lea.Tests
                 selectorFunctionEngine.Dy(selectorFunctionPage, null, null);
                 Ok(FieldById(selectorFunctionPage, "field").S.Bl == 2 && FieldById(selectorFunctionPage, "field").S.Pl == 4, "functional focus selector clears");
 
-                var selectorArithmeticPath = Path.Combine(root, "LeaForge", "test-pages", "selector-arithmetic.html");
+                var selectorArithmeticPath = Path.Combine(pages, "selector-arithmetic.html");
                 var selectorArithmeticEngine = new E();
                 var selectorArithmeticPage = selectorArithmeticEngine.Go(selectorArithmeticPath);
                 var arithmeticOne = BlockById(selectorArithmeticPage, "a1");
@@ -1353,7 +1357,7 @@ namespace Lea.Tests
                 Eq(0, selectorArithmeticEngine.Qa(selectorArithmeticPage, "#forward > p:nth-child(2 n+1)").Count, "split structural coefficient rejected");
                 Eq(4, selectorArithmeticEngine.Qa(selectorArithmeticPage, "#forward > p:nth-child(2n of .rank)").Count, "filtered structural query");
 
-                var selectorFilteredPath = Path.Combine(root, "LeaForge", "test-pages", "selector-filtered-position.html");
+                var selectorFilteredPath = Path.Combine(pages, "selector-filtered-position.html");
                 var selectorFilteredEngine = new E();
                 var selectorFilteredPage = selectorFilteredEngine.Go(selectorFilteredPath);
                 Ok(BlockById(selectorFilteredPage, "f1").S.Bg == "#edf7f2" && BlockById(selectorFilteredPage, "f5").S.Bg == "#edf7f2" && BlockById(selectorFilteredPage, "f8").S.Bg == "#edf7f2" && BlockById(selectorFilteredPage, "f3").S.Bg == "", "filtered odd child positions");
@@ -1386,7 +1390,7 @@ namespace Lea.Tests
                 Eq(0, selectorFilteredEngine.Qa(selectorFilteredPage, "#invalid:nth-child(1 of :is(#invalid))").Count, "nested filtered selector-list rejected");
                 Eq(0, selectorFilteredEngine.Qa(selectorFilteredPage, "#invalid:nth-child(1 of .a,.b,.c,.d,.e,.f,.g,.h,.i)").Count, "filtered alternative overflow rejected");
 
-                var selectorRelationalPath = Path.Combine(root, "LeaForge", "test-pages", "selector-relational.html");
+                var selectorRelationalPath = Path.Combine(pages, "selector-relational.html");
                 var selectorRelationalEngine = new E();
                 var selectorRelationalPage = selectorRelationalEngine.Go(selectorRelationalPath);
                 Ok(BlockById(selectorRelationalPage, "direct").S.W == 118 && BlockById(selectorRelationalPage, "direct").S.Bg == "#edf7f2" && BlockById(selectorRelationalPage, "direct").S.B, "relational direct-child styles");
@@ -1431,7 +1435,7 @@ namespace Lea.Tests
                 }
                 finally { if (File.Exists(hasBoundPath)) File.Delete(hasBoundPath); }
 
-                var selectorStatePath = Path.Combine(root, "LeaForge", "test-pages", "selector-states.html");
+                var selectorStatePath = Path.Combine(pages, "selector-states.html");
                 var selectorStatePage = engine.Go(selectorStatePath);
                 Eq("#2b3340", selectorStatePage.S.F, "root pseudo inheritance");
                 Eq(13, selectorStatePage.Bs.Count, "attribute and pseudo selector block count");
@@ -1464,7 +1468,7 @@ namespace Lea.Tests
                 Ok(selectorStatePage.Fs[3].Ro && selectorStatePage.Fs[3].S.I && selectorStatePage.Fs[3].S.Td == "", "read-only pseudo selector");
                 Eq("u", selectorStatePage.Fs[4].S.Td, "editable read-write pseudo selector");
 
-                var textStylePath = Path.Combine(root, "LeaForge", "test-pages", "text-style.html");
+                var textStylePath = Path.Combine(pages, "text-style.html");
                 var textStylePage = engine.Go(textStylePath);
                 Eq(8, textStylePage.Bs.Count, "text style block count");
                 Eq("Georgia|s", textStylePage.Bs[0].S.Ff, "heading font family list");
@@ -1483,7 +1487,7 @@ namespace Lea.Tests
                 Eq("Times New Roman|s", styledCell.S.Ff, "table cell font family");
                 Eq("u", styledCell.S.Td, "table cell decoration");
 
-                var transformPath = Path.Combine(root, "LeaForge", "test-pages", "text-transform.html");
+                var transformPath = Path.Combine(pages, "text-transform.html");
                 var transformEngine = new E { Vw = 720 };
                 var transformPage = transformEngine.Go(transformPath);
                 Eq(19, transformPage.Bs.Count, "text transform block count");
@@ -1527,7 +1531,7 @@ namespace Lea.Tests
 
                 TextTransformSmoke(transformPath);
 
-                var spacingPath = Path.Combine(root, "LeaForge", "test-pages", "text-spacing.html");
+                var spacingPath = Path.Combine(pages, "text-spacing.html");
                 var spacingEngine = new E { Vw = 720 };
                 var spacingPage = spacingEngine.Go(spacingPath);
                 Eq(21, spacingPage.Bs.Count, "text spacing block count");
@@ -1572,9 +1576,9 @@ namespace Lea.Tests
                     Object.ReferenceEquals(spacingField, FieldById(spacingPage, "field")), "responsive spacing rebuild and field retention");
 
                 TextSpacingSmoke(spacingPath);
-                TextOverflowSmoke(Path.Combine(root, "LeaForge", "test-pages", "text-overflow.html"));
+                TextOverflowSmoke(Path.Combine(pages, "text-overflow.html"));
 
-                var recoveryPath = Path.Combine(root, "LeaForge", "test-pages", "recovery.html");
+                var recoveryPath = Path.Combine(pages, "recovery.html");
                 var recoveryPage = engine.Go(recoveryPath);
                 Eq(23, recoveryPage.Bs.Count, "recovered block count");
                 Eq("header,h4,p,p,p,li,li,li,li,dt,dd,dt,dd,blockquote,figcaption,summary,p,article,address,h5,h6,hr,footer", BlockKinds(recoveryPage), "recovered block kinds");
@@ -1597,7 +1601,7 @@ namespace Lea.Tests
                 var headingSix = Nodes(recoveryPage.D, "h6")[0];
                 Ok(Object.ReferenceEquals(headingFive.Up, headingSix.Up), "unclosed headings recover as siblings");
 
-                var listPath = Path.Combine(root, "LeaForge", "test-pages", "lists.html");
+                var listPath = Path.Combine(pages, "lists.html");
                 var listPage = engine.Go(listPath);
                 Eq("", listPage.Bs[0].Mk, "non-list marker stays empty");
                 Eq("-", BlockById(listPage, "bullet-one").Mk, "unordered list marker");
@@ -1621,7 +1625,7 @@ namespace Lea.Tests
                 Ok(listTable != null && listTable.Rs.Count == 1, "list table model");
                 Eq("4.", listTable.Rs[0].Cs[0].Bs[0].Mk, "ordered marker inside table cell");
 
-                var disclosurePath = Path.Combine(root, "LeaForge", "test-pages", "disclosure.html");
+                var disclosurePath = Path.Combine(pages, "disclosure.html");
                 var disclosureEngine = new E();
                 var disclosurePage = disclosureEngine.Go(disclosurePath);
                 var closedDetails = ById(disclosurePage.D, "closed");
@@ -1667,7 +1671,7 @@ namespace Lea.Tests
                 Eq(1, disclosureEngine.Ds(disclosurePage, ById(disclosurePage.D, "outer-summary")), "outer disclosure reopens");
                 Ok(outerDetails.Op && nestedDetails.Op && !BlockById(disclosurePage, "nested-content").Hd, "nested open state survives outer toggle");
 
-                var fragmentPath = Path.Combine(root, "LeaForge", "test-pages", "fragments.html");
+                var fragmentPath = Path.Combine(pages, "fragments.html");
                 var fragmentEngine = new E();
                 var fragmentPage = fragmentEngine.Go(fragmentPath);
                 var fragmentRequests = fragmentEngine.Dg(fragmentPage).Rs.Count;
@@ -1686,7 +1690,7 @@ namespace Lea.Tests
                 Eq("#missing-target", fragmentEngine.At.U.Fragment, "missing fragment address");
                 Ok(Object.ReferenceEquals(fragmentPage, fragmentEngine.Bk()) && fragmentEngine.At.U.Fragment == "#target", "fragment Back retains document and URL");
                 Ok(Object.ReferenceEquals(fragmentPage, fragmentEngine.Fw()) && fragmentEngine.At.U.Fragment == "#missing-target", "fragment Forward retains document and URL");
-                Eq(0, fragmentEngine.Fg(new Uri(Path.Combine(root, "LeaForge", "test-pages", "second.html"))), "cross-document URL is not a fragment navigation");
+                Eq(0, fragmentEngine.Fg(new Uri(Path.Combine(pages, "second.html"))), "cross-document URL is not a fragment navigation");
 
                 Eq(1, fragmentEngine.Fg("#closed-target"), "closed fragment history navigation");
                 var closedFragmentTarget = fragmentEngine.Ft(fragmentPage, fragmentEngine.At.U.Fragment);
@@ -1694,7 +1698,7 @@ namespace Lea.Tests
                 Ok(ById(fragmentPage.D, "closed-details").Op && !BlockById(fragmentPage, "closed-target").Hd, "revealed fragment content joins layout model");
                 Ok(Object.ReferenceEquals(retainedFragmentField, FieldById(fragmentPage, "fragment-field")) && retainedFragmentField.V == "Edited before fragment reveal", "fragment reveal preserves field state");
                 Eq(0, fragmentEngine.Rv(fragmentPage, closedFragmentTarget), "already visible fragment needs no rebuild");
-                var fragmentAsyncPage = fragmentEngine.GoA("#encoded%20target").GetAwaiter().GetResult();
+                var fragmentAsyncPage = Complete(fragmentEngine.GoA("#encoded%20target"), "async fragment target");
                 Ok(Object.ReferenceEquals(fragmentPage, fragmentAsyncPage) && fragmentEngine.At.U.Fragment == "#encoded%20target", "asynchronous fragment Go retains page");
                 Eq(fragmentRequests, fragmentEngine.Dg(fragmentPage).Rs.Count, "asynchronous fragment Go performs no request");
 
@@ -1709,7 +1713,7 @@ namespace Lea.Tests
                 while (fragmentEngine.CanBk) { fragmentEngine.Bk(); fragmentBackCount++; }
                 Eq(127, fragmentBackCount, "fragment history keeps 128 entries");
 
-                var gaugePath = Path.Combine(root, "LeaForge", "test-pages", "gauges.html");
+                var gaugePath = Path.Combine(pages, "gauges.html");
                 var gaugePage = new E().Go(gaugePath);
                 var styledProgress = BlockById(gaugePage, "styled-progress");
                 Eq("progress", styledProgress.K, "progress block kind");
@@ -1742,7 +1746,7 @@ namespace Lea.Tests
                 var cellMeter = BlockById(gaugePage, "cell-meter");
                 Ok(cellMeter.K == "meter" && cellMeter.Vm != null && cellMeter.Vm.R == 0.75D, "table cell meter model");
 
-                var valuePath = Path.Combine(root, "LeaForge", "test-pages", "values.html");
+                var valuePath = Path.Combine(pages, "values.html");
                 var valueEngine = new E();
                 var valuePage = valueEngine.Go(valuePath);
                 Eq(7, valuePage.Dvs.Count, "bounded page value collection");
@@ -1807,7 +1811,7 @@ namespace Lea.Tests
                     if (File.Exists(boundedValuePath)) File.Delete(boundedValuePath);
                 }
 
-                var timePath = Path.Combine(root, "LeaForge", "test-pages", "time-edits.html");
+                var timePath = Path.Combine(pages, "time-edits.html");
                 var timeEngine = new E();
                 var timePage = timeEngine.Go(timePath);
                 Eq(10, timePage.Dvs.Count, "bounded time and edit collection");
@@ -1877,7 +1881,7 @@ namespace Lea.Tests
                     if (File.Exists(boundedTimePath)) File.Delete(boundedTimePath);
                 }
 
-                var tokenPath = Path.Combine(root, "LeaForge", "test-pages", "html-tokens.html");
+                var tokenPath = Path.Combine(pages, "html-tokens.html");
                 var tokenEngine = new E();
                 var tokenPage = tokenEngine.Go(tokenPath);
                 Eq("Lea & Tokenizer <b>literal</b>", tokenPage.T, "RCDATA title keeps literal markup");
@@ -2217,7 +2221,7 @@ namespace Lea.Tests
                     Check(view, root, "css.html", 3, 4);
                     Check(view, root, "images.html", 5, 6);
                     Check(view, root, "layout.html", 3, 4);
-                    var flexPath = Path.Combine(root, "LeaForge", "test-pages", "flex.html");
+                    var flexPath = Path.Combine(pages, "flex.html");
                     var flexPage = engine.Go(flexPath);
                     var spreadModel = BlockById(flexPage, "spread");
                     var autoModel = BlockById(flexPage, "auto");
@@ -2456,7 +2460,7 @@ namespace Lea.Tests
                     var narrowAround = BlockRect(view, BlockById(view.At, "around"));
                     var narrowAroundOne = BlockOuterRect(view, BlockById(view.At, "around-one"));
                     Ok(narrowAround.Width < wideAroundWidth && narrowAroundOne.Left - narrowAround.Left < wideAroundInset, "space-around reflows in narrow view");
-                    var gridPath = Path.Combine(root, "LeaForge", "test-pages", "grid.html");
+                    var gridPath = Path.Combine(pages, "grid.html");
                     var gridPage = engine.Go(gridPath);
                     var equalGrid = BlockById(gridPage, "equal");
                     var mixedGrid = BlockById(gridPage, "mixed");
@@ -2587,7 +2591,7 @@ namespace Lea.Tests
                     var narrowResponsiveWidth = BlockOuterRect(view, BlockById(view.At, "responsive-one")).Width;
                     Ok(narrowResponsiveWidth < wideResponsiveWidth, "fraction grid tracks reflow in narrow view");
                     Ok(Object.ReferenceEquals(gridField, FieldById(view.At, "grid-field")) && gridField.V == "Retained grid field", "grid resize retains field state");
-                    var areaPath = Path.Combine(root, "LeaForge", "test-pages", "grid-areas.html");
+                    var areaPath = Path.Combine(pages, "grid-areas.html");
                     var areaPage = engine.Go(areaPath);
                     var dashboard = BlockById(areaPage, "dashboard");
                     var areaHead = BlockById(areaPage, "area-head");
@@ -2622,7 +2626,7 @@ namespace Lea.Tests
                         Ok(BlockOuterRect(view, BlockById(view.At, "after-areas")).Top > BlockOuterRect(view, BlockById(view.At, "area-target")).Bottom, "normal flow follows named grids");
                         Ok(ColorDistance(areaPaint.GetPixel(mainRect.Left + 4, mainRect.Top + 4), Color.FromArgb(253, 227, 197)) < 8, "named grid area paint");
                     }
-                    var linePath = Path.Combine(root, "LeaForge", "test-pages", "grid-lines.html");
+                    var linePath = Path.Combine(pages, "grid-lines.html");
                     var linePage = engine.Go(linePath);
                     var lineLayout = BlockById(linePage, "line-layout");
                     var lineHead = BlockById(linePage, "line-head");
@@ -2664,7 +2668,7 @@ namespace Lea.Tests
                         Ok(!FragmentHitRect(view, "#line-target").IsEmpty && BlockOuterRect(view, BlockById(view.At, "after-lines")).Top > BlockOuterRect(view, BlockById(view.At, "line-target")).Bottom, "named line hits and following flow");
                         Ok(ColorDistance(linePaint.GetPixel(mainRect.Left + 4, mainRect.Top + 4), Color.FromArgb(199, 233, 255)) < 8, "named grid line paint");
                     }
-                    var flowPath = Path.Combine(root, "LeaForge", "test-pages", "grid-flow.html");
+                    var flowPath = Path.Combine(pages, "grid-flow.html");
                     var flowPage = engine.Go(flowPath);
                     Ok(BlockById(flowPage, "row-sparse").S.Gf == "r" && BlockById(flowPage, "row-dense").S.Gf == "d" && BlockById(flowPage, "column-flow").S.Gf == "c" && BlockById(flowPage, "column-dense").S.Gf == "x", "grid auto-flow compact aliases");
                     Ok(BlockById(flowPage, "flow-reset").S.Gf == "r" && BlockById(flowPage, "flow-invalid").S.Gf == "c", "grid auto-flow reset and invalid preservation");
@@ -2701,7 +2705,7 @@ namespace Lea.Tests
                         Ok(!FragmentHitRect(view, "#flow-target").IsEmpty && BlockOuterRect(view, BlockById(view.At, "after-flow")).Top > BlockOuterRect(view, BlockById(view.At, "flow-target")).Bottom, "grid auto-flow hits and following flow");
                         Ok(ColorDistance(flowPaint.GetPixel(columnFive.Left + 4, columnFive.Top + 4), Color.FromArgb(253, 227, 197)) < 8, "grid auto-flow paint");
                     }
-                    var autoTrackPath = Path.Combine(root, "LeaForge", "test-pages", "grid-auto-tracks.html");
+                    var autoTrackPath = Path.Combine(pages, "grid-auto-tracks.html");
                     var autoTrackPage = engine.Go(autoTrackPath);
                     var trackPattern = BlockById(autoTrackPage, "track-pattern").S;
                     Ok(trackPattern.Gac == 2 && trackPattern.Gav(0) == 40 && trackPattern.Gav(1) == -1 && trackPattern.Gav(2) == 0, "grid auto-column pattern aliases");
@@ -2747,7 +2751,7 @@ namespace Lea.Tests
                         Ok(!FragmentHitRect(view, "#auto-target").IsEmpty && BlockOuterRect(view, BlockById(view.At, "after-auto-tracks")).Top > BlockOuterRect(view, BlockById(view.At, "auto-target")).Bottom, "grid auto-track hits and following flow");
                         Ok(ColorDistance(autoTrackPaint.GetPixel(patternC.Left + 4, patternC.Top + 4), Color.FromArgb(199, 233, 255)) < 8, "grid auto-track paint");
                     }
-                    var shorthandPath = Path.Combine(root, "LeaForge", "test-pages", "grid-shorthand.html");
+                    var shorthandPath = Path.Combine(pages, "grid-shorthand.html");
                     var shorthandPage = engine.Go(shorthandPath);
                     var explicitGrid = BlockById(shorthandPage, "explicit-grid").S;
                     Ok(explicitGrid.Rc == 2 && explicitGrid.Rv(0) == 30 && explicitGrid.Rv(1) == -1 && explicitGrid.Gc == 3 && explicitGrid.Gv(0) == 80 && explicitGrid.Gv(1) == -1 && explicitGrid.Gv(2) == -2, "explicit grid shorthand track aliases");
@@ -2804,7 +2808,7 @@ namespace Lea.Tests
                         Ok(!FragmentHitRect(view, "#shorthand-target").IsEmpty && BlockOuterRect(view, BlockById(view.At, "after-shorthands")).Top > BlockOuterRect(view, BlockById(view.At, "shorthand-target")).Bottom, "grid shorthand hits and following flow");
                         Ok(ColorDistance(shorthandPaint.GetPixel(shorthandAreaMain.Left + 4, shorthandAreaMain.Top + 4), Color.FromArgb(199, 233, 255)) < 8, "grid shorthand paint");
                     }
-                    var alignmentPath = Path.Combine(root, "LeaForge", "test-pages", "grid-alignment.html");
+                    var alignmentPath = Path.Combine(pages, "grid-alignment.html");
                     var alignmentPage = engine.Go(alignmentPath);
                     var placeGrid = BlockById(alignmentPage, "place-grid").S;
                     var placeAStyle = BlockById(alignmentPage, "place-a").S;
@@ -2853,7 +2857,7 @@ namespace Lea.Tests
                         Ok(!FragmentHitRect(view, "#alignment-target").IsEmpty && BlockOuterRect(view, BlockById(view.At, "after-alignment")).Top > BlockOuterRect(view, BlockById(view.At, "alignment-target")).Bottom, "grid alignment hits and following flow");
                         Ok(ColorDistance(alignmentPaint.GetPixel(placeC.Left + 4, placeC.Top + 4), Color.FromArgb(253, 227, 197)) < 8, "grid alignment paint");
                     }
-                    var contentAlignmentPath = Path.Combine(root, "LeaForge", "test-pages", "grid-content-alignment.html");
+                    var contentAlignmentPath = Path.Combine(pages, "grid-content-alignment.html");
                     var contentAlignmentPage = engine.Go(contentAlignmentPath);
                     var centerContent = BlockById(contentAlignmentPage, "center-grid").S;
                     var axisContent = BlockById(contentAlignmentPage, "axis-grid").S;
@@ -2898,7 +2902,7 @@ namespace Lea.Tests
                         Ok(!FragmentHitRect(view, "#content-target").IsEmpty && BlockOuterRect(view, BlockById(view.At, "after-content")).Top > BlockOuterRect(view, BlockById(view.At, "content-target")).Bottom, "grid content alignment hits and following flow");
                         Ok(ColorDistance(contentAlignmentPaint.GetPixel(mixedA.Left + 4, mixedA.Top + 4), Color.FromArgb(253, 227, 197)) < 8, "grid content alignment paint");
                     }
-                    var svgPath = Path.Combine(root, "LeaForge", "test-pages", "svg.html");
+                    var svgPath = Path.Combine(pages, "svg.html");
                     var svgPage = engine.Go(svgPath);
                     var vector = BlockById(svgPage, "vector");
                     Eq("svg", vector.K, "inline SVG block kind");
@@ -2928,7 +2932,7 @@ namespace Lea.Tests
                         Ok(!FragmentHitRect(view, "#svg-target").IsEmpty, "SVG linked shape hit target");
                         Ok(BlockOuterRect(view, BlockById(view.At, "after-svg")).Top > svgRect.Bottom, "normal flow follows inline SVG");
                     }
-                    var svgGeometryPath = Path.Combine(root, "LeaForge", "test-pages", "svg-geometry.html");
+                    var svgGeometryPath = Path.Combine(pages, "svg-geometry.html");
                     var svgGeometryPage = engine.Go(svgGeometryPath);
                     var geometry = BlockById(svgGeometryPage, "geometry");
                     Ok(geometry.Vg != null && geometry.Vg.A == "mm" && geometry.Vg.M == "m", "SVG default preserveAspectRatio aliases");
@@ -2977,7 +2981,7 @@ namespace Lea.Tests
                         Ok(ColorDistance(geometryPaint.GetPixel(minRect.Left + 50, minRect.Top + 50), Color.FromArgb(22, 163, 74)) < 12 && ColorDistance(geometryPaint.GetPixel(minRect.Right - 10, minRect.Top + 50), Color.White) < 12, "SVG xMinYMax meet alignment paint");
                         Ok(ColorDistance(geometryPaint.GetPixel(sliceRect.Left + 100, sliceRect.Top + 50), Color.FromArgb(37, 99, 235)) < 12, "SVG xMidYMax slice clipping paint");
                     }
-                    var svgGradientPath = Path.Combine(root, "LeaForge", "test-pages", "svg-gradients.html");
+                    var svgGradientPath = Path.Combine(pages, "svg-gradients.html");
                     var svgGradientPage = engine.Go(svgGradientPath);
                     var gradientVector = BlockById(svgGradientPage, "gradient-vector");
                     Ok(gradientVector.Vg != null && gradientVector.Vg.Ds.Count == 5, "SVG valid, invalid, and cyclic gradient definition count");
@@ -3012,7 +3016,7 @@ namespace Lea.Tests
                         Ok(!gradientHit.IsEmpty && gradientHit.Top >= gradientRect.Top + 180, "SVG transformed gradient link hit geometry");
                         Ok(ColorDistance(gradientPaint.GetPixel(gradientRect.Left + 20, gradientRect.Top + 198), Color.White) < 12 && ColorDistance(gradientPaint.GetPixel(gradientRect.Left + 70, gradientRect.Top + 198), Color.White) < 12, "SVG rejected gradient references remain unpainted");
                     }
-                    var svgReusePath = Path.Combine(root, "LeaForge", "test-pages", "svg-use-clips.html");
+                    var svgReusePath = Path.Combine(pages, "svg-use-clips.html");
                     var svgReusePage = engine.Go(svgReusePath);
                     var reuseVector = BlockById(svgReusePage, "reuse-vector");
                     Ok(reuseVector.Vg != null && reuseVector.Vg.Cs.Count == 4, "SVG valid and cyclic clip definition count");
@@ -3049,7 +3053,7 @@ namespace Lea.Tests
                         Ok(!clippedHit.IsEmpty && clippedHit.Left >= reuseRect.Left + 248 && clippedHit.Right <= reuseRect.Left + 332 && clippedHit.Top >= reuseRect.Top + 74, "SVG clipped link hit bounds");
                         Ok(ColorDistance(reusePaint.GetPixel(reuseRect.Left + 200, reuseRect.Top + 194), Color.White) < 12, "SVG unresolved clip remains unpainted");
                     }
-                    var svgStrokePath = Path.Combine(root, "LeaForge", "test-pages", "svg-strokes.html");
+                    var svgStrokePath = Path.Combine(pages, "svg-strokes.html");
                     var svgStrokePage = engine.Go(svgStrokePath);
                     var strokeVector = BlockById(svgStrokePage, "stroke-vector");
                     Ok(strokeVector.Vg != null && strokeVector.Vg.Cs.Count == 1, "SVG stroke fixture and clip model");
@@ -3077,7 +3081,7 @@ namespace Lea.Tests
                         var squareHit = FragmentHitRect(view, "#stroke-target");
                         Ok(!squareHit.IsEmpty && squareHit.Left <= strokeRect.Left + 244 && squareHit.Right >= strokeRect.Left + 328 && squareHit.Top <= strokeRect.Top + 96, "SVG square-cap link hit bounds");
                     }
-                    var radiusPath = Path.Combine(root, "LeaForge", "test-pages", "border-radius.html");
+                    var radiusPath = Path.Combine(pages, "border-radius.html");
                     var radiusPage = engine.Go(radiusPath);
                     var solidRadius = BlockById(radiusPage, "solid").S;
                     Ok(solidRadius.R0 == 30 && solidRadius.R1 == 12 && solidRadius.R2 == 24 && solidRadius.R3 == 4 &&
@@ -3123,7 +3127,7 @@ namespace Lea.Tests
                     view.Size = new Size(300, 1200);
                     Paint(view);
                     Ok(BlockOuterRect(view, BlockById(view.At, "dashed")).Right <= view.ClientSize.Width - 1, "rounded boxes reflow narrowly");
-                    var shadowPath = Path.Combine(root, "LeaForge", "test-pages", "box-shadows.html");
+                    var shadowPath = Path.Combine(pages, "box-shadows.html");
                     var shadowPage = engine.Go(shadowPath);
                     var outerShadow = BlockById(shadowPage, "outer").S.Sw;
                     Ok(outerShadow.Count == 2 && outerShadow[0].X == 12 && outerShadow[0].Y == 8 && outerShadow[0].B == 0 && outerShadow[0].R == 0 && outerShadow[0].C == "#dc2626" && !outerShadow[0].I &&
@@ -3170,7 +3174,7 @@ namespace Lea.Tests
                     view.Size = new Size(260, 1200);
                     Paint(view);
                     Ok(BlockOuterRect(view, BlockById(view.At, "outer")).Right <= view.ClientSize.Width - 1, "shadow boxes reflow without layout expansion");
-                    var gradientPath = Path.Combine(root, "LeaForge", "test-pages", "background-gradients.html");
+                    var gradientPath = Path.Combine(pages, "background-gradients.html");
                     var gradientPage = engine.Go(gradientPath);
                     Ok(gradientPage.S.Gi != null && gradientPage.S.Gi.K == "l" && gradientPage.S.Gi.A == 90 && gradientPage.S.Gi.Ss.Count == 2, "page gradient compact model");
                     var linearGradient = BlockById(gradientPage, "linear").S.Gi;
@@ -3220,7 +3224,7 @@ namespace Lea.Tests
                     Paint(view);
                     Ok(BlockOuterRect(view, BlockById(view.At, "linear")).Right <= view.ClientSize.Width - 1, "gradient boxes reflow without layout expansion");
 
-                    var bitmapPath = Path.Combine(root, "LeaForge", "test-pages", "background-images.html");
+                    var bitmapPath = Path.Combine(pages, "background-images.html");
                     var bitmapEngine = new E();
                     var bitmapPage = bitmapEngine.Go(bitmapPath);
                     Ok(bitmapPage.S.Bi != null && bitmapPage.S.Bi.R == "n" && bitmapPage.S.Bi.X == 100 && bitmapPage.S.Bi.Y == 100 &&
@@ -3258,7 +3262,7 @@ namespace Lea.Tests
 
                     BitmapBackgroundPaintSmoke(bitmapPath);
 
-                    var objectPath = Path.Combine(root, "LeaForge", "test-pages", "object-fit.html");
+                    var objectPath = Path.Combine(pages, "object-fit.html");
                     var objectEngine = new E();
                     var objectPage = objectEngine.Go(objectPath);
                     Eq("f", BlockById(objectPage, "fill").S.Of, "fill object-fit alias");
@@ -3295,7 +3299,7 @@ namespace Lea.Tests
 
                     ObjectFitPaintSmoke(objectPath);
 
-                    var ratioPath = Path.Combine(root, "LeaForge", "test-pages", "aspect-ratio.html");
+                    var ratioPath = Path.Combine(pages, "aspect-ratio.html");
                     var ratioEngine = new E();
                     var ratioPage = ratioEngine.Go(ratioPath);
                     var wideRatio = BlockById(ratioPage, "wide").S;
@@ -3329,7 +3333,7 @@ namespace Lea.Tests
 
                     AspectRatioPaintSmoke(ratioPath);
 
-                    var outlinePath = Path.Combine(root, "LeaForge", "test-pages", "outlines.html");
+                    var outlinePath = Path.Combine(pages, "outlines.html");
                     var outlineEngine = new E();
                     var outlinePage = outlineEngine.Go(outlinePath);
                     var solidOutline = BlockById(outlinePage, "solid").S;
@@ -3370,7 +3374,7 @@ namespace Lea.Tests
 
                     OutlinePaintSmoke(outlinePath);
 
-                    var pointerPath = Path.Combine(root, "LeaForge", "test-pages", "pointer-interaction.html");
+                    var pointerPath = Path.Combine(pages, "pointer-interaction.html");
                     var pointerEngine = new E();
                     var pointerPage = pointerEngine.Go(pointerPath);
                     Ok(pointerPage.S.Cu == "c" && pointerPage.S.Pe && BlockById(pointerPage, "inherited").S.Cu == "c" && BlockById(pointerPage, "inherited").S.Pe,
@@ -3401,7 +3405,7 @@ namespace Lea.Tests
                     PointerInteractionSmoke(pointerPath);
 
                     view.Size = new Size(720, 760);
-                    var boxes = Path.Combine(root, "LeaForge", "test-pages", "boxes.html");
+                    var boxes = Path.Combine(pages, "boxes.html");
                     var boxPage = engine.Go(boxes);
                     Eq(4, boxPage.Bs.Count, "box-model blocks");
                     Eq(280, boxPage.Bs[1].S.W, "CSS width");
@@ -3414,7 +3418,7 @@ namespace Lea.Tests
                     Eq(2, boxPage.Bs[3].S.Br, "right border width");
                     Eq(3, boxPage.Bs[3].S.Bb, "bottom border width");
                     Eq(1, boxPage.Bs[3].S.Bl, "left border width");
-                    var boxSizingPath = Path.Combine(root, "LeaForge", "test-pages", "box-sizing.html");
+                    var boxSizingPath = Path.Combine(pages, "box-sizing.html");
                     var boxSizingPage = engine.Go(boxSizingPath);
                     Eq("c", BlockById(boxSizingPage, "content-box").S.Bz, "content-box compact style");
                     Eq("b", BlockById(boxSizingPage, "border-box").S.Bz, "border-box compact style");
@@ -3478,7 +3482,7 @@ namespace Lea.Tests
                     Ok(narrowFlexBorder.Width > 22 && narrowFlexBorder.Right <= narrowFlex.Right, "border-box flex item remains inside narrow content");
                     Ok(narrowTable.Width == narrowBorder.Width, "border-box table reflows narrowly");
                     view.Size = new Size(720, 760);
-                    view.Go(Path.Combine(root, "LeaForge", "test-pages", "tables.html"));
+                    view.Go(Path.Combine(pages, "tables.html"));
                     Paint(view);
                     Eq(17, view.Bc, "table layout boxes");
                     Eq(480, view.Rc(2).Width, "table content width");
@@ -4421,7 +4425,7 @@ namespace Lea.Tests
                     Ok(ElementVisible(view, ById(view.At.D, "target")) && view.Sy != wideTargetScroll, "fragment placement follows resized layout");
                     Eq(viewFragmentRequests, view.Dg().Rs.Count, "fragment resize path performs no request");
 
-                    view.Go(Path.Combine(root, "LeaForge", "test-pages", "second.html"));
+                    view.Go(Path.Combine(pages, "second.html"));
                     view.Go(new Uri(new Uri(fragmentPath).AbsoluteUri + "#target"));
                     var loadedFragmentState = FragmentState(view);
                     Paint(view);
@@ -4493,7 +4497,7 @@ namespace Lea.Tests
                     Ok(narrowTimeRect.Width > 0 && narrowTimeRect.Width < wideTimeWidth && view.At.Dvs.Count == 10, "time metadata reflows without rebuilding models");
 
                     view.Size = new Size(720, 760);
-                    view.Go(Path.Combine(root, "LeaForge", "test-pages", "scroll.html"));
+                    view.Go(Path.Combine(pages, "scroll.html"));
                     Paint(view);
                     Eq(16, view.Bc, "scroll boxes");
                     view.Sc(100000);
@@ -4535,7 +4539,7 @@ namespace Lea.Tests
                     net.Cl();
                     Eq(0, net.Cc, "clear cache");
 
-                    var asyncPage = net.GoA(new Uri(server.U, "?encoding=deflate&async=1")).GetAwaiter().GetResult();
+                    var asyncPage = Complete(net.GoA(new Uri(server.U, "?encoding=deflate&async=1")), "async deflate page");
                     Eq("deflate", asyncPage.Ce, "async response encoding");
                     Eq("Lea deflate", asyncPage.T, "async decoded page");
                     var noStoreUrl = new Uri(server.U, "?no-store=1");
@@ -4594,7 +4598,7 @@ namespace Lea.Tests
                     Ok(!modifiedFirst.Ca, "Last-Modified first response downloads");
                     Ok(modifiedFirst.Lm.Length > 0, "Last-Modified response metadata");
                     Eq(20, server.Hits, "Last-Modified first request");
-                    var modifiedValidated = net.GoA(modifiedUrl).GetAwaiter().GetResult();
+                    var modifiedValidated = Complete(net.GoA(modifiedUrl), "async modified validator");
                     Ok(modifiedValidated.Ca && modifiedValidated.H == modifiedFirst.H, "async Last-Modified 304 reuses cached body");
                     Ok(server.LastIfModifiedSince.Length > 0, "If-Modified-Since request header");
                     Eq(21, server.Hits, "Last-Modified validation request");
@@ -4679,7 +4683,7 @@ namespace Lea.Tests
                     Eq("http", unavailable.K, "HTTP error kind");
                     Eq(503, unavailable.St, "HTTP error status");
                     Ok(unavailable.Rt, "HTTP 503 retryable");
-                    var missingHttp = Fails(delegate { net.GoA(new Uri(server.U, "?status=404")).GetAwaiter().GetResult(); }, "async HTTP 404");
+                    var missingHttp = Fails(delegate { Complete(net.GoA(new Uri(server.U, "?status=404")), "async HTTP 404 completion"); }, "async HTTP 404");
                     Eq("http", missingHttp.K, "async HTTP error kind");
                     Eq(404, missingHttp.St, "async HTTP error status");
                     Ok(!missingHttp.Rt, "HTTP 404 not retryable");
@@ -4695,7 +4699,7 @@ namespace Lea.Tests
                     var linkedAgain = cssNet.Go(new Uri(server.U, "?external-page=sync"));
                     Eq("#0f6848", linkedAgain.S.Bg, "cached external CSS remains applied");
                     Eq(cssStart + 3, server.Hits, "shared cache avoids stylesheet request");
-                    var asyncLinked = new E().GoA(new Uri(server.U, "?external-page=async")).GetAwaiter().GetResult();
+                    var asyncLinked = Complete(new E().GoA(new Uri(server.U, "?external-page=async")), "async linked stylesheet");
                     Eq("#0f6848", asyncLinked.S.Bg, "async network external CSS");
                     Eq("#a13b18", asyncLinked.Bs[0].S.F, "async linked rule");
                     var limitNet = new E();
@@ -4728,7 +4732,7 @@ namespace Lea.Tests
                     Ok(jar.Pv && jar.Kc == 0 && jar.Cc == 0, "private mode starts isolated and clears cache");
                     Eq("Cookie empty", jar.Go(new Uri(server.U, "?cookie=read")).T, "private jar hides normal cookie");
                     jar.Go(new Uri(server.U, "?cookie=set-private"));
-                    Eq("Cookie private", jar.GoA(new Uri(server.U, "?cookie=read")).GetAwaiter().GetResult().T, "async private cookie round trip");
+                    Eq("Cookie private", Complete(jar.GoA(new Uri(server.U, "?cookie=read")), "async private cookie round trip").T, "async private cookie round trip");
                     Eq(1, jar.Kc, "private cookie count");
 
                     jar.Pv = false;
@@ -4766,7 +4770,7 @@ namespace Lea.Tests
                         File.Delete(largeDownload);
                     }
 
-                    var missingFile = new Uri(Path.Combine(root, "LeaForge", "test-pages", "missing-lea-page.html"));
+                    var missingFile = new Uri(Path.Combine(pages, "missing-lea-page.html"));
                     var fileError = Fails(delegate { net.Go(missingFile); }, "missing file");
                     Eq("file", fileError.K, "file error kind");
                     Ok(!fileError.Rt, "file error not retryable");
@@ -4811,7 +4815,7 @@ namespace Lea.Tests
                         Ok(!etagSeed.Ca && etagSeed.Et == "\"lea-v1\"", "persistent validator seed");
                         var validatorRestart = new E();
                         validatorRestart.Cd = diskRoot;
-                        var diskValidated = validatorRestart.GoA(diskEtagUrl).GetAwaiter().GetResult();
+                        var diskValidated = Complete(validatorRestart.GoA(diskEtagUrl), "async disk validator");
                         Ok(diskValidated.Ca && diskValidated.H == etagSeed.H, "persistent ETag 304 reuses decoded body after restart");
                         Eq(validatorHits + 1, server.Hits, "persistent validator performs one conditional request");
                         Eq("\"lea-v1\"", server.LastIfNoneMatch, "persistent If-None-Match request header");
@@ -5866,7 +5870,7 @@ namespace Lea.Tests
 
         private static void Check(V view, string root, string file, int blocks, int boxes)
         {
-            view.Go(Path.Combine(root, "LeaForge", "test-pages", file));
+            view.Go(Path.Combine(pages, file));
             Paint(view);
             Eq(blocks, view.At.Bs.Count, file + " blocks");
             Eq(boxes, view.Bc, file + " boxes");
@@ -6420,7 +6424,7 @@ namespace Lea.Tests
 
         private static void CheckDisposal(string root)
         {
-            var source = Path.Combine(root, "LeaForge", "test-pages", "script-bridge.html");
+            var source = Path.Combine(pages, "script-bridge.html");
             using (var view = new V())
             {
                 var alerts = 0;
@@ -6450,21 +6454,18 @@ namespace Lea.Tests
             }
             using (var view = new V())
             {
-                // Hold the file task until disposal; a small file can otherwise finish first.
-                var scheduler = new StepScheduler();
+                var gate = new StepContext();
                 var context = SynchronizationContext.Current;
-                Task<Task<P>> start;
+                Task<P> work;
                 try
                 {
-                    SynchronizationContext.SetSynchronizationContext(null);
-                    start = Task.Factory.StartNew(() => view.GoA(source), CancellationToken.None, TaskCreationOptions.None, scheduler);
-                    scheduler.Step();
+                    SynchronizationContext.SetSynchronizationContext(gate);
+                    work = view.GoA(source);
                 }
                 finally { SynchronizationContext.SetSynchronizationContext(context); }
-                var work = start.Result;
                 Ok(!work.IsCompleted && view.Busy, "local load held before disposal");
                 view.Dispose();
-                WaitFor(() => { scheduler.Step(); return work.IsCompleted; }, "disposed local load completion");
+                WaitFor(() => { gate.Step(); return work.IsCompleted; }, "disposed local load completion");
                 Eq("cancel", Fails(() => work.GetAwaiter().GetResult(), "local load cancellation").K, "local cancellation before parsing");
                 Ok(view.At == null, "disposed local load did not publish a page");
             }
@@ -6507,7 +6508,7 @@ namespace Lea.Tests
                 foreach (var asynchronous in new[] { false, true })
                 {
                     var engine = new E();
-                    var retained = engine.Go(Path.Combine(root, "LeaForge", "test-pages", "second.html"));
+                    var retained = engine.Go(Path.Combine(pages, "second.html"));
                     var error = Fails(delegate
                     {
                         if (!asynchronous) engine.Go(path);
@@ -6631,7 +6632,7 @@ namespace Lea.Tests
 
         private static void CheckHttpInput(string root)
         {
-            var seed = Path.Combine(root, "LeaForge", "test-pages", "second.html");
+            var seed = Path.Combine(pages, "second.html");
             foreach (var asynchronous in new[] { false, true })
             foreach (var post in new[] { false, true })
             foreach (var mode in new[] { "declared", "overflow", "gzip", "deflate" })
@@ -6909,9 +6910,14 @@ namespace Lea.Tests
             var inspect = preflight == null ? null : preflight.GetMethod("Rd", BindingFlags.Static | BindingFlags.Public);
             Ok(inspect != null,
                 "bounded picture preflight is available before native decoding");
+            var isolated = typeof(V).Assembly.GetType("Lea.Win.Di", false);
+            Ok(isolated != null && typeof(V).GetProperty("Ii") != null && typeof(V).GetProperty("Ie") != null &&
+                typeof(V).GetProperty("Iw") != null && typeof(V).GetProperty("Ik") != null,
+                "killable picture decoder and compact worker aliases are available");
             using (var aliases = new V())
-                Ok(aliases.Ip == 8 * 1024 * 1024 && aliases.Im == 128L * 1024 * 1024 && aliases.It == 0 && aliases.In == 0 && aliases.If == 0,
-                    "compact picture preflight and process-memory aliases");
+                Ok(aliases.Ip == 8 * 1024 * 1024 && aliases.Im == 128L * 1024 * 1024 && aliases.It == 0 &&
+                    aliases.In == 0 && aliases.If == 0 && aliases.Ii && File.Exists(aliases.Ie) && aliases.Iw == 0 && aliases.Ik == 0,
+                    "compact picture preflight, process-memory, and decoder aliases");
             var formats = new Dictionary<string, byte[]>
             {
                 { "p", PictureBytes(System.Drawing.Imaging.ImageFormat.Png) },
@@ -6932,10 +6938,9 @@ namespace Lea.Tests
                     var work = view.GoA(server.U);
                     WaitFor(() => work.IsCompleted, "native format decode " + format.Key);
                     work.GetAwaiter().GetResult();
-                    Ok(view.Ic == 1 && view.If == 0 && view.In == 1 && view.It == view.Ib && view.Ib > 0,
+                    Ok(view.Ic == 1 && view.If == 0 && view.In == 1 && view.It == view.Ib && view.Ib > 0 &&
+                        view.Ii && view.Iw > 0 && view.Iw != System.Diagnostics.Process.GetCurrentProcess().Id && view.Ik == 0,
                         "preflighted native format accounting " + format.Key);
-                    Ok((int)typeof(V).GetField("picNativeThread", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(view) !=
-                        Thread.CurrentThread.ManagedThreadId, "native image decode stays off the UI thread " + format.Key);
                 }
                 using (var released = new V()) Eq(0L, released.It, "format disposal releases process image bytes " + format.Key);
             }
@@ -6954,9 +6959,40 @@ namespace Lea.Tests
                     var work = view.GoA(server.U);
                     WaitFor(() => work.IsCompleted, "hostile image integration");
                     work.GetAwaiter().GetResult();
-                    Ok(view.Ic == 0 && view.If == 1 && view.In == 0 && view.It == 0 && view.Le == null,
+                    Ok(view.Ic == 0 && view.If == 1 && view.In == 0 && view.Iw == 0 && view.Ik == 0 && view.It == 0 && view.Le == null,
                         "hostile image never reaches native decoder");
                 }
+            }
+            using (var server = new PictureServer("plain", PicturePng(3, 2, Color.SeaGreen)))
+            using (var view = new V { Ie = Path.Combine(root, "missing-Lea.Image.exe") })
+            {
+                Ok(!view.Ii, "missing decoder is reported before navigation");
+                var work = view.GoA(server.U);
+                WaitFor(() => work.IsCompleted, "missing image worker");
+                work.GetAwaiter().GetResult();
+                Ok(view.Ic == 0 && view.If == 1 && view.In == 0 && view.Iw == 0 && view.Ik == 0 && view.It == 0 && view.Le == null,
+                    "missing decoder is a bounded nonfatal image failure");
+            }
+            using (var server = new PictureServer("plain", PicturePng(3, 2, Color.SeaGreen)))
+            using (var view = new V { Tm = 300 })
+            {
+                typeof(V).GetField("picWorkerArgs", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(view, "--pipe --delay=2000");
+                var clock = System.Diagnostics.Stopwatch.StartNew();
+                var work = view.GoA(server.U);
+                WaitFor(() => work.IsCompleted && view.It == 0, "stalled native decoder termination");
+                work.GetAwaiter().GetResult();
+                Ok(clock.ElapsedMilliseconds < 1800 && view.Ic == 0 && view.If == 1 && view.In == 1 &&
+                    view.Iw > 0 && view.Iw != System.Diagnostics.Process.GetCurrentProcess().Id && view.Ik == 1 && view.It == 0 && view.Le == null,
+                    "decoder deadline kills the helper and releases its reservation");
+            }
+            using (var server = new PictureServer("plain", PicturePng(3, 2, Color.MediumSeaGreen)))
+            using (var view = new V())
+            {
+                var work = view.GoA(server.U);
+                WaitFor(() => work.IsCompleted, "decoder restart after termination");
+                work.GetAwaiter().GetResult();
+                Ok(view.Ic == 1 && view.If == 0 && view.In == 1 && view.Iw > 0 && view.Ik == 0 && view.It == view.Ib,
+                    "decoder restarts cleanly after a killed helper");
             }
             using (var gate = new ManualResetEvent(false))
             using (var server = new CompressedServer { ImageGate = gate })
@@ -7025,7 +7061,7 @@ namespace Lea.Tests
                 Ok(view.If == 1 && view.In == 2 && view.It == view.Ib, "per-view preflight and process accounting");
                 for (var pass = 0; pass < 3; pass++) { Paint(view); Application.DoEvents(); }
                 Eq(3, server.Pictures, "full bitmap budget does not evict/refetch current images");
-                view.Go(Path.Combine(root, "LeaForge", "test-pages", "second.html"));
+                view.Go(Path.Combine(pages, "second.html"));
                 Ok(view.Ic == 0 && view.Ib == 0, "sync page replacement releases unreferenced bitmaps");
             }
             using (var firstServer = new PictureServer("budget", PicturePng(2048, 2048, Color.SeaGreen)))
@@ -7222,11 +7258,13 @@ namespace Lea.Tests
         {
             private readonly TcpListener listener = new TcpListener(IPAddress.Loopback, 0);
             private readonly ManualResetEvent stop = new ManualResetEvent(false);
+            private readonly object clientGate = new object();
             private readonly Thread worker;
             private readonly string mode;
             private readonly byte[] data;
             private Exception error;
             private int pictures;
+            private TcpClient activeClient;
             public volatile bool Recovered;
             public volatile string ImageSource;
             public readonly Uri U;
@@ -7247,9 +7285,12 @@ namespace Lea.Tests
                 try
                 {
                     while (!stop.WaitOne(0))
-                    using (var client = listener.AcceptTcpClient())
-                    using (var stream = client.GetStream())
                     {
+                        if (!listener.Pending()) { stop.WaitOne(5); continue; }
+                        using (var client = listener.AcceptTcpClient())
+                        using (var stream = client.GetStream())
+                        {
+                            lock (clientGate) activeClient = client;
                         stream.ReadTimeout = 2000;
                         stream.WriteTimeout = 2000;
                         var head = new StringBuilder();
@@ -7327,6 +7368,7 @@ namespace Lea.Tests
                             }
                         }
                         catch (IOException) { } // Size limits, Stop, and timeouts intentionally disconnect picture requests.
+                        }
                     }
                 }
                 catch (Exception failure) { if (!stop.WaitOne(0)) error = failure; }
@@ -7344,15 +7386,16 @@ namespace Lea.Tests
             {
                 stop.Set();
                 listener.Stop();
+                lock (clientGate) if (activeClient != null) activeClient.Close();
                 var ended = worker.Join(4000);
-                stop.Dispose();
                 Ok(ended && error == null, "picture fixture cleanup: " + error);
+                stop.Dispose();
             }
         }
 
         private static void CheckLoadLifecycle(string root)
         {
-            var source = Path.Combine(root, "LeaForge", "test-pages", "load-lifecycle.html");
+            var source = Path.Combine(pages, "load-lifecycle.html");
             using (var headers = new ManualResetEvent(false))
             using (var pictures = new ManualResetEvent(false))
             using (var server = new CompressedServer { RequestGate = headers, ImageGate = pictures })
@@ -7436,7 +7479,7 @@ namespace Lea.Tests
 
         private static void CheckLoadCallbacks(string root)
         {
-            var source = Path.Combine(root, "LeaForge", "test-pages", "load-lifecycle.html");
+            var source = Path.Combine(pages, "load-lifecycle.html");
             foreach (var sync in new[] { false, true })
             foreach (var fail in new[] { false, true })
             foreach (var held in new[] { false, true })
@@ -7588,6 +7631,23 @@ namespace Lea.Tests
             }
         }
 
+        private sealed class StepContext : SynchronizationContext
+        {
+            private readonly Queue<Tuple<SendOrPostCallback, object>> pending = new Queue<Tuple<SendOrPostCallback, object>>();
+            public override void Post(SendOrPostCallback callback, object value)
+            {
+                lock (pending) pending.Enqueue(Tuple.Create(callback, value));
+            }
+            public void Step()
+            {
+                Tuple<SendOrPostCallback, object> next;
+                lock (pending) { if (pending.Count == 0) return; next = pending.Dequeue(); }
+                var before = Current;
+                try { SetSynchronizationContext(this); next.Item1(next.Item2); }
+                finally { SetSynchronizationContext(before); }
+            }
+        }
+
         [System.Runtime.InteropServices.DllImport("user32.dll", ExactSpelling = true)]
         private static extern bool OpenClipboard(IntPtr owner);
 
@@ -7599,7 +7659,7 @@ namespace Lea.Tests
 
         private static void CheckSheets(string root)
         {
-            var path = Path.Combine(root, "LeaForge", "test-pages", "stylesheets.html");
+            var path = Path.Combine(pages, "stylesheets.html");
             var engine = new E();
             var page = engine.Go(path);
             var html = page.H;
@@ -7648,7 +7708,7 @@ namespace Lea.Tests
             Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained field", "removing hidden style restores retained field");
             engine.Je = false;
             Eq(1, engine.Ss(page, "theme", "#panel{width:177px}"), "host CSS works with page scripting disabled");
-            engine.Go(Path.Combine(root, "LeaForge", "test-pages", "second.html"));
+            engine.Go(Path.Combine(pages, "second.html"));
             Eq(0, engine.At.Sn, "new document does not inherit host sheets");
             engine.Bk();
             Ok(engine.At == page && page.Sn == 1 && BlockById(page, "panel").S.W == 177, "history retains named styles");
@@ -7753,7 +7813,7 @@ namespace Lea.Tests
                 form.Controls.Add(view);
                 form.Controls.Add(other);
                 form.Show();
-                var path = Path.Combine(root, "LeaForge", "test-pages", "editing.html");
+                var path = Path.Combine(pages, "editing.html");
                 view.Go(path);
                 Paint(view);
                 var editor = Editor(view);
@@ -7895,7 +7955,7 @@ namespace Lea.Tests
             {
                 form.Controls.Add(view);
                 form.Show();
-                view.Go(Path.Combine(root, "LeaForge", "test-pages", "editing.html"));
+                view.Go(Path.Combine(pages, "editing.html"));
                 Paint(view);
                 var field = FieldById(view.At, "text");
                 typeof(V).GetMethod("StartEdit", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(view, new object[] { field });
@@ -7974,7 +8034,7 @@ namespace Lea.Tests
                     form.Controls.Add(view);
                     form.Controls.Add(other);
                     form.Show();
-                    var path = Path.Combine(root, "LeaForge", "test-pages", "editing.html");
+                    var path = Path.Combine(pages, "editing.html");
                     view.Go(path);
                     using (var paint = Render(view)) { }
                     var start = typeof(V).GetMethod("StartEdit", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -8004,7 +8064,7 @@ namespace Lea.Tests
                     key.Invoke(view, new object[] { editor, new KeyEventArgs(Keys.Control | Keys.Y) });
                     Eq("Lea  text", field.V, "keyboard redo uses command state");
                     view.Ec("sa");
-                    Clipboard.SetText("Replacement");
+                    SetClipboardText("Replacement");
                     CheckPaste(view, field, "Replacement", "native paste replaces selection");
                     Ok(!view.Ce("re"), "new edit clears redo");
                     editor.Select(0, 0);
@@ -8039,11 +8099,11 @@ namespace Lea.Tests
                     var limited = FieldById(view.At, "limited");
                     start.Invoke(view, new object[] { limited });
                     editor.Select(4, 0);
-                    Clipboard.SetText("abcdefghijk");
+                    SetClipboardText("abcdefghijk");
                     CheckPaste(view, limited, "1234abcd", "native paste respects maxlength");
                     var notes = FieldById(view.At, "notes");
                     start.Invoke(view, new object[] { notes });
-                    Clipboard.SetText("One\r\nTwo");
+                    SetClipboardText("One\r\nTwo");
                     CheckPaste(view, notes, "One\r\nTwo", "multiline paste");
                     other.Focus();
                     notes.V = "external change";
@@ -8072,9 +8132,26 @@ namespace Lea.Tests
             }
             finally
             {
-                if (original == null) Clipboard.Clear(); else Clipboard.SetDataObject(clipboard, true);
+                if (original == null) ClearClipboard(); else SetClipboardData(clipboard, true);
             }
             Console.WriteLine("Lea native editing smoke passed: aliases, menu focus, selection, clipboard, undo/redo, readonly/password, limits, stale values, and disposal.");
+        }
+
+        private static void SetClipboardText(string text, TextDataFormat format = TextDataFormat.UnicodeText)
+        {
+            var data = new DataObject();
+            data.SetText(text, format);
+            SetClipboardData(data, true);
+        }
+
+        private static void SetClipboardData(object data, bool copy)
+        {
+            Clipboard.SetDataObject(data, copy, 20, 25);
+        }
+
+        private static void ClearClipboard()
+        {
+            SetClipboardData(new DataObject(), true);
         }
 
         private static void CheckClipboardPasteCases(string root)
@@ -8084,7 +8161,7 @@ namespace Lea.Tests
             {
                 form.Controls.Add(view);
                 form.Show();
-                var path = Path.Combine(root, "LeaForge", "test-pages", "editing.html");
+                var path = Path.Combine(pages, "editing.html");
                 view.Go(path);
                 Paint(view);
                 var field = FieldById(view.At, "text");
@@ -8097,7 +8174,7 @@ namespace Lea.Tests
                 {
                     editor.Text = "Before";
                     editor.SelectAll();
-                    Clipboard.SetText("Keyboard paste");
+                    SetClipboardText("Keyboard paste");
                     changes = 0;
                     if (chord == Keys.None) Eq(new IntPtr(1), NativeEdit(editor.Handle, 0x0302, IntPtr.Zero, IntPtr.Zero), "native WM_PASTE success");
                     else
@@ -8114,27 +8191,27 @@ namespace Lea.Tests
                     Eq("Keyboard paste", field.V, "clipboard paste native redo");
                 }
                 editor.SelectAll();
-                Clipboard.Clear();
+                ClearClipboard();
                 Eq(0, view.Ec("pa"), "empty clipboard is inert");
                 Eq("Keyboard paste", field.V, "empty clipboard retains selected text");
                 Clipboard.SetData("Lea.Paste.Test", "not a text format");
                 Eq(0, view.Ec("pa"), "non-text clipboard is inert");
                 Eq("Keyboard paste", field.V, "non-text clipboard retains selected text");
-                Clipboard.SetText("ANSI paste", TextDataFormat.Text);
+                SetClipboardText("ANSI paste", TextDataFormat.Text);
                 CheckPaste(view, field, "ANSI paste", "Windows text format conversion");
                 editor.SelectAll();
-                Clipboard.SetText(new string('x', 65536));
+                SetClipboardText(new string('x', 65536));
                 Eq(1, view.Ec("pa"), "bounded clipboard prefix paste");
                 Eq(32767, field.V.Length, "clipboard text ceiling");
                 view.Ec("un");
                 Eq("ANSI paste", field.V, "large clipboard paste undo");
                 editor.SelectAll();
-                Clipboard.SetText("A\0B");
+                SetClipboardText("A\0B");
                 CheckPaste(view, field, "A", "clipboard NUL terminator");
 
                 var deferred = new DeferredClipboard();
                 deferred.SetText("Must not overwrite a new page");
-                Clipboard.SetDataObject(deferred, false);
+                SetClipboardData(deferred, false);
                 var reads = 0;
                 deferred.Read = delegate { reads++; view.Go(path); };
                 Eq(0, view.Ec("pa"), "clipboard callback navigation cancels old paste");
@@ -8146,7 +8223,7 @@ namespace Lea.Tests
                     typeof(V).GetMethod("StartEdit", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(view, new object[] { field });
                     deferred = new DeferredClipboard();
                     deferred.SetText("Stale clipboard text");
-                    Clipboard.SetDataObject(deferred, false);
+                    SetClipboardData(deferred, false);
                     reads = 0;
                     deferred.Read = delegate
                     {
@@ -8198,8 +8275,8 @@ namespace Lea.Tests
 
         private static void CheckNavigationGuard(string root)
         {
-            var forms = Path.Combine(root, "LeaForge", "test-pages", "forms.html");
-            var next = Path.Combine(root, "LeaForge", "test-pages", "index.html");
+            var forms = Path.Combine(pages, "forms.html");
+            var next = Path.Combine(pages, "index.html");
             var engine = new E();
             var first = engine.Go(forms);
             using (var server = new CompressedServer())
@@ -8266,7 +8343,7 @@ namespace Lea.Tests
             }
             using (var input = new V { Size = new Size(640, 480) })
             {
-                input.Go(Path.Combine(root, "LeaForge", "test-pages", "focus-shortcuts.html"));
+                input.Go(Path.Combine(pages, "focus-shortcuts.html"));
                 Paint(input);
                 var retained = input.At;
                 var calls = 0;
@@ -8301,11 +8378,11 @@ namespace Lea.Tests
 
         private static void CheckFragmentStartup(string root)
         {
-            var path = Path.Combine(root, "LeaForge", "test-pages", "fragments.html");
+            var path = Path.Combine(pages, "fragments.html");
             using (var view = new V { Size = new Size(300, 420) })
                 for (var index = 0; index < 25; index++)
                 {
-                    view.Go(Path.Combine(root, "LeaForge", "test-pages", "second.html"));
+                    view.Go(Path.Combine(pages, "second.html"));
                     view.Go(new Uri(new Uri(path).AbsoluteUri + "#target"));
                     Paint(view);
                     Ok(view.U.Fragment == "#target" && ElementVisible(view, view.Id("target")), "fragment startup repeat " + index + ": " + FragmentState(view));
@@ -8315,7 +8392,7 @@ namespace Lea.Tests
 
         private static void CheckRetainedData(string root)
         {
-            var source = Path.Combine(root, "LeaForge", "test-pages", "retained-data.html");
+            var source = Path.Combine(pages, "retained-data.html");
             var engine = new E();
             Ok(engine.Ud(null), "unknown document must be retained");
             var page = engine.Go(source);
@@ -8392,7 +8469,7 @@ namespace Lea.Tests
 
         private static void CheckLoadFailures(string root)
         {
-            var source = Path.Combine(root, "LeaForge", "test-pages", "forms.html");
+            var source = Path.Combine(pages, "forms.html");
             var missing = Path.Combine(Path.GetTempPath(), "lea-retry-" + Guid.NewGuid().ToString("N") + ".html");
             try
             {
@@ -8509,6 +8586,12 @@ namespace Lea.Tests
                 Thread.Sleep(2);
             }
             Ok(ready(), name);
+        }
+
+        private static T Complete<T>(Task<T> work, string name)
+        {
+            WaitFor(() => work.IsCompleted, name);
+            return work.GetAwaiter().GetResult();
         }
 
         private static void Eq<T>(T expected, T actual, string name)

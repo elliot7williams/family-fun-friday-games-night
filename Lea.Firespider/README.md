@@ -24,9 +24,10 @@ The `cache` case keeps path/query casing exact across selected-tab loads, shares
 only fragment variants, separates case-different navigation, and checks host
 request cleanup without MSHTML. See `LeaForge/CACHE_IDENTITY.md`.
 
-The `decode` case sends an over-axis PNG through a selected Lea tab and checks
-`Ip/Im/It/In/If`, retained form data, request cleanup, zero native admission,
-and no MSHTML. See `LeaForge/IMAGE_PREFLIGHT.md`.
+The `decode` case sends one valid and one over-axis PNG through a selected Lea
+tab. It checks `Ip/Im/It/In/If`, `Ie/Ii/Iw/Ik`, raw pixels from a different PID,
+pre-native hostile rejection, retained form data, request cleanup, child exit,
+and no MSHTML. See `LeaForge/IMAGE_ISOLATION.md`.
 
 Navigation, Retry, and Reload now use request identity tracking. `V.Cn` rejects
 overlap before changing pending targets or preview CSS; an old completion cannot
@@ -386,7 +387,7 @@ gradient definitions/stops, resolved paints, reusable group expansion, compact
 clip definitions/references, stylesheet stroke aliases, and graphic accessibility name.
 
 The host project imports `Lea/FirespiderLea.targets`, which adds the two DLL
-references, compiles `FirespiderLea.vb`, and copies `start.html` to the output
+references, compiles `FirespiderLea.vb`, and copies `Lea.Image.exe` plus `start.html` to the output
 `Lea` folder. Lea tabs use no Chromium, WebView, Safari, or hidden browser
 control. The normal initial-page path now uses Lea. The explicit fallback and
 advanced legacy-only commands remain; the entire host is not yet Lea-only.

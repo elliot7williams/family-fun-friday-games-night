@@ -64,7 +64,10 @@ namespace Lea.Win
         private int picVersion;
         private long picSize;
         private int picNative;
-        private int picNativeThread;
+        private int picWorker;
+        private int picKilled;
+        private string picWorkerPath;
+        private string picWorkerArgs = "--pipe";
         private WebRequest picRequest;
         private Stream picStream;
         private CancellationTokenSource picBudget;
@@ -199,6 +202,10 @@ namespace Lea.Win
         public long It { get { lock (picMemoryGate) return picMemoryTotal; } }
         public int Ip { get { return Pi.Pixels; } }
         public int In { get { return Interlocked.CompareExchange(ref picNative, 0, 0); } }
+        public string Ie { get { return Di.P(picWorkerPath); } set { picWorkerPath = value; } }
+        public bool Ii { get { return File.Exists(Ie); } }
+        public int Iw { get { return Interlocked.CompareExchange(ref picWorker, 0, 0); } }
+        public int Ik { get { return Interlocked.CompareExchange(ref picKilled, 0, 0); } }
         public int Hm { get { return e.Hm; } }
         public int Csm { get { return e.Csm; } }
         public int Ic { get { var count = 0; foreach (var item in pics.Values) if (item != null) count++; return count; } }
@@ -4572,18 +4579,22 @@ namespace Lea.Win
                         if (expected > PicMemory - picSize || !ReservePic(info.R))
                             throw new InvalidDataException("Decoded image exceeds the bitmap budget.");
                         reserved = info.R;
-                        var decoding = DecodePicture(data);
-                        try { image = await PictureWait(decoding, deadline); }
-                        catch
+                        using (var decoder = CancellationTokenSource.CreateLinkedTokenSource(timer.Token))
                         {
-                            if (!decoding.IsCompleted)
+                            var decoding = DecodePicture(data, decoder.Token);
+                            try { image = await PictureWait(decoding, deadline); }
+                            catch
                             {
-                                var late = reserved;
-                                reserved = 0;
-                                var release = decoding.ContinueWith(completed => ReleasePic(late), CancellationToken.None,
-                                    TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                                if (!decoding.IsCompleted)
+                                {
+                                    decoder.Cancel();
+                                    var late = reserved;
+                                    reserved = 0;
+                                    var release = decoding.ContinueWith(completed => ReleasePic(late), CancellationToken.None,
+                                        TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                                }
+                                throw;
                             }
-                            throw;
                         }
                         var size = (long)image.Width * image.Height;
                         var retained = size * 4;
@@ -4617,16 +4628,11 @@ namespace Lea.Win
             }
         }
 
-        private Task<Image> DecodePicture(byte[] data)
+        private Task<Image> DecodePicture(byte[] data, CancellationToken token)
         {
-            return Task.Factory.StartNew(() =>
-            {
-                Interlocked.Increment(ref picNative);
-                Interlocked.Exchange(ref picNativeThread, Thread.CurrentThread.ManagedThreadId);
-                using (var stream = new MemoryStream(data, false))
-                using (var loaded = Image.FromStream(stream, false, true))
-                    return (Image)new Bitmap(loaded);
-            }, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
+            return Di.Rd(data, Ie, picWorkerArgs, token,
+                process => { Interlocked.Increment(ref picNative); Interlocked.Exchange(ref picWorker, process); },
+                () => Interlocked.Increment(ref picKilled));
         }
 
         private static bool ReservePic(long size)

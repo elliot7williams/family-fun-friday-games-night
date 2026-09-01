@@ -1,8 +1,9 @@
 # Native Image Preflight
 
-Milestone 69 / runtime 169 validates supported picture structure before bytes
-reach GDI+, runs native decoding away from the UI thread, and reserves estimated
-image memory across all Lea views.
+Milestone 69 / runtime 169 introduced bounded picture structure validation and
+process-wide image reservations. Milestone 70 / runtime 170 keeps those gates
+and moves accepted native decoding into the killable `Lea.Image.exe` helper.
+See `IMAGE_ISOLATION.md` for the process and pipe contract.
 
 ## Compact API
 
@@ -45,19 +46,21 @@ Every accepted picture is at most 8,192 pixels on either axis and 8,388,608
 pixels. Animated/multi-frame work is bounded to the same total pixel count. The
 estimated overlapping decoder work plus retained copy is capped at 64 MiB for
 one resource. Unknown, truncated, structurally invalid, over-axis, over-pixel,
-over-frame, and over-work inputs become placeholders before `Image.FromStream`.
+over-frame, and over-work inputs become placeholders before helper admission.
 
 The existing 4 MiB downloaded-body ceiling remains the first gate. Preflight
-does not replace the final GDI+ validation: `Image.FromStream` uses validation,
-and Lea checks the decoded dimensions against the preflight and per-view budget
-before retaining the copy.
+does not replace final codec validation: `Image.FromStream` runs with validation
+inside `Lea.Image.exe`. The host validates the returned raw dimensions and byte
+count against the preflight, per-view budget, and shared reservation before
+retaining a bitmap.
 
 ## Decode And Memory Ownership
 
-Preflight and `Image.FromStream`/bitmap copying run on the default worker
-scheduler. `GoA` keeps its existing owned completion contract and awaits the
-picture pass. Synchronous `Go` presents the document immediately; a paint starts
-missing pictures asynchronously instead of blocking that paint in GDI+.
+Preflight and raw-pixel copying run on the default worker scheduler. Native
+codec parsing runs in the shared helper process. `GoA` keeps its existing owned
+completion contract and awaits the picture pass. Synchronous `Go` presents the
+document immediately; a paint starts missing pictures asynchronously instead of
+blocking that paint in GDI+.
 
 Before native decoding, Lea atomically reserves the preflight estimate against
 `Im`. After the temporary source is disposed, the reservation shrinks to the
@@ -65,40 +68,44 @@ retained `width * height * 4` estimate. Page replacement and view disposal remov
 that amount from `It`. Cross-view admission is serialized by the reservation
 lock, so concurrent tabs cannot all pass against stale totals.
 
-A deadline, Stop, replacement, or disposal releases the caller without waiting
-for a late native task. Its reservation remains charged until the task actually
-ends; any late bitmap is disposed and the reservation is then released. This
-prevents stale work from publishing or making the budget available twice.
+A deadline, Stop, replacement, or disposal cancels the exact active decode and
+terminates its helper process when necessary. Its reservation remains charged
+until the pipe task ends; any late bitmap is disposed and the reservation is
+then released. This prevents stale work from publishing or making the budget
+available twice. The next admitted decode starts a clean helper automatically.
 
 ## Verification
 
 `Lea.Tests <root> --pics` checks PNG, JPEG, GIF, BMP, and ICO preflight/native
-decode, worker-thread execution, hostile dimensions, unknown bytes, bounded JPEG
-header scanning, all compact aliases, per-view and cross-view budgets, release
-and Reload recovery, plus the earlier I/O/deadline/origin suite.
+decode in another PID, hostile dimensions, unknown bytes, bounded JPEG header
+scanning, missing-helper behavior, forced helper termination and restart, all
+compact aliases, per-view and cross-view budgets, release and Reload recovery,
+plus the earlier I/O/deadline/origin suite.
 
-`Test-FirespiderBoot.ps1 -Case decode` sends an over-axis PNG through a real Lea
-tab and requires `In=0`, `If=1`, `It=0`, retained form data, host request cleanup,
-no UI exception, and no MSHTML. `image-preflight.html` and the `Native image
-preflight` benchmark probe cover one accepted worker decode, one pre-native
-rejection, paint, form retention, and disposal.
+`Test-FirespiderBoot.ps1 -Case decode` sends one valid and one over-axis PNG
+through a real Lea tab. It requires a distinct helper PID for the valid image,
+zero native admission for the hostile image, retained form data, host request
+cleanup, helper exit with the host, no UI exception, and no MSHTML.
+`image-preflight.html` and the `Native image preflight` benchmark probe cover an
+accepted isolated decode, a pre-native rejection, paint, form retention, and
+disposal.
 
-The runtime 169 release run passes the focused picture suite, full core suite,
+The runtime 170 release run passes the focused picture suite, full core suite,
 isolated editor suite, compiled host suite, 69 benchmark probes over 66 fixtures,
 all 42 Boot cases in one combined run, and all six actual executable startup
-scenarios. Engine DLLs total 509.5 KiB and have a 216.9 KiB GZip estimate. The
-report records 489.765 ms clean-process, 3.285 ms local-load, and 31.072 ms
-layout/paint medians. These unpaired local samples are not speedup claims.
+scenarios. Required runtime files total 521.5 KiB and have a 222.2 KiB GZip
+estimate. The report records 486.317 ms clean-process, 3.299 ms local-load, and
+33.184 ms layout/paint medians. These unpaired local samples are not speedup
+claims.
 
 ## Remaining Limits
 
 `It/Im` account only Lea's estimated native decode work and retained bitmap
-copies. They are not total-process, private-byte, GDI heap, source-byte-array, or
-GPU-memory measurements. GDI+ still runs inside the Firespider process on a
-worker thread; the deadline cannot terminate native code already executing.
-Moving codecs into a killable helper process remains the stronger isolation
-target.
+copies. They are not total-process, helper private-byte, GDI heap,
+source-byte-array, or GPU-memory measurements. The helper is killable but does
+not yet have a restricted token, Job Object memory ceiling, AppContainer, or
+process mitigation policy.
 
 Images still do not share the document cookie jar, validator cache, or request
-diagnostics. Lea does not add new codecs, CORS, sandboxing, or full modern-image
-compatibility in this milestone.
+diagnostics. Lea does not add new codecs, CORS, multi-frame playback, or full
+modern-image compatibility in this milestone.

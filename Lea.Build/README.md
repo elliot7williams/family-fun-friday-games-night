@@ -111,9 +111,9 @@ boundaries, POST responses, timeouts, and cancellation; see `INPUT_LIMITS.md`.
 `-Case cache` checks exact path/query resources, fragment-only reuse,
 case-different navigation, host request cleanup, and no MSHTML. See
 `LeaForge/CACHE_IDENTITY.md`.
-`-Case decode` checks over-axis PNG preflight, `Ip/Im/It/In/If`, retained form
-data, host cleanup, and no native decode or MSHTML. See
-`LeaForge/IMAGE_PREFLIGHT.md`.
+`-Case decode` checks one valid helper decode, over-axis PNG preflight,
+`Ip/Im/It/In/If/Ie/Ii/Iw/Ik`, retained form data, host cleanup, child-process
+exit, and no MSHTML. See `LeaForge/IMAGE_ISOLATION.md`.
 `-Case load-life` checks page-command successors, request ownership, queued CSS,
 busy address input, and cleanup. `Lea.Tests <root> --loads` adds deterministic
 view completion, callback, download, and image-handoff regressions. See
