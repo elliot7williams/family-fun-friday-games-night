@@ -666,6 +666,15 @@ data blocks, expressions, control flow, and unknown calls. Per-page limits are
 eight script blocks, 16 KB per block, 32 accepted commands per run, 16 variables,
 and 16 alerts.
 
+For easier migration, literal `document.getElementById("id")` statements map
+`textContent/innerText`, `value`, checked/disabled/hidden/open booleans,
+`focus()`, `classList.add/remove/toggle`, and background/color/font-size styles
+onto the existing compact commands. The adapter receives no DOM object and adds
+no evaluator. IDs and class names remain bounded literals, every mutation uses
+the normal validators and retained rebuild, and unsupported `innerHTML`,
+selectors, computed values, event APIs, or control flow remain inert. See
+`DOM_BRIDGE.md`.
+
 Core downloads use `E.Dl`/`DlA`; `V` forwards those aliases and raises `Dr` for
 links carrying the HTML `download` attribute. The host receives `Du` and `Dn`,
 shows the destination UI, and passes the selected full path back to Lea. Streams

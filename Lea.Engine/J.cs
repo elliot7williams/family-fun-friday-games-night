@@ -177,6 +177,8 @@ namespace Lea.Engine
 
         private static Cm Parse(string source)
         {
+            var dom = Dom(source);
+            if (dom != null) return dom;
             var reader = new Rd(source);
             var name = reader.Name().ToLowerInvariant();
             if (name.Length == 0) return null;
@@ -206,6 +208,47 @@ namespace Lea.Engine
                 if (!reader.Value(out value) || !reader.End()) return null;
                 return Assignment(name, value);
             }
+            return null;
+        }
+
+        // Dom maps a literal, allow-listed getElementById subset onto Lea commands.
+        private static Cm Dom(string source)
+        {
+            var reader = new Rd(source);
+            if (reader.Name().ToLowerInvariant() != "document.getelementbyid" || !reader.Take('(')) return null;
+            string id;
+            if (!reader.Quoted(out id) || !reader.Take(')') || !reader.Take('.')) return null;
+            var member = reader.Name().ToLowerInvariant();
+            if (member.Length == 0) return null;
+
+            if (member == "focus")
+                return reader.Take('(') && reader.Take(')') && reader.End() ? new Cm("fo", id) : null;
+
+            if (member == "classlist.add" || member == "classlist.remove" || member == "classlist.toggle")
+            {
+                string name;
+                if (!reader.Take('(') || !reader.Quoted(out name) || !reader.Take(')') || !reader.End()) return null;
+                return new Cm(member == "classlist.add" ? "ac" : member == "classlist.remove" ? "rc" : "tc", id, name);
+            }
+
+            if (!reader.Take('=')) return null;
+            if (member == "checked" || member == "disabled" || member == "hidden" || member == "open")
+            {
+                bool enabled;
+                if (!reader.Flag(out enabled) || !reader.End()) return null;
+                if (member == "checked") return new Cm("ck", id, enabled ? "1" : "0");
+                if (member == "disabled") return new Cm(enabled ? "ds" : "en", id);
+                if (member == "hidden") return new Cm(enabled ? "hd" : "sh", id);
+                return new Cm(enabled ? "op" : "cl", id);
+            }
+
+            string value;
+            if (!reader.Value(out value) || !reader.End()) return null;
+            if (member == "textcontent" || member == "innertext") return new Cm("tx", id, value);
+            if (member == "value") return new Cm("vl", id, value);
+            if (member == "style.background" || member == "style.backgroundcolor") return new Cm("bg", id, value);
+            if (member == "style.color") return new Cm("fg", id, value);
+            if (member == "style.fontsize") return new Cm("fs", id, value);
             return null;
         }
 
@@ -717,6 +760,26 @@ namespace Lea.Engine
                     }
                     else result.Append(ch);
                 }
+                return false;
+            }
+
+            internal bool Quoted(out string value)
+            {
+                Space();
+                if (at >= source.Length || source[at] != '\'' && source[at] != '"')
+                {
+                    value = "";
+                    return false;
+                }
+                return Value(out value);
+            }
+
+            internal bool Flag(out bool value)
+            {
+                var word = Name().ToLowerInvariant();
+                if (word == "true") { value = true; return true; }
+                if (word == "false") { value = false; return true; }
+                value = false;
                 return false;
             }
 

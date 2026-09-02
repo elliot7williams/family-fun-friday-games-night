@@ -189,6 +189,29 @@ Lea also recognizes literal `document.title`, `document.body.style` color/font
 assignments, and `alert(...)`. Unknown calls, expressions, nested control flow,
 external scripts, and non-script data blocks do not execute.
 
+The familiar literal DOM bridge recognizes one bounded ID lookup per statement:
+
+```javascript
+document.getElementById("status").textContent = "Ready";
+document.getElementById("field").value = "Lea";
+document.getElementById("choice").checked = true;
+document.getElementById("field").disabled = false;
+document.getElementById("panel").hidden = true;
+document.getElementById("more").open = true;
+document.getElementById("field").focus();
+document.getElementById("status").classList.add("ready");
+document.getElementById("status").style.color = "#164e63";
+```
+
+`innerText` is an alias for `textContent`; `classList.remove/toggle` and
+`style.background/backgroundColor/fontSize` are also accepted. IDs and class
+arguments must be quoted literals. Boolean state accepts only literal `true` or
+`false`. The parser translates each accepted statement to the existing
+`tx/vl/ck/ds/en/hd/sh/op/cl/fo/ac/rc/tc/bg/fg/fs` command, so all target, value,
+style, rebuild, focus, and 32-command limits remain unchanged. `innerHTML`,
+selectors, computed IDs or values, event registration, loops, expressions, and
+unknown properties or methods remain inert. See `DOM_BRIDGE.md`.
+
 `GoA` and `RlA` are the asynchronous forms used by browser windows. `St` cancels
 an active network request. `Tm` is the per-request network deadline in
 milliseconds. It defaults to 15,000 and clamps to 100 through 60,000 on both

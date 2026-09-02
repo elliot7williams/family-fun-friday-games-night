@@ -204,8 +204,8 @@ Go("url")        navigate
 ```
 
 The bounded layer is active in `Lea.Engine`. It accepts `t`, `a`, `bg`, `fg`,
-`fs`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `ds`, `en`, `vl`, `ck`, `fo`,
-and host-controlled `go`, plus equivalent
+`fs`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`,
+`vl`, `ck`, `fo`, and host-controlled `go`, plus equivalent
 title/body-style assignments and `alert(...)`.
 Only top-level literal commands run. Execution is limited to eight inline
 blocks, 16 KB per block, 32 accepted commands, and 16 queued alerts. External
@@ -214,6 +214,11 @@ ignored. `Je` is the host permission switch and `Js` is the compact manual
 bridge. The WinForms host emits `Al` and exposes `Am` instead of allowing page
 code to open native UI itself. `Ck` safely dispatches button and link attributes;
 `P.Vs` holds 16 bounded variables and `tx` performs ID-scoped text replacement.
+Literal `document.getElementById("id")` statements now map familiar text,
+value, checked/disabled/hidden/open, focus, classList, and three style operations
+onto those same compact commands. Quoted IDs/literals and literal booleans are
+required; computed expressions, selectors, `innerHTML`, callbacks, and unknown
+members remain inert.
 `go` resolves one pending HTTP, HTTPS, or safe file-origin URL against `P.Bu`;
 `E.Gt` consumes it, while `V.Gu`/`Gr` expose it to browser policy. Every command
 has a short alias, a fixed limit, and a local fixture. A full

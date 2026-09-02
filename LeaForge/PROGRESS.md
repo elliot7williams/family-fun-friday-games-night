@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **73**
+Post-1.0 hardening milestones completed: **74**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -17,7 +17,7 @@ modern web platform.
 | CSS | 15% | 15% | Compiled relationship, bounded strict relational/functional, An+B/reverse, and filtered structural selectors, declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, dynamic hover/focus, inherited cursor/pointer interaction, text transformation and signed letter/word spacing, content/border sizing, circular/elliptical radii, bounded outlines, box shadows, gradients, bitmap backgrounds, object fitting and aspect ratios, visibility/opacity, fonts, overflow, boxes, bounded ordered flex and two-axis grid properties |
 | Layout and painting | 20% | 20% | Shared content/border and aspect-ratio geometry, transformed and spacing-aware presentation text with raw form retention, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients/bitmaps, pointer-gated retained hits with underlying fallthrough, fitted raster images and maps, ordered flex rows/columns, bounded grid tracks/spans, distribution, alignment, wrapping, grow/shrink, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Native field edit commands and one-level undo/redo, bounded multipart files, richer widgets, validation, responsive and fitted images, GET/POST submit |
-| Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/body and ID-scoped style/alert, class, visibility, disclosure, field-state, and focus commands |
+| Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/body and ID-scoped style/alert, class, visibility, disclosure, field-state, focus, and literal bounded DOM translation |
 | Firespider integration and reliability | 10% | 10% | Lea-first New Tab/Ctrl+T, explicit legacy fallback, Inspector with Access view, MSAA/UIA surfaces including read-only text, host-safe focus shortcuts, navigation, sessions, source, host smokes |
 | **Total** | **100%** | **100%** | Scoped Lea 1.0 baseline complete; post-1.0 hardening continues |
 
@@ -29,6 +29,25 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added a literal `document.getElementById` compatibility bridge without adding
+  a general JavaScript VM. Quoted ID lookups can use `textContent/innerText`,
+  `value`, checked/disabled/hidden/open booleans, `focus()`,
+  `classList.add/remove/toggle`, and background/color/font-size styles. Each
+  statement maps to the existing short text, state, class, focus, and style
+  commands, retaining all target, value, field, focus, style, and
+  32-command bounds. `innerHTML`, selectors, computed IDs/values, callbacks,
+  expressions, and unknown APIs remain inert. The dedicated fixture, full core
+  and WinForms suites, strengthened compiled Firespider smoke, and benchmark all
+  pass, with 70 probes over 67 fixtures. All 42 Boot cases pass in one combined
+  run; recovery pumped the real 30-second timer without the old cast dialog.
+  All six actual EXE startup scenarios remained responsive and MSHTML-free.
+  Firespider reports ASLR true, CPU 2500, all 15 helper guard bits, and 8,486,912
+  private/Job-peak bytes. Required runtime files total 540.0 KiB with a 230.1
+  KiB GZip estimate; measured medians are 634.045 ms clean-process, 4.069 ms
+  local-load, and 33.864 ms layout/paint, not a speedup claim. Runtime 174 is
+  isolated and installed runtime 157 remains unchanged. See `DOM_BRIDGE.md`.
+  The scoped baseline stays at 100%, not full-web compatibility.
 
 - Added verified process-creation mitigations and a Job CPU hard cap to the
   image-helper boundary. The extended startup policy requests DEP, SEHOP,

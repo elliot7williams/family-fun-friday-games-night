@@ -121,6 +121,11 @@ and no MSHTML. See
 busy address input, and cleanup. `Lea.Tests <root> --loads` adds deterministic
 view completion, callback, download, and image-handoff regressions. See
 `LeaForge/LOAD_LIFECYCLE.md`.
+
+The full core and compiled Firespider smokes also exercise the literal bounded
+DOM bridge in `dom-bridge.html`: `document.getElementById` text, field/state,
+focus, classList, and three style forms translate to existing short commands,
+while `innerHTML`, computed targets, selectors, and unknown APIs remain inert.
 `-Case edit` tests native field menu/hover commands, protected fields,
 paused/empty tabs, and the explicit legacy fallback; see `NATIVE_EDITING.md`.
 `-Case paste` checks guarded real-menu/native/keyboard paste under a held

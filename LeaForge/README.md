@@ -127,6 +127,7 @@ LeaForge is where we can grow the more full-featured browser.
 - safe button/link commands with bounded variables and ID-scoped text updates
 - bounded `ac`/`rc`/`tc` class mutations with compiled CSS restyling
 - bounded `hd/sh`, `op/cl/tg`, `ds/en`, `vl`, `ck`, and `fo` element-state commands
+- literal `document.getElementById(...)` text/state/style/class/focus translation
 - bounded developer snapshots plus a tabbed inspector with an Access view in the test browser
 - repeatable compatibility, timing, memory, binary-size, and compression report
 - streamed local/HTTP downloads with explicit destinations and a 64 MB ceiling
@@ -165,6 +166,11 @@ go("next.html")        request navigation from the host
 
 The longer `alert(...)` and `document.title = ...` forms still work. The short
 forms are intended for small, fast Lea pages and are limited to simple values.
+Literal `document.getElementById("id")` statements may use `textContent` or
+`innerText`, field/state booleans, `focus()`, `classList.add/remove/toggle`, and
+the already bounded background/color/font-size styles. Lea translates these
+familiar forms into the short commands above; it does not expose arbitrary DOM
+objects, expressions, `innerHTML`, callbacks, or a general JavaScript runtime.
 `go` never navigates the engine directly: it queues one bounded HTTP, HTTPS, or
 safe local-file request for the browser host to approve and load.
 State commands remain ID-scoped and preserve retained field identity through a

@@ -201,6 +201,33 @@ namespace Lea.Tests
                 Eq(0, scriptEngine.Js(scriptPage, "eval('t(\\\"bad\\\")'); if(true){t('bad');}; fs(7); bg('red;display:none');"), "unknown and unsafe commands ignored");
                 Eq("Manual L", scriptPage.T, "ignored commands do not mutate title");
 
+                var domPath = Path.Combine(pages, "dom-bridge.html");
+                var domEngine = new E();
+                var domPage = domEngine.Go(domPath);
+                Eq(11, domPage.Jc, "bounded DOM command count");
+                Eq("DOM ready", ById(domPage.D, "status").C[0].X, "DOM textContent assignment");
+                var domStatus = BlockById(domPage, "status");
+                Eq("#e0f2fe", domStatus.S.Bg, "DOM backgroundColor assignment");
+                Eq("#164e63", domStatus.S.F, "DOM color assignment");
+                Eq(19, domStatus.S.Fs, "DOM fontSize assignment");
+                Eq("panel ready", ById(domPage.D, "status").Av("class"), "DOM classList add");
+                var domName = FieldById(domPage, "name");
+                Eq("DOM value", domName.V, "DOM field value assignment");
+                Ok(FieldById(domPage, "agree").C, "DOM checked assignment");
+                Ok(FieldById(domPage, "locked").Ds, "DOM disabled assignment");
+                Ok(ById(domPage.D, "notice").A.ContainsKey("hidden") && domEngine.Ax(domPage, ById(domPage.D, "notice")) == null, "DOM hidden assignment");
+                Ok(ById(domPage.D, "more").Op, "DOM open assignment");
+                Ok(Object.ReferenceEquals(domName.El, domEngine.Kp(domPage)), "DOM focus call");
+                Eq(9, domEngine.Ck(domPage, ById(domPage.D, "apply")), "bounded DOM onclick commands");
+                Eq("Clicked DOM", ById(domPage.D, "status").C[0].X, "DOM innerText assignment");
+                Eq("Clicked value", domName.V, "DOM onclick value assignment");
+                Ok(!FieldById(domPage, "agree").C && !FieldById(domPage, "locked").Ds, "DOM onclick field state");
+                Ok(!ById(domPage.D, "notice").A.ContainsKey("hidden") && domEngine.Ax(domPage, ById(domPage.D, "notice")) != null, "DOM show assignment");
+                Ok(!ById(domPage.D, "more").Op && ById(domPage.D, "status").Av("class").Length == 0, "DOM disclosure and class removal");
+                Ok(Object.ReferenceEquals(domName.El, domEngine.Kp(domPage)), "DOM onclick focus call");
+                Eq(0, domEngine.Js(domPage, "document.getElementById('status').innerHTML='<b>bad</b>'; document.querySelector('#status').textContent='bad'; document.getElementById(target).textContent='bad'; document.getElementById('status').style.display='none'; document.getElementById('apply').click(); document.getElementById('agree').checked=!true;"), "unknown or computed DOM APIs ignored");
+                Eq("Clicked DOM", ById(domPage.D, "status").C[0].X, "rejected DOM APIs do not mutate text");
+
                 var scriptsOff = new E();
                 scriptsOff.Je = false;
                 var disabledScriptPage = scriptsOff.Go(scriptPath);
@@ -1946,9 +1973,18 @@ namespace Lea.Tests
                     Eq("View Script", view.T, "WinForms manual title");
                     Eq(3, alertEvents, "WinForms manual alert event");
                     Eq("View alert", view.Am, "WinForms manual alert message");
+
+                    view.Go(domPath);
+                    Paint(view);
+                    Eq(11, view.At.Jc, "WinForms DOM page commands");
+                    Ok(view.Ke != null && view.Ke.Av("id") == "name", "WinForms DOM focus call");
+                    Eq(2, view.Js("document.getElementById('status').textContent='WinForms DOM'; document.getElementById('status').style.color='#0f766e';"), "WinForms DOM host commands");
+                    Eq("WinForms DOM", ById(view.At.D, "status").C[0].X, "WinForms DOM text update");
+                    Eq("#0f766e", BlockById(view.At, "status").S.F, "WinForms DOM style update");
+
                     view.Je = false;
                     Eq(0, view.Js("t('Blocked view script');"), "WinForms script setting");
-                    Eq("View Script", view.T, "disabled WinForms script leaves title");
+                    Eq("Lea DOM bridge", view.T, "disabled WinForms script leaves title");
                     view.Je = true;
 
                     view.Size = new Size(720, 420);

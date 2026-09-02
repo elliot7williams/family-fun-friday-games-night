@@ -107,7 +107,7 @@ namespace Lea.Bench
             var names = new[]
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
-                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
+                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -1977,6 +1977,20 @@ namespace Lea.Bench
                 Need(engine.Ck(page, ById(page.D, "go")) == 3 && page.T == "Clicked Lea", "click commands did not run");
                 return page.Jc + " safe commands and " + page.Vs.Count + " variables after click";
             });
+            AddProbe(probes, "Literal DOM compatibility", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "dom-bridge.html"));
+                var status = ById(page.D, "status");
+                var name = page.Fs.First(item => item.El != null && item.El.Av("id") == "name");
+                Need(page.Jc == 11 && status.C[0].X == "DOM ready" && name.V == "DOM value", "initial DOM assignments changed");
+                Need(page.Bs.First(block => Object.ReferenceEquals(block.El, status)).S.Bg == "#e0f2fe" && page.Bs.First(block => Object.ReferenceEquals(block.El, status)).S.Fs == 19, "DOM style assignments changed");
+                Need(page.Fs.First(item => item.El.Av("id") == "agree").C && page.Fs.First(item => item.El.Av("id") == "locked").Ds && ById(page.D, "more").Op, "DOM state assignments changed");
+                Need(Object.ReferenceEquals(engine.Kp(page), name.El) && engine.Ck(page, ById(page.D, "apply")) == 9, "DOM focus or onclick translation changed");
+                Need(status.C[0].X == "Clicked DOM" && name.V == "Clicked value" && status.Av("class").Length == 0, "DOM onclick mutation changed");
+                Need(engine.Js(page, "document.getElementById('status').innerHTML='bad'; document.getElementById(id).textContent='bad'; document.getElementById('status').style.display='none';") == 0, "unsupported DOM syntax was accepted");
+                return "getElementById literal text, value, booleans, classList, focus, three styles, 20 accepted commands, and rejected arbitrary DOM APIs";
+            });
             AddProbe(probes, "Host-controlled go requests", delegate
             {
                 var engine = new E();
@@ -2210,7 +2224,8 @@ namespace Lea.Bench
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, inline, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Text overflow", "Supported subset", "Non-inherited clip/ellipsis; paint-only bounded text-element prefixes for clipped overflowing horizontal LTR lines, inline runs and tables; retained layout/link targets and full logical automation text; no native-control, bidi, custom-marker, or line-clamp additions");
-            Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, and safe click commands");
+            Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, safe click commands, and literal getElementById translation");
+            Capability(builder, "Literal DOM bridge", "Supported subset", "Literal document.getElementById IDs with textContent/innerText, value, checked/disabled/hidden/open, focus(), classList add/remove/toggle, and background/color/fontSize; mapped to existing bounded Lea aliases");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
             Capability(builder, "Flexbox", "Supported subset", "Row/row-reverse and fixed-height column/column-reverse containers, content/border-box pixel bases, stable -64..64 order on nowrap rows and bounded columns, bounded row wrap, fixed/equal-share/weighted grow and integer weighted-shrink slots, explicit pixel min/max floors, pixel row/column gaps, start/center/end/space-between/space-around/space-evenly justification, and container/item stretch/start/center/end cross alignment; no intrinsic min-content sizing, fractional factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis alignment, or auto-height column reordering guarantee");
             Capability(builder, "CSS Grid", "Supported subset", "Grid/inline-grid with up to eight fixed-pixel, auto, or integer-fr tracks per explicit axis, simple repeat and minmax(0, Nfr), pixel gaps, bounded occupancy, two-axis numeric starts/spans, validated 8x8 named-area templates, unique explicit named lines, area-generated start/end lines, Gf row/column sparse/dense flow, repeating S.Av/Gac/Gav/Rac/Rav pixel/auto/integer-fr implicit patterns, definite endpoint/span growth, area-created track sizing, exact auto-height row settlement, atomic grid-template/grid explicit, quoted-area, and row/column auto-flow shorthands, Ji/Js/Ai/As start/center/end/stretch item alignment, atomic place-items/place-self, Al/Jc start/center/end/between/around/evenly track-group alignment, atomic place-content, and shared nested paint/hit/reflow; no escaped or repeated-name occurrence indexes, reverse flow, pre-explicit implicit tracks, shorthand area-row line names, intrinsic or percentage tracks, auto-fit/fill, baseline or safe/unsafe alignment, writing-mode axis reversal, or subgrid");

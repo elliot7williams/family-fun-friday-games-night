@@ -193,6 +193,11 @@ Buttons and links can run bounded `data-lea` or familiar `onclick` values throug
 allow-list and cannot reach native files, processes, or host controls.
 ID-scoped `ac/rc/tc` class changes use the same route, reapply compiled CSS, and
 preserve mutable field values.
+Familiar literal `document.getElementById("id")` statements can now express the
+same bounded text, value, boolean state, focus, classList, and three style
+operations. `V.Js` and `V.Ck` translate them to Lea's short commands; Firespider
+does not receive a DOM object or host callback. The compiled smoke verifies this
+path and confirms that `innerHTML` remains rejected.
 The same public route supports bounded `hd/sh` visibility, `op/cl/tg` details
 state, `ds/en` field availability, `vl` values, `ck` checked state, and `fo`
 focus requests. Hidden
@@ -467,7 +472,7 @@ Native controls retain their existing presentation and editing behavior.
 
 `Smoke.cs` loads two compiled Firespider forms off-screen and verifies Lea-first
 New Tab creation, the explicit legacy fallback, Inspector open/refresh/clear and legacy isolation, diagnostics,
-script/style, host-controlled `go`, and safe click execution, alert routing,
+script/style, literal DOM translation, host-controlled `go`, and safe click execution, alert routing,
 ID-scoped `bg/fg/fs` style commands, state commands, retained fields,
 autofocus/access keys, keyboard navigation, local
 open, find cycling, streamed download saves, page save, send-link metadata,
