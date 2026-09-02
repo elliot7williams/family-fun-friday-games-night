@@ -180,6 +180,14 @@ namespace Lea.Engine
                 if (!Display(Expand(page, command.W), out display)) return false;
                 return SetStyle(target, "display", display);
             }
+            if (command.N == "wd")
+            {
+                var target = StyleTarget(page, command);
+                if (target == null || command.W == null) return false;
+                string width;
+                if (!E.Wd(Expand(page, command.W), out width)) return false;
+                return SetStyle(target, "width", width);
+            }
             return false;
         }
 
@@ -258,6 +266,7 @@ namespace Lea.Engine
             if (member == "style.color") return new Cm("fg", id, value);
             if (member == "style.fontsize") return new Cm("fs", id, value);
             if (member == "style.display") return new Cm("dp", id, value);
+            if (member == "style.width") return new Cm("wd", id, value);
             return null;
         }
 
@@ -287,6 +296,7 @@ namespace Lea.Engine
             if (count == 2 && (name == "fg" || name == "color")) return new Cm("fg", first, second);
             if (count == 2 && (name == "fs" || name == "fontsize")) return new Cm("fs", first, second);
             if (count == 2 && (name == "dp" || name == "display")) return new Cm("dp", first, second);
+            if (count == 2 && (name == "wd" || name == "width")) return new Cm("wd", first, second);
             if (count == 2 && name == "ac") return new Cm("ac", first, second);
             if (count == 2 && name == "rc") return new Cm("rc", first, second);
             if (count == 2 && name == "tc") return new Cm("tc", first, second);

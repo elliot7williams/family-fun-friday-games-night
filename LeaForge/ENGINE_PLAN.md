@@ -345,12 +345,11 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-The bounded interaction bridge now includes `dp`, literal `style.display`, and
-literal location requests over the existing host-controlled `go` path. Local
-relative navigation preserves query and fragment components. See
-`DISPLAY_NAVIGATION.md`. Next continue targeted HTML/CSS/DOM compatibility,
-including evaluating sticky positioning and bounded calculated sizing, while
-keeping the short public API and avoiding a general JavaScript VM.
+The bounded width model now includes percentages, one `calc(P% +/- Npx)` form,
+calculated min/max constraints, compact `wd`, and literal `style.width`. See
+`CALCULATED_WIDTHS.md`. Next evaluate bounded sticky positioning and additional
+high-value HTML/CSS compatibility while keeping the short public API and
+avoiding general CSS or JavaScript evaluators.
 
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host

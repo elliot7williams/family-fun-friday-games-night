@@ -82,9 +82,15 @@ namespace Lea.Engine
         public int Pl { get; internal set; }
         public string Bz { get; internal set; }
         public int W { get; internal set; }
+        public int Wp { get { return WidthValue(0); } }
+        public int Wo { get { return WidthValue(1); } }
         public int H { get; internal set; }
         public int Wn { get; internal set; }
+        public int Wnp { get { return WidthValue(2); } }
+        public int Wno { get { return WidthValue(3); } }
         public int Wx { get; internal set; }
+        public int Wxp { get { return WidthValue(4); } }
+        public int Wxo { get { return WidthValue(5); } }
         public int Hn { get; internal set; }
         public int Hx { get; internal set; }
         public double Rw { get; internal set; }
@@ -122,6 +128,7 @@ namespace Lea.Engine
         internal Dictionary<string, int> Gnd { get; set; }
         internal Dictionary<string, int> Rnd { get; set; }
         internal Dictionary<string, int[]> Ad { get; set; }
+        internal int[] Wd { get; set; }
 
         public int Vc { get { return Vr == null ? 0 : Vr.Count; } }
         public int Gc { get { return Gd == null ? 0 : Gd.Length; } }
@@ -174,6 +181,22 @@ namespace Lea.Engine
         {
             string value;
             return !String.IsNullOrEmpty(name) && Vr != null && Vr.TryGetValue(name, out value) ? value : "";
+        }
+
+        internal void SetWidth(int part, int percent, int offset)
+        {
+            if (part < 0 || part > 2) return;
+            if (Wd == null && (percent != 0 || offset != 0)) Wd = new int[6];
+            if (Wd == null) return;
+            Wd[part * 2] = percent;
+            Wd[part * 2 + 1] = offset;
+            for (var index = 0; index < Wd.Length; index++) if (Wd[index] != 0) return;
+            Wd = null;
+        }
+
+        private int WidthValue(int index)
+        {
+            return Wd == null ? 0 : Wd[index];
         }
 
         private int GridLine(string name, bool rows)

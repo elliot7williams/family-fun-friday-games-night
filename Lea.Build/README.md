@@ -130,6 +130,10 @@ while `innerHTML`, computed targets, selectors, and unknown APIs remain inert.
 cascade restoration, WinForms flex reflow, and host-controlled literal location
 requests with local query/fragment preservation. See
 `LeaForge/DISPLAY_NAVIGATION.md`.
+`calculated-widths.html` adds compact `wd`, literal `style.width`, percentage
+and `calc(P% +/- Npx)` parsing, calculated min/max constraints, nested
+flex/grid/table layout, cascade restoration, and resize reflow. See
+`LeaForge/CALCULATED_WIDTHS.md`.
 `-Case edit` tests native field menu/hover commands, protected fields,
 paused/empty tabs, and the explicit legacy fallback; see `NATIVE_EDITING.md`.
 `-Case paste` checks guarded real-menu/native/keyboard paste under a held

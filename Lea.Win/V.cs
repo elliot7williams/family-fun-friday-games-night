@@ -1217,7 +1217,8 @@ namespace Lea.Win
                     if (block.K == "table" && block.Tb != null)
                     {
                         int next;
-                        var tableContext = LayTable(graphics, block, lx, lw, ly, containing, parentClip, fixedParent, out next);
+                        var tableReference = slotChild && !gridChild ? parent.C.Width : lw;
+                        var tableContext = LayTable(graphics, block, lx, lw, tableReference, ly, containing, parentClip, fixedParent, out next);
                         contexts[block] = tableContext;
                         if (parent == null) y = next;
                         else if (slotChild)
@@ -1243,24 +1244,25 @@ namespace Lea.Win
                     var flowY = ly + mt;
                     var outerAvailable = Math.Max(gridChild ? 1 : 40, lw - ml - mr);
                     if (StretchesWidth(bs)) outerAvailable = Math.Max(1, containing.Width - bs.Lt.Value - bs.Rt.Value - ml - mr);
-                    var bw = ConstrainWidth(bs, Math.Max(1, outerAvailable - bl - br - pl - pr));
-                    if (gridChild && GridAlign(parent, bs, true) != "t" && (bs == null || bs.W == 0))
-                        bw = GridFitWidth(graphics, block, bs, bw);
+                    var widthReference = slotChild && !gridChild ? parent.C.Width : lw;
+                    var bw = ConstrainWidth(bs, Math.Max(1, outerAvailable - bl - br - pl - pr), widthReference);
+                    if (gridChild && GridAlign(parent, bs, true) != "t" && !HasWidth(bs))
+                        bw = GridFitWidth(graphics, block, bs, bw, widthReference);
                     var preferredRatio = PreferredRatio(block);
-                    if (preferredRatio && bs.W == 0 && bs.H > 0 && !StretchesWidth(bs) && (!slotChild || gridChild))
-                        bw = ConstrainResolvedWidth(bs, RatioContentWidth(bs, BoxContentHeight(bs, bs.H)), bw);
+                    if (preferredRatio && !HasWidth(bs) && bs.H > 0 && !StretchesWidth(bs) && (!slotChild || gridChild))
+                        bw = ConstrainResolvedWidth(bs, RatioContentWidth(bs, BoxContentHeight(bs, bs.H)), bw, widthReference);
                     int height;
                     List<Ix> inline = null;
                     if (block.Vg != null)
                     {
                         var size = VectorSize(block, bw);
-                        if (bs == null || bs.W == 0) bw = Math.Min(bw, size.Width);
+                        if (!HasWidth(bs)) bw = Math.Min(bw, size.Width);
                         height = size.Height;
                     }
                     else if (block.K == "img")
                     {
                         var size = PicSize(block, bw);
-                        if (bs == null || bs.W == 0) bw = Math.Min(bw, size.Width);
+                        if (!HasWidth(bs)) bw = Math.Min(bw, size.Width);
                         height = size.Height;
                     }
                     else if (block.K == "hr") height = 2;
@@ -1280,7 +1282,7 @@ namespace Lea.Win
                             if (block.K == "button")
                             {
                                 var buttonWidth = TextWidth(graphics, block.X, font, bs) + 28;
-                                if (bs == null || bs.W == 0) bw = Math.Min(bw, Math.Max(88, buttonWidth));
+                                if (!HasWidth(bs)) bw = Math.Min(bw, Math.Max(88, buttonWidth));
                             }
                         }
                     }
@@ -1477,7 +1479,7 @@ namespace Lea.Win
             if (style.Wr != "w") SortFlexItems(items);
             var hints = new Dictionary<B, int>();
             foreach (var item in items)
-                hints[item] = FlexOuterWidth(item);
+                hints[item] = FlexOuterWidth(item, context.C.Width);
 
             var gap = Math.Min(style.Gp, context.C.Width);
             var lines = new List<List<B>>();
@@ -1514,7 +1516,7 @@ namespace Lea.Win
                 foreach (var item in visual)
                 {
                     var hint = hints[item];
-                    var width = hint > 0 ? hint : FlexMinOuterWidth(item.S);
+                    var width = hint > 0 ? hint : FlexMinOuterWidth(item.S, context.C.Width);
                     widths[item] = width;
                     if (hint > 0) fixedWidth += width;
                     else { autos++; autoMinimum += width; }
@@ -1528,7 +1530,7 @@ namespace Lea.Win
                 var baseWidth = fixedWidth + autoMinimum;
                 if (baseWidth > available)
                 {
-                    FlexShrink(visual, hints, widths, available, false);
+                    FlexShrink(visual, hints, widths, available, false, context.C.Width);
                 }
                 else if (growTotal > 0)
                 {
@@ -1938,7 +1940,7 @@ namespace Lea.Win
             SortFlexItems(items);
             var style = context.B.S;
             var hints = new Dictionary<B, int>();
-            foreach (var item in items) hints[item] = FlexOuterHeight(item);
+            foreach (var item in items) hints[item] = FlexOuterHeight(item, context.C.Width);
             var gap = Math.Min(style.Rg, context.C.Height);
             var baseGaps = gap * Math.Max(0, items.Count - 1);
             var available = Math.Max(0, context.C.Height - baseGaps);
@@ -2000,7 +2002,7 @@ namespace Lea.Win
             foreach (var item in items)
             {
                 var hint = hints[item];
-                var size = hint > 0 ? hint : FlexMinOuter(item.S, column);
+                var size = hint > 0 ? hint : FlexMinOuter(item.S, column, available);
                 sizes[item] = size;
                 if (hint > 0) fixedSize += size;
                 else { autos++; autoMinimum += size; }
@@ -2009,7 +2011,7 @@ namespace Lea.Win
             }
 
             var baseSize = fixedSize + autoMinimum;
-            if (baseSize > available) FlexShrink(items, hints, sizes, available, column);
+            if (baseSize > available) FlexShrink(items, hints, sizes, available, column, available);
             else if (growTotal > 0)
             {
                 var remaining = available - baseSize;
@@ -2039,39 +2041,36 @@ namespace Lea.Win
             return sizes;
         }
 
-        private int FlexOuterWidth(B block)
+        private int FlexOuterWidth(B block, int reference)
         {
             var style = block == null ? null : block.S;
             if (style == null) return 0;
-            var basis = style.Fb >= 0 ? style.Fb : style.W;
-            var contentBasis = false;
+            var basis = style.Fb >= 0 ? BoxContentWidth(style, style.Fb) : HasWidth(style) ? ResolvedWidth(style, style.W, style.Wp, style.Wo, reference) : 0;
             if (basis == 0 && style.Fb < 0 && style.H > 0 && PreferredRatio(block))
             {
                 basis = RatioContentWidth(style, BoxContentHeight(style, style.H));
-                contentBasis = true;
             }
-            if (basis == 0 && style.Fb < 0 && style.Wn == 0) return 0;
-            if (!contentBasis) basis = BoxContentWidth(style, basis);
-            if (style.Wx > 0) basis = Math.Min(basis, BoxContentWidth(style, style.Wx));
-            if (style.Wn > 0) basis = Math.Max(basis, BoxContentWidth(style, style.Wn));
+            if (basis == 0 && style.Fb < 0 && !HasMinWidth(style)) return 0;
+            if (HasMaxWidth(style)) basis = Math.Min(basis, ResolvedWidth(style, style.Wx, style.Wxp, style.Wxo, reference));
+            if (HasMinWidth(style)) basis = Math.Max(basis, ResolvedWidth(style, style.Wn, style.Wnp, style.Wno, reference));
             return basis + FlexHorizontal(style);
         }
 
-        private static int FlexMinOuterWidth(S style)
+        private static int FlexMinOuterWidth(S style, int reference)
         {
             if (style == null) return 1;
-            return Math.Max(1, BoxContentWidth(style, style.Wn)) + FlexHorizontal(style);
+            return Math.Max(1, ResolvedWidth(style, style.Wn, style.Wnp, style.Wno, reference)) + FlexHorizontal(style);
         }
 
-        private int FlexOuterHeight(B block)
+        private int FlexOuterHeight(B block, int widthReference)
         {
             var style = block == null ? null : block.S;
             if (style == null) return 0;
             var basis = style.Fb >= 0 ? style.Fb : style.H;
             var contentBasis = false;
-            if (basis == 0 && style.Fb < 0 && style.W > 0 && PreferredRatio(block))
+            if (basis == 0 && style.Fb < 0 && HasWidth(style) && PreferredRatio(block))
             {
-                basis = RatioContentHeight(style, BoxContentWidth(style, style.W));
+                basis = RatioContentHeight(style, ResolvedWidth(style, style.W, style.Wp, style.Wo, widthReference));
                 contentBasis = true;
             }
             if (basis == 0 && style.Fb < 0 && style.Hn == 0) return 0;
@@ -2081,9 +2080,9 @@ namespace Lea.Win
             return basis + FlexVertical(style);
         }
 
-        private static int FlexMinOuter(S style, bool column)
+        private static int FlexMinOuter(S style, bool column, int reference)
         {
-            return column ? FlexMinOuterHeight(style) : FlexMinOuterWidth(style);
+            return column ? FlexMinOuterHeight(style) : FlexMinOuterWidth(style, reference);
         }
 
         private static int FlexMinOuterHeight(S style)
@@ -2104,7 +2103,7 @@ namespace Lea.Win
             return style.Mt + style.Mb + style.Pt + style.Pb + BorderWidth(style, style.Bt) + BorderWidth(style, style.Bb);
         }
 
-        private static void FlexShrink(IList<B> items, IDictionary<B, int> hints, IDictionary<B, int> sizes, int available, bool column)
+        private static void FlexShrink(IList<B> items, IDictionary<B, int> hints, IDictionary<B, int> sizes, int available, bool column, int reference)
         {
             var deficit = 0;
             foreach (var item in items) deficit += sizes[item];
@@ -2116,7 +2115,7 @@ namespace Lea.Win
                 foreach (var item in items)
                 {
                     var shrink = item.S == null ? 1 : item.S.Sh;
-                    if (shrink <= 0 || sizes[item] <= FlexMinOuter(item.S, column)) continue;
+                    if (shrink <= 0 || sizes[item] <= FlexMinOuter(item.S, column, reference)) continue;
                     active.Add(item);
                     totalWeight += (long)Math.Max(1, hints[item]) * shrink;
                 }
@@ -2130,7 +2129,7 @@ namespace Lea.Win
                     if (remaining <= 0) break;
                     var weight = (long)Math.Max(1, hints[item]) * (item.S == null ? 1 : item.S.Sh);
                     var share = (int)Math.Min(remaining, ((long)remaining * weight + remainingWeight - 1) / remainingWeight);
-                    var room = sizes[item] - FlexMinOuter(item.S, column);
+                    var room = sizes[item] - FlexMinOuter(item.S, column, reference);
                     var amount = Math.Min(room, share);
                     sizes[item] -= amount;
                     remaining -= amount;
@@ -2261,7 +2260,7 @@ namespace Lea.Win
             return null;
         }
 
-        private Lc LayTable(Graphics graphics, B block, int x, int width, int y, Rectangle containing, Rectangle parentClip, bool fixedParent, out int nextY)
+        private Lc LayTable(Graphics graphics, B block, int x, int width, int widthReference, int y, Rectangle containing, Rectangle parentClip, bool fixedParent, out int nextY)
         {
             var style = block.S;
             var bt = style == null ? 0 : BorderWidth(style, style.Bt);
@@ -2279,10 +2278,10 @@ namespace Lea.Win
             var flowY = y + mt;
             var available = Math.Max(40, width - ml - mr);
             if (StretchesWidth(style)) available = Math.Max(1, containing.Width - style.Lt.Value - style.Rt.Value - ml - mr);
-            var tableWidth = ConstrainWidth(style, Math.Max(1, available - bl - br - pl - pr));
+            var tableWidth = ConstrainWidth(style, Math.Max(1, available - bl - br - pl - pr), widthReference);
             var preferredRatio = PreferredRatio(block);
-            if (preferredRatio && style.W == 0 && style.H > 0 && !StretchesWidth(style))
-                tableWidth = ConstrainResolvedWidth(style, RatioContentWidth(style, BoxContentHeight(style, style.H)), tableWidth);
+            if (preferredRatio && !HasWidth(style) && style.H > 0 && !StretchesWidth(style))
+                tableWidth = ConstrainResolvedWidth(style, RatioContentWidth(style, BoxContentHeight(style, style.H)), tableWidth, widthReference);
             var captionHeight = 0;
             if (block.Tb.Cp.Length > 0)
             {
@@ -2413,7 +2412,7 @@ namespace Lea.Win
 
         private static bool StretchesWidth(S style)
         {
-            return OutOfFlow(style) && style.W == 0 && style.Lt.HasValue && style.Rt.HasValue;
+            return OutOfFlow(style) && !HasWidth(style) && style.Lt.HasValue && style.Rt.HasValue;
         }
 
         private static bool StretchesHeight(S style)
@@ -2530,7 +2529,7 @@ namespace Lea.Win
                 var pr = style == null ? 0 : style.Pr;
                 var pb = style == null ? 0 : style.Pb;
                 var pl = style == null ? 0 : style.Pl;
-                var available = ConstrainWidth(style, Math.Max(1, content.Width - ml - mr - bl - br - pl - pr));
+                var available = ConstrainWidth(style, Math.Max(1, content.Width - ml - mr - bl - br - pl - pr), content.Width);
                 int textHeight;
                 List<Ix> flow = null;
                 if (part.Vm != null)
@@ -2560,7 +2559,7 @@ namespace Lea.Win
         {
             var style = part.S;
             var horizontal = style == null ? 0 : style.Ml + style.Mr + style.Pl + style.Pr + BorderWidth(style, style.Bl) + BorderWidth(style, style.Br);
-            var available = ConstrainWidth(style, Math.Max(1, width - horizontal));
+            var available = ConstrainWidth(style, Math.Max(1, width - horizontal), width);
             int height;
             if (part.Vm != null)
                 using (var font = BoxFont(part.K, style, false)) height = GaugeHeight(font);
@@ -2632,21 +2631,21 @@ namespace Lea.Win
             return Math.Max(font.Height, size.Height);
         }
 
-        private int GridFitWidth(Graphics graphics, B block, S style, int available)
+        private int GridFitWidth(Graphics graphics, B block, S style, int available, int reference)
         {
             var text = MarkedText(block);
             if (block == null || block.I != null || block.Vm != null || block.K == "img" || text.Length == 0 || NeedsFlow(block)) return available;
             using (var font = BoxFont(block.K, style, false))
             {
                 var measured = TextRenderer.MeasureText(graphics, text, font, Size.Empty, TextFormatFlags.SingleLine | TextFormatFlags.NoPadding).Width;
-                var minimum = style == null || style.Wn == 0 ? 1 : Math.Min(available, Math.Max(1, BoxContentWidth(style, style.Wn)));
+                var minimum = !HasMinWidth(style) ? 1 : Math.Min(available, Math.Max(1, ResolvedWidth(style, style.Wn, style.Wnp, style.Wno, reference)));
                 return Math.Max(minimum, Math.Min(available, Math.Max(1, measured)));
             }
         }
 
         private static int GaugeWidth(S style, int available, Font font)
         {
-            return style != null && style.W > 0 ? available : Math.Min(available, Math.Max(80, font.Height * 10));
+            return HasWidth(style) ? available : Math.Min(available, Math.Max(80, font.Height * 10));
         }
 
         private static int GaugeHeight(Font font)
@@ -2656,10 +2655,16 @@ namespace Lea.Win
 
         private static int ConstrainWidth(S style, int available)
         {
+            return ConstrainWidth(style, available, available);
+        }
+
+        private static int ConstrainWidth(S style, int available, int reference)
+        {
             available = Math.Max(1, available);
-            var width = style != null && style.W > 0 ? Math.Min(available, Math.Max(1, BoxContentWidth(style, style.W))) : available;
-            if (style != null && style.Wx > 0) width = Math.Min(width, Math.Max(1, BoxContentWidth(style, style.Wx)));
-            if (style != null && style.Wn > 0) width = Math.Max(width, Math.Min(available, Math.Max(1, BoxContentWidth(style, style.Wn))));
+            reference = Math.Max(1, reference);
+            var width = HasWidth(style) ? Math.Min(available, Math.Max(1, ResolvedWidth(style, style.W, style.Wp, style.Wo, reference))) : available;
+            if (HasMaxWidth(style)) width = Math.Min(width, Math.Max(1, ResolvedWidth(style, style.Wx, style.Wxp, style.Wxo, reference)));
+            if (HasMinWidth(style)) width = Math.Max(width, Math.Min(available, Math.Max(1, ResolvedWidth(style, style.Wn, style.Wnp, style.Wno, reference))));
             return Math.Max(1, width);
         }
 
@@ -2671,12 +2676,34 @@ namespace Lea.Win
             return Math.Max(1, height);
         }
 
-        private static int ConstrainResolvedWidth(S style, int desired, int available)
+        private static int ConstrainResolvedWidth(S style, int desired, int available, int reference)
         {
             var width = Math.Min(Math.Max(1, available), Math.Max(1, desired));
-            if (style != null && style.Wx > 0) width = Math.Min(width, Math.Max(1, BoxContentWidth(style, style.Wx)));
-            if (style != null && style.Wn > 0) width = Math.Max(width, Math.Min(Math.Max(1, available), Math.Max(1, BoxContentWidth(style, style.Wn))));
+            if (HasMaxWidth(style)) width = Math.Min(width, Math.Max(1, ResolvedWidth(style, style.Wx, style.Wxp, style.Wxo, reference)));
+            if (HasMinWidth(style)) width = Math.Max(width, Math.Min(Math.Max(1, available), Math.Max(1, ResolvedWidth(style, style.Wn, style.Wnp, style.Wno, reference))));
             return Math.Max(1, width);
+        }
+
+        private static bool HasWidth(S style)
+        {
+            return style != null && (style.W > 0 || style.Wp > 0);
+        }
+
+        private static bool HasMinWidth(S style)
+        {
+            return style != null && (style.Wn > 0 || style.Wnp > 0);
+        }
+
+        private static bool HasMaxWidth(S style)
+        {
+            return style != null && (style.Wx > 0 || style.Wxp > 0);
+        }
+
+        private static int ResolvedWidth(S style, int pixels, int percent, int offset, int reference)
+        {
+            var declared = percent > 0 ? (int)Math.Round(Math.Max(1, reference) * percent / 100D) + offset : pixels;
+            declared = Math.Max(0, Math.Min(8192, declared));
+            return BoxContentWidth(style, declared);
         }
 
         private bool PreferredRatio(B block)
@@ -3154,7 +3181,7 @@ namespace Lea.Win
             var vector = block == null ? null : block.Vg;
             if (vector == null || vector.W <= 0 || vector.H <= 0) return new Size(Math.Max(1, width), 150);
             var style = block.S;
-            var explicitWidth = style != null && style.W > 0;
+            var explicitWidth = HasWidth(style);
             var explicitHeight = style != null && style.H > 0;
             var preferredRatio = HasRatio(style) && !style.Ra;
             var renderWidth = explicitWidth ? Math.Max(1, width) : Math.Min(Math.Max(1, width), Math.Max(1, (int)Math.Round(vector.W)));
@@ -3170,7 +3197,7 @@ namespace Lea.Win
             if (block.U != null && pics.TryGetValue(block.U.AbsoluteUri, out image) && image != null && image.Width > 0 && image.Height > 0)
             {
                 var style = block.S;
-                var explicitWidth = style != null && style.W > 0;
+                var explicitWidth = HasWidth(style);
                 var explicitHeight = style != null && style.H > 0;
                 var preferredRatio = PreferredRatio(block);
                 var renderWidth = explicitWidth ? width : Math.Min(width, image.Width);

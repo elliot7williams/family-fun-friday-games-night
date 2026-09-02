@@ -4,7 +4,8 @@ Milestone 74 / runtime 174 added a familiar browser-shaped surface without
 adding a JavaScript virtual machine or a live DOM object model. Lea recognizes
 one literal `document.getElementById` lookup per top-level statement and maps it
 to the existing compact command engine. Milestone 75 / runtime 175 adds bounded
-`style.display` translation and familiar literal location requests.
+`style.display` translation and familiar literal location requests. Milestone
+76 / runtime 176 adds bounded `style.width` translation.
 
 ## Supported Forms
 
@@ -22,6 +23,7 @@ to the existing compact command engine. Milestone 75 / runtime 175 adds bounded
 | `.style.color` | `fg(id,color)` |
 | `.style.fontSize` | `fs(id,size)` |
 | `.style.display` | `dp(id,display)` |
+| `.style.width` | `wd(id,width)` |
 
 For example:
 
@@ -39,7 +41,8 @@ The ID and class name must be quoted literals. Text/style/value operands use
 the existing bounded literal reader, and state accepts only literal `true` or
 `false`. Every translated command then passes through Lea's existing ID, target,
 class, color, font, field, disclosure, focus, navigation-independent rebuild,
-and data-retention checks.
+width, and data-retention checks. Width literals use the fixed, percentage, and
+single calculated form described in `CALCULATED_WIDTHS.md`.
 
 The global script limits remain eight inline blocks, 16 KiB per block, and 32
 accepted commands per run. IDs remain at most 64 characters, class tokens at

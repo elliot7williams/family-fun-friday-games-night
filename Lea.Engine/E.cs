@@ -1170,6 +1170,8 @@ namespace Lea.Engine
             }
             if (url.IsFile)
             {
+                await Task.Yield();
+                CheckStop();
                 var token = inputBudget.Token;
                 var local = await InputWait(Task.Factory.StartNew(() => ReadFile(url, limit, token), CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default));
                 CheckStop();
@@ -1832,8 +1834,8 @@ namespace Lea.Engine
             return LayoutContext(style) || style != null &&
                 (style.Bg.Length > 0 || style.Gi != null || style.Bi != null && style.Bi.U != null ||
                  style.Mt != 0 || style.Mr != 0 || style.Mb != 0 || style.Ml != 0 ||
-                 style.Pt != 0 || style.Pr != 0 || style.Pb != 0 || style.Pl != 0 || style.W > 0 || style.H > 0 ||
-                 style.Wn > 0 || style.Wx > 0 || style.Hn > 0 || style.Hx > 0 || style.Rw > 0D && style.Rh > 0D ||
+                 style.Pt != 0 || style.Pr != 0 || style.Pb != 0 || style.Pl != 0 || style.W > 0 || style.Wp > 0 || style.H > 0 ||
+                 style.Wn > 0 || style.Wnp > 0 || style.Wx > 0 || style.Wxp > 0 || style.Hn > 0 || style.Hx > 0 || style.Rw > 0D && style.Rh > 0D ||
                  style.Bt > 0 || style.Br > 0 || style.Bb > 0 || style.Bl > 0 || style.Ow > 0 && style.Os != "n");
         }
 
@@ -3516,10 +3518,10 @@ namespace Lea.Engine
                 else if (name == "padding-bottom") style.Pb = Px(value);
                 else if (name == "padding-left") style.Pl = Px(value);
                 else if (name == "box-sizing") BoxSizing(style, value);
-                else if (name == "width") style.W = Px(value);
+                else if (name == "width") Width(style, inherited, value, 0);
                 else if (name == "height") style.H = Px(value);
-                else if (name == "min-width") style.Wn = Px(value);
-                else if (name == "max-width") style.Wx = Px(value);
+                else if (name == "min-width") Width(style, inherited, value, 1);
+                else if (name == "max-width") Width(style, inherited, value, 2);
                 else if (name == "min-height") style.Hn = Px(value);
                 else if (name == "max-height") style.Hx = Px(value);
                 else if (name == "aspect-ratio") AspectRatio(style, value);
@@ -4802,6 +4804,63 @@ namespace Lea.Engine
             var match = Regex.Match(value ?? "", "^(?<n>[0-9]{1,4})(?:px)?$", RegexOptions.IgnoreCase);
             int number;
             return match.Success && int.TryParse(match.Groups["n"].Value, out number) ? Math.Min(number, 2000) : 0;
+        }
+
+        private static void Width(S style, S inherited, string value, int part)
+        {
+            int pixels;
+            int percent;
+            int offset;
+            bool inherit;
+            if (!WidthValue(value, part, out pixels, out percent, out offset, out inherit)) return;
+            if (inherit && inherited != null)
+            {
+                if (part == 0) { pixels = inherited.W; percent = inherited.Wp; offset = inherited.Wo; }
+                else if (part == 1) { pixels = inherited.Wn; percent = inherited.Wnp; offset = inherited.Wno; }
+                else { pixels = inherited.Wx; percent = inherited.Wxp; offset = inherited.Wxo; }
+            }
+            if (part == 0) style.W = pixels;
+            else if (part == 1) style.Wn = pixels;
+            else style.Wx = pixels;
+            style.SetWidth(part, percent, offset);
+        }
+
+        internal static bool Wd(string value, out string width)
+        {
+            width = (value ?? "").Trim().ToLowerInvariant();
+            if (width.Length == 0) return true;
+            int pixels;
+            int percent;
+            int offset;
+            bool inherit;
+            return WidthValue(width, 0, out pixels, out percent, out offset, out inherit);
+        }
+
+        private static bool WidthValue(string value, int part, out int pixels, out int percent, out int offset, out bool inherit)
+        {
+            pixels = 0;
+            percent = 0;
+            offset = 0;
+            inherit = false;
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "inherit") { inherit = true; return true; }
+            if (source == "initial" || source == "unset" || source == "revert" || source == "revert-layer" ||
+                (part < 2 && source == "auto") || (part == 2 && source == "none")) return true;
+
+            var fixedValue = Regex.Match(source, "^(?<n>[0-9]{1,4})(?:px)?$");
+            if (fixedValue.Success && Int32.TryParse(fixedValue.Groups["n"].Value, out pixels) && pixels <= 2000) return true;
+            pixels = 0;
+
+            var relative = Regex.Match(source, "^(?<p>[1-9][0-9]{0,2})%$");
+            if (relative.Success && Int32.TryParse(relative.Groups["p"].Value, out percent) && percent <= 100) return true;
+            percent = 0;
+
+            var calculated = Regex.Match(source, "^calc\\(\\s*(?<p>[1-9][0-9]{0,2})%\\s*(?<s>[+-])\\s*(?<n>[0-9]{1,4})px\\s*\\)$");
+            int amount;
+            if (!calculated.Success || !Int32.TryParse(calculated.Groups["p"].Value, out percent) || percent > 100 ||
+                !Int32.TryParse(calculated.Groups["n"].Value, out amount) || amount > 2000) return false;
+            offset = calculated.Groups["s"].Value == "-" ? -amount : amount;
+            return true;
         }
 
         private static void Border(S style, string value, int side)

@@ -31,7 +31,7 @@ read and quick to write.
   redirects or resource requests. Firespider installs it on ordinary and split
   tabs. See `NAVIGATION_POLICY.md` and `SPLIT_VIEW.md` for its callback contract.
 - Page values use one or two letters: `U`, `T`, `H`, `Q`, `D`, `N`, `Bs`, and `Ls`.
-- Page commands use one or two letters: `t`, `a`, `bg`, `fg`, `fs`, `dp`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`.
+- Page commands use one or two letters: `t`, `a`, `bg`, `fg`, `fs`, `dp`, `wd`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`.
 - New public aliases should be no more than three letters.
 - `E/V.Hm` reports the 4 MiB document-body ceiling; `E/V.Csm` reports the
   256 KiB linked-stylesheet ceiling. GET/POST input and optional CSS share
@@ -77,6 +77,7 @@ bg("id", "#fff") element background
 fg("id", "#222") element text color
 fs("id", 18)      element font size
 dp("id", "none") element display
+wd("id", "50%")  element width
 v("who", "Lea")  bounded page variable
 tx("id", "Hi ${who}") element text
 ac("id", "hot")       add class
@@ -95,7 +96,7 @@ fo("id")              request focus
 go("next.html")        request host navigation
 ```
 
-The two-argument `bg/fg/fs/dp` forms target one validated ID. Color and font
+The two-argument `bg/fg/fs/dp/wd` forms target one validated ID. Color and font
 forms reuse the same
 hex/named-color and 8..96 pixel font bounds as the body forms, reject document
 metadata targets, cap the resulting inline style at 4,096 characters, and
@@ -106,6 +107,13 @@ from layout and accessibility; `flex`/`inline-flex` and `grid`/`inline-grid`
 enter Lea's existing layout modes. An empty value removes only the inline
 display declaration and restores the authored cascade. Unsupported values are
 inert. See `DISPLAY_NAVIGATION.md`.
+
+`wd` accepts fixed `0..2000px`, `1..100%`, or one
+`calc(P% +/- Npx)` expression where `P` is 1..100 and `N` is 0..2000. An empty
+value removes only the inline width and restores the authored cascade. Authored
+`width`, `min-width`, and `max-width` accept the same bounded numeric forms.
+Nested functions, multiplication/division, viewport units, and calculated
+heights remain unsupported. See `CALCULATED_WIDTHS.md`.
 
 `P.Vs` exposes at most 16 case-insensitive variables. Names are one through 16
 letters, digits, or underscores and must begin with a letter; values are capped
@@ -216,13 +224,14 @@ document.getElementById("field").focus();
 document.getElementById("status").classList.add("ready");
 document.getElementById("status").style.color = "#164e63";
 document.getElementById("panel").style.display = "none";
+document.getElementById("panel").style.width = "calc(100% - 24px)";
 ```
 
 `innerText` is an alias for `textContent`; `classList.remove/toggle` and
-`style.background/backgroundColor/fontSize/display` are also accepted. IDs and class
+`style.background/backgroundColor/fontSize/display/width` are also accepted. IDs and class
 arguments must be quoted literals. Boolean state accepts only literal `true` or
 `false`. The parser translates each accepted statement to the existing
-`tx/vl/ck/ds/en/hd/sh/op/cl/fo/ac/rc/tc/bg/fg/fs/dp` command, so all target, value,
+`tx/vl/ck/ds/en/hd/sh/op/cl/fo/ac/rc/tc/bg/fg/fs/dp/wd` command, so all target, value,
 style, rebuild, focus, and 32-command limits remain unchanged. `innerHTML`,
 selectors, computed IDs or values, event registration, loops, expressions, and
 unknown properties or methods remain inert. See `DOM_BRIDGE.md`.

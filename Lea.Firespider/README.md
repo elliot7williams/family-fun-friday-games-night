@@ -194,10 +194,16 @@ allow-list and cannot reach native files, processes, or host controls.
 ID-scoped `ac/rc/tc` class changes use the same route, reapply compiled CSS, and
 preserve mutable field values.
 Familiar literal `document.getElementById("id")` statements can now express the
-same bounded text, value, boolean state, focus, classList, and display/color/font
+same bounded text, value, boolean state, focus, classList, and display/color/font/width
 operations. `V.Js` and `V.Ck` translate them to Lea's short commands; Firespider
 does not receive a DOM object or host callback. The compiled smoke verifies this
 path and confirms that `innerHTML` remains rejected.
+
+Compact `wd(id,value)` and literal `style.width` use Lea's bounded fixed,
+percentage, and `calc(P% +/- Npx)` parser. Authored width/min/max values compile
+to the same optional numeric tuple, and the hosted view resolves them through
+normal block, field, image, flex, grid, table, paint, hit, and accessibility
+layout. Firespider adds no expression evaluator or adapter-side sizing logic.
 The same public route supports bounded `hd/sh` visibility, `op/cl/tg` details
 state, `ds/en` field availability, `vl` values, `ck` checked state, and `fo`
 focus requests. Hidden
@@ -255,7 +261,8 @@ alignment geometry, dot-cell auto placement, ownership, queries, and Inspector
 CSS without adding adapter-side layout logic.
 
 Firespider can also read `B.S.Bz` as `c/b` for non-inherited content-box or
-border-box sizing. Lea applies it to pixel width, height, min/max, and flex basis
+border-box sizing. Lea applies it to fixed/percentage/calculated width and
+min/max values plus pixel height and flex basis
 before the shared block, field, image, flex, table, cell, hit, paint, and
 accessibility-bound paths, without adding a native browser dependency.
 

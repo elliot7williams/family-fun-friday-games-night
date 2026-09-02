@@ -17,16 +17,17 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 75 extends the compact interaction layer with `dp(id,value)`, literal
-`element.style.display`, and literal `location`/`location.href`/`location.assign`
-translation. Display values are allow-listed, empty assignment restores the
-authored cascade, and unrelated inline style survives. Familiar navigation uses
-the existing guarded `go` request; local relative queries and fragments now stay
-real URI components. Core/WinForms and compiled Firespider smokes pass, as do 71
-benchmark probes over 68 fixtures, all 42 Boot cases, and all six actual EXE
-startup scenarios. Runtime 175 stays isolated and installed runtime 157 remains
-unchanged. See `DISPLAY_NAVIGATION.md`. Next continue bounded
-HTML/CSS/DOM compatibility and host migration without a general VM.
+Milestone 76 adds fixed, percentage, and bounded single-expression calculated
+`width`, `min-width`, and `max-width` values. Optional compact tuples resolve at
+layout time across blocks, controls, images, flex, grid, tables, paint, hits,
+accessibility, and live resize. `wd(id,value)`, `width(id,value)`, and literal
+`element.style.width` share the same parser and safe inline reset. Local async
+file navigation now yields and rechecks cancellation before disk input. Full
+engine/WinForms, compiled Firespider, and staged runtime smokes pass, as do 72
+benchmark probes over 69 fixtures, all 42 Boot cases, and all six actual EXE
+startup scenarios. Runtime 176 stays isolated and installed runtime 157 remains
+unchanged. See `CALCULATED_WIDTHS.md`. Next continue bounded HTML/CSS/DOM
+compatibility and host migration without a general VM.
 
 Milestone 60 installs the existing `V.Ng` hook on main Lea tabs, enforcing host
 rules, offline/locked state, and live ownership. Denied resume retains its

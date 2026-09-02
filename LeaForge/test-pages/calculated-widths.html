@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea calculated widths</title>
+  <style>
+    body { background: #f8fafc; color: #172033; font-size: 16px; }
+    #outer { width: calc(100% - 60px); background: #e8f3ff; }
+    #half { width: 50%; background: #dff6e9; }
+    #minus { width: calc(100% - 80px); background: #fee9d8; }
+    #plus { width: calc(50% + 20px); background: #f3e8ff; }
+    #minimum { width: 20%; min-width: calc(50% - 10px); background: #fff4cc; }
+    #maximum { width: 100%; max-width: calc(75% + 5px); background: #e5e7eb; }
+    #invalid { width: 240px; width: calc(100% * 2); }
+    #variable { --panel-width: calc(75% - 15px); width: var(--panel-width); }
+    #inherit-parent { width: 60%; }
+    #inherit-child { width: inherit; }
+    #flex { display: flex; width: 100%; gap: 10px; }
+    #flex-a { width: calc(50% - 10px); }
+    #flex-b { width: 50%; }
+    #grid { display: grid; width: 100%; grid-template-columns: 1fr 1fr; gap: 10px; }
+    #grid-a { width: 50%; }
+    #sized-table { width: calc(100% - 40px); }
+    #flex-table-wrap { display: flex; width: 100%; }
+    #flex-table { width: 50%; }
+    #cell-table { width: 400px; }
+    #cell-half { width: 50%; padding: 10px; }
+    #ratio-max { height: 400px; aspect-ratio: 1 / 1; max-width: 75%; }
+    #command { width: 280px; }
+    button { display: block; width: 300px; margin: 6px 0; }
+  </style>
+</head>
+<body>
+  <h1>Bounded percentage and calculated widths</h1>
+  <main id="outer">
+    <section id="half">Half width</section>
+    <section id="minus">Full width minus pixels</section>
+    <section id="plus">Half width plus pixels</section>
+    <section id="minimum">Calculated minimum</section>
+    <section id="maximum">Calculated maximum</section>
+    <section id="invalid">Invalid expression keeps 240 pixels</section>
+    <section id="variable">Calculated custom property</section>
+    <section id="inherit-parent"><p id="inherit-child">Explicit inherited width</p></section>
+    <section id="flex"><p id="flex-a">Flex A</p><p id="flex-b">Flex B</p></section>
+    <section id="grid"><p id="grid-a">Grid A</p><p id="grid-b">Grid B</p></section>
+    <table id="sized-table"><tr><td>Calculated table width</td><td>Second cell</td></tr></table>
+    <section id="flex-table-wrap"><table id="flex-table"><tr><td>Flex table</td></tr></table></section>
+    <table id="cell-table"><tr><td><div id="cell-half">Percentage cell content</div><div>Second cell block</div></td></tr></table>
+    <section id="ratio-max">Aspect-ratio width below calculated maximum</section>
+    <section id="command" style="color:#123f8c">Command width</section>
+    <button id="set-width" type="button" data-lea="wd('command','calc(100% - 120px)')">Set calculated width</button>
+    <button id="dom-width" type="button" onclick="document.getElementById('command').style.width='50%'">Set DOM width</button>
+    <button id="clear-width" type="button" onclick="document.getElementById('command').style.width=''">Restore authored width</button>
+  </main>
+</body>
+</html>
