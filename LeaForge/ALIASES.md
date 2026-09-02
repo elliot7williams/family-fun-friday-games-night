@@ -31,7 +31,7 @@ read and quick to write.
   redirects or resource requests. Firespider installs it on ordinary and split
   tabs. See `NAVIGATION_POLICY.md` and `SPLIT_VIEW.md` for its callback contract.
 - Page values use one or two letters: `U`, `T`, `H`, `Q`, `D`, `N`, `Bs`, and `Ls`.
-- Page commands use one or two letters: `t`, `a`, `bg`, `fg`, `fs`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`.
+- Page commands use one or two letters: `t`, `a`, `bg`, `fg`, `fs`, `dp`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`.
 - New public aliases should be no more than three letters.
 - `E/V.Hm` reports the 4 MiB document-body ceiling; `E/V.Csm` reports the
   256 KiB linked-stylesheet ceiling. GET/POST input and optional CSS share
@@ -76,6 +76,7 @@ fs(20)           body font size
 bg("id", "#fff") element background
 fg("id", "#222") element text color
 fs("id", 18)      element font size
+dp("id", "none") element display
 v("who", "Lea")  bounded page variable
 tx("id", "Hi ${who}") element text
 ac("id", "hot")       add class
@@ -94,10 +95,17 @@ fo("id")              request focus
 go("next.html")        request host navigation
 ```
 
-The two-argument `bg/fg/fs` forms target one validated ID. They reuse the same
+The two-argument `bg/fg/fs/dp` forms target one validated ID. Color and font
+forms reuse the same
 hex/named-color and 8..96 pixel font bounds as the body forms, reject document
 metadata targets, cap the resulting inline style at 4,096 characters, and
 preserve mutable fields through the shared CSS rebuild.
+
+`dp` accepts a bounded standard display keyword set. `none` removes the subtree
+from layout and accessibility; `flex`/`inline-flex` and `grid`/`inline-grid`
+enter Lea's existing layout modes. An empty value removes only the inline
+display declaration and restores the authored cascade. Unsupported values are
+inert. See `DISPLAY_NAVIGATION.md`.
 
 `P.Vs` exposes at most 16 case-insensitive variables. Names are one through 16
 letters, digits, or underscores and must begin with a letter; values are capped
@@ -145,6 +153,12 @@ resolved absolute URL is capped at 4,096 characters. HTTP and HTTPS are allowed.
 Local file targets are allowed only from a local file response and UNC paths are
 rejected. Empty values and `about`, `data`, `javascript`, `mailto`, and other
 schemes are ignored. Only one request can be pending at a time.
+
+Literal `location`, `location.href`, and `location.assign(...)` assignments or
+calls, including `window` and `document` spellings, map to the same `go` path.
+Relative local-file requests preserve query and fragment components. Computed
+values, `location.replace`, history mutation, and arbitrary methods remain
+unsupported.
 
 Headless hosts call `E.Gt(page)` to take and clear the pending request. WinForms
 hosts read `V.Gu` when `V.Gr` fires. A command request suppresses the same
@@ -201,13 +215,14 @@ document.getElementById("more").open = true;
 document.getElementById("field").focus();
 document.getElementById("status").classList.add("ready");
 document.getElementById("status").style.color = "#164e63";
+document.getElementById("panel").style.display = "none";
 ```
 
 `innerText` is an alias for `textContent`; `classList.remove/toggle` and
-`style.background/backgroundColor/fontSize` are also accepted. IDs and class
+`style.background/backgroundColor/fontSize/display` are also accepted. IDs and class
 arguments must be quoted literals. Boolean state accepts only literal `true` or
 `false`. The parser translates each accepted statement to the existing
-`tx/vl/ck/ds/en/hd/sh/op/cl/fo/ac/rc/tc/bg/fg/fs` command, so all target, value,
+`tx/vl/ck/ds/en/hd/sh/op/cl/fo/ac/rc/tc/bg/fg/fs/dp` command, so all target, value,
 style, rebuild, focus, and 32-command limits remain unchanged. `innerHTML`,
 selectors, computed IDs or values, event registration, loops, expressions, and
 unknown properties or methods remain inert. See `DOM_BRIDGE.md`.

@@ -194,7 +194,7 @@ allow-list and cannot reach native files, processes, or host controls.
 ID-scoped `ac/rc/tc` class changes use the same route, reapply compiled CSS, and
 preserve mutable field values.
 Familiar literal `document.getElementById("id")` statements can now express the
-same bounded text, value, boolean state, focus, classList, and three style
+same bounded text, value, boolean state, focus, classList, and display/color/font
 operations. `V.Js` and `V.Ck` translate them to Lea's short commands; Firespider
 does not receive a DOM object or host callback. The compiled smoke verifies this
 path and confirms that `innerHTML` remains rejected.
@@ -208,6 +208,9 @@ The bounded `go(url)` command raises `V.Gr` with `V.Gu`; Firespider sends that
 request through its existing asynchronous Lea loader. Relative URLs resolve
 against the document base, unsafe schemes and remote-to-file requests are
 rejected, and a command request overrides the same click's default link route.
+Literal `location`, `location.href`, and `location.assign(...)` forms use this
+same event. Local relative queries/fragments remain URI components, and
+replacement/history APIs remain unsupported.
 Lea tabs also expose the bounded `V.Tm` request deadline: 15,000 ms by default,
 clamped to 100-60,000 ms, with typed timeout and cancellation failures.
 

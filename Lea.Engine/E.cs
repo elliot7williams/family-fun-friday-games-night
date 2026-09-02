@@ -3463,7 +3463,7 @@ namespace Lea.Engine
                 else if (name == "opacity") Opacity(style, value);
                 else if (name == "isolation") Isolation(style, value);
                 else if (name == "transform") Transform(style, value);
-                else if (name == "display") style.D = value.ToLowerInvariant();
+                else if (name == "display") Display(style, inherited, value);
                 else if (name == "flex-direction") FlexDirection(style, value);
                 else if (name == "flex-wrap") FlexWrap(style, value);
                 else if (name == "flex-grow") FlexGrow(style, value);
@@ -3784,6 +3784,16 @@ namespace Lea.Engine
             else if (mode == "absolute") style.Pn = "a";
             else if (mode == "fixed") style.Pn = "f";
             else if (mode == "static" || mode == "initial" || mode == "unset" || mode == "revert") style.Pn = "s";
+        }
+
+        private static void Display(S style, S inherited, string value)
+        {
+            var mode = (value ?? "").Trim().ToLowerInvariant();
+            if (mode == "inherit") style.D = inherited == null ? "" : inherited.D;
+            else if (mode == "initial" || mode == "unset" || mode == "revert" || mode == "revert-layer") style.D = "";
+            else if (mode == "none" || mode == "block" || mode == "inline" || mode == "inline-block" ||
+                mode == "flex" || mode == "inline-flex" || mode == "grid" || mode == "inline-grid" ||
+                mode == "list-item" || mode == "table" || mode == "table-row" || mode == "table-cell") style.D = mode;
         }
 
         private static void FlexDirection(S style, string value)

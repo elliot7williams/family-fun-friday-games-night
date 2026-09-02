@@ -17,15 +17,16 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 74 adds a literal `document.getElementById` compatibility bridge over
-Lea's existing compact commands. Text, value, checked/disabled/hidden/open,
-focus, classList, and bounded color/font styles use the same validators and one
-retained rebuild; arbitrary JavaScript, `innerHTML`, selectors, expressions,
-callbacks, and unknown APIs remain inert. `dom-bridge.html`, core/WinForms,
-compiled Firespider, 70 benchmark probes over 67 fixtures, all 42 Boot cases,
-and all six actual EXE startup scenarios pass. Runtime 174 stays isolated and
-installed runtime 157 remains unchanged. See `DOM_BRIDGE.md`. Next continue
-bounded HTML/CSS/DOM compatibility and host migration without a general VM.
+Milestone 75 extends the compact interaction layer with `dp(id,value)`, literal
+`element.style.display`, and literal `location`/`location.href`/`location.assign`
+translation. Display values are allow-listed, empty assignment restores the
+authored cascade, and unrelated inline style survives. Familiar navigation uses
+the existing guarded `go` request; local relative queries and fragments now stay
+real URI components. Core/WinForms and compiled Firespider smokes pass, as do 71
+benchmark probes over 68 fixtures, all 42 Boot cases, and all six actual EXE
+startup scenarios. Runtime 175 stays isolated and installed runtime 157 remains
+unchanged. See `DISPLAY_NAVIGATION.md`. Next continue bounded
+HTML/CSS/DOM compatibility and host migration without a general VM.
 
 Milestone 60 installs the existing `V.Ng` hook on main Lea tabs, enforcing host
 rules, offline/locked state, and live ownership. Denied resume retains its

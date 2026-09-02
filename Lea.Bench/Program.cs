@@ -107,7 +107,7 @@ namespace Lea.Bench
             var names = new[]
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
-                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
+                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -1988,8 +1988,25 @@ namespace Lea.Bench
                 Need(page.Fs.First(item => item.El.Av("id") == "agree").C && page.Fs.First(item => item.El.Av("id") == "locked").Ds && ById(page.D, "more").Op, "DOM state assignments changed");
                 Need(Object.ReferenceEquals(engine.Kp(page), name.El) && engine.Ck(page, ById(page.D, "apply")) == 9, "DOM focus or onclick translation changed");
                 Need(status.C[0].X == "Clicked DOM" && name.V == "Clicked value" && status.Av("class").Length == 0, "DOM onclick mutation changed");
-                Need(engine.Js(page, "document.getElementById('status').innerHTML='bad'; document.getElementById(id).textContent='bad'; document.getElementById('status').style.display='none';") == 0, "unsupported DOM syntax was accepted");
+                Need(engine.Js(page, "document.getElementById('status').innerHTML='bad'; document.getElementById(id).textContent='bad'; document.getElementById('status').style.visibility='hidden';") == 0, "unsupported DOM syntax was accepted");
                 return "getElementById literal text, value, booleans, classList, focus, three styles, 20 accepted commands, and rejected arbitrary DOM APIs";
+            });
+            AddProbe(probes, "Display and location compatibility", delegate
+            {
+                var engine = new E();
+                var page = engine.Go(Path.Combine(folder, "display-navigation.html"));
+                Need(!page.Bs.Any(block => block.El != null && block.El.Av("id") == "panel") &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "invalid").S.D == "grid", "authored display filtering changed");
+                Need(engine.Ck(page, ById(page.D, "show")) == 1 && page.Bs.First(block => block.El != null && block.El.Av("id") == "panel").S.D == "block", "compact display command failed");
+                Need(engine.Ck(page, ById(page.D, "hide")) == 1 && !page.Bs.Any(block => block.El != null && block.El.Av("id") == "panel"), "DOM display none failed");
+                Need(engine.Ck(page, ById(page.D, "flex")) == 1 && page.Bs.First(block => block.El != null && block.El.Av("id") == "row").S.D == "flex", "DOM flex display failed");
+                Need(engine.Ck(page, ById(page.D, "clear")) == 1 && page.Bs.First(block => block.El != null && block.El.Av("id") == "row").S.D == "block" &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "row").S.F == "#123f8c", "DOM display reset lost the cascade");
+                Need(engine.Ck(page, ById(page.D, "href")) == 1 && engine.Gt(page) == new Uri(new Uri(Path.Combine(folder, "go-target.html")).AbsoluteUri + "#href"), "location href request changed");
+                Need(engine.Ck(page, ById(page.D, "assign")) == 1 && engine.Gt(page) == new Uri(new Uri(Path.Combine(folder, "go-target.html")).AbsoluteUri + "#assign"), "location assign request changed");
+                Need(engine.Js(page, "location='go-target.html?mode=one#both'") == 1 && engine.Gt(page) == new UriBuilder(new Uri(Path.Combine(folder, "go-target.html"))) { Query = "mode=one", Fragment = "both" }.Uri, "direct location query or fragment changed");
+                Need(engine.Js(page, "dp('row','contents'); location.href=target; location.replace('go-target.html');") == 0 && engine.Gt(page) == null, "display or location boundary changed");
+                return "dp plus literal style.display, empty reset, retained inline style, validated modes, href/assign mapping, and existing guarded go requests";
             });
             AddProbe(probes, "Host-controlled go requests", delegate
             {
@@ -2224,8 +2241,8 @@ namespace Lea.Bench
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, inline, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Text overflow", "Supported subset", "Non-inherited clip/ellipsis; paint-only bounded text-element prefixes for clipped overflowing horizontal LTR lines, inline runs and tables; retained layout/link targets and full logical automation text; no native-control, bidi, custom-marker, or line-clamp additions");
-            Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color and font, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, safe click commands, and literal getElementById translation");
-            Capability(builder, "Literal DOM bridge", "Supported subset", "Literal document.getElementById IDs with textContent/innerText, value, checked/disabled/hidden/open, focus(), classList add/remove/toggle, and background/color/fontSize; mapped to existing bounded Lea aliases");
+            Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color, font, and display, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, safe click commands, and literal compatibility translation");
+            Capability(builder, "Literal DOM bridge", "Supported subset", "Literal document.getElementById IDs with textContent/innerText, value, checked/disabled/hidden/open, focus(), classList add/remove/toggle, and background/color/fontSize/display; literal location href/assign requests; mapped to bounded Lea aliases");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
             Capability(builder, "Flexbox", "Supported subset", "Row/row-reverse and fixed-height column/column-reverse containers, content/border-box pixel bases, stable -64..64 order on nowrap rows and bounded columns, bounded row wrap, fixed/equal-share/weighted grow and integer weighted-shrink slots, explicit pixel min/max floors, pixel row/column gaps, start/center/end/space-between/space-around/space-evenly justification, and container/item stretch/start/center/end cross alignment; no intrinsic min-content sizing, fractional factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis alignment, or auto-height column reordering guarantee");
             Capability(builder, "CSS Grid", "Supported subset", "Grid/inline-grid with up to eight fixed-pixel, auto, or integer-fr tracks per explicit axis, simple repeat and minmax(0, Nfr), pixel gaps, bounded occupancy, two-axis numeric starts/spans, validated 8x8 named-area templates, unique explicit named lines, area-generated start/end lines, Gf row/column sparse/dense flow, repeating S.Av/Gac/Gav/Rac/Rav pixel/auto/integer-fr implicit patterns, definite endpoint/span growth, area-created track sizing, exact auto-height row settlement, atomic grid-template/grid explicit, quoted-area, and row/column auto-flow shorthands, Ji/Js/Ai/As start/center/end/stretch item alignment, atomic place-items/place-self, Al/Jc start/center/end/between/around/evenly track-group alignment, atomic place-content, and shared nested paint/hit/reflow; no escaped or repeated-name occurrence indexes, reverse flow, pre-explicit implicit tracks, shorthand area-row line names, intrinsic or percentage tracks, auto-fit/fill, baseline or safe/unsafe alignment, writing-mode axis reversal, or subgrid");

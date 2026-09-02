@@ -172,6 +172,14 @@ namespace Lea.Engine
                 if (!Size(Expand(page, command.W ?? command.V), out size)) return false;
                 return SetStyle(target, "font-size", size.ToString() + "px");
             }
+            if (command.N == "dp")
+            {
+                var target = StyleTarget(page, command);
+                if (target == null || command.W == null) return false;
+                string display;
+                if (!Display(Expand(page, command.W), out display)) return false;
+                return SetStyle(target, "display", display);
+            }
             return false;
         }
 
@@ -249,6 +257,7 @@ namespace Lea.Engine
             if (member == "style.background" || member == "style.backgroundcolor") return new Cm("bg", id, value);
             if (member == "style.color") return new Cm("fg", id, value);
             if (member == "style.fontsize") return new Cm("fs", id, value);
+            if (member == "style.display") return new Cm("dp", id, value);
             return null;
         }
 
@@ -260,6 +269,7 @@ namespace Lea.Engine
             if (count == 1 && (name == "fg" || name == "color")) return new Cm("fg", first);
             if (count == 1 && (name == "fs" || name == "fontsize")) return new Cm("fs", first);
             if (count == 1 && name == "go") return new Cm("go", first);
+            if (count == 1 && (name == "location.assign" || name == "window.location.assign" || name == "document.location.assign")) return new Cm("go", first);
             if (count == 1 && (name == "hd" || name == "hide")) return new Cm("hd", first);
             if (count == 1 && (name == "sh" || name == "show")) return new Cm("sh", first);
             if (count == 1 && (name == "ds" || name == "disable")) return new Cm("ds", first);
@@ -276,6 +286,7 @@ namespace Lea.Engine
             if (count == 2 && (name == "bg" || name == "background")) return new Cm("bg", first, second);
             if (count == 2 && (name == "fg" || name == "color")) return new Cm("fg", first, second);
             if (count == 2 && (name == "fs" || name == "fontsize")) return new Cm("fs", first, second);
+            if (count == 2 && (name == "dp" || name == "display")) return new Cm("dp", first, second);
             if (count == 2 && name == "ac") return new Cm("ac", first, second);
             if (count == 2 && name == "rc") return new Cm("rc", first, second);
             if (count == 2 && name == "tc") return new Cm("tc", first, second);
@@ -288,6 +299,8 @@ namespace Lea.Engine
             if (name == "document.body.style.background" || name == "document.body.style.backgroundcolor") return new Cm("bg", value);
             if (name == "document.body.style.color") return new Cm("fg", value);
             if (name == "document.body.style.fontsize") return new Cm("fs", value);
+            if (name == "location" || name == "window.location" || name == "document.location" ||
+                name == "location.href" || name == "window.location.href" || name == "document.location.href") return new Cm("go", value);
             return null;
         }
 
@@ -406,9 +419,10 @@ namespace Lea.Engine
                 if (split < 1 || declaration.Substring(0, split).Trim().Equals(name, StringComparison.OrdinalIgnoreCase)) continue;
                 result.Append(declaration).Append(';');
             }
-            result.Append(name).Append(':').Append(value).Append(';');
+            if (value.Length > 0) result.Append(name).Append(':').Append(value).Append(';');
             if (result.Length > 4096) return false;
-            target.A["style"] = result.ToString();
+            if (result.Length == 0) target.A.Remove("style");
+            else target.A["style"] = result.ToString();
             return true;
         }
 
@@ -621,10 +635,33 @@ namespace Lea.Engine
             if (source.Length < 1 || source.Length > 2048) return false;
             var baseUrl = page.Bu ?? page.U;
             if (!Uri.TryCreate(source, UriKind.Absolute, out target) &&
-                (baseUrl == null || !Uri.TryCreate(baseUrl, source, out target))) return false;
+                (baseUrl == null || !(baseUrl.IsFile ? FileUrl(baseUrl, source, out target) : Uri.TryCreate(baseUrl, source, out target)))) return false;
             if (target == null || !target.IsAbsoluteUri || target.AbsoluteUri.Length > 4096) return false;
             if (target.IsFile) return page.U != null && page.U.IsFile && !target.IsUnc;
             return (target.Scheme == Uri.UriSchemeHttp || target.Scheme == Uri.UriSchemeHttps) && target.Host.Length > 0;
+        }
+
+        private static bool FileUrl(Uri baseUrl, string source, out Uri target)
+        {
+            target = null;
+            var hash = source.IndexOf('#');
+            var fragment = hash < 0 ? null : source.Substring(hash + 1);
+            var address = hash < 0 ? source : source.Substring(0, hash);
+            var mark = address.IndexOf('?');
+            var query = mark < 0 ? null : address.Substring(mark + 1);
+            var path = mark < 0 ? address : address.Substring(0, mark);
+            Uri resolved;
+            if (path.Length == 0) resolved = baseUrl;
+            else if (!Uri.TryCreate(baseUrl, path, out resolved)) return false;
+            try
+            {
+                var builder = new UriBuilder(resolved);
+                if (path.Length > 0 || query != null) builder.Query = query ?? "";
+                if (path.Length > 0 || query != null || fragment != null) builder.Fragment = fragment ?? "";
+                target = builder.Uri;
+                return true;
+            }
+            catch (UriFormatException) { return false; }
         }
 
         private static bool SetClass(N target, string name, string mode)
@@ -676,6 +713,16 @@ namespace Lea.Engine
             var source = (value ?? "").Trim().ToLowerInvariant();
             if (source.EndsWith("px")) source = source.Substring(0, source.Length - 2).Trim();
             return Int32.TryParse(source, out size) && size >= 8 && size <= 96;
+        }
+
+        private static bool Display(string value, out string display)
+        {
+            display = (value ?? "").Trim().ToLowerInvariant();
+            return display.Length == 0 || display == "none" || display == "block" || display == "inline" ||
+                display == "inline-block" || display == "flex" || display == "inline-flex" || display == "grid" ||
+                display == "inline-grid" || display == "list-item" || display == "table" || display == "table-row" ||
+                display == "table-cell" || display == "initial" || display == "inherit" || display == "unset" ||
+                display == "revert" || display == "revert-layer";
         }
 
         private static string Text(string value, int max)

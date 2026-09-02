@@ -124,8 +124,12 @@ view completion, callback, download, and image-handoff regressions. See
 
 The full core and compiled Firespider smokes also exercise the literal bounded
 DOM bridge in `dom-bridge.html`: `document.getElementById` text, field/state,
-focus, classList, and three style forms translate to existing short commands,
+focus, classList, and bounded style forms translate to existing short commands,
 while `innerHTML`, computed targets, selectors, and unknown APIs remain inert.
+`display-navigation.html` adds compact `dp`, literal `style.display`, authored
+cascade restoration, WinForms flex reflow, and host-controlled literal location
+requests with local query/fragment preservation. See
+`LeaForge/DISPLAY_NAVIGATION.md`.
 `-Case edit` tests native field menu/hover commands, protected fields,
 paused/empty tabs, and the explicit legacy fallback; see `NATIVE_EDITING.md`.
 `-Case paste` checks guarded real-menu/native/keyboard paste under a held

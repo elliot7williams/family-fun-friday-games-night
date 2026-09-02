@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea display and location</title>
+  <style>
+    body { background: #f8fafc; color: #172033; font-size: 17px; }
+    #panel { display: none; width: 360px; padding: 10px; border: 2px solid #0f766e; background: #dff6e9; }
+    #row { display: block; width: 360px; gap: 8px; }
+    #row p { width: 90px; padding: 4px; background: #dbeafe; }
+    #invalid { display: grid; display: ruby; }
+    button { display: block; width: 300px; margin: 7px 0; }
+  </style>
+</head>
+<body>
+  <h1>Bounded display and location compatibility</h1>
+  <section id="panel" role="region" aria-label="Display panel">This panel starts hidden by authored CSS.</section>
+  <section id="row" style="color:#123f8c"><p id="one">One</p><p id="two">Two</p></section>
+  <section id="invalid"><p>Invalid display fallback</p></section>
+  <button id="show" type="button" data-lea="dp('panel','block')">Show panel</button>
+  <button id="hide" type="button" onclick="document.getElementById('panel').style.display = 'none'">Hide panel</button>
+  <button id="flex" type="button" onclick="document.getElementById('row').style.display = 'flex'">Use flex display</button>
+  <button id="clear" type="button" onclick="document.getElementById('row').style.display = ''">Restore authored display</button>
+  <button id="href" type="button" onclick="location.href = 'go-target.html#href'">Location href</button>
+  <button id="assign" type="button" onclick="window.location.assign('go-target.html#assign')">Location assign</button>
+</body>
+</html>

@@ -648,7 +648,9 @@ variables and `${name}` substitutes them into later literals. `tx/text` replaces
 text under one safe element ID. `ac/rc/tc` add, remove, or toggle one bounded
 class token on a safe ID and reuse the compiled CSS rebuild while preserving
 mutable fields. Each target accepts at most 32 classes and 512 class-attribute
-characters. `hd/sh` provide command-authoritative hide/show state, while
+characters. `dp` writes or clears one allow-listed inline display value, keeping
+other inline declarations and retained state intact. `hd/sh` provide
+command-authoritative hide/show state, while
 `op/cl/tg` open, close, or toggle a bounded `details` element through its own ID
 or first direct `summary`, preserving nested field identity. `ds/en` update
 supported field availability. `vl` sets one current field value
@@ -668,12 +670,12 @@ and 16 alerts.
 
 For easier migration, literal `document.getElementById("id")` statements map
 `textContent/innerText`, `value`, checked/disabled/hidden/open booleans,
-`focus()`, `classList.add/remove/toggle`, and background/color/font-size styles
+`focus()`, `classList.add/remove/toggle`, and background/color/font-size/display styles
 onto the existing compact commands. The adapter receives no DOM object and adds
 no evaluator. IDs and class names remain bounded literals, every mutation uses
 the normal validators and retained rebuild, and unsupported `innerHTML`,
 selectors, computed values, event APIs, or control flow remain inert. See
-`DOM_BRIDGE.md`.
+`DOM_BRIDGE.md` and `DISPLAY_NAVIGATION.md`.
 
 Core downloads use `E.Dl`/`DlA`; `V` forwards those aliases and raises `Dr` for
 links carrying the HTML `download` attribute. The host receives `Du` and `Dn`,
@@ -772,6 +774,10 @@ removes it, and legacy tabs continue using Firespider's settings collections.
 Firespider subscribes to `V.Gr` for each Lea tab and sends `V.Gu` through its
 existing asynchronous Lea load/status route. The page command cannot invoke a
 legacy control, native process, dialog, or direct file API.
+Literal `location`, `location.href`, and `location.assign(...)` spellings map to
+that same bounded `go` request. Relative file targets retain query and fragment
+components; computed values, replacement/history APIs, and unsafe schemes do not
+produce a request.
 
 **View > Lea Inspector** (`F12`) and each Lea tab's context menu open a compact
 owned diagnostics window. Summary, Nodes, CSS, Requests, and Messages are built

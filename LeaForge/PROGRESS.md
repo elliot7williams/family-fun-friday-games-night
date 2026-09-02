@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **74**
+Post-1.0 hardening milestones completed: **75**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,26 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added compact `dp(id,value)` display mutation plus literal
+  `document.getElementById(...).style.display`, `location`, `location.href`, and
+  `location.assign(...)` compatibility. Display accepts only a bounded standard
+  keyword set; empty assignment restores the authored cascade while retaining
+  unrelated inline declarations. Familiar navigation maps to the existing
+  guarded `go` request, and relative local-file targets now preserve real query
+  and fragment components. Computed values, `location.replace`, history APIs,
+  arbitrary methods, unsupported display modes, and unsafe schemes remain inert.
+  Core and WinForms tests verify retained layout/accessibility state and real
+  flex reflow; the compiled Firespider smoke passes through the rebuilt host.
+  The benchmark passes 71 probes over 68 fixtures. All 42 Boot cases pass in one
+  combined run, including the real 35-second recovery timer without the old cast
+  dialog, and all six actual EXE startup scenarios remain responsive and
+  MSHTML-free. Measured medians are 512.230 ms clean-process, 3.203 ms local-load,
+  and 32.563 ms layout/paint. Retained managed memory is 16,216.9 KiB for 340
+  pages, or 47.7 KiB/page. Required runtime files total 541.0 KiB with a 230.7
+  KiB GZip estimate. Runtime 175 is isolated and installed runtime 157 remains
+  unchanged. See `DISPLAY_NAVIGATION.md`. The scoped baseline stays at 100%, not
+  full-web compatibility.
 
 - Added a literal `document.getElementById` compatibility bridge without adding
   a general JavaScript VM. Quoted ID lookups can use `textContent/innerText`,

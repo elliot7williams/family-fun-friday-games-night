@@ -345,12 +345,12 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Document/linked-CSS streaming limits and exact path/query cache identity are
-implemented; see `INPUT_LIMITS.md` and `CACHE_IDENTITY.md` for verification.
-Next investigate restricted-token helper isolation, peak/whole-process memory
-accounting, and image cookie/cache integration. Keep the
-short public API, verify boundary behavior with hostile local fixtures, and
-measure performance rather than treating compression as an execution speedup.
+The bounded interaction bridge now includes `dp`, literal `style.display`, and
+literal location requests over the existing host-controlled `go` path. Local
+relative navigation preserves query and fragment components. See
+`DISPLAY_NAVIGATION.md`. Next continue targeted HTML/CSS/DOM compatibility,
+including evaluating sticky positioning and bounded calculated sizing, while
+keeping the short public API and avoiding a general JavaScript VM.
 
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host

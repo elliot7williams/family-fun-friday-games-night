@@ -1,9 +1,10 @@
 # Lea Literal DOM Bridge
 
-Milestone 74 / runtime 174 adds a familiar browser-shaped surface without
+Milestone 74 / runtime 174 added a familiar browser-shaped surface without
 adding a JavaScript virtual machine or a live DOM object model. Lea recognizes
 one literal `document.getElementById` lookup per top-level statement and maps it
-to the existing compact command engine.
+to the existing compact command engine. Milestone 75 / runtime 175 adds bounded
+`style.display` translation and familiar literal location requests.
 
 ## Supported Forms
 
@@ -20,6 +21,7 @@ to the existing compact command engine.
 | `.style.background` or `.style.backgroundColor` | `bg(id,color)` |
 | `.style.color` | `fg(id,color)` |
 | `.style.fontSize` | `fs(id,size)` |
+| `.style.display` | `dp(id,display)` |
 
 For example:
 
@@ -48,6 +50,12 @@ Lea does not run `innerHTML`, `querySelector`, computed targets or values,
 property reads, variables as object references, event listeners, timers,
 promises, loops, functions, arbitrary method calls, or control flow. Unknown or
 malformed statements are ignored without partially mutating the page.
+
+Literal `location`, `location.href`, and `location.assign(...)` forms map to the
+existing host-controlled `go` request. `window.location` and
+`document.location` spellings are accepted. They retain the same URL and host
+policy boundary; `location.replace`, history APIs, computed values, and unsafe
+schemes remain inert. See `DISPLAY_NAVIGATION.md`.
 
 ## Integration
 
