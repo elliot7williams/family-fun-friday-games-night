@@ -85,6 +85,8 @@ namespace Lea.Engine
         public int Wp { get { return WidthValue(0); } }
         public int Wo { get { return WidthValue(1); } }
         public int H { get; internal set; }
+        public int Hp { get { return HeightValue(0); } }
+        public int Ho { get { return HeightValue(1); } }
         public int Wn { get; internal set; }
         public int Wnp { get { return WidthValue(2); } }
         public int Wno { get { return WidthValue(3); } }
@@ -92,7 +94,11 @@ namespace Lea.Engine
         public int Wxp { get { return WidthValue(4); } }
         public int Wxo { get { return WidthValue(5); } }
         public int Hn { get; internal set; }
+        public int Hnp { get { return HeightValue(2); } }
+        public int Hno { get { return HeightValue(3); } }
         public int Hx { get; internal set; }
+        public int Hxp { get { return HeightValue(4); } }
+        public int Hxo { get { return HeightValue(5); } }
         public double Rw { get; internal set; }
         public double Rh { get; internal set; }
         public bool Ra { get; internal set; }
@@ -129,6 +135,7 @@ namespace Lea.Engine
         internal Dictionary<string, int> Rnd { get; set; }
         internal Dictionary<string, int[]> Ad { get; set; }
         internal int[] Wd { get; set; }
+        internal int[] Hd { get; set; }
 
         public int Vc { get { return Vr == null ? 0 : Vr.Count; } }
         public int Gc { get { return Gd == null ? 0 : Gd.Length; } }
@@ -194,9 +201,25 @@ namespace Lea.Engine
             Wd = null;
         }
 
+        internal void SetHeight(int part, int percent, int offset)
+        {
+            if (part < 0 || part > 2) return;
+            if (Hd == null && (percent != 0 || offset != 0)) Hd = new int[6];
+            if (Hd == null) return;
+            Hd[part * 2] = percent;
+            Hd[part * 2 + 1] = offset;
+            for (var index = 0; index < Hd.Length; index++) if (Hd[index] != 0) return;
+            Hd = null;
+        }
+
         private int WidthValue(int index)
         {
             return Wd == null ? 0 : Wd[index];
+        }
+
+        private int HeightValue(int index)
+        {
+            return Hd == null ? 0 : Hd[index];
         }
 
         private int GridLine(string name, bool rows)

@@ -1,0 +1,32 @@
+diff --git a/1.vb b/1.vb
+--- a/1.vb
++++ b/1.vb
+@@ -11204,10 +11204,14 @@
+     Function qntu() As String
+         If My.Settings.dashboard = "e" Then
+             Return qdashboardurl()
+         ElseIf My.Settings.nf <> "" Then
+             Return My.Settings.nf
+         Else
+-            Return My.Settings.h
++            Dim home As String = If(My.Settings.h, "").Trim()
++            If home = "" OrElse String.Equals(home, "http://fsin.glitch.me/", StringComparison.OrdinalIgnoreCase) Then
++                Return qleaStart()
++            End If
++            Return home
+         End If
+     End Function
+diff --git a/BrowserFeatures.vb b/BrowserFeatures.vb
+--- a/BrowserFeatures.vb
++++ b/BrowserFeatures.vb
+@@ -15,9 +15,7 @@
+         Try
+             featureWindows += 1
+             If featureSessionStarted = False Then
+                 If Not pv AndAlso My.Settings.recoveryEnabled = "e" AndAlso My.Settings.cleanExit <> "e" AndAlso My.Settings.recovery.Count > 0 Then
+-                    Dim detail As String = If(My.Settings.recoveryTime = "", "the previous run", My.Settings.recoveryTime)
+-                    recoveryRequested = MessageBox.Show("Firespider did not close normally. Restore " & My.Settings.recovery.Count.ToString & " tab(s) saved " & detail & "?", "Automatic Crash Recovery", MessageBoxButtons.YesNo, MessageBoxIcon.Question) = DialogResult.Yes
++                    recoveryRequested = True
+                 End If
+                 featureSessionStarted = True
+                 My.Settings.cleanExit = ""

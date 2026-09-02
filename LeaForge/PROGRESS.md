@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **77**
+Post-1.0 hardening milestones completed: **78**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -14,10 +14,10 @@ modern web platform.
 | Core and alias API | 10% | 10% | Compact API, bounded diagnostics, repeatable reports, history, projects, backups |
 | Networking | 10% | 10% | Bounded request deadlines and downloads, private cookies, typed errors, validators, compression, memory LRU and optional persistent cache |
 | HTML and document tree | 20% | 20% | Bounded tokens, queries, base URLs and fragments, raw/RCDATA text, entities, recovery, HTML-hidden suppression, semantic accessibility, blocks, lists, disclosures, gauges, values, time/edit metadata, responsive image maps, tabindex focus, autofocus/access keys, tables |
-| CSS | 15% | 15% | Compiled relationship, bounded strict relational/functional, An+B/reverse, and filtered structural selectors, declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, fixed/percentage/calculated widths, bounded vertical sticky positioning, dynamic hover/focus, inherited cursor/pointer interaction, text transformation and signed letter/word spacing, content/border sizing, circular/elliptical radii, bounded outlines, box shadows, gradients, bitmap backgrounds, object fitting and aspect ratios, visibility/opacity, fonts, overflow, boxes, bounded ordered flex and two-axis grid properties |
-| Layout and painting | 20% | 20% | Shared fixed/percentage/calculated width, content/border, aspect-ratio, and sticky geometry, transformed and spacing-aware presentation text with raw form retention, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients/bitmaps, pointer-gated retained hits with underlying fallthrough, fitted raster images and maps, ordered flex rows/columns, bounded grid tracks/spans, distribution, alignment, wrapping, grow/shrink, clipping, reflow, painting |
+| CSS | 15% | 15% | Compiled relationship, bounded strict relational/functional, An+B/reverse, and filtered structural selectors, declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, fixed/percentage/calculated widths and definite heights, bounded vertical sticky positioning, dynamic hover/focus, inherited cursor/pointer interaction, text transformation and signed letter/word spacing, content/border sizing, circular/elliptical radii, bounded outlines, box shadows, gradients, bitmap backgrounds, object fitting and aspect ratios, visibility/opacity, fonts, overflow, boxes, bounded ordered flex and two-axis grid properties |
+| Layout and painting | 20% | 20% | Shared fixed/percentage/calculated width and definite-height, content/border, aspect-ratio, and sticky geometry, transformed and spacing-aware presentation text with raw form retention, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients/bitmaps, pointer-gated retained hits with underlying fallthrough, fitted raster images and maps, ordered flex rows/columns, bounded grid tracks/spans, distribution, alignment, wrapping, grow/shrink, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Native field edit commands and one-level undo/redo, bounded multipart files, richer widgets, validation, responsive and fitted images, GET/POST submit |
-| Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/body and ID-scoped display/width/style/alert, class, visibility, disclosure, field-state, focus, and literal bounded DOM translation |
+| Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/body and ID-scoped display/width/height/style/alert, class, visibility, disclosure, field-state, focus, and literal bounded DOM translation |
 | Firespider integration and reliability | 10% | 10% | Lea-first New Tab/Ctrl+T, explicit legacy fallback, Inspector with Access view, MSAA/UIA surfaces including read-only text, host-safe focus shortcuts, navigation, sessions, source, host smokes |
 | **Total** | **100%** | **100%** | Scoped Lea 1.0 baseline complete; post-1.0 hardening continues |
 
@@ -29,6 +29,29 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded percentage and single-expression calculated heights through
+  compact `S.Hp/Ho`, `Hnp/Hno`, and `Hxp/Hxo` tuples plus `ht(id,value)`,
+  readable `height(id,value)`, and literal `element.style.height`. Definite
+  viewport, parent, positioned, flex, and grid references now feed one shared
+  height resolver across blocks, tables, controls, images, aspect ratios,
+  content/border boxes, paint, hits, editing, accessibility, and live resize.
+  Percentages below auto-height parents remain natural instead of guessing a
+  circular reference. Invalid declarations are atomic; plain authored
+  four-digit pixel heights preserve Lea's legacy 2000px safety cap while DOM
+  commands remain strict. Firespider startup now automatically restores an
+  unclean session without a blocking recovery dialog, and the retired
+  `fsin.glitch.me` default falls back to the bundled Lea start page. The EXE
+  harness uses bounded native tab/Resume checks and inspects only separate
+  top-level dialogs, avoiding menu-label false positives and startup stalls.
+  Full repository and compiled-host smokes pass, along with 74 probes over 71
+  fixtures, all 42 Boot cases, and all six real EXE scenarios. Measured medians
+  are 578.142 ms clean diagnostic start, 3.413 ms local load, and 35.418 ms
+  layout/paint. Retained managed memory is 17,177.5 KiB for 355 pages, or 48.4
+  KiB/page. Required runtime files total 548.5 KiB with a 233.3 KiB GZip
+  estimate. Runtime 178 is isolated; installed runtime 157 remains unchanged.
+  See `CALCULATED_HEIGHTS.md` and `Startup-smooth-host.patch`. The scoped
+  baseline stays at 100%, not full-web compatibility.
 
 - Added bounded vertical `position:sticky` through compact `S.Pn=k`. Sticky
   boxes keep their normal-flow slot, establish retained positioning/stacking

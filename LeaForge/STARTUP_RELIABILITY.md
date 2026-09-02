@@ -7,6 +7,13 @@ Milestone 63 additionally reproduces and fixes the saved-style automation
 startup/timer cast. See `STYLE_STARTUP_SAFETY.md` for that separate path,
 regression coverage, and the remaining stackless recovery observation.
 
+Milestone 78 removes a separate blocking startup condition: unclean sessions
+are recovered automatically instead of waiting on a modal question, and the
+retired built-in home falls back to the bundled Lea start page. The executable
+harness now distinguishes top-level dialogs from the identically named menu
+command and uses bounded native tab/Resume checks. All six real EXE scenarios
+pass without an exception, JIT, script-error, recovery dialog, or MSHTML.
+
 ## Reproduced Before The Fix
 
 The new smoke exercised the previously built Firespider executable and observed:

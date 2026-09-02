@@ -9,14 +9,14 @@ New Legacy Tab remains an explicit compatibility option.
 
 The first non-private window chooses one source, in this order:
 
-1. Accepted crash-recovery URLs.
+1. Automatically accepted crash-recovery URLs.
 2. The saved Lea session.
 3. Legacy saved URLs when restore-session is enabled, now opened as Lea tabs.
 4. One configured new-tab page.
 
 Only one source is used, without an extra initial legacy tab. The first restored
 tab is selected. Later windows open one new Lea tab without repeating restoration.
-Private startup skips both saved-session sources and crash-recovery prompting.
+Private startup skips both saved-session sources and automatic crash recovery.
 The shared restored-URL path checks at most 256 input entries, accepts at most
 twelve HTTP(S)/file URLs, limits normalized URLs to 4,096 characters, and limits
 their UTF-8 total to 64 KiB. Lea session-file input retains its 64 KiB ceiling.
@@ -25,6 +25,13 @@ Startup calls the existing asynchronous Lea loader even before the form becomes
 visible. Recovery snapshots now obtain URLs from Lea views through the host's
 existing persisted-tab URL helper. A failed session-file write no longer skips
 the rest of normal shutdown and incorrectly leaves the clean-exit flag unset.
+
+Milestone 78 removes the modal crash-recovery question: an unclean non-private
+session is restored automatically, so startup cannot wait behind a hidden
+question dialog. When no explicit new-tab URL or dashboard is configured, the
+retired built-in `http://fsin.glitch.me/` home now resolves to the bundled
+`Lea/start.html`; custom home values remain unchanged. These host edits are
+preserved in `Lea.Firespider/Startup-smooth-host.patch`.
 
 ## Executable Config Fix
 
@@ -53,15 +60,17 @@ response verifies that a visible form and busy Lea view exist before the server
 responds. Each case has a sixty-second process watchdog.
 
 `Test-FirespiderStartup.ps1` launches the actual Firespider EXE with clean,
-restored, locked, and oversized temporary sessions. It now waits for the Lea
-UI Automation document instead of accepting just an early top-level window,
-checks for error/recovery dialogs during that wait, and rejects MSHTML loading.
+restored, locked, oversized, lazy-background, and lazy-all temporary sessions.
+It waits for the selected Lea title and native tab/Resume state, inspects only
+separate top-level dialogs and their text, and rejects MSHTML loading. This
+avoids treating the normal Automatic Crash Recovery menu command as a dialog
+or stalling startup by enumerating the full menu accessibility tree.
 It refuses to run alongside an existing Firespider process and closes only
 its own process. A separate extracted runtime directory keeps package tests
 apart from the live executable's profile.
 
 The existing full engine suite, eighteen event/session regressions, full compiled
-host suite, and 57 compatibility probes remain separate verification gates.
+host suite, 42 Boot cases, and 74 compatibility probes remain separate gates.
 
 ## Source And Remaining Work
 

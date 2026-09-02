@@ -10,6 +10,14 @@ Its timer status handler is also routed safely across startup, empty, Lea, and
 legacy-tab states, so it never dereferences a missing control or casts a Lea
 view to the legacy `WebBrowser` type.
 
+`Startup-smooth-host.patch` removes the blocking crash-recovery question and
+automatically restores eligible unclean sessions. It also sends the retired
+built-in `fsin.glitch.me` home to the bundled Lea start page when no explicit
+new-tab URL is configured; custom home and new-tab settings remain intact.
+The six-scenario EXE harness uses native bounded tab/Resume checks and limits UI
+Automation traversal to separate dialogs, avoiding both menu-label false
+positives and startup interference.
+
 Pictures now finish with bounded response reads and a shared `Tm` deadline.
 The `pictures` Boot case checks that a stalled image does not leave a loaded
 native page busy or retain host request bookkeeping. `Ic/Ib` report retained
@@ -194,7 +202,7 @@ allow-list and cannot reach native files, processes, or host controls.
 ID-scoped `ac/rc/tc` class changes use the same route, reapply compiled CSS, and
 preserve mutable field values.
 Familiar literal `document.getElementById("id")` statements can now express the
-same bounded text, value, boolean state, focus, classList, and display/color/font/width
+same bounded text, value, boolean state, focus, classList, and display/color/font/width/height
 operations. `V.Js` and `V.Ck` translate them to Lea's short commands; Firespider
 does not receive a DOM object or host callback. The compiled smoke verifies this
 path and confirms that `innerHTML` remains rejected.
@@ -204,6 +212,10 @@ percentage, and `calc(P% +/- Npx)` parser. Authored width/min/max values compile
 to the same optional numeric tuple, and the hosted view resolves them through
 normal block, field, image, flex, grid, table, paint, hit, and accessibility
 layout. Firespider adds no expression evaluator or adapter-side sizing logic.
+Compact `ht(id,value)`, readable `height(id,value)`, and literal `style.height`
+use the matching parser. Authored height/min/max tuples resolve against definite
+viewport, retained-parent, positioned, flex, grid, and table references; an
+auto-height parent leaves percentage children on natural layout.
 The same public route supports bounded `hd/sh` visibility, `op/cl/tg` details
 state, `ds/en` field availability, `vl` values, `ck` checked state, and `fo`
 focus requests. Hidden
@@ -261,8 +273,8 @@ alignment geometry, dot-cell auto placement, ownership, queries, and Inspector
 CSS without adding adapter-side layout logic.
 
 Firespider can also read `B.S.Bz` as `c/b` for non-inherited content-box or
-border-box sizing. Lea applies it to fixed/percentage/calculated width and
-min/max values plus pixel height and flex basis
+border-box sizing. Lea applies it to fixed/percentage/calculated width, height,
+and min/max values plus pixel flex basis
 before the shared block, field, image, flex, table, cell, hit, paint, and
 accessibility-bound paths, without adding a native browser dependency.
 

@@ -96,7 +96,7 @@ fo("id")              request focus
 go("next.html")        request host navigation
 ```
 
-The two-argument `bg/fg/fs/dp/wd` forms target one validated ID. Color and font
+The two-argument `bg/fg/fs/dp/wd/ht` forms target one validated ID. Color and font
 forms reuse the same
 hex/named-color and 8..96 pixel font bounds as the body forms, reject document
 metadata targets, cap the resulting inline style at 4,096 characters, and
@@ -112,8 +112,9 @@ inert. See `DISPLAY_NAVIGATION.md`.
 `calc(P% +/- Npx)` expression where `P` is 1..100 and `N` is 0..2000. An empty
 value removes only the inline width and restores the authored cascade. Authored
 `width`, `min-width`, and `max-width` accept the same bounded numeric forms.
-Nested functions, multiplication/division, viewport units, and calculated
-heights remain unsupported. See `CALCULATED_WIDTHS.md`.
+Nested functions, multiplication/division, and viewport units remain
+unsupported. `ht` and authored height/min/max use the matching definite-height
+model. See `CALCULATED_WIDTHS.md` and `CALCULATED_HEIGHTS.md`.
 
 `P.Vs` exposes at most 16 case-insensitive variables. Names are one through 16
 letters, digits, or underscores and must begin with a letter; values are capped
@@ -228,10 +229,10 @@ document.getElementById("panel").style.width = "calc(100% - 24px)";
 ```
 
 `innerText` is an alias for `textContent`; `classList.remove/toggle` and
-`style.background/backgroundColor/fontSize/display/width` are also accepted. IDs and class
+`style.background/backgroundColor/fontSize/display/width/height` are also accepted. IDs and class
 arguments must be quoted literals. Boolean state accepts only literal `true` or
 `false`. The parser translates each accepted statement to the existing
-`tx/vl/ck/ds/en/hd/sh/op/cl/fo/ac/rc/tc/bg/fg/fs/dp/wd` command, so all target, value,
+`tx/vl/ck/ds/en/hd/sh/op/cl/fo/ac/rc/tc/bg/fg/fs/dp/wd/ht` command, so all target, value,
 style, rebuild, focus, and 32-command limits remain unchanged. `innerHTML`,
 selectors, computed IDs or values, event registration, loops, expressions, and
 unknown properties or methods remain inert. See `DOM_BRIDGE.md`.
@@ -725,6 +726,14 @@ images, tables, and table cells share that conversion. Borders use
 `Bt/Br/Bb/Bl` for side widths and `Bc/Bs` for color and style. `V.Rb(index)`
 returns the cached outer border rectangle, while `V.Rc(index)` returns its
 content rectangle.
+
+Responsive dimensions use percentage/pixel-offset pairs. `Wp/Wo`, `Wnp/Wno`,
+and `Wxp/Wxo` represent width, minimum, and maximum tuples; `Hp/Ho`, `Hnp/Hno`,
+and `Hxp/Hxo` are their height counterparts. Heights resolve only against a
+definite viewport, retained parent, positioned containing block, or grid area.
+Unresolved percentages retain authored state and natural auto layout. Both axes
+accept one bounded `calc(P% +/- Npx)` expression; see `CALCULATED_WIDTHS.md` and
+`CALCULATED_HEIGHTS.md`.
 
 Rounded corners use clockwise horizontal `R0/R1/R2/R3` and vertical
 `Q0/Q1/Q2/Q3` values for top-left, top-right, bottom-right, and bottom-left.

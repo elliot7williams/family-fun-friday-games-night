@@ -1834,8 +1834,8 @@ namespace Lea.Engine
             return LayoutContext(style) || style != null &&
                 (style.Bg.Length > 0 || style.Gi != null || style.Bi != null && style.Bi.U != null ||
                  style.Mt != 0 || style.Mr != 0 || style.Mb != 0 || style.Ml != 0 ||
-                 style.Pt != 0 || style.Pr != 0 || style.Pb != 0 || style.Pl != 0 || style.W > 0 || style.Wp > 0 || style.H > 0 ||
-                 style.Wn > 0 || style.Wnp > 0 || style.Wx > 0 || style.Wxp > 0 || style.Hn > 0 || style.Hx > 0 || style.Rw > 0D && style.Rh > 0D ||
+                 style.Pt != 0 || style.Pr != 0 || style.Pb != 0 || style.Pl != 0 || style.W > 0 || style.Wp > 0 || style.H > 0 || style.Hp > 0 ||
+                 style.Wn > 0 || style.Wnp > 0 || style.Wx > 0 || style.Wxp > 0 || style.Hn > 0 || style.Hnp > 0 || style.Hx > 0 || style.Hxp > 0 || style.Rw > 0D && style.Rh > 0D ||
                  style.Bt > 0 || style.Br > 0 || style.Bb > 0 || style.Bl > 0 || style.Ow > 0 && style.Os != "n");
         }
 
@@ -3519,11 +3519,11 @@ namespace Lea.Engine
                 else if (name == "padding-left") style.Pl = Px(value);
                 else if (name == "box-sizing") BoxSizing(style, value);
                 else if (name == "width") Width(style, inherited, value, 0);
-                else if (name == "height") style.H = Px(value);
+                else if (name == "height") Height(style, inherited, value, 0);
                 else if (name == "min-width") Width(style, inherited, value, 1);
                 else if (name == "max-width") Width(style, inherited, value, 2);
-                else if (name == "min-height") style.Hn = Px(value);
-                else if (name == "max-height") style.Hx = Px(value);
+                else if (name == "min-height") Height(style, inherited, value, 1);
+                else if (name == "max-height") Height(style, inherited, value, 2);
                 else if (name == "aspect-ratio") AspectRatio(style, value);
                 else if (name == "border") Border(style, value, 0);
                 else if (name == "border-top") Border(style, value, 1);
@@ -4835,6 +4835,52 @@ namespace Lea.Engine
             int offset;
             bool inherit;
             return WidthValue(width, 0, out pixels, out percent, out offset, out inherit);
+        }
+
+        private static void Height(S style, S inherited, string value, int part)
+        {
+            int pixels;
+            int percent;
+            int offset;
+            bool inherit;
+            if (!HeightValue(value, part, out pixels, out percent, out offset, out inherit)) return;
+            if (inherit && inherited != null)
+            {
+                if (part == 0) { pixels = inherited.H; percent = inherited.Hp; offset = inherited.Ho; }
+                else if (part == 1) { pixels = inherited.Hn; percent = inherited.Hnp; offset = inherited.Hno; }
+                else { pixels = inherited.Hx; percent = inherited.Hxp; offset = inherited.Hxo; }
+            }
+            if (part == 0) style.H = pixels;
+            else if (part == 1) style.Hn = pixels;
+            else style.Hx = pixels;
+            style.SetHeight(part, percent, offset);
+        }
+
+        private static bool HeightValue(string value, int part, out int pixels, out int percent, out int offset, out bool inherit)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            var fixedValue = Regex.Match(source, "^(?<n>[0-9]{1,4})(?:px)?$");
+            int authoredPixels;
+            if (fixedValue.Success && Int32.TryParse(fixedValue.Groups["n"].Value, out authoredPixels))
+            {
+                pixels = Math.Min(authoredPixels, 2000);
+                percent = 0;
+                offset = 0;
+                inherit = false;
+                return true;
+            }
+            return WidthValue(source, part, out pixels, out percent, out offset, out inherit);
+        }
+
+        internal static bool Ht(string value, out string height)
+        {
+            height = (value ?? "").Trim().ToLowerInvariant();
+            if (height.Length == 0) return true;
+            int pixels;
+            int percent;
+            int offset;
+            bool inherit;
+            return WidthValue(height, 0, out pixels, out percent, out offset, out inherit);
         }
 
         private static bool WidthValue(string value, int part, out int pixels, out int percent, out int offset, out bool inherit)

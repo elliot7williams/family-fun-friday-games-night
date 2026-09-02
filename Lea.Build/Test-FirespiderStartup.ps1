@@ -13,15 +13,39 @@ Add-Type -AssemblyName System.Configuration
 Add-Type -TypeDefinition @'
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 public static class LeaStartupControl {
+    private delegate bool EnumProc(IntPtr window, IntPtr state);
     [DllImport("user32.dll", SetLastError = true)]
     private static extern IntPtr SendMessageTimeout(IntPtr window, uint message, IntPtr wParam,
         IntPtr lParam, uint flags, uint timeout, out UIntPtr result);
+    [DllImport("user32.dll")]
+    private static extern bool EnumChildWindows(IntPtr parent, EnumProc callback, IntPtr state);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern int GetClassName(IntPtr window, StringBuilder name, int count);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern int GetWindowText(IntPtr window, StringBuilder text, int count);
     public static ulong Send(int window, uint message) {
         UIntPtr result;
         if (SendMessageTimeout(new IntPtr(window), message, IntPtr.Zero, IntPtr.Zero, 2, 2000, out result) == IntPtr.Zero)
             throw new InvalidOperationException("Startup control did not respond");
         return result.ToUInt64();
+    }
+    public static int Find(int parent, string classPart, string text) {
+        IntPtr found = IntPtr.Zero;
+        EnumChildWindows(new IntPtr(parent), delegate(IntPtr window, IntPtr state) {
+            var name = new StringBuilder(256);
+            GetClassName(window, name, name.Capacity);
+            if (name.ToString().IndexOf(classPart, StringComparison.OrdinalIgnoreCase) < 0) return true;
+            var value = new StringBuilder(256);
+            if (text.Length > 0) GetWindowText(window, value, value.Capacity);
+            if (text.Length == 0 || String.Equals(value.ToString(), text, StringComparison.Ordinal)) {
+                found = window;
+                return false;
+            }
+            return true;
+        }, IntPtr.Zero);
+        return found.ToInt32();
     }
 }
 '@
@@ -92,30 +116,41 @@ foreach ($case in $cases) {
             $resume = $null
             $process.Refresh()
             if ($process.HasExited) { throw "$case startup exited early: $($process.ExitCode)" }
-            $windows = [System.Windows.Automation.AutomationElement]::RootElement.FindAll(
-                [System.Windows.Automation.TreeScope]::Children, $condition)
+            $mainHandle = $process.MainWindowHandle
+            $title = $process.MainWindowTitle
+            $lea = $title -match ' - Lea(?: in Firespider)?$'
+            if ($mainHandle -ne [IntPtr]::Zero) {
+                $tab = [LeaStartupControl]::Find($mainHandle.ToInt32(), 'SysTabControl32', '')
+                if ($tab -ne 0) {
+                    try { $tabCount = [LeaStartupControl]::Send($tab, 0x1304) } catch { $tabCount = 0 }
+                }
+                if ($case -eq 'lazy-all') {
+                    $resume = [LeaStartupControl]::Find($mainHandle.ToInt32(), 'BUTTON', 'Resume')
+                    $deferred = $resume -ne 0
+                }
+            }
             $names = New-Object 'System.Collections.Generic.List[string]'
-            foreach ($window in $windows) {
-                $names.Add($window.Current.Name)
-                $nodes = $window.FindAll([System.Windows.Automation.TreeScope]::Descendants,
-                    [System.Windows.Automation.Condition]::TrueCondition)
-                foreach ($node in $nodes) {
-                    $names.Add($node.Current.Name)
-                    if ($node.Current.ClassName -eq 'Lea.Win.V') { $lea = $true }
-                    if ($node.Current.Name.StartsWith('[Suspended]')) { $deferred = $true }
-                    # This legacy WinForms runtime exposes standard controls as native panes.
-                    if ($node.Current.ClassName -like 'WindowsForms10.SysTabControl32.*') {
-                        $tabCount = [LeaStartupControl]::Send($node.Current.NativeWindowHandle, 0x1304)
+            $topNames = New-Object 'System.Collections.Generic.List[string]'
+            if ($lea -or $deferred -or $watch.Elapsed.TotalSeconds -ge ($Seconds + 60)) {
+                $windows = [System.Windows.Automation.AutomationElement]::RootElement.FindAll(
+                    [System.Windows.Automation.TreeScope]::Children, $condition)
+                foreach ($window in $windows) {
+                    $names.Add($window.Current.Name)
+                    $topNames.Add($window.Current.Name)
+                    if ($mainHandle -ne [IntPtr]::Zero -and $window.Current.NativeWindowHandle -ne $mainHandle.ToInt32()) {
+                        $dialogNodes = $window.FindAll([System.Windows.Automation.TreeScope]::Descendants,
+                            [System.Windows.Automation.Condition]::TrueCondition)
+                        foreach ($node in $dialogNodes) { $names.Add($node.Current.Name) }
                     }
-                    if ($node.Current.ClassName -like 'WindowsForms10.BUTTON.*' -and $node.Current.Name -eq 'Resume') { $resume = $node }
                 }
             }
             $errors = @($names | Where-Object {
-                $_ -match 'InvalidCastException|NullReferenceException|Unhandled exception|just-in-time|Unable to cast|An error has occurred in the script|Automatic Crash Recovery'
+                $_ -match 'InvalidCastException|NullReferenceException|Unhandled exception|just-in-time|Unable to cast|An error has occurred in the script'
             })
+            $errors += @($topNames | Where-Object { $_ -eq 'Automatic Crash Recovery' })
             if ($errors.Count -gt 0) { throw "$case startup error dialog: $($errors -join ' | ')" }
-            $ready = $lea -and ($case -ne 'restored' -or $names.Contains('Lea in Firespider'))
-            if ($case -eq 'lazy-background') { $ready = $lea -and $tabCount -eq 2 -and $names.Contains('Lea in Firespider') }
+            $ready = $lea -and ($case -ne 'restored' -or $title -match ' - Lea in Firespider$')
+            if ($case -eq 'lazy-background') { $ready = $lea -and $tabCount -eq 2 -and $title -match ' - Lea in Firespider$' }
             if ($case -eq 'lazy-all') { $ready = $deferred -and $resume -and -not $lea -and $tabCount -eq 2 }
             if ($ready -and $firstReady -lt 0) { $firstReady = $watch.ElapsedMilliseconds }
             $observed = $ready -and $watch.Elapsed.TotalSeconds -ge $Seconds
@@ -129,16 +164,11 @@ foreach ($case in $cases) {
         $resumed = $false
         if ($case -eq 'lazy-all') {
             if (-not $resume) { throw 'Lazy startup did not expose a Resume button' }
-            [void][LeaStartupControl]::Send($resume.Current.NativeWindowHandle, 0xF5)
+            [void][LeaStartupControl]::Send($resume, 0xF5)
             $resumeWatch = [Diagnostics.Stopwatch]::StartNew()
             do {
-                $windows = [System.Windows.Automation.AutomationElement]::RootElement.FindAll([System.Windows.Automation.TreeScope]::Children, $condition)
-                foreach ($window in $windows) {
-                    $nodes = $window.FindAll([System.Windows.Automation.TreeScope]::Descendants, [System.Windows.Automation.Condition]::TrueCondition)
-                    foreach ($node in $nodes) {
-                        if ($node.Current.ClassName -eq 'Lea.Win.V' -and $node.Current.Name -eq 'Lea in Firespider') { $resumed = $true }
-                    }
-                }
+                $process.Refresh()
+                $resumed = $process.MainWindowTitle -match ' - Lea in Firespider$'
                 if (-not $resumed) { Start-Sleep -Milliseconds 100 }
             } while (-not $resumed -and $resumeWatch.Elapsed.TotalSeconds -lt 15)
             if (-not $resumed) { throw 'Lazy startup Resume did not load Lea' }

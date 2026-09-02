@@ -17,17 +17,19 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 77 adds bounded vertical `position:sticky` through compact `S.Pn=k`.
-Sticky boxes retain normal flow, move descendants through shared retained
-geometry, follow root-scroll top/bottom insets, and clamp to the nearest parent
-content box. Paint, hits, focus, native editors, and accessibility reuse that
-geometry; pages without active sticky insets stay on the old scroll fast path.
-Extreme `Sc` deltas no longer wrap. Full engine/WinForms, compiled Firespider,
-and staged runtime smokes pass, as do 73 benchmark probes over 70 fixtures, all
-42 Boot cases, and all six actual EXE startup scenarios. Runtime 177 stays
-isolated and installed runtime 157 remains unchanged. See
-`STICKY_POSITIONING.md`. Next continue bounded HTML/CSS/DOM compatibility and
-host migration without a general VM.
+Milestone 78 adds bounded percentage and `calc(P% +/- Npx)` heights through
+compact `S.Hp/Ho`, `Hnp/Hno`, `Hxp/Hxo`, and `ht`. Definite viewport, parent,
+positioned, flex, and grid references now share resolved layout, paint, hit,
+control, table, media, aspect-ratio, and accessibility geometry. Auto-height
+parents keep percentage children natural. Authored oversized pixel heights
+retain the legacy 2000px cap; script commands keep strict bounds. Firespider
+also recovers unclean sessions without a modal startup question and maps its
+retired built-in home to the bundled Lea page. Full repository/host tests pass,
+with 74 probes over 71 fixtures, all 42 Boot cases, and all six real EXE startup
+scenarios. Runtime 178 stays isolated and installed runtime 157 remains
+unchanged. See `CALCULATED_HEIGHTS.md` and `Startup-smooth-host.patch`. Next
+continue bounded HTML/CSS/DOM compatibility and host migration without a
+general VM.
 
 Milestone 60 installs the existing `V.Ng` hook on main Lea tabs, enforcing host
 rules, offline/locked state, and live ownership. Denied resume retains its

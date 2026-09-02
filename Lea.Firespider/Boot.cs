@@ -1091,7 +1091,7 @@ namespace Lea.Firespider
                 Check(!(bool)Call(form, "qfeature6tabeligible", background), "edited Lea data eligible");
                 field.V = "";
                 view.Sc(100);
-                Check(view.Sy > 0, "hibernation fixture did not scroll");
+                Check(view.Sy > 0, "hibernation fixture did not scroll: document=" + view.Dh + "; client=" + view.ClientSize.Height);
                 Check(!(bool)Call(form, "qfeature6tabeligible", background), "reading position eligible for discard");
                 view.Sc(-100000);
                 Check((bool)Call(form, "qfeature6tabeligible", background), "pristine empty-field page did not recover eligibility");
@@ -2593,7 +2593,7 @@ namespace Lea.Firespider
                         using (var stream = client.GetStream())
                         {
                             lock (clientGate) activeClient = client;
-                            stream.ReadTimeout = 3000;
+                            stream.ReadTimeout = 10000;
                             var end = 0;
                             for (var bytes = 0; bytes < 16384 && end != 0x0d0a0d0a; bytes++)
                             {

@@ -76,15 +76,17 @@ powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File .\Lea.Build\Test-Fi
 ```
 
 The default checks clean, restored, locked, oversized, lazy-background, and
-lazy-all temporary sessions,
-validates the EXE config, polls from process launch for a Lea UI Automation
-document, and observes for at least eight seconds. The overall readiness limit
-is that observation period plus sixty seconds. It checks responsiveness,
-error dialogs, and absence of MSHTML. Use `-Scenario clean` for one launch.
+lazy-all temporary sessions, validates the EXE config, polls the selected-tab
+title and native tab state from process launch, and observes for at least eight
+seconds. The overall readiness limit is that observation period plus sixty
+seconds. Separate top-level windows are inspected for exception/JIT and real
+crash-recovery dialogs without walking Firespider's large menu tree. It checks
+responsiveness and absence of MSHTML. Use `-Scenario clean` for one launch.
 Lazy cases copy the runtime into a temporary directory with isolated default
 settings; lazy-all also invokes the Resume button and waits for a Lea document.
 Native tab-count/button messages have bounded timeouts for older WinForms
-controls that expose only window-level UI Automation panes.
+controls that expose only window-level UI Automation panes; an early busy tab
+probe is retried inside the readiness loop.
 It refuses to run alongside an existing Firespider instance and never closes
 an existing browser process, and restores the session environment override.
 The browser can still update its ordinary profile settings when it closes;
@@ -134,6 +136,10 @@ requests with local query/fragment preservation. See
 and `calc(P% +/- Npx)` parsing, calculated min/max constraints, nested
 flex/grid/table layout, cascade restoration, and resize reflow. See
 `LeaForge/CALCULATED_WIDTHS.md`.
+`calculated-heights.html` adds compact `ht`, literal `style.height`, definite
+viewport/parent percentage resolution, calculated min/max constraints,
+positioned/flex/grid/table/control/image layout, cascade restoration, and
+vertical resize reflow. See `LeaForge/CALCULATED_HEIGHTS.md`.
 `-Case edit` tests native field menu/hover commands, protected fields,
 paused/empty tabs, and the explicit legacy fallback; see `NATIVE_EDITING.md`.
 `-Case paste` checks guarded real-menu/native/keyboard paste under a held

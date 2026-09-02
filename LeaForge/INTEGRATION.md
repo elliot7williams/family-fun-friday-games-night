@@ -319,15 +319,16 @@ the content box. Auto and scroll currently clip safely without inner scrollbars.
 
 Positive pixel bounds use `S.Wn/Wx/Hn/Hx` for minimum/maximum width and height.
 Optional `S.Wp/Wo`, `Wnp/Wno`, and `Wxp/Wxo` expose precompiled percentage plus
-pixel-offset width, minimum, and maximum tuples. The WinForms layout applies the
-same clamp order to blocks, controls, images, flex/grid items, tables, and nested
-cell blocks. `S.Wb` uses `n/b/a/k` for normal, break-word,
+pixel-offset width, minimum, and maximum tuples. Matching `S.Hp/Ho`, `Hnp/Hno`,
+and `Hxp/Hxo` expose height tuples. The WinForms layout applies the same clamp
+order to blocks, controls, images, flex/grid items, tables, and nested cell
+blocks. `S.Wb` uses `n/b/a/k` for normal, break-word,
 anywhere/break-all, and keep-all. These modes come from `word-break`,
 `overflow-wrap`, or `word-wrap`; `white-space:nowrap` still disables wrapping.
 
 `S.Bz` is the non-inherited box edge: `c` is the default `content-box`, while
 `b` is `border-box`. Shared bounded helpers interpret fixed, percentage, or one
-`calc(P% +/- Npx)` width/min/max form plus pixel height and flex-basis values
+`calc(P% +/- Npx)` width/height/min/max form plus pixel flex-basis values
 before layout. Border-box values contain visible
 padding and border but not margins; content dimensions floor at one render
 pixel. Blocks, fields, flex items, images, tables, and table cells use the same
@@ -343,8 +344,10 @@ borders, descendant overflow clipping, and ordinary field interiors while
 retaining the existing rectangular layout, link bounds, and responsive reflow.
 Pixels cap at 2,000 and percentages at 1,000; malformed declarations preserve
 the previous computed state. Percentage terms are limited to 1..100 and pixel
-terms to 0..2000; arbitrary arithmetic, nested functions, viewport units, and
-calculated heights remain unsupported. See `CALCULATED_WIDTHS.md`.
+terms to 0..2000; arbitrary arithmetic, nested functions, and viewport units
+remain unsupported. Height percentages require a definite viewport, retained
+parent, positioned containing block, or grid area. See `CALCULATED_WIDTHS.md`
+and `CALCULATED_HEIGHTS.md`.
 
 CSS outlines are available through non-inherited `S.Ow/Os/Oc/Oo`. Hosts can
 inspect bounded width, compact none/solid/dashed/dotted/auto style, authored
