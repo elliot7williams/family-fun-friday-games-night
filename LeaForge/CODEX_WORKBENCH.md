@@ -17,17 +17,17 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 76 adds fixed, percentage, and bounded single-expression calculated
-`width`, `min-width`, and `max-width` values. Optional compact tuples resolve at
-layout time across blocks, controls, images, flex, grid, tables, paint, hits,
-accessibility, and live resize. `wd(id,value)`, `width(id,value)`, and literal
-`element.style.width` share the same parser and safe inline reset. Local async
-file navigation now yields and rechecks cancellation before disk input. Full
-engine/WinForms, compiled Firespider, and staged runtime smokes pass, as do 72
-benchmark probes over 69 fixtures, all 42 Boot cases, and all six actual EXE
-startup scenarios. Runtime 176 stays isolated and installed runtime 157 remains
-unchanged. See `CALCULATED_WIDTHS.md`. Next continue bounded HTML/CSS/DOM
-compatibility and host migration without a general VM.
+Milestone 77 adds bounded vertical `position:sticky` through compact `S.Pn=k`.
+Sticky boxes retain normal flow, move descendants through shared retained
+geometry, follow root-scroll top/bottom insets, and clamp to the nearest parent
+content box. Paint, hits, focus, native editors, and accessibility reuse that
+geometry; pages without active sticky insets stay on the old scroll fast path.
+Extreme `Sc` deltas no longer wrap. Full engine/WinForms, compiled Firespider,
+and staged runtime smokes pass, as do 73 benchmark probes over 70 fixtures, all
+42 Boot cases, and all six actual EXE startup scenarios. Runtime 177 stays
+isolated and installed runtime 157 remains unchanged. See
+`STICKY_POSITIONING.md`. Next continue bounded HTML/CSS/DOM compatibility and
+host migration without a general VM.
 
 Milestone 60 installs the existing `V.Ng` hook on main Lea tabs, enforcing host
 rules, offline/locked state, and live ownership. Denied resume retains its

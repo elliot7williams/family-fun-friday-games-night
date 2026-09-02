@@ -57,6 +57,7 @@ namespace Lea.Win
         private int layoutBottom;
         private int layoutWidth = -1;
         private bool layoutDirty = true;
+        private bool sticky;
         private bool picBusy;
         private bool picStop;
         private Task picWork;
@@ -874,7 +875,7 @@ namespace Lea.Win
             EnsureLayout();
             var box = FragmentBox(target);
             if (box == null) return false;
-            if (!box.Fx) sy = Math.Max(0, Math.Min(MaxScroll(), box.C.Top - 12));
+            if (!box.Fx) SetScroll(box.C.Top - 12);
             PlaceEditor();
             return true;
         }
@@ -969,7 +970,7 @@ namespace Lea.Win
             if (findIndex < 0 || findIndex >= findMatches.Count) { Invalidate(); return; }
             var match = findMatches[findIndex];
             if (!match.Fx && (match.C.Top < sy + 12 || match.C.Bottom > sy + ClientSize.Height - 12))
-                sy = Math.Max(0, Math.Min(MaxScroll(), match.C.Top - 24));
+                SetScroll(match.C.Top - 24);
             PlaceEditor();
             Invalidate();
         }
@@ -1163,6 +1164,7 @@ namespace Lea.Win
         {
             boxes.Clear();
             boxOwners.Clear();
+            sticky = false;
             if (At == null) return;
             var measured = resolved ?? new Dictionary<B, int>();
             var contexts = new Dictionary<B, Lc>();
@@ -1373,9 +1375,15 @@ namespace Lea.Win
             if (style != null && style.H > 0) docHeight = Math.Max(docHeight, 18 + style.Mt + BoxContentHeight(style, style.H) + style.Pt + style.Pb + BorderWidth(style, style.Bt) + BorderWidth(style, style.Bb) + style.Mb);
             else if (HasRatio(style)) docHeight = Math.Max(docHeight, 18 + style.Mt + RatioContentHeight(style, width) + style.Pt + style.Pb + BorderWidth(style, style.Bt) + BorderWidth(style, style.Bb) + style.Mb);
             StackBoxes();
+            foreach (var box in boxes)
+            {
+                box.SetBase();
+                if (box.S != null && box.S.Pn == "k" && (box.S.Tp.HasValue || box.S.Bm.HasValue)) sticky = true;
+            }
             layoutWidth = ClientSize.Width;
             layoutDirty = false;
             sy = Math.Min(sy, MaxScroll());
+            ApplySticky();
             if (findQuery.Length > 0) RebuildFind(findIndex);
         }
 
@@ -2382,7 +2390,7 @@ namespace Lea.Win
         {
             if (style == null) return flowX;
             var x = flowX;
-            if (style.Pn.Length == 0 || style.Pn == "s") return x + style.Tx;
+            if (style.Pn.Length == 0 || style.Pn == "s" || style.Pn == "k") return x + style.Tx;
             if (style.Pn == "r")
             {
                 if (style.Lt.HasValue) x += style.Lt.Value;
@@ -2398,7 +2406,7 @@ namespace Lea.Win
         {
             if (style == null) return flowY;
             var y = flowY;
-            if (style.Pn.Length == 0 || style.Pn == "s") return y + style.Ty;
+            if (style.Pn.Length == 0 || style.Pn == "s" || style.Pn == "k") return y + style.Ty;
             if (style.Pn == "r")
             {
                 if (style.Tp.HasValue) y += style.Tp.Value;
@@ -2427,7 +2435,7 @@ namespace Lea.Win
 
         private static bool Positioned(S style)
         {
-            return style != null && (style.Pn == "r" || style.Pn == "a" || style.Pn == "f");
+            return style != null && (style.Pn == "r" || style.Pn == "a" || style.Pn == "f" || style.Pn == "k");
         }
 
         private static Rectangle CombineClip(Rectangle current, Rectangle parent)
@@ -2473,7 +2481,77 @@ namespace Lea.Win
 
         private static bool StackingContext(S style)
         {
-            return style != null && (style.Zc || style.Pn == "f" || (Positioned(style) && style.Za));
+            return style != null && (style.Zc || style.Pn == "f" || style.Pn == "k" || (Positioned(style) && style.Za));
+        }
+
+        private void ApplySticky()
+        {
+            if (!sticky) return;
+            foreach (var box in boxes) box.Reset();
+
+            var offsets = new Dictionary<B, int>();
+            var visiting = new HashSet<B>();
+            foreach (var box in boxes)
+            {
+                if (box.Fx) continue;
+                var offset = StickyOffset(box.B, offsets, visiting);
+                if (offset != 0) box.Move(offset);
+            }
+            foreach (var box in boxes) box.Clip = StickyClip(box);
+        }
+
+        private int StickyOffset(B block, IDictionary<B, int> offsets, ISet<B> visiting)
+        {
+            if (block == null || FixedBlock(block)) return 0;
+            int found;
+            if (offsets.TryGetValue(block, out found)) return found;
+            if (!visiting.Add(block)) return 0;
+
+            var parentOffset = StickyOffset(block.Up, offsets, visiting);
+            var offset = parentOffset;
+            Bx owner;
+            var style = block.S;
+            if (style != null && style.Pn == "k" && boxOwners.TryGetValue(block, out owner) && (style.Tp.HasValue || style.Bm.HasValue))
+            {
+                var normalTop = owner.R0.Top + parentOffset;
+                var desired = normalTop;
+                var height = owner.R0.Height;
+                if (style.Tp.HasValue && style.Bm.HasValue)
+                {
+                    var low = sy + style.Tp.Value;
+                    var high = sy + ClientSize.Height - style.Bm.Value - height;
+                    desired = low > high ? low : Math.Max(low, Math.Min(high, desired));
+                }
+                else if (style.Tp.HasValue) desired = Math.Max(desired, sy + style.Tp.Value);
+                else desired = Math.Min(desired, sy + ClientSize.Height - style.Bm.Value - height);
+
+                var container = new Rectangle(0, 0, Math.Max(1, ClientSize.Width), Math.Max(1, docHeight));
+                Bx parent;
+                if (block.Up != null && boxOwners.TryGetValue(block.Up, out parent))
+                {
+                    container = parent.C0;
+                    container.Offset(0, StickyOffset(block.Up, offsets, visiting));
+                }
+                var maximum = Math.Max(container.Top, container.Bottom - height);
+                desired = Math.Max(container.Top, Math.Min(maximum, desired));
+                offset = parentOffset + desired - normalTop;
+            }
+            visiting.Remove(block);
+            offsets[block] = offset;
+            return offset;
+        }
+
+        private Rectangle StickyClip(Bx box)
+        {
+            var clip = Rectangle.Empty;
+            for (var block = box == null ? null : box.B; block != null; block = block.Up)
+            {
+                Bx owner;
+                if (boxOwners.TryGetValue(block, out owner) && !Object.ReferenceEquals(owner, box) && ClipsOverflow(owner.S))
+                    clip = CombineClip(clip, owner.C);
+                if (block.S != null && block.S.Pn == "f") break;
+            }
+            return clip;
         }
 
         private static bool FixedBlock(B block)
@@ -4866,9 +4944,16 @@ namespace Lea.Win
 
         public void Sc(int delta)
         {
-            sy = Math.Max(0, Math.Min(MaxScroll(), sy + delta));
+            var target = Math.Max(Int32.MinValue, Math.Min(Int32.MaxValue, (long)sy + delta));
+            SetScroll((int)target);
             PlaceEditor();
             Invalidate();
+        }
+
+        private void SetScroll(int value)
+        {
+            sy = Math.Max(0, Math.Min(MaxScroll(), value));
+            ApplySticky();
         }
 
         private int MaxScroll()
@@ -5394,7 +5479,7 @@ namespace Lea.Win
             {
                 if (region.Fx) break;
                 if (region.R.Top < sy + 12 || region.R.Bottom > sy + ClientSize.Height - 12)
-                    sy = Math.Max(0, Math.Min(MaxScroll(), region.R.Top - 24));
+                    SetScroll(region.R.Top - 24);
                 break;
             }
             PlaceEditor();
@@ -7040,7 +7125,7 @@ namespace Lea.Win
             {
                 if (part.E <= start || part.S >= end || part.Fx) continue;
                 var target = alignTop ? part.R.Top - 24 : part.R.Bottom - ClientSize.Height + 24;
-                sy = Math.Max(0, Math.Min(MaxScroll(), target));
+                SetScroll(target);
                 PlaceEditor();
                 Invalidate();
                 return;
@@ -7196,7 +7281,7 @@ namespace Lea.Win
                     foreach (var area in box.B.Mp.As)
                         if (Object.ReferenceEquals(area.El, item.El)) { owns = true; break; }
                 if (!owns) continue;
-                if (!box.Fx) sy = Math.Max(0, Math.Min(MaxScroll(), box.R.Top - 24));
+                if (!box.Fx) SetScroll(box.R.Top - 24);
                 PlaceEditor();
                 Invalidate();
                 return;
@@ -8285,6 +8370,9 @@ namespace Lea.Win
             public readonly S S;
             public Rectangle R;
             public Rectangle C;
+            public Rectangle R0;
+            public Rectangle C0;
+            public Rectangle Cp0;
             public readonly bool Title;
             public readonly B B;
             public readonly bool Inline;
@@ -8313,6 +8401,26 @@ namespace Lea.Win
                 Inline = inline;
                 Clip = clip;
                 El = element ?? (block == null ? null : block.El);
+            }
+
+            public void SetBase()
+            {
+                R0 = R;
+                C0 = C;
+                Cp0 = Clip;
+            }
+
+            public void Reset()
+            {
+                R = R0;
+                C = C0;
+                Clip = Cp0;
+            }
+
+            public void Move(int y)
+            {
+                R.Offset(0, y);
+                C.Offset(0, y);
             }
         }
 

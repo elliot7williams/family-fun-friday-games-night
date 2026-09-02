@@ -119,6 +119,8 @@ LeaForge is where we can grow the more full-featured browser.
   reflow
 - auto-height styled semantic containers with nested normal-flow ownership
 - nested positioning with explicit z-index, opacity/isolation contexts, settled auto height, and inherited clipping
+- bounded vertical sticky positioning through compact `S.Pn=k`, shared retained
+  geometry, and nearest-parent clamps; see `STICKY_POSITIONING.md`
 - compact inset stretching plus translated block stacking contexts
 - nested fields, responsive images, and tables with clip-aware native editing
 - bounded multipart file uploads plus range, color, and temporal form fields

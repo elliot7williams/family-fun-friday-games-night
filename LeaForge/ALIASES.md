@@ -837,8 +837,8 @@ the previous computed image. Page, rounded-box, and ordinary-field painters
 apply effective opacity and ancestor clipping without changing layout,
 accessibility bounds, document height, or hits.
 
-Positioning stays compact: `Pn` is `s/r/a/f` for static, relative, absolute, or
-fixed; `Tp/Rt/Bm/Lt` are nullable signed pixel offsets, and `Zi` is the bounded
+Positioning stays compact: `Pn` is `s/r/a/f/k` for static, relative, absolute,
+fixed, or sticky; `Tp/Rt/Bm/Lt` are nullable signed pixel offsets, and `Zi` is the bounded
 z-index. The `inset` shorthand expands atomically into those four offsets;
 opposing offsets stretch auto-sized absolute and fixed boxes. `Tx/Ty` are
 bounded pixel translation offsets accepted from `translate`, `translateX`, and
@@ -852,7 +852,9 @@ children. Positioned auto-height owners receive one bounded measurement pass
 before final placement, so bottom anchors and overflow clips use settled geometry.
 Relative blocks and tables shift while retaining normal flow. Absolute
 boxes leave flow and use the nearest positioned containing block; fixed boxes
-use viewport coordinates, including when nested. Overflow clips inherit through
+use viewport coordinates, including when nested. Sticky boxes retain flow and
+apply bounded root-scroll `top`/`bottom` motion through their nearest retained
+parent; see `STICKY_POSITIONING.md`. Overflow clips inherit through
 the parent chain. Numeric positioned z-index, fixed positioning, local opacity,
 isolation, and supported pixel translations create compact hierarchical `Zi`
 paths; `z-index:auto` does not trap descendants. Paint and hit testing share

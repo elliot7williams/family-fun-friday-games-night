@@ -1237,6 +1237,15 @@ namespace Lea.Tests
                 var positioningPage = engine.Go(positioningPath);
                 Eq(6, positioningPage.Bs.Count, "positioning block count");
                 Eq(4, positioningPage.Ls.Count, "positioning link count");
+                var stickyPath = Path.Combine(pages, "sticky-positioning.html");
+                var stickyPage = engine.Go(stickyPath);
+                Eq("k", BlockById(stickyPage, "sticky").S.Pn, "sticky position alias");
+                Eq(14, BlockById(stickyPage, "sticky").S.Tp.Value, "sticky top inset");
+                Eq("k", BlockById(stickyPage, "bottom").S.Pn, "bottom sticky position alias");
+                Eq(12, BlockById(stickyPage, "bottom").S.Bm.Value, "sticky bottom inset");
+                Eq("r", BlockById(stickyPage, "invalid").S.Pn, "invalid position preserves earlier declaration");
+                Ok(Object.ReferenceEquals(BlockById(stickyPage, "sticky").Up, BlockById(stickyPage, "rail")), "sticky retains containing block alias");
+                Ok(Object.ReferenceEquals(BlockById(stickyPage, "sticky-child").Up, BlockById(stickyPage, "sticky")), "sticky retains descendant ownership");
                 var contextsPath = Path.Combine(pages, "position-contexts.html");
                 var contextsPage = engine.Go(contextsPath);
                 Eq(13, contextsPage.Bs.Count, "position context block count");
@@ -4223,6 +4232,45 @@ namespace Lea.Tests
                         Click(view, new Rectangle(overlap.Right - 12, overlap.Bottom - 12, 4, 4));
                     }
                     WaitFor(delegate { return !view.Busy && view.T == "Lea Dynamic State"; }, "topmost overlap link navigation");
+                    view.Size = new Size(720, 300);
+                    view.Go(stickyPath);
+                    using (var stickyPaint = Render(view))
+                    {
+                        var rail = BlockRect(view, BlockById(view.At, "rail"));
+                        var sticky = BlockOuterRect(view, BlockById(view.At, "sticky"));
+                        var child = BlockOuterRect(view, BlockById(view.At, "sticky-child"));
+                        var follower = BlockOuterRect(view, BlockById(view.At, "follower"));
+                        Ok(sticky.Top >= rail.Top && sticky.Bottom < follower.Top, "sticky begins in normal flow");
+                        view.Sc(360);
+                        using (var scrolledStickyPaint = Render(view))
+                        {
+                            var moved = BlockOuterRect(view, BlockById(view.At, "sticky"));
+                            var movedChild = BlockOuterRect(view, BlockById(view.At, "sticky-child"));
+                            Eq(view.Sy + 14, moved.Top, "sticky top follows viewport inset");
+                            Eq(child.Top - sticky.Top, movedChild.Top - moved.Top, "sticky descendant follows owner offset");
+                            Eq(follower, BlockOuterRect(view, BlockById(view.At, "follower")), "sticky preserves following flow geometry");
+                            var stickyHit = HitRect(view, "second.html");
+                            Ok(!stickyHit.IsEmpty && stickyHit.Top >= 14 && stickyHit.Bottom <= view.ClientSize.Height, "sticky hit follows painted geometry");
+                            var stickyBounds = view.Ab(view.Ax(ById(view.At.D, "sticky-link")));
+                            Ok(!stickyBounds.IsEmpty && stickyBounds.Contains(new Point(stickyHit.Left + 1, stickyHit.Top + 1)), "sticky accessibility follows visible geometry");
+                            Ok(ColorDistance(scrolledStickyPaint.GetPixel(moved.Left + 3, moved.Top - view.Sy + 3), Color.FromArgb(29, 78, 216)) < 8, "sticky owner remains painted at inset");
+                            var fieldHit = HitElementRect(view, "sticky-field");
+                            Click(view, fieldHit);
+                            Ok(Editor(view).Visible && Editor(view).Bounds.Top >= moved.Top - view.Sy, "sticky native editor uses moved geometry");
+                        }
+                    }
+                    view.Go(stickyPath);
+                    using (var stickyResetPaint = Render(view)) { }
+                    var stickyRail = BlockRect(view, BlockById(view.At, "rail"));
+                    var stickyFollower = BlockOuterRect(view, BlockById(view.At, "follower"));
+                    view.Sc(stickyRail.Bottom + 120);
+                    using (var clampedStickyPaint = Render(view))
+                    {
+                        var clamped = BlockOuterRect(view, BlockById(view.At, "sticky"));
+                        Eq(stickyRail.Bottom, clamped.Bottom, "sticky stops at containing block bottom");
+                        Eq(stickyFollower, BlockOuterRect(view, BlockById(view.At, "follower")), "sticky clamp keeps normal flow slot");
+                        Ok(HitRect(view, "second.html").IsEmpty, "clamped offscreen sticky link has no visible hit");
+                    }
                     view.Size = new Size(720, 500);
                     view.Go(contextsPath);
                     using (var contextPaint = Render(view))
@@ -5183,7 +5231,7 @@ namespace Lea.Tests
                 Console.WriteLine("Lea CSS gradient smoke passed: compact image/stop aliases, atomic cascade, normalized stops, linear/radial/page/field paint, hits, and resize.");
                 Console.WriteLine("Lea CSS bitmap smoke passed: compact aliases, stylesheet origins, atomic cascade, bounded image loading, repeat/size/position/page/field paint, clipping, opacity, hits, and resize.");
 
-                    Console.WriteLine("Lea smoke passed: bounded has relational selectors with strict lists, maximum specificity, descendant/child/adjacent/following and complex chains, queries, dynamic focus rebuilds, retained fields, WinForms geometry, and traversal/part limits, bounded nth-child of-S filters with strict compound lists, maximum specificity, forward/reverse counting, queries, dynamic form-state rebuilds, retained fields, WinForms geometry, and nesting/test limits, bounded precompiled An+B and reverse structural selectors with stylesheet/query parity, specificity, selector-list composition, type filtering, WinForms geometry, and invalid limits, bounded is, where, and list-not selector functions with maximum/zero specificity, forgiving/strict parsing, queries, dynamic state, WinForms geometry, and retained fields, bounded CSS important cascade with compiled priority, G.Ic diagnostics, stylesheet/inline tiers, custom properties, hover/media rebuilds, and retained fields, bounded inherited CSS custom properties with compiled declarations, S.Vc/Cv and G.Vc aliases, nested and cycle fallbacks, hover/media rebuilds, and retained fields, bounded responsive CSS media queries with viewport aliases, live resize, diagnostics, and retained fields, optional bounded persistent cache with restart reuse, validators, private isolation, atomic recovery, LRU entry/byte ceilings and host aliases, bounded content-box and border-box geometry, body and ID-scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, shrink, reverse flow, and resize, semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
+                    Console.WriteLine("Lea smoke passed: bounded sticky positioning with compact k, shared paint/hit/editor/accessibility geometry, normal-flow retention, and ancestor clamps, bounded has relational selectors with strict lists, maximum specificity, descendant/child/adjacent/following and complex chains, queries, dynamic focus rebuilds, retained fields, WinForms geometry, and traversal/part limits, bounded nth-child of-S filters with strict compound lists, maximum specificity, forward/reverse counting, queries, dynamic form-state rebuilds, retained fields, WinForms geometry, and nesting/test limits, bounded precompiled An+B and reverse structural selectors with stylesheet/query parity, specificity, selector-list composition, type filtering, WinForms geometry, and invalid limits, bounded is, where, and list-not selector functions with maximum/zero specificity, forgiving/strict parsing, queries, dynamic state, WinForms geometry, and retained fields, bounded CSS important cascade with compiled priority, G.Ic diagnostics, stylesheet/inline tiers, custom properties, hover/media rebuilds, and retained fields, bounded inherited CSS custom properties with compiled declarations, S.Vc/Cv and G.Vc aliases, nested and cycle fallbacks, hover/media rebuilds, and retained fields, bounded responsive CSS media queries with viewport aliases, live resize, diagnostics, and retained fields, optional bounded persistent cache with restart reuse, validators, private isolation, atomic recovery, LRU entry/byte ceilings and host aliases, bounded content-box and border-box geometry, body and ID-scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, shrink, reverse flow, and resize, semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;
             }
             catch (Exception error)

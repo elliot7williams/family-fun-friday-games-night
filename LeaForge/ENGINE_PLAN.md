@@ -345,11 +345,11 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-The bounded width model now includes percentages, one `calc(P% +/- Npx)` form,
-calculated min/max constraints, compact `wd`, and literal `style.width`. See
-`CALCULATED_WIDTHS.md`. Next evaluate bounded sticky positioning and additional
-high-value HTML/CSS compatibility while keeping the short public API and
-avoiding general CSS or JavaScript evaluators.
+The bounded positioning model now includes vertical `position:sticky` through
+compact `S.Pn=k`, root-scroll `top`/`bottom` insets, retained descendant
+geometry, and nearest-parent clamps. See `STICKY_POSITIONING.md`. Next evaluate
+additional high-value HTML/CSS compatibility while keeping the short public API
+and avoiding general CSS or JavaScript evaluators.
 
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host

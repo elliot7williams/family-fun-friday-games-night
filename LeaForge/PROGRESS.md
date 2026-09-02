@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **76**
+Post-1.0 hardening milestones completed: **77**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -14,8 +14,8 @@ modern web platform.
 | Core and alias API | 10% | 10% | Compact API, bounded diagnostics, repeatable reports, history, projects, backups |
 | Networking | 10% | 10% | Bounded request deadlines and downloads, private cookies, typed errors, validators, compression, memory LRU and optional persistent cache |
 | HTML and document tree | 20% | 20% | Bounded tokens, queries, base URLs and fragments, raw/RCDATA text, entities, recovery, HTML-hidden suppression, semantic accessibility, blocks, lists, disclosures, gauges, values, time/edit metadata, responsive image maps, tabindex focus, autofocus/access keys, tables |
-| CSS | 15% | 15% | Compiled relationship, bounded strict relational/functional, An+B/reverse, and filtered structural selectors, declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, fixed/percentage/calculated widths, dynamic hover/focus, inherited cursor/pointer interaction, text transformation and signed letter/word spacing, content/border sizing, circular/elliptical radii, bounded outlines, box shadows, gradients, bitmap backgrounds, object fitting and aspect ratios, visibility/opacity, fonts, overflow, boxes, bounded ordered flex and two-axis grid properties |
-| Layout and painting | 20% | 20% | Shared fixed/percentage/calculated width, content/border and aspect-ratio geometry, transformed and spacing-aware presentation text with raw form retention, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients/bitmaps, pointer-gated retained hits with underlying fallthrough, fitted raster images and maps, ordered flex rows/columns, bounded grid tracks/spans, distribution, alignment, wrapping, grow/shrink, clipping, reflow, painting |
+| CSS | 15% | 15% | Compiled relationship, bounded strict relational/functional, An+B/reverse, and filtered structural selectors, declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, fixed/percentage/calculated widths, bounded vertical sticky positioning, dynamic hover/focus, inherited cursor/pointer interaction, text transformation and signed letter/word spacing, content/border sizing, circular/elliptical radii, bounded outlines, box shadows, gradients, bitmap backgrounds, object fitting and aspect ratios, visibility/opacity, fonts, overflow, boxes, bounded ordered flex and two-axis grid properties |
+| Layout and painting | 20% | 20% | Shared fixed/percentage/calculated width, content/border, aspect-ratio, and sticky geometry, transformed and spacing-aware presentation text with raw form retention, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients/bitmaps, pointer-gated retained hits with underlying fallthrough, fitted raster images and maps, ordered flex rows/columns, bounded grid tracks/spans, distribution, alignment, wrapping, grow/shrink, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Native field edit commands and one-level undo/redo, bounded multipart files, richer widgets, validation, responsive and fitted images, GET/POST submit |
 | Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/body and ID-scoped display/width/style/alert, class, visibility, disclosure, field-state, focus, and literal bounded DOM translation |
 | Firespider integration and reliability | 10% | 10% | Lea-first New Tab/Ctrl+T, explicit legacy fallback, Inspector with Access view, MSAA/UIA surfaces including read-only text, host-safe focus shortcuts, navigation, sessions, source, host smokes |
@@ -29,6 +29,25 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded vertical `position:sticky` through compact `S.Pn=k`. Sticky
+  boxes keep their normal-flow slot, establish retained positioning/stacking
+  context ownership, follow signed pixel `top`/`bottom` root-scroll insets, move
+  descendants as one integer-offset subtree, and stop at the nearest retained
+  parent content edge. Overflow clips are rebuilt from moved owners, so paint,
+  links, pointer hits, native editors, keyboard focus, and accessibility use the
+  same geometry. Pages without an active vertical sticky inset retain the old
+  scroll fast path. Extreme `Sc` deltas now use a bounded 64-bit intermediate
+  instead of wrapping. Full engine/WinForms, compiled Firespider, and extracted
+  runtime tests pass. The benchmark passes 73 probes over 70 fixtures. All 42
+  Boot cases pass, including the real 35-second recovery timer without the old
+  cast dialog, and all six actual EXE startup scenarios are responsive,
+  dialog-free, and MSHTML-free. Measured medians are 494.192 ms clean-process,
+  3.432 ms local-load, and 33.163 ms layout/paint. Retained managed memory is
+  16,694.9 KiB for 350 pages, or 47.7 KiB/page. Required runtime files total
+  546.5 KiB with a 232.5 KiB GZip estimate. Runtime 177 is isolated;
+  installed runtime 157 remains unchanged. See `STICKY_POSITIONING.md`. The
+  scoped baseline stays at 100%, not full-web compatibility.
 
 - Added bounded percentage and single-expression calculated widths without a
   general CSS evaluator. Authored `width`, `min-width`, and `max-width` compile

@@ -1811,7 +1811,7 @@ namespace Lea.Engine
 
         private static bool LayoutContext(S style)
         {
-            return style != null && (Flex(style) || Grid(style) || style.Pn == "r" || style.Pn == "a" || style.Pn == "f" || style.Zc || (style.Ov.Length > 0 && style.Ov != "v"));
+            return style != null && (Flex(style) || Grid(style) || style.Pn == "r" || style.Pn == "a" || style.Pn == "f" || style.Pn == "k" || style.Zc || (style.Ov.Length > 0 && style.Ov != "v"));
         }
 
         private static bool Flex(S style)
@@ -3785,6 +3785,7 @@ namespace Lea.Engine
             if (mode == "relative") style.Pn = "r";
             else if (mode == "absolute") style.Pn = "a";
             else if (mode == "fixed") style.Pn = "f";
+            else if (mode == "sticky") style.Pn = "k";
             else if (mode == "static" || mode == "initial" || mode == "unset" || mode == "revert") style.Pn = "s";
         }
 

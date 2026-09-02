@@ -107,7 +107,7 @@ namespace Lea.Bench
             var names = new[]
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
-                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
+                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -2026,6 +2026,38 @@ namespace Lea.Bench
                 Need(engine.Js(page, "wd('command','min(100%,400px)'); document.getElementById('command').style.width='101%';") == 0 && block("command").S.W == 280, "general or out-of-range width expression was accepted");
                 return "wd plus literal style.width, 1..100 percent, calc(P% +/- 0..2000px), min/max, variables, inheritance, reset, and strict expression bounds";
             });
+            AddProbe(probes, "Bounded sticky positioning", delegate
+            {
+                var path = Path.Combine(folder, "sticky-positioning.html");
+                var page = new E().Go(path);
+                var stickyBlock = page.Bs.First(block => block.El != null && block.El.Av("id") == "sticky");
+                var railBlock = page.Bs.First(block => block.El != null && block.El.Av("id") == "rail");
+                Need(stickyBlock.S.Pn == "k" && stickyBlock.S.Tp == 14 && Object.ReferenceEquals(stickyBlock.Up, railBlock), "sticky style or containing block changed");
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "bottom").S.Bm == 12 &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "invalid").S.Pn == "r", "bottom inset or atomic position fallback changed");
+                using (var view = new V { Size = new Size(720, 300) })
+                {
+                    view.CreateControl();
+                    view.Go(path);
+                    using (var image = Draw(view)) { }
+                    var before = BlockOuter(view, "sticky");
+                    var childBefore = BlockOuter(view, "sticky-child");
+                    var follower = BlockOuter(view, "follower");
+                    view.Sc(360);
+                    using (var image = Draw(view)) { }
+                    var moved = BlockOuter(view, "sticky");
+                    var child = BlockOuter(view, "sticky-child");
+                    var hit = ElementHit(view, "sticky-link");
+                    var bounds = view.Ab(view.Ax(ById(view.At.D, "sticky-link")));
+                    Need(moved.Top == view.Sy + 14 && child.Top - moved.Top == childBefore.Top - before.Top &&
+                        follower == BlockOuter(view, "follower"), "sticky shared geometry or normal flow changed");
+                    Need(!hit.IsEmpty && !bounds.IsEmpty && bounds.IntersectsWith(hit), "sticky hit or accessibility geometry changed");
+                    view.Sc(Int32.MaxValue);
+                    using (var image = Draw(view)) { }
+                    Need(BlockOuter(view, "sticky").Bottom == BlockContent(view, "rail").Bottom, "sticky containing-block clamp changed");
+                }
+                return "Pn=k, signed top/bottom state, normal flow, shared descendants/hits/accessibility, root scroll pinning, and parent clamp";
+            });
             AddProbe(probes, "Host-controlled go requests", delegate
             {
                 var engine = new E();
@@ -2255,7 +2287,7 @@ namespace Lea.Bench
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, fixed/percentage/calc widths with calculated min/max, content/border box, circular/elliptical radii, bounded outlines, box shadows and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing and text styles, visibility, positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
+            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, fixed/percentage/calc widths with calculated min/max, content/border box, circular/elliptical radii, bounded outlines, box shadows and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing and text styles, visibility, absolute/fixed and bounded vertical sticky positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, inline, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Text overflow", "Supported subset", "Non-inherited clip/ellipsis; paint-only bounded text-element prefixes for clipped overflowing horizontal LTR lines, inline runs and tables; retained layout/link targets and full logical automation text; no native-control, bidi, custom-marker, or line-clamp additions");
