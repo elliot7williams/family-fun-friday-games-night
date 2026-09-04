@@ -58,6 +58,10 @@ Its fixture set includes `font-relative-units.html`, covering bounded `em` and
 It also includes `size-functions.html`, covering bounded `min()`, `max()`, and
 `clamp()` records, mixed terms, constraints, media replacement, commands,
 shared layout geometry, reset, and resize behavior.
+`logical-sizing-insets.html` covers horizontal logical size/min/max mappings,
+logical inset longhands and axis shorthands, source order, atomic fallback,
+`is/bs`, familiar DOM aliases, shared geometry, and reset. See
+`LeaForge/LOGICAL_SIZING_INSETS.md`.
 `fragment-stability.html` covers `Fa/Fj/Fy`, first-paint retention, responsive
 host settlement, intrinsic image reflow, missing targets, and manual-scroll
 release. See `LeaForge/INITIAL_FRAGMENT_STABILITY.md`.

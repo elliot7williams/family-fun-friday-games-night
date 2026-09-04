@@ -345,15 +345,14 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Initial URL fragments now retain one exact page/fragment anchor while native
-layout settles. First paint, viewport/font changes, stylesheet or DOM rebuilds,
-and asynchronous intrinsic image completion reapply the target without another
-request or history entry. Ordinary scroll/focus movement, missing targets,
-navigation, and disposal release it. Compact `V.Fa/Fj/Fy` expose active state,
-a saturated placement count, and latest document Y. See
-`INITIAL_FRAGMENT_STABILITY.md`. Next evaluate bounded logical sizing/insets
-that can reuse the existing dimension resolver, then continue high-value
-HTML/CSS compatibility without general CSS or JavaScript evaluators.
+Horizontal left-to-right logical sizing and positioned insets now compile into
+the existing compact width, height, and edge records. Six size properties, four
+inset longhands, atomic one/two-value axis shorthands, short `is/bs`, and
+familiar literal DOM styles reuse the current cascade, dimension resolver, and
+renderer without per-element axis state. See `LOGICAL_SIZING_INSETS.md`. Next
+evaluate another bounded high-value HTML/CSS compatibility slice while keeping
+writing modes, bidi remapping, and general CSS/JavaScript evaluators out of the
+current engine boundary.
 
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host

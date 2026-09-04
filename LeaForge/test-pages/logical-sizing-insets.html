@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea logical sizing and insets</title>
+  <style>
+    body { color: #172033; background: #f8fafc; font-size: 16px; }
+    #size-shell { inline-size: 400px; block-size: 300px; background: #e8f3ff; }
+    #logical-size { inline-size: calc(50% + 20px); min-inline-size: 180px; max-inline-size: 240px; block-size: 50%; min-block-size: 120px; max-block-size: 160px; background: #dff6e9; }
+    #order-physical { inline-size: 120px; width: 140px; block-size: 60px; height: 70px; }
+    #order-logical { width: 140px; inline-size: 120px; height: 70px; block-size: 60px; }
+    #variable { --is: calc(75% - 15px); --bs: 25%; inline-size: var(--is); block-size: var(--bs); }
+    #important { inline-size: 170px; width: 110px !important; block-size: 80px !important; height: 45px; }
+    #inherit-parent { inline-size: 60%; block-size: 40%; }
+    #inherit-child { inline-size: inherit; block-size: inherit; }
+    #reset { inline-size: 123px; inline-size: initial; block-size: 87px; block-size: unset; }
+    #position-shell { position: relative; inline-size: 400px; block-size: 240px; background: #fff4cc; }
+    #axis-position { position: absolute; inset-inline: 24px 30px; inset-block: 18px 26px; margin: 0; background: #fee9d8; }
+    #longhand-position { position: absolute; inset-inline-start: 32px; inset-inline-end: auto; inset-block-start: auto; inset-block-end: 20px; inline-size: 100px; block-size: 50px; margin: 0; }
+    #invalid-position { position: absolute; inset-inline: 11px 13px; inset-inline: 17px bad; inset-block: 19px 21px; inset-block: 23px 25px 27px; inline-size: 80px; block-size: 40px; margin: 0; }
+    #command { inline-size: 210px; block-size: 90px; color: #123f8c; }
+    button { display: block; inline-size: 320px; margin: 6px 0; }
+  </style>
+</head>
+<body>
+  <h1>Bounded logical sizing and insets</h1>
+  <section id="size-shell">
+    <p id="logical-size">Logical minimum and maximum size</p>
+    <p id="order-physical">Physical declaration wins by source order</p>
+    <p id="order-logical">Logical declaration wins by source order</p>
+    <p id="variable">Logical custom properties</p>
+    <p id="important">Physical and logical important cascade</p>
+    <section id="inherit-parent"><p id="inherit-child">Explicit logical inheritance</p></section>
+    <p id="reset">Logical reset</p>
+  </section>
+  <section id="position-shell">
+    <p id="axis-position">Two-value logical axis insets stretch this box.</p>
+    <p id="longhand-position">Logical longhand corner</p>
+    <p id="invalid-position">Invalid axis shorthands are atomic</p>
+  </section>
+  <p id="command">Logical command target</p>
+  <button id="set-logical" type="button" data-lea="is('command','50%');bs('command','120px')">Set short logical size aliases</button>
+  <button id="dom-logical" type="button" onclick="document.getElementById('command').style.inlineSize='25%';document.getElementById('command').style.blockSize='70px'">Set familiar logical styles</button>
+  <button id="clear-logical" type="button" onclick="document.getElementById('command').style.inlineSize='';document.getElementById('command').style.blockSize=''">Restore authored logical size</button>
+</body>
+</html>

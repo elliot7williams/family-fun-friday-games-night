@@ -363,6 +363,15 @@ Size functions add lazy `S.Wk/Wnk/Wxk` and `Hk/Hnk/Hxk` kind state plus
 element-font, and root-font path used by plain dimensions. A height function
 containing a percentage remains natural below an auto-height parent.
 
+For the current horizontal left-to-right layout, `inline-size`,
+`min-inline-size`, and `max-inline-size` map directly to the existing width
+records; `block-size` and its min/max forms map to height. Logical inset
+longhands and one/two-value `inset-inline`/`inset-block` write the existing
+`S.Tp/Rt/Bm/Lt` edges atomically. Hosts need no new layout state. Page code can
+use short `is/bs`, readable `inlinesize/blocksize`, or literal allow-listed
+`style.inlineSize/style.blockSize` assignments. Writing modes, bidi direction,
+and axis remapping are not supplied. See `LOGICAL_SIZING_INSETS.md`.
+
 CSS outlines are available through non-inherited `S.Ow/Os/Oc/Oo`. Hosts can
 inspect bounded width, compact none/solid/dashed/dotted/auto style, authored
 color, and signed offset without performing paint calculations. Atomic

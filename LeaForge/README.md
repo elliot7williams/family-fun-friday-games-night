@@ -83,6 +83,9 @@ LeaForge is where we can grow the more full-featured browser.
   compact `S.Vc/Cv`, nested `var()` fallback, lazy maps, and strict limits
 - bounded normal/important cascade for supported declarations, with stylesheet
   and inline tiers, compact `G.Ic` diagnostics, and quoted/function boundaries
+- horizontal left-to-right logical `inline-size`/`block-size` plus min/max and
+  logical inset longhand/axis shorthands, reusing physical records and geometry;
+  short `is/bs` and familiar DOM aliases; see `LOGICAL_SIZING_INSETS.md`
 - live `:hover` and `:focus` restyling that preserves mutable form values
 - non-inherited `content-box`/`border-box` sizing across pixel dimensions,
   min/max clamps, flex basis, fields, images, tables, and cells

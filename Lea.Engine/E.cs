@@ -3507,10 +3507,12 @@ namespace Lea.Engine
                 else if (name == "grid-area") GridArea(style, value);
                 else if (name == "position") Position(style, value);
                 else if (name == "inset") Inset(style, value);
-                else if (name == "top") Offset(style, value, 0);
-                else if (name == "right") Offset(style, value, 1);
-                else if (name == "bottom") Offset(style, value, 2);
-                else if (name == "left") Offset(style, value, 3);
+                else if (name == "inset-inline") AxisInset(style, value, false);
+                else if (name == "inset-block") AxisInset(style, value, true);
+                else if (name == "top" || name == "inset-block-start") Offset(style, value, 0);
+                else if (name == "right" || name == "inset-inline-end") Offset(style, value, 1);
+                else if (name == "bottom" || name == "inset-block-end") Offset(style, value, 2);
+                else if (name == "left" || name == "inset-inline-start") Offset(style, value, 3);
                 else if (name == "z-index") ZIndex(style, value);
                 else if (name == "margin") Box(style, value, true);
                 else if (name == "padding") Box(style, value, false);
@@ -3523,12 +3525,12 @@ namespace Lea.Engine
                 else if (name == "padding-bottom") style.Pb = Px(value);
                 else if (name == "padding-left") style.Pl = Px(value);
                 else if (name == "box-sizing") BoxSizing(style, value);
-                else if (name == "width") Width(style, inherited, value, 0);
-                else if (name == "height") Height(style, inherited, value, 0);
-                else if (name == "min-width") Width(style, inherited, value, 1);
-                else if (name == "max-width") Width(style, inherited, value, 2);
-                else if (name == "min-height") Height(style, inherited, value, 1);
-                else if (name == "max-height") Height(style, inherited, value, 2);
+                else if (name == "width" || name == "inline-size") Width(style, inherited, value, 0);
+                else if (name == "height" || name == "block-size") Height(style, inherited, value, 0);
+                else if (name == "min-width" || name == "min-inline-size") Width(style, inherited, value, 1);
+                else if (name == "max-width" || name == "max-inline-size") Width(style, inherited, value, 2);
+                else if (name == "min-height" || name == "min-block-size") Height(style, inherited, value, 1);
+                else if (name == "max-height" || name == "max-block-size") Height(style, inherited, value, 2);
                 else if (name == "aspect-ratio") AspectRatio(style, value);
                 else if (name == "border") Border(style, value, 0);
                 else if (name == "border-top") Border(style, value, 1);
@@ -4510,6 +4512,18 @@ namespace Lea.Engine
             style.Rt = right;
             style.Bm = bottom;
             style.Lt = left;
+        }
+
+        private static void AxisInset(S style, string value, bool block)
+        {
+            var parts = Regex.Split((value ?? "").Trim(), "\\s+");
+            if (parts.Length < 1 || parts.Length > 2 || parts[0].Length == 0) return;
+            int? start;
+            int? end;
+            if (!OffsetValue(parts[0], out start) ||
+                !OffsetValue(parts.Length == 2 ? parts[1] : parts[0], out end)) return;
+            if (block) { style.Tp = start; style.Bm = end; }
+            else { style.Lt = start; style.Rt = end; }
         }
 
         private static bool OffsetValue(string value, out int? offset)

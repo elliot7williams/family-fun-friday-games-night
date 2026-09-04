@@ -107,7 +107,7 @@ namespace Lea.Bench
             var names = new[]
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
-                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
+                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -2221,6 +2221,53 @@ namespace Lea.Bench
                 Need(engine.Js(page, "wd('function-command','min(100px)'); ht('function-command','clamp(20px,30px)')") == 0,
                     "unsupported size functions were accepted");
                 return "min/max with two or three bounded terms, three-term clamp, lazy Wk/Hk and Wq/Hq/Wv/Hv aliases, mixed units/calc, min/max properties, layout families, commands, media replacement, and resize";
+            });
+            AddProbe(probes, "Bounded logical sizing and insets", delegate
+            {
+                var path = Path.Combine(folder, "logical-sizing-insets.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                var size = block("logical-size").S;
+                Need(size.Wp == 50 && size.Wo == 20 && size.Wn == 180 && size.Wx == 240 &&
+                    size.Hp == 50 && size.Hn == 120 && size.Hx == 160, "logical size record mapping changed");
+                Need(block("order-physical").S.W == 140 && block("order-logical").S.W == 120 &&
+                    block("important").S.W == 110 && block("important").S.H == 80, "logical source order or important cascade changed");
+                var axis = block("axis-position").S;
+                var invalid = block("invalid-position").S;
+                Need(axis.Lt == 24 && axis.Rt == 30 && axis.Tp == 18 && axis.Bm == 26 &&
+                    invalid.Lt == 11 && invalid.Rt == 13 && invalid.Tp == 19 && invalid.Bm == 21,
+                    "logical axis inset mapping or atomic fallback changed");
+                using (var view = new V { Size = new Size(760, 900) })
+                {
+                    view.CreateControl();
+                    view.Go(path);
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "logical-size").Size == new Size(220, 150) &&
+                        BlockContent(view, "variable").Size == new Size(285, 75) &&
+                        BlockContent(view, "inherit-child").Size == new Size(144, 48),
+                        "logical size geometry changed");
+                    var shell = BlockContent(view, "position-shell");
+                    var placed = BlockContent(view, "axis-position");
+                    Need(placed.Left - shell.Left == 24 && placed.Top - shell.Top == 18 && placed.Size == new Size(346, 196),
+                        "logical inset geometry changed");
+                    Need(view.Ck(ById(view.At.D, "set-logical")) == 2, "short logical size commands failed");
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "command").Height == 120, "logical command view reflow changed");
+                    Need(view.Ck(ById(view.At.D, "dom-logical")) == 2 && view.Ck(ById(view.At.D, "clear-logical")) == 2,
+                        "familiar logical DOM style or reset failed");
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "command").Size == new Size(210, 90), "logical DOM reset geometry changed");
+                }
+                Need(engine.Ck(page, ById(page.D, "set-logical")) == 2 && block("command").S.Wp == 50 && block("command").S.H == 120,
+                    "short logical aliases did not reach compact records");
+                Need(engine.Ck(page, ById(page.D, "dom-logical")) == 2 && block("command").S.Wp == 25 && block("command").S.H == 70,
+                    "familiar logical DOM styles did not reach compact records");
+                Need(engine.Ck(page, ById(page.D, "clear-logical")) == 2 && block("command").S.W == 210 && block("command").S.H == 90,
+                    "logical DOM reset lost authored state");
+                Need(engine.Js(page, "is('command','101%');bs('command','1.5em')") == 0 && block("command").S.W == 210,
+                    "unsupported logical command values were accepted");
+                return "horizontal-tb/LTR inline/block size mapping, min/max, source order, important, variables, inheritance, logical inset axes/longhands, atomic fallback, is/bs, literal DOM styles, shared geometry, and reset";
             });
             AddProbe(probes, "Bounded sticky positioning", delegate
             {

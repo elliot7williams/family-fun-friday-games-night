@@ -78,6 +78,9 @@ fg("id", "#222") element text color
 fs("id", 18)      element font size
 dp("id", "none") element display
 wd("id", "50%")  element width
+ht("id", "120px") element height
+is("id", "50%")  logical inline size
+bs("id", "120px") logical block size
 v("who", "Lea")  bounded page variable
 tx("id", "Hi ${who}") element text
 ac("id", "hot")       add class
@@ -96,7 +99,7 @@ fo("id")              request focus
 go("next.html")        request host navigation
 ```
 
-The two-argument `bg/fg/fs/dp/wd/ht` forms target one validated ID. Color and font
+The two-argument `bg/fg/fs/dp/wd/ht/is/bs` forms target one validated ID. Color and font
 forms reuse the same
 hex/named-color and 8..96 pixel font bounds as the body forms, reject document
 metadata targets, cap the resulting inline style at 4,096 characters, and
@@ -108,16 +111,19 @@ enter Lea's existing layout modes. An empty value removes only the inline
 display declaration and restores the authored cascade. Unsupported values are
 inert. See `DISPLAY_NAVIGATION.md`.
 
-`wd` accepts fixed `0..2000px`, `1..100%`, classic `1..100vw/vh/vmin/vmax`,
+`wd` and logical `is` accept fixed `0..2000px`, `1..100%`, classic `1..100vw/vh/vmin/vmax`,
 bounded `1..100em/rem`, or one `calc(PU +/- Npx)` expression where `P` is
 1..100, `U` is `%` or a supported relative unit, and `N` is 0..2000. It also
 accepts two/three-term `min()` and `max()`, or three-term `clamp()`, when every
 argument is one of those bounded forms. An empty value removes only the inline
-width and restores the authored cascade. Authored `width`, `min-width`, and
-`max-width` accept the same forms. Nested functions and multiplication/division
-remain unsupported. `ht` and authored height/min/max use the matching parser.
+width and restores the authored cascade. Authored `width`, `min-width`,
+`max-width`, `inline-size`, `min-inline-size`, and `max-inline-size` accept the
+same forms. Nested functions and multiplication/division remain unsupported.
+`ht`, logical `bs`, and authored physical/logical height/min/max use the matching
+parser. Readable `inlinesize`/`blocksize` command forms and literal
+`style.inlineSize`/`style.blockSize` assignments map to the same compact paths.
 See `CALCULATED_WIDTHS.md`, `CALCULATED_HEIGHTS.md`, `VIEWPORT_UNITS.md`,
-`FONT_RELATIVE_UNITS.md`, and `SIZE_FUNCTIONS.md`.
+`FONT_RELATIVE_UNITS.md`, `SIZE_FUNCTIONS.md`, and `LOGICAL_SIZING_INSETS.md`.
 
 `P.Vs` exposes at most 16 case-insensitive variables. Names are one through 16
 letters, digits, or underscores and must begin with a letter; values are capped

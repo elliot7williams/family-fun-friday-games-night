@@ -17,17 +17,17 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 82 adds retained initial-fragment placement across first paint,
-viewport/font changes, stylesheet/DOM rebuilds, and asynchronous intrinsic
-image decode. One exact current page/fragment pair stays active until ordinary
-scroll/focus movement, a missing target, navigation, or disposal releases it.
-Compact `V.Fa/Fj/Fy` expose active state, a saturated placement count, and the
-latest document Y. Full repository and compiled-host tests pass with 78 probes
-over 75 fixtures, all 42 Boot cases, and all six real EXE startup scenarios.
-Runtime 182 stays isolated and installed runtime 157 remains unchanged. See
-`INITIAL_FRAGMENT_STABILITY.md`. Next evaluate bounded logical sizing/insets,
-then continue HTML/CSS/DOM compatibility and host migration without a general
-VM.
+Milestone 83 maps horizontal left-to-right CSS logical sizing and positioned
+insets into Lea's existing compact physical records and renderer. Six logical
+size properties, four inset longhands, and atomic one/two-value axis shorthands
+share the established cascade, dimension resolver, positioning, paint, hit,
+editor, and accessibility paths. Short `is/bs`, readable command forms, and
+literal `style.inlineSize/style.blockSize` reuse `wd/ht`; no per-element axis
+state was added. Full repository and compiled-host tests pass with 79 probes
+over 76 fixtures, all 42 Boot cases, and all six real EXE startup scenarios.
+Runtime 183 stays isolated and installed runtime 157 remains unchanged. See
+`LOGICAL_SIZING_INSETS.md`. Next evaluate another bounded high-value HTML/CSS
+compatibility slice without introducing general writing-mode or script VMs.
 
 Milestone 60 installs the existing `V.Ng` hook on main Lea tabs, enforcing host
 rules, offline/locked state, and live ownership. Denied resume retains its

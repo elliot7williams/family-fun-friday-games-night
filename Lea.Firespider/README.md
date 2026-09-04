@@ -16,6 +16,13 @@ count, and target Y directly to the host; normal scrolling releases the anchor.
 The compiled host smoke covers these aliases with no adapter-side layout logic.
 See `LeaForge/INITIAL_FRAGMENT_STABILITY.md`.
 
+Horizontal logical sizing and insets compile into Lea's existing physical
+records and host geometry. The compiled smoke covers all six size mappings,
+logical axis placement, min/max clamping, short `is/bs`, familiar
+`style.inlineSize/style.blockSize`, reset, and strict values. Firespider needs
+no adapter-side axis state; writing-mode-dependent layout remains outside this
+bounded milestone. See `LeaForge/LOGICAL_SIZING_INSETS.md`.
+
 `Startup-smooth-host.patch` removes the blocking crash-recovery question and
 automatically restores eligible unclean sessions. It also sends the retired
 built-in `fsin.glitch.me` home to the bundled Lea start page when no explicit

@@ -328,6 +328,39 @@ namespace Lea.Tests
                 Eq(0, calculatedHeightEngine.Js(calculatedHeightPage, "ht('command','min(max(100px,200px),400px)'); height('command','calc(100% / 2)'); document.getElementById('command').style.height='101%';"), "nested or out-of-range height expressions rejected");
                 Eq(180, BlockById(calculatedHeightPage, "command").S.H, "rejected height expressions preserve cascade");
 
+                var logicalPath = Path.Combine(pages, "logical-sizing-insets.html");
+                var logicalEngine = new E();
+                var logicalPage = logicalEngine.Go(logicalPath);
+                Eq(0, logicalPage.Jc, "logical sizing fixture has no startup commands");
+                var logicalSize = BlockById(logicalPage, "logical-size").S;
+                Ok(logicalSize.Wp == 50 && logicalSize.Wo == 20 && logicalSize.Wn == 180 && logicalSize.Wx == 240 &&
+                    logicalSize.Hp == 50 && logicalSize.Hn == 120 && logicalSize.Hx == 160,
+                    "logical size and constraint aliases");
+                Eq(new Size(140, 70), new Size(BlockById(logicalPage, "order-physical").S.W, BlockById(logicalPage, "order-physical").S.H), "later physical sizes win source order");
+                Eq(new Size(120, 60), new Size(BlockById(logicalPage, "order-logical").S.W, BlockById(logicalPage, "order-logical").S.H), "later logical sizes win source order");
+                var logicalVariable = BlockById(logicalPage, "variable").S;
+                Ok(logicalVariable.Wp == 75 && logicalVariable.Wo == -15 && logicalVariable.Hp == 25, "logical custom-property dimensions");
+                Eq(new Size(110, 80), new Size(BlockById(logicalPage, "important").S.W, BlockById(logicalPage, "important").S.H), "physical and logical important cascade");
+                Ok(BlockById(logicalPage, "inherit-child").S.Wp == 60 && BlockById(logicalPage, "inherit-child").S.Hp == 40, "explicit logical size inheritance");
+                Eq(new Size(0, 0), new Size(BlockById(logicalPage, "reset").S.W, BlockById(logicalPage, "reset").S.H), "logical initial and unset reset");
+                var logicalAxis = BlockById(logicalPage, "axis-position").S;
+                Ok(logicalAxis.Lt == 24 && logicalAxis.Rt == 30 && logicalAxis.Tp == 18 && logicalAxis.Bm == 26, "logical axis inset shorthands");
+                var logicalLonghand = BlockById(logicalPage, "longhand-position").S;
+                Ok(logicalLonghand.Lt == 32 && !logicalLonghand.Rt.HasValue && !logicalLonghand.Tp.HasValue && logicalLonghand.Bm == 20, "logical inset longhands");
+                var logicalInvalid = BlockById(logicalPage, "invalid-position").S;
+                Ok(logicalInvalid.Lt == 11 && logicalInvalid.Rt == 13 && logicalInvalid.Tp == 19 && logicalInvalid.Bm == 21, "invalid logical axis shorthands are atomic");
+                Eq(2, logicalEngine.Ck(logicalPage, ById(logicalPage.D, "set-logical")), "short logical size command aliases");
+                Ok(BlockById(logicalPage, "command").S.Wp == 50 && BlockById(logicalPage, "command").S.H == 120, "short logical aliases reach physical records");
+                Eq(2, logicalEngine.Ck(logicalPage, ById(logicalPage.D, "dom-logical")), "familiar logical DOM styles");
+                Ok(BlockById(logicalPage, "command").S.Wp == 25 && BlockById(logicalPage, "command").S.H == 70, "familiar logical DOM styles reach records");
+                Eq(2, logicalEngine.Ck(logicalPage, ById(logicalPage.D, "clear-logical")), "logical DOM size reset");
+                Eq(new Size(210, 90), new Size(BlockById(logicalPage, "command").S.W, BlockById(logicalPage, "command").S.H), "logical DOM reset restores authored sizes");
+                Eq("#123f8c", BlockById(logicalPage, "command").S.F, "logical DOM reset preserves unrelated inline style");
+                Eq(2, logicalEngine.Js(logicalPage, "inlinesize('command','180px');blocksize('command','75px')"), "long logical command aliases");
+                Eq(new Size(180, 75), new Size(BlockById(logicalPage, "command").S.W, BlockById(logicalPage, "command").S.H), "long logical aliases update sizes");
+                Eq(0, logicalEngine.Js(logicalPage, "is('command','101%');bs('command','1.5em')"), "unsupported logical command values rejected");
+                Eq(new Size(180, 75), new Size(BlockById(logicalPage, "command").S.W, BlockById(logicalPage, "command").S.H), "rejected logical commands preserve sizes");
+
                 var viewportPath = Path.Combine(pages, "viewport-units.html");
                 var viewportEngine = new E();
                 var viewportPage = viewportEngine.Go(viewportPath);
@@ -2366,6 +2399,39 @@ namespace Lea.Tests
                     var narrowViewportHeight = (int)Math.Round(narrowRootHeightReference * .5D);
                     Eq(narrowViewportHeight, BlockRect(view, BlockById(view.At, "viewport")).Height, "WinForms viewport percentage height responds to resize");
                     Eq((int)Math.Round(narrowViewportHeight * .5D), BlockRect(view, BlockById(view.At, "viewport-child")).Height, "WinForms nested percentage height responds to resize");
+
+                    view.Size = new Size(760, 900);
+                    view.Go(logicalPath);
+                    Paint(view);
+                    var logicalShellRect = BlockRect(view, BlockById(view.At, "size-shell"));
+                    Eq(new Size(400, 300), logicalShellRect.Size, "WinForms logical shell size");
+                    Eq(new Size(220, 150), BlockRect(view, BlockById(view.At, "logical-size")).Size, "WinForms constrained logical size");
+                    Eq(new Size(140, 70), BlockRect(view, BlockById(view.At, "order-physical")).Size, "WinForms physical source-order size");
+                    Eq(new Size(120, 60), BlockRect(view, BlockById(view.At, "order-logical")).Size, "WinForms logical source-order size");
+                    Eq(new Size(285, 75), BlockRect(view, BlockById(view.At, "variable")).Size, "WinForms logical custom-property size");
+                    Eq(new Size(110, 80), BlockRect(view, BlockById(view.At, "important")).Size, "WinForms logical important size");
+                    Eq(new Size(144, 48), BlockRect(view, BlockById(view.At, "inherit-child")).Size, "WinForms inherited logical percentage size");
+                    var logicalPositionShell = BlockRect(view, BlockById(view.At, "position-shell"));
+                    var logicalAxisRect = BlockRect(view, BlockById(view.At, "axis-position"));
+                    Ok(logicalAxisRect.Left - logicalPositionShell.Left == 24 && logicalAxisRect.Top - logicalPositionShell.Top == 18 &&
+                        logicalAxisRect.Size == new Size(346, 196), "WinForms logical axis inset stretch");
+                    var logicalLonghandRect = BlockRect(view, BlockById(view.At, "longhand-position"));
+                    Ok(logicalLonghandRect.Left - logicalPositionShell.Left == 32 && logicalPositionShell.Bottom - logicalLonghandRect.Bottom == 20 &&
+                        logicalLonghandRect.Size == new Size(100, 50), "WinForms logical longhand placement");
+                    var logicalInvalidRect = BlockRect(view, BlockById(view.At, "invalid-position"));
+                    Ok(logicalInvalidRect.Left - logicalPositionShell.Left == 11 && logicalInvalidRect.Top - logicalPositionShell.Top == 19,
+                        "WinForms atomic logical inset fallback");
+                    Eq(2, view.Ck(ById(view.At.D, "set-logical")), "WinForms short logical size commands");
+                    Paint(view);
+                    Ok(BlockById(view.At, "command").S.Wp == 50 && BlockRect(view, BlockById(view.At, "command")).Height == 120,
+                        "WinForms short logical command reflow");
+                    Eq(2, view.Ck(ById(view.At.D, "dom-logical")), "WinForms familiar logical DOM styles");
+                    Paint(view);
+                    Ok(BlockById(view.At, "command").S.Wp == 25 && BlockRect(view, BlockById(view.At, "command")).Height == 70,
+                        "WinForms familiar logical DOM reflow");
+                    Eq(2, view.Ck(ById(view.At.D, "clear-logical")), "WinForms logical DOM reset");
+                    Paint(view);
+                    Eq(new Size(210, 90), BlockRect(view, BlockById(view.At, "command")).Size, "WinForms logical DOM reset geometry");
 
                     view.Size = new Size(800, 600);
                     view.Go(viewportPath);

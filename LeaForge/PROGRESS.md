@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **82**
+Post-1.0 hardening milestones completed: **83**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,24 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded horizontal left-to-right logical sizing and positioned insets.
+  `inline-size`/`block-size` and their min/max forms compile into existing
+  width/height records; four logical inset longhands and atomic one/two-value
+  axis shorthands compile into `Tp/Rt/Bm/Lt`. Source order, important tiers,
+  custom properties, explicit size inheritance, resets, all existing dimension
+  terms/functions, positioned stretching, layout, paint, hits, editors, and
+  accessibility remain on shared paths. Short `is/bs`, readable command forms,
+  and literal `style.inlineSize/style.blockSize` assignments reuse `wd/ht`.
+  Writing modes and bidi remapping remain explicit limits. Full repository and
+  compiled-host smokes pass, along with 79 probes over 76 fixtures, all 42 Boot
+  cases, and all six real EXE startup scenarios. Measured medians are 554.307 ms
+  clean diagnostic start, 3.598 ms local load, and 33.759 ms layout/paint.
+  Retained managed memory is 19,314.1 KiB for 380 pages, or 50.8 KiB/page.
+  Required runtime files total 555.0 KiB with a 236.4 KiB GZip estimate.
+  Runtime 183 stays isolated and installed runtime 157 remains unchanged. See
+  `LOGICAL_SIZING_INSETS.md`. The scoped baseline stays at 100%, not full-web
+  compatibility.
 
 - Added bounded retained initial-fragment placement to the WinForms renderer.
   One current page/fragment pair is reapplied after first paint, host or font
@@ -958,8 +976,8 @@ modern web platform.
 
 ## Next gains
 
-- Add bounded CSS logical sizing/insets where it can reuse the existing
-  dimension resolver without introducing writing-mode-dependent layout yet.
+- Evaluate bounded horizontal logical margin/padding properties that can reuse
+  the existing box-edge records without claiming writing-mode-dependent layout.
 - Add an AppContainer or capability-denied network boundary, custom object ACLs,
   and combined host/helper peak sampling without expanding the public
   integration surface.
