@@ -4812,18 +4812,19 @@ namespace Lea.Engine
             int pixels;
             int percent;
             int offset;
+            int unit;
             bool inherit;
-            if (!WidthValue(value, part, out pixels, out percent, out offset, out inherit)) return;
+            if (!WidthValue(value, part, out pixels, out percent, out offset, out unit, out inherit)) return;
             if (inherit && inherited != null)
             {
-                if (part == 0) { pixels = inherited.W; percent = inherited.Wp; offset = inherited.Wo; }
-                else if (part == 1) { pixels = inherited.Wn; percent = inherited.Wnp; offset = inherited.Wno; }
-                else { pixels = inherited.Wx; percent = inherited.Wxp; offset = inherited.Wxo; }
+                if (part == 0) { pixels = inherited.W; percent = inherited.Wp; offset = inherited.Wo; unit = inherited.Wu; }
+                else if (part == 1) { pixels = inherited.Wn; percent = inherited.Wnp; offset = inherited.Wno; unit = inherited.Wnu; }
+                else { pixels = inherited.Wx; percent = inherited.Wxp; offset = inherited.Wxo; unit = inherited.Wxu; }
             }
             if (part == 0) style.W = pixels;
             else if (part == 1) style.Wn = pixels;
             else style.Wx = pixels;
-            style.SetWidth(part, percent, offset);
+            style.SetWidth(part, percent, offset, unit);
         }
 
         internal static bool Wd(string value, out string width)
@@ -4833,8 +4834,9 @@ namespace Lea.Engine
             int pixels;
             int percent;
             int offset;
+            int unit;
             bool inherit;
-            return WidthValue(width, 0, out pixels, out percent, out offset, out inherit);
+            return WidthValue(width, 0, out pixels, out percent, out offset, out unit, out inherit);
         }
 
         private static void Height(S style, S inherited, string value, int part)
@@ -4842,21 +4844,22 @@ namespace Lea.Engine
             int pixels;
             int percent;
             int offset;
+            int unit;
             bool inherit;
-            if (!HeightValue(value, part, out pixels, out percent, out offset, out inherit)) return;
+            if (!HeightValue(value, part, out pixels, out percent, out offset, out unit, out inherit)) return;
             if (inherit && inherited != null)
             {
-                if (part == 0) { pixels = inherited.H; percent = inherited.Hp; offset = inherited.Ho; }
-                else if (part == 1) { pixels = inherited.Hn; percent = inherited.Hnp; offset = inherited.Hno; }
-                else { pixels = inherited.Hx; percent = inherited.Hxp; offset = inherited.Hxo; }
+                if (part == 0) { pixels = inherited.H; percent = inherited.Hp; offset = inherited.Ho; unit = inherited.Hu; }
+                else if (part == 1) { pixels = inherited.Hn; percent = inherited.Hnp; offset = inherited.Hno; unit = inherited.Hnu; }
+                else { pixels = inherited.Hx; percent = inherited.Hxp; offset = inherited.Hxo; unit = inherited.Hxu; }
             }
             if (part == 0) style.H = pixels;
             else if (part == 1) style.Hn = pixels;
             else style.Hx = pixels;
-            style.SetHeight(part, percent, offset);
+            style.SetHeight(part, percent, offset, unit);
         }
 
-        private static bool HeightValue(string value, int part, out int pixels, out int percent, out int offset, out bool inherit)
+        private static bool HeightValue(string value, int part, out int pixels, out int percent, out int offset, out int unit, out bool inherit)
         {
             var source = (value ?? "").Trim().ToLowerInvariant();
             var fixedValue = Regex.Match(source, "^(?<n>[0-9]{1,4})(?:px)?$");
@@ -4866,10 +4869,11 @@ namespace Lea.Engine
                 pixels = Math.Min(authoredPixels, 2000);
                 percent = 0;
                 offset = 0;
+                unit = 0;
                 inherit = false;
                 return true;
             }
-            return WidthValue(source, part, out pixels, out percent, out offset, out inherit);
+            return WidthValue(source, part, out pixels, out percent, out offset, out unit, out inherit);
         }
 
         internal static bool Ht(string value, out string height)
@@ -4879,15 +4883,17 @@ namespace Lea.Engine
             int pixels;
             int percent;
             int offset;
+            int unit;
             bool inherit;
-            return WidthValue(height, 0, out pixels, out percent, out offset, out inherit);
+            return WidthValue(height, 0, out pixels, out percent, out offset, out unit, out inherit);
         }
 
-        private static bool WidthValue(string value, int part, out int pixels, out int percent, out int offset, out bool inherit)
+        private static bool WidthValue(string value, int part, out int pixels, out int percent, out int offset, out int unit, out bool inherit)
         {
             pixels = 0;
             percent = 0;
             offset = 0;
+            unit = 0;
             inherit = false;
             var source = (value ?? "").Trim().ToLowerInvariant();
             if (source == "inherit") { inherit = true; return true; }
@@ -4898,16 +4904,26 @@ namespace Lea.Engine
             if (fixedValue.Success && Int32.TryParse(fixedValue.Groups["n"].Value, out pixels) && pixels <= 2000) return true;
             pixels = 0;
 
-            var relative = Regex.Match(source, "^(?<p>[1-9][0-9]{0,2})%$");
-            if (relative.Success && Int32.TryParse(relative.Groups["p"].Value, out percent) && percent <= 100) return true;
+            var relative = Regex.Match(source, "^(?<p>[1-9][0-9]{0,2})(?<u>%|vw|vh|vmin|vmax)$");
+            if (relative.Success && Int32.TryParse(relative.Groups["p"].Value, out percent) && percent <= 100)
+            {
+                unit = ViewportUnit(relative.Groups["u"].Value);
+                return true;
+            }
             percent = 0;
 
-            var calculated = Regex.Match(source, "^calc\\(\\s*(?<p>[1-9][0-9]{0,2})%\\s*(?<s>[+-])\\s*(?<n>[0-9]{1,4})px\\s*\\)$");
+            var calculated = Regex.Match(source, "^calc\\(\\s*(?<p>[1-9][0-9]{0,2})(?<u>%|vw|vh|vmin|vmax)\\s*(?<s>[+-])\\s*(?<n>[0-9]{1,4})px\\s*\\)$");
             int amount;
             if (!calculated.Success || !Int32.TryParse(calculated.Groups["p"].Value, out percent) || percent > 100 ||
                 !Int32.TryParse(calculated.Groups["n"].Value, out amount) || amount > 2000) return false;
+            unit = ViewportUnit(calculated.Groups["u"].Value);
             offset = calculated.Groups["s"].Value == "-" ? -amount : amount;
             return true;
+        }
+
+        private static int ViewportUnit(string unit)
+        {
+            return unit == "vw" ? 1 : unit == "vh" ? 2 : unit == "vmin" ? 3 : unit == "vmax" ? 4 : 0;
         }
 
         private static void Border(S style, string value, int side)

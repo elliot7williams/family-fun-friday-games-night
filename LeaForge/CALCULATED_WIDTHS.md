@@ -65,9 +65,9 @@ viewport ceiling.
 
 Lea does not accept `min()`, `max()`, `clamp()`, multiplication, division,
 nested calculations, arbitrary operators, negative percentages, percentages
-above 100, viewport/font units, or intrinsic keywords. Calculated heights were
-outside runtime 176 and are now covered by `CALCULATED_HEIGHTS.md`. Unsupported
-values remain inert.
+above 100, font units, or intrinsic keywords. Calculated heights are covered by
+`CALCULATED_HEIGHTS.md`; classic bounded viewport units are covered by
+`VIEWPORT_UNITS.md`. Unsupported values remain inert.
 
 `calculated-widths.html` covers fixed and percentage widths, positive and
 negative calculated offsets, calculated minimum/maximum constraints, custom

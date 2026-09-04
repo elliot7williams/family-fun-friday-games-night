@@ -216,6 +216,10 @@ Compact `ht(id,value)`, readable `height(id,value)`, and literal `style.height`
 use the matching parser. Authored height/min/max tuples resolve against definite
 viewport, retained-parent, positioned, flex, grid, and table references; an
 auto-height parent leaves percentage children on natural layout.
+Classic bounded `vw`, `vh`, `vmin`, and `vmax` values use the same width/height,
+minimum/maximum, command, and literal paths. Compact `S.Wu/Hu` unit aliases and
+`V.Vh` retain the live viewport reference inside Lea, including auto-height
+parents and height-only resizes; Firespider adds no adapter-side unit handling.
 The same public route supports bounded `hd/sh` visibility, `op/cl/tg` details
 state, `ds/en` field availability, `vl` values, `ck` checked state, and `fo`
 focus requests. Hidden
@@ -285,11 +289,12 @@ and reuses one curve for backgrounds, solid/dashed/dotted borders, descendant
 overflow clips, and ordinary fields. The adapter adds no rounded host controls;
 its smoke verifies the compiled browser receives the compact radius model.
 
-Responsive CSS also stays inside that surface. `V.Vw` follows the hosted
-control's client width, while `P.Vw` and `G.Vw` expose the applied value to the
-page and Inspector. Bounded screen/all pixel min/max/exact, comma, nested, and
-style media conditions switch compiled rules on resize without replacing live
-field models. The host smoke verifies narrow and restored wide states.
+Responsive CSS also stays inside that surface. `V.Vw/Vh` follow the hosted
+control's client viewport, while `P.Vw` and `G.Vw` expose the media-query width
+to the page and Inspector. Bounded screen/all pixel min/max/exact, comma,
+nested, and style media conditions switch compiled rules on resize without
+replacing live field models. The host smoke verifies narrow and restored wide
+states plus classic viewport-unit geometry and commands.
 
 CSS custom properties stay compact as well. Firespider can read `S.Vc`, perform
 case-sensitive `S.Cv(name)` lookup, and see the document count through `G.Vc`

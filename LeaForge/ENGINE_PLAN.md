@@ -345,11 +345,13 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-The bounded size model now includes definite percentage and one-expression
-calculated heights through compact `S.Hp/Ho`, min/max counterparts, `ht`, and
-literal `style.height`. See `CALCULATED_HEIGHTS.md`. Next evaluate additional
-high-value HTML/CSS compatibility while keeping the short public API and
-avoiding general CSS or JavaScript evaluators.
+The bounded size model now includes classic `vw`, `vh`, `vmin`, and `vmax`
+values plus one-expression calculations through compact `S.Wu/Hu` and min/max
+counterparts. One live `V.Vh` alias complements `V.Vw`; the shared resolver
+covers both axes and auto-height parents without a general evaluator. See
+`VIEWPORT_UNITS.md`. Next evaluate additional high-value HTML/CSS compatibility
+while keeping the short public API and avoiding general CSS or JavaScript
+evaluators.
 
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host

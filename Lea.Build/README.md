@@ -140,6 +140,10 @@ flex/grid/table layout, cascade restoration, and resize reflow. See
 viewport/parent percentage resolution, calculated min/max constraints,
 positioned/flex/grid/table/control/image layout, cascade restoration, and
 vertical resize reflow. See `LeaForge/CALCULATED_HEIGHTS.md`.
+`viewport-units.html` adds bounded `vw`, `vh`, `vmin`, and `vmax` dimensions,
+cross-axis calculations and min/max constraints, lazy compact unit aliases,
+auto-parent resolution, shared layout families, commands, and two-axis resize
+reflow. See `LeaForge/VIEWPORT_UNITS.md`.
 `-Case edit` tests native field menu/hover commands, protected fields,
 paused/empty tabs, and the explicit legacy fallback; see `NATIVE_EDITING.md`.
 `-Case paste` checks guarded real-menu/native/keyboard paste under a held

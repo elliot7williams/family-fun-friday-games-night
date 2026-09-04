@@ -107,7 +107,7 @@ namespace Lea.Bench
             var names = new[]
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
-                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
+                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -2060,6 +2060,44 @@ namespace Lea.Bench
                 Need(engine.Js(page, "ht('command','min(100%,400px)'); document.getElementById('command').style.height='101%';") == 0 && block("command").S.H == 180, "general or out-of-range height expression was accepted");
                 return "ht plus literal style.height, definite viewport/parent resolution, auto fallback, flex/grid/table/aspect-ratio geometry, min/max, variables, inheritance, reset, and strict bounds";
             });
+            AddProbe(probes, "Bounded viewport units", delegate
+            {
+                var path = Path.Combine(folder, "viewport-units.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(block("vw").S.Wp == 50 && block("vw").S.Wu == 1 && block("vh-width").S.Wu == 2 &&
+                    block("vmin-width").S.Wu == 3 && block("vmax-width").S.Wu == 4, "viewport width unit model changed");
+                Need(block("vh").S.Hp == 50 && block("vh").S.Hu == 2 && block("vw-height").S.Hu == 1 &&
+                    block("vmin-height").S.Hu == 3 && block("vmax-height").S.Hu == 4, "viewport height unit model changed");
+                Need(block("calc-width").S.Wo == -20 && block("calc-height").S.Ho == -20 &&
+                    block("minimum-width").S.Wnu == 1 && block("maximum-height").S.Hxu == 2, "viewport calc or min/max model changed");
+                Need(block("inherit-child").S.Wu == 3 && block("inherit-child").S.Hu == 4 &&
+                    block("variable").S.Wu == 4 && block("variable").S.Hu == 3 && block("invalid").S.W == 140 && block("invalid").S.H == 90,
+                    "viewport inheritance, variable, or atomic fallback changed");
+                using (var view = new V { Size = new Size(800, 600) })
+                {
+                    view.CreateControl();
+                    view.Go(path);
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "vw").Width == 400 && BlockContent(view, "vh-width").Width == 150 &&
+                        BlockContent(view, "vh").Height == 300 && BlockContent(view, "vw-height").Height == 200,
+                        "viewport primary or cross-axis geometry changed");
+                    Need(BlockContent(view, "vmin-width").Width == 60 && BlockContent(view, "vmax-height").Height == 80 &&
+                        BlockContent(view, "auto-viewport-child").Height == 150, "vmin/vmax or auto-parent geometry changed");
+                    Need(BlockContent(view, "flex-a").Size == new Size(200, 150) && BlockContent(view, "grid-a").Size == new Size(200, 150) &&
+                        BlockContent(view, "viewport-table").Size == new Size(400, 150), "viewport flex, grid, or table geometry changed");
+                    Need(view.Ck(ById(view.At.D, "set-viewport")) == 2, "viewport compact commands failed");
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "command").Size == new Size(380, 280), "viewport compact command reflow changed");
+                    view.Size = new Size(640, 400);
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "vw").Width == 320 && BlockContent(view, "vh").Height == 200 &&
+                        BlockContent(view, "fixed").Size == new Size(40, 64), "viewport resize geometry changed");
+                }
+                Need(engine.Js(page, "wd('command','101vw'); ht('command','20dvh')") == 0, "unsupported viewport values were accepted");
+                return "vw/vh/vmin/vmax plus calc offsets, cross-axis sizing, lazy unit aliases, min/max, variables, inheritance, layout families, commands, and live resize";
+            });
             AddProbe(probes, "Bounded sticky positioning", delegate
             {
                 var path = Path.Combine(folder, "sticky-positioning.html");
@@ -2321,12 +2359,12 @@ namespace Lea.Bench
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, fixed/percentage/calc widths and definite heights with calculated min/max, content/border box, circular/elliptical radii, bounded outlines, box shadows and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing and text styles, visibility, absolute/fixed and bounded vertical sticky positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
+            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, fixed/percentage/calc dimensions and classic vw/vh/vmin/vmax units with calculated min/max, content/border box, circular/elliptical radii, bounded outlines, box shadows and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing and text styles, visibility, absolute/fixed and bounded vertical sticky positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, inline, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Text overflow", "Supported subset", "Non-inherited clip/ellipsis; paint-only bounded text-element prefixes for clipped overflowing horizontal LTR lines, inline runs and tables; retained layout/link targets and full logical automation text; no native-control, bidi, custom-marker, or line-clamp additions");
-            Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color, font, display, and width, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, safe click commands, and literal compatibility translation");
-            Capability(builder, "Literal DOM bridge", "Supported subset", "Literal document.getElementById IDs with textContent/innerText, value, checked/disabled/hidden/open, focus(), classList add/remove/toggle, and background/color/fontSize/display/width; literal location href/assign requests; mapped to bounded Lea aliases");
+            Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color, font, display, width, and height, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, safe click commands, and literal compatibility translation");
+            Capability(builder, "Literal DOM bridge", "Supported subset", "Literal document.getElementById IDs with textContent/innerText, value, checked/disabled/hidden/open, focus(), classList add/remove/toggle, and background/color/fontSize/display/width/height; literal location href/assign requests; mapped to bounded Lea aliases");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
             Capability(builder, "Flexbox", "Supported subset", "Row/row-reverse and fixed-height column/column-reverse containers, content/border-box pixel bases, stable -64..64 order on nowrap rows and bounded columns, bounded row wrap, fixed/equal-share/weighted grow and integer weighted-shrink slots, explicit pixel min/max floors, pixel row/column gaps, start/center/end/space-between/space-around/space-evenly justification, and container/item stretch/start/center/end cross alignment; no intrinsic min-content sizing, fractional factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis alignment, or auto-height column reordering guarantee");
             Capability(builder, "CSS Grid", "Supported subset", "Grid/inline-grid with up to eight fixed-pixel, auto, or integer-fr tracks per explicit axis, simple repeat and minmax(0, Nfr), pixel gaps, bounded occupancy, two-axis numeric starts/spans, validated 8x8 named-area templates, unique explicit named lines, area-generated start/end lines, Gf row/column sparse/dense flow, repeating S.Av/Gac/Gav/Rac/Rav pixel/auto/integer-fr implicit patterns, definite endpoint/span growth, area-created track sizing, exact auto-height row settlement, atomic grid-template/grid explicit, quoted-area, and row/column auto-flow shorthands, Ji/Js/Ai/As start/center/end/stretch item alignment, atomic place-items/place-self, Al/Jc start/center/end/between/around/evenly track-group alignment, atomic place-content, and shared nested paint/hit/reflow; no escaped or repeated-name occurrence indexes, reverse flow, pre-explicit implicit tracks, shorthand area-row line names, intrinsic or percentage tracks, auto-fit/fill, baseline or safe/unsafe alignment, writing-mode axis reversal, or subgrid");

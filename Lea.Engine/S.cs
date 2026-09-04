@@ -82,23 +82,29 @@ namespace Lea.Engine
         public int Pl { get; internal set; }
         public string Bz { get; internal set; }
         public int W { get; internal set; }
-        public int Wp { get { return WidthValue(0); } }
-        public int Wo { get { return WidthValue(1); } }
+        public int Wp { get { return WidthValue(0, 0); } }
+        public int Wo { get { return WidthValue(0, 1); } }
+        public int Wu { get { return WidthValue(0, 2); } }
         public int H { get; internal set; }
-        public int Hp { get { return HeightValue(0); } }
-        public int Ho { get { return HeightValue(1); } }
+        public int Hp { get { return HeightValue(0, 0); } }
+        public int Ho { get { return HeightValue(0, 1); } }
+        public int Hu { get { return HeightValue(0, 2); } }
         public int Wn { get; internal set; }
-        public int Wnp { get { return WidthValue(2); } }
-        public int Wno { get { return WidthValue(3); } }
+        public int Wnp { get { return WidthValue(1, 0); } }
+        public int Wno { get { return WidthValue(1, 1); } }
+        public int Wnu { get { return WidthValue(1, 2); } }
         public int Wx { get; internal set; }
-        public int Wxp { get { return WidthValue(4); } }
-        public int Wxo { get { return WidthValue(5); } }
+        public int Wxp { get { return WidthValue(2, 0); } }
+        public int Wxo { get { return WidthValue(2, 1); } }
+        public int Wxu { get { return WidthValue(2, 2); } }
         public int Hn { get; internal set; }
-        public int Hnp { get { return HeightValue(2); } }
-        public int Hno { get { return HeightValue(3); } }
+        public int Hnp { get { return HeightValue(1, 0); } }
+        public int Hno { get { return HeightValue(1, 1); } }
+        public int Hnu { get { return HeightValue(1, 2); } }
         public int Hx { get; internal set; }
-        public int Hxp { get { return HeightValue(4); } }
-        public int Hxo { get { return HeightValue(5); } }
+        public int Hxp { get { return HeightValue(2, 0); } }
+        public int Hxo { get { return HeightValue(2, 1); } }
+        public int Hxu { get { return HeightValue(2, 2); } }
         public double Rw { get; internal set; }
         public double Rh { get; internal set; }
         public bool Ra { get; internal set; }
@@ -190,36 +196,38 @@ namespace Lea.Engine
             return !String.IsNullOrEmpty(name) && Vr != null && Vr.TryGetValue(name, out value) ? value : "";
         }
 
-        internal void SetWidth(int part, int percent, int offset)
+        internal void SetWidth(int part, int percent, int offset, int unit)
         {
             if (part < 0 || part > 2) return;
-            if (Wd == null && (percent != 0 || offset != 0)) Wd = new int[6];
+            if (Wd == null && (percent != 0 || offset != 0 || unit != 0)) Wd = new int[9];
             if (Wd == null) return;
-            Wd[part * 2] = percent;
-            Wd[part * 2 + 1] = offset;
+            Wd[part * 3] = percent;
+            Wd[part * 3 + 1] = offset;
+            Wd[part * 3 + 2] = unit;
             for (var index = 0; index < Wd.Length; index++) if (Wd[index] != 0) return;
             Wd = null;
         }
 
-        internal void SetHeight(int part, int percent, int offset)
+        internal void SetHeight(int part, int percent, int offset, int unit)
         {
             if (part < 0 || part > 2) return;
-            if (Hd == null && (percent != 0 || offset != 0)) Hd = new int[6];
+            if (Hd == null && (percent != 0 || offset != 0 || unit != 0)) Hd = new int[9];
             if (Hd == null) return;
-            Hd[part * 2] = percent;
-            Hd[part * 2 + 1] = offset;
+            Hd[part * 3] = percent;
+            Hd[part * 3 + 1] = offset;
+            Hd[part * 3 + 2] = unit;
             for (var index = 0; index < Hd.Length; index++) if (Hd[index] != 0) return;
             Hd = null;
         }
 
-        private int WidthValue(int index)
+        private int WidthValue(int part, int value)
         {
-            return Wd == null ? 0 : Wd[index];
+            return Wd == null ? 0 : Wd[part * 3 + value];
         }
 
-        private int HeightValue(int index)
+        private int HeightValue(int part, int value)
         {
-            return Hd == null ? 0 : Hd[index];
+            return Hd == null ? 0 : Hd[part * 3 + value];
         }
 
         private int GridLine(string name, bool rows)

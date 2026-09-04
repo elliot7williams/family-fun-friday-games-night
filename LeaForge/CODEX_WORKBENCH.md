@@ -17,17 +17,14 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 78 adds bounded percentage and `calc(P% +/- Npx)` heights through
-compact `S.Hp/Ho`, `Hnp/Hno`, `Hxp/Hxo`, and `ht`. Definite viewport, parent,
-positioned, flex, and grid references now share resolved layout, paint, hit,
-control, table, media, aspect-ratio, and accessibility geometry. Auto-height
-parents keep percentage children natural. Authored oversized pixel heights
-retain the legacy 2000px cap; script commands keep strict bounds. Firespider
-also recovers unclean sessions without a modal startup question and maps its
-retired built-in home to the bundled Lea page. Full repository/host tests pass,
-with 74 probes over 71 fixtures, all 42 Boot cases, and all six real EXE startup
-scenarios. Runtime 178 stays isolated and installed runtime 157 remains
-unchanged. See `CALCULATED_HEIGHTS.md` and `Startup-smooth-host.patch`. Next
+Milestone 79 adds bounded classic `vw`, `vh`, `vmin`, and `vmax` dimensions and
+one `calc(PU +/- Npx)` form through compact `S.Wu/Hu` unit aliases and live
+`V.Vh`. The shared resolver covers width/height min/max, auto-height parents,
+blocks, positioning, flex, grid, tables, controls, images, aspect ratios,
+content/border boxes, paint, hits, accessibility, commands, and two-axis
+resize. Full repository/host tests pass with 75 probes over 72 fixtures, all 42
+Boot cases, and all six real EXE startup scenarios. Runtime 179 stays isolated
+and installed runtime 157 remains unchanged. See `VIEWPORT_UNITS.md`. Next
 continue bounded HTML/CSS/DOM compatibility and host migration without a
 general VM.
 

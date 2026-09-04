@@ -328,6 +328,55 @@ namespace Lea.Tests
                 Eq(0, calculatedHeightEngine.Js(calculatedHeightPage, "ht('command','min(100%,400px)'); height('command','calc(100% / 2)'); document.getElementById('command').style.height='101%';"), "general or out-of-range height expressions rejected");
                 Eq(180, BlockById(calculatedHeightPage, "command").S.H, "rejected height expressions preserve cascade");
 
+                var viewportPath = Path.Combine(pages, "viewport-units.html");
+                var viewportEngine = new E();
+                var viewportPage = viewportEngine.Go(viewportPath);
+                Eq(0, viewportPage.Jc, "viewport unit fixture has no startup commands");
+                var viewportWidthStyle = BlockById(viewportPage, "vw").S;
+                Ok(viewportWidthStyle.Wp == 50 && viewportWidthStyle.Wu == 1, "viewport width unit model");
+                Ok(BlockById(viewportPage, "vh-width").S.Wp == 25 && BlockById(viewportPage, "vh-width").S.Wu == 2 &&
+                    BlockById(viewportPage, "vmin-width").S.Wu == 3 && BlockById(viewportPage, "vmax-width").S.Wu == 4,
+                    "cross-axis and minimum/maximum viewport width unit model");
+                Ok(BlockById(viewportPage, "calc-width").S.Wp == 50 && BlockById(viewportPage, "calc-width").S.Wu == 1 && BlockById(viewportPage, "calc-width").S.Wo == -20,
+                    "calculated viewport width model");
+                Ok(BlockById(viewportPage, "vh").S.Hp == 50 && BlockById(viewportPage, "vh").S.Hu == 2 &&
+                    BlockById(viewportPage, "vw-height").S.Hu == 1 && BlockById(viewportPage, "vmin-height").S.Hu == 3 && BlockById(viewportPage, "vmax-height").S.Hu == 4,
+                    "viewport height unit model");
+                Ok(BlockById(viewportPage, "calc-height").S.Hp == 50 && BlockById(viewportPage, "calc-height").S.Hu == 2 && BlockById(viewportPage, "calc-height").S.Ho == -20,
+                    "calculated viewport height model");
+                var viewportMinimumWidth = BlockById(viewportPage, "minimum-width").S;
+                var viewportMaximumWidth = BlockById(viewportPage, "maximum-width").S;
+                var viewportMinimumHeight = BlockById(viewportPage, "minimum-height").S;
+                var viewportMaximumHeight = BlockById(viewportPage, "maximum-height").S;
+                Ok(viewportMinimumWidth.Wnp == 25 && viewportMinimumWidth.Wnu == 1 && viewportMaximumWidth.Wxp == 50 && viewportMaximumWidth.Wxu == 1 && viewportMaximumWidth.Wxo == -5,
+                    "viewport minimum and maximum width model");
+                Ok(viewportMinimumHeight.Hnp == 25 && viewportMinimumHeight.Hnu == 2 && viewportMaximumHeight.Hxp == 50 && viewportMaximumHeight.Hxu == 2 && viewportMaximumHeight.Hxo == -5,
+                    "viewport minimum and maximum height model");
+                var viewportInherited = BlockById(viewportPage, "inherit-child").S;
+                Ok(viewportInherited.Wp == 40 && viewportInherited.Wu == 3 && viewportInherited.Hp == 30 && viewportInherited.Hu == 4,
+                    "inherited viewport unit model");
+                var viewportVariable = BlockById(viewportPage, "variable").S;
+                Ok(viewportVariable.Wp == 30 && viewportVariable.Wu == 4 && viewportVariable.Wo == 10 &&
+                    viewportVariable.Hp == 30 && viewportVariable.Hu == 3 && viewportVariable.Ho == -10,
+                    "custom-property viewport unit model");
+                Ok(BlockById(viewportPage, "invalid").S.W == 140 && BlockById(viewportPage, "invalid").S.H == 90,
+                    "invalid viewport values preserve prior declarations");
+                Eq(2, viewportEngine.Ck(viewportPage, ById(viewportPage.D, "set-viewport")), "compact viewport size commands");
+                Ok(BlockById(viewportPage, "command").S.Wu == 1 && BlockById(viewportPage, "command").S.Hu == 2,
+                    "compact viewport commands reach style model");
+                Eq(2, viewportEngine.Ck(viewportPage, ById(viewportPage.D, "dom-viewport")), "literal DOM viewport size commands");
+                Ok(BlockById(viewportPage, "command").S.Wu == 2 && BlockById(viewportPage, "command").S.Hu == 1,
+                    "literal DOM cross-axis viewport model");
+                Eq(2, viewportEngine.Ck(viewportPage, ById(viewportPage.D, "clear-viewport")), "empty viewport size reset");
+                Ok(BlockById(viewportPage, "command").S.W == 200 && BlockById(viewportPage, "command").S.H == 120 &&
+                    BlockById(viewportPage, "command").S.Wp == 0 && BlockById(viewportPage, "command").S.Wu == 0 &&
+                    BlockById(viewportPage, "command").S.Hp == 0 && BlockById(viewportPage, "command").S.Hu == 0,
+                    "viewport reset restores authored pixels and releases lazy state");
+                Eq(0, viewportEngine.Js(viewportPage, "wd('command','0vw'); ht('command','101vh'); width('command','calc(10vmin * 2)'); height('command','calc(50vmax + 2001px)'); document.getElementById('command').style.height='20dvh';"),
+                    "invalid viewport unit commands rejected");
+                Ok(BlockById(viewportPage, "command").S.W == 200 && BlockById(viewportPage, "command").S.H == 120,
+                    "rejected viewport commands preserve cascade");
+
                 var scriptsOff = new E();
                 scriptsOff.Je = false;
                 var disabledScriptPage = scriptsOff.Go(scriptPath);
@@ -2222,6 +2271,90 @@ namespace Lea.Tests
                     var narrowViewportHeight = (int)Math.Round(narrowRootHeightReference * .5D);
                     Eq(narrowViewportHeight, BlockRect(view, BlockById(view.At, "viewport")).Height, "WinForms viewport percentage height responds to resize");
                     Eq((int)Math.Round(narrowViewportHeight * .5D), BlockRect(view, BlockById(view.At, "viewport-child")).Height, "WinForms nested percentage height responds to resize");
+
+                    view.Size = new Size(800, 600);
+                    view.Go(viewportPath);
+                    Paint(view);
+                    var viewportWidth = view.ClientSize.Width;
+                    var viewportHeightUnits = view.ClientSize.Height;
+                    var viewportMinimum = Math.Min(viewportWidth, viewportHeightUnits);
+                    var viewportMaximum = Math.Max(viewportWidth, viewportHeightUnits);
+                    Eq(viewportHeightUnits, view.Vh, "WinForms compact viewport height alias");
+                    Eq((int)Math.Round(viewportWidth * .5D), BlockRect(view, BlockById(view.At, "vw")).Width, "WinForms vw width");
+                    Eq((int)Math.Round(viewportHeightUnits * .25D), BlockRect(view, BlockById(view.At, "vh-width")).Width, "WinForms vh cross-axis width");
+                    Eq((int)Math.Round(viewportMinimum * .1D), BlockRect(view, BlockById(view.At, "vmin-width")).Width, "WinForms vmin width");
+                    Eq((int)Math.Round(viewportMaximum * .1D), BlockRect(view, BlockById(view.At, "vmax-width")).Width, "WinForms vmax width");
+                    Eq((int)Math.Round(viewportWidth * .5D) - 20, BlockRect(view, BlockById(view.At, "calc-width")).Width, "WinForms calculated viewport width");
+                    Eq((int)Math.Round(viewportHeightUnits * .5D), BlockRect(view, BlockById(view.At, "vh")).Height, "WinForms vh height");
+                    Eq((int)Math.Round(viewportWidth * .25D), BlockRect(view, BlockById(view.At, "vw-height")).Height, "WinForms vw cross-axis height");
+                    Eq((int)Math.Round(viewportMinimum * .1D), BlockRect(view, BlockById(view.At, "vmin-height")).Height, "WinForms vmin height");
+                    Eq((int)Math.Round(viewportMaximum * .1D), BlockRect(view, BlockById(view.At, "vmax-height")).Height, "WinForms vmax height");
+                    Eq((int)Math.Round(viewportHeightUnits * .5D) - 20, BlockRect(view, BlockById(view.At, "calc-height")).Height, "WinForms calculated viewport height");
+                    Eq((int)Math.Round(viewportWidth * .25D), BlockRect(view, BlockById(view.At, "minimum-width")).Width, "WinForms viewport minimum width");
+                    Eq((int)Math.Round(viewportWidth * .5D) - 5, BlockRect(view, BlockById(view.At, "maximum-width")).Width, "WinForms viewport maximum width");
+                    Eq((int)Math.Round(viewportHeightUnits * .25D), BlockRect(view, BlockById(view.At, "minimum-height")).Height, "WinForms viewport minimum height");
+                    Eq((int)Math.Round(viewportHeightUnits * .5D) - 5, BlockRect(view, BlockById(view.At, "maximum-height")).Height, "WinForms viewport maximum height");
+                    Eq((int)Math.Round(viewportWidth * .5D), BlockRect(view, BlockById(view.At, "viewport-child")).Width, "WinForms viewport width ignores parent width");
+                    Eq((int)Math.Round(viewportHeightUnits * .25D), BlockRect(view, BlockById(view.At, "viewport-child")).Height, "WinForms viewport height ignores parent height");
+                    Eq(300, BlockRect(view, BlockById(view.At, "percent-child")).Width, "WinForms percentage width keeps parent reference");
+                    Eq(100, BlockRect(view, BlockById(view.At, "percent-child")).Height, "WinForms percentage height keeps parent reference");
+                    Eq((int)Math.Round(viewportHeightUnits * .25D), BlockRect(view, BlockById(view.At, "auto-viewport-child")).Height,
+                        "WinForms viewport height resolves below auto parent");
+                    Eq((int)Math.Round(viewportMinimum * .4D), BlockRect(view, BlockById(view.At, "inherit-child")).Width, "WinForms inherited vmin width");
+                    Eq((int)Math.Round(viewportMaximum * .3D), BlockRect(view, BlockById(view.At, "inherit-child")).Height, "WinForms inherited vmax height");
+                    Eq((int)Math.Round(viewportMaximum * .3D) + 10, BlockRect(view, BlockById(view.At, "variable")).Width, "WinForms custom-property vmax width");
+                    Eq((int)Math.Round(viewportMinimum * .3D) - 10, BlockRect(view, BlockById(view.At, "variable")).Height, "WinForms custom-property vmin height");
+                    Eq(new Size(140, 90), BlockRect(view, BlockById(view.At, "invalid")).Size, "WinForms invalid viewport fallback");
+                    Eq(new Size((int)Math.Round(viewportWidth * .25D), (int)Math.Round(viewportHeightUnits * .25D)),
+                        BlockRect(view, BlockById(view.At, "flex-a")).Size, "WinForms viewport flex item geometry");
+                    Eq(new Size((int)Math.Round(viewportWidth * .25D), (int)Math.Round(viewportHeightUnits * .25D)),
+                        BlockRect(view, BlockById(view.At, "grid-a")).Size, "WinForms viewport grid item geometry");
+                    Eq(new Size((int)Math.Round(viewportWidth * .5D), (int)Math.Round(viewportHeightUnits * .25D)),
+                        BlockRect(view, BlockById(view.At, "viewport-table")).Size, "WinForms viewport table geometry");
+                    Eq(new Size((int)Math.Round(viewportWidth * .25D), (int)Math.Round(viewportHeightUnits * .25D)),
+                        BlockRect(view, BlockById(view.At, "absolute")).Size, "WinForms positioned viewport geometry");
+                    Eq(new Size((int)Math.Round(viewportMinimum * .1D), (int)Math.Round(viewportMaximum * .1D)),
+                        BlockRect(view, BlockById(view.At, "fixed")).Size, "WinForms fixed vmin/vmax geometry");
+                    Eq(new Size((int)Math.Round(viewportWidth * .25D), (int)Math.Round(viewportHeightUnits * .1D)),
+                        BlockRect(view, BlockById(view.At, "viewport-field")).Size, "WinForms viewport field geometry");
+                    Eq(new Size((int)Math.Round(viewportWidth * .25D), (int)Math.Round(viewportHeightUnits * .1D)),
+                        BlockRect(view, BlockById(view.At, "viewport-image")).Size, "WinForms viewport image geometry");
+                    Eq((int)Math.Round(viewportHeightUnits * .5D), BlockRect(view, BlockById(view.At, "ratio")).Width,
+                        "WinForms aspect-ratio width derives from viewport height");
+                    Eq(new Size((int)Math.Round(viewportWidth * .25D), (int)Math.Round(viewportHeightUnits * .25D)),
+                        BlockOuterRect(view, BlockById(view.At, "border-box")).Size, "WinForms viewport border-box outer geometry");
+                    Eq(new Size((int)Math.Round(viewportWidth * .25D) - 24, (int)Math.Round(viewportHeightUnits * .25D) - 24),
+                        BlockRect(view, BlockById(view.At, "border-box")).Size, "WinForms viewport border-box content geometry");
+                    view.Sc(BlockRect(view, BlockById(view.At, "viewport-link")).Top - 24);
+                    Paint(view);
+                    Eq(new Size((int)Math.Round(viewportWidth * .25D), (int)Math.Round(viewportHeightUnits * .1D)),
+                        view.Ab(view.Ax(ById(view.At.D, "viewport-link"))).Size, "WinForms viewport accessibility geometry");
+                    var viewportLinkHit = HitElementRect(view, "viewport-link");
+                    Ok(!viewportLinkHit.IsEmpty, "WinForms viewport link retains a hit region");
+                    Eq(BlockRect(view, BlockById(view.At, "viewport-link")).Size, viewportLinkHit.Size, "WinForms viewport link hit geometry");
+                    Eq(2, view.Ck(ById(view.At.D, "set-viewport")), "WinForms compact viewport commands");
+                    Paint(view);
+                    Eq(new Size((int)Math.Round(viewportWidth * .5D) - 20, (int)Math.Round(viewportHeightUnits * .5D) - 20),
+                        BlockRect(view, BlockById(view.At, "command")).Size, "WinForms compact viewport command reflow");
+                    Eq(2, view.Ck(ById(view.At.D, "dom-viewport")), "WinForms literal viewport DOM commands");
+                    Paint(view);
+                    Eq(new Size((int)Math.Round(viewportHeightUnits * .25D), (int)Math.Round(viewportWidth * .25D)),
+                        BlockRect(view, BlockById(view.At, "command")).Size, "WinForms literal cross-axis viewport reflow");
+                    Eq(2, view.Ck(ById(view.At.D, "clear-viewport")), "WinForms viewport command reset");
+                    Paint(view);
+                    Eq(new Size(200, 120), BlockRect(view, BlockById(view.At, "command")).Size, "WinForms viewport reset restores authored size");
+                    view.Size = new Size(640, 400);
+                    Paint(view);
+                    Eq(320, BlockRect(view, BlockById(view.At, "vw")).Width, "WinForms vw responds to width resize");
+                    Eq(100, BlockRect(view, BlockById(view.At, "vh-width")).Width, "WinForms vh width responds to height resize");
+                    Eq(200, BlockRect(view, BlockById(view.At, "vh")).Height, "WinForms vh responds to height resize");
+                    Eq(160, BlockRect(view, BlockById(view.At, "vw-height")).Height, "WinForms vw height responds to width resize");
+                    Eq(new Size(40, 64), BlockRect(view, BlockById(view.At, "fixed")).Size, "WinForms vmin/vmax respond to resize");
+                    view.Size = new Size(640, 500);
+                    Paint(view);
+                    Eq(500, view.Vh, "WinForms compact viewport height alias responds to resize");
+                    Eq(250, BlockRect(view, BlockById(view.At, "vh")).Height, "WinForms vh responds to height-only resize");
+                    Eq(320, BlockRect(view, BlockById(view.At, "vw")).Width, "WinForms vw stays stable on height-only resize");
 
                     view.Size = new Size(720, 420);
                     view.Go(eventPath);
@@ -5319,6 +5452,7 @@ namespace Lea.Tests
                 Console.WriteLine("Lea CSS gradient smoke passed: compact image/stop aliases, atomic cascade, normalized stops, linear/radial/page/field paint, hits, and resize.");
                 Console.WriteLine("Lea CSS bitmap smoke passed: compact aliases, stylesheet origins, atomic cascade, bounded image loading, repeat/size/position/page/field paint, clipping, opacity, hits, and resize.");
                 Console.WriteLine("Lea calculated height smoke passed: compact ht, definite viewport/parent/positioned references, auto fallback, min/max, flex/grid/table/media geometry, accessibility, reset, and resize.");
+                Console.WriteLine("Lea viewport unit smoke passed: vw/vh/vmin/vmax, calc, cross-axis sizes, lazy aliases, layout families, accessibility, commands, and resize.");
 
                     Console.WriteLine("Lea smoke passed: bounded sticky positioning with compact k, shared paint/hit/editor/accessibility geometry, normal-flow retention, and ancestor clamps, bounded has relational selectors with strict lists, maximum specificity, descendant/child/adjacent/following and complex chains, queries, dynamic focus rebuilds, retained fields, WinForms geometry, and traversal/part limits, bounded nth-child of-S filters with strict compound lists, maximum specificity, forward/reverse counting, queries, dynamic form-state rebuilds, retained fields, WinForms geometry, and nesting/test limits, bounded precompiled An+B and reverse structural selectors with stylesheet/query parity, specificity, selector-list composition, type filtering, WinForms geometry, and invalid limits, bounded is, where, and list-not selector functions with maximum/zero specificity, forgiving/strict parsing, queries, dynamic state, WinForms geometry, and retained fields, bounded CSS important cascade with compiled priority, G.Ic diagnostics, stylesheet/inline tiers, custom properties, hover/media rebuilds, and retained fields, bounded inherited CSS custom properties with compiled declarations, S.Vc/Cv and G.Vc aliases, nested and cycle fallbacks, hover/media rebuilds, and retained fields, bounded responsive CSS media queries with viewport aliases, live resize, diagnostics, and retained fields, optional bounded persistent cache with restart reuse, validators, private isolation, atomic recovery, LRU entry/byte ceilings and host aliases, bounded content-box and border-box geometry, body and ID-scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, shrink, reverse flow, and resize, semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;

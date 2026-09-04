@@ -327,8 +327,9 @@ anywhere/break-all, and keep-all. These modes come from `word-break`,
 `overflow-wrap`, or `word-wrap`; `white-space:nowrap` still disables wrapping.
 
 `S.Bz` is the non-inherited box edge: `c` is the default `content-box`, while
-`b` is `border-box`. Shared bounded helpers interpret fixed, percentage, or one
-`calc(P% +/- Npx)` width/height/min/max form plus pixel flex-basis values
+`b` is `border-box`. Shared bounded helpers interpret fixed, percentage,
+classic viewport-unit, or one `calc(PU +/- Npx)` width/height/min/max form plus
+pixel flex-basis values
 before layout. Border-box values contain visible
 padding and border but not margins; content dimensions floor at one render
 pixel. Blocks, fields, flex items, images, tables, and table cells use the same
@@ -343,11 +344,12 @@ the box. The WinForms view uses that path for backgrounds, solid/dashed/dotted
 borders, descendant overflow clipping, and ordinary field interiors while
 retaining the existing rectangular layout, link bounds, and responsive reflow.
 Pixels cap at 2,000 and percentages at 1,000; malformed declarations preserve
-the previous computed state. Percentage terms are limited to 1..100 and pixel
-terms to 0..2000; arbitrary arithmetic, nested functions, and viewport units
+the previous computed state. Percentage and viewport-unit terms are limited to
+1..100 and pixel terms to 0..2000; arbitrary arithmetic and nested functions
 remain unsupported. Height percentages require a definite viewport, retained
-parent, positioned containing block, or grid area. See `CALCULATED_WIDTHS.md`
-and `CALCULATED_HEIGHTS.md`.
+parent, positioned containing block, or grid area. `vw`, `vh`, `vmin`, and
+`vmax` always use the live client viewport. See `CALCULATED_WIDTHS.md`,
+`CALCULATED_HEIGHTS.md`, and `VIEWPORT_UNITS.md`.
 
 CSS outlines are available through non-inherited `S.Ow/Os/Oc/Oo`. Hosts can
 inspect bounded width, compact none/solid/dashed/dotted/auto style, authored
@@ -537,14 +539,20 @@ descendant focus without replacing fields. Empty or malformed lists, nested
 selector-list functions, pseudo-elements, oversized chains, and excess work
 are rejected rather than entering an unbounded tree search.
 
-Responsive styles use `E.Vw`, `P.Vw`, `V.Vw`, and `G.Vw`. A headless host sets
-`E.Vw` directly; the WinForms view forwards its client width and rebuilds only
+Responsive styles use `E.Vw`, `P.Vw`, `V.Vw`, `V.Vh`, and `G.Vw`. A headless
+host sets `E.Vw` directly; the WinForms view forwards its client width and rebuilds only
 when a media boundary changes. Existing `Fi` objects and mutable values survive
 that rebuild. The bounded compiler accepts `screen`/`all` with pixel
 `min-width`, `max-width`, and exact `width`, comma alternatives, nested
 `@media`, and `<style media>`. Widths clamp to 1-8,192 pixels; query alternatives,
 nesting, and total rules are capped at 8, 4, and 1,024. Unsupported media stays
 inactive instead of silently behaving as screen CSS.
+
+Responsive dimension tuples expose `Wu/Wnu/Wxu` and `Hu/Hnu/Hxu` unit codes:
+`0` is containing percentage, `1` is `vw`, `2` is `vh`, `3` is `vmin`, and `4`
+is `vmax`. The WinForms renderer resolves viewport units from live client width
+and height across layout, paint, hits, fields, and accessibility. Tuple storage
+remains lazy. See `VIEWPORT_UNITS.md`.
 
 CSS declarations are compiled once per stylesheet rule. Bounded custom
 properties inherit through the compact style tree and use lazy copy-on-write

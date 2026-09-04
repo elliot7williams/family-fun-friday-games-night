@@ -69,7 +69,8 @@ hits, native editing, accessibility bounds, and live vertical resize.
 
 Lea does not accept `min()`, `max()`, `clamp()`, multiplication, division,
 nested calculations, arbitrary operators, negative percentages, percentages
-above 100, viewport/font units, intrinsic keywords, or calculated flex basis.
+above 100, font units, intrinsic keywords, or calculated flex basis. Classic
+bounded viewport units are covered by `VIEWPORT_UNITS.md`.
 Percentage heights inside auto-height table cells do not establish a definite
 reference. Independent overflow scrollers remain outside the compact renderer.
 
