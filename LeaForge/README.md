@@ -137,6 +137,8 @@ LeaForge is where we can grow the more full-featured browser.
   `Wu/Hu/Vh` aliases; see `VIEWPORT_UNITS.md`
 - bounded `em`/`rem` dimensions and calculations with compact `Wu/Hu/Rf`
   aliases; see `FONT_RELATIVE_UNITS.md`
+- bounded two/three-term `min()`/`max()` and three-term `clamp()` dimensions
+  with lazy `Wk/Hk/Wq/Hq/Wv/Hv` aliases; see `SIZE_FUNCTIONS.md`
 - bounded developer snapshots plus a tabbed inspector with an Access view in the test browser
 - repeatable compatibility, timing, memory, binary-size, and compression report
 - streamed local/HTTP downloads with explicit destinations and a 64 MB ceiling

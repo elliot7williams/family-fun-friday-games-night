@@ -291,7 +291,7 @@ namespace Lea.Tests
                 Eq(280, BlockById(calculatedPage, "command").S.W, "empty DOM width restores authored cascade");
                 Eq(0, BlockById(calculatedPage, "command").S.Wp, "empty DOM width clears inline percentage");
                 Eq("#123f8c", BlockById(calculatedPage, "command").S.F, "width reset preserves unrelated inline style");
-                Eq(0, calculatedEngine.Js(calculatedPage, "wd('command','min(100%,400px)'); width('command','calc(100% / 2)'); document.getElementById('command').style.width='101%';"), "general or out-of-range width expressions rejected");
+                Eq(0, calculatedEngine.Js(calculatedPage, "wd('command','min(max(100px,200px),400px)'); width('command','calc(100% / 2)'); document.getElementById('command').style.width='101%';"), "nested or out-of-range width expressions rejected");
                 Eq(280, BlockById(calculatedPage, "command").S.W, "rejected width expressions preserve cascade");
 
                 var calculatedHeightPath = Path.Combine(pages, "calculated-heights.html");
@@ -325,7 +325,7 @@ namespace Lea.Tests
                 Eq(180, BlockById(calculatedHeightPage, "command").S.H, "empty DOM height restores authored cascade");
                 Eq(0, BlockById(calculatedHeightPage, "command").S.Hp, "empty DOM height clears inline percentage");
                 Eq("#123f8c", BlockById(calculatedHeightPage, "command").S.F, "height reset preserves unrelated inline style");
-                Eq(0, calculatedHeightEngine.Js(calculatedHeightPage, "ht('command','min(100%,400px)'); height('command','calc(100% / 2)'); document.getElementById('command').style.height='101%';"), "general or out-of-range height expressions rejected");
+                Eq(0, calculatedHeightEngine.Js(calculatedHeightPage, "ht('command','min(max(100px,200px),400px)'); height('command','calc(100% / 2)'); document.getElementById('command').style.height='101%';"), "nested or out-of-range height expressions rejected");
                 Eq(180, BlockById(calculatedHeightPage, "command").S.H, "rejected height expressions preserve cascade");
 
                 var viewportPath = Path.Combine(pages, "viewport-units.html");
@@ -419,6 +419,58 @@ namespace Lea.Tests
                     "invalid font-relative commands rejected");
                 Ok(BlockById(fontUnitPage, "font-command").S.W == 200 && BlockById(fontUnitPage, "font-command").S.H == 120,
                     "rejected font-relative commands preserve cascade");
+
+                var sizeFunctionPath = Path.Combine(pages, "size-functions.html");
+                var sizeFunctionEngine = new E();
+                var sizeFunctionPage = sizeFunctionEngine.Go(sizeFunctionPath);
+                var minFunction = BlockById(sizeFunctionPage, "min-two").S;
+                Ok(minFunction.Wk == 1 && minFunction.Hk == 1 && minFunction.Wq(0) == 2 && minFunction.Hq(0) == 2 &&
+                    minFunction.Wv(0, 0, 1) == 75 && minFunction.Wv(0, 0, 3) == 0 && minFunction.Wv(0, 1, 0) == 500,
+                    "bounded minimum function model and compact values");
+                var maxFunction = BlockById(sizeFunctionPage, "max-three").S;
+                Ok(maxFunction.Wk == 2 && maxFunction.Wq(0) == 3 && maxFunction.Wv(0, 2, 1) == 8 && maxFunction.Wv(0, 2, 3) == 6,
+                    "bounded maximum function model and compact values");
+                var clampFunction = BlockById(sizeFunctionPage, "clamp-main").S;
+                Ok(clampFunction.Wk == 3 && clampFunction.Hk == 3 && clampFunction.Wq(0) == 3 && clampFunction.Hq(0) == 3 &&
+                    clampFunction.Wv(0, 0, 0) == 200 && clampFunction.Wv(0, 1, 1) == 50 && clampFunction.Wv(0, 2, 0) == 400,
+                    "bounded clamp function model and compact values");
+                var functionLimits = BlockById(sizeFunctionPage, "function-limits").S;
+                Ok(functionLimits.Wnk == 2 && functionLimits.Wxk == 1 && functionLimits.Hnk == 2 && functionLimits.Hxk == 1 &&
+                    functionLimits.Wq(1) == 2 && functionLimits.Wq(2) == 2 && functionLimits.Hq(1) == 2 && functionLimits.Hq(2) == 2,
+                    "size functions in minimum and maximum properties");
+                var inheritedFunction = BlockById(sizeFunctionPage, "function-inherit-child").S;
+                Ok(inheritedFunction.Wk == 3 && inheritedFunction.Hk == 1 && inheritedFunction.Wq(0) == 3 && inheritedFunction.Hq(0) == 2 &&
+                    inheritedFunction.Wv(0, 1, 1) == 15 && inheritedFunction.Wv(0, 1, 3) == 6,
+                    "inherited size function records");
+                var variableFunction = BlockById(sizeFunctionPage, "function-variable").S;
+                Ok(variableFunction.Wk == 2 && variableFunction.Hk == 3 && variableFunction.Wq(0) == 2 && variableFunction.Hq(0) == 3,
+                    "custom-property size function records");
+                var mediaFunction = BlockById(sizeFunctionPage, "media-function").S;
+                Ok(mediaFunction.Wk == 3 && mediaFunction.Wq(0) == 3,
+                    "wide media size function record");
+                var invalidSizeFunction = BlockById(sizeFunctionPage, "function-invalid").S;
+                Ok(invalidSizeFunction.W == 130 && invalidSizeFunction.H == 85 && invalidSizeFunction.Wk == 0 && invalidSizeFunction.Hk == 0 &&
+                    invalidSizeFunction.Wq(0) == 0 && invalidSizeFunction.Hq(0) == 0,
+                    "invalid size functions preserve earlier declarations atomically");
+                Ok(BlockById(sizeFunctionPage, "zero-first").S.Wk == 2 && BlockById(sizeFunctionPage, "function-auto-child").S.Hk == 2,
+                    "zero-first and unresolved-height function model");
+                Ok(emStyle.Wk == 0 && emStyle.Hk == 0 && emStyle.Wq(0) == 0 && emStyle.Hq(0) == 0,
+                    "ordinary responsive dimensions do not allocate function state");
+                Eq(2, sizeFunctionEngine.Ck(sizeFunctionPage, ById(sizeFunctionPage.D, "set-function-size")), "compact size function commands");
+                Ok(BlockById(sizeFunctionPage, "function-command").S.Wk == 3 && BlockById(sizeFunctionPage, "function-command").S.Hk == 3,
+                    "compact size function commands reach model");
+                Eq(2, sizeFunctionEngine.Ck(sizeFunctionPage, ById(sizeFunctionPage.D, "dom-function-size")), "literal DOM size function commands");
+                Ok(BlockById(sizeFunctionPage, "function-command").S.Wk == 2 && BlockById(sizeFunctionPage, "function-command").S.Hk == 1,
+                    "literal DOM size function model");
+                Eq(2, sizeFunctionEngine.Ck(sizeFunctionPage, ById(sizeFunctionPage.D, "clear-function-size")), "size function inline reset");
+                Ok(BlockById(sizeFunctionPage, "function-command").S.W == 220 && BlockById(sizeFunctionPage, "function-command").S.H == 120 &&
+                    BlockById(sizeFunctionPage, "function-command").S.Wk == 0 && BlockById(sizeFunctionPage, "function-command").S.Hk == 0,
+                    "size function reset restores authored pixels and releases lazy state");
+                Eq(0, sizeFunctionEngine.Js(sizeFunctionPage,
+                    "wd('function-command','min(100px)');ht('function-command','clamp(20px,30px)');width('function-command','max(1px,2px,3px,4px)');height('function-command','min(max(1px,2px),3px)');"),
+                    "invalid size function commands rejected");
+                Ok(BlockById(sizeFunctionPage, "function-command").S.W == 220 && BlockById(sizeFunctionPage, "function-command").S.H == 120,
+                    "rejected size function commands preserve cascade");
 
                 var scriptsOff = new E();
                 scriptsOff.Je = false;
@@ -2455,6 +2507,59 @@ namespace Lea.Tests
                     Eq(90, BlockRect(view, BlockById(view.At, "calc-font")).Height, "WinForms calculated rem height follows root media change");
                     Ok(Object.ReferenceEquals(fontField, FieldById(view.At, "font-field")) && fontField.V == "Retained font-relative value",
                         "WinForms root font rebuild retains mutable fields");
+
+                    view.Size = new Size(800, 600);
+                    view.Go(sizeFunctionPath);
+                    Paint(view);
+                    Eq(new Size(450, 260), BlockRect(view, BlockById(view.At, "min-two")).Size, "WinForms two-term minimum dimensions");
+                    Eq(new Size(280, 140), BlockRect(view, BlockById(view.At, "max-two")).Size, "WinForms two-term maximum dimensions");
+                    Eq(new Size(300, 180), BlockRect(view, BlockById(view.At, "clamp-main")).Size, "WinForms clamp dimensions");
+                    Eq(new Size(360, 80), BlockRect(view, BlockById(view.At, "clamp-font")).Size, "WinForms font-relative clamp dimensions");
+                    Eq(new Size(500, 80), BlockRect(view, BlockById(view.At, "min-three")).Size, "WinForms three-term minimum dimensions");
+                    Eq(new Size(160, 80), BlockRect(view, BlockById(view.At, "max-three")).Size, "WinForms three-term maximum dimensions");
+                    Eq(new Size(500, 150), BlockRect(view, BlockById(view.At, "calc-function")).Size, "WinForms calculated size function terms");
+                    Eq(new Size(240, 60), BlockRect(view, BlockById(view.At, "zero-first")).Size, "WinForms zero-first explicit size function");
+                    Eq(new Size(480, 300), BlockRect(view, BlockById(view.At, "function-limits")).Size, "WinForms function min/max constraints");
+                    Eq(new Size(300, 120), BlockRect(view, BlockById(view.At, "function-inherit-child")).Size, "WinForms inherited size functions");
+                    Eq(new Size(240, 72), BlockRect(view, BlockById(view.At, "function-variable")).Size, "WinForms custom-property size functions");
+                    Eq(new Size(130, 85), BlockRect(view, BlockById(view.At, "function-invalid")).Size, "WinForms invalid size function fallback");
+                    Ok(BlockRect(view, BlockById(view.At, "function-auto-child")).Height < 120, "WinForms percentage height function stays natural below auto parent");
+                    Eq(new Size(120, 60), BlockRect(view, BlockById(view.At, "function-flex-a")).Size, "WinForms size function flex geometry");
+                    Eq(new Size(200, 90), BlockRect(view, BlockById(view.At, "function-grid-a")).Size, "WinForms size function grid geometry");
+                    Eq(new Size(500, 100), BlockRect(view, BlockById(view.At, "function-table")).Size, "WinForms size function table geometry");
+                    Eq(new Size(180, 100), BlockRect(view, BlockById(view.At, "function-absolute")).Size, "WinForms positioned size function geometry");
+                    Eq(new Size(200, 60), BlockRect(view, BlockById(view.At, "function-fixed")).Size, "WinForms fixed size function geometry");
+                    Eq(new Size(140, 50), BlockRect(view, BlockById(view.At, "function-field")).Size, "WinForms size function field geometry");
+                    Eq(new Size(144, 100), BlockRect(view, BlockById(view.At, "function-image")).Size, "WinForms size function image geometry");
+                    Eq(new Size(144, 72), BlockRect(view, BlockById(view.At, "function-ratio")).Size, "WinForms aspect ratio uses function height");
+                    Eq(new Size(200, 90), BlockOuterRect(view, BlockById(view.At, "function-border-box")).Size, "WinForms size function border-box outer geometry");
+                    Eq(new Size(176, 66), BlockRect(view, BlockById(view.At, "function-border-box")).Size, "WinForms size function border-box content geometry");
+                    view.Sc(BlockRect(view, BlockById(view.At, "function-link")).Top - 24);
+                    Paint(view);
+                    Eq(new Size(216, 60), view.Ab(view.Ax(ById(view.At.D, "function-link"))).Size, "WinForms size function accessibility geometry");
+                    Eq(new Size(216, 60), HitElementRect(view, "function-link").Size, "WinForms size function link hit geometry");
+                    Eq(2, view.Ck(ById(view.At.D, "set-function-size")), "WinForms compact size function commands");
+                    Paint(view);
+                    Eq(new Size(350, 70), BlockRect(view, BlockById(view.At, "function-command")).Size, "WinForms compact size function command reflow");
+                    Eq(2, view.Ck(ById(view.At.D, "dom-function-size")), "WinForms literal size function DOM commands");
+                    Paint(view);
+                    Eq(new Size(300, 84), BlockRect(view, BlockById(view.At, "function-command")).Size, "WinForms literal size function command reflow");
+                    Eq(2, view.Ck(ById(view.At.D, "clear-function-size")), "WinForms size function command reset");
+                    Paint(view);
+                    Eq(new Size(220, 120), BlockRect(view, BlockById(view.At, "function-command")).Size, "WinForms size function reset restores authored size");
+                    Eq(new Size(400, 60), BlockRect(view, BlockById(view.At, "live-function")).Size, "WinForms live size function geometry");
+                    Eq(new Size(320, 80), BlockRect(view, BlockById(view.At, "media-function")).Size, "WinForms wide media size function geometry");
+                    var functionField = FieldById(view.At, "function-field");
+                    functionField.V = "Retained size function value";
+                    view.Size = new Size(640, 500);
+                    Paint(view);
+                    Eq(16, view.Rf, "WinForms responsive root font for size functions");
+                    Eq(new Size(320, 50), BlockRect(view, BlockById(view.At, "live-function")).Size, "WinForms size functions follow viewport and root-font resize");
+                    Ok(BlockById(view.At, "media-function").S.Wk == 2 && BlockById(view.At, "media-function").S.Wq(0) == 2,
+                        "WinForms media rebuild replaces size function state");
+                    Eq(new Size(384, 80), BlockRect(view, BlockById(view.At, "media-function")).Size, "WinForms narrow media size function geometry");
+                    Ok(Object.ReferenceEquals(functionField, FieldById(view.At, "function-field")) && functionField.V == "Retained size function value",
+                        "WinForms size function resize retains mutable fields");
 
                     view.Size = new Size(720, 420);
                     view.Go(eventPath);
@@ -5554,6 +5659,7 @@ namespace Lea.Tests
                 Console.WriteLine("Lea calculated height smoke passed: compact ht, definite viewport/parent/positioned references, auto fallback, min/max, flex/grid/table/media geometry, accessibility, reset, and resize.");
                 Console.WriteLine("Lea viewport unit smoke passed: vw/vh/vmin/vmax, calc, cross-axis sizes, lazy aliases, layout families, accessibility, commands, and resize.");
                 Console.WriteLine("Lea font-relative unit smoke passed: em/rem, root font state, calc, min/max, layout families, commands, font mutation, and responsive rebuild.");
+                Console.WriteLine("Lea size function smoke passed: bounded min/max/clamp, lazy aliases, mixed terms, constraints, layout families, commands, and responsive rebuild.");
 
                     Console.WriteLine("Lea smoke passed: bounded sticky positioning with compact k, shared paint/hit/editor/accessibility geometry, normal-flow retention, and ancestor clamps, bounded has relational selectors with strict lists, maximum specificity, descendant/child/adjacent/following and complex chains, queries, dynamic focus rebuilds, retained fields, WinForms geometry, and traversal/part limits, bounded nth-child of-S filters with strict compound lists, maximum specificity, forward/reverse counting, queries, dynamic form-state rebuilds, retained fields, WinForms geometry, and nesting/test limits, bounded precompiled An+B and reverse structural selectors with stylesheet/query parity, specificity, selector-list composition, type filtering, WinForms geometry, and invalid limits, bounded is, where, and list-not selector functions with maximum/zero specificity, forgiving/strict parsing, queries, dynamic state, WinForms geometry, and retained fields, bounded CSS important cascade with compiled priority, G.Ic diagnostics, stylesheet/inline tiers, custom properties, hover/media rebuilds, and retained fields, bounded inherited CSS custom properties with compiled declarations, S.Vc/Cv and G.Vc aliases, nested and cycle fallbacks, hover/media rebuilds, and retained fields, bounded responsive CSS media queries with viewport aliases, live resize, diagnostics, and retained fields, optional bounded persistent cache with restart reuse, validators, private isolation, atomic recovery, LRU entry/byte ceilings and host aliases, bounded content-box and border-box geometry, body and ID-scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, shrink, reverse flow, and resize, semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;

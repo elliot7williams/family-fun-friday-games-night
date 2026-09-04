@@ -328,8 +328,8 @@ anywhere/break-all, and keep-all. These modes come from `word-break`,
 
 `S.Bz` is the non-inherited box edge: `c` is the default `content-box`, while
 `b` is `border-box`. Shared bounded helpers interpret fixed, percentage,
-classic viewport-unit, or one `calc(PU +/- Npx)` width/height/min/max form plus
-pixel flex-basis values
+classic viewport-unit, one `calc(PU +/- Npx)`, two/three-term `min()`/`max()`,
+or three-term `clamp()` width/height/min/max forms plus pixel flex-basis values
 before layout. Border-box values contain visible
 padding and border but not margins; content dimensions floor at one render
 pixel. Blocks, fields, flex items, images, tables, and table cells use the same
@@ -349,7 +349,14 @@ the previous computed state. Percentage and viewport-unit terms are limited to
 remain unsupported. Height percentages require a definite viewport, retained
 parent, positioned containing block, or grid area. `vw`, `vh`, `vmin`, and
 `vmax` always use the live client viewport. See `CALCULATED_WIDTHS.md`,
-`CALCULATED_HEIGHTS.md`, and `VIEWPORT_UNITS.md`.
+`CALCULATED_HEIGHTS.md`, `VIEWPORT_UNITS.md`, `FONT_RELATIVE_UNITS.md`, and
+`SIZE_FUNCTIONS.md`.
+
+Size functions add lazy `S.Wk/Wnk/Wxk` and `Hk/Hnk/Hxk` kind state plus
+`Wq/Hq/Wv/Hv` argument inspection. The adapter does not evaluate the function;
+`Lea.Win.V` resolves every term through the same containing-block, viewport,
+element-font, and root-font path used by plain dimensions. A height function
+containing a percentage remains natural below an auto-height parent.
 
 CSS outlines are available through non-inherited `S.Ow/Os/Oc/Oo`. Hosts can
 inspect bounded width, compact none/solid/dashed/dotted/auto style, authored

@@ -76,8 +76,10 @@ cascade.
 ## Boundary
 
 Lea does not accept decimal or negative unit terms, zero, values above 100,
-`svh`, `lvh`, `dvh`, nested calculations, multiplication, division, arbitrary
-operators, `min()`, `max()`, or `clamp()`. Bounded `em` and `rem` dimensions are
+`svh`, `lvh`, `dvh`, nested calculations, multiplication, division, or
+arbitrary operators. A bounded viewport term may be used in standalone
+`min()`, `max()`, and `clamp()` dimensions as described by `SIZE_FUNCTIONS.md`;
+nested size functions remain unsupported. Bounded `em` and `rem` dimensions are
 covered separately by `FONT_RELATIVE_UNITS.md`. The compact engine intentionally
 implements deterministic classic viewport units rather than browser-specific
 dynamic viewport variants.

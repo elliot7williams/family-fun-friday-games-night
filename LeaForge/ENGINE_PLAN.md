@@ -345,12 +345,12 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-The bounded size model now includes `em` and `rem` dimensions plus
-one-expression calculations through compact `S.Wu/Hu` and min/max counterparts.
-`P.Rf` retains an explicit root font and `V.Rf` exposes the applied host
-fallback. The shared resolver covers both axes, the retained layout families,
-root media changes, and live resize without a general evaluator. See
-`FONT_RELATIVE_UNITS.md`. Next evaluate additional high-value HTML/CSS
+The bounded size model now includes two/three-term `min()` and `max()` plus
+three-term `clamp()` through lazy compact `S.Wk/Hk/Wq/Hq/Wv/Hv` aliases. Each
+argument reuses the fixed, percentage, viewport, font-relative, or one-expression
+calculated term compiler. The shared resolver covers both axes, constraints,
+retained layout families, media replacement, commands, and live resize without
+a general evaluator. See `SIZE_FUNCTIONS.md`. Next evaluate additional high-value HTML/CSS
 compatibility while keeping the short public API and avoiding general CSS or
 JavaScript evaluators.
 

@@ -224,6 +224,12 @@ Bounded `em` and `rem` values use that route as well. `em` follows the target's
 computed font; `P.Rf` and `V.Rf` expose the explicit and applied root font used
 by `rem`. The host smoke verifies both units, calculations, commands, reset,
 and exact live custom-surface geometry.
+Bounded two/three-term `min()` and `max()` plus three-term `clamp()` reuse those
+same dimension paths. `S.Wk/Hk` and `Wq/Hq/Wv/Hv` expose compact lazy records;
+the host does not parse or resolve function arguments. The compiled smoke checks
+authored and command geometry, min/max constraints, literal style updates,
+reset, invalid preservation, and the live post-paint viewport. See
+`LeaForge/SIZE_FUNCTIONS.md`.
 The same public route supports bounded `hd/sh` visibility, `op/cl/tg` details
 state, `ds/en` field availability, `vl` values, `ck` checked state, and `fo`
 focus requests. Hidden

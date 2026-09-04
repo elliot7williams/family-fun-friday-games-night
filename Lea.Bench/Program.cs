@@ -107,7 +107,7 @@ namespace Lea.Bench
             var names = new[]
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
-                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
+                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -2023,7 +2023,7 @@ namespace Lea.Bench
                 Need(engine.Ck(page, ById(page.D, "set-width")) == 1 && block("command").S.Wp == 100 && block("command").S.Wo == -120, "compact wd command failed");
                 Need(engine.Ck(page, ById(page.D, "dom-width")) == 1 && block("command").S.Wp == 50, "literal DOM width command failed");
                 Need(engine.Ck(page, ById(page.D, "clear-width")) == 1 && block("command").S.W == 280 && block("command").S.Wp == 0 && block("command").S.F == "#123f8c", "width reset lost authored or inline state");
-                Need(engine.Js(page, "wd('command','min(100%,400px)'); document.getElementById('command').style.width='101%';") == 0 && block("command").S.W == 280, "general or out-of-range width expression was accepted");
+                Need(engine.Js(page, "wd('command','min(max(100px,200px),400px)'); document.getElementById('command').style.width='101%';") == 0 && block("command").S.W == 280, "nested or out-of-range width expression was accepted");
                 return "wd plus literal style.width, 1..100 percent, calc(P% +/- 0..2000px), min/max, variables, inheritance, reset, and strict expression bounds";
             });
             AddProbe(probes, "Percentage and calculated heights", delegate
@@ -2057,7 +2057,7 @@ namespace Lea.Bench
                 }
                 Need(engine.Ck(page, ById(page.D, "dom-height")) == 1 && block("command").S.Hp == 50, "literal DOM height command failed");
                 Need(engine.Ck(page, ById(page.D, "clear-height")) == 1 && block("command").S.H == 180 && block("command").S.Hp == 0 && block("command").S.F == "#123f8c", "height reset lost authored or inline state");
-                Need(engine.Js(page, "ht('command','min(100%,400px)'); document.getElementById('command').style.height='101%';") == 0 && block("command").S.H == 180, "general or out-of-range height expression was accepted");
+                Need(engine.Js(page, "ht('command','min(max(100px,200px),400px)'); document.getElementById('command').style.height='101%';") == 0 && block("command").S.H == 180, "nested or out-of-range height expression was accepted");
                 return "ht plus literal style.height, definite viewport/parent resolution, auto fallback, flex/grid/table/aspect-ratio geometry, min/max, variables, inheritance, reset, and strict bounds";
             });
             AddProbe(probes, "Bounded viewport units", delegate
@@ -2144,6 +2144,59 @@ namespace Lea.Bench
                 Need(engine.Js(page, "wd('font-command','101em'); ht('font-command','1.5rem')") == 0,
                     "unsupported font-relative values were accepted");
                 return "em/rem dimensions plus root-font state, calc offsets, lazy aliases, min/max, variables, inheritance, layout families, commands, font mutation, and responsive rebuild";
+            });
+            AddProbe(probes, "Bounded CSS size functions", delegate
+            {
+                var path = Path.Combine(folder, "size-functions.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                var minimum = block("min-two").S;
+                var clamp = block("clamp-main").S;
+                Need(minimum.Wk == 1 && minimum.Hk == 1 && minimum.Wq(0) == 2 && minimum.Wv(0, 0, 1) == 75 && minimum.Wv(0, 1, 0) == 500,
+                    "minimum function model changed");
+                Need(clamp.Wk == 3 && clamp.Hk == 3 && clamp.Wq(0) == 3 && clamp.Wv(0, 1, 1) == 50 &&
+                    block("max-three").S.Wk == 2 && block("max-three").S.Wq(0) == 3, "maximum or clamp model changed");
+                Need(block("function-limits").S.Wnk == 2 && block("function-limits").S.Wxk == 1 &&
+                    block("function-inherit-child").S.Wk == 3 && block("function-variable").S.Hk == 3 &&
+                    block("function-invalid").S.W == 130 && block("function-invalid").S.Wk == 0,
+                    "function constraint, inheritance, variable, or fallback model changed");
+                using (var view = new V { Size = new Size(800, 600) })
+                {
+                    view.CreateControl();
+                    view.Go(path);
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "min-two").Size == new Size(450, 260) &&
+                        BlockContent(view, "max-two").Size == new Size(280, 140) &&
+                        BlockContent(view, "clamp-main").Size == new Size(300, 180) &&
+                        BlockContent(view, "clamp-font").Size == new Size(360, 80), "primary size function geometry changed");
+                    Need(BlockContent(view, "function-limits").Size == new Size(480, 300) &&
+                        BlockContent(view, "function-flex-a").Size == new Size(120, 60) &&
+                        BlockContent(view, "function-grid-a").Size == new Size(200, 90) &&
+                        BlockContent(view, "function-table").Size == new Size(500, 100), "constraint or layout-family function geometry changed");
+                    Need(view.Ck(ById(view.At.D, "set-function-size")) == 2, "compact size function commands failed");
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "function-command").Size == new Size(350, 70), "compact size function command reflow changed");
+                    Need(view.Ck(ById(view.At.D, "clear-function-size")) == 2, "size function reset failed");
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "function-command").Size == new Size(220, 120) &&
+                        BlockContent(view, "live-function").Size == new Size(400, 60) &&
+                        BlockContent(view, "media-function").Size == new Size(320, 80), "size function reset, live, or media geometry changed");
+                    var field = view.At.Fs.First(item => item.El != null && item.El.Av("id") == "function-field");
+                    field.V = "Retained benchmark function value";
+                    view.Size = new Size(640, 500);
+                    using (var image = Draw(view)) { }
+                    Need(view.Rf == 16 && BlockContent(view, "live-function").Size == new Size(320, 50) &&
+                        BlockContent(view, "media-function").Size == new Size(384, 80),
+                        "responsive size function geometry changed");
+                    Need(view.At.Bs.First(item => item.El != null && item.El.Av("id") == "media-function").S.Wk == 2,
+                        "responsive size function record was not replaced");
+                    Need(Object.ReferenceEquals(field, view.At.Fs.First(item => item.El != null && item.El.Av("id") == "function-field")) &&
+                        field.V == "Retained benchmark function value", "size function rebuild lost field state");
+                }
+                Need(engine.Js(page, "wd('function-command','min(100px)'); ht('function-command','clamp(20px,30px)')") == 0,
+                    "unsupported size functions were accepted");
+                return "min/max with two or three bounded terms, three-term clamp, lazy Wk/Hk and Wq/Hq/Wv/Hv aliases, mixed units/calc, min/max properties, layout families, commands, media replacement, and resize";
             });
             AddProbe(probes, "Bounded sticky positioning", delegate
             {
@@ -2406,7 +2459,7 @@ namespace Lea.Bench
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, fixed/percentage/calc dimensions and classic vw/vh/vmin/vmax plus bounded em/rem units with calculated min/max, content/border box, circular/elliptical radii, bounded outlines, box shadows and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing and text styles, visibility, absolute/fixed and bounded vertical sticky positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
+            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, fixed/percentage/calc dimensions and classic vw/vh/vmin/vmax plus bounded em/rem units, two/three-term min/max and three-term clamp size functions, content/border box, circular/elliptical radii, bounded outlines, box shadows and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing and text styles, visibility, absolute/fixed and bounded vertical sticky positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, inline, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Text overflow", "Supported subset", "Non-inherited clip/ellipsis; paint-only bounded text-element prefixes for clipped overflowing horizontal LTR lines, inline runs and tables; retained layout/link targets and full logical automation text; no native-control, bidi, custom-marker, or line-clamp additions");

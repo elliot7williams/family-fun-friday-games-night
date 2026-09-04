@@ -1268,7 +1268,7 @@ namespace Lea.Win
                     var preferredRatio = PreferredRatio(block);
                     var explicitHeight = HasHeight(bs, heightReference);
                     if (preferredRatio && !HasWidth(bs) && explicitHeight && !StretchesWidth(bs) && (!slotChild || gridChild))
-                        bw = ConstrainResolvedWidth(bs, RatioContentWidth(bs, ResolvedHeight(bs, bs.H, bs.Hp, bs.Ho, bs.Hu, heightReference)), bw, widthReference);
+                        bw = ConstrainResolvedWidth(bs, RatioContentWidth(bs, ResolvedHeight(bs, 0, heightReference)), bw, widthReference);
                     int height;
                     List<Ix> inline = null;
                     if (block.Vg != null)
@@ -1394,7 +1394,7 @@ namespace Lea.Win
 
             docHeight = y + 20 + (style == null ? 0 : style.Pb + BorderWidth(style, style.Bb) + style.Mb);
             docHeight = Math.Max(docHeight, layoutBottom + 20);
-            if (HasHeight(style, rootContaining.Height)) docHeight = Math.Max(docHeight, 18 + style.Mt + ResolvedHeight(style, style.H, style.Hp, style.Ho, style.Hu, rootContaining.Height) + style.Pt + style.Pb + BorderWidth(style, style.Bt) + BorderWidth(style, style.Bb) + style.Mb);
+            if (HasHeight(style, rootContaining.Height)) docHeight = Math.Max(docHeight, 18 + style.Mt + ResolvedHeight(style, 0, rootContaining.Height) + style.Pt + style.Pb + BorderWidth(style, style.Bt) + BorderWidth(style, style.Bb) + style.Mb);
             else if (HasRatio(style)) docHeight = Math.Max(docHeight, 18 + style.Mt + RatioContentHeight(style, width) + style.Pt + style.Pb + BorderWidth(style, style.Bt) + BorderWidth(style, style.Bb) + style.Mb);
             StackBoxes();
             foreach (var box in boxes)
@@ -2075,38 +2075,38 @@ namespace Lea.Win
         {
             var style = block == null ? null : block.S;
             if (style == null) return 0;
-            var basis = style.Fb >= 0 ? BoxContentWidth(style, style.Fb) : HasWidth(style) ? ResolvedWidth(style, style.W, style.Wp, style.Wo, style.Wu, reference) : 0;
+            var basis = style.Fb >= 0 ? BoxContentWidth(style, style.Fb) : HasWidth(style) ? ResolvedWidth(style, 0, reference) : 0;
             if (basis == 0 && style.Fb < 0 && HasHeight(style, heightReference) && PreferredRatio(block))
             {
-                basis = RatioContentWidth(style, ResolvedHeight(style, style.H, style.Hp, style.Ho, style.Hu, heightReference));
+                basis = RatioContentWidth(style, ResolvedHeight(style, 0, heightReference));
             }
             if (basis == 0 && style.Fb < 0 && !HasMinWidth(style)) return 0;
-            if (HasMaxWidth(style)) basis = Math.Min(basis, ResolvedWidth(style, style.Wx, style.Wxp, style.Wxo, style.Wxu, reference));
-            if (HasMinWidth(style)) basis = Math.Max(basis, ResolvedWidth(style, style.Wn, style.Wnp, style.Wno, style.Wnu, reference));
+            if (HasMaxWidth(style)) basis = Math.Min(basis, ResolvedWidth(style, 2, reference));
+            if (HasMinWidth(style)) basis = Math.Max(basis, ResolvedWidth(style, 1, reference));
             return basis + FlexHorizontal(style);
         }
 
         private int FlexMinOuterWidth(S style, int reference)
         {
             if (style == null) return 1;
-            return Math.Max(1, ResolvedWidth(style, style.Wn, style.Wnp, style.Wno, style.Wnu, reference)) + FlexHorizontal(style);
+            return Math.Max(1, ResolvedWidth(style, 1, reference)) + FlexHorizontal(style);
         }
 
         private int FlexOuterHeight(B block, int widthReference, int heightReference)
         {
             var style = block == null ? null : block.S;
             if (style == null) return 0;
-            var basis = style.Fb >= 0 ? style.Fb : HasHeight(style, heightReference) ? ResolvedHeight(style, style.H, style.Hp, style.Ho, style.Hu, heightReference) : 0;
+            var basis = style.Fb >= 0 ? style.Fb : HasHeight(style, heightReference) ? ResolvedHeight(style, 0, heightReference) : 0;
             var contentBasis = false;
             if (basis == 0 && style.Fb < 0 && HasWidth(style) && PreferredRatio(block))
             {
-                basis = RatioContentHeight(style, ResolvedWidth(style, style.W, style.Wp, style.Wo, style.Wu, widthReference));
+                basis = RatioContentHeight(style, ResolvedWidth(style, 0, widthReference));
                 contentBasis = true;
             }
             if (basis == 0 && style.Fb < 0 && !HasMinHeight(style, heightReference)) return 0;
             if (!contentBasis && style.Fb >= 0) basis = BoxContentHeight(style, basis);
-            if (HasMaxHeight(style, heightReference)) basis = Math.Min(basis, ResolvedHeight(style, style.Hx, style.Hxp, style.Hxo, style.Hxu, heightReference));
-            if (HasMinHeight(style, heightReference)) basis = Math.Max(basis, ResolvedHeight(style, style.Hn, style.Hnp, style.Hno, style.Hnu, heightReference));
+            if (HasMaxHeight(style, heightReference)) basis = Math.Min(basis, ResolvedHeight(style, 2, heightReference));
+            if (HasMinHeight(style, heightReference)) basis = Math.Max(basis, ResolvedHeight(style, 1, heightReference));
             return basis + FlexVertical(style);
         }
 
@@ -2118,7 +2118,7 @@ namespace Lea.Win
         private int FlexMinOuterHeight(S style, int reference)
         {
             if (style == null) return 1;
-            return Math.Max(1, HasMinHeight(style, reference) ? ResolvedHeight(style, style.Hn, style.Hnp, style.Hno, style.Hnu, reference) : 0) + FlexVertical(style);
+            return Math.Max(1, HasMinHeight(style, reference) ? ResolvedHeight(style, 1, reference) : 0) + FlexVertical(style);
         }
 
         private static int FlexHorizontal(S style)
@@ -2312,7 +2312,7 @@ namespace Lea.Win
             var preferredRatio = PreferredRatio(block);
             var explicitHeight = HasHeight(style, heightReference);
             if (preferredRatio && !HasWidth(style) && explicitHeight && !StretchesWidth(style))
-                tableWidth = ConstrainResolvedWidth(style, RatioContentWidth(style, ResolvedHeight(style, style.H, style.Hp, style.Ho, style.Hu, heightReference)), tableWidth, widthReference);
+                tableWidth = ConstrainResolvedWidth(style, RatioContentWidth(style, ResolvedHeight(style, 0, heightReference)), tableWidth, widthReference);
             var captionHeight = 0;
             if (block.Tb.Cp.Length > 0)
             {
@@ -2739,7 +2739,7 @@ namespace Lea.Win
             using (var font = BoxFont(block.K, style, false))
             {
                 var measured = TextRenderer.MeasureText(graphics, text, font, Size.Empty, TextFormatFlags.SingleLine | TextFormatFlags.NoPadding).Width;
-                var minimum = !HasMinWidth(style) ? 1 : Math.Min(available, Math.Max(1, ResolvedWidth(style, style.Wn, style.Wnp, style.Wno, style.Wnu, reference)));
+                var minimum = !HasMinWidth(style) ? 1 : Math.Min(available, Math.Max(1, ResolvedWidth(style, 1, reference)));
                 return Math.Max(minimum, Math.Min(available, Math.Max(1, measured)));
             }
         }
@@ -2763,9 +2763,9 @@ namespace Lea.Win
         {
             available = Math.Max(1, available);
             reference = Math.Max(1, reference);
-            var width = HasWidth(style) ? Math.Min(available, Math.Max(1, ResolvedWidth(style, style.W, style.Wp, style.Wo, style.Wu, reference))) : available;
-            if (HasMaxWidth(style)) width = Math.Min(width, Math.Max(1, ResolvedWidth(style, style.Wx, style.Wxp, style.Wxo, style.Wxu, reference)));
-            if (HasMinWidth(style)) width = Math.Max(width, Math.Min(available, Math.Max(1, ResolvedWidth(style, style.Wn, style.Wnp, style.Wno, style.Wnu, reference))));
+            var width = HasWidth(style) ? Math.Min(available, Math.Max(1, ResolvedWidth(style, 0, reference))) : available;
+            if (HasMaxWidth(style)) width = Math.Min(width, Math.Max(1, ResolvedWidth(style, 2, reference)));
+            if (HasMinWidth(style)) width = Math.Max(width, Math.Min(available, Math.Max(1, ResolvedWidth(style, 1, reference))));
             return Math.Max(1, width);
         }
 
@@ -2776,62 +2776,121 @@ namespace Lea.Win
 
         private int ConstrainHeight(S style, int natural, int reference)
         {
-            var height = HasHeight(style, reference) ? ResolvedHeight(style, style.H, style.Hp, style.Ho, style.Hu, reference) : Math.Max(1, natural);
-            if (HasMaxHeight(style, reference)) height = Math.Min(height, Math.Max(1, ResolvedHeight(style, style.Hx, style.Hxp, style.Hxo, style.Hxu, reference)));
-            if (HasMinHeight(style, reference)) height = Math.Max(height, Math.Max(1, ResolvedHeight(style, style.Hn, style.Hnp, style.Hno, style.Hnu, reference)));
+            var height = HasHeight(style, reference) ? ResolvedHeight(style, 0, reference) : Math.Max(1, natural);
+            if (HasMaxHeight(style, reference)) height = Math.Min(height, Math.Max(1, ResolvedHeight(style, 2, reference)));
+            if (HasMinHeight(style, reference)) height = Math.Max(height, Math.Max(1, ResolvedHeight(style, 1, reference)));
             return Math.Max(1, height);
         }
 
         private int ConstrainResolvedWidth(S style, int desired, int available, int reference)
         {
             var width = Math.Min(Math.Max(1, available), Math.Max(1, desired));
-            if (HasMaxWidth(style)) width = Math.Min(width, Math.Max(1, ResolvedWidth(style, style.Wx, style.Wxp, style.Wxo, style.Wxu, reference)));
-            if (HasMinWidth(style)) width = Math.Max(width, Math.Min(Math.Max(1, available), Math.Max(1, ResolvedWidth(style, style.Wn, style.Wnp, style.Wno, style.Wnu, reference))));
+            if (HasMaxWidth(style)) width = Math.Min(width, Math.Max(1, ResolvedWidth(style, 2, reference)));
+            if (HasMinWidth(style)) width = Math.Max(width, Math.Min(Math.Max(1, available), Math.Max(1, ResolvedWidth(style, 1, reference))));
             return Math.Max(1, width);
         }
 
         private static bool HasWidth(S style)
         {
-            return style != null && (style.W > 0 || style.Wp > 0);
+            return style != null && (style.W > 0 || style.Wp > 0 || style.Wk > 0);
         }
 
         private static bool HasMinWidth(S style)
         {
-            return style != null && (style.Wn > 0 || style.Wnp > 0);
+            return style != null && (style.Wn > 0 || style.Wnp > 0 || style.Wnk > 0);
         }
 
         private static bool HasMaxWidth(S style)
         {
-            return style != null && (style.Wx > 0 || style.Wxp > 0);
+            return style != null && (style.Wx > 0 || style.Wxp > 0 || style.Wxk > 0);
         }
 
         private static bool HasHeight(S style, int reference)
         {
-            return style != null && (style.H > 0 || style.Hp > 0 && (style.Hu > 0 || reference > 0));
+            if (style == null) return false;
+            if (style.Hk > 0) return reference > 0 || !FunctionHasPercentage(style, true, 0);
+            return style.H > 0 || style.Hp > 0 && (style.Hu > 0 || reference > 0);
         }
 
         private static bool HasMinHeight(S style, int reference)
         {
-            return style != null && (style.Hn > 0 || style.Hnp > 0 && (style.Hnu > 0 || reference > 0));
+            if (style == null) return false;
+            if (style.Hnk > 0) return reference > 0 || !FunctionHasPercentage(style, true, 1);
+            return style.Hn > 0 || style.Hnp > 0 && (style.Hnu > 0 || reference > 0);
         }
 
         private static bool HasMaxHeight(S style, int reference)
         {
-            return style != null && (style.Hx > 0 || style.Hxp > 0 && (style.Hxu > 0 || reference > 0));
+            if (style == null) return false;
+            if (style.Hxk > 0) return reference > 0 || !FunctionHasPercentage(style, true, 2);
+            return style.Hx > 0 || style.Hxp > 0 && (style.Hxu > 0 || reference > 0);
         }
 
-        private int ResolvedWidth(S style, int pixels, int percent, int offset, int unit, int reference)
+        private int ResolvedWidth(S style, int part, int reference)
         {
-            var declared = percent > 0 ? RelativePixels(unit, percent, reference, style) + offset : pixels;
-            declared = Math.Max(0, Math.Min(8192, declared));
-            return BoxContentWidth(style, declared);
+            return BoxContentWidth(style, ResolvedSize(style, false, part, reference));
         }
 
-        private int ResolvedHeight(S style, int pixels, int percent, int offset, int unit, int reference)
+        private int ResolvedHeight(S style, int part, int reference)
         {
-            var declared = percent > 0 ? RelativePixels(unit, percent, reference, style) + offset : pixels;
-            declared = Math.Max(0, Math.Min(8192, declared));
-            return BoxContentHeight(style, declared);
+            return BoxContentHeight(style, ResolvedSize(style, true, part, reference));
+        }
+
+        private int ResolvedSize(S style, bool height, int part, int reference)
+        {
+            var kind = height ? HeightFunctionKind(style, part) : WidthFunctionKind(style, part);
+            int declared;
+            if (kind == 0)
+            {
+                var pixels = height ? part == 0 ? style.H : part == 1 ? style.Hn : style.Hx : part == 0 ? style.W : part == 1 ? style.Wn : style.Wx;
+                var magnitude = height ? part == 0 ? style.Hp : part == 1 ? style.Hnp : style.Hxp : part == 0 ? style.Wp : part == 1 ? style.Wnp : style.Wxp;
+                var offset = height ? part == 0 ? style.Ho : part == 1 ? style.Hno : style.Hxo : part == 0 ? style.Wo : part == 1 ? style.Wno : style.Wxo;
+                var unit = height ? part == 0 ? style.Hu : part == 1 ? style.Hnu : style.Hxu : part == 0 ? style.Wu : part == 1 ? style.Wnu : style.Wxu;
+                declared = magnitude > 0 ? RelativePixels(unit, magnitude, reference, style) + offset : pixels;
+            }
+            else
+            {
+                var count = height ? style.Hq(part) : style.Wq(part);
+                declared = FunctionTerm(style, height, part, 0, reference);
+                if (kind == 1)
+                    for (var argument = 1; argument < count; argument++) declared = Math.Min(declared, FunctionTerm(style, height, part, argument, reference));
+                else if (kind == 2)
+                    for (var argument = 1; argument < count; argument++) declared = Math.Max(declared, FunctionTerm(style, height, part, argument, reference));
+                else if (kind == 3 && count == 3)
+                    declared = Math.Max(declared, Math.Min(FunctionTerm(style, height, part, 1, reference), FunctionTerm(style, height, part, 2, reference)));
+            }
+            return Math.Max(0, Math.Min(8192, declared));
+        }
+
+        private int FunctionTerm(S style, bool height, int part, int argument, int reference)
+        {
+            var pixels = height ? style.Hv(part, argument, 0) : style.Wv(part, argument, 0);
+            var magnitude = height ? style.Hv(part, argument, 1) : style.Wv(part, argument, 1);
+            var offset = height ? style.Hv(part, argument, 2) : style.Wv(part, argument, 2);
+            var unit = height ? style.Hv(part, argument, 3) : style.Wv(part, argument, 3);
+            return magnitude > 0 ? RelativePixels(unit, magnitude, reference, style) + offset : pixels;
+        }
+
+        private static bool FunctionHasPercentage(S style, bool height, int part)
+        {
+            var count = height ? style.Hq(part) : style.Wq(part);
+            for (var argument = 0; argument < count; argument++)
+            {
+                var magnitude = height ? style.Hv(part, argument, 1) : style.Wv(part, argument, 1);
+                var unit = height ? style.Hv(part, argument, 3) : style.Wv(part, argument, 3);
+                if (magnitude > 0 && unit == 0) return true;
+            }
+            return false;
+        }
+
+        private static int WidthFunctionKind(S style, int part)
+        {
+            return part == 0 ? style.Wk : part == 1 ? style.Wnk : style.Wxk;
+        }
+
+        private static int HeightFunctionKind(S style, int part)
+        {
+            return part == 0 ? style.Hk : part == 1 ? style.Hnk : style.Hxk;
         }
 
         private int SizeReference(int unit, int reference, S style)
@@ -2895,8 +2954,8 @@ namespace Lea.Win
         private int ConstrainFlexHeight(S style, int allocated, int reference)
         {
             var height = Math.Max(1, allocated);
-            if (HasMaxHeight(style, reference)) height = Math.Min(height, Math.Max(1, ResolvedHeight(style, style.Hx, style.Hxp, style.Hxo, style.Hxu, reference)));
-            if (HasMinHeight(style, reference)) height = Math.Max(height, Math.Max(1, ResolvedHeight(style, style.Hn, style.Hnp, style.Hno, style.Hnu, reference)));
+            if (HasMaxHeight(style, reference)) height = Math.Min(height, Math.Max(1, ResolvedHeight(style, 2, reference)));
+            if (HasMinHeight(style, reference)) height = Math.Max(height, Math.Max(1, ResolvedHeight(style, 1, reference)));
             return Math.Max(1, height);
         }
 

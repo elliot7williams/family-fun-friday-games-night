@@ -55,6 +55,9 @@ The same runner recognizes an extracted Lea runtime package and measures its
 local DLLs and Firespider executable without requiring a source solution.
 Its fixture set includes `font-relative-units.html`, covering bounded `em` and
 `rem` model, layout, commands, reset, root media changes, and resize behavior.
+It also includes `size-functions.html`, covering bounded `min()`, `max()`, and
+`clamp()` records, mixed terms, constraints, media replacement, commands,
+shared layout geometry, reset, and resize behavior.
 
 ## Firespider Startup Checks
 
@@ -146,6 +149,10 @@ vertical resize reflow. See `LeaForge/CALCULATED_HEIGHTS.md`.
 cross-axis calculations and min/max constraints, lazy compact unit aliases,
 auto-parent resolution, shared layout families, commands, and two-axis resize
 reflow. See `LeaForge/VIEWPORT_UNITS.md`.
+`size-functions.html` adds two/three-term `min()` and `max()`, three-term
+`clamp()`, lazy compact model aliases, mixed bounded terms, width/height
+constraints, layout families, commands, media replacement, and resize reflow.
+See `LeaForge/SIZE_FUNCTIONS.md`.
 `-Case edit` tests native field menu/hover commands, protected fields,
 paused/empty tabs, and the explicit legacy fallback; see `NATIVE_EDITING.md`.
 `-Case paste` checks guarded real-menu/native/keyboard paste under a held

@@ -1,0 +1,102 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea bounded size functions</title>
+  <style>
+    html { font-size: 20px; }
+    body { background: #f8fafc; color: #172033; font-size: 18px; }
+    .size-shell { width: 600px; height: 400px; background: #edf2f7; }
+    #min-two { width: min(75%, 500px); height: min(75%, 260px); background: #e8f3ff; }
+    #max-two { width: max(40%, 280px); height: max(25%, 140px); background: #dff6e9; }
+    #clamp-main { width: clamp(200px, 50%, 400px); height: clamp(100px, 50%, 180px); background: #fee9d8; }
+    #clamp-font { width: clamp(8rem, 20em, 400px); height: clamp(3em, 4rem, 100px); }
+    #min-three { width: min(90%, 500px, 30rem); height: 80px; }
+    #max-three { width: max(20%, 160px, 8rem); height: 80px; }
+    #calc-function { width: min(calc(100% - 40px), 500px); height: max(calc(50% - 80px), 150px); }
+    #zero-first { width: max(0px, 40%); height: 60px; }
+    #function-limits {
+      width: 550px;
+      height: 350px;
+      min-width: max(50%, 320px);
+      max-width: min(90%, 480px);
+      min-height: max(25%, 120px);
+      max-height: min(80%, 300px);
+    }
+    #function-inherit-parent { width: clamp(200px, 15rem, 400px); height: min(6rem, 150px); }
+    #function-inherit-child { width: inherit; height: inherit; }
+    #function-variable {
+      --sw: max(10em, 12rem);
+      --sh: clamp(60px, 4em, 100px);
+      width: var(--sw);
+      height: var(--sh);
+    }
+    #function-invalid {
+      width: 130px;
+      width: min(100px);
+      width: clamp(10px, 20px);
+      width: max(10px, 20px, 30px, 40px);
+      height: 85px;
+      height: min(20px, calc(10% * 2));
+      height: min(max(10px, 20px), 30px);
+    }
+    #function-auto-parent { width: 600px; }
+    #function-auto-child { height: max(50%, 120px); }
+    #function-flex { display: flex; width: 600px; height: 200px; gap: 10px; }
+    #function-flex-a { font-size: 12px; width: min(10em, 150px); height: clamp(40px, 5em, 80px); }
+    #function-flex-b { width: max(120px, 10%); height: min(5rem, 120px); }
+    #function-grid { display: grid; width: 600px; height: 240px; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 10px; }
+    #function-grid-a { width: clamp(100px, 10rem, 220px); height: min(5em, 100px); }
+    #function-table { width: min(30rem, 500px); height: max(5em, 100px); }
+    #function-position-shell { position: relative; width: 600px; height: 240px; }
+    #function-absolute { position: absolute; top: 0; left: 0; width: max(25%, 180px); height: min(50%, 100px); }
+    #function-fixed { position: fixed; right: 0; top: 0; width: min(25vw, 240px); height: clamp(40px, 10vh, 100px); opacity: 0; }
+    #function-field { display: block; font-size: 14px; width: clamp(120px, 10em, 180px); height: max(3em, 50px); }
+    #function-image { display: block; font-size: 12px; width: min(12em, 160px); height: clamp(60px, 5rem, 120px); }
+    #function-ratio { height: clamp(50px, 4em, 90px); aspect-ratio: 2 / 1; }
+    #function-border-box { box-sizing: border-box; width: clamp(160px, 10rem, 240px); height: min(5em, 100px); padding: 10px; border: 2px solid #176b4d; }
+    #function-link { display: block; width: min(12em, 240px); height: max(3em, 60px); }
+    #function-command { color: #123f8c; font-size: 14px; width: 220px; height: 120px; }
+    #live-function { font-size: 16px; width: min(50vw, 25em, 30rem); height: clamp(3em, 10vh, 6rem); }
+    #media-function { width: clamp(180px, 40vw, 360px); height: 80px; }
+    button { display: block; width: 380px; margin: 6px 0; }
+    @media (max-width: 700px) {
+      html { font-size: 16px; }
+      #media-function { width: max(60vw, 300px); }
+    }
+  </style>
+</head>
+<body>
+  <h1>Bounded size functions</h1>
+  <section class="size-shell"><p id="min-two">Two-term minimum</p></section>
+  <section class="size-shell"><p id="max-two">Two-term maximum</p></section>
+  <section class="size-shell"><p id="clamp-main">Bounded preferred size</p></section>
+  <section id="clamp-font">Font-relative clamp</section>
+  <section class="size-shell"><p id="min-three">Three-term minimum</p></section>
+  <section class="size-shell"><p id="max-three">Three-term maximum</p></section>
+  <section class="size-shell"><p id="calc-function">Calculated function terms</p></section>
+  <section class="size-shell"><p id="zero-first">Zero first term still creates an explicit function</p></section>
+  <section class="size-shell"><p id="function-limits">Function minimum and maximum constraints</p></section>
+  <section id="function-inherit-parent"><p id="function-inherit-child">Inherited function state</p></section>
+  <section id="function-variable">Custom-property function state</section>
+  <section id="function-invalid">Invalid functions preserve earlier declarations</section>
+  <section id="function-auto-parent"><p id="function-auto-child">Percentage function below an auto-height parent</p></section>
+  <section id="function-flex"><p id="function-flex-a">Flex function A</p><p id="function-flex-b">Flex function B</p></section>
+  <section id="function-grid"><p id="function-grid-a">Grid function A</p><p id="function-grid-b">Grid B</p><p id="function-grid-c">Grid C</p></section>
+  <table id="function-table"><tr><td>Function table</td><td>Second cell</td></tr></table>
+  <section id="function-position-shell"><p id="function-absolute">Absolute function box</p></section>
+  <p id="function-fixed">Fixed function box</p>
+  <input id="function-field" aria-label="Function-sized field" value="retained function value">
+  <img id="function-image" alt="Function-sized image" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXYxDP9v0PAAM7Ac+IRop4AAAAAElFTkSuQmCC">
+  <section id="function-ratio">Aspect ratio from a function height</section>
+  <section id="function-border-box">Function border box</section>
+  <a id="function-link" href="#function-target">Function-sized link target</a>
+  <section id="function-command">Command function size</section>
+  <section id="live-function">Live viewport and root-font function</section>
+  <section id="media-function">Responsive function replacement</section>
+  <button id="set-function-size" type="button" data-lea="wd('function-command','clamp(140px,25em,360px)');ht('function-command','clamp(60px,5em,100px)')">Set compact function size</button>
+  <button id="dom-function-size" type="button" onclick="document.getElementById('function-command').style.width='max(12rem,300px)';document.getElementById('function-command').style.height='min(6em,110px)'">Set literal function size</button>
+  <button id="clear-function-size" type="button" onclick="document.getElementById('function-command').style.width='';document.getElementById('function-command').style.height=''">Restore authored size</button>
+  <p id="function-target">Function target</p>
+</body>
+</html>

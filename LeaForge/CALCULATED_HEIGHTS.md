@@ -67,9 +67,11 @@ hits, native editing, accessibility bounds, and live vertical resize.
 
 ## Boundary
 
-Lea does not accept `min()`, `max()`, `clamp()`, multiplication, division,
-nested calculations, arbitrary operators, negative percentages, percentages
-above 100, intrinsic keywords, or calculated flex basis. Classic bounded
+Lea does not accept multiplication, division, nested calculations, arbitrary
+operators, negative percentages, percentages above 100, intrinsic keywords,
+or calculated flex basis. Bounded standalone `min()`, `max()`, and `clamp()`
+size functions are covered by `SIZE_FUNCTIONS.md`; nested size functions remain
+unsupported. Classic bounded
 viewport units are covered by `VIEWPORT_UNITS.md`; bounded `em`/`rem`
 dimensions are covered by `FONT_RELATIVE_UNITS.md`.
 Percentage heights inside auto-height table cells do not establish a definite

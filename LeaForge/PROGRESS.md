@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **80**
+Post-1.0 hardening milestones completed: **81**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -14,8 +14,8 @@ modern web platform.
 | Core and alias API | 10% | 10% | Compact API, bounded diagnostics, repeatable reports, history, projects, backups |
 | Networking | 10% | 10% | Bounded request deadlines and downloads, private cookies, typed errors, validators, compression, memory LRU and optional persistent cache |
 | HTML and document tree | 20% | 20% | Bounded tokens, queries, base URLs and fragments, raw/RCDATA text, entities, recovery, HTML-hidden suppression, semantic accessibility, blocks, lists, disclosures, gauges, values, time/edit metadata, responsive image maps, tabindex focus, autofocus/access keys, tables |
-| CSS | 15% | 15% | Compiled relationship, bounded strict relational/functional, An+B/reverse, and filtered structural selectors, declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, fixed/percentage/calculated dimensions plus classic viewport and font-relative units, bounded vertical sticky positioning, dynamic hover/focus, inherited cursor/pointer interaction, text transformation and signed letter/word spacing, content/border sizing, circular/elliptical radii, bounded outlines, box shadows, gradients, bitmap backgrounds, object fitting and aspect ratios, visibility/opacity, fonts, overflow, boxes, bounded ordered flex and two-axis grid properties |
-| Layout and painting | 20% | 20% | Shared fixed/percentage/calculated, viewport-unit, and font-relative dimensions, content/border, aspect-ratio, and sticky geometry, transformed and spacing-aware presentation text with raw form retention, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients/bitmaps, pointer-gated retained hits with underlying fallthrough, fitted raster images and maps, ordered flex rows/columns, bounded grid tracks/spans, distribution, alignment, wrapping, grow/shrink, clipping, reflow, painting |
+| CSS | 15% | 15% | Compiled relationship, bounded strict relational/functional, An+B/reverse, and filtered structural selectors, declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, fixed/percentage/calculated dimensions plus classic viewport/font-relative units and bounded size functions, bounded vertical sticky positioning, dynamic hover/focus, inherited cursor/pointer interaction, text transformation and signed letter/word spacing, content/border sizing, circular/elliptical radii, bounded outlines, box shadows, gradients, bitmap backgrounds, object fitting and aspect ratios, visibility/opacity, fonts, overflow, boxes, bounded ordered flex and two-axis grid properties |
+| Layout and painting | 20% | 20% | Shared fixed/percentage/calculated, viewport-unit, font-relative, and min/max/clamp dimensions, content/border, aspect-ratio, and sticky geometry, transformed and spacing-aware presentation text with raw form retention, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients/bitmaps, pointer-gated retained hits with underlying fallthrough, fitted raster images and maps, ordered flex rows/columns, bounded grid tracks/spans, distribution, alignment, wrapping, grow/shrink, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Native field edit commands and one-level undo/redo, bounded multipart files, richer widgets, validation, responsive and fitted images, GET/POST submit |
 | Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/body and ID-scoped display/width/height/style/alert, class, visibility, disclosure, field-state, focus, and literal bounded DOM translation |
 | Firespider integration and reliability | 10% | 10% | Lea-first New Tab/Ctrl+T, explicit legacy fallback, Inspector with Access view, MSAA/UIA surfaces including read-only text, host-safe focus shortcuts, navigation, sessions, source, host smokes |
@@ -29,6 +29,26 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded two/three-term CSS `min()` and `max()` plus three-term
+  `clamp()` to width, height, minimum, maximum, compact `wd/ht`, and literal DOM
+  style paths. Every argument reuses one fixed, percentage, viewport,
+  font-relative, or `calc(PU +/- Npx)` term. Lazy `S.Wk/Wnk/Wxk` and matching
+  height aliases expose function kind; `Wq/Hq/Wv/Hv` inspect argument counts
+  and values without allocating state on ordinary pages. One resolver carries
+  the functions through blocks, positioning, flex, grid, tables, fields,
+  images, aspect ratios, content/border boxes, paint, hits, editing,
+  accessibility, media replacement, and live resize. Percentage height
+  functions below auto-height parents remain authored but use natural layout.
+  Invalid arity, nested functions, decimals, and arbitrary arithmetic remain
+  atomic. Full repository and compiled-host smokes pass, along with 77 probes
+  over 74 fixtures, all 42 Boot cases, and all six real EXE startup scenarios.
+  Measured medians are 476.482 ms clean diagnostic start, 3.451 ms local load,
+  and 32.159 ms layout/paint. Retained managed memory is 18,925.5 KiB for 370
+  pages, or 51.1 KiB/page. Required runtime files total 536.5 KiB with a 229.0
+  KiB GZip estimate. Runtime 181 stays isolated and installed runtime 157
+  remains unchanged. See `SIZE_FUNCTIONS.md`. The scoped baseline stays at
+  100%, not full-web compatibility.
 
 - Added bounded `em` and `rem` values to width, height, minimum, maximum,
   compact `wd/ht`, and literal DOM style paths. Existing lazy tuples add unit

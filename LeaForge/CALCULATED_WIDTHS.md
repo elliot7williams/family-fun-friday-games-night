@@ -63,9 +63,11 @@ viewport ceiling.
 
 ## Boundary
 
-Lea does not accept `min()`, `max()`, `clamp()`, multiplication, division,
-nested calculations, arbitrary operators, negative percentages, percentages
-above 100, or intrinsic keywords. Calculated heights are covered by
+Lea does not accept multiplication, division, nested calculations, arbitrary
+operators, negative percentages, percentages above 100, or intrinsic keywords.
+Bounded standalone `min()`, `max()`, and `clamp()` size functions may contain
+one supported calculated term and are covered by `SIZE_FUNCTIONS.md`; nesting
+those functions remains unsupported. Calculated heights are covered by
 `CALCULATED_HEIGHTS.md`; classic bounded viewport units are covered by
 `VIEWPORT_UNITS.md`, and bounded `em`/`rem` dimensions by
 `FONT_RELATIVE_UNITS.md`. Unsupported values remain inert.

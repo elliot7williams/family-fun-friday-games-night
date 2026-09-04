@@ -85,26 +85,32 @@ namespace Lea.Engine
         public int Wp { get { return WidthValue(0, 0); } }
         public int Wo { get { return WidthValue(0, 1); } }
         public int Wu { get { return WidthValue(0, 2); } }
+        public int Wk { get { return FunctionKind(false, 0); } }
         public int H { get; internal set; }
         public int Hp { get { return HeightValue(0, 0); } }
         public int Ho { get { return HeightValue(0, 1); } }
         public int Hu { get { return HeightValue(0, 2); } }
+        public int Hk { get { return FunctionKind(true, 0); } }
         public int Wn { get; internal set; }
         public int Wnp { get { return WidthValue(1, 0); } }
         public int Wno { get { return WidthValue(1, 1); } }
         public int Wnu { get { return WidthValue(1, 2); } }
+        public int Wnk { get { return FunctionKind(false, 1); } }
         public int Wx { get; internal set; }
         public int Wxp { get { return WidthValue(2, 0); } }
         public int Wxo { get { return WidthValue(2, 1); } }
         public int Wxu { get { return WidthValue(2, 2); } }
+        public int Wxk { get { return FunctionKind(false, 2); } }
         public int Hn { get; internal set; }
         public int Hnp { get { return HeightValue(1, 0); } }
         public int Hno { get { return HeightValue(1, 1); } }
         public int Hnu { get { return HeightValue(1, 2); } }
+        public int Hnk { get { return FunctionKind(true, 1); } }
         public int Hx { get; internal set; }
         public int Hxp { get { return HeightValue(2, 0); } }
         public int Hxo { get { return HeightValue(2, 1); } }
         public int Hxu { get { return HeightValue(2, 2); } }
+        public int Hxk { get { return FunctionKind(true, 2); } }
         public double Rw { get; internal set; }
         public double Rh { get; internal set; }
         public bool Ra { get; internal set; }
@@ -142,6 +148,8 @@ namespace Lea.Engine
         internal Dictionary<string, int[]> Ad { get; set; }
         internal int[] Wd { get; set; }
         internal int[] Hd { get; set; }
+        internal int[] Wfd { get; set; }
+        internal int[] Hfd { get; set; }
 
         public int Vc { get { return Vr == null ? 0 : Vr.Count; } }
         public int Gc { get { return Gd == null ? 0 : Gd.Length; } }
@@ -196,6 +204,26 @@ namespace Lea.Engine
             return !String.IsNullOrEmpty(name) && Vr != null && Vr.TryGetValue(name, out value) ? value : "";
         }
 
+        public int Wq(int part)
+        {
+            return FunctionCount(false, part);
+        }
+
+        public int Hq(int part)
+        {
+            return FunctionCount(true, part);
+        }
+
+        public int Wv(int part, int argument, int value)
+        {
+            return FunctionValue(false, part, argument, value);
+        }
+
+        public int Hv(int part, int argument, int value)
+        {
+            return FunctionValue(true, part, argument, value);
+        }
+
         internal void SetWidth(int part, int percent, int offset, int unit)
         {
             if (part < 0 || part > 2) return;
@@ -220,6 +248,39 @@ namespace Lea.Engine
             Hd = null;
         }
 
+        internal void SetFunction(bool height, int part, int kind, int[] values)
+        {
+            if (part < 0 || part > 2 || kind < 0 || kind > 3) return;
+            var data = height ? Hfd : Wfd;
+            if (data == null && kind != 0) data = new int[42];
+            if (data == null) return;
+            var start = part * 14;
+            for (var index = 0; index < 14; index++) data[start + index] = 0;
+            if (kind != 0 && values != null && (values.Length == 8 || values.Length == 12))
+            {
+                data[start] = kind;
+                data[start + 1] = values.Length / 4;
+                Array.Copy(values, 0, data, start + 2, values.Length);
+            }
+            var any = false;
+            for (var index = 0; index < data.Length; index++) if (data[index] != 0) { any = true; break; }
+            if (height) Hfd = any ? data : null;
+            else Wfd = any ? data : null;
+        }
+
+        internal void CopyFunction(bool height, int part, S inherited)
+        {
+            if (inherited == null) { SetFunction(height, part, 0, null); return; }
+            var kind = inherited.FunctionKind(height, part);
+            var count = inherited.FunctionCount(height, part);
+            if (kind == 0 || count < 2 || count > 3) { SetFunction(height, part, 0, null); return; }
+            var values = new int[count * 4];
+            for (var argument = 0; argument < count; argument++)
+                for (var value = 0; value < 4; value++)
+                    values[argument * 4 + value] = inherited.FunctionValue(height, part, argument, value);
+            SetFunction(height, part, kind, values);
+        }
+
         private int WidthValue(int part, int value)
         {
             return Wd == null ? 0 : Wd[part * 3 + value];
@@ -228,6 +289,25 @@ namespace Lea.Engine
         private int HeightValue(int part, int value)
         {
             return Hd == null ? 0 : Hd[part * 3 + value];
+        }
+
+        private int FunctionKind(bool height, int part)
+        {
+            var data = height ? Hfd : Wfd;
+            return data == null || part < 0 || part > 2 ? 0 : data[part * 14];
+        }
+
+        private int FunctionCount(bool height, int part)
+        {
+            var data = height ? Hfd : Wfd;
+            return data == null || part < 0 || part > 2 ? 0 : data[part * 14 + 1];
+        }
+
+        private int FunctionValue(bool height, int part, int argument, int value)
+        {
+            var data = height ? Hfd : Wfd;
+            return data == null || part < 0 || part > 2 || argument < 0 || argument > 2 || value < 0 || value > 3 ?
+                0 : data[part * 14 + 2 + argument * 4 + value];
         }
 
         private int GridLine(string name, bool rows)

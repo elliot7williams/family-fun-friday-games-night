@@ -82,8 +82,10 @@ parsed as pixels.
 
 Lea does not accept decimal, zero, negative, or above-100 relative terms, `ex`,
 `ch`, `cap`, `ic`, `lh`, `rlh`, nested calculations, multiplication, division,
-arbitrary operators, `min()`, `max()`, or `clamp()`. The compact model favors a
-small deterministic implementation over full CSS Values compatibility.
+or arbitrary operators. A bounded `em` or `rem` term may be used in standalone
+`min()`, `max()`, and `clamp()` dimensions as described by `SIZE_FUNCTIONS.md`;
+nested size functions remain unsupported. The compact model favors a small
+deterministic implementation over full CSS Values compatibility.
 
 `test-pages/font-relative-units.html` covers both units on both axes,
 calculations, min/max constraints, nested element fonts, root media changes,

@@ -17,15 +17,15 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 80 adds bounded `em` and `rem` dimensions and one
-`calc(PU +/- Npx)` form through compact `S.Wu/Hu` unit aliases. `P.Rf` records
-an explicit root font and `V.Rf` exposes the applied host fallback. The shared
-resolver covers width/height min/max, blocks, positioning, flex, grid, tables,
-controls, images, aspect ratios, content/border boxes, paint, hits,
-accessibility, commands, root media changes, and resize. Full repository and
-compiled-host tests pass with 76 probes over 73 fixtures, all 42 Boot cases,
-and all six real EXE startup scenarios. Runtime 180 stays isolated and installed
-runtime 157 remains unchanged. See `FONT_RELATIVE_UNITS.md`. Next continue
+Milestone 81 adds bounded two/three-term `min()` and `max()` plus three-term
+`clamp()` dimensions through lazy `S.Wk/Hk/Wq/Hq/Wv/Hv` aliases. Terms reuse
+fixed, percentage, viewport, font-relative, and one-expression calculated
+sizes. One resolver covers width/height constraints, blocks, positioning, flex,
+grid, tables, controls, images, aspect ratios, content/border boxes, paint,
+hits, accessibility, commands, media replacement, and resize. Full repository
+and compiled-host tests pass with 77 probes over 74 fixtures, all 42 Boot cases,
+and all six real EXE startup scenarios. Runtime 181 stays isolated and installed
+runtime 157 remains unchanged. See `SIZE_FUNCTIONS.md`. Next continue
 bounded HTML/CSS/DOM compatibility and host migration without a general VM.
 
 Milestone 60 installs the existing `V.Ng` hook on main Lea tabs, enforcing host

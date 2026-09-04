@@ -109,14 +109,15 @@ display declaration and restores the authored cascade. Unsupported values are
 inert. See `DISPLAY_NAVIGATION.md`.
 
 `wd` accepts fixed `0..2000px`, `1..100%`, classic `1..100vw/vh/vmin/vmax`,
-bounded `1..100em/rem`, or
-one `calc(PU +/- Npx)` expression where `P` is 1..100, `U` is `%` or a supported
-relative unit, and `N` is 0..2000. An empty value removes only the inline width
-and restores the authored cascade. Authored `width`, `min-width`, and
-`max-width` accept the same bounded numeric forms. Nested functions and
-multiplication/division remain unsupported. `ht` and authored height/min/max
-use the same forms. See `CALCULATED_WIDTHS.md`, `CALCULATED_HEIGHTS.md`,
-`VIEWPORT_UNITS.md`, and `FONT_RELATIVE_UNITS.md`.
+bounded `1..100em/rem`, or one `calc(PU +/- Npx)` expression where `P` is
+1..100, `U` is `%` or a supported relative unit, and `N` is 0..2000. It also
+accepts two/three-term `min()` and `max()`, or three-term `clamp()`, when every
+argument is one of those bounded forms. An empty value removes only the inline
+width and restores the authored cascade. Authored `width`, `min-width`, and
+`max-width` accept the same forms. Nested functions and multiplication/division
+remain unsupported. `ht` and authored height/min/max use the matching parser.
+See `CALCULATED_WIDTHS.md`, `CALCULATED_HEIGHTS.md`, `VIEWPORT_UNITS.md`,
+`FONT_RELATIVE_UNITS.md`, and `SIZE_FUNCTIONS.md`.
 
 `P.Vs` exposes at most 16 case-insensitive variables. Names are one through 16
 letters, digits, or underscores and must begin with a letter; values are capped
@@ -745,6 +746,12 @@ parents. Font-relative units use the element's computed font or `V.Rf` root
 font. Both axes accept one bounded `calc(PU +/- Npx)` expression; see
 `CALCULATED_WIDTHS.md`, `CALCULATED_HEIGHTS.md`, `VIEWPORT_UNITS.md`, and
 `FONT_RELATIVE_UNITS.md`.
+
+Bounded size functions use lazy `S.Wk/Wnk/Wxk` and `Hk/Hnk/Hxk` kind aliases:
+`0` is plain, `1` is `min`, `2` is `max`, and `3` is `clamp`. `Wq/Hq(part)`
+return argument counts for preferred/minimum/maximum part `0/1/2`.
+`Wv/Hv(part,argument,value)` expose pixels, magnitude, offset, and unit at value
+indexes `0/1/2/3`. See `SIZE_FUNCTIONS.md`.
 
 Rounded corners use clockwise horizontal `R0/R1/R2/R3` and vertical
 `Q0/Q1/Q2/Q3` values for top-left, top-right, bottom-right, and bottom-left.

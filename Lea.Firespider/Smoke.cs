@@ -67,6 +67,7 @@ namespace Lea.Firespider
                     .Replace("</style>", ".host-height-shell{height:320px}.host-height{height:calc(100% - 80px);max-height:calc(75% + 5px);background:#dff6e9}</style>")
                     .Replace("</style>", ".host-viewport{width:calc(50vw - 20px);height:25vh;min-width:20vmin;max-height:40vmax;background:#fee9d8}</style>")
                     .Replace("</style>", "html{font-size:20px}body{font-size:10px}.host-font{font-size:18px;width:10em;height:4em;min-width:8rem;max-height:5rem;background:#e8f3ff}.host-rem{font-size:12px;width:10rem;height:5em;background:#dff6e9}</style>")
+                    .Replace("</style>", ".host-size-function{font-size:16px;width:clamp(180px,25em,420px);height:min(6rem,140px);min-width:max(10rem,200px);max-height:clamp(80px,20vh,120px);background:#e8f3ff}.host-size-min{font-size:16px;width:min(50vw,360px,20rem);height:max(4em,70px);background:#dff6e9}</style>")
                     .Replace("</style>", ".host-stroke{fill:none;stroke:#0f766e;stroke-width:3;stroke-linecap:square;stroke-linejoin:bevel;stroke-miterlimit:7;stroke-dasharray:4 2 1;stroke-dashoffset:2}</style>")
                     .Replace("</section><p id='class-state'>", "</section><section id='host-has'><span class='host-direct'>Direct host child</span><div class='host-body'><span class='host-ready' data-host='ready'>Ready host descendant</span></div><input id='host-has-input' value='Relational host field'></section><section id='host-grid' class='host-grid'><p id='host-grid-a'>Grid A</p><p id='host-grid-b'>Grid B</p><p id='host-grid-c'>Grid C</p><p id='host-grid-span'>Grid span</p></section><section id='host-grid-rows' class='host-grid-rows'><p id='host-grid-row-a'>Grid row A</p><p id='host-grid-row-b'>Grid row B</p><p id='host-grid-row-c'>Grid row C</p></section><p id='class-state'>")
                     .Replace("<p id='class-state'>", "<section id='host-grid-areas' class='host-grid-areas'><p id='host-grid-area-auto'>Area auto</p><p id='host-grid-area-top'>Area top</p><p id='host-grid-area-left'>Area left</p></section><p id='class-state'>")
@@ -80,6 +81,7 @@ namespace Lea.Firespider
                     .Replace("<p id='class-state'>", "<section id='host-height-shell' class='host-height-shell'><p id='host-height' class='host-height' style='color:#123f8c'>Calculated host height</p></section><p id='class-state'>")
                     .Replace("<p id='class-state'>", "<p id='host-viewport' class='host-viewport' style='color:#123f8c'>Viewport host size</p><p id='class-state'>")
                     .Replace("<p id='class-state'>", "<p id='host-font' class='host-font' style='color:#123f8c'>Element font host size</p><p id='host-rem' class='host-rem'>Root font host size</p><p id='class-state'>")
+                    .Replace("<p id='class-state'>", "<p id='host-size-function' class='host-size-function' style='color:#123f8c'>Bounded host function size</p><p id='host-size-min' class='host-size-min'>Host minimum and maximum size</p><p id='class-state'>")
                     .Replace("<p id='class-state'>", "<p id='host-var' class='host-var' style='--host-color:#a13b18;color:#a13b18;width:199px'>Important property host</p><p id='host-media' class='host-media'>Responsive host</p><p id='host-box' class='host-box'>Border-box host</p><section id='host-flex-column' class='host-flex-column'><p id='host-flex-column-a'>Column A</p><p id='host-flex-column-b'>Column B</p></section><svg id='host-svg' width='160' height='80' viewBox='0 0 80 40'><title>Firespider host vector</title><rect x='2' y='2' width='20' height='16' fill='#d7263d'></rect><circle cx='34' cy='10' r='8' fill='#10b981'></circle><path d='M46 2 h28 v16 H46 z' fill='#f59e0b'></path><a href='#state'><rect x='12' y='24' width='56' height='12' fill='#0369a1'></rect></a></svg><p id='class-state'>")
                     .Replace("</svg><p id='class-state'>", "<path d='M2 32 C8 20 14 20 20 32 S32 44 38 32' fill='none' stroke='#7c3aed' stroke-width='2'></path><g transform='translate(58 26)'><g transform='scale(1.5)'><rect x='0' y='0' width='10' height='6' fill='#db2777'></rect></g></g><defs><linearGradient id='host-linear'><stop offset='0' stop-color='#dc2626'></stop><stop offset='1' stop-color='#2563eb'></stop></linearGradient><radialGradient id='host-radial'><stop offset='0' stop-color='#f8fafc'></stop><stop offset='1' stop-color='#7c3aed'></stop></radialGradient><g id='host-reuse'><rect x='0' y='0' width='10' height='8'></rect><circle cx='7' cy='4' r='2' fill='#f8fafc'></circle></g><clipPath id='host-half' clipPathUnits='objectBoundingBox' clip-rule='evenodd'><rect x='0' y='0' width='.5' height='1'></rect></clipPath></defs><rect x='40' y='24' width='14' height='10' fill='url(#host-linear)'></rect><circle cx='69' cy='10' r='7' fill='url(#host-radial)'></circle><use href='#host-reuse' x='26' y='27' fill='#0d9488'></use><rect x='46' y='27' width='10' height='8' fill='#f59e0b' clip-path='url(#host-half)'></rect><path class='host-stroke' d='M2 20 H22' fill-rule='evenodd'></path></svg><p id='class-state'>");
                 File.WriteAllText(openPage, openMarkup);
@@ -337,6 +339,13 @@ namespace Lea.Firespider
                         hostRem.S.Wu == 6 && hostRem.S.Hu == 5 && BlockOuter(host, "host-font").Size == new System.Drawing.Size(180, 72) &&
                         BlockOuter(host, "host-rem").Size == new System.Drawing.Size(200, 60),
                         "Firespider font-relative model and geometry");
+                    var hostSizeFunction = BlockById(host.At, "host-size-function");
+                    var hostSizeMin = BlockById(host.At, "host-size-min");
+                    Check(hostSizeFunction.S.Wk == 3 && hostSizeFunction.S.Hk == 1 && hostSizeFunction.S.Wnk == 2 && hostSizeFunction.S.Hxk == 3 &&
+                        hostSizeFunction.S.Wq(0) == 3 && hostSizeFunction.S.Hq(0) == 2 && hostSizeFunction.S.Wv(0, 1, 1) == 25 && hostSizeFunction.S.Wv(0, 1, 3) == 5 &&
+                        hostSizeMin.S.Wk == 1 && hostSizeMin.S.Hk == 2 && hostSizeMin.S.Wq(0) == 3 &&
+                        BlockOuter(host, "host-size-function").Size == new System.Drawing.Size(400, 120) && BlockOuter(host, "host-size-min").Size == new System.Drawing.Size(360, 70),
+                        "Firespider bounded size function model and geometry");
                     var hostResponsiveField = FieldById(host.At, "host-auto");
                     hostResponsiveField.V = "Retained responsive host value";
                     Check(host.Vw > 500 && host.At.Vw == host.Vw && host.Dg().Vw == host.Vw && HasBlock(host.At, "host-box") && !HasBlock(host.At, "host-media"), "Firespider wide viewport aliases and media state");
@@ -514,7 +523,7 @@ namespace Lea.Firespider
                         "Firespider literal DOM width reset");
                     PaintView(host);
                     Check(BlockOuter(host, "host-calculated").Width == hostCalculatedWide, "Firespider authored calculated width restore");
-                    Check(host.Js("wd('host-calculated','min(100%,400px)'); document.getElementById('host-calculated').style.width='101%'") == 0 && BlockById(host.At, "host-calculated").S.Wp == 100,
+                    Check(host.Js("wd('host-calculated','min(max(100px,200px),400px)'); document.getElementById('host-calculated').style.width='101%'") == 0 && BlockById(host.At, "host-calculated").S.Wp == 100,
                         "Firespider calculated width boundary");
                     Check(host.Js("ht('host-height','50%')") == 1 && BlockById(host.At, "host-height").S.Hp == 50, "Firespider compact height command");
                     PaintView(host);
@@ -523,7 +532,7 @@ namespace Lea.Firespider
                         "Firespider literal DOM height reset");
                     PaintView(host);
                     Check(BlockOuter(host, "host-height").Height == hostHeightTall, "Firespider authored calculated height restore");
-                    Check(host.Js("ht('host-height','min(100%,400px)'); document.getElementById('host-height').style.height='101%'") == 0 && BlockById(host.At, "host-height").S.Hp == 100,
+                    Check(host.Js("ht('host-height','min(max(100px,200px),400px)'); document.getElementById('host-height').style.height='101%'") == 0 && BlockById(host.At, "host-height").S.Hp == 100,
                         "Firespider calculated height boundary");
                     Check(host.Js("wd('host-viewport','25vh'); ht('host-viewport','25vw')") == 2 &&
                         BlockById(host.At, "host-viewport").S.Wu == 2 && BlockById(host.At, "host-viewport").S.Hu == 1,
@@ -546,6 +555,23 @@ namespace Lea.Firespider
                     Check(BlockOuter(host, "host-font").Size == new System.Drawing.Size(180, 72), "Firespider authored font-relative restore");
                     Check(host.Js("wd('host-font','101em'); ht('host-font','1.5rem')") == 0 && BlockById(host.At, "host-font").S.Wu == 5,
                         "Firespider font-relative boundary");
+                    Check(host.Js("wd('host-size-function','min(30rem,350px)'); ht('host-size-function','max(5em,90px)')") == 2 &&
+                        BlockById(host.At, "host-size-function").S.Wk == 1 && BlockById(host.At, "host-size-function").S.Hk == 2,
+                        "Firespider compact size function commands");
+                    PaintView(host);
+                    Check(BlockOuter(host, "host-size-function").Size == new System.Drawing.Size(350, 90), "Firespider compact size function reflow");
+                    Check(host.Js("document.getElementById('host-size-function').style.width='max(10rem,300px)'; document.getElementById('host-size-function').style.height='clamp(60px,4em,100px)'") == 2,
+                        "Firespider literal size function commands");
+                    PaintView(host);
+                    Check(BlockOuter(host, "host-size-function").Size == new System.Drawing.Size(300, 64), "Firespider literal size function reflow");
+                    Check(host.Js("document.getElementById('host-size-function').style.width=''; document.getElementById('host-size-function').style.height=''") == 2,
+                        "Firespider literal size function reset");
+                    PaintView(host);
+                    var restoredHostSize = BlockOuter(host, "host-size-function").Size;
+                    Check(restoredHostSize == new System.Drawing.Size(400, 112), "Firespider authored size function restore in live host viewport: " + restoredHostSize);
+                    Check(host.Js("wd('host-size-function','min(100px)'); ht('host-size-function','clamp(20px,30px)')") == 0 &&
+                        BlockById(host.At, "host-size-function").S.Wk == 3 && BlockById(host.At, "host-size-function").S.Hk == 1,
+                        "Firespider size function boundary");
                     Check(host.Js("vl('host-auto','Host command value'); vl('host-secret','changed-secret'); hd('class-state'); ds('host-auto')") == 4, "Firespider bounded state commands");
                     Check(FieldById(host.At, "host-auto").V == "Host command value" && FieldById(host.At, "host-auto").Ds && host.Ke == null, "Firespider value, disabled, and focus state");
                     Check(FieldById(host.At, "host-secret").V == "changed-secret" && host.Ax(ById(host.At.D, "host-secret")).V.Length == 0, "Firespider command password redaction");
@@ -563,7 +589,7 @@ namespace Lea.Firespider
                     Check(host.Ck(ById(host.At.D, "host-value-update")) == 1 && ValueById(host.At, "host-output").V == "Updated host total", "Firespider output value rebuild");
                     Check(host.Ck(ById(host.At.D, "host-time-update")) == 1 && ValueById(host.At, "host-time").Dt == "2026-08-22", "Firespider time metadata rebuild");
                     var diagnostics = host.Dg();
-                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 46 && diagnostics.Rs.Count > 0, "Firespider Lea diagnostics");
+                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 52 && diagnostics.Rs.Count > 0, "Firespider Lea diagnostics");
                     var inspectorOpen = type.GetMethod("qleaInspectorOpen", BindingFlags.Instance | BindingFlags.NonPublic);
                     var inspectorSnapshot = type.GetMethod("qleaInspectorSnapshot", BindingFlags.Instance | BindingFlags.NonPublic);
                     var inspectorClear = type.GetMethod("qleaInspectorClear", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -734,6 +760,7 @@ namespace Lea.Firespider
                 Console.WriteLine("Firespider calculated height smoke passed: compact ht, literal style.height, definite parent resolution, shared host geometry, reset, and strict bounds.");
                 Console.WriteLine("Firespider viewport unit smoke passed: vw/vh/vmin/vmax, calc, compact commands, literal reset, live host geometry, and strict bounds.");
                 Console.WriteLine("Firespider font-relative unit smoke passed: em/rem, root font alias, compact commands, literal reset, shared host geometry, and strict bounds.");
+                Console.WriteLine("Firespider size function smoke passed: bounded min/max/clamp, compact aliases, literal commands, reset, shared host geometry, and strict bounds.");
 
                 Console.WriteLine("Firespider Lea smoke passed: bounded sticky positioning with compact k and shared host geometry, bounded percentage/calc widths with compact wd and literal DOM reflow, bounded display alias and literal location requests, literal bounded DOM translation, inherited cursor and pointer-event aliases with host hit gating and fallthrough, bounded CSS outlines with compact aliases and exact non-layout host paint, bounded CSS aspect ratios with compact aliases and exact host geometry/paint, bounded CSS object-fit and object-position with compact aliases, exact fitted paint, and image-map keyboard/accessibility geometry, bounded CSS bitmap backgrounds with compact aliases and exact host paint, bounded inline SVG aliases, winding, stroke styles, geometry, links, and graphic accessibility, bounded has relational selectors with strict lists, maximum specificity, descendant/child/adjacent and complex host relationships, focus rebuilds, retained fields, queries, Inspector, and geometry, bounded nth-child of-S filters with strict lists, maximum specificity, forward/reverse computed styles, queries, Inspector, and host geometry, bounded precompiled An+B and reverse structural selectors with computed styles, queries, Inspector, and host geometry, bounded is, where, and list-not selector functions with specificity, queries, Inspector, and host geometry, bounded CSS important cascade with G.Ic diagnostics, custom properties, inline, responsive values, Inspector counts, and retained fields, bounded inherited CSS custom properties with S.Vc/Cv and G.Vc aliases, responsive values, Inspector counts, and retained fields, bounded responsive CSS media queries with viewport aliases and retained fields, optional bounded persistent cache aliases and Inspector diagnostics, bounded content-box and border-box geometry, scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, and shrink, semantic accessibility, protected values, rendered bounds, MSAA and UI Automation providers, value, table/grid, and read-only logical text patterns plus Access inspector, bounded autofocus and access keys, keyboard focus and activation, responsive image maps, compact time/edit metadata, output/data values and safe rebuilds, progress and meter gauges, disclosure commands, retained same-page fragments, Lea-first New Tab and explicit legacy fallback, host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
                 return 0;
