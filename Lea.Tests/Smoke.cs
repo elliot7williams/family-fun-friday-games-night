@@ -361,6 +361,78 @@ namespace Lea.Tests
                 Eq(0, logicalEngine.Js(logicalPage, "is('command','101%');bs('command','1.5em')"), "unsupported logical command values rejected");
                 Eq(new Size(180, 75), new Size(BlockById(logicalPage, "command").S.W, BlockById(logicalPage, "command").S.H), "rejected logical commands preserve sizes");
 
+                var logicalBoxPath = Path.Combine(pages, "logical-box-model.html");
+                var logicalBoxEngine = new E();
+                var logicalBoxPage = logicalBoxEngine.Go(logicalBoxPath);
+                Eq(0, logicalBoxPage.Jc, "logical box fixture has no startup commands");
+                var logicalAxisBox = BlockById(logicalBoxPage, "axis-box").S;
+                Ok(logicalAxisBox.Mt == 14 && logicalAxisBox.Mr == 18 && logicalAxisBox.Mb == 16 && logicalAxisBox.Ml == 12 &&
+                    logicalAxisBox.Pt == 6 && logicalAxisBox.Pr == 10 && logicalAxisBox.Pb == 7 && logicalAxisBox.Pl == 8,
+                    "logical margin and padding axis shorthands");
+                var logicalLonghandBox = BlockById(logicalBoxPage, "longhand-box").S;
+                Ok(logicalLonghandBox.Mt == 23 && logicalLonghandBox.Mr == 22 && logicalLonghandBox.Mb == 24 && logicalLonghandBox.Ml == 21 &&
+                    logicalLonghandBox.Pt == 6 && logicalLonghandBox.Pr == 5 && logicalLonghandBox.Pb == 7 && logicalLonghandBox.Pl == 4,
+                    "logical margin and padding longhands");
+                var logicalPhysicalOrder = BlockById(logicalBoxPage, "source-physical").S;
+                Ok(logicalPhysicalOrder.Mt == 32 && logicalPhysicalOrder.Mr == 11 && logicalPhysicalOrder.Mb == 13 && logicalPhysicalOrder.Ml == 31 &&
+                    logicalPhysicalOrder.Pt == 5 && logicalPhysicalOrder.Pr == 9 && logicalPhysicalOrder.Pb == 10 && logicalPhysicalOrder.Pl == 3,
+                    "later physical box edges win source order");
+                var logicalOrder = BlockById(logicalBoxPage, "source-logical").S;
+                Ok(logicalOrder.Mt == 16 && logicalOrder.Mr == 15 && logicalOrder.Mb == 17 && logicalOrder.Ml == 14 &&
+                    logicalOrder.Pt == 4 && logicalOrder.Pr == 3 && logicalOrder.Pb == 5 && logicalOrder.Pl == 2,
+                    "later logical box axes win source order");
+                var logicalVariables = BlockById(logicalBoxPage, "variables").S;
+                Ok(logicalVariables.Ml == -9 && logicalVariables.Mr == 19 && logicalVariables.Pt == 5 && logicalVariables.Pb == 7,
+                    "logical box custom properties and negative margin");
+                var logicalImportant = BlockById(logicalBoxPage, "important").S;
+                Ok(logicalImportant.Ml == 20 && logicalImportant.Mr == 55 && logicalImportant.Pt == 6 && logicalImportant.Pb == 13,
+                    "physical and logical box important cascade");
+                var logicalInherited = BlockById(logicalBoxPage, "inherit-child").S;
+                Ok(logicalInherited.Mt == 32 && logicalInherited.Mr == 31 && logicalInherited.Mb == 33 && logicalInherited.Ml == 30 &&
+                    logicalInherited.Pt == 10 && logicalInherited.Pr == 9 && logicalInherited.Pb == 11 && logicalInherited.Pl == 8,
+                    "explicit logical box inheritance");
+                var logicalReset = BlockById(logicalBoxPage, "reset").S;
+                Ok(logicalReset.Mt == 0 && logicalReset.Mr == 0 && logicalReset.Mb == 0 && logicalReset.Ml == 0 &&
+                    logicalReset.Pt == 0 && logicalReset.Pr == 0 && logicalReset.Pb == 0 && logicalReset.Pl == 0,
+                    "logical box initial and unset reset");
+                var logicalBoxInvalid = BlockById(logicalBoxPage, "invalid").S;
+                Ok(logicalBoxInvalid.Mt == 14 && logicalBoxInvalid.Mr == 13 && logicalBoxInvalid.Mb == 15 && logicalBoxInvalid.Ml == -22 &&
+                    logicalBoxInvalid.Pt == 6 && logicalBoxInvalid.Pr == 9 && logicalBoxInvalid.Pb == 11 && logicalBoxInvalid.Pl == 8,
+                    "malformed logical box declarations are atomic");
+                var logicalBounded = BlockById(logicalBoxPage, "bounded").S;
+                Ok(logicalBounded.Ml == -2000 && logicalBounded.Mr == 2000 && logicalBounded.Pt == 2000 && logicalBounded.Pb == 2000,
+                    "logical box signed and unsigned bounds");
+                Eq(4, logicalBoxEngine.Ck(logicalBoxPage, ById(logicalBoxPage.D, "set-axis")), "short logical box axis aliases");
+                var logicalCommand = BlockById(logicalBoxPage, "command").S;
+                Ok(logicalCommand.Mt == 14 && logicalCommand.Mr == 18 && logicalCommand.Mb == 16 && logicalCommand.Ml == 12 &&
+                    logicalCommand.Pt == 6 && logicalCommand.Pr == 10 && logicalCommand.Pb == 7 && logicalCommand.Pl == 8,
+                    "short logical box axes reach compact records");
+                Eq(8, logicalBoxEngine.Ck(logicalBoxPage, ById(logicalBoxPage.D, "set-edges")), "short logical box edge aliases");
+                logicalCommand = BlockById(logicalBoxPage, "command").S;
+                Ok(logicalCommand.Mt == 23 && logicalCommand.Mr == 22 && logicalCommand.Mb == 24 && logicalCommand.Ml == 21 &&
+                    logicalCommand.Pt == 6 && logicalCommand.Pr == 5 && logicalCommand.Pb == 7 && logicalCommand.Pl == 4,
+                    "short logical box edges reach compact records");
+                Eq(12, logicalBoxEngine.Js(logicalBoxPage, "margininline('command','1px 2px');marginblock('command','3px 4px');paddinginline('command','5px 6px');paddingblock('command','7px 8px');margininlinestart('command','9px');margininlineend('command','10px');marginblockstart('command','11px');marginblockend('command','12px');paddinginlinestart('command','13px');paddinginlineend('command','14px');paddingblockstart('command','15px');paddingblockend('command','16px')"), "readable logical box command aliases");
+                logicalCommand = BlockById(logicalBoxPage, "command").S;
+                Ok(logicalCommand.Mt == 11 && logicalCommand.Mr == 10 && logicalCommand.Mb == 12 && logicalCommand.Ml == 9 &&
+                    logicalCommand.Pt == 15 && logicalCommand.Pr == 14 && logicalCommand.Pb == 16 && logicalCommand.Pl == 13,
+                    "readable logical box commands reach compact records");
+                Eq(4, logicalBoxEngine.Ck(logicalBoxPage, ById(logicalBoxPage.D, "dom-axis")), "familiar logical box axis styles");
+                Eq(8, logicalBoxEngine.Ck(logicalBoxPage, ById(logicalBoxPage.D, "dom-edges")), "familiar logical box edge styles");
+                logicalCommand = BlockById(logicalBoxPage, "command").S;
+                Ok(logicalCommand.Mt == 21 && logicalCommand.Mr == 19 && logicalCommand.Mb == 23 && logicalCommand.Ml == 17 &&
+                    logicalCommand.Pt == 10 && logicalCommand.Pr == 8 && logicalCommand.Pb == 12 && logicalCommand.Pl == 6,
+                    "familiar logical box styles reach compact records");
+                Eq(12, logicalBoxEngine.Ck(logicalBoxPage, ById(logicalBoxPage.D, "clear-box")), "logical box DOM reset");
+                logicalCommand = BlockById(logicalBoxPage, "command").S;
+                Ok(logicalCommand.Mt == 6 && logicalCommand.Mr == 5 && logicalCommand.Mb == 7 && logicalCommand.Ml == 4 &&
+                    logicalCommand.Pt == 1 && logicalCommand.Pr == 3 && logicalCommand.Pb == 2 && logicalCommand.Pl == 2 && logicalCommand.F == "#123f8c",
+                    "logical box DOM reset restores authored cascade");
+                Eq(0, logicalBoxEngine.Js(logicalBoxPage, "mi('command','1px 2px 3px');pi('command','-1px');mis('command','2px 3px');mie('command','auto')"),
+                    "malformed logical box commands rejected");
+                Ok(BlockById(logicalBoxPage, "command").S.Ml == 4 && BlockById(logicalBoxPage, "command").S.Pr == 3,
+                    "rejected logical box commands preserve records");
+
                 var viewportPath = Path.Combine(pages, "viewport-units.html");
                 var viewportEngine = new E();
                 var viewportPage = viewportEngine.Go(viewportPath);
@@ -2432,6 +2504,31 @@ namespace Lea.Tests
                     Eq(2, view.Ck(ById(view.At.D, "clear-logical")), "WinForms logical DOM reset");
                     Paint(view);
                     Eq(new Size(210, 90), BlockRect(view, BlockById(view.At, "command")).Size, "WinForms logical DOM reset geometry");
+
+                    view.Size = new Size(760, 900);
+                    view.Go(logicalBoxPath);
+                    Paint(view);
+                    var logicalBoxShellRect = BlockRect(view, BlockById(view.At, "geometry-shell"));
+                    var logicalBoxContentRect = BlockRect(view, BlockById(view.At, "axis-box"));
+                    var logicalBoxOuterRect = BlockOuterRect(view, BlockById(view.At, "axis-box"));
+                    Ok(logicalBoxContentRect.Size == new Size(100, 40) && logicalBoxOuterRect.Size == new Size(118, 53) &&
+                        logicalBoxOuterRect.Left - logicalBoxShellRect.Left == 32 && logicalBoxOuterRect.Top - logicalBoxShellRect.Top == 44 &&
+                        logicalBoxContentRect.Left - logicalBoxShellRect.Left == 40 && logicalBoxContentRect.Top - logicalBoxShellRect.Top == 50,
+                        "WinForms logical margin and padding geometry");
+                    Eq(4, view.Ck(ById(view.At.D, "set-axis")), "WinForms short logical box axes");
+                    Paint(view);
+                    var logicalCommandContent = BlockRect(view, BlockById(view.At, "command"));
+                    var logicalCommandOuter = BlockOuterRect(view, BlockById(view.At, "command"));
+                    Ok(logicalCommandContent.Size == new Size(120, 40) && logicalCommandOuter.Size == new Size(138, 53),
+                        "WinForms short logical box axis reflow");
+                    Eq(8, view.Ck(ById(view.At.D, "dom-edges")), "WinForms familiar logical box edges");
+                    Paint(view);
+                    logicalCommandOuter = BlockOuterRect(view, BlockById(view.At, "command"));
+                    Eq(new Size(134, 62), logicalCommandOuter.Size, "WinForms familiar logical box edge reflow");
+                    Eq(12, view.Ck(ById(view.At.D, "clear-box")), "WinForms logical box reset");
+                    Paint(view);
+                    logicalCommandOuter = BlockOuterRect(view, BlockById(view.At, "command"));
+                    Eq(new Size(125, 43), logicalCommandOuter.Size, "WinForms authored logical box restore geometry");
 
                     view.Size = new Size(800, 600);
                     view.Go(viewportPath);

@@ -3514,16 +3514,20 @@ namespace Lea.Engine
                 else if (name == "bottom" || name == "inset-block-end") Offset(style, value, 2);
                 else if (name == "left" || name == "inset-inline-start") Offset(style, value, 3);
                 else if (name == "z-index") ZIndex(style, value);
-                else if (name == "margin") Box(style, value, true);
-                else if (name == "padding") Box(style, value, false);
-                else if (name == "margin-top") style.Mt = Px(value);
-                else if (name == "margin-right") style.Mr = Px(value);
-                else if (name == "margin-bottom") style.Mb = Px(value);
-                else if (name == "margin-left") style.Ml = Px(value);
-                else if (name == "padding-top") style.Pt = Px(value);
-                else if (name == "padding-right") style.Pr = Px(value);
-                else if (name == "padding-bottom") style.Pb = Px(value);
-                else if (name == "padding-left") style.Pl = Px(value);
+                else if (name == "margin") Box(style, inherited, value, true);
+                else if (name == "margin-inline") AxisBox(style, inherited, value, true, false);
+                else if (name == "margin-block") AxisBox(style, inherited, value, true, true);
+                else if (name == "padding") Box(style, inherited, value, false);
+                else if (name == "padding-inline") AxisBox(style, inherited, value, false, false);
+                else if (name == "padding-block") AxisBox(style, inherited, value, false, true);
+                else if (name == "margin-top" || name == "margin-block-start") BoxEdge(style, inherited, value, true, 0);
+                else if (name == "margin-right" || name == "margin-inline-end") BoxEdge(style, inherited, value, true, 1);
+                else if (name == "margin-bottom" || name == "margin-block-end") BoxEdge(style, inherited, value, true, 2);
+                else if (name == "margin-left" || name == "margin-inline-start") BoxEdge(style, inherited, value, true, 3);
+                else if (name == "padding-top" || name == "padding-block-start") BoxEdge(style, inherited, value, false, 0);
+                else if (name == "padding-right" || name == "padding-inline-end") BoxEdge(style, inherited, value, false, 1);
+                else if (name == "padding-bottom" || name == "padding-block-end") BoxEdge(style, inherited, value, false, 2);
+                else if (name == "padding-left" || name == "padding-inline-start") BoxEdge(style, inherited, value, false, 3);
                 else if (name == "box-sizing") BoxSizing(style, value);
                 else if (name == "width" || name == "inline-size") Width(style, inherited, value, 0);
                 else if (name == "height" || name == "block-size") Height(style, inherited, value, 0);
@@ -4806,17 +4810,114 @@ namespace Lea.Engine
             style.Zc = style.Zo || style.Zs || style.Zt;
         }
 
-        private static void Box(S style, string value, bool margin)
+        private static void Box(S style, S inherited, string value, bool margin)
         {
-            var parts = Regex.Split(value.Trim(), "\\s+");
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "inherit")
+            {
+                for (var edge = 0; edge < 4; edge++) BoxSet(style, margin, edge, BoxGet(inherited, margin, edge));
+                return;
+            }
+            if (source == "initial" || source == "unset")
+            {
+                for (var edge = 0; edge < 4; edge++) BoxSet(style, margin, edge, 0);
+                return;
+            }
+            var parts = Regex.Split(source, "\\s+");
             if (parts.Length < 1 || parts.Length > 4) return;
-            var top = Px(parts[0]);
-            var right = parts.Length > 1 ? Px(parts[1]) : top;
-            var bottom = parts.Length > 2 ? Px(parts[2]) : top;
-            var left = parts.Length > 3 ? Px(parts[3]) : right;
+            int top;
+            int right;
+            int bottom;
+            int left;
+            if (!BoxPixel(parts[0], margin, out top)) return;
+            right = bottom = left = top;
+            if (parts.Length > 1 && !BoxPixel(parts[1], margin, out right)) return;
+            if (parts.Length > 2 && !BoxPixel(parts[2], margin, out bottom)) return;
+            if (parts.Length > 3 && !BoxPixel(parts[3], margin, out left)) return;
             if (parts.Length == 2) bottom = top;
-            if (margin) { style.Mt = top; style.Mr = right; style.Mb = bottom; style.Ml = left; }
-            else { style.Pt = top; style.Pr = right; style.Pb = bottom; style.Pl = left; }
+            if (parts.Length < 4) left = right;
+            BoxSet(style, margin, 0, top);
+            BoxSet(style, margin, 1, right);
+            BoxSet(style, margin, 2, bottom);
+            BoxSet(style, margin, 3, left);
+        }
+
+        private static void AxisBox(S style, S inherited, string value, bool margin, bool block)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            var startEdge = block ? 0 : 3;
+            var endEdge = block ? 2 : 1;
+            int start;
+            int end;
+            if (source == "inherit")
+            {
+                start = BoxGet(inherited, margin, startEdge);
+                end = BoxGet(inherited, margin, endEdge);
+            }
+            else if (source == "initial" || source == "unset") start = end = 0;
+            else
+            {
+                var parts = Regex.Split(source, "\\s+");
+                if (parts.Length < 1 || parts.Length > 2 || !BoxPixel(parts[0], margin, out start) ||
+                    !BoxPixel(parts.Length == 2 ? parts[1] : parts[0], margin, out end)) return;
+            }
+            BoxSet(style, margin, startEdge, start);
+            BoxSet(style, margin, endEdge, end);
+        }
+
+        private static void BoxEdge(S style, S inherited, string value, bool margin, int edge)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            int pixels;
+            if (source == "inherit") pixels = BoxGet(inherited, margin, edge);
+            else if (source == "initial" || source == "unset") pixels = 0;
+            else if (!BoxPixel(source, margin, out pixels)) return;
+            BoxSet(style, margin, edge, pixels);
+        }
+
+        internal static bool Bx(string value, bool margin, int maximumParts, out string box)
+        {
+            box = (value ?? "").Trim().ToLowerInvariant();
+            if (box.Length == 0 || box == "inherit" || box == "initial" || box == "unset") return true;
+            var parts = Regex.Split(box, "\\s+");
+            if (parts.Length < 1 || parts.Length > maximumParts) return false;
+            int pixels;
+            for (var index = 0; index < parts.Length; index++) if (!BoxPixel(parts[index], margin, out pixels)) return false;
+            return true;
+        }
+
+        private static bool BoxPixel(string value, bool margin, out int pixels)
+        {
+            var match = Regex.Match(value ?? "", margin ? "^(?<n>-?[0-9]{1,4})(?:px)?$" : "^(?<n>[0-9]{1,4})(?:px)?$", RegexOptions.IgnoreCase);
+            int authored;
+            if (!match.Success || !Int32.TryParse(match.Groups["n"].Value, out authored)) { pixels = 0; return false; }
+            pixels = Math.Max(margin ? -2000 : 0, Math.Min(2000, authored));
+            return true;
+        }
+
+        private static int BoxGet(S style, bool margin, int edge)
+        {
+            if (style == null) return 0;
+            if (margin) return edge == 0 ? style.Mt : edge == 1 ? style.Mr : edge == 2 ? style.Mb : style.Ml;
+            return edge == 0 ? style.Pt : edge == 1 ? style.Pr : edge == 2 ? style.Pb : style.Pl;
+        }
+
+        private static void BoxSet(S style, bool margin, int edge, int pixels)
+        {
+            if (margin)
+            {
+                if (edge == 0) style.Mt = pixels;
+                else if (edge == 1) style.Mr = pixels;
+                else if (edge == 2) style.Mb = pixels;
+                else style.Ml = pixels;
+            }
+            else
+            {
+                if (edge == 0) style.Pt = pixels;
+                else if (edge == 1) style.Pr = pixels;
+                else if (edge == 2) style.Pb = pixels;
+                else style.Pl = pixels;
+            }
         }
 
         private static int Px(string value)

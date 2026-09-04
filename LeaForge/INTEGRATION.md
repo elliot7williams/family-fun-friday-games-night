@@ -372,6 +372,16 @@ use short `is/bs`, readable `inlinesize/blocksize`, or literal allow-listed
 `style.inlineSize/style.blockSize` assignments. Writing modes, bidi direction,
 and axis remapping are not supplied. See `LOGICAL_SIZING_INSETS.md`.
 
+Logical margins and padding follow the same host-free mapping. `margin-inline`,
+`margin-block`, `padding-inline`, `padding-block`, and all eight start/end
+longhands compile into existing `S.Mt/Mr/Mb/Ml` and `S.Pt/Pr/Pb/Pl` fields.
+One/two-value axes, physical/logical source order, important tiers, custom
+properties, inheritance, resets, and atomic validation are resolved before the
+renderer sees them. Signed fixed margins cap at +/-2,000 pixels; padding remains
+non-negative. Page code can use `mi/mb/pi/pb`, the eight three-letter edge
+aliases, readable forms, or familiar literal DOM assignments. No adapter or
+host change is required. See `LOGICAL_BOX_MODEL.md`.
+
 CSS outlines are available through non-inherited `S.Ow/Os/Oc/Oo`. Hosts can
 inspect bounded width, compact none/solid/dashed/dotted/auto style, authored
 color, and signed offset without performing paint calculations. Atomic

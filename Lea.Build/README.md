@@ -62,6 +62,11 @@ shared layout geometry, reset, and resize behavior.
 logical inset longhands and axis shorthands, source order, atomic fallback,
 `is/bs`, familiar DOM aliases, shared geometry, and reset. See
 `LeaForge/LOGICAL_SIZING_INSETS.md`.
+`logical-box-model.html` covers all horizontal logical margin/padding axes and
+longhands, signed bounded margins, physical/logical source order, important,
+variables, inheritance/reset, atomic fallback, twelve short/readable commands,
+all familiar DOM forms, shared geometry, and authored restore. See
+`LeaForge/LOGICAL_BOX_MODEL.md`.
 `fragment-stability.html` covers `Fa/Fj/Fy`, first-paint retention, responsive
 host settlement, intrinsic image reflow, missing targets, and manual-scroll
 release. See `LeaForge/INITIAL_FRAGMENT_STABILITY.md`.

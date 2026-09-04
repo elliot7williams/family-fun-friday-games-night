@@ -86,6 +86,9 @@ LeaForge is where we can grow the more full-featured browser.
 - horizontal left-to-right logical `inline-size`/`block-size` plus min/max and
   logical inset longhand/axis shorthands, reusing physical records and geometry;
   short `is/bs` and familiar DOM aliases; see `LOGICAL_SIZING_INSETS.md`
+- horizontal left-to-right logical margin/padding axes and longhands with
+  signed bounded margins, atomic parsing, twelve compact aliases, familiar DOM
+  forms, and shared box geometry; see `LOGICAL_BOX_MODEL.md`
 - live `:hover` and `:focus` restyling that preserves mutable form values
 - non-inherited `content-box`/`border-box` sizing across pixel dimensions,
   min/max clamps, flex basis, fields, images, tables, and cells
@@ -163,6 +166,10 @@ fs("id", 18)      element font size
 dp("id", "none") element display
 wd("id", "50%")  element width
 ht("id", "50%")  element height
+mi("id", "8px 12px") inline margin
+mb("id", "6px")      block margin
+pi("id", "8px 12px") inline padding
+pb("id", "6px")      block padding
 v("name", "Lea") variable
 tx("id", "Hi ${name}") element text
 ac("id", "hot")       add class
@@ -185,7 +192,8 @@ The longer `alert(...)` and `document.title = ...` forms still work. The short
 forms are intended for small, fast Lea pages and are limited to simple values.
 Literal `document.getElementById("id")` statements may use `textContent` or
 `innerText`, field/state booleans, `focus()`, `classList.add/remove/toggle`, and
-the already bounded background/color/font-size/display/width/height styles. Lea translates
+the already bounded background/color/font-size/display/width/height and logical
+margin/padding styles. Lea translates
 these familiar forms into the short commands above; it does not expose arbitrary DOM
 objects, expressions, `innerHTML`, callbacks, or a general JavaScript runtime.
 `go` never navigates the engine directly: it queues one bounded HTTP, HTTPS, or

@@ -107,7 +107,7 @@ namespace Lea.Bench
             var names = new[]
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
-                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
+                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -2268,6 +2268,61 @@ namespace Lea.Bench
                 Need(engine.Js(page, "is('command','101%');bs('command','1.5em')") == 0 && block("command").S.W == 210,
                     "unsupported logical command values were accepted");
                 return "horizontal-tb/LTR inline/block size mapping, min/max, source order, important, variables, inheritance, logical inset axes/longhands, atomic fallback, is/bs, literal DOM styles, shared geometry, and reset";
+            });
+            AddProbe(probes, "Bounded logical margins and padding", delegate
+            {
+                var path = Path.Combine(folder, "logical-box-model.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                var axis = block("axis-box").S;
+                Need(axis.Mt == 14 && axis.Mr == 18 && axis.Mb == 16 && axis.Ml == 12 &&
+                    axis.Pt == 6 && axis.Pr == 10 && axis.Pb == 7 && axis.Pl == 8,
+                    "logical box axis mapping changed");
+                var longhand = block("longhand-box").S;
+                Need(longhand.Mt == 23 && longhand.Mr == 22 && longhand.Mb == 24 && longhand.Ml == 21 &&
+                    longhand.Pt == 6 && longhand.Pr == 5 && longhand.Pb == 7 && longhand.Pl == 4,
+                    "logical box longhand mapping changed");
+                var order = block("source-logical").S;
+                var invalid = block("invalid").S;
+                var bounded = block("bounded").S;
+                Need(order.Mt == 16 && order.Mr == 15 && order.Mb == 17 && order.Ml == 14 && order.Pt == 4 && order.Pr == 3 && order.Pb == 5 && order.Pl == 2,
+                    "logical box source order changed");
+                Need(invalid.Mt == 14 && invalid.Mr == 13 && invalid.Mb == 15 && invalid.Ml == -22 && invalid.Pt == 6 && invalid.Pr == 9 && invalid.Pb == 11 && invalid.Pl == 8,
+                    "logical box atomic fallback changed");
+                Need(bounded.Ml == -2000 && bounded.Mr == 2000 && bounded.Pt == 2000 && bounded.Pb == 2000,
+                    "logical box bounds changed");
+                using (var view = new V { Size = new Size(760, 900) })
+                {
+                    view.CreateControl();
+                    view.Go(path);
+                    using (var image = Draw(view)) { }
+                    var shell = BlockContent(view, "geometry-shell");
+                    var content = BlockContent(view, "axis-box");
+                    var outer = BlockOuter(view, "axis-box");
+                    Need(content.Size == new Size(100, 40) && outer.Size == new Size(118, 53) &&
+                        outer.Left - shell.Left == 32 && outer.Top - shell.Top == 44 && content.Left - shell.Left == 40 && content.Top - shell.Top == 50,
+                        "logical box shared geometry changed");
+                    Need(view.Ck(ById(view.At.D, "set-axis")) == 4, "short logical box axis commands failed");
+                    using (var image = Draw(view)) { }
+                    Need(BlockOuter(view, "command").Size == new Size(138, 53), "logical box command reflow changed");
+                    Need(view.Ck(ById(view.At.D, "dom-edges")) == 8 && view.Ck(ById(view.At.D, "clear-box")) == 12,
+                        "familiar logical box styles or reset failed");
+                    using (var image = Draw(view)) { }
+                    Need(BlockOuter(view, "command").Size == new Size(125, 43), "logical box DOM reset geometry changed");
+                }
+                Need(engine.Ck(page, ById(page.D, "set-axis")) == 4 && block("command").S.Ml == 12 && block("command").S.Pt == 6,
+                    "short logical box axes did not reach compact records");
+                Need(engine.Ck(page, ById(page.D, "set-edges")) == 8 && block("command").S.Mt == 23 && block("command").S.Pl == 4,
+                    "short logical box edges did not reach compact records");
+                Need(engine.Ck(page, ById(page.D, "dom-axis")) == 4 && engine.Ck(page, ById(page.D, "dom-edges")) == 8 &&
+                    block("command").S.Ml == 17 && block("command").S.Pb == 12,
+                    "familiar logical box styles did not reach compact records");
+                Need(engine.Ck(page, ById(page.D, "clear-box")) == 12 && block("command").S.Ml == 4 && block("command").S.Pb == 2,
+                    "logical box reset lost authored state");
+                Need(engine.Js(page, "mi('command','1px 2px 3px');pi('command','-1px');mis('command','2px 3px');mie('command','auto')") == 0,
+                    "unsupported logical box command values were accepted");
+                return "horizontal-tb/LTR logical margin/padding axes and longhands, signed bounded margins, atomic parsing, source order, important, variables, inheritance, reset, twelve compact/readable commands, familiar DOM styles, and shared geometry";
             });
             AddProbe(probes, "Bounded sticky positioning", delegate
             {

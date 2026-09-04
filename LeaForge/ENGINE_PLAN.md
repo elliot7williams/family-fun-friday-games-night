@@ -345,14 +345,14 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Horizontal left-to-right logical sizing and positioned insets now compile into
-the existing compact width, height, and edge records. Six size properties, four
-inset longhands, atomic one/two-value axis shorthands, short `is/bs`, and
-familiar literal DOM styles reuse the current cascade, dimension resolver, and
-renderer without per-element axis state. See `LOGICAL_SIZING_INSETS.md`. Next
-evaluate another bounded high-value HTML/CSS compatibility slice while keeping
-writing modes, bidi remapping, and general CSS/JavaScript evaluators out of the
-current engine boundary.
+Horizontal left-to-right logical margins and padding now compile into the eight
+existing physical box-edge records. Four axis shorthands, eight longhands,
+signed bounded margins, atomic parsing, short axis/edge aliases, readable forms,
+and familiar literal DOM styles reuse the current cascade and renderer without
+per-element axis state. See `LOGICAL_BOX_MODEL.md`. Next evaluate logical border
+properties that can reuse the existing physical width/style/color records while
+keeping writing modes, bidi remapping, and general CSS/JavaScript evaluators out
+of the current engine boundary.
 
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host

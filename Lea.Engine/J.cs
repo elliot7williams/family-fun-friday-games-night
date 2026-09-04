@@ -196,6 +196,15 @@ namespace Lea.Engine
                 if (!E.Ht(Expand(page, command.W), out height)) return false;
                 return SetStyle(target, "height", height);
             }
+            var boxProperty = LogicalBoxProperty(command.N);
+            if (boxProperty != null)
+            {
+                var target = StyleTarget(page, command);
+                if (target == null || command.W == null) return false;
+                string box;
+                if (!E.Bx(Expand(page, command.W), command.N[0] == 'm', command.N.Length == 2 ? 2 : 1, out box)) return false;
+                return SetStyle(target, boxProperty, box);
+            }
             return false;
         }
 
@@ -276,6 +285,8 @@ namespace Lea.Engine
             if (member == "style.display") return new Cm("dp", id, value);
             if (member == "style.width" || member == "style.inlinesize") return new Cm("wd", id, value);
             if (member == "style.height" || member == "style.blocksize") return new Cm("ht", id, value);
+            var logicalBox = member.StartsWith("style.", StringComparison.Ordinal) ? LogicalBoxCommand(member.Substring(6)) : null;
+            if (logicalBox != null) return new Cm(logicalBox, id, value);
             return null;
         }
 
@@ -307,6 +318,8 @@ namespace Lea.Engine
             if (count == 2 && (name == "dp" || name == "display")) return new Cm("dp", first, second);
             if (count == 2 && (name == "wd" || name == "width" || name == "is" || name == "inlinesize")) return new Cm("wd", first, second);
             if (count == 2 && (name == "ht" || name == "height" || name == "bs" || name == "blocksize")) return new Cm("ht", first, second);
+            var logicalBox = LogicalBoxCommand(name);
+            if (count == 2 && logicalBox != null) return new Cm(logicalBox, first, second);
             if (count == 2 && name == "ac") return new Cm("ac", first, second);
             if (count == 2 && name == "rc") return new Cm("rc", first, second);
             if (count == 2 && name == "tc") return new Cm("tc", first, second);
@@ -427,6 +440,40 @@ namespace Lea.Engine
             if (command.W == null) return Body(page.D);
             var target = FindId(page.D, Id(Expand(page, command.V)));
             return target != null && ClassTarget(target.K) ? target : null;
+        }
+
+        private static string LogicalBoxCommand(string name)
+        {
+            if (name == "mi" || name == "margininline") return "mi";
+            if (name == "mb" || name == "marginblock") return "mb";
+            if (name == "pi" || name == "paddinginline") return "pi";
+            if (name == "pb" || name == "paddingblock") return "pb";
+            if (name == "mis" || name == "margininlinestart") return "mis";
+            if (name == "mie" || name == "margininlineend") return "mie";
+            if (name == "mbs" || name == "marginblockstart") return "mbs";
+            if (name == "mbe" || name == "marginblockend") return "mbe";
+            if (name == "pis" || name == "paddinginlinestart") return "pis";
+            if (name == "pie" || name == "paddinginlineend") return "pie";
+            if (name == "pbs" || name == "paddingblockstart") return "pbs";
+            if (name == "pbe" || name == "paddingblockend") return "pbe";
+            return null;
+        }
+
+        private static string LogicalBoxProperty(string command)
+        {
+            if (command == "mi") return "margin-inline";
+            if (command == "mb") return "margin-block";
+            if (command == "pi") return "padding-inline";
+            if (command == "pb") return "padding-block";
+            if (command == "mis") return "margin-inline-start";
+            if (command == "mie") return "margin-inline-end";
+            if (command == "mbs") return "margin-block-start";
+            if (command == "mbe") return "margin-block-end";
+            if (command == "pis") return "padding-inline-start";
+            if (command == "pie") return "padding-inline-end";
+            if (command == "pbs") return "padding-block-start";
+            if (command == "pbe") return "padding-block-end";
+            return null;
         }
 
         private static bool SetStyle(N target, string name, string value)

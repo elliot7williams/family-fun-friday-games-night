@@ -81,6 +81,12 @@ wd("id", "50%")  element width
 ht("id", "120px") element height
 is("id", "50%")  logical inline size
 bs("id", "120px") logical block size
+mi("id", "8px 12px") logical inline margin
+mb("id", "6px")      logical block margin
+pi("id", "8px 12px") logical inline padding
+pb("id", "6px")      logical block padding
+mis/mie/mbs/mbe("id", "8px") logical margin edge
+pis/pie/pbs/pbe("id", "8px") logical padding edge
 v("who", "Lea")  bounded page variable
 tx("id", "Hi ${who}") element text
 ac("id", "hot")       add class
@@ -99,7 +105,7 @@ fo("id")              request focus
 go("next.html")        request host navigation
 ```
 
-The two-argument `bg/fg/fs/dp/wd/ht/is/bs` forms target one validated ID. Color and font
+The two-argument `bg/fg/fs/dp/wd/ht/is/bs` and logical box forms target one validated ID. Color and font
 forms reuse the same
 hex/named-color and 8..96 pixel font bounds as the body forms, reject document
 metadata targets, cap the resulting inline style at 4,096 characters, and
@@ -124,6 +130,15 @@ parser. Readable `inlinesize`/`blocksize` command forms and literal
 `style.inlineSize`/`style.blockSize` assignments map to the same compact paths.
 See `CALCULATED_WIDTHS.md`, `CALCULATED_HEIGHTS.md`, `VIEWPORT_UNITS.md`,
 `FONT_RELATIVE_UNITS.md`, `SIZE_FUNCTIONS.md`, and `LOGICAL_SIZING_INSETS.md`.
+
+`mi/mb/pi/pb` set horizontal logical margin/padding axes with one or two fixed
+pixel values. `mis/mie/mbs/mbe` and `pis/pie/pbs/pbe` target one logical edge;
+the readable forms are `margininline`, `marginblockend`,
+`paddinginlinestart`, and their matching names. Margins accept signed values
+from -2,000 through 2,000; padding accepts 0 through 2,000. Literal
+`style.marginInline`, `style.paddingBlock`, and all eight logical edge
+properties use the same compact paths. Empty assignments restore authored CSS.
+See `LOGICAL_BOX_MODEL.md`.
 
 `P.Vs` exposes at most 16 case-insensitive variables. Names are one through 16
 letters, digits, or underscores and must begin with a letter; values are capped

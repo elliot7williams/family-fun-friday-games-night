@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **83**
+Post-1.0 hardening milestones completed: **84**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -14,8 +14,8 @@ modern web platform.
 | Core and alias API | 10% | 10% | Compact API, bounded diagnostics, repeatable reports, history, projects, backups |
 | Networking | 10% | 10% | Bounded request deadlines and downloads, private cookies, typed errors, validators, compression, memory LRU and optional persistent cache |
 | HTML and document tree | 20% | 20% | Bounded tokens, queries, base URLs and fragments, raw/RCDATA text, entities, recovery, HTML-hidden suppression, semantic accessibility, blocks, lists, disclosures, gauges, values, time/edit metadata, responsive image maps, tabindex focus, autofocus/access keys, tables |
-| CSS | 15% | 15% | Compiled relationship, bounded strict relational/functional, An+B/reverse, and filtered structural selectors, declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, fixed/percentage/calculated dimensions plus classic viewport/font-relative units and bounded size functions, bounded vertical sticky positioning, dynamic hover/focus, inherited cursor/pointer interaction, text transformation and signed letter/word spacing, content/border sizing, circular/elliptical radii, bounded outlines, box shadows, gradients, bitmap backgrounds, object fitting and aspect ratios, visibility/opacity, fonts, overflow, boxes, bounded ordered flex and two-axis grid properties |
-| Layout and painting | 20% | 20% | Shared fixed/percentage/calculated, viewport-unit, font-relative, and min/max/clamp dimensions, content/border, aspect-ratio, and sticky geometry, transformed and spacing-aware presentation text with raw form retention, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients/bitmaps, pointer-gated retained hits with underlying fallthrough, fitted raster images and maps, ordered flex rows/columns, bounded grid tracks/spans, distribution, alignment, wrapping, grow/shrink, clipping, reflow, painting |
+| CSS | 15% | 15% | Compiled relationship, bounded strict relational/functional, An+B/reverse, and filtered structural selectors, declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, fixed/percentage/calculated plus logical dimensions, logical insets/margins/padding, classic viewport/font-relative units and bounded size functions, bounded vertical sticky positioning, dynamic hover/focus, inherited cursor/pointer interaction, text transformation and signed letter/word spacing, content/border sizing, circular/elliptical radii, bounded outlines, box shadows, gradients, bitmap backgrounds, object fitting and aspect ratios, visibility/opacity, fonts, overflow, boxes, bounded ordered flex and two-axis grid properties |
+| Layout and painting | 20% | 20% | Shared physical/logical box edges and fixed/percentage/calculated, viewport-unit, font-relative, and min/max/clamp dimensions, content/border, aspect-ratio, and sticky geometry, transformed and spacing-aware presentation text with raw form retention, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients/bitmaps, pointer-gated retained hits with underlying fallthrough, fitted raster images and maps, ordered flex rows/columns, bounded grid tracks/spans, distribution, alignment, wrapping, grow/shrink, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Native field edit commands and one-level undo/redo, bounded multipart files, richer widgets, validation, responsive and fitted images, GET/POST submit |
 | Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/body and ID-scoped display/width/height/style/alert, class, visibility, disclosure, field-state, focus, and literal bounded DOM translation |
 | Firespider integration and reliability | 10% | 10% | Lea-first New Tab/Ctrl+T, explicit legacy fallback, Inspector with Access view, MSAA/UIA surfaces including read-only text, host-safe focus shortcuts, navigation, sessions, source, host smokes |
@@ -29,6 +29,23 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded horizontal left-to-right logical margins and padding. Four axis
+  shorthands and eight start/end longhands compile into existing
+  `S.Mt/Mr/Mb/Ml` and `S.Pt/Pr/Pb/Pl` records. Physical/logical source order,
+  important tiers, custom properties, inheritance/reset, atomic invalid
+  fallback, signed -2,000..2,000 pixel margins, non-negative padding, normal,
+  positioned, flex, grid, table, paint, hit, editor, and accessibility geometry
+  remain on shared paths. Short `mi/mb/pi/pb`, eight three-letter edge aliases,
+  readable forms, and all familiar literal DOM properties need no new style or
+  host state. Full repository and compiled-host smokes pass, along with 80
+  probes over 77 fixtures, all 42 Boot cases, and all six real EXE startup
+  scenarios. Measured medians are 555.956 ms clean diagnostic start, 3.405 ms
+  local load, and 34.165 ms layout/paint. Retained managed memory is 19,652.8
+  KiB for 385 pages, or 51.0 KiB/page. Required runtime files total 558.5 KiB
+  with a 237.6 KiB GZip estimate. Runtime 184 stays isolated and installed
+  runtime 157 remains unchanged. See `LOGICAL_BOX_MODEL.md`. The scoped baseline
+  stays at 100%, not full-web compatibility.
 
 - Added bounded horizontal left-to-right logical sizing and positioned insets.
   `inline-size`/`block-size` and their min/max forms compile into existing
@@ -976,8 +993,9 @@ modern web platform.
 
 ## Next gains
 
-- Evaluate bounded horizontal logical margin/padding properties that can reuse
-  the existing box-edge records without claiming writing-mode-dependent layout.
+- Evaluate bounded horizontal logical border properties that can reuse the
+  existing border width/style/color records without claiming writing-mode-
+  dependent layout.
 - Add an AppContainer or capability-denied network boundary, custom object ACLs,
   and combined host/helper peak sampling without expanding the public
   integration surface.

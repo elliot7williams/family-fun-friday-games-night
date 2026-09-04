@@ -23,6 +23,12 @@ logical axis placement, min/max clamping, short `is/bs`, familiar
 no adapter-side axis state; writing-mode-dependent layout remains outside this
 bounded milestone. See `LeaForge/LOGICAL_SIZING_INSETS.md`.
 
+Horizontal logical margins and padding also compile into existing physical box
+records. The compiled smoke covers axis shorthands, all underlying edge fields,
+signed bounded margins, short `mi/mb/pi/pb`, familiar DOM forms, exact outer
+geometry, reset, and malformed rejection. The twelve compact edge/axis aliases
+need no Firespider adapter state. See `LeaForge/LOGICAL_BOX_MODEL.md`.
+
 `Startup-smooth-host.patch` removes the blocking crash-recovery question and
 automatically restores eligible unclean sessions. It also sends the retired
 built-in `fsin.glitch.me` home to the bundled Lea start page when no explicit
