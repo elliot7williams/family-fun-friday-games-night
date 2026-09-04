@@ -45,6 +45,7 @@ namespace Lea.Engine
         public int N { get; internal set; }
         public int Jc { get; internal set; }
         public int Vw { get; internal set; }
+        public int Rf { get; internal set; }
         public int Sn { get; internal set; }
         internal object R { get; set; }
         internal object Ra { get; set; }

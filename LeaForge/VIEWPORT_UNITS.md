@@ -76,10 +76,11 @@ cascade.
 ## Boundary
 
 Lea does not accept decimal or negative unit terms, zero, values above 100,
-`svh`, `lvh`, `dvh`, font-relative units, nested calculations, multiplication,
-division, arbitrary operators, `min()`, `max()`, or `clamp()`. The compact
-engine intentionally implements deterministic classic viewport units rather
-than browser-specific dynamic viewport variants.
+`svh`, `lvh`, `dvh`, nested calculations, multiplication, division, arbitrary
+operators, `min()`, `max()`, or `clamp()`. Bounded `em` and `rem` dimensions are
+covered separately by `FONT_RELATIVE_UNITS.md`. The compact engine intentionally
+implements deterministic classic viewport units rather than browser-specific
+dynamic viewport variants.
 
 `test-pages/viewport-units.html` covers each unit on both axes, cross-axis
 sizes, calculations, minimum/maximum constraints, nesting, auto-height parents,

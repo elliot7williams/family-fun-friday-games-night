@@ -550,9 +550,11 @@ inactive instead of silently behaving as screen CSS.
 
 Responsive dimension tuples expose `Wu/Wnu/Wxu` and `Hu/Hnu/Hxu` unit codes:
 `0` is containing percentage, `1` is `vw`, `2` is `vh`, `3` is `vmin`, and `4`
-is `vmax`. The WinForms renderer resolves viewport units from live client width
-and height across layout, paint, hits, fields, and accessibility. Tuple storage
-remains lazy. See `VIEWPORT_UNITS.md`.
+is `vmax`; `5` is `em` and `6` is `rem`. The WinForms renderer resolves
+viewport units from live client dimensions, `em` from the target's computed
+font, and `rem` from `P.Rf` or the host fallback exposed by `V.Rf`. The same
+values flow through layout, paint, hits, fields, and accessibility while tuple
+storage remains lazy. See `VIEWPORT_UNITS.md` and `FONT_RELATIVE_UNITS.md`.
 
 CSS declarations are compiled once per stylesheet rule. Bounded custom
 properties inherit through the compact style tree and use lazy copy-on-write

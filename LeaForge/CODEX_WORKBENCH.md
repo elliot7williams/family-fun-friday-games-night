@@ -17,16 +17,16 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 79 adds bounded classic `vw`, `vh`, `vmin`, and `vmax` dimensions and
-one `calc(PU +/- Npx)` form through compact `S.Wu/Hu` unit aliases and live
-`V.Vh`. The shared resolver covers width/height min/max, auto-height parents,
-blocks, positioning, flex, grid, tables, controls, images, aspect ratios,
-content/border boxes, paint, hits, accessibility, commands, and two-axis
-resize. Full repository/host tests pass with 75 probes over 72 fixtures, all 42
-Boot cases, and all six real EXE startup scenarios. Runtime 179 stays isolated
-and installed runtime 157 remains unchanged. See `VIEWPORT_UNITS.md`. Next
-continue bounded HTML/CSS/DOM compatibility and host migration without a
-general VM.
+Milestone 80 adds bounded `em` and `rem` dimensions and one
+`calc(PU +/- Npx)` form through compact `S.Wu/Hu` unit aliases. `P.Rf` records
+an explicit root font and `V.Rf` exposes the applied host fallback. The shared
+resolver covers width/height min/max, blocks, positioning, flex, grid, tables,
+controls, images, aspect ratios, content/border boxes, paint, hits,
+accessibility, commands, root media changes, and resize. Full repository and
+compiled-host tests pass with 76 probes over 73 fixtures, all 42 Boot cases,
+and all six real EXE startup scenarios. Runtime 180 stays isolated and installed
+runtime 157 remains unchanged. See `FONT_RELATIVE_UNITS.md`. Next continue
+bounded HTML/CSS/DOM compatibility and host migration without a general VM.
 
 Milestone 60 installs the existing `V.Ng` hook on main Lea tabs, enforcing host
 rules, offline/locked state, and live ownership. Denied resume retains its

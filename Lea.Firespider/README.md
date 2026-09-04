@@ -220,6 +220,10 @@ Classic bounded `vw`, `vh`, `vmin`, and `vmax` values use the same width/height,
 minimum/maximum, command, and literal paths. Compact `S.Wu/Hu` unit aliases and
 `V.Vh` retain the live viewport reference inside Lea, including auto-height
 parents and height-only resizes; Firespider adds no adapter-side unit handling.
+Bounded `em` and `rem` values use that route as well. `em` follows the target's
+computed font; `P.Rf` and `V.Rf` expose the explicit and applied root font used
+by `rem`. The host smoke verifies both units, calculations, commands, reset,
+and exact live custom-surface geometry.
 The same public route supports bounded `hd/sh` visibility, `op/cl/tg` details
 state, `ds/en` field availability, `vl` values, `ck` checked state, and `fo`
 focus requests. Hidden

@@ -1391,7 +1391,12 @@ namespace Lea.Engine
             var inherited = new S();
             var ancestors = new List<N>();
             for (var parent = body.Up; parent != null && parent.K != "#doc"; parent = parent.Up) ancestors.Add(parent);
-            for (var i = ancestors.Count - 1; i >= 0; i--) inherited = Style(ancestors[i], inherited, rules);
+            p.Rf = 0;
+            for (var i = ancestors.Count - 1; i >= 0; i--)
+            {
+                inherited = Style(ancestors[i], inherited, rules);
+                if (ancestors[i].K == "html") p.Rf = inherited.Fs;
+            }
             p.S = Style(body, inherited, rules);
             MarkLists(body);
             if (p.H.IndexOf("<map", StringComparison.OrdinalIgnoreCase) >= 0) BuildMaps(p, body, p.Bu ?? p.U);
@@ -3550,7 +3555,7 @@ namespace Lea.Engine
                 else if (name == "box-shadow") BoxShadow(style, value);
                 else if (name == "font-size")
                 {
-                    var size = Regex.Match(value, "(?<n>[0-9]{1,3})(?:px)?", RegexOptions.IgnoreCase);
+                    var size = Regex.Match(value, "^(?<n>[0-9]{1,3})(?:px)?$", RegexOptions.IgnoreCase);
                     int number;
                     if (size.Success && int.TryParse(size.Groups["n"].Value, out number) && number > 0 && number < 200) style.Fs = number;
                 }
@@ -4904,26 +4909,26 @@ namespace Lea.Engine
             if (fixedValue.Success && Int32.TryParse(fixedValue.Groups["n"].Value, out pixels) && pixels <= 2000) return true;
             pixels = 0;
 
-            var relative = Regex.Match(source, "^(?<p>[1-9][0-9]{0,2})(?<u>%|vw|vh|vmin|vmax)$");
+            var relative = Regex.Match(source, "^(?<p>[1-9][0-9]{0,2})(?<u>%|vw|vh|vmin|vmax|em|rem)$");
             if (relative.Success && Int32.TryParse(relative.Groups["p"].Value, out percent) && percent <= 100)
             {
-                unit = ViewportUnit(relative.Groups["u"].Value);
+                unit = RelativeUnit(relative.Groups["u"].Value);
                 return true;
             }
             percent = 0;
 
-            var calculated = Regex.Match(source, "^calc\\(\\s*(?<p>[1-9][0-9]{0,2})(?<u>%|vw|vh|vmin|vmax)\\s*(?<s>[+-])\\s*(?<n>[0-9]{1,4})px\\s*\\)$");
+            var calculated = Regex.Match(source, "^calc\\(\\s*(?<p>[1-9][0-9]{0,2})(?<u>%|vw|vh|vmin|vmax|em|rem)\\s*(?<s>[+-])\\s*(?<n>[0-9]{1,4})px\\s*\\)$");
             int amount;
             if (!calculated.Success || !Int32.TryParse(calculated.Groups["p"].Value, out percent) || percent > 100 ||
                 !Int32.TryParse(calculated.Groups["n"].Value, out amount) || amount > 2000) return false;
-            unit = ViewportUnit(calculated.Groups["u"].Value);
+            unit = RelativeUnit(calculated.Groups["u"].Value);
             offset = calculated.Groups["s"].Value == "-" ? -amount : amount;
             return true;
         }
 
-        private static int ViewportUnit(string unit)
+        private static int RelativeUnit(string unit)
         {
-            return unit == "vw" ? 1 : unit == "vh" ? 2 : unit == "vmin" ? 3 : unit == "vmax" ? 4 : 0;
+            return unit == "vw" ? 1 : unit == "vh" ? 2 : unit == "vmin" ? 3 : unit == "vmax" ? 4 : unit == "em" ? 5 : unit == "rem" ? 6 : 0;
         }
 
         private static void Border(S style, string value, int side)

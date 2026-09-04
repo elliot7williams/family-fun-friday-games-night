@@ -107,7 +107,7 @@ namespace Lea.Bench
             var names = new[]
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
-                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
+                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -2098,6 +2098,53 @@ namespace Lea.Bench
                 Need(engine.Js(page, "wd('command','101vw'); ht('command','20dvh')") == 0, "unsupported viewport values were accepted");
                 return "vw/vh/vmin/vmax plus calc offsets, cross-axis sizing, lazy unit aliases, min/max, variables, inheritance, layout families, commands, and live resize";
             });
+            AddProbe(probes, "Bounded font-relative dimensions", delegate
+            {
+                var path = Path.Combine(folder, "font-relative-units.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(page.Rf == 20 && block("em-size").S.Wu == 5 && block("em-size").S.Hu == 5 &&
+                    block("rem-size").S.Wu == 6 && block("rem-size").S.Hu == 6, "font-relative unit or root-font model changed");
+                Need(block("calc-font").S.Wo == -20 && block("calc-font").S.Ho == 10 &&
+                    block("minimum-font-width").S.Wnu == 5 && block("maximum-root-height").S.Hxu == 6,
+                    "font-relative calc or min/max model changed");
+                Need(block("font-inherit-child").S.Wu == 5 && block("font-inherit-child").S.Hu == 6 &&
+                    block("font-variable").S.Wu == 5 && block("font-variable").S.Hu == 6 &&
+                    block("font-invalid").S.W == 130 && block("invalid-font-size").S.Fs == 18,
+                    "font-relative inheritance, variable, or atomic fallback changed");
+                using (var view = new V { Size = new Size(800, 600) })
+                {
+                    view.CreateControl();
+                    view.Go(path);
+                    using (var image = Draw(view)) { }
+                    Need(view.Rf == 20 && BlockContent(view, "em-size").Size == new Size(180, 72) &&
+                        BlockContent(view, "rem-size").Size == new Size(200, 80) && BlockContent(view, "calc-font").Size == new Size(160, 110),
+                        "font-relative primary or calculated geometry changed");
+                    Need(BlockContent(view, "font-flex-a").Size == new Size(120, 60) &&
+                        BlockContent(view, "font-grid-a").Size == new Size(200, 60) && BlockContent(view, "font-table").Size == new Size(400, 108),
+                        "font-relative flex, grid, or table geometry changed");
+                    Need(view.Ck(ById(view.At.D, "set-font-size")) == 2, "font-relative compact commands failed");
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "font-command").Size == new Size(140, 100), "font-relative command reflow changed");
+                    Need(view.Ck(ById(view.At.D, "clear-font-size")) == 2 && view.Ck(ById(view.At.D, "grow-font")) == 1,
+                        "font-relative reset or font mutation command failed");
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "font-command").Size == new Size(200, 120) && BlockContent(view, "font-mutable").Size == new Size(200, 80),
+                        "font-relative reset or font mutation geometry changed");
+                    var field = view.At.Fs.First(item => item.El != null && item.El.Av("id") == "font-field");
+                    field.V = "Retained benchmark font value";
+                    view.Size = new Size(640, 500);
+                    using (var image = Draw(view)) { }
+                    Need(view.Rf == 16 && BlockContent(view, "rem-size").Size == new Size(160, 64) &&
+                        BlockContent(view, "em-size").Size == new Size(180, 72), "responsive rem/em geometry changed");
+                    Need(Object.ReferenceEquals(field, view.At.Fs.First(item => item.El != null && item.El.Av("id") == "font-field")) &&
+                        field.V == "Retained benchmark font value", "root-font rebuild lost field state");
+                }
+                Need(engine.Js(page, "wd('font-command','101em'); ht('font-command','1.5rem')") == 0,
+                    "unsupported font-relative values were accepted");
+                return "em/rem dimensions plus root-font state, calc offsets, lazy aliases, min/max, variables, inheritance, layout families, commands, font mutation, and responsive rebuild";
+            });
             AddProbe(probes, "Bounded sticky positioning", delegate
             {
                 var path = Path.Combine(folder, "sticky-positioning.html");
@@ -2359,7 +2406,7 @@ namespace Lea.Bench
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, fixed/percentage/calc dimensions and classic vw/vh/vmin/vmax units with calculated min/max, content/border box, circular/elliptical radii, bounded outlines, box shadows and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing and text styles, visibility, absolute/fixed and bounded vertical sticky positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
+            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, fixed/percentage/calc dimensions and classic vw/vh/vmin/vmax plus bounded em/rem units with calculated min/max, content/border box, circular/elliptical radii, bounded outlines, box shadows and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing and text styles, visibility, absolute/fixed and bounded vertical sticky positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, inline, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Text overflow", "Supported subset", "Non-inherited clip/ellipsis; paint-only bounded text-element prefixes for clipped overflowing horizontal LTR lines, inline runs and tables; retained layout/link targets and full logical automation text; no native-control, bidi, custom-marker, or line-clamp additions");

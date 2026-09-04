@@ -135,6 +135,8 @@ LeaForge is where we can grow the more full-featured browser.
 - bounded definite percentage/calculated heights with `ht` and literal `style.height`
 - bounded `vw`/`vh`/`vmin`/`vmax` dimensions and calculations with compact
   `Wu/Hu/Vh` aliases; see `VIEWPORT_UNITS.md`
+- bounded `em`/`rem` dimensions and calculations with compact `Wu/Hu/Rf`
+  aliases; see `FONT_RELATIVE_UNITS.md`
 - bounded developer snapshots plus a tabbed inspector with an Access view in the test browser
 - repeatable compatibility, timing, memory, binary-size, and compression report
 - streamed local/HTTP downloads with explicit destinations and a 64 MB ceiling

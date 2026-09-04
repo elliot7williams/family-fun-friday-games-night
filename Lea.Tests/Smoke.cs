@@ -377,6 +377,49 @@ namespace Lea.Tests
                 Ok(BlockById(viewportPage, "command").S.W == 200 && BlockById(viewportPage, "command").S.H == 120,
                     "rejected viewport commands preserve cascade");
 
+                var fontUnitPath = Path.Combine(pages, "font-relative-units.html");
+                var fontUnitEngine = new E();
+                var fontUnitPage = fontUnitEngine.Go(fontUnitPath);
+                Eq(20, fontUnitPage.Rf, "root font-size alias");
+                var emStyle = BlockById(fontUnitPage, "em-size").S;
+                var remStyle = BlockById(fontUnitPage, "rem-size").S;
+                Ok(emStyle.Wp == 10 && emStyle.Wu == 5 && emStyle.Hp == 4 && emStyle.Hu == 5,
+                    "em dimension model");
+                Ok(remStyle.Wp == 10 && remStyle.Wu == 6 && remStyle.Hp == 4 && remStyle.Hu == 6,
+                    "rem dimension model");
+                var fontCalc = BlockById(fontUnitPage, "calc-font").S;
+                Ok(fontCalc.Wp == 10 && fontCalc.Wu == 5 && fontCalc.Wo == -20 &&
+                    fontCalc.Hp == 5 && fontCalc.Hu == 6 && fontCalc.Ho == 10,
+                    "calculated font-relative model");
+                Ok(BlockById(fontUnitPage, "minimum-font-width").S.Wnu == 5 &&
+                    BlockById(fontUnitPage, "maximum-root-width").S.Wxu == 6 &&
+                    BlockById(fontUnitPage, "minimum-font-height").S.Hnu == 5 &&
+                    BlockById(fontUnitPage, "maximum-root-height").S.Hxu == 6,
+                    "font-relative minimum and maximum model");
+                var inheritedFontUnit = BlockById(fontUnitPage, "font-inherit-child").S;
+                Ok(inheritedFontUnit.Wp == 8 && inheritedFontUnit.Wu == 5 && inheritedFontUnit.Hp == 4 && inheritedFontUnit.Hu == 6,
+                    "inherited font-relative model");
+                var variableFontUnit = BlockById(fontUnitPage, "font-variable").S;
+                Ok(variableFontUnit.Wp == 9 && variableFontUnit.Wu == 5 && variableFontUnit.Hp == 4 && variableFontUnit.Hu == 6 && variableFontUnit.Ho == -5,
+                    "custom-property font-relative model");
+                Ok(BlockById(fontUnitPage, "font-invalid").S.W == 130 && BlockById(fontUnitPage, "font-invalid").S.H == 85 &&
+                    BlockById(fontUnitPage, "invalid-font-size").S.Fs == 18,
+                    "invalid font-relative values and unsupported font-size units preserve prior state");
+                Eq(2, fontUnitEngine.Ck(fontUnitPage, ById(fontUnitPage.D, "set-font-size")), "compact font-relative size commands");
+                Ok(BlockById(fontUnitPage, "font-command").S.Wu == 5 && BlockById(fontUnitPage, "font-command").S.Hu == 6,
+                    "compact font-relative commands reach style model");
+                Eq(2, fontUnitEngine.Ck(fontUnitPage, ById(fontUnitPage.D, "dom-font-size")), "literal DOM font-relative commands");
+                Ok(BlockById(fontUnitPage, "font-command").S.Wu == 6 && BlockById(fontUnitPage, "font-command").S.Hu == 5,
+                    "literal DOM font-relative model");
+                Eq(2, fontUnitEngine.Ck(fontUnitPage, ById(fontUnitPage.D, "clear-font-size")), "font-relative inline reset");
+                Ok(BlockById(fontUnitPage, "font-command").S.W == 200 && BlockById(fontUnitPage, "font-command").S.H == 120 &&
+                    BlockById(fontUnitPage, "font-command").S.Wu == 0 && BlockById(fontUnitPage, "font-command").S.Hu == 0,
+                    "font-relative reset restores authored pixels and releases lazy state");
+                Eq(0, fontUnitEngine.Js(fontUnitPage, "wd('font-command','0em'); ht('font-command','101rem'); width('font-command','1.5em'); height('font-command','calc(2rem * 2)');"),
+                    "invalid font-relative commands rejected");
+                Ok(BlockById(fontUnitPage, "font-command").S.W == 200 && BlockById(fontUnitPage, "font-command").S.H == 120,
+                    "rejected font-relative commands preserve cascade");
+
                 var scriptsOff = new E();
                 scriptsOff.Je = false;
                 var disabledScriptPage = scriptsOff.Go(scriptPath);
@@ -2355,6 +2398,63 @@ namespace Lea.Tests
                     Eq(500, view.Vh, "WinForms compact viewport height alias responds to resize");
                     Eq(250, BlockRect(view, BlockById(view.At, "vh")).Height, "WinForms vh responds to height-only resize");
                     Eq(320, BlockRect(view, BlockById(view.At, "vw")).Width, "WinForms vw stays stable on height-only resize");
+
+                    view.Size = new Size(800, 600);
+                    view.Go(fontUnitPath);
+                    Paint(view);
+                    Eq(20, view.At.Rf, "WinForms authored root font-size alias");
+                    Eq(20, view.Rf, "WinForms compact root font-size alias");
+                    Eq(new Size(180, 72), BlockRect(view, BlockById(view.At, "em-size")).Size, "WinForms em dimensions");
+                    Eq(new Size(200, 80), BlockRect(view, BlockById(view.At, "rem-size")).Size, "WinForms rem dimensions");
+                    Eq(new Size(120, 60), BlockRect(view, BlockById(view.At, "font-child")).Size, "WinForms nested em dimensions");
+                    Eq(new Size(160, 110), BlockRect(view, BlockById(view.At, "calc-font")).Size, "WinForms calculated font-relative dimensions");
+                    Eq(144, BlockRect(view, BlockById(view.At, "minimum-font-width")).Width, "WinForms em minimum width");
+                    Eq(200, BlockRect(view, BlockById(view.At, "maximum-root-width")).Width, "WinForms rem maximum width");
+                    Eq(72, BlockRect(view, BlockById(view.At, "minimum-font-height")).Height, "WinForms em minimum height");
+                    Eq(100, BlockRect(view, BlockById(view.At, "maximum-root-height")).Height, "WinForms rem maximum height");
+                    Eq(72, BlockRect(view, BlockById(view.At, "font-auto-child")).Height, "WinForms em height resolves below auto parent");
+                    Eq(new Size(96, 80), BlockRect(view, BlockById(view.At, "font-inherit-child")).Size, "WinForms inherited font-relative dimensions");
+                    Eq(new Size(162, 75), BlockRect(view, BlockById(view.At, "font-variable")).Size, "WinForms custom-property font-relative dimensions");
+                    Eq(new Size(130, 85), BlockRect(view, BlockById(view.At, "font-invalid")).Size, "WinForms invalid font-relative fallback");
+                    Eq(new Size(180, 54), BlockRect(view, BlockById(view.At, "invalid-font-size")).Size, "WinForms unsupported font-size unit stays atomic");
+                    Eq(new Size(120, 60), BlockRect(view, BlockById(view.At, "font-flex-a")).Size, "WinForms font-relative flex geometry");
+                    Eq(new Size(200, 60), BlockRect(view, BlockById(view.At, "font-grid-a")).Size, "WinForms font-relative grid geometry");
+                    Eq(new Size(400, 108), BlockRect(view, BlockById(view.At, "font-table")).Size, "WinForms font-relative table geometry");
+                    Eq(new Size(180, 80), BlockRect(view, BlockById(view.At, "font-absolute")).Size, "WinForms positioned font-relative geometry");
+                    Eq(new Size(100, 90), BlockRect(view, BlockById(view.At, "font-fixed")).Size, "WinForms fixed font-relative geometry");
+                    Eq(new Size(140, 56), BlockRect(view, BlockById(view.At, "font-field")).Size, "WinForms font-relative field geometry");
+                    Eq(new Size(120, 100), BlockRect(view, BlockById(view.At, "font-image")).Size, "WinForms font-relative image geometry");
+                    Eq(new Size(180, 90), BlockRect(view, BlockById(view.At, "font-ratio")).Size, "WinForms aspect ratio uses em height");
+                    Eq(new Size(200, 90), BlockOuterRect(view, BlockById(view.At, "font-border-box")).Size, "WinForms font-relative border-box outer geometry");
+                    Eq(new Size(176, 66), BlockRect(view, BlockById(view.At, "font-border-box")).Size, "WinForms font-relative border-box content geometry");
+                    view.Sc(BlockRect(view, BlockById(view.At, "font-link")).Top - 24);
+                    Paint(view);
+                    Eq(new Size(180, 72), view.Ab(view.Ax(ById(view.At.D, "font-link"))).Size, "WinForms font-relative accessibility geometry");
+                    Eq(new Size(180, 72), HitElementRect(view, "font-link").Size, "WinForms font-relative link hit geometry");
+                    Eq(2, view.Ck(ById(view.At.D, "set-font-size")), "WinForms compact font-relative commands");
+                    Paint(view);
+                    Eq(new Size(140, 100), BlockRect(view, BlockById(view.At, "font-command")).Size, "WinForms compact font-relative command reflow");
+                    Eq(2, view.Ck(ById(view.At.D, "dom-font-size")), "WinForms literal font-relative DOM commands");
+                    Paint(view);
+                    Eq(new Size(160, 56), BlockRect(view, BlockById(view.At, "font-command")).Size, "WinForms literal font-relative command reflow");
+                    Eq(2, view.Ck(ById(view.At.D, "clear-font-size")), "WinForms font-relative command reset");
+                    Paint(view);
+                    Eq(new Size(200, 120), BlockRect(view, BlockById(view.At, "font-command")).Size, "WinForms font-relative reset restores authored size");
+                    Eq(new Size(120, 48), BlockRect(view, BlockById(view.At, "font-mutable")).Size, "WinForms initial em geometry before font mutation");
+                    Eq(1, view.Ck(ById(view.At.D, "grow-font")), "WinForms compact font mutation");
+                    Paint(view);
+                    Eq(new Size(200, 80), BlockRect(view, BlockById(view.At, "font-mutable")).Size, "WinForms em geometry follows font mutation");
+                    var fontField = FieldById(view.At, "font-field");
+                    fontField.V = "Retained font-relative value";
+                    view.Size = new Size(640, 500);
+                    Paint(view);
+                    Eq(16, view.At.Rf, "WinForms responsive root font-size model");
+                    Eq(16, view.Rf, "WinForms responsive root font-size alias");
+                    Eq(new Size(160, 64), BlockRect(view, BlockById(view.At, "rem-size")).Size, "WinForms rem dimensions follow root media change");
+                    Eq(new Size(180, 72), BlockRect(view, BlockById(view.At, "em-size")).Size, "WinForms em dimensions retain element font reference");
+                    Eq(90, BlockRect(view, BlockById(view.At, "calc-font")).Height, "WinForms calculated rem height follows root media change");
+                    Ok(Object.ReferenceEquals(fontField, FieldById(view.At, "font-field")) && fontField.V == "Retained font-relative value",
+                        "WinForms root font rebuild retains mutable fields");
 
                     view.Size = new Size(720, 420);
                     view.Go(eventPath);
@@ -5453,6 +5553,7 @@ namespace Lea.Tests
                 Console.WriteLine("Lea CSS bitmap smoke passed: compact aliases, stylesheet origins, atomic cascade, bounded image loading, repeat/size/position/page/field paint, clipping, opacity, hits, and resize.");
                 Console.WriteLine("Lea calculated height smoke passed: compact ht, definite viewport/parent/positioned references, auto fallback, min/max, flex/grid/table/media geometry, accessibility, reset, and resize.");
                 Console.WriteLine("Lea viewport unit smoke passed: vw/vh/vmin/vmax, calc, cross-axis sizes, lazy aliases, layout families, accessibility, commands, and resize.");
+                Console.WriteLine("Lea font-relative unit smoke passed: em/rem, root font state, calc, min/max, layout families, commands, font mutation, and responsive rebuild.");
 
                     Console.WriteLine("Lea smoke passed: bounded sticky positioning with compact k, shared paint/hit/editor/accessibility geometry, normal-flow retention, and ancestor clamps, bounded has relational selectors with strict lists, maximum specificity, descendant/child/adjacent/following and complex chains, queries, dynamic focus rebuilds, retained fields, WinForms geometry, and traversal/part limits, bounded nth-child of-S filters with strict compound lists, maximum specificity, forward/reverse counting, queries, dynamic form-state rebuilds, retained fields, WinForms geometry, and nesting/test limits, bounded precompiled An+B and reverse structural selectors with stylesheet/query parity, specificity, selector-list composition, type filtering, WinForms geometry, and invalid limits, bounded is, where, and list-not selector functions with maximum/zero specificity, forgiving/strict parsing, queries, dynamic state, WinForms geometry, and retained fields, bounded CSS important cascade with compiled priority, G.Ic diagnostics, stylesheet/inline tiers, custom properties, hover/media rebuilds, and retained fields, bounded inherited CSS custom properties with compiled declarations, S.Vc/Cv and G.Vc aliases, nested and cycle fallbacks, hover/media rebuilds, and retained fields, bounded responsive CSS media queries with viewport aliases, live resize, diagnostics, and retained fields, optional bounded persistent cache with restart reuse, validators, private isolation, atomic recovery, LRU entry/byte ceilings and host aliases, bounded content-box and border-box geometry, body and ID-scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, shrink, reverse flow, and resize, semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;

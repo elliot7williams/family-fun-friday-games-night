@@ -53,6 +53,8 @@ Its compact switches are `-r` for repository root, `-o` for report output,
 `-n` for iterations, and optional `-b` for a Firespider executable path.
 The same runner recognizes an extracted Lea runtime package and measures its
 local DLLs and Firespider executable without requiring a source solution.
+Its fixture set includes `font-relative-units.html`, covering bounded `em` and
+`rem` model, layout, commands, reset, root media changes, and resize behavior.
 
 ## Firespider Startup Checks
 

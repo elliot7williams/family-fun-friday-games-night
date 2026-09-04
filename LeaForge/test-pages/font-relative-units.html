@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea font relative units</title>
+  <style>
+    html { font-size: 20px; }
+    body { background: #f8fafc; color: #172033; font-size: 18px; }
+    #em-size { width: 10em; height: 4em; background: #e8f3ff; }
+    #rem-size { width: 10rem; height: 4rem; background: #dff6e9; }
+    #font-parent { font-size: 12px; }
+    #font-child { width: 10em; height: 5em; background: #fee9d8; }
+    #calc-font { width: calc(10em - 20px); height: calc(5rem + 10px); }
+    #minimum-font-width { width: 10px; min-width: 8em; }
+    #maximum-root-width { width: 1000px; max-width: 10rem; }
+    #minimum-font-height { height: 10px; min-height: 4em; }
+    #maximum-root-height { height: 1000px; max-height: 5rem; }
+    #font-auto-parent { background: #edf2f7; }
+    #font-auto-child { height: 4em; }
+    #font-inherit-parent { width: 8em; height: 4rem; }
+    #font-inherit-child { width: inherit; height: inherit; font-size: 12px; }
+    #font-variable { --fw: 9em; --fh: calc(4rem - 5px); width: var(--fw); height: var(--fh); }
+    #font-invalid { width: 130px; width: 0em; height: 85px; height: calc(2rem * 2); }
+    #invalid-font-size { font-size: 2em; width: 10em; height: 3em; }
+    #font-flex { display: flex; width: 600px; height: 200px; gap: 10px; }
+    #font-flex-a { font-size: 12px; width: 10em; height: 5em; }
+    #font-flex-b { font-size: 14px; width: 10em; height: 4em; }
+    #font-grid { display: grid; width: 600px; height: 240px; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 10px; }
+    #font-grid-a { font-size: 15px; width: 10rem; height: 4em; }
+    #font-table { width: 20rem; height: 6em; }
+    #font-position-shell { position: relative; width: 600px; height: 240px; }
+    #font-absolute { position: absolute; top: 0; left: 0; width: 10em; height: 4rem; }
+    #font-fixed { position: fixed; right: 0; top: 0; width: 5rem; height: 5em; opacity: 0; }
+    #font-field { display: block; font-size: 14px; width: 10em; height: 4em; }
+    #font-image { display: block; font-size: 12px; width: 10em; height: 5rem; }
+    #font-ratio { height: 5em; aspect-ratio: 2 / 1; }
+    #font-border-box { box-sizing: border-box; width: 10rem; height: 5em; padding: 10px; border: 2px solid #176b4d; }
+    #font-link { display: block; width: 10em; height: 4em; }
+    #font-command { color: #123f8c; font-size: 14px; width: 200px; height: 120px; }
+    #font-mutable { font-size: 12px; width: 10em; height: 4em; }
+    button { display: block; width: 360px; margin: 6px 0; }
+    @media (max-width: 700px) { html { font-size: 16px; } }
+  </style>
+</head>
+<body>
+  <h1>Bounded font-relative units</h1>
+  <section id="em-size">Element font size</section>
+  <section id="rem-size">Root font size</section>
+  <section id="font-parent"><p id="font-child">Nested element font size</p></section>
+  <section id="calc-font">Calculated font-relative dimensions</section>
+  <section id="minimum-font-width">Minimum em width</section>
+  <section id="maximum-root-width">Maximum rem width</section>
+  <section id="minimum-font-height">Minimum em height</section>
+  <section id="maximum-root-height">Maximum rem height</section>
+  <section id="font-auto-parent"><p id="font-auto-child">Em height below an auto parent</p></section>
+  <section id="font-inherit-parent"><p id="font-inherit-child">Inherited font-relative dimensions</p></section>
+  <section id="font-variable">Font-relative custom properties</section>
+  <section id="font-invalid">Invalid values preserve earlier declarations</section>
+  <section id="invalid-font-size">Unsupported font-size units remain atomic</section>
+  <section id="font-flex"><p id="font-flex-a">Flex font A</p><p id="font-flex-b">Flex font B</p></section>
+  <section id="font-grid"><p id="font-grid-a">Grid font A</p><p id="font-grid-b">Grid B</p><p id="font-grid-c">Grid C</p></section>
+  <table id="font-table"><tr><td>Font table</td><td>Second cell</td></tr></table>
+  <section id="font-position-shell"><p id="font-absolute">Absolute font box</p></section>
+  <p id="font-fixed">Fixed font box</p>
+  <input id="font-field" aria-label="Font relative field" value="retained font value">
+  <img id="font-image" alt="Font relative image" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXYxDP9v0PAAM7Ac+IRop4AAAAAElFTkSuQmCC">
+  <section id="font-ratio">Aspect ratio from em height</section>
+  <section id="font-border-box">Font-relative border box</section>
+  <a id="font-link" href="#font-target">Font-relative link hit area</a>
+  <section id="font-command">Command font-relative size</section>
+  <section id="font-mutable">Font mutation reflow</section>
+  <button id="set-font-size" type="button" data-lea="wd('font-command','10em');ht('font-command','5rem')">Set font-relative size</button>
+  <button id="dom-font-size" type="button" onclick="document.getElementById('font-command').style.width='8rem';document.getElementById('font-command').style.height='4em'">Set literal font-relative size</button>
+  <button id="clear-font-size" type="button" onclick="document.getElementById('font-command').style.width='';document.getElementById('font-command').style.height=''">Restore authored size</button>
+  <button id="grow-font" type="button" data-lea="fs('font-mutable',20)">Grow element font</button>
+  <p id="font-target">Font-relative target</p>
+</body>
+</html>

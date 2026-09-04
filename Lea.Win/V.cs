@@ -58,6 +58,7 @@ namespace Lea.Win
         private int layoutWidth = -1;
         private int layoutViewportWidth = 1;
         private int layoutViewportHeight = 1;
+        private int layoutRootFontSize = 10;
         private bool layoutDirty = true;
         private bool sticky;
         private bool picBusy;
@@ -284,6 +285,7 @@ namespace Lea.Win
         public int Bc { get { return boxes.Count; } }
         public int Vw { get { return e.Vw; } }
         public int Vh { get { return Math.Max(1, ClientSize.Height); } }
+        public int Rf { get { return At != null && At.Rf > 0 ? At.Rf : Math.Max(1, (int)Math.Round(Font.Size)); } }
         public N Ke { get { return focus; } }
         public int Kn { get { return FocusTargets(true).Count; } }
         public int Ki { get { return FocusIndex(FocusTargets(true)) + 1; } }
@@ -1173,6 +1175,7 @@ namespace Lea.Win
             if (At == null) return;
             layoutViewportWidth = Math.Max(1, ClientSize.Width);
             layoutViewportHeight = Math.Max(1, ClientSize.Height);
+            layoutRootFontSize = Rf;
             var measured = resolved ?? new Dictionary<B, int>();
             var contexts = new Dictionary<B, Lc>();
             var owners = new HashSet<B>();
@@ -2819,25 +2822,33 @@ namespace Lea.Win
 
         private int ResolvedWidth(S style, int pixels, int percent, int offset, int unit, int reference)
         {
-            var declared = percent > 0 ? (int)Math.Round(SizeReference(unit, reference) * percent / 100D) + offset : pixels;
+            var declared = percent > 0 ? RelativePixels(unit, percent, reference, style) + offset : pixels;
             declared = Math.Max(0, Math.Min(8192, declared));
             return BoxContentWidth(style, declared);
         }
 
         private int ResolvedHeight(S style, int pixels, int percent, int offset, int unit, int reference)
         {
-            var declared = percent > 0 ? (int)Math.Round(SizeReference(unit, reference) * percent / 100D) + offset : pixels;
+            var declared = percent > 0 ? RelativePixels(unit, percent, reference, style) + offset : pixels;
             declared = Math.Max(0, Math.Min(8192, declared));
             return BoxContentHeight(style, declared);
         }
 
-        private int SizeReference(int unit, int reference)
+        private int SizeReference(int unit, int reference, S style)
         {
             if (unit == 1) return layoutViewportWidth;
             if (unit == 2) return layoutViewportHeight;
             if (unit == 3) return Math.Min(layoutViewportWidth, layoutViewportHeight);
             if (unit == 4) return Math.Max(layoutViewportWidth, layoutViewportHeight);
+            if (unit == 5) return style != null && style.Fs > 0 ? style.Fs : Math.Max(1, (int)Math.Round(Font.Size));
+            if (unit == 6) return layoutRootFontSize;
             return Math.Max(1, reference);
+        }
+
+        private int RelativePixels(int unit, int magnitude, int reference, S style)
+        {
+            var scale = SizeReference(unit, reference, style);
+            return (int)Math.Round(unit >= 5 ? scale * (double)magnitude : scale * magnitude / 100D);
         }
 
         private bool PreferredRatio(B block)

@@ -108,14 +108,15 @@ enter Lea's existing layout modes. An empty value removes only the inline
 display declaration and restores the authored cascade. Unsupported values are
 inert. See `DISPLAY_NAVIGATION.md`.
 
-`wd` accepts fixed `0..2000px`, `1..100%`, classic `1..100vw/vh/vmin/vmax`, or
+`wd` accepts fixed `0..2000px`, `1..100%`, classic `1..100vw/vh/vmin/vmax`,
+bounded `1..100em/rem`, or
 one `calc(PU +/- Npx)` expression where `P` is 1..100, `U` is `%` or a supported
-viewport unit, and `N` is 0..2000. An empty value removes only the inline width
+relative unit, and `N` is 0..2000. An empty value removes only the inline width
 and restores the authored cascade. Authored `width`, `min-width`, and
 `max-width` accept the same bounded numeric forms. Nested functions and
 multiplication/division remain unsupported. `ht` and authored height/min/max
-use the same forms. See `CALCULATED_WIDTHS.md`, `CALCULATED_HEIGHTS.md`, and
-`VIEWPORT_UNITS.md`.
+use the same forms. See `CALCULATED_WIDTHS.md`, `CALCULATED_HEIGHTS.md`,
+`VIEWPORT_UNITS.md`, and `FONT_RELATIVE_UNITS.md`.
 
 `P.Vs` exposes at most 16 case-insensitive variables. Names are one through 16
 letters, digits, or underscores and must begin with a letter; values are capped
@@ -693,6 +694,8 @@ Responsive CSS uses the compact `Vw` alias. Hosts may set `E.Vw`; it clamps to
 `V.Vw` is read-only and follows the control's client width automatically;
 `V.Vh` is the matching live client height. `P.Vw` and `G.Vw` report the width
 applied to the page and diagnostic snapshot.
+`P.Rf` is the explicitly computed root font size, or zero for the host default;
+`V.Rf` is the root font size actually used for layout.
 Lea compiles bounded `screen`/`all` queries with pixel `min-width`, `max-width`,
 or exact `width`, comma alternatives, four nested `@media` levels, up to eight
 alternatives, and `<style media>`. Print, negated, unknown, and non-pixel
@@ -733,12 +736,15 @@ Responsive dimensions use magnitude/pixel-offset/unit tuples. `Wp/Wo/Wu`,
 `Wnp/Wno/Wnu`, and `Wxp/Wxo/Wxu` represent width, minimum, and maximum;
 `Hp/Ho/Hu`, `Hnp/Hno/Hnu`, and `Hxp/Hxo/Hxu` are their height counterparts.
 Unit codes are `0` for a containing-block percentage, `1` for `vw`, `2` for
-`vh`, `3` for `vmin`, and `4` for `vmax`. Percentage heights resolve only
+`vh`, `3` for `vmin`, `4` for `vmax`, `5` for `em`, and `6` for `rem`.
+Percentage heights resolve only
 against a definite viewport, retained parent, positioned containing block, or
 grid area; unresolved percentages retain authored state and natural auto
 layout. Viewport units always use `V.Vw/Vh`, including below auto-height
-parents. Both axes accept one bounded `calc(PU +/- Npx)` expression; see
-`CALCULATED_WIDTHS.md`, `CALCULATED_HEIGHTS.md`, and `VIEWPORT_UNITS.md`.
+parents. Font-relative units use the element's computed font or `V.Rf` root
+font. Both axes accept one bounded `calc(PU +/- Npx)` expression; see
+`CALCULATED_WIDTHS.md`, `CALCULATED_HEIGHTS.md`, `VIEWPORT_UNITS.md`, and
+`FONT_RELATIVE_UNITS.md`.
 
 Rounded corners use clockwise horizontal `R0/R1/R2/R3` and vertical
 `Q0/Q1/Q2/Q3` values for top-left, top-right, bottom-right, and bottom-left.
