@@ -58,6 +58,9 @@ Its fixture set includes `font-relative-units.html`, covering bounded `em` and
 It also includes `size-functions.html`, covering bounded `min()`, `max()`, and
 `clamp()` records, mixed terms, constraints, media replacement, commands,
 shared layout geometry, reset, and resize behavior.
+`fragment-stability.html` covers `Fa/Fj/Fy`, first-paint retention, responsive
+host settlement, intrinsic image reflow, missing targets, and manual-scroll
+release. See `LeaForge/INITIAL_FRAGMENT_STABILITY.md`.
 
 ## Firespider Startup Checks
 

@@ -345,14 +345,15 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-The bounded size model now includes two/three-term `min()` and `max()` plus
-three-term `clamp()` through lazy compact `S.Wk/Hk/Wq/Hq/Wv/Hv` aliases. Each
-argument reuses the fixed, percentage, viewport, font-relative, or one-expression
-calculated term compiler. The shared resolver covers both axes, constraints,
-retained layout families, media replacement, commands, and live resize without
-a general evaluator. See `SIZE_FUNCTIONS.md`. Next evaluate additional high-value HTML/CSS
-compatibility while keeping the short public API and avoiding general CSS or
-JavaScript evaluators.
+Initial URL fragments now retain one exact page/fragment anchor while native
+layout settles. First paint, viewport/font changes, stylesheet or DOM rebuilds,
+and asynchronous intrinsic image completion reapply the target without another
+request or history entry. Ordinary scroll/focus movement, missing targets,
+navigation, and disposal release it. Compact `V.Fa/Fj/Fy` expose active state,
+a saturated placement count, and latest document Y. See
+`INITIAL_FRAGMENT_STABILITY.md`. Next evaluate bounded logical sizing/insets
+that can reuse the existing dimension resolver, then continue high-value
+HTML/CSS compatibility without general CSS or JavaScript evaluators.
 
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host

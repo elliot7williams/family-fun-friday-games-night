@@ -891,7 +891,12 @@ flow.
 
 The WinForms view exposes `Dh` (document height), `Sy` (scroll position), and
 `Bc` (cached layout-box count) for compact host diagnostics. `Sc(delta)` moves
-the bounded scroll position.
+the bounded scroll position. `Fa` reports whether one initial page/fragment
+anchor is active, `Fj` is its saturated placement count, and `Fy` is the latest
+target Y or `-1` when unresolved. First paint, viewport/font changes,
+stylesheet/DOM rebuilds, and completed intrinsic images can reapply the target;
+ordinary scrolling or focus movement releases it. See
+`INITIAL_FRAGMENT_STABILITY.md`.
 
 Find-in-page uses `Fd`: `E.Fd(page, query)` counts up to 256 case-insensitive
 text occurrences. `V.Fd(query)` builds and highlights up to 256 painted matches;

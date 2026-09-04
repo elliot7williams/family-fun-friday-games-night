@@ -101,6 +101,12 @@ namespace Lea.Win
         private int keySlot = -1;
         private string findQuery = "";
         private int findIndex = -1;
+        private P fragmentPage;
+        private string fragmentAddress = "";
+        private bool fragmentAnchor;
+        private bool fragmentPending;
+        private int fragmentJumps;
+        private int fragmentY = -1;
         private int goRequests;
         private Ur ur;
         private Uri retryTarget;
@@ -296,6 +302,9 @@ namespace Lea.Win
         public Rectangle Rb(int index) { return index < 0 || index >= boxes.Count ? Rectangle.Empty : boxes[index].R; }
         public Rectangle Rc(int index) { return index < 0 || index >= boxes.Count ? Rectangle.Empty : boxes[index].C; }
         public Rectangle Fr { get { return FindRect(); } }
+        public bool Fa { get { return fragmentAnchor; } }
+        public int Fj { get { return fragmentJumps; } }
+        public int Fy { get { return fragmentY; } }
 
         // Compact commands act only on this page's current or menu-retained editor.
         public bool Ce(string code)
@@ -600,6 +609,8 @@ namespace Lea.Win
                 await PicsA(page);
                 if (closed) return page;
                 Dirty();
+                QueueFragment(page);
+                ApplyPendingFragment();
                 Invalidate();
                 FinishLoad(owner);
                 var address = page == null ? null : page.U;
@@ -658,8 +669,10 @@ namespace Lea.Win
         {
             if (count == 0) return 0;
             Dirty();
+            QueueFragment(At);
             KeepValidFocus();
             EnsureLayout();
+            ApplyPendingFragment();
             PlaceEditor();
             Invalidate();
             OnChanged();
@@ -759,7 +772,9 @@ namespace Lea.Win
             if (count == 0) return 0;
             ClearFind(false);
             Dirty();
+            QueueFragment(At);
             if (!ApplyCommandFocus(At)) KeepValidFocus();
+            ApplyPendingFragment();
             OnChanged();
             if (closed) return count;
             Invalidate();
@@ -847,9 +862,11 @@ namespace Lea.Win
             EndEdit(false);
             e.Vw = Math.Max(1, ClientSize.Width);
             e.Dy(page, null, null);
+            BeginFragment(page);
             sy = 0;
             Dirty();
             var scrolled = ScrollFragment(page);
+            if (scrolled && fragmentAnchor) fragmentPending = true;
             var commandFocus = ApplyCommandFocus(page);
             if (!scrolled && !commandFocus) ApplyAutofocus(page);
             if (!scrolled && preserveScroll >= 0 && page != null && page.U != null && page.U.Fragment.Length > 0)
@@ -868,21 +885,61 @@ namespace Lea.Win
         private bool ScrollFragment(P page)
         {
             if (page == null || page.U == null || page.U.Fragment.Length == 0) return false;
+            fragmentJumps = Math.Min(255, fragmentJumps + 1);
+            fragmentY = -1;
             if (page.U.Fragment == "#")
             {
-                sy = 0;
+                fragmentY = 0;
+                SetScroll(0, true);
                 PlaceEditor();
                 return true;
             }
             var target = e.Ft(page, page.U.Fragment);
-            if (target == null) return false;
+            if (target == null) { CancelFragment(); return false; }
             if (e.Rv(page, target) > 0) Dirty();
             EnsureLayout();
             var box = FragmentBox(target);
-            if (box == null) return false;
-            if (!box.Fx) SetScroll(box.C.Top - 12);
+            if (box == null) { CancelFragment(); return false; }
+            fragmentY = box.C.Top;
+            if (!box.Fx) SetScroll(box.C.Top - 12, true);
             PlaceEditor();
             return true;
+        }
+
+        private void BeginFragment(P page)
+        {
+            fragmentPage = page;
+            fragmentAddress = page == null || page.U == null ? "" : page.U.Fragment;
+            fragmentAnchor = fragmentAddress.Length > 0;
+            fragmentPending = false;
+            fragmentJumps = 0;
+            fragmentY = -1;
+        }
+
+        private void QueueFragment(P page)
+        {
+            if (!fragmentAnchor || page == null || !Object.ReferenceEquals(page, fragmentPage) || page.U == null ||
+                !String.Equals(page.U.Fragment, fragmentAddress, StringComparison.Ordinal))
+            {
+                CancelFragment();
+                return;
+            }
+            fragmentPending = true;
+        }
+
+        private void ApplyPendingFragment()
+        {
+            if (!fragmentPending || !fragmentAnchor || !Object.ReferenceEquals(At, fragmentPage)) return;
+            fragmentPending = false;
+            ScrollFragment(fragmentPage);
+        }
+
+        private void CancelFragment()
+        {
+            fragmentAnchor = false;
+            fragmentPending = false;
+            fragmentPage = null;
+            fragmentAddress = "";
         }
 
         private Bx FragmentBox(N target)
@@ -1016,6 +1073,7 @@ namespace Lea.Win
             var changed = this.e.Vw != width || layoutViewportHeight != height;
             this.e.Vw = width;
             Dirty();
+            QueueFragment(At);
             Invalidate();
             if (changed && At != null) NotifyAccessibility(AccessibleEvents.Reorder);
         }
@@ -1026,6 +1084,7 @@ namespace Lea.Win
             if (fontNames != null) fontNames.Clear();
             editStyle = null;
             Dirty();
+            QueueFragment(At);
             Invalidate();
         }
 
@@ -1051,6 +1110,7 @@ namespace Lea.Win
             if (At.S != null && !Hidden(At.S) && At.S.Gi != null && At.S.Op > 0)
                 PaintGradient(pe.Graphics, ClientRectangle, At.S, pageColor, At.S.Op);
             if (layoutDirty || layoutWidth != ClientSize.Width) Lay(pe.Graphics);
+            ApplyPendingFragment();
             PlaceEditor();
 
             foreach (var box in boxes)
@@ -5009,7 +5069,13 @@ namespace Lea.Win
             try
             {
                 await PicsA(page);
-                if (!closed) Invalidate();
+                if (!closed && Object.ReferenceEquals(page, At))
+                {
+                    Dirty();
+                    QueueFragment(page);
+                    ApplyPendingFragment();
+                    Invalidate();
+                }
             }
             catch (OperationCanceledException) { }
             catch (WebException) { }
@@ -5076,8 +5142,9 @@ namespace Lea.Win
             Invalidate();
         }
 
-        private void SetScroll(int value)
+        private void SetScroll(int value, bool fragment = false)
         {
+            if (!fragment) CancelFragment();
             sy = Math.Max(0, Math.Min(MaxScroll(), value));
             ApplySticky();
         }
@@ -7480,6 +7547,7 @@ namespace Lea.Win
                 edit = null;
                 e.Ng = null;
                 navigationGuard = null;
+                CancelFragment();
                 picStop = true;
                 e.St();
                 CancelPics();

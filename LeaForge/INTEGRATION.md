@@ -153,7 +153,12 @@ history without another request, and `Rv` opens closed details ancestors in one
 field-preserving rebuild. `V.Go`/`GoA`, rendered links, and Back/Forward scroll
 through the same layout-box lookup. A missing target keeps the viewport, `#`
 returns to the top, and `P.Bu` remains unchanged while `P.U` tracks the active
-fragment. Firespider receives the final `Changed` event and address normally.
+fragment. `V.Fa/Fj/Fy` report an initial anchor, its bounded placement count,
+and latest target Y. Lea reapplies that one page/fragment pair after first
+paint, host/font changes, rebuilds, and current-page intrinsic image decode;
+`Sc`, wheel/focus movement, missing targets, navigation, and disposal release
+it. Firespider receives the final `Changed` event and address normally and does
+not need adapter-side layout code. See `INITIAL_FRAGMENT_STABILITY.md`.
 
 Supported `<progress>` and `<meter>` elements carry a compact `B.Vm` model
 instead of creating native controls. `V/Mn/Mx/R` provide normalized value,

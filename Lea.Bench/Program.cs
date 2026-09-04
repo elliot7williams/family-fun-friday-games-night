@@ -109,7 +109,7 @@ namespace Lea.Bench
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
                 "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
-                "go-command.html", "lists.html", "disclosure.html", "fragments.html", "gauges.html",
+                "go-command.html", "lists.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
                 "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html", "svg.html", "svg-geometry.html", "svg-gradients.html", "svg-use-clips.html", "svg-strokes.html",
                 "box-sizing.html", "border-radius.html", "box-shadows.html", "background-gradients.html", "background-images.html", "object-fit.html", "aspect-ratio.html", "outlines.html", "pointer-interaction.html", "text-transform.html", "text-spacing.html", "text-overflow.html"
@@ -277,6 +277,30 @@ namespace Lea.Bench
                     using (var image = Draw(view)) Need(ColoredSamples(image) > 0, "fragment layout is blank");
                 }
                 return "128-entry history, zero-fetch page retention, encoded/named targets, hidden reveal, table placement, and resize coverage";
+            });
+            AddProbe(probes, "Stable initial fragments", delegate
+            {
+                var path = Path.Combine(folder, "fragment-stability.html");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(300, 140);
+                    view.Go(new Uri(new Uri(path).AbsoluteUri + "#resize-target"));
+                    using (var image = Draw(view)) Need(ColoredSamples(image) > 0, "initial fragment layout is blank");
+                    Need(view.Fa && view.Fj >= 2 && view.Fy >= view.Sy && view.Fy < view.Sy + view.ClientSize.Height,
+                        "initial fragment anchor or diagnostics changed");
+                    var narrowTarget = view.Fy;
+                    var narrowJumps = view.Fj;
+                    view.Size = new Size(720, 140);
+                    using (var image = Draw(view)) { }
+                    Need(view.Fj > narrowJumps && view.Fy < narrowTarget && view.Fy >= view.Sy && view.Fy < view.Sy + view.ClientSize.Height,
+                        "initial fragment did not follow settled host geometry");
+                    var settledJumps = view.Fj;
+                    view.Sc(1);
+                    view.Size = new Size(640, 140);
+                    using (var image = Draw(view)) { }
+                    Need(!view.Fa && view.Fj == settledJumps, "manual scroll did not release the initial fragment anchor");
+                }
+                return "Fa/Fj/Fy diagnostics, first-paint retention, responsive host settlement, and manual-scroll release";
             });
             AddProbe(probes, "Host navigation guard", delegate
             {
@@ -2473,7 +2497,7 @@ namespace Lea.Bench
             Capability(builder, "Developer diagnostics", "Supported", "Bounded summary, node, CSS, request, message, and variable snapshots");
             Capability(builder, "Document queries", "Supported subset", "Id, first-match Q/Q1, and read-only Qa with compiled selectors and a 256-result ceiling");
             Capability(builder, "Document base URLs", "Supported", "First valid bounded HTTP, HTTPS, or file base; U remains the response URL and Bu drives relative resources");
-            Capability(builder, "Same-page fragments", "Supported", "Bounded Ft/Fg/Rv lookup, retained 128-entry history, details reveal, target scrolling, and no-fetch Back/Forward");
+            Capability(builder, "Same-page fragments", "Supported", "Bounded Ft/Fg/Rv lookup, retained 128-entry history, details reveal, no-fetch Back/Forward, and Fa/Fj/Fy initial placement across first paint, resize, and intrinsic images with manual-scroll release");
             Capability(builder, "Progress and meter gauges", "Supported", "Compact Vm values, finite normalization, meter quality regions, inherited styles, table cells, and custom paint");
             Capability(builder, "Output and data values", "Supported", "Compact Dv values, bounded references and text, host aliases, inline/block/table ownership, and safe rebuilds");
             Capability(builder, "Time and edit metadata", "Supported", "Compact Dv t/i/r values, bounded datetime and citation aliases, safe schemes, native decorations, inline/block/table ownership, and safe rebuilds");

@@ -5084,6 +5084,60 @@ namespace Lea.Tests
                     Paint(view);
                     Ok(view.U.Fragment == "#target" && ElementVisible(view, ById(view.At.D, "target")), "initial cross-document URL fragment before paint: " + loadedFragmentState + "; after paint: " + FragmentState(view));
 
+                    var fragmentStabilityPath = Path.Combine(pages, "fragment-stability.html");
+                    using (var resizeFragment = new V { Size = new Size(300, 140) })
+                    {
+                        typeof(V).GetField("picWorkerArgs", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(resizeFragment, "--pipe --delay=1000");
+                        resizeFragment.Go(new Uri(new Uri(fragmentStabilityPath).AbsoluteUri + "#resize-target"));
+                        Paint(resizeFragment);
+                        Ok(ElementVisible(resizeFragment, resizeFragment.Id("resize-target")), "initial responsive fragment placement");
+                        var narrowTargetTop = BlockRect(resizeFragment, BlockById(resizeFragment.At, "resize-target")).Top;
+                        Ok(resizeFragment.Fa && resizeFragment.Fj >= 2 && resizeFragment.Fy == narrowTargetTop,
+                            "initial fragment diagnostics retain responsive target");
+                        var narrowFragmentJumps = resizeFragment.Fj;
+                        resizeFragment.Size = new Size(720, 140);
+                        Paint(resizeFragment);
+                        var wideTargetTop = BlockRect(resizeFragment, BlockById(resizeFragment.At, "resize-target")).Top;
+                        Ok(wideTargetTop < narrowTargetTop && ElementVisible(resizeFragment, resizeFragment.Id("resize-target")) &&
+                            resizeFragment.Fj > narrowFragmentJumps && resizeFragment.Fy == wideTargetTop,
+                            "initial fragment follows host size settlement");
+                        var settledFragmentJumps = resizeFragment.Fj;
+                        resizeFragment.Sc(1);
+                        Ok(!resizeFragment.Fa && resizeFragment.Fj == settledFragmentJumps && resizeFragment.Fy == wideTargetTop,
+                            "manual scroll releases retained initial fragment");
+                        resizeFragment.Size = new Size(640, 140);
+                        Paint(resizeFragment);
+                        Eq(settledFragmentJumps, resizeFragment.Fj, "released fragment stays released after resize");
+                    }
+                    var disposedFragment = new V { Size = new Size(300, 140) };
+                    disposedFragment.Go(new Uri(new Uri(fragmentStabilityPath).AbsoluteUri + "#resize-target"));
+                    Paint(disposedFragment);
+                    Ok(disposedFragment.Fa, "fragment anchor before disposal");
+                    disposedFragment.Dispose();
+                    Ok(!disposedFragment.Fa, "disposal releases retained fragment anchor");
+                    using (var imageFragment = new V { Size = new Size(500, 140) })
+                    {
+                        typeof(V).GetField("picWorkerArgs", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(imageFragment, "--pipe --delay=300");
+                        imageFragment.Go(new Uri(new Uri(fragmentStabilityPath).AbsoluteUri + "#image-target"));
+                        Paint(imageFragment);
+                        var fallbackTargetTop = BlockRect(imageFragment, BlockById(imageFragment.At, "image-target")).Top;
+                        Ok(imageFragment.Fa && imageFragment.Fj >= 2 && imageFragment.Fy == fallbackTargetTop,
+                            "initial fragment diagnostics retain image target");
+                        var fallbackFragmentJumps = imageFragment.Fj;
+                        WaitFor(() => imageFragment.Ic == 1, "fragment intrinsic image decode");
+                        Paint(imageFragment);
+                        var intrinsicTargetTop = BlockRect(imageFragment, BlockById(imageFragment.At, "image-target")).Top;
+                        Ok(intrinsicTargetTop > fallbackTargetTop + 100 && ElementVisible(imageFragment, imageFragment.Id("image-target")) &&
+                            imageFragment.Fj > fallbackFragmentJumps && imageFragment.Fy == intrinsicTargetTop,
+                            "initial fragment follows intrinsic image settlement");
+                        Eq(1, imageFragment.Fg("#missing"), "missing retained fragment navigation");
+                        Ok(!imageFragment.Fa && imageFragment.Fj == 1 && imageFragment.Fy == -1,
+                            "missing fragment releases retained anchor with diagnostics");
+                        imageFragment.Go(Path.Combine(pages, "second.html"));
+                        Ok(!imageFragment.Fa && imageFragment.Fj == 0 && imageFragment.Fy == -1,
+                            "document navigation resets fragment diagnostics");
+                    }
+
                     view.Size = new Size(620, 900);
                     view.Go(gaugePath);
                     Paint(view);
@@ -9347,7 +9401,8 @@ namespace Lea.Tests
             foreach (var box in LayoutBoxes(view))
                 if (box.GetType().GetField("El").GetValue(box) == target)
                     rectangles.Add(box.GetType().GetField("C").GetValue(box).ToString());
-            return "URL=" + view.U + "; size=" + view.Size + "; Sy=" + view.Sy + "; target=" + String.Join(",", rectangles.ToArray());
+            return "URL=" + view.U + "; size=" + view.Size + "; Sy=" + view.Sy + "; Fa=" + view.Fa +
+                "; Fj=" + view.Fj + "; Fy=" + view.Fy + "; target=" + String.Join(",", rectangles.ToArray());
         }
 
         private static void CheckFragmentStartup(string root)
@@ -9359,7 +9414,8 @@ namespace Lea.Tests
                     view.Go(Path.Combine(pages, "second.html"));
                     view.Go(new Uri(new Uri(path).AbsoluteUri + "#target"));
                     Paint(view);
-                    Ok(view.U.Fragment == "#target" && ElementVisible(view, view.Id("target")), "fragment startup repeat " + index + ": " + FragmentState(view));
+                    Ok(view.U.Fragment == "#target" && view.Fa && view.Fj >= 2 && view.Fy >= 0 &&
+                        ElementVisible(view, view.Id("target")), "fragment startup repeat " + index + ": " + FragmentState(view));
                 }
             Console.WriteLine("Lea fragment startup repetitions passed.");
         }

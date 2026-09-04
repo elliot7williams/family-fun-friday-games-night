@@ -10,6 +10,12 @@ Its timer status handler is also routed safely across startup, empty, Lea, and
 legacy-tab states, so it never dereferences a missing control or casts a Lea
 view to the legacy `WebBrowser` type.
 
+Initial fragments now stay aligned while first paint, host sizing, and decoded
+intrinsic images settle. `V.Fa/Fj/Fy` expose the retained anchor, placement
+count, and target Y directly to the host; normal scrolling releases the anchor.
+The compiled host smoke covers these aliases with no adapter-side layout logic.
+See `LeaForge/INITIAL_FRAGMENT_STABILITY.md`.
+
 `Startup-smooth-host.patch` removes the blocking crash-recovery question and
 automatically restores eligible unclean sessions. It also sends the retired
 built-in `fsin.glitch.me` home to the bundled Lea start page when no explicit
@@ -248,8 +254,9 @@ clamped to 100-60,000 ms, with typed timeout and cancellation failures.
 
 Same-page `#fragment` links stay inside the current Lea page and never enter the
 host loader. Compact `Ft/Fg/Rv` lookup, retained history, closed-details reveal,
-and layout scrolling still raise the normal `Changed` event, so Firespider's
-address bar and Back/Forward controls update without adapter-specific DOM code.
+and retained `Fa/Fj/Fy` placement through layout settlement still raise the
+normal `Changed` event, so Firespider's address bar and Back/Forward controls
+update without adapter-specific DOM code.
 
 Progress and meter elements remain inside Lea's custom renderer. Compact
 `B.Vm` values provide bounded ranges, indeterminate progress, meter quality,

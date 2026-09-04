@@ -50,7 +50,7 @@ LeaForge is where we can grow the more full-featured browser.
 - bounded quote-aware HTML tokenization with comments, declarations, raw text, RCDATA, entities, and malformed-delimiter recovery
 - compact `Id`, `Q`/`Q1`, and read-only bounded `Qa` document queries
 - bounded `<base href>` resolution through compact `Bu`
-- retained same-page fragments through compact `Ft`/`Fg`/`Rv`, 128-entry history, percent-decoded IDs, named anchors, details reveal, and resize-safe scrolling
+- retained same-page fragments through compact `Ft`/`Fg`/`Rv`, 128-entry history, percent-decoded IDs, named anchors, details reveal, and `Fa/Fj/Fy` first-paint/resize/intrinsic-image placement diagnostics; see `INITIAL_FRAGMENT_STABILITY.md`
 - custom `<progress>` and `<meter>` painting through compact bounded `B.Vm` values, meter quality regions, inherited styles, and table-cell reflow
 - compact `<output>` and `<data>` values through `P.Dvs`/`B.Dv`/`Ir.Dv`, bounded metadata, safe updates, and inline/table ownership
 - compact `<time>`, `<ins>`, and `<del>` metadata through `Dv.K/Dt/U`, safe citation schemes, native decoration, rebuilds, and inline/table ownership

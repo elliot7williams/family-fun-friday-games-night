@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **81**
+Post-1.0 hardening milestones completed: **82**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,23 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded retained initial-fragment placement to the WinForms renderer.
+  One current page/fragment pair is reapplied after first paint, host or font
+  changes, stylesheet/DOM rebuilds, and asynchronous intrinsic image decode.
+  Ordinary scrolling, focus movement, missing targets, navigation, and disposal
+  release the anchor. Compact `V.Fa/Fj/Fy` expose active state, a saturated
+  placement count, and the latest document Y without adding a timer, request,
+  host layout path, or external browser runtime. Synchronous image completion
+  now dirties current-page layout so decoded intrinsic dimensions participate
+  in reflow. Full repository and compiled-host smokes pass, along with 78 probes
+  over 75 fixtures, all 42 Boot cases, and all six real EXE startup scenarios.
+  Measured medians are 528.623 ms clean diagnostic start, 3.501 ms local load,
+  and 34.481 ms layout/paint. Retained managed memory is 19,046.1 KiB for 375
+  pages, or 50.8 KiB/page. Required runtime files total 554.5 KiB with a 236.1
+  KiB GZip estimate. Runtime 182 stays isolated and installed runtime 157
+  remains unchanged. See `INITIAL_FRAGMENT_STABILITY.md`. The scoped baseline
+  stays at 100%, not full-web compatibility.
 
 - Added bounded two/three-term CSS `min()` and `max()` plus three-term
   `clamp()` to width, height, minimum, maximum, compact `wd/ht`, and literal DOM
@@ -941,7 +958,8 @@ modern web platform.
 
 ## Next gains
 
-- Investigate initial fragment placement with retained diagnostics.
+- Add bounded CSS logical sizing/insets where it can reuse the existing
+  dimension resolver without introducing writing-mode-dependent layout yet.
 - Add an AppContainer or capability-denied network boundary, custom object ACLs,
   and combined host/helper peak sampling without expanding the public
   integration surface.
