@@ -29,6 +29,13 @@ signed bounded margins, short `mi/mb/pi/pb`, familiar DOM forms, exact outer
 geometry, reset, and malformed rejection. The twelve compact edge/axis aliases
 need no Firespider adapter state. See `LeaForge/LOGICAL_BOX_MODEL.md`.
 
+Horizontal logical borders compile into the existing physical widths plus one
+lazy per-edge style/color record. The compiled smoke covers axis and edge
+mapping, `S.Bsv/Bcv`, exact outer geometry, hidden used widths, and compact
+`bi/bb/bis` command reflow. All 24 short aliases, readable forms, and familiar
+DOM properties remain engine-owned; Firespider needs no adapter-side border
+state. See `LeaForge/LOGICAL_BORDERS.md`.
+
 `Startup-smooth-host.patch` removes the blocking crash-recovery question and
 automatically restores eligible unclean sessions. It also sends the retired
 built-in `fsin.glitch.me` home to the bundled Lea start page when no explicit

@@ -67,6 +67,11 @@ longhands, signed bounded margins, physical/logical source order, important,
 variables, inheritance/reset, atomic fallback, twelve short/readable commands,
 all familiar DOM forms, shared geometry, and authored restore. See
 `LeaForge/LOGICAL_BOX_MODEL.md`.
+`logical-borders.html` covers all horizontal logical border axes, edges, and
+width/style/color components, corrected physical per-edge lists, lazy records,
+source order, important, variables, inheritance/reset, atomic fallback, all 24
+short/readable commands and familiar DOM forms, shared geometry, hidden edges,
+mixed rounded paint, and authored restore. See `LeaForge/LOGICAL_BORDERS.md`.
 `fragment-stability.html` covers `Fa/Fj/Fy`, first-paint retention, responsive
 host settlement, intrinsic image reflow, missing targets, and manual-scroll
 release. See `LeaForge/INITIAL_FRAGMENT_STABILITY.md`.

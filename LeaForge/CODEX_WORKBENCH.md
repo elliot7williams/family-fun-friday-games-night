@@ -17,17 +17,18 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 84 maps all horizontal left-to-right logical margin/padding axes and
-longhands into Lea's eight existing physical box records. The shared parser now
-handles physical/logical source order, important tiers, custom properties,
-inheritance/reset, atomic malformed fallback, signed bounded margins, and
-non-negative padding. Twelve compact aliases, readable forms, and all familiar
-literal DOM properties rebuild through the existing box geometry without new
-per-element or host state. Full repository and compiled-host tests pass with 80
-probes over 77 fixtures, all 42 Boot cases, and all six real EXE startup
-scenarios. Runtime 184 stays isolated and installed runtime 157 remains
-unchanged. See `LOGICAL_BOX_MODEL.md`. Next evaluate bounded logical border
-properties without introducing general writing-mode or script VMs.
+Milestone 85 maps all horizontal left-to-right logical border axes, edges, and
+width/style/color components into Lea's physical box model. Four widths remain
+in their existing fields; one lazy eight-string record holds edge styles/colors
+only when they differ. Physical side shorthands and component lists are now
+atomic and genuinely per-edge. All 24 compact aliases stay within three letters,
+with readable and familiar literal DOM forms. Layout honors none/hidden per edge,
+while mixed rounded colors use clipped side regions and uniform borders keep the
+old fast path. Full repository and compiled-host tests pass with 81 probes over
+78 fixtures, all 42 Boot cases, and all six real EXE startup scenarios. Runtime
+185 stays isolated and installed runtime 157 remains unchanged. See
+`LOGICAL_BORDERS.md`. Next evaluate bounded logical border radii or direction
+mapping without introducing a general writing-mode or script VM.
 
 Milestone 60 installs the existing `V.Ng` hook on main Lea tabs, enforcing host
 rules, offline/locked state, and live ownership. Denied resume retains its

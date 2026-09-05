@@ -3536,18 +3536,34 @@ namespace Lea.Engine
                 else if (name == "min-height" || name == "min-block-size") Height(style, inherited, value, 1);
                 else if (name == "max-height" || name == "max-block-size") Height(style, inherited, value, 2);
                 else if (name == "aspect-ratio") AspectRatio(style, value);
-                else if (name == "border") Border(style, value, 0);
-                else if (name == "border-top") Border(style, value, 1);
-                else if (name == "border-right") Border(style, value, 2);
-                else if (name == "border-bottom") Border(style, value, 3);
-                else if (name == "border-left") Border(style, value, 4);
-                else if (name == "border-width") BorderWidths(style, value);
-                else if (name == "border-top-width") style.Bt = Px(value);
-                else if (name == "border-right-width") style.Br = Px(value);
-                else if (name == "border-bottom-width") style.Bb = Px(value);
-                else if (name == "border-left-width") style.Bl = Px(value);
-                else if (name == "border-color") style.Bc = value;
-                else if (name == "border-style") style.Bs = value.ToLowerInvariant();
+                else if (name == "border") Border(style, inherited, value, 15);
+                else if (name == "border-top" || name == "border-block-start") Border(style, inherited, value, 1);
+                else if (name == "border-right" || name == "border-inline-end") Border(style, inherited, value, 2);
+                else if (name == "border-bottom" || name == "border-block-end") Border(style, inherited, value, 4);
+                else if (name == "border-left" || name == "border-inline-start") Border(style, inherited, value, 8);
+                else if (name == "border-inline") Border(style, inherited, value, 10);
+                else if (name == "border-block") Border(style, inherited, value, 5);
+                else if (name == "border-width") BorderValues(style, inherited, value, 0, 0);
+                else if (name == "border-inline-width") BorderValues(style, inherited, value, 0, 1);
+                else if (name == "border-block-width") BorderValues(style, inherited, value, 0, 2);
+                else if (name == "border-top-width" || name == "border-block-start-width") BorderValues(style, inherited, value, 0, 3);
+                else if (name == "border-right-width" || name == "border-inline-end-width") BorderValues(style, inherited, value, 0, 4);
+                else if (name == "border-bottom-width" || name == "border-block-end-width") BorderValues(style, inherited, value, 0, 5);
+                else if (name == "border-left-width" || name == "border-inline-start-width") BorderValues(style, inherited, value, 0, 6);
+                else if (name == "border-style") BorderValues(style, inherited, value, 1, 0);
+                else if (name == "border-inline-style") BorderValues(style, inherited, value, 1, 1);
+                else if (name == "border-block-style") BorderValues(style, inherited, value, 1, 2);
+                else if (name == "border-top-style" || name == "border-block-start-style") BorderValues(style, inherited, value, 1, 3);
+                else if (name == "border-right-style" || name == "border-inline-end-style") BorderValues(style, inherited, value, 1, 4);
+                else if (name == "border-bottom-style" || name == "border-block-end-style") BorderValues(style, inherited, value, 1, 5);
+                else if (name == "border-left-style" || name == "border-inline-start-style") BorderValues(style, inherited, value, 1, 6);
+                else if (name == "border-color") BorderValues(style, inherited, value, 2, 0);
+                else if (name == "border-inline-color") BorderValues(style, inherited, value, 2, 1);
+                else if (name == "border-block-color") BorderValues(style, inherited, value, 2, 2);
+                else if (name == "border-top-color" || name == "border-block-start-color") BorderValues(style, inherited, value, 2, 3);
+                else if (name == "border-right-color" || name == "border-inline-end-color") BorderValues(style, inherited, value, 2, 4);
+                else if (name == "border-bottom-color" || name == "border-block-end-color") BorderValues(style, inherited, value, 2, 5);
+                else if (name == "border-left-color" || name == "border-inline-start-color") BorderValues(style, inherited, value, 2, 6);
                 else if (name == "outline") Outline(style, value);
                 else if (name == "outline-width") OutlineWidth(style, value);
                 else if (name == "outline-style") OutlineStyle(style, value);
@@ -5109,46 +5125,258 @@ namespace Lea.Engine
             return unit == "vw" ? 1 : unit == "vh" ? 2 : unit == "vmin" ? 3 : unit == "vmax" ? 4 : unit == "em" ? 5 : unit == "rem" ? 6 : 0;
         }
 
-        private static void Border(S style, string value, int side)
+        private static void Border(S style, S inherited, string value, int mask)
         {
-            var width = -1;
-            var borderStyle = "";
-            var color = "";
-            foreach (var token in Regex.Split((value ?? "").Trim(), "\\s+"))
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            if (lower == "inherit")
             {
-                var lower = token.ToLowerInvariant();
-                var size = BorderPx(lower);
-                if (size >= 0) width = size;
-                else if (lower == "none" || lower == "hidden" || lower == "solid" || lower == "dashed" || lower == "dotted" || lower == "double") borderStyle = lower;
-                else if (token.Length > 0) color = token;
+                CopyBorder(style, inherited, mask);
+                return;
             }
-            if (width < 0 && borderStyle.Length > 0 && borderStyle != "none" && borderStyle != "hidden") width = 3;
-            if (width >= 0) SetBorder(style, side, width);
-            if (borderStyle.Length > 0) style.Bs = borderStyle;
-            if (color.Length > 0) style.Bc = color;
+            if (lower == "initial" || lower == "unset")
+            {
+                for (var edge = 0; edge < 4; edge++)
+                    if ((mask & (1 << edge)) != 0) SetBorderWidth(style, edge, 0);
+                SetBorderStrings(style, mask, 1, "");
+                SetBorderStrings(style, mask, 2, "");
+                return;
+            }
+
+            int width;
+            string borderStyle;
+            string color;
+            bool hasWidth;
+            bool hasStyle;
+            bool hasColor;
+            if (!BorderValue(source, out width, out borderStyle, out color, out hasWidth, out hasStyle, out hasColor)) return;
+            if (hasWidth)
+                for (var edge = 0; edge < 4; edge++)
+                    if ((mask & (1 << edge)) != 0) SetBorderWidth(style, edge, width);
+            if (hasStyle) SetBorderStrings(style, mask, 1, borderStyle);
+            if (hasColor) SetBorderStrings(style, mask, 2, color);
         }
 
-        private static void BorderWidths(S style, string value)
+        private static bool BorderValue(string value, out int width, out string borderStyle, out string color,
+            out bool hasWidth, out bool hasStyle, out bool hasColor)
         {
-            var parts = Regex.Split((value ?? "").Trim(), "\\s+");
-            if (parts.Length < 1 || parts.Length > 4) return;
-            var top = Math.Max(0, BorderPx(parts[0]));
-            var right = parts.Length > 1 ? Math.Max(0, BorderPx(parts[1])) : top;
-            var bottom = parts.Length > 2 ? Math.Max(0, BorderPx(parts[2])) : top;
-            var left = parts.Length > 3 ? Math.Max(0, BorderPx(parts[3])) : right;
-            if (parts.Length == 2) bottom = top;
-            style.Bt = top;
-            style.Br = right;
-            style.Bb = bottom;
-            style.Bl = left;
+            width = -1;
+            borderStyle = "";
+            color = "";
+            hasWidth = hasStyle = hasColor = false;
+            List<string> parts;
+            if (String.IsNullOrWhiteSpace(value) || value.Length > 128 || !ShadowParts(value.Trim(), '\0', out parts) || parts.Count < 1 || parts.Count > 3) return false;
+            foreach (var part in parts)
+            {
+                var size = BorderPx(part);
+                string parsedStyle;
+                if (size >= 0)
+                {
+                    if (hasWidth) return false;
+                    width = size;
+                    hasWidth = true;
+                }
+                else if (BorderStyleValue(part, out parsedStyle))
+                {
+                    if (hasStyle) return false;
+                    borderStyle = parsedStyle;
+                    hasStyle = true;
+                }
+                else if (ShadowColor(part))
+                {
+                    if (hasColor) return false;
+                    color = part;
+                    hasColor = true;
+                }
+                else return false;
+            }
+            if (!hasWidth && hasStyle && borderStyle != "none" && borderStyle != "hidden")
+            {
+                width = 3;
+                hasWidth = true;
+            }
+            return true;
+        }
+
+        private static void BorderValues(S style, S inherited, string value, int component, int scope)
+        {
+            var count = scope == 0 ? 4 : scope < 3 ? 2 : 1;
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            var widths = component == 0 ? new int[count] : null;
+            var strings = component == 0 ? null : new string[count];
+            if (lower == "inherit" || lower == "initial" || lower == "unset")
+            {
+                for (var index = 0; index < count; index++)
+                {
+                    var edge = BorderScopeEdge(scope, index);
+                    if (component == 0) widths[index] = lower == "inherit" ? GetBorderWidth(inherited, edge) : 0;
+                    else if (component == 1) strings[index] = lower == "inherit" && inherited != null ? inherited.Bsv(edge) : "";
+                    else strings[index] = lower == "inherit" && inherited != null ? inherited.Bcv(edge) : "";
+                }
+                ApplyBorderValues(style, component, scope, widths, strings);
+                return;
+            }
+
+            List<string> parts;
+            if (!BorderParts(source, component, count, out parts)) return;
+            for (var index = 0; index < count; index++)
+            {
+                var part = parts[BorderPartIndex(index, count, parts.Count)];
+                if (component == 0) widths[index] = BorderPx(part);
+                else if (component == 1) BorderStyleValue(part, out strings[index]);
+                else strings[index] = part;
+            }
+            ApplyBorderValues(style, component, scope, widths, strings);
+        }
+
+        private static bool BorderParts(string value, int component, int maximum, out List<string> parts)
+        {
+            parts = null;
+            if (String.IsNullOrWhiteSpace(value) || value.Length > 256 || !ShadowParts(value.Trim(), '\0', out parts) || parts.Count < 1 || parts.Count > maximum) return false;
+            foreach (var part in parts)
+            {
+                string parsedStyle;
+                if (component == 0 && BorderPx(part) < 0) return false;
+                if (component == 1 && !BorderStyleValue(part, out parsedStyle)) return false;
+                if (component == 2 && !ShadowColor(part)) return false;
+            }
+            return true;
+        }
+
+        internal static bool Bd(string value, int component, int maximum, out string border)
+        {
+            border = (value ?? "").Trim();
+            if (border.Length == 0) return true;
+            var lower = border.ToLowerInvariant();
+            if (lower == "inherit" || lower == "initial" || lower == "unset") return true;
+            if (component >= 0)
+            {
+                List<string> parts;
+                return BorderParts(border, component, maximum, out parts);
+            }
+            int width;
+            string borderStyle;
+            string color;
+            bool hasWidth;
+            bool hasStyle;
+            bool hasColor;
+            return BorderValue(border, out width, out borderStyle, out color, out hasWidth, out hasStyle, out hasColor);
+        }
+
+        private static bool BorderStyleValue(string value, out string borderStyle)
+        {
+            borderStyle = (value ?? "").Trim().ToLowerInvariant();
+            return borderStyle == "none" || borderStyle == "hidden" || borderStyle == "solid" || borderStyle == "dashed" || borderStyle == "dotted" || borderStyle == "double";
+        }
+
+        private static int BorderPartIndex(int index, int count, int authored)
+        {
+            if (count == 4)
+            {
+                if (index == 0) return 0;
+                if (index == 1) return authored > 1 ? 1 : 0;
+                if (index == 2) return authored > 2 ? 2 : 0;
+                return authored > 3 ? 3 : authored > 1 ? 1 : 0;
+            }
+            return index == 1 && authored > 1 ? 1 : 0;
+        }
+
+        private static int BorderScopeEdge(int scope, int index)
+        {
+            if (scope == 0) return index;
+            if (scope == 1) return index == 0 ? 3 : 1;
+            if (scope == 2) return index == 0 ? 0 : 2;
+            return scope - 3;
+        }
+
+        private static void ApplyBorderValues(S style, int component, int scope, int[] widths, string[] strings)
+        {
+            var count = scope == 0 ? 4 : scope < 3 ? 2 : 1;
+            if (component == 0)
+            {
+                for (var index = 0; index < count; index++) SetBorderWidth(style, BorderScopeEdge(scope, index), widths[index]);
+                return;
+            }
+            if (scope == 0)
+            {
+                if (component == 1) style.SetBorderStyle(-1, strings[0]);
+                else style.SetBorderColor(-1, strings[0]);
+                for (var index = 1; index < 4; index++)
+                {
+                    if (component == 1) style.SetBorderStyle(index, strings[index]);
+                    else style.SetBorderColor(index, strings[index]);
+                }
+                return;
+            }
+            for (var index = 0; index < count; index++)
+            {
+                var edge = BorderScopeEdge(scope, index);
+                if (component == 1) style.SetBorderStyle(edge, strings[index]);
+                else style.SetBorderColor(edge, strings[index]);
+            }
+        }
+
+        private static void CopyBorder(S style, S inherited, int mask)
+        {
+            for (var edge = 0; edge < 4; edge++)
+                if ((mask & (1 << edge)) != 0) SetBorderWidth(style, edge, GetBorderWidth(inherited, edge));
+            if (mask == 15)
+            {
+                style.SetBorderStyle(-1, inherited == null ? "" : inherited.Bsv(0));
+                style.SetBorderColor(-1, inherited == null ? "" : inherited.Bcv(0));
+                for (var edge = 1; edge < 4; edge++)
+                {
+                    style.SetBorderStyle(edge, inherited == null ? "" : inherited.Bsv(edge));
+                    style.SetBorderColor(edge, inherited == null ? "" : inherited.Bcv(edge));
+                }
+                return;
+            }
+            for (var edge = 0; edge < 4; edge++)
+            {
+                if ((mask & (1 << edge)) == 0) continue;
+                style.SetBorderStyle(edge, inherited == null ? "" : inherited.Bsv(edge));
+                style.SetBorderColor(edge, inherited == null ? "" : inherited.Bcv(edge));
+            }
+        }
+
+        private static void SetBorderStrings(S style, int mask, int component, string value)
+        {
+            if (mask == 15)
+            {
+                if (component == 1) style.SetBorderStyle(-1, value);
+                else style.SetBorderColor(-1, value);
+                return;
+            }
+            for (var edge = 0; edge < 4; edge++)
+            {
+                if ((mask & (1 << edge)) == 0) continue;
+                if (component == 1) style.SetBorderStyle(edge, value);
+                else style.SetBorderColor(edge, value);
+            }
+        }
+
+        private static int GetBorderWidth(S style, int edge)
+        {
+            if (style == null) return 0;
+            return edge == 0 ? style.Bt : edge == 1 ? style.Br : edge == 2 ? style.Bb : style.Bl;
+        }
+
+        private static void SetBorderWidth(S style, int edge, int width)
+        {
+            if (edge == 0) style.Bt = width;
+            else if (edge == 1) style.Br = width;
+            else if (edge == 2) style.Bb = width;
+            else if (edge == 3) style.Bl = width;
         }
 
         private static int BorderPx(string value)
         {
+            value = (value ?? "").Trim().ToLowerInvariant();
             if (value == "thin") return 1;
             if (value == "medium") return 3;
             if (value == "thick") return 5;
-            var match = Regex.Match(value ?? "", "^(?<n>[0-9]{1,3})(?:px)?$", RegexOptions.IgnoreCase);
+            var match = Regex.Match(value, "^(?<n>[0-9]{1,3})(?:px)?$", RegexOptions.IgnoreCase);
             int number;
             return match.Success && int.TryParse(match.Groups["n"].Value, out number) ? Math.Min(number, 100) : -1;
         }
@@ -6016,14 +6244,6 @@ namespace Lea.Engine
                 start = index + 1;
             }
             return quote == '\0' && parentheses == 0;
-        }
-
-        private static void SetBorder(S style, int side, int width)
-        {
-            if (side == 0 || side == 1) style.Bt = width;
-            if (side == 0 || side == 2) style.Br = width;
-            if (side == 0 || side == 3) style.Bb = width;
-            if (side == 0 || side == 4) style.Bl = width;
         }
 
         private static void Blocks(P page, N node, Uri baseUrl, List<R> rules, S inherited)

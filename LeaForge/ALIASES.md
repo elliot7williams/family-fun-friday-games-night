@@ -87,6 +87,12 @@ pi("id", "8px 12px") logical inline padding
 pb("id", "6px")      logical block padding
 mis/mie/mbs/mbe("id", "8px") logical margin edge
 pis/pie/pbs/pbe("id", "8px") logical padding edge
+bi/bb("id", "2px solid red") logical inline/block border
+bis/bie/bbs/bbe("id", "2px solid red") logical border edge
+biw/biy/bic("id", "2px") inline border components
+bbw/bby/bbc("id", "2px") block border components
+siw/siy/sic and eiw/eiy/eic  inline start/end components
+sbw/sby/sbc and ebw/eby/ebc  block start/end components
 v("who", "Lea")  bounded page variable
 tx("id", "Hi ${who}") element text
 ac("id", "hot")       add class
@@ -105,7 +111,8 @@ fo("id")              request focus
 go("next.html")        request host navigation
 ```
 
-The two-argument `bg/fg/fs/dp/wd/ht/is/bs` and logical box forms target one validated ID. Color and font
+The two-argument `bg/fg/fs/dp/wd/ht/is/bs`, logical box, and logical border forms
+target one validated ID. Color and font
 forms reuse the same
 hex/named-color and 8..96 pixel font bounds as the body forms, reject document
 metadata targets, cap the resulting inline style at 4,096 characters, and
@@ -139,6 +146,16 @@ from -2,000 through 2,000; padding accepts 0 through 2,000. Literal
 `style.marginInline`, `style.paddingBlock`, and all eight logical edge
 properties use the same compact paths. Empty assignments restore authored CSS.
 See `LOGICAL_BOX_MODEL.md`.
+
+`bi/bb` set a full horizontal logical inline/block border; `bis/bie/bbs/bbe`
+target one start/end edge. Component aliases use `w` for width, `y` for style,
+and `c` for color: `biw/biy/bic`, `bbw/bby/bbc`, plus `si*`, `ei*`, `sb*`, and
+`eb*` for the four logical edges. Axis components accept one or two values.
+Widths are bounded to 0..100 pixels or thin/medium/thick; styles are
+none/hidden/solid/dashed/dotted/double; colors use bounded named, hex, rgb, and
+rgba forms. Readable names and all 24 literal `style.borderInline*` and
+`style.borderBlock*` properties share the same atomic parser. Empty assignments
+restore authored CSS. See `LOGICAL_BORDERS.md`.
 
 `P.Vs` exposes at most 16 case-insensitive variables. Names are one through 16
 letters, digits, or underscores and must begin with a letter; values are capped

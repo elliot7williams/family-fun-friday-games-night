@@ -433,6 +433,75 @@ namespace Lea.Tests
                 Ok(BlockById(logicalBoxPage, "command").S.Ml == 4 && BlockById(logicalBoxPage, "command").S.Pr == 3,
                     "rejected logical box commands preserve records");
 
+                var logicalBorderPath = Path.Combine(pages, "logical-borders.html");
+                var logicalBorderEngine = new E();
+                var logicalBorderPage = logicalBorderEngine.Go(logicalBorderPath);
+                Eq(0, logicalBorderPage.Jc, "logical border fixture has no startup commands");
+                var logicalBorderAxis = BlockById(logicalBorderPage, "axis").S;
+                Ok(logicalBorderAxis.Bt == 6 && logicalBorderAxis.Br == 4 && logicalBorderAxis.Bb == 6 && logicalBorderAxis.Bl == 4 &&
+                    logicalBorderAxis.Bsv(0) == "dashed" && logicalBorderAxis.Bsv(1) == "solid" && logicalBorderAxis.Bsv(2) == "dashed" && logicalBorderAxis.Bsv(3) == "solid" &&
+                    logicalBorderAxis.Bcv(0) == "#176b4d" && logicalBorderAxis.Bcv(1) == "#123f8c" && logicalBorderAxis.Bcv(2) == "#176b4d" && logicalBorderAxis.Bcv(3) == "#123f8c",
+                    "logical border axis shorthands");
+                var logicalBorderLonghand = BlockById(logicalBorderPage, "longhand").S;
+                Ok(logicalBorderLonghand.Bt == 4 && logicalBorderLonghand.Br == 3 && logicalBorderLonghand.Bb == 5 && logicalBorderLonghand.Bl == 2 &&
+                    logicalBorderLonghand.Bsv(0) == "dashed" && logicalBorderLonghand.Bsv(1) == "solid" && logicalBorderLonghand.Bsv(2) == "double" && logicalBorderLonghand.Bsv(3) == "dotted" &&
+                    logicalBorderLonghand.Bcv(0) == "#123f8c" && logicalBorderLonghand.Bcv(1) == "#176b4d" && logicalBorderLonghand.Bcv(2) == "#b7791f" && logicalBorderLonghand.Bcv(3) == "#a13b18",
+                    "logical border edge components");
+                var logicalBorderComponents = BlockById(logicalBorderPage, "axis-components").S;
+                Ok(logicalBorderComponents.Bt == 11 && logicalBorderComponents.Br == 9 && logicalBorderComponents.Bb == 13 && logicalBorderComponents.Bl == 7 &&
+                    logicalBorderComponents.Bsv(0) == "dashed" && logicalBorderComponents.Bsv(1) == "dotted" && logicalBorderComponents.Bsv(2) == "double" && logicalBorderComponents.Bsv(3) == "solid",
+                    "logical border axis components");
+                var logicalBorderSource = BlockById(logicalBorderPage, "source").S;
+                Ok(logicalBorderSource.Bt == 1 && logicalBorderSource.Br == 1 && logicalBorderSource.Bb == 1 && logicalBorderSource.Bl == 5 &&
+                    logicalBorderSource.Bsv(0) == "double" && logicalBorderSource.Bsv(1) == "solid" && logicalBorderSource.Bsv(3) == "dashed" &&
+                    logicalBorderSource.Bcv(1) == "#176b4d" && logicalBorderSource.Bcv(3) == "#123f8c",
+                    "physical and logical border source order");
+                var physicalBorder = BlockById(logicalBorderPage, "physical").S;
+                Ok(physicalBorder.Bt == 1 && physicalBorder.Br == 2 && physicalBorder.Bb == 3 && physicalBorder.Bl == 4 &&
+                    physicalBorder.Bsv(0) == "solid" && physicalBorder.Bsv(1) == "dashed" && physicalBorder.Bsv(2) == "dotted" && physicalBorder.Bsv(3) == "double" &&
+                    physicalBorder.Bcv(0) == "#111111" && physicalBorder.Bcv(1) == "#222222" && physicalBorder.Bcv(2) == "#333333" && physicalBorder.Bcv(3) == "#444444" && physicalBorder.Bec == 8,
+                    "physical border component lists");
+                var logicalBorderVariables = BlockById(logicalBorderPage, "variables").S;
+                Ok(logicalBorderVariables.Bl == 8 && logicalBorderVariables.Br == 10 && logicalBorderVariables.Bcv(3) == "rgb(18 63 140)" && logicalBorderVariables.Bcv(1) == "rgba(23, 107, 77, .8)",
+                    "logical border variables and functional colors");
+                var logicalBorderImportant = BlockById(logicalBorderPage, "important").S;
+                Ok(logicalBorderImportant.Bl == 4 && logicalBorderImportant.Br == 11 && logicalBorderImportant.Bsv(3) == "solid", "logical border important cascade");
+                var logicalBorderInherited = BlockById(logicalBorderPage, "inherit-child").S;
+                Ok(logicalBorderInherited.Bt == 2 && logicalBorderInherited.Br == 3 && logicalBorderInherited.Bb == 4 && logicalBorderInherited.Bl == 5 &&
+                    logicalBorderInherited.Bsv(0) == "dotted" && logicalBorderInherited.Bcv(3) == "#b7791f", "explicit logical border inheritance");
+                var logicalBorderReset = BlockById(logicalBorderPage, "reset").S;
+                Ok(logicalBorderReset.Bt == 0 && logicalBorderReset.Br == 0 && logicalBorderReset.Bb == 0 && logicalBorderReset.Bl == 0 &&
+                    logicalBorderReset.Bsv(0) == "" && logicalBorderReset.Bcv(3) == "", "logical border initial and unset reset");
+                var logicalBorderInvalid = BlockById(logicalBorderPage, "invalid").S;
+                Ok(logicalBorderInvalid.Bt == 0 && logicalBorderInvalid.Br == 7 && logicalBorderInvalid.Bb == 0 && logicalBorderInvalid.Bl == 8 &&
+                    logicalBorderInvalid.Bsv(0) == "dashed" && logicalBorderInvalid.Bsv(2) == "dotted" && logicalBorderInvalid.Bsv(3) == "dotted" &&
+                    logicalBorderInvalid.Bcv(1) == "#176b4d" && logicalBorderInvalid.Bcv(3) == "#a13b18", "malformed logical border declarations are atomic");
+                Eq(6, logicalBorderEngine.Ck(logicalBorderPage, ById(logicalBorderPage.D, "set-short")), "short logical border shorthand aliases");
+                var logicalBorderCommand = BlockById(logicalBorderPage, "command").S;
+                Ok(logicalBorderCommand.Bt == 8 && logicalBorderCommand.Br == 7 && logicalBorderCommand.Bb == 9 && logicalBorderCommand.Bl == 6 &&
+                    logicalBorderCommand.Bsv(0) == "double" && logicalBorderCommand.Bcv(3) == "#123f8c", "short logical border shorthands reach compact records");
+                Eq(18, logicalBorderEngine.Ck(logicalBorderPage, ById(logicalBorderPage.D, "set-components")), "short logical border component aliases");
+                logicalBorderCommand = BlockById(logicalBorderPage, "command").S;
+                Ok(logicalBorderCommand.Bt == 16 && logicalBorderCommand.Br == 15 && logicalBorderCommand.Bb == 17 && logicalBorderCommand.Bl == 14 &&
+                    logicalBorderCommand.Bsv(0) == "dashed" && logicalBorderCommand.Bcv(2) == "#b7791f", "short logical border components reach compact records");
+                Eq(24, logicalBorderEngine.Ck(logicalBorderPage, ById(logicalBorderPage.D, "dom-all")), "familiar logical border DOM styles");
+                logicalBorderCommand = BlockById(logicalBorderPage, "command").S;
+                Ok(logicalBorderCommand.Bt == 23 && logicalBorderCommand.Br == 22 && logicalBorderCommand.Bb == 24 && logicalBorderCommand.Bl == 21 &&
+                    logicalBorderCommand.Bsv(3) == "dotted" && logicalBorderCommand.Bcv(0) == "#123f8c", "familiar logical border DOM styles reach compact records");
+                Eq(24, logicalBorderEngine.Ck(logicalBorderPage, ById(logicalBorderPage.D, "clear-all")), "logical border DOM reset");
+                logicalBorderCommand = BlockById(logicalBorderPage, "command").S;
+                Ok(logicalBorderCommand.Bt == 2 && logicalBorderCommand.Br == 2 && logicalBorderCommand.Bb == 2 && logicalBorderCommand.Bl == 2 &&
+                    logicalBorderCommand.Bsv(0) == "solid" && logicalBorderCommand.Bcv(3) == "#123f8c" && logicalBorderCommand.Bec == 0 && logicalBorderCommand.F == "#123f8c",
+                    "logical border DOM reset restores uniform authored border");
+                Eq(0, logicalBorderEngine.Js(logicalBorderPage, "biw('command','2px bad');biy('command','solid groove');bic('command','red #xyz');siw('command','wide')"),
+                    "malformed logical border commands rejected");
+                Ok(BlockById(logicalBorderPage, "command").S.Bl == 2 && BlockById(logicalBorderPage, "command").S.Bsv(3) == "solid",
+                    "rejected logical border commands preserve records");
+                Eq(1, logicalBorderEngine.Js(logicalBorderPage, "bi('command','THICK SOLID RED')"), "case-insensitive logical border keywords");
+                Ok(BlockById(logicalBorderPage, "command").S.Bl == 5 && BlockById(logicalBorderPage, "command").S.Br == 5 &&
+                    BlockById(logicalBorderPage, "command").S.Bsv(3) == "solid" && BlockById(logicalBorderPage, "command").S.Bcv(1) == "RED",
+                    "uppercase logical border keywords reach compact records");
+
                 var viewportPath = Path.Combine(pages, "viewport-units.html");
                 var viewportEngine = new E();
                 var viewportPage = viewportEngine.Go(viewportPath);
@@ -2529,6 +2598,33 @@ namespace Lea.Tests
                     Paint(view);
                     logicalCommandOuter = BlockOuterRect(view, BlockById(view.At, "command"));
                     Eq(new Size(125, 43), logicalCommandOuter.Size, "WinForms authored logical box restore geometry");
+
+                    view.Go(logicalBorderPath);
+                    using (var logicalBorderPaint = Render(view))
+                    {
+                        var logicalBorderShell = BlockRect(view, BlockById(view.At, "geometry-shell"));
+                        var logicalBorderAxisOuter = BlockOuterRect(view, BlockById(view.At, "axis"));
+                        Ok(logicalBorderAxisOuter.Size == new Size(108, 52) && logicalBorderAxisOuter.Left - logicalBorderShell.Left == 20 &&
+                            logicalBorderAxisOuter.Top - logicalBorderShell.Top == 30, "WinForms logical border axis geometry");
+                        var hiddenBorderOuter = BlockOuterRect(view, BlockById(view.At, "hidden"));
+                        Eq(new Size(109, 24), hiddenBorderOuter.Size, "WinForms hidden logical edge geometry");
+                        var roundedBorderOuter = BlockOuterRect(view, BlockById(view.At, "rounded"));
+                        Ok(ColorDistance(logicalBorderPaint.GetPixel(roundedBorderOuter.Left + 2, roundedBorderOuter.Top + roundedBorderOuter.Height / 2), Color.FromArgb(161, 59, 24)) < 20 &&
+                            ColorDistance(logicalBorderPaint.GetPixel(roundedBorderOuter.Left + roundedBorderOuter.Width / 2, roundedBorderOuter.Bottom - 2), Color.FromArgb(183, 121, 31)) < 20,
+                            "WinForms mixed rounded logical border paint");
+                    }
+                    Eq(6, view.Ck(ById(view.At.D, "set-short")), "WinForms short logical border shorthands");
+                    Paint(view);
+                    Eq(new Size(137, 61), BlockOuterRect(view, BlockById(view.At, "command")).Size, "WinForms short logical border geometry");
+                    Eq(18, view.Ck(ById(view.At.D, "set-components")), "WinForms short logical border components");
+                    Paint(view);
+                    Eq(new Size(153, 77), BlockOuterRect(view, BlockById(view.At, "command")).Size, "WinForms logical border component geometry");
+                    Eq(24, view.Ck(ById(view.At.D, "dom-all")), "WinForms familiar logical border DOM styles");
+                    Paint(view);
+                    Eq(new Size(167, 91), BlockOuterRect(view, BlockById(view.At, "command")).Size, "WinForms logical border DOM geometry");
+                    Eq(24, view.Ck(ById(view.At.D, "clear-all")), "WinForms logical border DOM reset");
+                    Paint(view);
+                    Eq(new Size(128, 48), BlockOuterRect(view, BlockById(view.At, "command")).Size, "WinForms authored border restore geometry");
 
                     view.Size = new Size(800, 600);
                     view.Go(viewportPath);
@@ -5877,6 +5973,7 @@ namespace Lea.Tests
                 Console.WriteLine("Lea viewport unit smoke passed: vw/vh/vmin/vmax, calc, cross-axis sizes, lazy aliases, layout families, accessibility, commands, and resize.");
                 Console.WriteLine("Lea font-relative unit smoke passed: em/rem, root font state, calc, min/max, layout families, commands, font mutation, and responsive rebuild.");
                 Console.WriteLine("Lea size function smoke passed: bounded min/max/clamp, lazy aliases, mixed terms, constraints, layout families, commands, and responsive rebuild.");
+                Console.WriteLine("Lea logical border smoke passed: 24 compact/readable properties, per-edge cascade, atomic parsing, shared geometry, hidden widths, mixed rounded paint, DOM reset, and inheritance.");
 
                     Console.WriteLine("Lea smoke passed: bounded sticky positioning with compact k, shared paint/hit/editor/accessibility geometry, normal-flow retention, and ancestor clamps, bounded has relational selectors with strict lists, maximum specificity, descendant/child/adjacent/following and complex chains, queries, dynamic focus rebuilds, retained fields, WinForms geometry, and traversal/part limits, bounded nth-child of-S filters with strict compound lists, maximum specificity, forward/reverse counting, queries, dynamic form-state rebuilds, retained fields, WinForms geometry, and nesting/test limits, bounded precompiled An+B and reverse structural selectors with stylesheet/query parity, specificity, selector-list composition, type filtering, WinForms geometry, and invalid limits, bounded is, where, and list-not selector functions with maximum/zero specificity, forgiving/strict parsing, queries, dynamic state, WinForms geometry, and retained fields, bounded CSS important cascade with compiled priority, G.Ic diagnostics, stylesheet/inline tiers, custom properties, hover/media rebuilds, and retained fields, bounded inherited CSS custom properties with compiled declarations, S.Vc/Cv and G.Vc aliases, nested and cycle fallbacks, hover/media rebuilds, and retained fields, bounded responsive CSS media queries with viewport aliases, live resize, diagnostics, and retained fields, optional bounded persistent cache with restart reuse, validators, private isolation, atomic recovery, LRU entry/byte ceilings and host aliases, bounded content-box and border-box geometry, body and ID-scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, shrink, reverse flow, and resize, semantic accessibility with WinForms MSAA and native UI Automation fragments, patterns and notifications, protected values, live states, hierarchy and rendered bounds, bounded autofocus and access keys, tabindex focus, visible rings, keyboard link and shared image-map activation, compact output/data values, bounded host aliases, safe rebuilds, inline and table ownership, resize reflow, compact progress and meter values, quality regions, inherited custom painting, bounded retained fragment history, encoded and named targets, hidden reveal, bounded details disclosures with retained state, keyboard and table interaction, bounded ordered and unordered list markers, nested list scope and resize reflow, bounded host-controlled go requests, class mutations, document base URLs and Id/Q/Qa queries, bounded HTML tokenization, raw text, RCDATA, comments, entities and malformed delimiters, bounded developer diagnostics and inspector data, safe click commands and bounded variables/text updates, streamed downloads and highlighted find-in-page, bounded script commands and alert bridging, inset stretching and translated stacking contexts, nested forms, media, tables, and clipped editors, explicit z-index and opacity/isolation contexts, two-pass positioned auto height, nested visual flow, bounded multipart file uploads, range and color widgets, temporal fields, absolute and fixed positioning, clipped viewport hits, form validation and typed inputs, responsive and embedded images, live hover and focus restyling, visibility and opacity, general sibling and negation selectors, min/max sizing, long-word breaking, compiled attribute and pseudo selectors, fonts, overflow clipping, malformed HTML recovery, semantic blocks, tables, inline flow, external CSS, private cookies, cache revalidation, typed errors, POST, compression, layout, and scrolling.");
                 return 0;

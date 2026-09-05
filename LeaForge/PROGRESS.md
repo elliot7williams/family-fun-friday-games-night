@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **84**
+Post-1.0 hardening milestones completed: **85**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -14,10 +14,10 @@ modern web platform.
 | Core and alias API | 10% | 10% | Compact API, bounded diagnostics, repeatable reports, history, projects, backups |
 | Networking | 10% | 10% | Bounded request deadlines and downloads, private cookies, typed errors, validators, compression, memory LRU and optional persistent cache |
 | HTML and document tree | 20% | 20% | Bounded tokens, queries, base URLs and fragments, raw/RCDATA text, entities, recovery, HTML-hidden suppression, semantic accessibility, blocks, lists, disclosures, gauges, values, time/edit metadata, responsive image maps, tabindex focus, autofocus/access keys, tables |
-| CSS | 15% | 15% | Compiled relationship, bounded strict relational/functional, An+B/reverse, and filtered structural selectors, declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, fixed/percentage/calculated plus logical dimensions, logical insets/margins/padding, classic viewport/font-relative units and bounded size functions, bounded vertical sticky positioning, dynamic hover/focus, inherited cursor/pointer interaction, text transformation and signed letter/word spacing, content/border sizing, circular/elliptical radii, bounded outlines, box shadows, gradients, bitmap backgrounds, object fitting and aspect ratios, visibility/opacity, fonts, overflow, boxes, bounded ordered flex and two-axis grid properties |
-| Layout and painting | 20% | 20% | Shared physical/logical box edges and fixed/percentage/calculated, viewport-unit, font-relative, and min/max/clamp dimensions, content/border, aspect-ratio, and sticky geometry, transformed and spacing-aware presentation text with raw form retention, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients/bitmaps, pointer-gated retained hits with underlying fallthrough, fitted raster images and maps, ordered flex rows/columns, bounded grid tracks/spans, distribution, alignment, wrapping, grow/shrink, clipping, reflow, painting |
+| CSS | 15% | 15% | Compiled relationship, bounded strict relational/functional, An+B/reverse, and filtered structural selectors, declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, fixed/percentage/calculated plus logical dimensions, logical insets/margins/padding/borders, classic viewport/font-relative units and bounded size functions, bounded vertical sticky positioning, dynamic hover/focus, inherited cursor/pointer interaction, text transformation and signed letter/word spacing, content/border sizing, circular/elliptical radii, bounded outlines, box shadows, gradients, bitmap backgrounds, object fitting and aspect ratios, visibility/opacity, fonts, overflow, boxes, bounded ordered flex and two-axis grid properties |
+| Layout and painting | 20% | 20% | Shared physical/logical box edges and per-edge border styles/colors plus fixed/percentage/calculated, viewport-unit, font-relative, and min/max/clamp dimensions, content/border, aspect-ratio, and sticky geometry, transformed and spacing-aware presentation text with raw form retention, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients/bitmaps, pointer-gated retained hits with underlying fallthrough, fitted raster images and maps, ordered flex rows/columns, bounded grid tracks/spans, distribution, alignment, wrapping, grow/shrink, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Native field edit commands and one-level undo/redo, bounded multipart files, richer widgets, validation, responsive and fitted images, GET/POST submit |
-| Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/body and ID-scoped display/width/height/style/alert, class, visibility, disclosure, field-state, focus, and literal bounded DOM translation |
+| Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/body and ID-scoped display/width/height/logical box/border/style/alert, class, visibility, disclosure, field-state, focus, and literal bounded DOM translation |
 | Firespider integration and reliability | 10% | 10% | Lea-first New Tab/Ctrl+T, explicit legacy fallback, Inspector with Access view, MSAA/UIA surfaces including read-only text, host-safe focus shortcuts, navigation, sessions, source, host smokes |
 | **Total** | **100%** | **100%** | Scoped Lea 1.0 baseline complete; post-1.0 hardening continues |
 
@@ -29,6 +29,24 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded horizontal left-to-right logical borders. Six axis/edge
+  shorthands and eighteen width/style/color components compile into the four
+  physical widths plus one lazy eight-string edge-detail record; uniform
+  borders allocate no new record. Physical side shorthands and one-to-four-value
+  width/style/color lists now preserve per-edge cascade state atomically.
+  Source order, important tiers, custom properties, functional colors,
+  inheritance/reset, hidden used widths, normal/positioned/flex/grid/table/form
+  geometry, and mixed rounded paint remain on shared paths. All 24 aliases are
+  at most three letters, with readable and familiar literal DOM forms. Full
+  repository and compiled-host smokes pass, along with 81 probes over 78
+  fixtures, all 42 Boot cases, and all six real EXE startup scenarios. Measured
+  medians are 534.686 ms clean diagnostic start, 3.658 ms local load, and 33.597
+  ms layout/paint. Retained managed memory is 20,091.5 KiB for 390 pages, or
+  51.5 KiB/page. Required runtime files total 553.0 KiB with a 234.0 KiB GZip
+  estimate. Runtime 185 stays isolated and installed runtime 157 remains
+  unchanged. See `LOGICAL_BORDERS.md`. The scoped baseline stays at 100%, not
+  full-web compatibility.
 
 - Added bounded horizontal left-to-right logical margins and padding. Four axis
   shorthands and eight start/end longhands compile into existing

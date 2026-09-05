@@ -205,6 +205,21 @@ namespace Lea.Engine
                 if (!E.Bx(Expand(page, command.W), command.N[0] == 'm', command.N.Length == 2 ? 2 : 1, out box)) return false;
                 return SetStyle(target, boxProperty, box);
             }
+            var borderProperty = LogicalBorderProperty(command.N);
+            if (borderProperty != null)
+            {
+                var target = StyleTarget(page, command);
+                if (target == null || command.W == null) return false;
+                var component = borderProperty.EndsWith("-width", StringComparison.Ordinal) ? 0 :
+                    borderProperty.EndsWith("-style", StringComparison.Ordinal) ? 1 :
+                    borderProperty.EndsWith("-color", StringComparison.Ordinal) ? 2 : -1;
+                var maximum = borderProperty == "border-inline-width" || borderProperty == "border-block-width" ||
+                    borderProperty == "border-inline-style" || borderProperty == "border-block-style" ||
+                    borderProperty == "border-inline-color" || borderProperty == "border-block-color" ? 2 : 1;
+                string border;
+                if (!E.Bd(Expand(page, command.W), component, maximum, out border)) return false;
+                return SetStyle(target, borderProperty, border);
+            }
             return false;
         }
 
@@ -287,6 +302,8 @@ namespace Lea.Engine
             if (member == "style.height" || member == "style.blocksize") return new Cm("ht", id, value);
             var logicalBox = member.StartsWith("style.", StringComparison.Ordinal) ? LogicalBoxCommand(member.Substring(6)) : null;
             if (logicalBox != null) return new Cm(logicalBox, id, value);
+            var logicalBorder = member.StartsWith("style.", StringComparison.Ordinal) ? LogicalBorderCommand(member.Substring(6)) : null;
+            if (logicalBorder != null) return new Cm(logicalBorder, id, value);
             return null;
         }
 
@@ -320,6 +337,8 @@ namespace Lea.Engine
             if (count == 2 && (name == "ht" || name == "height" || name == "bs" || name == "blocksize")) return new Cm("ht", first, second);
             var logicalBox = LogicalBoxCommand(name);
             if (count == 2 && logicalBox != null) return new Cm(logicalBox, first, second);
+            var logicalBorder = LogicalBorderCommand(name);
+            if (count == 2 && logicalBorder != null) return new Cm(logicalBorder, first, second);
             if (count == 2 && name == "ac") return new Cm("ac", first, second);
             if (count == 2 && name == "rc") return new Cm("rc", first, second);
             if (count == 2 && name == "tc") return new Cm("tc", first, second);
@@ -473,6 +492,64 @@ namespace Lea.Engine
             if (command == "pie") return "padding-inline-end";
             if (command == "pbs") return "padding-block-start";
             if (command == "pbe") return "padding-block-end";
+            return null;
+        }
+
+        private static string LogicalBorderCommand(string name)
+        {
+            if (name == "bi" || name == "borderinline") return "bi";
+            if (name == "bb" || name == "borderblock") return "bb";
+            if (name == "bis" || name == "borderinlinestart") return "bis";
+            if (name == "bie" || name == "borderinlineend") return "bie";
+            if (name == "bbs" || name == "borderblockstart") return "bbs";
+            if (name == "bbe" || name == "borderblockend") return "bbe";
+            if (name == "biw" || name == "borderinlinewidth") return "biw";
+            if (name == "biy" || name == "borderinlinestyle") return "biy";
+            if (name == "bic" || name == "borderinlinecolor") return "bic";
+            if (name == "bbw" || name == "borderblockwidth") return "bbw";
+            if (name == "bby" || name == "borderblockstyle") return "bby";
+            if (name == "bbc" || name == "borderblockcolor") return "bbc";
+            if (name == "siw" || name == "borderinlinestartwidth") return "siw";
+            if (name == "siy" || name == "borderinlinestartstyle") return "siy";
+            if (name == "sic" || name == "borderinlinestartcolor") return "sic";
+            if (name == "eiw" || name == "borderinlineendwidth") return "eiw";
+            if (name == "eiy" || name == "borderinlineendstyle") return "eiy";
+            if (name == "eic" || name == "borderinlineendcolor") return "eic";
+            if (name == "sbw" || name == "borderblockstartwidth") return "sbw";
+            if (name == "sby" || name == "borderblockstartstyle") return "sby";
+            if (name == "sbc" || name == "borderblockstartcolor") return "sbc";
+            if (name == "ebw" || name == "borderblockendwidth") return "ebw";
+            if (name == "eby" || name == "borderblockendstyle") return "eby";
+            if (name == "ebc" || name == "borderblockendcolor") return "ebc";
+            return null;
+        }
+
+        private static string LogicalBorderProperty(string command)
+        {
+            if (command == "bi") return "border-inline";
+            if (command == "bb") return "border-block";
+            if (command == "bis") return "border-inline-start";
+            if (command == "bie") return "border-inline-end";
+            if (command == "bbs") return "border-block-start";
+            if (command == "bbe") return "border-block-end";
+            if (command == "biw") return "border-inline-width";
+            if (command == "biy") return "border-inline-style";
+            if (command == "bic") return "border-inline-color";
+            if (command == "bbw") return "border-block-width";
+            if (command == "bby") return "border-block-style";
+            if (command == "bbc") return "border-block-color";
+            if (command == "siw") return "border-inline-start-width";
+            if (command == "siy") return "border-inline-start-style";
+            if (command == "sic") return "border-inline-start-color";
+            if (command == "eiw") return "border-inline-end-width";
+            if (command == "eiy") return "border-inline-end-style";
+            if (command == "eic") return "border-inline-end-color";
+            if (command == "sbw") return "border-block-start-width";
+            if (command == "sby") return "border-block-start-style";
+            if (command == "sbc") return "border-block-start-color";
+            if (command == "ebw") return "border-block-end-width";
+            if (command == "eby") return "border-block-end-style";
+            if (command == "ebc") return "border-block-end-color";
             return null;
         }
 

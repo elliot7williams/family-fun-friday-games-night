@@ -89,6 +89,10 @@ LeaForge is where we can grow the more full-featured browser.
 - horizontal left-to-right logical margin/padding axes and longhands with
   signed bounded margins, atomic parsing, twelve compact aliases, familiar DOM
   forms, and shared box geometry; see `LOGICAL_BOX_MODEL.md`
+- horizontal left-to-right logical border axes, edges, and width/style/color
+  components with atomic physical lists, lazy per-edge records, 24 compact
+  aliases, familiar DOM forms, hidden used widths, shared geometry, and mixed
+  rounded paint; see `LOGICAL_BORDERS.md`
 - live `:hover` and `:focus` restyling that preserves mutable form values
 - non-inherited `content-box`/`border-box` sizing across pixel dimensions,
   min/max clamps, flex basis, fields, images, tables, and cells

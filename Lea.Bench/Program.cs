@@ -107,7 +107,7 @@ namespace Lea.Bench
             var names = new[]
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
-                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
+                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -2323,6 +2323,66 @@ namespace Lea.Bench
                 Need(engine.Js(page, "mi('command','1px 2px 3px');pi('command','-1px');mis('command','2px 3px');mie('command','auto')") == 0,
                     "unsupported logical box command values were accepted");
                 return "horizontal-tb/LTR logical margin/padding axes and longhands, signed bounded margins, atomic parsing, source order, important, variables, inheritance, reset, twelve compact/readable commands, familiar DOM styles, and shared geometry";
+            });
+            AddProbe(probes, "Bounded logical borders", delegate
+            {
+                var path = Path.Combine(folder, "logical-borders.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                var axis = block("axis").S;
+                Need(axis.Bt == 6 && axis.Br == 4 && axis.Bb == 6 && axis.Bl == 4 && axis.Bsv(0) == "dashed" && axis.Bsv(1) == "solid" &&
+                    axis.Bcv(0) == "#176b4d" && axis.Bcv(3) == "#123f8c", "logical border axis mapping changed");
+                var longhand = block("longhand").S;
+                Need(longhand.Bt == 4 && longhand.Br == 3 && longhand.Bb == 5 && longhand.Bl == 2 &&
+                    longhand.Bsv(0) == "dashed" && longhand.Bsv(2) == "double" && longhand.Bcv(1) == "#176b4d" && longhand.Bcv(3) == "#a13b18",
+                    "logical border longhand mapping changed");
+                var physical = block("physical").S;
+                Need(physical.Bt == 1 && physical.Br == 2 && physical.Bb == 3 && physical.Bl == 4 &&
+                    physical.Bsv(1) == "dashed" && physical.Bcv(2) == "#333333", "physical border component lists changed");
+                var invalid = block("invalid").S;
+                Need(invalid.Br == 7 && invalid.Bl == 8 && invalid.Bsv(0) == "dashed" && invalid.Bsv(3) == "dotted" &&
+                    invalid.Bcv(1) == "#176b4d" && invalid.Bcv(3) == "#a13b18", "logical border atomic fallback changed");
+                var inherited = block("inherit-child").S;
+                Need(inherited.Bt == 2 && inherited.Br == 3 && inherited.Bb == 4 && inherited.Bl == 5 && inherited.Bsv(0) == "dotted" && inherited.Bcv(3) == "#b7791f",
+                    "logical border inheritance changed");
+                using (var view = new V { Size = new Size(760, 900) })
+                {
+                    view.CreateControl();
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        Need(BlockOuter(view, "axis").Size == new Size(108, 52) && BlockOuter(view, "hidden").Size == new Size(109, 24),
+                            "logical border layout changed");
+                        var rounded = BlockOuter(view, "rounded");
+                        Need(ColorDistance(image.GetPixel(rounded.Left + 2, rounded.Top + rounded.Height / 2), Color.FromArgb(161, 59, 24)) < 20 &&
+                            ColorDistance(image.GetPixel(rounded.Left + rounded.Width / 2, rounded.Bottom - 2), Color.FromArgb(183, 121, 31)) < 20,
+                            "mixed rounded logical border paint changed");
+                    }
+                    Need(view.Ck(ById(view.At.D, "set-short")) == 6, "short logical border shorthands failed");
+                    using (var image = Draw(view)) { }
+                    Need(BlockOuter(view, "command").Size == new Size(137, 61), "logical border shorthand reflow changed");
+                    Need(view.Ck(ById(view.At.D, "set-components")) == 18, "short logical border components failed");
+                    using (var image = Draw(view)) { }
+                    Need(BlockOuter(view, "command").Size == new Size(153, 77), "logical border component reflow changed");
+                    Need(view.Ck(ById(view.At.D, "dom-all")) == 24 && view.Ck(ById(view.At.D, "clear-all")) == 24,
+                        "familiar logical border styles or reset failed");
+                    using (var image = Draw(view)) { }
+                    Need(BlockOuter(view, "command").Size == new Size(128, 48), "logical border reset geometry changed");
+                }
+                Need(engine.Ck(page, ById(page.D, "set-short")) == 6 && block("command").S.Bl == 6 && block("command").S.Bt == 8,
+                    "short logical border shorthands did not reach compact records");
+                Need(engine.Ck(page, ById(page.D, "set-components")) == 18 && block("command").S.Bl == 14 && block("command").S.Bb == 17,
+                    "short logical border components did not reach compact records");
+                Need(engine.Ck(page, ById(page.D, "dom-all")) == 24 && block("command").S.Bl == 21 && block("command").S.Bt == 23,
+                    "familiar logical border styles did not reach compact records");
+                Need(engine.Ck(page, ById(page.D, "clear-all")) == 24 && block("command").S.Bl == 2 && block("command").S.Bsv(3) == "solid" && block("command").S.Bec == 0,
+                    "logical border reset lost authored state");
+                Need(engine.Js(page, "biw('command','2px bad');biy('command','solid groove');bic('command','red #xyz');siw('command','wide')") == 0,
+                    "unsupported logical border command values were accepted");
+                Need(engine.Js(page, "bi('command','THICK SOLID RED')") == 1 && block("command").S.Bl == 5 && block("command").S.Bsv(3) == "solid",
+                    "case-insensitive logical border keywords changed");
+                return "horizontal-tb/LTR logical border axes and edges, physical per-edge components, bounded atomic parsing, source order, important, variables, inheritance/reset, twenty-four compact/readable commands, familiar DOM styles, mixed rounded paint, and shared geometry";
             });
             AddProbe(probes, "Bounded sticky positioning", delegate
             {

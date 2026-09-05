@@ -1242,11 +1242,11 @@ namespace Lea.Win
             foreach (var block in At.Bs) if (!block.Hd && block.Up != null) owners.Add(block.Up);
             var active = new List<Lc>();
             var style = At.S;
-            var left = style == null ? 0 : style.Ml + style.Pl + BorderWidth(style, style.Bl);
-            var right = style == null ? 0 : style.Mr + style.Pr + BorderWidth(style, style.Br);
+            var left = style == null ? 0 : style.Ml + style.Pl + BorderWidth(style, 3);
+            var right = style == null ? 0 : style.Mr + style.Pr + BorderWidth(style, 1);
             var x = 20 + left;
             var width = ConstrainWidth(style, Math.Max(120, ClientSize.Width - x - 20 - right));
-            var y = 18 + (style == null ? 0 : style.Mt + style.Pt + BorderWidth(style, style.Bt));
+            var y = 18 + (style == null ? 0 : style.Mt + style.Pt + BorderWidth(style, 0));
             var anchorTop = y;
             var rootContaining = new Rectangle(x, anchorTop, width, Math.Max(1, ClientSize.Height - anchorTop));
             layoutBottom = y;
@@ -1306,10 +1306,10 @@ namespace Lea.Win
                         else parent.Y = next;
                         continue;
                     }
-                    var bt = bs == null ? 0 : BorderWidth(bs, bs.Bt);
-                    var br = bs == null ? 0 : BorderWidth(bs, bs.Br);
-                    var bb = bs == null ? 0 : BorderWidth(bs, bs.Bb);
-                    var bl = bs == null ? 0 : BorderWidth(bs, bs.Bl);
+                    var bt = bs == null ? 0 : BorderWidth(bs, 0);
+                    var br = bs == null ? 0 : BorderWidth(bs, 1);
+                    var bb = bs == null ? 0 : BorderWidth(bs, 2);
+                    var bl = bs == null ? 0 : BorderWidth(bs, 3);
                     var pt = bs == null ? 0 : bs.Pt;
                     var pr = bs == null ? 0 : bs.Pr;
                     var pb = bs == null ? 0 : bs.Pb;
@@ -1452,10 +1452,10 @@ namespace Lea.Win
                 return;
             }
 
-            docHeight = y + 20 + (style == null ? 0 : style.Pb + BorderWidth(style, style.Bb) + style.Mb);
+            docHeight = y + 20 + (style == null ? 0 : style.Pb + BorderWidth(style, 2) + style.Mb);
             docHeight = Math.Max(docHeight, layoutBottom + 20);
-            if (HasHeight(style, rootContaining.Height)) docHeight = Math.Max(docHeight, 18 + style.Mt + ResolvedHeight(style, 0, rootContaining.Height) + style.Pt + style.Pb + BorderWidth(style, style.Bt) + BorderWidth(style, style.Bb) + style.Mb);
-            else if (HasRatio(style)) docHeight = Math.Max(docHeight, 18 + style.Mt + RatioContentHeight(style, width) + style.Pt + style.Pb + BorderWidth(style, style.Bt) + BorderWidth(style, style.Bb) + style.Mb);
+            if (HasHeight(style, rootContaining.Height)) docHeight = Math.Max(docHeight, 18 + style.Mt + ResolvedHeight(style, 0, rootContaining.Height) + style.Pt + style.Pb + BorderWidth(style, 0) + BorderWidth(style, 2) + style.Mb);
+            else if (HasRatio(style)) docHeight = Math.Max(docHeight, 18 + style.Mt + RatioContentHeight(style, width) + style.Pt + style.Pb + BorderWidth(style, 0) + BorderWidth(style, 2) + style.Mb);
             StackBoxes();
             foreach (var box in boxes)
             {
@@ -2184,13 +2184,13 @@ namespace Lea.Win
         private static int FlexHorizontal(S style)
         {
             if (style == null) return 0;
-            return style.Ml + style.Mr + style.Pl + style.Pr + BorderWidth(style, style.Bl) + BorderWidth(style, style.Br);
+            return style.Ml + style.Mr + style.Pl + style.Pr + BorderWidth(style, 3) + BorderWidth(style, 1);
         }
 
         private static int FlexVertical(S style)
         {
             if (style == null) return 0;
-            return style.Mt + style.Mb + style.Pt + style.Pb + BorderWidth(style, style.Bt) + BorderWidth(style, style.Bb);
+            return style.Mt + style.Mb + style.Pt + style.Pb + BorderWidth(style, 0) + BorderWidth(style, 2);
         }
 
         private void FlexShrink(IList<B> items, IDictionary<B, int> hints, IDictionary<B, int> sizes, int available, bool column, int reference)
@@ -2353,10 +2353,10 @@ namespace Lea.Win
         private Lc LayTable(Graphics graphics, B block, int x, int width, int widthReference, int heightReference, int y, Rectangle containing, Rectangle parentClip, bool fixedParent, out int nextY)
         {
             var style = block.S;
-            var bt = style == null ? 0 : BorderWidth(style, style.Bt);
-            var br = style == null ? 0 : BorderWidth(style, style.Br);
-            var bb = style == null ? 0 : BorderWidth(style, style.Bb);
-            var bl = style == null ? 0 : BorderWidth(style, style.Bl);
+            var bt = style == null ? 0 : BorderWidth(style, 0);
+            var br = style == null ? 0 : BorderWidth(style, 1);
+            var bb = style == null ? 0 : BorderWidth(style, 2);
+            var bl = style == null ? 0 : BorderWidth(style, 3);
             var pt = style == null ? 0 : style.Pt;
             var pr = style == null ? 0 : style.Pr;
             var pb = style == null ? 0 : style.Pb;
@@ -2682,10 +2682,10 @@ namespace Lea.Win
                 var mr = style == null ? 0 : style.Mr;
                 var mt = style == null ? 0 : style.Mt;
                 var mb = style == null ? 0 : style.Mb;
-                var bt = style == null ? 0 : BorderWidth(style, style.Bt);
-                var br = style == null ? 0 : BorderWidth(style, style.Br);
-                var bb = style == null ? 0 : BorderWidth(style, style.Bb);
-                var bl = style == null ? 0 : BorderWidth(style, style.Bl);
+                var bt = style == null ? 0 : BorderWidth(style, 0);
+                var br = style == null ? 0 : BorderWidth(style, 1);
+                var bb = style == null ? 0 : BorderWidth(style, 2);
+                var bl = style == null ? 0 : BorderWidth(style, 3);
                 var pt = style == null ? 0 : style.Pt;
                 var pr = style == null ? 0 : style.Pr;
                 var pb = style == null ? 0 : style.Pb;
@@ -2719,7 +2719,7 @@ namespace Lea.Win
         private int CellPartHeight(Graphics graphics, B part, int width)
         {
             var style = part.S;
-            var horizontal = style == null ? 0 : style.Ml + style.Mr + style.Pl + style.Pr + BorderWidth(style, style.Bl) + BorderWidth(style, style.Br);
+            var horizontal = style == null ? 0 : style.Ml + style.Mr + style.Pl + style.Pr + BorderWidth(style, 3) + BorderWidth(style, 1);
             var available = ConstrainWidth(style, Math.Max(1, width - horizontal), width);
             int height;
             if (part.Vm != null)
@@ -2728,7 +2728,7 @@ namespace Lea.Win
             else using (var font = BoxFont(part.K, style, false)) height = part.K == "br" ? Math.Max(4, font.Height / 2) : Measure(graphics, CellText(part), font, available);
             if (style != null && style.H == 0 && PreferredRatio(part)) height = RatioPreferredHeight(part, available, height);
             height = ConstrainHeight(style, height);
-            if (style != null) height += style.Mt + style.Mb + style.Pt + style.Pb + BorderWidth(style, style.Bt) + BorderWidth(style, style.Bb);
+            if (style != null) height += style.Mt + style.Mb + style.Pt + style.Pb + BorderWidth(style, 0) + BorderWidth(style, 2);
             return height + CellGap(part.K);
         }
 
@@ -2778,10 +2778,10 @@ namespace Lea.Win
 
         private static Padding CellInset(S style)
         {
-            var top = style == null ? 0 : BorderWidth(style, style.Bt) + style.Pt;
-            var right = style == null ? 0 : BorderWidth(style, style.Br) + style.Pr;
-            var bottom = style == null ? 0 : BorderWidth(style, style.Bb) + style.Pb;
-            var left = style == null ? 0 : BorderWidth(style, style.Bl) + style.Pl;
+            var top = style == null ? 0 : BorderWidth(style, 0) + style.Pt;
+            var right = style == null ? 0 : BorderWidth(style, 1) + style.Pr;
+            var bottom = style == null ? 0 : BorderWidth(style, 2) + style.Pb;
+            var left = style == null ? 0 : BorderWidth(style, 3) + style.Pl;
             if (top + right + bottom + left == 0) return new Padding(6);
             return new Padding(left, top, right, bottom);
         }
@@ -2994,8 +2994,8 @@ namespace Lea.Win
         private static int RatioContentWidth(S style, int contentHeight)
         {
             if (!HasRatio(style)) return Math.Max(1, contentHeight);
-            var horizontal = style.Bz == "b" ? style.Pl + style.Pr + BorderWidth(style, style.Bl) + BorderWidth(style, style.Br) : 0;
-            var vertical = style.Bz == "b" ? style.Pt + style.Pb + BorderWidth(style, style.Bt) + BorderWidth(style, style.Bb) : 0;
+            var horizontal = style.Bz == "b" ? style.Pl + style.Pr + BorderWidth(style, 3) + BorderWidth(style, 1) : 0;
+            var vertical = style.Bz == "b" ? style.Pt + style.Pb + BorderWidth(style, 0) + BorderWidth(style, 2) : 0;
             var boxHeight = Math.Max(1, contentHeight + vertical);
             var boxWidth = boxHeight * style.Rw / style.Rh;
             return Math.Max(1, Math.Min(8192, (int)Math.Round(boxWidth) - horizontal));
@@ -3004,8 +3004,8 @@ namespace Lea.Win
         private static int RatioContentHeight(S style, int contentWidth)
         {
             if (!HasRatio(style)) return Math.Max(1, contentWidth);
-            var horizontal = style.Bz == "b" ? style.Pl + style.Pr + BorderWidth(style, style.Bl) + BorderWidth(style, style.Br) : 0;
-            var vertical = style.Bz == "b" ? style.Pt + style.Pb + BorderWidth(style, style.Bt) + BorderWidth(style, style.Bb) : 0;
+            var horizontal = style.Bz == "b" ? style.Pl + style.Pr + BorderWidth(style, 3) + BorderWidth(style, 1) : 0;
+            var vertical = style.Bz == "b" ? style.Pt + style.Pb + BorderWidth(style, 0) + BorderWidth(style, 2) : 0;
             var boxWidth = Math.Max(1, contentWidth + horizontal);
             var boxHeight = boxWidth * style.Rh / style.Rw;
             return Math.Max(1, Math.Min(8192, (int)Math.Round(boxHeight) - vertical));
@@ -3022,13 +3022,13 @@ namespace Lea.Win
         private static int BoxContentWidth(S style, int declared)
         {
             if (declared <= 0 || style == null || style.Bz != "b") return Math.Max(0, declared);
-            return Math.Max(0, declared - style.Pl - style.Pr - BorderWidth(style, style.Bl) - BorderWidth(style, style.Br));
+            return Math.Max(0, declared - style.Pl - style.Pr - BorderWidth(style, 3) - BorderWidth(style, 1));
         }
 
         private static int BoxContentHeight(S style, int declared)
         {
             if (declared <= 0 || style == null || style.Bz != "b") return Math.Max(0, declared);
-            return Math.Max(0, declared - style.Pt - style.Pb - BorderWidth(style, style.Bt) - BorderWidth(style, style.Bb));
+            return Math.Max(0, declared - style.Pt - style.Pb - BorderWidth(style, 0) - BorderWidth(style, 2));
         }
 
         private List<Ix> InlineLayout(Graphics graphics, B block, int width, out int height)
@@ -3395,9 +3395,12 @@ namespace Lea.Win
             return style != null && style.Ov.Length > 0 && style.Ov != "v";
         }
 
-        private static int BorderWidth(S style, int width)
+        private static int BorderWidth(S style, int edge)
         {
-            return style == null || style.Bs == "" || style.Bs == "none" || style.Bs == "hidden" ? 0 : width;
+            if (style == null) return 0;
+            var borderStyle = style.Bsv(edge);
+            return borderStyle == "" || borderStyle == "none" || borderStyle == "hidden" ? 0 :
+                edge == 0 ? style.Bt : edge == 1 ? style.Br : edge == 2 ? style.Bb : style.Bl;
         }
 
         private Font BoxFont(string kind, S style, bool title, bool link = false, string baseKind = null)
@@ -3499,20 +3502,41 @@ namespace Lea.Win
                 if (background && style.Gi != null) PaintGradient(graphics, rect, style, CssColor(style.F, pageColor), opacity);
                 if (background && shadows) PaintShadows(graphics, rect, style, CssColor(style.F, pageColor), opacity, true);
 
-                var top = BorderWidth(style, style.Bt);
-                var right = BorderWidth(style, style.Br);
-                var bottom = BorderWidth(style, style.Bb);
-                var left = BorderWidth(style, style.Bl);
+                var top = BorderWidth(style, 0);
+                var right = BorderWidth(style, 1);
+                var bottom = BorderWidth(style, 2);
+                var left = BorderWidth(style, 3);
                 if (top + right + bottom + left > 0)
                 {
-                    var color = PaintColor(CssColor(style.Bc, CssColor(style.F, pageColor)), opacity);
-                    if (rounded) PaintRoundedBorder(graphics, rect, style, top, right, bottom, left, color);
+                    var currentColor = CssColor(style.F, pageColor);
+                    var topStyle = style.Bsv(0);
+                    var rightStyle = style.Bsv(1);
+                    var bottomStyle = style.Bsv(2);
+                    var leftStyle = style.Bsv(3);
+                    var topColorText = style.Bcv(0);
+                    var rightColorText = style.Bcv(1);
+                    var bottomColorText = style.Bcv(2);
+                    var leftColorText = style.Bcv(3);
+                    var topColor = PaintColor(CssColor(topColorText, currentColor), opacity);
+                    var rightColor = PaintColor(CssColor(rightColorText, currentColor), opacity);
+                    var bottomColor = PaintColor(CssColor(bottomColorText, currentColor), opacity);
+                    var leftColor = PaintColor(CssColor(leftColorText, currentColor), opacity);
+                    var uniform = topStyle == rightStyle && topStyle == bottomStyle && topStyle == leftStyle &&
+                        topColorText == rightColorText && topColorText == bottomColorText && topColorText == leftColorText;
+                    if (rounded && uniform) PaintRoundedBorder(graphics, rect, style, top, right, bottom, left, topColor, topStyle);
+                    else if (rounded)
+                    {
+                        PaintRoundedBorderSide(graphics, rect, style, top, right, bottom, left, 0, topColor, topStyle);
+                        PaintRoundedBorderSide(graphics, rect, style, top, right, bottom, left, 1, rightColor, rightStyle);
+                        PaintRoundedBorderSide(graphics, rect, style, top, right, bottom, left, 2, bottomColor, bottomStyle);
+                        PaintRoundedBorderSide(graphics, rect, style, top, right, bottom, left, 3, leftColor, leftStyle);
+                    }
                     else
                     {
-                        PaintBorder(graphics, rect, top, 0, color, style.Bs);
-                        PaintBorder(graphics, rect, right, 1, color, style.Bs);
-                        PaintBorder(graphics, rect, bottom, 2, color, style.Bs);
-                        PaintBorder(graphics, rect, left, 3, color, style.Bs);
+                        PaintBorder(graphics, rect, top, 0, topColor, topStyle);
+                        PaintBorder(graphics, rect, right, 1, rightColor, rightStyle);
+                        PaintBorder(graphics, rect, bottom, 2, bottomColor, bottomStyle);
+                        PaintBorder(graphics, rect, left, 3, leftColor, leftStyle);
                     }
                 }
                 PaintOutline(graphics, rect, style, CssColor(style.F, pageColor), opacity);
@@ -3878,14 +3902,14 @@ namespace Lea.Win
             return sum <= 0F ? current : Math.Min(current, Math.Max(0, length) / sum);
         }
 
-        private static void PaintRoundedBorder(Graphics graphics, Rectangle rect, S style, int top, int right, int bottom, int left, Color color)
+        private static void PaintRoundedBorder(Graphics graphics, Rectangle rect, S style, int top, int right, int bottom, int left, Color color, string borderStyle)
         {
-            if (style.Bs == "dashed" || style.Bs == "dotted")
+            if (borderStyle == "dashed" || borderStyle == "dotted")
             {
-                PaintRoundedBorderSide(graphics, rect, style, top, 0, color);
-                PaintRoundedBorderSide(graphics, rect, style, right, 1, color);
-                PaintRoundedBorderSide(graphics, rect, style, bottom, 2, color);
-                PaintRoundedBorderSide(graphics, rect, style, left, 3, color);
+                PaintRoundedBorderSide(graphics, rect, style, top, right, bottom, left, 0, color, borderStyle);
+                PaintRoundedBorderSide(graphics, rect, style, top, right, bottom, left, 1, color, borderStyle);
+                PaintRoundedBorderSide(graphics, rect, style, top, right, bottom, left, 2, color, borderStyle);
+                PaintRoundedBorderSide(graphics, rect, style, top, right, bottom, left, 3, color, borderStyle);
                 return;
             }
             using (var outer = RoundedPath(rect, style, 0, 0, 0, 0))
@@ -3898,29 +3922,56 @@ namespace Lea.Win
             }
         }
 
-        private static void PaintRoundedBorderSide(Graphics graphics, Rectangle rect, S style, int width, int side, Color color)
+        private static void PaintRoundedBorderSide(Graphics graphics, Rectangle rect, S style, int top, int right, int bottom, int left,
+            int side, Color color, string borderStyle)
         {
+            var width = side == 0 ? top : side == 1 ? right : side == 2 ? bottom : left;
             if (width < 1) return;
-            var inset = Math.Max(0, width / 2);
-            var center = Rectangle.Inflate(rect, -inset, -inset);
-            if (center.Width < 1 || center.Height < 1) return;
             var state = graphics.Save();
             try
             {
-                Rectangle clip;
-                if (side == 0) clip = new Rectangle(rect.Left, rect.Top, rect.Width, Math.Max(1, rect.Height / 2));
-                else if (side == 1) clip = new Rectangle(rect.Left + rect.Width / 2, rect.Top, Math.Max(1, rect.Width - rect.Width / 2), rect.Height);
-                else if (side == 2) clip = new Rectangle(rect.Left, rect.Top + rect.Height / 2, rect.Width, Math.Max(1, rect.Height - rect.Height / 2));
-                else clip = new Rectangle(rect.Left, rect.Top, Math.Max(1, rect.Width / 2), rect.Height);
-                graphics.SetClip(clip, CombineMode.Intersect);
-                using (var path = RoundedPath(center, style, inset, inset, inset, inset))
-                using (var pen = new Pen(color, width))
+                using (var clip = BorderSideClip(rect, top, right, bottom, left, side)) graphics.SetClip(clip, CombineMode.Intersect);
+                if (borderStyle == "dashed" || borderStyle == "dotted")
                 {
-                    pen.DashStyle = style.Bs == "dashed" ? DashStyle.Dash : DashStyle.Dot;
-                    graphics.DrawPath(pen, path);
+                    var inset = Math.Max(0, width / 2);
+                    var center = Rectangle.Inflate(rect, -inset, -inset);
+                    if (center.Width < 1 || center.Height < 1) return;
+                    using (var path = RoundedPath(center, style, inset, inset, inset, inset))
+                    using (var pen = new Pen(color, width))
+                    {
+                        pen.DashStyle = borderStyle == "dashed" ? DashStyle.Dash : DashStyle.Dot;
+                        graphics.DrawPath(pen, path);
+                    }
+                    return;
+                }
+                using (var outer = RoundedPath(rect, style, 0, 0, 0, 0))
+                using (var region = new Region(outer))
+                {
+                    var innerRect = Rectangle.FromLTRB(rect.Left + left, rect.Top + top, rect.Right - right, rect.Bottom - bottom);
+                    if (innerRect.Width > 0 && innerRect.Height > 0)
+                        using (var inner = RoundedPath(innerRect, style, left, top, right, bottom)) region.Exclude(inner);
+                    using (var brush = new SolidBrush(color)) graphics.FillRegion(brush, region);
                 }
             }
             finally { graphics.Restore(state); }
+        }
+
+        private static GraphicsPath BorderSideClip(Rectangle rect, int top, int right, int bottom, int left, int side)
+        {
+            var innerLeft = Math.Min(rect.Right, rect.Left + Math.Max(0, left));
+            var innerRight = Math.Max(rect.Left, rect.Right - Math.Max(0, right));
+            var innerTop = Math.Min(rect.Bottom, rect.Top + Math.Max(0, top));
+            var innerBottom = Math.Max(rect.Top, rect.Bottom - Math.Max(0, bottom));
+            if (innerLeft > innerRight) innerLeft = innerRight = rect.Left + rect.Width / 2;
+            if (innerTop > innerBottom) innerTop = innerBottom = rect.Top + rect.Height / 2;
+            Point[] points;
+            if (side == 0) points = new[] { new Point(rect.Left, rect.Top), new Point(rect.Right, rect.Top), new Point(innerRight, innerTop), new Point(innerLeft, innerTop) };
+            else if (side == 1) points = new[] { new Point(rect.Right, rect.Top), new Point(rect.Right, rect.Bottom), new Point(innerRight, innerBottom), new Point(innerRight, innerTop) };
+            else if (side == 2) points = new[] { new Point(rect.Right, rect.Bottom), new Point(rect.Left, rect.Bottom), new Point(innerLeft, innerBottom), new Point(innerRight, innerBottom) };
+            else points = new[] { new Point(rect.Left, rect.Bottom), new Point(rect.Left, rect.Top), new Point(innerLeft, innerTop), new Point(innerLeft, innerBottom) };
+            var path = new GraphicsPath();
+            path.AddPolygon(points);
+            return path;
         }
 
         private static void PaintFind(Graphics graphics, Rectangle rect, bool active)
@@ -4594,7 +4645,7 @@ namespace Lea.Win
             var trackColor = style != null && style.Bg.Length > 0 ? CssColor(style.Bg, Color.FromArgb(226, 232, 240)) : Color.FromArgb(226, 232, 240);
             var fillColor = kind == "meter" ? model.Q == 2 ? Color.FromArgb(185, 28, 28) : model.Q == 1 ? Color.FromArgb(183, 121, 31) : Color.FromArgb(21, 128, 61) : Color.FromArgb(0, 102, 204);
             if (style != null && style.F.Length > 0) fillColor = CssColor(style.F, fillColor);
-            var borderColor = style != null && style.Bc.Length > 0 ? CssColor(style.Bc, Color.FromArgb(148, 163, 184)) : Color.FromArgb(148, 163, 184);
+            var borderColor = style != null && style.Bcv(0).Length > 0 ? CssColor(style.Bcv(0), Color.FromArgb(148, 163, 184)) : Color.FromArgb(148, 163, 184);
             using (var brush = new SolidBrush(PaintColor(trackColor, opacity))) graphics.FillRectangle(brush, rect);
             var inner = new Rectangle(rect.X + 2, rect.Y + 2, Math.Max(0, rect.Width - 4), Math.Max(0, rect.Height - 4));
             if (inner.Width > 0 && inner.Height > 0)

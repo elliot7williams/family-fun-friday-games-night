@@ -345,14 +345,14 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Horizontal left-to-right logical margins and padding now compile into the eight
-existing physical box-edge records. Four axis shorthands, eight longhands,
-signed bounded margins, atomic parsing, short axis/edge aliases, readable forms,
-and familiar literal DOM styles reuse the current cascade and renderer without
-per-element axis state. See `LOGICAL_BOX_MODEL.md`. Next evaluate logical border
-properties that can reuse the existing physical width/style/color records while
-keeping writing modes, bidi remapping, and general CSS/JavaScript evaluators out
-of the current engine boundary.
+Horizontal left-to-right logical borders now compile into the four physical
+widths and one lazy per-edge style/color record. Six axis/edge shorthands,
+eighteen component properties, atomic physical component lists, all 24 compact
+aliases, readable forms, familiar literal DOM styles, hidden used widths, and
+mixed rounded paint share the current cascade and renderer. Uniform borders keep
+the old compact path. See `LOGICAL_BORDERS.md`. Next evaluate bounded logical
+corner radii or direction mapping while keeping vertical writing modes, general
+bidi layout, and general CSS/JavaScript evaluators out of the current boundary.
 
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host

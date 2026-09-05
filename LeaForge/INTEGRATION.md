@@ -382,6 +382,17 @@ non-negative. Page code can use `mi/mb/pi/pb`, the eight three-letter edge
 aliases, readable forms, or familiar literal DOM assignments. No adapter or
 host change is required. See `LOGICAL_BOX_MODEL.md`.
 
+Logical borders also require no host-side axis model. `border-inline`,
+`border-block`, all four logical edge shorthands, and their width/style/color
+components resolve into `S.Bt/Br/Bb/Bl`; `S.Bsv(edge)` and `S.Bcv(edge)` expose
+effective per-edge style/color. A lazy detail array exists only for mixed edges,
+so uniform borders retain the original compact record. Page code can use all 24
+two/three-letter aliases, readable forms, or familiar literal DOM assignments.
+The WinForms adapter handles per-edge used widths and mixed rounded paint; the
+Firespider adapter needs no changes. Keep `Lea.Engine.dll` and `Lea.Win.dll` from
+the same runtime because older views only inspect global `S.Bs/Bc`. See
+`LOGICAL_BORDERS.md`.
+
 CSS outlines are available through non-inherited `S.Ow/Os/Oc/Oo`. Hosts can
 inspect bounded width, compact none/solid/dashed/dotted/auto style, authored
 color, and signed offset without performing paint calculations. Atomic

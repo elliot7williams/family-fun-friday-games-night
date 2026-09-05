@@ -150,12 +150,14 @@ namespace Lea.Engine
         internal int[] Hd { get; set; }
         internal int[] Wfd { get; set; }
         internal int[] Hfd { get; set; }
+        internal string[] Be { get; set; }
 
         public int Vc { get { return Vr == null ? 0 : Vr.Count; } }
         public int Gc { get { return Gd == null ? 0 : Gd.Length; } }
         public int Rc { get { return Rd == null ? 0 : Rd.Length; } }
         public int Gac { get { return Gad == null ? 0 : Gad.Length; } }
         public int Rac { get { return Rad == null ? 0 : Rad.Length; } }
+        public int Bec { get { return Be == null ? 0 : Be.Length; } }
         public int Gnc { get { return Gnd == null ? 0 : Gnd.Count; } }
         public int Rnc { get { return Rnd == null ? 0 : Rnd.Count; } }
         public int Aa { get { return Ad == null ? 0 : Ad.Count; } }
@@ -180,6 +182,67 @@ namespace Lea.Engine
         public int Rav(int index)
         {
             return Rad != null && index >= 0 && index < Rad.Length ? Rad[index] : 0;
+        }
+
+        public string Bsv(int edge)
+        {
+            return Be != null && edge >= 0 && edge < 4 ? Be[edge] : Bs;
+        }
+
+        public string Bcv(int edge)
+        {
+            return Be != null && edge >= 0 && edge < 4 ? Be[edge + 4] : Bc;
+        }
+
+        internal void SetBorderStyle(int edge, string value)
+        {
+            value = value ?? "";
+            if (edge < 0)
+            {
+                Bs = value;
+                if (Be != null) for (var index = 0; index < 4; index++) Be[index] = value;
+            }
+            else if (edge < 4)
+            {
+                EnsureBorderEdges();
+                Be[edge] = value;
+            }
+            CompactBorderEdges();
+        }
+
+        internal void SetBorderColor(int edge, string value)
+        {
+            value = value ?? "";
+            if (edge < 0)
+            {
+                Bc = value;
+                if (Be != null) for (var index = 4; index < 8; index++) Be[index] = value;
+            }
+            else if (edge < 4)
+            {
+                EnsureBorderEdges();
+                Be[edge + 4] = value;
+            }
+            CompactBorderEdges();
+        }
+
+        private void EnsureBorderEdges()
+        {
+            if (Be != null) return;
+            Be = new string[8];
+            for (var index = 0; index < 4; index++)
+            {
+                Be[index] = Bs;
+                Be[index + 4] = Bc;
+            }
+        }
+
+        private void CompactBorderEdges()
+        {
+            if (Be == null) return;
+            for (var index = 0; index < 4; index++)
+                if (Be[index] != Bs || Be[index + 4] != Bc) return;
+            Be = null;
         }
 
         public int Gx(string name)
