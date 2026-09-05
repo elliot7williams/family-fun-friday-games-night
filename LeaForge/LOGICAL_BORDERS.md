@@ -1,7 +1,7 @@
 # Lea Logical Borders
 
-Milestone 85 / runtime 185 adds bounded logical CSS borders to Lea's horizontal
-left-to-right layout. Logical declarations compile into the four existing border
+Milestone 85 / runtime 185 added bounded logical CSS borders to Lea's horizontal
+layout. Runtime 187 adds inherited LTR/RTL mapping. Logical declarations compile into the four existing border
 widths. One lazy eight-string detail record stores per-edge style and color only
 when the edges differ; uniform borders keep the previous compact allocation path.
 
@@ -12,8 +12,8 @@ Lea supports logical border shorthands for both axes and all four edges:
 ```text
 border-inline        -> left and right
 border-block         -> top and bottom
-border-inline-start  -> left
-border-inline-end    -> right
+border-inline-start  -> left (LTR) / right (RTL)
+border-inline-end    -> right (LTR) / left (RTL)
 border-block-start   -> top
 border-block-end     -> bottom
 ```
@@ -39,7 +39,8 @@ that contain spaces.
 
 Physical and logical declarations share source order, important tiers, custom
 properties, and the same four computed edges. `inherit` copies the corresponding
-parent edges. `initial` and `unset` restore Lea's zero/hidden default. Invalid
+logical parent edges, translating when parent and child directions differ.
+`initial` and `unset` restore Lea's zero/hidden default. Invalid
 lists, duplicate shorthand parts, unknown styles, and malformed colors preserve
 the prior declaration atomically.
 
@@ -81,12 +82,12 @@ without one side recoloring the whole ring.
 
 ## Limits
 
-Lea still has one horizontal left-to-right axis model. `direction`, bidi
-reordering, vertical writing modes, logical corner radii, CSS-wide global
-keywords, fractional lengths, percentages, images, and arbitrary border style
-keywords are outside this milestone. `double` retains Lea's current solid-fill
+Lea keeps one horizontal physical record model and remaps inline edges through
+inherited `direction:ltr/rtl`. Bidi glyph reordering, `dir=auto`, vertical
+writing modes, CSS-wide global keywords, fractional lengths, percentages,
+images, and arbitrary border style keywords are outside this feature. `double` retains Lea's current solid-fill
 visual approximation. These limits avoid a second layout model or a large CSS
-runtime.
+runtime. See `DIRECTION.md` and `LOGICAL_RADII.md`.
 
 ## Verification
 

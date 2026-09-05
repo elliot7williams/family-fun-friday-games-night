@@ -3358,6 +3358,12 @@ namespace Lea.Engine
             foreach (var rule in matched) Custom(style, inherited, rule.Ds, true);
             Custom(style, inherited, inline, true);
             TagStyle(style, node.K);
+            DirectionAttribute(style, node.Av("dir"));
+            var baseDirection = style.Dr;
+            foreach (var rule in matched) DirectionDeclarations(style, inherited, rule.Ds, false, baseDirection);
+            DirectionDeclarations(style, inherited, inline, false, baseDirection);
+            foreach (var rule in matched) DirectionDeclarations(style, inherited, rule.Ds, true, baseDirection);
+            DirectionDeclarations(style, inherited, inline, true, baseDirection);
             if (node.A.ContainsKey("hidden")) style.D = "none";
             foreach (var rule in matched) Decls(style, inherited, rule.Ds, false);
             Decls(style, inherited, inline, false);
@@ -3404,6 +3410,42 @@ namespace Lea.Engine
             }
         }
 
+        private static void DirectionAttribute(S style, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "ltr") style.Dr = "l";
+            else if (source == "rtl") style.Dr = "r";
+        }
+
+        private static void DirectionDeclarations(S style, S inherited, Pd[] declarations, bool important, string baseDirection)
+        {
+            foreach (var declaration in declarations)
+            {
+                if (declaration.C || declaration.I != important || declaration.N != "direction") continue;
+                string value;
+                Uri origin;
+                if (VarValue(style, declaration.V, declaration.U, out value, out origin))
+                    Direction(style, inherited, value, baseDirection);
+            }
+        }
+
+        private static void Direction(S style, S inherited, string value, string baseDirection)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "ltr") style.Dr = "l";
+            else if (source == "rtl") style.Dr = "r";
+            else if (source == "initial") style.Dr = "l";
+            else if (source == "inherit" || source == "unset") style.Dr = inherited == null ? "l" : inherited.Dr;
+            else if (source == "revert" || source == "revert-layer") style.Dr = baseDirection == "r" ? "r" : "l";
+        }
+
+        internal static bool Dr(string value, out string direction)
+        {
+            direction = (value ?? "").Trim().ToLowerInvariant();
+            return direction.Length == 0 || direction == "ltr" || direction == "rtl" || direction == "inherit" ||
+                direction == "initial" || direction == "unset" || direction == "revert" || direction == "revert-layer";
+        }
+
         private static void VarSet(S style, S inherited, string name, string value, Uri origin)
         {
             VarWrite(style, inherited)[name] = value;
@@ -3438,6 +3480,7 @@ namespace Lea.Engine
             {
                 if (declaration.C || declaration.I != important) continue;
                 var name = declaration.N;
+                if (name == "direction") continue;
                 string value;
                 Uri origin;
                 if (!VarValue(style, declaration.V, declaration.U, out value, out origin)) continue;
@@ -3509,10 +3552,14 @@ namespace Lea.Engine
                 else if (name == "inset") Inset(style, value);
                 else if (name == "inset-inline") AxisInset(style, value, false);
                 else if (name == "inset-block") AxisInset(style, value, true);
-                else if (name == "top" || name == "inset-block-start") Offset(style, value, 0);
-                else if (name == "right" || name == "inset-inline-end") Offset(style, value, 1);
-                else if (name == "bottom" || name == "inset-block-end") Offset(style, value, 2);
-                else if (name == "left" || name == "inset-inline-start") Offset(style, value, 3);
+                else if (name == "top") Offset(style, value, 0);
+                else if (name == "right") Offset(style, value, 1);
+                else if (name == "bottom") Offset(style, value, 2);
+                else if (name == "left") Offset(style, value, 3);
+                else if (name == "inset-block-start") Offset(style, value, 0);
+                else if (name == "inset-block-end") Offset(style, value, 2);
+                else if (name == "inset-inline-start") Offset(style, value, InlineEdge(style, true));
+                else if (name == "inset-inline-end") Offset(style, value, InlineEdge(style, false));
                 else if (name == "z-index") ZIndex(style, value);
                 else if (name == "margin") Box(style, inherited, value, true);
                 else if (name == "margin-inline") AxisBox(style, inherited, value, true, false);
@@ -3520,14 +3567,22 @@ namespace Lea.Engine
                 else if (name == "padding") Box(style, inherited, value, false);
                 else if (name == "padding-inline") AxisBox(style, inherited, value, false, false);
                 else if (name == "padding-block") AxisBox(style, inherited, value, false, true);
-                else if (name == "margin-top" || name == "margin-block-start") BoxEdge(style, inherited, value, true, 0);
-                else if (name == "margin-right" || name == "margin-inline-end") BoxEdge(style, inherited, value, true, 1);
-                else if (name == "margin-bottom" || name == "margin-block-end") BoxEdge(style, inherited, value, true, 2);
-                else if (name == "margin-left" || name == "margin-inline-start") BoxEdge(style, inherited, value, true, 3);
-                else if (name == "padding-top" || name == "padding-block-start") BoxEdge(style, inherited, value, false, 0);
-                else if (name == "padding-right" || name == "padding-inline-end") BoxEdge(style, inherited, value, false, 1);
-                else if (name == "padding-bottom" || name == "padding-block-end") BoxEdge(style, inherited, value, false, 2);
-                else if (name == "padding-left" || name == "padding-inline-start") BoxEdge(style, inherited, value, false, 3);
+                else if (name == "margin-top") BoxEdge(style, inherited, value, true, 0);
+                else if (name == "margin-right") BoxEdge(style, inherited, value, true, 1);
+                else if (name == "margin-bottom") BoxEdge(style, inherited, value, true, 2);
+                else if (name == "margin-left") BoxEdge(style, inherited, value, true, 3);
+                else if (name == "margin-block-start") LogicalBoxEdge(style, inherited, value, true, true, true);
+                else if (name == "margin-block-end") LogicalBoxEdge(style, inherited, value, true, true, false);
+                else if (name == "margin-inline-start") LogicalBoxEdge(style, inherited, value, true, false, true);
+                else if (name == "margin-inline-end") LogicalBoxEdge(style, inherited, value, true, false, false);
+                else if (name == "padding-top") BoxEdge(style, inherited, value, false, 0);
+                else if (name == "padding-right") BoxEdge(style, inherited, value, false, 1);
+                else if (name == "padding-bottom") BoxEdge(style, inherited, value, false, 2);
+                else if (name == "padding-left") BoxEdge(style, inherited, value, false, 3);
+                else if (name == "padding-block-start") LogicalBoxEdge(style, inherited, value, false, true, true);
+                else if (name == "padding-block-end") LogicalBoxEdge(style, inherited, value, false, true, false);
+                else if (name == "padding-inline-start") LogicalBoxEdge(style, inherited, value, false, false, true);
+                else if (name == "padding-inline-end") LogicalBoxEdge(style, inherited, value, false, false, false);
                 else if (name == "box-sizing") BoxSizing(style, value);
                 else if (name == "width" || name == "inline-size") Width(style, inherited, value, 0);
                 else if (name == "height" || name == "block-size") Height(style, inherited, value, 0);
@@ -3537,43 +3592,63 @@ namespace Lea.Engine
                 else if (name == "max-height" || name == "max-block-size") Height(style, inherited, value, 2);
                 else if (name == "aspect-ratio") AspectRatio(style, value);
                 else if (name == "border") Border(style, inherited, value, 15);
-                else if (name == "border-top" || name == "border-block-start") Border(style, inherited, value, 1);
-                else if (name == "border-right" || name == "border-inline-end") Border(style, inherited, value, 2);
-                else if (name == "border-bottom" || name == "border-block-end") Border(style, inherited, value, 4);
-                else if (name == "border-left" || name == "border-inline-start") Border(style, inherited, value, 8);
-                else if (name == "border-inline") Border(style, inherited, value, 10);
-                else if (name == "border-block") Border(style, inherited, value, 5);
+                else if (name == "border-top") Border(style, inherited, value, 1);
+                else if (name == "border-right") Border(style, inherited, value, 2);
+                else if (name == "border-bottom") Border(style, inherited, value, 4);
+                else if (name == "border-left") Border(style, inherited, value, 8);
+                else if (name == "border-inline") LogicalBorder(style, inherited, value, 1);
+                else if (name == "border-block") LogicalBorder(style, inherited, value, 2);
+                else if (name == "border-inline-start") LogicalBorder(style, inherited, value, 7);
+                else if (name == "border-inline-end") LogicalBorder(style, inherited, value, 8);
+                else if (name == "border-block-start") LogicalBorder(style, inherited, value, 9);
+                else if (name == "border-block-end") LogicalBorder(style, inherited, value, 10);
                 else if (name == "border-width") BorderValues(style, inherited, value, 0, 0);
                 else if (name == "border-inline-width") BorderValues(style, inherited, value, 0, 1);
                 else if (name == "border-block-width") BorderValues(style, inherited, value, 0, 2);
-                else if (name == "border-top-width" || name == "border-block-start-width") BorderValues(style, inherited, value, 0, 3);
-                else if (name == "border-right-width" || name == "border-inline-end-width") BorderValues(style, inherited, value, 0, 4);
-                else if (name == "border-bottom-width" || name == "border-block-end-width") BorderValues(style, inherited, value, 0, 5);
-                else if (name == "border-left-width" || name == "border-inline-start-width") BorderValues(style, inherited, value, 0, 6);
+                else if (name == "border-top-width") BorderValues(style, inherited, value, 0, 3);
+                else if (name == "border-right-width") BorderValues(style, inherited, value, 0, 4);
+                else if (name == "border-bottom-width") BorderValues(style, inherited, value, 0, 5);
+                else if (name == "border-left-width") BorderValues(style, inherited, value, 0, 6);
+                else if (name == "border-inline-start-width") BorderValues(style, inherited, value, 0, 7);
+                else if (name == "border-inline-end-width") BorderValues(style, inherited, value, 0, 8);
+                else if (name == "border-block-start-width") BorderValues(style, inherited, value, 0, 9);
+                else if (name == "border-block-end-width") BorderValues(style, inherited, value, 0, 10);
                 else if (name == "border-style") BorderValues(style, inherited, value, 1, 0);
                 else if (name == "border-inline-style") BorderValues(style, inherited, value, 1, 1);
                 else if (name == "border-block-style") BorderValues(style, inherited, value, 1, 2);
-                else if (name == "border-top-style" || name == "border-block-start-style") BorderValues(style, inherited, value, 1, 3);
-                else if (name == "border-right-style" || name == "border-inline-end-style") BorderValues(style, inherited, value, 1, 4);
-                else if (name == "border-bottom-style" || name == "border-block-end-style") BorderValues(style, inherited, value, 1, 5);
-                else if (name == "border-left-style" || name == "border-inline-start-style") BorderValues(style, inherited, value, 1, 6);
+                else if (name == "border-top-style") BorderValues(style, inherited, value, 1, 3);
+                else if (name == "border-right-style") BorderValues(style, inherited, value, 1, 4);
+                else if (name == "border-bottom-style") BorderValues(style, inherited, value, 1, 5);
+                else if (name == "border-left-style") BorderValues(style, inherited, value, 1, 6);
+                else if (name == "border-inline-start-style") BorderValues(style, inherited, value, 1, 7);
+                else if (name == "border-inline-end-style") BorderValues(style, inherited, value, 1, 8);
+                else if (name == "border-block-start-style") BorderValues(style, inherited, value, 1, 9);
+                else if (name == "border-block-end-style") BorderValues(style, inherited, value, 1, 10);
                 else if (name == "border-color") BorderValues(style, inherited, value, 2, 0);
                 else if (name == "border-inline-color") BorderValues(style, inherited, value, 2, 1);
                 else if (name == "border-block-color") BorderValues(style, inherited, value, 2, 2);
-                else if (name == "border-top-color" || name == "border-block-start-color") BorderValues(style, inherited, value, 2, 3);
-                else if (name == "border-right-color" || name == "border-inline-end-color") BorderValues(style, inherited, value, 2, 4);
-                else if (name == "border-bottom-color" || name == "border-block-end-color") BorderValues(style, inherited, value, 2, 5);
-                else if (name == "border-left-color" || name == "border-inline-start-color") BorderValues(style, inherited, value, 2, 6);
+                else if (name == "border-top-color") BorderValues(style, inherited, value, 2, 3);
+                else if (name == "border-right-color") BorderValues(style, inherited, value, 2, 4);
+                else if (name == "border-bottom-color") BorderValues(style, inherited, value, 2, 5);
+                else if (name == "border-left-color") BorderValues(style, inherited, value, 2, 6);
+                else if (name == "border-inline-start-color") BorderValues(style, inherited, value, 2, 7);
+                else if (name == "border-inline-end-color") BorderValues(style, inherited, value, 2, 8);
+                else if (name == "border-block-start-color") BorderValues(style, inherited, value, 2, 9);
+                else if (name == "border-block-end-color") BorderValues(style, inherited, value, 2, 10);
                 else if (name == "outline") Outline(style, value);
                 else if (name == "outline-width") OutlineWidth(style, value);
                 else if (name == "outline-style") OutlineStyle(style, value);
                 else if (name == "outline-color") OutlineColor(style, value);
                 else if (name == "outline-offset") OutlineOffset(style, value);
                 else if (name == "border-radius") BorderRadius(style, inherited, value);
-                else if (name == "border-top-left-radius" || name == "border-start-start-radius") BorderCornerRadius(style, inherited, value, 0);
-                else if (name == "border-top-right-radius" || name == "border-start-end-radius") BorderCornerRadius(style, inherited, value, 1);
-                else if (name == "border-bottom-right-radius" || name == "border-end-end-radius") BorderCornerRadius(style, inherited, value, 2);
-                else if (name == "border-bottom-left-radius" || name == "border-end-start-radius") BorderCornerRadius(style, inherited, value, 3);
+                else if (name == "border-top-left-radius") BorderCornerRadius(style, inherited, value, 0);
+                else if (name == "border-top-right-radius") BorderCornerRadius(style, inherited, value, 1);
+                else if (name == "border-bottom-right-radius") BorderCornerRadius(style, inherited, value, 2);
+                else if (name == "border-bottom-left-radius") BorderCornerRadius(style, inherited, value, 3);
+                else if (name == "border-start-start-radius") LogicalCornerRadius(style, inherited, value, true, true);
+                else if (name == "border-start-end-radius") LogicalCornerRadius(style, inherited, value, true, false);
+                else if (name == "border-end-start-radius") LogicalCornerRadius(style, inherited, value, false, true);
+                else if (name == "border-end-end-radius") LogicalCornerRadius(style, inherited, value, false, false);
                 else if (name == "box-shadow") BoxShadow(style, value);
                 else if (name == "font-size")
                 {
@@ -4510,6 +4585,11 @@ namespace Lea.Engine
             int? offset;
             if (!OffsetValue(value, out offset)) return;
 
+            SetOffset(style, side, offset);
+        }
+
+        private static void SetOffset(S style, int side, int? offset)
+        {
             if (side == 0) style.Tp = offset;
             else if (side == 1) style.Rt = offset;
             else if (side == 2) style.Bm = offset;
@@ -4543,7 +4623,28 @@ namespace Lea.Engine
             if (!OffsetValue(parts[0], out start) ||
                 !OffsetValue(parts.Length == 2 ? parts[1] : parts[0], out end)) return;
             if (block) { style.Tp = start; style.Bm = end; }
-            else { style.Lt = start; style.Rt = end; }
+            else
+            {
+                SetOffset(style, InlineEdge(style, true), start);
+                SetOffset(style, InlineEdge(style, false), end);
+            }
+        }
+
+        private static int InlineEdge(S style, bool start)
+        {
+            var rtl = style != null && style.Dr == "r";
+            return rtl ? start ? 1 : 3 : start ? 3 : 1;
+        }
+
+        private static int LogicalEdge(S style, bool block, bool start)
+        {
+            return block ? start ? 0 : 2 : InlineEdge(style, start);
+        }
+
+        private static int LogicalCorner(S style, bool blockStart, bool inlineStart)
+        {
+            var left = InlineEdge(style, inlineStart) == 3;
+            return blockStart ? left ? 0 : 1 : left ? 3 : 2;
         }
 
         private static bool OffsetValue(string value, out int? offset)
@@ -4618,9 +4719,11 @@ namespace Lea.Engine
         private static void TextAlign(S style, string value)
         {
             var align = (value ?? "").Trim().ToLowerInvariant();
-            if (align == "left" || align == "start") style.Ta = "l";
+            if (align == "left") style.Ta = "l";
             else if (align == "center") style.Ta = "c";
-            else if (align == "right" || align == "end") style.Ta = "r";
+            else if (align == "right") style.Ta = "r";
+            else if (align == "start") style.Ta = InlineEdge(style, true) == 3 ? "l" : "r";
+            else if (align == "end") style.Ta = InlineEdge(style, false) == 3 ? "l" : "r";
             else if (align == "justify") style.Ta = "j";
             else if (align == "initial") style.Ta = "";
         }
@@ -4861,14 +4964,14 @@ namespace Lea.Engine
         private static void AxisBox(S style, S inherited, string value, bool margin, bool block)
         {
             var source = (value ?? "").Trim().ToLowerInvariant();
-            var startEdge = block ? 0 : 3;
-            var endEdge = block ? 2 : 1;
+            var startEdge = LogicalEdge(style, block, true);
+            var endEdge = LogicalEdge(style, block, false);
             int start;
             int end;
             if (source == "inherit")
             {
-                start = BoxGet(inherited, margin, startEdge);
-                end = BoxGet(inherited, margin, endEdge);
+                start = BoxGet(inherited, margin, LogicalEdge(inherited, block, true));
+                end = BoxGet(inherited, margin, LogicalEdge(inherited, block, false));
             }
             else if (source == "initial" || source == "unset") start = end = 0;
             else
@@ -4886,6 +4989,17 @@ namespace Lea.Engine
             var source = (value ?? "").Trim().ToLowerInvariant();
             int pixels;
             if (source == "inherit") pixels = BoxGet(inherited, margin, edge);
+            else if (source == "initial" || source == "unset") pixels = 0;
+            else if (!BoxPixel(source, margin, out pixels)) return;
+            BoxSet(style, margin, edge, pixels);
+        }
+
+        private static void LogicalBoxEdge(S style, S inherited, string value, bool margin, bool block, bool start)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            var edge = LogicalEdge(style, block, start);
+            int pixels;
+            if (source == "inherit") pixels = BoxGet(inherited, margin, LogicalEdge(inherited, block, start));
             else if (source == "initial" || source == "unset") pixels = 0;
             else if (!BoxPixel(source, margin, out pixels)) return;
             BoxSet(style, margin, edge, pixels);
@@ -5157,6 +5271,40 @@ namespace Lea.Engine
             if (hasColor) SetBorderStrings(style, mask, 2, color);
         }
 
+        private static void LogicalBorder(S style, S inherited, string value, int scope)
+        {
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            var count = BorderScopeCount(scope);
+            if (lower == "inherit")
+            {
+                for (var index = 0; index < count; index++)
+                    CopyBorderEdge(style, BorderScopeEdge(style, scope, index), inherited, BorderScopeEdge(inherited, scope, index));
+                return;
+            }
+            if (lower == "initial" || lower == "unset")
+            {
+                for (var index = 0; index < count; index++)
+                    ResetBorderEdge(style, BorderScopeEdge(style, scope, index));
+                return;
+            }
+
+            int width;
+            string borderStyle;
+            string color;
+            bool hasWidth;
+            bool hasStyle;
+            bool hasColor;
+            if (!BorderValue(source, out width, out borderStyle, out color, out hasWidth, out hasStyle, out hasColor)) return;
+            for (var index = 0; index < count; index++)
+            {
+                var edge = BorderScopeEdge(style, scope, index);
+                if (hasWidth) SetBorderWidth(style, edge, width);
+                if (hasStyle) style.SetBorderStyle(edge, borderStyle);
+                if (hasColor) style.SetBorderColor(edge, color);
+            }
+        }
+
         private static bool BorderValue(string value, out int width, out string borderStyle, out string color,
             out bool hasWidth, out bool hasStyle, out bool hasColor)
         {
@@ -5200,7 +5348,7 @@ namespace Lea.Engine
 
         private static void BorderValues(S style, S inherited, string value, int component, int scope)
         {
-            var count = scope == 0 ? 4 : scope < 3 ? 2 : 1;
+            var count = BorderScopeCount(scope);
             var source = (value ?? "").Trim();
             var lower = source.ToLowerInvariant();
             var widths = component == 0 ? new int[count] : null;
@@ -5209,7 +5357,7 @@ namespace Lea.Engine
             {
                 for (var index = 0; index < count; index++)
                 {
-                    var edge = BorderScopeEdge(scope, index);
+                    var edge = BorderScopeEdge(inherited, scope, index);
                     if (component == 0) widths[index] = lower == "inherit" ? GetBorderWidth(inherited, edge) : 0;
                     else if (component == 1) strings[index] = lower == "inherit" && inherited != null ? inherited.Bsv(edge) : "";
                     else strings[index] = lower == "inherit" && inherited != null ? inherited.Bcv(edge) : "";
@@ -5282,20 +5430,28 @@ namespace Lea.Engine
             return index == 1 && authored > 1 ? 1 : 0;
         }
 
-        private static int BorderScopeEdge(int scope, int index)
+        private static int BorderScopeCount(int scope)
+        {
+            return scope == 0 ? 4 : scope < 3 ? 2 : 1;
+        }
+
+        private static int BorderScopeEdge(S style, int scope, int index)
         {
             if (scope == 0) return index;
-            if (scope == 1) return index == 0 ? 3 : 1;
+            if (scope == 1) return InlineEdge(style, index == 0);
             if (scope == 2) return index == 0 ? 0 : 2;
-            return scope - 3;
+            if (scope < 7) return scope - 3;
+            if (scope == 7) return InlineEdge(style, true);
+            if (scope == 8) return InlineEdge(style, false);
+            return scope == 9 ? 0 : 2;
         }
 
         private static void ApplyBorderValues(S style, int component, int scope, int[] widths, string[] strings)
         {
-            var count = scope == 0 ? 4 : scope < 3 ? 2 : 1;
+            var count = BorderScopeCount(scope);
             if (component == 0)
             {
-                for (var index = 0; index < count; index++) SetBorderWidth(style, BorderScopeEdge(scope, index), widths[index]);
+                for (var index = 0; index < count; index++) SetBorderWidth(style, BorderScopeEdge(style, scope, index), widths[index]);
                 return;
             }
             if (scope == 0)
@@ -5311,10 +5467,24 @@ namespace Lea.Engine
             }
             for (var index = 0; index < count; index++)
             {
-                var edge = BorderScopeEdge(scope, index);
+                var edge = BorderScopeEdge(style, scope, index);
                 if (component == 1) style.SetBorderStyle(edge, strings[index]);
                 else style.SetBorderColor(edge, strings[index]);
             }
+        }
+
+        private static void CopyBorderEdge(S style, int targetEdge, S inherited, int sourceEdge)
+        {
+            SetBorderWidth(style, targetEdge, GetBorderWidth(inherited, sourceEdge));
+            style.SetBorderStyle(targetEdge, inherited == null ? "" : inherited.Bsv(sourceEdge));
+            style.SetBorderColor(targetEdge, inherited == null ? "" : inherited.Bcv(sourceEdge));
+        }
+
+        private static void ResetBorderEdge(S style, int edge)
+        {
+            SetBorderWidth(style, edge, 0);
+            style.SetBorderStyle(edge, "");
+            style.SetBorderColor(edge, "");
         }
 
         private static void CopyBorder(S style, S inherited, int mask)
@@ -5511,8 +5681,24 @@ namespace Lea.Engine
 
         private static void BorderCornerRadius(S style, S inherited, string value, int corner)
         {
+            BorderCornerRadius(style, inherited, value, corner, corner);
+        }
+
+        private static void LogicalCornerRadius(S style, S inherited, string value, bool blockStart, bool inlineStart)
+        {
+            BorderCornerRadius(style, inherited, value, LogicalCorner(style, blockStart, inlineStart),
+                LogicalCorner(inherited, blockStart, inlineStart));
+        }
+
+        private static void BorderCornerRadius(S style, S inherited, string value, int corner, int inheritedCorner)
+        {
             var source = (value ?? "").Trim().ToLowerInvariant();
-            if (source == "inherit") { CopyRadius(style, inherited, corner); return; }
+            if (source == "inherit")
+            {
+                if (inherited == null) SetRadius(style, corner, 0, 0);
+                else SetRadius(style, corner, RadiusHorizontal(inherited, inheritedCorner), RadiusVertical(inherited, inheritedCorner));
+                return;
+            }
             if (RadiusReset(source)) { SetRadius(style, corner, 0, 0); return; }
             var parts = Regex.Split(source, "\\s+");
             int horizontal;
@@ -5521,6 +5707,16 @@ namespace Lea.Engine
             if (parts.Length == 1) vertical = horizontal;
             else if (!RadiusValue(parts[1], out vertical)) return;
             SetRadius(style, corner, horizontal, vertical);
+        }
+
+        private static int RadiusHorizontal(S style, int corner)
+        {
+            return corner == 0 ? style.R0 : corner == 1 ? style.R1 : corner == 2 ? style.R2 : style.R3;
+        }
+
+        private static int RadiusVertical(S style, int corner)
+        {
+            return corner == 0 ? style.Q0 : corner == 1 ? style.Q1 : corner == 2 ? style.Q2 : style.Q3;
         }
 
         internal static bool Rd(string value, bool corner, out string radius)

@@ -43,6 +43,13 @@ source order, explicit inheritance/reset, variables, priority, familiar DOM
 forms, normalized paint, and invalid preservation stay engine-owned; Firespider
 adds no radius state or paint branch. See `LeaForge/LOGICAL_RADII.md`.
 
+Inherited horizontal `direction: ltr/rtl` is stored in compact `S.Dr=l/r` and
+resolved by Lea before logical declarations. The compiled host smoke verifies
+RTL margin, padding, border, and radius mapping plus live `dr(id,value)` remap;
+Firespider adds no adapter-side direction state. HTML `dir`, cascade details,
+cross-direction inheritance, DOM forms, and the bounded bidi boundary are
+documented in `LeaForge/DIRECTION.md`.
+
 `Startup-smooth-host.patch` removes the blocking crash-recovery question and
 automatically restores eligible unclean sessions. It also sends the retired
 built-in `fsin.glitch.me` home to the bundled Lea start page when no explicit
@@ -333,7 +340,7 @@ and reuses one curve for backgrounds, solid/dashed/dotted borders, descendant
 overflow clips, and ordinary fields. The adapter adds no rounded host controls;
 its smoke verifies the compiled browser receives the compact radius model.
 Logical corner longhands and all nine bounded physical/logical radius commands
-feed those same fields for horizontal left-to-right pages.
+feed those same fields for horizontal LTR/RTL pages.
 
 Responsive CSS also stays inside that surface. `V.Vw/Vh` follow the hosted
 control's client viewport, while `P.Vw` and `G.Vw` expose the media-query width

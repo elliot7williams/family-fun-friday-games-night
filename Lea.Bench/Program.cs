@@ -107,7 +107,7 @@ namespace Lea.Bench
             var names = new[]
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
-                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
+                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "direction-logical.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -2437,6 +2437,53 @@ namespace Lea.Bench
                 Need(engine.Js(page, "bi('command','THICK SOLID RED')") == 1 && block("command").S.Bl == 5 && block("command").S.Bsv(3) == "solid",
                     "case-insensitive logical border keywords changed");
                 return "horizontal-tb/LTR logical border axes and edges, physical per-edge components, bounded atomic parsing, source order, important, variables, inheritance/reset, twenty-four compact/readable commands, familiar DOM styles, mixed rounded paint, and shared geometry";
+            });
+            AddProbe(probes, "Bounded horizontal direction mapping", delegate
+            {
+                var path = Path.Combine(folder, "direction-logical.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                var order = block("order").S;
+                Need(order.Dr == "r" && order.Mr == 11 && order.Pl == 13 && order.Br == 3 && order.R0 == 17,
+                    "direction pre-cascade or logical source-order mapping changed");
+                var boxes = block("boxes").S;
+                var borders = block("borders").S;
+                var radii = block("radii").S;
+                Need(boxes.Mr == 31 && boxes.Ml == 33 && boxes.Pr == 41 && boxes.Pl == 43,
+                    "RTL logical box mapping changed");
+                Need(borders.Bt == 52 && borders.Br == 51 && borders.Bb == 54 && borders.Bl == 53 &&
+                    borders.Bsv(1) == "dashed" && borders.Bcv(3) == "#a13b18", "RTL logical border mapping changed");
+                Need(radii.R0 == 62 && radii.R1 == 61 && radii.R2 == 63 && radii.R3 == 64,
+                    "RTL logical radius mapping changed");
+                var inherited = block("child").S;
+                Need(inherited.Dr == "l" && inherited.Ml == 31 && inherited.Mr == 33 && inherited.Bl == 51 && inherited.Br == 53 &&
+                    inherited.R0 == 62 && inherited.R1 == 61 && inherited.R2 == 64 && inherited.R3 == 63,
+                    "cross-direction logical inheritance changed");
+                Need(block("variable").S.Dr == "r" && block("variable").S.Ta == "r" && block("important").S.Dr == "l" &&
+                    block("align-start").S.Ta == "r" && block("align-end").S.Ta == "l", "direction cascade or start/end alignment changed");
+                using (var view = new V { Size = new Size(760, 1200) })
+                {
+                    view.CreateControl();
+                    view.Go(path);
+                    using (var image = Draw(view)) { }
+                    Need(view.Ck(ById(view.At.D, "set-short")) == 1, "short direction command failed");
+                    using (var image = Draw(view)) { }
+                    var command = view.At.Bs.First(item => item.El != null && item.El.Av("id") == "command").S;
+                    Need(command.Dr == "r" && command.Mr == 5 && command.R1 == 6,
+                        "direction command did not rebuild WinForms logical geometry");
+                }
+                Need(engine.Ck(page, ById(page.D, "set-short")) == 1 && block("command").S.Dr == "r" && block("command").S.Mr == 5 && block("command").S.R1 == 6,
+                    "short direction alias did not remap logical styles");
+                Need(engine.Ck(page, ById(page.D, "set-readable")) == 1 && block("command").S.Dr == "l" && block("command").S.Ml == 5,
+                    "readable direction alias did not restore LTR mapping");
+                Need(engine.Ck(page, ById(page.D, "set-dom")) == 1 && block("command").S.Dr == "r" &&
+                    engine.Ck(page, ById(page.D, "clear-dom")) == 1 && block("command").S.Dr == "l",
+                    "literal DOM direction or empty reset changed");
+                Need(engine.Js(page, "dr('rtl')") == 1 && block("body-probe").S.Dr == "r" && block("body-probe").S.Mr == 9,
+                    "body direction alias did not reach descendants");
+                Need(engine.Js(page, "dr('command','sideways')") == 0, "unsupported direction was accepted");
+                return "inherited ltr/rtl direction with HTML dir, variables, important and pre-cascade resolution, remapped logical insets/boxes/borders/radii, cross-direction inherit, start/end alignment, dr/readable/DOM commands, and reset";
             });
             AddProbe(probes, "Bounded sticky positioning", delegate
             {

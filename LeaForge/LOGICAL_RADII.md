@@ -1,7 +1,7 @@
 # Lea Logical Corner Radii
 
-Milestone 86 / runtime 186 adds bounded logical corner radii to Lea's current
-horizontal left-to-right layout. The four logical properties compile directly
+Milestone 86 / runtime 186 added bounded logical corner radii to Lea's horizontal
+layout. Runtime 187 adds inherited LTR/RTL mapping. The four logical properties compile directly
 into the existing clockwise `S.R0/R1/R2/R3` horizontal and `Q0/Q1/Q2/Q3`
 vertical radius fields, so the feature adds no style record, layout model, or
 renderer allocation.
@@ -9,10 +9,10 @@ renderer allocation.
 ## Corner Mapping
 
 ```text
-border-start-start-radius -> top-left     -> R0/Q0
-border-start-end-radius   -> top-right    -> R1/Q1
-border-end-end-radius     -> bottom-right -> R2/Q2
-border-end-start-radius   -> bottom-left  -> R3/Q3
+border-start-start-radius -> top-left (LTR) / top-right (RTL)
+border-start-end-radius   -> top-right (LTR) / top-left (RTL)
+border-end-end-radius     -> bottom-right (LTR) / bottom-left (RTL)
+border-end-start-radius   -> bottom-left (LTR) / bottom-right (RTL)
 ```
 
 Each property accepts one horizontal radius or a horizontal and vertical pair.
@@ -29,8 +29,10 @@ atomically.
 
 ## Inheritance And Resets
 
-`border-radius: inherit` now copies all eight elliptical parent values. Physical
-and logical corner longhands copy their matching parent corner with `inherit`.
+`border-radius: inherit` copies all eight elliptical parent values. Physical
+corner longhands copy the matching physical corner. Logical corner `inherit`
+reads the parent's direction-aware corner and writes the child's corresponding
+direction-aware corner, including cross-direction nesting.
 `initial`, `unset`, `revert`, and `revert-layer` restore zero radii for the
 target shorthand or corner. This is explicit inheritance; corner radii remain
 non-inherited by default.
@@ -74,10 +76,9 @@ incorrect corner mapping is visible in exact bitmap samples.
 
 ## Limits
 
-Logical corners currently use horizontal-tb left-to-right mapping. Lea does not
-yet remap them for `direction: rtl`, vertical writing modes, or bidi runs.
+Logical corners use horizontal-tb LTR/RTL mapping through `S.Dr`. Lea does not
+implement vertical writing modes, `dir=auto`, or bidi glyph reordering.
 Fractional lengths, relative units, `calc()`, size functions, and arbitrary CSS
-radius syntax remain outside this bounded milestone.
 
 ## Verification
 

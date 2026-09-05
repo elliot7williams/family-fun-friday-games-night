@@ -502,6 +502,78 @@ namespace Lea.Tests
                     BlockById(logicalBorderPage, "command").S.Bsv(3) == "solid" && BlockById(logicalBorderPage, "command").S.Bcv(1) == "RED",
                     "uppercase logical border keywords reach compact records");
 
+                var directionPath = Path.Combine(pages, "direction-logical.html");
+                var directionEngine = new E();
+                var directionPage = directionEngine.Go(directionPath);
+                Eq(0, directionPage.Jc, "direction fixture has no startup commands");
+                var directionOrder = BlockById(directionPage, "order").S;
+                Ok(directionOrder.Dr == "r" && directionOrder.Mr == 11 && directionOrder.Pl == 13 && directionOrder.Br == 3 &&
+                    directionOrder.R0 == 17 && directionOrder.Q0 == 19,
+                    "direction resolves before logical declarations regardless of source order");
+                var directionAttribute = BlockById(directionPage, "attribute").S;
+                Ok(directionAttribute.Dr == "r" && directionAttribute.Mr == 21 && directionAttribute.Pl == 23,
+                    "HTML dir maps logical edges");
+                Ok(BlockById(directionPage, "attribute-override").S.Dr == "l" && BlockById(directionPage, "attribute-override").S.Ml == 25,
+                    "CSS direction overrides HTML dir");
+                var directionVariable = BlockById(directionPage, "variable").S;
+                var directionImportant = BlockById(directionPage, "important").S;
+                Ok(directionVariable.Dr == "r" && directionVariable.Mr == 27 && directionVariable.Ta == "r" &&
+                    directionImportant.Dr == "l" && directionImportant.Ml == 29 && directionImportant.Ta == "r",
+                    "direction variables, important cascade, and logical text alignment");
+                var directionInset = BlockById(directionPage, "inset").S;
+                var directionInsetLong = BlockById(directionPage, "inset-long").S;
+                Ok(directionInset.Rt == 12 && directionInset.Lt == 18 && directionInset.Tp == 14 && directionInset.Bm == 16 &&
+                    directionInsetLong.Rt == 23 && directionInsetLong.Lt == 25 && directionInsetLong.Tp == 27 && directionInsetLong.Bm == 29,
+                    "RTL logical inset axes and edges");
+                var directionBoxes = BlockById(directionPage, "boxes").S;
+                Ok(directionBoxes.Mt == 32 && directionBoxes.Mr == 31 && directionBoxes.Mb == 34 && directionBoxes.Ml == 33 &&
+                    directionBoxes.Pt == 42 && directionBoxes.Pr == 41 && directionBoxes.Pb == 44 && directionBoxes.Pl == 43,
+                    "RTL logical margin and padding mapping");
+                var directionBorders = BlockById(directionPage, "borders").S;
+                Ok(directionBorders.Bt == 52 && directionBorders.Br == 51 && directionBorders.Bb == 54 && directionBorders.Bl == 53 &&
+                    directionBorders.Bsv(0) == "solid" && directionBorders.Bsv(1) == "dashed" && directionBorders.Bsv(2) == "double" && directionBorders.Bsv(3) == "dotted" &&
+                    directionBorders.Bcv(0) == "#176b4d" && directionBorders.Bcv(1) == "#123f8c" && directionBorders.Bcv(2) == "#b7791f" && directionBorders.Bcv(3) == "#a13b18",
+                    "RTL logical border axes and components");
+                var directionRadii = BlockById(directionPage, "radii").S;
+                Ok(directionRadii.R0 == 62 && directionRadii.R1 == 61 && directionRadii.R2 == 63 && directionRadii.R3 == 64 &&
+                    directionRadii.Q0 == 72 && directionRadii.Q1 == 71 && directionRadii.Q2 == 73 && directionRadii.Q3 == 74,
+                    "RTL logical corner mapping");
+                var crossDirection = BlockById(directionPage, "child").S;
+                Ok(crossDirection.Dr == "l" && crossDirection.Ml == 31 && crossDirection.Mr == 33 && crossDirection.Pl == 41 && crossDirection.Pr == 43 &&
+                    crossDirection.Bl == 51 && crossDirection.Br == 53 && crossDirection.Bsv(3) == "dashed" && crossDirection.Bsv(1) == "dotted" &&
+                    crossDirection.Bcv(3) == "#123f8c" && crossDirection.Bcv(1) == "#a13b18" &&
+                    crossDirection.R0 == 62 && crossDirection.R1 == 61 && crossDirection.R2 == 64 && crossDirection.R3 == 63 &&
+                    crossDirection.Q0 == 72 && crossDirection.Q1 == 71 && crossDirection.Q2 == 74 && crossDirection.Q3 == 73,
+                    "explicit logical inheritance translates parent and child directions");
+                Ok(BlockById(directionPage, "align-start").S.Ta == "r" && BlockById(directionPage, "align-end").S.Ta == "l",
+                    "RTL start and end text alignment");
+                Ok(BlockById(directionPage, "unset-direction").S.Dr == "r" && BlockById(directionPage, "unset-direction").S.Mr == 35 &&
+                    BlockById(directionPage, "initial-direction").S.Dr == "l" && BlockById(directionPage, "initial-direction").S.Ml == 37 &&
+                    BlockById(directionPage, "revert-direction").S.Dr == "r" && BlockById(directionPage, "revert-direction").S.Mr == 39,
+                    "inherited, initial, unset, and HTML-backed revert direction");
+                Eq(1, directionEngine.Ck(directionPage, ById(directionPage.D, "set-short")), "short direction alias");
+                Ok(BlockById(directionPage, "command").S.Dr == "r" && BlockById(directionPage, "command").S.Mr == 5 &&
+                    BlockById(directionPage, "command").S.R1 == 6 && BlockById(directionPage, "command").S.Q1 == 7,
+                    "short direction alias remaps authored logical styles");
+                Eq(1, directionEngine.Ck(directionPage, ById(directionPage.D, "set-readable")), "readable direction alias");
+                Ok(BlockById(directionPage, "command").S.Dr == "l" && BlockById(directionPage, "command").S.Ml == 5 && BlockById(directionPage, "command").S.R0 == 6,
+                    "readable direction alias restores LTR mapping");
+                Eq(1, directionEngine.Ck(directionPage, ById(directionPage.D, "set-dom")), "literal DOM direction style");
+                Ok(BlockById(directionPage, "command").S.Dr == "r" && BlockById(directionPage, "command").S.Mr == 5, "DOM direction remaps logical styles");
+                Eq(1, directionEngine.Ck(directionPage, ById(directionPage.D, "clear-dom")), "empty DOM direction reset");
+                Ok(BlockById(directionPage, "command").S.Dr == "l" && BlockById(directionPage, "command").S.Ml == 5 && BlockById(directionPage, "command").S.F == "#123f8c",
+                    "empty DOM direction restores authored cascade and preserves unrelated style");
+                Eq(1, directionEngine.Js(directionPage, "dr('rtl')"), "body direction short alias");
+                Ok(BlockById(directionPage, "body-probe").S.Dr == "r" && BlockById(directionPage, "body-probe").S.Mr == 9,
+                    "body direction alias reaches descendants");
+                Eq(1, directionEngine.Js(directionPage, "document.body.style.direction='ltr'"), "body DOM direction assignment");
+                Ok(BlockById(directionPage, "body-probe").S.Dr == "l" && BlockById(directionPage, "body-probe").S.Ml == 9,
+                    "body DOM direction assignment remaps descendants");
+                Eq(1, directionEngine.Js(directionPage, "document.body.style.direction=''"), "body DOM direction reset");
+                Eq(0, directionEngine.Js(directionPage, "dr('command','sideways');direction('command','vertical-rl')"), "unsupported directions rejected");
+                Ok(BlockById(directionPage, "command").S.Dr == "l" && BlockById(directionPage, "command").S.Ml == 5,
+                    "rejected directions preserve authored state");
+
                 var viewportPath = Path.Combine(pages, "viewport-units.html");
                 var viewportEngine = new E();
                 var viewportPage = viewportEngine.Go(viewportPath);

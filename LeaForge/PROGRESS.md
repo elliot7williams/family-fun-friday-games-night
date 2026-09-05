@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **86**
+Post-1.0 hardening milestones completed: **87**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -14,10 +14,10 @@ modern web platform.
 | Core and alias API | 10% | 10% | Compact API, bounded diagnostics, repeatable reports, history, projects, backups |
 | Networking | 10% | 10% | Bounded request deadlines and downloads, private cookies, typed errors, validators, compression, memory LRU and optional persistent cache |
 | HTML and document tree | 20% | 20% | Bounded tokens, queries, base URLs and fragments, raw/RCDATA text, entities, recovery, HTML-hidden suppression, semantic accessibility, blocks, lists, disclosures, gauges, values, time/edit metadata, responsive image maps, tabindex focus, autofocus/access keys, tables |
-| CSS | 15% | 15% | Compiled relationship, bounded strict relational/functional, An+B/reverse, and filtered structural selectors, declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, fixed/percentage/calculated plus logical dimensions, logical insets/margins/padding/borders, classic viewport/font-relative units and bounded size functions, bounded vertical sticky positioning, dynamic hover/focus, inherited cursor/pointer interaction, text transformation and signed letter/word spacing, content/border sizing, circular/elliptical radii, bounded outlines, box shadows, gradients, bitmap backgrounds, object fitting and aspect ratios, visibility/opacity, fonts, overflow, boxes, bounded ordered flex and two-axis grid properties |
+| CSS | 15% | 15% | Compiled relationship, bounded strict relational/functional, An+B/reverse, and filtered structural selectors, declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, inherited horizontal LTR/RTL direction, fixed/percentage/calculated plus direction-aware logical dimensions/insets/margins/padding/borders/radii, classic viewport/font-relative units and bounded size functions, bounded vertical sticky positioning, dynamic hover/focus, inherited cursor/pointer interaction, text transformation and signed letter/word spacing, content/border sizing, circular/elliptical radii, bounded outlines, box shadows, gradients, bitmap backgrounds, object fitting and aspect ratios, visibility/opacity, fonts, overflow, boxes, bounded ordered flex and two-axis grid properties |
 | Layout and painting | 20% | 20% | Shared physical/logical box edges and per-edge border styles/colors plus fixed/percentage/calculated, viewport-unit, font-relative, and min/max/clamp dimensions, content/border, aspect-ratio, and sticky geometry, transformed and spacing-aware presentation text with raw form retention, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients/bitmaps, pointer-gated retained hits with underlying fallthrough, fitted raster images and maps, ordered flex rows/columns, bounded grid tracks/spans, distribution, alignment, wrapping, grow/shrink, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Native field edit commands and one-level undo/redo, bounded multipart files, richer widgets, validation, responsive and fitted images, GET/POST submit |
-| Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/body and ID-scoped display/width/height/logical box/border/style/alert, class, visibility, disclosure, field-state, focus, and literal bounded DOM translation |
+| Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/body and ID-scoped display/width/height/direction/logical box/border/radius/style/alert, class, visibility, disclosure, field-state, focus, and literal bounded DOM translation |
 | Firespider integration and reliability | 10% | 10% | Lea-first New Tab/Ctrl+T, explicit legacy fallback, Inspector with Access view, MSAA/UIA surfaces including read-only text, host-safe focus shortcuts, navigation, sessions, source, host smokes |
 | **Total** | **100%** | **100%** | Scoped Lea 1.0 baseline complete; post-1.0 hardening continues |
 
@@ -29,6 +29,25 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded inherited horizontal `direction: ltr/rtl` through compact
+  `S.Dr=l/r`, HTML `dir`, and an independent pre-cascade direction pass so
+  logical properties map correctly regardless of declaration order. Logical
+  insets, margin, padding, border shorthands/components, all four corner radii,
+  and `text-align: start/end` now map for RTL while physical properties remain
+  physical. Explicit logical inheritance translates between the parent's and
+  child's directions. Short/readable `dr`, body and ID targets, familiar DOM
+  assignments, empty authored restore, variables, important tiers, CSS-wide
+  values, and invalid rejection share one bounded style path. Full repository
+  and compiled-host smokes pass, along with 83 probes over 80 fixtures, all 42
+  Boot cases, and all six actual EXE startup scenarios without legacy-engine,
+  cast, or JIT dialogs. Measured medians are 526.671 ms clean diagnostic start,
+  3.672 ms local load, and 34.037 ms layout/paint. Retained managed memory is
+  20,871.2 KiB for 400 pages, or 52.2 KiB/page. Required runtime files total
+  558.5 KiB with a 235.6 KiB GZip estimate. Runtime 187 stays isolated and
+  installed runtime 157 remains unchanged. See `DIRECTION.md`. Unicode bidi
+  glyph reordering and vertical writing modes remain outside this milestone;
+  the scoped baseline stays at 100%, not full-web compatibility.
 
 - Added bounded horizontal left-to-right logical corner radii. Four logical
   longhands map directly onto the existing clockwise `R0..R3/Q0..Q3`
@@ -1028,9 +1047,8 @@ modern web platform.
 
 ## Next gains
 
-- Evaluate bounded horizontal logical border properties that can reuse the
-  existing border width/style/color records without claiming writing-mode-
-  dependent layout.
+- Evaluate direction-aware row flex and grid auto-placement behavior without
+  claiming Unicode bidi text shaping or vertical writing-mode support.
 - Add an AppContainer or capability-denied network boundary, custom object ACLs,
   and combined host/helper peak sampling without expanding the public
   integration surface.

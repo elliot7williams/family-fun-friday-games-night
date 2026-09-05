@@ -31,7 +31,7 @@ read and quick to write.
   redirects or resource requests. Firespider installs it on ordinary and split
   tabs. See `NAVIGATION_POLICY.md` and `SPLIT_VIEW.md` for its callback contract.
 - Page values use one or two letters: `U`, `T`, `H`, `Q`, `D`, `N`, `Bs`, and `Ls`.
-- Page commands use one or two letters: `t`, `a`, `bg`, `fg`, `fs`, `dp`, `wd`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`.
+- Page commands use one or two letters where practical: `t`, `a`, `bg`, `fg`, `fs`, `dp`, `wd`, `ht`, `dr`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`; logical edge families stay within three letters.
 - New public aliases should be no more than three letters.
 - `E/V.Hm` reports the 4 MiB document-body ceiling; `E/V.Csm` reports the
   256 KiB linked-stylesheet ceiling. GET/POST input and optional CSS share
@@ -79,6 +79,8 @@ fs("id", 18)      element font size
 dp("id", "none") element display
 wd("id", "50%")  element width
 ht("id", "120px") element height
+dr("rtl")          body direction
+dr("id", "rtl")   element direction
 is("id", "50%")  logical inline size
 bs("id", "120px") logical block size
 mi("id", "8px 12px") logical inline margin
@@ -114,13 +116,21 @@ fo("id")              request focus
 go("next.html")        request host navigation
 ```
 
-The two-argument `bg/fg/fs/dp/wd/ht/is/bs`, logical box, logical border, and
+The two-argument `bg/fg/fs/dp/wd/ht/dr/is/bs`, logical box, logical border, and
 radius forms
 target one validated ID. Color and font
 forms reuse the same
 hex/named-color and 8..96 pixel font bounds as the body forms, reject document
 metadata targets, cap the resulting inline style at 4,096 characters, and
 preserve mutable fields through the shared CSS rebuild.
+
+`S.Dr` stores inherited horizontal direction as `l` or `r`. CSS `direction`,
+HTML `dir`, variables, inline/important tiers, and CSS-wide values resolve
+before logical declarations. `dr` accepts `ltr`, `rtl`, bounded CSS-wide values,
+or an empty authored reset through body/ID, readable `direction`, and literal
+`style.direction` forms. Logical edges and corners remap for RTL; explicit
+logical inheritance translates between different parent/child directions. See
+`DIRECTION.md`.
 
 `dp` accepts a bounded standard display keyword set. `none` removes the subtree
 from layout and accessibility; `flex`/`inline-flex` and `grid`/`inline-grid`
@@ -142,7 +152,7 @@ parser. Readable `inlinesize`/`blocksize` command forms and literal
 See `CALCULATED_WIDTHS.md`, `CALCULATED_HEIGHTS.md`, `VIEWPORT_UNITS.md`,
 `FONT_RELATIVE_UNITS.md`, `SIZE_FUNCTIONS.md`, and `LOGICAL_SIZING_INSETS.md`.
 
-`mi/mb/pi/pb` set horizontal logical margin/padding axes with one or two fixed
+`mi/mb/pi/pb` set direction-aware horizontal logical margin/padding axes with one or two fixed
 pixel values. `mis/mie/mbs/mbe` and `pis/pie/pbs/pbe` target one logical edge;
 the readable forms are `margininline`, `marginblockend`,
 `paddinginlinestart`, and their matching names. Margins accept signed values
@@ -151,7 +161,7 @@ from -2,000 through 2,000; padding accepts 0 through 2,000. Literal
 properties use the same compact paths. Empty assignments restore authored CSS.
 See `LOGICAL_BOX_MODEL.md`.
 
-`bi/bb` set a full horizontal logical inline/block border; `bis/bie/bbs/bbe`
+`bi/bb` set a full direction-aware horizontal logical inline/block border; `bis/bie/bbs/bbe`
 target one start/end edge. Component aliases use `w` for width, `y` for style,
 and `c` for color: `biw/biy/bic`, `bbw/bby/bbc`, plus `si*`, `ei*`, `sb*`, and
 `eb*` for the four logical edges. Axis components accept one or two values.

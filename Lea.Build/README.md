@@ -77,6 +77,11 @@ logical source order, important, variables, shorthand/corner inheritance, reset
 keywords, atomic fallback, all nine short/readable radius commands, familiar DOM
 forms, authored restore, and asymmetric paint. See
 `LeaForge/LOGICAL_RADII.md`.
+`direction-logical.html` covers inherited horizontal LTR/RTL state, HTML `dir`,
+variables, important and pre-cascade resolution, direction-aware logical
+insets/boxes/borders/radii, translated cross-direction inheritance,
+`text-align: start/end`, compact/readable `dr`, familiar DOM forms, reset, and
+invalid preservation. See `LeaForge/DIRECTION.md`.
 `fragment-stability.html` covers `Fa/Fj/Fy`, first-paint retention, responsive
 host settlement, intrinsic image reflow, missing targets, and manual-scroll
 release. See `LeaForge/INITIAL_FRAGMENT_STABILITY.md`.

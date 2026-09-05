@@ -83,20 +83,23 @@ LeaForge is where we can grow the more full-featured browser.
   compact `S.Vc/Cv`, nested `var()` fallback, lazy maps, and strict limits
 - bounded normal/important cascade for supported declarations, with stylesheet
   and inline tiers, compact `G.Ic` diagnostics, and quoted/function boundaries
-- horizontal left-to-right logical `inline-size`/`block-size` plus min/max and
+- horizontal logical `inline-size`/`block-size` plus min/max and direction-aware
   logical inset longhand/axis shorthands, reusing physical records and geometry;
   short `is/bs` and familiar DOM aliases; see `LOGICAL_SIZING_INSETS.md`
-- horizontal left-to-right logical margin/padding axes and longhands with
+- horizontal direction-aware logical margin/padding axes and longhands with
   signed bounded margins, atomic parsing, twelve compact aliases, familiar DOM
   forms, and shared box geometry; see `LOGICAL_BOX_MODEL.md`
-- horizontal left-to-right logical border axes, edges, and width/style/color
+- horizontal direction-aware logical border axes, edges, and width/style/color
   components with atomic physical lists, lazy per-edge records, 24 compact
   aliases, familiar DOM forms, hidden used widths, shared geometry, and mixed
   rounded paint; see `LOGICAL_BORDERS.md`
-- horizontal left-to-right logical corner radii mapped onto the existing
+- horizontal direction-aware logical corner radii mapped onto the existing
   physical ellipse fields, with explicit inheritance/reset, atomic parsing,
   nine compact aliases, readable/familiar DOM forms, authored restore, and
   shared asymmetric paint; see `LOGICAL_RADII.md`
+- inherited horizontal `direction: ltr/rtl` through compact `S.Dr=l/r`, HTML
+  `dir`, pre-cascade resolution, translated cross-direction logical inheritance,
+  `text-align: start/end`, and compact `dr`; see `DIRECTION.md`
 - live `:hover` and `:focus` restyling that preserves mutable form values
 - non-inherited `content-box`/`border-box` sizing across pixel dimensions,
   min/max clamps, flex basis, fields, images, tables, and cells
@@ -174,6 +177,8 @@ fs("id", 18)      element font size
 dp("id", "none") element display
 wd("id", "50%")  element width
 ht("id", "50%")  element height
+dr("rtl")         body direction
+dr("id", "rtl")  element direction
 mi("id", "8px 12px") inline margin
 mb("id", "6px")      block margin
 pi("id", "8px 12px") inline padding
@@ -200,8 +205,8 @@ The longer `alert(...)` and `document.title = ...` forms still work. The short
 forms are intended for small, fast Lea pages and are limited to simple values.
 Literal `document.getElementById("id")` statements may use `textContent` or
 `innerText`, field/state booleans, `focus()`, `classList.add/remove/toggle`, and
-the already bounded background/color/font-size/display/width/height and logical
-margin/padding styles. Lea translates
+the already bounded background/color/font-size/display/width/height/direction
+and logical margin/padding/border/radius styles. Lea translates
 these familiar forms into the short commands above; it does not expose arbitrary DOM
 objects, expressions, `innerHTML`, callbacks, or a general JavaScript runtime.
 `go` never navigates the engine directly: it queues one bounded HTTP, HTTPS, or

@@ -1,7 +1,7 @@
 # Lea Logical Sizing And Insets
 
-Milestone 83 / runtime 183 adds bounded logical CSS sizing and positioned
-insets to Lea's current horizontal left-to-right layout. The implementation
+Milestone 83 / runtime 183 added bounded logical CSS sizing and positioned
+insets to Lea's horizontal layout. Runtime 187 adds inherited LTR/RTL mapping. The implementation
 maps familiar property names onto the existing compact width, height, and edge
 records, so it adds no parallel layout model or persistent per-element state.
 
@@ -42,11 +42,11 @@ corresponding physical inline style and restores the authored cascade.
 The supported logical positioned properties are:
 
 ```text
-inset-inline-start  -> left
-inset-inline-end    -> right
+inset-inline-start  -> left (LTR) / right (RTL)
+inset-inline-end    -> right (LTR) / left (RTL)
 inset-block-start   -> top
 inset-block-end     -> bottom
-inset-inline        -> left/right
+inset-inline        -> inline start/end
 inset-block         -> top/bottom
 ```
 
@@ -60,15 +60,14 @@ insets.
 
 ## Deliberate Boundary
 
-Lea currently lays out horizontal left-to-right content. Logical mappings are
-therefore fixed to inline start/left, inline end/right, block start/top, and
-block end/bottom. `direction`, bidirectional reordering, vertical writing
-modes, and writing-mode-dependent remapping are not implemented. Unsupported
-or malformed declarations remain inert rather than selecting a guessed axis.
+Lea lays out horizontal content and maps inline start/end through inherited
+`direction:ltr/rtl`; block start/end remain top/bottom. Bidirectional glyph
+reordering, `dir=auto`, vertical writing modes, and writing-mode-dependent block
+axis remapping are not implemented. Unsupported or malformed declarations
+remain inert rather than selecting a guessed axis.
 
 This scope gives common modern stylesheets useful compatibility while keeping
-the engine small. A later writing-mode milestone can place direction state in
-front of the same compact records without duplicating the dimension resolver.
+the engine small. See `DIRECTION.md` for direction cascade and command details.
 
 ## Verification
 

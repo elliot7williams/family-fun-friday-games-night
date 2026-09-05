@@ -1,7 +1,7 @@
 # Lea Logical Box Model
 
-Milestone 84 / runtime 184 adds bounded logical CSS margins and padding to
-Lea's horizontal left-to-right layout. All properties compile into the existing
+Milestone 84 / runtime 184 added bounded logical CSS margins and padding to
+Lea's horizontal layout. Runtime 187 adds inherited LTR/RTL mapping. All properties compile into the existing
 eight integer box-edge fields, so the feature adds no parallel layout model or
 persistent per-element state.
 
@@ -10,9 +10,9 @@ persistent per-element state.
 The supported axis shorthands are:
 
 ```text
-margin-inline   -> margin-left / margin-right
+margin-inline   -> margin inline-start / inline-end
 margin-block    -> margin-top / margin-bottom
-padding-inline  -> padding-left / padding-right
+padding-inline  -> padding inline-start / inline-end
 padding-block   -> padding-top / padding-bottom
 ```
 
@@ -20,12 +20,12 @@ One value applies to both ends. Two values apply to start then end. Lea also
 supports all eight logical longhands:
 
 ```text
-margin-inline-start   -> margin-left
-margin-inline-end     -> margin-right
+margin-inline-start   -> margin-left (LTR) / margin-right (RTL)
+margin-inline-end     -> margin-right (LTR) / margin-left (RTL)
 margin-block-start    -> margin-top
 margin-block-end      -> margin-bottom
-padding-inline-start  -> padding-left
-padding-inline-end    -> padding-right
+padding-inline-start  -> padding-left (LTR) / padding-right (RTL)
+padding-inline-end    -> padding-right (LTR) / padding-left (RTL)
 padding-block-start   -> padding-top
 padding-block-end     -> padding-bottom
 ```
@@ -73,10 +73,10 @@ layout family without a renderer branch. Negative margins participate in the
 same bounded integer calculations; padding remains part of the content/border
 box and clipping paths.
 
-Lea still has one horizontal left-to-right axis model. `direction`, bidi
-reordering, vertical writing modes, and writing-mode-dependent remapping remain
-explicitly unsupported. A future direction milestone can remap the same eight
-records without changing host integration.
+Lea keeps one horizontal physical record model and remaps inline edges through
+inherited `direction:ltr/rtl`. Explicit logical inheritance translates between
+the parent and child directions. Bidi glyph reordering, `dir=auto`, vertical
+writing modes, and block-axis remapping remain unsupported. See `DIRECTION.md`.
 
 ## Verification
 
