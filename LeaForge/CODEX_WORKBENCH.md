@@ -17,18 +17,17 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 85 maps all horizontal left-to-right logical border axes, edges, and
-width/style/color components into Lea's physical box model. Four widths remain
-in their existing fields; one lazy eight-string record holds edge styles/colors
-only when they differ. Physical side shorthands and component lists are now
-atomic and genuinely per-edge. All 24 compact aliases stay within three letters,
-with readable and familiar literal DOM forms. Layout honors none/hidden per edge,
-while mixed rounded colors use clipped side regions and uniform borders keep the
-old fast path. Full repository and compiled-host tests pass with 81 probes over
-78 fixtures, all 42 Boot cases, and all six real EXE startup scenarios. Runtime
-185 stays isolated and installed runtime 157 remains unchanged. See
-`LOGICAL_BORDERS.md`. Next evaluate bounded logical border radii or direction
-mapping without introducing a general writing-mode or script VM.
+Milestone 86 maps all four horizontal left-to-right logical corner radii onto
+Lea's existing clockwise elliptical fields. Physical/logical source order,
+important tiers, variables, explicit shorthand/corner inheritance, reset
+keywords, normalized paint, and invalid atomic preservation remain on one path
+without a new style record. Nine `rd/rtl/rtr/rbr/rbl/rss/rse/res/ree` aliases
+stay within three letters, with readable and familiar literal DOM forms. Full
+repository and compiled-host tests pass with 82 probes over 79 fixtures, all 42
+Boot cases, and all six actual EXE startup scenarios. Runtime 186 stays isolated
+and installed runtime 157 remains unchanged. See `LOGICAL_RADII.md`. Next
+evaluate bounded `direction:ltr/rtl` remapping across the existing logical box
+properties without introducing vertical writing modes or a general script VM.
 
 Milestone 60 installs the existing `V.Ng` hook on main Lea tabs, enforcing host
 rules, offline/locked state, and live ownership. Denied resume retains its

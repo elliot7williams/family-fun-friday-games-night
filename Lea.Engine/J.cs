@@ -220,6 +220,15 @@ namespace Lea.Engine
                 if (!E.Bd(Expand(page, command.W), component, maximum, out border)) return false;
                 return SetStyle(target, borderProperty, border);
             }
+            var radiusProperty = RadiusProperty(command.N);
+            if (radiusProperty != null)
+            {
+                var target = StyleTarget(page, command);
+                if (target == null || command.W == null) return false;
+                string radius;
+                if (!E.Rd(Expand(page, command.W), radiusProperty != "border-radius", out radius)) return false;
+                return SetStyle(target, radiusProperty, radius);
+            }
             return false;
         }
 
@@ -304,6 +313,8 @@ namespace Lea.Engine
             if (logicalBox != null) return new Cm(logicalBox, id, value);
             var logicalBorder = member.StartsWith("style.", StringComparison.Ordinal) ? LogicalBorderCommand(member.Substring(6)) : null;
             if (logicalBorder != null) return new Cm(logicalBorder, id, value);
+            var radius = member.StartsWith("style.", StringComparison.Ordinal) ? RadiusCommand(member.Substring(6)) : null;
+            if (radius != null) return new Cm(radius, id, value);
             return null;
         }
 
@@ -339,6 +350,8 @@ namespace Lea.Engine
             if (count == 2 && logicalBox != null) return new Cm(logicalBox, first, second);
             var logicalBorder = LogicalBorderCommand(name);
             if (count == 2 && logicalBorder != null) return new Cm(logicalBorder, first, second);
+            var radius = RadiusCommand(name);
+            if (count == 2 && radius != null) return new Cm(radius, first, second);
             if (count == 2 && name == "ac") return new Cm("ac", first, second);
             if (count == 2 && name == "rc") return new Cm("rc", first, second);
             if (count == 2 && name == "tc") return new Cm("tc", first, second);
@@ -550,6 +563,34 @@ namespace Lea.Engine
             if (command == "ebw") return "border-block-end-width";
             if (command == "eby") return "border-block-end-style";
             if (command == "ebc") return "border-block-end-color";
+            return null;
+        }
+
+        private static string RadiusCommand(string name)
+        {
+            if (name == "rd" || name == "borderradius") return "rd";
+            if (name == "rtl" || name == "bordertopleftradius") return "rtl";
+            if (name == "rtr" || name == "bordertoprightradius") return "rtr";
+            if (name == "rbr" || name == "borderbottomrightradius") return "rbr";
+            if (name == "rbl" || name == "borderbottomleftradius") return "rbl";
+            if (name == "rss" || name == "borderstartstartradius") return "rss";
+            if (name == "rse" || name == "borderstartendradius") return "rse";
+            if (name == "res" || name == "borderendstartradius") return "res";
+            if (name == "ree" || name == "borderendendradius") return "ree";
+            return null;
+        }
+
+        private static string RadiusProperty(string command)
+        {
+            if (command == "rd") return "border-radius";
+            if (command == "rtl") return "border-top-left-radius";
+            if (command == "rtr") return "border-top-right-radius";
+            if (command == "rbr") return "border-bottom-right-radius";
+            if (command == "rbl") return "border-bottom-left-radius";
+            if (command == "rss") return "border-start-start-radius";
+            if (command == "rse") return "border-start-end-radius";
+            if (command == "res") return "border-end-start-radius";
+            if (command == "ree") return "border-end-end-radius";
             return null;
         }
 

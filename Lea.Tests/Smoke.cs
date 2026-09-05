@@ -4000,6 +4000,70 @@ namespace Lea.Tests
                     view.Size = new Size(300, 1200);
                     Paint(view);
                     Ok(BlockOuterRect(view, BlockById(view.At, "dashed")).Right <= view.ClientSize.Width - 1, "rounded boxes reflow narrowly");
+
+                    var logicalRadiusPath = Path.Combine(pages, "logical-radii.html");
+                    var logicalRadiusEngine = new E();
+                    var logicalRadiusPage = logicalRadiusEngine.Go(logicalRadiusPath);
+                    var logicalRadiusMapping = BlockById(logicalRadiusPage, "mapping").S;
+                    Ok(logicalRadiusMapping.R0 == 11 && logicalRadiusMapping.Q0 == 12 && logicalRadiusMapping.R1 == 13 && logicalRadiusMapping.Q1 == 14 &&
+                        logicalRadiusMapping.R2 == 15 && logicalRadiusMapping.Q2 == 16 && logicalRadiusMapping.R3 == 17 && logicalRadiusMapping.Q3 == 18,
+                        "logical corner radius physical mapping");
+                    var logicalRadiusSource = BlockById(logicalRadiusPage, "source").S;
+                    Ok(logicalRadiusSource.R0 == 20 && logicalRadiusSource.Q0 == 21 && logicalRadiusSource.R2 == 23 && logicalRadiusSource.Q2 == 24,
+                        "physical and logical corner source order");
+                    var logicalRadiusPriority = BlockById(logicalRadiusPage, "priority").S;
+                    Ok(logicalRadiusPriority.R1 == 25 && logicalRadiusPriority.Q1 == 26 && logicalRadiusPriority.R0 == 3 && logicalRadiusPriority.Q3 == 3,
+                        "important logical corner radius cascade");
+                    var logicalRadiusVariable = BlockById(logicalRadiusPage, "variables").S;
+                    Ok(logicalRadiusVariable.R3 == -30 && logicalRadiusVariable.Q3 == -40, "logical corner radius variable percentages");
+                    var logicalRadiusInherited = BlockById(logicalRadiusPage, "inherit-all").S;
+                    var logicalCornerInherited = BlockById(logicalRadiusPage, "inherit-corners").S;
+                    Ok(logicalRadiusInherited.R0 == 31 && logicalRadiusInherited.Q1 == 42 && logicalRadiusInherited.R2 == 33 && logicalRadiusInherited.Q3 == 44 &&
+                        logicalCornerInherited.R0 == 31 && logicalCornerInherited.Q1 == 42 && logicalCornerInherited.R2 == 33 && logicalCornerInherited.Q3 == 44,
+                        "physical shorthand and logical corner radius inheritance");
+                    var logicalRadiusReset = BlockById(logicalRadiusPage, "reset").S;
+                    Ok(logicalRadiusReset.R0 == 0 && logicalRadiusReset.R1 == 0 && logicalRadiusReset.R2 == 0 && logicalRadiusReset.R3 == 0 &&
+                        logicalRadiusReset.Q0 == 0 && logicalRadiusReset.Q1 == 0 && logicalRadiusReset.Q2 == 0 && logicalRadiusReset.Q3 == 0,
+                        "logical corner radius reset keywords");
+                    var logicalRadiusInvalid = BlockById(logicalRadiusPage, "invalid").S;
+                    Ok(logicalRadiusInvalid.R0 == 5 && logicalRadiusInvalid.R1 == 6 && logicalRadiusInvalid.R2 == 7 && logicalRadiusInvalid.R3 == 8 &&
+                        logicalRadiusInvalid.Q0 == 9 && logicalRadiusInvalid.Q1 == 10 && logicalRadiusInvalid.Q2 == 11 && logicalRadiusInvalid.Q3 == 12,
+                        "malformed logical corner radii preserve atomic state");
+                    Eq(9, logicalRadiusEngine.Ck(logicalRadiusPage, ById(logicalRadiusPage.D, "set-short")), "short physical and logical radius aliases");
+                    var logicalRadiusCommand = BlockById(logicalRadiusPage, "command").S;
+                    Ok(logicalRadiusCommand.R0 == 30 && logicalRadiusCommand.Q0 == 31 && logicalRadiusCommand.R1 == 32 && logicalRadiusCommand.Q1 == 33 &&
+                        logicalRadiusCommand.R2 == 36 && logicalRadiusCommand.Q2 == 37 && logicalRadiusCommand.R3 == 34 && logicalRadiusCommand.Q3 == 35,
+                        "short radius aliases reach compact records");
+                    Eq(0, logicalRadiusEngine.Ck(logicalRadiusPage, ById(logicalRadiusPage.D, "set-invalid")), "malformed radius commands rejected");
+                    Ok(BlockById(logicalRadiusPage, "command").S.R0 == 30 && BlockById(logicalRadiusPage, "command").S.Q2 == 37,
+                        "rejected radius commands preserve compact records");
+                    Eq(9, logicalRadiusEngine.Ck(logicalRadiusPage, ById(logicalRadiusPage.D, "clear-all")), "radius DOM reset after short aliases");
+                    logicalRadiusCommand = BlockById(logicalRadiusPage, "command").S;
+                    Ok(logicalRadiusCommand.R0 == 2 && logicalRadiusCommand.R1 == 3 && logicalRadiusCommand.R2 == 4 && logicalRadiusCommand.R3 == 5 &&
+                        logicalRadiusCommand.Q0 == 6 && logicalRadiusCommand.Q1 == 7 && logicalRadiusCommand.Q2 == 8 && logicalRadiusCommand.Q3 == 9,
+                        "radius DOM reset restores authored ellipse");
+                    Eq(9, logicalRadiusEngine.Ck(logicalRadiusPage, ById(logicalRadiusPage.D, "set-readable")), "readable physical and logical radius aliases");
+                    logicalRadiusCommand = BlockById(logicalRadiusPage, "command").S;
+                    Ok(logicalRadiusCommand.R0 == 50 && logicalRadiusCommand.Q0 == 51 && logicalRadiusCommand.R1 == 52 && logicalRadiusCommand.Q1 == 53 &&
+                        logicalRadiusCommand.R2 == 56 && logicalRadiusCommand.Q2 == 57 && logicalRadiusCommand.R3 == 54 && logicalRadiusCommand.Q3 == 55,
+                        "readable radius aliases reach compact records");
+                    Eq(9, logicalRadiusEngine.Ck(logicalRadiusPage, ById(logicalRadiusPage.D, "clear-all")), "radius DOM reset after readable aliases");
+                    Eq(9, logicalRadiusEngine.Ck(logicalRadiusPage, ById(logicalRadiusPage.D, "set-dom")), "familiar physical and logical radius DOM styles");
+                    logicalRadiusCommand = BlockById(logicalRadiusPage, "command").S;
+                    Ok(logicalRadiusCommand.R0 == 70 && logicalRadiusCommand.Q0 == 71 && logicalRadiusCommand.R1 == 72 && logicalRadiusCommand.Q1 == 73 &&
+                        logicalRadiusCommand.R2 == 76 && logicalRadiusCommand.Q2 == 77 && logicalRadiusCommand.R3 == 74 && logicalRadiusCommand.Q3 == 75,
+                        "familiar radius DOM styles reach compact records");
+                    Eq(9, logicalRadiusEngine.Ck(logicalRadiusPage, ById(logicalRadiusPage.D, "clear-all")), "radius DOM authored restore");
+                    view.Size = new Size(720, 1500);
+                    view.Go(logicalRadiusPath);
+                    using (var logicalRadiusPaint = Render(view))
+                    {
+                        var logicalPaintOuter = BlockOuterRect(view, BlockById(view.At, "paint"));
+                        Ok(ColorDistance(logicalRadiusPaint.GetPixel(logicalPaintOuter.Left + 1, logicalPaintOuter.Top + 1), Color.White) < 24 &&
+                            ColorDistance(logicalRadiusPaint.GetPixel(logicalPaintOuter.Right - 2, logicalPaintOuter.Top + 2), Color.FromArgb(23, 107, 77)) < 24 &&
+                            ColorDistance(CenterPixel(logicalRadiusPaint, logicalPaintOuter), Color.FromArgb(255, 244, 204)) < 16,
+                            "logical asymmetric corner radius paint");
+                    }
                     var shadowPath = Path.Combine(pages, "box-shadows.html");
                     var shadowPage = engine.Go(shadowPath);
                     var outerShadow = BlockById(shadowPage, "outer").S.Sw;
@@ -5966,6 +6030,7 @@ namespace Lea.Tests
                 if (args.Length > 4) SaveRender(tokenPath, args[4]);
                 if (args.Length > 5) SaveStateRender(statePath, args[5]);
                 Console.WriteLine("Lea CSS radius smoke passed: compact ellipse aliases, atomic cascade, normalized paint, overflow, fields, links, and resize.");
+                Console.WriteLine("Lea logical radius smoke passed: four mapped corners, nine compact/readable aliases, bounded DOM commands, inheritance/reset, atomic rejection, and asymmetric paint.");
                 Console.WriteLine("Lea CSS shadow smoke passed: compact aliases, atomic lists, bounded blur, alpha colors, outer/inset paint, fields, hits, and resize.");
                 Console.WriteLine("Lea CSS gradient smoke passed: compact image/stop aliases, atomic cascade, normalized stops, linear/radial/page/field paint, hits, and resize.");
                 Console.WriteLine("Lea CSS bitmap smoke passed: compact aliases, stylesheet origins, atomic cascade, bounded image loading, repeat/size/position/page/field paint, clipping, opacity, hits, and resize.");

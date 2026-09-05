@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea logical corner radii</title>
+  <style>
+    :root { --logical-curve: 30% 40%; }
+    body { margin: 0; padding: 12px; color: #123f8c; background: #ffffff; }
+    p { margin: 8px 0; padding: 6px; }
+    #mapping { border-radius: 1px 2px 3px 4px / 5px 6px 7px 8px; border-start-start-radius: 11px 12px; border-start-end-radius: 13px 14px; border-end-end-radius: 15px 16px; border-end-start-radius: 17px 18px; }
+    #source { border-start-start-radius: 10px; border-top-left-radius: 20px 21px; border-end-end-radius: 22px; border-bottom-right-radius: 23px 24px; }
+    #priority { border-radius: 3px; border-start-end-radius: 25px 26px !important; border-top-right-radius: 4px; }
+    #variables { border-end-start-radius: var(--logical-curve); }
+    #inherit-parent { border-radius: 31px 32px 33px 34px / 41px 42px 43px 44px; }
+    #inherit-all { border-radius: inherit; }
+    #inherit-corners { border-start-start-radius: inherit; border-start-end-radius: inherit; border-end-end-radius: inherit; border-end-start-radius: inherit; }
+    #reset { border-radius: 18px; border-start-start-radius: initial; border-start-end-radius: unset; border-end-end-radius: revert; border-end-start-radius: revert-layer; }
+    #invalid { border-radius: 5px 6px 7px 8px / 9px 10px 11px 12px; border-start-start-radius: 90px bad extra; border-start-end-radius: -2px; border-end-end-radius: 3px / 4px; border-end-start-radius: 5turn; }
+    #paint { width: 160px; height: 80px; border: 8px solid #176b4d; background: #fff4cc; border-radius: 0; border-start-start-radius: 48px 36px; }
+    #command { width: 140px; height: 54px; border: 5px solid #123f8c; background: #dff6e9; border-radius: 2px 3px 4px 5px / 6px 7px 8px 9px; }
+  </style>
+</head>
+<body>
+  <p id="mapping">Logical corner mapping</p>
+  <p id="source">Physical and logical source order</p>
+  <p id="priority">Important logical corner</p>
+  <p id="variables">Variable percentage corner</p>
+  <div id="inherit-parent"><p id="inherit-all">Inherited shorthand radii</p><p id="inherit-corners">Inherited logical corners</p></div>
+  <p id="reset">Logical resets</p>
+  <p id="invalid">Invalid logical values preserve the ellipse</p>
+  <p id="paint">Asymmetric logical corner paint</p>
+  <p id="command">Radius command target</p>
+  <button id="set-short" type="button" onclick="rd('command','10px 11px 12px 13px / 14px 15px 16px 17px');rtl('command','18px 19px');rtr('command','20px 21px');rbr('command','22px 23px');rbl('command','24px 25px');rss('command','30px 31px');rse('command','32px 33px');res('command','34px 35px');ree('command','36px 37px')">Set short radii</button>
+  <button id="set-readable" type="button" onclick="borderradius('command','40px');bordertopleftradius('command','41px 42px');bordertoprightradius('command','43px 44px');borderbottomrightradius('command','45px 46px');borderbottomleftradius('command','47px 48px');borderstartstartradius('command','50px 51px');borderstartendradius('command','52px 53px');borderendstartradius('command','54px 55px');borderendendradius('command','56px 57px')">Set readable radii</button>
+  <button id="set-dom" type="button" onclick="document.getElementById('command').style.borderRadius='60px';document.getElementById('command').style.borderTopLeftRadius='61px 62px';document.getElementById('command').style.borderTopRightRadius='63px 64px';document.getElementById('command').style.borderBottomRightRadius='65px 66px';document.getElementById('command').style.borderBottomLeftRadius='67px 68px';document.getElementById('command').style.borderStartStartRadius='70px 71px';document.getElementById('command').style.borderStartEndRadius='72px 73px';document.getElementById('command').style.borderEndStartRadius='74px 75px';document.getElementById('command').style.borderEndEndRadius='76px 77px'">Set DOM radii</button>
+  <button id="set-invalid" type="button" onclick="rd('command','4px / bad');rss('command','-1px');rse('command','2px 3px 4px');res('command','4px / 5px');ree('command','2turn')">Reject invalid radii</button>
+  <button id="clear-all" type="button" onclick="document.getElementById('command').style.borderRadius='';document.getElementById('command').style.borderTopLeftRadius='';document.getElementById('command').style.borderTopRightRadius='';document.getElementById('command').style.borderBottomRightRadius='';document.getElementById('command').style.borderBottomLeftRadius='';document.getElementById('command').style.borderStartStartRadius='';document.getElementById('command').style.borderStartEndRadius='';document.getElementById('command').style.borderEndStartRadius='';document.getElementById('command').style.borderEndEndRadius=''">Restore authored radii</button>
+</body>
+</html>

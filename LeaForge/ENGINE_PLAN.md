@@ -345,14 +345,16 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Horizontal left-to-right logical borders now compile into the four physical
-widths and one lazy per-edge style/color record. Six axis/edge shorthands,
-eighteen component properties, atomic physical component lists, all 24 compact
-aliases, readable forms, familiar literal DOM styles, hidden used widths, and
-mixed rounded paint share the current cascade and renderer. Uniform borders keep
-the old compact path. See `LOGICAL_BORDERS.md`. Next evaluate bounded logical
-corner radii or direction mapping while keeping vertical writing modes, general
-bidi layout, and general CSS/JavaScript evaluators out of the current boundary.
+Horizontal left-to-right logical corner radii now compile into the existing
+clockwise `R0..R3/Q0..Q3` ellipse fields. Four logical longhands, physical and
+logical source order, important tiers, variables, explicit shorthand/corner
+inheritance, reset keywords, atomic rejection, all nine compact/readable radius
+commands, familiar literal DOM styles, authored restore, and asymmetric paint
+share the existing radius renderer without new style state. See
+`LOGICAL_RADII.md`. Next evaluate bounded `direction:ltr/rtl` remapping for the
+current logical size/inset/box/border/radius properties while keeping vertical
+writing modes, general bidi text layout, and general CSS/JavaScript evaluators
+out of the current boundary.
 
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host

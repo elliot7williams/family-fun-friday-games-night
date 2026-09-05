@@ -3569,11 +3569,11 @@ namespace Lea.Engine
                 else if (name == "outline-style") OutlineStyle(style, value);
                 else if (name == "outline-color") OutlineColor(style, value);
                 else if (name == "outline-offset") OutlineOffset(style, value);
-                else if (name == "border-radius") BorderRadius(style, value);
-                else if (name == "border-top-left-radius") BorderCornerRadius(style, value, 0);
-                else if (name == "border-top-right-radius") BorderCornerRadius(style, value, 1);
-                else if (name == "border-bottom-right-radius") BorderCornerRadius(style, value, 2);
-                else if (name == "border-bottom-left-radius") BorderCornerRadius(style, value, 3);
+                else if (name == "border-radius") BorderRadius(style, inherited, value);
+                else if (name == "border-top-left-radius" || name == "border-start-start-radius") BorderCornerRadius(style, inherited, value, 0);
+                else if (name == "border-top-right-radius" || name == "border-start-end-radius") BorderCornerRadius(style, inherited, value, 1);
+                else if (name == "border-bottom-right-radius" || name == "border-end-end-radius") BorderCornerRadius(style, inherited, value, 2);
+                else if (name == "border-bottom-left-radius" || name == "border-end-start-radius") BorderCornerRadius(style, inherited, value, 3);
                 else if (name == "box-shadow") BoxShadow(style, value);
                 else if (name == "font-size")
                 {
@@ -5486,9 +5486,14 @@ namespace Lea.Engine
             style.Oc = color ?? "";
         }
 
-        private static void BorderRadius(S style, string value)
+        private static void BorderRadius(S style, S inherited, string value)
         {
             var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "inherit")
+            {
+                for (var corner = 0; corner < 4; corner++) CopyRadius(style, inherited, corner);
+                return;
+            }
             if (RadiusReset(source))
             {
                 SetRadii(style, new int[4], new int[4]);
@@ -5504,9 +5509,10 @@ namespace Lea.Engine
             SetRadii(style, horizontal, vertical);
         }
 
-        private static void BorderCornerRadius(S style, string value, int corner)
+        private static void BorderCornerRadius(S style, S inherited, string value, int corner)
         {
             var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "inherit") { CopyRadius(style, inherited, corner); return; }
             if (RadiusReset(source)) { SetRadius(style, corner, 0, 0); return; }
             var parts = Regex.Split(source, "\\s+");
             int horizontal;
@@ -5515,6 +5521,26 @@ namespace Lea.Engine
             if (parts.Length == 1) vertical = horizontal;
             else if (!RadiusValue(parts[1], out vertical)) return;
             SetRadius(style, corner, horizontal, vertical);
+        }
+
+        internal static bool Rd(string value, bool corner, out string radius)
+        {
+            radius = (value ?? "").Trim().ToLowerInvariant();
+            if (radius.Length == 0 || radius == "inherit" || RadiusReset(radius)) return true;
+            if (corner)
+            {
+                var parts = Regex.Split(radius, "\\s+");
+                int horizontal;
+                int vertical;
+                return parts.Length >= 1 && parts.Length <= 2 && RadiusValue(parts[0], out horizontal) &&
+                    (parts.Length == 1 || RadiusValue(parts[1], out vertical));
+            }
+            var slash = radius.IndexOf('/');
+            if (slash >= 0 && radius.IndexOf('/', slash + 1) >= 0) return false;
+            int[] horizontalValues;
+            int[] verticalValues;
+            if (!RadiusList(slash < 0 ? radius : radius.Substring(0, slash), out horizontalValues)) return false;
+            return slash < 0 || RadiusList(radius.Substring(slash + 1), out verticalValues);
         }
 
         private static bool RadiusList(string source, out int[] values)
@@ -5560,6 +5586,15 @@ namespace Lea.Engine
             else if (corner == 1) { style.R1 = horizontal; style.Q1 = vertical; }
             else if (corner == 2) { style.R2 = horizontal; style.Q2 = vertical; }
             else { style.R3 = horizontal; style.Q3 = vertical; }
+        }
+
+        private static void CopyRadius(S style, S inherited, int corner)
+        {
+            if (inherited == null) { SetRadius(style, corner, 0, 0); return; }
+            if (corner == 0) SetRadius(style, corner, inherited.R0, inherited.Q0);
+            else if (corner == 1) SetRadius(style, corner, inherited.R1, inherited.Q1);
+            else if (corner == 2) SetRadius(style, corner, inherited.R2, inherited.Q2);
+            else SetRadius(style, corner, inherited.R3, inherited.Q3);
         }
 
         private static void BoxShadow(S style, string value)

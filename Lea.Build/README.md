@@ -72,6 +72,11 @@ width/style/color components, corrected physical per-edge lists, lazy records,
 source order, important, variables, inheritance/reset, atomic fallback, all 24
 short/readable commands and familiar DOM forms, shared geometry, hidden edges,
 mixed rounded paint, and authored restore. See `LeaForge/LOGICAL_BORDERS.md`.
+`logical-radii.html` covers all four horizontal logical corners, physical and
+logical source order, important, variables, shorthand/corner inheritance, reset
+keywords, atomic fallback, all nine short/readable radius commands, familiar DOM
+forms, authored restore, and asymmetric paint. See
+`LeaForge/LOGICAL_RADII.md`.
 `fragment-stability.html` covers `Fa/Fj/Fy`, first-paint retention, responsive
 host settlement, intrinsic image reflow, missing targets, and manual-scroll
 release. See `LeaForge/INITIAL_FRAGMENT_STABILITY.md`.

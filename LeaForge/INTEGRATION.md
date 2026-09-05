@@ -357,6 +357,14 @@ parent, positioned containing block, or grid area. `vw`, `vh`, `vmin`, and
 `CALCULATED_HEIGHTS.md`, `VIEWPORT_UNITS.md`, `FONT_RELATIVE_UNITS.md`, and
 `SIZE_FUNCTIONS.md`.
 
+Logical `border-start-start-radius`, `border-start-end-radius`,
+`border-end-end-radius`, and `border-end-start-radius` map directly onto those
+same four physical ellipse pairs for the current horizontal left-to-right
+model. Explicit shorthand/corner inheritance, reset keywords, source order,
+priority, variables, and invalid preservation stay engine-owned. Compact
+`rd/rtl/rtr/rbr/rbl/rss/rse/res/ree`, readable forms, and familiar literal DOM
+properties require no adapter state or renderer branch. See `LOGICAL_RADII.md`.
+
 Size functions add lazy `S.Wk/Wnk/Wxk` and `Hk/Hnk/Hxk` kind state plus
 `Wq/Hq/Wv/Hv` argument inspection. The adapter does not evaluate the function;
 `Lea.Win.V` resolves every term through the same containing-block, viewport,

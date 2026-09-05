@@ -112,7 +112,7 @@ namespace Lea.Bench
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
                 "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html", "svg.html", "svg-geometry.html", "svg-gradients.html", "svg-use-clips.html", "svg-strokes.html",
-                "box-sizing.html", "border-radius.html", "box-shadows.html", "background-gradients.html", "background-images.html", "object-fit.html", "aspect-ratio.html", "outlines.html", "pointer-interaction.html", "text-transform.html", "text-spacing.html", "text-overflow.html"
+                "box-sizing.html", "border-radius.html", "logical-radii.html", "box-shadows.html", "background-gradients.html", "background-images.html", "object-fit.html", "aspect-ratio.html", "outlines.html", "pointer-interaction.html", "text-transform.html", "text-spacing.html", "text-overflow.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -862,6 +862,60 @@ namespace Lea.Bench
                     using (var image = Draw(view)) Need(BlockOuter(view, "dashed").Right <= view.ClientSize.Width - 1, "rounded narrow reflow changed");
                 }
                 return "S.R0-R3/Q0-Q3 aliases, atomic pixel/percentage ellipses, longhands, variables, important/reset/bounds, normalized solid/dashed paint, overflow clips, fields, links, and resize";
+            });
+            AddProbe(probes, "Bounded logical corner radii", delegate
+            {
+                var path = Path.Combine(folder, "logical-radii.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                var mapping = block("mapping").S;
+                Need(mapping.R0 == 11 && mapping.Q0 == 12 && mapping.R1 == 13 && mapping.Q1 == 14 &&
+                    mapping.R2 == 15 && mapping.Q2 == 16 && mapping.R3 == 17 && mapping.Q3 == 18,
+                    "logical corner radius mapping changed");
+                var source = block("source").S;
+                Need(source.R0 == 20 && source.Q0 == 21 && source.R2 == 23 && source.Q2 == 24,
+                    "physical/logical corner source order changed");
+                var priority = block("priority").S;
+                Need(priority.R1 == 25 && priority.Q1 == 26 && priority.R0 == 3 && priority.Q3 == 3,
+                    "important logical corner radius changed");
+                var inherited = block("inherit-all").S;
+                var inheritedCorners = block("inherit-corners").S;
+                Need(inherited.R0 == 31 && inherited.Q1 == 42 && inherited.R2 == 33 && inherited.Q3 == 44 &&
+                    inheritedCorners.R0 == 31 && inheritedCorners.Q1 == 42 && inheritedCorners.R2 == 33 && inheritedCorners.Q3 == 44,
+                    "radius inheritance changed");
+                var invalid = block("invalid").S;
+                Need(invalid.R0 == 5 && invalid.R1 == 6 && invalid.R2 == 7 && invalid.R3 == 8 &&
+                    invalid.Q0 == 9 && invalid.Q1 == 10 && invalid.Q2 == 11 && invalid.Q3 == 12,
+                    "logical radius atomic fallback changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1500);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var paint = BlockOuter(view, "paint");
+                        Need(ColorDistance(image.GetPixel(paint.Left + 1, paint.Top + 1), Color.White) < 24 &&
+                            ColorDistance(image.GetPixel(paint.Right - 2, paint.Top + 2), Color.FromArgb(23, 107, 77)) < 24 &&
+                            ColorDistance(image.GetPixel(paint.Left + paint.Width / 2, paint.Top + paint.Height / 2), Color.FromArgb(255, 244, 204)) < 16,
+                            "logical asymmetric corner paint changed");
+                    }
+                }
+                Need(engine.Ck(page, ById(page.D, "set-short")) == 9 && block("command").S.R0 == 30 && block("command").S.Q1 == 33 &&
+                    block("command").S.R2 == 36 && block("command").S.Q3 == 35,
+                    "short radius aliases did not reach compact records");
+                Need(engine.Ck(page, ById(page.D, "set-invalid")) == 0 && block("command").S.R0 == 30,
+                    "unsupported radius command values were accepted");
+                Need(engine.Ck(page, ById(page.D, "clear-all")) == 9 && block("command").S.R0 == 2 && block("command").S.Q3 == 9,
+                    "radius DOM reset lost authored state");
+                Need(engine.Ck(page, ById(page.D, "set-readable")) == 9 && block("command").S.R0 == 50 && block("command").S.Q2 == 57,
+                    "readable radius commands changed");
+                Need(engine.Ck(page, ById(page.D, "clear-all")) == 9 && engine.Ck(page, ById(page.D, "set-dom")) == 9 &&
+                    block("command").S.R0 == 70 && block("command").S.Q1 == 73 && block("command").S.R2 == 76 && block("command").S.Q3 == 75,
+                    "familiar radius DOM styles changed");
+                Need(engine.Ck(page, ById(page.D, "clear-all")) == 9 && block("command").S.R0 == 2 && block("command").S.Q3 == 9,
+                    "radius DOM authored restore changed");
+                return "horizontal-tb/LTR logical corners mapped onto R0-R3/Q0-Q3, source order, important, variables, inheritance/reset, atomic rejection, nine compact/readable commands, familiar DOM styles, authored restore, and asymmetric paint";
             });
             AddProbe(probes, "Bounded CSS box shadows", delegate
             {

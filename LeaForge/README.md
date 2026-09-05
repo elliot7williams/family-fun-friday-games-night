@@ -93,6 +93,10 @@ LeaForge is where we can grow the more full-featured browser.
   components with atomic physical lists, lazy per-edge records, 24 compact
   aliases, familiar DOM forms, hidden used widths, shared geometry, and mixed
   rounded paint; see `LOGICAL_BORDERS.md`
+- horizontal left-to-right logical corner radii mapped onto the existing
+  physical ellipse fields, with explicit inheritance/reset, atomic parsing,
+  nine compact aliases, readable/familiar DOM forms, authored restore, and
+  shared asymmetric paint; see `LOGICAL_RADII.md`
 - live `:hover` and `:focus` restyling that preserves mutable form values
 - non-inherited `content-box`/`border-box` sizing across pixel dimensions,
   min/max clamps, flex basis, fields, images, tables, and cells

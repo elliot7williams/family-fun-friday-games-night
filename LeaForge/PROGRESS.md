@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **85**
+Post-1.0 hardening milestones completed: **86**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,23 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded horizontal left-to-right logical corner radii. Four logical
+  longhands map directly onto the existing clockwise `R0..R3/Q0..Q3`
+  elliptical fields with no new style record or renderer path. Physical and
+  logical source order, important tiers, custom properties, explicit shorthand
+  and corner inheritance, CSS-wide resets, invalid atomic preservation, and
+  normalized box paint stay shared. Nine `rd/rtl/rtr/rbr/rbl/rss/rse/res/ree`
+  aliases are at most three letters, with readable and familiar literal DOM
+  forms plus authored restore. Full repository and compiled-host smokes pass,
+  along with 82 probes over 79 fixtures, all 42 Boot cases, and all six actual
+  EXE startup scenarios without legacy-engine or JIT dialogs. Measured medians
+  are 530.557 ms clean diagnostic start, 3.557 ms local load, and 33.472 ms
+  layout/paint. Retained managed memory is 20,366.8 KiB for 395 pages, or 51.6
+  KiB/page. Required runtime files total 555.0 KiB with a 234.6 KiB GZip
+  estimate. Runtime 186 stays isolated and installed runtime 157 remains
+  unchanged. See `LOGICAL_RADII.md`. The scoped baseline stays at 100%, not
+  full-web compatibility.
 
 - Added bounded horizontal left-to-right logical borders. Six axis/edge
   shorthands and eighteen width/style/color components compile into the four

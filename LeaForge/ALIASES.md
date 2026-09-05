@@ -93,6 +93,9 @@ biw/biy/bic("id", "2px") inline border components
 bbw/bby/bbc("id", "2px") block border components
 siw/siy/sic and eiw/eiy/eic  inline start/end components
 sbw/sby/sbc and ebw/eby/ebc  block start/end components
+rd("id", "12px / 8px") border radius shorthand
+rtl/rtr/rbr/rbl("id", "12px 8px") physical corner radius
+rss/rse/res/ree("id", "12px 8px") logical corner radius
 v("who", "Lea")  bounded page variable
 tx("id", "Hi ${who}") element text
 ac("id", "hot")       add class
@@ -111,7 +114,8 @@ fo("id")              request focus
 go("next.html")        request host navigation
 ```
 
-The two-argument `bg/fg/fs/dp/wd/ht/is/bs`, logical box, and logical border forms
+The two-argument `bg/fg/fs/dp/wd/ht/is/bs`, logical box, logical border, and
+radius forms
 target one validated ID. Color and font
 forms reuse the same
 hex/named-color and 8..96 pixel font bounds as the body forms, reject document
@@ -156,6 +160,16 @@ none/hidden/solid/dashed/dotted/double; colors use bounded named, hex, rgb, and
 rgba forms. Readable names and all 24 literal `style.borderInline*` and
 `style.borderBlock*` properties share the same atomic parser. Empty assignments
 restore authored CSS. See `LOGICAL_BORDERS.md`.
+
+`rd` sets the physical `border-radius` shorthand. `rtl/rtr/rbr/rbl` target its
+four clockwise physical corners, while `rss/rse/ree/res` target logical
+start-start, start-end, end-end, and end-start. Each corner accepts one bounded
+pixel/percentage value or a horizontal/vertical pair; `rd` accepts the existing
+one-to-four values and optional slash-separated vertical list. Readable names
+such as `borderradius` and `borderstartstartradius`, plus all matching literal
+`style.borderRadius`, physical-corner, and logical-corner assignments, share the
+same validator. Empty DOM assignments restore authored CSS. See
+`LOGICAL_RADII.md`.
 
 `P.Vs` exposes at most 16 case-insensitive variables. Names are one through 16
 letters, digits, or underscores and must begin with a letter; values are capped
@@ -801,6 +815,11 @@ opposing radii normalize to the rendered box. Shorthand parsing is atomic and
 invalid declarations preserve prior state. The shared path paints backgrounds,
 solid/dashed/dotted borders, inherited rounded overflow clips, and ordinary
 form fields without changing rectangular layout or link bounds.
+Logical `border-start-start-radius`, `border-start-end-radius`,
+`border-end-end-radius`, and `border-end-start-radius` map to those same four
+physical corners for Lea's horizontal left-to-right model. Explicit shorthand
+or corner `inherit` copies the matching parent ellipse; CSS-wide reset keywords
+clear only the addressed corners. See `LOGICAL_RADII.md`.
 
 CSS outlines use non-inherited `S.Ow/Os/Oc/Oo`. `Ow` stores the 0..32 pixel
 width, `Os=n/s/d/o/a` stores none, solid, dashed, dotted, or automatic style,
