@@ -99,7 +99,9 @@ LeaForge is where we can grow the more full-featured browser.
   shared asymmetric paint; see `LOGICAL_RADII.md`
 - inherited horizontal `direction: ltr/rtl` through compact `S.Dr=l/r`, HTML
   `dir`, pre-cascade resolution, translated cross-direction logical inheritance,
-  `text-align: start/end`, and compact `dr`; see `DIRECTION.md`
+  `text-align: start/end`, direction-aware row/reverse/wrapped flex and column
+  cross alignment, logical grid auto/dense/column/explicit/area placement and
+  alignment, plus compact live `dr` reflow; see `DIRECTION.md`
 - live `:hover` and `:focus` restyling that preserves mutable form values
 - non-inherited `content-box`/`border-box` sizing across pixel dimensions,
   min/max clamps, flex basis, fields, images, tables, and cells

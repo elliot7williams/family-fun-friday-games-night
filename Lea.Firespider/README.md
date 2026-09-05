@@ -45,10 +45,11 @@ adds no radius state or paint branch. See `LeaForge/LOGICAL_RADII.md`.
 
 Inherited horizontal `direction: ltr/rtl` is stored in compact `S.Dr=l/r` and
 resolved by Lea before logical declarations. The compiled host smoke verifies
-RTL margin, padding, border, and radius mapping plus live `dr(id,value)` remap;
-Firespider adds no adapter-side direction state. HTML `dir`, cascade details,
-cross-direction inheritance, DOM forms, and the bounded bidi boundary are
-documented in `LeaForge/DIRECTION.md`.
+RTL margin, padding, border, and radius mapping plus exact direction-aware flex
+row and unequal explicit grid-span geometry with live `dr(id,value)` reflow;
+Firespider adds no adapter-side direction or layout state. HTML `dir`, cascade
+details, cross-direction inheritance, wider flex/grid coverage, DOM forms, and
+the bounded bidi boundary are documented in `LeaForge/DIRECTION.md`.
 
 `Startup-smooth-host.patch` removes the blocking crash-recovery question and
 automatically restores eligible unclean sessions. It also sends the retired

@@ -17,16 +17,17 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 87 adds inherited horizontal `direction:ltr/rtl` through compact
-`S.Dr=l/r`, HTML `dir`, and a pre-cascade direction pass. Existing logical
-insets, boxes, borders, radii, and `text-align:start/end` now map for RTL, while
-explicit logical inheritance translates between parent and child directions.
-Short/readable `dr`, body and ID targets, familiar DOM forms, variables,
-important tiers, reset, and invalid preservation share the bounded style path.
-Full repository and compiled-host tests pass with 83 probes over 80 fixtures,
-all 42 Boot cases, and all six actual EXE startup scenarios. Runtime 187 stays
+Milestone 88 carries compact horizontal `S.Dr=l/r` into flex and grid geometry
+without adding style or placement records. Row/reverse/order/wrap flex uses one
+effective direction bit, column cross-axis start/end follows inline direction,
+and grid keeps logical occupancy while mapping auto/dense/column/explicit/area
+tracks, unequal spans, content alignment, and self-alignment onto physical X
+coordinates. Compact `dr` rebuilds geometry while source/accessibility order
+stays stable. The compiled host passes, the benchmark has 84 probes over 81
+fixtures, all 42 Boot cases pass, and two complete six-scenario actual EXE runs
+remain responsive with no legacy engine or error dialog. Runtime 188 stays
 isolated and installed runtime 157 remains unchanged. See `DIRECTION.md`. Next
-evaluate direction-aware row flex and grid auto-placement without claiming
+evaluate bounded direction-aware list markers and inline flow without claiming
 Unicode bidi glyph reordering, vertical writing modes, or a general script VM.
 
 Milestone 60 installs the existing `V.Ng` hook on main Lea tabs, enforcing host

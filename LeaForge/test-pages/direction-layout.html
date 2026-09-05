@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Lea direction-aware flex and grid layout</title>
+  <style>
+    body { margin: 0; direction: ltr; color: #19352d; font-family: Segoe UI; }
+    section { margin: 8px 0; background: #eef6f2; }
+    p { margin: 0; padding: 0; background: #dcecff; }
+    .flex-row { display: flex; width: 220px; height: 40px; gap: 10px; align-items: start; }
+    .flex-row p { width: 40px; height: 20px; }
+    #flex-ltr { direction: ltr; }
+    #flex-rtl { direction: rtl; }
+    #flex-rtl-end { direction: rtl; justify-content: flex-end; }
+    #flex-rtl-reverse { direction: rtl; flex-direction: row-reverse; }
+    #flex-order { direction: rtl; }
+    #flex-order-b { order: -1; }
+    #flex-wrap { direction: rtl; display: flex; flex-wrap: wrap; width: 90px; height: 50px; gap: 10px; align-items: start; }
+    #flex-wrap p { width: 40px; height: 20px; }
+    #flex-column { direction: rtl; display: flex; flex-direction: column; width: 120px; height: 70px; row-gap: 10px; align-items: start; }
+    #flex-column p { width: 40px; height: 20px; }
+    #flex-column-b { align-self: end; }
+    .grid-wide { direction: rtl; display: grid; width: 220px; height: 60px; grid-template-columns: 40px 60px 80px; grid-template-rows: 25px 25px; gap: 10px; justify-content: start; }
+    #grid-explicit-span { grid-column: 1 / span 2; }
+    #grid-explicit-side { grid-column: 3; }
+    #grid-dense { direction: rtl; display: grid; width: 200px; height: 50px; grid-template-columns: 60px 60px 60px; grid-template-rows: 20px 20px; gap: 10px; grid-auto-flow: row dense; }
+    #grid-dense-a, #grid-dense-b { grid-column: span 2; }
+    #grid-column-flow { direction: rtl; display: grid; width: 130px; height: 50px; grid-template-columns: 60px 60px; grid-template-rows: 20px 20px; gap: 10px; grid-auto-flow: column; }
+    #grid-area { grid-template-areas: "lead lead side"; }
+    #grid-area-lead { grid-area: lead; }
+    #grid-area-side { grid-area: side; }
+    #grid-content-end { direction: rtl; display: grid; width: 220px; height: 30px; grid-template-columns: 40px 60px; column-gap: 10px; justify-content: end; }
+    #grid-self { direction: rtl; display: grid; width: 120px; height: 70px; grid-template-columns: 120px; grid-template-rows: 30px 30px; row-gap: 10px; justify-items: start; }
+    #grid-self p { width: 40px; height: 20px; }
+    #grid-self-end { justify-self: end; }
+    #command-flex { direction: ltr; }
+  </style>
+</head>
+<body>
+  <section id="flex-ltr" class="flex-row"><p id="flex-ltr-a">A</p><p id="flex-ltr-b">B</p><p id="flex-ltr-c">C</p></section>
+  <section id="flex-rtl" class="flex-row"><p id="flex-rtl-a">A</p><p id="flex-rtl-b">B</p><p id="flex-rtl-c">C</p></section>
+  <section id="flex-rtl-end" class="flex-row"><p id="flex-rtl-end-a">A</p><p id="flex-rtl-end-b">B</p></section>
+  <section id="flex-rtl-reverse" class="flex-row"><p id="flex-rtl-reverse-a">A</p><p id="flex-rtl-reverse-b">B</p></section>
+  <section id="flex-order" class="flex-row"><p id="flex-order-a">A</p><p id="flex-order-b">B</p><p id="flex-order-c">C</p></section>
+  <section id="flex-wrap"><p id="flex-wrap-a">A</p><p id="flex-wrap-b">B</p><p id="flex-wrap-c">C</p><p id="flex-wrap-d">D</p></section>
+  <section id="flex-column"><p id="flex-column-a">A</p><p id="flex-column-b">B</p></section>
+  <section id="grid-auto" class="grid-wide"><p id="grid-auto-a">A</p><p id="grid-auto-b">B</p><p id="grid-auto-c">C</p></section>
+  <section id="grid-explicit" class="grid-wide"><p id="grid-explicit-span">Span</p><p id="grid-explicit-side">Side</p></section>
+  <section id="grid-dense"><p id="grid-dense-a">A</p><p id="grid-dense-b">B</p><p id="grid-dense-c">C</p></section>
+  <section id="grid-column-flow"><p id="grid-column-a">A</p><p id="grid-column-b">B</p><p id="grid-column-c">C</p><p id="grid-column-d">D</p></section>
+  <section id="grid-area" class="grid-wide"><p id="grid-area-lead">Lead</p><p id="grid-area-side">Side</p></section>
+  <section id="grid-content-end"><p id="grid-content-end-a">A</p><p id="grid-content-end-b">B</p></section>
+  <section id="grid-self"><p id="grid-self-start">Start</p><p id="grid-self-end">End</p></section>
+  <section id="command-flex" class="flex-row"><p id="command-flex-a">A</p><p id="command-flex-b">B</p></section>
+  <button id="set-direction" type="button" onclick="dr('command-flex','rtl')">Set RTL</button>
+  <p id="direction-target">Direction layout target</p>
+</body>
+</html>

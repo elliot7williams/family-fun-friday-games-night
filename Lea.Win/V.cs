@@ -1657,9 +1657,10 @@ namespace Lea.Win
                 var used = baseGaps;
                 foreach (var item in visual) used += widths[item];
                 var leftover = Math.Max(0, context.C.Width - used);
-                var offset = FlexJustify(style.Jc, visual.Count, leftover, style.Fd == "x", ref lineGap);
+                var reverse = FlexRowReverse(style);
+                var offset = FlexJustify(style.Jc, visual.Count, leftover, reverse, ref lineGap);
 
-                if (style.Fd == "x") visual.Reverse();
+                if (reverse) visual.Reverse();
                 var cursor = context.C.X + offset;
                 foreach (var item in visual)
                 {
@@ -1688,13 +1689,29 @@ namespace Lea.Win
             var widths = GridTrackSizes(style, false, columns, context.C.Width, gap);
             var used = gap * Math.Max(0, columns - 1);
             foreach (var width in widths) used += width;
-            var offset = FlexJustify(style.Jc, columns, Math.Max(0, context.C.Width - used), false, ref gap);
+            var rtl = InlineReverse(style);
+            var offset = FlexJustify(style.Jc, columns, Math.Max(0, context.C.Width - used), rtl, ref gap);
             var starts = new int[columns];
             var cursor = context.C.X + offset;
-            for (var index = 0; index < columns; index++)
+            if (rtl)
             {
-                starts[index] = cursor;
-                cursor += widths[index] + gap;
+                var span = gap * Math.Max(0, columns - 1);
+                foreach (var width in widths) span += width;
+                cursor += span;
+                for (var index = 0; index < columns; index++)
+                {
+                    cursor -= widths[index];
+                    starts[index] = cursor;
+                    cursor -= gap;
+                }
+            }
+            else
+            {
+                for (var index = 0; index < columns; index++)
+                {
+                    starts[index] = cursor;
+                    cursor += widths[index] + gap;
+                }
             }
 
             context.Fs = new Dictionary<B, Fp>();
@@ -1735,12 +1752,14 @@ namespace Lea.Win
                     var height = 0;
                     for (var track = placement.R; track < placement.R + placement.Rs; track++) height += heights[track];
                     height += rowGap * Math.Max(0, placement.Rs - 1);
-                    context.Fs[item] = new Fp(starts[placement.C], Math.Max(1, width), placement.R, rowStarts[placement.R], Math.Max(1, height), true, 0, true);
+                    var column = rtl ? placement.C + placement.Cs - 1 : placement.C;
+                    context.Fs[item] = new Fp(starts[column], Math.Max(1, width), placement.R, rowStarts[placement.R], Math.Max(1, height), true, 0, true);
                 }
                 else
                 {
                     naturalLine = Math.Max(naturalLine, placement.R);
-                    context.Fs[item] = new Fp(starts[placement.C], Math.Max(1, width), style.Gf == "r" ? naturalLine : placement.R);
+                    var column = rtl ? placement.C + placement.Cs - 1 : placement.C;
+                    context.Fs[item] = new Fp(starts[column], Math.Max(1, width), style.Gf == "r" ? naturalLine : placement.R);
                 }
             }
         }
@@ -2266,7 +2285,9 @@ namespace Lea.Win
             var free = Math.Max(0, slot.W - outerWidth - ml - mr);
             var align = GridAlign(parent, style, true);
             if (align == "c") return slot.X + ml + free / 2;
-            if (align == "e") return slot.X + ml + free;
+            var rtl = parent != null && parent.B != null && InlineReverse(parent.B.S);
+            if (align == "e") return slot.X + ml + (rtl ? 0 : free);
+            if (align == "s") return slot.X + ml + (rtl ? free : 0);
             return slot.X + ml;
         }
 
@@ -2286,7 +2307,9 @@ namespace Lea.Win
             var free = Math.Max(0, parent.C.Width - outerWidth - ml - mr);
             var align = FlexAlign(parent, style);
             if (align == "c") return parent.C.X + ml + free / 2;
-            if (align == "e") return parent.C.X + ml + free;
+            var rtl = InlineReverse(parent.B.S);
+            if (align == "e") return parent.C.X + ml + (rtl ? 0 : free);
+            if (align == "s") return parent.C.X + ml + (rtl ? free : 0);
             return parent.C.X + ml;
         }
 
@@ -2314,6 +2337,16 @@ namespace Lea.Win
         private static bool FlexColumn(S style)
         {
             return IsFlex(style) && (style.Fd == "c" || style.Fd == "y");
+        }
+
+        private static bool InlineReverse(S style)
+        {
+            return style != null && style.Dr == "r";
+        }
+
+        private static bool FlexRowReverse(S style)
+        {
+            return style != null && (style.Fd == "x") != InlineReverse(style);
         }
 
         private void FinishContext(Lc context, ref int rootY, IDictionary<B, int> measured)

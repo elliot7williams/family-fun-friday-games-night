@@ -107,7 +107,7 @@ namespace Lea.Bench
             var names = new[]
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
-                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "direction-logical.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
+                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "direction-logical.html", "direction-layout.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -1454,6 +1454,85 @@ namespace Lea.Bench
                     }
                 }
                 return "Fd/Jc/Ai/As/Gp/Wr/Rg/Fg/Sh/Fb/Or aliases, stable row order, column/reverse flow, around/evenly distribution, item alignment, fixed, auto, wrapped, growing, shrinking, protected, and locked slots, hits, resize, and following flow";
+            });
+            AddProbe(probes, "Direction-aware flex and grid layout", delegate
+            {
+                var path = Path.Combine(folder, "direction-layout.html");
+                var page = new E().Go(path);
+                var rtl = page.Bs.First(block => block.El != null && block.El.Av("id") == "flex-rtl");
+                var rtlA = page.Bs.First(block => block.El != null && block.El.Av("id") == "flex-rtl-a");
+                var rtlB = page.Bs.First(block => block.El != null && block.El.Av("id") == "flex-rtl-b");
+                Need(rtl.S.Dr == "r" && rtl.S.Fd == "r" && Object.ReferenceEquals(rtlA.Up, rtl) && page.Bs.IndexOf(rtlA) < page.Bs.IndexOf(rtlB),
+                    "direction state, ownership, or source order changed");
+                Need(page.Bs.First(block => block.El != null && block.El.Av("id") == "grid-dense").S.Gf == "d" &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "grid-column-flow").S.Gf == "c" &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "grid-area").S.Aa == 2,
+                    "direction fixture grid records changed");
+                using (var view = NewView())
+                {
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var flex = BlockOuter(view, "flex-rtl");
+                        var flexA = BlockOuter(view, "flex-rtl-a");
+                        var flexB = BlockOuter(view, "flex-rtl-b");
+                        var flexC = BlockOuter(view, "flex-rtl-c");
+                        var reverse = BlockOuter(view, "flex-rtl-reverse");
+                        var reverseA = BlockOuter(view, "flex-rtl-reverse-a");
+                        var orderA = BlockOuter(view, "flex-order-a");
+                        var orderB = BlockOuter(view, "flex-order-b");
+                        var orderC = BlockOuter(view, "flex-order-c");
+                        var wrapA = BlockOuter(view, "flex-wrap-a");
+                        var wrapB = BlockOuter(view, "flex-wrap-b");
+                        var wrapC = BlockOuter(view, "flex-wrap-c");
+                        Need(flexA.Right == flex.Right && flexA.Left > flexB.Left && flexB.Left > flexC.Left && flexA.Left - flexB.Right == 10,
+                            "RTL row direction changed");
+                        Need(reverseA.Left == reverse.Left && orderB.Left > orderA.Left && orderA.Left > orderC.Left,
+                            "RTL row-reverse or order mapping changed");
+                        Need(wrapA.Right == BlockOuter(view, "flex-wrap").Right && wrapA.Top == wrapB.Top && wrapC.Top > wrapA.Bottom,
+                            "RTL wrap line mapping changed");
+                        Need(BlockOuter(view, "flex-column-a").Right == BlockOuter(view, "flex-column").Right &&
+                            BlockOuter(view, "flex-column-b").Left == BlockOuter(view, "flex-column").Left,
+                            "RTL column cross alignment changed");
+
+                        var grid = BlockOuter(view, "grid-auto");
+                        var gridA = BlockOuter(view, "grid-auto-a");
+                        var gridB = BlockOuter(view, "grid-auto-b");
+                        var gridC = BlockOuter(view, "grid-auto-c");
+                        var explicitSpan = BlockOuter(view, "grid-explicit-span");
+                        var explicitSide = BlockOuter(view, "grid-explicit-side");
+                        Need(gridA.Right == grid.Right && gridA.Width == 40 && gridB.Width == 60 && gridC.Width == 80 &&
+                            gridA.Left - gridB.Right == 10 && gridB.Left - gridC.Right == 10,
+                            "RTL unequal grid tracks changed");
+                        Need(explicitSpan.Width == 110 && explicitSpan.Right == BlockOuter(view, "grid-explicit").Right && explicitSide.Width == 80,
+                            "RTL explicit grid span changed");
+                        var denseA = BlockOuter(view, "grid-dense-a");
+                        var denseB = BlockOuter(view, "grid-dense-b");
+                        var denseC = BlockOuter(view, "grid-dense-c");
+                        Need(denseC.Top == denseA.Top && denseB.Top > denseA.Bottom && denseA.Left - denseC.Right == 10,
+                            "RTL dense backfill changed");
+                        var columnA = BlockOuter(view, "grid-column-a");
+                        var columnB = BlockOuter(view, "grid-column-b");
+                        var columnC = BlockOuter(view, "grid-column-c");
+                        Need(columnA.Left == columnB.Left && columnA.Left - columnC.Right == 10 && columnA.Top == columnC.Top,
+                            "RTL column auto flow changed");
+                        var areaLead = BlockOuter(view, "grid-area-lead");
+                        var areaSide = BlockOuter(view, "grid-area-side");
+                        Need(areaLead.Width == 110 && areaLead.Right == BlockOuter(view, "grid-area").Right && areaLead.Left - areaSide.Right == 10,
+                            "RTL named area mapping changed");
+                        Need(BlockOuter(view, "grid-content-end-b").Left == BlockOuter(view, "grid-content-end").Left &&
+                            BlockOuter(view, "grid-self-start").Right == BlockOuter(view, "grid-self").Right &&
+                            BlockOuter(view, "grid-self-end").Left == BlockOuter(view, "grid-self").Left,
+                            "RTL grid content or self alignment changed");
+                        Need(ColoredSamples(image) > 0, "direction layout is blank");
+                    }
+
+                    Need(view.Js("dr('command-flex','rtl')") == 1, "compact direction reflow command changed");
+                    using (var remapped = Draw(view))
+                        Need(BlockOuter(view, "command-flex-a").Right == BlockOuter(view, "command-flex").Right && ColoredSamples(remapped) > 0,
+                            "compact direction command did not remap flex geometry");
+                }
+                return "S.Dr plus row/reverse/order/wrap flex, column cross-axis alignment, logical grid auto/explicit/dense/column/area placement, content/self alignment, source order, paint, and compact dr reflow";
             });
             AddProbe(probes, "Bounded grid layout", delegate
             {

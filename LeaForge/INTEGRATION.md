@@ -406,10 +406,12 @@ the same runtime because older views only inspect global `S.Bs/Bc`. See
 `dir` and CSS `direction` before ordinary declarations, then writes logical
 insets, boxes, borders, radii, and start/end text alignment into the existing
 physical records. Cross-direction explicit inheritance is translated by the
-engine. Hosts may use compact `dr`, readable `direction`, or literal bounded DOM
-forms and need no extra axis state. Unicode bidi glyph reordering, `dir=auto`,
-vertical writing modes, and direction-based flex/grid reordering remain outside
-this milestone. See `DIRECTION.md`.
+engine. The WinForms renderer also maps row/reverse/wrapped flex slots, column
+cross alignment, and logical grid auto/dense/column/explicit/area tracks plus
+content/self alignment through that same bit. Hosts may use compact `dr`,
+readable `direction`, or literal bounded DOM forms and need no extra axis state.
+Unicode bidi glyph reordering, `dir=auto`, vertical writing modes, and
+`wrap-reverse` remain outside this milestone. See `DIRECTION.md`.
 
 CSS outlines are available through non-inherited `S.Ow/Os/Oc/Oo`. Hosts can
 inspect bounded width, compact none/solid/dashed/dotted/auto style, authored

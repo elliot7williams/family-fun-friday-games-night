@@ -75,6 +75,7 @@ namespace Lea.Tests
                     Eq(before, events, "disposed view emits no late callbacks");
                     disposingView.Dispose();
                 }
+                Console.WriteLine("Lea asynchronous view-disposal smoke passed.");
                 var forms = Path.Combine(pages, "forms.html");
                 var engine = new E();
                 var page = engine.Go(forms);
@@ -573,6 +574,130 @@ namespace Lea.Tests
                 Eq(0, directionEngine.Js(directionPage, "dr('command','sideways');direction('command','vertical-rl')"), "unsupported directions rejected");
                 Ok(BlockById(directionPage, "command").S.Dr == "l" && BlockById(directionPage, "command").S.Ml == 5,
                     "rejected directions preserve authored state");
+
+                var directionLayoutPath = Path.Combine(pages, "direction-layout.html");
+                var directionLayoutPage = new E().Go(directionLayoutPath);
+                var directionLayoutFlex = BlockById(directionLayoutPage, "flex-rtl");
+                var directionLayoutA = BlockById(directionLayoutPage, "flex-rtl-a");
+                var directionLayoutB = BlockById(directionLayoutPage, "flex-rtl-b");
+                Ok(directionLayoutFlex.S.Dr == "r" && directionLayoutFlex.S.Fd == "r" &&
+                    Object.ReferenceEquals(directionLayoutA.Up, directionLayoutFlex) && directionLayoutPage.Bs.IndexOf(directionLayoutA) < directionLayoutPage.Bs.IndexOf(directionLayoutB),
+                    "direction layout keeps compact state, ownership, and source order");
+                Ok(BlockById(directionLayoutPage, "grid-dense").S.Gf == "d" && BlockById(directionLayoutPage, "grid-column-flow").S.Gf == "c" &&
+                    BlockById(directionLayoutPage, "grid-area").S.Aa == 2,
+                    "direction layout reuses bounded grid flow and area records");
+                using (var directionView = new V())
+                {
+                    directionView.Size = new Size(720, 1600);
+                    directionView.Go(directionLayoutPath);
+                    using (var directionPaint = Render(directionView))
+                    {
+                        var ltr = BlockRect(directionView, BlockById(directionView.At, "flex-ltr"));
+                        var ltrA = BlockOuterRect(directionView, BlockById(directionView.At, "flex-ltr-a"));
+                        var ltrB = BlockOuterRect(directionView, BlockById(directionView.At, "flex-ltr-b"));
+                        Eq(ltr.Left, ltrA.Left, "LTR row starts at the physical left");
+                        Eq(10, ltrB.Left - ltrA.Right, "LTR row gap");
+
+                        var rtl = BlockRect(directionView, BlockById(directionView.At, "flex-rtl"));
+                        var rtlA = BlockOuterRect(directionView, BlockById(directionView.At, "flex-rtl-a"));
+                        var rtlB = BlockOuterRect(directionView, BlockById(directionView.At, "flex-rtl-b"));
+                        var rtlC = BlockOuterRect(directionView, BlockById(directionView.At, "flex-rtl-c"));
+                        Eq(rtl.Right, rtlA.Right, "RTL row starts at inline end");
+                        Eq(10, rtlA.Left - rtlB.Right, "RTL row first gap");
+                        Ok(rtlA.Left > rtlB.Left && rtlB.Left > rtlC.Left, "RTL row visual direction");
+
+                        var rtlEnd = BlockRect(directionView, BlockById(directionView.At, "flex-rtl-end"));
+                        var rtlEndA = BlockOuterRect(directionView, BlockById(directionView.At, "flex-rtl-end-a"));
+                        var rtlEndB = BlockOuterRect(directionView, BlockById(directionView.At, "flex-rtl-end-b"));
+                        Eq(rtlEnd.Left, rtlEndB.Left, "RTL flex-end uses physical left edge");
+                        Eq(90, rtlEndA.Right - rtlEnd.Left, "RTL flex-end group width");
+
+                        var rtlReverse = BlockRect(directionView, BlockById(directionView.At, "flex-rtl-reverse"));
+                        var rtlReverseA = BlockOuterRect(directionView, BlockById(directionView.At, "flex-rtl-reverse-a"));
+                        var rtlReverseB = BlockOuterRect(directionView, BlockById(directionView.At, "flex-rtl-reverse-b"));
+                        Eq(rtlReverse.Left, rtlReverseA.Left, "RTL row-reverse cancels inline reversal");
+                        Eq(10, rtlReverseB.Left - rtlReverseA.Right, "RTL row-reverse gap");
+
+                        var ordered = BlockRect(directionView, BlockById(directionView.At, "flex-order"));
+                        var orderA = BlockOuterRect(directionView, BlockById(directionView.At, "flex-order-a"));
+                        var orderB = BlockOuterRect(directionView, BlockById(directionView.At, "flex-order-b"));
+                        var orderC = BlockOuterRect(directionView, BlockById(directionView.At, "flex-order-c"));
+                        Eq(ordered.Right, orderB.Right, "RTL order-modified first item reaches inline start");
+                        Ok(orderB.Left > orderA.Left && orderA.Left > orderC.Left, "RTL order remains stable before direction mapping");
+
+                        var wrap = BlockRect(directionView, BlockById(directionView.At, "flex-wrap"));
+                        var wrapA = BlockOuterRect(directionView, BlockById(directionView.At, "flex-wrap-a"));
+                        var wrapB = BlockOuterRect(directionView, BlockById(directionView.At, "flex-wrap-b"));
+                        var wrapC = BlockOuterRect(directionView, BlockById(directionView.At, "flex-wrap-c"));
+                        var wrapD = BlockOuterRect(directionView, BlockById(directionView.At, "flex-wrap-d"));
+                        Eq(wrap.Right, wrapA.Right, "RTL wrapped first line starts at inline start");
+                        Eq(wrap.Right, wrapC.Right, "RTL wrapped second line starts at inline start");
+                        Ok(wrapA.Top == wrapB.Top && wrapC.Top == wrapD.Top && wrapC.Top > wrapA.Bottom, "RTL wrapping keeps source line groups");
+
+                        var column = BlockRect(directionView, BlockById(directionView.At, "flex-column"));
+                        var columnA = BlockOuterRect(directionView, BlockById(directionView.At, "flex-column-a"));
+                        var columnB = BlockOuterRect(directionView, BlockById(directionView.At, "flex-column-b"));
+                        Eq(column.Right, columnA.Right, "RTL column flex start cross alignment");
+                        Eq(column.Left, columnB.Left, "RTL column flex end cross alignment");
+
+                        var grid = BlockRect(directionView, BlockById(directionView.At, "grid-auto"));
+                        var gridA = BlockOuterRect(directionView, BlockById(directionView.At, "grid-auto-a"));
+                        var gridB = BlockOuterRect(directionView, BlockById(directionView.At, "grid-auto-b"));
+                        var gridC = BlockOuterRect(directionView, BlockById(directionView.At, "grid-auto-c"));
+                        Eq(grid.Right, gridA.Right, "RTL grid auto placement starts at inline start");
+                        Ok(gridA.Size == new Size(40, 25) && gridB.Size == new Size(60, 25) && gridC.Size == new Size(80, 25), "RTL grid preserves logical track sizes");
+                        Eq(10, gridA.Left - gridB.Right, "RTL unequal grid first gap");
+                        Eq(10, gridB.Left - gridC.Right, "RTL unequal grid second gap");
+
+                        var explicitGrid = BlockRect(directionView, BlockById(directionView.At, "grid-explicit"));
+                        var explicitSpan = BlockOuterRect(directionView, BlockById(directionView.At, "grid-explicit-span"));
+                        var explicitSide = BlockOuterRect(directionView, BlockById(directionView.At, "grid-explicit-side"));
+                        Ok(explicitSpan.Width == 110 && explicitSpan.Right == explicitGrid.Right && explicitSide.Width == 80 && explicitSide.Left - explicitGrid.Left == 20,
+                            "RTL explicit grid lines and spans map physically");
+
+                        var denseA = BlockOuterRect(directionView, BlockById(directionView.At, "grid-dense-a"));
+                        var denseB = BlockOuterRect(directionView, BlockById(directionView.At, "grid-dense-b"));
+                        var denseC = BlockOuterRect(directionView, BlockById(directionView.At, "grid-dense-c"));
+                        Ok(denseC.Top == denseA.Top && denseB.Top > denseA.Bottom && denseA.Left - denseC.Right == 10,
+                            "RTL dense grid backfills the logical final column");
+
+                        var columnGridA = BlockOuterRect(directionView, BlockById(directionView.At, "grid-column-a"));
+                        var columnGridB = BlockOuterRect(directionView, BlockById(directionView.At, "grid-column-b"));
+                        var columnGridC = BlockOuterRect(directionView, BlockById(directionView.At, "grid-column-c"));
+                        var columnGridD = BlockOuterRect(directionView, BlockById(directionView.At, "grid-column-d"));
+                        Ok(columnGridA.Left == columnGridB.Left && columnGridC.Left == columnGridD.Left && columnGridA.Left - columnGridC.Right == 10 && columnGridA.Top == columnGridC.Top,
+                            "RTL column grid flow advances from the physical right");
+
+                        var areaGrid = BlockRect(directionView, BlockById(directionView.At, "grid-area"));
+                        var areaLead = BlockOuterRect(directionView, BlockById(directionView.At, "grid-area-lead"));
+                        var areaSide = BlockOuterRect(directionView, BlockById(directionView.At, "grid-area-side"));
+                        Ok(areaLead.Width == 110 && areaLead.Right == areaGrid.Right && areaSide.Width == 80 && areaLead.Left - areaSide.Right == 10,
+                            "RTL named grid areas retain logical spans");
+
+                        var contentEnd = BlockRect(directionView, BlockById(directionView.At, "grid-content-end"));
+                        var contentEndA = BlockOuterRect(directionView, BlockById(directionView.At, "grid-content-end-a"));
+                        var contentEndB = BlockOuterRect(directionView, BlockById(directionView.At, "grid-content-end-b"));
+                        Eq(contentEnd.Left, contentEndB.Left, "RTL grid content end maps to physical left");
+                        Eq(110, contentEndA.Right - contentEnd.Left, "RTL grid content group width");
+
+                        var selfGrid = BlockRect(directionView, BlockById(directionView.At, "grid-self"));
+                        var selfStart = BlockOuterRect(directionView, BlockById(directionView.At, "grid-self-start"));
+                        var selfEnd = BlockOuterRect(directionView, BlockById(directionView.At, "grid-self-end"));
+                        Eq(selfGrid.Right, selfStart.Right, "RTL grid justify-items start");
+                        Eq(selfGrid.Left, selfEnd.Left, "RTL grid justify-self end");
+                        Ok(ColorDistance(CenterPixel(directionPaint, gridA), Color.FromArgb(220, 236, 255)) < 8, "direction-aware grid paint");
+                    }
+
+                    var command = BlockRect(directionView, BlockById(directionView.At, "command-flex"));
+                    var commandA = BlockOuterRect(directionView, BlockById(directionView.At, "command-flex-a"));
+                    Eq(command.Left, commandA.Left, "direction command flex starts LTR");
+                    Eq(1, directionView.Js("dr('command-flex','rtl')"), "direction command triggers layout rebuild");
+                    Paint(directionView);
+                    command = BlockRect(directionView, BlockById(directionView.At, "command-flex"));
+                    commandA = BlockOuterRect(directionView, BlockById(directionView.At, "command-flex-a"));
+                    Eq(command.Right, commandA.Right, "direction command remaps flex geometry");
+                }
+                Console.WriteLine("Lea direction-aware layout smoke passed.");
 
                 var viewportPath = Path.Combine(pages, "viewport-units.html");
                 var viewportEngine = new E();
@@ -2455,6 +2580,7 @@ namespace Lea.Tests
                 }
                 finally { File.Delete(boundedTreePath); }
 
+                Console.WriteLine("Lea parser and model smoke passed; starting WinForms renderer checks.");
                 using (var view = new V())
                 {
                     view.Size = new Size(720, 760);
@@ -6040,6 +6166,7 @@ namespace Lea.Tests
                     }
                 }
 
+                Console.WriteLine("Lea WinForms renderer smoke passed; starting network timeout checks.");
                 var timeoutEngine = new E();
                 timeoutEngine.Tm = 100;
                 using (var slow = new CompressedServer())

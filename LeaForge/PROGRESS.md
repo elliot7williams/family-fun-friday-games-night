@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **87**
+Post-1.0 hardening milestones completed: **88**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,25 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded direction-aware horizontal flex and grid layout without growing
+  the compact style model. Row and row-reverse combine `S.Fd` with inherited
+  `S.Dr` as one effective reverse bit across justify, order, and wrapped lines;
+  column flex maps horizontal start/end alignment. Grid occupancy remains
+  logical while final track coordinates map auto, dense, column flow, explicit
+  lines/spans, named areas, unequal tracks, content alignment, and self-alignment
+  into RTL. Source/accessibility order remains stable and compact `dr` rebuilds
+  geometry in place. All 84 probes over 81 fixtures and compiled-host smokes
+  pass, all 42 Boot cases pass, and both six-scenario actual EXE startup runs
+  remain responsive without legacy-engine, cast, or JIT dialogs. Measured
+  medians are 538.084 ms clean diagnostic start, 3.601 ms local load, and 33.564
+  ms layout/paint. Retained managed memory is 21,234.4 KiB for 405 pages, or
+  52.4 KiB/page. Required runtime files remain 558.5 KiB with a 235.7 KiB GZip
+  estimate. Runtime 188 stays isolated and installed runtime 157 remains
+  unchanged. See `DIRECTION.md`. Unicode bidi glyph
+  reordering, `dir=auto`, vertical writing modes, and `wrap-reverse` remain
+  outside this milestone; the scoped baseline stays at 100%, not full-web
+  compatibility.
 
 - Added bounded inherited horizontal `direction: ltr/rtl` through compact
   `S.Dr=l/r`, HTML `dir`, and an independent pre-cascade direction pass so
@@ -1047,7 +1066,7 @@ modern web platform.
 
 ## Next gains
 
-- Evaluate direction-aware row flex and grid auto-placement behavior without
+- Evaluate bounded direction-aware list-marker and inline-flow behavior without
   claiming Unicode bidi text shaping or vertical writing-mode support.
 - Add an AppContainer or capability-denied network boundary, custom object ACLs,
   and combined host/helper peak sampling without expanding the public

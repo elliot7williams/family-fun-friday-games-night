@@ -82,6 +82,10 @@ variables, important and pre-cascade resolution, direction-aware logical
 insets/boxes/borders/radii, translated cross-direction inheritance,
 `text-align: start/end`, compact/readable `dr`, familiar DOM forms, reset, and
 invalid preservation. See `LeaForge/DIRECTION.md`.
+`direction-layout.html` covers exact LTR/RTL flex row, reverse, order, wrap and
+column cross-axis geometry plus logical grid auto, dense, column, explicit line,
+span, named-area, content/self alignment, unequal tracks, paint, source order,
+and live compact `dr` reflow. See `LeaForge/DIRECTION.md`.
 `fragment-stability.html` covers `Fa/Fj/Fy`, first-paint retention, responsive
 host settlement, intrinsic image reflow, missing targets, and manual-scroll
 release. See `LeaForge/INITIAL_FRAGMENT_STABILITY.md`.
