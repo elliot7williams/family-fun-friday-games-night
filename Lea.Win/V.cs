@@ -79,6 +79,9 @@ namespace Lea.Win
         private int picAslr;
         private int picCpu;
         private int picMitigations;
+        private int picAppContainer;
+        private int picNoNetwork;
+        private int picFileAcl;
         private long picWorkerMemory;
         private long picWorkerPeak;
         private string picWorkerPath;
@@ -239,6 +242,9 @@ namespace Lea.Win
         public int Icr { get { return Di.C; } set { Di.C = value; } }
         public int Img { get { return Interlocked.CompareExchange(ref picMitigations, 0, 0); } }
         public long Ipk { get { return Interlocked.Read(ref picWorkerPeak); } }
+        public bool Iac { get { return Interlocked.CompareExchange(ref picAppContainer, 0, 0) != 0; } }
+        public bool Ind { get { return Interlocked.CompareExchange(ref picNoNetwork, 0, 0) != 0; } }
+        public bool Ial { get { return Interlocked.CompareExchange(ref picFileAcl, 0, 0) != 0; } }
         public int Hm { get { return e.Hm; } }
         public int Csm { get { return e.Csm; } }
         public int Ic { get { var count = 0; foreach (var item in pics.Values) if (item != null) count++; return count; } }
@@ -5094,7 +5100,7 @@ namespace Lea.Win
         private Task<Image> DecodePicture(byte[] data, CancellationToken token)
         {
             return Di.Rd(data, Ie, picWorkerArgs, token,
-                (process, bounded, restricted, low, suspended, handles, aslr, cpu, guards) =>
+                (process, bounded, restricted, low, suspended, handles, aslr, appContainer, noNetwork, fileAcl, cpu, guards) =>
                 {
                     Interlocked.Increment(ref picNative);
                     Interlocked.Exchange(ref picWorker, process);
@@ -5106,6 +5112,9 @@ namespace Lea.Win
                     Interlocked.Exchange(ref picAslr, aslr ? 1 : 0);
                     Interlocked.Exchange(ref picCpu, cpu);
                     Interlocked.Exchange(ref picMitigations, guards);
+                    Interlocked.Exchange(ref picAppContainer, appContainer ? 1 : 0);
+                    Interlocked.Exchange(ref picNoNetwork, noNetwork ? 1 : 0);
+                    Interlocked.Exchange(ref picFileAcl, fileAcl ? 1 : 0);
                 },
                 (memory, peak) =>
                 {

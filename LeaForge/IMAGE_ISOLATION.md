@@ -21,6 +21,14 @@ termination, forced-relocation ASLR, and bottom-up ASLR before the suspended
 process exists. Its Job now enforces a configurable hard CPU-rate cap and
 verifies the applied flags/rate before assigning and resuming the helper.
 
+Milestone 91 / runtime 191 moves the helper into a deterministic per-user
+AppContainer with an empty capability set. The launcher grants that exact
+AppContainer SID read/execute access to `Lea.Image.exe` only, verifies the
+actual child token identity, zero capabilities, low integrity, and stripped
+privileges while it is suspended, then applies the existing Job and mitigation
+gates. A live listener and a real host-owned canary file prove that network and
+ungranted host-file access are denied while bounded decoding still succeeds.
+
 ## Compact API
 
 ```csharp
@@ -40,6 +48,9 @@ bool cpuPolicy = view.Icp;
 int cpuRateBasisPoints = view.Icr;
 int mitigationMask = view.Img;
 long peakWorkerBytes = view.Ipk;
+bool appContainer = view.Iac;
+bool networkDenied = view.Ind;
+bool helperAcl = view.Ial;
 ```
 
 `Ie` is the image-helper executable path. It defaults to `Lea.Image.exe` beside
@@ -63,10 +74,10 @@ on the next admitted decode and causes the shared worker to restart under a new
 Job. `Ipm` is the private-byte value sampled from the last successful worker
 response; it is diagnostic rather than a peak or reservation counter.
 
-`Irt` confirms that `CreateRestrictedToken(DISABLE_MAX_PRIVILEGE)` produced the
-launch token and inspection found at most Windows' traversal privilege enabled.
-`Ili` confirms low mandatory integrity RID 4096. `Isp` confirms that Job
-assignment completed while the new process's primary thread was suspended.
+`Irt` confirms inspection of the actual AppContainer child token found at most
+Windows' traversal privilege enabled. `Ili` confirms low mandatory integrity
+RID 4096. `Isp` confirms that Job assignment completed while the new process's
+primary thread was suspended.
 `Ihl` confirms that `PROC_THREAD_ATTRIBUTE_HANDLE_LIST` limited inheritance to
 stdin, stdout, and stderr pipes.
 
@@ -84,6 +95,15 @@ System32, and bit 8 blocks child-process creation when those Windows 10 policies
 are available. `Ipk` is `PeakProcessMemoryUsed` queried from the Job after the
 last successful response; unlike `Ipm`, it tracks the worker lifetime peak.
 
+`Iac` confirms the running process token carries Lea's exact AppContainer SID.
+`Ind` confirms that token has zero capabilities, so no `internetClient` or
+private-network capability is present. `Ial` confirms an explicit
+identity-scoped read/execute ACE exists on the selected helper executable. The
+launcher creates or reuses the `Lea.Image.Decoder` profile on the first admitted
+native decode. A failure in profile creation, ACL installation, or live token
+verification becomes the ordinary failed-image sentinel; there is no less
+restricted decoder fallback.
+
 Existing image aliases retain their meanings. `In` counts admitted native
 decode requests, `If` counts current failed-image sentinels, `Ic/Ib` count
 retained bitmaps and estimated bytes, and `Ip/Im/It` expose the per-image pixel
@@ -96,14 +116,18 @@ through it. Reuse avoids starting a process for every image while keeping only
 one decoder process resident. A changed `Ie` path, helper arguments, `Ih`
 memory limit, or `Icr` CPU rate restarts that shared helper.
 
-The host creates a primary token with maximum privileges disabled, verifies that
-no more than the traversal privilege remains enabled, and sets its mandatory
-label to low integrity. It creates three anonymous pipes and uses an extended
-startup handle list so no other inheritable host handle enters the child. The
-same extended startup request enables DEP, SEHOP, heap-corruption termination,
-forced relocation, bottom-up ASLR, and architecture-supported high-entropy
-ASLR. The helper is created hidden and suspended with `CreateProcessAsUser`,
-and Windows' ASLR policy is queried before admission.
+The host creates or reuses one deterministic AppContainer profile and adds an
+explicit read/execute ACE for that SID to the configured helper file. It passes
+an empty `SECURITY_CAPABILITIES` set through the extended startup attribute
+list, alongside the three-handle allowlist and creation mitigations. No user
+file, directory tree, network, or package capability is granted. Windows builds
+the restricted low-integrity child token; while the process is still suspended,
+Lea queries that actual token and requires the exact AppContainer identity,
+zero capabilities, low integrity, and at most the traversal privilege enabled.
+The same startup request enables DEP, SEHOP, heap-corruption termination, forced
+relocation, bottom-up ASLR, and architecture-supported high-entropy ASLR. The
+helper is created hidden and suspended with `CreateProcessAsUser`, and Windows'
+ASLR policy is queried before admission.
 
 Before `ResumeThread`, the host creates the Job, sets `ACTIVE_PROCESS`,
 `PROCESS_MEMORY`, `DIE_ON_UNHANDLED_EXCEPTION`, and `KILL_ON_JOB_CLOSE`, then
@@ -173,38 +197,39 @@ or third-party codec package is introduced.
 ## Verification
 
 `Lea.Tests <root> --pics` covers PNG, JPEG, GIF, BMP, and ICO through a different
-PID, missing-helper failure, a forced two-second native stall killed by a 300 ms
-view budget, zero leaked reservation, clean restart, hostile preflight, shared
+PID, missing-helper failure, a forced native stall killed by a bounded view
+budget, zero leaked reservation, clean restart, hostile preflight, shared
 memory admission, one-PID codec reuse, Job/cap aliases, memory/CPU cap
 clamping/restart, private/Job-peak sampling, live token integrity/privilege
 inspection, live Job membership, queried ASLR and CPU policies, each helper
-mitigation, an invalid-handshake helper, network limits, retry, Stop, disposal,
-and successor loads. A child test host then blocks its
+mitigation, an invalid-handshake helper, AppContainer identity/capability
+inspection, automatic helper-file ACL installation, active denied connection to
+a listening loopback socket, active denied access to a host-owned canary file,
+network limits, retry, Stop, disposal, and successor loads. A child test host then blocks its
 helper for 60 seconds, is terminated,
 and requires Job close to remove that exact helper PID within three seconds.
 
-The runtime 173 release run passes the full core and isolated editor suites, the
-compiled adapter smoke, 69 benchmark probes over 66 fixtures, all 42 Boot cases
-in one combined run, and all six actual EXE startup scenarios. The Boot `decode`
-case loads one valid image in the helper, rejects one over-axis PNG before
-admission, reports startup ASLR, the 2500 CPU rate, all 15 current guard bits,
-and 8,556,544 private/Job-peak bytes under the 192 MiB cap, verifies host
-cleanup/no MSHTML, and checks child-process exit.
-
-The measured runtime files total 538.5 KiB with a 229.7 KiB GZip estimate. The
-report records 499.587 ms clean-process, 3.231 ms local-load, and 32.724 ms
-layout/paint medians. These unpaired local samples are not speedup claims.
+The runtime 191 release run adds a dedicated compatibility probe and compiled
+Firespider checks for the AppContainer/ACL boundary. The Boot `decode` case
+loads one valid image in the helper, rejects one over-axis PNG before admission,
+reports the zero-capability AppContainer, exact helper ACL, startup ASLR, the
+2500 CPU rate, current guard bits, private/Job-peak bytes under the 192 MiB cap,
+host cleanup/no MSHTML, and child-process exit. Current full-suite and package
+measurements are recorded in `PROGRESS.md` and
+`COMPATIBILITY_PERFORMANCE.md`.
 
 ## Remaining Limits
 
-The helper is privilege-stripped and low integrity, but it is not an AppContainer
-or complete operating-system sandbox. It retains the user's read identity and
-network credentials and does not yet have a capability-denied network token,
-custom object ACL, or combined host/helper memory ceiling. The restricting-SID
-experiment was not retained because it prevented the .NET CLR from loading;
-the token boundary here is disabled privileges plus mandatory low integrity.
-`Ipm/Ipk` cover the helper, while `It/Im` remain Lea estimates rather than a
-combined host-plus-helper memory budget.
+The helper is now a zero-capability AppContainer, but it is not a complete
+operating-system or codec sandbox. Its deterministic per-user profile persists
+after browser exit, and Windows/system paths available to AppContainers remain
+available. The helper-file ACE is intentionally retained so later launches do
+not need broader directory access. Lea has not enabled the `internetClient`,
+private-network, documents, pictures, music, videos, or broad-filesystem
+capabilities. `Ipm/Ipk` cover the helper, while `It/Im` remain Lea estimates
+rather than a combined host-plus-helper memory budget. Deployment must allow
+the current user to add the helper-file ACE; failure remains nonfatal to the
+document and does not downgrade isolation.
 
 One shared worker deliberately serializes native decodes. Image requests still
 do not share the document cookie jar, validator cache, or request diagnostics.

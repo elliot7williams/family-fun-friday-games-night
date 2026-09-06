@@ -2242,11 +2242,43 @@ namespace Lea.Bench
                         view.Ih == 192L * 1024 * 1024 && view.Ipm > 0 && view.Ipm <= view.Ih && view.Irt && view.Ili &&
                         view.Isp && view.Ihl && view.Ias && view.Icp && view.Icr == 2500 &&
                         (view.Img & 3) == 3 && view.Ipk > 0 && view.Ipk <= view.Ih &&
+                        view.Iac && view.Ind && view.Ial &&
                         view.At.Fs[0].V == "Retained preflight data",
                         "image restricted-launch aliases, worker admission, or retained accounting changed");
                 }
                 using (var released = NewView()) Need(released.It == 0, "image preflight fixture leaked process reservation");
-                return "Pi preflight, Irt/Ili/Isp/Ihl/Ias/Icp/Icr/Img/Ipk hardened-worker aliases, one native decode, one pre-native rejection, retained fields, paint, and disposal";
+                return "Pi preflight, Irt/Ili/Isp/Ihl/Ias/Icp/Icr/Img/Ipk/Iac/Ind/Ial hardened-worker aliases, one native decode, one pre-native rejection, retained fields, paint, and disposal";
+            });
+            AddProbe(probes, "Zero-capability image sandbox", delegate
+            {
+                var listener = new TcpListener(IPAddress.Loopback, 0);
+                var canary = Path.Combine(Path.GetTempPath(), "lea-image-container-" + Guid.NewGuid().ToString("N") + ".txt");
+                try
+                {
+                    File.WriteAllText(canary, "host-only image sandbox canary");
+                    listener.Start();
+                    var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+                    using (var view = NewView())
+                    {
+                        typeof(V).GetField("picWorkerArgs", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(view,
+                            "--pipe --network-probe=" + port + " --file-probe=" +
+                            Convert.ToBase64String(Encoding.UTF8.GetBytes(canary)));
+                        var work = view.GoA(Path.Combine(folder, "image-preflight.html"));
+                        var end = DateTime.UtcNow.AddSeconds(10);
+                        while (!work.IsCompleted && DateTime.UtcNow < end) { Application.DoEvents(); Thread.Sleep(2); }
+                        Need(work.IsCompleted, "image AppContainer fixture timeout");
+                        work.GetAwaiter().GetResult();
+                        Need(view.Ic == 1 && view.In == 1 && view.Iac && view.Ind && view.Ial &&
+                            (view.Img & 48) == 48 && !listener.Pending() && File.Exists(canary),
+                            "zero-capability worker reached loopback or a host-owned file");
+                    }
+                }
+                finally
+                {
+                    listener.Stop();
+                    if (File.Exists(canary)) File.Delete(canary);
+                }
+                return "Iac/Ind zero-capability AppContainer, exact helper-file RX ACL, active denied loopback/host-file probes, bounded native decode, and no added runtime";
             });
             AddProbe(probes, "Bounded document input", delegate
             {

@@ -678,13 +678,19 @@ cache. Accepted codecs run in the shared killable `Lea.Image.exe` process and
 return bounded raw pixels; `Ie/Ii/Iw/Ik` expose helper path, availability, last
 PID, and cancellation kills. `Ij/Ih/Ipm` expose mandatory Job assignment, its
 64-512 MiB hard process-memory cap, and last sampled private bytes.
-`Irt/Ili/Isp/Ihl` confirm a privilege-stripped token, low integrity, assignment
+`Irt/Ili/Isp/Ihl` confirm the actual child token has stripped privileges and
+low integrity, assignment
 while the primary thread is suspended, and a three-pipe inherited-handle
 allowlist. `Ias` confirms forced-relocation and bottom-up ASLR at creation;
 `Icp` confirms the Job CPU hard cap, while `Icr` configures its 100-10,000
 basis-point rate and restarts the shared worker when changed. `Img` is the
 helper mitigation handshake mask and `Ipk` is the Job's peak process-memory
-value. The helper must acknowledge required guards before
+value. `Iac/Ind/Ial` confirm a deterministic AppContainer token, zero
+capabilities including no network capability, and an identity-scoped
+read/execute ACE on only the helper executable. Lea creates or reuses the
+per-user profile on first native decode. If profile creation, ACL installation,
+token inspection, or any existing Job/mitigation gate fails, the image fails
+closed without an unrestricted fallback. The helper must acknowledge required guards before
 the host sends encoded bytes. CSS
 width/height wins over HTML dimensions; otherwise `width` and
 `height` attributes feed the same constrained layout path.

@@ -162,10 +162,12 @@ paint/navigation overlap, host request cleanup, full UI-thread exception
 diagnostics, and no MSHTML. See
 `LeaForge/CACHE_IDENTITY.md`.
 `-Case decode` checks one valid helper decode, over-axis PNG preflight,
-`Ip/Im/It/In/If/Ie/Ii/Iw/Ik/Ij/Ih/Ipm/Irt/Ili/Isp/Ihl/Ias/Icp/Icr/Img/Ipk`,
-retained form data, restricted low-integrity launch, startup ASLR, Job CPU cap,
-mitigation handshake, private/Job-peak memory, host cleanup, child-process exit,
-and no MSHTML. See
+`Ip/Im/It/In/If/Ie/Ii/Iw/Ik/Ij/Ih/Ipm/Irt/Ili/Isp/Ihl/Ias/Icp/Icr/Img/Ipk/Iac/Ind/Ial`,
+retained form data, zero-capability AppContainer and exact helper ACL,
+restricted low-integrity token, startup ASLR, Job CPU cap, mitigation handshake,
+private/Job-peak memory, host cleanup, child-process exit, and no MSHTML. The
+focused `--pics` suite additionally attempts live loopback and host-file access
+and requires both to be denied while decode succeeds. See
 `LeaForge/IMAGE_ISOLATION.md`.
 `-Case load-life` checks page-command successors, request ownership, queued CSS,
 busy address input, and cleanup. `Lea.Tests <root> --loads` adds deterministic
@@ -256,7 +258,9 @@ read state, and older unread records. See `LeaForge/BULK_OPENING.md`.
 
 `-Case domains` covers visible-domain matching, both reload menus, paused/busy
 skips, retained fields, mixed-engine commands, bookmarks/shortcut, private copies,
-and close disposal. `-Case domain-private` checks seeded private new windows,
+and close disposal. Its loopback server discards speculative legacy connections
+that send zero header bytes within one second, while partial/malformed requests
+remain failures. `-Case domain-private` checks seeded private new windows,
 lazy behavior, exact requests, twelve-tab creation limits, and bounded exports
 with control-character/surrogate and row-limit checks. OS clipboard and Save
 dialog interaction are not automated. See `LeaForge/DOMAIN_COMMANDS.md`.

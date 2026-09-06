@@ -58,14 +58,16 @@ namespace Lea.Win
         }
 
         public static Task<Image> Rd(byte[] data, string path, string args, CancellationToken token,
-            Action<int, bool, bool, bool, bool, bool, bool, int, int> started, Action<long, long> measured, Action killed)
+            Action<int, bool, bool, bool, bool, bool, bool, bool, bool, bool, int, int> started,
+            Action<long, long> measured, Action killed)
         {
             return Task.Factory.StartNew(() => Read(data, path, args, token, started, measured, killed),
                 CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
         }
 
         private static Image Read(byte[] data, string path, string args, CancellationToken token,
-            Action<int, bool, bool, bool, bool, bool, bool, int, int> started, Action<long, long> measured, Action killed)
+            Action<int, bool, bool, bool, bool, bool, bool, bool, bool, bool, int, int> started,
+            Action<long, long> measured, Action killed)
         {
             one.Wait(token);
             Rp current = null;
@@ -89,7 +91,8 @@ namespace Lea.Win
                     }
                     token.ThrowIfCancellationRequested();
                     if (started != null) started(current.P.Id, current.J != null, current.R, current.L,
-                        current.S, current.A, current.M, current.J == null ? 0 : current.J.C, current.G);
+                        current.S, current.A, current.M, current.C, current.N, current.F,
+                        current.J == null ? 0 : current.J.C, current.G);
                     input.Write(data.Length);
                     input.Write(data);
                     input.Flush();

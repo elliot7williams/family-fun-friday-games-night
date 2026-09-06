@@ -18,7 +18,9 @@ read and quick to write.
   `Irt/Ili/Isp/Ihl/Ias/Icp/Icr/Img/Ipk` report the privilege-stripped token, low
   integrity, suspended Job prebind, inherited-handle allowlist, startup ASLR,
   active CPU hard-cap policy, configurable CPU rate in basis points, mitigation
-  mask, and Job peak process bytes. See
+  mask, and Job peak process bytes. `Iac/Ind/Ial` confirm the running helper's
+  AppContainer identity, zero capability set (including no network capability),
+  and exact identity-scoped read/execute helper-file ACL. See
   `PICTURE_LIMITS.md`, `IMAGE_PREFLIGHT.md`, and `IMAGE_ISOLATION.md`.
 - `V.Ce(code)` queries native field editing and `V.Ec(code)` runs it: `cp`, `cu`,
   `pa`, `sa`, `de`, `un`, and `re`. Commands are host-only, protect read-only and

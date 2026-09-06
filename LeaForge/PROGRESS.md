@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **90**
+Post-1.0 hardening milestones completed: **91**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -16,7 +16,7 @@ modern web platform.
 | HTML and document tree | 20% | 20% | Bounded tokens, queries, base URLs and fragments, raw/RCDATA text, entities, recovery, HTML-hidden suppression, semantic accessibility, blocks, lists, disclosures, gauges, values, time/edit metadata, responsive image maps, tabindex focus, autofocus/access keys, tables |
 | CSS | 15% | 15% | Compiled relationship, bounded strict relational/functional, An+B/reverse, and filtered structural selectors, declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, inherited horizontal LTR/RTL direction, fixed/percentage/calculated plus direction-aware logical dimensions/insets/margins/padding/borders/radii, classic viewport/font-relative units and bounded size functions, bounded vertical sticky positioning, dynamic hover/focus, inherited cursor/pointer interaction, text transformation and signed letter/word spacing, content/border sizing, circular/elliptical radii, bounded outlines, box shadows, gradients, bitmap backgrounds, object fitting and aspect ratios, visibility/opacity, fonts, overflow, boxes, bounded ordered flex and two-axis grid properties |
 | Layout and painting | 20% | 20% | Shared physical/logical box edges and per-edge border styles/colors plus fixed/percentage/calculated, viewport-unit, font-relative, and min/max/clamp dimensions, content/border, aspect-ratio, sticky, direction-aware inline/marker/ellipsis and TextPattern range geometry, transformed and spacing-aware presentation text with raw form retention, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients/bitmaps, pointer-gated retained hits with underlying fallthrough, fitted raster images and maps, ordered flex rows/columns, bounded grid tracks/spans, distribution, alignment, wrapping, grow/shrink, clipping, reflow, painting |
-| Resources, forms, and media | 10% | 10% | Native field edit commands and one-level undo/redo, bounded multipart files, richer widgets, validation, responsive and fitted images, GET/POST submit |
+| Resources, forms, and media | 10% | 10% | Native field edit commands and one-level undo/redo, bounded multipart files, richer widgets, validation, responsive/fitted images with a zero-capability AppContainer decoder, GET/POST submit |
 | Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/body and ID-scoped display/width/height/direction/logical box/border/radius/style/alert, class, visibility, disclosure, field-state, focus, and literal bounded DOM translation |
 | Firespider integration and reliability | 10% | 10% | Lea-first New Tab/Ctrl+T, explicit legacy fallback, Inspector with Access view, MSAA/UIA surfaces including read-only text, host-safe focus shortcuts, navigation, sessions, source, host smokes |
 | **Total** | **100%** | **100%** | Scoped Lea 1.0 baseline complete; post-1.0 hardening continues |
@@ -29,6 +29,31 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Moved the shared native image decoder into a deterministic zero-capability
+  AppContainer without adding a runtime or widening the image protocol. The
+  launcher creates or reuses one per-user profile, adds an exact SID-scoped
+  read/execute ACE to `Lea.Image.exe` only, and verifies the real suspended
+  child token's identity, empty capability set, low integrity, and stripped
+  privileges before retaining the existing handle allowlist, Job, ASLR, CPU,
+  memory, and mitigation gates. New `Iac/Ind/Ial` aliases are each three letters
+  and report the live boundary. Focused tests place a listener on loopback and
+  a canary in the host's temp directory; both accesses are denied while PNG,
+  JPEG, GIF, BMP, and ICO decoding, worker reuse, cancellation, and restart
+  continue to pass. The full default/core suite, compiled-host smoke, all 87
+  probes over 83 fixtures, all 42 Boot cases, and all six actual EXE startup
+  scenarios pass without a legacy engine, invalid cast, JIT dialog, or dead
+  startup window. The Boot loopback server now releases speculative zero-byte
+  legacy connections within one second without hiding partial/malformed HTTP,
+  eliminating a reproduced mixed-domain reload timeout; five focused repeats
+  and the final combined matrix pass. Runtime medians are 534.292 ms clean diagnostic start, 3.908
+  ms local load, and 35.246 ms layout/paint. Retained managed memory is 17,552.3
+  KiB for 332 pages, or 52.9 KiB/page. Required runtime files are 563.0 KiB with
+  a 238.0 KiB GZip estimate. Runtime 191 stays isolated and installed runtime
+  157 remains unchanged. See `IMAGE_ISOLATION.md`. The AppContainer profile
+  persists per user, system paths available to AppContainers remain available,
+  and host/helper peak admission remains future work; the scoped baseline stays
+  at 100%, not full-web compatibility.
 
 - Added bounded direction-aware paint-only ellipsis and read-only TextPattern
   range geometry without growing public model records. LTR and RTL unwrapped
@@ -1110,11 +1135,8 @@ modern web platform.
 
 ## Next gains
 
-- Evaluate bounded RTL paint-only ellipsis and selection geometry without
-  claiming full Unicode bidi shaping or vertical writing-mode support.
-- Add an AppContainer or capability-denied network boundary, custom object ACLs,
-  and combined host/helper peak sampling without expanding the public
-  integration surface.
+- Add combined host/helper peak sampling and a bounded admission policy without
+  weakening the AppContainer/Job boundary.
 - Add a native-safe non-empty visible-range bridge outside the .NET Framework
   managed provider array boundary; retain the stable empty fallback until range
   handles survive both in-process and external MTA clients.

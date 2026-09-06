@@ -3,6 +3,8 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Net;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -21,9 +23,21 @@ namespace Lea.Image
         {
             if (args.Length == 0 || args[0] != "--pipe") return 2;
             var delay = 0;
+            var networkProbe = 0;
+            var fileProbe = "";
             foreach (var arg in args)
+            {
                 if (arg.StartsWith("--delay=", StringComparison.Ordinal) &&
                     (!Int32.TryParse(arg.Substring(8), out delay) || delay < 0 || delay > 60000)) return 2;
+                if (arg.StartsWith("--network-probe=", StringComparison.Ordinal) &&
+                    (!Int32.TryParse(arg.Substring(16), out networkProbe) || networkProbe < 1 || networkProbe > 65535)) return 2;
+                if (arg.StartsWith("--file-probe=", StringComparison.Ordinal))
+                {
+                    try { fileProbe = Encoding.UTF8.GetString(Convert.FromBase64String(arg.Substring(13))); }
+                    catch (FormatException) { return 2; }
+                    if (String.IsNullOrWhiteSpace(fileProbe) || fileProbe.Length > 1024) return 2;
+                }
+            }
             try
             {
                 using (var input = Console.OpenStandardInput())
@@ -32,6 +46,8 @@ namespace Lea.Image
                 using (var writer = new BinaryWriter(output, Encoding.UTF8))
                 {
                     var guards = Mg.Apply();
+                    if (networkProbe > 0 && NetworkDenied(networkProbe)) guards |= 16;
+                    if (fileProbe.Length > 0 && FileDenied(fileProbe)) guards |= 32;
                     writer.Write(Hello);
                     writer.Write(guards);
                     writer.Flush();
@@ -60,6 +76,38 @@ namespace Lea.Image
                 catch { }
                 return 4;
             }
+        }
+
+        private static bool NetworkDenied(int port)
+        {
+            TcpClient client = null;
+            WaitHandle wait = null;
+            try
+            {
+                client = new TcpClient();
+                var connection = client.BeginConnect(IPAddress.Loopback, port, null, null);
+                wait = connection.AsyncWaitHandle;
+                if (!wait.WaitOne(500)) return true;
+                client.EndConnect(connection);
+                return false;
+            }
+            catch (SocketException) { return true; }
+            finally
+            {
+                if (wait != null) wait.Close();
+                if (client != null) client.Close();
+            }
+        }
+
+        private static bool FileDenied(string path)
+        {
+            try
+            {
+                using (var stream = File.OpenRead(path)) stream.ReadByte();
+                return false;
+            }
+            catch (UnauthorizedAccessException) { return true; }
+            catch (IOException) { return true; }
         }
 
         private static void Decode(byte[] data, BinaryWriter writer)

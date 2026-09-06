@@ -558,6 +558,7 @@ namespace Lea.Firespider
                         view.Ii && File.Exists(view.Ie) && view.Ic == 1 && view.If == 1 && view.In == 1 && worker > 0 &&
                         worker != Process.GetCurrentProcess().Id && view.Ik == 0 && view.Ij && view.Ih == 192L * 1024 * 1024 &&
                         view.Ipm > 0 && view.Ipm <= view.Ih && view.Irt && view.Ili && view.Isp && view.Ihl &&
+                        view.Iac && view.Ind && view.Ial &&
                         view.Ias && view.Icp && view.Icr == 2500 &&
                         (view.Img & 3) == 3 && view.Ipk > 0 && view.Ipk <= view.Ih && view.Cn && !view.Busy && view.Le == null,
                         "host image restricted-launch aliases, decode, or preflight admission changed");
@@ -569,7 +570,7 @@ namespace Lea.Firespider
                 }
                 finally { if (view != null && !view.IsDisposed) Call(form, "qleaClose", (TabPage)view.Parent); }
                 if (view != null) Check(view.It == 0, "closing preflight tab leaked process image bytes");
-                Console.WriteLine("PASS image decode: restricted helper, startup ASLR, CPU cap, mitigations, memory, cleanup, and no MSHTML; aslr=" + startupAslr + "; cpu=" + cpuRate + "; guards=" + guards + "; private=" + privateMemory + "; peak=" + peakMemory + "; worker=" + worker);
+                Console.WriteLine("PASS image decode: zero-capability AppContainer, exact helper ACL, restricted token, startup ASLR, CPU cap, mitigations, memory, cleanup, and no MSHTML; aslr=" + startupAslr + "; cpu=" + cpuRate + "; guards=" + guards + "; private=" + privateMemory + "; peak=" + peakMemory + "; worker=" + worker);
             }
         }
 
@@ -2597,14 +2598,24 @@ namespace Lea.Firespider
                         using (var stream = client.GetStream())
                         {
                             lock (clientGate) activeClient = client;
-                            stream.ReadTimeout = 10000;
+                            stream.ReadTimeout = 1000;
                             var end = 0;
-                            for (var bytes = 0; bytes < 16384 && end != 0x0d0a0d0a; bytes++)
+                            var bytes = 0;
+                            try
                             {
-                                var next = stream.ReadByte();
-                                if (next < 0) throw new IOException("Incomplete loopback request");
-                                end = (end << 8) | next;
+                                for (; bytes < 16384 && end != 0x0d0a0d0a; bytes++)
+                                {
+                                    var next = stream.ReadByte();
+                                    if (next < 0)
+                                    {
+                                        if (bytes == 0) break;
+                                        throw new IOException("Incomplete loopback request");
+                                    }
+                                    end = (end << 8) | next;
+                                }
                             }
+                            catch (IOException) { if (stopped || bytes == 0) continue; throw; }
+                            if (bytes == 0) continue;
                             Check(end == 0x0d0a0d0a, "loopback request header bound");
                             Interlocked.Increment(ref hits);
                             Check(Release.WaitOne(10000), "loopback response gate timeout");

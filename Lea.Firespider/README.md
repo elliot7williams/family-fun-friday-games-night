@@ -77,7 +77,8 @@ request cleanup without MSHTML. See `LeaForge/CACHE_IDENTITY.md`.
 
 The `decode` case sends one valid and one over-axis PNG through a selected Lea
 tab. It checks `Ip/Im/It/In/If`,
-`Ie/Ii/Iw/Ik/Ij/Ih/Ipm/Irt/Ili/Isp/Ihl/Ias/Icp/Icr/Img/Ipk`, raw pixels,
+`Ie/Ii/Iw/Ik/Ij/Ih/Ipm/Irt/Ili/Isp/Ihl/Ias/Icp/Icr/Img/Ipk/Iac/Ind/Ial`, raw
+pixels, a zero-capability AppContainer and exact helper-file ACL, verified
 restricted low-integrity suspended launch, startup ASLR, a configurable Job CPU
 hard cap, process mitigations, private/Job-peak memory, pre-native hostile
 rejection, retained form data, request cleanup, child exit, and no MSHTML. See

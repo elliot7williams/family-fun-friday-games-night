@@ -45,7 +45,7 @@ Dg/Dcl  diagnostics/clear request activity
    a privilege-stripped low-integrity decoder process assigned to its Job while suspended,
    a shared pass deadline, 32 MiB per-view retention, and a
    configurable 128 MiB process-wide Lea image budget through compact
-   `V.Ic/Ib/Ip/Im/It/In/If/Ie/Ii/Iw/Ik/Ij/Ih/Ipm/Irt/Ili/Isp/Ihl/Ias/Icp/Icr/Img/Ipk` aliases. Document/POST bodies and linked CSS now
+   `V.Ic/Ib/Ip/Im/It/In/If/Ie/Ii/Iw/Ik/Ij/Ih/Ipm/Irt/Ili/Isp/Ihl/Ias/Icp/Icr/Img/Ipk/Iac/Ind/Ial` aliases. Document/POST bodies and linked CSS now
    have 4 MiB/256 KiB wire/decoded bounds and shared I/O budgets; see
    `PICTURE_LIMITS.md` and `INPUT_LIMITS.md` for remaining resource work.
 5. Add cancellation and timeouts so a slow page cannot freeze the browser.
@@ -345,16 +345,16 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Inherited horizontal `direction:ltr/rtl` now drives physical flex, grid, inline,
-marker, inline-end ellipsis, and read-only TextPattern geometry without growing
-public model records. RTL paint keeps authored prefixes right-aligned inside
-their retained atoms, preserves original link targets, and maps partial/point
-ranges back to logical source offsets. Standalone, benchmark, and compiled
-Firespider probes cover the path. See `DIRECTION.md`. Next continue the
-capability-denied helper boundary and native-safe visible-range investigation,
-while keeping vertical writing modes, full Unicode bidi shaping, `dir=auto`,
-custom overflow markers, and general CSS/JavaScript evaluators outside the
-current boundary.
+The native image helper now runs in a deterministic zero-capability
+AppContainer. The launcher installs one identity-scoped read/execute ACE on the
+helper file, verifies the actual suspended child token and empty capability
+set, then retains the existing handle, Job, ASLR, CPU, memory, and handshake
+gates. Active loopback and host-file probes are denied while bounded decode
+continues. See `IMAGE_ISOLATION.md`. Next investigate a combined host/helper
+peak-memory admission signal and the native-safe visible-range boundary while
+keeping vertical writing modes, full Unicode bidi shaping, `dir=auto`, custom
+overflow markers, and general CSS/JavaScript evaluators outside the current
+boundary.
 
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host

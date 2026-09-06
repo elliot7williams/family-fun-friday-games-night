@@ -3,6 +3,8 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Win32.SafeHandles;
@@ -12,18 +14,17 @@ namespace Lea.Win
     // Rp launches one restricted image worker and owns its exact inherited pipes.
     internal sealed class Rp : IDisposable
     {
-        private const uint TokenAccess = 0x0000018b;
-        private const uint DisableMaxPrivilege = 0x00000001;
-        private const uint GroupIntegrity = 0x00000020;
-        private const uint GroupIntegrityEnabled = 0x00000040;
         private const uint Inherit = 0x00000001;
         private const uint Suspended = 0x00000004;
         private const uint NoWindow = 0x08000000;
         private const uint ExtendedStartup = 0x00080000;
         private static readonly IntPtr HandleList = new IntPtr(0x00020002);
         private static readonly IntPtr MitigationPolicy = new IntPtr(0x00020007);
+        private static readonly IntPtr SecurityCapabilities = new IntPtr(0x00020009);
         // DEP, SEHOP, heap termination, and force/bottom-up/high-entropy ASLR.
         private const long StartupPolicy = 0x00111105L;
+        private const string ContainerName = "Lea.Image.Decoder";
+        private const int AlreadyExists = unchecked((int)0x800700b7);
 
         public Process P { get; private set; }
         public Stream I { get; private set; }
@@ -34,6 +35,9 @@ namespace Lea.Win
         public bool S { get; private set; }
         public bool A { get; private set; }
         public bool M { get; private set; }
+        public bool C { get; private set; }
+        public bool N { get; private set; }
+        public bool F { get; private set; }
         public bool Ready { get; set; }
         public int G { get; set; }
 
@@ -43,30 +47,33 @@ namespace Lea.Win
 
         public string E { get { lock (errorGate) return errorText.ToString(); } }
 
-        private Rp(Process process, Stream input, Stream output, Stream errors, Jb job)
+        private Rp(Process process, Stream input, Stream output, Stream errors, Jb job, bool restricted,
+            bool low, bool container, bool noCapabilities, bool fileAcl)
         {
             P = process;
             I = input;
             O = output;
             error = errors;
             J = job;
-            R = true;
-            L = true;
+            R = restricted;
+            L = low;
             S = true;
             A = true;
             M = true;
+            C = container;
+            N = noCapabilities;
+            F = fileAcl;
             Task.Factory.StartNew(() => Drain(errors), default(System.Threading.CancellationToken),
                 TaskCreationOptions.LongRunning, TaskScheduler.Default);
         }
 
         public static Rp Open(string path, string args, string directory, long memory, int cpu)
         {
-            IntPtr source = IntPtr.Zero;
-            IntPtr restricted = IntPtr.Zero;
-            IntPtr low = IntPtr.Zero;
             IntPtr attributes = IntPtr.Zero;
             IntPtr handles = IntPtr.Zero;
             IntPtr mitigation = IntPtr.Zero;
+            IntPtr appSid = IntPtr.Zero;
+            IntPtr capabilities = IntPtr.Zero;
             IntPtr childInput = IntPtr.Zero;
             IntPtr parentInput = IntPtr.Zero;
             IntPtr parentOutput = IntPtr.Zero;
@@ -82,19 +89,8 @@ namespace Lea.Win
             Jb job = null;
             try
             {
-                if (!OpenProcessToken(GetCurrentProcess(), TokenAccess, out source)) throw Error("Lea could not open its process token.");
-                if (!CreateRestrictedToken(source, DisableMaxPrivilege, 0, IntPtr.Zero, 0, IntPtr.Zero,
-                    0, IntPtr.Zero, out restricted)) throw Error("Lea could not restrict the image-worker token.");
-                if (!PrivilegesStripped(restricted))
-                    throw new InvalidOperationException("Lea image-worker privileges were not stripped.");
-                low = StringSid("S-1-16-4096");
-                var label = new MandatoryLabel
-                {
-                    Label = new SidAttribute { Sid = low, Attributes = GroupIntegrity | GroupIntegrityEnabled }
-                };
-                var labelSize = (uint)(Marshal.SizeOf(typeof(MandatoryLabel)) + GetLengthSid(low));
-                if (!SetTokenInformation(restricted, 25, ref label, labelSize)) throw Error("Lea could not lower image-worker integrity.");
-                if (Integrity(restricted) != 4096) throw new InvalidOperationException("Lea image-worker integrity was not set to low.");
+                appSid = ContainerSid();
+                var fileAcl = GrantFile(path, appSid);
 
                 var security = new SecurityAttributes { Length = Marshal.SizeOf(typeof(SecurityAttributes)), Inherit = true };
                 Pipe(ref security, out childInput, out parentInput, true);
@@ -102,10 +98,10 @@ namespace Lea.Win
                 Pipe(ref security, out parentError, out childError, false);
 
                 IntPtr attributeSize = IntPtr.Zero;
-                InitializeProcThreadAttributeList(IntPtr.Zero, 2, 0, ref attributeSize);
+                InitializeProcThreadAttributeList(IntPtr.Zero, 3, 0, ref attributeSize);
                 if (attributeSize == IntPtr.Zero) throw Error("Lea could not size its worker handle list.");
                 attributes = Marshal.AllocHGlobal(attributeSize);
-                if (!InitializeProcThreadAttributeList(attributes, 2, 0, ref attributeSize))
+                if (!InitializeProcThreadAttributeList(attributes, 3, 0, ref attributeSize))
                     throw Error("Lea could not create its worker handle list.");
                 handles = Marshal.AllocHGlobal(IntPtr.Size * 3);
                 Marshal.WriteIntPtr(handles, 0, childInput);
@@ -117,6 +113,12 @@ namespace Lea.Win
                 Marshal.WriteInt64(mitigation, StartupPolicy);
                 if (!UpdateProcThreadAttribute(attributes, 0, MitigationPolicy, mitigation, new IntPtr(8),
                     IntPtr.Zero, IntPtr.Zero)) throw Error("Lea could not set image-worker startup mitigations.");
+                var emptyCapabilities = new CapabilitySet { AppContainerSid = appSid };
+                capabilities = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(CapabilitySet)));
+                Marshal.StructureToPtr(emptyCapabilities, capabilities, false);
+                if (!UpdateProcThreadAttribute(attributes, 0, SecurityCapabilities, capabilities,
+                    new IntPtr(Marshal.SizeOf(typeof(CapabilitySet))), IntPtr.Zero, IntPtr.Zero))
+                    throw Error("Lea could not set image-worker security capabilities.");
 
                 var startup = new StartupInfoEx();
                 startup.Startup.Length = Marshal.SizeOf(typeof(StartupInfoEx));
@@ -127,10 +129,16 @@ namespace Lea.Win
                 startup.Attributes = attributes;
                 var command = new StringBuilder("\"" + path.Replace("\"", "") + "\"" +
                     (String.IsNullOrWhiteSpace(args) ? "" : " " + args));
-                if (!CreateProcessAsUser(restricted, path, command, IntPtr.Zero, IntPtr.Zero, true,
+                if (!CreateProcessAsUser(IntPtr.Zero, path, command, IntPtr.Zero, IntPtr.Zero, true,
                     Suspended | NoWindow | ExtendedStartup, IntPtr.Zero, directory, ref startup, out info))
                     throw Error("Lea could not start its restricted image worker.");
                 created = true;
+                bool noCapabilities;
+                bool restricted;
+                bool low;
+                if (!AppContainer(info.Process, appSid, out noCapabilities, out restricted, out low) ||
+                    !noCapabilities || !restricted || !low)
+                    throw new InvalidOperationException("Lea image worker did not enter its restricted zero-capability AppContainer.");
                 var aslr = Aslr(info.Process);
                 if ((aslr & 3) != 3)
                     throw new InvalidOperationException("Lea image-worker startup ASLR was not applied: policy=" + aslr + ".");
@@ -149,7 +157,7 @@ namespace Lea.Win
                 if (ResumeThread(info.Thread) == UInt32.MaxValue) throw Error("Lea could not resume its bounded image worker.");
                 Close(ref info.Thread);
                 Close(ref info.Process);
-                return new Rp(process, input, output, errors, job);
+                return new Rp(process, input, output, errors, job, restricted, low, true, noCapabilities, fileAcl);
             }
             catch
             {
@@ -174,9 +182,8 @@ namespace Lea.Win
                 if (attributes != IntPtr.Zero) { DeleteProcThreadAttributeList(attributes); Marshal.FreeHGlobal(attributes); }
                 if (handles != IntPtr.Zero) Marshal.FreeHGlobal(handles);
                 if (mitigation != IntPtr.Zero) Marshal.FreeHGlobal(mitigation);
-                if (low != IntPtr.Zero) LocalFree(low);
-                Close(ref restricted);
-                Close(ref source);
+                if (capabilities != IntPtr.Zero) Marshal.FreeHGlobal(capabilities);
+                if (appSid != IntPtr.Zero) FreeSid(appSid);
             }
         }
 
@@ -261,6 +268,58 @@ namespace Lea.Win
             finally { Marshal.FreeHGlobal(data); }
         }
 
+        private static bool AppContainer(IntPtr process, IntPtr expectedSid, out bool noCapabilities,
+            out bool restricted, out bool low)
+        {
+            noCapabilities = false;
+            restricted = false;
+            low = false;
+            IntPtr token;
+            if (!OpenProcessToken(process, 0x0008, out token)) throw Error("Lea could not inspect its image-worker token.");
+            try
+            {
+                var state = TokenInfo(token, 29);
+                var identity = IntPtr.Zero;
+                var groups = IntPtr.Zero;
+                try
+                {
+                    if (Marshal.ReadInt32(state) == 0) return false;
+                    identity = TokenInfo(token, 31);
+                    var sid = Marshal.ReadIntPtr(identity);
+                    if (sid == IntPtr.Zero || !EqualSid(sid, expectedSid)) return false;
+                    groups = TokenInfo(token, 30);
+                    noCapabilities = Marshal.ReadInt32(groups) == 0;
+                    restricted = PrivilegesStripped(token);
+                    low = Integrity(token) == 4096;
+                    return true;
+                }
+                finally
+                {
+                    Marshal.FreeHGlobal(state);
+                    if (identity != IntPtr.Zero) Marshal.FreeHGlobal(identity);
+                    if (groups != IntPtr.Zero) Marshal.FreeHGlobal(groups);
+                }
+            }
+            finally { Close(ref token); }
+        }
+
+        private static bool GrantFile(string path, IntPtr appSid)
+        {
+            var identity = new SecurityIdentifier(appSid);
+            var rights = FileSystemRights.ReadAndExecute;
+            var security = System.IO.File.GetAccessControl(path, AccessControlSections.Access);
+            foreach (FileSystemAccessRule rule in security.GetAccessRules(true, true, typeof(SecurityIdentifier)))
+                if (identity.Equals(rule.IdentityReference) && rule.AccessControlType == AccessControlType.Allow &&
+                    (rule.FileSystemRights & rights) == rights) return true;
+            security.AddAccessRule(new FileSystemAccessRule(identity, rights, AccessControlType.Allow));
+            System.IO.File.SetAccessControl(path, security);
+            security = System.IO.File.GetAccessControl(path, AccessControlSections.Access);
+            foreach (FileSystemAccessRule rule in security.GetAccessRules(true, true, typeof(SecurityIdentifier)))
+                if (identity.Equals(rule.IdentityReference) && rule.AccessControlType == AccessControlType.Allow &&
+                    (rule.FileSystemRights & rights) == rights) return true;
+            return false;
+        }
+
         private static uint Aslr(IntPtr process)
         {
             uint policy;
@@ -269,11 +328,19 @@ namespace Lea.Win
             return policy;
         }
 
-        private static IntPtr StringSid(string value)
+        private static IntPtr ContainerSid()
         {
             IntPtr sid;
-            if (!ConvertStringSidToSid(value, out sid)) throw Error("Lea could not create the low-integrity SID.");
-            return sid;
+            var result = CreateAppContainerProfile(ContainerName, ContainerName, ContainerName,
+                IntPtr.Zero, 0, out sid);
+            if (result == 0) return sid;
+            if (result == AlreadyExists)
+            {
+                result = DeriveAppContainerSidFromAppContainerName(ContainerName, out sid);
+                if (result == 0) return sid;
+            }
+            Marshal.ThrowExceptionForHR(result);
+            throw new InvalidOperationException("Lea could not create its image-worker AppContainer profile.");
         }
 
         private static void Close(ref IntPtr handle)
@@ -292,7 +359,13 @@ namespace Lea.Win
         private struct SidAttribute { public IntPtr Sid; public uint Attributes; }
 
         [StructLayout(LayoutKind.Sequential)]
-        private struct MandatoryLabel { public SidAttribute Label; }
+        private struct CapabilitySet
+        {
+            public IntPtr AppContainerSid;
+            public IntPtr Capabilities;
+            public uint CapabilityCount;
+            public uint Reserved;
+        }
 
         [StructLayout(LayoutKind.Sequential)]
         private struct SecurityAttributes
@@ -337,14 +410,8 @@ namespace Lea.Win
             public int ThreadId;
         }
 
-        [DllImport("kernel32.dll")] private static extern IntPtr GetCurrentProcess();
         [DllImport("advapi32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool OpenProcessToken(IntPtr process, uint access, out IntPtr token);
-        [DllImport("advapi32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool CreateRestrictedToken(IntPtr existing, uint flags, uint disableCount, IntPtr disable,
-            uint deleteCount, IntPtr delete, uint restrictCount, IntPtr restrict, out IntPtr token);
-        [DllImport("advapi32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool SetTokenInformation(IntPtr token, int kind, ref MandatoryLabel data, uint length);
         [DllImport("advapi32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool GetTokenInformation(IntPtr token, int kind, IntPtr data, uint length, out uint needed);
         [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true, EntryPoint = "CreateProcessAsUserW")]
@@ -352,9 +419,14 @@ namespace Lea.Win
         private static extern bool CreateProcessAsUser(IntPtr token, string application, StringBuilder command,
             IntPtr processAttributes, IntPtr threadAttributes, [MarshalAs(UnmanagedType.Bool)] bool inherit,
             uint flags, IntPtr environment, string directory, ref StartupInfoEx startup, out ProcessInfo info);
-        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool ConvertStringSidToSid(string text, out IntPtr sid);
-        [DllImport("advapi32.dll")] private static extern uint GetLengthSid(IntPtr sid);
+        [DllImport("userenv.dll", CharSet = CharSet.Unicode)]
+        private static extern int DeriveAppContainerSidFromAppContainerName(string name, out IntPtr sid);
+        [DllImport("userenv.dll", CharSet = CharSet.Unicode)]
+        private static extern int CreateAppContainerProfile(string name, string displayName, string description,
+            IntPtr capabilities, uint capabilityCount, out IntPtr sid);
+        [DllImport("advapi32.dll")] private static extern IntPtr FreeSid(IntPtr sid);
+        [DllImport("advapi32.dll")] [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool EqualSid(IntPtr first, IntPtr second);
         [DllImport("advapi32.dll")] private static extern IntPtr GetSidSubAuthorityCount(IntPtr sid);
         [DllImport("advapi32.dll")] private static extern IntPtr GetSidSubAuthority(IntPtr sid, int index);
         [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)]
@@ -372,7 +444,6 @@ namespace Lea.Win
         private static extern bool GetProcessMitigationPolicy(IntPtr process, int kind, out uint policy, UIntPtr length);
         [DllImport("kernel32.dll")] [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool TerminateProcess(IntPtr process, uint exitCode);
-        [DllImport("kernel32.dll")] private static extern IntPtr LocalFree(IntPtr value);
         [DllImport("kernel32.dll")] [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool CloseHandle(IntPtr value);
     }

@@ -17,20 +17,21 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 90 carries compact horizontal `S.Dr=l/r` into bounded inline-end
-ellipsis and read-only TextPattern geometry without growing public model
-records. RTL overflow places the marker at physical left, right-aligns the
-authored grapheme-safe prefix inside its retained atom, preserves original link
-targets, and maps partial/wrapped/point ranges through physical direction while
-keeping full logical `P.X`. The full repository suite, focused engine smoke,
-compiled host, all 86 benchmark probes over 83 fixtures, all 42 Boot cases, and
-all six actual EXE startup scenarios pass. Canonical medians are 518.830 ms
-clean start, 3.709 ms local load, and 35.461 ms layout/paint; retained memory is
-52.9 KiB/page and the required runtime is 559.5 KiB. Runtime 190 remains
-isolated, and installed runtime 157 is unchanged. See `DIRECTION.md`. Continue
-the capability-denied helper boundary and native-safe visible-range
-investigation without claiming Unicode bidi shaping, vertical writing modes,
-custom markers, or a general script VM.
+Milestone 91 moves the shared `Lea.Image.exe` codec helper into a deterministic
+zero-capability AppContainer. One exact SID receives read/execute access to the
+helper file only; the launcher verifies the real child token, low integrity,
+stripped privileges, empty capability set, suspended Job assignment, handle
+allowlist, startup mitigations, and CPU/memory caps before sending encoded
+bytes. Focused tests actively deny a live loopback connection and a host-owned
+canary file while decode succeeds. The full default/core suites, compiled host,
+all 42 Boot cases, all six actual EXE startup scenarios, and all 87 benchmark
+probes over 83 fixtures pass. Canonical
+medians are 534.292 ms clean start, 3.908 ms local load, and 35.246 ms
+layout/paint; retained memory is 52.9 KiB/page and the required runtime is 563.0
+KiB. Runtime 191 remains isolated, and installed runtime 157 is unchanged. See
+`IMAGE_ISOLATION.md`. Continue combined host/helper peak admission and the
+native-safe visible-range investigation without adding a browser runtime or
+general script VM.
 
 Milestone 60 installs the existing `V.Ng` hook on main Lea tabs, enforcing host
 rules, offline/locked state, and live ownership. Denied resume retains its
