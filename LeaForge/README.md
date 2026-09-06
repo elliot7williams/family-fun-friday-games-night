@@ -101,7 +101,9 @@ LeaForge is where we can grow the more full-featured browser.
   `dir`, pre-cascade resolution, translated cross-direction logical inheritance,
   `text-align: start/end`, direction-aware row/reverse/wrapped flex and column
   cross alignment, logical grid auto/dense/column/explicit/area placement and
-  alignment, plus compact live `dr` reflow; see `DIRECTION.md`
+  alignment, right-origin plain/mixed/wrapped/nowrap/justified inline flow,
+  nested list/disclosure markers, and compact live `dr` reflow; see
+  `DIRECTION.md`
 - live `:hover` and `:focus` restyling that preserves mutable form values
 - non-inherited `content-box`/`border-box` sizing across pixel dimensions,
   min/max clamps, flex basis, fields, images, tables, and cells

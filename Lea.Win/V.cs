@@ -26,6 +26,7 @@ namespace Lea.Win
         private readonly List<Hit> hits = new List<Hit>();
         private readonly List<Bx> boxes = new List<Bx>();
         private readonly Dictionary<B, Bx> boxOwners = new Dictionary<B, Bx>();
+        private readonly object layoutGate = new object();
         private readonly Dictionary<string, Image> pics = new Dictionary<string, Image>(StringComparer.Ordinal);
         private readonly Dictionary<string, string> fontNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<P, int> alerts = new Dictionary<P, int>();
@@ -288,7 +289,7 @@ namespace Lea.Win
         public D Ld { get; private set; }
         public int Dh { get { return docHeight; } }
         public int Sy { get { return sy; } }
-        public int Bc { get { return boxes.Count; } }
+        public int Bc { get { lock (layoutGate) return boxes.Count; } }
         public int Vw { get { return e.Vw; } }
         public int Vh { get { return Math.Max(1, ClientSize.Height); } }
         public int Rf { get { return At != null && At.Rf > 0 ? At.Rf : Math.Max(1, (int)Math.Round(Font.Size)); } }
@@ -299,8 +300,8 @@ namespace Lea.Win
         public int An { get { return AccessTargets().Count; } }
         public IList<Ax> Axs { get { return At == null ? new List<Ax>().AsReadOnly() : At.Axs; } }
         public AccessibleObject Ao { get { return AccessibilityObject ?? new Va(this); } }
-        public Rectangle Rb(int index) { return index < 0 || index >= boxes.Count ? Rectangle.Empty : boxes[index].R; }
-        public Rectangle Rc(int index) { return index < 0 || index >= boxes.Count ? Rectangle.Empty : boxes[index].C; }
+        public Rectangle Rb(int index) { lock (layoutGate) return index < 0 || index >= boxes.Count ? Rectangle.Empty : boxes[index].R; }
+        public Rectangle Rc(int index) { lock (layoutGate) return index < 0 || index >= boxes.Count ? Rectangle.Empty : boxes[index].C; }
         public Rectangle Fr { get { return FindRect(); } }
         public bool Fa { get { return fragmentAnchor; } }
         public int Fj { get { return fragmentJumps; } }
@@ -314,7 +315,7 @@ namespace Lea.Win
                 !At.Fs.Contains(field) || field.Ds || !CanEdit(field) || field.V != ed.Text) return false;
             EnsureLayout();
             var visible = false;
-            foreach (var box in boxes)
+            foreach (var box in BoxSnapshot())
                 if (box.B != null && box.B.I == field && !Hidden(box.S) && !HtmlHidden(field.El) && !KeyRect(box).IsEmpty)
                 { visible = true; break; }
             if (!visible) return false;
@@ -732,7 +733,7 @@ namespace Lea.Win
             if (At.Axs.Count > 0 && Object.ReferenceEquals(item, At.Axs[0])) return ClientRectangle;
             EnsureLayout();
             var result = Rectangle.Empty;
-            foreach (var box in boxes)
+            foreach (var box in BoxSnapshot())
             {
                 if (box.Title || box.El == null || Hidden(box.S) || HtmlHidden(box.El)) continue;
                 if (item.El != null && (OwnsElement(item.El, box.El) || item.El.K == "#text" && Object.ReferenceEquals(item.El.Up, box.El)))
@@ -946,7 +947,7 @@ namespace Lea.Win
         {
             Bx exactInline = null;
             Bx descendant = null;
-            foreach (var box in boxes)
+            foreach (var box in BoxSnapshot())
             {
                 if (box.Title || box.El == null) continue;
                 if (Object.ReferenceEquals(box.El, target))
@@ -1008,7 +1009,7 @@ namespace Lea.Win
             foreach (var match in findMatches) { match.Fm = false; match.Fa = false; }
             findMatches.Clear();
             if (findQuery.Length > 0)
-                foreach (var box in boxes)
+                foreach (var box in BoxSnapshot())
                 {
                     if (box.Title || box.X.Length == 0 || Hidden(box.S)) continue;
                     if (box.X.IndexOf(findQuery, StringComparison.OrdinalIgnoreCase) < 0) continue;
@@ -1065,6 +1066,20 @@ namespace Lea.Win
             layoutDirty = true;
         }
 
+        private Bx[] BoxSnapshot()
+        {
+            lock (layoutGate) return boxes.ToArray();
+        }
+
+        private Bx[] PaintSnapshot(out IDictionary<B, Bx> owners)
+        {
+            lock (layoutGate)
+            {
+                owners = new Dictionary<B, Bx>(boxOwners);
+                return boxes.ToArray();
+            }
+        }
+
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
@@ -1113,7 +1128,9 @@ namespace Lea.Win
             ApplyPendingFragment();
             PlaceEditor();
 
-            foreach (var box in boxes)
+            IDictionary<B, Bx> paintOwners;
+            var paintBoxes = PaintSnapshot(out paintOwners);
+            foreach (var box in paintBoxes)
             {
                 var rect = box.R;
                 var content = box.C;
@@ -1136,7 +1153,7 @@ namespace Lea.Win
                     {
                         state = pe.Graphics.Save();
                         pe.Graphics.SetClip(clip, CombineMode.Intersect);
-                        ApplyRoundedOverflowClips(pe.Graphics, box);
+                        ApplyRoundedOverflowClips(pe.Graphics, box, paintOwners);
                     }
                     if (opacity > 0 && !box.Title && !EllipsisMarker(box) && (!box.Inline || box.B == null || box.B.Is.Count > 0)) PaintBox(pe.Graphics, rect, box.S, pageBackground, pageColor, opacity, box.B == null || box.B.I == null);
                     if (opacity > 0 && box.Fm) PaintFind(pe.Graphics, VisibleRect(content, clip), box.Fa);
@@ -1202,13 +1219,13 @@ namespace Lea.Win
             return clip.IsEmpty ? rect : Rectangle.Intersect(rect, clip);
         }
 
-        private void ApplyRoundedOverflowClips(Graphics graphics, Bx box)
+        private void ApplyRoundedOverflowClips(Graphics graphics, Bx box, IDictionary<B, Bx> owners)
         {
             if (box == null || box.Clip.IsEmpty) return;
             for (var block = box == null ? null : box.B; block != null; block = block.Up)
             {
                 Bx owner;
-                if (!boxOwners.TryGetValue(block, out owner)) continue;
+                if (!owners.TryGetValue(block, out owner)) continue;
                 if (Object.ReferenceEquals(owner, box)) continue;
                 if (!ClipsOverflow(owner.S) || !HasRadius(owner.S)) continue;
                 var content = owner.C;
@@ -1228,6 +1245,11 @@ namespace Lea.Win
         }
 
         private void Lay(Graphics graphics, IDictionary<B, int> resolved)
+        {
+            lock (layoutGate) LayCore(graphics, resolved);
+        }
+
+        private void LayCore(Graphics graphics, IDictionary<B, int> resolved)
         {
             boxes.Clear();
             boxOwners.Clear();
@@ -1457,7 +1479,7 @@ namespace Lea.Win
             if (HasHeight(style, rootContaining.Height)) docHeight = Math.Max(docHeight, 18 + style.Mt + ResolvedHeight(style, 0, rootContaining.Height) + style.Pt + style.Pb + BorderWidth(style, 0) + BorderWidth(style, 2) + style.Mb);
             else if (HasRatio(style)) docHeight = Math.Max(docHeight, 18 + style.Mt + RatioContentHeight(style, width) + style.Pt + style.Pb + BorderWidth(style, 0) + BorderWidth(style, 2) + style.Mb);
             StackBoxes();
-            foreach (var box in boxes)
+            foreach (var box in BoxSnapshot())
             {
                 box.SetBase();
                 if (box.S != null && box.S.Pn == "k" && (box.S.Tp.HasValue || box.S.Bm.HasValue)) sticky = true;
@@ -2602,12 +2624,17 @@ namespace Lea.Win
 
         private void ApplySticky()
         {
+            lock (layoutGate) ApplyStickyCore();
+        }
+
+        private void ApplyStickyCore()
+        {
             if (!sticky) return;
             foreach (var box in boxes) box.Reset();
 
             var offsets = new Dictionary<B, int>();
             var visiting = new HashSet<B>();
-            foreach (var box in boxes)
+            foreach (var box in BoxSnapshot())
             {
                 if (box.Fx) continue;
                 var offset = StickyOffset(box.B, offsets, visiting);
@@ -3105,6 +3132,7 @@ namespace Lea.Win
 
             var layout = new List<Ix>();
             var y = 0;
+            var rtl = InlineReverse(block.S);
             for (var lineIndex = 0; lineIndex < lines.Count; lineIndex++)
             {
                 var first = layout.Count;
@@ -3116,20 +3144,26 @@ namespace Lea.Win
                 var stretch = spaces == 0 ? 0 : Math.Max(0, width - current.W);
                 var each = spaces == 0 ? 0 : stretch / spaces;
                 var remainder = spaces == 0 ? 0 : stretch % spaces;
-                var x = align == "c" ? Math.Max(0, (width - current.W) / 2) : align == "r" ? Math.Max(0, width - current.W) : 0;
+                var lineWidth = current.W + (justify ? stretch : 0);
+                var rightAligned = align == "r" || rtl && (align.Length == 0 || align == "j");
+                var lineLeft = align == "c" ? Math.Max(0, (width - lineWidth) / 2) :
+                    rightAligned ? rtl ? width - lineWidth : Math.Max(0, width - lineWidth) : 0;
+                var x = rtl ? lineLeft + lineWidth : lineLeft;
                 Ia previous = null;
                 foreach (var atom in current.As)
                 {
-                    if (previous != null) x += InlineGap(previous, atom);
+                    var gap = previous == null ? 0 : InlineGap(previous, atom);
                     var atomWidth = atom.W;
                     if (justify && atom.X == " ")
                     {
                         atomWidth += each;
                         if (remainder-- > 0) atomWidth++;
                     }
+                    if (rtl) x -= gap + atomWidth;
+                    else x += gap;
                     var rect = new Rectangle(x, y + Math.Max(0, (current.H - atom.H) / 2), atomWidth, atom.H);
                     layout.Add(new Ix(atom.K, atom.X, atom.U, atom.S, rect, atom.El));
-                    x += atomWidth;
+                    if (!rtl) x += atomWidth;
                     previous = atom;
                 }
                 EllipsizeLine(graphics, block, layout, first, width, y, current.H);
@@ -3400,7 +3434,7 @@ namespace Lea.Win
         private static bool NeedsFlow(B block)
         {
             var style = block == null ? null : block.S;
-            return block != null && (block.Is.Count > 0 || (style != null && (style.Ta.Length > 0 || style.Ls != 0 || style.Wg != 0 || style.Lh > 0 || style.Lm > 0 || style.Ws.Length > 0 || style.Wb.Length > 0 || style.Ov.Length > 0)));
+            return block != null && (block.Is.Count > 0 || (style != null && (style.Dr == "r" || style.Ta.Length > 0 || style.Ls != 0 || style.Wg != 0 || style.Lh > 0 || style.Lm > 0 || style.Ws.Length > 0 || style.Wb.Length > 0 || style.Ov.Length > 0)));
         }
 
         private static int CssLineHeight(S style, int nativeHeight)
@@ -5564,7 +5598,7 @@ namespace Lea.Win
             var grouped = new Dictionary<N, Kt>();
             var sequence = 0;
 
-            foreach (var box in boxes)
+            foreach (var box in BoxSnapshot())
             {
                 if (box.Title || EllipsisMarker(box) || box.El == null || Hidden(box.S) || HtmlHidden(box.El)) continue;
                 var element = box.El;
@@ -5612,7 +5646,7 @@ namespace Lea.Win
             }
 
             var mapRegions = 0;
-            foreach (var box in boxes)
+            foreach (var box in BoxSnapshot())
             {
                 if (mapRegions == MaxKeyMapRegions) break;
                 if (box.Title || box.B == null || box.B.Mp == null || Hidden(box.S) || HtmlHidden(box.El)) continue;
@@ -6491,9 +6525,10 @@ namespace Lea.Win
 
         private Bx BoxAt(Point point)
         {
-            for (var i = boxes.Count - 1; i >= 0; i--)
+            var snapshot = BoxSnapshot();
+            for (var i = snapshot.Length - 1; i >= 0; i--)
             {
-                var box = boxes[i];
+                var box = snapshot[i];
                 if (box.El == null || Hidden(box.S) || !PointerEnabled(box.S)) continue;
                 var at = point;
                 if (!box.Fx) at.Offset(0, sy);
@@ -7093,7 +7128,7 @@ namespace Lea.Win
             var sequence = 0;
             using (var graphics = CreateGraphics())
             {
-                foreach (var box in boxes)
+                foreach (var box in BoxSnapshot())
                 {
                     if (parts.Count == MaxAutomationTextSegments) break;
                     var value = AutomationBoxText(box);
@@ -7550,7 +7585,7 @@ namespace Lea.Win
             item = CurrentAccessibility(item);
             if (item == null || item.El == null) return;
             EnsureLayout();
-            foreach (var box in boxes)
+            foreach (var box in BoxSnapshot())
             {
                 if (box.Title || box.El == null || Hidden(box.S) || HtmlHidden(box.El)) continue;
                 var owns = OwnsElement(item.El, box.El) || item.El.K == "#text" && Object.ReferenceEquals(item.El.Up, box.El);

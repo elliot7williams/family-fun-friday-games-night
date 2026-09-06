@@ -107,7 +107,7 @@ namespace Lea.Bench
             var names = new[]
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
-                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "direction-logical.html", "direction-layout.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
+                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "direction-logical.html", "direction-layout.html", "direction-inline.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -1534,6 +1534,99 @@ namespace Lea.Bench
                 }
                 return "S.Dr plus row/reverse/order/wrap flex, column cross-axis alignment, logical grid auto/explicit/dense/column/area placement, content/self alignment, source order, paint, and compact dr reflow";
             });
+            AddProbe(probes, "Direction-aware inline flow and markers", delegate
+            {
+                var path = Path.Combine(folder, "direction-inline.html");
+                var page = new E().Go(path);
+                var simple = page.Bs.First(block => block.El != null && block.El.Av("id") == "rtl-simple");
+                var runs = page.Bs.First(block => block.El != null && block.El.Av("id") == "rtl-runs");
+                Need(simple.S.Dr == "r" && simple.Is.Count == 0 && runs.S.Dr == "r" && runs.Is.Count >= 3 &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "rtl-seven").Mk == "7." &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "rtl-minus").Mk == "-2." &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "rtl-bullet").Mk == "-" &&
+                    page.X.IndexOf("First", StringComparison.Ordinal) < page.X.IndexOf("Second", StringComparison.Ordinal) &&
+                    page.X.IndexOf("Second", StringComparison.Ordinal) < page.X.IndexOf("Third", StringComparison.Ordinal),
+                    "direction inline model or source order changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1800);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var simpleContent = BlockContent(view, "rtl-simple");
+                        var amber = InlineTextRect(view, "rtl-simple", "Amber");
+                        var bronze = InlineTextRect(view, "rtl-simple", "Bronze");
+                        var cobalt = InlineTextRect(view, "rtl-simple", "Cobalt");
+                        Need(amber.Right == simpleContent.Right && amber.Left > bronze.Left && bronze.Left > cobalt.Left,
+                            "plain RTL word flow changed");
+
+                        var runContent = BlockContent(view, "rtl-runs");
+                        var first = InlineElementBounds(view, "rtl-first");
+                        var second = InlineElementBounds(view, "rtl-second");
+                        var third = InlineElementBounds(view, "rtl-third");
+                        Need(first.Right == runContent.Right && first.Left > second.Left && second.Left > third.Left,
+                            "mixed RTL run flow changed");
+                        Need(ElementHit(view, "rtl-third").IntersectsWith(third), "RTL inline link hit changed");
+
+                        var wrapContent = BlockContent(view, "rtl-wrap");
+                        var wrapOne = InlineElementBounds(view, "wrap-one");
+                        var wrapTwo = InlineElementBounds(view, "wrap-two");
+                        var wrapThree = InlineElementBounds(view, "wrap-three");
+                        Need(wrapOne.Top < wrapTwo.Top && wrapTwo.Top < wrapThree.Top && wrapOne.Right == wrapContent.Right && wrapTwo.Right == wrapContent.Right && wrapThree.Right == wrapContent.Right,
+                            "wrapped RTL line starts changed");
+                        var nowrapContent = BlockContent(view, "rtl-nowrap");
+                        var nearword = InlineTextRect(view, "rtl-nowrap", "Nearword");
+                        var farword = InlineTextRect(view, "rtl-nowrap", "Farword");
+                        Need(nearword.Right == nowrapContent.Right && farword.Left < nowrapContent.Left,
+                            "unwrapped RTL overflow direction changed");
+
+                        var left = Rectangle.Union(InlineElementBounds(view, "left-one"), InlineElementBounds(view, "left-two"));
+                        var right = Rectangle.Union(InlineElementBounds(view, "right-one"), InlineElementBounds(view, "right-two"));
+                        var start = Rectangle.Union(InlineElementBounds(view, "start-one"), InlineElementBounds(view, "start-two"));
+                        var end = Rectangle.Union(InlineElementBounds(view, "end-one"), InlineElementBounds(view, "end-two"));
+                        Need(left.Left == BlockContent(view, "rtl-left").Left && right.Right == BlockContent(view, "rtl-right").Right &&
+                            start.Right == BlockContent(view, "rtl-start").Right && end.Left == BlockContent(view, "rtl-end").Left,
+                            "RTL physical or logical alignment changed");
+
+                        var justifyContent = BlockContent(view, "rtl-justify");
+                        var justifyOne = InlineElementBounds(view, "justify-one");
+                        var justifyFour = InlineElementBounds(view, "justify-four");
+                        var justifyFive = InlineElementBounds(view, "justify-five");
+                        Need(justifyOne.Right == justifyContent.Right && justifyFour.Left == justifyContent.Left && justifyFive.Top >= justifyOne.Bottom && justifyFive.Right == justifyContent.Right,
+                            "RTL justification changed");
+
+                        var orderedMarker = InlineTextRect(view, "rtl-seven", "7.");
+                        var bulletMarker = InlineTextRect(view, "rtl-bullet", "-");
+                        var summaryMarker = InlineTextRect(view, "rtl-summary", ">");
+                        Need(orderedMarker.Right == BlockContent(view, "rtl-seven").Right &&
+                            bulletMarker.Right == BlockContent(view, "rtl-bullet").Right &&
+                            summaryMarker.Right == BlockContent(view, "rtl-summary").Right && ColoredSamples(image) > 0,
+                            "RTL list/disclosure marker placement or paint changed");
+                        var nestedMarker = InlineTextRect(view, "rtl-minus", "-2.");
+                        Need(nestedMarker.Right == BlockContent(view, "rtl-minus").Right && BlockContent(view, "rtl-minus").Right < BlockContent(view, "rtl-seven").Right,
+                            "nested RTL marker or logical indentation changed");
+
+                        var cellStart = InlineTextRect(view, "rtl-cell", "CellStart");
+                        var cellEnd = InlineElementBounds(view, "cell-end");
+                        Need(cellStart.Right == BlockContent(view, "rtl-cell").Right && cellEnd.Right == BlockContent(view, "cell-end").Right && cellStart.Top < cellEnd.Top,
+                            "RTL structured cell flow changed");
+                    }
+
+                    var beforeOne = InlineElementBounds(view, "command-one");
+                    var beforeTwo = InlineElementBounds(view, "command-two");
+                    Need(beforeOne.Left == BlockContent(view, "command-inline").Left && beforeOne.Left < beforeTwo.Left,
+                        "LTR command baseline changed");
+                    Need(view.Js("dr('command-inline','rtl')") == 1, "compact direction inline command changed");
+                    using (var remapped = Draw(view))
+                    {
+                        var afterOne = InlineElementBounds(view, "command-one");
+                        var afterTwo = InlineElementBounds(view, "command-two");
+                        Need(afterOne.Right == BlockContent(view, "command-inline").Right && afterOne.Left > afterTwo.Left && ColoredSamples(remapped) > 0,
+                            "compact direction command did not remap inline flow");
+                    }
+                }
+                return "S.Dr right-origin plain/mixed/wrapped/nowrap/justified lines, physical/logical alignment, nested ordered/unordered/disclosure markers, table parts, source order, paint, hits, and compact dr reflow";
+            });
             AddProbe(probes, "Bounded grid layout", delegate
             {
                 var path = Path.Combine(folder, "grid.html");
@@ -2824,11 +2917,11 @@ namespace Lea.Bench
             builder.AppendLine("| --- | --- | --- |");
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
-            Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, lists, disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, fixed/percentage/calc dimensions and classic vw/vh/vmin/vmax plus bounded em/rem units, two/three-term min/max and three-term clamp size functions, content/border box, circular/elliptical radii, bounded outlines, box shadows and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing and text styles, visibility, absolute/fixed and bounded vertical sticky positioning, transforms, responsive image sizing, bounded row/column flex, and bounded two-axis grid");
-            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, inline, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
+            Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, direction-aware ordered/unordered lists and disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
+            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, inherited horizontal LTR/RTL direction, fixed/percentage/calc dimensions and classic vw/vh/vmin/vmax plus bounded em/rem units, two/three-term min/max and three-term clamp size functions, content/border box, circular/elliptical radii, bounded outlines, box shadows and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing and text styles, visibility, absolute/fixed and bounded vertical sticky positioning, transforms, responsive image sizing, direction-aware row/column flex, and direction-aware bounded two-axis grid");
+            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients, direction-aware source-stable inline atoms and markers, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
-            Capability(builder, "Text overflow", "Supported subset", "Non-inherited clip/ellipsis; paint-only bounded text-element prefixes for clipped overflowing horizontal LTR lines, inline runs and tables; retained layout/link targets and full logical automation text; no native-control, bidi, custom-marker, or line-clamp additions");
+            Capability(builder, "Text overflow", "Supported subset", "Non-inherited clip/ellipsis; clipping follows bounded LTR/RTL line geometry, while paint-only text-element ellipsis prefixes remain horizontal LTR for inline runs and tables; retained layout/link targets and full logical automation text; no native-control, full-bidi, custom-marker, RTL-ellipsis, or line-clamp additions");
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color, font, display, width, and height, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, safe click commands, and literal compatibility translation");
             Capability(builder, "Literal DOM bridge", "Supported subset", "Literal document.getElementById IDs with textContent/innerText, value, checked/disabled/hidden/open, focus(), classList add/remove/toggle, and background/color/fontSize/display/width/height; literal location href/assign requests; mapped to bounded Lea aliases");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
@@ -3057,6 +3150,39 @@ namespace Lea.Bench
                 }
             if (result.IsEmpty) throw new InvalidOperationException("Missing inline layout block " + id);
             return result;
+        }
+
+        private static Rectangle InlineElementBounds(V view, string id)
+        {
+            var field = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = field == null ? null : field.GetValue(view) as System.Collections.IEnumerable;
+            var result = Rectangle.Empty;
+            if (values != null)
+                foreach (var value in values)
+                {
+                    var type = value.GetType();
+                    var element = type.GetField("El").GetValue(value) as N;
+                    if (element == null || element.Av("id") != id || !(bool)type.GetField("Inline").GetValue(value)) continue;
+                    var rect = (Rectangle)type.GetField("R").GetValue(value);
+                    result = result.IsEmpty ? rect : Rectangle.Union(result, rect);
+                }
+            if (result.IsEmpty) throw new InvalidOperationException("Missing inline element " + id);
+            return result;
+        }
+
+        private static Rectangle InlineTextRect(V view, string ownerId, string text)
+        {
+            var field = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = field == null ? null : field.GetValue(view) as System.Collections.IEnumerable;
+            if (values != null)
+                foreach (var value in values)
+                {
+                    var type = value.GetType();
+                    var block = type.GetField("B").GetValue(value) as B;
+                    if (block == null || block.El == null || block.El.Av("id") != ownerId || !(bool)type.GetField("Inline").GetValue(value)) continue;
+                    if ((string)type.GetField("X").GetValue(value) == text) return (Rectangle)type.GetField("R").GetValue(value);
+                }
+            throw new InvalidOperationException("Missing inline text " + ownerId + ": " + text);
         }
 
         private static N ById(N node, string id)

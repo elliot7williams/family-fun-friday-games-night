@@ -17,18 +17,23 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 88 carries compact horizontal `S.Dr=l/r` into flex and grid geometry
-without adding style or placement records. Row/reverse/order/wrap flex uses one
-effective direction bit, column cross-axis start/end follows inline direction,
-and grid keeps logical occupancy while mapping auto/dense/column/explicit/area
-tracks, unequal spans, content alignment, and self-alignment onto physical X
-coordinates. Compact `dr` rebuilds geometry while source/accessibility order
-stays stable. The compiled host passes, the benchmark has 84 probes over 81
-fixtures, all 42 Boot cases pass, and two complete six-scenario actual EXE runs
-remain responsive with no legacy engine or error dialog. Runtime 188 stays
-isolated and installed runtime 157 remains unchanged. See `DIRECTION.md`. Next
-evaluate bounded direction-aware list markers and inline flow without claiming
-Unicode bidi glyph reordering, vertical writing modes, or a general script VM.
+Milestone 89 carries compact horizontal `S.Dr=l/r` into inline and marker
+geometry without adding style, block, run, or renderer records. Plain and mixed
+RTL lines retain source atoms while placing them from the right through wrapped,
+nowrap, justified, physical/logical alignment, table-cell, ordered/unordered
+list, and disclosure paths. Existing `B.Mk` supplies marker text; compact `dr`
+rebuilds geometry while DOM, links, and accessibility order stay stable. The
+final startup sweep also fixed an asynchronous `V.OnPaint` layout-enumeration
+race with synchronized box/owner snapshots; its cache-navigation stress passes
+20/20 consecutive runs and the Boot harness now retains full UI-thread stacks.
+The compiled host passes, the benchmark has 85 probes over 82 fixtures, all 42 Boot
+cases pass, and all six actual EXE scenarios remain responsive with no legacy
+engine or error dialog. Current medians are 504.408 ms clean start, 3.410 ms
+local load, and 35.733 ms layout/paint; retained memory is 52.9 KiB/page and the
+required runtime is 559.0 KiB. Runtime 189 stays isolated and installed runtime
+157 remains unchanged. See `DIRECTION.md`. Next evaluate bounded RTL ellipsis
+and selection geometry without claiming Unicode bidi shaping, vertical writing
+modes, or a general script VM.
 
 Milestone 60 installs the existing `V.Ng` hook on main Lea tabs, enforcing host
 rules, offline/locked state, and live ownership. Denied resume retains its

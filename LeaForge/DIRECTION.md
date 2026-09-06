@@ -44,6 +44,24 @@ item self-alignment onto physical coordinates only after bounded placement is
 complete. This avoids a second RTL occupancy model and leaves document,
 accessibility, and command target order unchanged.
 
+## Inline Flow And Markers
+
+Horizontal RTL lines keep inline atoms in source order but place the first atom
+at the physical right and advance toward the left. This applies to plain text,
+mixed styled runs and links, wrapped and justified lines, preserved line groups,
+and structured table-cell parts. Characters inside each bounded atom remain in
+authored order; Lea does not run a Unicode bidi shaping algorithm.
+
+Physical `text-align: left/right/center` values keep their physical meaning.
+Logical `start/end` values are already mapped through `S.Dr`, and the default or
+last justified RTL line starts at the right edge. Unwrapped clipped lines keep
+that right edge and overflow toward the left.
+
+List and disclosure markers reuse the existing compact `B.Mk` atom. Ordered,
+unordered, nested, and summary markers therefore appear at inline-start on the
+right in RTL and their content continues toward the left. DOM, link,
+accessibility, and painted-box enumeration remain in authored source order.
+
 ## Short Command
 
 `dr` is the compact direction command:
@@ -61,10 +79,11 @@ authored cascade. Unsupported values are rejected atomically.
 
 ## Boundary
 
-This milestone maps horizontal logical CSS, flex/grid axes, and alignment. It
-does not yet implement Unicode bidirectional glyph reordering, `dir="auto"`,
-vertical writing modes, or `wrap-reverse`. Text content remains in authored
-character order.
+This milestone maps horizontal logical CSS, flex/grid axes, inline atom flow,
+markers, and alignment. It does not yet implement Unicode bidirectional glyph
+reordering or embedding, `dir="auto"`, vertical writing modes, `wrap-reverse`,
+or RTL paint-only ellipsis prefixes. Text content remains in authored character
+order.
 
 `direction-logical.html` verifies HTML/CSS precedence, variables, important
 rules, declaration-order independence, logical insets/boxes/borders/radii,
@@ -72,5 +91,7 @@ cross-direction inheritance, alignment, command remapping, DOM forms, reset,
 and invalid-value preservation. `direction-layout.html` verifies exact LTR/RTL
 row, reverse, order, wrap, column cross-axis, grid auto/dense/column/explicit/
 area placement, unequal spans, content/self alignment, paint, source order, and
-live `dr` reflow. The same geometry path is exercised inside the compiled
-Firespider host smoke.
+live `dr` reflow. `direction-inline.html` verifies plain/mixed/wrapped/nowrap/
+justified lines, physical and logical alignment, nested list and disclosure
+markers, table parts, links, source order, paint, and command reflow. The same
+geometry paths are exercised inside the compiled Firespider host smoke.

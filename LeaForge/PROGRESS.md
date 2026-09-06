@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **88**
+Post-1.0 hardening milestones completed: **89**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -15,7 +15,7 @@ modern web platform.
 | Networking | 10% | 10% | Bounded request deadlines and downloads, private cookies, typed errors, validators, compression, memory LRU and optional persistent cache |
 | HTML and document tree | 20% | 20% | Bounded tokens, queries, base URLs and fragments, raw/RCDATA text, entities, recovery, HTML-hidden suppression, semantic accessibility, blocks, lists, disclosures, gauges, values, time/edit metadata, responsive image maps, tabindex focus, autofocus/access keys, tables |
 | CSS | 15% | 15% | Compiled relationship, bounded strict relational/functional, An+B/reverse, and filtered structural selectors, declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, inherited horizontal LTR/RTL direction, fixed/percentage/calculated plus direction-aware logical dimensions/insets/margins/padding/borders/radii, classic viewport/font-relative units and bounded size functions, bounded vertical sticky positioning, dynamic hover/focus, inherited cursor/pointer interaction, text transformation and signed letter/word spacing, content/border sizing, circular/elliptical radii, bounded outlines, box shadows, gradients, bitmap backgrounds, object fitting and aspect ratios, visibility/opacity, fonts, overflow, boxes, bounded ordered flex and two-axis grid properties |
-| Layout and painting | 20% | 20% | Shared physical/logical box edges and per-edge border styles/colors plus fixed/percentage/calculated, viewport-unit, font-relative, and min/max/clamp dimensions, content/border, aspect-ratio, and sticky geometry, transformed and spacing-aware presentation text with raw form retention, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients/bitmaps, pointer-gated retained hits with underlying fallthrough, fitted raster images and maps, ordered flex rows/columns, bounded grid tracks/spans, distribution, alignment, wrapping, grow/shrink, clipping, reflow, painting |
+| Layout and painting | 20% | 20% | Shared physical/logical box edges and per-edge border styles/colors plus fixed/percentage/calculated, viewport-unit, font-relative, and min/max/clamp dimensions, content/border, aspect-ratio, sticky, direction-aware inline/marker geometry, transformed and spacing-aware presentation text with raw form retention, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients/bitmaps, pointer-gated retained hits with underlying fallthrough, fitted raster images and maps, ordered flex rows/columns, bounded grid tracks/spans, distribution, alignment, wrapping, grow/shrink, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Native field edit commands and one-level undo/redo, bounded multipart files, richer widgets, validation, responsive and fitted images, GET/POST submit |
 | Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/body and ID-scoped display/width/height/direction/logical box/border/radius/style/alert, class, visibility, disclosure, field-state, focus, and literal bounded DOM translation |
 | Firespider integration and reliability | 10% | 10% | Lea-first New Tab/Ctrl+T, explicit legacy fallback, Inspector with Access view, MSAA/UIA surfaces including read-only text, host-safe focus shortcuts, navigation, sessions, source, host smokes |
@@ -29,6 +29,28 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded direction-aware horizontal inline flow and marker placement
+  without growing `S`, `B`, `Ir`, or renderer records. RTL plain text, mixed
+  styled runs/links, wrapped, nowrap, justified, physical/logical alignment,
+  structured table parts, and live `dr` reflow retain source atoms while final
+  X coordinates advance from the right. Ordered, nested, unordered, and
+  disclosure markers reuse `B.Mk` at inline-start. Unwrapped clipped lines keep
+  the right edge and overflow left; source/accessibility text and link ownership
+  remain stable. Final cache-navigation stress also reproduced and fixed an
+  asynchronous `V.OnPaint` layout-enumeration race: layout and owner records are
+  now published through synchronized snapshots, with full UI-thread stacks kept
+  by the Boot harness. The formerly failing case passes 20/20 repeated runs.
+  All 85 probes over 82 fixtures, the focused repository
+  checkpoint, compiled-host smokes, all 42 Boot cases, and all six actual EXE
+  startup scenarios pass without legacy-engine, cast, or JIT dialogs. Runtime
+  medians are 504.408 ms clean diagnostic start, 3.410 ms local load, and 35.733
+  ms layout/paint. Retained managed memory is 17,361.6 KiB for 328 pages, or
+  52.9 KiB/page. Required runtime files remain 559.0 KiB with a 236.0 KiB GZip
+  estimate. Runtime 189 stays isolated and installed runtime 157 remains
+  unchanged. See `DIRECTION.md`. Unicode bidi glyph reordering/embedding,
+  `dir=auto`, vertical writing modes, and RTL paint-only ellipsis remain outside
+  this milestone; the scoped baseline stays at 100%, not full-web compatibility.
 
 - Added bounded direction-aware horizontal flex and grid layout without growing
   the compact style model. Row and row-reverse combine `S.Fd` with inherited
@@ -1066,8 +1088,8 @@ modern web platform.
 
 ## Next gains
 
-- Evaluate bounded direction-aware list-marker and inline-flow behavior without
-  claiming Unicode bidi text shaping or vertical writing-mode support.
+- Evaluate bounded RTL paint-only ellipsis and selection geometry without
+  claiming full Unicode bidi shaping or vertical writing-mode support.
 - Add an AppContainer or capability-denied network boundary, custom object ACLs,
   and combined host/helper peak sampling without expanding the public
   integration surface.

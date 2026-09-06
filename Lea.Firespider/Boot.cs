@@ -46,7 +46,11 @@ namespace Lea.Firespider
             {
                 Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch", "domains", "domain-private", "split", "split-life", "split-limits", "edit", "paste", "policy", "policy-start", "failures", "failure-start", "hibernate", "hibernate-start", "style-start", "styles", "load-life", "pictures", "decode", "input", "cache" }.Contains(mode), "unknown boot case: " + mode);
                 Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
-                Application.ThreadException += (sender, error) => UiErrors.Add(error.Exception);
+                Application.ThreadException += (sender, error) =>
+                {
+                    UiErrors.Add(error.Exception);
+                    Console.Error.WriteLine("UI THREAD ERROR: " + error.Exception);
+                };
                 Environment.SetEnvironmentVariable("LEA_FIRESPIDER_SESSION", session);
                 var map = new ExeConfigurationFileMap { ExeConfigFilename = Path.Combine(root, "Firespider Internet 19.exe.config") };
                 var configuration = ConfigurationManager.OpenMappedExeConfiguration(map, ConfigurationUserLevel.None);

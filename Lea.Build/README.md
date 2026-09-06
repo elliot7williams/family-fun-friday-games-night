@@ -86,6 +86,10 @@ invalid preservation. See `LeaForge/DIRECTION.md`.
 column cross-axis geometry plus logical grid auto, dense, column, explicit line,
 span, named-area, content/self alignment, unequal tracks, paint, source order,
 and live compact `dr` reflow. See `LeaForge/DIRECTION.md`.
+`direction-inline.html` covers right-origin plain, mixed, wrapped, nowrap, and
+justified inline flow; physical/logical text alignment; nested ordered,
+unordered, and disclosure markers; structured table parts; links; source order;
+paint; and live compact `dr` reflow. See `LeaForge/DIRECTION.md`.
 `fragment-stability.html` covers `Fa/Fj/Fy`, first-paint retention, responsive
 host settlement, intrinsic image reflow, missing targets, and manual-scroll
 release. See `LeaForge/INITIAL_FRAGMENT_STABILITY.md`.
@@ -147,7 +151,9 @@ and late disposal. See `LeaForge/PICTURE_LIMITS.md` for remaining decoder/input 
 deadline. `Lea.Tests <root> --input` checks wire/decoded/file/cache/origin
 boundaries, POST responses, timeouts, and cancellation; see `INPUT_LIMITS.md`.
 `-Case cache` checks exact path/query resources, fragment-only reuse,
-case-different navigation, host request cleanup, and no MSHTML. See
+case-different navigation, synchronized layout snapshots during asynchronous
+paint/navigation overlap, host request cleanup, full UI-thread exception
+diagnostics, and no MSHTML. See
 `LeaForge/CACHE_IDENTITY.md`.
 `-Case decode` checks one valid helper decode, over-axis PNG preflight,
 `Ip/Im/It/In/If/Ie/Ii/Iw/Ik/Ij/Ih/Ipm/Irt/Ili/Isp/Ihl/Ias/Icp/Icr/Img/Ipk`,

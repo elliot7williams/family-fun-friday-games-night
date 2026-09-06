@@ -408,10 +408,13 @@ insets, boxes, borders, radii, and start/end text alignment into the existing
 physical records. Cross-direction explicit inheritance is translated by the
 engine. The WinForms renderer also maps row/reverse/wrapped flex slots, column
 cross alignment, and logical grid auto/dense/column/explicit/area tracks plus
-content/self alignment through that same bit. Hosts may use compact `dr`,
-readable `direction`, or literal bounded DOM forms and need no extra axis state.
-Unicode bidi glyph reordering, `dir=auto`, vertical writing modes, and
-`wrap-reverse` remain outside this milestone. See `DIRECTION.md`.
+content/self alignment through that same bit. Plain, mixed, wrapped, nowrap,
+justified, and structured-cell inline atoms keep source order while RTL
+coordinates advance from the right; existing `B.Mk` list/disclosure markers use
+the same path. Hosts may use compact `dr`, readable `direction`, or literal
+bounded DOM forms and need no extra axis state. Unicode bidi glyph reordering,
+embedding controls, `dir=auto`, vertical writing modes, `wrap-reverse`, and RTL
+paint-only ellipsis remain outside this milestone. See `DIRECTION.md`.
 
 CSS outlines are available through non-inherited `S.Ow/Os/Oc/Oo`. Hosts can
 inspect bounded width, compact none/solid/dashed/dotted/auto style, authored

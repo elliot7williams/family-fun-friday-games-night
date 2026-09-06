@@ -699,6 +699,148 @@ namespace Lea.Tests
                 }
                 Console.WriteLine("Lea direction-aware layout smoke passed.");
 
+                var directionInlinePath = Path.Combine(pages, "direction-inline.html");
+                var directionInlinePage = new E().Go(directionInlinePath);
+                var directionInlineSimple = BlockById(directionInlinePage, "rtl-simple");
+                var directionInlineRuns = BlockById(directionInlinePage, "rtl-runs");
+                Ok(directionInlineSimple.S.Dr == "r" && directionInlineSimple.Is.Count == 0 &&
+                    directionInlineRuns.S.Dr == "r" && directionInlineRuns.Is.Count >= 3,
+                    "direction inline keeps compact style and plain-text model paths");
+                var firstRun = ById(directionInlinePage.D, "rtl-first");
+                var secondRun = ById(directionInlinePage.D, "rtl-second");
+                var thirdRun = ById(directionInlinePage.D, "rtl-third");
+                Ok(HasInlineElement(directionInlineRuns, firstRun) &&
+                    HasInlineElement(directionInlineRuns, secondRun) &&
+                    HasInlineElement(directionInlineRuns, thirdRun) &&
+                    directionInlinePage.X.IndexOf("First", StringComparison.Ordinal) < directionInlinePage.X.IndexOf("Second", StringComparison.Ordinal) &&
+                    directionInlinePage.X.IndexOf("Second", StringComparison.Ordinal) < directionInlinePage.X.IndexOf("Third", StringComparison.Ordinal),
+                    "direction inline preserves retained source order");
+                Eq("7.", BlockById(directionInlinePage, "rtl-seven").Mk, "RTL ordered marker model");
+                Eq("-2.", BlockById(directionInlinePage, "rtl-minus").Mk, "nested RTL ordered marker model");
+                Eq("-", BlockById(directionInlinePage, "rtl-bullet").Mk, "RTL unordered marker model");
+
+                using (var directionInlineView = new V())
+                {
+                    directionInlineView.Size = new Size(720, 1800);
+                    directionInlineView.Go(directionInlinePath);
+                    using (var directionInlinePaint = Render(directionInlineView))
+                    {
+                        var simple = BlockById(directionInlineView.At, "rtl-simple");
+                        var simpleContent = BlockRect(directionInlineView, simple);
+                        var amber = InlineTextRect(directionInlineView, simple, "Amber");
+                        var bronze = InlineTextRect(directionInlineView, simple, "Bronze");
+                        var cobalt = InlineTextRect(directionInlineView, simple, "Cobalt");
+                        Eq(simpleContent.Right, amber.Right, "plain RTL text starts at inline start");
+                        Ok(amber.Left > bronze.Left && bronze.Left > cobalt.Left,
+                            "plain RTL words advance left without character reordering");
+                        Eq("Amber Bronze Cobalt", PaintedText(directionInlineView, simple),
+                            "plain RTL paint boxes retain authored order");
+
+                        var runs = BlockById(directionInlineView.At, "rtl-runs");
+                        var runContent = BlockRect(directionInlineView, runs);
+                        var runFirst = InlineElementRect(directionInlineView, "rtl-first");
+                        var runSecond = InlineElementRect(directionInlineView, "rtl-second");
+                        var runThird = InlineElementRect(directionInlineView, "rtl-third");
+                        Eq(runContent.Right, runFirst.Right, "mixed RTL run starts at inline start");
+                        Ok(runFirst.Left > runSecond.Left && runSecond.Left > runThird.Left,
+                            "mixed RTL runs advance left in source sequence");
+                        Ok(FragmentHitRect(directionInlineView, "#target").IntersectsWith(runThird),
+                            "RTL inline link retains its physical hit box");
+
+                        var wrapContent = BlockRect(directionInlineView, BlockById(directionInlineView.At, "rtl-wrap"));
+                        var wrapOne = InlineElementRect(directionInlineView, "wrap-one");
+                        var wrapTwo = InlineElementRect(directionInlineView, "wrap-two");
+                        var wrapThree = InlineElementRect(directionInlineView, "wrap-three");
+                        Ok(wrapOne.Top < wrapTwo.Top && wrapTwo.Top < wrapThree.Top &&
+                            wrapOne.Right == wrapContent.Right && wrapTwo.Right == wrapContent.Right && wrapThree.Right == wrapContent.Right,
+                            "wrapped RTL lines restart at inline start");
+                        var nowrap = BlockById(directionInlineView.At, "rtl-nowrap");
+                        var nowrapContent = BlockRect(directionInlineView, nowrap);
+                        var nearword = InlineTextRect(directionInlineView, nowrap, "Nearword");
+                        var farword = InlineTextRect(directionInlineView, nowrap, "Farword");
+                        Ok(nearword.Right == nowrapContent.Right && farword.Left < nowrapContent.Left,
+                            "unwrapped RTL flow anchors right and overflows left");
+
+                        var leftContent = BlockRect(directionInlineView, BlockById(directionInlineView.At, "rtl-left"));
+                        var leftLine = Rectangle.Union(InlineElementRect(directionInlineView, "left-one"), InlineElementRect(directionInlineView, "left-two"));
+                        var rightContent = BlockRect(directionInlineView, BlockById(directionInlineView.At, "rtl-right"));
+                        var rightLine = Rectangle.Union(InlineElementRect(directionInlineView, "right-one"), InlineElementRect(directionInlineView, "right-two"));
+                        var startContent = BlockRect(directionInlineView, BlockById(directionInlineView.At, "rtl-start"));
+                        var startLine = Rectangle.Union(InlineElementRect(directionInlineView, "start-one"), InlineElementRect(directionInlineView, "start-two"));
+                        var endContent = BlockRect(directionInlineView, BlockById(directionInlineView.At, "rtl-end"));
+                        var endLine = Rectangle.Union(InlineElementRect(directionInlineView, "end-one"), InlineElementRect(directionInlineView, "end-two"));
+                        var centerContent = BlockRect(directionInlineView, BlockById(directionInlineView.At, "rtl-center"));
+                        var centerLine = Rectangle.Union(InlineElementRect(directionInlineView, "center-one"), InlineElementRect(directionInlineView, "center-two"));
+                        Eq(leftContent.Left, leftLine.Left, "RTL physical left alignment");
+                        Eq(rightContent.Right, rightLine.Right, "RTL physical right alignment");
+                        Eq(startContent.Right, startLine.Right, "RTL logical start alignment");
+                        Eq(endContent.Left, endLine.Left, "RTL logical end alignment");
+                        Ok(Centered(centerContent, centerLine), "RTL center alignment");
+
+                        var justifyContent = BlockRect(directionInlineView, BlockById(directionInlineView.At, "rtl-justify"));
+                        var justifyOne = InlineElementRect(directionInlineView, "justify-one");
+                        var justifyFour = InlineElementRect(directionInlineView, "justify-four");
+                        var justifyFive = InlineElementRect(directionInlineView, "justify-five");
+                        Ok(justifyOne.Right == justifyContent.Right && justifyFour.Left == justifyContent.Left && justifyFive.Top >= justifyOne.Bottom && justifyFive.Right == justifyContent.Right,
+                            "RTL justified line fills both edges and final line restarts at inline start");
+
+                        var ordered = BlockById(directionInlineView.At, "rtl-seven");
+                        var orderedContent = BlockRect(directionInlineView, ordered);
+                        var orderedMarker = InlineTextRect(directionInlineView, ordered, "7.");
+                        var orderedText = InlineElementRect(directionInlineView, "seven-text");
+                        Eq(orderedContent.Right, orderedMarker.Right, "RTL ordered marker starts at the right edge");
+                        Ok(orderedMarker.Left > orderedText.Left, "RTL ordered content follows its marker toward the left");
+                        var nested = BlockById(directionInlineView.At, "rtl-minus");
+                        var nestedContent = BlockRect(directionInlineView, nested);
+                        var nestedMarker = InlineTextRect(directionInlineView, nested, "-2.");
+                        Eq(nestedContent.Right, nestedMarker.Right, "nested RTL marker restarts at inline start");
+                        Ok(nestedContent.Right < orderedContent.Right, "nested RTL list uses logical start indentation");
+
+                        var bullet = BlockById(directionInlineView.At, "rtl-bullet");
+                        var bulletContent = BlockRect(directionInlineView, bullet);
+                        var bulletMarker = InlineTextRect(directionInlineView, bullet, "-");
+                        var bulletText = InlineTextRect(directionInlineView, bullet, "Plain");
+                        Eq(bulletContent.Right, bulletMarker.Right, "RTL unordered marker starts at the right edge");
+                        Ok(bulletMarker.Left > bulletText.Left, "plain RTL list content follows its marker");
+
+                        var cell = BlockById(directionInlineView.At, "rtl-cell");
+                        var cellEndBlock = BlockById(directionInlineView.At, "cell-end");
+                        var cellStart = InlineTextRect(directionInlineView, cell, "CellStart");
+                        var cellEnd = InlineElementRect(directionInlineView, "cell-end");
+                        var cellContent = BlockRect(directionInlineView, cell);
+                        var cellEndContent = BlockRect(directionInlineView, cellEndBlock);
+                        Eq(cellContent.Right, cellStart.Right, "RTL table cell starts at inline start");
+                        Ok(cellEndContent.Right == cellEnd.Right && cellStart.Top < cellEnd.Top,
+                            "RTL structured table parts restart at inline start");
+
+                        var summary = BlockById(directionInlineView.At, "rtl-summary");
+                        var summaryContent = BlockRect(directionInlineView, summary);
+                        var summaryMarker = InlineTextRect(directionInlineView, summary, ">");
+                        var summaryText = InlineElementRect(directionInlineView, "summary-text");
+                        Eq(summaryContent.Right, summaryMarker.Right, "RTL disclosure marker starts at the right edge");
+                        Ok(summaryMarker.Left > summaryText.Left && PaintedText(directionInlineView, summary).StartsWith("> ", StringComparison.Ordinal),
+                            "RTL disclosure content and marker paint order");
+                    }
+
+                    var command = BlockById(directionInlineView.At, "command-inline");
+                    var commandContent = BlockRect(directionInlineView, command);
+                    var commandOne = InlineElementRect(directionInlineView, "command-one");
+                    var commandTwo = InlineElementRect(directionInlineView, "command-two");
+                    Eq(commandContent.Left, commandOne.Left, "direction command begins with LTR inline flow");
+                    Ok(commandOne.Left < commandTwo.Left, "LTR inline source sequence");
+                    Eq(1, directionInlineView.Js("dr('command-inline','rtl')"), "direction command rebuilds inline flow");
+                    Paint(directionInlineView);
+                    command = BlockById(directionInlineView.At, "command-inline");
+                    commandContent = BlockRect(directionInlineView, command);
+                    commandOne = InlineElementRect(directionInlineView, "command-one");
+                    commandTwo = InlineElementRect(directionInlineView, "command-two");
+                    Eq(commandContent.Right, commandOne.Right, "direction command remaps inline start");
+                    Ok(commandOne.Left > commandTwo.Left &&
+                        directionInlineView.At.X.IndexOf("CommandOne", StringComparison.Ordinal) < directionInlineView.At.X.IndexOf("CommandTwo", StringComparison.Ordinal),
+                        "direction command preserves authored order while reversing physical flow");
+                }
+                Console.WriteLine("Lea direction-aware inline and marker smoke passed.");
+
                 var viewportPath = Path.Combine(pages, "viewport-units.html");
                 var viewportEngine = new E();
                 var viewportPage = viewportEngine.Go(viewportPath);
@@ -7309,6 +7451,39 @@ namespace Lea.Tests
                 return (Rectangle)type.GetField(outer ? "R" : "C").GetValue(value);
             }
             return Rectangle.Empty;
+        }
+
+        private static Rectangle InlineElementRect(V view, string id)
+        {
+            var element = ById(view.At.D, id);
+            var result = Rectangle.Empty;
+            foreach (var value in LayoutBoxes(view))
+            {
+                var type = value.GetType();
+                if (!(bool)type.GetField("Inline").GetValue(value) || !Object.ReferenceEquals(type.GetField("El").GetValue(value), element)) continue;
+                var rect = (Rectangle)type.GetField("R").GetValue(value);
+                result = result.IsEmpty ? rect : Rectangle.Union(result, rect);
+            }
+            if (result.IsEmpty) throw new InvalidOperationException("inline element box unavailable: " + id);
+            return result;
+        }
+
+        private static bool HasInlineElement(B block, N element)
+        {
+            if (block == null || element == null) return false;
+            foreach (var run in block.Is) if (Object.ReferenceEquals(run.El, element)) return true;
+            return false;
+        }
+
+        private static Rectangle InlineTextRect(V view, B block, string text)
+        {
+            foreach (var value in LayoutBoxes(view))
+            {
+                var type = value.GetType();
+                if (!(bool)type.GetField("Inline").GetValue(value) || !Object.ReferenceEquals(type.GetField("B").GetValue(value), block)) continue;
+                if ((string)type.GetField("X").GetValue(value) == text) return (Rectangle)type.GetField("R").GetValue(value);
+            }
+            throw new InvalidOperationException("inline text box unavailable: " + text);
         }
 
         private static B FieldBlock(P page, Fi field)

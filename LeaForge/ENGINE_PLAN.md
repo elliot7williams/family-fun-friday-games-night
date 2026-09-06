@@ -345,18 +345,16 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Inherited horizontal `direction:ltr/rtl` now also drives physical flex and grid
-coordinates without adding renderer records. Row and row-reverse combine with
-RTL as one effective reverse bit; order, wrapping, justify alignment, and
-column cross-axis alignment share existing slots. Grid occupancy stays logical
-while auto/dense/column flow, explicit lines/spans, named areas, unequal tracks,
-content alignment, and self-alignment map at the final X-coordinate boundary.
-Compact `dr` rebuilds both layouts in place while document and accessibility
-order remain stable. Standalone and compiled Firespider geometry probes cover
-the path. See `DIRECTION.md`. Next evaluate bounded direction-aware list-marker
-and inline-flow behavior while keeping vertical writing modes, Unicode bidi
-glyph reordering, `dir=auto`, and general CSS/JavaScript evaluators outside the
-current boundary.
+Inherited horizontal `direction:ltr/rtl` now also drives physical flex, grid,
+inline, and marker geometry without adding model records. Inline atoms remain
+in source order while RTL lines place them from the right through plain, mixed,
+wrapped, nowrap, justified, table-cell, ordered/unordered list, and disclosure
+paths. Compact `dr` rebuilds that geometry in place while DOM, links, and
+accessibility text stay stable. Standalone and compiled Firespider probes cover
+the path. See `DIRECTION.md`. Next evaluate bounded RTL clipped-ellipsis and
+selection geometry, then continue the capability-denied helper boundary, while
+keeping vertical writing modes, full Unicode bidi shaping, `dir=auto`, and
+general CSS/JavaScript evaluators outside the current boundary.
 
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host
