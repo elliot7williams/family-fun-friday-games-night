@@ -58,16 +58,21 @@ namespace Lea.Win
         }
 
         public static Task<Image> Rd(byte[] data, string path, string args, CancellationToken token,
+            long reserve, long limit, Func<long> hostMemory,
             Action<int, bool, bool, bool, bool, bool, bool, bool, bool, bool, int, int> started,
-            Action<long, long> measured, Action killed)
+            Action<long, long, long, long, bool> admission,
+            Action<long, long, long, long> measured, Action killed)
         {
-            return Task.Factory.StartNew(() => Read(data, path, args, token, started, measured, killed),
+            return Task.Factory.StartNew(() => Read(data, path, args, token, reserve, limit, hostMemory,
+                started, admission, measured, killed),
                 CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
         }
 
         private static Image Read(byte[] data, string path, string args, CancellationToken token,
+            long reserve, long limit, Func<long> hostMemory,
             Action<int, bool, bool, bool, bool, bool, bool, bool, bool, bool, int, int> started,
-            Action<long, long> measured, Action killed)
+            Action<long, long, long, long, bool> admission,
+            Action<long, long, long, long> measured, Action killed)
         {
             one.Wait(token);
             Rp current = null;
@@ -89,6 +94,15 @@ namespace Lea.Win
                         current.G = guards;
                         current.Ready = true;
                     }
+                    token.ThrowIfCancellationRequested();
+                    var host = Host(hostMemory);
+                    var memory = Private(current.P);
+                    var peak = current.J == null ? 0 : current.J.Peak;
+                    var combined = Total(host, Math.Max(memory, peak), reserve);
+                    var admitted = host > 0 && memory > 0 && peak > 0 && reserve > 0 && limit > 0 && combined <= limit;
+                    if (admission != null) admission(host, memory, peak, combined, admitted);
+                    if (!admitted)
+                        throw new InvalidDataException("Image decode exceeds Lea's combined host/helper memory limit.");
                     token.ThrowIfCancellationRequested();
                     if (started != null) started(current.P.Id, current.J != null, current.R, current.L,
                         current.S, current.A, current.M, current.C, current.N, current.F,
@@ -115,9 +129,23 @@ namespace Lea.Win
                         throw new InvalidDataException("Image worker dimensions exceed Lea's protocol limit.");
                     var bytes = Bytes(output, lengthPixels);
                     token.ThrowIfCancellationRequested();
-                    if (measured != null) measured(Private(current.P), current.J == null ? 0 : current.J.Peak);
-                    token.ThrowIfCancellationRequested();
-                    return Bitmap(width, height, bytes);
+                    var image = Bitmap(width, height, bytes);
+                    try
+                    {
+                        token.ThrowIfCancellationRequested();
+                        host = Host(hostMemory);
+                        memory = Private(current.P);
+                        peak = current.J == null ? 0 : current.J.Peak;
+                        combined = Total(host, Math.Max(memory, peak), 0);
+                        if (measured != null) measured(host, memory, peak, combined);
+                        token.ThrowIfCancellationRequested();
+                        return image;
+                    }
+                    catch
+                    {
+                        image.Dispose();
+                        throw;
+                    }
                 }
             }
             catch
@@ -172,6 +200,21 @@ namespace Lea.Win
             try { process.Refresh(); return process.PrivateMemorySize64; }
             catch (InvalidOperationException) { return 0; }
             catch (System.ComponentModel.Win32Exception) { return 0; }
+        }
+
+        private static long Host(Func<long> source)
+        {
+            if (source == null) return 0;
+            try { return Math.Max(0, source()); }
+            catch (Exception) { return 0; }
+        }
+
+        private static long Total(long first, long second, long third)
+        {
+            if (first < 0 || second < 0 || third < 0) return Int64.MaxValue;
+            if (first > Int64.MaxValue - second) return Int64.MaxValue;
+            var total = first + second;
+            return total > Int64.MaxValue - third ? Int64.MaxValue : total + third;
         }
 
         private static bool Stop(Rp expected)

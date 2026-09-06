@@ -690,8 +690,13 @@ capabilities including no network capability, and an identity-scoped
 read/execute ACE on only the helper executable. Lea creates or reuses the
 per-user profile on first native decode. If profile creation, ACL installation,
 token inspection, or any existing Job/mitigation gate fails, the image fails
-closed without an unrestricted fallback. The helper must acknowledge required guards before
-the host sends encoded bytes. CSS
+closed without an unrestricted fallback. `Icl` configures a 128 MiB-1 GiB
+combined host/helper ceiling (384 MiB default). `Ihm/Icm/Iad` report the host
+private sample, conservative host plus worker private/Job-peak plus preflight
+reservation signal, and admission result. Missing/overflowing samples or a
+signal above the ceiling terminate the helper before `In` increments or encoded
+bytes are written. The helper must acknowledge required guards before the host
+sends encoded bytes. CSS
 width/height wins over HTML dimensions; otherwise `width` and
 `height` attributes feed the same constrained layout path.
 

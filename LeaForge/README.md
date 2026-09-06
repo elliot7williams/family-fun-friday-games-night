@@ -17,7 +17,8 @@ LeaForge is where we can grow the more full-featured browser.
   restricted low-integrity token, suspended Job prebinding, explicit inherited
   pipes, process mitigations, shared `Ip/Im/It/In/If` accounting, compact
   `Ie/Ii/Iw/Ik/Ij/Ih/Ipm/Irt/Ili/Isp/Ihl/Ias/Icp/Icr/Img/Ipk/Iac/Ind/Ial`
-  diagnostics, and cross-view memory admission; see `IMAGE_PREFLIGHT.md` and
+  sandbox diagnostics, `Icl/Ihm/Icm/Iad` combined host/helper admission, and
+  cross-view bitmap accounting; see `IMAGE_PREFLIGHT.md` and
   `IMAGE_ISOLATION.md`
 - exact URI-normalized cache identity with case-sensitive path/query resources,
   fragment sharing, validator isolation, and persistent recovery; see

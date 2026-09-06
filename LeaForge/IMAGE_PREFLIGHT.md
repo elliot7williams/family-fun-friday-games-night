@@ -108,12 +108,13 @@ claims.
 `It/Im` account only Lea's estimated native decode work and retained bitmap
 copies. They are not total-process, helper private-byte, GDI heap,
 source-byte-array, or GPU-memory measurements. `Ih` separately enforces the
-helper's Job memory cap and `Ipm` samples private bytes after a successful
-response. `Ipk` reports the Job's peak process bytes. The helper now has a
-privilege-stripped low-integrity token and required process mitigations, but it
-does not yet have an AppContainer, network-denial capability set, custom object
-ACL, or combined host-plus-helper peak measurement. `Ias/Icp/Icr` expose its
-startup ASLR and configurable Job CPU hard cap.
+helper's Job memory cap, `Ipm` samples helper private bytes, and `Ipk` reports
+the Job's lifetime peak. `Icl/Ihm/Icm/Iad` add a conservative combined
+host/helper admission signal before payload transfer; this is point sampling,
+not a continuous operating-system host cap. The helper now has a verified
+zero-capability AppContainer, exact helper-file ACL, low integrity, startup
+ASLR, required mitigations, and a configurable Job CPU hard cap. See
+`IMAGE_ISOLATION.md` for the current boundary.
 
 Images still do not share the document cookie jar, validator cache, or request
 diagnostics. Lea does not add new codecs, CORS, multi-frame playback, or full

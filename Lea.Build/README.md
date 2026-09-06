@@ -162,12 +162,14 @@ paint/navigation overlap, host request cleanup, full UI-thread exception
 diagnostics, and no MSHTML. See
 `LeaForge/CACHE_IDENTITY.md`.
 `-Case decode` checks one valid helper decode, over-axis PNG preflight,
-`Ip/Im/It/In/If/Ie/Ii/Iw/Ik/Ij/Ih/Ipm/Irt/Ili/Isp/Ihl/Ias/Icp/Icr/Img/Ipk/Iac/Ind/Ial`,
+`Ip/Im/It/In/If/Ie/Ii/Iw/Ik/Ij/Ih/Ipm/Irt/Ili/Isp/Ihl/Ias/Icp/Icr/Img/Ipk/Iac/Ind/Ial/Icl/Ihm/Icm/Iad`,
 retained form data, zero-capability AppContainer and exact helper ACL,
 restricted low-integrity token, startup ASLR, Job CPU cap, mitigation handshake,
-private/Job-peak memory, host cleanup, child-process exit, and no MSHTML. The
-focused `--pics` suite additionally attempts live loopback and host-file access
-and requires both to be denied while decode succeeds. See
+private/Job-peak memory, combined host/helper admission, host cleanup,
+child-process exit, and no MSHTML. The focused `--pics` suite additionally
+forces an over-limit projection before payload admission and attempts live
+loopback and host-file access, requiring all three boundaries while normal
+decode succeeds. See
 `LeaForge/IMAGE_ISOLATION.md`.
 `-Case load-life` checks page-command successors, request ownership, queued CSS,
 busy address input, and cleanup. `Lea.Tests <root> --loads` adds deterministic

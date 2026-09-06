@@ -345,16 +345,15 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-The native image helper now runs in a deterministic zero-capability
-AppContainer. The launcher installs one identity-scoped read/execute ACE on the
-helper file, verifies the actual suspended child token and empty capability
-set, then retains the existing handle, Job, ASLR, CPU, memory, and handshake
-gates. Active loopback and host-file probes are denied while bounded decode
-continues. See `IMAGE_ISOLATION.md`. Next investigate a combined host/helper
-peak-memory admission signal and the native-safe visible-range boundary while
-keeping vertical writing modes, full Unicode bidi shaping, `dir=auto`, custom
-overflow markers, and general CSS/JavaScript evaluators outside the current
-boundary.
+The zero-capability AppContainer image helper now has a combined host/helper
+memory admission boundary. `Icl` provides a clamped process-wide ceiling while
+`Ihm/Icm/Iad` expose the live host sample, conservative worker-peak plus
+preflight projection, and result. The check runs after the hardened handshake
+but before payload transfer; missing, overflowing, and over-limit samples stop
+the helper and release the reservation. See `IMAGE_ISOLATION.md`. Next
+investigate the native-safe visible-range boundary while keeping vertical
+writing modes, full Unicode bidi shaping, `dir=auto`, custom overflow markers,
+and general CSS/JavaScript evaluators outside the current boundary.
 
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host

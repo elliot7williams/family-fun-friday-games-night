@@ -2242,12 +2242,40 @@ namespace Lea.Bench
                         view.Ih == 192L * 1024 * 1024 && view.Ipm > 0 && view.Ipm <= view.Ih && view.Irt && view.Ili &&
                         view.Isp && view.Ihl && view.Ias && view.Icp && view.Icr == 2500 &&
                         (view.Img & 3) == 3 && view.Ipk > 0 && view.Ipk <= view.Ih &&
-                        view.Iac && view.Ind && view.Ial &&
+                        view.Iac && view.Ind && view.Ial && view.Iad && view.Icl == 384L * 1024 * 1024 &&
+                        view.Ihm > 0 && view.Icm >= view.Ihm + view.Ipk && view.Icm <= view.Icl &&
                         view.At.Fs[0].V == "Retained preflight data",
                         "image restricted-launch aliases, worker admission, or retained accounting changed");
                 }
                 using (var released = NewView()) Need(released.It == 0, "image preflight fixture leaked process reservation");
-                return "Pi preflight, Irt/Ili/Isp/Ihl/Ias/Icp/Icr/Img/Ipk/Iac/Ind/Ial hardened-worker aliases, one native decode, one pre-native rejection, retained fields, paint, and disposal";
+                return "Pi preflight, hardened-worker and Icl/Ihm/Icm/Iad combined-memory aliases, one native decode, one pre-native rejection, retained fields, paint, and disposal";
+            });
+            AddProbe(probes, "Combined image memory admission", delegate
+            {
+                using (var view = NewView())
+                {
+                    var oldLimit = view.Icl;
+                    try
+                    {
+                        view.Icl = 1;
+                        Need(view.Icl == 128L * 1024 * 1024, "combined image-memory minimum changed");
+                        view.Icl = Int64.MaxValue;
+                        Need(view.Icl == 1024L * 1024 * 1024, "combined image-memory maximum changed");
+                        view.Icl = 128L * 1024 * 1024;
+                        typeof(V).GetField("picHostMemoryProbe", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(view,
+                            new Func<long>(() => view.Icl));
+                        var work = view.GoA(Path.Combine(folder, "image-preflight.html"));
+                        var end = DateTime.UtcNow.AddSeconds(10);
+                        while (!work.IsCompleted && DateTime.UtcNow < end) { Application.DoEvents(); Thread.Sleep(2); }
+                        Need(work.IsCompleted, "combined image-memory fixture timeout");
+                        work.GetAwaiter().GetResult();
+                        Need(view.Ic == 0 && view.If == 2 && view.In == 0 && view.It == 0 && !view.Iad &&
+                            view.Ihm == view.Icl && view.Ipm > 0 && view.Ipk > 0 && view.Icm > view.Icl,
+                            "combined host/helper projection reached native decode");
+                    }
+                    finally { view.Icl = oldLimit; }
+                }
+                return "Icl bounded combined ceiling, Ihm host sample, Icm conservative host/helper/reserve projection, Iad denial, zero native payload admissions, and reservation cleanup";
             });
             AddProbe(probes, "Zero-capability image sandbox", delegate
             {

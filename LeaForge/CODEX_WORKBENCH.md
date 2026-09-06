@@ -17,21 +17,20 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 91 moves the shared `Lea.Image.exe` codec helper into a deterministic
-zero-capability AppContainer. One exact SID receives read/execute access to the
-helper file only; the launcher verifies the real child token, low integrity,
-stripped privileges, empty capability set, suspended Job assignment, handle
-allowlist, startup mitigations, and CPU/memory caps before sending encoded
-bytes. Focused tests actively deny a live loopback connection and a host-owned
-canary file while decode succeeds. The full default/core suites, compiled host,
-all 42 Boot cases, all six actual EXE startup scenarios, and all 87 benchmark
-probes over 83 fixtures pass. Canonical
-medians are 534.292 ms clean start, 3.908 ms local load, and 35.246 ms
-layout/paint; retained memory is 52.9 KiB/page and the required runtime is 563.0
-KiB. Runtime 191 remains isolated, and installed runtime 157 is unchanged. See
-`IMAGE_ISOLATION.md`. Continue combined host/helper peak admission and the
-native-safe visible-range investigation without adding a browser runtime or
-general script VM.
+Milestone 92 adds combined host/helper image-memory admission without widening
+the codec protocol. After the hardened AppContainer handshake and before
+payload transfer, Lea samples host private bytes, helper private bytes, and the
+Job lifetime peak, then adds the structural reservation with saturating
+arithmetic. `Icl/Ihm/Icm/Iad` keep the public surface compact. A deterministic
+over-limit test proves zero native payload admissions, reservation cleanup, and
+exact helper termination. The full default/core suites, compiled host, all 42
+Boot cases, all six actual EXE startup scenarios, and all 88 benchmark probes
+over 83 fixtures pass. Canonical medians are 515.731 ms clean start, 3.652 ms
+local load, and 36.048 ms layout/paint; retained memory is 52.9 KiB/page and the
+required runtime is 565.0 KiB. Runtime 192 remains isolated, and installed
+runtime 157 is unchanged. See `IMAGE_ISOLATION.md`. Continue the native-safe
+visible-range investigation without adding a browser runtime or general script
+VM.
 
 Milestone 60 installs the existing `V.Ng` hook on main Lea tabs, enforcing host
 rules, offline/locked state, and live ownership. Denied resume retains its

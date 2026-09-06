@@ -36,6 +36,7 @@ namespace Lea.Win
         private static readonly object picMemoryGate = new object();
         private static long picMemoryTotal;
         private static long picMemoryLimit = 128L * 1024 * 1024;
+        private static long picCombinedLimit = 384L * 1024 * 1024;
         private const int MaxKeyTargets = 256;
         private const int MaxKeyMapRegions = 4096;
         private const int MaxAccessTargets = 64;
@@ -43,6 +44,8 @@ namespace Lea.Win
         private const int PicBytes = 4 * 1024 * 1024;
         private const long PicMemory = 32L * 1024 * 1024;
         private const long PicMemoryMaximum = 512L * 1024 * 1024;
+        private const long PicCombinedMemory = 128L * 1024 * 1024;
+        private const long PicCombinedMaximum = 1024L * 1024 * 1024;
         private const int FontLimit = 32;
         private const int UploadFiles = 8;
         private const int UploadFileBytes = 4 * 1024 * 1024;
@@ -82,10 +85,14 @@ namespace Lea.Win
         private int picAppContainer;
         private int picNoNetwork;
         private int picFileAcl;
+        private int picAdmission;
+        private long picHostMemory;
+        private long picCombinedMemory;
         private long picWorkerMemory;
         private long picWorkerPeak;
         private string picWorkerPath;
         private string picWorkerArgs = "--pipe";
+        private Func<long> picHostMemoryProbe = HostPrivateMemory;
         private WebRequest picRequest;
         private Stream picStream;
         private CancellationTokenSource picBudget;
@@ -245,6 +252,14 @@ namespace Lea.Win
         public bool Iac { get { return Interlocked.CompareExchange(ref picAppContainer, 0, 0) != 0; } }
         public bool Ind { get { return Interlocked.CompareExchange(ref picNoNetwork, 0, 0) != 0; } }
         public bool Ial { get { return Interlocked.CompareExchange(ref picFileAcl, 0, 0) != 0; } }
+        public long Icl
+        {
+            get { lock (picMemoryGate) return picCombinedLimit; }
+            set { lock (picMemoryGate) picCombinedLimit = Math.Max(PicCombinedMemory, Math.Min(PicCombinedMaximum, value)); }
+        }
+        public long Ihm { get { return Interlocked.Read(ref picHostMemory); } }
+        public long Icm { get { return Interlocked.Read(ref picCombinedMemory); } }
+        public bool Iad { get { return Interlocked.CompareExchange(ref picAdmission, 0, 0) != 0; } }
         public int Hm { get { return e.Hm; } }
         public int Csm { get { return e.Csm; } }
         public int Ic { get { var count = 0; foreach (var item in pics.Values) if (item != null) count++; return count; } }
@@ -5050,7 +5065,7 @@ namespace Lea.Win
                         reserved = info.R;
                         using (var decoder = CancellationTokenSource.CreateLinkedTokenSource(timer.Token))
                         {
-                            var decoding = DecodePicture(data, decoder.Token);
+                            var decoding = DecodePicture(data, info.R, decoder.Token);
                             try { image = await PictureWait(decoding, deadline); }
                             catch
                             {
@@ -5097,9 +5112,9 @@ namespace Lea.Win
             }
         }
 
-        private Task<Image> DecodePicture(byte[] data, CancellationToken token)
+        private Task<Image> DecodePicture(byte[] data, long reserve, CancellationToken token)
         {
-            return Di.Rd(data, Ie, picWorkerArgs, token,
+            return Di.Rd(data, Ie, picWorkerArgs, token, reserve, Icl, PictureHostMemory,
                 (process, bounded, restricted, low, suspended, handles, aslr, appContainer, noNetwork, fileAcl, cpu, guards) =>
                 {
                     Interlocked.Increment(ref picNative);
@@ -5116,12 +5131,37 @@ namespace Lea.Win
                     Interlocked.Exchange(ref picNoNetwork, noNetwork ? 1 : 0);
                     Interlocked.Exchange(ref picFileAcl, fileAcl ? 1 : 0);
                 },
-                (memory, peak) =>
+                (host, memory, peak, combined, admitted) =>
                 {
+                    Interlocked.Exchange(ref picHostMemory, host);
                     Interlocked.Exchange(ref picWorkerMemory, memory);
                     Interlocked.Exchange(ref picWorkerPeak, peak);
+                    Interlocked.Exchange(ref picCombinedMemory, combined);
+                    Interlocked.Exchange(ref picAdmission, admitted ? 1 : 0);
+                },
+                (host, memory, peak, combined) =>
+                {
+                    Interlocked.Exchange(ref picHostMemory, host);
+                    Interlocked.Exchange(ref picWorkerMemory, memory);
+                    Interlocked.Exchange(ref picWorkerPeak, peak);
+                    Interlocked.Exchange(ref picCombinedMemory,
+                        Math.Max(Interlocked.Read(ref picCombinedMemory), combined));
                 },
                 () => Interlocked.Increment(ref picKilled));
+        }
+
+        private long PictureHostMemory()
+        {
+            return picHostMemoryProbe();
+        }
+
+        private static long HostPrivateMemory()
+        {
+            using (var process = System.Diagnostics.Process.GetCurrentProcess())
+            {
+                process.Refresh();
+                return process.PrivateMemorySize64;
+            }
         }
 
         private static bool ReservePic(long size)

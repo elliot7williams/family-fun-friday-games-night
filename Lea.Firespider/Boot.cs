@@ -560,7 +560,9 @@ namespace Lea.Firespider
                         view.Ipm > 0 && view.Ipm <= view.Ih && view.Irt && view.Ili && view.Isp && view.Ihl &&
                         view.Iac && view.Ind && view.Ial &&
                         view.Ias && view.Icp && view.Icr == 2500 &&
-                        (view.Img & 3) == 3 && view.Ipk > 0 && view.Ipk <= view.Ih && view.Cn && !view.Busy && view.Le == null,
+                        (view.Img & 3) == 3 && view.Ipk > 0 && view.Ipk <= view.Ih && view.Iad &&
+                        view.Icl == 384L * 1024 * 1024 && view.Ihm > 0 && view.Icm >= view.Ihm + view.Ipk &&
+                        view.Icm <= view.Icl && view.Cn && !view.Busy && view.Le == null,
                         "host image restricted-launch aliases, decode, or preflight admission changed");
                     Call(form, "qleaTick", form, EventArgs.Empty);
                     Check(Member<IDictionary>(form, "qleaLoads").Count == 0 && Member<IDictionary>(form, "qleaPending").Count == 0,
@@ -570,7 +572,7 @@ namespace Lea.Firespider
                 }
                 finally { if (view != null && !view.IsDisposed) Call(form, "qleaClose", (TabPage)view.Parent); }
                 if (view != null) Check(view.It == 0, "closing preflight tab leaked process image bytes");
-                Console.WriteLine("PASS image decode: zero-capability AppContainer, exact helper ACL, restricted token, startup ASLR, CPU cap, mitigations, memory, cleanup, and no MSHTML; aslr=" + startupAslr + "; cpu=" + cpuRate + "; guards=" + guards + "; private=" + privateMemory + "; peak=" + peakMemory + "; worker=" + worker);
+                Console.WriteLine("PASS image decode: zero-capability AppContainer, combined memory admission, exact helper ACL, restricted token, startup ASLR, CPU cap, mitigations, cleanup, and no MSHTML; aslr=" + startupAslr + "; cpu=" + cpuRate + "; guards=" + guards + "; private=" + privateMemory + "; peak=" + peakMemory + "; worker=" + worker);
             }
         }
 
@@ -872,8 +874,14 @@ namespace Lea.Firespider
                 hover.Invoke(Member<ToolStripItem>(form, "CO"), new object[] { EventArgs.Empty });
                 Check(Clipboard.GetText() == "unchanged", "hover editing ran while disabled");
                 settings["t"] = "e";
-                hover.Invoke(Member<ToolStripItem>(form, "CO"), new object[] { EventArgs.Empty });
-                Check(Clipboard.GetText() == "hover selection", "enabled hover Copy ignored Lea editor: enabled=" + copy.Enabled + "; available=" + view.Ce("cp") + "; selection=" + editor.SelectionLength + "; matching=" + (field.V == editor.Text));
+                var hoverCopied = false;
+                for (var attempt = 0; attempt < 3 && !hoverCopied; attempt++)
+                {
+                    hover.Invoke(Member<ToolStripItem>(form, "CO"), new object[] { EventArgs.Empty });
+                    hoverCopied = Clipboard.GetText() == "hover selection";
+                    if (!hoverCopied) { Application.DoEvents(); Thread.Sleep(20); }
+                }
+                Check(hoverCopied, "enabled hover Copy ignored Lea editor: enabled=" + copy.Enabled + "; available=" + view.Ce("cp") + "; selection=" + editor.SelectionLength + "; matching=" + (field.V == editor.Text));
                 ((ToolStripDropDownItem)copy.OwnerItem).HideDropDown();
                 settings["t"] = "";
                 var secret = view.At.Fs.Single(item => item.El.Av("id") == "secret");
@@ -881,12 +889,14 @@ namespace Lea.Firespider
                 Check(secret.V == "private value" && !view.Ce("cp") && !view.Ce("cu"),
                     "password edit setup: retained=" + (secret.V == "private value") + "; kind=" + secret.K +
                     "; copy=" + view.Ce("cp") + "; cut=" + view.Ce("cu"));
+                Clipboard.SetText("protected clipboard marker");
+                Check(Clipboard.GetText() == "protected clipboard marker", "password clipboard marker was not established");
                 Member<ToolStripItem>(form, "CO").PerformClick();
                 Member<ToolStripItem>(form, "CU").PerformClick();
                 var afterProtected = Clipboard.GetText();
-                Check(secret.V == "private value" && afterProtected == "hover selection",
+                Check(secret.V == "private value" && afterProtected == "protected clipboard marker",
                     "password Copy/Cut state: retained=" + (secret.V == "private value") +
-                    "; clipboardUnchanged=" + (afterProtected == "hover selection") +
+                    "; clipboardUnchanged=" + (afterProtected == "protected clipboard marker") +
                     "; clipboardHasFixtureSecret=" + afterProtected.Contains("private value") +
                     "; clipboardLength=" + afterProtected.Length);
                 var readOnly = view.At.Fs.Single(item => item.El.Av("id") == "readonly");

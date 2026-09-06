@@ -29,6 +29,13 @@ privileges while it is suspended, then applies the existing Job and mitigation
 gates. A live listener and a real host-owned canary file prove that network and
 ungranted host-file access are denied while bounded decoding still succeeds.
 
+Milestone 92 / runtime 192 adds a process-wide combined host/helper admission
+ceiling. After the hardened worker completes its handshake but before the host
+writes encoded image bytes, Lea samples host private bytes, worker private
+bytes, and the worker Job lifetime peak, then adds the structural preflight
+reservation with saturating arithmetic. Over-limit or unavailable samples fail
+closed, release the bitmap reservation, and terminate the helper.
+
 ## Compact API
 
 ```csharp
@@ -51,6 +58,10 @@ long peakWorkerBytes = view.Ipk;
 bool appContainer = view.Iac;
 bool networkDenied = view.Ind;
 bool helperAcl = view.Ial;
+long combinedLimit = view.Icl;
+long hostPrivateBytes = view.Ihm;
+long combinedSignal = view.Icm;
+bool memoryAdmitted = view.Iad;
 ```
 
 `Ie` is the image-helper executable path. It defaults to `Lea.Image.exe` beside
@@ -71,8 +82,9 @@ sentinel. Encoded image bytes are not sent to an unbounded helper.
 `Ih` configures the process-wide hard worker-memory ceiling. It defaults to
 192 MiB and clamps host values from 64 to 512 MiB. A changed value takes effect
 on the next admitted decode and causes the shared worker to restart under a new
-Job. `Ipm` is the private-byte value sampled from the last successful worker
-response; it is diagnostic rather than a peak or reservation counter.
+Job. `Ipm` is the worker private-byte value sampled at the last admission or
+successful response; it is diagnostic rather than a peak or reservation
+counter.
 
 `Irt` confirms inspection of the actual AppContainer child token found at most
 Windows' traversal privilege enabled. `Ili` confirms low mandatory integrity
@@ -104,6 +116,15 @@ native decode. A failure in profile creation, ACL installation, or live token
 verification becomes the ordinary failed-image sentinel; there is no less
 restricted decoder fallback.
 
+`Icl` configures the process-wide combined image-memory ceiling. It defaults to
+384 MiB and clamps host values from 128 MiB through 1 GiB without restarting the
+worker. `Ihm` is the host process private-byte sample. `Icm` retains the larger
+of the pre-decode projection and post-decode sample: host private bytes plus the
+larger worker private/Job-peak value, with the preflight reservation added
+before payload admission. `Iad` is true only when that projection was complete
+and no greater than `Icl`. Sampling failure and arithmetic overflow reject the
+image before `In` increments or encoded bytes cross the pipe.
+
 Existing image aliases retain their meanings. `In` counts admitted native
 decode requests, `If` counts current failed-image sentinels, `Ic/Ib` count
 retained bitmaps and estimated bytes, and `Ip/Im/It` expose the per-image pixel
@@ -114,7 +135,8 @@ cap plus shared reservation limit/current bytes.
 All Lea views share one reusable helper process and serialize decode requests
 through it. Reuse avoids starting a process for every image while keeping only
 one decoder process resident. A changed `Ie` path, helper arguments, `Ih`
-memory limit, or `Icr` CPU rate restarts that shared helper.
+memory limit, or `Icr` CPU rate restarts that shared helper. `Icl` is checked
+for every request against current samples and therefore needs no restart.
 
 The host creates or reuses one deterministic AppContainer profile and adds an
 explicit read/execute ACE for that SID to the configured helper file. It passes
@@ -209,12 +231,16 @@ network limits, retry, Stop, disposal, and successor loads. A child test host th
 helper for 60 seconds, is terminated,
 and requires Job close to remove that exact helper PID within three seconds.
 
-The runtime 191 release run adds a dedicated compatibility probe and compiled
-Firespider checks for the AppContainer/ACL boundary. The Boot `decode` case
+The runtime 192 release run adds a dedicated combined-memory compatibility
+probe and compiled Firespider checks alongside the AppContainer/ACL boundary.
+The Boot `decode` case
 loads one valid image in the helper, rejects one over-axis PNG before admission,
 reports the zero-capability AppContainer, exact helper ACL, startup ASLR, the
 2500 CPU rate, current guard bits, private/Job-peak bytes under the 192 MiB cap,
-host cleanup/no MSHTML, and child-process exit. Current full-suite and package
+and an admitted host/helper projection under the 384 MiB combined ceiling,
+plus host cleanup/no MSHTML and child-process exit. Focused tests force a
+128 MiB over-limit projection, require zero native payload admissions, release
+the reservation, and observe termination of the exact helper. Current full-suite and package
 measurements are recorded in `PROGRESS.md` and
 `COMPATIBILITY_PERFORMANCE.md`.
 
@@ -226,8 +252,11 @@ after browser exit, and Windows/system paths available to AppContainers remain
 available. The helper-file ACE is intentionally retained so later launches do
 not need broader directory access. Lea has not enabled the `internetClient`,
 private-network, documents, pictures, music, videos, or broad-filesystem
-capabilities. `Ipm/Ipk` cover the helper, while `It/Im` remain Lea estimates
-rather than a combined host-plus-helper memory budget. Deployment must allow
+capabilities. `It/Im` remain explicit bitmap reservations while `Icl/Ihm/Icm/Iad`
+add the combined admission boundary. The combined signal is conservative point
+sampling, not a continuous operating-system-wide hard limit: host allocation
+can change between samples, and the helper's separate Job remains the hard
+per-process backstop. Deployment must allow
 the current user to add the helper-file ACE; failure remains nonfatal to the
 document and does not downgrade isolation.
 
