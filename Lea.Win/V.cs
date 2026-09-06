@@ -3176,27 +3176,29 @@ namespace Lea.Win
         private void EllipsizeLine(Graphics graphics, B block, List<Ix> layout, int first, int width, int top, int height)
         {
             if (block.S == null || block.S.To != "e" || !ClipsOverflow(block.S) || first == layout.Count) return;
+            var rtl = InlineReverse(block.S);
             var overflow = false;
             for (var index = first; index < layout.Count; index++)
-                if (layout[index].R.Right > width) { overflow = true; break; }
+                if (rtl ? layout[index].R.Left < 0 : layout[index].R.Right > width) { overflow = true; break; }
             if (!overflow) return;
 
             using (var markerFont = BoxFont(block.K, block.S, false, block.U != null))
             {
                 var markerWidth = TextWidth(graphics, "\u2026", markerFont, block.S);
-                var end = 0;
+                var edge = rtl ? width : 0;
                 S lastStyle = null;
                 var lastWidth = 0;
                 var stopped = false;
-                // Keep layout and hit rectangles intact; only replace the painted suffix.
+                // Keep layout and hit rectangles intact; only replace the painted source suffix.
                 for (var index = first; index < layout.Count; index++)
                 {
                     var part = layout[index];
                     if (stopped) { part.Px = ""; continue; }
                     var gap = TextGap(part.R.Width, part.S, block.S);
-                    if (part.R.Right + gap + markerWidth <= width)
+                    var fits = rtl ? part.R.Left - gap - markerWidth >= 0 : part.R.Right + gap + markerWidth <= width;
+                    if (fits)
                     {
-                        end = part.R.Right;
+                        edge = rtl ? part.R.Left : part.R.Right;
                         lastStyle = part.S;
                         lastWidth = part.R.Width;
                         continue;
@@ -3204,17 +3206,20 @@ namespace Lea.Win
                     using (var font = BoxFont(part.K, part.S, false, part.U != null, block.K))
                     {
                         part.Px = EllipsisPrefix(graphics, part.X, font, part.S, block.S,
-                            width - part.R.Left, markerWidth, index == first);
+                            rtl ? part.R.Right : width - part.R.Left, markerWidth, index == first);
                         if (part.Px.Length > 0)
                         {
                             lastWidth = TextWidth(graphics, part.Px, font, part.S);
-                            end = part.R.Left + lastWidth;
+                            var left = rtl ? part.R.Right - lastWidth : part.R.Left;
+                            part.C = new Rectangle(left, part.R.Top, lastWidth, part.R.Height);
+                            edge = rtl ? left : left + lastWidth;
                             lastStyle = part.S;
                         }
                     }
                     stopped = true;
                 }
-                var x = end + (lastWidth > 0 ? TextGap(lastWidth, lastStyle, block.S) : 0);
+                var finalGap = lastWidth > 0 ? TextGap(lastWidth, lastStyle, block.S) : 0;
+                var x = rtl ? edge - finalGap - markerWidth : edge + finalGap;
                 var rect = new Rectangle(x, top + Math.Max(0, (height - markerFont.Height) / 2), markerWidth, markerFont.Height);
                 layout.Add(new Ix(block.K, "", block.U, block.S, rect, block.El) { Px = "\u2026" });
             }
@@ -3452,8 +3457,10 @@ namespace Lea.Win
             foreach (var part in flow)
             {
                 var rect = part.R;
+                var paint = part.C;
                 rect.Offset(content.X, content.Y);
-                boxes.Add(new Bx(part.K, part.X, part.U, part.S, rect, false, block, true, clip, part.El) { Px = part.Px });
+                paint.Offset(content.X, content.Y);
+                boxes.Add(new Bx(part.K, part.X, part.U, part.S, rect, paint, false, block, true, clip, part.El) { Px = part.Px });
             }
         }
 
@@ -7163,11 +7170,11 @@ namespace Lea.Win
             var field = box.B == null ? null : box.B.I;
             if (box.Inline || field != null || box.C.Width < 2)
             {
-                var rect = box.R;
+                var rect = box.Px == null ? box.R : box.C;
                 if (box.Px != null)
                     using (var font = BoxFont(box.K, box.S, false, box.U != null, box.B == null ? null : box.B.K))
                         rect.Width = Math.Min(rect.Width, TextWidth(graphics, box.Px, font, box.S));
-                parts.Add(new Us(value, rect, box.Clip, box.Fx, box.El, order, sequence++));
+                parts.Add(new Us(value, rect, box.Clip, box.Fx, box.El, order, sequence++, InlineReverse(box.S)));
                 return;
             }
 
@@ -7186,8 +7193,9 @@ namespace Lea.Win
                         TextFormatFlags.SingleLine | TextFormatFlags.NoPadding).Width;
                     if (line.Length > 0 && lineWidth + spaceWidth + wordWidth > area.Width)
                     {
-                        parts.Add(new Us(line.ToString(), new Rectangle(area.Left, y, Math.Max(1, Math.Min(area.Width, lineWidth)), font.Height),
-                            box.Clip, box.Fx, box.El, order, sequence++));
+                        var lineLeft = InlineReverse(box.S) ? area.Right - Math.Max(1, Math.Min(area.Width, lineWidth)) : area.Left;
+                        parts.Add(new Us(line.ToString(), new Rectangle(lineLeft, y, Math.Max(1, Math.Min(area.Width, lineWidth)), font.Height),
+                            box.Clip, box.Fx, box.El, order, sequence++, InlineReverse(box.S)));
                         if (parts.Count == MaxAutomationTextSegments) return;
                         y += font.Height;
                         line.Clear();
@@ -7198,8 +7206,11 @@ namespace Lea.Win
                     lineWidth += wordWidth;
                 }
                 if (line.Length > 0 && parts.Count < MaxAutomationTextSegments)
-                    parts.Add(new Us(line.ToString(), new Rectangle(area.Left, y, Math.Max(1, Math.Min(area.Width, lineWidth)), font.Height),
-                        box.Clip, box.Fx, box.El, order, sequence++));
+                {
+                    var lineLeft = InlineReverse(box.S) ? area.Right - Math.Max(1, Math.Min(area.Width, lineWidth)) : area.Left;
+                    parts.Add(new Us(line.ToString(), new Rectangle(lineLeft, y, Math.Max(1, Math.Min(area.Width, lineWidth)), font.Height),
+                        box.Clip, box.Fx, box.El, order, sequence++, InlineReverse(box.S)));
+                }
             }
         }
 
@@ -7271,8 +7282,12 @@ namespace Lea.Win
             var rect = AutomationTextLayoutRectangle(part);
             var clip = part.Cp;
             var length = part.E - part.S;
-            var left = rect.Left + (int)Math.Floor(rect.Width * (Math.Max(part.S, start) - part.S) / (double)length);
-            var right = rect.Left + (int)Math.Ceiling(rect.Width * (Math.Min(part.E, end) - part.S) / (double)length);
+            var from = Math.Max(part.S, start) - part.S;
+            var to = Math.Min(part.E, end) - part.S;
+            var left = part.Rev ? rect.Right - (int)Math.Ceiling(rect.Width * to / (double)length) :
+                rect.Left + (int)Math.Floor(rect.Width * from / (double)length);
+            var right = part.Rev ? rect.Right - (int)Math.Floor(rect.Width * from / (double)length) :
+                rect.Left + (int)Math.Ceiling(rect.Width * to / (double)length);
             rect = new Rectangle(left, rect.Top, Math.Max(1, right - left), rect.Height);
             if (!part.Fx && !clip.IsEmpty) clip.Offset(0, -sy);
             rect = Rectangle.Intersect(rect, ClientRectangle);
@@ -7305,6 +7320,7 @@ namespace Lea.Win
             if (best == null) return new Uq(this, text, 0, 0);
             var bounds = AutomationTextLayoutRectangle(best);
             var ratio = bounds.Width < 1 ? 0D : Math.Max(0D, Math.Min(1D, (point.X - bounds.Left) / (double)bounds.Width));
+            if (best.Rev) ratio = 1D - ratio;
             var offset = best.S + (int)Math.Round((best.E - best.S) * ratio);
             offset = Math.Max(best.S, Math.Min(best.E, offset));
             if (offset == best.E && offset > best.S) offset--;
@@ -8028,9 +8044,10 @@ namespace Lea.Win
             public readonly N El;
             public readonly int O;
             public readonly int Q;
+            public readonly bool Rev;
             public int S;
             public int E;
-            public Us(string text, Rectangle rect, Rectangle clip, bool fixedPosition, N element, int order, int sequence)
+            public Us(string text, Rectangle rect, Rectangle clip, bool fixedPosition, N element, int order, int sequence, bool reverse)
             {
                 X = text;
                 R = rect;
@@ -8039,6 +8056,7 @@ namespace Lea.Win
                 El = element;
                 O = order;
                 Q = sequence;
+                Rev = reverse;
             }
         }
 
@@ -8781,6 +8799,7 @@ namespace Lea.Win
             public readonly Uri U;
             public readonly S S;
             public readonly Rectangle R;
+            public Rectangle C;
             public readonly N El;
 
             public Ix(string kind, string text, Uri url, S style, Rectangle rect, N element)
@@ -8790,6 +8809,7 @@ namespace Lea.Win
                 U = url;
                 S = style;
                 R = rect;
+                C = rect;
                 El = element;
             }
         }

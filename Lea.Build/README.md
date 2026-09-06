@@ -90,6 +90,10 @@ and live compact `dr` reflow. See `LeaForge/DIRECTION.md`.
 justified inline flow; physical/logical text alignment; nested ordered,
 unordered, and disclosure markers; structured table parts; links; source order;
 paint; and live compact `dr` reflow. See `LeaForge/DIRECTION.md`.
+`direction-overflow.html` covers bounded LTR/RTL physical inline-end ellipsis,
+right-aligned grapheme-safe RTL paint prefixes, retained link hits, table-cell
+clips, full logical text, direction-aware partial/wrapped/point TextPattern
+geometry, and live compact `dr` reflow. See `LeaForge/DIRECTION.md`.
 `fragment-stability.html` covers `Fa/Fj/Fy`, first-paint retention, responsive
 host settlement, intrinsic image reflow, missing targets, and manual-scroll
 release. See `LeaForge/INITIAL_FRAGMENT_STABILITY.md`.
@@ -103,6 +107,8 @@ navigation 25 times. `--clip` isolates the held-clipboard regression; `--paste`
 checks supplied text and field bounds without accessing the clipboard.
 `--cache` isolates exact path/query cache identity, fragment sharing, validators,
 linked CSS, and persistent restart behavior.
+`--direction-overflow` isolates horizontal LTR/RTL ellipsis and read-only range
+geometry without running the rest of the suite.
 `--sheets` isolates native named CSS, byte/rule limits, retained data,
 painting, and editor font/selection/undo. It is included in `--core`.
 These test modes do not retry or suppress failed assertions. Windows

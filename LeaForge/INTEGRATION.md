@@ -238,7 +238,9 @@ hierarchy, live values/states, protected passwords, keyboard shortcuts, hit
 testing, focus, and actions. UIA maps Lea nodes to native control types and
 supports invoke, editable value, toggle, radio selection, disclosure,
 read-only/editable range, and scroll-item patterns with structure, focus, and
-property notifications. Native `Tb/Tr/Tc` tables also expose concurrent grid
+property notifications. Read-only TextPattern partial and point rectangles map
+through each retained segment's horizontal LTR/RTL direction while preserving
+logical source order. Native `Tb/Tr/Tc` tables also expose concurrent grid
 and table patterns; cells expose grid-item/table-item coordinates, bounded
 column spans, containing-grid links, and row/column header relationships. The
 loaded provider view is capped at 256 complete rows, 256 columns, and 512 cells;
@@ -312,9 +314,11 @@ keeps original layout and pointer targets, including collapsed link spaces,
 and paints a shortened text-element prefix plus a synthetic marker. No host
 string shortening is needed. Document and form values remain authored; UI
 Automation retains full logical text and uses the painted prefix for visible
-text rectangles. Native controls and SVG text keep their existing behavior.
-The current path is horizontal left-to-right and does not implement custom
-markers, two-ended overflow, line clamping, or bidi layout.
+text rectangles. Horizontal RTL overflow places the marker at physical left,
+right-aligns the authored prefix inside its retained atom, and maps partial and
+point ranges from the right. Native controls and SVG text keep their existing
+behavior. The current path does not implement custom markers, two-ended
+overflow, line clamping, Unicode bidi shaping, or vertical layout.
 
 `S.Ws` carries compact `n/nw/p/pw/pl` white-space modes. Lea preserves explicit
 spaces and line breaks for `pre`/`pre-wrap`, keeps line breaks while collapsing
@@ -411,10 +415,12 @@ cross alignment, and logical grid auto/dense/column/explicit/area tracks plus
 content/self alignment through that same bit. Plain, mixed, wrapped, nowrap,
 justified, and structured-cell inline atoms keep source order while RTL
 coordinates advance from the right; existing `B.Mk` list/disclosure markers use
-the same path. Hosts may use compact `dr`, readable `direction`, or literal
-bounded DOM forms and need no extra axis state. Unicode bidi glyph reordering,
-embedding controls, `dir=auto`, vertical writing modes, `wrap-reverse`, and RTL
-paint-only ellipsis remain outside this milestone. See `DIRECTION.md`.
+the same path. Horizontal inline-end ellipsis and read-only TextPattern range/
+point geometry also follow that direction without changing public host records.
+Hosts may use compact `dr`, readable `direction`, or literal bounded DOM forms
+and need no extra axis state. Unicode bidi glyph reordering, embedding controls,
+`dir=auto`, vertical writing modes, and `wrap-reverse` remain outside this
+milestone. See `DIRECTION.md`.
 
 CSS outlines are available through non-inherited `S.Ow/Os/Oc/Oo`. Hosts can
 inspect bounded width, compact none/solid/dashed/dotted/auto style, authored

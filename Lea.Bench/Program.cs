@@ -108,7 +108,7 @@ namespace Lea.Bench
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
                 "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "direction-logical.html", "direction-layout.html", "direction-inline.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
-                "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
+                "direction-overflow.html", "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
                 "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html", "svg.html", "svg-geometry.html", "svg-gradients.html", "svg-use-clips.html", "svg-strokes.html",
@@ -1627,6 +1627,75 @@ namespace Lea.Bench
                 }
                 return "S.Dr right-origin plain/mixed/wrapped/nowrap/justified lines, physical/logical alignment, nested ordered/unordered/disclosure markers, table parts, source order, paint, hits, and compact dr reflow";
             });
+            AddProbe(probes, "Direction-aware ellipsis and range geometry", delegate
+            {
+                var path = Path.Combine(folder, "direction-overflow.html");
+                var page = new E().Go(path);
+                var rtl = page.Bs.First(block => block.El != null && block.El.Av("id") == "rtl-plain");
+                var table = page.Bs.First(block => block.El != null && block.El.Av("id") == "rtl-table");
+                var cell = table.Tb.Rs[0].Cs[0];
+                Need(rtl.S.Dr == "r" && rtl.S.To == "e" && cell.S.Dr == "r" && cell.S.To == "e",
+                    "direction-aware overflow model changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 1800);
+                    view.Go(path);
+                    var raw = view.At.X;
+                    using (var image = Draw(view))
+                    {
+                        var ltrContent = BlockContent(view, "ltr-overflow");
+                        var ltrMarker = EllipsisRect(view, "ltr-overflow");
+                        var rtlContent = BlockContent(view, "rtl-plain");
+                        var rtlMarker = EllipsisRect(view, "rtl-plain");
+                        Need(ltrContent.Contains(ltrMarker) && ltrMarker.Left > ltrContent.Left + ltrContent.Width / 2 &&
+                            rtlContent.Contains(rtlMarker) && rtlMarker.Right < rtlContent.Left + rtlContent.Width / 2,
+                            "direction-aware ellipsis edge changed");
+                        var prefix = EllipsisPrefixBounds(view, "rtl-plain");
+                        Need(prefix[1].Right == prefix[0].Right && prefix[1].Width <= prefix[0].Width && prefix[0].Left < rtlContent.Left,
+                            "RTL paint-only prefix geometry changed");
+                        var cluster = EllipsisPrefixText(view, "rtl-cluster");
+                        Need(cluster.Length >= 2 && cluster.Length % 2 == 0 && cluster.EndsWith("e\u0301", StringComparison.Ordinal),
+                            "RTL grapheme truncation changed");
+                        var linkMarker = EllipsisRect(view, "rtl-runs");
+                        var linkPoint = new Point(linkMarker.Left + linkMarker.Width / 2, linkMarker.Top + linkMarker.Height / 2);
+                        Need(FragmentHit(view, "#target").Contains(linkPoint), "RTL elided link hit changed");
+                        var cellMarker = EllipsisRect(view, "rtl-cell");
+                        var cellClip = EllipsisClip(view, "rtl-cell");
+                        Need(cellClip.Contains(cellMarker) && cellMarker.Right < cellClip.Left + cellClip.Width / 2 && ColoredSamples(image) > 0,
+                            "RTL table ellipsis or paint changed");
+                    }
+
+                    var automation = typeof(V).GetMethod("AutomationText", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(view, null);
+                    var source = (string)automation.GetType().GetField("X").GetValue(automation);
+                    var first = AutomationRangeRect(view, automation, source, "RangeFirst");
+                    var second = AutomationRangeRect(view, automation, source, "RangeSecond");
+                    var third = AutomationRangeRect(view, automation, source, "RangeThird");
+                    var partial = AutomationRangeRect(view, automation, source, "Range");
+                    var north = AutomationRangeRect(view, automation, source, "Northward");
+                    var south = AutomationRangeRect(view, automation, source, "Southward");
+                    var east = AutomationRangeRect(view, automation, source, "Eastward");
+                    Need(source == raw && source.IndexOf('\u2026') < 0 &&
+                        first.Left > second.Left && second.Left > third.Left && first.Top == second.Top && second.Top == third.Top &&
+                        partial.Width > 0 && partial.Width < first.Width && partial.Right >= first.Right - 1,
+                        "RTL logical or partial range geometry changed");
+                    Need(north.Top < south.Top && south.Top < east.Top && Math.Abs(north.Right - south.Right) <= 2 && Math.Abs(south.Right - east.Right) <= 2 &&
+                        AutomationWordAtPoint(view, automation, first) == "RangeFirst" && AutomationWordAtPoint(view, automation, third) == "RangeThird",
+                        "RTL wrapped range or point mapping changed");
+
+                    var commandContent = BlockContent(view, "command-overflow");
+                    var before = EllipsisRect(view, "command-overflow");
+                    Need(before.Left > commandContent.Left + commandContent.Width / 2 && view.Js("dr('command-overflow','rtl')") == 1,
+                        "LTR overflow command baseline changed");
+                    using (var image = Draw(view))
+                    {
+                        commandContent = BlockContent(view, "command-overflow");
+                        var after = EllipsisRect(view, "command-overflow");
+                        Need(after.Right < commandContent.Left + commandContent.Width / 2 && view.At.X == raw && ColoredSamples(image) > 0,
+                            "compact direction command did not remap ellipsis geometry");
+                    }
+                }
+                return "bounded LTR/RTL physical inline-end ellipsis, grapheme-safe right-aligned paint prefixes, retained link hits, table clips, full logical text, direction-aware partial/wrapped/point TextPattern geometry, and compact dr reflow";
+            });
             AddProbe(probes, "Bounded grid layout", delegate
             {
                 var path = Path.Combine(folder, "grid.html");
@@ -2919,9 +2988,9 @@ namespace Lea.Bench
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, direction-aware ordered/unordered lists and disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
             Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, inherited horizontal LTR/RTL direction, fixed/percentage/calc dimensions and classic vw/vh/vmin/vmax plus bounded em/rem units, two/three-term min/max and three-term clamp size functions, content/border box, circular/elliptical radii, bounded outlines, box shadows and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing and text styles, visibility, absolute/fixed and bounded vertical sticky positioning, transforms, responsive image sizing, direction-aware row/column flex, and direction-aware bounded two-axis grid");
-            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients, direction-aware source-stable inline atoms and markers, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
+            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients, direction-aware source-stable inline atoms, markers, and paint-only ellipsis geometry, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
-            Capability(builder, "Text overflow", "Supported subset", "Non-inherited clip/ellipsis; clipping follows bounded LTR/RTL line geometry, while paint-only text-element ellipsis prefixes remain horizontal LTR for inline runs and tables; retained layout/link targets and full logical automation text; no native-control, full-bidi, custom-marker, RTL-ellipsis, or line-clamp additions");
+            Capability(builder, "Text overflow", "Supported subset", "Non-inherited clip/ellipsis with bounded LTR/RTL physical inline-end markers and grapheme-safe paint-only authored prefixes for inline runs and tables; retained layout/link targets, full logical automation text, and direction-aware partial range geometry; no native-control, Unicode bidi shaping, custom-marker, or line-clamp additions");
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color, font, display, width, and height, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, safe click commands, and literal compatibility translation");
             Capability(builder, "Literal DOM bridge", "Supported subset", "Literal document.getElementById IDs with textContent/innerText, value, checked/disabled/hidden/open, focus(), classList add/remove/toggle, and background/color/fontSize/display/width/height; literal location href/assign requests; mapped to bounded Lea aliases");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
@@ -2939,7 +3008,7 @@ namespace Lea.Bench
             Capability(builder, "Image maps", "Supported subset", "Compact Mp/Ar models, rect/circle/poly/default and dead areas, bounded coordinates, object-fit-aware scaled and cropped hit regions, area links/downloads, and safe rebuilds");
             Capability(builder, "Keyboard focus", "Supported subset", "Bounded tabindex order, links, image-map areas, fields, summaries, visible focus, scrolling, wrapping, and host activation aliases");
             Capability(builder, "Focus shortcuts", "Supported subset", "Bounded autofocus candidates and ASCII access-key alternatives with conflict resolution, Alt+Shift labels, host-safe matching, focus, and activation");
-            Capability(builder, "Accessibility", "Supported subset", "Bounded Ax hierarchy with MSAA and native UI Automation fragments, roles, names, live protected state, rendered bounds, focus, invoke/value/toggle/selection/disclosure/range/scroll and Tb/Tc-backed grid/table/item patterns, plus read-only logical TextPattern document/child/point ranges with visual-line and partial-range geometry; visible-range arrays use an empty fallback, and this is not the complete platform mapping standards");
+            Capability(builder, "Accessibility", "Supported subset", "Bounded Ax hierarchy with MSAA and native UI Automation fragments, roles, names, live protected state, rendered bounds, focus, invoke/value/toggle/selection/disclosure/range/scroll and Tb/Tc-backed grid/table/item patterns, plus read-only logical TextPattern document/child/point ranges with direction-aware visual-line, partial-range, and point geometry; visible-range arrays use an empty fallback, and this is not the complete platform mapping standards");
             builder.AppendLine();
             builder.AppendLine("## Binary Footprint");
             builder.AppendLine();
@@ -3132,6 +3201,82 @@ namespace Lea.Bench
                     (string)type.GetField("Px").GetValue(value) == "\u2026") count++;
             }
             return count;
+        }
+
+        private static Rectangle EllipsisRect(V view, string id)
+        {
+            var values = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(view) as System.Collections.IEnumerable;
+            foreach (var value in values)
+            {
+                var type = value.GetType();
+                var element = type.GetField("El").GetValue(value) as N;
+                if (element != null && element.Av("id") == id && (string)type.GetField("X").GetValue(value) == "" &&
+                    (string)type.GetField("Px").GetValue(value) == "\u2026") return (Rectangle)type.GetField("R").GetValue(value);
+            }
+            throw new InvalidOperationException("Missing ellipsis marker " + id);
+        }
+
+        private static Rectangle EllipsisClip(V view, string id)
+        {
+            var values = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(view) as System.Collections.IEnumerable;
+            foreach (var value in values)
+            {
+                var type = value.GetType();
+                var element = type.GetField("El").GetValue(value) as N;
+                if (element != null && element.Av("id") == id && (string)type.GetField("X").GetValue(value) == "" &&
+                    (string)type.GetField("Px").GetValue(value) == "\u2026") return (Rectangle)type.GetField("Clip").GetValue(value);
+            }
+            throw new InvalidOperationException("Missing ellipsis clip " + id);
+        }
+
+        private static Rectangle[] EllipsisPrefixBounds(V view, string id)
+        {
+            var values = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(view) as System.Collections.IEnumerable;
+            foreach (var value in values)
+            {
+                var type = value.GetType();
+                var block = type.GetField("B").GetValue(value) as B;
+                var prefix = type.GetField("Px").GetValue(value) as string;
+                if (block != null && block.El != null && block.El.Av("id") == id && !(String.IsNullOrEmpty(prefix)) &&
+                    (string)type.GetField("X").GetValue(value) != "")
+                    return new[] { (Rectangle)type.GetField("R").GetValue(value), (Rectangle)type.GetField("C").GetValue(value) };
+            }
+            throw new InvalidOperationException("Missing ellipsis prefix " + id);
+        }
+
+        private static string EllipsisPrefixText(V view, string id)
+        {
+            var values = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(view) as System.Collections.IEnumerable;
+            foreach (var value in values)
+            {
+                var type = value.GetType();
+                var block = type.GetField("B").GetValue(value) as B;
+                var prefix = type.GetField("Px").GetValue(value) as string;
+                if (block != null && block.El != null && block.El.Av("id") == id && !String.IsNullOrEmpty(prefix) &&
+                    (string)type.GetField("X").GetValue(value) != "") return prefix;
+            }
+            throw new InvalidOperationException("Missing ellipsis prefix text " + id);
+        }
+
+        private static RectangleF AutomationRangeRect(V view, object automation, string source, string value)
+        {
+            var start = source.IndexOf(value, StringComparison.Ordinal);
+            Need(start >= 0, "Missing automation range text " + value);
+            var values = (double[])typeof(V).GetMethod("AutomationTextRectangles", BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(view, new object[] { automation, start, start + value.Length });
+            Need(values.Length >= 4, "Missing automation range rectangle " + value);
+            var result = new RectangleF((float)values[0], (float)values[1], (float)values[2], (float)values[3]);
+            for (var index = 4; index + 3 < values.Length; index += 4)
+                result = RectangleF.Union(result, new RectangleF((float)values[index], (float)values[index + 1], (float)values[index + 2], (float)values[index + 3]));
+            return result;
+        }
+
+        private static string AutomationWordAtPoint(V view, object automation, RectangleF rectangle)
+        {
+            var range = typeof(V).GetMethod("AutomationTextRangeFromPoint", BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(view, new object[] { automation, new System.Windows.Point(rectangle.Left + rectangle.Width / 2F, rectangle.Top + rectangle.Height / 2F) });
+            range.GetType().GetMethod("ExpandToEnclosingUnit").Invoke(range, new object[] { TextUnit.Word });
+            return ((string)range.GetType().GetMethod("GetText").Invoke(range, new object[] { -1 })).Trim();
         }
 
         private static Rectangle InlineBounds(V view, string id)

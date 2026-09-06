@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Lea direction-aware overflow</title>
+  <style>
+    body { margin: 0; color: #173127; background: #fff; font-family: "Segoe UI", sans-serif; font-size: 12px; }
+    p, td { margin: 0; padding: 0; }
+    .sample { width: 142px; margin: 8px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: #eef6f2; }
+    #ltr-overflow { direction: ltr; }
+    #rtl-plain, #rtl-runs, #rtl-cluster, #rtl-cell, #command-overflow { direction: rtl; }
+    #rtl-runs { width: 126px; }
+    #rtl-runs a { color: #125ca8; font-weight: bold; }
+    #rtl-cluster { width: 42px; letter-spacing: 2px; }
+    #rtl-table { width: 152px; border-spacing: 0; }
+    #rtl-cell { width: 132px; }
+    #rtl-range { direction: rtl; width: 280px; margin: 8px 0; white-space: nowrap; }
+    #rtl-range span { color: #245e4c; }
+    #rtl-wrap-range { direction: rtl; width: 92px; margin: 8px 0; }
+    #rtl-wrap-range span { color: #704214; }
+    #command-overflow { direction: ltr; }
+  </style>
+</head>
+<body>
+  <p id="ltr-overflow" class="sample">OriginAlpha MiddleBeta DestinationGamma</p>
+  <p id="rtl-plain" class="sample">OriginAlpha MiddleBeta DestinationGamma</p>
+  <p id="rtl-runs" class="sample"><span id="rtl-overflow-first">OriginAlpha</span> <a id="rtl-overflow-link" href="#target">LinkedMiddle</a> <strong id="rtl-overflow-last">DestinationGamma</strong></p>
+  <p id="rtl-cluster" class="sample">e&#x301;e&#x301;e&#x301;e&#x301;e&#x301;e&#x301;e&#x301;e&#x301;e&#x301;e&#x301;</p>
+  <table id="rtl-table"><tr><td id="rtl-cell" class="sample">CellOrigin CellMiddle CellDestination</td></tr></table>
+  <p id="rtl-range"><span id="range-first">RangeFirst</span> <span id="range-second">RangeSecond</span> <span id="range-third">RangeThird</span></p>
+  <p id="rtl-wrap-range"><span id="wrap-range-first">Northward</span> <span id="wrap-range-second">Southward</span> <span id="wrap-range-third">Eastward</span></p>
+  <p id="command-overflow" class="sample">CommandOrigin CommandMiddle CommandDestination</p>
+  <button id="set-command-rtl" type="button" onclick="dr('command-overflow','rtl')">Set command direction</button>
+  <p id="target">Direction overflow target</p>
+</body>
+</html>

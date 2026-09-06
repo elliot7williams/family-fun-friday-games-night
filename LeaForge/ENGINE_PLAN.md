@@ -345,16 +345,16 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Inherited horizontal `direction:ltr/rtl` now also drives physical flex, grid,
-inline, and marker geometry without adding model records. Inline atoms remain
-in source order while RTL lines place them from the right through plain, mixed,
-wrapped, nowrap, justified, table-cell, ordered/unordered list, and disclosure
-paths. Compact `dr` rebuilds that geometry in place while DOM, links, and
-accessibility text stay stable. Standalone and compiled Firespider probes cover
-the path. See `DIRECTION.md`. Next evaluate bounded RTL clipped-ellipsis and
-selection geometry, then continue the capability-denied helper boundary, while
-keeping vertical writing modes, full Unicode bidi shaping, `dir=auto`, and
-general CSS/JavaScript evaluators outside the current boundary.
+Inherited horizontal `direction:ltr/rtl` now drives physical flex, grid, inline,
+marker, inline-end ellipsis, and read-only TextPattern geometry without growing
+public model records. RTL paint keeps authored prefixes right-aligned inside
+their retained atoms, preserves original link targets, and maps partial/point
+ranges back to logical source offsets. Standalone, benchmark, and compiled
+Firespider probes cover the path. See `DIRECTION.md`. Next continue the
+capability-denied helper boundary and native-safe visible-range investigation,
+while keeping vertical writing modes, full Unicode bidi shaping, `dir=auto`,
+custom overflow markers, and general CSS/JavaScript evaluators outside the
+current boundary.
 
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host
@@ -375,8 +375,10 @@ authored text, and pointer targets survive; collapsed spaces inside links now
 retain their target. Synthetic markers and bounded text-element prefixes cover
 blocks, mixed inline runs, explicit lines, unbreakable words, and tables.
 Logical automation text stays complete while visible text geometry follows
-the painted prefix. Native controls, SVG text, two-ended/custom markers, line
-clamping, and bidi/vertical layout remain outside this feature.
+the painted prefix. Horizontal RTL lines place the marker at physical left and
+map partial/point ranges through their physical direction. Native controls, SVG
+text, two-ended/custom markers, line clamping, Unicode bidi shaping, and vertical
+layout remain outside this feature.
 
 The preceding completed milestone adds bounded inherited `letter-spacing` and
 `word-spacing` through compact `S.Ls/Wg`. Signed -32..128 integer pixels,

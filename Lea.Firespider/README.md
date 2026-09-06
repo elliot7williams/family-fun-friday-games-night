@@ -47,7 +47,8 @@ Inherited horizontal `direction: ltr/rtl` is stored in compact `S.Dr=l/r` and
 resolved by Lea before logical declarations. The compiled host smoke verifies
 RTL margin, padding, border, and radius mapping plus exact direction-aware flex
 row, unequal explicit grid-span geometry, right-origin plain/mixed inline flow,
-and ordered list markers with live `dr(id,value)` reflow; Firespider adds no
+ordered list markers, physical-left RTL ellipsis, read-only range/point
+geometry, and live `dr(id,value)` reflow; Firespider adds no
 adapter-side direction or layout state. HTML `dir`, cascade details,
 cross-direction inheritance, wider flex/grid/inline coverage, DOM forms, and the
 bounded bidi boundary are documented in `LeaForge/DIRECTION.md`.
@@ -447,8 +448,8 @@ grid-item/table-item patterns with bounded dimensions, zero-based coordinates,
 column spans, containing-grid links, and row/column headers. The adapter target
 also exposes bounded read-only logical TextPattern document/child/point ranges,
 search, movement, attributes, rendered bounds, embedded children, scrolling,
-strict password/file-value exclusion, visual-line movement and rectangles, and
-partial-range cropping. Visible-range arrays use a stable empty fallback because
+strict password/file-value exclusion, direction-aware visual-line movement,
+rectangles, point lookup, and partial-range cropping. Visible-range arrays use a stable empty fallback because
 the .NET Framework managed provider boundary produces invalid handles for
 non-empty interface arrays. The adapter target adds the framework `Accessibility`,
 `UIAutomationProvider`, `UIAutomationTypes`, and `WindowsBase` references.
@@ -547,10 +548,12 @@ Firespider adds no text-spacing calculations or additional native controls.
 Focused native editors and choice popups keep Windows' native text spacing.
 
 Hosted block text supports non-inherited `S.To=c/e` clip/ellipsis overflow.
-The compiled smoke checks synthetic markers, responsive restoration, and full
-authored text retention. Ellipsis is a Lea paint operation; the adapter keeps
-the same document, tab, and field objects and does not truncate page strings.
-Native controls retain their existing presentation and editing behavior.
+The compiled smoke checks LTR/RTL physical inline-end markers, right-aligned RTL
+prefix paint, original elided link hits, direction-aware TextPattern range and
+point geometry, responsive restoration, and full authored text retention.
+Ellipsis is a Lea paint operation; the adapter keeps the same document, tab,
+and field objects and does not truncate page strings. Native controls retain
+their existing presentation and editing behavior.
 
 `Smoke.cs` loads two compiled Firespider forms off-screen and verifies Lea-first
 New Tab creation, the explicit legacy fallback, Inspector open/refresh/clear and legacy isolation, diagnostics,

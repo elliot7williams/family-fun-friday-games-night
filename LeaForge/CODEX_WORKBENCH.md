@@ -17,23 +17,20 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 89 carries compact horizontal `S.Dr=l/r` into inline and marker
-geometry without adding style, block, run, or renderer records. Plain and mixed
-RTL lines retain source atoms while placing them from the right through wrapped,
-nowrap, justified, physical/logical alignment, table-cell, ordered/unordered
-list, and disclosure paths. Existing `B.Mk` supplies marker text; compact `dr`
-rebuilds geometry while DOM, links, and accessibility order stay stable. The
-final startup sweep also fixed an asynchronous `V.OnPaint` layout-enumeration
-race with synchronized box/owner snapshots; its cache-navigation stress passes
-20/20 consecutive runs and the Boot harness now retains full UI-thread stacks.
-The compiled host passes, the benchmark has 85 probes over 82 fixtures, all 42 Boot
-cases pass, and all six actual EXE scenarios remain responsive with no legacy
-engine or error dialog. Current medians are 504.408 ms clean start, 3.410 ms
-local load, and 35.733 ms layout/paint; retained memory is 52.9 KiB/page and the
-required runtime is 559.0 KiB. Runtime 189 stays isolated and installed runtime
-157 remains unchanged. See `DIRECTION.md`. Next evaluate bounded RTL ellipsis
-and selection geometry without claiming Unicode bidi shaping, vertical writing
-modes, or a general script VM.
+Milestone 90 carries compact horizontal `S.Dr=l/r` into bounded inline-end
+ellipsis and read-only TextPattern geometry without growing public model
+records. RTL overflow places the marker at physical left, right-aligns the
+authored grapheme-safe prefix inside its retained atom, preserves original link
+targets, and maps partial/wrapped/point ranges through physical direction while
+keeping full logical `P.X`. The full repository suite, focused engine smoke,
+compiled host, all 86 benchmark probes over 83 fixtures, all 42 Boot cases, and
+all six actual EXE startup scenarios pass. Canonical medians are 518.830 ms
+clean start, 3.709 ms local load, and 35.461 ms layout/paint; retained memory is
+52.9 KiB/page and the required runtime is 559.5 KiB. Runtime 190 remains
+isolated, and installed runtime 157 is unchanged. See `DIRECTION.md`. Continue
+the capability-denied helper boundary and native-safe visible-range
+investigation without claiming Unicode bidi shaping, vertical writing modes,
+custom markers, or a general script VM.
 
 Milestone 60 installs the existing `V.Ng` hook on main Lea tabs, enforcing host
 rules, offline/locked state, and live ownership. Denied resume retains its

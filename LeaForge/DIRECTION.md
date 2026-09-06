@@ -62,6 +62,22 @@ unordered, nested, and summary markers therefore appear at inline-start on the
 right in RTL and their content continues toward the left. DOM, link,
 accessibility, and painted-box enumeration remain in authored source order.
 
+## Ellipsis And Text Ranges
+
+For a bounded horizontal line that overflows toward inline-end, Lea places the
+ellipsis at the physical right in LTR and the physical left in RTL. The
+authored prefix remains the visible text in both directions. RTL prefixes are
+right-aligned inside their original source atom, while original layout and link
+hit rectangles remain unchanged. Prefix selection stays bounded to .NET text
+elements, so combining sequences are not split.
+
+The read-only UI Automation TextPattern keeps the complete authored `P.X`
+string and never inserts the synthetic marker. Each retained text segment also
+carries its physical inline direction privately: partial RTL ranges grow from
+the right, point lookup converts physical positions back to logical offsets,
+and wrapped RTL line ranges restart at the right while preserving source order.
+Hidden suffixes have no visible rectangle; the painted prefix does.
+
 ## Short Command
 
 `dr` is the compact direction command:
@@ -80,10 +96,10 @@ authored cascade. Unsupported values are rejected atomically.
 ## Boundary
 
 This milestone maps horizontal logical CSS, flex/grid axes, inline atom flow,
-markers, and alignment. It does not yet implement Unicode bidirectional glyph
-reordering or embedding, `dir="auto"`, vertical writing modes, `wrap-reverse`,
-or RTL paint-only ellipsis prefixes. Text content remains in authored character
-order.
+markers, alignment, inline-end ellipsis, and read-only range geometry. It does
+not implement Unicode bidirectional glyph reordering or embedding, `dir="auto"`,
+vertical writing modes, `wrap-reverse`, two-ended/custom overflow markers, or
+line clamping. Text content remains in authored character order.
 
 `direction-logical.html` verifies HTML/CSS precedence, variables, important
 rules, declaration-order independence, logical insets/boxes/borders/radii,
@@ -95,3 +111,7 @@ live `dr` reflow. `direction-inline.html` verifies plain/mixed/wrapped/nowrap/
 justified lines, physical and logical alignment, nested list and disclosure
 markers, table parts, links, source order, paint, and command reflow. The same
 geometry paths are exercised inside the compiled Firespider host smoke.
+`direction-overflow.html` verifies LTR/RTL marker edges, right-aligned RTL paint
+prefixes, combining text elements, retained link hits, table-cell clipping,
+full logical automation text, RTL partial/wrapped/point range geometry, and live
+`dr` remapping.

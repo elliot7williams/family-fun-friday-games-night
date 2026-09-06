@@ -57,7 +57,7 @@ LeaForge is where we can grow the more full-featured browser.
 - compact `<map>`/`<area>` models through `P.Mps`/`B.Mp`/`Ar`, bounded shape coordinates, dead-area layering, responsive custom hits, links, and downloads
 - bounded keyboard navigation through `Ti` and `Ke/Kn/Ki/Kb/Kf/Ka`, ordered tabindex targets, shared-map regions, visible rings, scrolling, and host activation
 - bounded autofocus and host-safe page shortcuts through `Af/Afs`, `Ak/Aks`, and `An/Kl/Aa`, with conflict fallback, resolved-fragment suppression, and `Alt+Shift` activation
-- bounded semantic accessibility through `Ax/Axs/St/Is` and `V.Ab/Ao`, with HTML/ARIA roles, labels, hierarchy, protected values, rendered bounds, WinForms/MSAA children, native UI Automation fragments, interaction and `Tb/Tr/Tc` grid/table patterns, plus read-only logical TextPattern ranges with visual-line and partial-range geometry
+- bounded semantic accessibility through `Ax/Axs/St/Is` and `V.Ab/Ao`, with HTML/ARIA roles, labels, hierarchy, protected values, rendered bounds, WinForms/MSAA children, native UI Automation fragments, interaction and `Tb/Tr/Tc` grid/table patterns, plus read-only logical TextPattern ranges with direction-aware visual-line, partial-range, and point geometry
 - wrapped inline bold/italic text, styled spans, line breaks, and links inside text blocks
 - inherited font-family fallbacks plus underline and line-through decoration
 - inherited bounded text transformation through compact `S.Tt=n/u/l/c` and
@@ -65,7 +65,8 @@ LeaForge is where we can grow the more full-featured browser.
 - inherited signed pixel letter/word spacing through compact `S.Ls/Wg`, with
   shared wrapping, inline boundaries, control paint, and retained geometry
 - non-inherited clip/ellipsis text overflow through compact `S.To=c/e`, with
-  paint-only truncation, retained link targets, and authored automation text
+  bounded LTR/RTL physical inline-end markers, grapheme-safe paint-only
+  prefixes, retained link targets, and authored automation text
 - inherited left/center/right/justify alignment and pixel/relative line spacing
 - external stylesheets with document-order cascade and shared bounded caching
 - compiled relationship, attribute, structural, link, and form-state selectors,
@@ -102,7 +103,8 @@ LeaForge is where we can grow the more full-featured browser.
   `text-align: start/end`, direction-aware row/reverse/wrapped flex and column
   cross alignment, logical grid auto/dense/column/explicit/area placement and
   alignment, right-origin plain/mixed/wrapped/nowrap/justified inline flow,
-  nested list/disclosure markers, and compact live `dr` reflow; see
+  nested list/disclosure markers, inline-end ellipsis and TextPattern geometry,
+  and compact live `dr` reflow; see
   `DIRECTION.md`
 - live `:hover` and `:focus` restyling that preserves mutable form values
 - non-inherited `content-box`/`border-box` sizing across pixel dimensions,

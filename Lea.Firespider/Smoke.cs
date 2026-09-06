@@ -74,7 +74,7 @@ namespace Lea.Firespider
                     .Replace("</style>", ".host-logical-radius{width:160px;height:70px;margin:0;padding:0;border:6px solid #176b4d;background:#fff4cc;border-radius:0;border-start-start-radius:36px 28px;border-start-end-radius:12px 9px;border-end-end-radius:18px 14px;border-end-start-radius:24px 20px}.host-logical-radius-command{width:140px;height:54px;margin:0;padding:0;border:5px solid #123f8c;border-radius:2px 3px 4px 5px/6px 7px 8px 9px}</style>")
                     .Replace("</style>", ".host-direction{direction:rtl;width:120px;margin-inline:9px 11px;padding-inline:5px 7px;border-inline-start:3px solid #123f8c;border-inline-end:4px dashed #a13b18;border-start-start-radius:20px 21px;border-start-end-radius:10px 11px}</style>")
                     .Replace("</style>", ".host-direction-flex{direction:rtl;display:flex;width:220px;height:40px;gap:10px;align-items:start}.host-direction-flex p{width:40px;height:20px;margin:0;padding:0}.host-direction-grid{direction:rtl;display:grid;width:220px;height:60px;grid-template-columns:40px 60px 80px;grid-template-rows:25px 25px;gap:10px;justify-content:start}.host-direction-grid p{margin:0;padding:0}.host-direction-grid #host-direction-grid-span{grid-column:1/span 2}.host-direction-grid #host-direction-grid-side{grid-column:3}</style>")
-                    .Replace("</style>", ".host-direction-inline{direction:rtl;width:240px;margin:0;padding:0}.host-direction-list{direction:rtl;width:240px;margin:0;padding:0}.host-direction-list li{margin-inline-start:18px;padding:0}</style>")
+                    .Replace("</style>", ".host-direction-inline{direction:rtl;width:240px;margin:0;padding:0}.host-direction-list{direction:rtl;width:240px;margin:0;padding:0}.host-direction-list li{margin-inline-start:18px;padding:0}.host-direction-overflow{direction:rtl;width:126px;margin:0;padding:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.host-direction-range{direction:rtl;width:280px;margin:0;padding:0;white-space:nowrap}.host-direction-command{direction:ltr;width:142px;margin:0;padding:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}</style>")
                     .Replace("</style>", ".host-stroke{fill:none;stroke:#0f766e;stroke-width:3;stroke-linecap:square;stroke-linejoin:bevel;stroke-miterlimit:7;stroke-dasharray:4 2 1;stroke-dashoffset:2}</style>")
                     .Replace("</section><p id='class-state'>", "</section><section id='host-has'><span class='host-direct'>Direct host child</span><div class='host-body'><span class='host-ready' data-host='ready'>Ready host descendant</span></div><input id='host-has-input' value='Relational host field'></section><section id='host-grid' class='host-grid'><p id='host-grid-a'>Grid A</p><p id='host-grid-b'>Grid B</p><p id='host-grid-c'>Grid C</p><p id='host-grid-span'>Grid span</p></section><section id='host-grid-rows' class='host-grid-rows'><p id='host-grid-row-a'>Grid row A</p><p id='host-grid-row-b'>Grid row B</p><p id='host-grid-row-c'>Grid row C</p></section><p id='class-state'>")
                     .Replace("<p id='class-state'>", "<section id='host-grid-areas' class='host-grid-areas'><p id='host-grid-area-auto'>Area auto</p><p id='host-grid-area-top'>Area top</p><p id='host-grid-area-left'>Area left</p></section><p id='class-state'>")
@@ -96,6 +96,7 @@ namespace Lea.Firespider
                     .Replace("<p id='class-state'>", "<p id='host-direction' class='host-direction'>RTL host direction</p><p id='class-state'>")
                     .Replace("<p id='class-state'>", "<section id='host-direction-flex' class='host-direction-flex'><p id='host-direction-flex-a'>A</p><p id='host-direction-flex-b'>B</p><p id='host-direction-flex-c'>C</p></section><section id='host-direction-grid' class='host-direction-grid'><p id='host-direction-grid-span'>Span</p><p id='host-direction-grid-side'>Side</p></section><p id='class-state'>")
                     .Replace("<p id='class-state'>", "<p id='host-direction-plain' class='host-direction-inline'>Amber Bronze Cobalt</p><p id='host-direction-inline' class='host-direction-inline'><span id='host-inline-first'>First</span> <a id='host-inline-second' href='#state'>Second</a> <strong id='host-inline-third'>Third</strong></p><ol class='host-direction-list' start='4'><li id='host-direction-list'><span id='host-direction-list-text'>Host item</span></li></ol><p id='class-state'>")
+                    .Replace("<p id='class-state'>", "<p id='host-direction-overflow' class='host-direction-overflow'><span>OriginAlpha</span> <a id='host-direction-overflow-link' href='#state'>LinkedMiddle</a> DestinationGamma</p><p id='host-direction-range' class='host-direction-range'><span>RangeFirst</span> <span>RangeSecond</span> <span>RangeThird</span></p><p id='host-direction-command' class='host-direction-command'>CommandOrigin CommandMiddle CommandDestination</p><p id='class-state'>")
                     .Replace("<p id='class-state'>", "<p id='host-var' class='host-var' style='--host-color:#a13b18;color:#a13b18;width:199px'>Important property host</p><p id='host-media' class='host-media'>Responsive host</p><p id='host-box' class='host-box'>Border-box host</p><section id='host-flex-column' class='host-flex-column'><p id='host-flex-column-a'>Column A</p><p id='host-flex-column-b'>Column B</p></section><svg id='host-svg' width='160' height='80' viewBox='0 0 80 40'><title>Firespider host vector</title><rect x='2' y='2' width='20' height='16' fill='#d7263d'></rect><circle cx='34' cy='10' r='8' fill='#10b981'></circle><path d='M46 2 h28 v16 H46 z' fill='#f59e0b'></path><a href='#state'><rect x='12' y='24' width='56' height='12' fill='#0369a1'></rect></a></svg><p id='class-state'>")
                     .Replace("</svg><p id='class-state'>", "<path d='M2 32 C8 20 14 20 20 32 S32 44 38 32' fill='none' stroke='#7c3aed' stroke-width='2'></path><g transform='translate(58 26)'><g transform='scale(1.5)'><rect x='0' y='0' width='10' height='6' fill='#db2777'></rect></g></g><defs><linearGradient id='host-linear'><stop offset='0' stop-color='#dc2626'></stop><stop offset='1' stop-color='#2563eb'></stop></linearGradient><radialGradient id='host-radial'><stop offset='0' stop-color='#f8fafc'></stop><stop offset='1' stop-color='#7c3aed'></stop></radialGradient><g id='host-reuse'><rect x='0' y='0' width='10' height='8'></rect><circle cx='7' cy='4' r='2' fill='#f8fafc'></circle></g><clipPath id='host-half' clipPathUnits='objectBoundingBox' clip-rule='evenodd'><rect x='0' y='0' width='.5' height='1'></rect></clipPath></defs><rect x='40' y='24' width='14' height='10' fill='url(#host-linear)'></rect><circle cx='69' cy='10' r='7' fill='url(#host-radial)'></circle><use href='#host-reuse' x='26' y='27' fill='#0d9488'></use><rect x='46' y='27' width='10' height='8' fill='#f59e0b' clip-path='url(#host-half)'></rect><path class='host-stroke' d='M2 20 H22' fill-rule='evenodd'></path></svg><p id='class-state'>");
                 File.WriteAllText(openPage, openMarkup);
@@ -440,6 +441,44 @@ namespace Lea.Firespider
                     Check(hostDirectionList.Mk == "4." && hostDirectionMarker.Right == BlockContent(host, "host-direction-list").Right &&
                         hostDirectionMarker.Left > InlineElementBounds(host, "host-direction-list-text").Left,
                         "Firespider RTL ordered marker geometry");
+                    var hostDirectionOverflow = BlockById(host.At, "host-direction-overflow");
+                    var hostOverflowContent = BlockContent(host, "host-direction-overflow");
+                    var hostOverflowMarker = EllipsisRect(host, "host-direction-overflow");
+                    var hostOverflowPrefix = EllipsisPrefixBounds(host, "host-direction-overflow");
+                    var hostOverflowScroll = host.Sy;
+                    host.Sc(hostOverflowMarker.Top - host.Sy - 40);
+                    PaintView(host);
+                    var hostOverflowPoint = new System.Drawing.Point(hostOverflowMarker.Left + hostOverflowMarker.Width / 2,
+                        hostOverflowMarker.Top - host.Sy + hostOverflowMarker.Height / 2);
+                    var hostOverflowLinked = HasFragmentHitAt(host, "#state", hostOverflowPoint);
+                    Check(hostDirectionOverflow.S.Dr == "r" && hostDirectionOverflow.S.To == "e" &&
+                        hostOverflowContent.Contains(hostOverflowMarker) && hostOverflowMarker.Right < hostOverflowContent.Left + hostOverflowContent.Width / 2 &&
+                        hostOverflowPrefix[1].Right == hostOverflowPrefix[0].Right && hostOverflowPrefix[1].Width <= hostOverflowPrefix[0].Width &&
+                        hostOverflowLinked,
+                        "Firespider RTL ellipsis paint and retained link geometry: content=" + hostOverflowContent +
+                        ", marker=" + hostOverflowMarker + ", layout=" + hostOverflowPrefix[0] + ", paint=" + hostOverflowPrefix[1] +
+                        ", point=" + hostOverflowPoint);
+                    var hostAutomation = typeof(V).GetMethod("AutomationText", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(host, null);
+                    var hostAutomationText = (string)hostAutomation.GetType().GetField("X").GetValue(hostAutomation);
+                    var hostRangeFirst = AutomationRangeRect(host, hostAutomation, hostAutomationText, "RangeFirst");
+                    var hostRangeSecond = AutomationRangeRect(host, hostAutomation, hostAutomationText, "RangeSecond");
+                    var hostRangeThird = AutomationRangeRect(host, hostAutomation, hostAutomationText, "RangeThird");
+                    var hostRangePartial = AutomationRangeRect(host, hostAutomation, hostAutomationText, "Range");
+                    Check(hostAutomationText.IndexOf('\u2026') < 0 && hostRangeFirst.Left > hostRangeSecond.Left && hostRangeSecond.Left > hostRangeThird.Left &&
+                        hostRangePartial.Width > 0 && hostRangePartial.Width < hostRangeFirst.Width && hostRangePartial.Right >= hostRangeFirst.Right - 1 &&
+                        AutomationWordAtPoint(host, hostAutomation, hostRangeFirst) == "RangeFirst" && AutomationWordAtPoint(host, hostAutomation, hostRangeThird) == "RangeThird",
+                        "Firespider RTL TextPattern range and point geometry");
+                    var hostDirectionCommandContent = BlockContent(host, "host-direction-command");
+                    var hostDirectionCommandMarker = EllipsisRect(host, "host-direction-command");
+                    Check(hostDirectionCommandMarker.Left > hostDirectionCommandContent.Left + hostDirectionCommandContent.Width / 2 &&
+                        host.Js("dr('host-direction-command','rtl')") == 1,
+                        "Firespider LTR ellipsis command baseline");
+                    hostDirectionCommandContent = BlockContent(host, "host-direction-command");
+                    hostDirectionCommandMarker = EllipsisRect(host, "host-direction-command");
+                    Check(hostDirectionCommandMarker.Right < hostDirectionCommandContent.Left + hostDirectionCommandContent.Width / 2,
+                        "Firespider direction command remaps ellipsis geometry");
+                    host.Sc(hostOverflowScroll - host.Sy);
+                    PaintView(host);
                     Check(host.Js("dr('host-direction-flex','ltr')") == 1, "Firespider direction layout command");
                     hostDirectionFlex = BlockOuter(host, "host-direction-flex");
                     hostDirectionFlexA = BlockOuter(host, "host-direction-flex-a");
@@ -729,7 +768,7 @@ namespace Lea.Firespider
                     Check(host.Ck(ById(host.At.D, "host-value-update")) == 1 && ValueById(host.At, "host-output").V == "Updated host total", "Firespider output value rebuild");
                     Check(host.Ck(ById(host.At.D, "host-time-update")) == 1 && ValueById(host.At, "host-time").Dt == "2026-08-22", "Firespider time metadata rebuild");
                     var diagnostics = host.Dg();
-                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 80 && diagnostics.Rs.Count > 0, "Firespider Lea diagnostics");
+                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 81 && diagnostics.Rs.Count > 0, "Firespider Lea diagnostics");
                     var inspectorOpen = type.GetMethod("qleaInspectorOpen", BindingFlags.Instance | BindingFlags.NonPublic);
                     var inspectorSnapshot = type.GetMethod("qleaInspectorSnapshot", BindingFlags.Instance | BindingFlags.NonPublic);
                     var inspectorClear = type.GetMethod("qleaInspectorClear", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -841,6 +880,16 @@ namespace Lea.Firespider
                     PaintView(host);
                     var hostMapRect = BlockOuter(host, "host-map-image");
                     Check(hostMapRect.Size == new System.Drawing.Size(120, 90), "Firespider fitted image-map layout");
+                    WaitFor(delegate
+                    {
+                        using (var image = RenderView(host))
+                        {
+                            var rect = hostMapRect;
+                            rect.Offset(0, -host.Sy);
+                            return ColorDistance(image.GetPixel(rect.Left + 20, rect.Top + 45), System.Drawing.Color.FromArgb(220, 38, 38)) < 20 &&
+                                ColorDistance(image.GetPixel(rect.Right - 20, rect.Top + 45), System.Drawing.Color.FromArgb(37, 99, 235)) < 20;
+                        }
+                    }, "Firespider fitted image readiness");
                     using (var mapPaint = RenderView(host))
                     {
                         var paintedMap = hostMapRect;
@@ -905,7 +954,7 @@ namespace Lea.Firespider
                 Console.WriteLine("Firespider logical box smoke passed: bounded horizontal margins/padding, mi/mb/pi/pb, literal DOM styles, shared host geometry, reset, and strict bounds.");
                 Console.WriteLine("Firespider logical border smoke passed: bounded horizontal axes/edges, per-edge style/color, bi/bb/bis, shared host geometry, and command reflow.");
                 Console.WriteLine("Firespider logical radius smoke passed: four horizontal corner mappings, rd/rss/rse/res/ree commands, shared geometry, and compact host records.");
-                Console.WriteLine("Firespider direction smoke passed: inherited RTL mapping, direction-aware flex/grid/inline and list-marker geometry, and compact dr command remapping reached the compiled host.");
+                Console.WriteLine("Firespider direction smoke passed: inherited RTL mapping, direction-aware flex/grid/inline, list-marker, inline-end ellipsis, and TextPattern range geometry reached the compiled host.");
                 Console.WriteLine("Firespider initial fragment stability smoke passed: Fa/Fj/Fy diagnostics and manual-scroll release reached the compiled host.");
 
                 Console.WriteLine("Firespider Lea smoke passed: bounded horizontal logical margin/padding properties with twelve compact aliases, bounded horizontal logical sizing/insets with short is/bs and familiar DOM aliases, bounded sticky positioning with compact k and shared host geometry, bounded percentage/calc widths with compact wd and literal DOM reflow, bounded display alias and literal location requests, literal bounded DOM translation, inherited cursor and pointer-event aliases with host hit gating and fallthrough, bounded CSS outlines with compact aliases and exact non-layout host paint, bounded CSS aspect ratios with compact aliases and exact host geometry/paint, bounded CSS object-fit and object-position with compact aliases, exact fitted paint, and image-map keyboard/accessibility geometry, bounded CSS bitmap backgrounds with compact aliases and exact host paint, bounded inline SVG aliases, winding, stroke styles, geometry, links, and graphic accessibility, bounded has relational selectors with strict lists, maximum specificity, descendant/child/adjacent and complex host relationships, focus rebuilds, retained fields, queries, Inspector, and geometry, bounded nth-child of-S filters with strict lists, maximum specificity, forward/reverse computed styles, queries, Inspector, and host geometry, bounded precompiled An+B and reverse structural selectors with computed styles, queries, Inspector, and host geometry, bounded is, where, and list-not selector functions with specificity, queries, Inspector, and host geometry, bounded CSS important cascade with G.Ic diagnostics, custom properties, inline, responsive values, Inspector counts, and retained fields, bounded inherited CSS custom properties with S.Vc/Cv and G.Vc aliases, responsive values, Inspector counts, and retained fields, bounded responsive CSS media queries with viewport aliases and retained fields, optional bounded persistent cache aliases and Inspector diagnostics, bounded content-box and border-box geometry, scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, and shrink, semantic accessibility, protected values, rendered bounds, MSAA and UI Automation providers, value, table/grid, and read-only logical text patterns plus Access inspector, bounded autofocus and access keys, keyboard focus and activation, responsive image maps, compact time/edit metadata, output/data values and safe rebuilds, progress and meter gauges, disclosure commands, retained same-page fragments, Lea-first New Tab and explicit legacy fallback, host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
@@ -1174,6 +1223,55 @@ namespace Lea.Firespider
             return count;
         }
 
+        private static System.Drawing.Rectangle EllipsisRect(V view, string id)
+        {
+            var values = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(view) as System.Collections.IEnumerable;
+            foreach (var value in values)
+            {
+                var type = value.GetType();
+                var element = type.GetField("El").GetValue(value) as N;
+                if (element != null && element.Av("id") == id && (string)type.GetField("X").GetValue(value) == "" &&
+                    (string)type.GetField("Px").GetValue(value) == "\u2026") return (System.Drawing.Rectangle)type.GetField("R").GetValue(value);
+            }
+            throw new InvalidOperationException("Missing Lea ellipsis marker: " + id);
+        }
+
+        private static System.Drawing.Rectangle[] EllipsisPrefixBounds(V view, string id)
+        {
+            var values = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(view) as System.Collections.IEnumerable;
+            foreach (var value in values)
+            {
+                var type = value.GetType();
+                var block = type.GetField("B").GetValue(value) as B;
+                var prefix = type.GetField("Px").GetValue(value) as string;
+                if (block != null && block.El != null && block.El.Av("id") == id && !String.IsNullOrEmpty(prefix) &&
+                    (string)type.GetField("X").GetValue(value) != "")
+                    return new[] { (System.Drawing.Rectangle)type.GetField("R").GetValue(value), (System.Drawing.Rectangle)type.GetField("C").GetValue(value) };
+            }
+            throw new InvalidOperationException("Missing Lea ellipsis prefix: " + id);
+        }
+
+        private static System.Drawing.RectangleF AutomationRangeRect(V view, object automation, string source, string value)
+        {
+            var start = source.IndexOf(value, StringComparison.Ordinal);
+            Check(start >= 0, "Missing Lea automation range text: " + value);
+            var values = (double[])typeof(V).GetMethod("AutomationTextRectangles", BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(view, new object[] { automation, start, start + value.Length });
+            Check(values.Length >= 4, "Missing Lea automation range rectangle: " + value);
+            var result = new System.Drawing.RectangleF((float)values[0], (float)values[1], (float)values[2], (float)values[3]);
+            for (var index = 4; index + 3 < values.Length; index += 4)
+                result = System.Drawing.RectangleF.Union(result, new System.Drawing.RectangleF((float)values[index], (float)values[index + 1], (float)values[index + 2], (float)values[index + 3]));
+            return result;
+        }
+
+        private static string AutomationWordAtPoint(V view, object automation, System.Drawing.RectangleF rectangle)
+        {
+            var range = typeof(V).GetMethod("AutomationTextRangeFromPoint", BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(view, new object[] { automation, new System.Windows.Point(rectangle.Left + rectangle.Width / 2F, rectangle.Top + rectangle.Height / 2F) });
+            range.GetType().GetMethod("ExpandToEnclosingUnit").Invoke(range, new object[] { TextUnit.Word });
+            return ((string)range.GetType().GetMethod("GetText").Invoke(range, new object[] { -1 })).Trim();
+        }
+
         private static System.Drawing.Rectangle InlineBounds(V view, string id)
         {
             var target = BlockById(view.At, id);
@@ -1264,6 +1362,21 @@ namespace Lea.Firespider
                     return (System.Drawing.Rectangle)type.GetField("R").GetValue(value);
             }
             return System.Drawing.Rectangle.Empty;
+        }
+
+        private static bool HasFragmentHitAt(V view, string fragment, System.Drawing.Point point)
+        {
+            var member = typeof(V).GetField("hits", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = member == null ? null : member.GetValue(view) as System.Collections.IEnumerable;
+            if (values == null) throw new InvalidOperationException("Missing Lea pointer hits");
+            foreach (var value in values)
+            {
+                var type = value.GetType();
+                var url = type.GetField("U").GetValue(value) as Uri;
+                if (url != null && url.Fragment.Equals(fragment, StringComparison.OrdinalIgnoreCase) &&
+                    ((System.Drawing.Rectangle)type.GetField("R").GetValue(value)).Contains(point)) return true;
+            }
+            return false;
         }
 
         private static void MoveView(V view, System.Drawing.Rectangle rect)

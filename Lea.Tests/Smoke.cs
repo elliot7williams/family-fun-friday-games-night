@@ -41,6 +41,11 @@ namespace Lea.Tests
                 if (args.Length > 1 && args[1] == "--pics") { CheckPictureLimits(root); return 0; }
                 if (args.Length > 1 && args[1] == "--input") { CheckInputLimits(root); return 0; }
                 if (args.Length > 1 && args[1] == "--cache") { CheckCacheIdentity(); return 0; }
+                if (args.Length > 1 && args[1] == "--direction-overflow")
+                {
+                    DirectionOverflowSmoke(Path.Combine(pages, "direction-overflow.html"));
+                    return 0;
+                }
                 var coreOnly = args.Length > 1 && args[1] == "--core";
                 if (coreOnly)
                 {
@@ -840,6 +845,7 @@ namespace Lea.Tests
                         "direction command preserves authored order while reversing physical flow");
                 }
                 Console.WriteLine("Lea direction-aware inline and marker smoke passed.");
+                DirectionOverflowSmoke(Path.Combine(pages, "direction-overflow.html"));
 
                 var viewportPath = Path.Combine(pages, "viewport-units.html");
                 var viewportEngine = new E();
@@ -1210,7 +1216,11 @@ namespace Lea.Tests
                     Eq(new FileInfo(downloadSource).Length, saved.Sz, "local download size");
                     Eq(Path.GetFileName(downloadSync), saved.N, "local download name");
                     Eq(File.ReadAllText(downloadSource), File.ReadAllText(downloadSync), "streamed local download atomically replaces destination");
-                    var savedAsync = engine.DlA(new Uri(downloadSource), downloadAsync).GetAwaiter().GetResult();
+                    D savedAsync;
+                    var downloadContext = SynchronizationContext.Current;
+                    SynchronizationContext.SetSynchronizationContext(null);
+                    try { savedAsync = engine.DlA(new Uri(downloadSource), downloadAsync).GetAwaiter().GetResult(); }
+                    finally { SynchronizationContext.SetSynchronizationContext(downloadContext); }
                     Eq(new FileInfo(downloadSource).Length, savedAsync.Sz, "async local download size");
                     Eq(File.ReadAllText(downloadSource), File.ReadAllText(downloadAsync), "async local download bytes");
                 }
@@ -6896,6 +6906,170 @@ namespace Lea.Tests
                 }
             }
             Console.WriteLine("Lea text spacing smoke passed: compact inherited aliases, signed metrics, inline controls, automation mapping, hover, raw editing, and resize.");
+        }
+
+        private static void DirectionOverflowSmoke(string path)
+        {
+            var engine = new E { Vw = 720 };
+            var page = engine.Go(path);
+            foreach (var id in new[] { "rtl-plain", "rtl-runs", "rtl-cluster", "rtl-cell" })
+                Ok(BlockById(page, id).S.Dr == "r" && BlockById(page, id).S.To == "e",
+                    "RTL overflow model " + id);
+            Ok(BlockById(page, "ltr-overflow").S.Dr == "l" && BlockById(page, "ltr-overflow").S.To == "e",
+                "LTR overflow comparison model");
+
+            var synchronizationContext = SynchronizationContext.Current;
+            using (var view = new V())
+            {
+                view.Size = new Size(720, 1800);
+                view.Go(path);
+                var raw = view.At.X;
+                Rectangle rtlContent;
+                Rectangle rtlMarkerRect;
+                using (var paint = Render(view))
+                {
+                    var ltrContent = BlockRect(view, BlockById(view.At, "ltr-overflow"));
+                    var ltrMarker = OverflowParts(view, "ltr-overflow", true)[0];
+                    var ltrMarkerRect = (Rectangle)ltrMarker.GetType().GetField("R").GetValue(ltrMarker);
+                    Ok(ltrContent.Contains(ltrMarkerRect) && ltrMarkerRect.Left > ltrContent.Left + ltrContent.Width / 2,
+                        "LTR ellipsis remains at physical inline end");
+
+                    rtlContent = BlockRect(view, BlockById(view.At, "rtl-plain"));
+                    var rtlMarker = OverflowParts(view, "rtl-plain", true)[0];
+                    rtlMarkerRect = (Rectangle)rtlMarker.GetType().GetField("R").GetValue(rtlMarker);
+                    Ok(rtlContent.Contains(rtlMarkerRect) && rtlMarkerRect.Right < rtlContent.Left + rtlContent.Width / 2,
+                        "RTL ellipsis paints at physical inline end");
+                    var rtlParts = OverflowParts(view, "rtl-plain", false);
+                    var authoredFirst = (Rectangle)rtlParts[0].GetType().GetField("R").GetValue(rtlParts[0]);
+                    Eq(rtlContent.Right, authoredFirst.Right, "RTL overflow starts the authored source at the right edge");
+                    object crossing = null;
+                    foreach (var part in rtlParts)
+                    {
+                        var prefix = part.GetType().GetField("Px").GetValue(part) as string;
+                        if (!String.IsNullOrEmpty(prefix)) { crossing = part; break; }
+                    }
+                    Ok(crossing != null, "RTL overflow retains a visible authored prefix");
+                    var crossingType = crossing.GetType();
+                    var crossingLayout = (Rectangle)crossingType.GetField("R").GetValue(crossing);
+                    var crossingPaint = (Rectangle)crossingType.GetField("C").GetValue(crossing);
+                    Ok(crossingPaint.Right == crossingLayout.Right && crossingPaint.Width <= crossingLayout.Width &&
+                        crossingLayout.Left < rtlContent.Left,
+                        "RTL truncation right-aligns paint while retaining original layout geometry");
+
+                    var cluster = OverflowParts(view, "rtl-cluster", false)[0];
+                    var clusterPrefix = (string)cluster.GetType().GetField("Px").GetValue(cluster);
+                    Ok(clusterPrefix.Length >= 2 && clusterPrefix.Length % 2 == 0 && clusterPrefix.EndsWith("e\u0301", StringComparison.Ordinal),
+                        "RTL ellipsis preserves combining text elements");
+
+                    var linkMarker = OverflowParts(view, "rtl-runs", true)[0];
+                    var linkMarkerRect = (Rectangle)linkMarker.GetType().GetField("R").GetValue(linkMarker);
+                    var hitPoint = new Point(linkMarkerRect.Left + linkMarkerRect.Width / 2, linkMarkerRect.Top + linkMarkerRect.Height / 2);
+                    var hits = typeof(V).GetField("hits", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(view) as System.Collections.IEnumerable;
+                    var linked = false;
+                    foreach (var hit in hits)
+                    {
+                        var type = hit.GetType();
+                        var url = type.GetField("U").GetValue(hit) as Uri;
+                        if (url != null && url.Fragment == "#target" && ((Rectangle)type.GetField("R").GetValue(hit)).Contains(hitPoint)) linked = true;
+                    }
+                    Ok(linked, "RTL ellipsis keeps the original elided link hit target");
+
+                    var cellMarker = OverflowParts(view, "rtl-cell", true)[0];
+                    var cellMarkerRect = (Rectangle)cellMarker.GetType().GetField("R").GetValue(cellMarker);
+                    var cellContent = (Rectangle)cellMarker.GetType().GetField("Clip").GetValue(cellMarker);
+                    Ok(cellContent.Contains(cellMarkerRect) && cellMarkerRect.Right < cellContent.Left + cellContent.Width / 2,
+                        "RTL table cell ellipsis stays inside the left edge: " + cellMarkerRect + " in " + cellContent);
+
+                    rtlMarker.GetType().GetField("Px").SetValue(rtlMarker, "");
+                    try
+                    {
+                        using (var withoutMarker = Render(view))
+                        {
+                            var ink = 0;
+                            for (var y = rtlMarkerRect.Top; y < rtlMarkerRect.Bottom; y++)
+                                for (var x = rtlMarkerRect.Left; x < rtlMarkerRect.Right; x++)
+                                    if (ColorDistance(withoutMarker.GetPixel(x, y), paint.GetPixel(x, y)) > 30) ink++;
+                            Ok(ink > 0, "RTL ellipsis adds real glyph pixels");
+                        }
+                    }
+                    finally { rtlMarker.GetType().GetField("Px").SetValue(rtlMarker, "\u2026"); }
+                }
+
+                var automation = typeof(V).GetMethod("AutomationText", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(view, null);
+                var automationType = automation.GetType();
+                var source = (string)automationType.GetField("X").GetValue(automation);
+                Eq(raw, source, "direction-aware overflow keeps the full logical automation text");
+                Ok(source.IndexOf('\u2026') < 0, "direction-aware automation excludes synthetic ellipsis markers");
+
+                var first = AutomationRangeRect(view, automation, source, "RangeFirst");
+                var second = AutomationRangeRect(view, automation, source, "RangeSecond");
+                var third = AutomationRangeRect(view, automation, source, "RangeThird");
+                Ok(first.Left > second.Left && second.Left > third.Left && first.Top == second.Top && second.Top == third.Top,
+                    "RTL automation ranges follow physical right-to-left order");
+                var partial = AutomationRangeRect(view, automation, source, "Range");
+                Ok(partial.Width > 0 && partial.Width < first.Width && partial.Right >= first.Right - 1,
+                    "RTL partial range grows from the physical right edge");
+
+                var north = AutomationRangeRect(view, automation, source, "Northward");
+                var south = AutomationRangeRect(view, automation, source, "Southward");
+                var east = AutomationRangeRect(view, automation, source, "Eastward");
+                Ok(north.Top < south.Top && south.Top < east.Top && Math.Abs(north.Right - south.Right) <= 2 && Math.Abs(south.Right - east.Right) <= 2,
+                    "wrapped RTL automation lines retain logical order and restart on the right");
+
+                var visiblePrefix = false;
+                var segments = automationType.GetField("Ps").GetValue(automation) as System.Collections.IEnumerable;
+                foreach (var segment in segments)
+                {
+                    var type = segment.GetType();
+                    var element = type.GetField("El").GetValue(segment) as N;
+                    if (element == null || element.Av("id") != "rtl-plain") continue;
+                    var value = (string)type.GetField("X").GetValue(segment);
+                    var rect = (Rectangle)type.GetField("R").GetValue(segment);
+                    if (value.Length > 0 && rect.Right == rtlContent.Right && rect.Left > rtlMarkerRect.Right) visiblePrefix = true;
+                }
+                Ok(visiblePrefix, "RTL automation exposes the painted authored prefix on the right");
+
+                Eq("RangeFirst", AutomationWordAtPoint(view, automation, first), "RTL right-side point maps to the first logical word");
+                Eq("RangeThird", AutomationWordAtPoint(view, automation, third), "RTL left-side point maps to the third logical word");
+
+                var commandContent = BlockRect(view, BlockById(view.At, "command-overflow"));
+                var commandMarker = OverflowParts(view, "command-overflow", true)[0];
+                var commandMarkerRect = (Rectangle)commandMarker.GetType().GetField("R").GetValue(commandMarker);
+                Ok(commandMarkerRect.Left > commandContent.Left + commandContent.Width / 2,
+                    "direction command sample starts with LTR ellipsis");
+                Eq(1, view.Js("dr('command-overflow','rtl')"), "direction command rebuilds ellipsis flow");
+                using (var paint = Render(view))
+                {
+                    commandContent = BlockRect(view, BlockById(view.At, "command-overflow"));
+                    commandMarker = OverflowParts(view, "command-overflow", true)[0];
+                    commandMarkerRect = (Rectangle)commandMarker.GetType().GetField("R").GetValue(commandMarker);
+                    Ok(commandMarkerRect.Right < commandContent.Left + commandContent.Width / 2 && view.At.X == raw,
+                        "direction command moves paint left without changing authored text");
+                }
+            }
+            SynchronizationContext.SetSynchronizationContext(synchronizationContext);
+            Console.WriteLine("Lea direction-aware overflow and range geometry smoke passed.");
+        }
+
+        private static RectangleF AutomationRangeRect(V view, object automation, string source, string value)
+        {
+            var start = source.IndexOf(value, StringComparison.Ordinal);
+            if (start < 0) throw new InvalidOperationException("automation range text unavailable: " + value);
+            var values = (double[])typeof(V).GetMethod("AutomationTextRectangles", BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(view, new object[] { automation, start, start + value.Length });
+            if (values.Length < 4) throw new InvalidOperationException("automation range rectangle unavailable: " + value);
+            var result = new RectangleF((float)values[0], (float)values[1], (float)values[2], (float)values[3]);
+            for (var index = 4; index + 3 < values.Length; index += 4)
+                result = RectangleF.Union(result, new RectangleF((float)values[index], (float)values[index + 1], (float)values[index + 2], (float)values[index + 3]));
+            return result;
+        }
+
+        private static string AutomationWordAtPoint(V view, object automation, RectangleF rectangle)
+        {
+            var range = typeof(V).GetMethod("AutomationTextRangeFromPoint", BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(view, new object[] { automation, new System.Windows.Point(rectangle.Left + rectangle.Width / 2F, rectangle.Top + rectangle.Height / 2F) });
+            range.GetType().GetMethod("ExpandToEnclosingUnit").Invoke(range, new object[] { TextUnit.Word });
+            return ((string)range.GetType().GetMethod("GetText").Invoke(range, new object[] { -1 })).Trim();
         }
 
         private static void TextOverflowSmoke(string path)

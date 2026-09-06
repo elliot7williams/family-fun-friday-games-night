@@ -618,8 +618,10 @@ line, and document movement, child/point lookup, rendered rectangles, enclosing
 and embedded elements, and scroll-to-view. Password and local file values never
 enter the stream. Plain wrapped blocks and inline flow produce bounded visual
 line starts; `TextUnit.Line` follows those starts, rectangle output merges each
-line, and partial ranges crop their first/last segments proportionally. Selection
-and editing are unsupported. The current .NET Framework adapter returns an empty
+line, and partial ranges crop their first/last segments proportionally. Retained
+segments also carry private horizontal direction, so RTL partial ranges grow
+from the right and point lookup maps physical X back to logical source offsets.
+Selection and editing are unsupported. The current .NET Framework adapter returns an empty
 visible-range collection because non-empty managed and manually constructed
 interface arrays produced invalid client handles; a future bridge must cross a
 different native boundary.
@@ -687,12 +689,14 @@ actually overflowing line; it does not enable clipping or disable wrapping.
 Lea retains original line sizes, text, and pointer rectangles while painting
 bounded .NET text-element prefixes and a block-styled U+2026 marker. Collapsed
 spaces inside links keep their link target. Logical automation text remains
-complete, and visual text segments map only to painted prefixes. The first
-character is retained and clipped in very narrow boxes. Blocks, inline runs,
+complete, and visual text segments map only to painted prefixes. Horizontal RTL
+overflow places the marker at physical left and right-aligns its authored prefix
+inside the original atom; partial and point TextPattern geometry follows that
+direction. The first character is retained and clipped in very narrow boxes. Blocks, inline runs,
 explicit lines, unbreakable wrapped words, and table cells share this path.
 Prefix searches examine at most 8,192 text elements. Native controls, SVG text,
-two-ended/custom-string overflow, line clamping, bidi/vertical layout, and
-complex-script baseline behavior are not added by this feature.
+two-ended/custom-string overflow, line clamping, Unicode bidi shaping, vertical
+layout, and complex-script baseline behavior are not added by this feature.
 See [CSS Overflow text-overflow](https://www.w3.org/TR/css-overflow-3/#text-overflow).
 
 List-item blocks expose `B.Mk` as their paint-ready marker. Unordered lists use

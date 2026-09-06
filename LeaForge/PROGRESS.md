@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **89**
+Post-1.0 hardening milestones completed: **90**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -15,7 +15,7 @@ modern web platform.
 | Networking | 10% | 10% | Bounded request deadlines and downloads, private cookies, typed errors, validators, compression, memory LRU and optional persistent cache |
 | HTML and document tree | 20% | 20% | Bounded tokens, queries, base URLs and fragments, raw/RCDATA text, entities, recovery, HTML-hidden suppression, semantic accessibility, blocks, lists, disclosures, gauges, values, time/edit metadata, responsive image maps, tabindex focus, autofocus/access keys, tables |
 | CSS | 15% | 15% | Compiled relationship, bounded strict relational/functional, An+B/reverse, and filtered structural selectors, declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, inherited horizontal LTR/RTL direction, fixed/percentage/calculated plus direction-aware logical dimensions/insets/margins/padding/borders/radii, classic viewport/font-relative units and bounded size functions, bounded vertical sticky positioning, dynamic hover/focus, inherited cursor/pointer interaction, text transformation and signed letter/word spacing, content/border sizing, circular/elliptical radii, bounded outlines, box shadows, gradients, bitmap backgrounds, object fitting and aspect ratios, visibility/opacity, fonts, overflow, boxes, bounded ordered flex and two-axis grid properties |
-| Layout and painting | 20% | 20% | Shared physical/logical box edges and per-edge border styles/colors plus fixed/percentage/calculated, viewport-unit, font-relative, and min/max/clamp dimensions, content/border, aspect-ratio, sticky, direction-aware inline/marker geometry, transformed and spacing-aware presentation text with raw form retention, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients/bitmaps, pointer-gated retained hits with underlying fallthrough, fitted raster images and maps, ordered flex rows/columns, bounded grid tracks/spans, distribution, alignment, wrapping, grow/shrink, clipping, reflow, painting |
+| Layout and painting | 20% | 20% | Shared physical/logical box edges and per-edge border styles/colors plus fixed/percentage/calculated, viewport-unit, font-relative, and min/max/clamp dimensions, content/border, aspect-ratio, sticky, direction-aware inline/marker/ellipsis and TextPattern range geometry, transformed and spacing-aware presentation text with raw form retention, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients/bitmaps, pointer-gated retained hits with underlying fallthrough, fitted raster images and maps, ordered flex rows/columns, bounded grid tracks/spans, distribution, alignment, wrapping, grow/shrink, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Native field edit commands and one-level undo/redo, bounded multipart files, richer widgets, validation, responsive and fitted images, GET/POST submit |
 | Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/body and ID-scoped display/width/height/direction/logical box/border/radius/style/alert, class, visibility, disclosure, field-state, focus, and literal bounded DOM translation |
 | Firespider integration and reliability | 10% | 10% | Lea-first New Tab/Ctrl+T, explicit legacy fallback, Inspector with Access view, MSAA/UIA surfaces including read-only text, host-safe focus shortcuts, navigation, sessions, source, host smokes |
@@ -29,6 +29,28 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded direction-aware paint-only ellipsis and read-only TextPattern
+  range geometry without growing public model records. LTR and RTL unwrapped
+  overflow place the marker at physical inline-end, retain grapheme-safe
+  authored prefixes, preserve original layout and hit rectangles, and suppress
+  elided link paint without inventing accessible ellipsis text. RTL partial,
+  wrapped, and point-derived automation ranges now map from the physical right
+  while full logical text remains in source order. Plain, linked, combining,
+  table, wrapped, and live `dr` cases share one fixture. The full repository
+  suite, focused smoke, compiled-host smoke, all 86 probes over 83 fixtures, all
+  42 Boot cases, and all six actual EXE startup scenarios pass without a legacy
+  engine, invalid cast, JIT dialog, or dead startup window. The smoke harness
+  now restores its UI synchronization context around blocking download checks,
+  and the compiled host waits for fitted image decode before exact pixel
+  assertions. Runtime medians are 518.830 ms clean diagnostic start, 3.709 ms
+  local load, and 35.461 ms layout/paint. Retained managed memory is 17,552.3
+  KiB for 332 pages, or 52.9 KiB/page. Required runtime files remain 559.5 KiB
+  with a 236.2 KiB GZip estimate. Runtime 190 stays isolated and installed
+  runtime 157 remains unchanged. See `DIRECTION.md`. Unicode bidi glyph
+  reordering/embedding, `dir=auto`, vertical writing modes, and custom markers
+  remain outside this milestone; the scoped baseline stays at 100%, not
+  full-web compatibility.
 
 - Added bounded direction-aware horizontal inline flow and marker placement
   without growing `S`, `B`, `Ir`, or renderer records. RTL plain text, mixed
