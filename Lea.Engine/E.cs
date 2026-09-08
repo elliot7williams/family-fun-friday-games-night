@@ -3494,7 +3494,11 @@ namespace Lea.Engine
                 else if (name == "font-family") FontFamily(style, value);
                 else if (name == "font-weight") style.B = value.Equals("bold", StringComparison.OrdinalIgnoreCase) || value == "700" || value == "800" || value == "900";
                 else if (name == "font-style") style.I = value.Equals("italic", StringComparison.OrdinalIgnoreCase) || value.Equals("oblique", StringComparison.OrdinalIgnoreCase);
-                else if (name == "text-decoration" || name == "text-decoration-line") TextDecoration(style, value);
+                else if (name == "text-decoration") TextDecoration(style, value);
+                else if (name == "text-decoration-line") TextDecorationLine(style, value);
+                else if (name == "text-decoration-color") TextDecorationColor(style, value);
+                else if (name == "text-decoration-style") TextDecorationStyle(style, value);
+                else if (name == "text-decoration-thickness") TextDecorationThickness(style, value);
                 else if (name == "text-align") TextAlign(style, value);
                 else if (name == "text-transform") TextTransform(style, value);
                 else if (name == "text-indent") TextIndent(style, inherited, value);
@@ -4710,12 +4714,204 @@ namespace Lea.Engine
 
         private static void TextDecoration(S style, string value)
         {
+            string line;
+            string color;
+            string type;
+            int width;
+            bool inherit;
+            if (!TextDecorationValue(value, out line, out color, out type, out width, out inherit) || inherit) return;
+            style.Td = line;
+            style.Tc = color;
+            style.Tds = type;
+            style.Tw = width;
+        }
+
+        private static void TextDecorationLine(S style, string value)
+        {
+            string line;
+            bool inherit;
+            if (DecorationLineValue(value, out line, out inherit) && !inherit) style.Td = line;
+        }
+
+        private static void TextDecorationColor(S style, string value)
+        {
+            string color;
+            bool inherit;
+            if (DecorationColorValue(value, out color, out inherit) && !inherit) style.Tc = color;
+        }
+
+        private static void TextDecorationStyle(S style, string value)
+        {
+            string type;
+            bool inherit;
+            if (DecorationStyleValue(value, out type, out inherit) && !inherit) style.Tds = type;
+        }
+
+        private static void TextDecorationThickness(S style, string value)
+        {
+            int width;
+            bool inherit;
+            if (DecorationThicknessValue(value, out width, out inherit) && !inherit) style.Tw = width;
+        }
+
+        internal static bool Tdv(string name, string value, out string decoration)
+        {
+            decoration = (value ?? "").Trim();
+            if (decoration.Length == 0) return true;
+            bool inherit;
+            if (name == "td")
+            {
+                string line;
+                string color;
+                string type;
+                int width;
+                return TextDecorationValue(decoration, out line, out color, out type, out width, out inherit);
+            }
+            if (name == "tdl")
+            {
+                string line;
+                return DecorationLineValue(decoration, out line, out inherit);
+            }
+            if (name == "tdc")
+            {
+                string color;
+                return DecorationColorValue(decoration, out color, out inherit);
+            }
+            if (name == "tds")
+            {
+                string type;
+                return DecorationStyleValue(decoration, out type, out inherit);
+            }
+            if (name == "tdw")
+            {
+                int width;
+                return DecorationThicknessValue(decoration, out width, out inherit);
+            }
+            return false;
+        }
+
+        private static bool TextDecorationValue(string value, out string line, out string color, out string type, out int width, out bool inherit)
+        {
+            line = "n";
+            color = "";
+            type = "";
+            width = 0;
+            inherit = false;
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            if (lower == "inherit") { inherit = true; return true; }
+            if (lower == "none" || DecorationReset(lower)) return true;
+            List<string> parts;
+            if (source.Length == 0 || source.Length > 256 || !ShadowParts(source, '\0', out parts) || parts.Count < 1 || parts.Count > 6) return false;
+            var underline = false;
+            var strike = false;
+            var hasColor = false;
+            var hasType = false;
+            var hasWidth = false;
+            foreach (var raw in parts)
+            {
+                var part = raw.Trim();
+                var token = part.ToLowerInvariant();
+                if (token == "underline") { if (underline) return false; underline = true; continue; }
+                if (token == "line-through") { if (strike) return false; strike = true; continue; }
+                string parsedType;
+                bool inheritedType;
+                if (DecorationStyleValue(part, out parsedType, out inheritedType) && !inheritedType)
+                {
+                    if (hasType) return false;
+                    type = parsedType;
+                    hasType = true;
+                    continue;
+                }
+                int parsedWidth;
+                bool inheritedWidth;
+                if (DecorationThicknessValue(part, out parsedWidth, out inheritedWidth) && !inheritedWidth)
+                {
+                    if (hasWidth) return false;
+                    width = parsedWidth;
+                    hasWidth = true;
+                    continue;
+                }
+                if (token == "none" || token == "overline" || token == "blink" || token == "spelling-error" || token == "grammar-error" ||
+                    token == "initial" || token == "unset" || token == "revert" || token == "revert-layer" || token == "inherit" ||
+                    hasColor || !ShadowColor(part)) return false;
+                color = part;
+                hasColor = true;
+            }
+            line = underline ? strike ? "us" : "u" : strike ? "s" : "n";
+            return true;
+        }
+
+        private static bool DecorationLineValue(string value, out string line, out bool inherit)
+        {
+            line = "n";
+            inherit = false;
             var source = (value ?? "").Trim().ToLowerInvariant();
-            if (source == "inherit") return;
-            if (source == "none" || source == "initial" || source == "unset" || source == "revert") { style.Td = "n"; return; }
-            var underline = Regex.IsMatch(source, "(?:^|\\s)underline(?:\\s|$)");
-            var strike = Regex.IsMatch(source, "(?:^|\\s)line-through(?:\\s|$)");
-            if (underline || strike) style.Td = underline ? strike ? "us" : "u" : "s";
+            if (source == "inherit") { inherit = true; return true; }
+            if (source == "none" || DecorationReset(source)) return true;
+            var parts = Regex.Split(source, "\\s+");
+            if (source.Length == 0 || source.Length > 64 || parts.Length < 1 || parts.Length > 2) return false;
+            var underline = false;
+            var strike = false;
+            foreach (var part in parts)
+            {
+                if (part == "underline" && !underline) underline = true;
+                else if (part == "line-through" && !strike) strike = true;
+                else return false;
+            }
+            line = underline ? strike ? "us" : "u" : strike ? "s" : "n";
+            return true;
+        }
+
+        private static bool DecorationColorValue(string value, out string color, out bool inherit)
+        {
+            color = "";
+            inherit = false;
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            if (lower == "inherit") { inherit = true; return true; }
+            if (DecorationReset(lower)) return true;
+            if (source.Length == 0 || source.Length > 64 || DecorationColorKeyword(lower) || !ShadowColor(source)) return false;
+            color = source;
+            return true;
+        }
+
+        private static bool DecorationColorKeyword(string value)
+        {
+            return value == "none" || value == "underline" || value == "line-through" || value == "overline" || value == "blink" ||
+                value == "spelling-error" || value == "grammar-error" || value == "solid" || value == "double" || value == "dotted" ||
+                value == "dashed" || value == "wavy" || value == "auto" || value == "from-font";
+        }
+
+        private static bool DecorationStyleValue(string value, out string type, out bool inherit)
+        {
+            type = "";
+            inherit = false;
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "inherit") { inherit = true; return true; }
+            if (source == "solid" || DecorationReset(source)) return true;
+            if (source == "double") type = "d";
+            else if (source == "dotted") type = "o";
+            else if (source == "dashed") type = "a";
+            else if (source == "wavy") type = "w";
+            else return false;
+            return true;
+        }
+
+        private static bool DecorationThicknessValue(string value, out int width, out bool inherit)
+        {
+            width = 0;
+            inherit = false;
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "inherit") { inherit = true; return true; }
+            if (source == "auto" || source == "from-font" || DecorationReset(source)) return true;
+            var match = Regex.Match(source, "^(?<n>[1-8])(?:px)?$");
+            return match.Success && Int32.TryParse(match.Groups["n"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out width);
+        }
+
+        private static bool DecorationReset(string value)
+        {
+            return value == "initial" || value == "unset" || value == "revert" || value == "revert-layer";
         }
 
         private static void TextAlign(S style, string value)

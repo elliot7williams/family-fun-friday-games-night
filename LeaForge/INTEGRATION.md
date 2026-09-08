@@ -651,8 +651,13 @@ aggregate.
 
 `S.Ff` carries up to eight CSS font-family fallbacks; `V` resolves and caches
 the first installed Windows family with a 32-entry bound. `S.Td` uses compact
-`n/u/s/us` decoration modes. Underline, line-through, native decoration tags,
-and explicit removal of a link underline all use the same `BoxFont` path.
+`n/u/s/us` decoration-line modes; `S.Tc` carries optional color, `S.Tds` uses
+empty/`d/o/a/w` solid/double/dotted/dashed/wavy styles, and `S.Tw` carries a
+0..8 pixel thickness. Current-color solid lines use the native `BoxFont` path;
+custom components use a clipped lightweight painter without changing outer
+geometry. Hosts can call atomic `td`, component `tdl/tdc/tds/tdw`, readable
+names, or familiar literal `style.textDecoration*` assignments. See
+`TEXT_DECORATION.md`.
 
 Inherited block indentation is available through `S.Ti/Tip`. `Ti` holds a
 signed -2000..2000 pixel or -100..100 percentage integer and `Tip` identifies

@@ -35,7 +35,7 @@ read and quick to write.
   redirects or resource requests. Firespider installs it on ordinary and split
   tabs. See `NAVIGATION_POLICY.md` and `SPLIT_VIEW.md` for its callback contract.
 - Page values use one or two letters: `U`, `T`, `H`, `Q`, `D`, `N`, `Bs`, and `Ls`.
-- Page commands use one or two letters where practical: `t`, `a`, `bg`, `fg`, `fs`, `dp`, `wd`, `ht`, `dr`, `ti`, `ts`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`; logical edge families stay within three letters.
+- Page commands use one or two letters where practical: `t`, `a`, `bg`, `fg`, `fs`, `dp`, `wd`, `ht`, `dr`, `ti`, `ts`, `td`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`; text-decoration components and logical edge families stay within three letters.
 - New public aliases should be no more than three letters.
 - `E/V.Hm` reports the 4 MiB document-body ceiling; `E/V.Csm` reports the
   256 KiB linked-stylesheet ceiling. GET/POST input and optional CSS share
@@ -89,6 +89,10 @@ ti("18px")         body first-line indent
 ti("id", "15%")   element first-line indent
 ts("3px 2px #555") body text shadow
 ts("id", "5px 4px 0 #dc2626") element text shadow
+td("underline dashed red 2px") body text decoration
+td("id", "line-through double #2563eb 3px") element decoration
+tdl("id", "underline") decoration line only
+tdc/tds/tdw("id", value) decoration color/style/thickness
 is("id", "50%")  logical inline size
 bs("id", "120px") logical block size
 mi("id", "8px 12px") logical inline margin
@@ -124,7 +128,7 @@ fo("id")              request focus
 go("next.html")        request host navigation
 ```
 
-The two-argument `bg/fg/fs/dp/wd/ht/dr/ti/ts/is/bs`, logical box, logical border, and
+The two-argument `bg/fg/fs/dp/wd/ht/dr/ti/ts/td/tdl/tdc/tds/tdw/is/bs`, logical box, logical border, and
 radius forms
 target one validated ID. Color and font
 forms reuse the same
@@ -151,6 +155,12 @@ restores the authored cascade. See `TEXT_INDENT.md`.
 offsets bounded to -128..128 pixels, an optional 0..32 pixel blur, and one
 optional bounded color. Literal `style.textShadow` uses the same parser; empty
 assignments restore authored CSS. See `TEXT_SHADOW.md`.
+
+`S.Td/Tc/Tds/Tw` store bounded inherited text-decoration line flags, optional
+color, style, and integer thickness. `td` is the atomic shorthand;
+`tdl/tdc/tds/tdw` update one component without clearing the others. Readable
+names and literal `style.textDecoration*` assignments share the same parser;
+empty values restore the authored cascade. See `TEXT_DECORATION.md`.
 
 `dp` accepts a bounded standard display keyword set. `none` removes the subtree
 from layout and accessibility; `flex`/`inline-flex` and `grid`/`inline-grid`

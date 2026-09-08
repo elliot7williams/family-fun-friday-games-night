@@ -3468,7 +3468,7 @@ namespace Lea.Win
         private static bool NeedsFlow(B block)
         {
             var style = block == null ? null : block.S;
-            return block != null && (block.Is.Count > 0 || (style != null && (style.Dr == "r" || style.Ta.Length > 0 || style.Ti != 0 || style.Ts != null || style.Ls != 0 || style.Wg != 0 || style.Lh > 0 || style.Lm > 0 || style.Ws.Length > 0 || style.Wb.Length > 0 || style.Ov.Length > 0)));
+            return block != null && (block.Is.Count > 0 || (style != null && (style.Dr == "r" || style.Ta.Length > 0 || style.Ti != 0 || style.Ts != null || CustomDecoration(style) || style.Ls != 0 || style.Wg != 0 || style.Lh > 0 || style.Lm > 0 || style.Ws.Length > 0 || style.Wb.Length > 0 || style.Ov.Length > 0)));
         }
 
         private static int CssTextIndent(S style, int width)
@@ -3522,9 +3522,15 @@ namespace Lea.Win
             var fontStyle = title || HeadingKind(kind) || kind == "caption" || kind == "th" || kind == "dt" || kind == "legend" || kind == "summary" || kind == "strong" || kind == "b" || (style != null && style.B) ? FontStyle.Bold : FontStyle.Regular;
             if (style != null && style.I) fontStyle |= FontStyle.Italic;
             var decoration = style == null ? "" : style.Td;
-            if (decoration.IndexOf('u') >= 0 || ((kind == "a" || link) && decoration.Length == 0)) fontStyle |= FontStyle.Underline;
-            if (decoration.IndexOf('s') >= 0) fontStyle |= FontStyle.Strikeout;
+            var customDecoration = CustomDecoration(style);
+            if ((decoration.IndexOf('u') >= 0 && !customDecoration) || ((kind == "a" || link) && decoration.Length == 0)) fontStyle |= FontStyle.Underline;
+            if (decoration.IndexOf('s') >= 0 && !customDecoration) fontStyle |= FontStyle.Strikeout;
             return new Font(name, size, fontStyle);
+        }
+
+        private static bool CustomDecoration(S style)
+        {
+            return style != null && (style.Tc.Length > 0 || style.Tds.Length > 0 || style.Tw > 0);
         }
 
         private string FontName(string kind, S style, string sizeKind)
@@ -6760,6 +6766,7 @@ namespace Lea.Win
             if (opacity <= 0 || rect.Width < 1 || rect.Height < 1) return;
             PaintTextShadow(graphics, text, font, rect, color, flags, opacity, style);
             PaintTextCore(graphics, text, font, rect, color, flags, opacity, style);
+            PaintTextDecoration(graphics, text, font, rect, color, flags, opacity, style);
         }
 
         private static void PaintTextShadow(Graphics graphics, string text, Font font, Rectangle rect, Color currentColor, TextFormatFlags flags, int opacity, S style)
@@ -6816,6 +6823,67 @@ namespace Lea.Win
                 else if ((flags & TextFormatFlags.Right) != 0) format.Alignment = StringAlignment.Far;
                 if ((flags & TextFormatFlags.VerticalCenter) != 0) format.LineAlignment = StringAlignment.Center;
                 graphics.DrawString(text ?? "", font, brush, rect, format);
+            }
+        }
+
+        private static void PaintTextDecoration(Graphics graphics, string text, Font font, Rectangle rect, Color currentColor, TextFormatFlags flags, int opacity, S style)
+        {
+            if (!CustomDecoration(style) || style.Td == "n" || String.IsNullOrEmpty(text)) return;
+            var underline = style.Td.IndexOf('u') >= 0;
+            var strike = style.Td.IndexOf('s') >= 0;
+            if (!underline && !strike) return;
+            var source = CssColor(style.Tc, currentColor);
+            var decorationOpacity = source.A * Math.Max(0, Math.Min(100, opacity)) / 255;
+            if (decorationOpacity <= 0) return;
+            var color = PaintColor(Color.FromArgb(source.R, source.G, source.B), decorationOpacity);
+            var thickness = style.Tw > 0 ? style.Tw : Math.Max(1, (int)Math.Round(font.Size / 14F));
+            var width = TextSpaced(style) ? TextWidth(graphics, text, font, style) :
+                TextRenderer.MeasureText(graphics, text, font, Size.Empty, TextFormatFlags.SingleLine | TextFormatFlags.NoPadding | TextFormatFlags.NoPrefix).Width;
+            width = Math.Max(1, Math.Min(rect.Width, width));
+            var x = (flags & TextFormatFlags.HorizontalCenter) != 0 ? rect.Left + Math.Max(0, (rect.Width - width) / 2) :
+                (flags & TextFormatFlags.Right) != 0 ? rect.Right - width : rect.Left;
+            var top = (flags & TextFormatFlags.VerticalCenter) != 0 ? rect.Top + Math.Max(0, (rect.Height - font.Height) / 2) : rect.Top;
+            var state = graphics.Save();
+            try
+            {
+                graphics.SetClip(rect, CombineMode.Intersect);
+                if (underline) PaintDecorationLine(graphics, x, x + width - 1, Math.Min(rect.Bottom - 2, top + font.Height - 2), color, thickness, style.Tds);
+                if (strike) PaintDecorationLine(graphics, x, x + width - 1, Math.Min(rect.Bottom - 1, top + font.Height / 2), color, thickness, style.Tds);
+            }
+            finally { graphics.Restore(state); }
+        }
+
+        private static void PaintDecorationLine(Graphics graphics, int left, int right, int y, Color color, int thickness, string type)
+        {
+            if (right < left) return;
+            using (var pen = new Pen(color, Math.Max(1, thickness)))
+            {
+                if (type == "d")
+                {
+                    var gap = Math.Max(1, thickness);
+                    graphics.DrawLine(pen, left, y - gap, right, y - gap);
+                    graphics.DrawLine(pen, left, y + gap, right, y + gap);
+                    return;
+                }
+                if (type == "o") { pen.DashStyle = DashStyle.Dot; pen.DashCap = DashCap.Round; }
+                else if (type == "a") pen.DashStyle = DashStyle.Dash;
+                else if (type == "w")
+                {
+                    pen.Width = Math.Max(1, (thickness + 1) / 2F);
+                    var amplitude = Math.Max(1, thickness);
+                    var step = Math.Max(2, thickness * 2);
+                    var x = left;
+                    var up = true;
+                    while (x < right)
+                    {
+                        var next = Math.Min(right, x + step);
+                        graphics.DrawLine(pen, x, y + (up ? -amplitude : amplitude), next, y + (up ? amplitude : -amplitude));
+                        x = next;
+                        up = !up;
+                    }
+                    return;
+                }
+                graphics.DrawLine(pen, left, y, right, y);
             }
         }
 

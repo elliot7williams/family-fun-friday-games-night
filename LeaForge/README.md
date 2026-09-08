@@ -61,7 +61,8 @@ LeaForge is where we can grow the more full-featured browser.
 - bounded autofocus and host-safe page shortcuts through `Af/Afs`, `Ak/Aks`, and `An/Kl/Aa`, with conflict fallback, resolved-fragment suppression, and `Alt+Shift` activation
 - bounded semantic accessibility through `Ax/Axs/St/Is` and `V.Ab/Ao`, with HTML/ARIA roles, labels, hierarchy, protected values, rendered bounds, WinForms/MSAA children, native UI Automation fragments, interaction and `Tb/Tr/Tc` grid/table patterns, plus read-only logical TextPattern ranges with direction-aware visual-line, partial-range, and point geometry
 - wrapped inline bold/italic text, styled spans, line breaks, and links inside text blocks
-- inherited font-family fallbacks plus underline and line-through decoration
+- inherited font-family fallbacks plus native current-color underline and
+  line-through decoration
 - inherited bounded text transformation through compact `S.Tt=n/u/l/c` and
   shared `E.Tx`, with inline/control presentation and raw DOM/form preservation
 - inherited signed pixel letter/word spacing through compact `S.Ls/Wg`, with
@@ -72,6 +73,10 @@ LeaForge is where we can grow the more full-featured browser.
 - one inherited bounded text-shadow layer through compact nullable `S.Ts` and
   `ts`, with signed offsets, optional blur/color, lightweight paint, stable
   geometry, and literal DOM support; see `TEXT_SHADOW.md`
+- bounded inherited text-decoration line/color/style/thickness through compact
+  `S.Td/Tc/Tds/Tw` and `td/tdl/tdc/tds/tdw`, with atomic shorthand and
+  longhands, native solid fast path, lightweight double/dotted/dashed/wavy
+  paint, stable geometry, and literal DOM support; see `TEXT_DECORATION.md`
 - non-inherited clip/ellipsis text overflow through compact `S.To=c/e`, with
   bounded LTR/RTL physical inline-end markers, grapheme-safe paint-only
   prefixes, retained link targets, and authored automation text

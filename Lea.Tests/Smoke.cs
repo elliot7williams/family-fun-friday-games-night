@@ -56,6 +56,11 @@ namespace Lea.Tests
                     TextShadowSmoke(Path.Combine(pages, "text-shadow.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--text-decoration")
+                {
+                    TextDecorationSmoke(Path.Combine(pages, "text-decoration.html"));
+                    return 0;
+                }
                 var coreOnly = args.Length > 1 && args[1] == "--core";
                 if (coreOnly)
                 {
@@ -2395,6 +2400,7 @@ namespace Lea.Tests
                 TextSpacingSmoke(spacingPath);
                 TextIndentSmoke(Path.Combine(pages, "text-indent.html"));
                 TextShadowSmoke(Path.Combine(pages, "text-shadow.html"));
+                TextDecorationSmoke(Path.Combine(pages, "text-decoration.html"));
                 TextOverflowSmoke(Path.Combine(pages, "text-overflow.html"));
 
                 var recoveryPath = Path.Combine(pages, "recovery.html");
@@ -7108,6 +7114,126 @@ namespace Lea.Tests
                 }
             }
             Console.WriteLine("Lea text shadow smoke passed: compact inherited alias, bounded parser, single-layer paint, inline resets, fields, commands, hover, and resize.");
+        }
+
+        private static void TextDecorationSmoke(string path)
+        {
+            var engine = new E { Vw = 720 };
+            var page = engine.Go(path);
+            Func<string, B> block = id => BlockById(page, id);
+            var solid = block("solid").S;
+            var twice = block("double").S;
+            var dotted = block("dotted").S;
+            var wavy = block("wavy").S;
+            Ok(solid.Td == "u" && solid.Tc == "#dc2626" && solid.Tds == "" && solid.Tw == 2 &&
+                twice.Td == "u" && twice.Tc == "#2563eb" && twice.Tds == "d" && twice.Tw == 2,
+                "text decoration solid and double aliases");
+            Ok(dotted.Td == "s" && dotted.Tc == "#0f766e" && dotted.Tds == "o" && dotted.Tw == 2 &&
+                wavy.Td == "us" && wavy.Tc == "#7c3aed" && wavy.Tds == "w" && wavy.Tw == 2,
+                "text decoration dotted wavy and combined aliases");
+            var longhand = block("longhand").S;
+            Ok(longhand.Td == "u" && longhand.Tc == "#b91c1c" && longhand.Tds == "a" && longhand.Tw == 3,
+                "text decoration longhand aliases");
+            var inherited = block("inherited").S;
+            var reset = block("reset").S;
+            var invalid = block("invalid").S;
+            Ok(inherited.Td == "u" && inherited.Tc == "#a13b18" && inherited.Tds == "a" && inherited.Tw == 3 &&
+                reset.Td == "n" && reset.Tc == "" && reset.Tds == "" && reset.Tw == 0 &&
+                invalid.Td == "u" && invalid.Tc == "#176b4d" && invalid.Tds == "o" && invalid.Tw == 2,
+                "text decoration inheritance reset and invalid preservation");
+            Ok(block("variable").S.Td == "u" && block("variable").S.Tds == "a" && block("variable").S.Tw == 3 &&
+                block("important").S.Td == "u" && block("important").S.Tc == "#2563eb" && block("important").S.Tds == "d",
+                "text decoration variables and priority");
+            var inline = block("inline");
+            var plainChild = false;
+            foreach (var run in inline.Is)
+                if (run.X.Contains("plain child") && run.S.Td == "n") plainChild = true;
+            Ok(inline.S.Td == "u" && inline.S.Tds == "a" && plainChild, "text decoration inline reset");
+            Ok(FieldById(page, "field").S.Td == "u" && FieldById(page, "field").S.Tc == "#dc2626" && FieldById(page, "field").S.Tw == 2,
+                "text decoration field model");
+            Eq(1, engine.Ck(page, ById(page.D, "set-short")), "text decoration short command");
+            Ok(block("command").S.Td == "u" && block("command").S.Tc == "#dc2626" && block("command").S.Tds == "o" && block("command").S.Tw == 2,
+                "text decoration short command model");
+            Eq(3, engine.Ck(page, ById(page.D, "set-parts")), "text decoration component commands");
+            Ok(block("command").S.Tc == "#2563eb" && block("command").S.Tds == "d" && block("command").S.Tw == 3,
+                "text decoration component command model");
+            Eq(1, engine.Js(page, "document.getElementById('command').style.textDecorationLine='line-through'"), "text decoration DOM line longhand");
+            Ok(block("command").S.Td == "s" && block("command").S.Tc == "#2563eb" && block("command").S.Tds == "d" && block("command").S.Tw == 3,
+                "text decoration line longhand preserves components");
+            Eq(1, engine.Js(page, "document.getElementById('command').style.textDecorationLine=''"), "text decoration DOM line clear");
+            Ok(block("command").S.Td == "u" && block("command").S.Tc == "#2563eb" && block("command").S.Tds == "d" && block("command").S.Tw == 3,
+                "text decoration line clear preserves components");
+            Eq(1, engine.Ck(page, ById(page.D, "set-dom")), "text decoration DOM shorthand");
+            Ok(block("command").S.Td == "s" && block("command").S.Tc == "#176b4d" && block("command").S.Tds == "a" && block("command").S.Tw == 2,
+                "text decoration DOM shorthand model");
+            Eq(1, engine.Ck(page, ById(page.D, "clear-dom")), "text decoration DOM reset");
+            Ok(block("command").S.Td == "n", "text decoration DOM reset model");
+            Eq(0, engine.Js(page, "td('command','underline overline red')"), "text decoration rejects overline");
+            Eq(0, engine.Js(page, "tdc('command','none')"), "text decoration rejects reserved color");
+            Eq(0, engine.Js(page, "tds('command','zigzag')"), "text decoration rejects style");
+            Eq(0, engine.Js(page, "tdw('command','9px')"), "text decoration thickness bound");
+            Eq(1, engine.Js(page, "td('underline dashed #0f766e 2px')"), "text decoration body alias");
+            Ok(page.S.Td == "u" && page.S.Tc == "#0f766e" && page.S.Tds == "a" && page.S.Tw == 2,
+                "text decoration body alias model");
+
+            using (var view = new V())
+            {
+                view.Size = new Size(720, 4300);
+                view.CreateControl();
+                view.Go(path);
+                using (var paint = Render(view))
+                {
+                    Ok(BlockRect(view, BlockById(view.At, "plain")).Size == BlockRect(view, BlockById(view.At, "solid")).Size,
+                        "text decoration leaves block geometry unchanged");
+                    Ok(HasColor(paint, BlockOuterRect(view, BlockById(view.At, "solid")), Color.FromArgb(220, 38, 38)) &&
+                        HasColor(paint, BlockOuterRect(view, BlockById(view.At, "double")), Color.FromArgb(37, 99, 235)) &&
+                        HasColor(paint, BlockOuterRect(view, BlockById(view.At, "dotted")), Color.FromArgb(15, 118, 110)) &&
+                        HasColor(paint, BlockOuterRect(view, BlockById(view.At, "wavy")), Color.FromArgb(124, 58, 237)),
+                        "text decoration style and color paint");
+                    Ok(TextLines(view, BlockById(view.At, "wrapped")).Length > 1 &&
+                        HasColor(paint, BlockOuterRect(view, BlockById(view.At, "wrapped")), Color.FromArgb(15, 118, 110)),
+                        "text decoration wrapped-line paint");
+                    Ok(HasColor(paint, ElementRect(view, ById(view.At.D, "cell"), true), Color.FromArgb(185, 28, 28)),
+                        "text decoration table paint");
+                    Ok(HasColor(paint, InlineElementRect(view, "link"), Color.FromArgb(124, 58, 237)),
+                        "text decoration link paint");
+                    Ok(HasColor(paint, BlockRect(view, BlockById(view.At, "field")), Color.FromArgb(220, 38, 38)),
+                        "text decoration field paint");
+                    using (var customFont = RenderFont(view, "p", BlockById(view.At, "solid").S))
+                        Ok(!HasFontStyle(customFont, FontStyle.Underline), "custom decoration avoids native duplicate line");
+                }
+
+                var dynamic = BlockById(view.At, "dynamic");
+                Move(view, BlockOuterRect(view, dynamic));
+                using (var paint = Render(view))
+                {
+                    dynamic = BlockById(view.At, "dynamic");
+                    Ok(dynamic.S.Tds == "w" && dynamic.S.Tw == 3 &&
+                        HasColor(paint, BlockOuterRect(view, dynamic), Color.FromArgb(220, 38, 38)),
+                        "text decoration hover rebuild and paint");
+                }
+
+                Eq(1, view.Js("td('command','underline dotted #dc2626 2px')"), "WinForms text decoration command");
+                using (var paint = Render(view))
+                    Ok(HasColor(paint, BlockOuterRect(view, BlockById(view.At, "command")), Color.FromArgb(220, 38, 38)),
+                        "WinForms text decoration command paint");
+                Eq(1, view.Js("document.getElementById('command').style.textDecoration='line-through double #2563eb 3px'"),
+                    "WinForms text decoration DOM command");
+                using (var paint = Render(view))
+                    Ok(HasColor(paint, BlockOuterRect(view, BlockById(view.At, "command")), Color.FromArgb(37, 99, 235)),
+                        "WinForms text decoration DOM paint");
+
+                view.Size = new Size(350, 4700);
+                Application.DoEvents();
+                using (var paint = Render(view))
+                {
+                    var responsive = BlockById(view.At, "responsive");
+                    Ok(responsive.S.Td == "s" && responsive.S.Tc == "#7c3aed" && responsive.S.Tds == "d" && responsive.S.Tw == 3 &&
+                        HasColor(paint, BlockOuterRect(view, responsive), Color.FromArgb(124, 58, 237)),
+                        "responsive text decoration model and paint");
+                }
+            }
+            Console.WriteLine("Lea text decoration smoke passed: compact line/color/style/thickness aliases, atomic shorthand, lightweight paint, commands, hover, and resize.");
         }
 
         private static void DirectionOverflowSmoke(string path)

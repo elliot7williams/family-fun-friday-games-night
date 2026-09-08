@@ -220,6 +220,16 @@ namespace Lea.Engine
                 if (!E.Tsh(Expand(page, command.W ?? command.V), out shadow)) return false;
                 return SetStyle(target, "text-shadow", shadow);
             }
+            if (command.N == "td" || command.N == "tdl" || command.N == "tdc" || command.N == "tds" || command.N == "tdw")
+            {
+                var target = StyleTarget(page, command);
+                if (target == null) return false;
+                string decoration;
+                if (!E.Tdv(command.N, Expand(page, command.W ?? command.V), out decoration)) return false;
+                var property = command.N == "td" ? "text-decoration" : command.N == "tdl" ? "text-decoration-line" : command.N == "tdc" ? "text-decoration-color" :
+                    command.N == "tds" ? "text-decoration-style" : "text-decoration-thickness";
+                return SetStyle(target, property, decoration);
+            }
             var boxProperty = LogicalBoxProperty(command.N);
             if (boxProperty != null)
             {
@@ -336,6 +346,11 @@ namespace Lea.Engine
             if (member == "style.direction") return new Cm("dr", id, value);
             if (member == "style.textindent") return new Cm("ti", id, value);
             if (member == "style.textshadow") return new Cm("ts", id, value);
+            if (member == "style.textdecoration") return new Cm("td", id, value);
+            if (member == "style.textdecorationline") return new Cm("tdl", id, value);
+            if (member == "style.textdecorationcolor") return new Cm("tdc", id, value);
+            if (member == "style.textdecorationstyle") return new Cm("tds", id, value);
+            if (member == "style.textdecorationthickness") return new Cm("tdw", id, value);
             var logicalBox = member.StartsWith("style.", StringComparison.Ordinal) ? LogicalBoxCommand(member.Substring(6)) : null;
             if (logicalBox != null) return new Cm(logicalBox, id, value);
             var logicalBorder = member.StartsWith("style.", StringComparison.Ordinal) ? LogicalBorderCommand(member.Substring(6)) : null;
@@ -355,6 +370,11 @@ namespace Lea.Engine
             if (count == 1 && (name == "dr" || name == "direction")) return new Cm("dr", first);
             if (count == 1 && (name == "ti" || name == "textindent")) return new Cm("ti", first);
             if (count == 1 && (name == "ts" || name == "textshadow")) return new Cm("ts", first);
+            if (count == 1 && (name == "td" || name == "textdecoration")) return new Cm("td", first);
+            if (count == 1 && (name == "tdl" || name == "textdecorationline")) return new Cm("tdl", first);
+            if (count == 1 && (name == "tdc" || name == "textdecorationcolor")) return new Cm("tdc", first);
+            if (count == 1 && (name == "tds" || name == "textdecorationstyle")) return new Cm("tds", first);
+            if (count == 1 && (name == "tdw" || name == "textdecorationthickness")) return new Cm("tdw", first);
             if (count == 1 && name == "go") return new Cm("go", first);
             if (count == 1 && (name == "location.assign" || name == "window.location.assign" || name == "document.location.assign")) return new Cm("go", first);
             if (count == 1 && (name == "hd" || name == "hide")) return new Cm("hd", first);
@@ -379,6 +399,11 @@ namespace Lea.Engine
             if (count == 2 && (name == "dr" || name == "direction")) return new Cm("dr", first, second);
             if (count == 2 && (name == "ti" || name == "textindent")) return new Cm("ti", first, second);
             if (count == 2 && (name == "ts" || name == "textshadow")) return new Cm("ts", first, second);
+            if (count == 2 && (name == "td" || name == "textdecoration")) return new Cm("td", first, second);
+            if (count == 2 && (name == "tdl" || name == "textdecorationline")) return new Cm("tdl", first, second);
+            if (count == 2 && (name == "tdc" || name == "textdecorationcolor")) return new Cm("tdc", first, second);
+            if (count == 2 && (name == "tds" || name == "textdecorationstyle")) return new Cm("tds", first, second);
+            if (count == 2 && (name == "tdw" || name == "textdecorationthickness")) return new Cm("tdw", first, second);
             var logicalBox = LogicalBoxCommand(name);
             if (count == 2 && logicalBox != null) return new Cm(logicalBox, first, second);
             var logicalBorder = LogicalBorderCommand(name);
@@ -400,6 +425,11 @@ namespace Lea.Engine
             if (name == "document.body.style.direction") return new Cm("dr", value);
             if (name == "document.body.style.textindent") return new Cm("ti", value);
             if (name == "document.body.style.textshadow") return new Cm("ts", value);
+            if (name == "document.body.style.textdecoration") return new Cm("td", value);
+            if (name == "document.body.style.textdecorationline") return new Cm("tdl", value);
+            if (name == "document.body.style.textdecorationcolor") return new Cm("tdc", value);
+            if (name == "document.body.style.textdecorationstyle") return new Cm("tds", value);
+            if (name == "document.body.style.textdecorationthickness") return new Cm("tdw", value);
             if (name == "location" || name == "window.location" || name == "document.location" ||
                 name == "location.href" || name == "window.location.href" || name == "document.location.href") return new Cm("go", value);
             return null;

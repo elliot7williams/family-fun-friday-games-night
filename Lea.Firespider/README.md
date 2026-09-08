@@ -564,6 +564,14 @@ rebuilds. Firespider adds no adapter state or extra controls, and Lea keeps the
 same layout, hit, find, focus, and accessibility geometry. See
 `LeaForge/TEXT_SHADOW.md`.
 
+Hosted text exposes bounded inherited decoration line/color/style/thickness
+through `S.Td/Tc/Tds/Tw`. The compiled host checks atomic shorthand, longhand
+component preservation, compact `td/tdl/tdc/tds/tdw`, literal
+`style.textDecoration*`, exact custom-color paint, and narrow/wide responsive
+rebuilds. Current-color solid lines retain Lea's native-font fast path; custom
+double/dotted/dashed/wavy lines add no Firespider controls or adapter state. See
+`LeaForge/TEXT_DECORATION.md`.
+
 Hosted block text supports non-inherited `S.To=c/e` clip/ellipsis overflow.
 The compiled smoke checks LTR/RTL physical inline-end markers, right-aligned RTL
 prefix paint, original elided link hits, direction-aware TextPattern range and

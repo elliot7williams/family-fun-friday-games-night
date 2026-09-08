@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Text Decoration</title>
+  <style>
+    :root { --lea-decoration: underline dashed #a13b18 3px; }
+    body { margin: 24px; color: #172033; background: #ffffff; font-family: "Segoe UI", sans-serif; }
+    .sample { width: 300px; margin: 10px 0; padding: 8px 16px; background: #f8fafc; font-size: 26px; }
+    #plain { text-decoration: none; }
+    #solid { text-decoration: underline solid #dc2626 2px; }
+    #double { text-decoration: underline double #2563eb 2px; }
+    #dotted { text-decoration: line-through dotted #0f766e 2px; }
+    #wavy { text-decoration: underline line-through wavy #7c3aed 2px; }
+    #longhand { text-decoration-line: underline; text-decoration-color: #b91c1c; text-decoration-style: dashed; text-decoration-thickness: 3px; }
+    #inherit-parent { text-decoration: underline dashed #a13b18 3px; }
+    #reset { text-decoration: underline wavy red 4px; text-decoration: initial; }
+    #invalid { text-decoration: underline dotted #176b4d 2px; text-decoration: underline overline red; text-decoration-color: none; text-decoration-style: zigzag; text-decoration-thickness: 9px; }
+    #variable { text-decoration: var(--lea-decoration); }
+    #important { text-decoration: underline double #2563eb 2px !important; }
+    #inline { text-decoration: underline dashed #dc2626 2px; }
+    #inline span { text-decoration-line: none; }
+    #wrapped { width: 170px; text-decoration: underline dotted #0f766e 2px; }
+    #cell { text-decoration: line-through dashed #b91c1c 2px; }
+    #link { color: #111827; text-decoration: underline wavy #7c3aed 2px; }
+    #field { width: 250px; height: 40px; text-decoration: underline solid #dc2626 2px; }
+    #dynamic { text-decoration: underline solid #64748b 1px; }
+    #dynamic:hover { text-decoration: underline wavy #dc2626 3px; }
+    #responsive { text-decoration: underline dotted #64748b 1px; }
+    #command { text-decoration: none; }
+    @media (max-width: 420px) {
+      #responsive { text-decoration: line-through double #7c3aed 3px; }
+    }
+  </style>
+</head>
+<body>
+  <p id="plain" class="sample">Plain comparison</p>
+  <p id="solid" class="sample">Solid red underline</p>
+  <p id="double" class="sample">Double blue underline</p>
+  <p id="dotted" class="sample">Dotted teal strike</p>
+  <p id="wavy" class="sample">Wavy purple both</p>
+  <p id="longhand" class="sample">Longhand decoration</p>
+  <section id="inherit-parent"><p id="inherited" class="sample">Inherited brown line</p></section>
+  <p id="reset" class="sample">Reset has no line</p>
+  <p id="invalid" class="sample">Invalid keeps green</p>
+  <p id="variable" class="sample">Variable decoration</p>
+  <p id="important" class="sample" style="text-decoration:line-through red">Important blue line</p>
+  <p id="inline" class="sample">Decorated parent <span>plain child</span></p>
+  <p id="wrapped" class="sample">Wrapped decoration follows every retained visual line</p>
+  <table><tr><td id="cell" class="sample">Decorated table cell</td></tr></table>
+  <p class="sample"><a id="link" href="#command">Decorated link</a></p>
+  <input id="field" value="Decorated field text">
+  <p id="dynamic" class="sample">Dynamic hover line</p>
+  <p id="responsive" class="sample">Responsive decoration</p>
+  <p id="command" class="sample">Command decoration</p>
+  <button id="set-short" data-lea="td('command','underline dotted #dc2626 2px')">Set short</button>
+  <button id="set-parts" data-lea="tdc('command','#2563eb');tds('command','double');tdw('command','3px')">Set parts</button>
+  <button id="set-dom" data-lea="document.getElementById('command').style.textDecoration='line-through dashed #176b4d 2px'">Set DOM</button>
+  <button id="clear-dom" data-lea="document.getElementById('command').style.textDecoration=''">Clear DOM</button>
+</body>
+</html>

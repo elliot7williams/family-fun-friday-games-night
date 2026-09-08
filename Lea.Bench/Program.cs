@@ -112,7 +112,7 @@ namespace Lea.Bench
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
                 "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html", "svg.html", "svg-geometry.html", "svg-gradients.html", "svg-use-clips.html", "svg-strokes.html",
-                "box-sizing.html", "border-radius.html", "logical-radii.html", "box-shadows.html", "background-gradients.html", "background-images.html", "object-fit.html", "aspect-ratio.html", "outlines.html", "pointer-interaction.html", "text-transform.html", "text-spacing.html", "text-indent.html", "text-shadow.html", "text-overflow.html"
+                "box-sizing.html", "border-radius.html", "logical-radii.html", "box-shadows.html", "background-gradients.html", "background-images.html", "object-fit.html", "aspect-ratio.html", "outlines.html", "pointer-interaction.html", "text-transform.html", "text-spacing.html", "text-indent.html", "text-decoration.html", "text-shadow.html", "text-overflow.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -1388,6 +1388,58 @@ namespace Lea.Bench
                     }
                 }
                 return "S.Ti/Tip inherited signed pixel/percentage aliases, strict reset/bounds, variables/priority, LTR/RTL first-line wrap geometry, ti/DOM commands, hover, paint, and resize";
+            });
+            AddProbe(probes, "Bounded text decoration", delegate
+            {
+                var path = Path.Combine(folder, "text-decoration.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(block("solid").S.Td == "u" && block("solid").S.Tc == "#dc2626" && block("solid").S.Tds == "" && block("solid").S.Tw == 2 &&
+                    block("double").S.Tds == "d" && block("dotted").S.Td == "s" && block("dotted").S.Tds == "o" && block("wavy").S.Td == "us" && block("wavy").S.Tds == "w",
+                    "text decoration aliases changed");
+                Need(block("longhand").S.Tc == "#b91c1c" && block("longhand").S.Tds == "a" && block("longhand").S.Tw == 3 &&
+                    block("inherited").S.Tc == "#a13b18" && block("reset").S.Td == "n" && block("invalid").S.Tds == "o" &&
+                    block("variable").S.Tw == 3 && block("important").S.Tds == "d",
+                    "text decoration cascade or bounds changed");
+                Need(engine.Ck(page, ById(page.D, "set-short")) == 1 && block("command").S.Td == "u" && block("command").S.Tds == "o" &&
+                    engine.Ck(page, ById(page.D, "set-parts")) == 3 && block("command").S.Tc == "#2563eb" && block("command").S.Tw == 3 &&
+                    engine.Js(page, "tdl('command','line-through')") == 1 && block("command").S.Td == "s" && block("command").S.Tc == "#2563eb" && block("command").S.Tds == "d" && block("command").S.Tw == 3 &&
+                    engine.Ck(page, ById(page.D, "set-dom")) == 1 && block("command").S.Td == "s" && block("command").S.Tds == "a",
+                    "text decoration command routes changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 4300);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        Need(BlockContent(view, "plain").Size == BlockContent(view, "solid").Size, "text decoration changed layout geometry");
+                        Need(HasColor(image, BlockOuter(view, "solid"), Color.FromArgb(220, 38, 38)) &&
+                            HasColor(image, BlockOuter(view, "double"), Color.FromArgb(37, 99, 235)) &&
+                            HasColor(image, BlockOuter(view, "dotted"), Color.FromArgb(15, 118, 110)) &&
+                            HasColor(image, BlockOuter(view, "wavy"), Color.FromArgb(124, 58, 237)) &&
+                            HasColor(image, BlockContent(view, "field"), Color.FromArgb(220, 38, 38)),
+                            "text decoration block or field paint changed");
+                    }
+                    Move(view, BlockOuter(view, "dynamic"));
+                    using (var image = Draw(view))
+                        Need(view.At.Bs.First(item => item.El != null && item.El.Av("id") == "dynamic").S.Tds == "w" &&
+                            HasColor(image, BlockOuter(view, "dynamic"), Color.FromArgb(220, 38, 38)),
+                            "text decoration hover changed");
+                    Need(view.Js("td('command','underline dotted #dc2626 2px')") == 1, "text decoration compact command changed");
+                    using (var image = Draw(view))
+                        Need(HasColor(image, BlockOuter(view, "command"), Color.FromArgb(220, 38, 38)),
+                            "text decoration command paint changed");
+                    view.Size = new Size(350, 4700);
+                    using (var image = Draw(view))
+                    {
+                        var responsive = view.At.Bs.First(item => item.El != null && item.El.Av("id") == "responsive");
+                        Need(responsive.S.Td == "s" && responsive.S.Tc == "#7c3aed" && responsive.S.Tds == "d" && responsive.S.Tw == 3 &&
+                            HasColor(image, BlockOuter(view, "responsive"), Color.FromArgb(124, 58, 237)),
+                            "text decoration responsive state changed");
+                    }
+                }
+                return "S.Td/Tc/Tds/Tw compact aliases, bounded atomic shorthand and longhands, solid/double/dotted/dashed/wavy underline/strike paint, inheritance/reset, variables/priority, td/tdl/tdc/tds/tdw and DOM commands, stable geometry, hover, and resize";
             });
             AddProbe(probes, "Bounded text shadow", delegate
             {
@@ -3147,12 +3199,12 @@ namespace Lea.Bench
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, direction-aware ordered/unordered lists and disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, inherited horizontal LTR/RTL direction, fixed/percentage/calc dimensions and classic vw/vh/vmin/vmax plus bounded em/rem units, two/three-term min/max and three-term clamp size functions, content/border box, circular/elliptical radii, bounded outlines, box shadows, one inherited bounded text-shadow layer, and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing, signed pixel/percentage first-line indentation, and text styles, visibility, absolute/fixed and bounded vertical sticky positioning, transforms, responsive image sizing, direction-aware row/column flex, and direction-aware bounded two-axis grid");
-            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/box-shadows/gradients, bounded offset and lightweight blurred text shadows, direction-aware source-stable inline atoms, markers, first-line indentation, and paint-only ellipsis geometry, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
+            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, inherited horizontal LTR/RTL direction, fixed/percentage/calc dimensions and classic vw/vh/vmin/vmax plus bounded em/rem units, two/three-term min/max and three-term clamp size functions, content/border box, circular/elliptical radii, bounded outlines, box shadows, one inherited bounded text-shadow layer, bounded text-decoration line/color/style/thickness, and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing, signed pixel/percentage first-line indentation, and text styles, visibility, absolute/fixed and bounded vertical sticky positioning, transforms, responsive image sizing, direction-aware row/column flex, and direction-aware bounded two-axis grid");
+            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/box-shadows/gradients, bounded offset and lightweight blurred text shadows, native fast-path plus lightweight solid/double/dotted/dashed/wavy text decorations, direction-aware source-stable inline atoms, markers, first-line indentation, and paint-only ellipsis geometry, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Text overflow", "Supported subset", "Non-inherited clip/ellipsis with bounded LTR/RTL physical inline-end markers and grapheme-safe paint-only authored prefixes for inline runs and tables; retained layout/link targets, full logical automation text, and direction-aware partial range geometry; no native-control, Unicode bidi shaping, custom-marker, or line-clamp additions");
-            Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color, font, display, width, height, direction, text indent, and text shadow, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, safe click commands, and literal compatibility translation");
-            Capability(builder, "Literal DOM bridge", "Supported subset", "Literal document.getElementById IDs with textContent/innerText, value, checked/disabled/hidden/open, focus(), classList add/remove/toggle, and background/color/fontSize/display/width/height/direction/textIndent/textShadow; literal location href/assign requests; mapped to bounded Lea aliases");
+            Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color, font, display, width, height, direction, text indent, text decoration, and text shadow, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, safe click commands, and literal compatibility translation");
+            Capability(builder, "Literal DOM bridge", "Supported subset", "Literal document.getElementById IDs with textContent/innerText, value, checked/disabled/hidden/open, focus(), classList add/remove/toggle, and background/color/fontSize/display/width/height/direction/textIndent/textDecoration/textDecorationLine/textDecorationColor/textDecorationStyle/textDecorationThickness/textShadow; literal location href/assign requests; mapped to bounded Lea aliases");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
             Capability(builder, "Flexbox", "Supported subset", "Row/row-reverse and fixed-height column/column-reverse containers, content/border-box pixel bases, stable -64..64 order on nowrap rows and bounded columns, bounded row wrap, fixed/equal-share/weighted grow and integer weighted-shrink slots, explicit pixel min/max floors, pixel row/column gaps, start/center/end/space-between/space-around/space-evenly justification, and container/item stretch/start/center/end cross alignment; no intrinsic min-content sizing, fractional factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis alignment, or auto-height column reordering guarantee");
             Capability(builder, "CSS Grid", "Supported subset", "Grid/inline-grid with up to eight fixed-pixel, auto, or integer-fr tracks per explicit axis, simple repeat and minmax(0, Nfr), pixel gaps, bounded occupancy, two-axis numeric starts/spans, validated 8x8 named-area templates, unique explicit named lines, area-generated start/end lines, Gf row/column sparse/dense flow, repeating S.Av/Gac/Gav/Rac/Rav pixel/auto/integer-fr implicit patterns, definite endpoint/span growth, area-created track sizing, exact auto-height row settlement, atomic grid-template/grid explicit, quoted-area, and row/column auto-flow shorthands, Ji/Js/Ai/As start/center/end/stretch item alignment, atomic place-items/place-self, Al/Jc start/center/end/between/around/evenly track-group alignment, atomic place-content, and shared nested paint/hit/reflow; no escaped or repeated-name occurrence indexes, reverse flow, pre-explicit implicit tracks, shorthand area-row line names, intrinsic or percentage tracks, auto-fit/fill, baseline or safe/unsafe alignment, writing-mode axis reversal, or subgrid");

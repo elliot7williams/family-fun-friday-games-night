@@ -115,6 +115,9 @@ paint, and responsive resize.
 `--text-shadow` isolates one inherited bounded text-shadow layer, compact and
 literal command routes, resets/invalid preservation, block/field paint, stable
 geometry, hover, and responsive resize.
+`--text-decoration` isolates bounded inherited line/color/style/thickness,
+atomic shorthand and component commands, invalid preservation, native/custom
+paint, wrapping, tables, links, fields, hover, and responsive resize.
 `--sheets` isolates native named CSS, byte/rule limits, retained data,
 painting, and editor font/selection/undo. It is included in `--core`.
 These test modes do not retry or suppress failed assertions. Windows

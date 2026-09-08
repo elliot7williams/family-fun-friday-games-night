@@ -68,7 +68,7 @@ Dg/Dcl  diagnostics/clear request activity
 2. Implement the cascade and inheritance with a small priority model. (First specificity/source-order cascade added.)
    (`link rel=stylesheet` and inline `style` blocks now enter that source order
    together; linked CSS uses cookies, compression, validators, and shared LRU caching.)
-3. Add colors, fonts, spacing, borders, width, height, display, visibility, opacity, and overflow. (Colors, fallback font families, underline/strike decorations, margins, padding, backgrounds, `display:none`, inherited visibility, bounded opacity, borders, non-inherited content/border-box pixel sizing, pixel width/height bounds, text alignment, transformation, signed letter/word spacing, signed pixel/percentage first-line indentation, one inherited bounded text-shadow layer, line height, word breaking, white-space modes, and clipped overflow are active.)
+3. Add colors, fonts, spacing, borders, width, height, display, visibility, opacity, and overflow. (Colors, fallback font families, bounded underline/strike color/style/thickness, margins, padding, backgrounds, `display:none`, inherited visibility, bounded opacity, borders, non-inherited content/border-box pixel sizing, pixel width/height bounds, text alignment, transformation, signed letter/word spacing, signed pixel/percentage first-line indentation, one inherited bounded text-shadow layer, line height, word breaking, white-space modes, and clipped overflow are active.)
 4. Replace one-WinForms-control-per-node rendering with lightweight layout boxes. (Reusable `Bx` layout pass added.)
 5. Paint text, backgrounds, borders, links, controls, and images onto one surface. (Text, nested bold/italic inline runs, backgrounds, solid/dashed/dotted borders, links, images, and basic form controls are active.)
 6. Add scrolling and hit testing from layout boxes. (Visible-box painting and bounded vertical scrolling added.)
@@ -346,17 +346,19 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 94 adds one bounded inherited CSS `text-shadow` layer through compact
-nullable `S.Ts`, reused `Sw.X/Y/B/C` fields, and the defining `ts` command.
-Signed integer offsets, optional blur/color, CSS-wide values, variables,
-important tiers, inline overrides, hover, responsive rebuilds, readable
-commands, and literal DOM assignments share existing paths. Painting adds no
-per-sample arrays and does not change layout, hits, find, focus, or accessibility
-geometry. See `TEXT_SHADOW.md`. Next investigate the native-safe visible-range
-boundary and another bounded text compatibility slice while keeping multiple
-text shadows, exact Gaussian filters, vertical writing modes, full Unicode bidi
-shaping, `dir=auto`, custom overflow markers, and general CSS/JavaScript
-evaluators outside the current boundary.
+Milestone 95 adds bounded inherited CSS text-decoration line, color, style, and
+thickness through scalar `S.Td/Tc/Tds/Tw` state and defining
+`td/tdl/tdc/tds/tdw` commands. Atomic shorthand and longhands, CSS-wide values,
+variables, important tiers, inline overrides, hover, responsive rebuilds,
+readable commands, and literal DOM assignments share existing paths. Native
+current-color solid lines retain the font fast path; custom solid, double,
+dotted, dashed, and wavy paint adds no point-list allocation and does not change
+outer layout, hits, find, focus, or accessibility geometry. See
+`TEXT_DECORATION.md`. Next investigate the native-safe visible-range boundary
+and another bounded text or HTML compatibility slice while keeping overline,
+skip-ink/offset controls, exact glyph metrics, vertical writing modes, full
+Unicode bidi shaping, `dir=auto`, and general CSS/JavaScript evaluators outside
+the current boundary.
 
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host
@@ -907,8 +909,11 @@ the original one-box path; only requested text flow enters the word-line pass.
 
 `S.Ff` stores a bounded, compact font fallback list with generic aliases, and
 `V` caches up to 32 resolved Windows families. `S.Td` uses `n/u/s/us` for none,
-underline, strike, or both. CSS `text-decoration`/`text-decoration-line`, plain
-link overrides, and native `u/s/strike/del` tags share the same paint path.
+underline, strike, or both; `S.Tc/Tds/Tw` add optional color,
+solid/double/dotted/dashed/wavy style, and bounded integer thickness. CSS
+`text-decoration` plus its line/color/style/thickness longhands, compact
+`td/tdl/tdc/tds/tdw`, plain link overrides, and native `u/s/strike/del` tags
+share native solid or lightweight custom paint paths.
 
 Inherited `S.Tt=n/u/l/c` stores bounded none, uppercase, lowercase, or
 capitalize presentation state. One invariant `E.Tx` helper transforms block,
