@@ -17,20 +17,19 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 92 adds combined host/helper image-memory admission without widening
-the codec protocol. After the hardened AppContainer handshake and before
-payload transfer, Lea samples host private bytes, helper private bytes, and the
-Job lifetime peak, then adds the structural reservation with saturating
-arithmetic. `Icl/Ihm/Icm/Iad` keep the public surface compact. A deterministic
-over-limit test proves zero native payload admissions, reservation cleanup, and
-exact helper termination. The full default/core suites, compiled host, all 42
-Boot cases, all six actual EXE startup scenarios, and all 88 benchmark probes
-over 83 fixtures pass. Canonical medians are 515.731 ms clean start, 3.652 ms
-local load, and 36.048 ms layout/paint; retained memory is 52.9 KiB/page and the
-required runtime is 565.0 KiB. Runtime 192 remains isolated, and installed
-runtime 157 is unchanged. See `IMAGE_ISOLATION.md`. Continue the native-safe
-visible-range investigation without adding a browser runtime or general script
-VM.
+Milestone 93 adds bounded inherited `text-indent` with compact `S.Ti/Tip` and
+`ti` aliases. Signed integer pixels and percentages feed direction-aware LTR/RTL
+first-line wrapping while later lines retain full width; the compiled cascade,
+paint, hits, find, focus, accessibility, hover, responsive rebuilds, readable
+commands, and literal DOM assignments share existing paths. The full
+default/core suites, compiled host, all 42 Boot cases, all six actual EXE startup
+scenarios, and all 89 benchmark probes over 84 fixtures pass. Canonical medians
+are 498.029 ms clean start, 3.635 ms local load, and 35.871 ms layout/paint;
+retained memory is 53.0 KiB/page and the required runtime is 567.0 KiB. Runtime
+193 remains isolated, and installed runtime 157 is unchanged. See
+`TEXT_INDENT.md`. The latest non-empty UIA visible-range identity/lifetime test
+still failed in external .NET and .NET Framework clients, so Lea retains its
+stable empty fallback while that native boundary remains open.
 
 Milestone 60 installs the existing `V.Ng` hook on main Lea tabs, enforcing host
 rules, offline/locked state, and live ownership. Denied resume retains its

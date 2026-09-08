@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Text Indent</title>
+  <style>
+    :root { --lea-indent: 26px; }
+    body { margin: 24px; color: #172033; background: #ffffff; font-family: "Segoe UI", sans-serif; }
+    .sample { width: 240px; margin: 6px 0; padding: 5px 24px; border: 1px solid #94a3b8; background: #f8fafc; text-align: left; }
+    #plain { text-indent: 0; }
+    #pixel { text-indent: 32px; }
+    #percent { text-indent: 25%; }
+    #negative { text-indent: -18px; }
+    #rtl { direction: rtl; text-indent: 30px; text-align: start; }
+    #inherit-parent { text-indent: 22px; }
+    #unset-parent { text-indent: 20%; }
+    #unset { text-indent: 50px; text-indent: unset; }
+    #initial { text-indent: 44px; text-indent: initial; }
+    #invalid { text-indent: 16px; text-indent: 2001px; text-indent: 101%; text-indent: hanging; }
+    #variable { text-indent: var(--lea-indent); }
+    #important { text-indent: 38px !important; }
+    #wrap { width: 150px; text-indent: 46px; }
+    #dynamic { text-indent: 8px; }
+    #dynamic:hover { text-indent: 40px; }
+    #responsive { text-indent: 12px; }
+    #command { text-indent: 0; }
+    @media (max-width: 420px) {
+      #responsive { text-indent: 30%; }
+    }
+  </style>
+</head>
+<body>
+  <p id="plain" class="sample">Plain first line stays at the content edge.</p>
+  <p id="pixel" class="sample">Pixel first line begins farther inside.</p>
+  <p id="percent" class="sample">Percent first line uses the content width.</p>
+  <p id="negative" class="sample">Negative first line reaches into the padding.</p>
+  <p id="rtl" class="sample">RTL first line starts inward from the right edge.</p>
+  <section id="inherit-parent"><p id="inherited" class="sample">Inherited indent reaches this child block.</p></section>
+  <section id="unset-parent"><p id="unset" class="sample">Unset keeps the inherited percentage indent.</p></section>
+  <p id="initial" class="sample">Initial resets the indentation.</p>
+  <p id="invalid" class="sample">Invalid and over-limit values preserve the valid indent.</p>
+  <p id="variable" class="sample">Variable indentation participates in the cascade.</p>
+  <p id="important" class="sample" style="text-indent:0">Important indentation wins over inline normal priority.</p>
+  <p id="wrap" class="sample">FirstLine narrows enough to wrap while SecondLine returns to the normal content edge.</p>
+  <p id="dynamic" class="sample">Dynamic indentation changes on hover.</p>
+  <p id="responsive" class="sample">Responsive indentation changes after a narrow resize.</p>
+  <p id="command" class="sample">Command indentation can be changed safely.</p>
+  <button id="set-short" data-lea="ti('command','36px')">Set short</button>
+  <button id="set-dom" data-lea="document.getElementById('command').style.textIndent='20%'">Set DOM</button>
+  <button id="clear-dom" data-lea="document.getElementById('command').style.textIndent=''">Clear DOM</button>
+</body>
+</html>

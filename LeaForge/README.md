@@ -66,6 +66,9 @@ LeaForge is where we can grow the more full-featured browser.
   shared `E.Tx`, with inline/control presentation and raw DOM/form preservation
 - inherited signed pixel letter/word spacing through compact `S.Ls/Wg`, with
   shared wrapping, inline boundaries, control paint, and retained geometry
+- inherited signed pixel/percentage first-line indentation through compact
+  `S.Ti/Tip`, with bounded `ti` commands, LTR/RTL wrapping, and retained
+  paint/hit/accessibility geometry; see `TEXT_INDENT.md`
 - non-inherited clip/ellipsis text overflow through compact `S.To=c/e`, with
   bounded LTR/RTL physical inline-end markers, grapheme-safe paint-only
   prefixes, retained link targets, and authored automation text

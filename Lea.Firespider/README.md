@@ -549,6 +549,14 @@ identity through narrow/wide rebuilds. Layout and paint remain Lea-owned;
 Firespider adds no text-spacing calculations or additional native controls.
 Focused native editors and choice popups keep Windows' native text spacing.
 
+Hosted block text now exposes inherited `S.Ti/Tip` first-line indentation. The
+compiled host checks positive pixel LTR and RTL inline-start geometry, responsive
+percentage resolution, compact `ti` calls, literal `style.textIndent`, and wide
+state restoration. Firespider adds no adapter-side text measurements: Lea's
+retained layout continues to drive paint, hits, find, focus, and accessibility.
+Signed pixels are bounded to -2000..2000 and percentages to -100..100; see
+`LeaForge/TEXT_INDENT.md`.
+
 Hosted block text supports non-inherited `S.To=c/e` clip/ellipsis overflow.
 The compiled smoke checks LTR/RTL physical inline-end markers, right-aligned RTL
 prefix paint, original elided link hits, direction-aware TextPattern range and

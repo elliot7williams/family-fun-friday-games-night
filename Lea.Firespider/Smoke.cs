@@ -51,6 +51,8 @@ namespace Lea.Firespider
                     .Replace("</body>", "<p id='host-transform' class='host-transform'>Host <span>MiXeD TEXT</span></p><input id='host-transform-field' class='host-transform-field' name='host-transform-field' value='Host Field MiXeD'><p id='host-transform-responsive' class='host-transform-responsive'>Responsive Host MiXeD</p></body>")
                     .Replace("</style>", ".host-spacing-normal,.host-spacing-wide{width:240px;text-align:left}.host-spacing-normal{letter-spacing:0;word-spacing:0}.host-spacing-wide{letter-spacing:4px;word-spacing:9px}.host-spacing-field{width:220px;height:32px;letter-spacing:2px;word-spacing:6px}.host-spacing-responsive{letter-spacing:5px;word-spacing:10px}@media screen and (max-width:500px){.host-spacing-responsive{letter-spacing:-1px;word-spacing:0}}</style>")
                     .Replace("</body>", "<p id='host-spacing-normal' class='host-spacing-normal'>Host spacing words</p><p id='host-spacing-wide' class='host-spacing-wide'>Host spacing words</p><input id='host-spacing-field' class='host-spacing-field' name='host-spacing-field' value='Host raw words'><p id='host-spacing-responsive' class='host-spacing-responsive'>Responsive host spacing</p></body>")
+                    .Replace("</style>", ".host-indent,.host-indent-rtl,.host-indent-responsive{width:240px;padding:0 20px;text-align:left}.host-indent{text-indent:28px}.host-indent-rtl{direction:rtl;text-align:start;text-indent:24px}.host-indent-responsive{text-indent:12px}@media screen and (max-width:500px){.host-indent-responsive{text-indent:30%}}</style>")
+                    .Replace("</body>", "<p id='host-indent' class='host-indent'>HostIndent uses compact first line geometry</p><p id='host-indent-rtl' class='host-indent-rtl'>HostRTL uses inline start indentation</p><p id='host-indent-responsive' class='host-indent-responsive'>HostResponsive changes indentation on resize</p></body>")
                     .Replace("</style>", ".host-overflow{width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.host-overflow-responsive{text-overflow:clip}@media screen and (max-width:500px){.host-overflow-responsive{text-overflow:ellipsis}}</style>")
                     .Replace("</body>", "<p id='host-overflow' class='host-overflow'>Host overflow keeps this entire authored sentence</p><p id='host-overflow-responsive' class='host-overflow host-overflow-responsive'>Responsive host overflow keeps its full text</p></body>")
                     .Replace(".host-flex{display:flex;width:300px;height:60px;gap:8px;justify-content:space-between;align-items:center}", ".host-flex{display:flex;width:300px;height:60px;flex-wrap:wrap;gap:6px 8px;justify-content:space-between;align-items:center}")
@@ -291,6 +293,20 @@ namespace Lea.Firespider
                         InlineBounds(host, "host-spacing-wide").Width > InlineBounds(host, "host-spacing-normal").Width,
                         "Firespider bounded text spacing aliases, retained metrics, and raw control state");
                     hostSpacingField.V = "Retained host raw words";
+                    var hostIndent = BlockById(host.At, "host-indent");
+                    var hostIndentRtl = BlockById(host.At, "host-indent-rtl");
+                    Check(hostIndent.S.Ti == 28 && !hostIndent.S.Tip &&
+                        InlineTextRect(host, hostIndent, "HostIndent").Left == BlockContent(host, "host-indent").Left + 28 &&
+                        hostIndentRtl.S.Dr == "r" && hostIndentRtl.S.Ti == 24 &&
+                        InlineTextRect(host, hostIndentRtl, "HostRTL").Right == BlockContent(host, "host-indent-rtl").Right - 24,
+                        "Firespider bounded LTR and RTL text indent geometry");
+                    Check(host.Js("ti('host-indent','36px')") == 1 &&
+                        InlineTextRect(host, BlockById(host.At, "host-indent"), "HostIndent").Left == BlockContent(host, "host-indent").Left + 36,
+                        "Firespider compact text indent command");
+                    Check(host.Js("document.getElementById('host-indent').style.textIndent='20%'") == 1 &&
+                        BlockById(host.At, "host-indent").S.Tip && InlineTextRect(host, BlockById(host.At, "host-indent"), "HostIndent").Left ==
+                        BlockContent(host, "host-indent").Left + BlockContent(host, "host-indent").Width / 5,
+                        "Firespider literal DOM text indent command");
                     Check(BlockById(host.At, "host-overflow").S.To == "e" && EllipsisCount(host, "host-overflow") == 1 &&
                         EllipsisCount(host, "host-overflow-responsive") == 0 && host.At.X.Contains("Host overflow keeps this entire authored sentence"),
                         "Firespider text overflow alias, painted marker, and authored text");
@@ -619,6 +635,11 @@ namespace Lea.Firespider
                     Check(BlockById(host.At, "host-spacing-responsive").S.Ls == -1 && BlockById(host.At, "host-spacing-responsive").S.Wg == 0 &&
                         Object.ReferenceEquals(hostSpacingField, FieldById(host.At, "host-spacing-field")) && hostSpacingField.V == "Retained host raw words",
                         "Firespider responsive text spacing and raw field retention");
+                    var hostIndentResponsive = BlockById(host.At, "host-indent-responsive");
+                    Check(hostIndentResponsive.S.Ti == 30 && hostIndentResponsive.S.Tip &&
+                        InlineTextRect(host, hostIndentResponsive, "HostResponsive").Left == BlockContent(host, "host-indent-responsive").Left +
+                        (int)Math.Round(BlockContent(host, "host-indent-responsive").Width * 30 / 100D),
+                        "Firespider responsive percentage text indent");
                     Check(BlockById(host.At, "host-overflow-responsive").S.To == "e" && EllipsisCount(host, "host-overflow-responsive") == 1,
                         "Firespider narrow text overflow marker");
                     host.Size = new System.Drawing.Size(720, 560);
@@ -629,6 +650,10 @@ namespace Lea.Firespider
                         Object.ReferenceEquals(hostTransformField, FieldById(host.At, "host-transform-field")), "Firespider wide text transform restore");
                     Check(BlockById(host.At, "host-spacing-responsive").S.Ls == 5 && BlockById(host.At, "host-spacing-responsive").S.Wg == 10 &&
                         Object.ReferenceEquals(hostSpacingField, FieldById(host.At, "host-spacing-field")), "Firespider wide text spacing restore");
+                    hostIndentResponsive = BlockById(host.At, "host-indent-responsive");
+                    Check(hostIndentResponsive.S.Ti == 12 && !hostIndentResponsive.S.Tip &&
+                        InlineTextRect(host, hostIndentResponsive, "HostResponsive").Left == BlockContent(host, "host-indent-responsive").Left + 12,
+                        "Firespider wide text indent restore");
                     Check(BlockById(host.At, "host-overflow-responsive").S.To == "c" && EllipsisCount(host, "host-overflow-responsive") == 0,
                         "Firespider wide text overflow restore");
                     Check(BlockById(host.At, "host-progress").Vm.R == 0.4D && BlockById(host.At, "host-meter").Vm.R == 0.75D, "Firespider compact gauge models");
@@ -768,7 +793,7 @@ namespace Lea.Firespider
                     Check(host.Ck(ById(host.At.D, "host-value-update")) == 1 && ValueById(host.At, "host-output").V == "Updated host total", "Firespider output value rebuild");
                     Check(host.Ck(ById(host.At.D, "host-time-update")) == 1 && ValueById(host.At, "host-time").Dt == "2026-08-22", "Firespider time metadata rebuild");
                     var diagnostics = host.Dg();
-                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 81 && diagnostics.Rs.Count > 0, "Firespider Lea diagnostics");
+                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 83 && diagnostics.Rs.Count > 0, "Firespider Lea diagnostics");
                     var inspectorOpen = type.GetMethod("qleaInspectorOpen", BindingFlags.Instance | BindingFlags.NonPublic);
                     var inspectorSnapshot = type.GetMethod("qleaInspectorSnapshot", BindingFlags.Instance | BindingFlags.NonPublic);
                     var inspectorClear = type.GetMethod("qleaInspectorClear", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -948,7 +973,7 @@ namespace Lea.Firespider
                     Check(restoredTabs.TabCount == beforeMiddle - 1 && FindLea(restoredTabs) == null, "middle-click Lea tab close");
                 }
 
-                Console.WriteLine("Firespider CSS interaction and paint smoke passed: compact text-overflow, text-spacing, text-transform, pointer, outline, radius, shadow, gradient, bitmap-background, object-fit, and aspect-ratio aliases reached the compiled host.");
+                Console.WriteLine("Firespider CSS interaction and paint smoke passed: compact text-indent, text-overflow, text-spacing, text-transform, pointer, outline, radius, shadow, gradient, bitmap-background, object-fit, and aspect-ratio aliases reached the compiled host.");
                 Console.WriteLine("Firespider calculated height smoke passed: compact ht, literal style.height, definite parent resolution, shared host geometry, reset, and strict bounds.");
                 Console.WriteLine("Firespider viewport unit smoke passed: vw/vh/vmin/vmax, calc, compact commands, literal reset, live host geometry, and strict bounds.");
                 Console.WriteLine("Firespider font-relative unit smoke passed: em/rem, root font alias, compact commands, literal reset, shared host geometry, and strict bounds.");

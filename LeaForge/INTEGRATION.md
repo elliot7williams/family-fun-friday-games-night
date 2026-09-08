@@ -654,6 +654,16 @@ the first installed Windows family with a 32-entry bound. `S.Td` uses compact
 `n/u/s/us` decoration modes. Underline, line-through, native decoration tags,
 and explicit removal of a link underline all use the same `BoxFont` path.
 
+Inherited block indentation is available through `S.Ti/Tip`. `Ti` holds a
+signed -2000..2000 pixel or -100..100 percentage integer and `Tip` identifies
+the percentage form. The WinForms view resolves percentages against settled
+content width and adjusts only the first visual line from LTR or RTL
+inline-start; later lines retain full width. Paint, links, hits, find, focus,
+and accessibility reuse the settled rectangles. Hosts can call bounded
+`ti(value)` or `ti(id,value)`, use readable `textindent`, or send literal
+`style.textIndent` assignments without implementing layout themselves. See
+`TEXT_INDENT.md`.
+
 `E` and `V` expose the same cookie aliases: `Kc`, `Km`, `Kcl()`, and `Pv`.
 Cookies remain in memory and are bounded to 64 entries. Firespider maps its
 existing `pv` flag to each active Lea view, so private mode receives a fresh
@@ -739,7 +749,8 @@ provide the compact host bridge. Pages expose accepted-command count through
 `P.Jc` and bounded alert messages through `P.Ms`. The WinForms view raises `Al`
 for each new message and exposes it through `Am`; it never lets page code open a
 native dialog directly. Inline scripts may set the title, body background,
-foreground, and font size using `t/a/bg/fg/fs` or equivalent literal
+foreground, font size, direction, and text indentation using
+`t/a/bg/fg/fs/dr/ti` or equivalent literal
 `document.*` assignments and `alert(...)`. Two-argument `bg/fg/fs` forms safely
 scope those three styles to one bounded element ID, accept only existing
 hex/named-color or 8..96px values, reject metadata targets, and cap each inline
@@ -772,7 +783,7 @@ and 16 alerts.
 
 For easier migration, literal `document.getElementById("id")` statements map
 `textContent/innerText`, `value`, checked/disabled/hidden/open booleans,
-`focus()`, `classList.add/remove/toggle`, and background/color/font-size/display/width styles
+`focus()`, `classList.add/remove/toggle`, and background/color/font-size/display/width/direction/text-indent styles
 onto the existing compact commands. The adapter receives no DOM object and adds
 no evaluator. IDs and class names remain bounded literals, every mutation uses
 the normal validators and retained rebuild, and unsupported `innerHTML`,

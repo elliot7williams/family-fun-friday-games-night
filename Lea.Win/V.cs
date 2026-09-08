@@ -3122,17 +3122,19 @@ namespace Lea.Win
             var endedWithBreak = false;
             var space = block.S == null ? "" : block.S.Ws;
             var wrap = space != "nw" && space != "p";
+            var indent = CssTextIndent(block.S, width);
+            var firstWidth = Math.Max(1, width - indent);
 
             if (block.K == "li" || (block.K == "summary" && !String.IsNullOrEmpty(block.Mk)))
             {
                 var marker = String.IsNullOrEmpty(block.Mk) ? "-" : block.Mk;
-                AddInlineWord(graphics, lines, ref line, ref pending, InlineAtom(graphics, block.K, marker, null, block.S, block.K, block.El), width, baseHeight, wrap, block.S == null ? "" : block.S.Wb);
+                AddInlineWord(graphics, lines, ref line, ref pending, InlineAtom(graphics, block.K, marker, null, block.S, block.K, block.El), width, firstWidth, baseHeight, wrap, block.S == null ? "" : block.S.Wb);
                 pending = InlineAtom(graphics, block.K, " ", null, block.S, block.K, block.El);
             }
 
             if (block.Is.Count == 0)
             {
-                AddInlineText(graphics, lines, ref line, ref pending, block.K, block.X, block.U, block.S, block.K, block.El, width, baseHeight, space, wrap, ref endedWithBreak);
+                AddInlineText(graphics, lines, ref line, ref pending, block.K, block.X, block.U, block.S, block.K, block.El, width, firstWidth, baseHeight, space, wrap, ref endedWithBreak);
             }
             else
             {
@@ -3145,7 +3147,7 @@ namespace Lea.Win
                         endedWithBreak = true;
                         continue;
                     }
-                    AddInlineText(graphics, lines, ref line, ref pending, run.K, run.X, run.U, run.S, block.K, run.El, width, baseHeight, space, wrap, ref endedWithBreak);
+                    AddInlineText(graphics, lines, ref line, ref pending, run.K, run.X, run.U, run.S, block.K, run.El, width, firstWidth, baseHeight, space, wrap, ref endedWithBreak);
                 }
             }
 
@@ -3162,13 +3164,16 @@ namespace Lea.Win
                 var justify = align == "j" && lineIndex < lines.Count - 1 && !current.Br;
                 var spaces = 0;
                 if (justify) foreach (var atom in current.As) if (atom.X == " ") spaces++;
-                var stretch = spaces == 0 ? 0 : Math.Max(0, width - current.W);
+                var available = lineIndex == 0 ? firstWidth : width;
+                var offset = lineIndex == 0 && !rtl ? indent : 0;
+                var stretch = spaces == 0 ? 0 : Math.Max(0, available - current.W);
                 var each = spaces == 0 ? 0 : stretch / spaces;
                 var remainder = spaces == 0 ? 0 : stretch % spaces;
                 var lineWidth = current.W + (justify ? stretch : 0);
                 var rightAligned = align == "r" || rtl && (align.Length == 0 || align == "j");
-                var lineLeft = align == "c" ? Math.Max(0, (width - lineWidth) / 2) :
-                    rightAligned ? rtl ? width - lineWidth : Math.Max(0, width - lineWidth) : 0;
+                var lineLeft = align == "c" ? Math.Max(0, (available - lineWidth) / 2) :
+                    rightAligned ? rtl ? available - lineWidth : Math.Max(0, available - lineWidth) : 0;
+                lineLeft += offset;
                 var x = rtl ? lineLeft + lineWidth : lineLeft;
                 Ia previous = null;
                 foreach (var atom in current.As)
@@ -3270,12 +3275,12 @@ namespace Lea.Win
             return box != null && box.X.Length == 0 && box.Px != null;
         }
 
-        private void AddInlineText(Graphics graphics, List<Il> lines, ref Il line, ref Ia pending, string kind, string value, Uri url, S style, string baseKind, N element, int width, int baseHeight, string space, bool wrap, ref bool endedWithBreak)
+        private void AddInlineText(Graphics graphics, List<Il> lines, ref Il line, ref Ia pending, string kind, string value, Uri url, S style, string baseKind, N element, int width, int firstWidth, int baseHeight, string space, bool wrap, ref bool endedWithBreak)
         {
             value = value ?? "";
             if (space == "p" || space == "pw")
             {
-                AddPreservedText(graphics, lines, ref line, ref pending, kind, value, url, style, baseKind, element, width, baseHeight, wrap, ref endedWithBreak);
+                AddPreservedText(graphics, lines, ref line, ref pending, kind, value, url, style, baseKind, element, width, firstWidth, baseHeight, wrap, ref endedWithBreak);
                 return;
             }
 
@@ -3303,12 +3308,12 @@ namespace Lea.Win
                 var start = index;
                 while (index < value.Length && !Char.IsWhiteSpace(value[index])) index++;
                 var word = InlineAtom(graphics, kind, value.Substring(start, index - start), url, style, baseKind, element);
-                AddInlineWord(graphics, lines, ref line, ref pending, word, width, baseHeight, wrap, style == null ? "" : style.Wb);
+                AddInlineWord(graphics, lines, ref line, ref pending, word, width, firstWidth, baseHeight, wrap, style == null ? "" : style.Wb);
                 endedWithBreak = false;
             }
         }
 
-        private void AddPreservedText(Graphics graphics, List<Il> lines, ref Il line, ref Ia pending, string kind, string value, Uri url, S style, string baseKind, N element, int width, int baseHeight, bool wrap, ref bool endedWithBreak)
+        private void AddPreservedText(Graphics graphics, List<Il> lines, ref Il line, ref Ia pending, string kind, string value, Uri url, S style, string baseKind, N element, int width, int firstWidth, int baseHeight, bool wrap, ref bool endedWithBreak)
         {
             var index = 0;
             while (index < value.Length)
@@ -3331,7 +3336,7 @@ namespace Lea.Win
                     index++;
                 }
                 var atom = InlineAtom(graphics, kind, text.ToString(), url, style, baseKind, element);
-                AddInlineWord(graphics, lines, ref line, ref pending, atom, width, baseHeight, wrap, style == null ? "" : style.Wb);
+                AddInlineWord(graphics, lines, ref line, ref pending, atom, width, firstWidth, baseHeight, wrap, style == null ? "" : style.Wb);
                 endedWithBreak = false;
             }
         }
@@ -3344,7 +3349,7 @@ namespace Lea.Win
             return index + 1 < value.Length && value[index + 1] == '\n' ? 2 : 1;
         }
 
-        private void AddInlineWord(Graphics graphics, List<Il> lines, ref Il line, ref Ia pending, Ia word, int width, int baseHeight, bool wrap, string mode)
+        private void AddInlineWord(Graphics graphics, List<Il> lines, ref Il line, ref Ia pending, Ia word, int width, int firstWidth, int baseHeight, bool wrap, string mode)
         {
             if (!wrap)
             {
@@ -3355,10 +3360,11 @@ namespace Lea.Win
             }
 
             var breaking = String.IsNullOrEmpty(mode) ? "b" : mode;
+            var available = lines.Count == 0 ? firstWidth : width;
             if (breaking == "n" || breaking == "k")
             {
                 var gap = PendingWidth(line, pending, word);
-                if (line.As.Count > 0 && line.W + gap + word.W > width)
+                if (line.As.Count > 0 && line.W + gap + word.W > available)
                 {
                     FinishInlineLine(lines, ref line, baseHeight, false);
                     pending = null;
@@ -3369,10 +3375,10 @@ namespace Lea.Win
                 return;
             }
 
-            if (breaking != "a" && word.W <= width)
+            if (breaking != "a" && word.W <= available)
             {
                 var gap = PendingWidth(line, pending, word);
-                if (line.As.Count > 0 && line.W + gap + word.W > width)
+                if (line.As.Count > 0 && line.W + gap + word.W > available)
                 {
                     FinishInlineLine(lines, ref line, baseHeight, false);
                     pending = null;
@@ -3386,7 +3392,8 @@ namespace Lea.Win
             if (breaking == "b" && line.As.Count > 0) FinishInlineLine(lines, ref line, baseHeight, false);
             if (breaking == "a" && line.As.Count > 0 && pending != null)
             {
-                if (line.W + InlineGap(line.As[line.As.Count - 1], pending) + pending.W >= width) FinishInlineLine(lines, ref line, baseHeight, false);
+                available = lines.Count == 0 ? firstWidth : width;
+                if (line.W + InlineGap(line.As[line.As.Count - 1], pending) + pending.W >= available) FinishInlineLine(lines, ref line, baseHeight, false);
                 else AddInlineAtom(line, pending);
             }
             pending = null;
@@ -3400,7 +3407,8 @@ namespace Lea.Win
                 var character = InlineAtom(graphics, word.K, text, word.U, word.S, word.Z, word.El);
                 var gap = piece.Length == 0 ? 0 : TextGap(previousWidth, word.S, word.S);
                 var leading = line.As.Count == 0 ? 0 : InlineGap(line.As[line.As.Count - 1], word);
-                if (piece.Length > 0 && line.W + leading + pieceWidth + gap + character.W > width)
+                available = lines.Count == 0 ? firstWidth : width;
+                if (piece.Length > 0 && line.W + leading + pieceWidth + gap + character.W > available)
                 {
                     AddInlineAtom(line, InlineAtom(graphics, word.K, piece.ToString(), word.U, word.S, word.Z, word.El));
                     FinishInlineLine(lines, ref line, baseHeight, false);
@@ -3408,7 +3416,7 @@ namespace Lea.Win
                     pieceWidth = 0;
                     gap = 0;
                 }
-                else if (piece.Length == 0 && line.As.Count > 0 && line.W + leading + character.W > width)
+                else if (piece.Length == 0 && line.As.Count > 0 && line.W + leading + character.W > available)
                     FinishInlineLine(lines, ref line, baseHeight, false);
                 piece.Append(text);
                 pieceWidth += gap + character.W;
@@ -3460,7 +3468,14 @@ namespace Lea.Win
         private static bool NeedsFlow(B block)
         {
             var style = block == null ? null : block.S;
-            return block != null && (block.Is.Count > 0 || (style != null && (style.Dr == "r" || style.Ta.Length > 0 || style.Ls != 0 || style.Wg != 0 || style.Lh > 0 || style.Lm > 0 || style.Ws.Length > 0 || style.Wb.Length > 0 || style.Ov.Length > 0)));
+            return block != null && (block.Is.Count > 0 || (style != null && (style.Dr == "r" || style.Ta.Length > 0 || style.Ti != 0 || style.Ls != 0 || style.Wg != 0 || style.Lh > 0 || style.Lm > 0 || style.Ws.Length > 0 || style.Wb.Length > 0 || style.Ov.Length > 0)));
+        }
+
+        private static int CssTextIndent(S style, int width)
+        {
+            if (style == null || style.Ti == 0 || width < 1) return 0;
+            var value = style.Tip ? (long)Math.Round(width * style.Ti / 100D) : style.Ti;
+            return (int)Math.Max(-width, Math.Min(width - 1L, value));
         }
 
         private static int CssLineHeight(S style, int nativeHeight)

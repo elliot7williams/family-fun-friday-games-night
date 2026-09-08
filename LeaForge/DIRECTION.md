@@ -57,6 +57,11 @@ Logical `start/end` values are already mapped through `S.Dr`, and the default or
 last justified RTL line starts at the right edge. Unwrapped clipped lines keep
 that right edge and overflow toward the left.
 
+Inherited `text-indent` uses compact `S.Ti/Tip`. The first visual line resolves
+positive indentation from inline-start: the physical left in LTR and the
+physical right in RTL. Percentages use the content width, negative values extend
+outward, and later lines return to the normal width. See `TEXT_INDENT.md`.
+
 List and disclosure markers reuse the existing compact `B.Mk` atom. Ordered,
 unordered, nested, and summary markers therefore appear at inline-start on the
 right in RTL and their content continues toward the left. DOM, link,
@@ -114,4 +119,5 @@ geometry paths are exercised inside the compiled Firespider host smoke.
 `direction-overflow.html` verifies LTR/RTL marker edges, right-aligned RTL paint
 prefixes, combining text elements, retained link hits, table-cell clipping,
 full logical automation text, RTL partial/wrapped/point range geometry, and live
-`dr` remapping.
+`dr` remapping. `text-indent.html` verifies signed pixel and percentage
+first-line geometry in both directions, wrapping, commands, hover, and resize.

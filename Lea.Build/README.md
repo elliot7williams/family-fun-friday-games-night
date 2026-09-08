@@ -109,6 +109,9 @@ checks supplied text and field bounds without accessing the clipboard.
 linked CSS, and persistent restart behavior.
 `--direction-overflow` isolates horizontal LTR/RTL ellipsis and read-only range
 geometry without running the rest of the suite.
+`--text-indent` isolates bounded inherited pixel/percentage indentation,
+compact/literal command routes, LTR/RTL first-line geometry, wrapping, hover,
+paint, and responsive resize.
 `--sheets` isolates native named CSS, byte/rule limits, retained data,
 painting, and editor font/selection/undo. It is included in `--core`.
 These test modes do not retry or suppress failed assertions. Windows

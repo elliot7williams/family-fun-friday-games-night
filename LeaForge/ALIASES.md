@@ -35,7 +35,7 @@ read and quick to write.
   redirects or resource requests. Firespider installs it on ordinary and split
   tabs. See `NAVIGATION_POLICY.md` and `SPLIT_VIEW.md` for its callback contract.
 - Page values use one or two letters: `U`, `T`, `H`, `Q`, `D`, `N`, `Bs`, and `Ls`.
-- Page commands use one or two letters where practical: `t`, `a`, `bg`, `fg`, `fs`, `dp`, `wd`, `ht`, `dr`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`; logical edge families stay within three letters.
+- Page commands use one or two letters where practical: `t`, `a`, `bg`, `fg`, `fs`, `dp`, `wd`, `ht`, `dr`, `ti`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`; logical edge families stay within three letters.
 - New public aliases should be no more than three letters.
 - `E/V.Hm` reports the 4 MiB document-body ceiling; `E/V.Csm` reports the
   256 KiB linked-stylesheet ceiling. GET/POST input and optional CSS share
@@ -85,6 +85,8 @@ wd("id", "50%")  element width
 ht("id", "120px") element height
 dr("rtl")          body direction
 dr("id", "rtl")   element direction
+ti("18px")         body first-line indent
+ti("id", "15%")   element first-line indent
 is("id", "50%")  logical inline size
 bs("id", "120px") logical block size
 mi("id", "8px 12px") logical inline margin
@@ -120,7 +122,7 @@ fo("id")              request focus
 go("next.html")        request host navigation
 ```
 
-The two-argument `bg/fg/fs/dp/wd/ht/dr/is/bs`, logical box, logical border, and
+The two-argument `bg/fg/fs/dp/wd/ht/dr/ti/is/bs`, logical box, logical border, and
 radius forms
 target one validated ID. Color and font
 forms reuse the same
@@ -135,6 +137,12 @@ or an empty authored reset through body/ID, readable `direction`, and literal
 `style.direction` forms. Logical edges and corners remap for RTL; explicit
 logical inheritance translates between different parent/child directions. See
 `DIRECTION.md`.
+
+`ti` and readable `textindent` accept one body value or an ID plus value.
+Signed integer pixels are bounded to -2000..2000 and percentages to -100..100;
+unitless zero and CSS-wide values share the authored parser. Literal body and
+element `style.textIndent` assignments use the same route, and an empty value
+restores the authored cascade. See `TEXT_INDENT.md`.
 
 `dp` accepts a bounded standard display keyword set. `none` removes the subtree
 from layout and accessibility; `flex`/`inline-flex` and `grid`/`inline-grid`
@@ -637,7 +645,9 @@ strike, or both. Generic `Ff` entries use `ss/s/m/c/f/ui` for sans-serif,
 serif, monospace, cursive, fantasy, and system UI. `Ta` is
 text alignment using `l/c/r/j`; `Tt` is inherited text transformation using
 `n/u/l/c` for none, uppercase, lowercase, and capitalize. `Ls` is inherited
-letter spacing and `Wg` is inherited word spacing in signed pixels.
+letter spacing and `Wg` is inherited word spacing in signed pixels. `Ti` is
+inherited signed first-line indentation and `Tip` marks percentage rather than
+pixel storage.
 `Lh` is pixel line height and `Lm` is a bounded
 percentage multiplier. Lea accepts CSS pixel, percentage, and unitless line
 heights, then keeps each painted line tall enough for its largest font.
@@ -683,6 +693,23 @@ native select popups retain Windows text spacing. Fractional/relative units,
 full bidi tracking, and script-specific shaping are not implemented here.
 The spacing model follows the supported parts of
 [CSS Text spacing](https://www.w3.org/TR/css-text-3/#spacing).
+
+CSS `text-indent` uses inherited `S.Ti/Tip`. `Ti` stores a signed integer and
+`Tip` distinguishes percentage from pixel values. Lea accepts -2000..2000
+integer pixels, -100..100 integer percentages, unitless zero, and CSS-wide
+inherit/reset values. Invalid, fractional, over-limit, `hanging`, `each-line`,
+and multiple values preserve the preceding declaration. Custom properties,
+important tiers, inline overrides, hover/focus, and media queries use the
+ordinary cascade. Percentages resolve against the settled content width. The
+renderer changes only the first visual line's available width and inline-start:
+positive LTR values move right, positive RTL values move left from the right
+edge, negative values extend outward, and later lines return to full width.
+Paint, hits, find, focus, and accessibility reuse the resulting retained
+rectangles. Compact `ti(value)` and `ti(id,value)` calls, readable `textindent`,
+and literal body/element `style.textIndent` assignments share the same bounded
+path; an empty literal assignment restores authored CSS. Native controls,
+vertical writing, Unicode bidi shaping, relative/fractional lengths, `hanging`,
+and `each-line` remain outside this subset. See `TEXT_INDENT.md`.
 
 `To` is non-inherited text overflow: `c/e` means clip/ellipsis and defaults to
 clip. CSS `text-overflow` accepts those two full keywords, explicit `inherit`,

@@ -46,6 +46,11 @@ namespace Lea.Tests
                     DirectionOverflowSmoke(Path.Combine(pages, "direction-overflow.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--text-indent")
+                {
+                    TextIndentSmoke(Path.Combine(pages, "text-indent.html"));
+                    return 0;
+                }
                 var coreOnly = args.Length > 1 && args[1] == "--core";
                 if (coreOnly)
                 {
@@ -2383,6 +2388,7 @@ namespace Lea.Tests
                     Object.ReferenceEquals(spacingField, FieldById(spacingPage, "field")), "responsive spacing rebuild and field retention");
 
                 TextSpacingSmoke(spacingPath);
+                TextIndentSmoke(Path.Combine(pages, "text-indent.html"));
                 TextOverflowSmoke(Path.Combine(pages, "text-overflow.html"));
 
                 var recoveryPath = Path.Combine(pages, "recovery.html");
@@ -6906,6 +6912,103 @@ namespace Lea.Tests
                 }
             }
             Console.WriteLine("Lea text spacing smoke passed: compact inherited aliases, signed metrics, inline controls, automation mapping, hover, raw editing, and resize.");
+        }
+
+        private static void TextIndentSmoke(string path)
+        {
+            var engine = new E { Vw = 720 };
+            var page = engine.Go(path);
+            Func<string, B> block = id => BlockById(page, id);
+            Eq(0, page.S.Ti, "text indent initial value");
+            Ok(block("pixel").S.Ti == 32 && !block("pixel").S.Tip &&
+                block("percent").S.Ti == 25 && block("percent").S.Tip &&
+                block("negative").S.Ti == -18 && !block("negative").S.Tip,
+                "text indent pixel percentage and negative aliases");
+            Ok(block("rtl").S.Dr == "r" && block("rtl").S.Ti == 30 &&
+                block("inherited").S.Ti == 22 && !block("inherited").S.Tip &&
+                block("unset").S.Ti == 20 && block("unset").S.Tip,
+                "text indent direction and inheritance");
+            Ok(block("initial").S.Ti == 0 && block("invalid").S.Ti == 16 &&
+                block("variable").S.Ti == 26 && block("important").S.Ti == 38,
+                "text indent reset bounds variables and priority");
+            Eq(1, engine.Ck(page, ById(page.D, "set-short")), "text indent short command");
+            Ok(block("command").S.Ti == 36 && !block("command").S.Tip, "text indent short command model");
+            Eq(1, engine.Ck(page, ById(page.D, "set-dom")), "text indent DOM command");
+            Ok(block("command").S.Ti == 20 && block("command").S.Tip, "text indent DOM percentage model");
+            Eq(1, engine.Ck(page, ById(page.D, "clear-dom")), "text indent DOM reset");
+            Eq(0, block("command").S.Ti, "text indent DOM reset model");
+            Eq(0, engine.Js(page, "ti('command','2001px')"), "text indent command pixel bound");
+            Eq(0, engine.Js(page, "ti('command','101%')"), "text indent command percentage bound");
+            Eq(0, engine.Js(page, "ti('command','1')"), "text indent command rejects unitless nonzero");
+            Eq(1, engine.Js(page, "ti('14px')"), "text indent body alias");
+            Eq(14, page.S.Ti, "text indent body alias model");
+
+            using (var view = new V())
+            {
+                view.Size = new Size(720, 2600);
+                view.CreateControl();
+                view.Go(path);
+                using (var paint = Render(view))
+                {
+                    var plain = BlockById(view.At, "plain");
+                    var pixel = BlockById(view.At, "pixel");
+                    var percent = BlockById(view.At, "percent");
+                    var negative = BlockById(view.At, "negative");
+                    var rtl = BlockById(view.At, "rtl");
+                    var wrap = BlockById(view.At, "wrap");
+                    Eq(BlockRect(view, plain).Left, InlineTextRect(view, plain, "Plain").Left, "plain text starts at content edge");
+                    Eq(BlockRect(view, pixel).Left + 32, InlineTextRect(view, pixel, "Pixel").Left, "pixel text indent geometry");
+                    Eq(BlockRect(view, percent).Left + BlockRect(view, percent).Width / 4,
+                        InlineTextRect(view, percent, "Percent").Left, "percentage text indent geometry");
+                    Eq(BlockRect(view, negative).Left - 18, InlineTextRect(view, negative, "Negative").Left, "negative text indent geometry");
+                    Eq(BlockRect(view, rtl).Right - 30, InlineTextRect(view, rtl, "RTL").Right, "RTL text indent uses inline start");
+                    Eq(BlockRect(view, BlockById(view.At, "inherited")).Left + 22,
+                        InlineTextRect(view, BlockById(view.At, "inherited"), "Inherited").Left, "inherited text indent geometry");
+                    Eq(BlockRect(view, BlockById(view.At, "invalid")).Left + 16,
+                        InlineTextRect(view, BlockById(view.At, "invalid"), "Invalid").Left, "invalid text indent preserves prior value");
+                    Eq(BlockRect(view, wrap).Left + 46, InlineTextRect(view, wrap, "FirstLine").Left, "wrapped first line indent geometry");
+                    Eq(BlockRect(view, wrap).Left, InlineTextRect(view, wrap, "SecondLine").Left, "wrapped later line returns to content edge");
+                    Ok(TextLines(view, wrap).Length > 1 && HasColor(paint, BlockOuterRect(view, wrap), Color.FromArgb(23, 32, 51)),
+                        "text indent wrapping and paint");
+                }
+
+                var dynamic = BlockById(view.At, "dynamic");
+                var dynamicRect = BlockOuterRect(view, dynamic);
+                Move(view, dynamicRect);
+                using (var paint = Render(view))
+                {
+                    dynamic = BlockById(view.At, "dynamic");
+                    Ok(dynamic.S.Ti == 40 && InlineTextRect(view, dynamic, "Dynamic").Left == BlockRect(view, dynamic).Left + 40,
+                        "text indent hover rebuild");
+                }
+
+                Eq(1, view.Js("ti('command','36px')"), "WinForms text indent command");
+                using (var paint = Render(view))
+                {
+                    var command = BlockById(view.At, "command");
+                    Eq(BlockRect(view, command).Left + 36, InlineTextRect(view, command, "Command").Left,
+                        "WinForms text indent command geometry");
+                }
+                Eq(1, view.Js("document.getElementById('command').style.textIndent='20%'"), "WinForms text indent DOM command");
+                using (var paint = Render(view))
+                {
+                    var command = BlockById(view.At, "command");
+                    Eq(BlockRect(view, command).Left + BlockRect(view, command).Width / 5,
+                        InlineTextRect(view, command, "Command").Left, "WinForms text indent DOM percentage geometry");
+                }
+
+                view.Size = new Size(350, 2800);
+                Application.DoEvents();
+                using (var paint = Render(view))
+                {
+                    var responsive = BlockById(view.At, "responsive");
+                    Eq(30, responsive.S.Ti, "responsive text indent value");
+                    Ok(responsive.S.Tip, "responsive text indent percentage mode");
+                    Eq(BlockRect(view, responsive).Left + (int)Math.Round(BlockRect(view, responsive).Width * 30 / 100D),
+                        InlineTextRect(view, responsive, "Responsive").Left, "responsive percentage text indent geometry");
+                }
+            }
+            Console.WriteLine("Lea text indent smoke passed: compact Ti/Tip aliases, ti and DOM commands, signed pixels, percentages, inheritance, RTL, wrapping, hover, resize, and paint.");
         }
 
         private static void DirectionOverflowSmoke(string path)

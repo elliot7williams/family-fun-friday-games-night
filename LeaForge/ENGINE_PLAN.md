@@ -68,7 +68,7 @@ Dg/Dcl  diagnostics/clear request activity
 2. Implement the cascade and inheritance with a small priority model. (First specificity/source-order cascade added.)
    (`link rel=stylesheet` and inline `style` blocks now enter that source order
    together; linked CSS uses cookies, compression, validators, and shared LRU caching.)
-3. Add colors, fonts, spacing, borders, width, height, display, visibility, opacity, and overflow. (Colors, fallback font families, underline/strike decorations, margins, padding, backgrounds, `display:none`, inherited visibility, bounded opacity, borders, non-inherited content/border-box pixel sizing, pixel width/height bounds, text alignment, transformation, signed letter/word spacing, line height, word breaking, white-space modes, and clipped overflow are active.)
+3. Add colors, fonts, spacing, borders, width, height, display, visibility, opacity, and overflow. (Colors, fallback font families, underline/strike decorations, margins, padding, backgrounds, `display:none`, inherited visibility, bounded opacity, borders, non-inherited content/border-box pixel sizing, pixel width/height bounds, text alignment, transformation, signed letter/word spacing, signed pixel/percentage first-line indentation, line height, word breaking, white-space modes, and clipped overflow are active.)
 4. Replace one-WinForms-control-per-node rendering with lightweight layout boxes. (Reusable `Bx` layout pass added.)
 5. Paint text, backgrounds, borders, links, controls, and images onto one surface. (Text, nested bold/italic inline runs, backgrounds, solid/dashed/dotted borders, links, images, and basic form controls are active.)
 6. Add scrolling and hit testing from layout boxes. (Visible-box painting and bounded vertical scrolling added.)
@@ -200,11 +200,12 @@ fs(12)           font size
 bg("id", "#fff") element background
 fg("id", "#222") element text color
 fs("id", 18)      element font size
+ti("id", "18px") element first-line indent
 Go("url")        navigate
 ```
 
 The bounded layer is active in `Lea.Engine`. It accepts `t`, `a`, `bg`, `fg`,
-`fs`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`,
+`fs`, `dr`, `ti`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`,
 `vl`, `ck`, `fo`, and host-controlled `go`, plus equivalent
 title/body-style assignments and `alert(...)`.
 Only top-level literal commands run. Execution is limited to eight inline
@@ -215,7 +216,7 @@ bridge. The WinForms host emits `Al` and exposes `Am` instead of allowing page
 code to open native UI itself. `Ck` safely dispatches button and link attributes;
 `P.Vs` holds 16 bounded variables and `tx` performs ID-scoped text replacement.
 Literal `document.getElementById("id")` statements now map familiar text,
-value, checked/disabled/hidden/open, focus, classList, and three style operations
+value, checked/disabled/hidden/open, focus, classList, and bounded style operations
 onto those same compact commands. Quoted IDs/literals and literal booleans are
 required; computed expressions, selectors, `innerHTML`, callbacks, and unknown
 members remain inert.
@@ -345,12 +346,12 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-The zero-capability AppContainer image helper now has a combined host/helper
-memory admission boundary. `Icl` provides a clamped process-wide ceiling while
-`Ihm/Icm/Iad` expose the live host sample, conservative worker-peak plus
-preflight projection, and result. The check runs after the hardened handshake
-but before payload transfer; missing, overflowing, and over-limit samples stop
-the helper and release the reservation. See `IMAGE_ISOLATION.md`. Next
+Milestone 93 adds bounded inherited CSS `text-indent` through compact
+`S.Ti/Tip`, signed integer pixels and percentages, and the defining `ti`
+command. LTR and RTL layout resolve only the first visual line from
+inline-start; later lines retain the normal content width. Variables,
+important tiers, inheritance/reset, hover, resize, paint, retained hits, and
+automation geometry share existing paths. See `TEXT_INDENT.md`. Next
 investigate the native-safe visible-range boundary while keeping vertical
 writing modes, full Unicode bidi shaping, `dir=auto`, custom overflow markers,
 and general CSS/JavaScript evaluators outside the current boundary.
@@ -359,6 +360,12 @@ Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host
 coverage and bounded HTML/CSS compatibility work without adding another browser
 runtime.
+
+The latest visible-range experiment also reused the already-marshaled
+`TextPattern` object as the returned range identity and explicitly retained its
+COM interface pointer. Both current .NET and .NET Framework external clients
+still terminated with an access violation on the first range `GetText` call.
+The unsafe non-empty array was removed and the proven empty fallback remains.
 
 The current picture hardening adds 4 MiB streaming body limits, one asynchronous
 pass deadline, 32 MiB retained bitmap accounting through `Ic/Ib`, failed-image

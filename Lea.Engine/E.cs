@@ -3497,6 +3497,7 @@ namespace Lea.Engine
                 else if (name == "text-decoration" || name == "text-decoration-line") TextDecoration(style, value);
                 else if (name == "text-align") TextAlign(style, value);
                 else if (name == "text-transform") TextTransform(style, value);
+                else if (name == "text-indent") TextIndent(style, inherited, value);
                 else if (name == "letter-spacing") TextSpacing(style, inherited, value, true);
                 else if (name == "word-spacing") TextSpacing(style, inherited, value, false);
                 else if (name == "line-height") LineHeight(style, value);
@@ -4736,6 +4737,44 @@ namespace Lea.Engine
             else if (mode == "uppercase") style.Tt = "u";
             else if (mode == "lowercase") style.Tt = "l";
             else if (mode == "capitalize") style.Tt = "c";
+        }
+
+        private static void TextIndent(S style, S inherited, string value)
+        {
+            string source;
+            if (!Tn(value, out source)) return;
+            if (source.Length == 0) return;
+            if (source == "inherit" || source == "unset" || source == "revert" || source == "revert-layer")
+            {
+                style.Ti = inherited == null ? 0 : inherited.Ti;
+                style.Tip = inherited != null && inherited.Tip;
+                return;
+            }
+            if (source == "initial")
+            {
+                style.Ti = 0;
+                style.Tip = false;
+                return;
+            }
+            var percent = source.EndsWith("%", StringComparison.Ordinal);
+            var number = percent ? source.Substring(0, source.Length - 1) : source.EndsWith("px", StringComparison.Ordinal) ? source.Substring(0, source.Length - 2) : source;
+            style.Ti = Int32.Parse(number, CultureInfo.InvariantCulture);
+            style.Tip = percent;
+        }
+
+        internal static bool Tn(string value, out string indent)
+        {
+            indent = (value ?? "").Trim().ToLowerInvariant();
+            if (indent.Length == 0 || indent == "initial" || indent == "inherit" || indent == "unset" || indent == "revert" || indent == "revert-layer") return true;
+            var match = Regex.Match(indent, "^(?<n>[+-]?[0-9]{1,4})(?<u>px|%)?$");
+            int number;
+            if (!match.Success || !Int32.TryParse(match.Groups["n"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out number)) return false;
+            var unit = match.Groups["u"].Value;
+            if ((number != 0 && unit.Length == 0) ||
+                (unit == "%" && (number < -100 || number > 100)) ||
+                (unit != "%" && (number < -2000 || number > 2000))) return false;
+            indent = number.ToString(CultureInfo.InvariantCulture) + (unit == "%" ? "%" : "px");
+            return true;
         }
 
         private static void TextSpacing(S style, S inherited, string value, bool letters)
