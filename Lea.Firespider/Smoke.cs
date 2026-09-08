@@ -53,6 +53,7 @@ namespace Lea.Firespider
                     .Replace("</body>", "<p id='host-spacing-normal' class='host-spacing-normal'>Host spacing words</p><p id='host-spacing-wide' class='host-spacing-wide'>Host spacing words</p><input id='host-spacing-field' class='host-spacing-field' name='host-spacing-field' value='Host raw words'><p id='host-spacing-responsive' class='host-spacing-responsive'>Responsive host spacing</p></body>")
                     .Replace("</style>", ".host-indent,.host-indent-rtl,.host-indent-responsive{width:240px;padding:0 20px;text-align:left}.host-indent{text-indent:28px}.host-indent-rtl{direction:rtl;text-align:start;text-indent:24px}.host-indent-responsive{text-indent:12px}@media screen and (max-width:500px){.host-indent-responsive{text-indent:30%}}</style>")
                     .Replace("</body>", "<p id='host-indent' class='host-indent'>HostIndent uses compact first line geometry</p><p id='host-indent-rtl' class='host-indent-rtl'>HostRTL uses inline start indentation</p><p id='host-indent-responsive' class='host-indent-responsive'>HostResponsive changes indentation on resize</p></body>")
+                    .Replace("</style>", ".host-text-shadow{width:260px;color:#111827;text-shadow:5px 3px 0 #dc2626}.host-text-shadow-responsive{width:260px;text-shadow:2px 2px 0 #64748b}@media screen and (max-width:500px){.host-text-shadow-responsive{text-shadow:-4px 3px 4px #7c3aed}}</style>")
                     .Replace("</style>", ".host-overflow{width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.host-overflow-responsive{text-overflow:clip}@media screen and (max-width:500px){.host-overflow-responsive{text-overflow:ellipsis}}</style>")
                     .Replace("</body>", "<p id='host-overflow' class='host-overflow'>Host overflow keeps this entire authored sentence</p><p id='host-overflow-responsive' class='host-overflow host-overflow-responsive'>Responsive host overflow keeps its full text</p></body>")
                     .Replace(".host-flex{display:flex;width:300px;height:60px;gap:8px;justify-content:space-between;align-items:center}", ".host-flex{display:flex;width:300px;height:60px;flex-wrap:wrap;gap:6px 8px;justify-content:space-between;align-items:center}")
@@ -100,7 +101,9 @@ namespace Lea.Firespider
                     .Replace("<p id='class-state'>", "<p id='host-direction-plain' class='host-direction-inline'>Amber Bronze Cobalt</p><p id='host-direction-inline' class='host-direction-inline'><span id='host-inline-first'>First</span> <a id='host-inline-second' href='#state'>Second</a> <strong id='host-inline-third'>Third</strong></p><ol class='host-direction-list' start='4'><li id='host-direction-list'><span id='host-direction-list-text'>Host item</span></li></ol><p id='class-state'>")
                     .Replace("<p id='class-state'>", "<p id='host-direction-overflow' class='host-direction-overflow'><span>OriginAlpha</span> <a id='host-direction-overflow-link' href='#state'>LinkedMiddle</a> DestinationGamma</p><p id='host-direction-range' class='host-direction-range'><span>RangeFirst</span> <span>RangeSecond</span> <span>RangeThird</span></p><p id='host-direction-command' class='host-direction-command'>CommandOrigin CommandMiddle CommandDestination</p><p id='class-state'>")
                     .Replace("<p id='class-state'>", "<p id='host-var' class='host-var' style='--host-color:#a13b18;color:#a13b18;width:199px'>Important property host</p><p id='host-media' class='host-media'>Responsive host</p><p id='host-box' class='host-box'>Border-box host</p><section id='host-flex-column' class='host-flex-column'><p id='host-flex-column-a'>Column A</p><p id='host-flex-column-b'>Column B</p></section><svg id='host-svg' width='160' height='80' viewBox='0 0 80 40'><title>Firespider host vector</title><rect x='2' y='2' width='20' height='16' fill='#d7263d'></rect><circle cx='34' cy='10' r='8' fill='#10b981'></circle><path d='M46 2 h28 v16 H46 z' fill='#f59e0b'></path><a href='#state'><rect x='12' y='24' width='56' height='12' fill='#0369a1'></rect></a></svg><p id='class-state'>")
-                    .Replace("</svg><p id='class-state'>", "<path d='M2 32 C8 20 14 20 20 32 S32 44 38 32' fill='none' stroke='#7c3aed' stroke-width='2'></path><g transform='translate(58 26)'><g transform='scale(1.5)'><rect x='0' y='0' width='10' height='6' fill='#db2777'></rect></g></g><defs><linearGradient id='host-linear'><stop offset='0' stop-color='#dc2626'></stop><stop offset='1' stop-color='#2563eb'></stop></linearGradient><radialGradient id='host-radial'><stop offset='0' stop-color='#f8fafc'></stop><stop offset='1' stop-color='#7c3aed'></stop></radialGradient><g id='host-reuse'><rect x='0' y='0' width='10' height='8'></rect><circle cx='7' cy='4' r='2' fill='#f8fafc'></circle></g><clipPath id='host-half' clipPathUnits='objectBoundingBox' clip-rule='evenodd'><rect x='0' y='0' width='.5' height='1'></rect></clipPath></defs><rect x='40' y='24' width='14' height='10' fill='url(#host-linear)'></rect><circle cx='69' cy='10' r='7' fill='url(#host-radial)'></circle><use href='#host-reuse' x='26' y='27' fill='#0d9488'></use><rect x='46' y='27' width='10' height='8' fill='#f59e0b' clip-path='url(#host-half)'></rect><path class='host-stroke' d='M2 20 H22' fill-rule='evenodd'></path></svg><p id='class-state'>");
+                    .Replace("</svg><p id='class-state'>", "<path d='M2 32 C8 20 14 20 20 32 S32 44 38 32' fill='none' stroke='#7c3aed' stroke-width='2'></path><g transform='translate(58 26)'><g transform='scale(1.5)'><rect x='0' y='0' width='10' height='6' fill='#db2777'></rect></g></g><defs><linearGradient id='host-linear'><stop offset='0' stop-color='#dc2626'></stop><stop offset='1' stop-color='#2563eb'></stop></linearGradient><radialGradient id='host-radial'><stop offset='0' stop-color='#f8fafc'></stop><stop offset='1' stop-color='#7c3aed'></stop></radialGradient><g id='host-reuse'><rect x='0' y='0' width='10' height='8'></rect><circle cx='7' cy='4' r='2' fill='#f8fafc'></circle></g><clipPath id='host-half' clipPathUnits='objectBoundingBox' clip-rule='evenodd'><rect x='0' y='0' width='.5' height='1'></rect></clipPath></defs><rect x='40' y='24' width='14' height='10' fill='url(#host-linear)'></rect><circle cx='69' cy='10' r='7' fill='url(#host-radial)'></circle><use href='#host-reuse' x='26' y='27' fill='#0d9488'></use><rect x='46' y='27' width='10' height='8' fill='#f59e0b' clip-path='url(#host-half)'></rect><path class='host-stroke' d='M2 20 H22' fill-rule='evenodd'></path></svg><p id='class-state'>")
+                    .Replace("<p>Open route fixture</p>", "<p id='host-text-shadow' class='host-text-shadow'>Open route fixture</p>")
+                    .Replace("<p>Second route match</p>", "<p id='host-text-shadow-responsive' class='host-text-shadow-responsive'>Second route match</p>");
                 File.WriteAllText(openPage, openMarkup);
                 var root = Path.GetFullPath(args.Length > 0 ? args[0] : AppDomain.CurrentDomain.BaseDirectory);
                 var assembly = Assembly.LoadFrom(Path.Combine(root, "Firespider Internet 19.exe"));
@@ -307,6 +310,18 @@ namespace Lea.Firespider
                         BlockById(host.At, "host-indent").S.Tip && InlineTextRect(host, BlockById(host.At, "host-indent"), "HostIndent").Left ==
                         BlockContent(host, "host-indent").Left + BlockContent(host, "host-indent").Width / 5,
                         "Firespider literal DOM text indent command");
+                    var hostTextShadow = BlockById(host.At, "host-text-shadow");
+                    var hostTextShadowResponsive = BlockById(host.At, "host-text-shadow-responsive");
+                    Check(hostTextShadow.S.Ts != null && hostTextShadow.S.Ts.X == 5 && hostTextShadow.S.Ts.Y == 3 && hostTextShadow.S.Ts.B == 0 && hostTextShadow.S.Ts.C == "#dc2626" &&
+                        hostTextShadowResponsive.S.Ts != null && hostTextShadowResponsive.S.Ts.X == 2 && hostTextShadowResponsive.S.Ts.Y == 2,
+                        "Firespider bounded text shadow aliases and responsive model");
+                    using (var hostTextShadowPaint = RenderView(host))
+                        Check(HasColor(hostTextShadowPaint, BlockOuter(host, "host-text-shadow"), System.Drawing.Color.FromArgb(220, 38, 38)),
+                            "Firespider text shadow paint");
+                    Check(host.Js("ts('host-text-shadow','6px 2px 0 #2563eb')") == 1 && BlockById(host.At, "host-text-shadow").S.Ts.X == 6 && BlockById(host.At, "host-text-shadow").S.Ts.C == "#2563eb",
+                        "Firespider compact text shadow command");
+                    Check(host.Js("document.getElementById('host-text-shadow').style.textShadow='-3px 2px 0 #176b4d'") == 1 && BlockById(host.At, "host-text-shadow").S.Ts.X == -3 && BlockById(host.At, "host-text-shadow").S.Ts.C == "#176b4d",
+                        "Firespider literal DOM text shadow command");
                     Check(BlockById(host.At, "host-overflow").S.To == "e" && EllipsisCount(host, "host-overflow") == 1 &&
                         EllipsisCount(host, "host-overflow-responsive") == 0 && host.At.X.Contains("Host overflow keeps this entire authored sentence"),
                         "Firespider text overflow alias, painted marker, and authored text");
@@ -640,6 +655,9 @@ namespace Lea.Firespider
                         InlineTextRect(host, hostIndentResponsive, "HostResponsive").Left == BlockContent(host, "host-indent-responsive").Left +
                         (int)Math.Round(BlockContent(host, "host-indent-responsive").Width * 30 / 100D),
                         "Firespider responsive percentage text indent");
+                    hostTextShadowResponsive = BlockById(host.At, "host-text-shadow-responsive");
+                    Check(hostTextShadowResponsive.S.Ts != null && hostTextShadowResponsive.S.Ts.X == -4 && hostTextShadowResponsive.S.Ts.Y == 3 && hostTextShadowResponsive.S.Ts.B == 4 && hostTextShadowResponsive.S.Ts.C == "#7c3aed",
+                        "Firespider responsive text shadow");
                     Check(BlockById(host.At, "host-overflow-responsive").S.To == "e" && EllipsisCount(host, "host-overflow-responsive") == 1,
                         "Firespider narrow text overflow marker");
                     host.Size = new System.Drawing.Size(720, 560);
@@ -654,6 +672,9 @@ namespace Lea.Firespider
                     Check(hostIndentResponsive.S.Ti == 12 && !hostIndentResponsive.S.Tip &&
                         InlineTextRect(host, hostIndentResponsive, "HostResponsive").Left == BlockContent(host, "host-indent-responsive").Left + 12,
                         "Firespider wide text indent restore");
+                    hostTextShadowResponsive = BlockById(host.At, "host-text-shadow-responsive");
+                    Check(hostTextShadowResponsive.S.Ts != null && hostTextShadowResponsive.S.Ts.X == 2 && hostTextShadowResponsive.S.Ts.Y == 2 && hostTextShadowResponsive.S.Ts.B == 0 && hostTextShadowResponsive.S.Ts.C == "#64748b",
+                        "Firespider wide text shadow restore");
                     Check(BlockById(host.At, "host-overflow-responsive").S.To == "c" && EllipsisCount(host, "host-overflow-responsive") == 0,
                         "Firespider wide text overflow restore");
                     Check(BlockById(host.At, "host-progress").Vm.R == 0.4D && BlockById(host.At, "host-meter").Vm.R == 0.75D, "Firespider compact gauge models");
@@ -793,7 +814,7 @@ namespace Lea.Firespider
                     Check(host.Ck(ById(host.At.D, "host-value-update")) == 1 && ValueById(host.At, "host-output").V == "Updated host total", "Firespider output value rebuild");
                     Check(host.Ck(ById(host.At.D, "host-time-update")) == 1 && ValueById(host.At, "host-time").Dt == "2026-08-22", "Firespider time metadata rebuild");
                     var diagnostics = host.Dg();
-                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 83 && diagnostics.Rs.Count > 0, "Firespider Lea diagnostics");
+                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 85 && diagnostics.Rs.Count > 0, "Firespider Lea diagnostics");
                     var inspectorOpen = type.GetMethod("qleaInspectorOpen", BindingFlags.Instance | BindingFlags.NonPublic);
                     var inspectorSnapshot = type.GetMethod("qleaInspectorSnapshot", BindingFlags.Instance | BindingFlags.NonPublic);
                     var inspectorClear = type.GetMethod("qleaInspectorClear", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -973,7 +994,7 @@ namespace Lea.Firespider
                     Check(restoredTabs.TabCount == beforeMiddle - 1 && FindLea(restoredTabs) == null, "middle-click Lea tab close");
                 }
 
-                Console.WriteLine("Firespider CSS interaction and paint smoke passed: compact text-indent, text-overflow, text-spacing, text-transform, pointer, outline, radius, shadow, gradient, bitmap-background, object-fit, and aspect-ratio aliases reached the compiled host.");
+                Console.WriteLine("Firespider CSS interaction and paint smoke passed: compact text-indent, text-shadow, text-overflow, text-spacing, text-transform, pointer, outline, radius, box-shadow, gradient, bitmap-background, object-fit, and aspect-ratio aliases reached the compiled host.");
                 Console.WriteLine("Firespider calculated height smoke passed: compact ht, literal style.height, definite parent resolution, shared host geometry, reset, and strict bounds.");
                 Console.WriteLine("Firespider viewport unit smoke passed: vw/vh/vmin/vmax, calc, compact commands, literal reset, live host geometry, and strict bounds.");
                 Console.WriteLine("Firespider font-relative unit smoke passed: em/rem, root font alias, compact commands, literal reset, shared host geometry, and strict bounds.");
@@ -1442,6 +1463,15 @@ namespace Lea.Firespider
         private static int ColorDistance(System.Drawing.Color left, System.Drawing.Color right)
         {
             return Math.Abs(left.R - right.R) + Math.Abs(left.G - right.G) + Math.Abs(left.B - right.B);
+        }
+
+        private static bool HasColor(System.Drawing.Bitmap image, System.Drawing.Rectangle area, System.Drawing.Color color)
+        {
+            area.Intersect(new System.Drawing.Rectangle(System.Drawing.Point.Empty, image.Size));
+            for (var y = area.Top; y < area.Bottom; y++)
+                for (var x = area.Left; x < area.Right; x++)
+                    if (ColorDistance(image.GetPixel(x, y), color) < 8) return true;
+            return false;
         }
 
         private static Form OpenForm(string name)

@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **93**
+Post-1.0 hardening milestones completed: **94**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -14,10 +14,10 @@ modern web platform.
 | Core and alias API | 10% | 10% | Compact API, bounded diagnostics, repeatable reports, history, projects, backups |
 | Networking | 10% | 10% | Bounded request deadlines and downloads, private cookies, typed errors, validators, compression, memory LRU and optional persistent cache |
 | HTML and document tree | 20% | 20% | Bounded tokens, queries, base URLs and fragments, raw/RCDATA text, entities, recovery, HTML-hidden suppression, semantic accessibility, blocks, lists, disclosures, gauges, values, time/edit metadata, responsive image maps, tabindex focus, autofocus/access keys, tables |
-| CSS | 15% | 15% | Compiled relationship, bounded strict relational/functional, An+B/reverse, and filtered structural selectors, declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, inherited horizontal LTR/RTL direction, fixed/percentage/calculated plus direction-aware logical dimensions/insets/margins/padding/borders/radii, classic viewport/font-relative units and bounded size functions, bounded vertical sticky positioning, dynamic hover/focus, inherited cursor/pointer interaction, text transformation, signed letter/word spacing, and signed pixel/percentage first-line indentation, content/border sizing, circular/elliptical radii, bounded outlines, box shadows, gradients, bitmap backgrounds, object fitting and aspect ratios, visibility/opacity, fonts, overflow, boxes, bounded ordered flex and two-axis grid properties |
-| Layout and painting | 20% | 20% | Shared physical/logical box edges and per-edge border styles/colors plus fixed/percentage/calculated, viewport-unit, font-relative, and min/max/clamp dimensions, content/border, aspect-ratio, sticky, direction-aware inline/marker/first-line-indent/ellipsis and TextPattern range geometry, transformed and spacing-aware presentation text with raw form retention, normalized rounded backgrounds/borders/outlines/overflow/fields/shadows/gradients/bitmaps, pointer-gated retained hits with underlying fallthrough, fitted raster images and maps, ordered flex rows/columns, bounded grid tracks/spans, distribution, alignment, wrapping, grow/shrink, clipping, reflow, painting |
+| CSS | 15% | 15% | Compiled relationship, bounded strict relational/functional, An+B/reverse, and filtered structural selectors, declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, inherited horizontal LTR/RTL direction, fixed/percentage/calculated plus direction-aware logical dimensions/insets/margins/padding/borders/radii, classic viewport/font-relative units and bounded size functions, bounded vertical sticky positioning, dynamic hover/focus, inherited cursor/pointer interaction, text transformation, signed letter/word spacing, signed pixel/percentage first-line indentation, and one inherited bounded text-shadow layer, content/border sizing, circular/elliptical radii, bounded outlines, box shadows, gradients, bitmap backgrounds, object fitting and aspect ratios, visibility/opacity, fonts, overflow, boxes, bounded ordered flex and two-axis grid properties |
+| Layout and painting | 20% | 20% | Shared physical/logical box edges and per-edge border styles/colors plus fixed/percentage/calculated, viewport-unit, font-relative, and min/max/clamp dimensions, content/border, aspect-ratio, sticky, direction-aware inline/marker/first-line-indent/ellipsis and TextPattern range geometry, transformed, spacing-aware, and bounded shadowed presentation text with raw form retention, normalized rounded backgrounds/borders/outlines/overflow/fields/box-shadows/gradients/bitmaps, pointer-gated retained hits with underlying fallthrough, fitted raster images and maps, ordered flex rows/columns, bounded grid tracks/spans, distribution, alignment, wrapping, grow/shrink, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Native field edit commands and one-level undo/redo, bounded multipart files, richer widgets, validation, responsive/fitted images with a zero-capability AppContainer decoder and combined admission, GET/POST submit |
-| Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/body and ID-scoped display/width/height/direction/text-indent/logical box/border/radius/style/alert, class, visibility, disclosure, field-state, focus, and literal bounded DOM translation |
+| Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/body and ID-scoped display/width/height/direction/text-indent/text-shadow/logical box/border/radius/style/alert, class, visibility, disclosure, field-state, focus, and literal bounded DOM translation |
 | Firespider integration and reliability | 10% | 10% | Lea-first New Tab/Ctrl+T, explicit legacy fallback, Inspector with Access view, MSAA/UIA surfaces including read-only text, host-safe focus shortcuts, navigation, sessions, source, host smokes |
 | **Total** | **100%** | **100%** | Scoped Lea 1.0 baseline complete; post-1.0 hardening continues |
 
@@ -29,6 +29,25 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added one bounded inherited CSS `text-shadow` layer through nullable compact
+  `S.Ts`, reusing `Sw.X/Y/B/C` for signed offsets, blur, and color, plus defining
+  short `ts` body/ID commands. Offsets are limited to -128..128 pixels, blur to
+  0..32 pixels, and source/color input uses existing strict bounds. CSS-wide
+  inheritance/reset, variables, important tiers, inline overrides, hover,
+  responsive rebuilds, readable `textshadow`, and literal `style.textShadow`
+  all share the compiled cascade. The WinForms renderer paints zero blur once
+  and approximates blur with at most four allocation-free sample rings; layout,
+  hits, find, focus, and accessibility geometry remain unchanged. Full
+  default/core suites, the focused test, and the compiled-host smoke pass. All
+  42 Boot cases pass, with the clipboard-sensitive edit case recorded on its
+  focused rerun, and all six actual EXE startup scenarios remain responsive
+  without a legacy engine, invalid cast, JIT dialog, or dead startup window. All
+  90 probes pass over 85 fixtures. Runtime medians are 519.936 ms clean
+  diagnostic start, 4.478 ms local load, and 40.560 ms layout/paint. Retained
+  managed memory is 18,024.5 KiB for 340 pages, or 53.0 KiB/page. Required
+  runtime files are 568.5 KiB with a 239.9 KiB GZip estimate. Runtime 194 stays
+  isolated and installed runtime 157 remains unchanged. See `TEXT_SHADOW.md`.
 
 - Added bounded inherited CSS `text-indent` through compact `S.Ti/Tip` signed
   integer pixel/percentage state and short `ti` body/ID commands. The parser

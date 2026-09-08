@@ -69,6 +69,9 @@ LeaForge is where we can grow the more full-featured browser.
 - inherited signed pixel/percentage first-line indentation through compact
   `S.Ti/Tip`, with bounded `ti` commands, LTR/RTL wrapping, and retained
   paint/hit/accessibility geometry; see `TEXT_INDENT.md`
+- one inherited bounded text-shadow layer through compact nullable `S.Ts` and
+  `ts`, with signed offsets, optional blur/color, lightweight paint, stable
+  geometry, and literal DOM support; see `TEXT_SHADOW.md`
 - non-inherited clip/ellipsis text overflow through compact `S.To=c/e`, with
   bounded LTR/RTL physical inline-end markers, grapheme-safe paint-only
   prefixes, retained link targets, and authored automation text

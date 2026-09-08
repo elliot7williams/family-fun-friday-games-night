@@ -212,6 +212,14 @@ namespace Lea.Engine
                 if (!E.Tn(Expand(page, command.W ?? command.V), out indent)) return false;
                 return SetStyle(target, "text-indent", indent);
             }
+            if (command.N == "ts")
+            {
+                var target = StyleTarget(page, command);
+                if (target == null) return false;
+                string shadow;
+                if (!E.Tsh(Expand(page, command.W ?? command.V), out shadow)) return false;
+                return SetStyle(target, "text-shadow", shadow);
+            }
             var boxProperty = LogicalBoxProperty(command.N);
             if (boxProperty != null)
             {
@@ -327,6 +335,7 @@ namespace Lea.Engine
             if (member == "style.height" || member == "style.blocksize") return new Cm("ht", id, value);
             if (member == "style.direction") return new Cm("dr", id, value);
             if (member == "style.textindent") return new Cm("ti", id, value);
+            if (member == "style.textshadow") return new Cm("ts", id, value);
             var logicalBox = member.StartsWith("style.", StringComparison.Ordinal) ? LogicalBoxCommand(member.Substring(6)) : null;
             if (logicalBox != null) return new Cm(logicalBox, id, value);
             var logicalBorder = member.StartsWith("style.", StringComparison.Ordinal) ? LogicalBorderCommand(member.Substring(6)) : null;
@@ -345,6 +354,7 @@ namespace Lea.Engine
             if (count == 1 && (name == "fs" || name == "fontsize")) return new Cm("fs", first);
             if (count == 1 && (name == "dr" || name == "direction")) return new Cm("dr", first);
             if (count == 1 && (name == "ti" || name == "textindent")) return new Cm("ti", first);
+            if (count == 1 && (name == "ts" || name == "textshadow")) return new Cm("ts", first);
             if (count == 1 && name == "go") return new Cm("go", first);
             if (count == 1 && (name == "location.assign" || name == "window.location.assign" || name == "document.location.assign")) return new Cm("go", first);
             if (count == 1 && (name == "hd" || name == "hide")) return new Cm("hd", first);
@@ -368,6 +378,7 @@ namespace Lea.Engine
             if (count == 2 && (name == "ht" || name == "height" || name == "bs" || name == "blocksize")) return new Cm("ht", first, second);
             if (count == 2 && (name == "dr" || name == "direction")) return new Cm("dr", first, second);
             if (count == 2 && (name == "ti" || name == "textindent")) return new Cm("ti", first, second);
+            if (count == 2 && (name == "ts" || name == "textshadow")) return new Cm("ts", first, second);
             var logicalBox = LogicalBoxCommand(name);
             if (count == 2 && logicalBox != null) return new Cm(logicalBox, first, second);
             var logicalBorder = LogicalBorderCommand(name);
@@ -388,6 +399,7 @@ namespace Lea.Engine
             if (name == "document.body.style.fontsize") return new Cm("fs", value);
             if (name == "document.body.style.direction") return new Cm("dr", value);
             if (name == "document.body.style.textindent") return new Cm("ti", value);
+            if (name == "document.body.style.textshadow") return new Cm("ts", value);
             if (name == "location" || name == "window.location" || name == "document.location" ||
                 name == "location.href" || name == "window.location.href" || name == "document.location.href") return new Cm("go", value);
             return null;

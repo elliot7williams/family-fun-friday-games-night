@@ -664,6 +664,14 @@ and accessibility reuse the settled rectangles. Hosts can call bounded
 `style.textIndent` assignments without implementing layout themselves. See
 `TEXT_INDENT.md`.
 
+Inherited text shadows are available through nullable `S.Ts`, reusing the
+compact `Sw.X/Y/B/C` offset, blur, and color fields for one layer. Offsets are
+bounded to -128..128 pixels and blur to 0..32 pixels. The WinForms view paints
+the shadow without changing layout, hit, find, focus, or accessibility bounds;
+pages without shadows allocate no record. Hosts can call `ts(value)` or
+`ts(id,value)`, use readable `textshadow`, or send literal `style.textShadow`
+assignments. See `TEXT_SHADOW.md`.
+
 `E` and `V` expose the same cookie aliases: `Kc`, `Km`, `Kcl()`, and `Pv`.
 Cookies remain in memory and are bounded to 64 entries. Firespider maps its
 existing `pv` flag to each active Lea view, so private mode receives a fresh

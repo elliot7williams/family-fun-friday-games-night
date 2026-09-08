@@ -3468,7 +3468,7 @@ namespace Lea.Win
         private static bool NeedsFlow(B block)
         {
             var style = block == null ? null : block.S;
-            return block != null && (block.Is.Count > 0 || (style != null && (style.Dr == "r" || style.Ta.Length > 0 || style.Ti != 0 || style.Ls != 0 || style.Wg != 0 || style.Lh > 0 || style.Lm > 0 || style.Ws.Length > 0 || style.Wb.Length > 0 || style.Ov.Length > 0)));
+            return block != null && (block.Is.Count > 0 || (style != null && (style.Dr == "r" || style.Ta.Length > 0 || style.Ti != 0 || style.Ts != null || style.Ls != 0 || style.Wg != 0 || style.Lh > 0 || style.Lm > 0 || style.Ws.Length > 0 || style.Wb.Length > 0 || style.Ov.Length > 0)));
         }
 
         private static int CssTextIndent(S style, int width)
@@ -6757,6 +6757,47 @@ namespace Lea.Win
 
         private static void PaintText(Graphics graphics, string text, Font font, Rectangle rect, Color color, TextFormatFlags flags, int opacity, S style = null)
         {
+            if (opacity <= 0 || rect.Width < 1 || rect.Height < 1) return;
+            PaintTextShadow(graphics, text, font, rect, color, flags, opacity, style);
+            PaintTextCore(graphics, text, font, rect, color, flags, opacity, style);
+        }
+
+        private static void PaintTextShadow(Graphics graphics, string text, Font font, Rectangle rect, Color currentColor, TextFormatFlags flags, int opacity, S style)
+        {
+            var shadow = style == null ? null : style.Ts;
+            if (shadow == null) return;
+            var source = CssColor(shadow.C, currentColor);
+            var shadowOpacity = source.A * Math.Max(0, Math.Min(100, opacity)) / 255;
+            if (shadowOpacity <= 0) return;
+            var color = Color.FromArgb(source.R, source.G, source.B);
+            var origin = rect;
+            origin.Offset(shadow.X, shadow.Y);
+            if (shadow.B <= 0)
+            {
+                PaintTextCore(graphics, text, font, origin, color, flags, shadowOpacity, style);
+                return;
+            }
+            var steps = Math.Min(4, Math.Max(1, (shadow.B + 3) / 4));
+            var layerOpacity = Math.Max(1, shadowOpacity / (steps * 4));
+            for (var step = steps; step > 0; step--)
+            {
+                var radius = Math.Max(1, (int)Math.Ceiling(shadow.B * step / (double)steps));
+                for (var x = -1; x <= 1; x++)
+                {
+                    for (var y = -1; y <= 1; y++)
+                    {
+                        if (x == 0 && y == 0) continue;
+                        var sample = origin;
+                        sample.Offset(x * radius, y * radius);
+                        PaintTextCore(graphics, text, font, sample, color, flags, layerOpacity, style);
+                    }
+                }
+            }
+            PaintTextCore(graphics, text, font, origin, color, flags, Math.Max(1, shadowOpacity / (steps + 1)), style);
+        }
+
+        private static void PaintTextCore(Graphics graphics, string text, Font font, Rectangle rect, Color color, TextFormatFlags flags, int opacity, S style)
+        {
             if (TextSpaced(style))
             {
                 PaintSpacedText(graphics, text, font, rect, color, flags, opacity, style);
@@ -6767,7 +6808,6 @@ namespace Lea.Win
                 TextRenderer.DrawText(graphics, text, font, rect, color, flags);
                 return;
             }
-            if (opacity <= 0 || rect.Width < 1 || rect.Height < 1) return;
             using (var format = (StringFormat)StringFormat.GenericTypographic.Clone())
             using (var brush = new SolidBrush(PaintColor(color, opacity)))
             {

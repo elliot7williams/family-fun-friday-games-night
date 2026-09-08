@@ -17,19 +17,20 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 93 adds bounded inherited `text-indent` with compact `S.Ti/Tip` and
-`ti` aliases. Signed integer pixels and percentages feed direction-aware LTR/RTL
-first-line wrapping while later lines retain full width; the compiled cascade,
-paint, hits, find, focus, accessibility, hover, responsive rebuilds, readable
-commands, and literal DOM assignments share existing paths. The full
-default/core suites, compiled host, all 42 Boot cases, all six actual EXE startup
-scenarios, and all 89 benchmark probes over 84 fixtures pass. Canonical medians
-are 498.029 ms clean start, 3.635 ms local load, and 35.871 ms layout/paint;
-retained memory is 53.0 KiB/page and the required runtime is 567.0 KiB. Runtime
-193 remains isolated, and installed runtime 157 is unchanged. See
-`TEXT_INDENT.md`. The latest non-empty UIA visible-range identity/lifetime test
-still failed in external .NET and .NET Framework clients, so Lea retains its
-stable empty fallback while that native boundary remains open.
+Milestone 94 adds one bounded inherited `text-shadow` layer with compact nullable
+`S.Ts` and defining `ts` aliases. Signed integer offsets, optional bounded blur
+and color, variables, important tiers, inline overrides, hover, responsive
+rebuilds, readable commands, and literal DOM assignments share the existing
+cascade. A small allocation-free sampling loop paints blur without changing
+layout, hits, find, focus, or accessibility geometry. The full default/core
+suites, compiled host, all 42 Boot cases, all six actual EXE startup scenarios,
+and all 90 benchmark probes over 85 fixtures pass. Canonical medians are 519.936
+ms clean start, 4.478 ms local load, and 40.560 ms layout/paint; retained memory
+is 53.0 KiB/page and the required runtime is 568.5 KiB. Runtime 194 remains
+isolated, and installed runtime 157 is unchanged. See `TEXT_SHADOW.md`. The
+native-safe non-empty UIA visible-range boundary remains open; multiple shadows,
+exact Gaussian filters, and general CSS/JavaScript evaluation stay outside this
+milestone.
 
 Milestone 60 installs the existing `V.Ng` hook on main Lea tabs, enforcing host
 rules, offline/locked state, and live ownership. Denied resume retains its

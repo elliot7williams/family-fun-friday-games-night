@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Text Shadow</title>
+  <style>
+    :root { --lea-text-shadow: 3px 2px 0 #176b4d; }
+    body { margin: 24px; color: #172033; background: #ffffff; font-family: "Segoe UI", sans-serif; }
+    .sample { width: 280px; margin: 10px 0; padding: 8px 16px; background: #f8fafc; font-size: 26px; font-weight: bold; }
+    #plain { text-shadow: none; }
+    #basic { text-shadow: 5px 4px 0 #dc2626; }
+    #color-first { text-shadow: rgba(37, 99, 235, .75) -4px 3px 0; }
+    #soft { text-shadow: 3px 3px 6px #7c3aed; }
+    #inherit-parent { text-shadow: 4px 2px 0 #0f766e; }
+    #reset { text-shadow: 2px 2px red; text-shadow: initial; }
+    #invalid { text-shadow: 2px 3px 0 #a13b18; text-shadow: inset 4px 4px red; text-shadow: 129px 0 red; text-shadow: 0 0 33px blue; }
+    #variable { text-shadow: var(--lea-text-shadow); }
+    #important { text-shadow: 6px 2px 0 #2563eb !important; }
+    #inline { text-shadow: 3px 2px 0 #dc2626; }
+    #inline span { text-shadow: none; }
+    #dynamic { text-shadow: 1px 1px 0 #64748b; }
+    #dynamic:hover { text-shadow: 7px 3px 0 #dc2626; }
+    #responsive { text-shadow: 2px 2px 0 #64748b; }
+    #command { text-shadow: none; }
+    #field { width: 240px; height: 38px; text-shadow: 3px 2px 0 #0f766e; }
+    @media (max-width: 420px) {
+      #responsive { text-shadow: -5px 4px 4px #7c3aed; }
+    }
+  </style>
+</head>
+<body>
+  <p id="plain" class="sample">Plain shadow comparison</p>
+  <p id="basic" class="sample">Basic red shadow</p>
+  <p id="color-first" class="sample">Color first shadow</p>
+  <p id="soft" class="sample">Soft bounded shadow</p>
+  <section id="inherit-parent"><p id="inherited" class="sample">Inherited teal shadow</p></section>
+  <p id="reset" class="sample">Reset has no shadow</p>
+  <p id="invalid" class="sample">Invalid keeps brown shadow</p>
+  <p id="variable" class="sample">Variable green shadow</p>
+  <p id="important" class="sample" style="text-shadow:0 0 red">Important blue shadow</p>
+  <p id="inline" class="sample">Parent shadow <span>plain child</span></p>
+  <p id="dynamic" class="sample">Dynamic hover shadow</p>
+  <p id="responsive" class="sample">Responsive shadow</p>
+  <p id="command" class="sample">Command shadow</p>
+  <input id="field" value="Field shadow text">
+  <button id="set-short" data-lea="ts('command','6px 3px 0 #dc2626')">Set short</button>
+  <button id="set-dom" data-lea="document.getElementById('command').style.textShadow='-4px 2px 0 #2563eb'">Set DOM</button>
+  <button id="clear-dom" data-lea="document.getElementById('command').style.textShadow=''">Clear DOM</button>
+</body>
+</html>

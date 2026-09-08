@@ -557,6 +557,13 @@ retained layout continues to drive paint, hits, find, focus, and accessibility.
 Signed pixels are bounded to -2000..2000 and percentages to -100..100; see
 `LeaForge/TEXT_INDENT.md`.
 
+Hosted text also exposes one inherited bounded shadow through nullable `S.Ts`.
+The compiled host verifies exact authored paint, signed offsets, optional blur
+and color, compact `ts`, literal `style.textShadow`, and narrow/wide responsive
+rebuilds. Firespider adds no adapter state or extra controls, and Lea keeps the
+same layout, hit, find, focus, and accessibility geometry. See
+`LeaForge/TEXT_SHADOW.md`.
+
 Hosted block text supports non-inherited `S.To=c/e` clip/ellipsis overflow.
 The compiled smoke checks LTR/RTL physical inline-end markers, right-aligned RTL
 prefix paint, original elided link hits, direction-aware TextPattern range and

@@ -112,6 +112,9 @@ geometry without running the rest of the suite.
 `--text-indent` isolates bounded inherited pixel/percentage indentation,
 compact/literal command routes, LTR/RTL first-line geometry, wrapping, hover,
 paint, and responsive resize.
+`--text-shadow` isolates one inherited bounded text-shadow layer, compact and
+literal command routes, resets/invalid preservation, block/field paint, stable
+geometry, hover, and responsive resize.
 `--sheets` isolates native named CSS, byte/rule limits, retained data,
 painting, and editor font/selection/undo. It is included in `--core`.
 These test modes do not retry or suppress failed assertions. Windows

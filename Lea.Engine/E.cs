@@ -3498,6 +3498,7 @@ namespace Lea.Engine
                 else if (name == "text-align") TextAlign(style, value);
                 else if (name == "text-transform") TextTransform(style, value);
                 else if (name == "text-indent") TextIndent(style, inherited, value);
+                else if (name == "text-shadow") TextShadow(style, inherited, value);
                 else if (name == "letter-spacing") TextSpacing(style, inherited, value, true);
                 else if (name == "word-spacing") TextSpacing(style, inherited, value, false);
                 else if (name == "line-height") LineHeight(style, value);
@@ -4775,6 +4776,35 @@ namespace Lea.Engine
                 (unit != "%" && (number < -2000 || number > 2000))) return false;
             indent = number.ToString(CultureInfo.InvariantCulture) + (unit == "%" ? "%" : "px");
             return true;
+        }
+
+        private static void TextShadow(S style, S inherited, string value)
+        {
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            if (lower == "inherit" || lower == "unset" || lower == "revert" || lower == "revert-layer")
+            {
+                style.Ts = inherited == null ? null : inherited.Ts;
+                return;
+            }
+            if (lower == "none" || lower == "initial")
+            {
+                style.Ts = null;
+                return;
+            }
+            Sw shadow;
+            if (source.Length == 0 || source.Length > 256 || !TextShadowValue(source, out shadow)) return;
+            style.Ts = shadow;
+        }
+
+        internal static bool Tsh(string value, out string shadow)
+        {
+            shadow = (value ?? "").Trim();
+            var lower = shadow.ToLowerInvariant();
+            if (shadow.Length == 0 || lower == "none" || lower == "initial" || lower == "inherit" ||
+                lower == "unset" || lower == "revert" || lower == "revert-layer") return true;
+            Sw parsed;
+            return shadow.Length <= 256 && TextShadowValue(shadow, out parsed);
         }
 
         private static void TextSpacing(S style, S inherited, string value, bool letters)
@@ -6426,6 +6456,32 @@ namespace Lea.Engine
                 C = color,
                 I = inset
             };
+            return true;
+        }
+
+        private static bool TextShadowValue(string source, out Sw shadow)
+        {
+            shadow = null;
+            List<string> parts;
+            if (!ShadowParts(source, '\0', out parts) || parts.Count < 2 || parts.Count > 4) return false;
+            var lengths = new List<int>();
+            var color = "";
+            foreach (var raw in parts)
+            {
+                var part = raw.Trim();
+                int length;
+                if (ShadowLength(part, out length))
+                {
+                    if (lengths.Count == 3) return false;
+                    lengths.Add(length);
+                    continue;
+                }
+                if (color.Length > 0 || !ShadowColor(part) || part.Equals("inset", StringComparison.OrdinalIgnoreCase)) return false;
+                color = part;
+            }
+            if (lengths.Count < 2 || lengths.Count > 3 || Math.Abs((long)lengths[0]) > 128 ||
+                Math.Abs((long)lengths[1]) > 128 || (lengths.Count > 2 && (lengths[2] < 0 || lengths[2] > 32))) return false;
+            shadow = new Sw { X = lengths[0], Y = lengths[1], B = lengths.Count > 2 ? lengths[2] : 0, C = color };
             return true;
         }
 

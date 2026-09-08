@@ -1,6 +1,6 @@
 namespace Lea.Engine
 {
-    // Sw is one compact, bounded CSS box shadow.
+    // Sw is one compact, bounded CSS box or text shadow.
     public sealed class Sw
     {
         internal Sw() { C = ""; }

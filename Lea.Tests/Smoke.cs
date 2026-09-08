@@ -51,6 +51,11 @@ namespace Lea.Tests
                     TextIndentSmoke(Path.Combine(pages, "text-indent.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--text-shadow")
+                {
+                    TextShadowSmoke(Path.Combine(pages, "text-shadow.html"));
+                    return 0;
+                }
                 var coreOnly = args.Length > 1 && args[1] == "--core";
                 if (coreOnly)
                 {
@@ -2389,6 +2394,7 @@ namespace Lea.Tests
 
                 TextSpacingSmoke(spacingPath);
                 TextIndentSmoke(Path.Combine(pages, "text-indent.html"));
+                TextShadowSmoke(Path.Combine(pages, "text-shadow.html"));
                 TextOverflowSmoke(Path.Combine(pages, "text-overflow.html"));
 
                 var recoveryPath = Path.Combine(pages, "recovery.html");
@@ -7009,6 +7015,99 @@ namespace Lea.Tests
                 }
             }
             Console.WriteLine("Lea text indent smoke passed: compact Ti/Tip aliases, ti and DOM commands, signed pixels, percentages, inheritance, RTL, wrapping, hover, resize, and paint.");
+        }
+
+        private static void TextShadowSmoke(string path)
+        {
+            var engine = new E { Vw = 720 };
+            var page = engine.Go(path);
+            Func<string, B> block = id => BlockById(page, id);
+            var basic = block("basic").S.Ts;
+            var colorFirst = block("color-first").S.Ts;
+            var soft = block("soft").S.Ts;
+            Ok(page.S.Ts == null && basic != null && basic.X == 5 && basic.Y == 4 && basic.B == 0 && basic.C == "#dc2626",
+                "text shadow initial and basic aliases");
+            Ok(colorFirst != null && colorFirst.X == -4 && colorFirst.Y == 3 && colorFirst.B == 0 &&
+                colorFirst.C.StartsWith("rgba", StringComparison.OrdinalIgnoreCase) && soft != null && soft.B == 6,
+                "text shadow color-first alpha and blur aliases");
+            Ok(block("inherited").S.Ts != null && block("inherited").S.Ts.X == 4 && block("inherited").S.Ts.Y == 2 &&
+                block("reset").S.Ts == null && block("invalid").S.Ts != null && block("invalid").S.Ts.X == 2 &&
+                block("variable").S.Ts != null && block("important").S.Ts != null && block("important").S.Ts.X == 6,
+                "text shadow inheritance reset bounds variables and priority");
+            var inline = block("inline");
+            var plainChild = false;
+            foreach (var run in inline.Is)
+                if (run.X.Contains("plain child") && run.S.Ts == null) plainChild = true;
+            Ok(inline.S.Ts != null && plainChild, "text shadow inline reset");
+            var field = FieldById(page, "field");
+            Ok(field.S.Ts != null && field.S.Ts.X == 3 && field.S.Ts.Y == 2, "text shadow field model");
+            Eq(1, engine.Ck(page, ById(page.D, "set-short")), "text shadow short command");
+            Ok(block("command").S.Ts != null && block("command").S.Ts.X == 6, "text shadow short command model");
+            Eq(1, engine.Ck(page, ById(page.D, "set-dom")), "text shadow DOM command");
+            Ok(block("command").S.Ts != null && block("command").S.Ts.X == -4 && block("command").S.Ts.C == "#2563eb",
+                "text shadow DOM command model");
+            Eq(1, engine.Ck(page, ById(page.D, "clear-dom")), "text shadow DOM reset");
+            Ok(block("command").S.Ts == null, "text shadow DOM reset model");
+            Eq(0, engine.Js(page, "ts('command','129px 0 red')"), "text shadow command offset bound");
+            Eq(0, engine.Js(page, "ts('command','0 0 33px red')"), "text shadow command blur bound");
+            Eq(0, engine.Js(page, "ts('command','inset 1px 1px red')"), "text shadow command rejects inset");
+            Eq(0, engine.Js(page, "ts('command','1px 1px red,2px 2px blue')"), "text shadow command rejects multiple layers");
+            Eq(1, engine.Js(page, "ts('2px 1px #0f766e')"), "text shadow body alias");
+            Ok(page.S.Ts != null && page.S.Ts.X == 2, "text shadow body alias model");
+
+            using (var view = new V())
+            {
+                view.Size = new Size(720, 3400);
+                view.CreateControl();
+                view.Go(path);
+                using (var paint = Render(view))
+                {
+                    var plainBlock = BlockById(view.At, "plain");
+                    var basicBlock = BlockById(view.At, "basic");
+                    var basicArea = BlockOuterRect(view, basicBlock);
+                    Ok(!BlockRect(view, plainBlock).IsEmpty, "plain text shadow comparison geometry");
+                    Eq(BlockRect(view, basicBlock).Left, InlineTextRect(view, basicBlock, "Basic").Left,
+                        "text shadow leaves layout geometry unchanged");
+                    Ok(HasColor(paint, basicArea, Color.FromArgb(220, 38, 38)), "basic text shadow paint");
+                    Ok(HasColor(paint, BlockOuterRect(view, BlockById(view.At, "invalid")), Color.FromArgb(161, 59, 24)) &&
+                        HasColor(paint, BlockOuterRect(view, BlockById(view.At, "variable")), Color.FromArgb(23, 107, 77)) &&
+                        HasColor(paint, BlockOuterRect(view, BlockById(view.At, "important")), Color.FromArgb(37, 99, 235)),
+                        "text shadow cascade paint");
+                    Ok(HasColor(paint, BlockRect(view, BlockById(view.At, "field")), Color.FromArgb(15, 118, 110)),
+                        "text shadow custom field paint");
+                }
+
+                var dynamic = BlockById(view.At, "dynamic");
+                Move(view, BlockOuterRect(view, dynamic));
+                using (var paint = Render(view))
+                {
+                    dynamic = BlockById(view.At, "dynamic");
+                    Ok(dynamic.S.Ts != null && dynamic.S.Ts.X == 7 &&
+                        HasColor(paint, BlockOuterRect(view, dynamic), Color.FromArgb(220, 38, 38)),
+                        "text shadow hover rebuild and paint");
+                }
+
+                Eq(1, view.Js("ts('command','6px 3px 0 #dc2626')"), "WinForms text shadow command");
+                using (var paint = Render(view))
+                    Ok(HasColor(paint, BlockOuterRect(view, BlockById(view.At, "command")), Color.FromArgb(220, 38, 38)),
+                        "WinForms text shadow command paint");
+                Eq(1, view.Js("document.getElementById('command').style.textShadow='-4px 2px 0 #2563eb'"),
+                    "WinForms text shadow DOM command");
+                using (var paint = Render(view))
+                    Ok(HasColor(paint, BlockOuterRect(view, BlockById(view.At, "command")), Color.FromArgb(37, 99, 235)),
+                        "WinForms text shadow DOM paint");
+
+                view.Size = new Size(350, 3800);
+                Application.DoEvents();
+                using (var paint = Render(view))
+                {
+                    var responsive = BlockById(view.At, "responsive");
+                    Ok(responsive.S.Ts != null && responsive.S.Ts.X == -5 && responsive.S.Ts.Y == 4 && responsive.S.Ts.B == 4,
+                        "responsive text shadow model");
+                    Ok(!BlockOuterRect(view, responsive).IsEmpty, "responsive text shadow paint geometry");
+                }
+            }
+            Console.WriteLine("Lea text shadow smoke passed: compact inherited alias, bounded parser, single-layer paint, inline resets, fields, commands, hover, and resize.");
         }
 
         private static void DirectionOverflowSmoke(string path)

@@ -68,7 +68,7 @@ Dg/Dcl  diagnostics/clear request activity
 2. Implement the cascade and inheritance with a small priority model. (First specificity/source-order cascade added.)
    (`link rel=stylesheet` and inline `style` blocks now enter that source order
    together; linked CSS uses cookies, compression, validators, and shared LRU caching.)
-3. Add colors, fonts, spacing, borders, width, height, display, visibility, opacity, and overflow. (Colors, fallback font families, underline/strike decorations, margins, padding, backgrounds, `display:none`, inherited visibility, bounded opacity, borders, non-inherited content/border-box pixel sizing, pixel width/height bounds, text alignment, transformation, signed letter/word spacing, signed pixel/percentage first-line indentation, line height, word breaking, white-space modes, and clipped overflow are active.)
+3. Add colors, fonts, spacing, borders, width, height, display, visibility, opacity, and overflow. (Colors, fallback font families, underline/strike decorations, margins, padding, backgrounds, `display:none`, inherited visibility, bounded opacity, borders, non-inherited content/border-box pixel sizing, pixel width/height bounds, text alignment, transformation, signed letter/word spacing, signed pixel/percentage first-line indentation, one inherited bounded text-shadow layer, line height, word breaking, white-space modes, and clipped overflow are active.)
 4. Replace one-WinForms-control-per-node rendering with lightweight layout boxes. (Reusable `Bx` layout pass added.)
 5. Paint text, backgrounds, borders, links, controls, and images onto one surface. (Text, nested bold/italic inline runs, backgrounds, solid/dashed/dotted borders, links, images, and basic form controls are active.)
 6. Add scrolling and hit testing from layout boxes. (Visible-box painting and bounded vertical scrolling added.)
@@ -346,15 +346,17 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 93 adds bounded inherited CSS `text-indent` through compact
-`S.Ti/Tip`, signed integer pixels and percentages, and the defining `ti`
-command. LTR and RTL layout resolve only the first visual line from
-inline-start; later lines retain the normal content width. Variables,
-important tiers, inheritance/reset, hover, resize, paint, retained hits, and
-automation geometry share existing paths. See `TEXT_INDENT.md`. Next
-investigate the native-safe visible-range boundary while keeping vertical
-writing modes, full Unicode bidi shaping, `dir=auto`, custom overflow markers,
-and general CSS/JavaScript evaluators outside the current boundary.
+Milestone 94 adds one bounded inherited CSS `text-shadow` layer through compact
+nullable `S.Ts`, reused `Sw.X/Y/B/C` fields, and the defining `ts` command.
+Signed integer offsets, optional blur/color, CSS-wide values, variables,
+important tiers, inline overrides, hover, responsive rebuilds, readable
+commands, and literal DOM assignments share existing paths. Painting adds no
+per-sample arrays and does not change layout, hits, find, focus, or accessibility
+geometry. See `TEXT_SHADOW.md`. Next investigate the native-safe visible-range
+boundary and another bounded text compatibility slice while keeping multiple
+text shadows, exact Gaussian filters, vertical writing modes, full Unicode bidi
+shaping, `dir=auto`, custom overflow markers, and general CSS/JavaScript
+evaluators outside the current boundary.
 
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host

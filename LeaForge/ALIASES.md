@@ -35,7 +35,7 @@ read and quick to write.
   redirects or resource requests. Firespider installs it on ordinary and split
   tabs. See `NAVIGATION_POLICY.md` and `SPLIT_VIEW.md` for its callback contract.
 - Page values use one or two letters: `U`, `T`, `H`, `Q`, `D`, `N`, `Bs`, and `Ls`.
-- Page commands use one or two letters where practical: `t`, `a`, `bg`, `fg`, `fs`, `dp`, `wd`, `ht`, `dr`, `ti`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`; logical edge families stay within three letters.
+- Page commands use one or two letters where practical: `t`, `a`, `bg`, `fg`, `fs`, `dp`, `wd`, `ht`, `dr`, `ti`, `ts`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`; logical edge families stay within three letters.
 - New public aliases should be no more than three letters.
 - `E/V.Hm` reports the 4 MiB document-body ceiling; `E/V.Csm` reports the
   256 KiB linked-stylesheet ceiling. GET/POST input and optional CSS share
@@ -87,6 +87,8 @@ dr("rtl")          body direction
 dr("id", "rtl")   element direction
 ti("18px")         body first-line indent
 ti("id", "15%")   element first-line indent
+ts("3px 2px #555") body text shadow
+ts("id", "5px 4px 0 #dc2626") element text shadow
 is("id", "50%")  logical inline size
 bs("id", "120px") logical block size
 mi("id", "8px 12px") logical inline margin
@@ -122,7 +124,7 @@ fo("id")              request focus
 go("next.html")        request host navigation
 ```
 
-The two-argument `bg/fg/fs/dp/wd/ht/dr/ti/is/bs`, logical box, logical border, and
+The two-argument `bg/fg/fs/dp/wd/ht/dr/ti/ts/is/bs`, logical box, logical border, and
 radius forms
 target one validated ID. Color and font
 forms reuse the same
@@ -143,6 +145,12 @@ Signed integer pixels are bounded to -2000..2000 and percentages to -100..100;
 unitless zero and CSS-wide values share the authored parser. Literal body and
 element `style.textIndent` assignments use the same route, and an empty value
 restores the authored cascade. See `TEXT_INDENT.md`.
+
+`S.Ts` stores one optional inherited text-shadow record. `ts` and readable
+`textshadow` accept one body value or an ID plus value, with signed integer
+offsets bounded to -128..128 pixels, an optional 0..32 pixel blur, and one
+optional bounded color. Literal `style.textShadow` uses the same parser; empty
+assignments restore authored CSS. See `TEXT_SHADOW.md`.
 
 `dp` accepts a bounded standard display keyword set. `none` removes the subtree
 from layout and accessibility; `flex`/`inline-flex` and `grid`/`inline-grid`
