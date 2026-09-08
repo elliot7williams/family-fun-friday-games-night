@@ -112,7 +112,7 @@ namespace Lea.Bench
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
                 "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html", "svg.html", "svg-geometry.html", "svg-gradients.html", "svg-use-clips.html", "svg-strokes.html",
-                "box-sizing.html", "border-radius.html", "logical-radii.html", "box-shadows.html", "background-gradients.html", "background-images.html", "object-fit.html", "aspect-ratio.html", "outlines.html", "pointer-interaction.html", "text-transform.html", "text-spacing.html", "text-indent.html", "text-decoration.html", "text-shadow.html", "text-overflow.html"
+                "box-sizing.html", "border-radius.html", "logical-radii.html", "box-shadows.html", "background-gradients.html", "background-images.html", "object-fit.html", "aspect-ratio.html", "outlines.html", "pointer-interaction.html", "text-transform.html", "text-spacing.html", "text-indent.html", "text-decoration.html", "text-underline-offset.html", "text-shadow.html", "text-overflow.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -1440,6 +1440,66 @@ namespace Lea.Bench
                     }
                 }
                 return "S.Td/Tc/Tds/Tw compact aliases, bounded atomic shorthand and longhands, solid/double/dotted/dashed/wavy underline/strike paint, inheritance/reset, variables/priority, td/tdl/tdc/tds/tdw and DOM commands, stable geometry, hover, and resize";
+            });
+            AddProbe(probes, "Bounded text underline offset", delegate
+            {
+                var path = Path.Combine(folder, "text-underline-offset.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(block("auto").S.Uo == 0 && !block("auto").S.Uop && block("positive").S.Uo == 6 && !block("positive").S.Uop &&
+                    block("negative").S.Uo == -4 && block("percent").S.Uo == 20 && block("percent").S.Uop,
+                    "text underline offset aliases changed");
+                Need(block("inherited").S.Uo == 5 && block("explicit-inherit").S.Uo == 5 && block("unset").S.Uo == 5 &&
+                    block("shorthand-independent").S.Uo == 7 && block("shorthand-independent").S.Tds == "d" &&
+                    block("reset").S.Uo == 0 && block("invalid").S.Uo == 4 && block("variable").S.Uo == 18 && block("variable").S.Uop && block("important").S.Uo == 8,
+                    "text underline offset cascade or bounds changed");
+                Need(engine.Ck(page, ById(page.D, "set-short")) == 1 && block("command").S.Uo == 6 &&
+                    engine.Ck(page, ById(page.D, "set-readable")) == 1 && block("command").S.Uo == -3 &&
+                    engine.Ck(page, ById(page.D, "set-dom")) == 1 && block("command").S.Uo == 25 && block("command").S.Uop &&
+                    engine.Ck(page, ById(page.D, "clear-dom")) == 1 && block("command").S.Uo == 0 &&
+                    engine.Js(page, "uo('command','33px')") == 0 && engine.Js(page, "uo('command','101%')") == 0,
+                    "text underline offset command routes changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 5200);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var autoRect = BlockOuter(view, "auto");
+                        var positiveRect = BlockOuter(view, "positive");
+                        var negativeRect = BlockOuter(view, "negative");
+                        var autoLine = ColorBounds(image, autoRect, Color.FromArgb(220, 38, 38));
+                        var positiveLine = ColorBounds(image, positiveRect, Color.FromArgb(220, 38, 38));
+                        var negativeLine = ColorBounds(image, negativeRect, Color.FromArgb(220, 38, 38));
+                        Need(BlockContent(view, "auto").Size == BlockContent(view, "positive").Size && !autoLine.IsEmpty && !positiveLine.IsEmpty && !negativeLine.IsEmpty &&
+                            positiveLine.Top - positiveRect.Top >= autoLine.Top - autoRect.Top + 4 &&
+                            negativeLine.Top - negativeRect.Top <= autoLine.Top - autoRect.Top - 2,
+                            "text underline offset geometry or signed paint position changed");
+                        Need(HasColor(image, BlockOuter(view, "percent"), Color.FromArgb(15, 118, 110)) &&
+                            HasColor(image, BlockOuter(view, "shorthand-independent"), Color.FromArgb(37, 99, 235)) &&
+                            HasColor(image, BlockOuter(view, "wrapped"), Color.FromArgb(15, 118, 110)),
+                            "text underline offset percentage, shorthand, or wrapped paint changed");
+                    }
+                    Move(view, BlockOuter(view, "dynamic"));
+                    using (var image = Draw(view))
+                        Need(view.At.Bs.First(item => item.El != null && item.El.Av("id") == "dynamic").S.Uo == 7 &&
+                            HasColor(image, BlockOuter(view, "dynamic"), Color.FromArgb(220, 38, 38)),
+                            "text underline offset hover changed");
+                    Need(view.Js("uo('command','6px')") == 1, "text underline offset compact command changed");
+                    using (var image = Draw(view))
+                        Need(HasColor(image, BlockOuter(view, "command"), Color.FromArgb(23, 107, 77)),
+                            "text underline offset command paint changed");
+                    view.Size = new Size(350, 5600);
+                    using (var image = Draw(view))
+                    {
+                        var responsive = view.At.Bs.First(item => item.El != null && item.El.Av("id") == "responsive");
+                        Need(responsive.S.Uo == 25 && responsive.S.Uop &&
+                            HasColor(image, BlockOuter(view, "responsive"), Color.FromArgb(124, 58, 237)),
+                            "text underline offset responsive state changed");
+                    }
+                }
+                return "S.Uo/Uop compact inherited signed pixel/percentage state, strict resets and bounds, shorthand independence, uo/readable/DOM commands, offset-aware custom paint, stable geometry, hover, and resize";
             });
             AddProbe(probes, "Bounded text shadow", delegate
             {
@@ -3199,12 +3259,12 @@ namespace Lea.Bench
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, direction-aware ordered/unordered lists and disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, inherited horizontal LTR/RTL direction, fixed/percentage/calc dimensions and classic vw/vh/vmin/vmax plus bounded em/rem units, two/three-term min/max and three-term clamp size functions, content/border box, circular/elliptical radii, bounded outlines, box shadows, one inherited bounded text-shadow layer, bounded text-decoration line/color/style/thickness, and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing, signed pixel/percentage first-line indentation, and text styles, visibility, absolute/fixed and bounded vertical sticky positioning, transforms, responsive image sizing, direction-aware row/column flex, and direction-aware bounded two-axis grid");
-            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/box-shadows/gradients, bounded offset and lightweight blurred text shadows, native fast-path plus lightweight solid/double/dotted/dashed/wavy text decorations, direction-aware source-stable inline atoms, markers, first-line indentation, and paint-only ellipsis geometry, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
+            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, inherited horizontal LTR/RTL direction, fixed/percentage/calc dimensions and classic vw/vh/vmin/vmax plus bounded em/rem units, two/three-term min/max and three-term clamp size functions, content/border box, circular/elliptical radii, bounded outlines, box shadows, one inherited bounded text-shadow layer, bounded text-decoration line/color/style/thickness and signed pixel/percentage underline offset, and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing, signed pixel/percentage first-line indentation, and text styles, visibility, absolute/fixed and bounded vertical sticky positioning, transforms, responsive image sizing, direction-aware row/column flex, and direction-aware bounded two-axis grid");
+            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/box-shadows/gradients, bounded offset and lightweight blurred text shadows, native fast-path plus lightweight offset-aware solid/double/dotted/dashed/wavy text decorations, direction-aware source-stable inline atoms, markers, first-line indentation, and paint-only ellipsis geometry, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Text overflow", "Supported subset", "Non-inherited clip/ellipsis with bounded LTR/RTL physical inline-end markers and grapheme-safe paint-only authored prefixes for inline runs and tables; retained layout/link targets, full logical automation text, and direction-aware partial range geometry; no native-control, Unicode bidi shaping, custom-marker, or line-clamp additions");
-            Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color, font, display, width, height, direction, text indent, text decoration, and text shadow, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, safe click commands, and literal compatibility translation");
-            Capability(builder, "Literal DOM bridge", "Supported subset", "Literal document.getElementById IDs with textContent/innerText, value, checked/disabled/hidden/open, focus(), classList add/remove/toggle, and background/color/fontSize/display/width/height/direction/textIndent/textDecoration/textDecorationLine/textDecorationColor/textDecorationStyle/textDecorationThickness/textShadow; literal location href/assign requests; mapped to bounded Lea aliases");
+            Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color, font, display, width, height, direction, text indent, text decoration, underline offset, and text shadow, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, safe click commands, and literal compatibility translation");
+            Capability(builder, "Literal DOM bridge", "Supported subset", "Literal document.getElementById IDs with textContent/innerText, value, checked/disabled/hidden/open, focus(), classList add/remove/toggle, and background/color/fontSize/display/width/height/direction/textIndent/textDecoration/textDecorationLine/textDecorationColor/textDecorationStyle/textDecorationThickness/textUnderlineOffset/textShadow; literal location href/assign requests; mapped to bounded Lea aliases");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
             Capability(builder, "Flexbox", "Supported subset", "Row/row-reverse and fixed-height column/column-reverse containers, content/border-box pixel bases, stable -64..64 order on nowrap rows and bounded columns, bounded row wrap, fixed/equal-share/weighted grow and integer weighted-shrink slots, explicit pixel min/max floors, pixel row/column gaps, start/center/end/space-between/space-around/space-evenly justification, and container/item stretch/start/center/end cross alignment; no intrinsic min-content sizing, fractional factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis alignment, or auto-height column reordering guarantee");
             Capability(builder, "CSS Grid", "Supported subset", "Grid/inline-grid with up to eight fixed-pixel, auto, or integer-fr tracks per explicit axis, simple repeat and minmax(0, Nfr), pixel gaps, bounded occupancy, two-axis numeric starts/spans, validated 8x8 named-area templates, unique explicit named lines, area-generated start/end lines, Gf row/column sparse/dense flow, repeating S.Av/Gac/Gav/Rac/Rav pixel/auto/integer-fr implicit patterns, definite endpoint/span growth, area-created track sizing, exact auto-height row settlement, atomic grid-template/grid explicit, quoted-area, and row/column auto-flow shorthands, Ji/Js/Ai/As start/center/end/stretch item alignment, atomic place-items/place-self, Al/Jc start/center/end/between/around/evenly track-group alignment, atomic place-content, and shared nested paint/hit/reflow; no escaped or repeated-name occurrence indexes, reverse flow, pre-explicit implicit tracks, shorthand area-row line names, intrinsic or percentage tracks, auto-fit/fill, baseline or safe/unsafe alignment, writing-mode axis reversal, or subgrid");
@@ -3341,6 +3401,25 @@ namespace Lea.Bench
                 for (var x = area.Left; x < area.Right; x++)
                     if (ColorDistance(image.GetPixel(x, y), color) < 8) return true;
             return false;
+        }
+
+        private static Rectangle ColorBounds(Bitmap image, Rectangle area, Color color)
+        {
+            area.Intersect(new Rectangle(Point.Empty, image.Size));
+            var left = area.Right;
+            var top = area.Bottom;
+            var right = area.Left - 1;
+            var bottom = area.Top - 1;
+            for (var y = area.Top; y < area.Bottom; y++)
+                for (var x = area.Left; x < area.Right; x++)
+                    if (ColorDistance(image.GetPixel(x, y), color) < 8)
+                    {
+                        left = Math.Min(left, x);
+                        top = Math.Min(top, y);
+                        right = Math.Max(right, x);
+                        bottom = Math.Max(bottom, y);
+                    }
+            return right < left || bottom < top ? Rectangle.Empty : Rectangle.FromLTRB(left, top, right + 1, bottom + 1);
         }
 
         private static void Move(V view, Rectangle rect)

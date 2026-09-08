@@ -77,6 +77,10 @@ LeaForge is where we can grow the more full-featured browser.
   `S.Td/Tc/Tds/Tw` and `td/tdl/tdc/tds/tdw`, with atomic shorthand and
   longhands, native solid fast path, lightweight double/dotted/dashed/wavy
   paint, stable geometry, and literal DOM support; see `TEXT_DECORATION.md`
+- bounded inherited `text-underline-offset` through compact `S.Uo/Uop` and
+  `uo`, with signed integer pixels/percentages, shorthand independence,
+  offset-aware default-link paint, stable geometry, and literal DOM support;
+  see `TEXT_UNDERLINE_OFFSET.md`
 - non-inherited clip/ellipsis text overflow through compact `S.To=c/e`, with
   bounded LTR/RTL physical inline-end markers, grapheme-safe paint-only
   prefixes, retained link targets, and authored automation text

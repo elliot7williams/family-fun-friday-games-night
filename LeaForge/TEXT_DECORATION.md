@@ -96,7 +96,8 @@ model, parser, command, paint, and responsive paths.
 
 ## Boundary
 
-This milestone does not add overline, skip-ink, underline offset or position,
-percentage/relative thickness, fractional lengths, native-editor custom lines,
-SVG text decoration, animation, spelling/grammar lines, or exact browser glyph
-metric matching.
+This decoration milestone does not itself add overline, skip-ink, underline
+position, percentage/relative thickness, fractional lengths, native-editor
+custom lines, SVG text decoration, animation, spelling/grammar lines, or exact
+browser glyph metric matching. Bounded underline offset is implemented as the
+separate inherited `S.Uo/Uop` slice described in `TEXT_UNDERLINE_OFFSET.md`.

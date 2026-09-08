@@ -3499,6 +3499,7 @@ namespace Lea.Engine
                 else if (name == "text-decoration-color") TextDecorationColor(style, value);
                 else if (name == "text-decoration-style") TextDecorationStyle(style, value);
                 else if (name == "text-decoration-thickness") TextDecorationThickness(style, value);
+                else if (name == "text-underline-offset") TextUnderlineOffset(style, inherited, value);
                 else if (name == "text-align") TextAlign(style, value);
                 else if (name == "text-transform") TextTransform(style, value);
                 else if (name == "text-indent") TextIndent(style, inherited, value);
@@ -4752,6 +4753,43 @@ namespace Lea.Engine
             int width;
             bool inherit;
             if (DecorationThicknessValue(value, out width, out inherit) && !inherit) style.Tw = width;
+        }
+
+        private static void TextUnderlineOffset(S style, S inherited, string value)
+        {
+            string source;
+            if (!Uo(value, out source) || source.Length == 0) return;
+            if (source == "inherit" || source == "unset" || source == "revert" || source == "revert-layer")
+            {
+                style.Uo = inherited == null ? 0 : inherited.Uo;
+                style.Uop = inherited != null && inherited.Uop;
+                return;
+            }
+            if (source == "auto" || source == "initial")
+            {
+                style.Uo = 0;
+                style.Uop = false;
+                return;
+            }
+            var percent = source.EndsWith("%", StringComparison.Ordinal);
+            var number = percent ? source.Substring(0, source.Length - 1) : source.EndsWith("px", StringComparison.Ordinal) ? source.Substring(0, source.Length - 2) : source;
+            style.Uo = Int32.Parse(number, CultureInfo.InvariantCulture);
+            style.Uop = percent;
+        }
+
+        internal static bool Uo(string value, out string offset)
+        {
+            offset = (value ?? "").Trim().ToLowerInvariant();
+            if (offset.Length == 0 || offset == "auto" || offset == "initial" || offset == "inherit" || offset == "unset" || offset == "revert" || offset == "revert-layer") return true;
+            var match = Regex.Match(offset, "^(?<n>[+-]?[0-9]{1,3})(?<u>px|%)?$");
+            int number;
+            if (!match.Success || !Int32.TryParse(match.Groups["n"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out number)) return false;
+            var unit = match.Groups["u"].Value;
+            if ((number != 0 && unit.Length == 0) ||
+                (unit == "%" && (number < -100 || number > 100)) ||
+                (unit != "%" && (number < -32 || number > 32))) return false;
+            offset = number.ToString(CultureInfo.InvariantCulture) + (unit == "%" ? "%" : "px");
+            return true;
         }
 
         internal static bool Tdv(string name, string value, out string decoration)

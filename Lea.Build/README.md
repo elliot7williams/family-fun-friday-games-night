@@ -118,6 +118,10 @@ geometry, hover, and responsive resize.
 `--text-decoration` isolates bounded inherited line/color/style/thickness,
 atomic shorthand and component commands, invalid preservation, native/custom
 paint, wrapping, tables, links, fields, hover, and responsive resize.
+`--text-underline-offset` isolates bounded inherited signed pixel/percentage
+offsets, shorthand independence, invalid preservation, compact/readable/literal
+commands, paint position, wrapping, tables, default links, fields, hover, and
+responsive resize.
 `--sheets` isolates native named CSS, byte/rule limits, retained data,
 painting, and editor font/selection/undo. It is included in `--core`.
 These test modes do not retry or suppress failed assertions. Windows

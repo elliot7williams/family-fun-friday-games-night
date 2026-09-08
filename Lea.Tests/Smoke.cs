@@ -61,6 +61,11 @@ namespace Lea.Tests
                     TextDecorationSmoke(Path.Combine(pages, "text-decoration.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--text-underline-offset")
+                {
+                    TextUnderlineOffsetSmoke(Path.Combine(pages, "text-underline-offset.html"));
+                    return 0;
+                }
                 var coreOnly = args.Length > 1 && args[1] == "--core";
                 if (coreOnly)
                 {
@@ -2401,6 +2406,7 @@ namespace Lea.Tests
                 TextIndentSmoke(Path.Combine(pages, "text-indent.html"));
                 TextShadowSmoke(Path.Combine(pages, "text-shadow.html"));
                 TextDecorationSmoke(Path.Combine(pages, "text-decoration.html"));
+                TextUnderlineOffsetSmoke(Path.Combine(pages, "text-underline-offset.html"));
                 TextOverflowSmoke(Path.Combine(pages, "text-overflow.html"));
 
                 var recoveryPath = Path.Combine(pages, "recovery.html");
@@ -7236,6 +7242,103 @@ namespace Lea.Tests
             Console.WriteLine("Lea text decoration smoke passed: compact line/color/style/thickness aliases, atomic shorthand, lightweight paint, commands, hover, and resize.");
         }
 
+        private static void TextUnderlineOffsetSmoke(string path)
+        {
+            var engine = new E { Vw = 720 };
+            var page = engine.Go(path);
+            Func<string, B> block = id => BlockById(page, id);
+            Ok(block("auto").S.Uo == 0 && !block("auto").S.Uop && block("positive").S.Uo == 6 && !block("positive").S.Uop &&
+                block("negative").S.Uo == -4 && !block("negative").S.Uop && block("percent").S.Uo == 20 && block("percent").S.Uop,
+                "underline offset pixels percentages and auto");
+            Ok(block("inherited").S.Uo == 5 && !block("inherited").S.Uop && block("explicit-inherit").S.Uo == 5 &&
+                block("unset").S.Uo == 5 && block("shorthand-independent").S.Uo == 7 && block("shorthand-independent").S.Tds == "d",
+                "underline offset inheritance and shorthand independence");
+            Ok(block("reset").S.Uo == 0 && !block("reset").S.Uop && block("invalid").S.Uo == 4 && !block("invalid").S.Uop &&
+                block("variable").S.Uo == 18 && block("variable").S.Uop && block("important").S.Uo == 8,
+                "underline offset reset invalid variable and priority");
+            var inline = block("inline");
+            var childOffset = false;
+            foreach (var run in inline.Is)
+                if (run.X.Contains("child offset") && run.S.Uo == -2 && !run.S.Uop) childOffset = true;
+            Ok(inline.S.Uo == 5 && childOffset, "underline offset inline inheritance and override");
+            Ok(FieldById(page, "field").S.Uo == 4, "underline offset field model");
+            Eq(1, engine.Ck(page, ById(page.D, "set-short")), "underline offset short command");
+            Eq(6, block("command").S.Uo, "underline offset short command model");
+            Eq(1, engine.Ck(page, ById(page.D, "set-readable")), "underline offset readable command");
+            Eq(-3, block("command").S.Uo, "underline offset readable command model");
+            Eq(1, engine.Ck(page, ById(page.D, "set-dom")), "underline offset DOM command");
+            Ok(block("command").S.Uo == 25 && block("command").S.Uop, "underline offset DOM command model");
+            Eq(1, engine.Ck(page, ById(page.D, "clear-dom")), "underline offset DOM clear");
+            Ok(block("command").S.Uo == 0 && !block("command").S.Uop, "underline offset DOM clear model");
+            Eq(0, engine.Js(page, "uo('command','33px')"), "underline offset pixel bound");
+            Eq(0, engine.Js(page, "uo('command','101%')"), "underline offset percentage bound");
+            Eq(0, engine.Js(page, "uo('command','2em')"), "underline offset rejects relative length");
+            Eq(0, engine.Js(page, "uo('command','2')"), "underline offset rejects nonzero unitless value");
+            Eq(1, engine.Js(page, "uo('10%')"), "underline offset body alias");
+            Ok(page.S.Uo == 10 && page.S.Uop, "underline offset body alias model");
+
+            using (var view = new V())
+            {
+                view.Size = new Size(720, 5200);
+                view.CreateControl();
+                view.Go(path);
+                using (var paint = Render(view))
+                {
+                    var autoRect = BlockOuterRect(view, BlockById(view.At, "auto"));
+                    var positiveRect = BlockOuterRect(view, BlockById(view.At, "positive"));
+                    var negativeRect = BlockOuterRect(view, BlockById(view.At, "negative"));
+                    var autoLine = ColorBounds(paint, autoRect, Color.FromArgb(220, 38, 38));
+                    var positiveLine = ColorBounds(paint, positiveRect, Color.FromArgb(220, 38, 38));
+                    var negativeLine = ColorBounds(paint, negativeRect, Color.FromArgb(220, 38, 38));
+                    Ok(!autoLine.IsEmpty && !positiveLine.IsEmpty && !negativeLine.IsEmpty &&
+                        positiveLine.Top - positiveRect.Top >= autoLine.Top - autoRect.Top + 4 &&
+                        negativeLine.Top - negativeRect.Top <= autoLine.Top - autoRect.Top - 2,
+                        "underline offset signed pixel paint position");
+                    Ok(BlockRect(view, BlockById(view.At, "auto")).Size == BlockRect(view, BlockById(view.At, "positive")).Size,
+                        "underline offset leaves block geometry unchanged");
+                    Ok(HasColor(paint, BlockOuterRect(view, BlockById(view.At, "percent")), Color.FromArgb(15, 118, 110)) &&
+                        HasColor(paint, BlockOuterRect(view, BlockById(view.At, "shorthand-independent")), Color.FromArgb(37, 99, 235)) &&
+                        HasColor(paint, BlockOuterRect(view, BlockById(view.At, "wrapped")), Color.FromArgb(15, 118, 110)),
+                        "underline offset percentage shorthand and wrapped paint");
+                    Ok(HasColor(paint, ElementRect(view, ById(view.At.D, "cell"), true), Color.FromArgb(185, 28, 28)) &&
+                        HasColor(paint, InlineElementRect(view, "link"), Color.FromArgb(124, 58, 237)) &&
+                        HasColor(paint, BlockRect(view, BlockById(view.At, "field")), Color.FromArgb(220, 38, 38)),
+                        "underline offset table default-link and field paint");
+                    using (var offsetFont = RenderFont(view, "p", BlockById(view.At, "offset-only").S))
+                        Ok(!HasFontStyle(offsetFont, FontStyle.Underline), "underline offset selects custom painter without duplicate native line");
+                    S linkStyle = null;
+                    var linkElement = ById(view.At.D, "link");
+                    foreach (var run in BlockById(view.At, "link-row").Is)
+                        if (Object.ReferenceEquals(run.El, linkElement)) { linkStyle = run.S; break; }
+                    Ok(linkStyle != null, "default link inline style available");
+                    using (var linkFont = RenderFont(view, "a", linkStyle, true))
+                        Ok(!HasFontStyle(linkFont, FontStyle.Underline), "default link custom decoration avoids duplicate native line");
+                }
+
+                var dynamic = BlockById(view.At, "dynamic");
+                Move(view, BlockOuterRect(view, dynamic));
+                using (var paint = Render(view))
+                    Ok(BlockById(view.At, "dynamic").S.Uo == 7 &&
+                        HasColor(paint, BlockOuterRect(view, BlockById(view.At, "dynamic")), Color.FromArgb(220, 38, 38)),
+                        "underline offset hover rebuild and paint");
+
+                Eq(1, view.Js("uo('command','6px')"), "WinForms underline offset command");
+                using (var paint = Render(view))
+                    Ok(HasColor(paint, BlockOuterRect(view, BlockById(view.At, "command")), Color.FromArgb(23, 107, 77)),
+                        "WinForms underline offset command paint");
+                view.Size = new Size(350, 5600);
+                Application.DoEvents();
+                using (var paint = Render(view))
+                {
+                    var responsive = BlockById(view.At, "responsive");
+                    Ok(responsive.S.Uo == 25 && responsive.S.Uop &&
+                        HasColor(paint, BlockOuterRect(view, responsive), Color.FromArgb(124, 58, 237)),
+                        "responsive underline offset model and paint");
+                }
+            }
+            Console.WriteLine("Lea text underline offset smoke passed: compact inherited signed pixel/percentage alias, shorthand independence, paint position, commands, hover, and resize.");
+        }
+
         private static void DirectionOverflowSmoke(string path)
         {
             var engine = new E { Vw = 720 };
@@ -8273,6 +8376,25 @@ namespace Lea.Tests
                 for (var x = area.Left; x < area.Right; x++)
                     if (ColorDistance(image.GetPixel(x, y), color) < 8) return true;
             return false;
+        }
+
+        private static Rectangle ColorBounds(Bitmap image, Rectangle area, Color color)
+        {
+            area = Rectangle.Intersect(area, new Rectangle(Point.Empty, image.Size));
+            var left = image.Width;
+            var top = image.Height;
+            var right = -1;
+            var bottom = -1;
+            for (var y = area.Top; y < area.Bottom; y++)
+                for (var x = area.Left; x < area.Right; x++)
+                    if (ColorDistance(image.GetPixel(x, y), color) < 8)
+                    {
+                        left = Math.Min(left, x);
+                        top = Math.Min(top, y);
+                        right = Math.Max(right, x);
+                        bottom = Math.Max(bottom, y);
+                    }
+            return right < left || bottom < top ? Rectangle.Empty : Rectangle.FromLTRB(left, top, right + 1, bottom + 1);
         }
 
         private static Font RenderFont(V view, string kind, S style, bool link = false, string baseKind = null)

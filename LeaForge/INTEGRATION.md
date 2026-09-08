@@ -659,6 +659,16 @@ geometry. Hosts can call atomic `td`, component `tdl/tdc/tds/tdw`, readable
 names, or familiar literal `style.textDecoration*` assignments. See
 `TEXT_DECORATION.md`.
 
+Inherited underline displacement uses compact `S.Uo/Uop`. `Uo` carries a
+signed -32..32 pixel or -100..100 percentage integer, while `Uop` identifies
+the percentage form. Percentages resolve against used font size and final paint
+is clamped to 64 pixels. Automatic unstyled underlines retain the native font
+path; nonzero offsets reuse the custom decoration painter without changing
+layout, hit, find, focus, or accessibility geometry. Hosts can call
+`uo(value)` or `uo(id,value)`, use readable `textunderlineoffset`, or send
+literal `style.textUnderlineOffset` assignments. The property remains
+independent of the decoration shorthand. See `TEXT_UNDERLINE_OFFSET.md`.
+
 Inherited block indentation is available through `S.Ti/Tip`. `Ti` holds a
 signed -2000..2000 pixel or -100..100 percentage integer and `Tip` identifies
 the percentage form. The WinForms view resolves percentages against settled
@@ -796,7 +806,7 @@ and 16 alerts.
 
 For easier migration, literal `document.getElementById("id")` statements map
 `textContent/innerText`, `value`, checked/disabled/hidden/open booleans,
-`focus()`, `classList.add/remove/toggle`, and background/color/font-size/display/width/direction/text-indent styles
+`focus()`, `classList.add/remove/toggle`, and background/color/font-size/display/width/direction/text-indent/text-decoration/text-underline-offset/text-shadow styles
 onto the existing compact commands. The adapter receives no DOM object and adds
 no evaluator. IDs and class names remain bounded literals, every mutation uses
 the normal validators and retained rebuild, and unsupported `innerHTML`,

@@ -54,7 +54,7 @@ namespace Lea.Firespider
                     .Replace("</style>", ".host-indent,.host-indent-rtl,.host-indent-responsive{width:240px;padding:0 20px;text-align:left}.host-indent{text-indent:28px}.host-indent-rtl{direction:rtl;text-align:start;text-indent:24px}.host-indent-responsive{text-indent:12px}@media screen and (max-width:500px){.host-indent-responsive{text-indent:30%}}</style>")
                     .Replace("</body>", "<p id='host-indent' class='host-indent'>HostIndent uses compact first line geometry</p><p id='host-indent-rtl' class='host-indent-rtl'>HostRTL uses inline start indentation</p><p id='host-indent-responsive' class='host-indent-responsive'>HostResponsive changes indentation on resize</p></body>")
                     .Replace("</style>", ".host-text-shadow{width:260px;color:#111827;text-shadow:5px 3px 0 #dc2626}.host-text-shadow-responsive{width:260px;text-shadow:2px 2px 0 #64748b}@media screen and (max-width:500px){.host-text-shadow-responsive{text-shadow:-4px 3px 4px #7c3aed}}</style>")
-                    .Replace("</style>", ".host-decoration{width:260px;color:#111827;text-decoration:underline double #2563eb 2px}.host-decoration-responsive{text-decoration:underline dotted #64748b 1px}@media screen and (max-width:500px){.host-decoration-responsive{text-decoration:line-through wavy #7c3aed 3px}}</style>")
+                    .Replace("</style>", ".host-decoration{width:260px;color:#111827;text-decoration:underline double #2563eb 2px;text-underline-offset:6px}.host-decoration-responsive{text-decoration:underline dotted #64748b 1px;text-underline-offset:2px}@media screen and (max-width:500px){.host-decoration-responsive{text-decoration:line-through wavy #7c3aed 3px;text-underline-offset:25%}}</style>")
                     .Replace("</style>", ".host-overflow{width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.host-overflow-responsive{text-overflow:clip}@media screen and (max-width:500px){.host-overflow-responsive{text-overflow:ellipsis}}</style>")
                     .Replace("</body>", "<p id='host-overflow' class='host-overflow'>Host overflow keeps this entire authored sentence</p><p id='host-overflow-responsive' class='host-overflow host-overflow-responsive'>Responsive host overflow keeps its full text</p></body>")
                     .Replace(".host-flex{display:flex;width:300px;height:60px;gap:8px;justify-content:space-between;align-items:center}", ".host-flex{display:flex;width:300px;height:60px;flex-wrap:wrap;gap:6px 8px;justify-content:space-between;align-items:center}")
@@ -326,12 +326,16 @@ namespace Lea.Firespider
                         "Firespider literal DOM text shadow command");
                     var hostDecoration = BlockById(host.At, "host-decoration");
                     var hostDecorationResponsive = BlockById(host.At, "host-text-shadow-responsive");
-                    Check(hostDecoration.S.Td == "u" && hostDecoration.S.Tc == "#2563eb" && hostDecoration.S.Tds == "d" && hostDecoration.S.Tw == 2 &&
-                        hostDecorationResponsive.S.Td == "u" && hostDecorationResponsive.S.Tc == "#64748b" && hostDecorationResponsive.S.Tds == "o" && hostDecorationResponsive.S.Tw == 1,
-                        "Firespider bounded text decoration aliases and responsive model");
+                    Check(hostDecoration.S.Td == "u" && hostDecoration.S.Tc == "#2563eb" && hostDecoration.S.Tds == "d" && hostDecoration.S.Tw == 2 && hostDecoration.S.Uo == 6 && !hostDecoration.S.Uop &&
+                        hostDecorationResponsive.S.Td == "u" && hostDecorationResponsive.S.Tc == "#64748b" && hostDecorationResponsive.S.Tds == "o" && hostDecorationResponsive.S.Tw == 1 && hostDecorationResponsive.S.Uo == 2 && !hostDecorationResponsive.S.Uop,
+                        "Firespider bounded text decoration and underline offset aliases");
                     using (var hostDecorationPaint = RenderView(host))
-                        Check(HasColor(hostDecorationPaint, BlockOuter(host, "host-decoration"), System.Drawing.Color.FromArgb(37, 99, 235)),
-                            "Firespider text decoration paint");
+                    {
+                        var hostDecorationArea = BlockOuter(host, "host-decoration");
+                        hostDecorationArea.Inflate(0, 12);
+                        Check(HasColor(hostDecorationPaint, hostDecorationArea, System.Drawing.Color.FromArgb(37, 99, 235)),
+                            "Firespider text decoration and offset paint");
+                    }
                     Check(host.Js("td('host-decoration','line-through dashed #176b4d 2px')") == 1 && BlockById(host.At, "host-decoration").S.Td == "s" && BlockById(host.At, "host-decoration").S.Tds == "a",
                         "Firespider compact text decoration command");
                     Check(host.Js("document.getElementById('host-decoration').style.textDecorationLine='underline'") == 1 && BlockById(host.At, "host-decoration").S.Td == "u" &&
@@ -339,6 +343,10 @@ namespace Lea.Firespider
                         "Firespider text decoration line longhand command");
                     Check(host.Js("document.getElementById('host-decoration').style.textDecoration='underline wavy #dc2626 3px'") == 1 && BlockById(host.At, "host-decoration").S.Td == "u" && BlockById(host.At, "host-decoration").S.Tds == "w" && BlockById(host.At, "host-decoration").S.Tw == 3,
                         "Firespider literal DOM text decoration command");
+                    Check(host.Js("uo('host-decoration','-3px')") == 1 && BlockById(host.At, "host-decoration").S.Uo == -3 && !BlockById(host.At, "host-decoration").S.Uop,
+                        "Firespider compact text underline offset command");
+                    Check(host.Js("document.getElementById('host-decoration').style.textUnderlineOffset='25%'") == 1 && BlockById(host.At, "host-decoration").S.Uo == 25 && BlockById(host.At, "host-decoration").S.Uop && BlockById(host.At, "host-decoration").S.Tds == "w",
+                        "Firespider literal DOM text underline offset command and shorthand independence");
                     Check(BlockById(host.At, "host-overflow").S.To == "e" && EllipsisCount(host, "host-overflow") == 1 &&
                         EllipsisCount(host, "host-overflow-responsive") == 0 && host.At.X.Contains("Host overflow keeps this entire authored sentence"),
                         "Firespider text overflow alias, painted marker, and authored text");
@@ -676,8 +684,9 @@ namespace Lea.Firespider
                     Check(hostTextShadowResponsive.S.Ts != null && hostTextShadowResponsive.S.Ts.X == -4 && hostTextShadowResponsive.S.Ts.Y == 3 && hostTextShadowResponsive.S.Ts.B == 4 && hostTextShadowResponsive.S.Ts.C == "#7c3aed",
                         "Firespider responsive text shadow");
                     hostDecorationResponsive = BlockById(host.At, "host-text-shadow-responsive");
-                    Check(hostDecorationResponsive.S.Td == "s" && hostDecorationResponsive.S.Tc == "#7c3aed" && hostDecorationResponsive.S.Tds == "w" && hostDecorationResponsive.S.Tw == 3,
-                        "Firespider responsive text decoration");
+                    Check(hostDecorationResponsive.S.Td == "s" && hostDecorationResponsive.S.Tc == "#7c3aed" && hostDecorationResponsive.S.Tds == "w" && hostDecorationResponsive.S.Tw == 3 &&
+                        hostDecorationResponsive.S.Uo == 25 && hostDecorationResponsive.S.Uop,
+                        "Firespider responsive text decoration and underline offset");
                     Check(BlockById(host.At, "host-overflow-responsive").S.To == "e" && EllipsisCount(host, "host-overflow-responsive") == 1,
                         "Firespider narrow text overflow marker");
                     host.Size = new System.Drawing.Size(720, 560);
@@ -696,8 +705,9 @@ namespace Lea.Firespider
                     Check(hostTextShadowResponsive.S.Ts != null && hostTextShadowResponsive.S.Ts.X == 2 && hostTextShadowResponsive.S.Ts.Y == 2 && hostTextShadowResponsive.S.Ts.B == 0 && hostTextShadowResponsive.S.Ts.C == "#64748b",
                         "Firespider wide text shadow restore");
                     hostDecorationResponsive = BlockById(host.At, "host-text-shadow-responsive");
-                    Check(hostDecorationResponsive.S.Td == "u" && hostDecorationResponsive.S.Tc == "#64748b" && hostDecorationResponsive.S.Tds == "o" && hostDecorationResponsive.S.Tw == 1,
-                        "Firespider wide text decoration restore");
+                    Check(hostDecorationResponsive.S.Td == "u" && hostDecorationResponsive.S.Tc == "#64748b" && hostDecorationResponsive.S.Tds == "o" && hostDecorationResponsive.S.Tw == 1 &&
+                        hostDecorationResponsive.S.Uo == 2 && !hostDecorationResponsive.S.Uop,
+                        "Firespider wide text decoration and underline offset restore");
                     Check(BlockById(host.At, "host-overflow-responsive").S.To == "c" && EllipsisCount(host, "host-overflow-responsive") == 0,
                         "Firespider wide text overflow restore");
                     Check(BlockById(host.At, "host-progress").Vm.R == 0.4D && BlockById(host.At, "host-meter").Vm.R == 0.75D, "Firespider compact gauge models");
@@ -837,7 +847,7 @@ namespace Lea.Firespider
                     Check(host.Ck(ById(host.At.D, "host-value-update")) == 1 && ValueById(host.At, "host-output").V == "Updated host total", "Firespider output value rebuild");
                     Check(host.Ck(ById(host.At.D, "host-time-update")) == 1 && ValueById(host.At, "host-time").Dt == "2026-08-22", "Firespider time metadata rebuild");
                     var diagnostics = host.Dg();
-                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 88 && diagnostics.Rs.Count > 0, "Firespider Lea diagnostics");
+                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 90 && diagnostics.Rs.Count > 0, "Firespider Lea diagnostics");
                     var inspectorOpen = type.GetMethod("qleaInspectorOpen", BindingFlags.Instance | BindingFlags.NonPublic);
                     var inspectorSnapshot = type.GetMethod("qleaInspectorSnapshot", BindingFlags.Instance | BindingFlags.NonPublic);
                     var inspectorClear = type.GetMethod("qleaInspectorClear", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -1017,7 +1027,7 @@ namespace Lea.Firespider
                     Check(restoredTabs.TabCount == beforeMiddle - 1 && FindLea(restoredTabs) == null, "middle-click Lea tab close");
                 }
 
-                Console.WriteLine("Firespider CSS interaction and paint smoke passed: compact text-indent, text-decoration, text-shadow, text-overflow, text-spacing, text-transform, pointer, outline, radius, box-shadow, gradient, bitmap-background, object-fit, and aspect-ratio aliases reached the compiled host.");
+                Console.WriteLine("Firespider CSS interaction and paint smoke passed: compact text-indent, text-decoration, text-underline-offset, text-shadow, text-overflow, text-spacing, text-transform, pointer, outline, radius, box-shadow, gradient, bitmap-background, object-fit, and aspect-ratio aliases reached the compiled host.");
                 Console.WriteLine("Firespider calculated height smoke passed: compact ht, literal style.height, definite parent resolution, shared host geometry, reset, and strict bounds.");
                 Console.WriteLine("Firespider viewport unit smoke passed: vw/vh/vmin/vmax, calc, compact commands, literal reset, live host geometry, and strict bounds.");
                 Console.WriteLine("Firespider font-relative unit smoke passed: em/rem, root font alias, compact commands, literal reset, shared host geometry, and strict bounds.");
@@ -1030,7 +1040,7 @@ namespace Lea.Firespider
                 Console.WriteLine("Firespider image sandbox smoke passed: zero-capability AppContainer, combined host/helper admission, exact helper ACL, restricted token, low integrity, and Job limits reached the compiled host.");
                 Console.WriteLine("Firespider initial fragment stability smoke passed: Fa/Fj/Fy diagnostics and manual-scroll release reached the compiled host.");
 
-                Console.WriteLine("Firespider Lea smoke passed: bounded horizontal logical margin/padding properties with twelve compact aliases, bounded horizontal logical sizing/insets with short is/bs and familiar DOM aliases, bounded sticky positioning with compact k and shared host geometry, bounded percentage/calc widths with compact wd and literal DOM reflow, bounded display alias and literal location requests, literal bounded DOM translation, inherited cursor and pointer-event aliases with host hit gating and fallthrough, bounded CSS outlines with compact aliases and exact non-layout host paint, bounded CSS aspect ratios with compact aliases and exact host geometry/paint, bounded CSS object-fit and object-position with compact aliases, exact fitted paint, and image-map keyboard/accessibility geometry, bounded CSS bitmap backgrounds with compact aliases and exact host paint, bounded inline SVG aliases, winding, stroke styles, geometry, links, and graphic accessibility, bounded has relational selectors with strict lists, maximum specificity, descendant/child/adjacent and complex host relationships, focus rebuilds, retained fields, queries, Inspector, and geometry, bounded nth-child of-S filters with strict lists, maximum specificity, forward/reverse computed styles, queries, Inspector, and host geometry, bounded precompiled An+B and reverse structural selectors with computed styles, queries, Inspector, and host geometry, bounded is, where, and list-not selector functions with specificity, queries, Inspector, and host geometry, bounded CSS important cascade with G.Ic diagnostics, custom properties, inline, responsive values, Inspector counts, and retained fields, bounded inherited CSS custom properties with S.Vc/Cv and G.Vc aliases, responsive values, Inspector counts, and retained fields, bounded responsive CSS media queries with viewport aliases and retained fields, optional bounded persistent cache aliases and Inspector diagnostics, bounded content-box and border-box geometry, scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, and shrink, semantic accessibility, protected values, rendered bounds, MSAA and UI Automation providers, value, table/grid, and read-only logical text patterns plus Access inspector, bounded autofocus and access keys, keyboard focus and activation, responsive image maps, compact time/edit metadata, output/data values and safe rebuilds, progress and meter gauges, disclosure commands, retained same-page fragments, Lea-first New Tab and explicit legacy fallback, host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
+                Console.WriteLine("Firespider Lea smoke passed: bounded horizontal logical margin/padding properties with twelve compact aliases, bounded horizontal logical sizing/insets with short is/bs and familiar DOM aliases, bounded sticky positioning with compact k and shared host geometry, bounded percentage/calc widths with compact wd and literal DOM reflow, bounded display alias and literal location requests, literal bounded DOM translation, inherited cursor and pointer-event aliases with host hit gating and fallthrough, bounded CSS text decoration and inherited underline offsets with compact aliases and host paint, bounded CSS outlines with compact aliases and exact non-layout host paint, bounded CSS aspect ratios with compact aliases and exact host geometry/paint, bounded CSS object-fit and object-position with compact aliases, exact fitted paint, and image-map keyboard/accessibility geometry, bounded CSS bitmap backgrounds with compact aliases and exact host paint, bounded inline SVG aliases, winding, stroke styles, geometry, links, and graphic accessibility, bounded has relational selectors with strict lists, maximum specificity, descendant/child/adjacent and complex host relationships, focus rebuilds, retained fields, queries, Inspector, and geometry, bounded nth-child of-S filters with strict lists, maximum specificity, forward/reverse computed styles, queries, Inspector, and host geometry, bounded precompiled An+B and reverse structural selectors with computed styles, queries, Inspector, and host geometry, bounded is, where, and list-not selector functions with specificity, queries, Inspector, and host geometry, bounded CSS important cascade with G.Ic diagnostics, custom properties, inline, responsive values, Inspector counts, and retained fields, bounded inherited CSS custom properties with S.Vc/Cv and G.Vc aliases, responsive values, Inspector counts, and retained fields, bounded responsive CSS media queries with viewport aliases and retained fields, optional bounded persistent cache aliases and Inspector diagnostics, bounded content-box and border-box geometry, scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, and shrink, semantic accessibility, protected values, rendered bounds, MSAA and UI Automation providers, value, table/grid, and read-only logical text patterns plus Access inspector, bounded autofocus and access keys, keyboard focus and activation, responsive image maps, compact time/edit metadata, output/data values and safe rebuilds, progress and meter gauges, disclosure commands, retained same-page fragments, Lea-first New Tab and explicit legacy fallback, host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
                 return 0;
             }
             catch (Exception error)

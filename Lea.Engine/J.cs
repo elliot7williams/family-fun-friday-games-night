@@ -220,6 +220,14 @@ namespace Lea.Engine
                 if (!E.Tsh(Expand(page, command.W ?? command.V), out shadow)) return false;
                 return SetStyle(target, "text-shadow", shadow);
             }
+            if (command.N == "uo")
+            {
+                var target = StyleTarget(page, command);
+                if (target == null) return false;
+                string offset;
+                if (!E.Uo(Expand(page, command.W ?? command.V), out offset)) return false;
+                return SetStyle(target, "text-underline-offset", offset);
+            }
             if (command.N == "td" || command.N == "tdl" || command.N == "tdc" || command.N == "tds" || command.N == "tdw")
             {
                 var target = StyleTarget(page, command);
@@ -351,6 +359,7 @@ namespace Lea.Engine
             if (member == "style.textdecorationcolor") return new Cm("tdc", id, value);
             if (member == "style.textdecorationstyle") return new Cm("tds", id, value);
             if (member == "style.textdecorationthickness") return new Cm("tdw", id, value);
+            if (member == "style.textunderlineoffset") return new Cm("uo", id, value);
             var logicalBox = member.StartsWith("style.", StringComparison.Ordinal) ? LogicalBoxCommand(member.Substring(6)) : null;
             if (logicalBox != null) return new Cm(logicalBox, id, value);
             var logicalBorder = member.StartsWith("style.", StringComparison.Ordinal) ? LogicalBorderCommand(member.Substring(6)) : null;
@@ -375,6 +384,7 @@ namespace Lea.Engine
             if (count == 1 && (name == "tdc" || name == "textdecorationcolor")) return new Cm("tdc", first);
             if (count == 1 && (name == "tds" || name == "textdecorationstyle")) return new Cm("tds", first);
             if (count == 1 && (name == "tdw" || name == "textdecorationthickness")) return new Cm("tdw", first);
+            if (count == 1 && (name == "uo" || name == "textunderlineoffset")) return new Cm("uo", first);
             if (count == 1 && name == "go") return new Cm("go", first);
             if (count == 1 && (name == "location.assign" || name == "window.location.assign" || name == "document.location.assign")) return new Cm("go", first);
             if (count == 1 && (name == "hd" || name == "hide")) return new Cm("hd", first);
@@ -404,6 +414,7 @@ namespace Lea.Engine
             if (count == 2 && (name == "tdc" || name == "textdecorationcolor")) return new Cm("tdc", first, second);
             if (count == 2 && (name == "tds" || name == "textdecorationstyle")) return new Cm("tds", first, second);
             if (count == 2 && (name == "tdw" || name == "textdecorationthickness")) return new Cm("tdw", first, second);
+            if (count == 2 && (name == "uo" || name == "textunderlineoffset")) return new Cm("uo", first, second);
             var logicalBox = LogicalBoxCommand(name);
             if (count == 2 && logicalBox != null) return new Cm(logicalBox, first, second);
             var logicalBorder = LogicalBorderCommand(name);
@@ -430,6 +441,7 @@ namespace Lea.Engine
             if (name == "document.body.style.textdecorationcolor") return new Cm("tdc", value);
             if (name == "document.body.style.textdecorationstyle") return new Cm("tds", value);
             if (name == "document.body.style.textdecorationthickness") return new Cm("tdw", value);
+            if (name == "document.body.style.textunderlineoffset") return new Cm("uo", value);
             if (name == "location" || name == "window.location" || name == "document.location" ||
                 name == "location.href" || name == "window.location.href" || name == "document.location.href") return new Cm("go", value);
             return null;

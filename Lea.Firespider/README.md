@@ -572,6 +572,14 @@ rebuilds. Current-color solid lines retain Lea's native-font fast path; custom
 double/dotted/dashed/wavy lines add no Firespider controls or adapter state. See
 `LeaForge/TEXT_DECORATION.md`.
 
+Hosted underlines also expose bounded inherited offset through `S.Uo/Uop`.
+The compiled host verifies signed pixel and percentage state, compact `uo`,
+literal `style.textUnderlineOffset`, shorthand independence, custom paint, and
+narrow/wide responsive restoration. Default unstyled links remain native until
+an offset or custom decoration component needs Lea's small painter. Firespider
+adds no adapter state or extra controls. See
+`LeaForge/TEXT_UNDERLINE_OFFSET.md`.
+
 Hosted block text supports non-inherited `S.To=c/e` clip/ellipsis overflow.
 The compiled smoke checks LTR/RTL physical inline-end markers, right-aligned RTL
 prefix paint, original elided link hits, direction-aware TextPattern range and

@@ -35,7 +35,7 @@ read and quick to write.
   redirects or resource requests. Firespider installs it on ordinary and split
   tabs. See `NAVIGATION_POLICY.md` and `SPLIT_VIEW.md` for its callback contract.
 - Page values use one or two letters: `U`, `T`, `H`, `Q`, `D`, `N`, `Bs`, and `Ls`.
-- Page commands use one or two letters where practical: `t`, `a`, `bg`, `fg`, `fs`, `dp`, `wd`, `ht`, `dr`, `ti`, `ts`, `td`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`; text-decoration components and logical edge families stay within three letters.
+- Page commands use one or two letters where practical: `t`, `a`, `bg`, `fg`, `fs`, `dp`, `wd`, `ht`, `dr`, `ti`, `ts`, `td`, `uo`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`; text-decoration components and logical edge families stay within three letters.
 - New public aliases should be no more than three letters.
 - `E/V.Hm` reports the 4 MiB document-body ceiling; `E/V.Csm` reports the
   256 KiB linked-stylesheet ceiling. GET/POST input and optional CSS share
@@ -93,6 +93,8 @@ td("underline dashed red 2px") body text decoration
 td("id", "line-through double #2563eb 3px") element decoration
 tdl("id", "underline") decoration line only
 tdc/tds/tdw("id", value) decoration color/style/thickness
+uo("6px")          body underline offset
+uo("id", "-3px") element underline offset
 is("id", "50%")  logical inline size
 bs("id", "120px") logical block size
 mi("id", "8px 12px") logical inline margin
@@ -128,7 +130,7 @@ fo("id")              request focus
 go("next.html")        request host navigation
 ```
 
-The two-argument `bg/fg/fs/dp/wd/ht/dr/ti/ts/td/tdl/tdc/tds/tdw/is/bs`, logical box, logical border, and
+The two-argument `bg/fg/fs/dp/wd/ht/dr/ti/ts/td/tdl/tdc/tds/tdw/uo/is/bs`, logical box, logical border, and
 radius forms
 target one validated ID. Color and font
 forms reuse the same
@@ -161,6 +163,14 @@ color, style, and integer thickness. `td` is the atomic shorthand;
 `tdl/tdc/tds/tdw` update one component without clearing the others. Readable
 names and literal `style.textDecoration*` assignments share the same parser;
 empty values restore the authored cascade. See `TEXT_DECORATION.md`.
+
+`S.Uo/Uop` store a bounded inherited signed integer underline offset and its
+pixel/percentage kind. `uo` and readable `textunderlineoffset` accept one body
+value or an ID plus value. Pixels are limited to -32..32 and percentages to
+-100..100; `auto`, unitless zero, and CSS-wide values use the same cascade.
+Literal `style.textUnderlineOffset` assignments share the parser, and
+`text-decoration` shorthand updates never reset the offset. See
+`TEXT_UNDERLINE_OFFSET.md`.
 
 `dp` accepts a bounded standard display keyword set. `none` removes the subtree
 from layout and accessibility; `flex`/`inline-flex` and `grid`/`inline-grid`

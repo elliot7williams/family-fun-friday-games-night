@@ -1215,7 +1215,7 @@ namespace Lea.Win
                         if (box.S != null) color = CssColor(box.S.F, color);
                         var flags = box.Inline ? TextFormatFlags.SingleLine | TextFormatFlags.NoPadding : TextFormatFlags.WordBreak | TextFormatFlags.NoPadding;
                         if (!clip.IsEmpty) flags |= TextFormatFlags.PreserveGraphicsClipping;
-                        if (opacity > 0) PaintText(pe.Graphics, box.Px ?? box.X, font, content, color, flags, opacity, box.S);
+                        if (opacity > 0) PaintText(pe.Graphics, box.Px ?? box.X, font, content, color, flags, opacity, box.S, box.U != null);
                     }
 
                     if (EllipsisMarker(box)) continue;
@@ -3522,15 +3522,19 @@ namespace Lea.Win
             var fontStyle = title || HeadingKind(kind) || kind == "caption" || kind == "th" || kind == "dt" || kind == "legend" || kind == "summary" || kind == "strong" || kind == "b" || (style != null && style.B) ? FontStyle.Bold : FontStyle.Regular;
             if (style != null && style.I) fontStyle |= FontStyle.Italic;
             var decoration = style == null ? "" : style.Td;
-            var customDecoration = CustomDecoration(style);
-            if ((decoration.IndexOf('u') >= 0 && !customDecoration) || ((kind == "a" || link) && decoration.Length == 0)) fontStyle |= FontStyle.Underline;
+            var defaultUnderline = (kind == "a" || link) && decoration.Length == 0;
+            var customDecoration = CustomDecoration(style, defaultUnderline);
+            if ((decoration.IndexOf('u') >= 0 || defaultUnderline) && !customDecoration) fontStyle |= FontStyle.Underline;
             if (decoration.IndexOf('s') >= 0 && !customDecoration) fontStyle |= FontStyle.Strikeout;
             return new Font(name, size, fontStyle);
         }
 
-        private static bool CustomDecoration(S style)
+        private static bool CustomDecoration(S style, bool defaultUnderline = false)
         {
-            return style != null && (style.Tc.Length > 0 || style.Tds.Length > 0 || style.Tw > 0);
+            if (style == null) return false;
+            var underline = style.Td.IndexOf('u') >= 0 || (defaultUnderline && style.Td.Length == 0);
+            var strike = style.Td.IndexOf('s') >= 0;
+            return (underline || strike) && (style.Tc.Length > 0 || style.Tds.Length > 0 || style.Tw > 0 || (underline && style.Uo != 0));
         }
 
         private string FontName(string kind, S style, string sizeKind)
@@ -6761,12 +6765,12 @@ namespace Lea.Win
             return true;
         }
 
-        private static void PaintText(Graphics graphics, string text, Font font, Rectangle rect, Color color, TextFormatFlags flags, int opacity, S style = null)
+        private static void PaintText(Graphics graphics, string text, Font font, Rectangle rect, Color color, TextFormatFlags flags, int opacity, S style = null, bool link = false)
         {
             if (opacity <= 0 || rect.Width < 1 || rect.Height < 1) return;
             PaintTextShadow(graphics, text, font, rect, color, flags, opacity, style);
             PaintTextCore(graphics, text, font, rect, color, flags, opacity, style);
-            PaintTextDecoration(graphics, text, font, rect, color, flags, opacity, style);
+            PaintTextDecoration(graphics, text, font, rect, color, flags, opacity, style, link);
         }
 
         private static void PaintTextShadow(Graphics graphics, string text, Font font, Rectangle rect, Color currentColor, TextFormatFlags flags, int opacity, S style)
@@ -6826,10 +6830,10 @@ namespace Lea.Win
             }
         }
 
-        private static void PaintTextDecoration(Graphics graphics, string text, Font font, Rectangle rect, Color currentColor, TextFormatFlags flags, int opacity, S style)
+        private static void PaintTextDecoration(Graphics graphics, string text, Font font, Rectangle rect, Color currentColor, TextFormatFlags flags, int opacity, S style, bool defaultUnderline)
         {
-            if (!CustomDecoration(style) || style.Td == "n" || String.IsNullOrEmpty(text)) return;
-            var underline = style.Td.IndexOf('u') >= 0;
+            if (!CustomDecoration(style, defaultUnderline) || String.IsNullOrEmpty(text)) return;
+            var underline = style.Td.IndexOf('u') >= 0 || (defaultUnderline && style.Td.Length == 0);
             var strike = style.Td.IndexOf('s') >= 0;
             if (!underline && !strike) return;
             var source = CssColor(style.Tc, currentColor);
@@ -6843,14 +6847,24 @@ namespace Lea.Win
             var x = (flags & TextFormatFlags.HorizontalCenter) != 0 ? rect.Left + Math.Max(0, (rect.Width - width) / 2) :
                 (flags & TextFormatFlags.Right) != 0 ? rect.Right - width : rect.Left;
             var top = (flags & TextFormatFlags.VerticalCenter) != 0 ? rect.Top + Math.Max(0, (rect.Height - font.Height) / 2) : rect.Top;
+            var underlineOffset = UnderlineOffset(style, font);
             var state = graphics.Save();
             try
             {
-                graphics.SetClip(rect, CombineMode.Intersect);
-                if (underline) PaintDecorationLine(graphics, x, x + width - 1, Math.Min(rect.Bottom - 2, top + font.Height - 2), color, thickness, style.Tds);
+                var decorationClip = rect;
+                if (underlineOffset != 0) decorationClip.Inflate(0, Math.Min(72, Math.Abs(underlineOffset) + thickness * 2));
+                graphics.SetClip(decorationClip, CombineMode.Intersect);
+                if (underline) PaintDecorationLine(graphics, x, x + width - 1, top + font.Height - 2 + underlineOffset, color, thickness, style.Tds);
                 if (strike) PaintDecorationLine(graphics, x, x + width - 1, Math.Min(rect.Bottom - 1, top + font.Height / 2), color, thickness, style.Tds);
             }
             finally { graphics.Restore(state); }
+        }
+
+        private static int UnderlineOffset(S style, Font font)
+        {
+            if (style == null || style.Uo == 0) return 0;
+            var value = style.Uop ? (int)Math.Round((style.Fs > 0 ? style.Fs : font.Size) * style.Uo / 100D) : style.Uo;
+            return Math.Max(-64, Math.Min(64, value));
         }
 
         private static void PaintDecorationLine(Graphics graphics, int left, int right, int y, Color color, int thickness, string type)
