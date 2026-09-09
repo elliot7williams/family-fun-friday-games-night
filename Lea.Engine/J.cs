@@ -212,6 +212,14 @@ namespace Lea.Engine
                 if (!E.Tn(Expand(page, command.W ?? command.V), out indent)) return false;
                 return SetStyle(target, "text-indent", indent);
             }
+            if (command.N == "ta" || command.N == "taa")
+            {
+                var target = StyleTarget(page, command);
+                if (target == null) return false;
+                string align;
+                if (!E.Tav(Expand(page, command.W ?? command.V), command.N == "ta", out align)) return false;
+                return SetStyle(target, command.N == "ta" ? "text-align" : "text-align-all", align);
+            }
             if (command.N == "ts")
             {
                 var target = StyleTarget(page, command);
@@ -361,6 +369,8 @@ namespace Lea.Engine
             if (member == "style.height" || member == "style.blocksize") return new Cm("ht", id, value);
             if (member == "style.direction") return new Cm("dr", id, value);
             if (member == "style.textindent") return new Cm("ti", id, value);
+            if (member == "style.textalign") return new Cm("ta", id, value);
+            if (member == "style.textalignall") return new Cm("taa", id, value);
             if (member == "style.textshadow") return new Cm("ts", id, value);
             if (member == "style.textdecoration") return new Cm("td", id, value);
             if (member == "style.textdecorationline") return new Cm("tdl", id, value);
@@ -387,6 +397,8 @@ namespace Lea.Engine
             if (count == 1 && (name == "fs" || name == "fontsize")) return new Cm("fs", first);
             if (count == 1 && (name == "dr" || name == "direction")) return new Cm("dr", first);
             if (count == 1 && (name == "ti" || name == "textindent")) return new Cm("ti", first);
+            if (count == 1 && (name == "ta" || name == "textalign")) return new Cm("ta", first);
+            if (count == 1 && (name == "taa" || name == "textalignall")) return new Cm("taa", first);
             if (count == 1 && (name == "ts" || name == "textshadow")) return new Cm("ts", first);
             if (count == 1 && (name == "td" || name == "textdecoration")) return new Cm("td", first);
             if (count == 1 && (name == "tdl" || name == "textdecorationline")) return new Cm("tdl", first);
@@ -418,6 +430,8 @@ namespace Lea.Engine
             if (count == 2 && (name == "ht" || name == "height" || name == "bs" || name == "blocksize")) return new Cm("ht", first, second);
             if (count == 2 && (name == "dr" || name == "direction")) return new Cm("dr", first, second);
             if (count == 2 && (name == "ti" || name == "textindent")) return new Cm("ti", first, second);
+            if (count == 2 && (name == "ta" || name == "textalign")) return new Cm("ta", first, second);
+            if (count == 2 && (name == "taa" || name == "textalignall")) return new Cm("taa", first, second);
             if (count == 2 && (name == "ts" || name == "textshadow")) return new Cm("ts", first, second);
             if (count == 2 && (name == "td" || name == "textdecoration")) return new Cm("td", first, second);
             if (count == 2 && (name == "tdl" || name == "textdecorationline")) return new Cm("tdl", first, second);
@@ -446,6 +460,8 @@ namespace Lea.Engine
             if (name == "document.body.style.fontsize") return new Cm("fs", value);
             if (name == "document.body.style.direction") return new Cm("dr", value);
             if (name == "document.body.style.textindent") return new Cm("ti", value);
+            if (name == "document.body.style.textalign") return new Cm("ta", value);
+            if (name == "document.body.style.textalignall") return new Cm("taa", value);
             if (name == "document.body.style.textshadow") return new Cm("ts", value);
             if (name == "document.body.style.textdecoration") return new Cm("td", value);
             if (name == "document.body.style.textdecorationline") return new Cm("tdl", value);

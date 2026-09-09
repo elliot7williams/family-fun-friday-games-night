@@ -580,6 +580,13 @@ an offset or custom decoration component needs Lea's small painter. Firespider
 adds no adapter state or extra controls. See
 `LeaForge/TEXT_UNDERLINE_OFFSET.md`.
 
+Hosted text alignment now exposes the bounded shorthand/all/last family through
+`S.Ta/Tl`. The compiled host verifies `justify-all`, retained logical RTL
+state, compact `ta/taa/tl`, literal `style.textAlign`, shorthand reset,
+longhand preservation, and narrow/wide responsive geometry. Lea resolves the
+one-character state inside its existing inline pass; Firespider adds no adapter
+state or controls. See `LeaForge/TEXT_ALIGN.md`.
+
 Hosted block text also exposes bounded inherited final-line alignment through
 `S.Tl`. The compiled host verifies physical and horizontal LTR/RTL logical
 state, compact `tl`, literal `style.textAlignLast`, final and forced-line

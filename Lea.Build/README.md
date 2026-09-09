@@ -122,6 +122,9 @@ paint, wrapping, tables, links, fields, hover, and responsive resize.
 offsets, shorthand independence, invalid preservation, compact/readable/literal
 commands, paint position, wrapping, tables, default links, fields, hover, and
 responsive resize.
+`--text-align` isolates the inherited text-align shorthand/all/last family,
+logical inheritance and match-parent, justify-all, compact/readable/literal
+commands, LTR/RTL geometry, shorthand resets, tables, hover, and responsive resize.
 `--text-align-last` isolates bounded inherited final-line alignment, auto and
 physical/logical/justify values, compact/readable/literal commands, final and
 forced-line LTR/RTL geometry, stable boxes, tables, hover, and responsive resize.

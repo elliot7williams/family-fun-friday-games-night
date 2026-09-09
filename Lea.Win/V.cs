@@ -3162,7 +3162,7 @@ namespace Lea.Win
                 var current = lines[lineIndex];
                 var lastLine = lineIndex == lines.Count - 1 || current.Br;
                 var lastAlignment = lastLine && block.S != null && block.S.Tl.Length > 0;
-                var align = block.S == null ? "" : lastAlignment ? block.S.Tl : block.S.Ta;
+                var align = TextAlignment(block.S, block.S == null ? "" : lastAlignment ? block.S.Tl : block.S.Ta);
                 var justify = align == "j" && (lastAlignment || lineIndex < lines.Count - 1 && !current.Br);
                 var spaces = 0;
                 if (justify) foreach (var atom in current.As) if (atom.X == " ") spaces++;
@@ -3172,7 +3172,7 @@ namespace Lea.Win
                 var each = spaces == 0 ? 0 : stretch / spaces;
                 var remainder = spaces == 0 ? 0 : stretch % spaces;
                 var lineWidth = current.W + (justify ? stretch : 0);
-                var rightAligned = align == "r" || rtl && (align.Length == 0 || align == "j");
+                var rightAligned = align == "r" || rtl && align == "j";
                 var lineLeft = align == "c" ? Math.Max(0, (available - lineWidth) / 2) :
                     rightAligned ? rtl ? available - lineWidth : Math.Max(0, available - lineWidth) : 0;
                 lineLeft += offset;
@@ -3471,6 +3471,13 @@ namespace Lea.Win
         {
             var style = block == null ? null : block.S;
             return block != null && (block.Is.Count > 0 || (style != null && (style.Dr == "r" || style.Ta.Length > 0 || style.Tl.Length > 0 || style.Ti != 0 || style.Ts != null || CustomDecoration(style) || style.Ls != 0 || style.Wg != 0 || style.Lh > 0 || style.Lm > 0 || style.Ws.Length > 0 || style.Wb.Length > 0 || style.Ov.Length > 0)));
+        }
+
+        private static string TextAlignment(S style, string align)
+        {
+            if (align == "s" || String.IsNullOrEmpty(align)) return style != null && style.Dr == "r" ? "r" : "l";
+            if (align == "e") return style != null && style.Dr == "r" ? "l" : "r";
+            return align;
         }
 
         private static int CssTextIndent(S style, int width)

@@ -81,6 +81,10 @@ LeaForge is where we can grow the more full-featured browser.
   `uo`, with signed integer pixels/percentages, shorthand independence,
   offset-aware default-link paint, stable geometry, and literal DOM support;
   see `TEXT_UNDERLINE_OFFSET.md`
+- inherited `text-align` shorthand and `text-align-all` through compact
+  `S.Ta/Tl` and `ta/taa`, with retained logical start/end state,
+  `justify-all`, match-parent, strict shorthand reset, and literal DOM support;
+  see `TEXT_ALIGN.md`
 - bounded inherited `text-align-last` through compact `S.Tl` and `tl`, with
   auto/physical/logical/justified final and forced-line alignment, horizontal
   LTR/RTL resolution, stable boxes, and literal DOM support; see

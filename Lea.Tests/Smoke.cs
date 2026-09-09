@@ -66,6 +66,11 @@ namespace Lea.Tests
                     TextUnderlineOffsetSmoke(Path.Combine(pages, "text-underline-offset.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--text-align")
+                {
+                    TextAlignSmoke(Path.Combine(pages, "text-align.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--text-align-last")
                 {
                     TextAlignLastSmoke(Path.Combine(pages, "text-align-last.html"));
@@ -548,8 +553,8 @@ namespace Lea.Tests
                     "CSS direction overrides HTML dir");
                 var directionVariable = BlockById(directionPage, "variable").S;
                 var directionImportant = BlockById(directionPage, "important").S;
-                Ok(directionVariable.Dr == "r" && directionVariable.Mr == 27 && directionVariable.Ta == "r" &&
-                    directionImportant.Dr == "l" && directionImportant.Ml == 29 && directionImportant.Ta == "r",
+                Ok(directionVariable.Dr == "r" && directionVariable.Mr == 27 && directionVariable.Ta == "s" &&
+                    directionImportant.Dr == "l" && directionImportant.Ml == 29 && directionImportant.Ta == "e",
                     "direction variables, important cascade, and logical text alignment");
                 var directionInset = BlockById(directionPage, "inset").S;
                 var directionInsetLong = BlockById(directionPage, "inset-long").S;
@@ -576,7 +581,7 @@ namespace Lea.Tests
                     crossDirection.R0 == 62 && crossDirection.R1 == 61 && crossDirection.R2 == 64 && crossDirection.R3 == 63 &&
                     crossDirection.Q0 == 72 && crossDirection.Q1 == 71 && crossDirection.Q2 == 74 && crossDirection.Q3 == 73,
                     "explicit logical inheritance translates parent and child directions");
-                Ok(BlockById(directionPage, "align-start").S.Ta == "r" && BlockById(directionPage, "align-end").S.Ta == "l",
+                Ok(BlockById(directionPage, "align-start").S.Ta == "s" && BlockById(directionPage, "align-end").S.Ta == "e",
                     "RTL start and end text alignment");
                 Ok(BlockById(directionPage, "unset-direction").S.Dr == "r" && BlockById(directionPage, "unset-direction").S.Mr == 35 &&
                     BlockById(directionPage, "initial-direction").S.Dr == "l" && BlockById(directionPage, "initial-direction").S.Ml == 37 &&
@@ -2412,6 +2417,7 @@ namespace Lea.Tests
                 TextShadowSmoke(Path.Combine(pages, "text-shadow.html"));
                 TextDecorationSmoke(Path.Combine(pages, "text-decoration.html"));
                 TextUnderlineOffsetSmoke(Path.Combine(pages, "text-underline-offset.html"));
+                TextAlignSmoke(Path.Combine(pages, "text-align.html"));
                 TextAlignLastSmoke(Path.Combine(pages, "text-align-last.html"));
                 TextOverflowSmoke(Path.Combine(pages, "text-overflow.html"));
 
@@ -7345,6 +7351,170 @@ namespace Lea.Tests
             Console.WriteLine("Lea text underline offset smoke passed: compact inherited signed pixel/percentage alias, shorthand independence, paint position, commands, hover, and resize.");
         }
 
+        private static void TextAlignSmoke(string path)
+        {
+            var engine = new E { Vw = 720 };
+            var page = engine.Go(path);
+            Func<string, B> block = id => BlockById(page, id);
+            Ok(page.S.Ta == "" && page.S.Tl == "" && block("left").S.Ta == "l" &&
+                block("center").S.Ta == "c" && block("right").S.Ta == "r",
+                "text align default and physical compact state");
+            Ok(block("start-ltr").S.Ta == "s" && block("end-ltr").S.Ta == "e" &&
+                block("start-rtl").S.Ta == "s" && block("end-rtl").S.Ta == "e",
+                "text align retains logical compact state");
+            Ok(block("inherited").S.Ta == "e" && block("match-parent").S.Ta == "r" &&
+                block("explicit-inherit").S.Ta == "c" && block("unset").S.Ta == "c",
+                "text align logical inheritance and match parent");
+            Ok(block("initial").S.Ta == "" && block("invalid").S.Ta == "l" &&
+                block("variable").S.Ta == "c" && block("important").S.Ta == "r",
+                "text align resets invalid preservation variables and priority");
+            Ok(block("justify-normal").S.Ta == "j" && block("justify-normal").S.Tl == "" &&
+                block("justify-all").S.Ta == "j" && block("justify-all").S.Tl == "j" &&
+                block("reset-last").S.Ta == "c" && block("reset-last").S.Tl == "" &&
+                block("last-after").S.Ta == "j" && block("last-after").S.Tl == "c" &&
+                block("all-after").S.Ta == "c" && block("all-after").S.Tl == "r" &&
+                block("cell").S.Ta == "c" && block("cell").S.Tl == "r",
+                "text align shorthand and longhand interaction");
+
+            Eq(1, engine.Ck(page, ById(page.D, "set-ta")), "text align short shorthand command");
+            Ok(block("command-ta").S.Ta == "j" && block("command-ta").S.Tl == "j",
+                "text align short shorthand command model");
+            Eq(1, engine.Ck(page, ById(page.D, "set-readable")), "text align readable shorthand command");
+            Ok(block("command-ta").S.Ta == "c" && block("command-ta").S.Tl == "",
+                "text align readable shorthand resets last");
+            Eq(1, engine.Ck(page, ById(page.D, "set-taa")), "text align all short command");
+            Ok(block("command-taa").S.Ta == "c" && block("command-taa").S.Tl == "r",
+                "text align all preserves last");
+            Eq(1, engine.Ck(page, ById(page.D, "set-readable-all")), "text align all readable command");
+            Ok(block("command-taa").S.Ta == "l" && block("command-taa").S.Tl == "r",
+                "text align all readable command model");
+            Eq(1, engine.Ck(page, ById(page.D, "set-dom")), "text align literal DOM command");
+            Ok(block("command-dom").S.Ta == "e" && block("command-dom").S.Tl == "",
+                "text align literal DOM shorthand model");
+            Eq(1, engine.Ck(page, ById(page.D, "clear-dom")), "text align literal DOM clear");
+            Ok(block("command-dom").S.Ta == "l" && block("command-dom").S.Tl == "r",
+                "text align literal DOM clear restores authored cascade");
+            Eq(1, engine.Ck(page, ById(page.D, "set-dom-all")), "text align all literal DOM command");
+            Ok(block("command-dom").S.Ta == "c" && block("command-dom").S.Tl == "r",
+                "text align all literal DOM preserves last");
+            Eq(0, engine.Js(page, "ta('command-ta','middle')"), "text align rejects middle");
+            Eq(0, engine.Js(page, "taa('command-taa','justify-all')"), "text align all rejects justify all");
+            Eq(1, engine.Js(page, "ta('right')"), "text align body shorthand alias");
+            Ok(page.S.Ta == "r" && page.S.Tl == "", "text align body shorthand model");
+            Eq(2, engine.Js(page, "tl('left');taa('center')"), "text align body longhand aliases");
+            Ok(page.S.Ta == "c" && page.S.Tl == "l", "text align body all preserves body last");
+            Eq(1, engine.Js(page, "document.body.style.textAlign='start'"), "text align body DOM shorthand");
+            Ok(page.S.Ta == "s" && page.S.Tl == "", "text align body DOM shorthand model");
+            Eq(1, engine.Js(page, "document.body.style.textAlignAll='end'"), "text align all body DOM");
+            Eq("e", page.S.Ta, "text align all body DOM model");
+
+            using (var view = new V())
+            {
+                view.Size = new Size(720, 6500);
+                view.CreateControl();
+                view.Go(path);
+                using (var paint = Render(view))
+                {
+                    var left = BlockById(view.At, "left");
+                    var center = BlockById(view.At, "center");
+                    var right = BlockById(view.At, "right");
+                    Eq(BlockRect(view, left).Left, TextLines(view, left)[0].Left, "text align left geometry");
+                    Ok(Centered(BlockRect(view, center), TextLines(view, center)[0]), "text align center geometry");
+                    Eq(BlockRect(view, right).Right, TextLines(view, right)[0].Right, "text align right geometry");
+                    Ok(BlockOuterRect(view, left).Size == BlockOuterRect(view, center).Size &&
+                        BlockOuterRect(view, center).Size == BlockOuterRect(view, right).Size,
+                        "text align leaves outer boxes stable");
+
+                    var startLtr = BlockById(view.At, "start-ltr");
+                    var endLtr = BlockById(view.At, "end-ltr");
+                    var startRtl = BlockById(view.At, "start-rtl");
+                    var endRtl = BlockById(view.At, "end-rtl");
+                    Ok(TextLines(view, startLtr)[0].Left == BlockRect(view, startLtr).Left &&
+                        TextLines(view, endLtr)[0].Right == BlockRect(view, endLtr).Right &&
+                        TextLines(view, startRtl)[0].Right == BlockRect(view, startRtl).Right &&
+                        TextLines(view, endRtl)[0].Left == BlockRect(view, endRtl).Left,
+                        "text align logical LTR and RTL geometry");
+
+                    var inherited = BlockById(view.At, "inherited");
+                    var matchParent = BlockById(view.At, "match-parent");
+                    Ok(TextLines(view, inherited)[0].Left == BlockRect(view, inherited).Left &&
+                        TextLines(view, matchParent)[0].Right == BlockRect(view, matchParent).Right,
+                        "text align inheritance differs from match parent");
+                    var initial = BlockById(view.At, "initial");
+                    Eq(BlockRect(view, initial).Right, TextLines(view, initial)[0].Right,
+                        "text align initial resolves to RTL start");
+
+                    var normal = BlockById(view.At, "justify-normal");
+                    var all = BlockById(view.At, "justify-all");
+                    Eq(BlockRect(view, normal).Left, TextLines(view, normal)[0].Left,
+                        "text align justify leaves final line at start");
+                    Ok(TextLines(view, all)[0].Left == BlockRect(view, all).Left &&
+                        TextLines(view, all)[0].Right == BlockRect(view, all).Right,
+                        "text align justify all fills final line");
+                    var resetLast = BlockById(view.At, "reset-last");
+                    var lastAfter = BlockById(view.At, "last-after");
+                    Ok(Centered(BlockRect(view, resetLast), TextLines(view, resetLast)[0]) &&
+                        Centered(BlockRect(view, lastAfter), TextLines(view, lastAfter)[0]),
+                        "text align shorthand reset and last override geometry");
+                    var allAfter = BlockById(view.At, "all-after");
+                    var allAfterLines = TextLines(view, allAfter);
+                    Ok(allAfterLines.Length > 1 && Centered(BlockRect(view, allAfter), allAfterLines[0]) &&
+                        allAfterLines[allAfterLines.Length - 1].Right == BlockRect(view, allAfter).Right,
+                        "text align all and last line geometry");
+                    var cell = BlockById(view.At, "cell");
+                    Eq(BlockRect(view, cell).Right, TextLines(view, cell)[0].Right,
+                        "text align table-contained geometry");
+                }
+
+                var dynamic = BlockById(view.At, "dynamic");
+                Move(view, BlockOuterRect(view, dynamic));
+                using (var paint = Render(view))
+                {
+                    dynamic = BlockById(view.At, "dynamic");
+                    Ok(dynamic.S.Ta == "e" && TextLines(view, dynamic)[0].Left == BlockRect(view, dynamic).Left,
+                        "text align hover logical geometry");
+                }
+
+                Eq(1, view.Js("ta('command-ta','justify-all')"), "WinForms text align shorthand command");
+                using (var paint = Render(view))
+                {
+                    var command = BlockById(view.At, "command-ta");
+                    Ok(TextLines(view, command)[0].Left == BlockRect(view, command).Left &&
+                        TextLines(view, command)[0].Right == BlockRect(view, command).Right,
+                        "WinForms text align justify all command geometry");
+                }
+                Eq(1, view.Js("taa('command-taa','center')"), "WinForms text align all command");
+                using (var paint = Render(view))
+                {
+                    var command = BlockById(view.At, "command-taa");
+                    var lines = TextLines(view, command);
+                    Ok(lines.Length > 1 && Centered(BlockRect(view, command), lines[0]) &&
+                        lines[lines.Length - 1].Right == BlockRect(view, command).Right,
+                        "WinForms text align all preserves last geometry");
+                }
+                Eq(1, view.Js("document.getElementById('command-dom').style.textAlign='end'"),
+                    "WinForms text align DOM shorthand");
+                using (var paint = Render(view))
+                {
+                    var command = BlockById(view.At, "command-dom");
+                    Ok(command.S.Ta == "e" && command.S.Tl == "" &&
+                        TextLines(view, command)[0].Left == BlockRect(view, command).Left,
+                        "WinForms text align DOM logical geometry");
+                }
+
+                view.Size = new Size(350, 6900);
+                Application.DoEvents();
+                using (var paint = Render(view))
+                {
+                    var responsive = BlockById(view.At, "responsive");
+                    Ok(responsive.S.Ta == "e" &&
+                        TextLines(view, responsive)[0].Left == BlockRect(view, responsive).Left,
+                        "responsive text align logical geometry");
+                }
+            }
+            Console.WriteLine("Lea text align smoke passed: compact shorthand/all/last cascade, logical inheritance, match-parent, justify-all, commands, hover, and resize.");
+        }
+
         private static void TextAlignLastSmoke(string path)
         {
             var engine = new E { Vw = 720 };
@@ -7353,8 +7523,8 @@ namespace Lea.Tests
             Ok(page.S.Tl == "" && block("auto").S.Tl == "" && block("auto").S.Ta == "j" && block("left").S.Tl == "l" &&
                 block("center").S.Tl == "c" && block("right").S.Tl == "r" && block("justify").S.Tl == "j",
                 "text align last default and basic aliases");
-            Ok(block("start-ltr").S.Tl == "l" && block("end-ltr").S.Tl == "r" &&
-                block("start-rtl").S.Tl == "r" && block("end-rtl").S.Tl == "l",
+            Ok(block("start-ltr").S.Tl == "s" && block("end-ltr").S.Tl == "e" &&
+                block("start-rtl").S.Tl == "s" && block("end-rtl").S.Tl == "e",
                 "text align last logical direction mapping");
             Ok(block("inherited").S.Tl == "c" && block("explicit-inherit").S.Tl == "c" &&
                 block("unset").S.Tl == "c" && block("match-parent").S.Tl == "c",
@@ -7469,7 +7639,7 @@ namespace Lea.Tests
                 using (var paint = Render(view))
                 {
                     var responsive = BlockById(view.At, "responsive");
-                    Ok(responsive.S.Tl == "r" && TextLines(view, responsive)[0].Right == BlockRect(view, responsive).Right,
+                    Ok(responsive.S.Tl == "e" && TextLines(view, responsive)[0].Right == BlockRect(view, responsive).Right,
                         "responsive text align last model and geometry");
                 }
             }

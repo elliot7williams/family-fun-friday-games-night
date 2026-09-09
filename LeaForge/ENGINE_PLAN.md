@@ -68,7 +68,7 @@ Dg/Dcl  diagnostics/clear request activity
 2. Implement the cascade and inheritance with a small priority model. (First specificity/source-order cascade added.)
    (`link rel=stylesheet` and inline `style` blocks now enter that source order
    together; linked CSS uses cookies, compression, validators, and shared LRU caching.)
-3. Add colors, fonts, spacing, borders, width, height, display, visibility, opacity, and overflow. (Colors, fallback font families, bounded underline/strike color/style/thickness, margins, padding, backgrounds, `display:none`, inherited visibility, bounded opacity, borders, non-inherited content/border-box pixel sizing, pixel width/height bounds, text and final-line alignment, transformation, signed letter/word spacing, signed pixel/percentage first-line indentation, one inherited bounded text-shadow layer, line height, word breaking, white-space modes, and clipped overflow are active.)
+3. Add colors, fonts, spacing, borders, width, height, display, visibility, opacity, and overflow. (Colors, fallback font families, bounded underline/strike color/style/thickness, margins, padding, backgrounds, `display:none`, inherited visibility, bounded opacity, borders, non-inherited content/border-box pixel sizing, pixel width/height bounds, text alignment shorthand/all/last with logical state, transformation, signed letter/word spacing, signed pixel/percentage first-line indentation, one inherited bounded text-shadow layer, line height, word breaking, white-space modes, and clipped overflow are active.)
 4. Replace one-WinForms-control-per-node rendering with lightweight layout boxes. (Reusable `Bx` layout pass added.)
 5. Paint text, backgrounds, borders, links, controls, and images onto one surface. (Text, nested bold/italic inline runs, backgrounds, solid/dashed/dotted borders, links, images, and basic form controls are active.)
 6. Add scrolling and hit testing from layout boxes. (Visible-box painting and bounded vertical scrolling added.)
@@ -346,15 +346,17 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 97 adds bounded inherited CSS `text-align-last` through compact
-`S.Tl` state and the defining two-letter `tl` command. Auto, physical, logical,
-justify, match-parent, CSS-wide values, variables, important tiers, inline
-overrides, hover, responsive rebuilds, readable commands, and literal DOM
-assignments share existing paths. The current inline pass aligns final visual
-lines and lines before forced breaks without a second layout pass or changed
-outer boxes, hits, find, focus, or accessibility geometry. See
-`TEXT_ALIGN_LAST.md`. All 93 probes pass over 88 fixtures, with both full engine
-modes, the compiled host, all 42 Boot cases, and six real EXE scenarios green.
+Milestone 98 completes bounded inherited CSS `text-align`, `text-align-all`,
+and `text-align-last` through compact `S.Ta/Tl` state and the defining
+`ta/taa/tl` commands. Physical and retained logical state, justify-all,
+match-parent, strict shorthand reset, CSS-wide values, variables, important
+tiers, inline overrides, hover, responsive rebuilds, readable commands, and
+literal DOM assignments share existing paths. The current inline pass aligns
+all, final, and forced lines without a second layout pass or changed outer
+boxes, hits, find, focus, or accessibility geometry. See `TEXT_ALIGN.md` and
+`TEXT_ALIGN_LAST.md`. All 94 probes pass over 89 fixtures, with both full
+engine modes, the compiled host, all 42 Boot cases, and six real EXE scenarios
+green.
 Next investigate the native-safe visible-range boundary and another bounded
 text or HTML compatibility slice while keeping vertical writing modes, full
 Unicode bidi shaping, `dir=auto`, and general CSS/JavaScript evaluators outside
@@ -921,13 +923,16 @@ percent, and resolved paint is clamped to 64 pixels. Compact `uo`, readable
 `textunderlineoffset`, and literal `style.textUnderlineOffset` share the
 compiled cascade without resetting `S.Td/Tc/Tds/Tw`.
 
-Inherited `S.Tl` stores final-line alignment as empty auto state or compact
-physical `l/c/r/j`. CSS `text-align-last`, compact `tl`, readable
-`textalignlast`, and literal `style.textAlignLast` share the compiled cascade.
-The existing word-line pass applies explicit alignment to each final visual
-line and the line immediately before a forced break. Horizontal `start` and
-`end` resolve through LTR/RTL direction; vertical writing and full Unicode bidi
-shaping remain outside this bounded slice.
+Inherited `S.Ta/Tl` stores all-line/final-line alignment as compact physical
+`l/c/r/j` or logical `s/e` state; empty means logical start/auto respectively.
+CSS `text-align`, `text-align-all`, and `text-align-last`, compact `ta/taa/tl`,
+readable command names, and literal `style.textAlign*` assignments share the
+compiled cascade. Ordinary shorthand values reset final-line state, while
+`justify-all` sets both and the all-line longhand preserves `Tl`. The existing
+word-line pass applies alignment to all visual lines and the line immediately
+before a forced break. Horizontal logical values resolve at layout, except
+`match-parent`, which resolves using the parent direction; vertical writing and
+full Unicode bidi shaping remain outside this bounded slice.
 
 Inherited `S.Tt=n/u/l/c` stores bounded none, uppercase, lowercase, or
 capitalize presentation state. One invariant `E.Tx` helper transforms block,

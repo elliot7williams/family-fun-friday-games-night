@@ -55,6 +55,7 @@ namespace Lea.Firespider
                     .Replace("</body>", "<p id='host-indent' class='host-indent'>HostIndent uses compact first line geometry</p><p id='host-indent-rtl' class='host-indent-rtl'>HostRTL uses inline start indentation</p><p id='host-indent-responsive' class='host-indent-responsive'>HostResponsive changes indentation on resize</p></body>")
                     .Replace("</style>", ".host-text-shadow{width:260px;color:#111827;text-shadow:5px 3px 0 #dc2626}.host-text-shadow-responsive{width:260px;text-shadow:2px 2px 0 #64748b}@media screen and (max-width:500px){.host-text-shadow-responsive{text-shadow:-4px 3px 4px #7c3aed}}</style>")
                     .Replace("</style>", ".host-decoration{width:260px;color:#111827;text-decoration:underline double #2563eb 2px;text-underline-offset:6px}.host-decoration-responsive{text-decoration:underline dotted #64748b 1px;text-underline-offset:2px}@media screen and (max-width:500px){.host-decoration-responsive{text-decoration:line-through wavy #7c3aed 3px;text-underline-offset:25%}}</style>")
+                    .Replace("</style>", ".host-align,.host-align-responsive{width:260px}.host-align{direction:rtl;text-align:justify-all}.host-align-responsive{direction:rtl;text-align:center}@media screen and (max-width:500px){.host-align-responsive{text-align:end}}</style>")
                     .Replace("</style>", ".host-align-last,.host-align-last-responsive{width:260px}.host-align-last{text-align-last:center}.host-align-last-responsive{text-align-last:left}@media screen and (max-width:500px){.host-align-last-responsive{text-align-last:end}}</style>")
                     .Replace("</style>", ".host-overflow{width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.host-overflow-responsive{text-overflow:clip}@media screen and (max-width:500px){.host-overflow-responsive{text-overflow:ellipsis}}</style>")
                     .Replace("</body>", "<p id='host-overflow' class='host-overflow'>Host overflow keeps this entire authored sentence</p><p id='host-overflow-responsive' class='host-overflow host-overflow-responsive'>Responsive host overflow keeps its full text</p></body>")
@@ -107,7 +108,7 @@ namespace Lea.Firespider
                     .Replace("<p>Open route fixture</p>", "<p id='host-text-shadow' class='host-text-shadow'>Open route fixture</p>")
                     .Replace("<p>Second route match</p>", "<p id='host-text-shadow-responsive' class='host-text-shadow-responsive host-decoration-responsive'>Second route match</p>")
                     .Replace("<p>Third ROUTE match</p>", "<p id='host-decoration' class='host-decoration'>Third ROUTE match</p>");
-                openMarkup = openMarkup.Replace("<p id='class-state'>", "<p id='host-align-last' class='host-align-last'>HostLast</p><p id='host-align-last-responsive' class='host-align-last-responsive'>ResponsiveLast</p><p id='class-state'>");
+                openMarkup = openMarkup.Replace("<p id='class-state'>", "<p id='host-align' class='host-align'>Host Align Words</p><p id='host-align-responsive' class='host-align-responsive'>ResponsiveAlign</p><p id='host-align-last' class='host-align-last'>HostLast</p><p id='host-align-last-responsive' class='host-align-last-responsive'>ResponsiveLast</p><p id='class-state'>");
                 File.WriteAllText(openPage, openMarkup);
                 var root = Path.GetFullPath(args.Length > 0 ? args[0] : AppDomain.CurrentDomain.BaseDirectory);
                 var assembly = Assembly.LoadFrom(Path.Combine(root, "Firespider Internet 19.exe"));
@@ -367,6 +368,35 @@ namespace Lea.Firespider
                     hostAlignLastLine = InlineTextRect(host, hostAlignLast, "HostLast");
                     Check(hostAlignLast.S.Tl == "c" && Math.Abs(hostAlignLastLine.Left + hostAlignLastLine.Right - BlockContent(host, "host-align-last").Left - BlockContent(host, "host-align-last").Right) <= 2,
                         "Firespider literal DOM text align last geometry");
+                    var hostAlign = BlockById(host.At, "host-align");
+                    var hostAlignResponsive = BlockById(host.At, "host-align-responsive");
+                    Check(hostAlign.S.Ta == "j" && hostAlign.S.Tl == "j" && hostAlignResponsive.S.Ta == "c" &&
+                        InlineTextRect(host, hostAlign, "Host").Right == BlockContent(host, "host-align").Right &&
+                        InlineTextRect(host, hostAlign, "Words").Left == BlockContent(host, "host-align").Left,
+                        "Firespider bounded text align shorthand and justify all geometry");
+                    Check(host.Js("ta('host-align','center')") == 1, "Firespider compact text align shorthand command");
+                    PaintView(host);
+                    hostAlign = BlockById(host.At, "host-align");
+                    var hostAlignLine = System.Drawing.Rectangle.Union(InlineTextRect(host, hostAlign, "Host"), InlineTextRect(host, hostAlign, "Words"));
+                    Check(hostAlign.S.Ta == "c" && hostAlign.S.Tl == "" &&
+                        Math.Abs(hostAlignLine.Left + hostAlignLine.Right - BlockContent(host, "host-align").Left - BlockContent(host, "host-align").Right) <= 2,
+                        "Firespider compact text align shorthand geometry");
+                    Check(host.Js("tl('host-align','right');taa('host-align','left')") == 2,
+                        "Firespider compact text align all command");
+                    PaintView(host);
+                    hostAlign = BlockById(host.At, "host-align");
+                    hostAlignLine = System.Drawing.Rectangle.Union(InlineTextRect(host, hostAlign, "Host"), InlineTextRect(host, hostAlign, "Words"));
+                    Check(hostAlign.S.Ta == "l" && hostAlign.S.Tl == "r" &&
+                        hostAlignLine.Right == BlockContent(host, "host-align").Right,
+                        "Firespider text align all preserves final-line override");
+                    Check(host.Js("document.getElementById('host-align').style.textAlign='end'") == 1,
+                        "Firespider literal DOM text align shorthand");
+                    PaintView(host);
+                    hostAlign = BlockById(host.At, "host-align");
+                    hostAlignLine = System.Drawing.Rectangle.Union(InlineTextRect(host, hostAlign, "Host"), InlineTextRect(host, hostAlign, "Words"));
+                    Check(hostAlign.S.Ta == "e" && hostAlign.S.Tl == "" &&
+                        hostAlignLine.Left == BlockContent(host, "host-align").Left,
+                        "Firespider literal DOM logical text align geometry");
                     Check(BlockById(host.At, "host-overflow").S.To == "e" && EllipsisCount(host, "host-overflow") == 1 &&
                         EllipsisCount(host, "host-overflow-responsive") == 0 && host.At.X.Contains("Host overflow keeps this entire authored sentence"),
                         "Firespider text overflow alias, painted marker, and authored text");
@@ -708,8 +738,11 @@ namespace Lea.Firespider
                         hostDecorationResponsive.S.Uo == 25 && hostDecorationResponsive.S.Uop,
                         "Firespider responsive text decoration and underline offset");
                     hostAlignLastResponsive = BlockById(host.At, "host-align-last-responsive");
-                    Check(hostAlignLastResponsive.S.Tl == "r" && InlineTextRect(host, hostAlignLastResponsive, "ResponsiveLast").Right == BlockContent(host, "host-align-last-responsive").Right,
+                    Check(hostAlignLastResponsive.S.Tl == "e" && InlineTextRect(host, hostAlignLastResponsive, "ResponsiveLast").Right == BlockContent(host, "host-align-last-responsive").Right,
                         "Firespider responsive text align last");
+                    hostAlignResponsive = BlockById(host.At, "host-align-responsive");
+                    Check(hostAlignResponsive.S.Ta == "e" && InlineTextRect(host, hostAlignResponsive, "ResponsiveAlign").Left == BlockContent(host, "host-align-responsive").Left,
+                        "Firespider responsive logical text align");
                     Check(BlockById(host.At, "host-overflow-responsive").S.To == "e" && EllipsisCount(host, "host-overflow-responsive") == 1,
                         "Firespider narrow text overflow marker");
                     host.Size = new System.Drawing.Size(720, 560);
@@ -734,6 +767,11 @@ namespace Lea.Firespider
                     hostAlignLastResponsive = BlockById(host.At, "host-align-last-responsive");
                     Check(hostAlignLastResponsive.S.Tl == "l" && InlineTextRect(host, hostAlignLastResponsive, "ResponsiveLast").Left == BlockContent(host, "host-align-last-responsive").Left,
                         "Firespider wide text align last restore");
+                    hostAlignResponsive = BlockById(host.At, "host-align-responsive");
+                    var hostAlignResponsiveLine = InlineTextRect(host, hostAlignResponsive, "ResponsiveAlign");
+                    Check(hostAlignResponsive.S.Ta == "c" &&
+                        Math.Abs(hostAlignResponsiveLine.Left + hostAlignResponsiveLine.Right - BlockContent(host, "host-align-responsive").Left - BlockContent(host, "host-align-responsive").Right) <= 2,
+                        "Firespider wide text align restore");
                     Check(BlockById(host.At, "host-overflow-responsive").S.To == "c" && EllipsisCount(host, "host-overflow-responsive") == 0,
                         "Firespider wide text overflow restore");
                     Check(BlockById(host.At, "host-progress").Vm.R == 0.4D && BlockById(host.At, "host-meter").Vm.R == 0.75D, "Firespider compact gauge models");
@@ -873,7 +911,7 @@ namespace Lea.Firespider
                     Check(host.Ck(ById(host.At.D, "host-value-update")) == 1 && ValueById(host.At, "host-output").V == "Updated host total", "Firespider output value rebuild");
                     Check(host.Ck(ById(host.At.D, "host-time-update")) == 1 && ValueById(host.At, "host-time").Dt == "2026-08-22", "Firespider time metadata rebuild");
                     var diagnostics = host.Dg();
-                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 92 && diagnostics.Rs.Count > 0, "Firespider Lea diagnostics");
+                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 96 && diagnostics.Rs.Count > 0, "Firespider Lea diagnostics");
                     var inspectorOpen = type.GetMethod("qleaInspectorOpen", BindingFlags.Instance | BindingFlags.NonPublic);
                     var inspectorSnapshot = type.GetMethod("qleaInspectorSnapshot", BindingFlags.Instance | BindingFlags.NonPublic);
                     var inspectorClear = type.GetMethod("qleaInspectorClear", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -1053,7 +1091,7 @@ namespace Lea.Firespider
                     Check(restoredTabs.TabCount == beforeMiddle - 1 && FindLea(restoredTabs) == null, "middle-click Lea tab close");
                 }
 
-                Console.WriteLine("Firespider CSS interaction and paint smoke passed: compact text-indent, text-decoration, text-underline-offset, text-align-last, text-shadow, text-overflow, text-spacing, text-transform, pointer, outline, radius, box-shadow, gradient, bitmap-background, object-fit, and aspect-ratio aliases reached the compiled host.");
+                Console.WriteLine("Firespider CSS interaction and paint smoke passed: compact text-indent, text-align/all/last, text-decoration, text-underline-offset, text-shadow, text-overflow, text-spacing, text-transform, pointer, outline, radius, box-shadow, gradient, bitmap-background, object-fit, and aspect-ratio aliases reached the compiled host.");
                 Console.WriteLine("Firespider calculated height smoke passed: compact ht, literal style.height, definite parent resolution, shared host geometry, reset, and strict bounds.");
                 Console.WriteLine("Firespider viewport unit smoke passed: vw/vh/vmin/vmax, calc, compact commands, literal reset, live host geometry, and strict bounds.");
                 Console.WriteLine("Firespider font-relative unit smoke passed: em/rem, root font alias, compact commands, literal reset, shared host geometry, and strict bounds.");

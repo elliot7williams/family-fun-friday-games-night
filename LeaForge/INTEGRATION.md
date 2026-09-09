@@ -282,11 +282,12 @@ nested disclosure state, compiled `[open]` styling, and block ownership. The
 WinForms view activates valid summaries by pointer, Enter, or Space, including
 wrapped summaries and summaries inside structured table cells.
 
-Computed styles use `S.Ta` for compact `l/c/r/j` alignment, `S.Lh` for pixel
-line height, and `S.Lm` for a relative multiplier. `V` applies these to wrapped
-blocks and table cells, centers glyphs within taller lines, and justifies only
-wrapped non-final lines. Blocks without these properties retain the native
-single-box text path.
+Computed styles use `S.Ta/Tl` for compact `l/c/r/j/s/e` all-line/final-line
+alignment, with empty states for logical start and auto. `S.Lh` stores pixel
+line height and `S.Lm` a relative multiplier. `V` applies these to wrapped
+blocks and table cells, centers glyphs within taller lines, and keeps ordinary
+justification off final lines. Blocks without these properties retain the
+native single-box text path.
 
 Inherited `S.Tt` uses `n/u/l/c` for `text-transform:none`, uppercase,
 lowercase, or capitalize. Hosts can call `E.Tx(text, style)` when they need the
@@ -669,14 +670,17 @@ layout, hit, find, focus, or accessibility geometry. Hosts can call
 literal `style.textUnderlineOffset` assignments. The property remains
 independent of the decoration shorthand. See `TEXT_UNDERLINE_OFFSET.md`.
 
-Inherited final-line alignment uses compact `S.Tl`: empty means CSS `auto`,
-while `l/c/r/j` carry the settled physical alignment. Lea resolves `start` and
-`end` through horizontal direction during cascade, and `match-parent` copies
-the inherited physical result. The existing inline flow pass applies it to the
-final visual line and the line before each forced break, so outer layout, hits,
-find, focus, and accessibility keep the same retained rectangles. Hosts can
-call `tl(value)` or `tl(id,value)`, use readable `textalignlast`, or send
-literal `style.textAlignLast` assignments. See `TEXT_ALIGN_LAST.md`.
+Inherited text alignment uses compact `S.Ta/Tl`. Physical `l/c/r/j` and logical
+`s/e` state survive the cascade; empty `Ta` is logical start and empty `Tl` is
+auto. `text-align` is the shorthand: ordinary values set `Ta` and reset `Tl`,
+`justify-all` sets both to justify, and `match-parent` resolves the parent's
+logical edge through the parent's direction. `text-align-all` changes only
+`Ta`, while `text-align-last` changes only `Tl`. The existing inline flow pass
+applies all-line and final/forced-line geometry, so outer layout, hits, find,
+focus, and accessibility keep the same retained rectangles. Hosts can call
+`ta`, `taa`, or `tl`, use the readable names, or send literal
+`style.textAlign`, `style.textAlignAll`, and `style.textAlignLast` assignments.
+See `TEXT_ALIGN.md` and `TEXT_ALIGN_LAST.md`.
 
 Inherited block indentation is available through `S.Ti/Tip`. `Ti` holds a
 signed -2000..2000 pixel or -100..100 percentage integer and `Tip` identifies
@@ -815,7 +819,7 @@ and 16 alerts.
 
 For easier migration, literal `document.getElementById("id")` statements map
 `textContent/innerText`, `value`, checked/disabled/hidden/open booleans,
-`focus()`, `classList.add/remove/toggle`, and background/color/font-size/display/width/direction/text-indent/text-align-last/text-decoration/text-underline-offset/text-shadow styles
+`focus()`, `classList.add/remove/toggle`, and background/color/font-size/display/width/direction/text-indent/text-align/text-align-all/text-align-last/text-decoration/text-underline-offset/text-shadow styles
 onto the existing compact commands. The adapter receives no DOM object and adds
 no evaluator. IDs and class names remain bounded literals, every mutation uses
 the normal validators and retained rebuild, and unsupported `innerHTML`,

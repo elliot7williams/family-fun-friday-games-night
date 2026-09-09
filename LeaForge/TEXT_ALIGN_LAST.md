@@ -1,15 +1,17 @@
 # Bounded Text Align Last
 
-Milestone 97 adds a compact inherited subset of CSS `text-align-last` without
-adding another layout pass or browser runtime.
+Milestone 97 added a compact inherited subset of CSS `text-align-last` without
+adding another layout pass or browser runtime. Milestone 98 keeps it as the
+final-line longhand of Lea's completed bounded alignment family.
 
 ## Compact state
 
-- `S.Tl` is empty for `auto`, or stores `l`, `c`, `r`, or `j`.
+- `S.Tl` is empty for `auto`, or stores `l`, `c`, `r`, `j`, `s`, or `e`.
 - The state is inherited and copied by the existing style inheritance path.
-- `start` and `end` resolve to a physical edge using the element's settled
-  horizontal `direction`.
-- `match-parent` copies the parent's compact physical result.
+- `start` and `end` remain logical so descendants resolve them using their own
+  settled horizontal `direction`.
+- `match-parent` resolves a parent's logical result through the parent's
+  direction before copying it.
 
 Supported authored values are `auto`, `start`, `end`, `left`, `right`,
 `center`, `justify`, `match-parent`, and the existing CSS-wide values. Invalid
@@ -44,8 +46,8 @@ existing layout path.
 
 This is a horizontal-writing LTR/RTL subset. Lea does not yet implement vertical
 writing modes, full Unicode bidi shaping, fractional alignment, or arbitrary
-JavaScript and CSSOM evaluation. `match-parent` is represented as the inherited
-physical result rather than a retained logical keyword.
+JavaScript and CSSOM evaluation. `match-parent` is represented as the resolved
+parent-relative physical result rather than a retained logical keyword.
 
 ## Verification
 
@@ -54,10 +56,10 @@ physical result rather than a retained logical keyword.
 - Firespider compiled-host smoke
 - All 42 Firespider Boot cases
 - Six real EXE startup scenarios
-- 93/93 compatibility probes over 88 fixtures
+- 94/94 compatibility probes over 89 fixtures
 
-The canonical five-iteration report measured 506.068 ms median clean startup,
-3.981 ms median local load, 38.396 ms median layout and paint, and 54.2 KiB of
-retained managed memory per page. Required runtime files total 578.5 KiB, with
-a 242.9 KiB GZip estimate. These are local diagnostic samples rather than
+The Milestone 98 canonical five-iteration report measured 497.401 ms median
+clean startup, 4.353 ms median local load, 38.156 ms median layout and paint,
+and 54.6 KiB of retained managed memory per page. Required runtime files total
+579.5 KiB, with a 243.3 KiB GZip estimate. These are local diagnostic samples rather than
 performance promises.

@@ -35,7 +35,7 @@ read and quick to write.
   redirects or resource requests. Firespider installs it on ordinary and split
   tabs. See `NAVIGATION_POLICY.md` and `SPLIT_VIEW.md` for its callback contract.
 - Page values use one or two letters: `U`, `T`, `H`, `Q`, `D`, `N`, `Bs`, and `Ls`.
-- Page commands use one or two letters where practical: `t`, `a`, `bg`, `fg`, `fs`, `dp`, `wd`, `ht`, `dr`, `ti`, `tl`, `ts`, `td`, `uo`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`; text-decoration components and logical edge families stay within three letters.
+- Page commands use one or two letters where practical: `t`, `a`, `bg`, `fg`, `fs`, `dp`, `wd`, `ht`, `dr`, `ti`, `ta`, `taa`, `tl`, `ts`, `td`, `uo`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`; text-decoration components and logical edge families stay within three letters.
 - New public aliases should be no more than three letters.
 - `E/V.Hm` reports the 4 MiB document-body ceiling; `E/V.Csm` reports the
   256 KiB linked-stylesheet ceiling. GET/POST input and optional CSS share
@@ -87,6 +87,9 @@ dr("rtl")          body direction
 dr("id", "rtl")   element direction
 ti("18px")         body first-line indent
 ti("id", "15%")   element first-line indent
+ta("center")       body text alignment shorthand
+ta("id", "end")   element text alignment shorthand
+taa("id", "left") element all-line alignment longhand
 tl("center")       body last-line alignment
 tl("id", "end")   element last-line alignment
 ts("3px 2px #555") body text shadow
@@ -132,7 +135,7 @@ fo("id")              request focus
 go("next.html")        request host navigation
 ```
 
-The two-argument `bg/fg/fs/dp/wd/ht/dr/ti/tl/ts/td/tdl/tdc/tds/tdw/uo/is/bs`, logical box, logical border, and
+The two-argument `bg/fg/fs/dp/wd/ht/dr/ti/ta/taa/tl/ts/td/tdl/tdc/tds/tdw/uo/is/bs`, logical box, logical border, and
 radius forms
 target one validated ID. Color and font
 forms reuse the same
@@ -174,12 +177,16 @@ Literal `style.textUnderlineOffset` assignments share the parser, and
 `text-decoration` shorthand updates never reset the offset. See
 `TEXT_UNDERLINE_OFFSET.md`.
 
-`S.Tl` stores inherited final-line alignment as empty auto state or compact
-`l/c/r/j`. `tl` and readable `textalignlast` accept one body value or an ID
-plus value. `start` and `end` resolve through the element's horizontal LTR/RTL
-direction; `match-parent` copies the inherited physical result. CSS-wide
-values and empty literal assignments share the compiled cascade. Literal
-`style.textAlignLast` uses the same route. See `TEXT_ALIGN_LAST.md`.
+`S.Ta/Tl` store inherited all-line and final-line alignment as compact
+`l/c/r/j/s/e` state; empty `Ta` is logical start and empty `Tl` is auto. `ta`,
+`taa`, and `tl` accept one body value or an ID plus value, with readable
+`textalign`, `textalignall`, and `textalignlast` forms. Ordinary `text-align`
+values update `Ta` and reset `Tl` to auto, `justify-all` sets both to justify,
+and `text-align-all` changes only `Ta`. Logical start/end survive inheritance;
+`match-parent` resolves the parent's logical edge through the parent direction.
+CSS-wide values and empty literal assignments share the compiled cascade.
+Literal `style.textAlign`, `style.textAlignAll`, and `style.textAlignLast` use
+the same route. See `TEXT_ALIGN.md` and `TEXT_ALIGN_LAST.md`.
 
 `dp` accepts a bounded standard display keyword set. `none` removes the subtree
 from layout and accessibility; `flex`/`inline-flex` and `grid`/`inline-grid`
@@ -340,14 +347,16 @@ document.getElementById("status").classList.add("ready");
 document.getElementById("status").style.color = "#164e63";
 document.getElementById("panel").style.display = "none";
 document.getElementById("panel").style.width = "calc(100% - 24px)";
+document.getElementById("status").style.textAlign = "end";
+document.getElementById("status").style.textAlignAll = "center";
 document.getElementById("status").style.textAlignLast = "center";
 ```
 
 `innerText` is an alias for `textContent`; `classList.remove/toggle` and
-`style.background/backgroundColor/fontSize/display/width/height/direction/textIndent/textAlignLast` are also accepted. IDs and class
+`style.background/backgroundColor/fontSize/display/width/height/direction/textIndent/textAlign/textAlignAll/textAlignLast` are also accepted. IDs and class
 arguments must be quoted literals. Boolean state accepts only literal `true` or
 `false`. The parser translates each accepted statement to the existing
-`tx/vl/ck/ds/en/hd/sh/op/cl/fo/ac/rc/tc/bg/fg/fs/dp/wd/ht/dr/ti/tl` command, so all target, value,
+`tx/vl/ck/ds/en/hd/sh/op/cl/fo/ac/rc/tc/bg/fg/fs/dp/wd/ht/dr/ti/ta/taa/tl` command, so all target, value,
 style, rebuild, focus, and 32-command limits remain unchanged. `innerHTML`,
 selectors, computed IDs or values, event registration, loops, expressions, and
 unknown properties or methods remain inert. See `DOM_BRIDGE.md`.
@@ -680,8 +689,9 @@ Computed style uses `S`: `F` is foreground color, `Bg` is background, `Fs` is
 font size, `Ff` is a font fallback list, `B` is bold, `I` is italic, and `D` is
 display behavior. `Td` is decoration using `n/u/s/us` for none, underline,
 strike, or both. Generic `Ff` entries use `ss/s/m/c/f/ui` for sans-serif,
-serif, monospace, cursive, fantasy, and system UI. `Ta` is
-text alignment using `l/c/r/j`; `Tt` is inherited text transformation using
+serif, monospace, cursive, fantasy, and system UI. `Ta/Tl` are inherited
+all-line/final-line alignment using `l/c/r/j/s/e`, with empty states for
+logical start/auto; `Tt` is inherited text transformation using
 `n/u/l/c` for none, uppercase, lowercase, and capitalize. `Ls` is inherited
 letter spacing and `Wg` is inherited word spacing in signed pixels. `Ti` is
 inherited signed first-line indentation and `Tip` marks percentage rather than

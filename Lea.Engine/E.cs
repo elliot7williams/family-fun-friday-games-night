@@ -3500,7 +3500,8 @@ namespace Lea.Engine
                 else if (name == "text-decoration-style") TextDecorationStyle(style, value);
                 else if (name == "text-decoration-thickness") TextDecorationThickness(style, value);
                 else if (name == "text-underline-offset") TextUnderlineOffset(style, inherited, value);
-                else if (name == "text-align") TextAlign(style, value);
+                else if (name == "text-align") TextAlign(style, inherited, value, true);
+                else if (name == "text-align-all") TextAlign(style, inherited, value, false);
                 else if (name == "text-align-last") TextAlignLast(style, inherited, value);
                 else if (name == "text-transform") TextTransform(style, value);
                 else if (name == "text-indent") TextIndent(style, inherited, value);
@@ -4953,33 +4954,67 @@ namespace Lea.Engine
             return value == "initial" || value == "unset" || value == "revert" || value == "revert-layer";
         }
 
-        private static void TextAlign(S style, string value)
+        private static void TextAlign(S style, S inherited, string value, bool shorthand)
         {
-            var align = (value ?? "").Trim().ToLowerInvariant();
+            string align;
+            if (!Tav(value, shorthand, out align) || align.Length == 0) return;
+            if (align == "inherit" || align == "unset" || align == "revert" || align == "revert-layer")
+            {
+                style.Ta = inherited == null ? "" : inherited.Ta;
+                if (shorthand) style.Tl = inherited == null ? "" : inherited.Tl;
+                return;
+            }
+            if (align == "initial")
+            {
+                style.Ta = "";
+                if (shorthand) style.Tl = "";
+                return;
+            }
+            if (align == "match-parent")
+            {
+                style.Ta = TextAlignParent(inherited, false);
+                if (shorthand) style.Tl = TextAlignParent(inherited, true);
+                return;
+            }
+            if (align == "justify-all")
+            {
+                style.Ta = "j";
+                style.Tl = "j";
+                return;
+            }
             if (align == "left") style.Ta = "l";
             else if (align == "center") style.Ta = "c";
             else if (align == "right") style.Ta = "r";
-            else if (align == "start") style.Ta = InlineEdge(style, true) == 3 ? "l" : "r";
-            else if (align == "end") style.Ta = InlineEdge(style, false) == 3 ? "l" : "r";
+            else if (align == "start") style.Ta = "s";
+            else if (align == "end") style.Ta = "e";
             else if (align == "justify") style.Ta = "j";
-            else if (align == "initial") style.Ta = "";
+            if (shorthand) style.Tl = "";
+        }
+
+        internal static bool Tav(string value, bool shorthand, out string align)
+        {
+            align = (value ?? "").Trim().ToLowerInvariant();
+            return align.Length == 0 || align == "start" || align == "end" || align == "left" || align == "right" ||
+                align == "center" || align == "justify" || align == "match-parent" || shorthand && align == "justify-all" ||
+                align == "initial" || align == "inherit" || align == "unset" || align == "revert" || align == "revert-layer";
         }
 
         private static void TextAlignLast(S style, S inherited, string value)
         {
             string align;
             if (!Tal(value, out align) || align.Length == 0) return;
-            if (align == "inherit" || align == "unset" || align == "revert" || align == "revert-layer" || align == "match-parent")
+            if (align == "inherit" || align == "unset" || align == "revert" || align == "revert-layer")
             {
                 style.Tl = inherited == null ? "" : inherited.Tl;
                 return;
             }
+            if (align == "match-parent") { style.Tl = TextAlignParent(inherited, true); return; }
             if (align == "auto" || align == "initial") { style.Tl = ""; return; }
             if (align == "left") style.Tl = "l";
             else if (align == "center") style.Tl = "c";
             else if (align == "right") style.Tl = "r";
-            else if (align == "start") style.Tl = InlineEdge(style, true) == 3 ? "l" : "r";
-            else if (align == "end") style.Tl = InlineEdge(style, false) == 3 ? "l" : "r";
+            else if (align == "start") style.Tl = "s";
+            else if (align == "end") style.Tl = "e";
             else if (align == "justify") style.Tl = "j";
         }
 
@@ -4989,6 +5024,15 @@ namespace Lea.Engine
             return align.Length == 0 || align == "auto" || align == "start" || align == "end" || align == "left" || align == "right" ||
                 align == "center" || align == "justify" || align == "match-parent" || align == "initial" || align == "inherit" ||
                 align == "unset" || align == "revert" || align == "revert-layer";
+        }
+
+        private static string TextAlignParent(S inherited, bool last)
+        {
+            if (inherited == null) return last ? "s" : "";
+            var align = last ? inherited.Tl : inherited.Ta;
+            if (align == "s" || (!last && align.Length == 0)) return inherited.Dr == "r" ? "r" : "l";
+            if (align == "e") return inherited.Dr == "r" ? "l" : "r";
+            return align;
         }
 
         private static void TextTransform(S style, string value)
