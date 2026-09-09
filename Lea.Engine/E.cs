@@ -3509,7 +3509,10 @@ namespace Lea.Engine
                 else if (name == "letter-spacing") TextSpacing(style, inherited, value, true);
                 else if (name == "word-spacing") TextSpacing(style, inherited, value, false);
                 else if (name == "line-height") LineHeight(style, value);
-                else if (name == "white-space") WhiteSpace(style, value);
+                else if (name == "white-space") WhiteSpace(style, inherited, value);
+                else if (name == "text-wrap") TextWrap(style, inherited, value, 0);
+                else if (name == "text-wrap-mode") TextWrap(style, inherited, value, 1);
+                else if (name == "text-wrap-style") TextWrap(style, inherited, value, 2);
                 else if (name == "word-break" || name == "overflow-wrap" || name == "word-wrap") WordBreak(style, value, name == "word-break");
                 else if (name == "overflow") Overflow(style, value);
                 else if (name == "text-overflow") TextOverflow(style, inherited, value);
@@ -5164,14 +5167,71 @@ namespace Lea.Engine
             style.Lh = 0;
         }
 
-        private static void WhiteSpace(S style, string value)
+        private static void WhiteSpace(S style, S inherited, string value)
         {
             var mode = (value ?? "").Trim().ToLowerInvariant();
-            if (mode == "normal" || mode == "initial") style.Ws = "n";
-            else if (mode == "nowrap") style.Ws = "nw";
-            else if (mode == "pre") style.Ws = "p";
-            else if (mode == "pre-wrap" || mode == "break-spaces") style.Ws = "pw";
-            else if (mode == "pre-line") style.Ws = "pl";
+            if (mode == "inherit" || mode == "unset" || mode == "revert" || mode == "revert-layer")
+            {
+                style.Ws = inherited == null ? "" : inherited.Ws;
+                style.Wm = inherited == null ? "" : inherited.Wm;
+            }
+            else if (mode == "normal" || mode == "initial") { style.Ws = "n"; style.Wm = "w"; }
+            else if (mode == "nowrap") { style.Ws = "nw"; style.Wm = "n"; }
+            else if (mode == "pre") { style.Ws = "p"; style.Wm = "n"; }
+            else if (mode == "pre-wrap" || mode == "break-spaces") { style.Ws = "pw"; style.Wm = "w"; }
+            else if (mode == "pre-line") { style.Ws = "pl"; style.Wm = "w"; }
+        }
+
+        private static void TextWrap(S style, S inherited, string value, int part)
+        {
+            string source;
+            if (!Twv(value, part, out source) || source.Length == 0) return;
+            if (source == "inherit" || source == "unset" || source == "revert" || source == "revert-layer")
+            {
+                if (part != 2) style.Wm = inherited == null ? "" : inherited.Wm;
+                if (part != 1) style.Wt = inherited == null ? "" : inherited.Wt;
+                return;
+            }
+            if (source == "initial")
+            {
+                if (part != 2) style.Wm = "w";
+                if (part != 1) style.Wt = "";
+                return;
+            }
+
+            if (part == 1) { style.Wm = source == "nowrap" ? "n" : "w"; return; }
+            if (part == 2) { style.Wt = source == "balance" ? "b" : ""; return; }
+
+            var mode = "w";
+            var type = "";
+            foreach (var token in Regex.Split(source, "\\s+"))
+            {
+                if (token == "wrap") mode = "w";
+                else if (token == "nowrap") mode = "n";
+                else if (token == "balance") type = "b";
+                else if (token == "auto") type = "";
+            }
+            style.Wm = mode;
+            style.Wt = type;
+        }
+
+        internal static bool Twv(string value, int part, out string wrap)
+        {
+            wrap = (value ?? "").Trim().ToLowerInvariant();
+            if (wrap.Length == 0 || wrap == "initial" || wrap == "inherit" || wrap == "unset" || wrap == "revert" || wrap == "revert-layer") return true;
+            if (part == 1) return wrap == "wrap" || wrap == "nowrap";
+            if (part == 2) return wrap == "auto" || wrap == "balance";
+            var tokens = Regex.Split(wrap, "\\s+");
+            if (tokens.Length < 1 || tokens.Length > 2) return false;
+            var mode = false;
+            var type = false;
+            foreach (var token in tokens)
+            {
+                if (token == "wrap" || token == "nowrap") { if (mode) return false; mode = true; }
+                else if (token == "auto" || token == "balance") { if (type) return false; type = true; }
+                else return false;
+            }
+            return true;
         }
 
         private static void WordBreak(S style, string value, bool direct)
@@ -6889,7 +6949,11 @@ namespace Lea.Engine
             }
             if (kind == "head" || kind == "script" || kind == "style" || kind == "noscript" || kind == "template") return;
             var style = Style(node, inherited, rules);
-            if (kind == "pre" && style.Ws.Length == 0) style.Ws = "p";
+            if (kind == "pre" && style.Ws.Length == 0)
+            {
+                style.Ws = "p";
+                if (style.Wm.Length == 0) style.Wm = "n";
+            }
             if (style.D == "none") return;
             if (kind == "table")
             {
@@ -8896,7 +8960,11 @@ namespace Lea.Engine
                 }
 
                 var style = Style(child, inherited, rules);
-                if (child.K == "pre" && style.Ws.Length == 0) style.Ws = "p";
+                if (child.K == "pre" && style.Ws.Length == 0)
+                {
+                    style.Ws = "p";
+                    if (style.Wm.Length == 0) style.Wm = "n";
+                }
                 if (style.D == "none" || child.K == "script" || child.K == "style" || child.K == "noscript" || child.K == "template") continue;
                 if (child.K == "br")
                 {

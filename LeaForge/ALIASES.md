@@ -35,7 +35,7 @@ read and quick to write.
   redirects or resource requests. Firespider installs it on ordinary and split
   tabs. See `NAVIGATION_POLICY.md` and `SPLIT_VIEW.md` for its callback contract.
 - Page values use one or two letters: `U`, `T`, `H`, `Q`, `D`, `N`, `Bs`, and `Ls`.
-- Page commands use one or two letters where practical: `t`, `a`, `bg`, `fg`, `fs`, `dp`, `wd`, `ht`, `dr`, `ti`, `ta`, `taa`, `tl`, `ts`, `td`, `uo`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`; text-decoration components and logical edge families stay within three letters.
+- Page commands use one or two letters where practical: `t`, `a`, `bg`, `fg`, `fs`, `dp`, `wd`, `ht`, `dr`, `ti`, `tw`, `twm`, `tws`, `ta`, `taa`, `tl`, `ts`, `td`, `uo`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`; text-decoration components and logical edge families stay within three letters.
 - New public aliases should be no more than three letters.
 - `E/V.Hm` reports the 4 MiB document-body ceiling; `E/V.Csm` reports the
   256 KiB linked-stylesheet ceiling. GET/POST input and optional CSS share
@@ -87,6 +87,10 @@ dr("rtl")          body direction
 dr("id", "rtl")   element direction
 ti("18px")         body first-line indent
 ti("id", "15%")   element first-line indent
+tw("balance")      body wrapping shorthand
+tw("id", "wrap balance") element wrapping shorthand
+twm("id", "nowrap") element wrapping mode
+tws("id", "auto") element wrapping style
 ta("center")       body text alignment shorthand
 ta("id", "end")   element text alignment shorthand
 taa("id", "left") element all-line alignment longhand
@@ -135,7 +139,7 @@ fo("id")              request focus
 go("next.html")        request host navigation
 ```
 
-The two-argument `bg/fg/fs/dp/wd/ht/dr/ti/ta/taa/tl/ts/td/tdl/tdc/tds/tdw/uo/is/bs`, logical box, logical border, and
+The two-argument `bg/fg/fs/dp/wd/ht/dr/ti/tw/twm/tws/ta/taa/tl/ts/td/tdl/tdc/tds/tdw/uo/is/bs`, logical box, logical border, and
 radius forms
 target one validated ID. Color and font
 forms reuse the same
@@ -176,6 +180,16 @@ value or an ID plus value. Pixels are limited to -32..32 and percentages to
 Literal `style.textUnderlineOffset` assignments share the parser, and
 `text-decoration` shorthand updates never reset the offset. See
 `TEXT_UNDERLINE_OFFSET.md`.
+
+`S.Wm/Wt` store inherited wrapping mode and style. Empty `Wm` is the normal
+wrap mode, `w` is explicit wrap, and `n` is nowrap; empty `Wt` is auto and `b`
+is balance. `tw` is the shorthand and resets any omitted part to its initial
+value, while `twm` and `tws` update one longhand. Readable
+`textwrap/textwrapmode/textwrapstyle` and literal
+`style.textWrap/textWrapMode/textWrapStyle` use the same strict parser. The
+supported style values are `auto` and `balance`; `stable`, `pretty`, and
+`avoid-short-last-line` remain inert. `white-space` updates only `Wm` in source
+order. Empty literal assignments restore authored CSS. See `TEXT_WRAP.md`.
 
 `S.Ta/Tl` store inherited all-line and final-line alignment as compact
 `l/c/r/j/s/e` state; empty `Ta` is logical start and empty `Tl` is auto. `ta`,
@@ -347,16 +361,19 @@ document.getElementById("status").classList.add("ready");
 document.getElementById("status").style.color = "#164e63";
 document.getElementById("panel").style.display = "none";
 document.getElementById("panel").style.width = "calc(100% - 24px)";
+document.getElementById("status").style.textWrap = "wrap balance";
+document.getElementById("status").style.textWrapMode = "nowrap";
+document.getElementById("status").style.textWrapStyle = "auto";
 document.getElementById("status").style.textAlign = "end";
 document.getElementById("status").style.textAlignAll = "center";
 document.getElementById("status").style.textAlignLast = "center";
 ```
 
 `innerText` is an alias for `textContent`; `classList.remove/toggle` and
-`style.background/backgroundColor/fontSize/display/width/height/direction/textIndent/textAlign/textAlignAll/textAlignLast` are also accepted. IDs and class
+`style.background/backgroundColor/fontSize/display/width/height/direction/textIndent/textWrap/textWrapMode/textWrapStyle/textAlign/textAlignAll/textAlignLast` are also accepted. IDs and class
 arguments must be quoted literals. Boolean state accepts only literal `true` or
 `false`. The parser translates each accepted statement to the existing
-`tx/vl/ck/ds/en/hd/sh/op/cl/fo/ac/rc/tc/bg/fg/fs/dp/wd/ht/dr/ti/ta/taa/tl` command, so all target, value,
+`tx/vl/ck/ds/en/hd/sh/op/cl/fo/ac/rc/tc/bg/fg/fs/dp/wd/ht/dr/ti/tw/twm/tws/ta/taa/tl` command, so all target, value,
 style, rebuild, focus, and 32-command limits remain unchanged. `innerHTML`,
 selectors, computed IDs or values, event registration, loops, expressions, and
 unknown properties or methods remain inert. See `DOM_BRIDGE.md`.
@@ -700,7 +717,9 @@ pixel storage.
 percentage multiplier. Lea accepts CSS pixel, percentage, and unitless line
 heights, then keeps each painted line tall enough for its largest font.
 `Ws` is white-space mode using `n/nw/p/pw/pl` for normal, nowrap, pre,
-pre-wrap, and pre-line. `Wb` is word breaking using `n/b/a/k` for normal,
+pre-wrap, and pre-line. `Wm` is inherited wrapping mode using empty/`w`/`n`
+for normal wrap, explicit wrap, and nowrap; `Wt` is inherited wrapping style
+using empty/`b` for auto and balance. `Wb` is word breaking using `n/b/a/k` for normal,
 break-word, anywhere/break-all, and keep-all. `Ov` is overflow using
 `v/h/c/a/s` for visible, hidden, clip, auto, and scroll. `Vi` is inherited
 visibility using `v/h/c` for visible, hidden, and collapse. `Op` is the effective

@@ -81,6 +81,11 @@ LeaForge is where we can grow the more full-featured browser.
   `uo`, with signed integer pixels/percentages, shorthand independence,
   offset-aware default-link paint, stable geometry, and literal DOM support;
   see `TEXT_UNDERLINE_OFFSET.md`
+- bounded inherited `text-wrap`, `text-wrap-mode`, and `text-wrap-style`
+  through compact `S.Wm/Wt` and `tw/twm/tws`, with strict shorthand reset,
+  declaration-order `white-space` interaction, same-line-count balancing,
+  eight-line/2,048-character work bounds, and literal DOM support; see
+  `TEXT_WRAP.md`
 - inherited `text-align` shorthand and `text-align-all` through compact
   `S.Ta/Tl` and `ta/taa`, with retained logical start/end state,
   `justify-all`, match-parent, strict shorthand reset, and literal DOM support;

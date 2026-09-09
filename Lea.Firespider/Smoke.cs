@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Windows.Automation;
@@ -55,6 +56,7 @@ namespace Lea.Firespider
                     .Replace("</body>", "<p id='host-indent' class='host-indent'>HostIndent uses compact first line geometry</p><p id='host-indent-rtl' class='host-indent-rtl'>HostRTL uses inline start indentation</p><p id='host-indent-responsive' class='host-indent-responsive'>HostResponsive changes indentation on resize</p></body>")
                     .Replace("</style>", ".host-text-shadow{width:260px;color:#111827;text-shadow:5px 3px 0 #dc2626}.host-text-shadow-responsive{width:260px;text-shadow:2px 2px 0 #64748b}@media screen and (max-width:500px){.host-text-shadow-responsive{text-shadow:-4px 3px 4px #7c3aed}}</style>")
                     .Replace("</style>", ".host-decoration{width:260px;color:#111827;text-decoration:underline double #2563eb 2px;text-underline-offset:6px}.host-decoration-responsive{text-decoration:underline dotted #64748b 1px;text-underline-offset:2px}@media screen and (max-width:500px){.host-decoration-responsive{text-decoration:line-through wavy #7c3aed 3px;text-underline-offset:25%}}</style>")
+                    .Replace("</style>", ".host-wrap-auto,.host-wrap-balance,.host-wrap-responsive,.host-wrap-command{width:220px}.host-wrap-auto{text-wrap:auto}.host-wrap-balance{text-wrap:balance}.host-wrap-responsive{text-wrap:auto}.host-wrap-command{text-wrap:nowrap}@media screen and (max-width:500px){.host-wrap-responsive{text-wrap:balance}}</style>")
                     .Replace("</style>", ".host-align,.host-align-responsive{width:260px}.host-align{direction:rtl;text-align:justify-all}.host-align-responsive{direction:rtl;text-align:center}@media screen and (max-width:500px){.host-align-responsive{text-align:end}}</style>")
                     .Replace("</style>", ".host-align-last,.host-align-last-responsive{width:260px}.host-align-last{text-align-last:center}.host-align-last-responsive{text-align-last:left}@media screen and (max-width:500px){.host-align-last-responsive{text-align-last:end}}</style>")
                     .Replace("</style>", ".host-overflow{width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.host-overflow-responsive{text-overflow:clip}@media screen and (max-width:500px){.host-overflow-responsive{text-overflow:ellipsis}}</style>")
@@ -108,7 +110,7 @@ namespace Lea.Firespider
                     .Replace("<p>Open route fixture</p>", "<p id='host-text-shadow' class='host-text-shadow'>Open route fixture</p>")
                     .Replace("<p>Second route match</p>", "<p id='host-text-shadow-responsive' class='host-text-shadow-responsive host-decoration-responsive'>Second route match</p>")
                     .Replace("<p>Third ROUTE match</p>", "<p id='host-decoration' class='host-decoration'>Third ROUTE match</p>");
-                openMarkup = openMarkup.Replace("<p id='class-state'>", "<p id='host-align' class='host-align'>Host Align Words</p><p id='host-align-responsive' class='host-align-responsive'>ResponsiveAlign</p><p id='host-align-last' class='host-align-last'>HostLast</p><p id='host-align-last-responsive' class='host-align-last-responsive'>ResponsiveLast</p><p id='class-state'>");
+                openMarkup = openMarkup.Replace("<p id='class-state'>", "<p id='host-wrap-auto' class='host-wrap-auto'>A lightweight browser engine built for everyone</p><p id='host-wrap-balance' class='host-wrap-balance'>A lightweight browser engine built for everyone</p><p id='host-wrap-responsive' class='host-wrap-responsive'>A lightweight browser engine built for everyone</p><p id='host-wrap-command' class='host-wrap-command'>A lightweight browser engine built for everyone</p><p id='host-align' class='host-align'>Host Align Words</p><p id='host-align-responsive' class='host-align-responsive'>ResponsiveAlign</p><p id='host-align-last' class='host-align-last'>HostLast</p><p id='host-align-last-responsive' class='host-align-last-responsive'>ResponsiveLast</p><p id='class-state'>");
                 File.WriteAllText(openPage, openMarkup);
                 var root = Path.GetFullPath(args.Length > 0 ? args[0] : AppDomain.CurrentDomain.BaseDirectory);
                 var assembly = Assembly.LoadFrom(Path.Combine(root, "Firespider Internet 19.exe"));
@@ -397,6 +399,43 @@ namespace Lea.Firespider
                     Check(hostAlign.S.Ta == "e" && hostAlign.S.Tl == "" &&
                         hostAlignLine.Left == BlockContent(host, "host-align").Left,
                         "Firespider literal DOM logical text align geometry");
+                    var hostWrapAuto = BlockById(host.At, "host-wrap-auto");
+                    var hostWrapBalance = BlockById(host.At, "host-wrap-balance");
+                    var hostWrapResponsive = BlockById(host.At, "host-wrap-responsive");
+                    var hostWrapCommand = BlockById(host.At, "host-wrap-command");
+                    var hostWrapAutoLines = InlineLines(host, hostWrapAuto);
+                    var hostWrapBalanceLines = InlineLines(host, hostWrapBalance);
+                    Check(hostWrapAuto.S.Wm == "w" && hostWrapAuto.S.Wt == "" &&
+                        hostWrapBalance.S.Wm == "w" && hostWrapBalance.S.Wt == "b" &&
+                        hostWrapResponsive.S.Wt == "" && hostWrapCommand.S.Wm == "n" &&
+                        hostWrapAutoLines.Length >= 2 && hostWrapAutoLines.Length == hostWrapBalanceLines.Length &&
+                        LineWidthSpread(hostWrapBalanceLines) < LineWidthSpread(hostWrapAutoLines) &&
+                        BlockOuter(host, "host-wrap-auto").Size == BlockOuter(host, "host-wrap-balance").Size,
+                        "Firespider bounded text wrap state and balanced geometry");
+                    Check(host.Js("tw('host-wrap-auto','balance')") == 1,
+                        "Firespider compact text wrap command");
+                    PaintView(host);
+                    hostWrapAuto = BlockById(host.At, "host-wrap-auto");
+                    Check(hostWrapAuto.S.Wt == "b" && LineWidthSpread(InlineLines(host, hostWrapAuto)) == LineWidthSpread(hostWrapBalanceLines),
+                        "Firespider compact text wrap command geometry");
+                    Check(host.Js("twm('host-wrap-command','wrap');tws('host-wrap-command','balance')") == 2,
+                        "Firespider compact text wrap longhand commands");
+                    PaintView(host);
+                    hostWrapCommand = BlockById(host.At, "host-wrap-command");
+                    Check(hostWrapCommand.S.Wm == "w" && hostWrapCommand.S.Wt == "b" && InlineLines(host, hostWrapCommand).Length > 1,
+                        "Firespider compact text wrap longhand geometry");
+                    Check(host.Js("document.getElementById('host-wrap-command').style.textWrap='nowrap'") == 1,
+                        "Firespider literal DOM text wrap nowrap");
+                    PaintView(host);
+                    hostWrapCommand = BlockById(host.At, "host-wrap-command");
+                    Check(hostWrapCommand.S.Wm == "n" && hostWrapCommand.S.Wt == "" && InlineLines(host, hostWrapCommand).Length == 1,
+                        "Firespider literal DOM text wrap nowrap geometry");
+                    Check(host.Js("document.getElementById('host-wrap-command').style.textWrap='balance'") == 1,
+                        "Firespider literal DOM text wrap balance");
+                    PaintView(host);
+                    hostWrapCommand = BlockById(host.At, "host-wrap-command");
+                    Check(hostWrapCommand.S.Wm == "w" && hostWrapCommand.S.Wt == "b" && InlineLines(host, hostWrapCommand).Length > 1,
+                        "Firespider literal DOM text wrap balance geometry");
                     Check(BlockById(host.At, "host-overflow").S.To == "e" && EllipsisCount(host, "host-overflow") == 1 &&
                         EllipsisCount(host, "host-overflow-responsive") == 0 && host.At.X.Contains("Host overflow keeps this entire authored sentence"),
                         "Firespider text overflow alias, painted marker, and authored text");
@@ -743,6 +782,9 @@ namespace Lea.Firespider
                     hostAlignResponsive = BlockById(host.At, "host-align-responsive");
                     Check(hostAlignResponsive.S.Ta == "e" && InlineTextRect(host, hostAlignResponsive, "ResponsiveAlign").Left == BlockContent(host, "host-align-responsive").Left,
                         "Firespider responsive logical text align");
+                    hostWrapResponsive = BlockById(host.At, "host-wrap-responsive");
+                    Check(hostWrapResponsive.S.Wt == "b" && InlineLines(host, hostWrapResponsive).Length > 1,
+                        "Firespider responsive balanced text wrap");
                     Check(BlockById(host.At, "host-overflow-responsive").S.To == "e" && EllipsisCount(host, "host-overflow-responsive") == 1,
                         "Firespider narrow text overflow marker");
                     host.Size = new System.Drawing.Size(720, 560);
@@ -772,6 +814,9 @@ namespace Lea.Firespider
                     Check(hostAlignResponsive.S.Ta == "c" &&
                         Math.Abs(hostAlignResponsiveLine.Left + hostAlignResponsiveLine.Right - BlockContent(host, "host-align-responsive").Left - BlockContent(host, "host-align-responsive").Right) <= 2,
                         "Firespider wide text align restore");
+                    hostWrapResponsive = BlockById(host.At, "host-wrap-responsive");
+                    Check(hostWrapResponsive.S.Wt == "" && InlineLines(host, hostWrapResponsive).Length > 1,
+                        "Firespider wide text wrap restore");
                     Check(BlockById(host.At, "host-overflow-responsive").S.To == "c" && EllipsisCount(host, "host-overflow-responsive") == 0,
                         "Firespider wide text overflow restore");
                     Check(BlockById(host.At, "host-progress").Vm.R == 0.4D && BlockById(host.At, "host-meter").Vm.R == 0.75D, "Firespider compact gauge models");
@@ -911,7 +956,7 @@ namespace Lea.Firespider
                     Check(host.Ck(ById(host.At.D, "host-value-update")) == 1 && ValueById(host.At, "host-output").V == "Updated host total", "Firespider output value rebuild");
                     Check(host.Ck(ById(host.At.D, "host-time-update")) == 1 && ValueById(host.At, "host-time").Dt == "2026-08-22", "Firespider time metadata rebuild");
                     var diagnostics = host.Dg();
-                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 96 && diagnostics.Rs.Count > 0, "Firespider Lea diagnostics");
+                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 101 && diagnostics.Rs.Count > 0, "Firespider Lea diagnostics");
                     var inspectorOpen = type.GetMethod("qleaInspectorOpen", BindingFlags.Instance | BindingFlags.NonPublic);
                     var inspectorSnapshot = type.GetMethod("qleaInspectorSnapshot", BindingFlags.Instance | BindingFlags.NonPublic);
                     var inspectorClear = type.GetMethod("qleaInspectorClear", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -1091,7 +1136,7 @@ namespace Lea.Firespider
                     Check(restoredTabs.TabCount == beforeMiddle - 1 && FindLea(restoredTabs) == null, "middle-click Lea tab close");
                 }
 
-                Console.WriteLine("Firespider CSS interaction and paint smoke passed: compact text-indent, text-align/all/last, text-decoration, text-underline-offset, text-shadow, text-overflow, text-spacing, text-transform, pointer, outline, radius, box-shadow, gradient, bitmap-background, object-fit, and aspect-ratio aliases reached the compiled host.");
+                Console.WriteLine("Firespider CSS interaction and paint smoke passed: compact text-indent, text-wrap/mode/style, text-align/all/last, text-decoration, text-underline-offset, text-shadow, text-overflow, text-spacing, text-transform, pointer, outline, radius, box-shadow, gradient, bitmap-background, object-fit, and aspect-ratio aliases reached the compiled host.");
                 Console.WriteLine("Firespider calculated height smoke passed: compact ht, literal style.height, definite parent resolution, shared host geometry, reset, and strict bounds.");
                 Console.WriteLine("Firespider viewport unit smoke passed: vw/vh/vmin/vmax, calc, compact commands, literal reset, live host geometry, and strict bounds.");
                 Console.WriteLine("Firespider font-relative unit smoke passed: em/rem, root font alias, compact commands, literal reset, shared host geometry, and strict bounds.");
@@ -1451,6 +1496,39 @@ namespace Lea.Firespider
                 result = result.IsEmpty ? rect : System.Drawing.Rectangle.Union(result, rect);
             }
             return result;
+        }
+
+        private static System.Drawing.Rectangle[] InlineLines(V view, B block)
+        {
+            var member = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = member == null ? null : member.GetValue(view) as System.Collections.IEnumerable;
+            if (values == null) throw new InvalidOperationException("Missing Lea layout boxes");
+            var lines = new List<System.Drawing.Rectangle>();
+            foreach (var value in values)
+            {
+                var type = value.GetType();
+                if (!Object.ReferenceEquals(type.GetField("B").GetValue(value), block) || !(bool)type.GetField("Inline").GetValue(value)) continue;
+                var rect = (System.Drawing.Rectangle)type.GetField("R").GetValue(value);
+                var found = -1;
+                for (var index = 0; index < lines.Count; index++) if (lines[index].Top == rect.Top) { found = index; break; }
+                if (found < 0) lines.Add(rect);
+                else lines[found] = System.Drawing.Rectangle.Union(lines[found], rect);
+            }
+            lines.Sort(delegate(System.Drawing.Rectangle left, System.Drawing.Rectangle right) { return left.Top.CompareTo(right.Top); });
+            return lines.ToArray();
+        }
+
+        private static int LineWidthSpread(System.Drawing.Rectangle[] lines)
+        {
+            if (lines == null || lines.Length < 2) return 0;
+            var minimum = Int32.MaxValue;
+            var maximum = 0;
+            foreach (var line in lines)
+            {
+                minimum = Math.Min(minimum, line.Width);
+                maximum = Math.Max(maximum, line.Width);
+            }
+            return maximum - minimum;
         }
 
         private static System.Drawing.Rectangle InlineTextRect(V view, B block, string text)

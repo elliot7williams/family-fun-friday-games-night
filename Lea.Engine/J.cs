@@ -220,6 +220,15 @@ namespace Lea.Engine
                 if (!E.Tav(Expand(page, command.W ?? command.V), command.N == "ta", out align)) return false;
                 return SetStyle(target, command.N == "ta" ? "text-align" : "text-align-all", align);
             }
+            if (command.N == "tw" || command.N == "twm" || command.N == "tws")
+            {
+                var target = StyleTarget(page, command);
+                if (target == null) return false;
+                var part = command.N == "tw" ? 0 : command.N == "twm" ? 1 : 2;
+                string wrap;
+                if (!E.Twv(Expand(page, command.W ?? command.V), part, out wrap)) return false;
+                return SetStyle(target, part == 0 ? "text-wrap" : part == 1 ? "text-wrap-mode" : "text-wrap-style", wrap);
+            }
             if (command.N == "ts")
             {
                 var target = StyleTarget(page, command);
@@ -371,6 +380,9 @@ namespace Lea.Engine
             if (member == "style.textindent") return new Cm("ti", id, value);
             if (member == "style.textalign") return new Cm("ta", id, value);
             if (member == "style.textalignall") return new Cm("taa", id, value);
+            if (member == "style.textwrap") return new Cm("tw", id, value);
+            if (member == "style.textwrapmode") return new Cm("twm", id, value);
+            if (member == "style.textwrapstyle") return new Cm("tws", id, value);
             if (member == "style.textshadow") return new Cm("ts", id, value);
             if (member == "style.textdecoration") return new Cm("td", id, value);
             if (member == "style.textdecorationline") return new Cm("tdl", id, value);
@@ -399,6 +411,9 @@ namespace Lea.Engine
             if (count == 1 && (name == "ti" || name == "textindent")) return new Cm("ti", first);
             if (count == 1 && (name == "ta" || name == "textalign")) return new Cm("ta", first);
             if (count == 1 && (name == "taa" || name == "textalignall")) return new Cm("taa", first);
+            if (count == 1 && (name == "tw" || name == "textwrap")) return new Cm("tw", first);
+            if (count == 1 && (name == "twm" || name == "textwrapmode")) return new Cm("twm", first);
+            if (count == 1 && (name == "tws" || name == "textwrapstyle")) return new Cm("tws", first);
             if (count == 1 && (name == "ts" || name == "textshadow")) return new Cm("ts", first);
             if (count == 1 && (name == "td" || name == "textdecoration")) return new Cm("td", first);
             if (count == 1 && (name == "tdl" || name == "textdecorationline")) return new Cm("tdl", first);
@@ -432,6 +447,9 @@ namespace Lea.Engine
             if (count == 2 && (name == "ti" || name == "textindent")) return new Cm("ti", first, second);
             if (count == 2 && (name == "ta" || name == "textalign")) return new Cm("ta", first, second);
             if (count == 2 && (name == "taa" || name == "textalignall")) return new Cm("taa", first, second);
+            if (count == 2 && (name == "tw" || name == "textwrap")) return new Cm("tw", first, second);
+            if (count == 2 && (name == "twm" || name == "textwrapmode")) return new Cm("twm", first, second);
+            if (count == 2 && (name == "tws" || name == "textwrapstyle")) return new Cm("tws", first, second);
             if (count == 2 && (name == "ts" || name == "textshadow")) return new Cm("ts", first, second);
             if (count == 2 && (name == "td" || name == "textdecoration")) return new Cm("td", first, second);
             if (count == 2 && (name == "tdl" || name == "textdecorationline")) return new Cm("tdl", first, second);
@@ -462,6 +480,9 @@ namespace Lea.Engine
             if (name == "document.body.style.textindent") return new Cm("ti", value);
             if (name == "document.body.style.textalign") return new Cm("ta", value);
             if (name == "document.body.style.textalignall") return new Cm("taa", value);
+            if (name == "document.body.style.textwrap") return new Cm("tw", value);
+            if (name == "document.body.style.textwrapmode") return new Cm("twm", value);
+            if (name == "document.body.style.textwrapstyle") return new Cm("tws", value);
             if (name == "document.body.style.textshadow") return new Cm("ts", value);
             if (name == "document.body.style.textdecoration") return new Cm("td", value);
             if (name == "document.body.style.textdecorationline") return new Cm("tdl", value);

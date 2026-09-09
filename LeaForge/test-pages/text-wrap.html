@@ -1,0 +1,80 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Text Wrap</title>
+  <style>
+    body { color: #1f2933; background: white; --lea-wrap: balance; }
+    .sample { width: 220px; margin: 6px 0; padding: 4px; border: 1px solid #82928a; background: #f3f8f5; }
+    #auto, #rtl-auto { text-wrap: auto; }
+    #balance, #rtl-balance { text-wrap: balance; }
+    #rtl-auto, #rtl-balance { direction: rtl; }
+    #two-token { text-wrap: balance wrap; }
+    #nowrap { text-wrap: nowrap; overflow: hidden; }
+    #mode-wrap { white-space: nowrap; text-wrap-mode: wrap; }
+    #white-reset { text-wrap-mode: nowrap; white-space: normal; }
+    #white-parent { white-space: pre-wrap; }
+    #white-inherit { white-space: nowrap; white-space: inherit; }
+    #longhands { text-wrap: nowrap balance; text-wrap-mode: wrap; }
+    #style-only { text-wrap: nowrap; text-wrap-style: balance; }
+    #parent { text-wrap: balance; }
+    #explicit-inherit { text-wrap: auto; text-wrap: inherit; }
+    #unset { text-wrap: unset; }
+    #initial { text-wrap: balance; text-wrap: initial; }
+    #revert { text-wrap: nowrap; text-wrap: revert; }
+    #invalid { text-wrap: balance; text-wrap: reflow; text-wrap-style: pretty; }
+    #variable { text-wrap: var(--lea-wrap); }
+    #important { text-wrap: balance !important; }
+    #indent { text-indent: 28px; text-wrap: balance; }
+    #forced { text-wrap: balance; }
+    #cell { text-wrap: balance; }
+    #dynamic { text-wrap: auto; }
+    #dynamic:hover { text-wrap: balance; }
+    #responsive { text-wrap: auto; }
+    #command, #command-longhands, #command-dom { text-wrap: auto; }
+    table { width: 250px; border: 1px solid #176b4d; }
+    td { padding: 4px; }
+    @media (max-width: 420px) { #responsive { text-wrap: balance; } }
+  </style>
+</head>
+<body>
+  <h1>Text Wrap</h1>
+  <p id="auto" class="sample">A lightweight browser engine built for everyone</p>
+  <p id="balance" class="sample">A lightweight browser engine built for everyone</p>
+  <p id="rtl-auto" class="sample">A lightweight browser engine built for everyone</p>
+  <p id="rtl-balance" class="sample">A lightweight browser engine built for everyone</p>
+  <p id="two-token" class="sample">A lightweight browser engine built for everyone</p>
+  <p id="nowrap" class="sample">This text wrap shorthand keeps every word on one overflowing line</p>
+  <p id="mode-wrap" class="sample">Text wrap mode restores wrapping without changing collapsed white space</p>
+  <p id="white-reset" class="sample">The later white space shorthand restores ordinary wrapping behavior</p>
+  <section id="white-parent"><p id="white-inherit" class="sample">Later inherited white space    restores preserved wrapping</p></section>
+  <p id="longhands" class="sample">The mode longhand restores balanced wrapping after the shorthand</p>
+  <p id="style-only" class="sample">Balanced style remains stored while nowrap suppresses soft wrapping</p>
+  <section id="parent">
+    <p id="inherited" class="sample">A lightweight browser engine built for everyone</p>
+    <p id="explicit-inherit" class="sample">A lightweight browser engine built for everyone</p>
+    <p id="unset" class="sample">A lightweight browser engine built for everyone</p>
+  </section>
+  <p id="initial" class="sample">A lightweight browser engine built for everyone</p>
+  <p id="revert" class="sample">A lightweight browser engine built for everyone</p>
+  <p id="invalid" class="sample">A lightweight browser engine built for everyone</p>
+  <p id="variable" class="sample">A lightweight browser engine built for everyone</p>
+  <p id="important" class="sample" style="text-wrap:auto">A lightweight browser engine built for everyone</p>
+  <p id="indent" class="sample">A lightweight browser engine built for everyone</p>
+  <p id="forced" class="sample">A lightweight browser engine<br>built for everyone on Lea</p>
+  <table><tr><td id="cell">A lightweight browser engine built for everyone</td></tr></table>
+  <p id="dynamic" class="sample">A lightweight browser engine built for everyone</p>
+  <p id="responsive" class="sample">A lightweight browser engine built for everyone</p>
+  <p id="command" class="sample">A lightweight browser engine built for everyone</p>
+  <p id="command-longhands" class="sample" style="text-wrap-mode:nowrap">A lightweight browser engine built for everyone</p>
+  <p id="command-dom" class="sample" style="text-wrap:nowrap">A lightweight browser engine built for everyone</p>
+  <button id="set-tw" data-lea="tw('command','balance')">Short wrap</button>
+  <button id="set-readable" data-lea="textwrap('command','wrap auto')">Readable wrap</button>
+  <button id="set-twm" data-lea="twm('command-longhands','wrap')">Short mode</button>
+  <button id="set-tws" data-lea="tws('command-longhands','balance')">Short style</button>
+  <button id="set-readable-long" data-lea="textwrapmode('command-longhands','nowrap');textwrapstyle('command-longhands','auto')">Readable longhands</button>
+  <button id="set-dom" data-lea="document.getElementById('command-dom').style.textWrap='balance'">DOM wrap</button>
+  <button id="clear-dom" data-lea="document.getElementById('command-dom').style.textWrap=''">Clear DOM wrap</button>
+  <button id="set-dom-long" data-lea="document.getElementById('command-dom').style.textWrapMode='wrap';document.getElementById('command-dom').style.textWrapStyle='balance'">DOM longhands</button>
+</body>
+</html>

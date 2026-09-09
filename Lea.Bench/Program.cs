@@ -117,7 +117,7 @@ namespace Lea.Bench
                 "go-command.html", "lists.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
                 "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html", "svg.html", "svg-geometry.html", "svg-gradients.html", "svg-use-clips.html", "svg-strokes.html",
-                "box-sizing.html", "border-radius.html", "logical-radii.html", "box-shadows.html", "background-gradients.html", "background-images.html", "object-fit.html", "aspect-ratio.html", "outlines.html", "pointer-interaction.html", "text-transform.html", "text-spacing.html", "text-indent.html", "text-decoration.html", "text-underline-offset.html", "text-align.html", "text-align-last.html", "text-shadow.html", "text-overflow.html"
+                "box-sizing.html", "border-radius.html", "logical-radii.html", "box-shadows.html", "background-gradients.html", "background-images.html", "object-fit.html", "aspect-ratio.html", "outlines.html", "pointer-interaction.html", "text-transform.html", "text-spacing.html", "text-indent.html", "text-decoration.html", "text-underline-offset.html", "text-wrap.html", "text-align.html", "text-align-last.html", "text-shadow.html", "text-overflow.html"
             };
             var paths = names.Select(name => Path.Combine(folder, name)).ToList();
             foreach (var path in paths)
@@ -1507,6 +1507,70 @@ namespace Lea.Bench
                     }
                 }
                 return "S.Uo/Uop compact inherited signed pixel/percentage state, strict resets and bounds, shorthand independence, uo/readable/DOM commands, offset-aware custom paint, stable geometry, hover, and resize";
+            });
+            AddProbe(probes, "Bounded balanced text wrapping", delegate
+            {
+                var path = Path.Combine(folder, "text-wrap.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(page.S.Wm == "" && page.S.Wt == "" && block("auto").S.Wm == "w" && block("auto").S.Wt == "" &&
+                    block("balance").S.Wm == "w" && block("balance").S.Wt == "b" &&
+                    block("nowrap").S.Wm == "n" && block("mode-wrap").S.Ws == "nw" && block("mode-wrap").S.Wm == "w" &&
+                    block("white-reset").S.Ws == "n" && block("white-reset").S.Wm == "w",
+                    "text wrap shorthand mode or white-space interaction changed");
+                Need(block("longhands").S.Wm == "w" && block("longhands").S.Wt == "b" &&
+                    block("style-only").S.Wm == "n" && block("style-only").S.Wt == "b" &&
+                    block("inherited").S.Wt == "b" && block("explicit-inherit").S.Wt == "b" && block("unset").S.Wt == "b" &&
+                    block("initial").S.Wt == "" && block("invalid").S.Wt == "b" && block("variable").S.Wt == "b" && block("important").S.Wt == "b",
+                    "text wrap longhand inheritance or cascade changed");
+                Need(engine.Ck(page, ById(page.D, "set-tw")) == 1 && block("command").S.Wt == "b" &&
+                    engine.Ck(page, ById(page.D, "set-readable")) == 1 && block("command").S.Wt == "" &&
+                    engine.Ck(page, ById(page.D, "set-twm")) == 1 && engine.Ck(page, ById(page.D, "set-tws")) == 1 &&
+                    block("command-longhands").S.Wm == "w" && block("command-longhands").S.Wt == "b" &&
+                    engine.Ck(page, ById(page.D, "set-dom")) == 1 && block("command-dom").S.Wt == "b" &&
+                    engine.Js(page, "twm('command','balance');tws('command','pretty')") == 0,
+                    "text wrap command routes changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 7000);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var automatic = TextLines(view, "auto");
+                        var balanced = TextLines(view, "balance");
+                        var rtlAutomatic = TextLines(view, "rtl-auto");
+                        var rtlBalanced = TextLines(view, "rtl-balance");
+                        Need(automatic.Length >= 2 && automatic.Length == balanced.Length && balanced.Length <= 8 &&
+                            LineWidthSpread(balanced) < LineWidthSpread(automatic) &&
+                            BlockOuter(view, "auto").Size == BlockOuter(view, "balance").Size,
+                            "text wrap balance line count variance or outer geometry changed");
+                        Need(rtlAutomatic.Length == rtlBalanced.Length && LineWidthSpread(rtlBalanced) < LineWidthSpread(rtlAutomatic) &&
+                            rtlBalanced[0].Right == BlockContent(view, "rtl-balance").Right,
+                            "text wrap RTL balance geometry changed");
+                        Need(TextLines(view, "nowrap").Length == 1 && TextLines(view, "style-only").Length == 1 &&
+                            TextLines(view, "mode-wrap").Length > 1 && TextLines(view, "white-reset").Length > 1 &&
+                            TextLines(view, "forced").Length == 2 && TextLines(view, "cell").Length > 1 && ColoredSamples(image) > 0,
+                            "text wrap mode forced-line table or paint behavior changed");
+                    }
+                    var before = LineWidthSpread(TextLines(view, "dynamic"));
+                    Move(view, BlockOuter(view, "dynamic"));
+                    using (var image = Draw(view))
+                        Need(view.At.Bs.First(item => item.El != null && item.El.Av("id") == "dynamic").S.Wt == "b" &&
+                            LineWidthSpread(TextLines(view, "dynamic")) < before,
+                            "text wrap hover changed");
+                    Need(view.Js("tw('command','balance')") == 1, "text wrap compact command changed");
+                    using (var image = Draw(view))
+                        Need(view.At.Bs.First(item => item.El != null && item.El.Av("id") == "command").S.Wt == "b" &&
+                            TextLines(view, "command").Length > 1,
+                            "text wrap command layout changed");
+                    view.Size = new Size(350, 7300);
+                    using (var image = Draw(view))
+                        Need(view.At.Bs.First(item => item.El != null && item.El.Av("id") == "responsive").S.Wt == "b" &&
+                            TextLines(view, "responsive").Length > 1,
+                            "text wrap responsive state changed");
+                }
+                return "S.Wm/Wt compact inherited mode/style state, text-wrap shorthand, white-space source order, bounded same-count balancing, tw/twm/tws readable/DOM routes, LTR/RTL/indent/forced/table geometry, hover, and resize";
             });
             AddProbe(probes, "Bounded text alignment shorthand", delegate
             {
@@ -3405,12 +3469,12 @@ namespace Lea.Bench
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, direction-aware ordered/unordered lists and disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, inherited horizontal LTR/RTL direction, fixed/percentage/calc dimensions and classic vw/vh/vmin/vmax plus bounded em/rem units, two/three-term min/max and three-term clamp size functions, content/border box, circular/elliptical radii, bounded outlines, box shadows, one inherited bounded text-shadow layer, bounded text-decoration line/color/style/thickness and signed pixel/percentage underline offset, inherited text-align shorthand/all/last with logical state and justify-all, and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing, signed pixel/percentage first-line indentation, and text styles, visibility, absolute/fixed and bounded vertical sticky positioning, transforms, responsive image sizing, direction-aware row/column flex, and direction-aware bounded two-axis grid");
-            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/box-shadows/gradients, bounded offset and lightweight blurred text shadows, native fast-path plus lightweight offset-aware solid/double/dotted/dashed/wavy text decorations, direction-aware source-stable inline atoms, markers, first-line indentation, inherited logical all/final/forced-line alignment, and paint-only ellipsis geometry, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
+            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, and compound of-S filtered selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, inherited horizontal LTR/RTL direction, fixed/percentage/calc dimensions and classic vw/vh/vmin/vmax plus bounded em/rem units, two/three-term min/max and three-term clamp size functions, content/border box, circular/elliptical radii, bounded outlines, box shadows, one inherited bounded text-shadow layer, bounded text-decoration line/color/style/thickness and signed pixel/percentage underline offset, inherited text-align shorthand/all/last with logical state and justify-all, inherited text-wrap mode/style with bounded balance, and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing, signed pixel/percentage first-line indentation, and text styles, visibility, absolute/fixed and bounded vertical sticky positioning, transforms, responsive image sizing, direction-aware row/column flex, and direction-aware bounded two-axis grid");
+            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/box-shadows/gradients, bounded offset and lightweight blurred text shadows, native fast-path plus lightweight offset-aware solid/double/dotted/dashed/wavy text decorations, direction-aware source-stable inline atoms, bounded same-count balanced wrapping, markers, first-line indentation, inherited logical all/final/forced-line alignment, and paint-only ellipsis geometry, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Text overflow", "Supported subset", "Non-inherited clip/ellipsis with bounded LTR/RTL physical inline-end markers and grapheme-safe paint-only authored prefixes for inline runs and tables; retained layout/link targets, full logical automation text, and direction-aware partial range geometry; no native-control, Unicode bidi shaping, custom-marker, or line-clamp additions");
-            Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color, font, display, width, height, direction, text indent, text alignment/all/last, text decoration, underline offset, and text shadow, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, safe click commands, and literal compatibility translation");
-            Capability(builder, "Literal DOM bridge", "Supported subset", "Literal document.getElementById IDs with textContent/innerText, value, checked/disabled/hidden/open, focus(), classList add/remove/toggle, and background/color/fontSize/display/width/height/direction/textIndent/textAlign/textAlignAll/textAlignLast/textDecoration/textDecorationLine/textDecorationColor/textDecorationStyle/textDecorationThickness/textUnderlineOffset/textShadow; literal location href/assign requests; mapped to bounded Lea aliases");
+            Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color, font, display, width, height, direction, text indent, text alignment/all/last, text wrap/mode/style, text decoration, underline offset, and text shadow, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, safe click commands, and literal compatibility translation");
+            Capability(builder, "Literal DOM bridge", "Supported subset", "Literal document.getElementById IDs with textContent/innerText, value, checked/disabled/hidden/open, focus(), classList add/remove/toggle, and background/color/fontSize/display/width/height/direction/textIndent/textAlign/textAlignAll/textAlignLast/textWrap/textWrapMode/textWrapStyle/textDecoration/textDecorationLine/textDecorationColor/textDecorationStyle/textDecorationThickness/textUnderlineOffset/textShadow; literal location href/assign requests; mapped to bounded Lea aliases");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
             Capability(builder, "Flexbox", "Supported subset", "Row/row-reverse and fixed-height column/column-reverse containers, content/border-box pixel bases, stable -64..64 order on nowrap rows and bounded columns, bounded row wrap, fixed/equal-share/weighted grow and integer weighted-shrink slots, explicit pixel min/max floors, pixel row/column gaps, start/center/end/space-between/space-around/space-evenly justification, and container/item stretch/start/center/end cross alignment; no intrinsic min-content sizing, fractional factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis alignment, or auto-height column reordering guarantee");
             Capability(builder, "CSS Grid", "Supported subset", "Grid/inline-grid with up to eight fixed-pixel, auto, or integer-fr tracks per explicit axis, simple repeat and minmax(0, Nfr), pixel gaps, bounded occupancy, two-axis numeric starts/spans, validated 8x8 named-area templates, unique explicit named lines, area-generated start/end lines, Gf row/column sparse/dense flow, repeating S.Av/Gac/Gav/Rac/Rav pixel/auto/integer-fr implicit patterns, definite endpoint/span growth, area-created track sizing, exact auto-height row settlement, atomic grid-template/grid explicit, quoted-area, and row/column auto-flow shorthands, Ji/Js/Ai/As start/center/end/stretch item alignment, atomic place-items/place-self, Al/Jc start/center/end/between/around/evenly track-group alignment, atomic place-content, and shared nested paint/hit/reflow; no escaped or repeated-name occurrence indexes, reverse flow, pre-explicit implicit tracks, shorthand area-row line names, intrinsic or percentage tracks, auto-fit/fill, baseline or safe/unsafe alignment, writing-mode axis reversal, or subgrid");
@@ -3654,6 +3718,19 @@ namespace Lea.Bench
                 }
             lines.Sort(delegate(Rectangle left, Rectangle right) { return left.Top.CompareTo(right.Top); });
             return lines.ToArray();
+        }
+
+        private static int LineWidthSpread(Rectangle[] lines)
+        {
+            if (lines == null || lines.Length < 2) return 0;
+            var minimum = Int32.MaxValue;
+            var maximum = 0;
+            foreach (var line in lines)
+            {
+                minimum = Math.Min(minimum, line.Width);
+                maximum = Math.Max(maximum, line.Width);
+            }
+            return maximum - minimum;
         }
 
         private static int EllipsisCount(V view, string id)

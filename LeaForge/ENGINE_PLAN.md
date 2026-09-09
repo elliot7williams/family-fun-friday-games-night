@@ -68,7 +68,7 @@ Dg/Dcl  diagnostics/clear request activity
 2. Implement the cascade and inheritance with a small priority model. (First specificity/source-order cascade added.)
    (`link rel=stylesheet` and inline `style` blocks now enter that source order
    together; linked CSS uses cookies, compression, validators, and shared LRU caching.)
-3. Add colors, fonts, spacing, borders, width, height, display, visibility, opacity, and overflow. (Colors, fallback font families, bounded underline/strike color/style/thickness, margins, padding, backgrounds, `display:none`, inherited visibility, bounded opacity, borders, non-inherited content/border-box pixel sizing, pixel width/height bounds, text alignment shorthand/all/last with logical state, transformation, signed letter/word spacing, signed pixel/percentage first-line indentation, one inherited bounded text-shadow layer, line height, word breaking, white-space modes, and clipped overflow are active.)
+3. Add colors, fonts, spacing, borders, width, height, display, visibility, opacity, and overflow. (Colors, fallback font families, bounded underline/strike color/style/thickness, margins, padding, backgrounds, `display:none`, inherited visibility, bounded opacity, borders, non-inherited content/border-box pixel sizing, pixel width/height bounds, text wrapping mode/style with bounded balance, text alignment shorthand/all/last with logical state, transformation, signed letter/word spacing, signed pixel/percentage first-line indentation, one inherited bounded text-shadow layer, line height, word breaking, white-space modes, and clipped overflow are active.)
 4. Replace one-WinForms-control-per-node rendering with lightweight layout boxes. (Reusable `Bx` layout pass added.)
 5. Paint text, backgrounds, borders, links, controls, and images onto one surface. (Text, nested bold/italic inline runs, backgrounds, solid/dashed/dotted borders, links, images, and basic form controls are active.)
 6. Add scrolling and hit testing from layout boxes. (Visible-box painting and bounded vertical scrolling added.)
@@ -346,17 +346,18 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 98 completes bounded inherited CSS `text-align`, `text-align-all`,
-and `text-align-last` through compact `S.Ta/Tl` state and the defining
-`ta/taa/tl` commands. Physical and retained logical state, justify-all,
-match-parent, strict shorthand reset, CSS-wide values, variables, important
-tiers, inline overrides, hover, responsive rebuilds, readable commands, and
-literal DOM assignments share existing paths. The current inline pass aligns
-all, final, and forced lines without a second layout pass or changed outer
-boxes, hits, find, focus, or accessibility geometry. See `TEXT_ALIGN.md` and
-`TEXT_ALIGN_LAST.md`. All 94 probes pass over 89 fixtures, with both full
-engine modes, the compiled host, all 42 Boot cases, and six real EXE scenarios
-green.
+Milestone 99 adds bounded inherited CSS `text-wrap`, `text-wrap-mode`, and
+`text-wrap-style` through compact `S.Wm/Wt` state and defining `tw/twm/tws`
+commands. Strict shorthand reset, declaration-order `white-space` interaction,
+CSS-wide values, variables, important tiers, inline overrides, hover,
+responsive rebuilds, readable commands, and literal DOM assignments share
+existing paths. The current inline pass balances only two through eight greedy
+lines and at most 2,048 text characters, preserves the original line count,
+and accepts a narrower virtual width only when remaining-space variance falls.
+LTR/RTL, first-line indent, forced breaks, tables, outer boxes, hits, find,
+focus, and accessibility retain their established geometry. See
+`TEXT_WRAP.md`. All 95 probes pass over 90 fixtures, with both full engine
+modes, the compiled host, all 42 Boot cases, and six real EXE scenarios green.
 Next investigate the native-safe visible-range boundary and another bounded
 text or HTML compatibility slice while keeping vertical writing modes, full
 Unicode bidi shaping, `dir=auto`, and general CSS/JavaScript evaluators outside
@@ -933,6 +934,15 @@ word-line pass applies alignment to all visual lines and the line immediately
 before a forced break. Horizontal logical values resolve at layout, except
 `match-parent`, which resolves using the parent direction; vertical writing and
 full Unicode bidi shaping remain outside this bounded slice.
+
+Inherited `S.Wm/Wt` stores wrapping mode and style as compact empty/`w`/`n`
+and empty/`b` state. CSS `text-wrap`, `text-wrap-mode`, and `text-wrap-style`,
+compact `tw/twm/tws`, readable command names, and literal `style.textWrap*`
+assignments share the compiled cascade. The shorthand accepts mode/style in
+either order and resets omitted parts; `white-space` updates mode without
+clearing style. The existing word-line pass performs bounded same-line-count
+balance for auto-width text groups. Stable, pretty, avoid-short-last-line,
+vertical writing, and arbitrary CSSOM evaluation remain outside this slice.
 
 Inherited `S.Tt=n/u/l/c` stores bounded none, uppercase, lowercase, or
 capitalize presentation state. One invariant `E.Tx` helper transforms block,

@@ -34,6 +34,8 @@ namespace Lea.Engine
         public int Lh { get; internal set; }
         public int Lm { get; internal set; }
         public string Ws { get; internal set; }
+        public string Wm { get; internal set; }
+        public string Wt { get; internal set; }
         public string Wb { get; internal set; }
         public string Ov { get; internal set; }
         public string To { get; internal set; }
@@ -412,6 +414,8 @@ namespace Lea.Engine
             Dr = "l";
             Tt = "n";
             Ws = "";
+            Wm = "";
+            Wt = "";
             Wb = "";
             Ov = "";
             To = "c";
@@ -457,7 +461,7 @@ namespace Lea.Engine
 
         internal S Inherit()
         {
-            var style = new S { F = F, Fs = Fs, Ff = Ff, B = B, I = I, Td = Td, Tc = Tc, Tds = Tds, Tw = Tw, Uo = Uo, Uop = Uop, Ta = Ta, Tl = Tl, Dr = Dr, Tt = Tt, Ti = Ti, Tip = Tip, Ts = Ts, Ls = Ls, Wg = Wg, Lh = Lh, Lm = Lm, Ws = Ws, Wb = Wb, Cu = Cu, Pe = Pe, Vi = Vi, Op = Op, Ao = Op };
+            var style = new S { F = F, Fs = Fs, Ff = Ff, B = B, I = I, Td = Td, Tc = Tc, Tds = Tds, Tw = Tw, Uo = Uo, Uop = Uop, Ta = Ta, Tl = Tl, Dr = Dr, Tt = Tt, Ti = Ti, Tip = Tip, Ts = Ts, Ls = Ls, Wg = Wg, Lh = Lh, Lm = Lm, Ws = Ws, Wm = Wm, Wt = Wt, Wb = Wb, Cu = Cu, Pe = Pe, Vi = Vi, Op = Op, Ao = Op };
             style.Vr = Vr;
             style.Vo = Vo;
             return style;

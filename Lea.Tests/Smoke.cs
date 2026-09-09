@@ -71,6 +71,11 @@ namespace Lea.Tests
                     TextAlignSmoke(Path.Combine(pages, "text-align.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--text-wrap")
+                {
+                    TextWrapSmoke(Path.Combine(pages, "text-wrap.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--text-align-last")
                 {
                     TextAlignLastSmoke(Path.Combine(pages, "text-align-last.html"));
@@ -1295,13 +1300,17 @@ namespace Lea.Tests
                 var whitePage = engine.Go(whitePath);
                 Eq(10, whitePage.Bs.Count, "white-space block count");
                 Eq("nw", whitePage.Bs[1].S.Ws, "nowrap alias");
+                Eq("n", whitePage.Bs[1].S.Wm, "nowrap text wrap mode");
                 Eq("h", whitePage.Bs[1].S.Ov, "hidden overflow alias");
                 Eq("v", whitePage.Bs[2].S.Ov, "visible overflow alias");
                 Eq("p", whitePage.Bs[3].S.Ws, "pre alias");
+                Eq("n", whitePage.Bs[3].S.Wm, "pre text wrap mode");
                 Eq("c", whitePage.Bs[3].S.Ov, "clip overflow alias");
                 Eq("Alpha    Beta\nGamma", whitePage.Bs[3].X, "pre text preservation");
                 Eq("pw", whitePage.Bs[4].S.Ws, "pre-wrap alias");
+                Eq("w", whitePage.Bs[4].S.Wm, "pre-wrap text wrap mode");
                 Eq("pl", whitePage.Bs[5].S.Ws, "pre-line alias");
+                Eq("w", whitePage.Bs[5].S.Wm, "pre-line text wrap mode");
                 Eq("a", whitePage.Bs[6].S.Ov, "auto overflow alias");
                 Eq("pl", whitePage.Bs[7].S.Ws, "inherited white-space alias");
                 Eq("s", whitePage.Bs[9].S.Ov, "scroll overflow alias");
@@ -2417,6 +2426,7 @@ namespace Lea.Tests
                 TextShadowSmoke(Path.Combine(pages, "text-shadow.html"));
                 TextDecorationSmoke(Path.Combine(pages, "text-decoration.html"));
                 TextUnderlineOffsetSmoke(Path.Combine(pages, "text-underline-offset.html"));
+                TextWrapSmoke(Path.Combine(pages, "text-wrap.html"));
                 TextAlignSmoke(Path.Combine(pages, "text-align.html"));
                 TextAlignLastSmoke(Path.Combine(pages, "text-align-last.html"));
                 TextOverflowSmoke(Path.Combine(pages, "text-overflow.html"));
@@ -7515,6 +7525,137 @@ namespace Lea.Tests
             Console.WriteLine("Lea text align smoke passed: compact shorthand/all/last cascade, logical inheritance, match-parent, justify-all, commands, hover, and resize.");
         }
 
+        private static void TextWrapSmoke(string path)
+        {
+            var engine = new E { Vw = 720 };
+            var page = engine.Go(path);
+            Func<string, B> block = id => BlockById(page, id);
+            Ok(page.S.Wm == "" && page.S.Wt == "" && block("auto").S.Wm == "w" && block("auto").S.Wt == "" &&
+                block("balance").S.Wm == "w" && block("balance").S.Wt == "b" &&
+                block("two-token").S.Wm == "w" && block("two-token").S.Wt == "b",
+                "text wrap shorthand compact state");
+            Ok(block("nowrap").S.Wm == "n" && block("nowrap").S.Wt == "" &&
+                block("mode-wrap").S.Ws == "nw" && block("mode-wrap").S.Wm == "w" &&
+                block("white-reset").S.Ws == "n" && block("white-reset").S.Wm == "w" &&
+                block("white-inherit").S.Ws == "pw" && block("white-inherit").S.Wm == "w",
+                "text wrap mode and white space source order");
+            Ok(block("longhands").S.Wm == "w" && block("longhands").S.Wt == "b" &&
+                block("style-only").S.Wm == "n" && block("style-only").S.Wt == "b",
+                "text wrap independent mode and style longhands");
+            Ok(block("inherited").S.Wm == "w" && block("inherited").S.Wt == "b" &&
+                block("explicit-inherit").S.Wm == "w" && block("explicit-inherit").S.Wt == "b" &&
+                block("unset").S.Wm == "w" && block("unset").S.Wt == "b",
+                "text wrap inherited and parent-restoring state");
+            Ok(block("initial").S.Wm == "w" && block("initial").S.Wt == "" &&
+                block("revert").S.Wm == "" && block("revert").S.Wt == "" &&
+                block("invalid").S.Wm == "w" && block("invalid").S.Wt == "b" &&
+                block("variable").S.Wm == "w" && block("variable").S.Wt == "b" &&
+                block("important").S.Wm == "w" && block("important").S.Wt == "b",
+                "text wrap resets invalid preservation variables and priority");
+
+            Eq(1, engine.Ck(page, ById(page.D, "set-tw")), "text wrap short shorthand command");
+            Ok(block("command").S.Wm == "w" && block("command").S.Wt == "b", "text wrap short shorthand command model");
+            Eq(1, engine.Ck(page, ById(page.D, "set-readable")), "text wrap readable shorthand command");
+            Ok(block("command").S.Wm == "w" && block("command").S.Wt == "", "text wrap readable shorthand resets style");
+            Eq(1, engine.Ck(page, ById(page.D, "set-twm")), "text wrap mode short command");
+            Eq(1, engine.Ck(page, ById(page.D, "set-tws")), "text wrap style short command");
+            Ok(block("command-longhands").S.Wm == "w" && block("command-longhands").S.Wt == "b",
+                "text wrap compact longhand command model");
+            Eq(2, engine.Ck(page, ById(page.D, "set-readable-long")), "text wrap readable longhand commands");
+            Ok(block("command-longhands").S.Wm == "n" && block("command-longhands").S.Wt == "",
+                "text wrap readable longhand command model");
+            Eq(1, engine.Ck(page, ById(page.D, "set-dom")), "text wrap literal DOM shorthand");
+            Ok(block("command-dom").S.Wm == "w" && block("command-dom").S.Wt == "b", "text wrap DOM shorthand model");
+            Eq(1, engine.Ck(page, ById(page.D, "clear-dom")), "text wrap literal DOM clear");
+            Ok(block("command-dom").S.Wm == "w" && block("command-dom").S.Wt == "", "text wrap DOM clear restores authored cascade");
+            Eq(2, engine.Ck(page, ById(page.D, "set-dom-long")), "text wrap literal DOM longhands");
+            Ok(block("command-dom").S.Wm == "w" && block("command-dom").S.Wt == "b", "text wrap DOM longhand model");
+            Eq(0, engine.Js(page, "tw('command','wrap balance auto')"), "text wrap rejects duplicate shorthand style");
+            Eq(0, engine.Js(page, "twm('command','balance')"), "text wrap mode rejects style keyword");
+            Eq(0, engine.Js(page, "tws('command','pretty')"), "text wrap style rejects unsupported strategy");
+            Eq(1, engine.Js(page, "tw('balance')"), "text wrap body shorthand alias");
+            Ok(page.S.Wm == "w" && page.S.Wt == "b", "text wrap body shorthand model");
+            Eq(2, engine.Js(page, "twm('nowrap');tws('auto')"), "text wrap body longhand aliases");
+            Ok(page.S.Wm == "n" && page.S.Wt == "", "text wrap body longhand model");
+            Eq(1, engine.Js(page, "document.body.style.textWrap='wrap balance'"), "text wrap body DOM shorthand");
+            Ok(page.S.Wm == "w" && page.S.Wt == "b", "text wrap body DOM shorthand model");
+
+            using (var view = new V())
+            {
+                view.Size = new Size(720, 7000);
+                view.CreateControl();
+                view.Go(path);
+                using (var paint = Render(view))
+                {
+                    var automatic = BlockById(view.At, "auto");
+                    var balanced = BlockById(view.At, "balance");
+                    var autoLines = TextLines(view, automatic);
+                    var balancedLines = TextLines(view, balanced);
+                    Ok(autoLines.Length >= 2 && autoLines.Length == balancedLines.Length && autoLines.Length <= 8,
+                        "text wrap balance preserves greedy line count");
+                    Ok(LineWidthSpread(balancedLines) < LineWidthSpread(autoLines),
+                        "text wrap balance reduces ragged line widths");
+                    Ok(BlockOuterRect(view, automatic).Size == BlockOuterRect(view, balanced).Size,
+                        "text wrap balance preserves outer box geometry");
+
+                    var rtlAuto = BlockById(view.At, "rtl-auto");
+                    var rtlBalanced = BlockById(view.At, "rtl-balance");
+                    var rtlAutoLines = TextLines(view, rtlAuto);
+                    var rtlBalancedLines = TextLines(view, rtlBalanced);
+                    Ok(rtlAutoLines.Length == rtlBalancedLines.Length && LineWidthSpread(rtlBalancedLines) < LineWidthSpread(rtlAutoLines) &&
+                        rtlBalancedLines[0].Right == BlockRect(view, rtlBalanced).Right,
+                        "text wrap balance preserves RTL origin and improves wrapping");
+
+                    Ok(TextLines(view, BlockById(view.At, "nowrap")).Length == 1 &&
+                        TextLines(view, BlockById(view.At, "style-only")).Length == 1 &&
+                        TextLines(view, BlockById(view.At, "mode-wrap")).Length > 1 &&
+                        TextLines(view, BlockById(view.At, "white-reset")).Length > 1,
+                        "text wrap mode controls soft wrapping independently");
+                    var longhandLines = TextLines(view, BlockById(view.At, "longhands"));
+                    Ok(longhandLines.Length > 1 && LineWidthSpread(longhandLines) < LineWidthSpread(TextLines(view, BlockById(view.At, "mode-wrap"))),
+                        "text wrap longhands reach balanced layout");
+                    Ok(LineWidthSpread(TextLines(view, BlockById(view.At, "inherited"))) <
+                        LineWidthSpread(TextLines(view, BlockById(view.At, "initial"))),
+                        "text wrap inherited balance reaches layout");
+
+                    var indent = BlockById(view.At, "indent");
+                    var indentLines = TextLines(view, indent);
+                    Ok(indentLines.Length > 1 && indentLines[0].Left >= BlockRect(view, indent).Left + 27,
+                        "text wrap balance retains first-line indentation");
+                    Eq(2, TextLines(view, BlockById(view.At, "forced")).Length, "text wrap balance preserves forced break groups");
+                    Ok(TextLines(view, BlockById(view.At, "cell")).Length > 1, "text wrap balance reaches table cells");
+                }
+
+                var dynamic = BlockById(view.At, "dynamic");
+                var before = LineWidthSpread(TextLines(view, dynamic));
+                Move(view, BlockOuterRect(view, dynamic));
+                using (var paint = Render(view))
+                {
+                    dynamic = BlockById(view.At, "dynamic");
+                    Ok(dynamic.S.Wt == "b" && LineWidthSpread(TextLines(view, dynamic)) < before,
+                        "text wrap hover rebuild balances lines");
+                }
+
+                Eq(1, view.Js("tw('command','balance')"), "WinForms text wrap shorthand command");
+                using (var paint = Render(view))
+                {
+                    var command = BlockById(view.At, "command");
+                    Ok(command.S.Wt == "b" && TextLines(view, command).Length > 1,
+                        "WinForms text wrap command reaches balanced layout");
+                }
+
+                view.Size = new Size(350, 7300);
+                Application.DoEvents();
+                using (var paint = Render(view))
+                {
+                    var responsive = BlockById(view.At, "responsive");
+                    Ok(responsive.S.Wt == "b" && TextLines(view, responsive).Length > 1,
+                        "responsive text wrap balance rebuild");
+                }
+            }
+            Console.WriteLine("Lea text wrap smoke passed: compact mode/style state, bounded balancing, white-space interaction, commands, RTL, hover, and resize.");
+        }
+
         private static void TextAlignLastSmoke(string path)
         {
             var engine = new E { Vw = 720 };
@@ -8488,6 +8629,19 @@ namespace Lea.Tests
             }
             lines.Sort(delegate(Rectangle a, Rectangle b) { return a.Top.CompareTo(b.Top); });
             return lines.ToArray();
+        }
+
+        private static int LineWidthSpread(Rectangle[] lines)
+        {
+            if (lines == null || lines.Length < 2) return 0;
+            var minimum = Int32.MaxValue;
+            var maximum = 0;
+            foreach (var line in lines)
+            {
+                minimum = Math.Min(minimum, line.Width);
+                maximum = Math.Max(maximum, line.Width);
+            }
+            return maximum - minimum;
         }
 
         private static Rectangle ClipRect(V view, B block)

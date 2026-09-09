@@ -56,6 +56,8 @@ namespace Lea.Win
         private const int MaxAutomationTextChars = 32768;
         private const int MaxAutomationTextSegments = 2048;
         private const int MaxAutomationTextChildren = 64;
+        private const int BalanceLineLimit = 8;
+        private const int BalanceTextLimit = 2048;
         private int sy;
         private int docHeight;
         private int layoutBottom;
@@ -3116,42 +3118,11 @@ namespace Lea.Win
         {
             int baseHeight;
             using (var font = BoxFont(block.K, block.S, false)) baseHeight = CssLineHeight(block.S, font.Height);
-            var lines = new List<Il>();
-            var line = new Il();
-            Ia pending = null;
-            var endedWithBreak = false;
-            var space = block.S == null ? "" : block.S.Ws;
-            var wrap = space != "nw" && space != "p";
             var indent = CssTextIndent(block.S, width);
             var firstWidth = Math.Max(1, width - indent);
-
-            if (block.K == "li" || (block.K == "summary" && !String.IsNullOrEmpty(block.Mk)))
-            {
-                var marker = String.IsNullOrEmpty(block.Mk) ? "-" : block.Mk;
-                AddInlineWord(graphics, lines, ref line, ref pending, InlineAtom(graphics, block.K, marker, null, block.S, block.K, block.El), width, firstWidth, baseHeight, wrap, block.S == null ? "" : block.S.Wb);
-                pending = InlineAtom(graphics, block.K, " ", null, block.S, block.K, block.El);
-            }
-
-            if (block.Is.Count == 0)
-            {
-                AddInlineText(graphics, lines, ref line, ref pending, block.K, block.X, block.U, block.S, block.K, block.El, width, firstWidth, baseHeight, space, wrap, ref endedWithBreak);
-            }
-            else
-            {
-                foreach (var run in block.Is)
-                {
-                    if (run.K == "br")
-                    {
-                        FinishInlineLine(lines, ref line, baseHeight, true, true);
-                        pending = null;
-                        endedWithBreak = true;
-                        continue;
-                    }
-                    AddInlineText(graphics, lines, ref line, ref pending, run.K, run.X, run.U, run.S, block.K, run.El, width, firstWidth, baseHeight, space, wrap, ref endedWithBreak);
-                }
-            }
-
-            if (line.As.Count > 0 || lines.Count == 0 || endedWithBreak) FinishInlineLine(lines, ref line, baseHeight, true);
+            var lines = BuildInlineLines(graphics, block, width, firstWidth, baseHeight);
+            if (block.S != null && block.S.Wt == "b" && block.S.Wm != "n")
+                lines = BalanceInlineLines(graphics, block, width, indent, baseHeight, lines);
 
             var layout = new List<Ix>();
             var y = 0;
@@ -3199,6 +3170,98 @@ namespace Lea.Win
             }
             height = Math.Max(baseHeight, y);
             return layout;
+        }
+
+        private List<Il> BuildInlineLines(Graphics graphics, B block, int width, int firstWidth, int baseHeight)
+        {
+            var lines = new List<Il>();
+            var line = new Il();
+            Ia pending = null;
+            var endedWithBreak = false;
+            var space = block.S == null ? "" : block.S.Ws;
+            var wrap = block.S == null || block.S.Wm != "n";
+
+            if (block.K == "li" || (block.K == "summary" && !String.IsNullOrEmpty(block.Mk)))
+            {
+                var marker = String.IsNullOrEmpty(block.Mk) ? "-" : block.Mk;
+                AddInlineWord(graphics, lines, ref line, ref pending, InlineAtom(graphics, block.K, marker, null, block.S, block.K, block.El), width, firstWidth, baseHeight, wrap, block.S == null ? "" : block.S.Wb);
+                pending = InlineAtom(graphics, block.K, " ", null, block.S, block.K, block.El);
+            }
+
+            if (block.Is.Count == 0)
+            {
+                AddInlineText(graphics, lines, ref line, ref pending, block.K, block.X, block.U, block.S, block.K, block.El, width, firstWidth, baseHeight, space, wrap, ref endedWithBreak);
+            }
+            else
+            {
+                foreach (var run in block.Is)
+                {
+                    if (run.K == "br")
+                    {
+                        FinishInlineLine(lines, ref line, baseHeight, true, true);
+                        pending = null;
+                        endedWithBreak = true;
+                        continue;
+                    }
+                    AddInlineText(graphics, lines, ref line, ref pending, run.K, run.X, run.U, run.S, block.K, run.El, width, firstWidth, baseHeight, space, wrap, ref endedWithBreak);
+                }
+            }
+
+            if (line.As.Count > 0 || lines.Count == 0 || endedWithBreak) FinishInlineLine(lines, ref line, baseHeight, true);
+            return lines;
+        }
+
+        private List<Il> BalanceInlineLines(Graphics graphics, B block, int width, int indent, int baseHeight, List<Il> normal)
+        {
+            if (width < 2 || normal.Count < 2 || normal.Count > BalanceLineLimit || BalanceTextLength(block) > BalanceTextLimit) return normal;
+            var target = normal.Count;
+            var low = Math.Max(1, indent + 1);
+            var high = width;
+            List<Il> balanced = normal;
+            while (low < high)
+            {
+                var middle = low + (high - low) / 2;
+                var candidate = BuildInlineLines(graphics, block, middle, Math.Max(1, middle - indent), baseHeight);
+                if (candidate.Count <= target)
+                {
+                    high = middle;
+                    if (candidate.Count == target) balanced = candidate;
+                }
+                else low = middle + 1;
+            }
+            if (high < width)
+            {
+                var candidate = BuildInlineLines(graphics, block, high, Math.Max(1, high - indent), baseHeight);
+                if (candidate.Count == target) balanced = candidate;
+            }
+            var firstWidth = Math.Max(1, width - indent);
+            return InlineBalanceScore(balanced, width, firstWidth) < InlineBalanceScore(normal, width, firstWidth) ? balanced : normal;
+        }
+
+        private static int BalanceTextLength(B block)
+        {
+            if (block == null) return 0;
+            if (block.Is.Count == 0) return block.X == null ? 0 : block.X.Length;
+            var length = 0;
+            foreach (var run in block.Is)
+            {
+                length += run.X == null ? 0 : run.X.Length;
+                if (length > BalanceTextLimit) break;
+            }
+            return length;
+        }
+
+        private static long InlineBalanceScore(IList<Il> lines, int width, int firstWidth)
+        {
+            long sum = 0;
+            long squares = 0;
+            for (var index = 0; index < lines.Count; index++)
+            {
+                var remaining = Math.Max(0, (index == 0 ? firstWidth : width) - lines[index].W);
+                sum += remaining;
+                squares += (long)remaining * remaining;
+            }
+            return lines.Count * squares - sum * sum;
         }
 
         private void EllipsizeLine(Graphics graphics, B block, List<Ix> layout, int first, int width, int top, int height)
@@ -3470,7 +3533,7 @@ namespace Lea.Win
         private static bool NeedsFlow(B block)
         {
             var style = block == null ? null : block.S;
-            return block != null && (block.Is.Count > 0 || (style != null && (style.Dr == "r" || style.Ta.Length > 0 || style.Tl.Length > 0 || style.Ti != 0 || style.Ts != null || CustomDecoration(style) || style.Ls != 0 || style.Wg != 0 || style.Lh > 0 || style.Lm > 0 || style.Ws.Length > 0 || style.Wb.Length > 0 || style.Ov.Length > 0)));
+            return block != null && (block.Is.Count > 0 || (style != null && (style.Dr == "r" || style.Ta.Length > 0 || style.Tl.Length > 0 || style.Ti != 0 || style.Ts != null || CustomDecoration(style) || style.Ls != 0 || style.Wg != 0 || style.Lh > 0 || style.Lm > 0 || style.Ws.Length > 0 || style.Wm.Length > 0 || style.Wt.Length > 0 || style.Wb.Length > 0 || style.Ov.Length > 0)));
         }
 
         private static string TextAlignment(S style, string align)

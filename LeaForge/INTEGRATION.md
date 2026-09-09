@@ -282,12 +282,12 @@ nested disclosure state, compiled `[open]` styling, and block ownership. The
 WinForms view activates valid summaries by pointer, Enter, or Space, including
 wrapped summaries and summaries inside structured table cells.
 
-Computed styles use `S.Ta/Tl` for compact `l/c/r/j/s/e` all-line/final-line
-alignment, with empty states for logical start and auto. `S.Lh` stores pixel
-line height and `S.Lm` a relative multiplier. `V` applies these to wrapped
-blocks and table cells, centers glyphs within taller lines, and keeps ordinary
-justification off final lines. Blocks without these properties retain the
-native single-box text path.
+Computed styles use `S.Wm/Wt` for empty/`w`/`n` wrapping mode and empty/`b`
+wrapping style, plus `S.Ta/Tl` for compact `l/c/r/j/s/e` all-line/final-line
+alignment. `S.Lh` stores pixel line height and `S.Lm` a relative multiplier.
+`V` applies these to wrapped blocks and table cells, centers glyphs within
+taller lines, and keeps ordinary justification off final lines. Blocks without
+these properties retain the native single-box text path.
 
 Inherited `S.Tt` uses `n/u/l/c` for `text-transform:none`, uppercase,
 lowercase, or capitalize. Hosts can call `E.Tx(text, style)` when they need the
@@ -670,6 +670,17 @@ layout, hit, find, focus, or accessibility geometry. Hosts can call
 literal `style.textUnderlineOffset` assignments. The property remains
 independent of the decoration shorthand. See `TEXT_UNDERLINE_OFFSET.md`.
 
+Inherited wrapping uses compact `S.Wm/Wt`. Empty/`w`/`n` mode state means
+normal wrap, explicit wrap, or nowrap; empty/`b` style means auto or balance.
+The `text-wrap` shorthand resets an omitted longhand to its initial value,
+while `text-wrap-mode`, `text-wrap-style`, and `white-space` interact in normal
+declaration order. The WinForms inline pass balances only when it can preserve
+the greedy line count and reduce remaining-space variance, with eight-line and
+2,048-character ceilings. Outer boxes, hit ownership, find, focus, and
+accessibility stay on the retained geometry. Hosts can call `tw`, `twm`, or
+`tws`, use the readable names, or send literal `style.textWrap*` assignments.
+See `TEXT_WRAP.md`.
+
 Inherited text alignment uses compact `S.Ta/Tl`. Physical `l/c/r/j` and logical
 `s/e` state survive the cascade; empty `Ta` is logical start and empty `Tl` is
 auto. `text-align` is the shorthand: ordinary values set `Ta` and reset `Tl`,
@@ -819,7 +830,7 @@ and 16 alerts.
 
 For easier migration, literal `document.getElementById("id")` statements map
 `textContent/innerText`, `value`, checked/disabled/hidden/open booleans,
-`focus()`, `classList.add/remove/toggle`, and background/color/font-size/display/width/direction/text-indent/text-align/text-align-all/text-align-last/text-decoration/text-underline-offset/text-shadow styles
+`focus()`, `classList.add/remove/toggle`, and background/color/font-size/display/width/direction/text-indent/text-wrap/text-wrap-mode/text-wrap-style/text-align/text-align-all/text-align-last/text-decoration/text-underline-offset/text-shadow styles
 onto the existing compact commands. The adapter receives no DOM object and adds
 no evaluator. IDs and class names remain bounded literals, every mutation uses
 the normal validators and retained rebuild, and unsupported `innerHTML`,

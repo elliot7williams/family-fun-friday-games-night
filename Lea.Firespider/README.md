@@ -580,6 +580,13 @@ an offset or custom decoration component needs Lea's small painter. Firespider
 adds no adapter state or extra controls. See
 `LeaForge/TEXT_UNDERLINE_OFFSET.md`.
 
+Hosted wrapping exposes bounded inherited mode/style through `S.Wm/Wt`. The
+compiled host verifies auto and balance geometry, same-line-count variance,
+compact `tw/twm/tws`, literal `style.textWrap*`, nowrap/wrap transitions, and
+narrow/wide responsive restoration. Balancing stays inside Lea's existing
+inline layout pass with fixed work ceilings; Firespider adds no adapter state or
+extra controls. See `LeaForge/TEXT_WRAP.md`.
+
 Hosted text alignment now exposes the bounded shorthand/all/last family through
 `S.Ta/Tl`. The compiled host verifies `justify-all`, retained logical RTL
 state, compact `ta/taa/tl`, literal `style.textAlign`, shorthand reset,

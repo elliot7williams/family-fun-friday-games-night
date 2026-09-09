@@ -17,19 +17,21 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 98 completes bounded inherited `text-align`, `text-align-all`, and
-`text-align-last` around compact `S.Ta/Tl` state and defining `ta/taa/tl`
-aliases. Logical `s/e` survives inheritance, match-parent resolves against the
-parent direction, justify-all fills final lines, and shorthand/longhand resets
-follow the current bounded CSS Text model. Readable and literal DOM routes use
-the same strict cascade. The full default/core suites, compiled host, all 42
-Boot cases, all six actual EXE startup scenarios, and all 94 benchmark probes
-over 89 fixtures pass. Canonical medians are 497.401 ms clean start, 4.353 ms
-local load, and 38.156 ms layout/paint; retained memory is 54.6 KiB/page and the
-required runtime is 579.5 KiB. Runtime 198 remains isolated, and installed
-runtime 157 is unchanged. See `TEXT_ALIGN.md`. The native-safe non-empty UIA
-visible-range boundary remains open; vertical writing, full Unicode bidi
-shaping, and general CSS/JavaScript evaluation stay outside this milestone.
+Milestone 99 adds bounded inherited `text-wrap`, `text-wrap-mode`, and
+`text-wrap-style` around compact `S.Wm/Wt` state and defining `tw/twm/tws`
+aliases. The strict shorthand, independent longhands, and declaration-order
+`white-space` interaction share CSS-wide, variable, important, readable, and
+literal DOM routes. Balance preserves the greedy line count, accepts only a
+lower remaining-space variance, and is capped at eight lines and 2,048 text
+characters. The full default/core suites, compiled host, all 42 Boot cases, all
+six actual EXE startup scenarios, and all 95 benchmark probes over 90 fixtures
+pass. Canonical medians are 526.125 ms clean start, 4.257 ms local load, and
+38.151 ms layout/paint; retained memory is 55.3 KiB/page and the required
+runtime is 583.0 KiB. Runtime 199 remains isolated, and installed runtime 157
+is unchanged. See `TEXT_WRAP.md`. The native-safe non-empty UIA visible-range
+boundary remains open; additional wrapping styles, vertical writing, full
+Unicode bidi shaping, and general CSS/JavaScript evaluation stay outside this
+milestone.
 
 Milestone 60 installs the existing `V.Ng` hook on main Lea tabs, enforcing host
 rules, offline/locked state, and live ownership. Denied resume retains its

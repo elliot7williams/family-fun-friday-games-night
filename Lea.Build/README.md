@@ -97,6 +97,11 @@ geometry, and live compact `dr` reflow. See `LeaForge/DIRECTION.md`.
 `fragment-stability.html` covers `Fa/Fj/Fy`, first-paint retention, responsive
 host settlement, intrinsic image reflow, missing targets, and manual-scroll
 release. See `LeaForge/INITIAL_FRAGMENT_STABILITY.md`.
+`text-wrap.html` covers inherited wrap mode/style, strict shorthand reset,
+`white-space` source order, CSS-wide values, variables, important tiers,
+bounded same-line-count balance, LTR/RTL, indent, forced breaks, tables,
+compact/readable/literal commands, hover, and responsive resize. See
+`LeaForge/TEXT_WRAP.md`.
 
 ## Firespider Startup Checks
 
@@ -122,6 +127,10 @@ paint, wrapping, tables, links, fields, hover, and responsive resize.
 offsets, shorthand independence, invalid preservation, compact/readable/literal
 commands, paint position, wrapping, tables, default links, fields, hover, and
 responsive resize.
+`--text-wrap` isolates inherited wrap mode/style, strict shorthand and
+longhand interaction, `white-space` source order, compact/readable/literal
+commands, bounded same-line-count balance, LTR/RTL, indent, forced breaks,
+tables, hover, and responsive resize.
 `--text-align` isolates the inherited text-align shorthand/all/last family,
 logical inheritance and match-parent, justify-all, compact/readable/literal
 commands, LTR/RTL geometry, shorthand resets, tables, hover, and responsive resize.
