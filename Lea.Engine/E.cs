@@ -3501,6 +3501,7 @@ namespace Lea.Engine
                 else if (name == "text-decoration-thickness") TextDecorationThickness(style, value);
                 else if (name == "text-underline-offset") TextUnderlineOffset(style, inherited, value);
                 else if (name == "text-align") TextAlign(style, value);
+                else if (name == "text-align-last") TextAlignLast(style, inherited, value);
                 else if (name == "text-transform") TextTransform(style, value);
                 else if (name == "text-indent") TextIndent(style, inherited, value);
                 else if (name == "text-shadow") TextShadow(style, inherited, value);
@@ -4962,6 +4963,32 @@ namespace Lea.Engine
             else if (align == "end") style.Ta = InlineEdge(style, false) == 3 ? "l" : "r";
             else if (align == "justify") style.Ta = "j";
             else if (align == "initial") style.Ta = "";
+        }
+
+        private static void TextAlignLast(S style, S inherited, string value)
+        {
+            string align;
+            if (!Tal(value, out align) || align.Length == 0) return;
+            if (align == "inherit" || align == "unset" || align == "revert" || align == "revert-layer" || align == "match-parent")
+            {
+                style.Tl = inherited == null ? "" : inherited.Tl;
+                return;
+            }
+            if (align == "auto" || align == "initial") { style.Tl = ""; return; }
+            if (align == "left") style.Tl = "l";
+            else if (align == "center") style.Tl = "c";
+            else if (align == "right") style.Tl = "r";
+            else if (align == "start") style.Tl = InlineEdge(style, true) == 3 ? "l" : "r";
+            else if (align == "end") style.Tl = InlineEdge(style, false) == 3 ? "l" : "r";
+            else if (align == "justify") style.Tl = "j";
+        }
+
+        internal static bool Tal(string value, out string align)
+        {
+            align = (value ?? "").Trim().ToLowerInvariant();
+            return align.Length == 0 || align == "auto" || align == "start" || align == "end" || align == "left" || align == "right" ||
+                align == "center" || align == "justify" || align == "match-parent" || align == "initial" || align == "inherit" ||
+                align == "unset" || align == "revert" || align == "revert-layer";
         }
 
         private static void TextTransform(S style, string value)

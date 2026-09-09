@@ -669,6 +669,15 @@ layout, hit, find, focus, or accessibility geometry. Hosts can call
 literal `style.textUnderlineOffset` assignments. The property remains
 independent of the decoration shorthand. See `TEXT_UNDERLINE_OFFSET.md`.
 
+Inherited final-line alignment uses compact `S.Tl`: empty means CSS `auto`,
+while `l/c/r/j` carry the settled physical alignment. Lea resolves `start` and
+`end` through horizontal direction during cascade, and `match-parent` copies
+the inherited physical result. The existing inline flow pass applies it to the
+final visual line and the line before each forced break, so outer layout, hits,
+find, focus, and accessibility keep the same retained rectangles. Hosts can
+call `tl(value)` or `tl(id,value)`, use readable `textalignlast`, or send
+literal `style.textAlignLast` assignments. See `TEXT_ALIGN_LAST.md`.
+
 Inherited block indentation is available through `S.Ti/Tip`. `Ti` holds a
 signed -2000..2000 pixel or -100..100 percentage integer and `Tip` identifies
 the percentage form. The WinForms view resolves percentages against settled
@@ -806,7 +815,7 @@ and 16 alerts.
 
 For easier migration, literal `document.getElementById("id")` statements map
 `textContent/innerText`, `value`, checked/disabled/hidden/open booleans,
-`focus()`, `classList.add/remove/toggle`, and background/color/font-size/display/width/direction/text-indent/text-decoration/text-underline-offset/text-shadow styles
+`focus()`, `classList.add/remove/toggle`, and background/color/font-size/display/width/direction/text-indent/text-align-last/text-decoration/text-underline-offset/text-shadow styles
 onto the existing compact commands. The adapter receives no DOM object and adds
 no evaluator. IDs and class names remain bounded literals, every mutation uses
 the normal validators and retained rebuild, and unsupported `innerHTML`,

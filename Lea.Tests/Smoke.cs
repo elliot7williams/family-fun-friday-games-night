@@ -66,6 +66,11 @@ namespace Lea.Tests
                     TextUnderlineOffsetSmoke(Path.Combine(pages, "text-underline-offset.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--text-align-last")
+                {
+                    TextAlignLastSmoke(Path.Combine(pages, "text-align-last.html"));
+                    return 0;
+                }
                 var coreOnly = args.Length > 1 && args[1] == "--core";
                 if (coreOnly)
                 {
@@ -2407,6 +2412,7 @@ namespace Lea.Tests
                 TextShadowSmoke(Path.Combine(pages, "text-shadow.html"));
                 TextDecorationSmoke(Path.Combine(pages, "text-decoration.html"));
                 TextUnderlineOffsetSmoke(Path.Combine(pages, "text-underline-offset.html"));
+                TextAlignLastSmoke(Path.Combine(pages, "text-align-last.html"));
                 TextOverflowSmoke(Path.Combine(pages, "text-overflow.html"));
 
                 var recoveryPath = Path.Combine(pages, "recovery.html");
@@ -7337,6 +7343,137 @@ namespace Lea.Tests
                 }
             }
             Console.WriteLine("Lea text underline offset smoke passed: compact inherited signed pixel/percentage alias, shorthand independence, paint position, commands, hover, and resize.");
+        }
+
+        private static void TextAlignLastSmoke(string path)
+        {
+            var engine = new E { Vw = 720 };
+            var page = engine.Go(path);
+            Func<string, B> block = id => BlockById(page, id);
+            Ok(page.S.Tl == "" && block("auto").S.Tl == "" && block("auto").S.Ta == "j" && block("left").S.Tl == "l" &&
+                block("center").S.Tl == "c" && block("right").S.Tl == "r" && block("justify").S.Tl == "j",
+                "text align last default and basic aliases");
+            Ok(block("start-ltr").S.Tl == "l" && block("end-ltr").S.Tl == "r" &&
+                block("start-rtl").S.Tl == "r" && block("end-rtl").S.Tl == "l",
+                "text align last logical direction mapping");
+            Ok(block("inherited").S.Tl == "c" && block("explicit-inherit").S.Tl == "c" &&
+                block("unset").S.Tl == "c" && block("match-parent").S.Tl == "c",
+                "text align last inheritance and match parent");
+            Ok(block("reset").S.Tl == "" && block("invalid").S.Tl == "r" &&
+                block("variable").S.Tl == "c" && block("important").S.Tl == "r" && block("cell").S.Tl == "c",
+                "text align last reset invalid variable priority and table model");
+            Eq(1, engine.Ck(page, ById(page.D, "set-short")), "text align last short command");
+            Eq("r", block("command").S.Tl, "text align last short command model");
+            Eq(1, engine.Ck(page, ById(page.D, "set-readable")), "text align last readable command");
+            Eq("l", block("command").S.Tl, "text align last readable command model");
+            Eq(1, engine.Ck(page, ById(page.D, "set-dom")), "text align last DOM command");
+            Eq("c", block("command").S.Tl, "text align last DOM command model");
+            Eq(1, engine.Ck(page, ById(page.D, "clear-dom")), "text align last DOM clear");
+            Eq("", block("command").S.Tl, "text align last DOM clear model");
+            Eq(0, engine.Js(page, "tl('command','middle')"), "text align last rejects middle");
+            Eq(0, engine.Js(page, "tl('command','justify-all')"), "text align last rejects justify all");
+            Eq(1, engine.Js(page, "tl('right')"), "text align last body alias");
+            Eq("r", page.S.Tl, "text align last body alias model");
+
+            using (var view = new V())
+            {
+                view.Size = new Size(720, 5200);
+                view.CreateControl();
+                view.Go(path);
+                using (var paint = Render(view))
+                {
+                    var left = BlockById(view.At, "left");
+                    var center = BlockById(view.At, "center");
+                    var right = BlockById(view.At, "right");
+                    var leftContent = BlockRect(view, left);
+                    var centerContent = BlockRect(view, center);
+                    var rightContent = BlockRect(view, right);
+                    var leftLine = TextLines(view, left)[0];
+                    var centerLine = TextLines(view, center)[0];
+                    var rightLine = TextLines(view, right)[0];
+                    Eq(leftContent.Left, leftLine.Left, "text align last left geometry");
+                    Ok(Math.Abs(centerLine.Left + centerLine.Right - centerContent.Left - centerContent.Right) <= 2,
+                        "text align last center geometry");
+                    Eq(rightContent.Right, rightLine.Right, "text align last right geometry");
+                    Ok(BlockOuterRect(view, left).Size == BlockOuterRect(view, center).Size &&
+                        BlockOuterRect(view, center).Size == BlockOuterRect(view, right).Size,
+                        "text align last leaves outer geometry unchanged");
+
+                    var auto = BlockById(view.At, "auto");
+                    Eq(BlockRect(view, auto).Left, TextLines(view, auto)[0].Left,
+                        "text align last auto starts a final justified line");
+                    var justify = BlockById(view.At, "justify");
+                    var justifyLine = TextLines(view, justify)[0];
+                    Ok(justifyLine.Left == BlockRect(view, justify).Left && justifyLine.Right == BlockRect(view, justify).Right,
+                        "text align last explicit final-line justification");
+
+                    var startLtr = BlockById(view.At, "start-ltr");
+                    var endLtr = BlockById(view.At, "end-ltr");
+                    var startRtl = BlockById(view.At, "start-rtl");
+                    var endRtl = BlockById(view.At, "end-rtl");
+                    Ok(TextLines(view, startLtr)[0].Left == BlockRect(view, startLtr).Left &&
+                        TextLines(view, endLtr)[0].Right == BlockRect(view, endLtr).Right &&
+                        TextLines(view, startRtl)[0].Right == BlockRect(view, startRtl).Right &&
+                        TextLines(view, endRtl)[0].Left == BlockRect(view, endRtl).Left,
+                        "text align last LTR and RTL inline-edge geometry");
+
+                    var inherited = BlockById(view.At, "inherited");
+                    var inheritedLine = TextLines(view, inherited)[0];
+                    Ok(Math.Abs(inheritedLine.Left + inheritedLine.Right - BlockRect(view, inherited).Left - BlockRect(view, inherited).Right) <= 2,
+                        "text align last inherited geometry");
+                    var wrapped = BlockById(view.At, "wrapped");
+                    var wrappedLines = TextLines(view, wrapped);
+                    Ok(wrappedLines.Length > 1 && wrappedLines[0].Left == BlockRect(view, wrapped).Left &&
+                        Math.Abs(wrappedLines[wrappedLines.Length - 1].Left + wrappedLines[wrappedLines.Length - 1].Right -
+                            BlockRect(view, wrapped).Left - BlockRect(view, wrapped).Right) <= 2,
+                        "text align last wrapped final-line geometry");
+                    var forced = BlockById(view.At, "forced");
+                    var forcedLines = TextLines(view, forced);
+                    Ok(forcedLines.Length == 2 && forcedLines[0].Right == BlockRect(view, forced).Right &&
+                        forcedLines[1].Right == BlockRect(view, forced).Right,
+                        "text align last forced-break and final-line geometry");
+                    var cell = BlockById(view.At, "cell");
+                    var cellLine = TextLines(view, cell)[0];
+                    Ok(Math.Abs(cellLine.Left + cellLine.Right - BlockRect(view, cell).Left - BlockRect(view, cell).Right) <= 2,
+                        "text align last table-contained geometry");
+                }
+
+                var dynamic = BlockById(view.At, "dynamic");
+                Move(view, BlockOuterRect(view, dynamic));
+                using (var paint = Render(view))
+                {
+                    dynamic = BlockById(view.At, "dynamic");
+                    Ok(dynamic.S.Tl == "r" && TextLines(view, dynamic)[0].Right == BlockRect(view, dynamic).Right,
+                        "text align last hover rebuild and geometry");
+                }
+
+                Eq(1, view.Js("tl('command','right')"), "WinForms text align last command");
+                using (var paint = Render(view))
+                {
+                    var command = BlockById(view.At, "command");
+                    Eq(BlockRect(view, command).Right, TextLines(view, command)[0].Right,
+                        "WinForms text align last command geometry");
+                }
+                Eq(1, view.Js("document.getElementById('command').style.textAlignLast='center'"),
+                    "WinForms text align last DOM command");
+                using (var paint = Render(view))
+                {
+                    var command = BlockById(view.At, "command");
+                    var commandLine = TextLines(view, command)[0];
+                    Ok(Math.Abs(commandLine.Left + commandLine.Right - BlockRect(view, command).Left - BlockRect(view, command).Right) <= 2,
+                        "WinForms text align last DOM geometry");
+                }
+
+                view.Size = new Size(350, 5600);
+                Application.DoEvents();
+                using (var paint = Render(view))
+                {
+                    var responsive = BlockById(view.At, "responsive");
+                    Ok(responsive.S.Tl == "r" && TextLines(view, responsive)[0].Right == BlockRect(view, responsive).Right,
+                        "responsive text align last model and geometry");
+                }
+            }
+            Console.WriteLine("Lea text align last smoke passed: compact inherited final/forced-line alignment, LTR/RTL edges, justification, commands, hover, and resize.");
         }
 
         private static void DirectionOverflowSmoke(string path)

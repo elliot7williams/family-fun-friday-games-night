@@ -17,23 +17,20 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 96 adds bounded inherited `text-underline-offset` with compact scalar
-`S.Uo/Uop` state and the defining `uo` alias. Signed integer pixels and
-percentages, variables, important tiers, inline overrides, hover, responsive
-rebuilds, readable commands, and literal DOM assignments share the existing
-cascade while remaining independent of the text-decoration shorthand.
-Automatic unstyled lines retain the native font fast path; nonzero offsets
-reuse the small custom painter without changing outer layout, hits, find,
-focus, or accessibility geometry. Default links no longer risk duplicate native
-lines when custom components are active. The full default/core suites,
-compiled host, all 42 Boot cases, all six actual EXE startup scenarios, and all
-92 benchmark probes over 87 fixtures pass. Canonical medians are 507.538 ms
-clean start, 4.066 ms local load, and 36.635 ms layout/paint; retained memory is
-53.9 KiB/page and the required runtime is 576.5 KiB. Runtime 196 remains
-isolated, and installed runtime 157 is unchanged. See
-`TEXT_UNDERLINE_OFFSET.md`. The native-safe non-empty UIA visible-range
-boundary remains open; overline, skip-ink, underline position, exact glyph
-metrics, and general CSS/JavaScript evaluation stay outside this milestone.
+Milestone 97 adds bounded inherited `text-align-last` with compact `S.Tl` state
+and the defining `tl` alias. Auto, physical, logical, justify, match-parent,
+variables, important tiers, inline overrides, hover, responsive rebuilds,
+readable commands, and literal DOM assignments share the existing cascade.
+The existing inline pass aligns final visual lines and lines before forced
+breaks without changing outer boxes, hits, find, focus, or accessibility
+geometry. The full default/core suites, compiled host, all 42 Boot cases, all
+six actual EXE startup scenarios, and all 93 benchmark probes over 88 fixtures
+pass. Canonical medians are 506.068 ms clean start, 3.981 ms local load, and
+38.396 ms layout/paint; retained memory is 54.2 KiB/page and the required
+runtime is 578.5 KiB. Runtime 197 remains isolated, and installed runtime 157 is
+unchanged. See `TEXT_ALIGN_LAST.md`. The native-safe non-empty UIA visible-range
+boundary remains open; vertical writing, full Unicode bidi shaping, and general
+CSS/JavaScript evaluation stay outside this milestone.
 
 Milestone 60 installs the existing `V.Ng` hook on main Lea tabs, enforcing host
 rules, offline/locked state, and live ownership. Denied resume retains its

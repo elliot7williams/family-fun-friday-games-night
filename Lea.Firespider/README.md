@@ -580,6 +580,13 @@ an offset or custom decoration component needs Lea's small painter. Firespider
 adds no adapter state or extra controls. See
 `LeaForge/TEXT_UNDERLINE_OFFSET.md`.
 
+Hosted block text also exposes bounded inherited final-line alignment through
+`S.Tl`. The compiled host verifies physical and horizontal LTR/RTL logical
+state, compact `tl`, literal `style.textAlignLast`, final and forced-line
+geometry, and narrow/wide responsive restoration. Lea reuses its existing flow
+pass and retained rectangles; Firespider adds no adapter state or extra
+controls. See `LeaForge/TEXT_ALIGN_LAST.md`.
+
 Hosted block text supports non-inherited `S.To=c/e` clip/ellipsis overflow.
 The compiled smoke checks LTR/RTL physical inline-end markers, right-aligned RTL
 prefix paint, original elided link hits, direction-aware TextPattern range and

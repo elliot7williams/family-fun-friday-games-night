@@ -3160,8 +3160,10 @@ namespace Lea.Win
             {
                 var first = layout.Count;
                 var current = lines[lineIndex];
-                var align = block.S == null ? "" : block.S.Ta;
-                var justify = align == "j" && lineIndex < lines.Count - 1 && !current.Br;
+                var lastLine = lineIndex == lines.Count - 1 || current.Br;
+                var lastAlignment = lastLine && block.S != null && block.S.Tl.Length > 0;
+                var align = block.S == null ? "" : lastAlignment ? block.S.Tl : block.S.Ta;
+                var justify = align == "j" && (lastAlignment || lineIndex < lines.Count - 1 && !current.Br);
                 var spaces = 0;
                 if (justify) foreach (var atom in current.As) if (atom.X == " ") spaces++;
                 var available = lineIndex == 0 ? firstWidth : width;
@@ -3468,7 +3470,7 @@ namespace Lea.Win
         private static bool NeedsFlow(B block)
         {
             var style = block == null ? null : block.S;
-            return block != null && (block.Is.Count > 0 || (style != null && (style.Dr == "r" || style.Ta.Length > 0 || style.Ti != 0 || style.Ts != null || CustomDecoration(style) || style.Ls != 0 || style.Wg != 0 || style.Lh > 0 || style.Lm > 0 || style.Ws.Length > 0 || style.Wb.Length > 0 || style.Ov.Length > 0)));
+            return block != null && (block.Is.Count > 0 || (style != null && (style.Dr == "r" || style.Ta.Length > 0 || style.Tl.Length > 0 || style.Ti != 0 || style.Ts != null || CustomDecoration(style) || style.Ls != 0 || style.Wg != 0 || style.Lh > 0 || style.Lm > 0 || style.Ws.Length > 0 || style.Wb.Length > 0 || style.Ov.Length > 0)));
         }
 
         private static int CssTextIndent(S style, int width)
