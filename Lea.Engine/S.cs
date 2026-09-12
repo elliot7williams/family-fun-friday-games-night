@@ -39,6 +39,7 @@ namespace Lea.Engine
         public string Wb { get; internal set; }
         public string Ov { get; internal set; }
         public string To { get; internal set; }
+        public int Lc { get; internal set; }
         public string Cu { get; internal set; }
         public bool Pe { get; internal set; }
         public string Of { get; internal set; }

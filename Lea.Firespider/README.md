@@ -587,6 +587,14 @@ narrow/wide responsive restoration. Balancing stays inside Lea's existing
 inline layout pass with fixed work ceilings; Firespider adds no adapter state or
 extra controls. See `LeaForge/TEXT_WRAP.md`.
 
+Hosted multi-line text exposes bounded non-inherited clamping through
+`S.Lc=0/1..32`. The compiled host verifies standard `line-clamp`, compatibility
+`-webkit-line-clamp`, compact `lc`, literal `style.webkitLineClamp`, exact one-
+and two-line retained geometry, markers, narrow/wide responsive restoration,
+authored text, and field identity. Lea removes hidden boxes and hits inside its
+existing inline pass and shortens normal flow; Firespider adds no parser, state,
+layout branch, or extra control. See `LeaForge/LINE_CLAMP.md`.
+
 Hosted text alignment now exposes the bounded shorthand/all/last family through
 `S.Ta/Tl`. The compiled host verifies `justify-all`, retained logical RTL
 state, compact `ta/taa/tl`, literal `style.textAlign`, shorthand reset,

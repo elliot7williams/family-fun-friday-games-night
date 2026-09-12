@@ -103,8 +103,9 @@ authored cascade. Unsupported values are rejected atomically.
 This milestone maps horizontal logical CSS, flex/grid axes, inline atom flow,
 markers, alignment, inline-end ellipsis, and read-only range geometry. It does
 not implement Unicode bidirectional glyph reordering or embedding, `dir="auto"`,
-vertical writing modes, `wrap-reverse`, two-ended/custom overflow markers, or
-line clamping. Text content remains in authored character order.
+vertical writing modes, `wrap-reverse`, or two-ended/custom overflow markers.
+Bounded line clamping now reuses this physical inline-end mapping; text content
+still remains in authored character order. See `LINE_CLAMP.md`.
 
 `direction-logical.html` verifies HTML/CSS precedence, variables, important
 rules, declaration-order independence, logical insets/boxes/borders/radii,

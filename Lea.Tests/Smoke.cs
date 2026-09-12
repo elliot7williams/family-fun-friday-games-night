@@ -76,6 +76,11 @@ namespace Lea.Tests
                     TextWrapSmoke(Path.Combine(pages, "text-wrap.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--line-clamp")
+                {
+                    LineClampSmoke(Path.Combine(pages, "line-clamp.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--text-align-last")
                 {
                     TextAlignLastSmoke(Path.Combine(pages, "text-align-last.html"));
@@ -2430,6 +2435,7 @@ namespace Lea.Tests
                 TextAlignSmoke(Path.Combine(pages, "text-align.html"));
                 TextAlignLastSmoke(Path.Combine(pages, "text-align-last.html"));
                 TextOverflowSmoke(Path.Combine(pages, "text-overflow.html"));
+                LineClampSmoke(Path.Combine(pages, "line-clamp.html"));
 
                 var recoveryPath = Path.Combine(pages, "recovery.html");
                 var recoveryPage = engine.Go(recoveryPath);
@@ -7949,6 +7955,139 @@ namespace Lea.Tests
                 .Invoke(view, new object[] { automation, new System.Windows.Point(rectangle.Left + rectangle.Width / 2F, rectangle.Top + rectangle.Height / 2F) });
             range.GetType().GetMethod("ExpandToEnclosingUnit").Invoke(range, new object[] { TextUnit.Word });
             return ((string)range.GetType().GetMethod("GetText").Invoke(range, new object[] { -1 })).Trim();
+        }
+
+        private static void LineClampSmoke(string path)
+        {
+            var engine = new E { Vw = 720 };
+            var page = engine.Go(path);
+            Func<string, B> block = id => BlockById(page, id);
+            Eq(0, page.S.Lc, "line clamp defaults to none");
+            foreach (var id in new[] { "none", "noninherited", "unset", "initial", "revert", "dynamic", "responsive", "command", "command-dom", "command-webkit" })
+                Eq(0, block(id).S.Lc, "line clamp none/reset " + id);
+            foreach (var id in new[] { "two", "webkit", "invalid", "variable", "short", "nowrap", "balance", "rtl", "forced", "hidden-link", "cell" })
+                Eq(2, block(id).S.Lc, "line clamp two-line state " + id);
+            Eq(3, block("explicit-inherit").S.Lc, "line clamp explicit inheritance");
+            Eq(3, block("important").S.Lc, "line clamp important priority");
+
+            var retained = FieldById(page, "field");
+            engine.Dy(page, ById(page.D, "dynamic"), null);
+            Eq(2, block("dynamic").S.Lc, "line clamp hover cascade");
+            engine.Dy(page, null, null);
+            Eq(0, block("dynamic").S.Lc, "line clamp hover restore");
+            engine.Vw = 350;
+            Eq(1, block("responsive").S.Lc, "line clamp media cascade");
+            Ok(Object.ReferenceEquals(retained, FieldById(page, "field")), "line clamp cascade retains form identity");
+
+            Eq(1, engine.Ck(page, ById(page.D, "set-lc")), "line clamp short command");
+            Eq(2, block("command").S.Lc, "line clamp short command model");
+            Eq(1, engine.Ck(page, ById(page.D, "set-readable")), "line clamp readable command");
+            Eq(3, block("command").S.Lc, "line clamp readable command model");
+            Eq(1, engine.Ck(page, ById(page.D, "set-dom")), "line clamp DOM command");
+            Eq(1, block("command-dom").S.Lc, "line clamp DOM command model");
+            Eq(1, engine.Ck(page, ById(page.D, "clear-dom")), "line clamp DOM clear");
+            Eq(0, block("command-dom").S.Lc, "line clamp DOM clear model");
+            Eq(1, engine.Ck(page, ById(page.D, "set-webkit-dom")), "line clamp WebKit DOM command");
+            Eq(2, block("command-webkit").S.Lc, "line clamp WebKit DOM model");
+            Eq(0, engine.Js(page, "lc('command','0')"), "line clamp rejects zero");
+            Eq(0, engine.Js(page, "lc('command','33')"), "line clamp rejects values above the bound");
+            Eq(0, engine.Js(page, "lineclamp('command','many')"), "line clamp rejects unsupported values");
+            Eq(1, engine.Js(page, "lc('2')"), "line clamp body short alias");
+            Eq(2, page.S.Lc, "line clamp body short state");
+            Eq(1, engine.Js(page, "document.body.style.lineClamp='3'"), "line clamp body DOM property");
+            Eq(3, page.S.Lc, "line clamp body DOM state");
+            Eq(1, engine.Js(page, "document.body.style.webkitLineClamp='1'"), "line clamp body WebKit DOM property");
+            Eq(1, page.S.Lc, "line clamp body WebKit DOM state");
+
+            using (var view = new V())
+            {
+                view.Size = new Size(720, 5200);
+                view.CreateControl();
+                view.Go(path);
+                var raw = view.At.X;
+                retained = FieldById(view.At, "field");
+                Rectangle dynamicRect;
+                var targetBeforeCommand = 0;
+                using (var paint = Render(view))
+                {
+                    Ok(TextLines(view, BlockById(view.At, "none")).Length > 2, "unclamped text keeps natural lines");
+                    foreach (var id in new[] { "two", "webkit", "invalid", "variable", "balance", "rtl", "forced", "hidden-link", "cell" })
+                    {
+                        Eq(2, TextLines(view, BlockById(view.At, id)).Length, "two visible clamped lines " + id);
+                        Eq(1, OverflowParts(view, id, true).Count, "one clamp marker " + id);
+                    }
+                    Eq(3, TextLines(view, BlockById(view.At, "explicit-inherit")).Length, "inherited three-line geometry");
+                    Eq(1, OverflowParts(view, "explicit-inherit", true).Count, "inherited clamp marker");
+                    Eq(3, TextLines(view, BlockById(view.At, "important")).Length, "important three-line geometry");
+                    Eq(1, TextLines(view, BlockById(view.At, "short")).Length, "short clamped text remains one line");
+                    Eq(0, OverflowParts(view, "short", true).Count, "short clamped text has no synthetic marker");
+                    Eq(1, TextLines(view, BlockById(view.At, "nowrap")).Length, "nowrap has one natural line");
+                    Eq(0, OverflowParts(view, "nowrap", true).Count, "nowrap has no clamp marker");
+                    Ok(BlockOuterRect(view, BlockById(view.At, "two")).Height < BlockOuterRect(view, BlockById(view.At, "none")).Height,
+                        "line clamp reduces normal flow height");
+
+                    var marker = OverflowParts(view, "two", true)[0];
+                    var markerRect = (Rectangle)marker.GetType().GetField("R").GetValue(marker);
+                    var content = BlockRect(view, BlockById(view.At, "two"));
+                    Ok(content.Contains(markerRect), "line clamp marker stays inside content");
+                    var rtlMarker = OverflowParts(view, "rtl", true)[0];
+                    var rtlMarkerRect = (Rectangle)rtlMarker.GetType().GetField("R").GetValue(rtlMarker);
+                    var rtlContent = BlockRect(view, BlockById(view.At, "rtl"));
+                    Ok(rtlContent.Contains(rtlMarkerRect) && rtlMarkerRect.Right < rtlContent.Left + rtlContent.Width / 2,
+                        "RTL clamp marker uses physical inline end");
+
+                    Eq(0, OverflowParts(view, "secret-link", false).Count, "content beyond clamp has no retained boxes");
+                    var hits = typeof(V).GetField("hits", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(view) as System.Collections.IEnumerable;
+                    var hiddenHit = false;
+                    foreach (var hit in hits)
+                    {
+                        var url = hit.GetType().GetField("U").GetValue(hit) as Uri;
+                        if (url != null && url.Fragment == "#target") hiddenHit = true;
+                    }
+                    Ok(!hiddenHit, "content beyond clamp has no pointer target");
+                    dynamicRect = BlockOuterRect(view, BlockById(view.At, "dynamic"));
+                    targetBeforeCommand = BlockOuterRect(view, BlockById(view.At, "target")).Top;
+                }
+
+                var automation = typeof(V).GetMethod("AutomationText", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(view, null);
+                var logical = (string)automation.GetType().GetField("X").GetValue(automation);
+                Eq(raw, view.At.X, "line clamp does not mutate document text");
+                Ok(logical.Contains("Hidden linked content must not remain clickable") && logical.IndexOf('\u2026') < 0,
+                    "line clamp UI Automation retains logical text without synthetic markers");
+                var segments = automation.GetType().GetField("Ps").GetValue(automation) as System.Collections.IEnumerable;
+                var hiddenSegment = false;
+                foreach (var segment in segments)
+                {
+                    var element = segment.GetType().GetField("El").GetValue(segment) as N;
+                    if (element != null && element.Av("id") == "secret-link") hiddenSegment = true;
+                }
+                Ok(!hiddenSegment, "line clamp UI Automation omits hidden geometry");
+
+                Eq(1, view.Js("lc('command','2')"), "line clamp view command rebuild");
+                using (var paint = Render(view))
+                {
+                    Eq(2, TextLines(view, BlockById(view.At, "command")).Length, "line clamp command reaches layout");
+                    Eq(1, OverflowParts(view, "command", true).Count, "line clamp command paints marker");
+                    Ok(BlockOuterRect(view, BlockById(view.At, "target")).Top < targetBeforeCommand, "line clamp reflows following content upward");
+                }
+
+                Move(view, dynamicRect);
+                using (var paint = Render(view)) Eq(1, OverflowParts(view, "dynamic", true).Count, "line clamp hover rebuild");
+                Move(view, new Point(0, 0));
+                using (var paint = Render(view)) Eq(0, OverflowParts(view, "dynamic", true).Count, "line clamp hover restore layout");
+                retained.V = "Retained after clamp resize";
+                view.Size = new Size(350, 5200);
+                Application.DoEvents();
+                using (var paint = Render(view))
+                {
+                    Eq(1, TextLines(view, BlockById(view.At, "responsive")).Length, "responsive one-line clamp geometry");
+                    Eq(1, OverflowParts(view, "responsive", true).Count, "responsive one-line clamp marker");
+                    Ok(Object.ReferenceEquals(retained, FieldById(view.At, "field")) && retained.V == "Retained after clamp resize",
+                        "line clamp resize retains authored form state");
+                    Ok(!BlockOuterRect(view, BlockById(view.At, "target")).IsEmpty, "following content remains laid out after clamp resize");
+                }
+            }
+            Console.WriteLine("Lea line clamp smoke passed: standard/WebKit syntax, compact aliases, cascade, retained geometry, RTL, hits, automation, tables, hover, commands, and resize.");
         }
 
         private static void TextOverflowSmoke(string path)

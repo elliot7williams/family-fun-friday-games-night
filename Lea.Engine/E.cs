@@ -3516,6 +3516,7 @@ namespace Lea.Engine
                 else if (name == "word-break" || name == "overflow-wrap" || name == "word-wrap") WordBreak(style, value, name == "word-break");
                 else if (name == "overflow") Overflow(style, value);
                 else if (name == "text-overflow") TextOverflow(style, inherited, value);
+                else if (name == "line-clamp" || name == "-webkit-line-clamp") LineClamp(style, inherited, value);
                 else if (name == "cursor") CursorStyle(style, value);
                 else if (name == "pointer-events") PointerEvents(style, value);
                 else if (name == "object-fit") ObjectFit(style, value);
@@ -5274,6 +5275,27 @@ namespace Lea.Engine
             if (mode == "inherit") style.To = inherited == null ? "c" : inherited.To;
             else if (mode == "clip" || mode == "initial" || mode == "unset" || mode == "revert") style.To = "c";
             else if (mode == "ellipsis") style.To = "e";
+        }
+
+        private static void LineClamp(S style, S inherited, string value)
+        {
+            string clamp;
+            if (!Lcv(value, out clamp) || clamp.Length == 0) return;
+            if (clamp == "inherit") style.Lc = inherited == null ? 0 : inherited.Lc;
+            else if (clamp == "none" || clamp == "initial" || clamp == "unset" || clamp == "revert" || clamp == "revert-layer") style.Lc = 0;
+            else
+            {
+                int lines;
+                if (Int32.TryParse(clamp, NumberStyles.None, CultureInfo.InvariantCulture, out lines)) style.Lc = lines;
+            }
+        }
+
+        internal static bool Lcv(string value, out string clamp)
+        {
+            clamp = (value ?? "").Trim().ToLowerInvariant();
+            if (clamp.Length == 0 || clamp == "none" || clamp == "initial" || clamp == "inherit" || clamp == "unset" || clamp == "revert" || clamp == "revert-layer") return true;
+            int lines;
+            return clamp.Length <= 2 && Int32.TryParse(clamp, NumberStyles.None, CultureInfo.InvariantCulture, out lines) && lines >= 1 && lines <= 32;
         }
 
         private static void Overflow(S style, string value)

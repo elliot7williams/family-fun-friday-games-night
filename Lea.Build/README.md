@@ -102,6 +102,11 @@ release. See `LeaForge/INITIAL_FRAGMENT_STABILITY.md`.
 bounded same-line-count balance, LTR/RTL, indent, forced breaks, tables,
 compact/readable/literal commands, hover, and responsive resize. See
 `LeaForge/TEXT_WRAP.md`.
+`line-clamp.html` covers non-inherited standard/WebKit none and 1..32 state,
+explicit inheritance and resets, invalid preservation, variables, priority,
+grapheme-safe LTR/RTL markers, reduced flow height, removed hidden boxes/hits,
+full logical text, forced breaks, balancing, tables, compact/readable/literal
+commands, hover, and responsive resize. See `LeaForge/LINE_CLAMP.md`.
 
 ## Firespider Startup Checks
 
@@ -130,6 +135,10 @@ responsive resize.
 `--text-wrap` isolates inherited wrap mode/style, strict shorthand and
 longhand interaction, `white-space` source order, compact/readable/literal
 commands, bounded same-line-count balance, LTR/RTL, indent, forced breaks,
+tables, hover, and responsive resize.
+`--line-clamp` isolates non-inherited standard/WebKit line clamping, strict
+1..32 bounds, cascade and command routes, retained geometry and flow height,
+LTR/RTL markers, hidden hits, full logical automation text, forced breaks,
 tables, hover, and responsive resize.
 `--text-align` isolates the inherited text-align shorthand/all/last family,
 logical inheritance and match-parent, justify-all, compact/readable/literal

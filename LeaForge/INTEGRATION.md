@@ -318,8 +318,18 @@ Automation retains full logical text and uses the painted prefix for visible
 text rectangles. Horizontal RTL overflow places the marker at physical left,
 right-aligns the authored prefix inside its retained atom, and maps partial and
 point ranges from the right. Native controls and SVG text keep their existing
-behavior. The current path does not implement custom markers, two-ended
-overflow, line clamping, Unicode bidi shaping, or vertical layout.
+  behavior. The current text-overflow path does not implement custom markers,
+  two-ended overflow, Unicode bidi shaping, or vertical layout.
+
+Non-inherited `S.Lc=0/1..32` exposes bounded multi-line clamping separately.
+Standard `line-clamp` and compatibility `-webkit-line-clamp` declarations feed
+the same compact state. Lea performs normal wrapping and optional balancing,
+keeps the requested visual lines, truncates the final atom at a grapheme-safe
+boundary, and removes every later box and hit while preserving full authored
+and UI Automation logical text. Flow height shrinks and later host content
+reflows. Hosts can call `lc(value)` or `lc(id,value)`, use readable `lineclamp`,
+or submit literal `style.lineClamp`/`style.webkitLineClamp` assignments. No
+adapter parsing or extra control is required. See `LINE_CLAMP.md`.
 
 `S.Ws` carries compact `n/nw/p/pw/pl` white-space modes. Lea preserves explicit
 spaces and line breaks for `pre`/`pre-wrap`, keeps line breaks while collapsing
@@ -679,7 +689,9 @@ the greedy line count and reduce remaining-space variance, with eight-line and
 2,048-character ceilings. Outer boxes, hit ownership, find, focus, and
 accessibility stay on the retained geometry. Hosts can call `tw`, `twm`, or
 `tws`, use the readable names, or send literal `style.textWrap*` assignments.
-See `TEXT_WRAP.md`.
+See `TEXT_WRAP.md`. Bounded `S.Lc` line clamping runs after this wrapping pass,
+so balanced and forced-line content can be shortened without a second layout
+system; see `LINE_CLAMP.md`.
 
 Inherited text alignment uses compact `S.Ta/Tl`. Physical `l/c/r/j` and logical
 `s/e` state survive the cascade; empty `Ta` is logical start and empty `Tl` is
@@ -830,7 +842,7 @@ and 16 alerts.
 
 For easier migration, literal `document.getElementById("id")` statements map
 `textContent/innerText`, `value`, checked/disabled/hidden/open booleans,
-`focus()`, `classList.add/remove/toggle`, and background/color/font-size/display/width/direction/text-indent/text-wrap/text-wrap-mode/text-wrap-style/text-align/text-align-all/text-align-last/text-decoration/text-underline-offset/text-shadow styles
+`focus()`, `classList.add/remove/toggle`, and background/color/font-size/display/width/direction/text-indent/text-wrap/text-wrap-mode/text-wrap-style/line-clamp/text-align/text-align-all/text-align-last/text-decoration/text-underline-offset/text-shadow styles
 onto the existing compact commands. The adapter receives no DOM object and adds
 no evaluator. IDs and class names remain bounded literals, every mutation uses
 the normal validators and retained rebuild, and unsupported `innerHTML`,

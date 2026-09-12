@@ -17,21 +17,22 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 99 adds bounded inherited `text-wrap`, `text-wrap-mode`, and
-`text-wrap-style` around compact `S.Wm/Wt` state and defining `tw/twm/tws`
-aliases. The strict shorthand, independent longhands, and declaration-order
-`white-space` interaction share CSS-wide, variable, important, readable, and
-literal DOM routes. Balance preserves the greedy line count, accepts only a
-lower remaining-space variance, and is capped at eight lines and 2,048 text
-characters. The full default/core suites, compiled host, all 42 Boot cases, all
-six actual EXE startup scenarios, and all 95 benchmark probes over 90 fixtures
-pass. Canonical medians are 526.125 ms clean start, 4.257 ms local load, and
-38.151 ms layout/paint; retained memory is 55.3 KiB/page and the required
-runtime is 583.0 KiB. Runtime 199 remains isolated, and installed runtime 157
-is unchanged. See `TEXT_WRAP.md`. The native-safe non-empty UIA visible-range
-boundary remains open; additional wrapping styles, vertical writing, full
-Unicode bidi shaping, and general CSS/JavaScript evaluation stay outside this
-milestone.
+Milestone 100 adds bounded non-inherited `line-clamp` and
+`-webkit-line-clamp` around compact `S.Lc=0/1..32` state and the defining `lc`
+alias. Strict CSS-wide parsing, variables, important tiers, readable
+`lineclamp`, and literal `style.lineClamp/style.webkitLineClamp` routes share
+the compiled cascade. The retained inline pass wraps and optionally balances
+first, then removes excess lines and hits, shortens the final atom at a text
+element boundary, adds an LTR/RTL inline-end marker, and reduces normal flow
+height without mutating authored or logical automation text. The focused engine
+suite and full compiled Firespider host are green, including all 18 startup
+regressions. All 96 benchmark probes pass over 91 fixtures. Three-round
+diagnostic medians are 671.601 ms clean start, 4.114 ms local load, and 41.279
+ms layout/paint; retained memory is 55.9 KiB/page and the required runtime is
+585.0 KiB. Runtime 200 remains isolated, and installed runtime 157 is unchanged.
+See `LINE_CLAMP.md`. Custom block ellipsis, descendant block fragmentation,
+vertical writing, full Unicode bidi shaping, and general CSS/JavaScript
+evaluation stay outside this milestone.
 
 Milestone 60 installs the existing `V.Ng` hook on main Lea tabs, enforcing host
 rules, offline/locked state, and live ownership. Denied resume retains its
@@ -149,8 +150,8 @@ Paint-only truncation keeps retained line sizes and pointer targets, including
 collapsed inline link spaces. Text-element prefixes, first-character clipping,
 block-styled markers, full logical automation text, visible prefix geometry,
 tables, explicit lines, and raw field retention have executable coverage.
-Native controls, SVG text, custom/two-ended overflow, line clamping, and bidi
-layout remain outside this feature.
+  Native controls, SVG text, custom/two-ended overflow, and bidi layout remain
+  outside text-overflow; bounded line clamping is implemented separately.
 
 The preceding `text-spacing.html` fixture brought the benchmark to 57 fixtures
 and 56 executable compatibility probes. Compact inherited `S.Ls/Wg` carries

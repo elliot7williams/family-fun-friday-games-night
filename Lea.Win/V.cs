@@ -3123,6 +3123,8 @@ namespace Lea.Win
             var lines = BuildInlineLines(graphics, block, width, firstWidth, baseHeight);
             if (block.S != null && block.S.Wt == "b" && block.S.Wm != "n")
                 lines = BalanceInlineLines(graphics, block, width, indent, baseHeight, lines);
+            var clamped = block.S != null && block.S.Lc > 0 && lines.Count > block.S.Lc;
+            if (clamped) lines.RemoveRange(block.S.Lc, lines.Count - block.S.Lc);
 
             var layout = new List<Ix>();
             var y = 0;
@@ -3165,7 +3167,8 @@ namespace Lea.Win
                     if (!rtl) x += atomWidth;
                     previous = atom;
                 }
-                EllipsizeLine(graphics, block, layout, first, width, y, current.H);
+                if (clamped && lineIndex == lines.Count - 1) ClampInlineLine(graphics, block, layout, first, width, y, current.H);
+                else EllipsizeLine(graphics, block, layout, first, width, y, current.H);
                 y += current.H;
             }
             height = Math.Max(baseHeight, y);
@@ -3311,6 +3314,56 @@ namespace Lea.Win
                 }
                 var finalGap = lastWidth > 0 ? TextGap(lastWidth, lastStyle, block.S) : 0;
                 var x = rtl ? edge - finalGap - markerWidth : edge + finalGap;
+                var rect = new Rectangle(x, top + Math.Max(0, (height - markerFont.Height) / 2), markerWidth, markerFont.Height);
+                layout.Add(new Ix(block.K, "", block.U, block.S, rect, block.El) { Px = "\u2026" });
+            }
+        }
+
+        private void ClampInlineLine(Graphics graphics, B block, List<Ix> layout, int first, int width, int top, int height)
+        {
+            var rtl = InlineReverse(block.S);
+            using (var markerFont = BoxFont(block.K, block.S, false, block.U != null))
+            {
+                var markerWidth = TextWidth(graphics, "\u2026", markerFont, block.S);
+                var edge = rtl ? width : 0;
+                S lastStyle = null;
+                var lastWidth = 0;
+                var keep = layout.Count;
+                for (var index = first; index < layout.Count; index++)
+                {
+                    var part = layout[index];
+                    var gap = TextGap(part.R.Width, part.S, block.S);
+                    var fits = rtl ? part.R.Left - gap - markerWidth >= 0 : part.R.Right + gap + markerWidth <= width;
+                    if (fits)
+                    {
+                        edge = rtl ? part.R.Left : part.R.Right;
+                        lastStyle = part.S;
+                        lastWidth = part.R.Width;
+                        continue;
+                    }
+
+                    using (var font = BoxFont(part.K, part.S, false, part.U != null, block.K))
+                    {
+                        part.Px = EllipsisPrefix(graphics, part.X, font, part.S, block.S,
+                            rtl ? part.R.Right : width - part.R.Left, markerWidth, false);
+                        if (part.Px.Length > 0)
+                        {
+                            lastWidth = TextWidth(graphics, part.Px, font, part.S);
+                            var left = rtl ? part.R.Right - lastWidth : part.R.Left;
+                            part.R = new Rectangle(left, part.R.Top, lastWidth, part.R.Height);
+                            part.C = part.R;
+                            edge = rtl ? left : left + lastWidth;
+                            lastStyle = part.S;
+                            keep = index + 1;
+                        }
+                        else keep = index;
+                    }
+                    break;
+                }
+                if (keep < layout.Count) layout.RemoveRange(keep, layout.Count - keep);
+                var finalGap = lastWidth > 0 ? TextGap(lastWidth, lastStyle, block.S) : 0;
+                var x = rtl ? edge - finalGap - markerWidth : edge + finalGap;
+                x = Math.Max(0, Math.Min(Math.Max(0, width - markerWidth), x));
                 var rect = new Rectangle(x, top + Math.Max(0, (height - markerFont.Height) / 2), markerWidth, markerFont.Height);
                 layout.Add(new Ix(block.K, "", block.U, block.S, rect, block.El) { Px = "\u2026" });
             }
@@ -3533,7 +3586,7 @@ namespace Lea.Win
         private static bool NeedsFlow(B block)
         {
             var style = block == null ? null : block.S;
-            return block != null && (block.Is.Count > 0 || (style != null && (style.Dr == "r" || style.Ta.Length > 0 || style.Tl.Length > 0 || style.Ti != 0 || style.Ts != null || CustomDecoration(style) || style.Ls != 0 || style.Wg != 0 || style.Lh > 0 || style.Lm > 0 || style.Ws.Length > 0 || style.Wm.Length > 0 || style.Wt.Length > 0 || style.Wb.Length > 0 || style.Ov.Length > 0)));
+            return block != null && (block.Is.Count > 0 || (style != null && (style.Dr == "r" || style.Ta.Length > 0 || style.Tl.Length > 0 || style.Ti != 0 || style.Ts != null || CustomDecoration(style) || style.Ls != 0 || style.Wg != 0 || style.Lh > 0 || style.Lm > 0 || style.Ws.Length > 0 || style.Wm.Length > 0 || style.Wt.Length > 0 || style.Wb.Length > 0 || style.Ov.Length > 0 || style.Lc > 0)));
         }
 
         private static string TextAlignment(S style, string align)
@@ -9056,7 +9109,7 @@ namespace Lea.Win
             public string Px;
             public readonly Uri U;
             public readonly S S;
-            public readonly Rectangle R;
+            public Rectangle R;
             public Rectangle C;
             public readonly N El;
 

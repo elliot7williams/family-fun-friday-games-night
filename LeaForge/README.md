@@ -97,6 +97,10 @@ LeaForge is where we can grow the more full-featured browser.
 - non-inherited clip/ellipsis text overflow through compact `S.To=c/e`, with
   bounded LTR/RTL physical inline-end markers, grapheme-safe paint-only
   prefixes, retained link targets, and authored automation text
+- bounded non-inherited `line-clamp` and `-webkit-line-clamp` through compact
+  `S.Lc=0/1..32` and defining `lc`, with grapheme-safe LTR/RTL markers, reduced
+  flow height, hidden hit removal, full logical text, and literal DOM support;
+  see `LINE_CLAMP.md`
 - inherited left/center/right/justify alignment and pixel/relative line spacing
 - external stylesheets with document-order cascade and shared bounded caching
 - compiled relationship, attribute, structural, link, and form-state selectors,

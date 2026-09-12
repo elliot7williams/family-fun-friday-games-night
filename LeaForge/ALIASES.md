@@ -793,9 +793,27 @@ inside the original atom; partial and point TextPattern geometry follows that
 direction. The first character is retained and clipped in very narrow boxes. Blocks, inline runs,
 explicit lines, unbreakable wrapped words, and table cells share this path.
 Prefix searches examine at most 8,192 text elements. Native controls, SVG text,
-two-ended/custom-string overflow, line clamping, Unicode bidi shaping, vertical
-layout, and complex-script baseline behavior are not added by this feature.
-See [CSS Overflow text-overflow](https://www.w3.org/TR/css-overflow-3/#text-overflow).
+  two-ended/custom-string overflow, Unicode bidi shaping, vertical
+  layout, and complex-script baseline behavior are not added by this feature.
+  See [CSS Overflow text-overflow](https://www.w3.org/TR/css-overflow-3/#text-overflow).
+
+`Lc` is non-inherited line clamping: `0` means none and `1..32` is the maximum
+visible visual-line count. CSS `line-clamp` and `-webkit-line-clamp` share the
+same strict declaration slot. Explicit `inherit` copies the parent; initial,
+unset, revert, and revert-layer restore zero. Invalid zero, negative,
+fractional, string-marker, multi-token, and over-limit values preserve the
+preceding declaration. Variables, important tiers, inline overrides, hover,
+and media rules use the ordinary cascade. Lea wraps and optionally balances
+first, removes excess retained lines, shortens the final atom at a bounded text
+element boundary, and places one U+2026 marker at physical inline end. Removed
+boxes do not paint, hit, or expose visual automation geometry, while authored
+DOM and logical automation text remain complete. Defining `lc(value)` and
+`lc(id,value)`, readable `lineclamp`, plus literal body/element
+`style.lineClamp` and `style.webkitLineClamp` assignments share this route.
+Longhands, custom marker strings, descendant block fragmentation, vertical
+writing, and historical WebKit display prerequisites remain outside the
+subset. See `LINE_CLAMP.md` and
+[CSS Overflow Level 4 line-clamp](https://drafts.csswg.org/css-overflow-4/#propdef-line-clamp).
 
 List-item blocks expose `B.Mk` as their paint-ready marker. Unordered lists use
 `-`; ordered lists use invariant decimal text ending in `.`. Ordered `start` and

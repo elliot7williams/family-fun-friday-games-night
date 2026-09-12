@@ -346,22 +346,23 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 99 adds bounded inherited CSS `text-wrap`, `text-wrap-mode`, and
-`text-wrap-style` through compact `S.Wm/Wt` state and defining `tw/twm/tws`
-commands. Strict shorthand reset, declaration-order `white-space` interaction,
-CSS-wide values, variables, important tiers, inline overrides, hover,
-responsive rebuilds, readable commands, and literal DOM assignments share
-existing paths. The current inline pass balances only two through eight greedy
-lines and at most 2,048 text characters, preserves the original line count,
-and accepts a narrower virtual width only when remaining-space variance falls.
-LTR/RTL, first-line indent, forced breaks, tables, outer boxes, hits, find,
-focus, and accessibility retain their established geometry. See
-`TEXT_WRAP.md`. All 95 probes pass over 90 fixtures, with both full engine
-modes, the compiled host, all 42 Boot cases, and six real EXE scenarios green.
-Next investigate the native-safe visible-range boundary and another bounded
-text or HTML compatibility slice while keeping vertical writing modes, full
-Unicode bidi shaping, `dir=auto`, and general CSS/JavaScript evaluators outside
-the current boundary.
+Milestone 100 adds bounded non-inherited CSS `line-clamp` and
+`-webkit-line-clamp` through compact `S.Lc=0/1..32` state and the defining `lc`
+command. Strict values, explicit inheritance and CSS-wide resets, variables,
+important tiers, inline overrides, hover, responsive rebuilds, readable
+`lineclamp`, and literal `style.lineClamp/style.webkitLineClamp` assignments
+share existing paths. The retained inline pass wraps and optionally balances
+first, then keeps only the requested lines, places one grapheme-safe LTR/RTL
+inline-end marker, removes hidden boxes and hits, and shortens normal flow
+without mutating authored or logical automation text. Inline runs, forced
+breaks, balanced text, tables, commands, hover, resize, field retention, and
+following-content reflow have executable coverage. See `LINE_CLAMP.md`. All 96
+probes pass over 91 fixtures; the compiled Firespider host passes all 18 startup
+regressions and its full interaction suite. Next investigate another bounded
+text or HTML compatibility slice while keeping custom block ellipsis,
+descendant block fragmentation, vertical writing modes, full Unicode bidi
+shaping, `dir=auto`, and general CSS/JavaScript evaluators outside the current
+boundary.
 
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host
@@ -390,8 +391,9 @@ blocks, mixed inline runs, explicit lines, unbreakable words, and tables.
 Logical automation text stays complete while visible text geometry follows
 the painted prefix. Horizontal RTL lines place the marker at physical left and
 map partial/point ranges through their physical direction. Native controls, SVG
-text, two-ended/custom markers, line clamping, Unicode bidi shaping, and vertical
-layout remain outside this feature.
+  text, two-ended/custom markers, Unicode bidi shaping, and vertical layout
+  remain outside text-overflow; bounded line clamping is implemented separately
+  by Milestone 100.
 
 The preceding completed milestone adds bounded inherited `letter-spacing` and
 `word-spacing` through compact `S.Ls/Wg`. Signed -32..128 integer pixels,
