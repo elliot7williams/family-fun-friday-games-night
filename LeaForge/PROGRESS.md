@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **100**
+Post-1.0 hardening milestones completed: **101**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,24 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded inherited list marker styles through compact
+  `S.Lst=n/d/c/s/1/0/a/A/r/R`. CSS `list-style-type` and the bounded one-type
+  `list-style` shorthand share variables, important tiers, CSS-wide values,
+  invalid preservation, hover, and media replacement. HTML `type`, ordered
+  `start`/`value`, and `reversed` feed the same paint-ready `B.Mk`; direct-list
+  counting and -999999..999999 saturation keep sequences bounded. Defining
+  `lst`, readable `liststyletype`, and literal `style.listStyleType` commands
+  retain controls through the existing rebuild. Disc/circle/square, decimal,
+  leading zero, alpha rollover, Roman 1..3999 with decimal fallback, nested
+  lists, tables, LTR/RTL, commands, hover, and resize have focused coverage.
+  The full default/core suites and compiled Firespider interaction/startup smoke
+  pass. All 97 benchmark probes pass over 92 fixtures. Three-round diagnostic
+  medians are 759.838 ms clean start, 4.989 ms local load, and 42.719 ms
+  layout/paint. Retained managed memory is 20,894.2 KiB for 368 pages, or 56.8
+  KiB/page. Required runtime files are 588.0 KiB with a 245.9 KiB GZip estimate.
+  Runtime 201 is packaged separately and installed runtime 157 remains
+  unchanged. See `LIST_STYLE.md`.
 
 - Added bounded non-inherited multi-line clamping through compact
   `S.Lc=0/1..32`. Standard `line-clamp` and compatibility

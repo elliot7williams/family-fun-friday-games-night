@@ -81,6 +81,11 @@ namespace Lea.Tests
                     LineClampSmoke(Path.Combine(pages, "line-clamp.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--list-style")
+                {
+                    ListStyleSmoke(Path.Combine(pages, "list-style.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--text-align-last")
                 {
                     TextAlignLastSmoke(Path.Combine(pages, "text-align-last.html"));
@@ -762,7 +767,7 @@ namespace Lea.Tests
                     "direction inline preserves retained source order");
                 Eq("7.", BlockById(directionInlinePage, "rtl-seven").Mk, "RTL ordered marker model");
                 Eq("-2.", BlockById(directionInlinePage, "rtl-minus").Mk, "nested RTL ordered marker model");
-                Eq("-", BlockById(directionInlinePage, "rtl-bullet").Mk, "RTL unordered marker model");
+                Eq("\u2022", BlockById(directionInlinePage, "rtl-bullet").Mk, "RTL unordered marker model");
 
                 using (var directionInlineView = new V())
                 {
@@ -843,7 +848,7 @@ namespace Lea.Tests
 
                         var bullet = BlockById(directionInlineView.At, "rtl-bullet");
                         var bulletContent = BlockRect(directionInlineView, bullet);
-                        var bulletMarker = InlineTextRect(directionInlineView, bullet, "-");
+                        var bulletMarker = InlineTextRect(directionInlineView, bullet, "\u2022");
                         var bulletText = InlineTextRect(directionInlineView, bullet, "Plain");
                         Eq(bulletContent.Right, bulletMarker.Right, "RTL unordered marker starts at the right edge");
                         Ok(bulletMarker.Left > bulletText.Left, "plain RTL list content follows its marker");
@@ -2436,6 +2441,7 @@ namespace Lea.Tests
                 TextAlignLastSmoke(Path.Combine(pages, "text-align-last.html"));
                 TextOverflowSmoke(Path.Combine(pages, "text-overflow.html"));
                 LineClampSmoke(Path.Combine(pages, "line-clamp.html"));
+                ListStyleSmoke(Path.Combine(pages, "list-style.html"));
 
                 var recoveryPath = Path.Combine(pages, "recovery.html");
                 var recoveryPage = engine.Go(recoveryPath);
@@ -2463,8 +2469,8 @@ namespace Lea.Tests
                 var listPath = Path.Combine(pages, "lists.html");
                 var listPage = engine.Go(listPath);
                 Eq("", listPage.Bs[0].Mk, "non-list marker stays empty");
-                Eq("-", BlockById(listPage, "bullet-one").Mk, "unordered list marker");
-                Eq("-", BlockById(listPage, "bullet-two").Mk, "unordered inline marker");
+                Eq("\u2022", BlockById(listPage, "bullet-one").Mk, "unordered list marker");
+                Eq("\u2022", BlockById(listPage, "bullet-two").Mk, "unordered inline marker");
                 Eq("3.", BlockById(listPage, "three").Mk, "ordered start marker");
                 Eq("4.", BlockById(listPage, "four").Mk, "ordered continuation marker");
                 Eq("7.", BlockById(listPage, "seven").Mk, "ordered value marker");
@@ -5699,7 +5705,7 @@ namespace Lea.Tests
                     Ok(BlockRect(view, BlockById(view.At, "minus-two")).Left > BlockRect(view, BlockById(view.At, "parent")).Left, "nested list indentation");
                     Ok(PaintedText(view, BlockById(view.At, "three")).StartsWith("3. ", StringComparison.Ordinal), "ordered marker paints on plain flow");
                     Ok(PaintedText(view, BlockById(view.At, "four")).StartsWith("4. ", StringComparison.Ordinal), "ordered marker paints on inline flow");
-                    Ok(PaintedText(view, BlockById(view.At, "bullet-two")).StartsWith("- ", StringComparison.Ordinal), "unordered marker paints on inline flow");
+                    Ok(PaintedText(view, BlockById(view.At, "bullet-two")).StartsWith("\u2022 ", StringComparison.Ordinal), "unordered marker paints on inline flow");
                     Ok(PaintedText(view, BlockById(view.At, "minus-ten")).StartsWith("-10. ", StringComparison.Ordinal), "nested value marker paints");
                     Ok(LinkBoxes(view, "second.html") > 0, "list marker keeps inline link hit boxes");
                     using (var listPaint = Render(view))
@@ -7955,6 +7961,133 @@ namespace Lea.Tests
                 .Invoke(view, new object[] { automation, new System.Windows.Point(rectangle.Left + rectangle.Width / 2F, rectangle.Top + rectangle.Height / 2F) });
             range.GetType().GetMethod("ExpandToEnclosingUnit").Invoke(range, new object[] { TextUnit.Word });
             return ((string)range.GetType().GetMethod("GetText").Invoke(range, new object[] { -1 })).Trim();
+        }
+
+        private static void ListStyleSmoke(string path)
+        {
+            var engine = new E { Vw = 720 };
+            var page = engine.Go(path);
+            Func<string, B> block = id => BlockById(page, id);
+
+            Eq("", page.S.Lst, "list style body default compact state");
+            Ok(block("default").S.Lst == "" && block("default").Mk == "\u2022" &&
+                block("disc").S.Lst == "d" && block("disc").Mk == "\u2022" &&
+                block("circle").S.Lst == "c" && block("circle").Mk == "\u25e6" &&
+                block("square").S.Lst == "s" && block("square").Mk == "\u25aa" &&
+                block("none").S.Lst == "n" && block("none").Mk == "",
+                "list style symbolic and none markers");
+            Ok(block("decimal").S.Lst == "1" && block("decimal").Mk == "8." &&
+                block("zero-eight").S.Lst == "0" && block("zero-eight").Mk == "08." &&
+                block("zero-nine").Mk == "09." && block("zero-ten").Mk == "10." &&
+                block("zero-negative").Mk == "-03.", "list style decimal marker formats");
+            Ok(block("lower-z").S.Lst == "a" && block("lower-z").Mk == "z." && block("lower-aa").Mk == "aa." &&
+                block("upper-latin").S.Lst == "A" && block("upper-latin").Mk == "AA." &&
+                block("lower-latin").S.Lst == "a" && block("lower-latin").Mk == "ab.",
+                "list style alphabetic marker formats and aliases");
+            Ok(block("lower-roman").S.Lst == "r" && block("lower-roman").Mk == "iv." &&
+                block("upper-roman").S.Lst == "R" && block("upper-roman").Mk == "IX." &&
+                block("roman-zero").Mk == "0." && block("roman-large").Mk == "4000." &&
+                block("shorthand").S.Lst == "R" && block("shorthand").Mk == "XII.",
+                "list style Roman format, decimal fallback, and shorthand");
+
+            Ok(block("inherited").S.Lst == "A" && block("inherited").Mk == "A." &&
+                block("explicit-inherit").S.Lst == "A" && block("explicit-inherit").Mk == "B." &&
+                block("initial").S.Lst == "d" && block("initial").Mk == "\u2022" &&
+                block("unset").S.Lst == "A" && block("unset").Mk == "D." &&
+                block("revert").S.Lst == "A" && block("revert").Mk == "E.",
+                "list style inherited and CSS-wide cascade");
+            Ok(block("invalid").S.Lst == "s" && block("invalid").Mk == "\u25aa" &&
+                block("invalid-shorthand").S.Lst == "c" && block("invalid-shorthand").Mk == "\u25e6" &&
+                block("variable").S.Lst == "r" && block("variable").Mk == "v." &&
+                block("important").S.Lst == "A" && block("important").Mk == "F.",
+                "list style invalid preservation, variable, and important cascade");
+
+            Ok(block("html-z").S.Lst == "A" && block("html-z").Mk == "Z." && block("html-aa").Mk == "AA." &&
+                block("html-item-roman").S.Lst == "r" && block("html-item-roman").Mk == "iv." &&
+                block("html-after-item").S.Lst == "A" && block("html-after-item").Mk == "E." &&
+                block("html-circle").S.Lst == "c" && block("html-circle").Mk == "\u25e6" &&
+                block("html-square").S.Lst == "s" && block("html-square").Mk == "\u25aa" &&
+                block("html-after-square").S.Lst == "c" && block("html-after-square").Mk == "\u25e6" &&
+                block("html-css").S.Lst == "a" && block("html-css").Mk == "d.",
+                "HTML list and item type hints with CSS precedence");
+            Ok(block("reverse-three").Mk == "3." && block("reverse-eight").Mk == "8." && block("reverse-seven").Mk == "7." &&
+                block("reverse-two").Mk == "2." && block("reverse-one").Mk == "1.",
+                "bounded reversed ordered-list numbering");
+            Eq("E.", block("cell").Mk, "list style marker inside table cell");
+            Eq("R", block("rtl").S.Lst, "RTL list style state");
+
+            var retained = FieldById(page, "field");
+            engine.Dy(page, ById(page.D, "dynamic"), null);
+            Ok(block("dynamic").S.Lst == "s" && block("dynamic").Mk == "\u25aa", "list style hover cascade");
+            engine.Dy(page, null, null);
+            Ok(block("dynamic").S.Lst == "c" && block("dynamic").Mk == "\u25e6", "list style hover restore");
+            engine.Vw = 350;
+            Ok(block("responsive").S.Lst == "s" && block("responsive").Mk == "\u25aa" &&
+                Object.ReferenceEquals(retained, FieldById(page, "field")), "list style media rebuild and field retention");
+
+            Eq(1, engine.Ck(page, ById(page.D, "set-short")), "list style short click command");
+            Ok(block("command").S.Lst == "A" && block("command").Mk == "B.", "list style short command model");
+            Eq(1, engine.Ck(page, ById(page.D, "set-readable")), "list style readable click command");
+            Ok(block("command-readable").S.Lst == "r" && block("command-readable").Mk == "iii.", "list style readable command model");
+            Eq(1, engine.Ck(page, ById(page.D, "set-dom")), "list style DOM click command");
+            Ok(block("command-dom").S.Lst == "s" && block("command-dom").Mk == "\u25aa", "list style DOM command model");
+            Eq(1, engine.Ck(page, ById(page.D, "clear-dom")), "list style DOM clear command");
+            Ok(block("command-dom").S.Lst == "c" && block("command-dom").Mk == "\u25e6", "list style DOM clear restores authored CSS");
+            Eq(0, engine.Js(page, "lst('command','triangle'); liststyletype('command','circle inside')"), "list style rejects unsupported commands");
+            Ok(block("command").S.Lst == "A" && block("command").Mk == "B.", "invalid list style commands preserve state");
+            Eq(1, engine.Js(page, "lst('upper-alpha')"), "list style body short command");
+            Ok(page.S.Lst == "A" && block("default").Mk == "A.", "list style body inherited model");
+            Eq(1, engine.Js(page, "document.body.style.listStyleType='lower-roman'"), "list style body DOM command");
+            Ok(page.S.Lst == "r" && block("default").Mk == "i.", "list style body DOM model");
+            Ok(Object.ReferenceEquals(retained, FieldById(page, "field")), "list style commands retain field identity");
+
+            using (var view = new V())
+            {
+                view.Size = new Size(720, 6400);
+                view.CreateControl();
+                view.Go(path);
+                retained = FieldById(view.At, "field");
+                Rectangle dynamicRect;
+                using (var paint = Render(view))
+                {
+                    Ok(PaintedText(view, BlockById(view.At, "default")).StartsWith("\u2022 ", StringComparison.Ordinal), "default disc marker paints");
+                    Ok(PaintedText(view, BlockById(view.At, "lower-aa")).StartsWith("aa. ", StringComparison.Ordinal), "alphabetic rollover marker paints");
+                    Ok(PaintedText(view, BlockById(view.At, "upper-roman")).StartsWith("IX. ", StringComparison.Ordinal), "Roman marker paints");
+                    Ok(PaintedText(view, BlockById(view.At, "none")) == "No marker", "none suppresses marker and spacer");
+                    Eq(0, TextLines(view, BlockById(view.At, "none")).Length, "none keeps the compact one-box text path");
+                    var rtlContent = BlockRect(view, BlockById(view.At, "rtl"));
+                    Eq(rtlContent.Right, InlineTextRect(view, BlockById(view.At, "rtl"), "IV.").Right, "RTL marker starts at physical right");
+                    Ok(!HitRect(view, "second.html").IsEmpty, "styled list link keeps pointer target");
+                    Ok(PaintedText(view, BlockById(view.At, "cell")).StartsWith("E. ", StringComparison.Ordinal), "table marker paints");
+                    dynamicRect = BlockOuterRect(view, BlockById(view.At, "dynamic"));
+                }
+
+                retained.V = "Retained after marker command";
+                Eq(1, view.Js("lst('command','upper-alpha')"), "list style view command");
+                using (var paint = Render(view))
+                    Ok(PaintedText(view, BlockById(view.At, "command")).StartsWith("B. ", StringComparison.Ordinal), "list style view command reaches paint");
+                Ok(Object.ReferenceEquals(retained, FieldById(view.At, "field")) && retained.V == "Retained after marker command",
+                    "list style view command retains field value");
+
+                Move(view, dynamicRect);
+                using (var paint = Render(view))
+                    Ok(PaintedText(view, BlockById(view.At, "dynamic")).StartsWith("\u25aa ", StringComparison.Ordinal), "list style hover repaints marker");
+                Move(view, new Point(0, 0));
+                using (var paint = Render(view))
+                    Ok(PaintedText(view, BlockById(view.At, "dynamic")).StartsWith("\u25e6 ", StringComparison.Ordinal), "list style hover restores marker");
+
+                retained.V = "Retained after marker resize";
+                view.Size = new Size(350, 6400);
+                Application.DoEvents();
+                using (var paint = Render(view))
+                {
+                    Ok(PaintedText(view, BlockById(view.At, "responsive")).StartsWith("\u25aa ", StringComparison.Ordinal), "responsive list marker repaints");
+                    Ok(Object.ReferenceEquals(retained, FieldById(view.At, "field")) && retained.V == "Retained after marker resize",
+                        "list style resize retains field value");
+                    Ok(!BlockOuterRect(view, BlockById(view.At, "cell")).IsEmpty, "list style following table remains laid out");
+                }
+            }
+            Console.WriteLine("Lea list style smoke passed: compact types, HTML hints, reversed numbering, cascade, aliases, tables, RTL, paint, hover, commands, and resize.");
         }
 
         private static void LineClampSmoke(string path)

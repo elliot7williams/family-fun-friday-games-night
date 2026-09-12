@@ -3358,6 +3358,7 @@ namespace Lea.Engine
             foreach (var rule in matched) Custom(style, inherited, rule.Ds, true);
             Custom(style, inherited, inline, true);
             TagStyle(style, node.K);
+            ListTypeAttribute(style, node);
             DirectionAttribute(style, node.Av("dir"));
             var baseDirection = style.Dr;
             foreach (var rule in matched) DirectionDeclarations(style, inherited, rule.Ds, false, baseDirection);
@@ -3517,6 +3518,7 @@ namespace Lea.Engine
                 else if (name == "overflow") Overflow(style, value);
                 else if (name == "text-overflow") TextOverflow(style, inherited, value);
                 else if (name == "line-clamp" || name == "-webkit-line-clamp") LineClamp(style, inherited, value);
+                else if (name == "list-style-type" || name == "list-style") ListStyleType(style, inherited, value);
                 else if (name == "cursor") CursorStyle(style, value);
                 else if (name == "pointer-events") PointerEvents(style, value);
                 else if (name == "object-fit") ObjectFit(style, value);
@@ -5298,6 +5300,38 @@ namespace Lea.Engine
             return clamp.Length <= 2 && Int32.TryParse(clamp, NumberStyles.None, CultureInfo.InvariantCulture, out lines) && lines >= 1 && lines <= 32;
         }
 
+        private static void ListStyleType(S style, S inherited, string value)
+        {
+            string type;
+            if (!Lsv(value, out type) || type.Length == 0) return;
+            if (type == "inherit" || type == "unset" || type == "revert" || type == "revert-layer")
+                style.Lst = inherited == null ? "" : inherited.Lst;
+            else if (type == "initial") style.Lst = "d";
+            else style.Lst = ListStyleCode(type);
+        }
+
+        internal static bool Lsv(string value, out string type)
+        {
+            type = (value ?? "").Trim().ToLowerInvariant();
+            if (type.Length == 0 || type == "initial" || type == "inherit" || type == "unset" || type == "revert" || type == "revert-layer") return true;
+            return ListStyleCode(type) != null;
+        }
+
+        private static string ListStyleCode(string type)
+        {
+            if (type == "none") return "n";
+            if (type == "disc") return "d";
+            if (type == "circle") return "c";
+            if (type == "square") return "s";
+            if (type == "decimal") return "1";
+            if (type == "decimal-leading-zero") return "0";
+            if (type == "lower-alpha" || type == "lower-latin") return "a";
+            if (type == "upper-alpha" || type == "upper-latin") return "A";
+            if (type == "lower-roman") return "r";
+            if (type == "upper-roman") return "R";
+            return null;
+        }
+
         private static void Overflow(S style, string value)
         {
             var mode = (value ?? "").Trim().ToLowerInvariant();
@@ -7033,7 +7067,7 @@ namespace Lea.Engine
             else if (IsTextBlock(kind) || IsContainerBlock(kind) || Flex(style) || Grid(style))
             {
                 var text = TextValue(Flex(style) || Grid(style) ? DirectText(node) : BlockText(node, PreservesLines(style)), style);
-                var block = new B { K = kind, X = text, Mk = ListMarker(node), S = style, El = node };
+                var block = new B { K = kind, X = text, Mk = ListMarker(node, style), S = style, El = node };
                 if (!Flex(style) && !Grid(style) && HasInlineStructure(node))
                 {
                     var inlineStyle = style.Inherit();
@@ -8686,10 +8720,21 @@ namespace Lea.Engine
             return null;
         }
 
-        private static string ListMarker(N item)
+        private static string ListMarker(N item, S style)
         {
             if (item == null || item.K != "li") return "";
-            return String.IsNullOrEmpty(item.Mk) ? "-" : item.Mk;
+            int number;
+            if (!Int32.TryParse(item.Mk, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out number)) number = 1;
+            var type = style == null ? "" : style.Lst;
+            if (type.Length == 0) type = item.Up != null && item.Up.K == "ol" ? "1" : "d";
+            if (type == "n") return "";
+            if (type == "d") return "\u2022";
+            if (type == "c") return "\u25e6";
+            if (type == "s") return "\u25aa";
+            if (type == "0") return LeadingZero(number) + ".";
+            if (type == "a" || type == "A") return AlphaMarker(number, type == "A") + ".";
+            if (type == "r" || type == "R") return RomanMarker(number, type == "R") + ".";
+            return number.ToString(CultureInfo.InvariantCulture) + ".";
         }
 
         private static void MarkLists(N node)
@@ -8698,18 +8743,97 @@ namespace Lea.Engine
             if (node.K == "ol" || node.K == "ul" || node.K == "menu")
             {
                 var ordered = node.K == "ol";
+                var reversed = ordered && node.A.ContainsKey("reversed");
+                var count = 0;
+                foreach (var item in node.C) if (item.K == "li") count++;
                 int number;
-                if (!ordered || !ListInteger(node.Av("start"), out number)) number = 1;
+                if (!ordered || !ListInteger(node.Av("start"), out number)) number = reversed ? count : 1;
                 foreach (var child in node.C)
                 {
                     if (child.K != "li") continue;
                     int value;
                     if (ordered && ListInteger(child.Av("value"), out value)) number = value;
-                    child.Mk = ordered ? number.ToString(CultureInfo.InvariantCulture) + "." : "-";
-                    if (ordered && number < 999999) number++;
+                    child.Mk = number.ToString(CultureInfo.InvariantCulture);
+                    if (reversed)
+                    {
+                        if (number > -999999) number--;
+                    }
+                    else if (number < 999999) number++;
                 }
             }
             foreach (var child in node.C) MarkLists(child);
+        }
+
+        private static void ListTypeAttribute(S style, N node)
+        {
+            if (style == null || node == null) return;
+            var type = node.Av("type").Trim();
+            if (type.Length == 0) return;
+            var ordered = node.K == "ol" || node.K == "li" && node.Up != null && node.Up.K == "ol";
+            if (ordered)
+            {
+                if (type == "1") style.Lst = "1";
+                else if (type == "a") style.Lst = "a";
+                else if (type == "A") style.Lst = "A";
+                else if (type == "i") style.Lst = "r";
+                else if (type == "I") style.Lst = "R";
+                return;
+            }
+            type = type.ToLowerInvariant();
+            if (type == "disc") style.Lst = "d";
+            else if (type == "circle") style.Lst = "c";
+            else if (type == "square") style.Lst = "s";
+        }
+
+        private static string LeadingZero(int number)
+        {
+            var negative = number < 0;
+            var digits = Math.Abs((long)number).ToString(CultureInfo.InvariantCulture);
+            if (digits.Length < 2) digits = "0" + digits;
+            return negative ? "-" + digits : digits;
+        }
+
+        private static string AlphaMarker(int number, bool upper)
+        {
+            if (number < 1) return number.ToString(CultureInfo.InvariantCulture);
+            var marker = new StringBuilder();
+            while (number > 0)
+            {
+                number--;
+                marker.Insert(0, (char)((upper ? 'A' : 'a') + number % 26));
+                number /= 26;
+            }
+            return marker.ToString();
+        }
+
+        private static string RomanMarker(int number, bool upper)
+        {
+            if (number < 1 || number > 3999) return number.ToString(CultureInfo.InvariantCulture);
+            var marker = new StringBuilder();
+            RomanPart(marker, ref number, 1000, "M");
+            RomanPart(marker, ref number, 900, "CM");
+            RomanPart(marker, ref number, 500, "D");
+            RomanPart(marker, ref number, 400, "CD");
+            RomanPart(marker, ref number, 100, "C");
+            RomanPart(marker, ref number, 90, "XC");
+            RomanPart(marker, ref number, 50, "L");
+            RomanPart(marker, ref number, 40, "XL");
+            RomanPart(marker, ref number, 10, "X");
+            RomanPart(marker, ref number, 9, "IX");
+            RomanPart(marker, ref number, 5, "V");
+            RomanPart(marker, ref number, 4, "IV");
+            RomanPart(marker, ref number, 1, "I");
+            var result = marker.ToString();
+            return upper ? result : result.ToLowerInvariant();
+        }
+
+        private static void RomanPart(StringBuilder marker, ref int number, int value, string text)
+        {
+            while (number >= value)
+            {
+                marker.Append(text);
+                number -= value;
+            }
         }
 
         private static bool ListInteger(string value, out int number)
@@ -8977,7 +9101,7 @@ namespace Lea.Engine
                 if (child.K == "#text")
                 {
                     var text = TextValue(child.X, inherited);
-                    if (text.Length > 0) cell.Bs.Add(new B { K = fallback, X = text, Mk = ListMarker(child.Up), S = inherited, El = child.Up });
+                    if (text.Length > 0) cell.Bs.Add(new B { K = fallback, X = text, Mk = ListMarker(child.Up, inherited), S = inherited, El = child.Up });
                     continue;
                 }
 
@@ -9022,7 +9146,7 @@ namespace Lea.Engine
                 if (!nested)
                 {
                     var text = TextValue(RawText(child), style);
-                    if (text.Length > 0) cell.Bs.Add(new B { K = CellKind(child.K, fallback), X = text, Mk = ListMarker(child), S = style, El = child });
+                    if (text.Length > 0) cell.Bs.Add(new B { K = CellKind(child.K, fallback), X = text, Mk = ListMarker(child, style), S = style, El = child });
                     continue;
                 }
                 AddCellBlocks(page, cell, child, baseUrl, rules, style, CellKind(child.K, fallback));

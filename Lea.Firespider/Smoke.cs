@@ -63,6 +63,8 @@ namespace Lea.Firespider
                     .Replace("</body>", "<p id='host-overflow' class='host-overflow'>Host overflow keeps this entire authored sentence</p><p id='host-overflow-responsive' class='host-overflow host-overflow-responsive'>Responsive host overflow keeps its full text</p></body>")
                     .Replace("</style>", ".host-clamp,.host-clamp-responsive,.host-clamp-command{width:180px;text-align:left}.host-clamp{line-clamp:2}.host-clamp-responsive{line-clamp:none}.host-clamp-command{-webkit-line-clamp:none}@media screen and (max-width:500px){.host-clamp-responsive{line-clamp:1}}</style>")
                     .Replace("</body>", "<p id='host-clamp' class='host-clamp'>Firespider uses Lea to keep two rendered lines and remove every later retained line.</p><p id='host-clamp-responsive' class='host-clamp-responsive'>Responsive Firespider line clamping becomes one compact line in a narrow browser window.</p><p id='host-clamp-command' class='host-clamp-command'>Compact host commands apply line clamping without long engine method names.</p></body>")
+                    .Replace("</style>", ".host-list{width:190px;margin-left:20px}.host-list-upper{list-style-type:upper-alpha;text-align:left}.host-list-responsive{list-style-type:circle}.host-list-command{list-style-type:lower-alpha}@media screen and (max-width:500px){.host-list-responsive{list-style-type:square}}</style>")
+                    .Replace("</body>", "<ol start='27'><li id='host-list-upper' class='host-list host-list-upper'>Host upper marker</li></ol><ul><li id='host-list-responsive' class='host-list host-list-responsive'>Host responsive marker</li></ul><ol start='3'><li id='host-list-command' class='host-list host-list-command'>Host command marker<input id='host-list-field' value='Host marker field'></li></ol><ol reversed><li id='host-list-reverse-three' class='host-list'>Host reverse three</li><li class='host-list'>Host reverse two</li><li class='host-list'>Host reverse one</li></ol></body>")
                     .Replace(".host-flex{display:flex;width:300px;height:60px;gap:8px;justify-content:space-between;align-items:center}", ".host-flex{display:flex;width:300px;height:60px;flex-wrap:wrap;gap:6px 8px;justify-content:space-between;align-items:center}")
                     .Replace(".host-flex p{width:70px;height:20px}", ".host-flex p{flex:1 1 180px;height:20px}.host-flex #host-flex-b{flex-shrink:2;min-width:80px}.host-flex-column{display:flex;width:180px;height:100px;flex-direction:column-reverse;row-gap:5px;justify-content:space-evenly;align-items:flex-end}.host-flex-column p{width:70px;margin:0;flex:0 1 60px;min-height:30px}.host-flex-column #host-flex-column-a{order:2;align-self:center}.host-flex-column #host-flex-column-b{order:-1}")
                     .Replace("</style>", ".host-grid{display:grid;width:300px;grid-template-columns:100px 1fr 2fr;gap:7px 10px}.host-grid p{height:20px;margin:0}.host-grid #host-grid-span{grid-column:2/span 2}.host-grid-rows{display:grid;width:300px;height:120px;grid-template-columns:1fr 2fr;grid-template-rows:30px 1fr;gap:6px 8px}.host-grid-rows p{margin:0}.host-grid-rows #host-grid-row-a{grid-column:1/span 2;grid-row:1}.host-grid-rows #host-grid-row-b{grid-column:2;grid-row:2}.host-grid-rows #host-grid-row-c{grid-column:1;grid-row-start:2;grid-row-end:span 1}:root{--host-color:#0f4c81;--host-width:155px;--host-pad:7px}.host-var{--host-color:#0f4c81!important;color:var(--host-color)!important;width:var(--host-width)!important;padding:var(--host-pad)}:is(.host-var,#host-never){border-left:4px solid #176b4d}:where(#host-var){padding-left:2px}.host-var:not(.missing,[data-off]){font-weight:bold}#host-flex>p:nth-child(2n+1){border-right:3px solid #176b4d}#host-flex>p:nth-last-child(-n+1){padding-left:9px}#host-flex-column>p:nth-last-of-type(2n){color:#a13b18}#host-flex>p:nth-child(1 of #host-flex-a,#host-flex-b){border-bottom:3px solid #176b4d}#host-flex>p:nth-last-child(1 of #host-flex-a,#host-flex-b){border-top:2px solid #a13b18}#host-has:has(> .host-direct){width:146px;border-left:5px solid #176b4d}#host-has:has(> .host-body .host-ready[data-host=ready]){padding-right:6px}#host-flex:has(+ #host-has){border-top:4px solid #a13b18}#host-has:has(input:focus){background:#dff6e9;font-weight:bold}.host-media{display:none}@media screen and (max-width:500px){:root{--host-width:110px;--host-pad:4px}#host-media{display:block;width:120px;background:#e8f4ef}#host-box{display:none}}</style>")
@@ -458,6 +460,36 @@ namespace Lea.Firespider
                     hostClampCommand = BlockById(host.At, "host-clamp-command");
                     Check(hostClampCommand.S.Lc == 1 && InlineLines(host, hostClampCommand).Length == 1 && EllipsisCount(host, "host-clamp-command") == 1,
                         "Firespider literal WebKit line clamp geometry");
+                    var hostListUpper = BlockById(host.At, "host-list-upper");
+                    var hostListResponsive = BlockById(host.At, "host-list-responsive");
+                    var hostListCommand = BlockById(host.At, "host-list-command");
+                    var hostListField = FieldById(host.At, "host-list-field");
+                    Check(hostListUpper.S.Lst == "A" && hostListUpper.Mk == "AA." && hostListResponsive.S.Lst == "c" && hostListResponsive.Mk == "\u25e6" &&
+                        hostListCommand.S.Lst == "a" && hostListCommand.Mk == "c." && BlockById(host.At, "host-list-reverse-three").Mk == "3.",
+                        "Firespider bounded list marker model and reversed numbering");
+                    var hostListUpperContent = BlockContent(host, "host-list-upper");
+                    var hostListScroll = host.Sy;
+                    host.Sc(hostListUpperContent.Top - host.Sy - 40);
+                    PaintView(host);
+                    hostListUpperContent = BlockContent(host, "host-list-upper");
+                    var hostListUpperMarker = InlineTextRect(host, hostListUpper, "AA.");
+                    Check(hostListUpperMarker.Left == hostListUpperContent.Left,
+                        "Firespider list marker paint geometry: " + hostListUpperMarker + " in " + hostListUpperContent);
+                    host.Sc(hostListScroll - host.Sy);
+                    PaintView(host);
+                    Check(host.Js("lst('host-list-command','upper-roman')") == 1, "Firespider compact list marker command");
+                    PaintView(host);
+                    hostListCommand = BlockById(host.At, "host-list-command");
+                    Check(hostListCommand.S.Lst == "R" && hostListCommand.Mk == "III." &&
+                        Object.ReferenceEquals(hostListField, FieldById(host.At, "host-list-field")),
+                        "Firespider compact list marker command model and field retention");
+                    Check(host.Js("document.getElementById('host-list-command').style.listStyleType='square'") == 1,
+                        "Firespider literal DOM list marker command");
+                    PaintView(host);
+                    hostListCommand = BlockById(host.At, "host-list-command");
+                    Check(hostListCommand.S.Lst == "s" && hostListCommand.Mk == "\u25aa",
+                        "Firespider literal DOM list marker model");
+                    hostListField.V = "Retained host marker field";
                     var hostOutline = BlockById(host.At, "host-outline");
                     Check(hostOutline.S.Ow == 4 && hostOutline.S.Os == "s" && hostOutline.S.Oc == "#a13b18" && hostOutline.S.Oo == 3 &&
                         BlockOuter(host, "host-outline").Size == new System.Drawing.Size(150, 44),
@@ -809,6 +841,10 @@ namespace Lea.Firespider
                     hostClampResponsive = BlockById(host.At, "host-clamp-responsive");
                     Check(hostClampResponsive.S.Lc == 1 && InlineLines(host, hostClampResponsive).Length == 1 && EllipsisCount(host, "host-clamp-responsive") == 1,
                         "Firespider narrow line clamp geometry");
+                    hostListResponsive = BlockById(host.At, "host-list-responsive");
+                    Check(hostListResponsive.S.Lst == "s" && hostListResponsive.Mk == "\u25aa" &&
+                        Object.ReferenceEquals(hostListField, FieldById(host.At, "host-list-field")) && hostListField.V == "Retained host marker field",
+                        "Firespider responsive list marker and field retention");
                     host.Size = new System.Drawing.Size(720, 560);
                     Application.DoEvents();
                     PaintView(host);
@@ -844,6 +880,10 @@ namespace Lea.Firespider
                     hostClampResponsive = BlockById(host.At, "host-clamp-responsive");
                     Check(hostClampResponsive.S.Lc == 0 && InlineLines(host, hostClampResponsive).Length > 1 && EllipsisCount(host, "host-clamp-responsive") == 0,
                         "Firespider wide line clamp restore");
+                    hostListResponsive = BlockById(host.At, "host-list-responsive");
+                    Check(hostListResponsive.S.Lst == "c" && hostListResponsive.Mk == "\u25e6" &&
+                        Object.ReferenceEquals(hostListField, FieldById(host.At, "host-list-field")) && hostListField.V == "Retained host marker field",
+                        "Firespider wide list marker restore");
                     Check(BlockById(host.At, "host-progress").Vm.R == 0.4D && BlockById(host.At, "host-meter").Vm.R == 0.75D, "Firespider compact gauge models");
                     Check(host.At.Dvs.Count == 4 && ValueById(host.At, "host-output").V == "Host total" && ValueById(host.At, "host-data").V == "lea-host", "Firespider compact output and data models");
                     Check(ValueById(host.At, "host-time").K == "t" && ValueById(host.At, "host-time").Dt == "2026-08-21", "Firespider compact time model");
@@ -981,7 +1021,7 @@ namespace Lea.Firespider
                     Check(host.Ck(ById(host.At.D, "host-value-update")) == 1 && ValueById(host.At, "host-output").V == "Updated host total", "Firespider output value rebuild");
                     Check(host.Ck(ById(host.At.D, "host-time-update")) == 1 && ValueById(host.At, "host-time").Dt == "2026-08-22", "Firespider time metadata rebuild");
                     var diagnostics = host.Dg();
-                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 103 && diagnostics.Rs.Count > 0, "Firespider Lea diagnostics");
+                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 105 && diagnostics.Rs.Count > 0, "Firespider Lea diagnostics");
                     var inspectorOpen = type.GetMethod("qleaInspectorOpen", BindingFlags.Instance | BindingFlags.NonPublic);
                     var inspectorSnapshot = type.GetMethod("qleaInspectorSnapshot", BindingFlags.Instance | BindingFlags.NonPublic);
                     var inspectorClear = type.GetMethod("qleaInspectorClear", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -1161,7 +1201,7 @@ namespace Lea.Firespider
                     Check(restoredTabs.TabCount == beforeMiddle - 1 && FindLea(restoredTabs) == null, "middle-click Lea tab close");
                 }
 
-                Console.WriteLine("Firespider CSS interaction and paint smoke passed: compact text-indent, text-wrap/mode/style, line-clamp, text-align/all/last, text-decoration, text-underline-offset, text-shadow, text-overflow, text-spacing, text-transform, pointer, outline, radius, box-shadow, gradient, bitmap-background, object-fit, and aspect-ratio aliases reached the compiled host.");
+                Console.WriteLine("Firespider CSS interaction and paint smoke passed: compact text-indent, text-wrap/mode/style, line-clamp, list-style-type, text-align/all/last, text-decoration, text-underline-offset, text-shadow, text-overflow, text-spacing, text-transform, pointer, outline, radius, box-shadow, gradient, bitmap-background, object-fit, and aspect-ratio aliases reached the compiled host.");
                 Console.WriteLine("Firespider calculated height smoke passed: compact ht, literal style.height, definite parent resolution, shared host geometry, reset, and strict bounds.");
                 Console.WriteLine("Firespider viewport unit smoke passed: vw/vh/vmin/vmax, calc, compact commands, literal reset, live host geometry, and strict bounds.");
                 Console.WriteLine("Firespider font-relative unit smoke passed: em/rem, root font alias, compact commands, literal reset, shared host geometry, and strict bounds.");

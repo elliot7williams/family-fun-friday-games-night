@@ -1,0 +1,133 @@
+<!doctype html>
+<html>
+<head>
+  <title>Lea List Styles</title>
+  <style>
+    :root { --marker-kind: lower-roman; }
+    body { background: #f7fbff; color: #172033; font-family: "Segoe UI", sans-serif; }
+    h1 { color: #0f5f4c; }
+    li { width: 250px; margin-left: 22px; padding: 2px; }
+    #disc { list-style-type: disc; }
+    #circle { list-style-type: circle; }
+    #square { list-style-type: square; }
+    #none { list-style-type: none; }
+    #decimal { list-style-type: decimal; }
+    #zero-list { list-style-type: decimal-leading-zero; }
+    #lower-alpha-list { list-style-type: lower-alpha; text-align: left; }
+    #upper-latin { list-style-type: upper-latin; }
+    #lower-latin { list-style-type: lower-latin; }
+    #lower-roman-list { list-style-type: lower-roman; }
+    #upper-roman-list { list-style-type: upper-roman; }
+    #roman-zero, #roman-large { list-style-type: lower-roman; }
+    #shorthand { list-style: upper-roman; }
+    #invalid { list-style-type: square; list-style-type: triangle; }
+    #invalid-shorthand { list-style-type: circle; list-style: square inside; }
+    #variable { list-style-type: var(--marker-kind); }
+    #important { list-style-type: upper-alpha !important; list-style-type: circle; }
+    #inherit-list { list-style-type: upper-alpha; }
+    #explicit-inherit { list-style-type: lower-roman; list-style-type: inherit; }
+    #initial { list-style-type: initial; }
+    #unset { list-style-type: unset; }
+    #revert { list-style-type: lower-roman; list-style-type: revert; }
+    #html-css { list-style-type: lower-alpha; }
+    #dynamic { list-style-type: circle; }
+    #dynamic:hover { list-style-type: square; }
+    #responsive { list-style-type: circle; }
+    #command { list-style-type: lower-alpha; }
+    #command-readable { list-style-type: decimal; }
+    #command-dom { list-style-type: circle; }
+    #rtl { direction: rtl; list-style-type: upper-roman; }
+    #cell { list-style-type: upper-alpha; }
+    @media screen and (max-width: 400px) {
+      #responsive { list-style-type: square; }
+    }
+  </style>
+</head>
+<body>
+  <h1>List styles</h1>
+
+  <ul>
+    <li id="default">Default unordered marker</li>
+    <li id="disc">Disc marker</li>
+    <li id="circle">Circle marker</li>
+    <li id="square">Square marker</li>
+    <li id="none">No marker</li>
+  </ul>
+
+  <ol start="8"><li id="decimal">Decimal eight</li></ol>
+  <ol id="zero-list" start="8">
+    <li id="zero-eight">Leading zero eight</li>
+    <li id="zero-nine">Leading zero nine</li>
+    <li id="zero-ten">Leading zero ten</li>
+  </ol>
+  <ol id="zero-list-negative" start="-3" style="list-style-type: decimal-leading-zero">
+    <li id="zero-negative">Leading zero negative</li>
+  </ol>
+
+  <ol id="lower-alpha-list" start="26">
+    <li id="lower-z">Lower alpha Z boundary</li>
+    <li id="lower-aa">Lower alpha AA boundary</li>
+  </ol>
+  <ol start="27"><li id="upper-latin">Upper Latin alias</li></ol>
+  <ol start="28"><li id="lower-latin">Lower Latin alias</li></ol>
+  <ol id="lower-roman-list" start="4"><li id="lower-roman">Lower Roman four</li></ol>
+  <ol id="upper-roman-list" start="9"><li id="upper-roman">Upper Roman nine</li></ol>
+  <ol start="0"><li id="roman-zero">Roman zero falls back</li></ol>
+  <ol start="4000"><li id="roman-large">Roman upper bound falls back</li></ol>
+  <ol start="12"><li id="shorthand">One-type shorthand</li></ol>
+
+  <ol id="inherit-list" start="1">
+    <li id="inherited">Inherited upper alpha</li>
+    <li id="explicit-inherit">Explicit inherit</li>
+    <li id="initial">Initial disc</li>
+    <li id="unset">Unset inherits</li>
+    <li id="revert">Revert inherits bounded base</li>
+  </ol>
+  <ol start="3">
+    <li id="invalid">Invalid type preserves square</li>
+    <li id="invalid-shorthand">Invalid shorthand preserves circle</li>
+    <li id="variable">Variable lower Roman</li>
+    <li id="important">Important upper alpha</li>
+  </ol>
+
+  <ol type="A" start="26">
+    <li id="html-z">HTML uppercase Z</li>
+    <li id="html-aa">HTML uppercase AA</li>
+    <li id="html-item-roman" type="i" value="4">HTML item Roman override</li>
+    <li id="html-after-item">HTML list type resumes</li>
+  </ol>
+  <ul type="circle">
+    <li id="html-circle">HTML circle</li>
+    <li id="html-square" type="square">HTML item square</li>
+    <li id="html-after-square">HTML parent circle resumes</li>
+  </ul>
+  <ol type="I" start="4"><li id="html-css">CSS overrides HTML type</li></ol>
+
+  <ol reversed>
+    <li id="reverse-three">Reversed count default</li>
+    <li id="reverse-eight" value="8">Reversed value jump</li>
+    <li id="reverse-seven">Reversed continuation</li>
+  </ol>
+  <ol reversed start="2">
+    <li id="reverse-two">Reversed explicit start</li>
+    <li id="reverse-one">Reversed explicit continuation</li>
+  </ol>
+
+  <ul>
+    <li id="dynamic">Hover marker</li>
+    <li id="responsive">Responsive marker</li>
+  </ul>
+  <ol start="2">
+    <li id="command">Short command marker <input id="field" value="Retained marker field"></li>
+    <li id="command-readable">Readable command marker</li>
+    <li id="command-dom">DOM command marker</li>
+  </ol>
+  <button id="set-short" data-lea="lst('command','upper-alpha')">Set short marker</button>
+  <button id="set-readable" data-lea="liststyletype('command-readable','lower-roman')">Set readable marker</button>
+  <button id="set-dom" data-lea="document.getElementById('command-dom').style.listStyleType='square'">Set DOM marker</button>
+  <button id="clear-dom" data-lea="document.getElementById('command-dom').style.listStyleType=''">Clear DOM marker</button>
+
+  <ol start="4"><li id="rtl"><a id="rtl-link" href="second.html">RTL linked marker item</a></li></ol>
+  <table><tr><td><ol start="5"><li id="cell">Table marker item</li></ol></td></tr></table>
+</body>
+</html>

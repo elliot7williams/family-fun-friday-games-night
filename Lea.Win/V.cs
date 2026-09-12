@@ -2843,8 +2843,8 @@ namespace Lea.Win
             if (block == null) return "";
             var text = block.X ?? "";
             if (block.K != "li" && block.K != "summary") return text;
-            if (block.K == "summary" && String.IsNullOrEmpty(block.Mk)) return text;
-            var marker = String.IsNullOrEmpty(block.Mk) ? "-" : block.Mk;
+            if (String.IsNullOrEmpty(block.Mk)) return text;
+            var marker = block.Mk;
             return marker + " " + text;
         }
 
@@ -3184,9 +3184,9 @@ namespace Lea.Win
             var space = block.S == null ? "" : block.S.Ws;
             var wrap = block.S == null || block.S.Wm != "n";
 
-            if (block.K == "li" || (block.K == "summary" && !String.IsNullOrEmpty(block.Mk)))
+            if ((block.K == "li" || block.K == "summary") && !String.IsNullOrEmpty(block.Mk))
             {
-                var marker = String.IsNullOrEmpty(block.Mk) ? "-" : block.Mk;
+                var marker = block.Mk;
                 AddInlineWord(graphics, lines, ref line, ref pending, InlineAtom(graphics, block.K, marker, null, block.S, block.K, block.El), width, firstWidth, baseHeight, wrap, block.S == null ? "" : block.S.Wb);
                 pending = InlineAtom(graphics, block.K, " ", null, block.S, block.K, block.El);
             }

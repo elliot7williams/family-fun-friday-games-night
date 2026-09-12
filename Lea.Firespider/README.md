@@ -595,6 +595,14 @@ authored text, and field identity. Lea removes hidden boxes and hits inside its
 existing inline pass and shortens normal flow; Firespider adds no parser, state,
 layout branch, or extra control. See `LeaForge/LINE_CLAMP.md`.
 
+Hosted lists expose bounded inherited marker styles through
+`S.Lst=n/d/c/s/1/0/a/A/r/R`. The compiled host verifies HTML type and reversed
+sequences, CSS precedence, compact `lst`, literal `style.listStyleType`, alpha
+rollover, exact marker geometry, retained fields, and narrow/wide responsive
+replacement. Lea formats and places the existing `B.Mk` atom; Firespider adds
+no counter, parser, adapter state, layout branch, or extra control. See
+`LeaForge/LIST_STYLE.md`.
+
 Hosted text alignment now exposes the bounded shorthand/all/last family through
 `S.Ta/Tl`. The compiled host verifies `justify-all`, retained logical RTL
 state, compact `ta/taa/tl`, literal `style.textAlign`, shorthand reset,

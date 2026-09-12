@@ -114,7 +114,7 @@ namespace Lea.Bench
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
                 "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "direction-logical.html", "direction-layout.html", "direction-inline.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "direction-overflow.html", "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
-                "go-command.html", "lists.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
+                "go-command.html", "lists.html", "list-style.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
                 "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html", "svg.html", "svg-geometry.html", "svg-gradients.html", "svg-use-clips.html", "svg-strokes.html",
                 "box-sizing.html", "border-radius.html", "logical-radii.html", "box-shadows.html", "background-gradients.html", "background-images.html", "object-fit.html", "aspect-ratio.html", "outlines.html", "pointer-interaction.html", "text-transform.html", "text-spacing.html", "text-indent.html", "text-decoration.html", "text-underline-offset.html", "text-wrap.html", "text-align.html", "text-align-last.html", "text-shadow.html", "text-overflow.html", "line-clamp.html"
@@ -243,6 +243,55 @@ namespace Lea.Bench
                     using (var image = Draw(view)) Need(view.Bc > page.Bs.Count && ColoredSamples(image) > 0, "list marker layout is blank");
                 }
                 return "Unordered, start/value, nested negative, saturated, inline, and painted markers";
+            });
+            AddProbe(probes, "Bounded list marker styles", delegate
+            {
+                var path = Path.Combine(folder, "list-style.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(block("default").Mk == "\u2022" && block("circle").S.Lst == "c" && block("circle").Mk == "\u25e6" &&
+                    block("square").S.Lst == "s" && block("square").Mk == "\u25aa" && block("none").Mk.Length == 0,
+                    "symbolic list marker styles changed");
+                Need(block("zero-eight").S.Lst == "0" && block("zero-eight").Mk == "08." && block("lower-aa").Mk == "aa." &&
+                    block("upper-roman").Mk == "IX." && block("roman-zero").Mk == "0." && block("roman-large").Mk == "4000.",
+                    "numeric, alphabetic, or Roman marker formatting changed");
+                Need(block("html-aa").Mk == "AA." && block("html-item-roman").Mk == "iv." && block("html-css").Mk == "d." &&
+                    block("reverse-three").Mk == "3." && block("reverse-eight").Mk == "8." && block("reverse-seven").Mk == "7.",
+                    "HTML list hints, CSS precedence, or reversed numbering changed");
+                Need(block("invalid").S.Lst == "s" && block("variable").S.Lst == "r" && block("important").S.Lst == "A" &&
+                    block("initial").S.Lst == "d" && block("unset").S.Lst == "A",
+                    "list marker cascade changed");
+                var field = page.Fs.First(item => item.El != null && item.El.Av("id") == "field");
+                engine.Dy(page, ById(page.D, "dynamic"), null);
+                Need(block("dynamic").Mk == "\u25aa", "dynamic list marker changed");
+                engine.Vw = 350;
+                Need(block("responsive").Mk == "\u25aa" && Object.ReferenceEquals(field, page.Fs.First(item => item.El != null && item.El.Av("id") == "field")),
+                    "responsive list marker or retained field changed");
+                Need(engine.Ck(page, ById(page.D, "set-short")) == 1 && block("command").Mk == "B.", "compact list marker command changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 6400);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        Need(InlineTextRect(view, "lower-aa", "aa.").Left == BlockContent(view, "lower-aa").Left &&
+                            InlineTextRect(view, "rtl", "IV.").Right == BlockContent(view, "rtl").Right &&
+                            !BlockOuter(view, "none").IsEmpty && !ElementHit(view, "rtl-link").IsEmpty && ColoredSamples(image) > 0,
+                            "list marker paint, RTL geometry, or hit target changed");
+                    }
+                    var retained = view.At.Fs.First(item => item.El != null && item.El.Av("id") == "field");
+                    retained.V = "Retained benchmark marker";
+                    Need(view.Js("lst('command','upper-alpha')") == 1, "list marker view command changed");
+                    view.Size = new Size(350, 6400);
+                    using (var image = Draw(view))
+                    {
+                        Need(view.At.Bs.First(item => item.El != null && item.El.Av("id") == "responsive").Mk == "\u25aa" &&
+                            Object.ReferenceEquals(retained, view.At.Fs.First(item => item.El != null && item.El.Av("id") == "field")) &&
+                            retained.V == "Retained benchmark marker", "list marker resize or retained value changed");
+                    }
+                }
+                return "S.Lst one-character inherited state, disc/circle/square/none, bounded decimal/zero/alpha/Latin/Roman formatting, HTML type and reversed lists, cascade, lst/DOM commands, RTL paint, hits, and retained resize";
             });
             AddProbe(probes, "Bounded disclosures", delegate
             {
@@ -2008,7 +2057,7 @@ namespace Lea.Bench
                 Need(simple.S.Dr == "r" && simple.Is.Count == 0 && runs.S.Dr == "r" && runs.Is.Count >= 3 &&
                     page.Bs.First(block => block.El != null && block.El.Av("id") == "rtl-seven").Mk == "7." &&
                     page.Bs.First(block => block.El != null && block.El.Av("id") == "rtl-minus").Mk == "-2." &&
-                    page.Bs.First(block => block.El != null && block.El.Av("id") == "rtl-bullet").Mk == "-" &&
+                    page.Bs.First(block => block.El != null && block.El.Av("id") == "rtl-bullet").Mk == "\u2022" &&
                     page.X.IndexOf("First", StringComparison.Ordinal) < page.X.IndexOf("Second", StringComparison.Ordinal) &&
                     page.X.IndexOf("Second", StringComparison.Ordinal) < page.X.IndexOf("Third", StringComparison.Ordinal),
                     "direction inline model or source order changed");
@@ -2061,7 +2110,7 @@ namespace Lea.Bench
                             "RTL justification changed");
 
                         var orderedMarker = InlineTextRect(view, "rtl-seven", "7.");
-                        var bulletMarker = InlineTextRect(view, "rtl-bullet", "-");
+                        var bulletMarker = InlineTextRect(view, "rtl-bullet", "\u2022");
                         var summaryMarker = InlineTextRect(view, "rtl-summary", ">");
                         Need(orderedMarker.Right == BlockContent(view, "rtl-seven").Right &&
                             bulletMarker.Right == BlockContent(view, "rtl-bullet").Right &&

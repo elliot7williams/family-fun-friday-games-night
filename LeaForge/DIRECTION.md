@@ -62,10 +62,12 @@ positive indentation from inline-start: the physical left in LTR and the
 physical right in RTL. Percentages use the content width, negative values extend
 outward, and later lines return to the normal width. See `TEXT_INDENT.md`.
 
-List and disclosure markers reuse the existing compact `B.Mk` atom. Ordered,
-unordered, nested, and summary markers therefore appear at inline-start on the
-right in RTL and their content continues toward the left. DOM, link,
-accessibility, and painted-box enumeration remain in authored source order.
+List and disclosure markers reuse the existing compact `B.Mk` atom. Decimal,
+alpha, Roman, disc, circle, square, nested, and summary markers therefore appear
+at inline-start on the right in RTL and their content continues toward the
+left. `list-style-type:none` emits neither a marker nor its spacer. DOM, link,
+accessibility, and painted-box enumeration remain in authored source order. See
+`LIST_STYLE.md` for marker formats and sequence bounds.
 
 ## Ellipsis And Text Ranges
 

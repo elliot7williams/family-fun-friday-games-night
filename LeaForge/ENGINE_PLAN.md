@@ -346,23 +346,20 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 100 adds bounded non-inherited CSS `line-clamp` and
-`-webkit-line-clamp` through compact `S.Lc=0/1..32` state and the defining `lc`
-command. Strict values, explicit inheritance and CSS-wide resets, variables,
-important tiers, inline overrides, hover, responsive rebuilds, readable
-`lineclamp`, and literal `style.lineClamp/style.webkitLineClamp` assignments
-share existing paths. The retained inline pass wraps and optionally balances
-first, then keeps only the requested lines, places one grapheme-safe LTR/RTL
-inline-end marker, removes hidden boxes and hits, and shortens normal flow
-without mutating authored or logical automation text. Inline runs, forced
-breaks, balanced text, tables, commands, hover, resize, field retention, and
-following-content reflow have executable coverage. See `LINE_CLAMP.md`. All 96
-probes pass over 91 fixtures; the compiled Firespider host passes all 18 startup
-regressions and its full interaction suite. Next investigate another bounded
-text or HTML compatibility slice while keeping custom block ellipsis,
-descendant block fragmentation, vertical writing modes, full Unicode bidi
-shaping, `dir=auto`, and general CSS/JavaScript evaluators outside the current
-boundary.
+Milestone 101 adds bounded inherited CSS list marker styles through compact
+`S.Lst=n/d/c/s/1/0/a/A/r/R` and the defining `lst` command. CSS
+`list-style-type`, a bounded one-type `list-style` shorthand, HTML list/item
+`type`, ordered `start`/`value`/`reversed`, variables, important tiers,
+CSS-wide values, hover, responsive rebuilds, readable `liststyletype`, and
+literal `style.listStyleType` assignments share existing paths. The retained
+`B.Mk` atom formats common bullets, decimal/leading-zero, alpha rollover, and
+bounded Roman values without a new counter or layout pass. See `LIST_STYLE.md`.
+All 97 probes pass over 92 fixtures; the compiled Firespider host passes all 18
+startup regressions and its full interaction suite. Next investigate another
+bounded HTML/CSS compatibility slice while keeping list images and position,
+`::marker`, custom counters, generated content, vertical writing modes, full
+Unicode bidi shaping, `dir=auto`, and general CSS/JavaScript evaluators outside
+the current boundary.
 
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host

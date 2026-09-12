@@ -17,21 +17,19 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 100 adds bounded non-inherited `line-clamp` and
-`-webkit-line-clamp` around compact `S.Lc=0/1..32` state and the defining `lc`
-alias. Strict CSS-wide parsing, variables, important tiers, readable
-`lineclamp`, and literal `style.lineClamp/style.webkitLineClamp` routes share
-the compiled cascade. The retained inline pass wraps and optionally balances
-first, then removes excess lines and hits, shortens the final atom at a text
-element boundary, adds an LTR/RTL inline-end marker, and reduces normal flow
-height without mutating authored or logical automation text. The focused engine
-suite and full compiled Firespider host are green, including all 18 startup
-regressions. All 96 benchmark probes pass over 91 fixtures. Three-round
-diagnostic medians are 671.601 ms clean start, 4.114 ms local load, and 41.279
-ms layout/paint; retained memory is 55.9 KiB/page and the required runtime is
-585.0 KiB. Runtime 200 remains isolated, and installed runtime 157 is unchanged.
-See `LINE_CLAMP.md`. Custom block ellipsis, descendant block fragmentation,
-vertical writing, full Unicode bidi shaping, and general CSS/JavaScript
+Milestone 101 adds bounded inherited list marker styles through compact
+`S.Lst=n/d/c/s/1/0/a/A/r/R` state and the defining `lst` alias. CSS
+`list-style-type`, the bounded one-type `list-style` shorthand, HTML `type`,
+ordered `start`/`value`/`reversed`, readable `liststyletype`, and literal
+`style.listStyleType` routes share Lea's existing cascade, list sequencing,
+retained rebuild, and inline marker atom. The focused engine suite and full
+compiled Firespider host are green, including all 18 startup regressions. All
+97 benchmark probes pass over 92 fixtures. Three-round diagnostic medians are
+759.838 ms clean start, 4.989 ms local load, and 42.719 ms layout/paint;
+retained memory is 56.8 KiB/page and the required runtime is 588.0 KiB. Runtime
+201 remains isolated, and installed runtime 157 is unchanged. See
+`LIST_STYLE.md`. Images, marker position, `::marker`, custom counters, generated
+content, vertical writing, full Unicode bidi shaping, and general CSS/JavaScript
 evaluation stay outside this milestone.
 
 Milestone 60 installs the existing `V.Ng` hook on main Lea tabs, enforcing host
