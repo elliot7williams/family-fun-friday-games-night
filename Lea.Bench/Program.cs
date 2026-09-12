@@ -114,7 +114,7 @@ namespace Lea.Bench
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
                 "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "direction-logical.html", "direction-layout.html", "direction-inline.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "direction-overflow.html", "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
-                "go-command.html", "lists.html", "list-style.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
+                "go-command.html", "lists.html", "list-style.html", "list-position.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
                 "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html", "svg.html", "svg-geometry.html", "svg-gradients.html", "svg-use-clips.html", "svg-strokes.html",
                 "box-sizing.html", "border-radius.html", "logical-radii.html", "box-shadows.html", "background-gradients.html", "background-images.html", "object-fit.html", "aspect-ratio.html", "outlines.html", "pointer-interaction.html", "text-transform.html", "text-spacing.html", "text-indent.html", "text-decoration.html", "text-underline-offset.html", "text-wrap.html", "text-align.html", "text-align-last.html", "text-shadow.html", "text-overflow.html", "line-clamp.html"
@@ -275,8 +275,8 @@ namespace Lea.Bench
                     view.Go(path);
                     using (var image = Draw(view))
                     {
-                        Need(InlineTextRect(view, "lower-aa", "aa.").Left == BlockContent(view, "lower-aa").Left &&
-                            InlineTextRect(view, "rtl", "IV.").Right == BlockContent(view, "rtl").Right &&
+                        Need(InlineTextRect(view, "lower-aa", "aa.").Right < BlockContent(view, "lower-aa").Left &&
+                            InlineTextRect(view, "rtl", "IV.").Left > BlockContent(view, "rtl").Right &&
                             !BlockOuter(view, "none").IsEmpty && !ElementHit(view, "rtl-link").IsEmpty && ColoredSamples(image) > 0,
                             "list marker paint, RTL geometry, or hit target changed");
                     }
@@ -292,6 +292,56 @@ namespace Lea.Bench
                     }
                 }
                 return "S.Lst one-character inherited state, disc/circle/square/none, bounded decimal/zero/alpha/Latin/Roman formatting, HTML type and reversed lists, cascade, lst/DOM commands, RTL paint, hits, and retained resize";
+            });
+            AddProbe(probes, "Bounded list marker position", delegate
+            {
+                var path = Path.Combine(folder, "list-position.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(page.S.Lp == "o" && block("default-position").S.Lp == "o" && block("inside").S.Lp == "i" &&
+                    block("type-only").S.Lst == "A" && block("type-only").S.Lp == "i" &&
+                    block("position-only").S.Lst == "r" && block("position-only").S.Lp == "i",
+                    "list position defaults or longhand independence changed");
+                Need(block("shorthand-both").S.Lst == "a" && block("shorthand-both").S.Lp == "i" &&
+                    block("shorthand-order").S.Lst == "s" && block("shorthand-order").S.Lp == "i" &&
+                    block("shorthand-type-reset").S.Lst == "A" && block("shorthand-type-reset").S.Lp == "o" &&
+                    block("shorthand-position-reset").S.Lst == "d" && block("shorthand-position-reset").S.Lp == "i",
+                    "list shorthand order or reset changed");
+                Need(block("inherit").S.Lp == "i" && block("initial").S.Lp == "o" && block("unset").S.Lp == "i" &&
+                    block("invalid").S.Lp == "i" && block("invalid-shorthand").S.Lst == "c" && block("invalid-shorthand").S.Lp == "i",
+                    "list position cascade or invalid preservation changed");
+                var field = page.Fs.First(item => item.El != null && item.El.Av("id") == "position-field");
+                Need(engine.Ck(page, ById(page.D, "set-position")) == 1 && block("command-position").S.Lp == "i" &&
+                    engine.Ck(page, ById(page.D, "set-shorthand")) == 1 && block("command-shorthand").S.Lst == "R" && block("command-shorthand").S.Lp == "i",
+                    "compact list position or shorthand command changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 5600);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        Need(InlineTextRect(view, "outside-wrap", "8.").Right < BlockContent(view, "outside-wrap").Left &&
+                            InlineTextRect(view, "inside-wrap", "9.").Left == BlockContent(view, "inside-wrap").Left &&
+                            InlineTextRect(view, "rtl-outside", "3.").Left > BlockContent(view, "rtl-outside").Right &&
+                            InlineTextRect(view, "rtl-inside", "4.").Right == BlockContent(view, "rtl-inside").Right && ColoredSamples(image) > 0,
+                            "list position LTR/RTL marker geometry changed");
+                    }
+                    var retained = view.At.Fs.First(item => item.El != null && item.El.Av("id") == "position-field");
+                    retained.V = "Retained benchmark position";
+                    Need(view.Js("lp('command-position','inside');ls('command-shorthand','upper-alpha outside')") == 2,
+                        "list position view commands changed");
+                    view.Size = new Size(350, 5600);
+                    using (var image = Draw(view))
+                    {
+                        Need(view.At.Bs.First(item => item.El != null && item.El.Av("id") == "responsive").S.Lp == "i" &&
+                            Object.ReferenceEquals(retained, view.At.Fs.First(item => item.El != null && item.El.Av("id") == "position-field")) &&
+                            retained.V == "Retained benchmark position", "list position resize or retained field changed");
+                    }
+                }
+                Need(Object.ReferenceEquals(field, page.Fs.First(item => item.El != null && item.El.Av("id") == "position-field")),
+                    "list position headless command replaced field identity");
+                return "S.Lp one-character inherited inside/outside state, independent longhands, atomic list-style composition and reset, lp/ls/readable/DOM commands, LTR/RTL gutters, table/hover/media paths, and retained fields";
             });
             AddProbe(probes, "Bounded disclosures", delegate
             {
@@ -2112,12 +2162,12 @@ namespace Lea.Bench
                         var orderedMarker = InlineTextRect(view, "rtl-seven", "7.");
                         var bulletMarker = InlineTextRect(view, "rtl-bullet", "\u2022");
                         var summaryMarker = InlineTextRect(view, "rtl-summary", ">");
-                        Need(orderedMarker.Right == BlockContent(view, "rtl-seven").Right &&
-                            bulletMarker.Right == BlockContent(view, "rtl-bullet").Right &&
+                        Need(orderedMarker.Left > BlockContent(view, "rtl-seven").Right &&
+                            bulletMarker.Left > BlockContent(view, "rtl-bullet").Right &&
                             summaryMarker.Right == BlockContent(view, "rtl-summary").Right && ColoredSamples(image) > 0,
                             "RTL list/disclosure marker placement or paint changed");
                         var nestedMarker = InlineTextRect(view, "rtl-minus", "-2.");
-                        Need(nestedMarker.Right == BlockContent(view, "rtl-minus").Right && BlockContent(view, "rtl-minus").Right < BlockContent(view, "rtl-seven").Right,
+                        Need(nestedMarker.Left > BlockContent(view, "rtl-minus").Right && BlockContent(view, "rtl-minus").Right < BlockContent(view, "rtl-seven").Right,
                             "nested RTL marker or logical indentation changed");
 
                         var cellStart = InlineTextRect(view, "rtl-cell", "CellStart");

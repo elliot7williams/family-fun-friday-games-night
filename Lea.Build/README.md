@@ -107,11 +107,16 @@ explicit inheritance and resets, invalid preservation, variables, priority,
 grapheme-safe LTR/RTL markers, reduced flow height, removed hidden boxes/hits,
 full logical text, forced breaks, balancing, tables, compact/readable/literal
 commands, hover, and responsive resize. See `LeaForge/LINE_CLAMP.md`.
-`list-style.html` covers inherited standard list types, strict one-type
+`list-style.html` covers inherited standard list types, strict shorthand
 shorthand, HTML list/item hints, CSS precedence, reversed/start/value sequences,
 alpha rollover, bounded Roman fallback, leading zero, nested lists, no-marker
 spacing, LTR/RTL, tables, compact/readable/literal commands, hover, retained
 fields, and responsive resize. See `LeaForge/LIST_STYLE.md`.
+`list-position.html` covers inherited outside/inside state, independent
+longhands, atomic one/two-component shorthand order and reset, CSS-wide values,
+variables, priority, invalid preservation, none, LTR/RTL gutters, wrapping,
+tables, compact/readable/literal commands, hover, retained fields, and
+responsive resize. See `LeaForge/LIST_POSITION.md`.
 
 ## Firespider Startup Checks
 
@@ -148,6 +153,9 @@ tables, hover, and responsive resize.
 `--list-style` isolates inherited marker types, HTML type and reversed sequence
 behavior, strict cascade and command routes, marker text/geometry, no-marker
 spacing, nested lists, tables, retained fields, hover, and responsive resize.
+`--list-position` isolates inherited marker position, shorthand composition,
+LTR/RTL outside gutters and inside first-line geometry, tables, retained fields,
+commands, hover, and responsive resize.
 `--text-align` isolates the inherited text-align shorthand/all/last family,
 logical inheritance and match-parent, justify-all, compact/readable/literal
 commands, LTR/RTL geometry, shorthand resets, tables, hover, and responsive resize.

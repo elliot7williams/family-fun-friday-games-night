@@ -3129,8 +3129,16 @@ namespace Lea.Win
             var layout = new List<Ix>();
             var y = 0;
             var rtl = InlineReverse(block.S);
+            var outside = OutsideListMarker(block) ? InlineAtom(graphics, block.K, block.Mk, null, block.S, block.K, block.El) : null;
+            var markerGap = outside == null ? 0 : Math.Max(2, InlineAtom(graphics, block.K, " ", null, block.S, block.K, block.El).W);
             for (var lineIndex = 0; lineIndex < lines.Count; lineIndex++)
             {
+                if (lineIndex == 0 && outside != null)
+                {
+                    var markerX = rtl ? width + markerGap : -outside.W - markerGap;
+                    var markerRect = new Rectangle(markerX, y + Math.Max(0, (lines[lineIndex].H - outside.H) / 2), outside.W, outside.H);
+                    layout.Add(new Ix(outside.K, outside.X, outside.U, outside.S, markerRect, outside.El));
+                }
                 var first = layout.Count;
                 var current = lines[lineIndex];
                 var lastLine = lineIndex == lines.Count - 1 || current.Br;
@@ -3184,7 +3192,7 @@ namespace Lea.Win
             var space = block.S == null ? "" : block.S.Ws;
             var wrap = block.S == null || block.S.Wm != "n";
 
-            if ((block.K == "li" || block.K == "summary") && !String.IsNullOrEmpty(block.Mk))
+            if ((block.K == "summary" || block.K == "li" && !OutsideListMarker(block)) && !String.IsNullOrEmpty(block.Mk))
             {
                 var marker = block.Mk;
                 AddInlineWord(graphics, lines, ref line, ref pending, InlineAtom(graphics, block.K, marker, null, block.S, block.K, block.El), width, firstWidth, baseHeight, wrap, block.S == null ? "" : block.S.Wb);
@@ -3586,7 +3594,12 @@ namespace Lea.Win
         private static bool NeedsFlow(B block)
         {
             var style = block == null ? null : block.S;
-            return block != null && (block.Is.Count > 0 || (style != null && (style.Dr == "r" || style.Ta.Length > 0 || style.Tl.Length > 0 || style.Ti != 0 || style.Ts != null || CustomDecoration(style) || style.Ls != 0 || style.Wg != 0 || style.Lh > 0 || style.Lm > 0 || style.Ws.Length > 0 || style.Wm.Length > 0 || style.Wt.Length > 0 || style.Wb.Length > 0 || style.Ov.Length > 0 || style.Lc > 0)));
+            return block != null && (OutsideListMarker(block) || block.Is.Count > 0 || (style != null && (style.Dr == "r" || style.Ta.Length > 0 || style.Tl.Length > 0 || style.Ti != 0 || style.Ts != null || CustomDecoration(style) || style.Ls != 0 || style.Wg != 0 || style.Lh > 0 || style.Lm > 0 || style.Ws.Length > 0 || style.Wm.Length > 0 || style.Wt.Length > 0 || style.Wb.Length > 0 || style.Ov.Length > 0 || style.Lc > 0)));
+        }
+
+        private static bool OutsideListMarker(B block)
+        {
+            return block != null && block.K == "li" && !String.IsNullOrEmpty(block.Mk) && block.S != null && block.S.Lp == "o";
         }
 
         private static string TextAlignment(S style, string align)

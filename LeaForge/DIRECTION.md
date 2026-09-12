@@ -63,11 +63,12 @@ physical right in RTL. Percentages use the content width, negative values extend
 outward, and later lines return to the normal width. See `TEXT_INDENT.md`.
 
 List and disclosure markers reuse the existing compact `B.Mk` atom. Decimal,
-alpha, Roman, disc, circle, square, nested, and summary markers therefore appear
-at inline-start on the right in RTL and their content continues toward the
-left. `list-style-type:none` emits neither a marker nor its spacer. DOM, link,
-accessibility, and painted-box enumeration remain in authored source order. See
-`LIST_STYLE.md` for marker formats and sequence bounds.
+alpha, Roman, disc, circle, square, nested, and summary markers therefore follow
+horizontal inline-start. In RTL, outside list markers occupy the physical-right
+gutter while inside and disclosure markers begin the line at the right edge;
+content continues toward the left. `list-style-type:none` emits neither a marker
+nor its spacer. DOM, link, accessibility, and painted-box enumeration remain in
+authored source order. See `LIST_STYLE.md` and `LIST_POSITION.md`.
 
 ## Ellipsis And Text Ranges
 

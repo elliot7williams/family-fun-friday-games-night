@@ -245,6 +245,22 @@ namespace Lea.Engine
                 if (!E.Lsv(Expand(page, command.W ?? command.V), out type)) return false;
                 return SetStyle(target, "list-style-type", type);
             }
+            if (command.N == "lp")
+            {
+                var target = StyleTarget(page, command);
+                if (target == null) return false;
+                string position;
+                if (!E.Lpv(Expand(page, command.W ?? command.V), out position)) return false;
+                return SetStyle(target, "list-style-position", position);
+            }
+            if (command.N == "ls")
+            {
+                var target = StyleTarget(page, command);
+                if (target == null) return false;
+                string shorthand;
+                if (!E.Lshv(Expand(page, command.W ?? command.V), out shorthand)) return false;
+                return SetStyle(target, "list-style", shorthand);
+            }
             if (command.N == "ts")
             {
                 var target = StyleTarget(page, command);
@@ -401,6 +417,8 @@ namespace Lea.Engine
             if (member == "style.textwrapstyle") return new Cm("tws", id, value);
             if (member == "style.lineclamp" || member == "style.webkitlineclamp") return new Cm("lc", id, value);
             if (member == "style.liststyletype") return new Cm("lst", id, value);
+            if (member == "style.liststyleposition") return new Cm("lp", id, value);
+            if (member == "style.liststyle") return new Cm("ls", id, value);
             if (member == "style.textshadow") return new Cm("ts", id, value);
             if (member == "style.textdecoration") return new Cm("td", id, value);
             if (member == "style.textdecorationline") return new Cm("tdl", id, value);
@@ -434,6 +452,8 @@ namespace Lea.Engine
             if (count == 1 && (name == "tws" || name == "textwrapstyle")) return new Cm("tws", first);
             if (count == 1 && (name == "lc" || name == "lineclamp")) return new Cm("lc", first);
             if (count == 1 && (name == "lst" || name == "liststyletype")) return new Cm("lst", first);
+            if (count == 1 && (name == "lp" || name == "liststyleposition")) return new Cm("lp", first);
+            if (count == 1 && (name == "ls" || name == "liststyle")) return new Cm("ls", first);
             if (count == 1 && (name == "ts" || name == "textshadow")) return new Cm("ts", first);
             if (count == 1 && (name == "td" || name == "textdecoration")) return new Cm("td", first);
             if (count == 1 && (name == "tdl" || name == "textdecorationline")) return new Cm("tdl", first);
@@ -472,6 +492,8 @@ namespace Lea.Engine
             if (count == 2 && (name == "tws" || name == "textwrapstyle")) return new Cm("tws", first, second);
             if (count == 2 && (name == "lc" || name == "lineclamp")) return new Cm("lc", first, second);
             if (count == 2 && (name == "lst" || name == "liststyletype")) return new Cm("lst", first, second);
+            if (count == 2 && (name == "lp" || name == "liststyleposition")) return new Cm("lp", first, second);
+            if (count == 2 && (name == "ls" || name == "liststyle")) return new Cm("ls", first, second);
             if (count == 2 && (name == "ts" || name == "textshadow")) return new Cm("ts", first, second);
             if (count == 2 && (name == "td" || name == "textdecoration")) return new Cm("td", first, second);
             if (count == 2 && (name == "tdl" || name == "textdecorationline")) return new Cm("tdl", first, second);
@@ -507,6 +529,8 @@ namespace Lea.Engine
             if (name == "document.body.style.textwrapstyle") return new Cm("tws", value);
             if (name == "document.body.style.lineclamp" || name == "document.body.style.webkitlineclamp") return new Cm("lc", value);
             if (name == "document.body.style.liststyletype") return new Cm("lst", value);
+            if (name == "document.body.style.liststyleposition") return new Cm("lp", value);
+            if (name == "document.body.style.liststyle") return new Cm("ls", value);
             if (name == "document.body.style.textshadow") return new Cm("ts", value);
             if (name == "document.body.style.textdecoration") return new Cm("td", value);
             if (name == "document.body.style.textdecorationline") return new Cm("tdl", value);

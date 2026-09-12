@@ -346,20 +346,20 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 101 adds bounded inherited CSS list marker styles through compact
-`S.Lst=n/d/c/s/1/0/a/A/r/R` and the defining `lst` command. CSS
-`list-style-type`, a bounded one-type `list-style` shorthand, HTML list/item
-`type`, ordered `start`/`value`/`reversed`, variables, important tiers,
-CSS-wide values, hover, responsive rebuilds, readable `liststyletype`, and
-literal `style.listStyleType` assignments share existing paths. The retained
-`B.Mk` atom formats common bullets, decimal/leading-zero, alpha rollover, and
-bounded Roman values without a new counter or layout pass. See `LIST_STYLE.md`.
-All 97 probes pass over 92 fixtures; the compiled Firespider host passes all 18
-startup regressions and its full interaction suite. Next investigate another
-bounded HTML/CSS compatibility slice while keeping list images and position,
-`::marker`, custom counters, generated content, vertical writing modes, full
-Unicode bidi shaping, `dir=auto`, and general CSS/JavaScript evaluators outside
-the current boundary.
+Milestone 102 adds bounded inherited CSS list marker position through compact
+`S.Lp=o/i`, defining `lp`, and atomic shorthand `ls`. Outside markers use a
+measured horizontal logical-start gutter without consuming principal line
+width; inside markers remain the first inline atom. CSS `list-style-position`
+and one/two-component `list-style` support independent longhands, shorthand
+reset, either component order, variables, important tiers, CSS-wide values,
+hover, responsive rebuilds, readable commands, and literal DOM assignments.
+See `LIST_POSITION.md`. All 98 probes pass over 93 fixtures; the compiled
+Firespider host passes all 18 startup regressions and its full interaction
+suite. Next investigate another bounded HTML/CSS compatibility slice while
+keeping list images, `::marker`, cross-item gutter alignment, marker-side,
+custom counters, generated content, vertical writing modes, full Unicode bidi
+shaping, `dir=auto`, and general CSS/JavaScript evaluators outside the current
+boundary.
 
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host

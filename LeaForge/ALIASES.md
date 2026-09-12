@@ -35,7 +35,7 @@ read and quick to write.
   redirects or resource requests. Firespider installs it on ordinary and split
   tabs. See `NAVIGATION_POLICY.md` and `SPLIT_VIEW.md` for its callback contract.
 - Page values use one or two letters: `U`, `T`, `H`, `Q`, `D`, `N`, `Bs`, and `Ls`.
-- Page commands use one or two letters where practical: `t`, `a`, `bg`, `fg`, `fs`, `dp`, `wd`, `ht`, `dr`, `ti`, `tw`, `twm`, `tws`, `ta`, `taa`, `tl`, `lc`, `lst`, `ts`, `td`, `uo`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`; text-decoration components and logical edge families stay within three letters.
+- Page commands use one or two letters where practical: `t`, `a`, `bg`, `fg`, `fs`, `dp`, `wd`, `ht`, `dr`, `ti`, `tw`, `twm`, `tws`, `ta`, `taa`, `tl`, `lc`, `ls`, `lst`, `lp`, `ts`, `td`, `uo`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`; text-decoration components and logical edge families stay within three letters.
 - New public aliases should be no more than three letters.
 - `E/V.Hm` reports the 4 MiB document-body ceiling; `E/V.Csm` reports the
   256 KiB linked-stylesheet ceiling. GET/POST input and optional CSS share
@@ -99,6 +99,8 @@ tl("id", "end")   element last-line alignment
 lc("id", "2")     element line clamp
 lst("upper-roman") body list marker style
 lst("id", "square") element list marker style
+lp("id", "inside") element list marker position
+ls("id", "square inside") list style shorthand
 ts("3px 2px #555") body text shadow
 ts("id", "5px 4px 0 #dc2626") element text shadow
 td("underline dashed red 2px") body text decoration
@@ -142,7 +144,7 @@ fo("id")              request focus
 go("next.html")        request host navigation
 ```
 
-The two-argument `bg/fg/fs/dp/wd/ht/dr/ti/tw/twm/tws/ta/taa/tl/lc/lst/ts/td/tdl/tdc/tds/tdw/uo/is/bs`, logical box, logical border, and
+The two-argument `bg/fg/fs/dp/wd/ht/dr/ti/tw/twm/tws/ta/taa/tl/lc/ls/lst/lp/ts/td/tdl/tdc/tds/tdw/uo/is/bs`, logical box, logical border, and
 radius forms
 target one validated ID. Color and font
 forms reuse the same
@@ -376,7 +378,7 @@ document.getElementById("status").style.textAlignLast = "center";
 `style.background/backgroundColor/fontSize/display/width/height/direction/textIndent/textWrap/textWrapMode/textWrapStyle/textAlign/textAlignAll/textAlignLast` are also accepted. IDs and class
 arguments must be quoted literals. Boolean state accepts only literal `true` or
 `false`. The parser translates each accepted statement to the existing
-`tx/vl/ck/ds/en/hd/sh/op/cl/fo/ac/rc/tc/bg/fg/fs/dp/wd/ht/dr/ti/tw/twm/tws/ta/taa/tl/lc/lst` command, so all target, value,
+`tx/vl/ck/ds/en/hd/sh/op/cl/fo/ac/rc/tc/bg/fg/fs/dp/wd/ht/dr/ti/tw/twm/tws/ta/taa/tl/lc/ls/lst/lp` command, so all target, value,
 style, rebuild, focus, and 32-command limits remain unchanged. `innerHTML`,
 selectors, computed IDs or values, event registration, loops, expressions, and
 unknown properties or methods remain inert. See `DOM_BRIDGE.md`.
@@ -818,9 +820,9 @@ writing, and historical WebKit display prerequisites remain outside the
 subset. See `LINE_CLAMP.md` and
 [CSS Overflow Level 4 line-clamp](https://drafts.csswg.org/css-overflow-4/#propdef-line-clamp).
 
-`Lst` is inherited list-marker state. Empty uses HTML defaults; `n/d/c/s/1/0/a/A/r/R`
+`Lst` is inherited list-marker type state. Empty uses HTML defaults; `n/d/c/s/1/0/a/A/r/R`
 mean none, disc, circle, square, decimal, decimal-leading-zero, lower/upper
-alpha, and lower/upper Roman. CSS `list-style-type` and Lea's one-value
+alpha, and lower/upper Roman. CSS `list-style-type` and Lea's bounded
 `list-style` shorthand share variables, priority, CSS-wide values, hover, media,
 and invalid preservation. `lst(value)` and `lst(id,value)`, readable
 `liststyletype`, and literal `style.listStyleType` assignments use the same
@@ -829,7 +831,12 @@ keeps it empty and adds no spacer. HTML list/per-item `type`, ordered `start`,
 `value`, and `reversed` are supported. Integers are bounded to -999999 through
 999999 and stepping saturates in either direction. Alpha rolls over after `z`;
 Roman output is bounded to 1..3999 and otherwise falls back to decimal. Nested
-lists count only direct items. See `LIST_STYLE.md`.
+lists count only direct items. `Lp=o/i` separately stores inherited outside or
+inside position. Defining `lp`, readable `liststyleposition`, and literal
+`style.listStylePosition` change only position. Atomic `ls`/`liststyle` and
+literal `style.listStyle` accept one type, one position, or both in either order
+and reset omitted components. Outside uses a measured logical-start gutter;
+inside consumes first-line width. See `LIST_STYLE.md` and `LIST_POSITION.md`.
 
 Disclosure state stays equally compact. A `details` node uses `N.Op` for its
 page-local open state. Its first direct `summary` block uses `B.Mk` as `>` when

@@ -1,0 +1,107 @@
+<!doctype html>
+<html>
+<head>
+  <title>Lea List Position</title>
+  <style>
+    :root { --marker-position: inside; }
+    body { background: #f8fbff; color: #172033; font-family: "Segoe UI", sans-serif; }
+    h1 { color: #0f5f4c; }
+    li { width: 170px; margin-left: 70px; padding: 2px; }
+    #inside { list-style-position: inside; }
+    #outside { list-style-position: outside; }
+    #type-parent { list-style-position: inside; }
+    #type-only { list-style-type: upper-alpha; }
+    #position-only { list-style-type: lower-roman; list-style-position: inside; }
+    #shorthand-both { list-style: lower-alpha inside; }
+    #shorthand-order { list-style: inside square; }
+    #shorthand-type-reset { list-style-position: inside; list-style: upper-alpha; }
+    #shorthand-position-reset { list-style-type: lower-roman; list-style: inside; }
+    #inherit-parent, #unset-parent, #revert-parent { list-style-position: inside; }
+    #inherit { list-style-position: outside; list-style-position: inherit; }
+    #initial { list-style-position: inside; list-style-position: initial; }
+    #unset { list-style-position: outside; list-style-position: unset; }
+    #revert { list-style-position: outside; list-style-position: revert; }
+    #variable { list-style-position: var(--marker-position); }
+    #important { list-style-position: inside !important; list-style-position: outside; }
+    #invalid { list-style-position: inside; list-style-position: sideways; }
+    #invalid-shorthand { list-style-type: circle; list-style-position: inside; list-style: square inside outside; }
+    #outside-wrap, #inside-wrap { width: 118px; }
+    #inside-wrap { list-style-position: inside; }
+    #rtl-outside, #rtl-inside { direction: rtl; }
+    #rtl-inside { list-style-position: inside; }
+    #none-inside { list-style: none inside; }
+    #dynamic { list-style-position: outside; }
+    #dynamic:hover { list-style-position: inside; }
+    #responsive { list-style-position: outside; }
+    #command-position { list-style-position: outside; }
+    #command-readable { list-style-position: inside; }
+    #command-shorthand { list-style: lower-alpha outside; }
+    #command-dom { list-style-position: outside; }
+    #command-dom-shorthand { list-style: circle outside; }
+    #cell-position { list-style: upper-alpha outside; }
+    @media screen and (max-width: 400px) {
+      #responsive { list-style-position: inside; }
+    }
+  </style>
+</head>
+<body>
+  <h1>List marker position</h1>
+
+  <ol>
+    <li id="default-position">Default outside marker</li>
+    <li id="inside">Inside marker</li>
+    <li id="outside">Explicit outside marker</li>
+  </ol>
+  <ol id="type-parent">
+    <li id="type-only">Type longhand preserves inherited position</li>
+  </ol>
+  <ol start="4"><li id="position-only">Position longhand preserves type</li></ol>
+  <ol start="27">
+    <li id="shorthand-both">Shorthand type then position</li>
+    <li id="shorthand-order">Shorthand position then type</li>
+    <li id="shorthand-type-reset">Type-only shorthand resets position</li>
+    <li id="shorthand-position-reset">Position-only shorthand resets type</li>
+  </ol>
+
+  <ul id="inherit-parent"><li id="inherit">Inherited inside position</li></ul>
+  <ul><li id="initial">Initial outside position</li></ul>
+  <ul id="unset-parent"><li id="unset">Unset inherits inside position</li></ul>
+  <ul id="revert-parent"><li id="revert">Revert restores inherited position</li></ul>
+  <ul>
+    <li id="variable">Variable inside position</li>
+    <li id="important">Important inside position</li>
+    <li id="invalid">Invalid longhand preserves inside</li>
+    <li id="invalid-shorthand">Invalid shorthand preserves both components</li>
+  </ul>
+
+  <ol start="8">
+    <li id="outside-wrap"><strong>Outside</strong> marker leaves the full first line available for wrapping.</li>
+    <li id="inside-wrap"><strong>Inside</strong> marker participates in the first line and its wrapping width.</li>
+  </ol>
+  <ol start="3">
+    <li id="rtl-outside"><strong>RTLOutside</strong> marker sits beyond physical right.</li>
+    <li id="rtl-inside"><strong>RTLInside</strong> marker begins the principal line.</li>
+  </ol>
+  <ul><li id="none-inside">No marker and no marker spacer</li></ul>
+
+  <ul>
+    <li id="dynamic"><strong>Hover</strong> moves this marker inside</li>
+    <li id="responsive"><strong>Responsive</strong> marker position</li>
+  </ul>
+  <ol>
+    <li id="command-position">Compact position command <input id="position-field" value="Retained position field"></li>
+    <li id="command-readable">Readable position command</li>
+    <li id="command-shorthand">Compact shorthand command</li>
+    <li id="command-dom">Literal position command</li>
+    <li id="command-dom-shorthand">Literal shorthand command</li>
+  </ol>
+  <button id="set-position" data-lea="lp('command-position','inside')">Set position</button>
+  <button id="set-readable" data-lea="liststyleposition('command-readable','outside')">Set readable position</button>
+  <button id="set-shorthand" data-lea="ls('command-shorthand','upper-roman inside')">Set shorthand</button>
+  <button id="set-dom" data-lea="document.getElementById('command-dom').style.listStylePosition='inside'">Set DOM position</button>
+  <button id="set-dom-shorthand" data-lea="document.getElementById('command-dom-shorthand').style.listStyle='upper-alpha inside'">Set DOM shorthand</button>
+  <button id="clear-dom" data-lea="document.getElementById('command-dom').style.listStylePosition=''">Clear DOM position</button>
+
+  <table><tr><td><ol start="5"><li id="cell-position">Table outside marker</li></ol></td></tr></table>
+</body>
+</html>

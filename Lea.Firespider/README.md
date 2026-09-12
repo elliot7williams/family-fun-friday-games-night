@@ -603,6 +603,14 @@ replacement. Lea formats and places the existing `B.Mk` atom; Firespider adds
 no counter, parser, adapter state, layout branch, or extra control. See
 `LeaForge/LIST_STYLE.md`.
 
+Hosted list markers now expose inherited outside/inside position through
+`S.Lp=o/i`. The compiled host verifies a CSS type/position shorthand, LTR
+outside gutter and inside first-line geometry, compact `lp`, literal
+`style.listStyle`, type-only independence, responsive position replacement,
+and retained fields. Lea owns the measured gutter and shorthand reset;
+Firespider adds no parser, counter, adapter state, layout branch, or control.
+See `LeaForge/LIST_POSITION.md`.
+
 Hosted text alignment now exposes the bounded shorthand/all/last family through
 `S.Ta/Tl`. The compiled host verifies `justify-all`, retained logical RTL
 state, compact `ta/taa/tl`, literal `style.textAlign`, shorthand reset,

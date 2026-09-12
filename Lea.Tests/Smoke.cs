@@ -86,6 +86,11 @@ namespace Lea.Tests
                     ListStyleSmoke(Path.Combine(pages, "list-style.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--list-position")
+                {
+                    ListPositionSmoke(Path.Combine(pages, "list-position.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--text-align-last")
                 {
                     TextAlignLastSmoke(Path.Combine(pages, "text-align-last.html"));
@@ -838,20 +843,20 @@ namespace Lea.Tests
                         var orderedContent = BlockRect(directionInlineView, ordered);
                         var orderedMarker = InlineTextRect(directionInlineView, ordered, "7.");
                         var orderedText = InlineElementRect(directionInlineView, "seven-text");
-                        Eq(orderedContent.Right, orderedMarker.Right, "RTL ordered marker starts at the right edge");
-                        Ok(orderedMarker.Left > orderedText.Left, "RTL ordered content follows its marker toward the left");
+                        Ok(orderedMarker.Left > orderedContent.Right && orderedText.Right == orderedContent.Right,
+                            "RTL ordered outside marker occupies the right gutter");
                         var nested = BlockById(directionInlineView.At, "rtl-minus");
                         var nestedContent = BlockRect(directionInlineView, nested);
                         var nestedMarker = InlineTextRect(directionInlineView, nested, "-2.");
-                        Eq(nestedContent.Right, nestedMarker.Right, "nested RTL marker restarts at inline start");
+                        Ok(nestedMarker.Left > nestedContent.Right, "nested RTL outside marker occupies its own gutter");
                         Ok(nestedContent.Right < orderedContent.Right, "nested RTL list uses logical start indentation");
 
                         var bullet = BlockById(directionInlineView.At, "rtl-bullet");
                         var bulletContent = BlockRect(directionInlineView, bullet);
                         var bulletMarker = InlineTextRect(directionInlineView, bullet, "\u2022");
                         var bulletText = InlineTextRect(directionInlineView, bullet, "Plain");
-                        Eq(bulletContent.Right, bulletMarker.Right, "RTL unordered marker starts at the right edge");
-                        Ok(bulletMarker.Left > bulletText.Left, "plain RTL list content follows its marker");
+                        Ok(bulletMarker.Left > bulletContent.Right && bulletText.Right == bulletContent.Right,
+                            "RTL unordered outside marker occupies the right gutter");
 
                         var cell = BlockById(directionInlineView.At, "rtl-cell");
                         var cellEndBlock = BlockById(directionInlineView.At, "cell-end");
@@ -2442,6 +2447,7 @@ namespace Lea.Tests
                 TextOverflowSmoke(Path.Combine(pages, "text-overflow.html"));
                 LineClampSmoke(Path.Combine(pages, "line-clamp.html"));
                 ListStyleSmoke(Path.Combine(pages, "list-style.html"));
+                ListPositionSmoke(Path.Combine(pages, "list-position.html"));
 
                 var recoveryPath = Path.Combine(pages, "recovery.html");
                 var recoveryPage = engine.Go(recoveryPath);
@@ -5703,10 +5709,10 @@ namespace Lea.Tests
                     Paint(view);
                     var listWideLines = TextLines(view, BlockById(view.At, "wrap")).Length;
                     Ok(BlockRect(view, BlockById(view.At, "minus-two")).Left > BlockRect(view, BlockById(view.At, "parent")).Left, "nested list indentation");
-                    Ok(PaintedText(view, BlockById(view.At, "three")).StartsWith("3. ", StringComparison.Ordinal), "ordered marker paints on plain flow");
-                    Ok(PaintedText(view, BlockById(view.At, "four")).StartsWith("4. ", StringComparison.Ordinal), "ordered marker paints on inline flow");
-                    Ok(PaintedText(view, BlockById(view.At, "bullet-two")).StartsWith("\u2022 ", StringComparison.Ordinal), "unordered marker paints on inline flow");
-                    Ok(PaintedText(view, BlockById(view.At, "minus-ten")).StartsWith("-10. ", StringComparison.Ordinal), "nested value marker paints");
+                    Ok(PaintedText(view, BlockById(view.At, "three")).StartsWith("3.", StringComparison.Ordinal), "ordered outside marker paints on plain flow");
+                    Ok(PaintedText(view, BlockById(view.At, "four")).StartsWith("4.", StringComparison.Ordinal), "ordered outside marker paints on inline flow");
+                    Ok(PaintedText(view, BlockById(view.At, "bullet-two")).StartsWith("\u2022", StringComparison.Ordinal), "unordered outside marker paints on inline flow");
+                    Ok(PaintedText(view, BlockById(view.At, "minus-ten")).StartsWith("-10.", StringComparison.Ordinal), "nested outside value marker paints");
                     Ok(LinkBoxes(view, "second.html") > 0, "list marker keeps inline link hit boxes");
                     using (var listPaint = Render(view))
                         Ok(ColorDistance(listPaint.GetPixel(2, 2), Color.FromArgb(247, 251, 255)) < 4, "list fixture paints page background");
@@ -7997,10 +8003,10 @@ namespace Lea.Tests
                 block("revert").S.Lst == "A" && block("revert").Mk == "E.",
                 "list style inherited and CSS-wide cascade");
             Ok(block("invalid").S.Lst == "s" && block("invalid").Mk == "\u25aa" &&
-                block("invalid-shorthand").S.Lst == "c" && block("invalid-shorthand").Mk == "\u25e6" &&
+                block("invalid-shorthand").S.Lst == "s" && block("invalid-shorthand").S.Lp == "i" && block("invalid-shorthand").Mk == "\u25aa" &&
                 block("variable").S.Lst == "r" && block("variable").Mk == "v." &&
                 block("important").S.Lst == "A" && block("important").Mk == "F.",
-                "list style invalid preservation, variable, and important cascade");
+                "list style invalid longhand, composed shorthand, variable, and important cascade");
 
             Ok(block("html-z").S.Lst == "A" && block("html-z").Mk == "Z." && block("html-aa").Mk == "AA." &&
                 block("html-item-roman").S.Lst == "r" && block("html-item-roman").Mk == "iv." &&
@@ -8050,44 +8056,186 @@ namespace Lea.Tests
                 Rectangle dynamicRect;
                 using (var paint = Render(view))
                 {
-                    Ok(PaintedText(view, BlockById(view.At, "default")).StartsWith("\u2022 ", StringComparison.Ordinal), "default disc marker paints");
-                    Ok(PaintedText(view, BlockById(view.At, "lower-aa")).StartsWith("aa. ", StringComparison.Ordinal), "alphabetic rollover marker paints");
-                    Ok(PaintedText(view, BlockById(view.At, "upper-roman")).StartsWith("IX. ", StringComparison.Ordinal), "Roman marker paints");
+                    Ok(PaintedText(view, BlockById(view.At, "default")).StartsWith("\u2022", StringComparison.Ordinal), "default outside disc marker paints");
+                    Ok(PaintedText(view, BlockById(view.At, "lower-aa")).StartsWith("aa.", StringComparison.Ordinal), "outside alphabetic rollover marker paints");
+                    Ok(PaintedText(view, BlockById(view.At, "upper-roman")).StartsWith("IX.", StringComparison.Ordinal), "outside Roman marker paints");
                     Ok(PaintedText(view, BlockById(view.At, "none")) == "No marker", "none suppresses marker and spacer");
                     Eq(0, TextLines(view, BlockById(view.At, "none")).Length, "none keeps the compact one-box text path");
                     var rtlContent = BlockRect(view, BlockById(view.At, "rtl"));
-                    Eq(rtlContent.Right, InlineTextRect(view, BlockById(view.At, "rtl"), "IV.").Right, "RTL marker starts at physical right");
+                    Ok(InlineTextRect(view, BlockById(view.At, "rtl"), "IV.").Left > rtlContent.Right, "RTL outside marker occupies the physical-right gutter");
                     Ok(!HitRect(view, "second.html").IsEmpty, "styled list link keeps pointer target");
-                    Ok(PaintedText(view, BlockById(view.At, "cell")).StartsWith("E. ", StringComparison.Ordinal), "table marker paints");
+                    Ok(PaintedText(view, BlockById(view.At, "cell")).StartsWith("E.", StringComparison.Ordinal), "outside table marker paints");
                     dynamicRect = BlockOuterRect(view, BlockById(view.At, "dynamic"));
                 }
 
                 retained.V = "Retained after marker command";
                 Eq(1, view.Js("lst('command','upper-alpha')"), "list style view command");
                 using (var paint = Render(view))
-                    Ok(PaintedText(view, BlockById(view.At, "command")).StartsWith("B. ", StringComparison.Ordinal), "list style view command reaches paint");
+                    Ok(PaintedText(view, BlockById(view.At, "command")).StartsWith("B.", StringComparison.Ordinal), "list style view command reaches outside-marker paint");
                 Ok(Object.ReferenceEquals(retained, FieldById(view.At, "field")) && retained.V == "Retained after marker command",
                     "list style view command retains field value");
 
                 Move(view, dynamicRect);
                 using (var paint = Render(view))
-                    Ok(PaintedText(view, BlockById(view.At, "dynamic")).StartsWith("\u25aa ", StringComparison.Ordinal), "list style hover repaints marker");
+                    Ok(PaintedText(view, BlockById(view.At, "dynamic")).StartsWith("\u25aa", StringComparison.Ordinal), "list style hover repaints outside marker");
                 Move(view, new Point(0, 0));
                 using (var paint = Render(view))
-                    Ok(PaintedText(view, BlockById(view.At, "dynamic")).StartsWith("\u25e6 ", StringComparison.Ordinal), "list style hover restores marker");
+                    Ok(PaintedText(view, BlockById(view.At, "dynamic")).StartsWith("\u25e6", StringComparison.Ordinal), "list style hover restores outside marker");
 
                 retained.V = "Retained after marker resize";
                 view.Size = new Size(350, 6400);
                 Application.DoEvents();
                 using (var paint = Render(view))
                 {
-                    Ok(PaintedText(view, BlockById(view.At, "responsive")).StartsWith("\u25aa ", StringComparison.Ordinal), "responsive list marker repaints");
+                    Ok(PaintedText(view, BlockById(view.At, "responsive")).StartsWith("\u25aa", StringComparison.Ordinal), "responsive outside list marker repaints");
                     Ok(Object.ReferenceEquals(retained, FieldById(view.At, "field")) && retained.V == "Retained after marker resize",
                         "list style resize retains field value");
                     Ok(!BlockOuterRect(view, BlockById(view.At, "cell")).IsEmpty, "list style following table remains laid out");
                 }
             }
             Console.WriteLine("Lea list style smoke passed: compact types, HTML hints, reversed numbering, cascade, aliases, tables, RTL, paint, hover, commands, and resize.");
+        }
+
+        private static void ListPositionSmoke(string path)
+        {
+            var engine = new E { Vw = 720 };
+            var page = engine.Go(path);
+            Func<string, B> block = id => BlockById(page, id);
+
+            Eq("o", page.S.Lp, "list position body default compact state");
+            Ok(block("default-position").S.Lp == "o" && block("outside").S.Lp == "o" && block("inside").S.Lp == "i",
+                "list position outside and inside state");
+            Ok(block("type-only").S.Lst == "A" && block("type-only").S.Lp == "i" &&
+                block("position-only").S.Lst == "r" && block("position-only").S.Lp == "i",
+                "list type and position longhands remain independent");
+            Ok(block("shorthand-both").S.Lst == "a" && block("shorthand-both").S.Lp == "i" &&
+                block("shorthand-order").S.Lst == "s" && block("shorthand-order").S.Lp == "i",
+                "list shorthand accepts either component order");
+            Ok(block("shorthand-type-reset").S.Lst == "A" && block("shorthand-type-reset").S.Lp == "o" &&
+                block("shorthand-position-reset").S.Lst == "d" && block("shorthand-position-reset").S.Lp == "i",
+                "list shorthand resets omitted components");
+            Ok(block("inherit").S.Lp == "i" && block("initial").S.Lp == "o" && block("unset").S.Lp == "i" && block("revert").S.Lp == "i",
+                "list position CSS-wide cascade");
+            Ok(block("variable").S.Lp == "i" && block("important").S.Lp == "i" && block("invalid").S.Lp == "i" &&
+                block("invalid-shorthand").S.Lst == "c" && block("invalid-shorthand").S.Lp == "i",
+                "list position variable, priority, and invalid preservation");
+            Ok(block("none-inside").S.Lst == "n" && block("none-inside").S.Lp == "i" && block("none-inside").Mk.Length == 0,
+                "list shorthand none and inside state");
+            Ok(block("rtl-outside").S.Dr == "r" && block("rtl-outside").S.Lp == "o" && block("rtl-inside").S.Lp == "i",
+                "list position RTL model");
+
+            var retained = FieldById(page, "position-field");
+            engine.Dy(page, ById(page.D, "dynamic"), null);
+            Eq("i", block("dynamic").S.Lp, "list position hover cascade");
+            engine.Dy(page, null, null);
+            Eq("o", block("dynamic").S.Lp, "list position hover restore");
+            engine.Vw = 350;
+            Ok(block("responsive").S.Lp == "i" && Object.ReferenceEquals(retained, FieldById(page, "position-field")),
+                "list position media rebuild and field retention");
+
+            Eq(1, engine.Ck(page, ById(page.D, "set-position")), "compact list position command");
+            Eq("i", block("command-position").S.Lp, "compact list position command model");
+            Eq(1, engine.Ck(page, ById(page.D, "set-readable")), "readable list position command");
+            Eq("o", block("command-readable").S.Lp, "readable list position command model");
+            Eq(1, engine.Ck(page, ById(page.D, "set-shorthand")), "compact list shorthand command");
+            Ok(block("command-shorthand").S.Lst == "R" && block("command-shorthand").S.Lp == "i",
+                "compact list shorthand command model");
+            Eq(1, engine.Ck(page, ById(page.D, "set-dom")), "literal list position command");
+            Eq("i", block("command-dom").S.Lp, "literal list position command model");
+            Eq(1, engine.Ck(page, ById(page.D, "set-dom-shorthand")), "literal list shorthand command");
+            Ok(block("command-dom-shorthand").S.Lst == "A" && block("command-dom-shorthand").S.Lp == "i",
+                "literal list shorthand command model");
+            Eq(1, engine.Ck(page, ById(page.D, "clear-dom")), "literal list position clear");
+            Eq("o", block("command-dom").S.Lp, "literal list position clear restores CSS");
+            Eq(0, engine.Js(page, "lp('command-position','sideways');ls('command-shorthand','inside outside');liststyle('command-shorthand','circle square')"),
+                "invalid list position and shorthand commands rejected");
+            Ok(block("command-position").S.Lp == "i" && block("command-shorthand").S.Lst == "R" && block("command-shorthand").S.Lp == "i",
+                "invalid list commands preserve state");
+            Eq(1, engine.Js(page, "lp('inside')"), "body compact list position command");
+            Ok(page.S.Lp == "i" && block("default-position").S.Lp == "i", "body compact list position inheritance");
+            Eq(1, engine.Js(page, "document.body.style.listStyle='upper-roman outside'"), "body literal list shorthand command");
+            Ok(page.S.Lst == "R" && page.S.Lp == "o" && block("default-position").S.Lst == "R" && block("default-position").S.Lp == "o",
+                "body literal list shorthand model");
+            Ok(Object.ReferenceEquals(retained, FieldById(page, "position-field")), "list position commands retain field identity");
+
+            using (var view = new V())
+            {
+                view.Size = new Size(720, 5600);
+                view.CreateControl();
+                view.Go(path);
+                retained = FieldById(view.At, "position-field");
+                Rectangle dynamicOuter;
+                using (var paint = Render(view))
+                {
+                    var outsideBlock = BlockById(view.At, "outside-wrap");
+                    var outsideContent = BlockRect(view, outsideBlock);
+                    var outsideMarker = InlineTextRect(view, outsideBlock, "8.");
+                    var outsideText = InlineTextRect(view, outsideBlock, "Outside");
+                    Ok(outsideMarker.Right < outsideContent.Left && outsideText.Left == outsideContent.Left,
+                        "outside marker occupies the LTR marker gutter");
+
+                    var insideBlock = BlockById(view.At, "inside-wrap");
+                    var insideContent = BlockRect(view, insideBlock);
+                    var insideMarker = InlineTextRect(view, insideBlock, "9.");
+                    var insideText = InlineTextRect(view, insideBlock, "Inside");
+                    Ok(insideMarker.Left == insideContent.Left && insideText.Left > insideMarker.Right,
+                        "inside marker participates in the principal LTR line");
+
+                    var rtlOutside = BlockById(view.At, "rtl-outside");
+                    var rtlOutsideContent = BlockRect(view, rtlOutside);
+                    var rtlOutsideMarker = InlineTextRect(view, rtlOutside, "3.");
+                    var rtlOutsideText = InlineTextRect(view, rtlOutside, "RTLOutside");
+                    Ok(rtlOutsideMarker.Left > rtlOutsideContent.Right && rtlOutsideText.Right == rtlOutsideContent.Right,
+                        "outside marker occupies the RTL marker gutter");
+
+                    var rtlInside = BlockById(view.At, "rtl-inside");
+                    var rtlInsideContent = BlockRect(view, rtlInside);
+                    var rtlInsideMarker = InlineTextRect(view, rtlInside, "4.");
+                    var rtlInsideText = InlineTextRect(view, rtlInside, "RTLInside");
+                    Ok(rtlInsideMarker.Right == rtlInsideContent.Right && rtlInsideText.Right < rtlInsideMarker.Left,
+                        "inside marker participates in the principal RTL line");
+
+                    Ok(PaintedText(view, BlockById(view.At, "none-inside")) == "No marker and no marker spacer" &&
+                        TextLines(view, BlockById(view.At, "none-inside")).Length == 0,
+                        "none inside retains the no-marker one-box path");
+                    var cell = BlockById(view.At, "cell-position");
+                    Ok(InlineTextRect(view, cell, "E.").Right < BlockRect(view, cell).Left, "outside marker works in a table cell");
+                    dynamicOuter = BlockOuterRect(view, BlockById(view.At, "dynamic"));
+                }
+
+                retained.V = "Retained after position command";
+                Eq(1, view.Js("lp('command-position','inside')"), "view compact list position command");
+                using (var paint = Render(view))
+                {
+                    var command = BlockById(view.At, "command-position");
+                    Ok(command.S.Lp == "i" && InlineTextRect(view, command, "1.").Left == BlockRect(view, command).Left,
+                        "view list position command reaches geometry");
+                }
+                Ok(Object.ReferenceEquals(retained, FieldById(view.At, "position-field")) && retained.V == "Retained after position command",
+                    "view list position command retains field value");
+
+                Move(view, dynamicOuter);
+                using (var paint = Render(view))
+                {
+                    var dynamic = BlockById(view.At, "dynamic");
+                    Ok(dynamic.S.Lp == "i" && InlineTextRect(view, dynamic, "•").Left == BlockRect(view, dynamic).Left,
+                        "list position hover moves marker inside");
+                }
+                Move(view, new Point(0, 0));
+
+                retained.V = "Retained after position resize";
+                view.Size = new Size(350, 5600);
+                Application.DoEvents();
+                using (var paint = Render(view))
+                {
+                    var responsive = BlockById(view.At, "responsive");
+                    Ok(responsive.S.Lp == "i" && InlineTextRect(view, responsive, "•").Left == BlockRect(view, responsive).Left,
+                        "responsive list position reaches geometry");
+                    Ok(Object.ReferenceEquals(retained, FieldById(view.At, "position-field")) && retained.V == "Retained after position resize",
+                        "list position resize retains field value");
+                }
+            }
+            Console.WriteLine("Lea list position smoke passed: compact inside/outside state, atomic shorthand, cascade, LTR/RTL gutters, tables, hover, commands, and resize.");
         }
 
         private static void LineClampSmoke(string path)

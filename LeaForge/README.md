@@ -101,10 +101,14 @@ LeaForge is where we can grow the more full-featured browser.
   `S.Lc=0/1..32` and defining `lc`, with grapheme-safe LTR/RTL markers, reduced
   flow height, hidden hit removal, full logical text, and literal DOM support;
   see `LINE_CLAMP.md`
-- bounded inherited `list-style-type` and one-type `list-style` through compact
+- bounded inherited `list-style-type` and type/position `list-style` through compact
   `S.Lst=n/d/c/s/1/0/a/A/r/R` and defining `lst`, with HTML type/reversed/start/
   value support, bounded bullet/decimal/alpha/Roman formatting, RTL markers,
   no-marker spacing suppression, and literal DOM support; see `LIST_STYLE.md`
+- bounded inherited `list-style-position` through compact `S.Lp=o/i`, `lp`, and
+  atomic type/position `ls`, with true outside logical gutters, inside first-line
+  participation, shorthand reset/order, LTR/RTL geometry, and literal DOM
+  support; see `LIST_POSITION.md`
 - inherited left/center/right/justify alignment and pixel/relative line spacing
 - external stylesheets with document-order cascade and shared bounded caching
 - compiled relationship, attribute, structural, link, and form-state selectors,
@@ -222,6 +226,8 @@ dp("id", "none") element display
 wd("id", "50%")  element width
 ht("id", "50%")  element height
 lst("id", "lower-alpha") element list marker style
+lp("id", "inside") element marker position
+ls("id", "upper-roman outside") list style shorthand
 dr("rtl")         body direction
 dr("id", "rtl")  element direction
 mi("id", "8px 12px") inline margin

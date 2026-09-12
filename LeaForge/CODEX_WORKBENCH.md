@@ -17,20 +17,21 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 101 adds bounded inherited list marker styles through compact
-`S.Lst=n/d/c/s/1/0/a/A/r/R` state and the defining `lst` alias. CSS
-`list-style-type`, the bounded one-type `list-style` shorthand, HTML `type`,
-ordered `start`/`value`/`reversed`, readable `liststyletype`, and literal
-`style.listStyleType` routes share Lea's existing cascade, list sequencing,
-retained rebuild, and inline marker atom. The focused engine suite and full
+Milestone 102 adds bounded inherited list marker position through compact
+`S.Lp=o/i`, defining `lp`, and atomic `ls` shorthand aliases. The default
+outside marker now occupies a measured logical-start gutter while content keeps
+its full first-line width; inside remains the first inline atom and participates
+in wrapping. CSS `list-style-position`, one/two-component `list-style`, readable
+commands, literal DOM routes, CSS-wide values, variables, priority, hover, and
+media replacement share existing paths. The focused engine suite and full
 compiled Firespider host are green, including all 18 startup regressions. All
-97 benchmark probes pass over 92 fixtures. Three-round diagnostic medians are
-759.838 ms clean start, 4.989 ms local load, and 42.719 ms layout/paint;
-retained memory is 56.8 KiB/page and the required runtime is 588.0 KiB. Runtime
-201 remains isolated, and installed runtime 157 is unchanged. See
-`LIST_STYLE.md`. Images, marker position, `::marker`, custom counters, generated
-content, vertical writing, full Unicode bidi shaping, and general CSS/JavaScript
-evaluation stay outside this milestone.
+98 benchmark probes pass over 93 fixtures. Three-round diagnostic medians are
+1,050.391 ms clean start, 4.666 ms local load, and 37.792 ms layout/paint;
+retained memory is 57.5 KiB/page and the required runtime is 590.5 KiB. Runtime
+202 remains isolated, and installed runtime 157 is unchanged. See
+`LIST_POSITION.md`. Marker images, `::marker`, cross-item gutter alignment,
+custom counters, generated content, vertical writing, full Unicode bidi shaping,
+and general CSS/JavaScript evaluation stay outside this milestone.
 
 Milestone 60 installs the existing `V.Ng` hook on main Lea tabs, enforcing host
 rules, offline/locked state, and live ownership. Denied resume retains its

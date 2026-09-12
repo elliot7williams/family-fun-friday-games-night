@@ -3518,7 +3518,9 @@ namespace Lea.Engine
                 else if (name == "overflow") Overflow(style, value);
                 else if (name == "text-overflow") TextOverflow(style, inherited, value);
                 else if (name == "line-clamp" || name == "-webkit-line-clamp") LineClamp(style, inherited, value);
-                else if (name == "list-style-type" || name == "list-style") ListStyleType(style, inherited, value);
+                else if (name == "list-style-type") ListStyleType(style, inherited, value);
+                else if (name == "list-style-position") ListStylePosition(style, inherited, value);
+                else if (name == "list-style") ListStyle(style, inherited, value);
                 else if (name == "cursor") CursorStyle(style, value);
                 else if (name == "pointer-events") PointerEvents(style, value);
                 else if (name == "object-fit") ObjectFit(style, value);
@@ -5313,8 +5315,78 @@ namespace Lea.Engine
         internal static bool Lsv(string value, out string type)
         {
             type = (value ?? "").Trim().ToLowerInvariant();
-            if (type.Length == 0 || type == "initial" || type == "inherit" || type == "unset" || type == "revert" || type == "revert-layer") return true;
+            if (type.Length == 0 || ListStyleWide(type)) return true;
             return ListStyleCode(type) != null;
+        }
+
+        private static void ListStylePosition(S style, S inherited, string value)
+        {
+            string position;
+            if (!Lpv(value, out position) || position.Length == 0) return;
+            if (position == "inherit" || position == "unset" || position == "revert" || position == "revert-layer")
+                style.Lp = inherited == null ? "o" : inherited.Lp;
+            else style.Lp = position == "inside" ? "i" : "o";
+        }
+
+        internal static bool Lpv(string value, out string position)
+        {
+            position = (value ?? "").Trim().ToLowerInvariant();
+            return position.Length == 0 || position == "inside" || position == "outside" || ListStyleWide(position);
+        }
+
+        private static void ListStyle(S style, S inherited, string value)
+        {
+            var shorthand = (value ?? "").Trim().ToLowerInvariant();
+            string type;
+            string position;
+            if (shorthand.Length == 0 || !ListStyleParts(shorthand, out type, out position)) return;
+            if (ListStyleWide(shorthand))
+            {
+                ListStyleType(style, inherited, shorthand);
+                ListStylePosition(style, inherited, shorthand);
+                return;
+            }
+            style.Lst = type.Length == 0 ? "d" : ListStyleCode(type);
+            style.Lp = position == "inside" ? "i" : "o";
+        }
+
+        internal static bool Lshv(string value, out string shorthand)
+        {
+            shorthand = (value ?? "").Trim().ToLowerInvariant();
+            if (shorthand.Length == 0) return true;
+            string type;
+            string position;
+            return ListStyleParts(shorthand, out type, out position);
+        }
+
+        private static bool ListStyleParts(string value, out string type, out string position)
+        {
+            type = "";
+            position = "";
+            if (value.Length > 64) return false;
+            if (ListStyleWide(value)) return true;
+            var parts = Regex.Split(value, "\\s+");
+            if (parts.Length == 0 || parts.Length > 2) return false;
+            foreach (var part in parts)
+            {
+                if (part == "inside" || part == "outside")
+                {
+                    if (position.Length > 0) return false;
+                    position = part;
+                }
+                else if (ListStyleCode(part) != null)
+                {
+                    if (type.Length > 0) return false;
+                    type = part;
+                }
+                else return false;
+            }
+            return type.Length > 0 || position.Length > 0;
+        }
+
+        private static bool ListStyleWide(string value)
+        {
+            return value == "initial" || value == "inherit" || value == "unset" || value == "revert" || value == "revert-layer";
         }
 
         private static string ListStyleCode(string type)

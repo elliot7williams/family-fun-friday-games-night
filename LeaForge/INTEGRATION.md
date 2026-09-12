@@ -332,13 +332,21 @@ or submit literal `style.lineClamp`/`style.webkitLineClamp` assignments. No
 adapter parsing or extra control is required. See `LINE_CLAMP.md`.
 
 Inherited `S.Lst` exposes list marker style through one-character codes.
-`list-style-type`, a bounded one-type `list-style` shorthand, HTML list/item
+`list-style-type`, a bounded list shorthand, HTML list/item
 `type`, and ordered `start`/`value`/`reversed` compile into the existing
 paint-ready `B.Mk`. Hosts can call `lst(value)` or `lst(id,value)`, use readable
 `liststyletype`, or submit literal `style.listStyleType` assignments. Marker
 formatting and RTL placement remain engine-owned, `none` adds no spacer, and no
 adapter counter, parser, layout pass, or control is required. See
 `LIST_STYLE.md`.
+
+Inherited `S.Lp=o/i` adds real outside/inside marker layout. Outside markers
+occupy a measured logical-start gutter and leave full first-line content width;
+inside markers use the existing first-inline-atom path. Hosts can call
+`lp(value)`/`lp(id,value)` for position or `ls(value)`/`ls(id,value)` for the
+atomic type/position shorthand. Readable `liststyleposition`/`liststyle` and
+literal `style.listStylePosition`/`style.listStyle` assignments need no adapter
+parser or geometry. See `LIST_POSITION.md`.
 
 `S.Ws` carries compact `n/nw/p/pw/pl` white-space modes. Lea preserves explicit
 spaces and line breaks for `pre`/`pre-wrap`, keeps line breaks while collapsing
@@ -851,7 +859,7 @@ and 16 alerts.
 
 For easier migration, literal `document.getElementById("id")` statements map
 `textContent/innerText`, `value`, checked/disabled/hidden/open booleans,
-`focus()`, `classList.add/remove/toggle`, and background/color/font-size/display/width/direction/text-indent/text-wrap/text-wrap-mode/text-wrap-style/line-clamp/list-style-type/text-align/text-align-all/text-align-last/text-decoration/text-underline-offset/text-shadow styles
+`focus()`, `classList.add/remove/toggle`, and background/color/font-size/display/width/direction/text-indent/text-wrap/text-wrap-mode/text-wrap-style/line-clamp/list-style/list-style-type/list-style-position/text-align/text-align-all/text-align-last/text-decoration/text-underline-offset/text-shadow styles
 onto the existing compact commands. The adapter receives no DOM object and adds
 no evaluator. IDs and class names remain bounded literals, every mutation uses
 the normal validators and retained rebuild, and unsupported `innerHTML`,
