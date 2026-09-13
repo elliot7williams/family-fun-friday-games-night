@@ -17,21 +17,22 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 106 adds bounded implicit `list-item` `counter()` and nested
-`counters()` output to terminal `::marker` content in the existing `S.Mc` atom.
-It reuses HTML start/value/reversed numbering and ten compact built-in styles,
-with eight-level nesting, 32-unit separators, and the existing eight-item/
-128-unit output bounds. Existing `ms`/`markerstyle`, variables, priority, image
-precedence, tables, hover/media rebuilds, retained fields, and LTR/RTL geometry
-carry the feature through Firespider. The full default engine suite, including
-WinForms checks, plus the compiled host are green, including all 18 startup
-regressions, all 42 Boot cases, and all six real EXE startup scenarios without a legacy
-engine, invalid cast, JIT dialog, or dead startup window. All 102 benchmark
-probes pass over 97 fixtures. Three-round diagnostic medians are 535.998 ms
-clean start, 4.461 ms local load, and 40.911 ms layout/paint; retained memory is
-61.1 KiB/page and the required runtime is 601.5 KiB. Runtime 206 remains
-isolated, and installed runtime 157 is unchanged. See `MARKER_COUNTERS.md`.
-Arbitrary counter names/properties, custom styles, typed/fallback attributes,
+Milestone 107 adds bounded named CSS counters through compact `S.Cr/Ci/Cs`
+state, one tree-order pass, and defining `cr/ci/cs` aliases. Reset, increment,
+and set order, defaults, duplicates, case-sensitive names, nested scope,
+sibling/descendant flow, hidden suppression, and missing-value zero output stay
+engine-owned. Eight operations, eight active instances, 32-character ASCII
+names, and -999999..999999 values bound the model. Readable and literal DOM
+routes share the validator; named marker output reuses the existing bounded
+content atom and ten styles. The full default engine suite plus the compiled
+host are green, including all 18 startup regressions, all 42 Boot cases, and all
+six real EXE startup scenarios without a legacy engine, invalid cast, JIT
+dialog, or dead startup window. All 103 benchmark probes pass over 98 fixtures.
+Three-round diagnostic medians are 823.481 ms clean start, 6.518 ms local load,
+and 43.727 ms layout/paint; retained memory is 63.4 KiB/page and the required
+runtime is 607.5 KiB. Runtime 207 remains isolated, and installed runtime 157 is
+unchanged. See `CSS_COUNTERS.md` and `MARKER_COUNTERS.md`. Reversed/custom
+counter styles, pseudo-element properties, typed/fallback attributes,
 quote/image/alternative content, general `::before`/`::after` boxes,
 marker-side, cross-item alignment, author marker image sizing, SVG decoding,
 vertical writing, full Unicode bidi, and general CSS/JavaScript evaluation stay

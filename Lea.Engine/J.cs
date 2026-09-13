@@ -277,6 +277,17 @@ namespace Lea.Engine
                 if (!E.Msv(Expand(page, command.W ?? command.V), out markerStyle)) return false;
                 return SetMarkerStyle(target, markerStyle);
             }
+            if (command.N == "cr" || command.N == "ci" || command.N == "cs")
+            {
+                var target = StyleTarget(page, command);
+                if (target == null) return false;
+                var part = command.N == "cr" ? 0 : command.N == "ci" ? 1 : 2;
+                string counters;
+                if (!E.Ctv(Expand(page, command.W ?? command.V), part, out counters)) return false;
+                var applied = SetStyle(target, part == 0 ? "counter-reset" : part == 1 ? "counter-increment" : "counter-set", counters);
+                if (applied) page.Cn = true;
+                return applied;
+            }
             if (command.N == "ts")
             {
                 var target = StyleTarget(page, command);
@@ -436,6 +447,9 @@ namespace Lea.Engine
             if (member == "style.liststyleimage") return new Cm("li", id, value);
             if (member == "style.liststyleposition") return new Cm("lp", id, value);
             if (member == "style.liststyle") return new Cm("ls", id, value);
+            if (member == "style.counterreset") return new Cm("cr", id, value);
+            if (member == "style.counterincrement") return new Cm("ci", id, value);
+            if (member == "style.counterset") return new Cm("cs", id, value);
             if (member == "style.textshadow") return new Cm("ts", id, value);
             if (member == "style.textdecoration") return new Cm("td", id, value);
             if (member == "style.textdecorationline") return new Cm("tdl", id, value);
@@ -473,6 +487,9 @@ namespace Lea.Engine
             if (count == 1 && (name == "lp" || name == "liststyleposition")) return new Cm("lp", first);
             if (count == 1 && (name == "ls" || name == "liststyle")) return new Cm("ls", first);
             if (count == 1 && (name == "ms" || name == "markerstyle")) return new Cm("ms", first);
+            if (count == 1 && (name == "cr" || name == "counterreset")) return new Cm("cr", first);
+            if (count == 1 && (name == "ci" || name == "counterincrement")) return new Cm("ci", first);
+            if (count == 1 && (name == "cs" || name == "counterset")) return new Cm("cs", first);
             if (count == 1 && (name == "ts" || name == "textshadow")) return new Cm("ts", first);
             if (count == 1 && (name == "td" || name == "textdecoration")) return new Cm("td", first);
             if (count == 1 && (name == "tdl" || name == "textdecorationline")) return new Cm("tdl", first);
@@ -515,6 +532,9 @@ namespace Lea.Engine
             if (count == 2 && (name == "lp" || name == "liststyleposition")) return new Cm("lp", first, second);
             if (count == 2 && (name == "ls" || name == "liststyle")) return new Cm("ls", first, second);
             if (count == 2 && (name == "ms" || name == "markerstyle")) return new Cm("ms", first, second);
+            if (count == 2 && (name == "cr" || name == "counterreset")) return new Cm("cr", first, second);
+            if (count == 2 && (name == "ci" || name == "counterincrement")) return new Cm("ci", first, second);
+            if (count == 2 && (name == "cs" || name == "counterset")) return new Cm("cs", first, second);
             if (count == 2 && (name == "ts" || name == "textshadow")) return new Cm("ts", first, second);
             if (count == 2 && (name == "td" || name == "textdecoration")) return new Cm("td", first, second);
             if (count == 2 && (name == "tdl" || name == "textdecorationline")) return new Cm("tdl", first, second);
@@ -553,6 +573,9 @@ namespace Lea.Engine
             if (name == "document.body.style.liststyleimage") return new Cm("li", value);
             if (name == "document.body.style.liststyleposition") return new Cm("lp", value);
             if (name == "document.body.style.liststyle") return new Cm("ls", value);
+            if (name == "document.body.style.counterreset") return new Cm("cr", value);
+            if (name == "document.body.style.counterincrement") return new Cm("ci", value);
+            if (name == "document.body.style.counterset") return new Cm("cs", value);
             if (name == "document.body.style.textshadow") return new Cm("ts", value);
             if (name == "document.body.style.textdecoration") return new Cm("td", value);
             if (name == "document.body.style.textdecorationline") return new Cm("tdl", value);

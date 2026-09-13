@@ -57,5 +57,7 @@ namespace Lea.Engine
         internal IDictionary<N, Fi> Fr { get; private set; }
         internal Uri Gu { get; set; }
         internal bool Gp { get; set; }
+        internal bool Cn { get; set; }
+        internal bool Co { get; set; }
     }
 }

@@ -48,6 +48,10 @@ LeaForge is where we can grow the more full-featured browser.
 - basic HTTP page loading
 - bounded in-memory page cache plus an optional compressed persistent cache for faster repeat navigation across launches
 - basic HTML rendering for headings, paragraphs, bounded unordered/decimal lists, details disclosures, links, buttons, images, code, pre blocks, and structured tables
+- bounded named CSS counters through compact `S.Cr/Ci/Cs`, defining
+  `cr/ci/cs`, tree-order scope, eight active instances/operations,
+  32-character ASCII names, and named `counter()`/`counters()` marker output;
+  see `CSS_COUNTERS.md`
 - page-local `<details>`/`<summary>` state with compact markers, nested retention, pointer activation, and Enter/Space keyboard activation
 - bounded quote-aware HTML tokenization with comments, declarations, raw text, RCDATA, entities, and malformed-delimiter recovery
 - compact `Id`, `Q`/`Q1`, and read-only bounded `Qa` document queries

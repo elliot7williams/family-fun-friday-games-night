@@ -20,7 +20,7 @@
     #mixed::marker { content: attr(data-label) " " counter(list-item, upper-alpha) ": "; color: #0f766e; }
     #variable::marker { content: "V" var(--counter-fragment) " "; }
     #important::marker { content: "Low "; content: counter(list-item) ". " !important; }
-    #invalid-name::marker { content: "Keep "; content: counter(chapter); }
+    #invalid-name::marker { content: "Keep "; content: counter(none); }
     #invalid-style::marker { content: "Keep "; content: counter(list-item, armenian); }
     #invalid-counters::marker { content: "Keep "; content: counters(list-item, 2); }
     #long-separator::marker { content: "Keep "; content: counters(list-item, "123456789012345678901234567890123"); }

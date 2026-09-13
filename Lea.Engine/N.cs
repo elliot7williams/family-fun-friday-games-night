@@ -24,12 +24,32 @@ namespace Lea.Engine
         internal bool Hv { get; set; }
         internal bool Fc { get; set; }
         internal string Mk { get; set; }
+        internal List<Cn> Ct { get; set; }
         internal Uri Bu { get; set; }
 
         public string Av(string name)
         {
             string value;
             return A.TryGetValue(name, out value) ? value : "";
+        }
+    }
+
+    internal sealed class Cn
+    {
+        internal readonly string N;
+        internal readonly N O;
+        internal int V;
+
+        internal Cn(string name, N owner, int value)
+        {
+            N = name;
+            O = owner;
+            V = value;
+        }
+
+        internal Cn Copy()
+        {
+            return new Cn(N, O, V);
         }
     }
 }

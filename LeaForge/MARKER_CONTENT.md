@@ -60,7 +60,7 @@ marker atom.
 ## Verification
 
 `test-pages/marker-content.html`, focused `Lea.Tests --marker-content`, the
-full default suite, the 102-probe benchmark over 97 fixtures, and the compiled
+full default suite, the 103-probe benchmark over 98 fixtures, and the compiled
 Firespider host cover raw and explicit raw-string attributes, missing/empty
 values, ordered/adjacent/escaped/variable fragments, important priority,
 invalid preservation, exact count/name/output bounds, markup-like text, image
@@ -70,9 +70,9 @@ LTR/RTL inside/outside geometry, hover, responsive rebuilds, and paint.
 ## Boundary
 
 This slice does not implement typed `attr()` values, `attr()` fallback values,
-or namespaced/escaped attribute names. Bounded implicit `list-item`
-`counter()`/`counters()` output is documented in `MARKER_COUNTERS.md`; arbitrary
-named counters/properties and custom styles remain unsupported, as do quote
+or namespaced/escaped attribute names. Bounded named and implicit
+`counter()`/`counters()` output is documented in `MARKER_COUNTERS.md` and
+`CSS_COUNTERS.md`; reversed/custom counter styles remain unsupported, as do quote
 keywords, images or alternative text in `content`, separate anonymous fragment
 boxes, `::before`/`::after`, and a general generated-content/CSSOM evaluator.
 

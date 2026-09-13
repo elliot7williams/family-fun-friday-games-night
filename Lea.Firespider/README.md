@@ -641,6 +641,13 @@ readable commands, unsupported-name rejection, exact outside geometry, and
 retained fields. Firespider adds no counter map, numbering adapter, or layout
 branch. See `LeaForge/MARKER_COUNTERS.md`.
 
+Hosted pages now also resolve bounded named CSS counters through engine-owned
+`S.Cr/Ci/Cs` and tree-order `N.Ct` snapshots. The compiled host verifies reset,
+increment, set, nested output, compact `cr/ci/cs`, literal DOM assignment,
+exact outside geometry, and retained fields. Firespider adds no counter parser,
+state map, numbering adapter, layout branch, or control. See
+`LeaForge/CSS_COUNTERS.md`.
+
 Hosted text alignment now exposes the bounded shorthand/all/last family through
 `S.Ta/Tl`. The compiled host verifies `justify-all`, retained logical RTL
 state, compact `ta/taa/tl`, literal `style.textAlign`, shorthand reset,

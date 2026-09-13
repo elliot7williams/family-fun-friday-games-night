@@ -70,6 +70,8 @@ namespace Lea.Firespider
                     .Replace("</body>", "<ol><li id='host-list-image' class='host-list host-list-image'><strong>HostImage</strong> outside marker</li><li id='host-list-image-inside' class='host-list host-list-image-inside'><strong>HostImageInside</strong> marker</li><li id='host-list-image-responsive' class='host-list host-list-image-responsive'>Host responsive image marker</li></ol></body>")
                     .Replace("</style>", ".host-marker::marker{content:'Lea ';color:#dc2626;font-size:22px;font-weight:bold}.host-marker-inside{list-style-position:inside}.host-marker-inside::marker{content:'In ';color:#2563eb;font-size:20px}.host-marker-generated::marker{content:'[' attr(data-code) '] ';color:#0f766e}.host-marker-counter::marker{content:'(' counters(list-item,'.',upper-roman) ') ';color:#0f766e}.host-marker-responsive::marker{content:attr(data-wide);color:#64748b}.host-marker-command::marker{content:'CSS ';color:#64748b}@media screen and (max-width:500px){.host-marker-responsive::marker{content:attr(data-narrow);color:#7c3aed;font-size:20px}}</style>")
                     .Replace("</body>", "<ol><li id='host-marker' class='host-list host-marker'>Host styled marker</li><li id='host-marker-inside' class='host-list host-marker-inside'>Host inside styled marker</li><li id='host-marker-generated' class='host-list host-marker-generated' data-code='HOST'>Host generated marker</li><li id='host-marker-responsive' class='host-list host-marker-responsive' data-wide='Wide ' data-narrow='Narrow '>Host responsive styled marker</li><li id='host-marker-command' class='host-list host-marker-command' data-code='CMD'>Host marker command</li></ol><ol start='9'><li>Host outer counter<ol start='3'><li id='host-marker-counter' class='host-list host-marker-counter'>Host nested counter marker</li></ol></li></ol></body>")
+                    .Replace("</style>", ".host-css-counter-scope{counter-reset:hostCount 2}.host-css-counter{counter-increment:hostCount 3}.host-css-counter::marker{content:'N' counter(hostCount,upper-roman) ' ';color:#dc2626}.host-css-counter-nested-scope{counter-reset:hostCount 1}.host-css-counter-nested{counter-increment:hostCount 2}.host-css-counter-nested::marker{content:counters(hostCount,'.',upper-roman) ' ';color:#2563eb}</style>")
+                    .Replace("</body>", "<div><ol class='host-css-counter-scope'><li id='host-css-counter' class='host-list host-css-counter'>Host named counter<ol class='host-css-counter-nested-scope'><li id='host-css-counter-nested' class='host-list host-css-counter-nested'>Host nested named counter</li></ol></li></ol></div></body>")
                     .Replace(".host-flex{display:flex;width:300px;height:60px;gap:8px;justify-content:space-between;align-items:center}", ".host-flex{display:flex;width:300px;height:60px;flex-wrap:wrap;gap:6px 8px;justify-content:space-between;align-items:center}")
                     .Replace(".host-flex p{width:70px;height:20px}", ".host-flex p{flex:1 1 180px;height:20px}.host-flex #host-flex-b{flex-shrink:2;min-width:80px}.host-flex-column{display:flex;width:180px;height:100px;flex-direction:column-reverse;row-gap:5px;justify-content:space-evenly;align-items:flex-end}.host-flex-column p{width:70px;margin:0;flex:0 1 60px;min-height:30px}.host-flex-column #host-flex-column-a{order:2;align-self:center}.host-flex-column #host-flex-column-b{order:-1}")
                     .Replace("</style>", ".host-grid{display:grid;width:300px;grid-template-columns:100px 1fr 2fr;gap:7px 10px}.host-grid p{height:20px;margin:0}.host-grid #host-grid-span{grid-column:2/span 2}.host-grid-rows{display:grid;width:300px;height:120px;grid-template-columns:1fr 2fr;grid-template-rows:30px 1fr;gap:6px 8px}.host-grid-rows p{margin:0}.host-grid-rows #host-grid-row-a{grid-column:1/span 2;grid-row:1}.host-grid-rows #host-grid-row-b{grid-column:2;grid-row:2}.host-grid-rows #host-grid-row-c{grid-column:1;grid-row-start:2;grid-row-end:span 1}:root{--host-color:#0f4c81;--host-width:155px;--host-pad:7px}.host-var{--host-color:#0f4c81!important;color:var(--host-color)!important;width:var(--host-width)!important;padding:var(--host-pad)}:is(.host-var,#host-never){border-left:4px solid #176b4d}:where(#host-var){padding-left:2px}.host-var:not(.missing,[data-off]){font-weight:bold}#host-flex>p:nth-child(2n+1){border-right:3px solid #176b4d}#host-flex>p:nth-last-child(-n+1){padding-left:9px}#host-flex-column>p:nth-last-of-type(2n){color:#a13b18}#host-flex>p:nth-child(1 of #host-flex-a,#host-flex-b){border-bottom:3px solid #176b4d}#host-flex>p:nth-last-child(1 of #host-flex-a,#host-flex-b){border-top:2px solid #a13b18}#host-has:has(> .host-direct){width:146px;border-left:5px solid #176b4d}#host-has:has(> .host-body .host-ready[data-host=ready]){padding-right:6px}#host-flex:has(+ #host-has){border-top:4px solid #a13b18}#host-has:has(input:focus){background:#dff6e9;font-weight:bold}.host-media{display:none}@media screen and (max-width:500px){:root{--host-width:110px;--host-pad:4px}#host-media{display:block;width:120px;background:#e8f4ef}#host-box{display:none}}</style>")
@@ -478,6 +480,8 @@ namespace Lea.Firespider
                     var hostMarkerCounter = BlockById(host.At, "host-marker-counter");
                     var hostMarkerResponsive = BlockById(host.At, "host-marker-responsive");
                     var hostMarkerCommand = BlockById(host.At, "host-marker-command");
+                    var hostCssCounter = BlockById(host.At, "host-css-counter");
+                    var hostCssCounterNested = BlockById(host.At, "host-css-counter-nested");
                     var hostListField = FieldById(host.At, "host-list-field");
                     Check(hostListUpper.S.Lst == "A" && hostListUpper.S.Lp == "o" && hostListUpper.Mk == "AA." &&
                         hostListInside.S.Lst == "R" && hostListInside.S.Lp == "i" && hostListInside.Mk == "IV." &&
@@ -492,6 +496,8 @@ namespace Lea.Firespider
                         hostMarkerGenerated.Mk == "[HOST] " && hostMarkerCounter.Mk == "(IX.III) " &&
                         hostMarkerResponsive.Mk == "Wide " && hostMarkerCommand.Mk == "CSS ",
                         "Firespider bounded marker pseudo-element model");
+                    Check(hostCssCounter.Mk == "NV " && hostCssCounter.S.Ci == "hostCount 3" &&
+                        hostCssCounterNested.Mk == "V.III ", "Firespider bounded named CSS counter model");
                     var hostListUpperContent = BlockContent(host, "host-list-upper");
                     var hostListScroll = host.Sy;
                     host.Sc(hostListUpperContent.Top - host.Sy - 40);
@@ -514,7 +520,9 @@ namespace Lea.Firespider
                     Check(InlineTextRect(host, hostMarkerStyled, "Lea ").Right < BlockContent(host, "host-marker").Left &&
                         InlineTextRect(host, hostMarkerInside, "In ").Left == BlockContent(host, "host-marker-inside").Left &&
                         InlineTextRect(host, hostMarkerGenerated, "[HOST] ").Right < BlockContent(host, "host-marker-generated").Left &&
-                        InlineTextRect(host, hostMarkerCounter, "(IX.III) ").Right < BlockContent(host, "host-marker-counter").Left,
+                        InlineTextRect(host, hostMarkerCounter, "(IX.III) ").Right < BlockContent(host, "host-marker-counter").Left &&
+                        InlineTextRect(host, hostCssCounter, "NV ").Right < BlockContent(host, "host-css-counter").Left &&
+                        InlineTextRect(host, hostCssCounterNested, "V.III ").Right < BlockContent(host, "host-css-counter-nested").Left,
                         "Firespider marker pseudo-element outside/inside geometry");
                     host.Sc(hostListScroll - host.Sy);
                     PaintView(host);
@@ -576,12 +584,25 @@ namespace Lea.Firespider
                         InlineTextRect(host, hostMarkerCounter, "C").Right < BlockContent(host, "host-marker-counter").Left,
                         "Firespider compact marker counter command geometry");
                     Check(host.Js("markerstyle('host-marker-counter','content:counters(list-item,\"/\",lower-roman);color:#2563eb')") == 1 &&
-                        host.Js("ms('host-marker-counter','content:counter(chapter)')") == 0,
+                        host.Js("ms('host-marker-counter','content:counter(none)')") == 0,
                         "Firespider readable nested marker counter and validation");
                     PaintView(host);
                     hostMarkerCounter = BlockById(host.At, "host-marker-counter");
                     Check(hostMarkerCounter.Mk == "ix/iii" && hostMarkerCounter.Ms.F == "#2563eb",
                         "Firespider readable nested marker counter model");
+                    Check(host.Js("cr('host-css-counter','hostCount 7');ci('host-css-counter','hostCount 2');cs('host-css-counter','hostCount 4')") == 3,
+                        "Firespider compact named counter commands");
+                    PaintView(host);
+                    hostCssCounter = BlockById(host.At, "host-css-counter");
+                    Check(hostCssCounter.Mk == "NIV " && hostCssCounter.S.Cr == "hostCount 7" &&
+                        hostCssCounter.S.Ci == "hostCount 2" && hostCssCounter.S.Cs == "hostCount 4" &&
+                        InlineTextRect(host, hostCssCounter, "NIV ").Right < BlockContent(host, "host-css-counter").Left,
+                        "Firespider compact named counter command geometry");
+                    Check(host.Js("document.getElementById('host-css-counter').style.counterSet='hostCount 6'") == 1,
+                        "Firespider literal named counter command");
+                    PaintView(host);
+                    hostCssCounter = BlockById(host.At, "host-css-counter");
+                    Check(hostCssCounter.Mk == "NVI ", "Firespider literal named counter model");
                     hostListField.V = "Retained host marker field";
                     var hostOutline = BlockById(host.At, "host-outline");
                     Check(hostOutline.S.Ow == 4 && hostOutline.S.Os == "s" && hostOutline.S.Oc == "#a13b18" && hostOutline.S.Oo == 3 &&
@@ -1128,7 +1149,7 @@ namespace Lea.Firespider
                     Check(host.Ck(ById(host.At.D, "host-value-update")) == 1 && ValueById(host.At, "host-output").V == "Updated host total", "Firespider output value rebuild");
                     Check(host.Ck(ById(host.At.D, "host-time-update")) == 1 && ValueById(host.At, "host-time").Dt == "2026-08-22", "Firespider time metadata rebuild");
                     var diagnostics = host.Dg();
-                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 113 && diagnostics.Rs.Count > 0, "Firespider Lea diagnostics");
+                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 117 && diagnostics.Rs.Count > 0, "Firespider Lea diagnostics");
                     var inspectorOpen = type.GetMethod("qleaInspectorOpen", BindingFlags.Instance | BindingFlags.NonPublic);
                     var inspectorSnapshot = type.GetMethod("qleaInspectorSnapshot", BindingFlags.Instance | BindingFlags.NonPublic);
                     var inspectorClear = type.GetMethod("qleaInspectorClear", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -1308,7 +1329,7 @@ namespace Lea.Firespider
                     Check(restoredTabs.TabCount == beforeMiddle - 1 && FindLea(restoredTabs) == null, "middle-click Lea tab close");
                 }
 
-                Console.WriteLine("Firespider CSS interaction and paint smoke passed: compact text-indent, text-wrap/mode/style, line-clamp, list-style/type/image/position, marker pseudo-element styling with generated attr and list-counter content, text-align/all/last, text-decoration, text-underline-offset, text-shadow, text-overflow, text-spacing, text-transform, pointer, outline, radius, box-shadow, gradient, bitmap-background, object-fit, and aspect-ratio aliases reached the compiled host.");
+                Console.WriteLine("Firespider CSS interaction and paint smoke passed: compact text-indent, text-wrap/mode/style, line-clamp, list-style/type/image/position, marker pseudo-element styling with generated attr and named/list-counter content, counter reset/increment/set aliases, text-align/all/last, text-decoration, text-underline-offset, text-shadow, text-overflow, text-spacing, text-transform, pointer, outline, radius, box-shadow, gradient, bitmap-background, object-fit, and aspect-ratio aliases reached the compiled host.");
                 Console.WriteLine("Firespider calculated height smoke passed: compact ht, literal style.height, definite parent resolution, shared host geometry, reset, and strict bounds.");
                 Console.WriteLine("Firespider viewport unit smoke passed: vw/vh/vmin/vmax, calc, compact commands, literal reset, live host geometry, and strict bounds.");
                 Console.WriteLine("Firespider font-relative unit smoke passed: em/rem, root font alias, compact commands, literal reset, shared host geometry, and strict bounds.");

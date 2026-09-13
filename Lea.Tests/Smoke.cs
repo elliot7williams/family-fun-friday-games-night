@@ -111,6 +111,11 @@ namespace Lea.Tests
                     MarkerCounterSmoke(Path.Combine(pages, "marker-counters.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--css-counters")
+                {
+                    CssCounterSmoke(Path.Combine(pages, "css-counters.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--text-align-last")
                 {
                     TextAlignLastSmoke(Path.Combine(pages, "text-align-last.html"));
@@ -2472,6 +2477,7 @@ namespace Lea.Tests
                 MarkerSmoke(Path.Combine(pages, "marker.html"));
                 MarkerContentSmoke(Path.Combine(pages, "marker-content.html"));
                 MarkerCounterSmoke(Path.Combine(pages, "marker-counters.html"));
+                CssCounterSmoke(Path.Combine(pages, "css-counters.html"));
 
                 var recoveryPath = Path.Combine(pages, "recovery.html");
                 var recoveryPage = engine.Go(recoveryPath);
@@ -8740,7 +8746,7 @@ namespace Lea.Tests
             Eq(1, engine.Ck(page, ById(page.D, "set-readable")), "readable marker counter command");
             Ok(block("command-readable").Mk == "XVIII" && block("command-readable").Ms.F == "#2563eb",
                 "readable marker counter command model");
-            Eq(0, engine.Js(page, "ms('command','content:counter(chapter)')"), "counter command rejects custom name");
+            Eq(0, engine.Js(page, "ms('command','content:counter(none)')"), "counter command rejects reserved name");
             Eq(0, engine.Js(page, "ms('command','content:counter(list-item,armenian)')"), "counter command rejects unsupported style");
             Eq("Q", block("command").Mk, "invalid marker counter commands preserve state");
             Eq(1, engine.Ck(page, ById(page.D, "clear-command")), "marker counter command clear");
@@ -8821,6 +8827,142 @@ namespace Lea.Tests
                 }
             }
             Console.WriteLine("Lea marker counter smoke passed: bounded counter/list-item styles, nested paths, limits, cascade, aliases, images, LTR/RTL geometry, tables, hover, media, and paint.");
+        }
+
+        private static void CssCounterSmoke(string path)
+        {
+            var engine = new E { Vw = 720 };
+            var page = engine.Go(path);
+            Func<string, B> block = id => BlockById(page, id);
+
+            Ok(block("chapter-one").Mk == "Chapter 3. " && block("chapter-set").Mk == "9. " &&
+                block("chapter-step").Mk == "XI. ", "named reset increment and set order");
+            Ok(block("chapter-one").S.Ci == "chapter 1" && block("chapter-set").S.Cs == "chapter 9" &&
+                block("multiple").S.Cr == "figure 4 note -2" && block("multiple").S.Ci == "figure 2 note 1",
+                "compact counter property state");
+            Ok(block("multiple").Mk == "6/-1 " && block("priority").Mk == "4 " && block("variable").Mk == "J ",
+                "multiple counters variables and priority");
+            Eq("3/7 ", block("case").Mk, "case-sensitive counter names");
+            Eq("0 ", block("missing").Mk, "missing counter instantiation");
+            Eq("AA ", block("format").Mk, "named counter formatting");
+            Ok(block("duplicate-increment").Mk == "6 " && block("duplicate-reset").Mk == "7 " && block("duplicate-set").Mk == "9 " &&
+                block("defaults").Mk == "6/0/1/0 ", "duplicate and default counter operations");
+            Ok(block("none").Mk == "0 " && block("inherit").Mk == "5 " &&
+                block("clamp-high").Mk == "999999 " && block("clamp-low").Mk == "-999999 ",
+                "counter CSS-wide values and numeric clamps");
+            Eq("7 ", block("name-limit").Mk, "counter name exact bound");
+            Eq("4 ", block("name-long").Mk, "counter overlong name rejection");
+            Eq("ca 1 cb 2 cc 3 cd 4 ce 5 cf 6 cg 7 ch 8", block("eight-operations").S.Cr,
+                "counter operation canonical state");
+            Eq("8 ", block("eight-operations").Mk, "counter operation exact bound");
+            Eq("5 ", block("nine-operations").Mk, "counter operation over-bound rejection");
+            Ok(block("invalid-name").Mk == "6 " && block("invalid-number").Mk == "7 " &&
+                block("invalid-reversed").Mk == "8 " && block("invalid-list-item").Mk == "9 " &&
+                block("invalid-style").Mk == "Keep " && block("invalid-content-name").Mk == "Keep ",
+                "invalid counter declarations preserve cascade state");
+
+            Ok(block("tree-one").Mk == "1. " && block("tree-two").Mk == "2. " &&
+                block("tree-inner-one").Mk == "2.1. " && block("tree-inner-set").Mk == "2.5. " &&
+                block("tree-inner-next").Mk == "2.6. " && block("tree-three").Mk == "3. ",
+                "self-nesting named counters");
+            Ok(block("flow-b").Mk == "2 " && block("scope-a-value").Mk == "3 " &&
+                block("scope-b-value").Mk == "8 " && block("hidden-result").Mk == "1 ",
+                "tree-order sibling flow scope replacement and hidden suppression");
+            Eq("1.2.3.4.5.6.7.8 ", block("depth-result").Mk, "bounded active counter depth");
+            Eq("T4 ", block("cell").Mk, "named counter reaches table marker");
+
+            var retained = FieldById(page, "css-counter-field");
+            engine.Dy(page, ById(page.D, "dynamic"), null);
+            Eq("5 ", block("dynamic").Mk, "dynamic named counter hover");
+            engine.Dy(page, null, null);
+            Eq("3 ", block("dynamic").Mk, "dynamic named counter restore");
+
+            Eq(1, engine.Ck(page, ById(page.D, "set-reset")), "compact counter reset command");
+            Eq("7 ", block("command").Mk, "compact counter reset result");
+            Eq(1, engine.Ck(page, ById(page.D, "set-increment")), "compact counter increment command");
+            Eq("9 ", block("command").Mk, "compact counter increment result");
+            Eq(1, engine.Ck(page, ById(page.D, "set-counter")), "compact counter set command");
+            Ok(block("command").Mk == "4 " && block("command").S.Cr == "cmdCounter 7" &&
+                block("command").S.Ci == "cmdCounter 2" && block("command").S.Cs == "cmdCounter 4",
+                "compact counter command state");
+            Eq(1, engine.Ck(page, ById(page.D, "set-readable")), "readable counter reset command");
+            Eq("8 ", block("command-readable").Mk, "readable counter reset result");
+            Eq(1, engine.Js(page, "counterincrement('command-readable','readCounter 2')"), "readable counter increment command");
+            Eq("10 ", block("command-readable").Mk, "readable counter increment result");
+            Eq(1, engine.Js(page, "counterset('command-readable','readCounter 4')"), "readable counter set command");
+            Eq("4 ", block("command-readable").Mk, "readable counter set result");
+            Eq(1, engine.Ck(page, ById(page.D, "set-dom")), "literal counter reset command");
+            Eq("6 ", block("command-dom").Mk, "literal counter reset result");
+            Eq(1, engine.Js(page, "document.getElementById('command-dom').style.counterIncrement='domCounter 2'"),
+                "literal counter increment command");
+            Eq("8 ", block("command-dom").Mk, "literal counter increment result");
+            Eq(1, engine.Js(page, "document.getElementById('command-dom').style.counterSet='domCounter 3'"),
+                "literal counter set command");
+            Eq("3 ", block("command-dom").Mk, "literal counter set result");
+            Eq(0, engine.Js(page, "cr('command','list-item 3')"), "counter command protects implicit list item");
+            Eq(0, engine.Js(page, "ci('command','cmdCounter 1000000')"), "counter command rejects oversized integer");
+            Eq("4 ", block("command").Mk, "invalid counter commands preserve state");
+            Eq("0 ", block("page-counter").Mk, "missing page counter starts at zero");
+            Eq(1, engine.Ck(page, ById(page.D, "set-page")), "page counter reset command");
+            Eq("5 ", block("page-counter").Mk, "page counter reset result");
+            Eq(1, engine.Ck(page, ById(page.D, "clear-page")), "page counter reset clear");
+            Eq("0 ", block("page-counter").Mk, "page counter reset clear result");
+            Ok(Object.ReferenceEquals(retained, FieldById(page, "css-counter-field")),
+                "named counter command rebuilds retain field identity");
+
+            engine.Vw = 350;
+            Ok(block("responsive").Mk == "VII " && Object.ReferenceEquals(retained, FieldById(page, "css-counter-field")),
+                "responsive named counter and field retention");
+
+            using (var view = new V())
+            {
+                view.Size = new Size(720, 9200);
+                var load = view.GoA(path);
+                while (!load.IsCompleted)
+                {
+                    Application.DoEvents();
+                    Thread.Sleep(2);
+                }
+                load.GetAwaiter().GetResult();
+                retained = FieldById(view.At, "css-counter-field");
+                Rectangle dynamicOuter;
+                using (var paint = Render(view))
+                {
+                    var chapter = BlockById(view.At, "chapter-one");
+                    Ok(InlineTextRect(view, chapter, "Chapter 3. ").Right < BlockRect(view, chapter).Left &&
+                        HasColor(paint, Rectangle.Inflate(InlineTextRect(view, chapter, "Chapter 3. "), 3, 3), Color.FromArgb(220, 38, 38)),
+                        "named counter marker paints in outside gutter");
+                    Ok(InlineTextRect(view, BlockById(view.At, "tree-inner-next"), "2.6. ").Width > 0 &&
+                        InlineTextRect(view, BlockById(view.At, "cell"), "T4 ").Width > 0,
+                        "nested and table named counters paint");
+                    dynamicOuter = BlockOuterRect(view, BlockById(view.At, "dynamic"));
+                }
+                Move(view, dynamicOuter);
+                using (var paint = Render(view))
+                    Ok(BlockById(view.At, "dynamic").Mk == "5 " &&
+                        InlineTextRect(view, BlockById(view.At, "dynamic"), "5 ").Width > 0,
+                        "dynamic named counter reaches paint");
+                Move(view, new Point(0, 0));
+                Eq(1, view.Js("cr('command','cmdCounter 7')"), "view compact counter reset command");
+                using (var paint = Render(view))
+                {
+                    var command = BlockById(view.At, "command");
+                    Ok(command.Mk == "7 " && InlineTextRect(view, command, "7 ").Right < BlockRect(view, command).Left,
+                        "view named counter command geometry");
+                }
+                retained.V = "Retained after named counter resize";
+                view.Size = new Size(350, 9200);
+                Application.DoEvents();
+                using (var paint = Render(view))
+                {
+                    var responsive = BlockById(view.At, "responsive");
+                    Ok(responsive.Mk == "VII " && InlineTextRect(view, responsive, "VII ").Right < BlockRect(view, responsive).Left,
+                        "responsive named counter geometry");
+                    Ok(Object.ReferenceEquals(retained, FieldById(view.At, "css-counter-field")) &&
+                        retained.V == "Retained after named counter resize", "named counter resize retains field value");
+                }
+            }
+            Console.WriteLine("Lea CSS counter smoke passed: bounded reset/increment/set state, tree-order scope, named output, aliases, limits, tables, hover, media, retention, and paint.");
         }
 
         private static void LineClampSmoke(string path)

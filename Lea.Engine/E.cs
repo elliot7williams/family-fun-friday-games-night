@@ -46,6 +46,10 @@ namespace Lea.Engine
         private const int MaxMarkerContentItems = 8;
         private const int MaxMarkerCounterDepth = 8;
         private const int MaxMarkerCounterSeparator = 32;
+        private const int MaxCounterEntries = 8;
+        private const int MaxCounterName = 32;
+        private const int MaxCounterOperations = 8;
+        private const int MaxCounterValue = 999999;
         private const int MaxMarkerStyle = 1024;
         private const int MaxMarkerText = 128;
         private const int MaxPost = 10 * 1024 * 1024;
@@ -1406,7 +1410,9 @@ namespace Lea.Engine
             }
             p.S = Style(body, inherited, rules);
             MarkLists(body);
-            if (p.H.IndexOf("<map", StringComparison.OrdinalIgnoreCase) >= 0) BuildMaps(p, body, p.Bu ?? p.U);
+            var html = p.H ?? "";
+            p.Co = MarkCounters(p.D, rules, p.Cn || html.IndexOf("counter-", StringComparison.OrdinalIgnoreCase) >= 0, p.Co);
+            if (html.IndexOf("<map", StringComparison.OrdinalIgnoreCase) >= 0) BuildMaps(p, body, p.Bu ?? p.U);
             foreach (var child in body.C) Blocks(p, child, p.Bu ?? p.U, rules, p.S);
             LinkBlocks(p);
             MarkDisclosures(p);
@@ -3789,10 +3795,14 @@ namespace Lea.Engine
         {
             content = "";
             var parts = argument.Split(',');
-            if (parts.Length < 1 || parts.Length > 2 || !parts[0].Trim().Equals("list-item", StringComparison.OrdinalIgnoreCase)) return false;
+            if (parts.Length < 1 || parts.Length > 2) return false;
+            var name = parts[0].Trim();
+            if (!CounterName(name, true)) return false;
             string style;
             if (!MarkerCounterStyle(parts.Length == 1 ? "decimal" : parts[1], out style)) return false;
-            content = CounterText(MarkerCounterNumber(node), style);
+            List<int> values;
+            if (!MarkerCounterValues(node, name, out values)) return false;
+            content = CounterText(values[values.Count - 1], style);
             return content.Length <= MaxMarkerText;
         }
 
@@ -3800,7 +3810,9 @@ namespace Lea.Engine
         {
             content = "";
             var comma = argument.IndexOf(',');
-            if (comma < 0 || !argument.Substring(0, comma).Trim().Equals("list-item", StringComparison.OrdinalIgnoreCase)) return false;
+            if (comma < 0) return false;
+            var name = argument.Substring(0, comma).Trim();
+            if (!CounterName(name, true)) return false;
             var rest = argument.Substring(comma + 1);
             var cursor = 0;
             while (cursor < rest.Length && Char.IsWhiteSpace(rest[cursor])) cursor++;
@@ -3814,15 +3826,8 @@ namespace Lea.Engine
                 if (rest[cursor++] != ',') return false;
                 if (!MarkerCounterStyle(rest.Substring(cursor), out style)) return false;
             }
-            var values = new List<int>();
-            for (var current = node; current != null; current = current.Up)
-                if (current.K == "li")
-                {
-                    if (values.Count == MaxMarkerCounterDepth) return false;
-                    values.Add(MarkerCounterNumber(current));
-                }
-            if (values.Count == 0) values.Add(0);
-            values.Reverse();
+            List<int> values;
+            if (!MarkerCounterValues(node, name, out values)) return false;
             var result = new StringBuilder();
             for (var valueIndex = 0; valueIndex < values.Count; valueIndex++)
             {
@@ -3831,6 +3836,38 @@ namespace Lea.Engine
                 if (result.Length > MaxMarkerText) return false;
             }
             content = result.ToString();
+            return true;
+        }
+
+        private static bool MarkerCounterValues(N node, string name, out List<int> values)
+        {
+            values = new List<int>();
+            if (name.Equals("list-item", StringComparison.OrdinalIgnoreCase))
+            {
+                for (var current = node; current != null; current = current.Up)
+                    if (current.K == "li")
+                    {
+                        if (values.Count == MaxMarkerCounterDepth) return false;
+                        values.Add(MarkerCounterNumber(current));
+                    }
+                values.Reverse();
+            }
+            else if (node != null && node.Ct != null)
+            {
+                foreach (var counter in node.Ct)
+                    if (counter.N.Equals(name, StringComparison.Ordinal))
+                    {
+                        if (values.Count == MaxMarkerCounterDepth) return false;
+                        values.Add(counter.V);
+                    }
+            }
+            if (values.Count > 0) return true;
+            values.Add(0);
+            if (node != null && !name.Equals("list-item", StringComparison.OrdinalIgnoreCase))
+            {
+                var counters = node.Ct ?? new List<Cn>();
+                if (CounterCreate(counters, node, name, 0) >= 0) node.Ct = counters;
+            }
             return true;
         }
 
@@ -3844,6 +3881,68 @@ namespace Lea.Engine
         {
             int number;
             return node != null && Int32.TryParse(node.Mk, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out number) ? number : node == null ? 0 : 1;
+        }
+
+        internal static bool Ctv(string value, int kind, out string counters)
+        {
+            counters = "";
+            if (kind < 0 || kind > 2) return false;
+            var source = (value ?? "").Trim();
+            if (source.Length == 0) return true;
+            if (source.Length > 512) return false;
+            var lower = source.ToLowerInvariant();
+            if (lower == "none" || lower == "initial" || lower == "inherit" || lower == "unset" || lower == "revert" || lower == "revert-layer")
+            {
+                counters = lower;
+                return true;
+            }
+            List<string> parts;
+            if (!ShadowParts(source, '\0', out parts) || parts.Count == 0) return false;
+            var result = new StringBuilder();
+            var operations = 0;
+            for (var index = 0; index < parts.Count; index++)
+            {
+                var name = parts[index];
+                if (!CounterName(name, false) || ++operations > MaxCounterOperations) return false;
+                var number = kind == 1 ? 1 : 0;
+                int explicitValue;
+                if (index + 1 < parts.Count && CounterInteger(parts[index + 1], out explicitValue))
+                {
+                    number = explicitValue;
+                    index++;
+                }
+                if (result.Length > 0) result.Append(' ');
+                result.Append(name).Append(' ').Append(number.ToString(CultureInfo.InvariantCulture));
+            }
+            counters = result.ToString();
+            return true;
+        }
+
+        private static void CounterProperty(S style, S inherited, string value, int kind)
+        {
+            string counters;
+            if (!Ctv(value, kind, out counters)) return;
+            var lower = counters.ToLowerInvariant();
+            if (lower == "inherit") counters = inherited == null ? "" : kind == 0 ? inherited.Cr : kind == 1 ? inherited.Ci : inherited.Cs;
+            else if (lower == "none" || lower == "initial" || lower == "unset" || lower == "revert" || lower == "revert-layer") counters = "";
+            if (kind == 0) style.Cr = counters;
+            else if (kind == 1) style.Ci = counters;
+            else style.Cs = counters;
+        }
+
+        private static bool CounterName(string value, bool listItem)
+        {
+            var name = (value ?? "").Trim();
+            if (name.Length == 0 || name.Length > MaxCounterName || !Regex.IsMatch(name, "^-?[_a-zA-Z][_a-zA-Z0-9-]*$")) return false;
+            var lower = name.ToLowerInvariant();
+            if (lower == "none" || lower == "initial" || lower == "inherit" || lower == "unset" || lower == "revert" || lower == "revert-layer") return false;
+            return listItem || lower != "list-item";
+        }
+
+        private static bool CounterInteger(string value, out int number)
+        {
+            return Int32.TryParse(value, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out number) &&
+                number >= -MaxCounterValue && number <= MaxCounterValue;
         }
 
         private static bool MarkerString(string value, out string content)
@@ -4012,6 +4111,9 @@ namespace Lea.Engine
                 else if (name == "list-style-image") ListStyleImage(style, inherited, value, origin);
                 else if (name == "list-style-position") ListStylePosition(style, inherited, value);
                 else if (name == "list-style") ListStyle(style, inherited, value, origin);
+                else if (name == "counter-reset") CounterProperty(style, inherited, value, 0);
+                else if (name == "counter-increment") CounterProperty(style, inherited, value, 1);
+                else if (name == "counter-set") CounterProperty(style, inherited, value, 2);
                 else if (name == "cursor") CursorStyle(style, value);
                 else if (name == "pointer-events") PointerEvents(style, value);
                 else if (name == "object-fit") ObjectFit(style, value);
@@ -9370,6 +9472,125 @@ namespace Lea.Engine
             if (block == null || block.K != "li" || block.S == null || block.Ms != null && block.Ms.Mn) return false;
             if (block.Ms != null && block.Ms.Mc != null) return block.Ms.Mc.Length > 0;
             return !String.IsNullOrEmpty(block.Mk) || block.S.Li != null;
+        }
+
+        private static bool MarkCounters(N root, List<R> rules, bool inline, bool prior)
+        {
+            var active = HasCounterProperties(rules, inline);
+            if (!active && !prior) return false;
+            ClearCounters(root);
+            if (!active) return false;
+            var inherited = new S();
+            N previous = null;
+            if (root.K == "#doc")
+            {
+                foreach (var child in root.C)
+                    if (child.K.Length > 0 && child.K[0] != '#') CounterWalk(child, inherited, rules, ref previous);
+            }
+            else CounterWalk(root, inherited, rules, ref previous);
+            return true;
+        }
+
+        private static bool HasCounterProperties(List<R> rules, bool inline)
+        {
+            if (inline) return true;
+            foreach (var rule in rules)
+                if (!rule.Pm)
+                    foreach (var declaration in rule.Ds)
+                        if (!declaration.C && (declaration.N == "counter-reset" || declaration.N == "counter-increment" || declaration.N == "counter-set")) return true;
+            return false;
+        }
+
+        private static void ClearCounters(N node)
+        {
+            if (node == null) return;
+            node.Ct = null;
+            foreach (var child in node.C) ClearCounters(child);
+        }
+
+        private static void CounterWalk(N node, S inherited, List<R> rules, ref N previous)
+        {
+            var source = PreviousElement(node) ?? node.Up;
+            var counters = CounterInherited(source == null ? null : source.Ct, previous == null ? null : previous.Ct);
+            node.Ct = counters.Count == 0 ? null : counters;
+            var style = Style(node, inherited, rules);
+            if (style.D == "none" || CounterNoBox(node.K))
+            {
+                previous = node;
+                foreach (var child in node.C) ClearCounters(child);
+                return;
+            }
+            CounterApply(counters, node, style.Cr, 0);
+            CounterApply(counters, node, style.Ci, 1);
+            CounterApply(counters, node, style.Cs, 2);
+            node.Ct = counters.Count == 0 ? null : counters;
+            previous = node;
+            if (node.K == "li") MarkerStyle(node, style, rules);
+            foreach (var child in node.C)
+                if (child.K.Length > 0 && child.K[0] != '#') CounterWalk(child, style, rules, ref previous);
+        }
+
+        private static bool CounterNoBox(string kind)
+        {
+            return kind == "head" || kind == "script" || kind == "style" || kind == "noscript" || kind == "template";
+        }
+
+        private static List<Cn> CounterInherited(List<Cn> source, List<Cn> values)
+        {
+            var result = new List<Cn>();
+            if (source == null || values == null) return result;
+            foreach (var value in values)
+                if (CounterContains(source, value)) result.Add(value.Copy());
+            return result;
+        }
+
+        private static bool CounterContains(List<Cn> counters, Cn counter)
+        {
+            foreach (var item in counters)
+                if (item.N.Equals(counter.N, StringComparison.Ordinal) && Object.ReferenceEquals(item.O, counter.O)) return true;
+            return false;
+        }
+
+        private static void CounterApply(List<Cn> counters, N owner, string value, int kind)
+        {
+            if (String.IsNullOrEmpty(value)) return;
+            var parts = value.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            for (var index = 0; index + 1 < parts.Length; index += 2)
+            {
+                int number;
+                if (!CounterInteger(parts[index + 1], out number)) continue;
+                var at = kind == 0 ? CounterCreate(counters, owner, parts[index], number) : CounterIndex(counters, parts[index]);
+                if (at < 0 && kind != 0) at = CounterCreate(counters, owner, parts[index], 0);
+                if (at < 0 || kind == 0) continue;
+                if (kind == 1) counters[at].V = CounterClamp((long)counters[at].V + number);
+                else counters[at].V = number;
+            }
+        }
+
+        private static int CounterCreate(List<Cn> counters, N owner, string name, int value)
+        {
+            for (var index = counters.Count - 1; index >= 0; index--)
+                if (counters[index].N.Equals(name, StringComparison.Ordinal))
+                {
+                    var creator = counters[index].O;
+                    if (Object.ReferenceEquals(creator, owner) || creator != null && owner != null && Object.ReferenceEquals(creator.Up, owner.Up)) counters.RemoveAt(index);
+                    break;
+                }
+            if (counters.Count >= MaxCounterEntries) return -1;
+            counters.Add(new Cn(name, owner, CounterClamp(value)));
+            return counters.Count - 1;
+        }
+
+        private static int CounterIndex(List<Cn> counters, string name)
+        {
+            for (var index = counters.Count - 1; index >= 0; index--)
+                if (counters[index].N.Equals(name, StringComparison.Ordinal)) return index;
+            return -1;
+        }
+
+        private static int CounterClamp(long value)
+        {
+            return value < -MaxCounterValue ? -MaxCounterValue : value > MaxCounterValue ? MaxCounterValue : (int)value;
         }
 
         private static void MarkLists(N node)

@@ -346,23 +346,24 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 106 adds bounded implicit `list-item` `counter()` and nested
-`counters()` output to terminal `::marker` content in the existing compact
-`S.Mc` atom. It reuses HTML start/value/reversed numbering and ten compact
-built-in representations, with eight-level nesting, 32-unit separators, and
-the existing eight-item/128-unit content bounds. Page/item `ms`, readable
-`markerstyle`, variables, priority, images, tables, dynamic rebuilds, retained
-fields, and inside/outside LTR/RTL paint reuse existing paths. See
-`MARKER_COUNTERS.md`. All 102 probes pass over 97 fixtures; the full default
-suite including WinForms checks and the compiled Firespider host pass, as do all
-18 startup regressions, all 42 Boot cases, and all six real EXE startup
+Milestone 107 adds bounded named CSS counters through compact non-inherited
+`S.Cr/Ci/Cs` state and one tree-order pass. Reset, increment, and set apply in
+specification order with case-sensitive names, defaults, duplicate handling,
+nested scope, sibling/descendant flow, hidden suppression, and missing-value
+zero output. Eight operations, eight active instances, 32-character ASCII
+names, and -999999..999999 values bound the feature. Defining `cr/ci/cs`,
+readable commands, and literal DOM properties share one validator and retained
+rebuild; marker output reuses the existing ten representations and bounded
+`S.Mc` atom. See `CSS_COUNTERS.md` and `MARKER_COUNTERS.md`. All 103 probes pass
+over 98 fixtures; the full default suite and compiled Firespider host pass, as
+do all 18 startup regressions, all 42 Boot cases, and all six real EXE startup
 scenarios. Next investigate another bounded HTML/CSS compatibility slice while
-keeping arbitrary
-counter names/properties, custom counter styles, typed/fallback attributes,
-quote/image/alternative generated content, general `::before`/`::after` boxes,
-marker-side, cross-item gutter alignment, author marker image sizing, SVG marker
-decoding, vertical writing modes, full Unicode bidi shaping, `dir=auto`, and
-general CSS/JavaScript evaluators outside the current boundary.
+keeping reversed/custom counter styles, pseudo-element counter properties,
+typed/fallback attributes, quote/image/alternative generated content, general
+`::before`/`::after` boxes, marker-side, cross-item gutter alignment, author
+marker image sizing, SVG marker decoding, vertical writing modes, full Unicode
+bidi shaping, `dir=auto`, and general CSS/JavaScript evaluators outside the
+current boundary.
 
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host

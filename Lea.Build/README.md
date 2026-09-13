@@ -138,6 +138,12 @@ paths, eight nested levels, 32-unit separators, the shared output ceiling,
 variables, priority, invalid preservation, commands, image precedence, tables,
 LTR/RTL geometry, hover, retained fields, and resize. See
 `LeaForge/MARKER_COUNTERS.md`.
+`css-counters.html` covers bounded named `counter-reset`, `counter-increment`,
+and `counter-set`, specification operation order, defaults, duplicate handling,
+case-sensitive names, tree-order scope, self nesting, missing values, exact
+entry/name/integer bounds, hidden branches, formats, variables, priority,
+tables, compact/readable/literal commands, hover/media, retained fields,
+geometry, and paint. See `LeaForge/CSS_COUNTERS.md`.
 
 ## Firespider Startup Checks
 
@@ -193,6 +199,10 @@ hover, and responsive resize.
 numeric/symbolic styles, nested paths, HTML numbering, exact depth/separator/
 output limits, invalid command preservation, image precedence, tables, LTR/RTL
 paint, hover, and responsive resize.
+`--css-counters` isolates bounded named reset/increment/set state, tree-order
+scope, named marker output, exact operation/name/value limits,
+compact/readable/literal commands, tables, hover/media, retained fields, and
+paint.
 `--text-align` isolates the inherited text-align shorthand/all/last family,
 logical inheritance and match-parent, justify-all, compact/readable/literal
 commands, LTR/RTL geometry, shorthand resets, tables, hover, and responsive resize.

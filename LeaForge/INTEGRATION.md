@@ -365,12 +365,21 @@ item override; readable `markerstyle` follows the same forms. Input is capped at
 1024 characters and 16 declarations. Supported declarations are color,
 font-family/size/weight/style, text-transform, letter/word spacing, line-height,
 text-shadow, direction, and bounded `content`. Content can concatenate up to
-eight quoted strings, `attr(name)`/`attr(name raw-string)`, or implicit
-`list-item` `counter()`/`counters()` values, with 64-character attribute names,
-eight counter levels, 32-unit separators, and 128 UTF-16 output units.
-Attributes and list values resolve against each originating item. No host-side
-selector, cascade, numbering, measurement, generated-content, or paint adapter
-is needed. See `MARKER.md`, `MARKER_CONTENT.md`, and `MARKER_COUNTERS.md`.
+eight quoted strings, `attr(name)`/`attr(name raw-string)`, or named/implicit
+`counter()`/`counters()` values, with 64-character attribute names,
+32-character ASCII counter names, eight counter levels, 32-unit separators,
+and 128 UTF-16 output units. Attributes and counter values resolve against each
+originating item. No host-side selector, cascade, numbering, measurement,
+generated-content, or paint adapter is needed. See `MARKER.md`,
+`MARKER_CONTENT.md`, and `MARKER_COUNTERS.md`.
+
+Named counters compile into non-inherited `S.Cr/Ci/Cs` reset/increment/set
+state and a bounded tree-order snapshot on `N.Ct`. Hosts can use `cr`, `ci`,
+and `cs` in page or ID-scoped forms, their readable names, or literal
+`style.counterReset/style.counterIncrement/style.counterSet` assignments.
+Names are case-sensitive and stop at 32 ASCII characters; properties and active
+snapshots stop at eight entries and values at -999999..999999. Ordinary pages
+skip the pass. See `CSS_COUNTERS.md`.
 
 `S.Ws` carries compact `n/nw/p/pw/pl` white-space modes. Lea preserves explicit
 spaces and line breaks for `pre`/`pre-wrap`, keeps line breaks while collapsing
@@ -883,7 +892,7 @@ and 16 alerts.
 
 For easier migration, literal `document.getElementById("id")` statements map
 `textContent/innerText`, `value`, checked/disabled/hidden/open booleans,
-`focus()`, `classList.add/remove/toggle`, and background/color/font-size/display/width/direction/text-indent/text-wrap/text-wrap-mode/text-wrap-style/line-clamp/list-style/list-style-type/list-style-image/list-style-position/text-align/text-align-all/text-align-last/text-decoration/text-underline-offset/text-shadow styles
+`focus()`, `classList.add/remove/toggle`, and background/color/font-size/display/width/direction/text-indent/text-wrap/text-wrap-mode/text-wrap-style/line-clamp/list-style/list-style-type/list-style-image/list-style-position/counter-reset/counter-increment/counter-set/text-align/text-align-all/text-align-last/text-decoration/text-underline-offset/text-shadow styles
 onto the existing compact commands. The adapter receives no DOM object and adds
 no evaluator. IDs and class names remain bounded literals, every mutation uses
 the normal validators and retained rebuild, and unsupported `innerHTML`,

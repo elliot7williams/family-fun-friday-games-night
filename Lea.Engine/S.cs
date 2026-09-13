@@ -43,6 +43,9 @@ namespace Lea.Engine
         public string Lst { get; internal set; }
         public string Lp { get; internal set; }
         public Uri Li { get; internal set; }
+        public string Cr { get; internal set; }
+        public string Ci { get; internal set; }
+        public string Cs { get; internal set; }
         public string Mc { get; internal set; }
         public bool Mn { get; internal set; }
         public string Cu { get; internal set; }
@@ -427,6 +430,9 @@ namespace Lea.Engine
             To = "c";
             Lst = "";
             Lp = "o";
+            Cr = "";
+            Ci = "";
+            Cs = "";
             Cu = "";
             Pe = true;
             Of = "f";
