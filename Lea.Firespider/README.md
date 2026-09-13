@@ -634,6 +634,13 @@ responsive attribute replacement, compact/readable commands, unsupported type
 rejection, exact outside geometry, and retained fields. Firespider still adds no
 DOM evaluator or generated-content adapter. See `LeaForge/MARKER_CONTENT.md`.
 
+Hosted marker content also resolves bounded `counter(list-item)` and nested
+`counters(list-item, separator)` values through Lea's existing HTML list pass.
+The compiled host verifies start/value-aware nested Roman paths, compact and
+readable commands, unsupported-name rejection, exact outside geometry, and
+retained fields. Firespider adds no counter map, numbering adapter, or layout
+branch. See `LeaForge/MARKER_COUNTERS.md`.
+
 Hosted text alignment now exposes the bounded shorthand/all/last family through
 `S.Ta/Tl`. The compiled host verifies `justify-all`, retained logical RTL
 state, compact `ta/taa/tl`, literal `style.textAlign`, shorthand reset,

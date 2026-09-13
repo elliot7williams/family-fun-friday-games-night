@@ -75,11 +75,12 @@ retained controls.
 
 ## Boundary
 
-Terminal `::marker` styling and bounded string/attribute generated content were
-added in Milestones 104 and 105; see `MARKER.md` and `MARKER_CONTENT.md`. Lea
-does not yet implement custom counter styles, arbitrary `counter()`/`counters()`,
-general `::before`/`::after` generated boxes, vertical writing, or full Unicode
-bidi shaping. Bounded inside/outside positioning was added in Milestone 102 and
+Terminal `::marker` styling, string/attribute content, and implicit `list-item`
+counter output were added in Milestones 104-106; see `MARKER.md`,
+`MARKER_CONTENT.md`, and `MARKER_COUNTERS.md`. Lea does not yet implement custom
+counter styles, arbitrary named counter properties, general `::before`/`::after`
+generated boxes, vertical writing, or full Unicode bidi shaping. Bounded
+inside/outside positioning was added in Milestone 102 and
 bounded marker images in Milestone 103; see `LIST_POSITION.md` and
 `LIST_IMAGE.md`.
 

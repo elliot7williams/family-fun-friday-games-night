@@ -132,6 +132,12 @@ explicit raw-string mode, missing/empty attributes, variables, priority,
 count/name/output bounds, invalid preservation, markup-like text, commands,
 image precedence, tables, LTR/RTL geometry, hover, retained fields, and resize.
 See `LeaForge/MARKER_CONTENT.md`.
+`marker-counters.html` covers bounded implicit `list-item` `counter()` and
+`counters()` output, ten compact built-in styles, HTML start/value/reversed
+paths, eight nested levels, 32-unit separators, the shared output ceiling,
+variables, priority, invalid preservation, commands, image precedence, tables,
+LTR/RTL geometry, hover, retained fields, and resize. See
+`LeaForge/MARKER_COUNTERS.md`.
 
 ## Firespider Startup Checks
 
@@ -183,6 +189,10 @@ and responsive resize.
 mode, missing/empty values, variables, priority, exact fragment/name/output
 limits, invalid command preservation, image precedence, tables, LTR/RTL paint,
 hover, and responsive resize.
+`--marker-counters` isolates implicit list-item counter output, built-in
+numeric/symbolic styles, nested paths, HTML numbering, exact depth/separator/
+output limits, invalid command preservation, image precedence, tables, LTR/RTL
+paint, hover, and responsive resize.
 `--text-align` isolates the inherited text-align shorthand/all/last family,
 logical inheritance and match-parent, justify-all, compact/readable/literal
 commands, LTR/RTL geometry, shorthand resets, tables, hover, and responsive resize.

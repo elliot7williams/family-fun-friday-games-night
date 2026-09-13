@@ -106,6 +106,11 @@ namespace Lea.Tests
                     MarkerContentSmoke(Path.Combine(pages, "marker-content.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--marker-counters")
+                {
+                    MarkerCounterSmoke(Path.Combine(pages, "marker-counters.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--text-align-last")
                 {
                     TextAlignLastSmoke(Path.Combine(pages, "text-align-last.html"));
@@ -2466,6 +2471,7 @@ namespace Lea.Tests
                 ListImageSmoke(Path.Combine(pages, "list-image.html"));
                 MarkerSmoke(Path.Combine(pages, "marker.html"));
                 MarkerContentSmoke(Path.Combine(pages, "marker-content.html"));
+                MarkerCounterSmoke(Path.Combine(pages, "marker-counters.html"));
 
                 var recoveryPath = Path.Combine(pages, "recovery.html");
                 var recoveryPage = engine.Go(recoveryPath);
@@ -8684,6 +8690,137 @@ namespace Lea.Tests
                 }
             }
             Console.WriteLine("Lea marker content smoke passed: bounded string/attr fragments, limits, cascade, commands, images, LTR/RTL geometry, tables, hover, media, and paint.");
+        }
+
+        private static void MarkerCounterSmoke(string path)
+        {
+            var engine = new E { Vw = 720 };
+            var page = engine.Go(path);
+            Func<string, B> block = id => BlockById(page, id);
+
+            Ok(block("decimal").Mk == "[7] " && block("zero").Mk == "08. ",
+                "decimal marker counter formats");
+            Ok(block("lower-alpha").Mk == "aa) " && block("upper-latin").Mk == "AB) " &&
+                block("lower-roman").Mk == "iv) " && block("upper-roman").Mk == "V) ",
+                "alpha and Roman marker counter formats");
+            Ok(block("disc").Mk == "\u2022 " && block("circle").Mk == "\u25e6 " &&
+                block("square").Mk == "\u25aa " && block("none-style").Mk == "AB ",
+                "symbolic and none marker counter formats");
+            Ok(block("mixed").Mk == "Step Z: " && block("variable").Mk == "VXXVII " &&
+                block("important").Mk == "28. ", "counter fragments, attributes, variables, and priority");
+            Ok(block("invalid-name").Mk == "Keep " && block("invalid-style").Mk == "Keep " &&
+                block("invalid-counters").Mk == "Keep " && block("long-separator").Mk == "Keep ",
+                "invalid marker counters preserve prior content");
+
+            Ok(block("tree-outer").Mk == "5. " && block("tree-inner").Mk == "5.3. " &&
+                block("tree-value").Mk == "5.8. " && block("tree-reverse-two").Mk == "5.8.2. " &&
+                block("tree-reverse-one").Mk == "5.8.1. ", "nested marker counters follow HTML list values");
+            Ok(block("separator-escaped").Mk == "E/D " && block("separator-close").Mk == "V)V " &&
+                block("separator-limit").Mk == "5123456789012345678901234567890126 " && block("none-path").Mk == "A.B ",
+                "escaped, empty-representation, closing-parenthesis, and exact-limit counter separators");
+            Ok(block("depth-eight").Mk == "1.1.1.1.1.1.1.1 " && block("depth-output").Mk == "Keep " &&
+                block("depth-nine").Mk == "Keep ", "bounded nested marker counter depth and output");
+            Ok(block("image").S.Li != null && block("image").Mk == "11 " &&
+                block("inside").S.Lp == "i" && block("inside").Mk == "(L) " &&
+                block("rtl").S.Dr == "r" && block("rtl").Mk == "XIII. ",
+                "counter marker image priority and direction state");
+            Eq("TT ", block("cell").Mk, "counter marker reaches table lists");
+
+            var retained = FieldById(page, "marker-counter-field");
+            var dynamic = ById(page.D, "dynamic");
+            engine.Dy(page, dynamic, null);
+            Ok(block("dynamic").Mk == "HN " && block("dynamic").Ms.F == "#dc2626",
+                "dynamic marker counter hover");
+            engine.Dy(page, null, null);
+            Eq("14. ", block("dynamic").Mk, "dynamic marker counter hover restore");
+
+            Eq(1, engine.Ck(page, ById(page.D, "set-command")), "compact marker counter command");
+            Ok(block("command").Mk == "Q" && block("command").Ms.F == "#dc2626" && block("command").Ms.Fs == 24,
+                "compact marker counter command model");
+            Eq(1, engine.Ck(page, ById(page.D, "set-readable")), "readable marker counter command");
+            Ok(block("command-readable").Mk == "XVIII" && block("command-readable").Ms.F == "#2563eb",
+                "readable marker counter command model");
+            Eq(0, engine.Js(page, "ms('command','content:counter(chapter)')"), "counter command rejects custom name");
+            Eq(0, engine.Js(page, "ms('command','content:counter(list-item,armenian)')"), "counter command rejects unsupported style");
+            Eq("Q", block("command").Mk, "invalid marker counter commands preserve state");
+            Eq(1, engine.Ck(page, ById(page.D, "clear-command")), "marker counter command clear");
+            Eq("CSS ", block("command").Mk, "marker counter command clear restores authored CSS");
+            Eq(1, engine.Js(page, "ms('content:counter(list-item)')"), "page marker counter default command");
+            Ok(block("default").Mk == "16" && block("decimal").Mk == "[7] ",
+                "page marker counter default resolves each item and yields to authored rules");
+            Eq(1, engine.Js(page, "ms('')"), "page marker counter default clear");
+            Eq("16.", block("default").Mk, "page marker counter clear restores normal marker");
+            Ok(Object.ReferenceEquals(retained, FieldById(page, "marker-counter-field")),
+                "marker counter rebuilds retain field identity");
+
+            engine.Vw = 350;
+            Ok(block("responsive").Mk == "XV. " && block("responsive").Ms.F == "#2563eb" && block("responsive").Ms.Fs == 20 &&
+                Object.ReferenceEquals(retained, FieldById(page, "marker-counter-field")),
+                "responsive marker counter and field retention");
+
+            using (var view = new V())
+            {
+                view.Size = new Size(720, 7600);
+                var load = view.GoA(path);
+                while (!load.IsCompleted)
+                {
+                    Application.DoEvents();
+                    Thread.Sleep(2);
+                }
+                load.GetAwaiter().GetResult();
+                retained = FieldById(view.At, "marker-counter-field");
+                Rectangle dynamicOuter;
+                using (var paint = Render(view))
+                {
+                    var decimalCounter = BlockById(view.At, "decimal");
+                    var inside = BlockById(view.At, "inside");
+                    var rtl = BlockById(view.At, "rtl");
+                    Ok(InlineTextRect(view, decimalCounter, "[7] ").Right < BlockRect(view, decimalCounter).Left &&
+                        HasColor(paint, Rectangle.Inflate(InlineTextRect(view, decimalCounter, "[7] "), 3, 3), Color.FromArgb(220, 38, 38)),
+                        "decimal counter marker paints in the outside gutter");
+                    Ok(InlineTextRect(view, inside, "(L) ").Left == BlockRect(view, inside).Left &&
+                        InlineTextRect(view, rtl, "XIII. ").Left > BlockRect(view, rtl).Right,
+                        "counter marker inside and RTL geometry");
+                    Ok(InlineTextRect(view, BlockById(view.At, "tree-reverse-one"), "5.8.1. ").Width > 0 &&
+                        InlineTextRect(view, BlockById(view.At, "cell"), "TT ").Width > 0,
+                        "nested and table counter markers paint");
+                    Ok(InlineKindCount(view, BlockById(view.At, "image"), "lm") == 0 &&
+                        InlineTextRect(view, BlockById(view.At, "image"), "11 ").Width > 0,
+                        "counter marker text suppresses image paint");
+                    dynamicOuter = BlockOuterRect(view, BlockById(view.At, "dynamic"));
+                }
+
+                Move(view, dynamicOuter);
+                using (var paint = Render(view))
+                    Ok(BlockById(view.At, "dynamic").Mk == "HN " &&
+                        InlineTextRect(view, BlockById(view.At, "dynamic"), "HN ").Width > 0,
+                        "marker counter hover reaches paint");
+                Move(view, new Point(0, 0));
+
+                Eq(1, view.Js("ms('command','content:counter(list-item,upper-alpha);color:#dc2626;font-size:24px')"),
+                    "view marker counter command");
+                using (var paint = Render(view))
+                {
+                    var command = BlockById(view.At, "command");
+                    Ok(command.Mk == "Q" && command.Ms.Fs == 24 &&
+                        InlineTextRect(view, command, "Q").Right < BlockRect(view, command).Left,
+                        "view marker counter command geometry");
+                }
+
+                retained.V = "Retained after marker counter resize";
+                view.Size = new Size(350, 7600);
+                Application.DoEvents();
+                using (var paint = Render(view))
+                {
+                    var responsive = BlockById(view.At, "responsive");
+                    Ok(responsive.Mk == "XV. " &&
+                        InlineTextRect(view, responsive, "XV. ").Right < BlockRect(view, responsive).Left,
+                        "responsive marker counter geometry");
+                    Ok(Object.ReferenceEquals(retained, FieldById(view.At, "marker-counter-field")) &&
+                        retained.V == "Retained after marker counter resize", "marker counter resize retains field value");
+                }
+            }
+            Console.WriteLine("Lea marker counter smoke passed: bounded counter/list-item styles, nested paths, limits, cascade, aliases, images, LTR/RTL geometry, tables, hover, media, and paint.");
         }
 
         private static void LineClampSmoke(string path)

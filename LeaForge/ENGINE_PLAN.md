@@ -346,22 +346,23 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 105 extends terminal `::marker` content with up to eight ordered
-quoted strings and `attr(name)`/`attr(name raw-string)` values in the existing
-compact `S.Mc` atom. It resolves attributes against each originating item after
-variables and cascade priority, uses 64-character name and 128-unit output
-bounds, preserves prior declarations on invalid/oversized input, and keeps
-markup-looking values as text. Page/item `ms`, readable `markerstyle`, image
-priority, tables, dynamic rebuilds, and inside/outside LTR/RTL paint reuse
-existing paths. See `MARKER_CONTENT.md`. All 101 probes pass over 96 fixtures;
-the full default suite and compiled Firespider host pass, including all 18
-startup regressions, all 42 Boot cases, and all six real EXE startup scenarios.
-Next investigate another bounded HTML/CSS compatibility slice while keeping
-typed/fallback attributes, counters, quote/image/alternative generated content,
-general `::before`/`::after` boxes, marker-side, cross-item gutter alignment,
-author marker image sizing, SVG marker decoding, vertical writing modes, full
-Unicode bidi shaping, `dir=auto`, and general CSS/JavaScript evaluators outside
-the current boundary.
+Milestone 106 adds bounded implicit `list-item` `counter()` and nested
+`counters()` output to terminal `::marker` content in the existing compact
+`S.Mc` atom. It reuses HTML start/value/reversed numbering and ten compact
+built-in representations, with eight-level nesting, 32-unit separators, and
+the existing eight-item/128-unit content bounds. Page/item `ms`, readable
+`markerstyle`, variables, priority, images, tables, dynamic rebuilds, retained
+fields, and inside/outside LTR/RTL paint reuse existing paths. See
+`MARKER_COUNTERS.md`. All 102 probes pass over 97 fixtures; the full default
+suite including WinForms checks and the compiled Firespider host pass, as do all
+18 startup regressions, all 42 Boot cases, and all six real EXE startup
+scenarios. Next investigate another bounded HTML/CSS compatibility slice while
+keeping arbitrary
+counter names/properties, custom counter styles, typed/fallback attributes,
+quote/image/alternative generated content, general `::before`/`::after` boxes,
+marker-side, cross-item gutter alignment, author marker image sizing, SVG marker
+decoding, vertical writing modes, full Unicode bidi shaping, `dir=auto`, and
+general CSS/JavaScript evaluators outside the current boundary.
 
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host

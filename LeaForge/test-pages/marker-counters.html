@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Marker Counters</title>
+  <style>
+    :root { --counter-fragment: counter(list-item, upper-roman); }
+    body { margin: 24px; color: #172033; background: #ffffff; font-family: "Segoe UI", sans-serif; }
+    li { width: 290px; margin-left: 112px; padding: 3px; }
+    #decimal::marker { content: "[" counter(list-item) "] "; color: #dc2626; font-size: 20px; }
+    #zero::marker { content: counter(list-item, decimal-leading-zero) ". "; }
+    #lower-alpha::marker { content: counter(list-item, lower-alpha) ") "; }
+    #upper-latin::marker { content: counter(list-item, upper-latin) ") "; }
+    #lower-roman::marker { content: counter(list-item, lower-roman) ") "; }
+    #upper-roman::marker { content: counter(list-item, upper-roman) ") "; }
+    #disc::marker { content: counter(list-item, disc) " "; }
+    #circle::marker { content: counter(list-item, circle) " "; }
+    #square::marker { content: counter(list-item, square) " "; }
+    #none-style::marker { content: "A" counter(list-item, none) "B "; }
+    #mixed::marker { content: attr(data-label) " " counter(list-item, upper-alpha) ": "; color: #0f766e; }
+    #variable::marker { content: "V" var(--counter-fragment) " "; }
+    #important::marker { content: "Low "; content: counter(list-item) ". " !important; }
+    #invalid-name::marker { content: "Keep "; content: counter(chapter); }
+    #invalid-style::marker { content: "Keep "; content: counter(list-item, armenian); }
+    #invalid-counters::marker { content: "Keep "; content: counters(list-item, 2); }
+    #long-separator::marker { content: "Keep "; content: counters(list-item, "123456789012345678901234567890123"); }
+    .tree::marker { content: counters(list-item, ".") ". "; color: #2563eb; }
+    #separator-escaped::marker { content: counters(list-item, "\2f ", upper-alpha) " "; }
+    #separator-close::marker { content: counters(list-item, ")", upper-roman) " "; }
+    #separator-limit::marker { content: counters(list-item, "12345678901234567890123456789012") " "; }
+    #none-path::marker { content: "A" counters(list-item, ".", none) "B "; }
+    #depth-eight::marker { content: counters(list-item, ".") " "; }
+    #depth-output::marker { content: "Keep "; content: counters(list-item, "12345678901234567890") " "; }
+    #depth-nine::marker { content: "Keep "; content: counters(list-item, ".") " "; }
+    #image { list-style-image: url("../../assets/lea.ico"); }
+    #image::marker { content: counter(list-item) " "; }
+    #inside { list-style-position: inside; }
+    #inside::marker { content: "(" counter(list-item, upper-alpha) ") "; color: #2563eb; }
+    #rtl { direction: rtl; }
+    #rtl::marker { content: counter(list-item, upper-roman) ". "; color: #7c3aed; }
+    #dynamic::marker { content: counter(list-item) ". "; color: #64748b; }
+    #dynamic:hover::marker { content: "H" counter(list-item, upper-alpha) " "; color: #dc2626; }
+    #responsive::marker { content: counter(list-item, decimal-leading-zero) ". "; }
+    #command::marker, #command-readable::marker { content: "CSS "; color: #64748b; }
+    #cell::marker { content: "T" counter(list-item, upper-alpha) " "; color: #0f766e; }
+    @media screen and (max-width: 400px) {
+      #responsive::marker { content: counter(list-item, upper-roman) ". "; color: #2563eb; font-size: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Marker counters</h1>
+
+  <ol start="7"><li id="decimal">Default decimal counter</li></ol>
+  <ol start="8"><li id="zero">Leading-zero counter</li></ol>
+  <ol start="27"><li id="lower-alpha">Lower alpha counter</li><li id="upper-latin">Upper Latin counter</li></ol>
+  <ol start="4"><li id="lower-roman">Lower Roman counter</li><li id="upper-roman">Upper Roman counter</li></ol>
+  <ul><li id="disc">Disc counter style</li><li id="circle">Circle counter style</li><li id="square">Square counter style</li><li id="none-style">None counter style</li></ul>
+  <ol start="26"><li id="mixed" data-label="Step">String, attribute, and counter fragments</li><li id="variable">Variable counter fragment</li><li id="important">Important counter content</li></ol>
+  <ol><li id="invalid-name">Unsupported named counter</li><li id="invalid-style">Unsupported counter style</li><li id="invalid-counters">Malformed counters separator</li><li id="long-separator">Overlong counters separator</li></ol>
+
+  <ol start="5">
+    <li id="tree-outer" class="tree">Outer path
+      <ol start="3">
+        <li id="tree-inner" class="tree">Inner path</li>
+        <li id="separator-escaped">Escaped path separator</li>
+        <li id="separator-close">Closing-parenthesis separator</li>
+        <li id="separator-limit">Exact separator limit</li>
+        <li id="none-path">Empty counter representations retain their separator</li>
+        <li id="tree-value" class="tree" value="8">Value path
+          <ol reversed>
+            <li id="tree-reverse-two" class="tree">Reverse path two</li>
+            <li id="tree-reverse-one" class="tree">Reverse path one</li>
+          </ol>
+        </li>
+      </ol>
+    </li>
+  </ol>
+
+  <ol><li>Depth one<ol><li>Depth two<ol><li>Depth three<ol><li>Depth four<ol><li>Depth five<ol><li>Depth six<ol><li>Depth seven<ol><li id="depth-eight">Depth eight<ol><li id="depth-nine">Depth nine</li></ol></li><li id="depth-output">Oversized nested output</li></ol></li></ol></li></ol></li></ol></li></ol></li></ol></li></ol>
+
+  <ol start="11">
+    <li id="image">Counter content takes marker image priority</li>
+    <li id="inside">Inside counter marker</li>
+    <li id="rtl">RTL counter marker</li>
+    <li id="dynamic">Dynamic counter marker <input id="marker-counter-field" value="Retained counter field"></li>
+    <li id="responsive">Responsive counter marker</li>
+    <li id="default">Page-default counter marker</li>
+    <li id="command">Compact counter command</li>
+    <li id="command-readable">Readable counter command</li>
+  </ol>
+
+  <button id="set-command" data-lea="ms('command','content:counter(list-item,upper-alpha);color:#dc2626;font-size:24px')">Set compact counter marker</button>
+  <button id="set-readable" data-lea="markerstyle('command-readable','content:counter(list-item,upper-roman);color:#2563eb')">Set readable counter marker</button>
+  <button id="clear-command" data-lea="ms('command','')">Clear compact counter marker</button>
+
+  <table><tr><td><ol start="20"><li id="cell">Table counter marker</li></ol></td></tr></table>
+</body>
+</html>

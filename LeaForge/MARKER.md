@@ -3,7 +3,7 @@
 Milestone 104 adds a bounded `::marker` pseudo-element slice without adding a
 second document node, layout pass, script runtime, or image loader. Each list
 item block keeps its originating style in `B.S` and its compact marker style in
-`B.Ms`. `S.Mc` stores optional literal marker content and `S.Mn` records
+`B.Ms`. `S.Mc` stores optional generated marker content and `S.Mn` records
 `content:none` without overloading an empty string.
 
 ## Selectors And Cascade
@@ -39,10 +39,12 @@ The bounded marker declaration set is:
 - `content`
 
 `content` accepts `normal`, `none`, CSS-wide values, or up to eight quoted
-strings and `attr(name)`/`attr(name raw-string)` values. CSS escapes are decoded
-to Unicode scalar values; invalid scalar values become the replacement
-character. Attribute names are capped at 64 characters and the concatenated
-string is limited to 128 UTF-16 code units. See `MARKER_CONTENT.md`.
+strings, `attr(name)`/`attr(name raw-string)`, and implicit `list-item`
+`counter()`/`counters()` values. CSS escapes are decoded to Unicode scalar
+values; invalid scalar values become the replacement character. Attribute
+names are capped at 64 characters, nested counters at eight levels, separators
+at 32 units, and the concatenated string at 128 UTF-16 units. See
+`MARKER_CONTENT.md` and `MARKER_COUNTERS.md`.
 `normal` uses the ordinary marker source, so a decoded `list-style-image` wins
 over `list-style-type`. A literal string wins over the image. `none` suppresses
 the marker and its spacer while retaining the list item.
@@ -78,7 +80,7 @@ sandboxed decode, 64-pixel intrinsic cap, cache, and text fallback behavior.
 ## Verification
 
 `test-pages/marker.html`, focused `Lea.Tests --marker`, the full default suite,
-the 101-probe benchmark over 96 fixtures, and the compiled Firespider host cover
+the 102-probe benchmark over 97 fixtures, and the compiled Firespider host cover
 style isolation, specificity, variables, priority, CSS-wide behavior, escaped
 content, image precedence, compact/readable commands, validation bounds,
 tables, LTR/RTL inside/outside geometry, exact paint, hover, responsive rebuilds,
@@ -88,9 +90,9 @@ dialog, or a dead startup window.
 
 ## Boundary
 
-Lea does not yet implement typed/fallback `attr()` values,
-`counter()`/`counters()`, images or quote keywords in `content`, separate
-anonymous fragment boxes, `counter-style`, `marker-side`, cross-item marker
+Lea does not yet implement typed/fallback `attr()` values, arbitrary named
+counters or counter properties, custom counter styles, images or quote keywords
+in `content`, separate anonymous fragment boxes, `marker-side`, cross-item marker
 column alignment, author-controlled marker image sizing, SVG image decoding,
 vertical writing, full Unicode bidi shaping, pseudo-element DOM objects, or a
 general CSSOM/JavaScript evaluator.

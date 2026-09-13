@@ -44,6 +44,8 @@ namespace Lea.Engine
         private const int MaxBackgroundLength = 2000;
         private const int MaxMarkerDeclarations = 16;
         private const int MaxMarkerContentItems = 8;
+        private const int MaxMarkerCounterDepth = 8;
+        private const int MaxMarkerCounterSeparator = 32;
         private const int MaxMarkerStyle = 1024;
         private const int MaxMarkerText = 128;
         private const int MaxPost = 10 * 1024 * 1024;
@@ -3686,7 +3688,8 @@ namespace Lea.Engine
                 {
                     if (!MarkerStringToken(source, ref index, out item)) return false;
                 }
-                else if (!MarkerAttribute(node, source, ref index, out item)) return false;
+                else if (!MarkerAttribute(node, source, ref index, out item) &&
+                    !MarkerCounter(node, source, ref index, out item)) return false;
                 if (MarkerControls(item) || result.Length + item.Length > MaxMarkerText) return false;
                 result.Append(item);
             }
@@ -3727,6 +3730,120 @@ namespace Lea.Engine
             if (name.Length > 64) return false;
             content = node != null && node.A.ContainsKey(name) ? node.Av(name) : "";
             return content.Length <= MaxMarkerText;
+        }
+
+        private static bool MarkerCounter(N node, string source, ref int index, out string content)
+        {
+            content = "";
+            var many = false;
+            var prefix = 0;
+            if (index + 9 <= source.Length && source.Substring(index, 9).Equals("counters(", StringComparison.OrdinalIgnoreCase))
+            {
+                many = true;
+                prefix = 9;
+            }
+            else if (index + 8 <= source.Length && source.Substring(index, 8).Equals("counter(", StringComparison.OrdinalIgnoreCase)) prefix = 8;
+            else return false;
+            int close;
+            if (!MarkerFunctionClose(source, index + prefix, out close)) return false;
+            var argument = source.Substring(index + prefix, close - index - prefix).Trim();
+            if (many)
+            {
+                if (!MarkerCountersValue(node, argument, out content)) return false;
+            }
+            else if (!MarkerCounterValue(node, argument, out content)) return false;
+            index = close + 1;
+            return true;
+        }
+
+        private static bool MarkerFunctionClose(string source, int index, out int close)
+        {
+            close = -1;
+            var quote = '\0';
+            while (index < source.Length)
+            {
+                var current = source[index++];
+                if (quote != '\0')
+                {
+                    if (current == quote) quote = '\0';
+                    else if (current == '\\')
+                    {
+                        if (index >= source.Length) return false;
+                        if (source[index] == '\r' && index + 1 < source.Length && source[index + 1] == '\n') index += 2;
+                        else index++;
+                    }
+                    continue;
+                }
+                if (current == '"' || current == '\'') quote = current;
+                else if (current == ')')
+                {
+                    close = index - 1;
+                    return true;
+                }
+                else if (current == '(') return false;
+            }
+            return false;
+        }
+
+        private static bool MarkerCounterValue(N node, string argument, out string content)
+        {
+            content = "";
+            var parts = argument.Split(',');
+            if (parts.Length < 1 || parts.Length > 2 || !parts[0].Trim().Equals("list-item", StringComparison.OrdinalIgnoreCase)) return false;
+            string style;
+            if (!MarkerCounterStyle(parts.Length == 1 ? "decimal" : parts[1], out style)) return false;
+            content = CounterText(MarkerCounterNumber(node), style);
+            return content.Length <= MaxMarkerText;
+        }
+
+        private static bool MarkerCountersValue(N node, string argument, out string content)
+        {
+            content = "";
+            var comma = argument.IndexOf(',');
+            if (comma < 0 || !argument.Substring(0, comma).Trim().Equals("list-item", StringComparison.OrdinalIgnoreCase)) return false;
+            var rest = argument.Substring(comma + 1);
+            var cursor = 0;
+            while (cursor < rest.Length && Char.IsWhiteSpace(rest[cursor])) cursor++;
+            string separator;
+            if (!MarkerStringToken(rest, ref cursor, out separator) || separator.Length > MaxMarkerCounterSeparator || MarkerControls(separator)) return false;
+            while (cursor < rest.Length && Char.IsWhiteSpace(rest[cursor])) cursor++;
+            string style;
+            if (cursor == rest.Length) style = "1";
+            else
+            {
+                if (rest[cursor++] != ',') return false;
+                if (!MarkerCounterStyle(rest.Substring(cursor), out style)) return false;
+            }
+            var values = new List<int>();
+            for (var current = node; current != null; current = current.Up)
+                if (current.K == "li")
+                {
+                    if (values.Count == MaxMarkerCounterDepth) return false;
+                    values.Add(MarkerCounterNumber(current));
+                }
+            if (values.Count == 0) values.Add(0);
+            values.Reverse();
+            var result = new StringBuilder();
+            for (var valueIndex = 0; valueIndex < values.Count; valueIndex++)
+            {
+                if (valueIndex > 0) result.Append(separator);
+                result.Append(CounterText(values[valueIndex], style));
+                if (result.Length > MaxMarkerText) return false;
+            }
+            content = result.ToString();
+            return true;
+        }
+
+        private static bool MarkerCounterStyle(string value, out string style)
+        {
+            style = ListStyleCode((value ?? "").Trim().ToLowerInvariant());
+            return style != null;
+        }
+
+        private static int MarkerCounterNumber(N node)
+        {
+            int number;
+            return node != null && Int32.TryParse(node.Mk, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out number) ? number : node == null ? 0 : 1;
         }
 
         private static bool MarkerString(string value, out string content)
@@ -9236,10 +9353,16 @@ namespace Lea.Engine
             if (!Int32.TryParse(item.Mk, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out number)) number = 1;
             var type = style == null ? "" : style.Lst;
             if (type.Length == 0) type = item.Up != null && item.Up.K == "ol" ? "1" : "d";
-            var marker = type == "n" ? "" : type == "d" ? "\u2022" : type == "c" ? "\u25e6" : type == "s" ? "\u25aa" :
-                type == "0" ? LeadingZero(number) + "." : type == "a" || type == "A" ? AlphaMarker(number, type == "A") + "." :
-                type == "r" || type == "R" ? RomanMarker(number, type == "R") + "." : number.ToString(CultureInfo.InvariantCulture) + ".";
+            var marker = CounterText(number, type);
+            if (type != "n" && type != "d" && type != "c" && type != "s") marker += ".";
             return Tx(marker, markerStyle ?? style);
+        }
+
+        private static string CounterText(int number, string type)
+        {
+            return type == "n" ? "" : type == "d" ? "\u2022" : type == "c" ? "\u25e6" : type == "s" ? "\u25aa" :
+                type == "0" ? LeadingZero(number) : type == "a" || type == "A" ? AlphaMarker(number, type == "A") :
+                type == "r" || type == "R" ? RomanMarker(number, type == "R") : number.ToString(CultureInfo.InvariantCulture);
         }
 
         private static bool HasMarkerContent(B block)

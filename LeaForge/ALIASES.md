@@ -105,6 +105,7 @@ ls("id", "square url('marker.png') inside") list style shorthand
 ms("color:#2563eb") page marker default
 ms("id", "content:'Lea ';font-weight:bold") element marker style
 ms("id", "content:attr(data-code)") generated marker text
+ms("id", "content:counter(list-item)") generated list number
 ts("3px 2px #555") body text shadow
 ts("id", "5px 4px 0 #dc2626") element text shadow
 td("underline dashed red 2px") body text decoration
@@ -850,9 +851,11 @@ ordinary marker content, and suppression. Terminal `::marker` selectors reuse
 the compiled originating-element matcher and cascade while staying isolated
 from `B.S`. The defining `ms(value)` page default, `ms(id,value)` direct style,
 and readable `markerstyle` accept at most 1,024 characters and 16 declarations;
-content accepts up to eight quoted strings or `attr(name)`/`attr(name raw-string)`
-items, 64-character names, and 128 UTF-16 output units. See `LIST_STYLE.md`,
-`LIST_POSITION.md`, `LIST_IMAGE.md`, `MARKER.md`, and `MARKER_CONTENT.md`.
+content accepts up to eight quoted strings, `attr(name)`/`attr(name raw-string)`,
+or implicit `list-item` counter items, with 64-character attribute names,
+eight counter levels, 32-unit separators, and 128 UTF-16 output units. See
+`LIST_STYLE.md`, `LIST_POSITION.md`, `LIST_IMAGE.md`, `MARKER.md`,
+`MARKER_CONTENT.md`, and `MARKER_COUNTERS.md`.
 
 Disclosure state stays equally compact. A `details` node uses `N.Op` for its
 page-local open state. Its first direct `summary` block uses `B.Mk` as `>` when
