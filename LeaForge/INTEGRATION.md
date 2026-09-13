@@ -364,8 +364,12 @@ can call `ms(value)` for a page marker default or `ms(id,value)` for a direct
 item override; readable `markerstyle` follows the same forms. Input is capped at
 1024 characters and 16 declarations. Supported declarations are color,
 font-family/size/weight/style, text-transform, letter/word spacing, line-height,
-text-shadow, direction, and one quoted `content` string or `none`. No host-side
-selector, cascade, measurement, or paint adapter is needed. See `MARKER.md`.
+text-shadow, direction, and bounded `content`. Content can concatenate up to
+eight quoted strings or `attr(name)`/`attr(name raw-string)` values, with
+64-character names and 128 UTF-16 output units. Attributes are resolved against
+each originating item and remain plain text. No host-side selector, cascade,
+measurement, generated-content, or paint adapter is needed. See `MARKER.md` and
+`MARKER_CONTENT.md`.
 
 `S.Ws` carries compact `n/nw/p/pw/pl` white-space modes. Lea preserves explicit
 spaces and line breaks for `pre`/`pre-wrap`, keeps line breaks while collapsing

@@ -114,7 +114,7 @@ namespace Lea.Bench
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
                 "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "direction-logical.html", "direction-layout.html", "direction-inline.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "direction-overflow.html", "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
-                "go-command.html", "lists.html", "list-style.html", "list-position.html", "list-image.html", "marker.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
+                "go-command.html", "lists.html", "list-style.html", "list-position.html", "list-image.html", "marker.html", "marker-content.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
                 "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html", "svg.html", "svg-geometry.html", "svg-gradients.html", "svg-use-clips.html", "svg-strokes.html",
                 "box-sizing.html", "border-radius.html", "logical-radii.html", "box-shadows.html", "background-gradients.html", "background-images.html", "object-fit.html", "aspect-ratio.html", "outlines.html", "pointer-interaction.html", "text-transform.html", "text-spacing.html", "text-indent.html", "text-decoration.html", "text-underline-offset.html", "text-wrap.html", "text-align.html", "text-align-last.html", "text-shadow.html", "text-overflow.html", "line-clamp.html"
@@ -461,6 +461,79 @@ namespace Lea.Bench
                     }
                 }
                 return "B.Ms compact marker style, terminal ::marker cascade, inherited text state with UA reset, bounded literal content, image precedence, ms/markerstyle commands, LTR/RTL paint, hover/media rebuilds, and retained fields";
+            });
+            AddProbe(probes, "Bounded marker generated content", delegate
+            {
+                var path = Path.Combine(folder, "marker-content.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                Func<string, B> block = delegate(string id)
+                {
+                    var found = page.Bs.FirstOrDefault(item => item.El != null && item.El.Av("id") == id);
+                    Need(found != null, "missing marker generated-content block " + id);
+                    return found;
+                };
+                Need(block("attribute").Mk == "Attr " && block("raw").Mk == "Raw value " &&
+                    block("fragments").Mk == "[A7] " && block("adjacent").Mk == "AB8 ",
+                    "marker attr or ordered fragment content changed");
+                Need(block("missing").Mk == "M " && block("empty").Mk == "E " &&
+                    block("escaped").Mk == "\u2605 C9 " && block("variable").Mk == "(D10) ",
+                    "marker empty, escaped, or variable fragments changed");
+                Need(block("important").Mk == "Important " && block("invalid-type").Mk == "Keep " &&
+                    block("invalid-fallback").Mk == "Keep " && block("eight").Mk == "12345678" && block("nine").Mk == "Keep ",
+                    "marker generated-content cascade or bounds changed");
+                Need(block("markup").Mk == "<safe> " && block("image").S.Li != null && block("image").Mk == "Text " &&
+                    block("inside").Mk == "[IN] " && block("rtl").Mk == "RTL ",
+                    "marker generated-content safety, image priority, or direction changed");
+                var retained = page.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "marker-content-field");
+                Need(retained != null, "missing marker generated-content retained field");
+                var bounded = ById(page.D, "bounded");
+                bounded.A["data-marker"] = new String('x', 128);
+                engine.Dy(page, bounded, null);
+                Need(block("bounded").Mk.Length == 128, "marker generated-content exact output ceiling changed");
+                bounded.A["data-marker"] = new String('x', 129);
+                engine.Dy(page, null, null);
+                Need(block("bounded").Mk == "Keep ", "oversized marker generated content changed prior declaration");
+                Need(engine.Ck(page, ById(page.D, "set-command")) == 1 && block("command").Mk == "CMD" &&
+                    engine.Js(page, "ms('command','content:attr(data-code number)')") == 0 && block("command").Mk == "CMD",
+                    "marker generated-content command or validation changed");
+                Need(engine.Js(page, "ms('content:attr(data-code)')") == 1 && block("default").Mk == "PAGE" &&
+                    engine.Js(page, "ms('')") == 1 && block("default").Mk == "21.",
+                    "page marker generated-content default changed");
+                engine.Vw = 350;
+                Need(block("responsive").Mk == "Narrow " && Object.ReferenceEquals(retained,
+                    page.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "marker-content-field")),
+                    "responsive marker generated content or retained field changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 5200);
+                    LoadView(view, path, "marker generated-content load");
+                    using (var image = Draw(view))
+                    {
+                        Need(InlineTextRect(view, "attribute", "Attr ").Right < BlockContent(view, "attribute").Left &&
+                            InlineTextRect(view, "inside", "[IN] ").Left == BlockContent(view, "inside").Left &&
+                            InlineTextRect(view, "rtl", "RTL ").Left > BlockContent(view, "rtl").Right,
+                            "marker generated-content LTR/RTL geometry changed");
+                        Need(InlineKindCount(view, "image", "lm") == 0 &&
+                            InlineTextRect(view, "image", "Text ").Width > 0 &&
+                            InlineTextRect(view, "cell", "Cell T1 ").Width > 0 && ColoredSamples(image) > 0,
+                            "marker generated-content image priority, table path, or paint changed");
+                    }
+                    var field = view.At.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "marker-content-field");
+                    Need(field != null, "missing marker generated-content view field");
+                    field.V = "Retained benchmark generated marker";
+                    Need(view.Js("ms('command','content:attr(data-code);color:#dc2626;font-size:24px')") == 1,
+                        "marker generated-content view command changed");
+                    view.Size = new Size(350, 5200);
+                    using (var image = Draw(view))
+                    {
+                        var responsive = view.At.Bs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "responsive");
+                        Need(responsive != null && responsive.Mk == "Narrow " && Object.ReferenceEquals(field,
+                            view.At.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "marker-content-field")) &&
+                            field.V == "Retained benchmark generated marker", "marker generated-content resize or retained value changed");
+                    }
+                }
+                return "eight string/attr raw-string fragments, 128-character output, missing/empty values, variables, priority, commands, image precedence, LTR/RTL paint, tables, hover/media rebuilds, and retained fields";
             });
             AddProbe(probes, "Bounded disclosures", delegate
             {
@@ -3730,11 +3803,12 @@ namespace Lea.Bench
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, direction-aware ordered/unordered lists and disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, compound of-S filtered, and terminal ::marker selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, inherited horizontal LTR/RTL direction, fixed/percentage/calc dimensions and classic vw/vh/vmin/vmax plus bounded em/rem units, two/three-term min/max and three-term clamp size functions, content/border box, circular/elliptical radii, bounded outlines, box shadows, one inherited bounded text-shadow layer, bounded text-decoration line/color/style/thickness and signed pixel/percentage underline offset, inherited text-align shorthand/all/last with logical state and justify-all, inherited text-wrap mode/style with bounded balance, non-inherited bounded line-clamp/WebKit compatibility, isolated bounded marker typography/content, and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing, signed pixel/percentage first-line indentation, and text styles, visibility, absolute/fixed and bounded vertical sticky positioning, transforms, responsive image sizing, direction-aware row/column flex, and direction-aware bounded two-axis grid");
-            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/box-shadows/gradients, bounded offset and lightweight blurred text shadows, native fast-path plus lightweight offset-aware solid/double/dotted/dashed/wavy text decorations, direction-aware source-stable inline atoms, bounded same-count balanced wrapping and 1..32 line clamping, inside/outside text and image markers with isolated pseudo style/content, first-line indentation, inherited logical all/final/forced-line alignment, and paint-only single-line ellipsis geometry, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
+            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, compound of-S filtered, and terminal ::marker selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, inherited horizontal LTR/RTL direction, fixed/percentage/calc dimensions and classic vw/vh/vmin/vmax plus bounded em/rem units, two/three-term min/max and three-term clamp size functions, content/border box, circular/elliptical radii, bounded outlines, box shadows, one inherited bounded text-shadow layer, bounded text-decoration line/color/style/thickness and signed pixel/percentage underline offset, inherited text-align shorthand/all/last with logical state and justify-all, inherited text-wrap mode/style with bounded balance, non-inherited bounded line-clamp/WebKit compatibility, isolated bounded marker typography and eight string/attr raw-string content fragments, and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing, signed pixel/percentage first-line indentation, and text styles, visibility, absolute/fixed and bounded vertical sticky positioning, transforms, responsive image sizing, direction-aware row/column flex, and direction-aware bounded two-axis grid");
+            Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/box-shadows/gradients, bounded offset and lightweight blurred text shadows, native fast-path plus lightweight offset-aware solid/double/dotted/dashed/wavy text decorations, direction-aware source-stable inline atoms, bounded same-count balanced wrapping and 1..32 line clamping, inside/outside text and image markers with isolated pseudo style and concatenated generated text content, first-line indentation, inherited logical all/final/forced-line alignment, and paint-only single-line ellipsis geometry, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Text overflow", "Supported subset", "Non-inherited clip/ellipsis with bounded LTR/RTL physical inline-end markers and grapheme-safe paint-only authored prefixes for inline runs and tables; retained layout/link targets, full logical automation text, and direction-aware partial range geometry; no native-control, Unicode bidi shaping, or custom overflow-marker additions");
             Capability(builder, "Line clamping", "Supported subset", "Non-inherited line-clamp and -webkit-line-clamp none/1..32 with LTR/RTL grapheme-safe ellipsis, reduced flow height, hidden retained boxes/hits, full logical source and UI Automation text, inline runs, forced breaks, balanced text, and table cells; no block-ellipsis strings, longhands, descendant block fragmentation, or legacy WebKit display requirements");
+            Capability(builder, "Marker generated content", "Supported subset", "Terminal ::marker content with up to eight quoted strings or attr(name)/attr(name raw-string) values concatenated into one bounded text atom, 64-character attribute names, 128 UTF-16 output units, missing/empty raw strings, variables, important tiers, ms/markerstyle commands, image priority, tables, hover/media rebuilds, and LTR/RTL inside/outside paint; no typed attr values, attr fallback, counters, images in content, quote keywords, alt text, or general before/after generated boxes");
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color, font, display, width, height, direction, text indent, text alignment/all/last, text wrap/mode/style, line clamp, list and marker style, text decoration, underline offset, and text shadow, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, safe click commands, and literal compatibility translation");
             Capability(builder, "Literal DOM bridge", "Supported subset", "Literal document.getElementById IDs with textContent/innerText, value, checked/disabled/hidden/open, focus(), classList add/remove/toggle, and background/color/fontSize/display/width/height/direction/textIndent/textAlign/textAlignAll/textAlignLast/textWrap/textWrapMode/textWrapStyle/lineClamp/webkitLineClamp/textDecoration/textDecorationLine/textDecorationColor/textDecorationStyle/textDecorationThickness/textUnderlineOffset/textShadow; literal location href/assign requests; mapped to bounded Lea aliases");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
@@ -4149,6 +4223,22 @@ namespace Lea.Bench
                     if ((string)type.GetField("K").GetValue(value) == kind) return (Rectangle)type.GetField("R").GetValue(value);
                 }
             throw new InvalidOperationException("Missing inline kind " + ownerId + ": " + kind);
+        }
+
+        private static int InlineKindCount(V view, string ownerId, string kind)
+        {
+            var count = 0;
+            var field = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = field == null ? null : field.GetValue(view) as System.Collections.IEnumerable;
+            if (values != null)
+                foreach (var value in values)
+                {
+                    var type = value.GetType();
+                    var block = type.GetField("B").GetValue(value) as B;
+                    if (block == null || block.El == null || block.El.Av("id") != ownerId || !(bool)type.GetField("Inline").GetValue(value)) continue;
+                    if ((string)type.GetField("K").GetValue(value) == kind) count++;
+                }
+            return count;
         }
 
         private static N ById(N node, string id)

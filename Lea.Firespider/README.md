@@ -627,6 +627,13 @@ inside/outside LTR/RTL geometry, and retained fields. Lea owns selector
 matching, cascade, measurement, and paint; Firespider adds no marker parser,
 adapter state, layout branch, or control. See `LeaForge/MARKER.md`.
 
+Marker content can now concatenate up to eight quoted strings and
+`attr(name)`/`attr(name raw-string)` values into the existing `S.Mc` atom. The
+compiled host verifies item attribute resolution, string/attribute composition,
+responsive attribute replacement, compact/readable commands, unsupported type
+rejection, exact outside geometry, and retained fields. Firespider still adds no
+DOM evaluator or generated-content adapter. See `LeaForge/MARKER_CONTENT.md`.
+
 Hosted text alignment now exposes the bounded shorthand/all/last family through
 `S.Ta/Tl`. The compiled host verifies `justify-all`, retained logical RTL
 state, compact `ta/taa/tl`, literal `style.textAlign`, shorthand reset,

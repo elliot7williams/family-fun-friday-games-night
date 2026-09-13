@@ -346,21 +346,22 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 104 adds bounded terminal CSS `::marker` rules through separate
-`B.Ms` marker style and `S.Mc/Mn` content state. The originating-element
-selector keeps the normal compiled selector/cascade path and adds pseudo
-specificity; marker color, typography, spacing, line height, text shadow,
-direction, and one quoted `content` string or `none` are isolated from the list
-item. Defining `ms` and readable `markerstyle` provide bounded page defaults and
-direct item overrides. Image/type/content priority and inside/outside LTR/RTL
-geometry remain in Lea. See `MARKER.md`. All 100 probes pass over 95 fixtures;
+Milestone 105 extends terminal `::marker` content with up to eight ordered
+quoted strings and `attr(name)`/`attr(name raw-string)` values in the existing
+compact `S.Mc` atom. It resolves attributes against each originating item after
+variables and cascade priority, uses 64-character name and 128-unit output
+bounds, preserves prior declarations on invalid/oversized input, and keeps
+markup-looking values as text. Page/item `ms`, readable `markerstyle`, image
+priority, tables, dynamic rebuilds, and inside/outside LTR/RTL paint reuse
+existing paths. See `MARKER_CONTENT.md`. All 101 probes pass over 96 fixtures;
 the full default suite and compiled Firespider host pass, including all 18
 startup regressions, all 42 Boot cases, and all six real EXE startup scenarios.
 Next investigate another bounded HTML/CSS compatibility slice while keeping
-marker-side, cross-item gutter alignment, custom counters, multiple/generated
-content items, author marker image sizing, SVG marker decoding, vertical
-writing modes, full Unicode bidi shaping, `dir=auto`, and general CSS/JavaScript
-evaluators outside the current boundary.
+typed/fallback attributes, counters, quote/image/alternative generated content,
+general `::before`/`::after` boxes, marker-side, cross-item gutter alignment,
+author marker image sizing, SVG marker decoding, vertical writing modes, full
+Unicode bidi shaping, `dir=auto`, and general CSS/JavaScript evaluators outside
+the current boundary.
 
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host

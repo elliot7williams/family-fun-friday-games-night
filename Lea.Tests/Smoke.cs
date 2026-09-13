@@ -101,6 +101,11 @@ namespace Lea.Tests
                     MarkerSmoke(Path.Combine(pages, "marker.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--marker-content")
+                {
+                    MarkerContentSmoke(Path.Combine(pages, "marker-content.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--text-align-last")
                 {
                     TextAlignLastSmoke(Path.Combine(pages, "text-align-last.html"));
@@ -2460,6 +2465,7 @@ namespace Lea.Tests
                 ListPositionSmoke(Path.Combine(pages, "list-position.html"));
                 ListImageSmoke(Path.Combine(pages, "list-image.html"));
                 MarkerSmoke(Path.Combine(pages, "marker.html"));
+                MarkerContentSmoke(Path.Combine(pages, "marker-content.html"));
 
                 var recoveryPath = Path.Combine(pages, "recovery.html");
                 var recoveryPage = engine.Go(recoveryPath);
@@ -8543,6 +8549,141 @@ namespace Lea.Tests
                 }
             }
             Console.WriteLine("Lea marker smoke passed: bounded pseudo rules, content, variables, specificity, aliases, images, LTR/RTL geometry, tables, hover, media, and paint.");
+        }
+
+        private static void MarkerContentSmoke(string path)
+        {
+            var engine = new E { Vw = 720 };
+            var page = engine.Go(path);
+            Func<string, B> block = id => BlockById(page, id);
+
+            Eq("Attr ", block("attribute").Mk, "marker attr content");
+            Eq("Raw value ", block("raw").Mk, "marker raw-string attr content");
+            Ok(block("fragments").Mk == "[A7] " && block("fragments").Ms.Mc == "[A7] " &&
+                block("adjacent").Mk == "AB8 ", "ordered and adjacent marker content fragments");
+            Ok(block("missing").Mk == "M " && block("empty").Mk == "E ",
+                "missing and empty marker attributes become empty strings");
+            Ok(block("escaped").Mk == "\u2605 C9 " && block("variable").Mk == "(D10) ",
+                "escaped strings and variables compose with marker attributes");
+            Eq("Important ", block("important").Mk, "important marker attribute content");
+            Ok(block("invalid-type").Mk == "Keep " && block("invalid-fallback").Mk == "Keep ",
+                "unsupported typed and fallback marker attributes preserve prior content");
+            Ok(block("eight").Mk == "12345678" && block("nine").Mk == "Keep ",
+                "bounded marker content fragment count");
+            Ok(block("markup").Mk == "<safe> " && block("markup").X.IndexOf("<safe>", StringComparison.Ordinal) < 0,
+                "marker attribute content stays text rather than markup");
+            Ok(block("image").S.Li != null && block("image").Mk == "Text ",
+                "generated marker text takes priority over marker images");
+            Ok(block("inside").S.Lp == "i" && block("inside").Mk == "[IN] " &&
+                block("rtl").S.Dr == "r" && block("rtl").Mk == "RTL ",
+                "generated marker content keeps inside and RTL state");
+            Eq("Cell T1 ", block("cell").Mk, "generated marker content reaches table lists");
+
+            var retained = FieldById(page, "marker-content-field");
+            var bounded = ById(page.D, "bounded");
+            bounded.A["data-marker"] = new String('x', 128);
+            engine.Dy(page, bounded, null);
+            Ok(block("bounded").Ms.Mc.Length == 128 && block("bounded").Mk.Length == 128,
+                "exact marker generated-content output ceiling");
+            bounded.A["data-marker"] = new String('x', 129);
+            engine.Dy(page, null, null);
+            Eq("Keep ", block("bounded").Mk, "oversized marker generated content preserves prior declaration");
+
+            var dynamic = ById(page.D, "dynamic");
+            dynamic.A["data-state"] = "Changed ";
+            engine.Dy(page, dynamic, null);
+            Ok(block("dynamic").Mk == "Hot Changed " && block("dynamic").Ms.F == "#dc2626",
+                "dynamic marker attribute content rebuild");
+            engine.Dy(page, null, null);
+            Eq("Changed ", block("dynamic").Mk, "dynamic marker attribute hover restore");
+
+            Eq(1, engine.Ck(page, ById(page.D, "set-command")), "compact generated marker command");
+            Ok(block("command").Mk == "CMD" && block("command").Ms.F == "#dc2626" && block("command").Ms.Fs == 24,
+                "compact generated marker command model");
+            Eq(1, engine.Ck(page, ById(page.D, "set-readable")), "readable generated marker command");
+            Ok(block("command-readable").Mk == "READ" && block("command-readable").Ms.F == "#2563eb",
+                "readable generated marker command model");
+            Eq(0, engine.Js(page, "ms('command','content:attr(data-code number)')"),
+                "generated marker command rejects unsupported attr type");
+            Eq("CMD", block("command").Mk, "invalid generated marker command preserves state");
+            Eq(1, engine.Ck(page, ById(page.D, "clear-command")), "generated marker command clear");
+            Eq("CSS ", block("command").Mk, "generated marker command clear restores authored CSS");
+            Eq(1, engine.Js(page, "ms('content:attr(data-code)')"), "page generated marker default command");
+            Ok(block("default").Mk == "PAGE" && block("fragments").Mk == "[A7] ",
+                "page generated marker default uses each originating item and yields to authored rules");
+            Eq(1, engine.Js(page, "ms('')"), "page generated marker default clear");
+            Eq("21.", block("default").Mk, "page generated marker clear restores normal marker");
+            Ok(Object.ReferenceEquals(retained, FieldById(page, "marker-content-field")),
+                "generated marker rebuilds retain field identity");
+
+            engine.Vw = 350;
+            Ok(block("responsive").Mk == "Narrow " && block("responsive").Ms.F == "#2563eb" && block("responsive").Ms.Fs == 20 &&
+                Object.ReferenceEquals(retained, FieldById(page, "marker-content-field")),
+                "responsive marker attribute content and field retention");
+
+            using (var view = new V())
+            {
+                view.Size = new Size(720, 5200);
+                var load = view.GoA(path);
+                while (!load.IsCompleted)
+                {
+                    Application.DoEvents();
+                    Thread.Sleep(2);
+                }
+                load.GetAwaiter().GetResult();
+                retained = FieldById(view.At, "marker-content-field");
+                Rectangle dynamicOuter;
+                using (var paint = Render(view))
+                {
+                    var attribute = BlockById(view.At, "attribute");
+                    var inside = BlockById(view.At, "inside");
+                    var rtl = BlockById(view.At, "rtl");
+                    Ok(InlineTextRect(view, attribute, "Attr ").Right < BlockRect(view, attribute).Left &&
+                        HasColor(paint, Rectangle.Inflate(InlineTextRect(view, attribute, "Attr "), 3, 3), Color.FromArgb(220, 38, 38)),
+                        "attribute marker paints in the outside gutter");
+                    Ok(InlineTextRect(view, inside, "[IN] ").Left == BlockRect(view, inside).Left &&
+                        InlineTextRect(view, rtl, "RTL ").Left > BlockRect(view, rtl).Right,
+                        "generated marker inside and RTL geometry");
+                    Ok(InlineKindCount(view, BlockById(view.At, "image"), "lm") == 0 &&
+                        InlineTextRect(view, BlockById(view.At, "image"), "Text ").Width > 0,
+                        "generated marker text suppresses image paint");
+                    Ok(InlineTextRect(view, BlockById(view.At, "markup"), "<safe> ").Width > 0 &&
+                        InlineTextRect(view, BlockById(view.At, "cell"), "Cell T1 ").Width > 0,
+                        "generated attribute text and table marker paint");
+                    dynamicOuter = BlockOuterRect(view, BlockById(view.At, "dynamic"));
+                }
+
+                Move(view, dynamicOuter);
+                using (var paint = Render(view))
+                    Ok(BlockById(view.At, "dynamic").Mk == "Hot Idle " &&
+                        InlineTextRect(view, BlockById(view.At, "dynamic"), "Hot Idle ").Width > 0,
+                        "generated marker hover reaches paint");
+                Move(view, new Point(0, 0));
+
+                Eq(1, view.Js("ms('command','content:attr(data-code);color:#dc2626;font-size:24px')"),
+                    "view generated marker command");
+                using (var paint = Render(view))
+                {
+                    var command = BlockById(view.At, "command");
+                    Ok(command.Mk == "CMD" && command.Ms.Fs == 24 &&
+                        InlineTextRect(view, command, "CMD").Right < BlockRect(view, command).Left,
+                        "view generated marker command geometry");
+                }
+
+                retained.V = "Retained after generated marker resize";
+                view.Size = new Size(350, 5200);
+                Application.DoEvents();
+                using (var paint = Render(view))
+                {
+                    var responsive = BlockById(view.At, "responsive");
+                    Ok(responsive.Mk == "Narrow " &&
+                        InlineTextRect(view, responsive, "Narrow ").Right < BlockRect(view, responsive).Left,
+                        "responsive generated marker geometry");
+                    Ok(Object.ReferenceEquals(retained, FieldById(view.At, "marker-content-field")) &&
+                        retained.V == "Retained after generated marker resize", "generated marker resize retains field value");
+                }
+            }
+            Console.WriteLine("Lea marker content smoke passed: bounded string/attr fragments, limits, cascade, commands, images, LTR/RTL geometry, tables, hover, media, and paint.");
         }
 
         private static void LineClampSmoke(string path)

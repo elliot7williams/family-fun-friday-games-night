@@ -43,6 +43,7 @@ namespace Lea.Engine
         private const int MaxBackgroundText = 4096;
         private const int MaxBackgroundLength = 2000;
         private const int MaxMarkerDeclarations = 16;
+        private const int MaxMarkerContentItems = 8;
         private const int MaxMarkerStyle = 1024;
         private const int MaxMarkerText = 128;
         private const int MaxPost = 10 * 1024 * 1024;
@@ -3409,8 +3410,8 @@ namespace Lea.Engine
             Custom(style, inherited, defaults, true);
             DirectionDeclarations(style, inherited, defaults, false, baseDirection);
             DirectionDeclarations(style, inherited, defaults, true, baseDirection);
-            MarkerDecls(style, inherited, defaults, false);
-            MarkerDecls(style, inherited, defaults, true);
+            MarkerDecls(style, inherited, node, defaults, false);
+            MarkerDecls(style, inherited, node, defaults, true);
             var matched = new List<R>();
             foreach (var rule in rules)
                 if (rule.Pm && MatchCss(node, rule)) matched.Add(rule);
@@ -3423,10 +3424,10 @@ namespace Lea.Engine
             DirectionDeclarations(style, inherited, inline, false, baseDirection);
             foreach (var rule in matched) DirectionDeclarations(style, inherited, rule.Ds, true, baseDirection);
             DirectionDeclarations(style, inherited, inline, true, baseDirection);
-            foreach (var rule in matched) MarkerDecls(style, inherited, rule.Ds, false);
-            MarkerDecls(style, inherited, inline, false);
-            foreach (var rule in matched) MarkerDecls(style, inherited, rule.Ds, true);
-            MarkerDecls(style, inherited, inline, true);
+            foreach (var rule in matched) MarkerDecls(style, inherited, node, rule.Ds, false);
+            MarkerDecls(style, inherited, node, inline, false);
+            foreach (var rule in matched) MarkerDecls(style, inherited, node, rule.Ds, true);
+            MarkerDecls(style, inherited, node, inline, true);
             return style;
         }
 
@@ -3538,7 +3539,7 @@ namespace Lea.Engine
             return style.Vo;
         }
 
-        private static void MarkerDecls(S style, S inherited, Pd[] declarations, bool important)
+        private static void MarkerDecls(S style, S inherited, N node, Pd[] declarations, bool important)
         {
             foreach (var declaration in declarations)
             {
@@ -3557,7 +3558,7 @@ namespace Lea.Engine
                 else if (name == "word-spacing") MarkerSpacing(style, inherited, value, false);
                 else if (name == "line-height") MarkerLineHeight(style, inherited, value);
                 else if (name == "text-shadow") TextShadow(style, inherited, value);
-                else if (name == "content") MarkerContent(style, value);
+                else if (name == "content") MarkerContent(style, node, value);
             }
         }
 
@@ -3644,7 +3645,7 @@ namespace Lea.Engine
             else LineHeight(style, source);
         }
 
-        private static void MarkerContent(S style, string value)
+        private static void MarkerContent(S style, N node, string value)
         {
             var source = (value ?? "").Trim();
             var lower = source.ToLowerInvariant();
@@ -3661,11 +3662,71 @@ namespace Lea.Engine
                 return;
             }
             string content;
-            if (MarkerString(source, out content))
+            if (MarkerContentList(node, source, out content))
             {
                 style.Mc = content;
                 style.Mn = false;
             }
+        }
+
+        private static bool MarkerContentList(N node, string value, out string content)
+        {
+            content = "";
+            var source = (value ?? "").Trim();
+            var result = new StringBuilder();
+            var index = 0;
+            var items = 0;
+            while (index < source.Length)
+            {
+                while (index < source.Length && Char.IsWhiteSpace(source[index])) index++;
+                if (index >= source.Length) break;
+                if (++items > MaxMarkerContentItems) return false;
+                string item;
+                if (source[index] == '"' || source[index] == '\'')
+                {
+                    if (!MarkerStringToken(source, ref index, out item)) return false;
+                }
+                else if (!MarkerAttribute(node, source, ref index, out item)) return false;
+                if (MarkerControls(item) || result.Length + item.Length > MaxMarkerText) return false;
+                result.Append(item);
+            }
+            if (items == 0) return false;
+            content = result.ToString();
+            return true;
+        }
+
+        private static bool MarkerStringToken(string source, ref int index, out string content)
+        {
+            content = "";
+            if (index >= source.Length || source[index] != '"' && source[index] != '\'') return false;
+            var start = index;
+            var quote = source[index++];
+            while (index < source.Length)
+            {
+                var current = source[index++];
+                if (current == quote) return MarkerString(source.Substring(start, index - start), out content);
+                if (current != '\\') continue;
+                if (index >= source.Length) return false;
+                if (source[index] == '\r' && index + 1 < source.Length && source[index + 1] == '\n') index += 2;
+                else index++;
+            }
+            return false;
+        }
+
+        private static bool MarkerAttribute(N node, string source, ref int index, out string content)
+        {
+            content = "";
+            if (index + 5 > source.Length || !source.Substring(index, 5).Equals("attr(", StringComparison.OrdinalIgnoreCase)) return false;
+            var close = source.IndexOf(')', index + 5);
+            if (close < 0) return false;
+            var argument = source.Substring(index + 5, close - index - 5).Trim();
+            var match = Regex.Match(argument, "^(?<n>-?[_a-zA-Z][_a-zA-Z0-9-]{0,63})(?:\\s+raw-string)?$", RegexOptions.IgnoreCase);
+            if (!match.Success) return false;
+            index = close + 1;
+            var name = match.Groups["n"].Value;
+            if (name.Length > 64) return false;
+            content = node != null && node.A.ContainsKey(name) ? node.Av(name) : "";
+            return content.Length <= MaxMarkerText;
         }
 
         private static bool MarkerString(string value, out string content)
@@ -3730,8 +3791,21 @@ namespace Lea.Engine
             var declarations = CssDeclarations(clean);
             if (declarations.Length != segments || declarations.Length > MaxMarkerDeclarations) return false;
             foreach (var declaration in declarations)
+            {
                 if (!declaration.C && !MarkerProperty(declaration.N)) return false;
+                if (!declaration.C && declaration.N == "content" &&
+                    declaration.V.IndexOf("var(", StringComparison.OrdinalIgnoreCase) < 0 && !MarkerContentValue(declaration.V)) return false;
+            }
             return true;
+        }
+
+        private static bool MarkerContentValue(string value)
+        {
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            string content;
+            return lower == "normal" || lower == "none" || lower == "initial" || MarkerParentValue(lower) || MarkerRevertValue(lower) ||
+                MarkerContentList(null, source, out content);
         }
 
         private static bool MarkerProperty(string name)

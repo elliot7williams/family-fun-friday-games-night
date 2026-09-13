@@ -127,6 +127,11 @@ and direct marker text styles, quoted/escaped/none content, variables, priority,
 image/type/content precedence, inside/outside LTR/RTL geometry, tables,
 compact/readable commands, hover, retained fields, and responsive resize. See
 `LeaForge/MARKER.md`.
+`marker-content.html` covers up to eight ordered quoted/`attr()` fragments,
+explicit raw-string mode, missing/empty attributes, variables, priority,
+count/name/output bounds, invalid preservation, markup-like text, commands,
+image precedence, tables, LTR/RTL geometry, hover, retained fields, and resize.
+See `LeaForge/MARKER_CONTENT.md`.
 
 ## Firespider Startup Checks
 
@@ -174,6 +179,10 @@ responsive resize.
 state, specificity, quoted/escaped/none content, custom properties, important
 tiers, command limits, image priority, LTR/RTL geometry, tables, hover, paint,
 and responsive resize.
+`--marker-content` isolates bounded ordered string/attribute content, raw-string
+mode, missing/empty values, variables, priority, exact fragment/name/output
+limits, invalid command preservation, image precedence, tables, LTR/RTL paint,
+hover, and responsive resize.
 `--text-align` isolates the inherited text-align shorthand/all/last family,
 logical inheritance and match-parent, justify-all, compact/readable/literal
 commands, LTR/RTL geometry, shorthand resets, tables, hover, and responsive resize.

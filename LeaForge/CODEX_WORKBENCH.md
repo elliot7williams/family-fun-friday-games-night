@@ -17,23 +17,25 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 104 adds bounded terminal `::marker` styling through separate compact
-`B.Ms` marker style and `S.Mc/Mn` content state. It reuses compiled selector
-matching, pseudo specificity, variables, priority, hover, and media rules while
-isolating supported marker typography, spacing, shadow, direction, and one
-quoted content string or `none`. Defining `ms` and readable `markerstyle` add
-bounded page defaults and direct item overrides. Image/type/content priority and
-inside/outside LTR/RTL geometry remain Lea-owned. The full default engine suite
-and compiled Firespider host are green, including all 18 startup regressions,
-all 42 Boot cases, and all six real EXE startup scenarios without a legacy
-engine, invalid cast, JIT dialog, or dead startup window. All 100 benchmark
-probes pass over 95 fixtures. Three-round diagnostic medians are 688.206 ms
-clean start, 5.361 ms local load, and 38.812 ms layout/paint; retained memory is
-59.6 KiB/page and the required runtime is 599.0 KiB. Runtime 204 remains
-isolated, and installed runtime 157 is unchanged. See `MARKER.md`. Marker-side,
-cross-item gutter alignment, custom counters, multiple generated content items,
-author marker image sizing, SVG marker decoding, vertical writing, full Unicode
-bidi shaping, and general CSS/JavaScript evaluation stay outside this milestone.
+Milestone 105 extends terminal `::marker` content with up to eight ordered
+quoted strings and `attr(name)`/`attr(name raw-string)` values in the existing
+compact `S.Mc` atom. Attributes resolve against each originating item after
+variables and cascade priority, with 64-character names and 128 UTF-16 output
+units. Missing/empty values become empty strings; malformed, typed, fallback,
+over-item, and oversized values preserve prior declarations; markup-looking
+values stay text. Existing `ms`/`markerstyle`, image priority, tables,
+hover/media rebuilds, and LTR/RTL geometry carry the feature through Firespider.
+The full default engine suite and compiled host are green, including all 18
+startup regressions, all 42 Boot cases, and all six real EXE startup scenarios
+without a legacy engine, invalid cast, JIT dialog, or dead startup window. All
+101 benchmark probes pass over 96 fixtures. Three-round diagnostic medians are
+551.817 ms clean start, 4.270 ms local load, and 42.329 ms layout/paint; retained
+memory is 60.0 KiB/page and the required runtime is 600.0 KiB. Runtime 205
+remains isolated, and installed runtime 157 is unchanged. See
+`MARKER_CONTENT.md`. Typed/fallback attributes, counters, quote/image/alternative
+content, general `::before`/`::after` boxes, marker-side, cross-item alignment,
+author marker image sizing, SVG decoding, vertical writing, full Unicode bidi,
+and general CSS/JavaScript evaluation stay outside this milestone.
 
 Milestone 60 installs the existing `V.Ng` hook on main Lea tabs, enforcing host
 rules, offline/locked state, and live ownership. Denied resume retains its

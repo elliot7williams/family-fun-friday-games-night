@@ -61,7 +61,7 @@ RTL use the same direction-aware geometry as text markers.
 ## Verification
 
 `test-pages/list-image.html`, focused `Lea.Tests --list-image`, the full default
-suite, the 100-probe benchmark, and the compiled Firespider host cover inherited
+suite, the 101-probe benchmark, and the compiled Firespider host cover inherited
 and reset values, relative/data URLs, variables, priority, invalid atomicity,
 `none` ambiguity, compact/readable/literal commands, cache reuse, exact image
 geometry and pixels, text fallback, tables, LTR/RTL, hover, responsive
@@ -73,7 +73,7 @@ startup scenarios also pass from the packaged runtime.
 Lea's bounded `::marker` slice is documented in `MARKER.md`. It does not yet
 implement `image-set()`, gradients as marker images, SVG image decoding,
 author-controlled marker image sizing, marker-side, cross-item marker-column
-alignment, custom counter styles, multiple generated content items, vertical
+alignment, custom counter styles, separate generated content boxes, vertical
 writing, full Unicode bidi shaping, or arbitrary CSSOM.
 
 Reference: [CSS Lists and Counters](https://drafts.csswg.org/css-lists/).

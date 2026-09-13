@@ -1,0 +1,75 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Marker Generated Content</title>
+  <style>
+    :root { --marker-open: "("; --marker-close: ") "; }
+    body { margin: 24px; color: #172033; background: #ffffff; font-family: "Segoe UI", sans-serif; }
+    li { width: 270px; margin-left: 92px; padding: 3px; }
+    #attribute::marker { content: attr(data-marker); color: #dc2626; font-size: 20px; }
+    #raw::marker { content: attr(data-marker raw-string); color: #2563eb; }
+    #fragments::marker { content: "[" attr(data-code) "] "; color: #0f766e; }
+    #adjacent::marker { content: "A"attr(data-code)" "; }
+    #missing::marker { content: "M" attr(data-absent) " "; }
+    #empty::marker { content: "E" attr(data-marker) " "; }
+    #escaped::marker { content: "\2605  " attr(data-code) " "; color: #a13b18; }
+    #variable::marker { content: var(--marker-open) attr(data-code) var(--marker-close); }
+    #important::marker { content: "Low "; content: attr(data-marker) !important; }
+    #invalid-type::marker { content: "Keep "; content: attr(data-code number); }
+    #invalid-fallback::marker { content: "Keep "; content: attr(data-code, "Fallback "); }
+    #eight::marker { content: "1""2""3""4""5""6""7""8"; }
+    #nine::marker { content: "Keep "; content: "1""2""3""4""5""6""7""8""9"; }
+    #bounded::marker { content: "Keep "; content: attr(data-marker); }
+    #markup::marker { content: attr(data-marker); color: #7c3aed; }
+    #image { list-style-image: url("../../assets/lea.ico"); }
+    #image::marker { content: attr(data-marker); }
+    #inside { list-style-position: inside; }
+    #inside::marker { content: "[" attr(data-code) "] "; color: #2563eb; }
+    #rtl { direction: rtl; }
+    #rtl::marker { content: attr(data-marker); color: #7c3aed; }
+    #dynamic::marker { content: attr(data-state); color: #64748b; }
+    #dynamic:hover::marker { content: "Hot " attr(data-state); color: #dc2626; }
+    #responsive::marker { content: attr(data-wide); }
+    #command::marker, #command-readable::marker { content: "CSS "; color: #64748b; }
+    #cell::marker { content: "Cell " attr(data-code) " "; color: #0f766e; }
+    @media screen and (max-width: 400px) {
+      #responsive::marker { content: attr(data-narrow); color: #2563eb; font-size: 20px; }
+    }
+  </style>
+</head>
+<body data-code="BODY">
+  <h1>Marker generated content</h1>
+  <ol>
+    <li id="attribute" data-marker="Attr ">Single attribute marker</li>
+    <li id="raw" data-marker="Raw value ">Explicit raw-string attribute marker</li>
+    <li id="fragments" data-code="A7">Ordered string and attribute fragments</li>
+    <li id="adjacent" data-code="B8">Adjacent fragments</li>
+    <li id="missing">Missing attribute becomes an empty string</li>
+    <li id="empty" data-marker="">Empty attribute stays empty</li>
+    <li id="escaped" data-code="C9">Escaped and attribute fragments</li>
+    <li id="variable" data-code="D10">Variables around an attribute fragment</li>
+    <li id="important" data-marker="Important ">Important attribute content</li>
+    <li id="invalid-type" data-code="E11">Unsupported typed attribute is ignored</li>
+    <li id="invalid-fallback" data-code="F12">Unsupported attribute fallback is ignored</li>
+    <li id="eight">Eight content fragments</li>
+    <li id="nine">Nine content fragments are rejected</li>
+    <li id="bounded" data-marker="Short ">Bounded generated output</li>
+    <li id="markup" data-marker="&lt;safe&gt; ">Attribute text is not parsed as markup</li>
+    <li id="image" data-marker="Text ">Generated text takes marker image priority</li>
+    <li id="inside" data-code="IN">Inside generated marker</li>
+    <li id="rtl" data-marker="RTL ">RTL generated marker</li>
+    <li id="dynamic" data-state="Idle ">Dynamic generated marker <input id="marker-content-field" value="Retained marker content field"></li>
+    <li id="responsive" data-wide="Wide " data-narrow="Narrow ">Responsive generated marker</li>
+    <li id="default" data-code="PAGE">Page-default generated marker</li>
+    <li id="command" data-code="CMD">Compact generated marker command</li>
+    <li id="command-readable" data-code="READ">Readable generated marker command</li>
+  </ol>
+
+  <button id="set-command" data-lea="ms('command','content:attr(data-code);color:#dc2626;font-size:24px')">Set compact generated marker</button>
+  <button id="set-readable" data-lea="markerstyle('command-readable','content:attr(data-code);color:#2563eb')">Set readable generated marker</button>
+  <button id="clear-command" data-lea="ms('command','')">Clear compact generated marker</button>
+
+  <table><tr><td><ol><li id="cell" data-code="T1">Table generated marker</li></ol></td></tr></table>
+</body>
+</html>
