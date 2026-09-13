@@ -245,6 +245,14 @@ namespace Lea.Engine
                 if (!E.Lsv(Expand(page, command.W ?? command.V), out type)) return false;
                 return SetStyle(target, "list-style-type", type);
             }
+            if (command.N == "li")
+            {
+                var target = StyleTarget(page, command);
+                if (target == null) return false;
+                string image;
+                if (!E.Liv(Expand(page, command.W ?? command.V), out image)) return false;
+                return SetStyle(target, "list-style-image", image);
+            }
             if (command.N == "lp")
             {
                 var target = StyleTarget(page, command);
@@ -417,6 +425,7 @@ namespace Lea.Engine
             if (member == "style.textwrapstyle") return new Cm("tws", id, value);
             if (member == "style.lineclamp" || member == "style.webkitlineclamp") return new Cm("lc", id, value);
             if (member == "style.liststyletype") return new Cm("lst", id, value);
+            if (member == "style.liststyleimage") return new Cm("li", id, value);
             if (member == "style.liststyleposition") return new Cm("lp", id, value);
             if (member == "style.liststyle") return new Cm("ls", id, value);
             if (member == "style.textshadow") return new Cm("ts", id, value);
@@ -452,6 +461,7 @@ namespace Lea.Engine
             if (count == 1 && (name == "tws" || name == "textwrapstyle")) return new Cm("tws", first);
             if (count == 1 && (name == "lc" || name == "lineclamp")) return new Cm("lc", first);
             if (count == 1 && (name == "lst" || name == "liststyletype")) return new Cm("lst", first);
+            if (count == 1 && (name == "li" || name == "liststyleimage")) return new Cm("li", first);
             if (count == 1 && (name == "lp" || name == "liststyleposition")) return new Cm("lp", first);
             if (count == 1 && (name == "ls" || name == "liststyle")) return new Cm("ls", first);
             if (count == 1 && (name == "ts" || name == "textshadow")) return new Cm("ts", first);
@@ -492,6 +502,7 @@ namespace Lea.Engine
             if (count == 2 && (name == "tws" || name == "textwrapstyle")) return new Cm("tws", first, second);
             if (count == 2 && (name == "lc" || name == "lineclamp")) return new Cm("lc", first, second);
             if (count == 2 && (name == "lst" || name == "liststyletype")) return new Cm("lst", first, second);
+            if (count == 2 && (name == "li" || name == "liststyleimage")) return new Cm("li", first, second);
             if (count == 2 && (name == "lp" || name == "liststyleposition")) return new Cm("lp", first, second);
             if (count == 2 && (name == "ls" || name == "liststyle")) return new Cm("ls", first, second);
             if (count == 2 && (name == "ts" || name == "textshadow")) return new Cm("ts", first, second);
@@ -529,6 +540,7 @@ namespace Lea.Engine
             if (name == "document.body.style.textwrapstyle") return new Cm("tws", value);
             if (name == "document.body.style.lineclamp" || name == "document.body.style.webkitlineclamp") return new Cm("lc", value);
             if (name == "document.body.style.liststyletype") return new Cm("lst", value);
+            if (name == "document.body.style.liststyleimage") return new Cm("li", value);
             if (name == "document.body.style.liststyleposition") return new Cm("lp", value);
             if (name == "document.body.style.liststyle") return new Cm("ls", value);
             if (name == "document.body.style.textshadow") return new Cm("ts", value);

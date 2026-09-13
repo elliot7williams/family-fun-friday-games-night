@@ -91,6 +91,11 @@ namespace Lea.Tests
                     ListPositionSmoke(Path.Combine(pages, "list-position.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--list-image")
+                {
+                    ListImageSmoke(Path.Combine(pages, "list-image.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--text-align-last")
                 {
                     TextAlignLastSmoke(Path.Combine(pages, "text-align-last.html"));
@@ -2448,6 +2453,7 @@ namespace Lea.Tests
                 LineClampSmoke(Path.Combine(pages, "line-clamp.html"));
                 ListStyleSmoke(Path.Combine(pages, "list-style.html"));
                 ListPositionSmoke(Path.Combine(pages, "list-position.html"));
+                ListImageSmoke(Path.Combine(pages, "list-image.html"));
 
                 var recoveryPath = Path.Combine(pages, "recovery.html");
                 var recoveryPage = engine.Go(recoveryPath);
@@ -8238,6 +8244,160 @@ namespace Lea.Tests
             Console.WriteLine("Lea list position smoke passed: compact inside/outside state, atomic shorthand, cascade, LTR/RTL gutters, tables, hover, commands, and resize.");
         }
 
+        private static void ListImageSmoke(string path)
+        {
+            var engine = new E { Vw = 720 };
+            var page = engine.Go(path);
+            Func<string, B> block = id => BlockById(page, id);
+            var marker = block("outside").S.Li;
+
+            Ok(page.S.Li == null && block("default-image").S.Li == null && marker != null && marker.Scheme == "data",
+                "list image default and data state");
+            Ok(block("inside").S.Li.AbsoluteUri == marker.AbsoluteUri && block("inside").S.Lp == "i" &&
+                block("external").S.Li != null && block("external").S.Li.IsFile && block("external").S.Li.LocalPath.EndsWith("lea.ico", StringComparison.OrdinalIgnoreCase),
+                "list image inside and relative stylesheet origins");
+            Ok(block("inherited").S.Li.AbsoluteUri == marker.AbsoluteUri && block("inherited").S.Lst == "s" &&
+                block("explicit-inherit").S.Li.AbsoluteUri == marker.AbsoluteUri,
+                "list image inheritance preserves independent type");
+            Ok(block("initial").S.Li == null && block("unset").S.Li.AbsoluteUri == marker.AbsoluteUri &&
+                block("revert").S.Li.AbsoluteUri == marker.AbsoluteUri,
+                "list image CSS-wide cascade");
+            Ok(block("variable").S.Li.AbsoluteUri == marker.AbsoluteUri && block("important").S.Li.AbsoluteUri == marker.AbsoluteUri &&
+                block("invalid").S.Li.AbsoluteUri == marker.AbsoluteUri && block("blocked").S.Li.AbsoluteUri == marker.AbsoluteUri,
+                "list image variables, priority, and invalid preservation");
+            Ok(block("missing").S.Li != null && block("missing").S.Lst == "A" && block("missing-none").S.Li != null && block("missing-none").S.Lst == "n",
+                "list image fallback model");
+            Ok(block("shorthand-all").S.Lst == "a" && block("shorthand-all").S.Lp == "i" && block("shorthand-all").S.Li.AbsoluteUri == marker.AbsoluteUri &&
+                block("shorthand-order").S.Lst == "R" && block("shorthand-order").S.Lp == "i" && block("shorthand-order").S.Li.AbsoluteUri == marker.AbsoluteUri,
+                "list shorthand composes image, type, and position in either order");
+            Ok(block("shorthand-url").S.Lst == "d" && block("shorthand-url").S.Lp == "o" && block("shorthand-url").S.Li.AbsoluteUri == marker.AbsoluteUri &&
+                block("shorthand-none-url").S.Lst == "n" && block("shorthand-none-url").S.Lp == "i" && block("shorthand-none-url").S.Li.AbsoluteUri == marker.AbsoluteUri,
+                "list shorthand image reset and none ambiguity");
+            Ok(block("shorthand-type-none").S.Lst == "d" && block("shorthand-type-none").S.Lp == "i" && block("shorthand-type-none").S.Li == null &&
+                block("shorthand-none").S.Lst == "n" && block("shorthand-none").S.Lp == "o" && block("shorthand-none").S.Li == null,
+                "list shorthand explicit and single none reset");
+            Ok(block("invalid-shorthand").S.Lst == "s" && block("invalid-shorthand").S.Lp == "i" &&
+                block("invalid-shorthand").S.Li.AbsoluteUri == marker.AbsoluteUri && block("rtl").S.Dr == "r" && block("rtl").S.Li.AbsoluteUri == marker.AbsoluteUri,
+                "list image invalid shorthand atomicity and RTL model");
+
+            var retained = FieldById(page, "image-field");
+            engine.Dy(page, ById(page.D, "dynamic"), null);
+            Eq(marker.AbsoluteUri, block("dynamic").S.Li.AbsoluteUri, "list image hover cascade");
+            engine.Dy(page, null, null);
+            Ok(block("dynamic").S.Li == null, "list image hover restore");
+            engine.Vw = 350;
+            Ok(block("responsive").S.Li.AbsoluteUri == marker.AbsoluteUri && Object.ReferenceEquals(retained, FieldById(page, "image-field")),
+                "list image media rebuild and field retention");
+
+            Eq(1, engine.Ck(page, ById(page.D, "set-image")), "compact list image command");
+            Ok(block("command-image").S.Li != null && block("command-image").S.Li.LocalPath.EndsWith("lea.ico", StringComparison.OrdinalIgnoreCase) && block("command-image").S.Lst == "s",
+                "compact list image command model");
+            Eq(1, engine.Ck(page, ById(page.D, "clear-image")), "compact list image clear");
+            Ok(block("command-image").S.Li == null && block("command-image").S.Lst == "s", "list image clear preserves type");
+            Eq(1, engine.Ck(page, ById(page.D, "set-readable")), "readable list image command");
+            Ok(block("command-readable").S.Li != null && block("command-readable").S.Li.IsFile, "readable list image command model");
+            Eq(1, engine.Ck(page, ById(page.D, "set-shorthand")), "compact list shorthand image command");
+            Ok(block("command-shorthand").S.Lst == "n" && block("command-shorthand").S.Lp == "i" && block("command-shorthand").S.Li != null,
+                "compact list shorthand image command model");
+            Eq(1, engine.Ck(page, ById(page.D, "set-dom")), "literal list image command");
+            Ok(block("command-dom").S.Li != null && block("command-dom").S.Li.IsFile, "literal list image command model");
+            Eq(1, engine.Ck(page, ById(page.D, "clear-dom")), "literal list image clear");
+            Ok(block("command-dom").S.Li == null && block("command-dom").S.Lst == "s", "literal list image clear restores CSS");
+            Eq(0, engine.Js(page, "li('command-image','linear-gradient(red,blue)');liststyleimage('command-readable','url(javascript:blocked)');ls('command-shorthand','url(one.png) url(two.png)')"),
+                "invalid list image commands rejected");
+            Ok(block("command-image").S.Li == null && block("command-readable").S.Li != null && block("command-shorthand").S.Lst == "n" && block("command-shorthand").S.Li != null,
+                "invalid list image commands preserve state");
+            Eq(1, engine.Js(page, "li('url(../../assets/lea.ico)')"), "body compact list image command");
+            Ok(page.S.Li != null && block("default-image").S.Li != null, "body compact list image inheritance");
+            Eq(1, engine.Js(page, "document.body.style.listStyle='none url(../../assets/lea.ico) inside'"), "body literal list shorthand image command");
+            Ok(page.S.Lst == "n" && page.S.Lp == "i" && page.S.Li != null && block("default-image").S.Lst == "n" && block("default-image").S.Li != null,
+                "body literal list shorthand image model");
+            Ok(Object.ReferenceEquals(retained, FieldById(page, "image-field")), "list image commands retain field identity");
+
+            using (var view = new V())
+            {
+                view.Size = new Size(720, 3200);
+                var load = view.GoA(path);
+                while (!load.IsCompleted)
+                {
+                    Application.DoEvents();
+                    Thread.Sleep(2);
+                }
+                load.GetAwaiter().GetResult();
+                retained = FieldById(view.At, "image-field");
+                Ok(PicCached(view, BlockById(view.At, "outside").S.Li) && PicCached(view, BlockById(view.At, "external").S.Li),
+                    "list marker images share the bounded picture cache");
+
+                Rectangle dynamicOuter;
+                using (var paint = Render(view))
+                {
+                    var outside = BlockById(view.At, "outside");
+                    var outsideContent = BlockRect(view, outside);
+                    var outsideMarker = InlineKindRect(view, outside, "lm");
+                    var outsideText = InlineTextRect(view, outside, "Outside");
+                    Ok(outsideMarker.Size == new Size(20, 10) && outsideMarker.Right < outsideContent.Left && outsideText.Left == outsideContent.Left,
+                        "outside bitmap marker occupies its LTR gutter without consuming content width");
+                    Ok(ColorDistance(paint.GetPixel(outsideMarker.Left + 2, outsideMarker.Top + outsideMarker.Height / 2), Color.FromArgb(220, 38, 38)) < 24 &&
+                        ColorDistance(paint.GetPixel(outsideMarker.Right - 2, outsideMarker.Top + outsideMarker.Height / 2), Color.FromArgb(37, 99, 235)) < 24,
+                        "list marker bitmap paints through the sandboxed cache");
+
+                    var inside = BlockById(view.At, "inside");
+                    var insideContent = BlockRect(view, inside);
+                    var insideMarker = InlineKindRect(view, inside, "lm");
+                    var insideText = InlineTextRect(view, inside, "Inside");
+                    Ok(insideMarker.Left == insideContent.Left && insideText.Left > insideMarker.Right,
+                        "inside bitmap marker participates in the principal line");
+
+                    var rtl = BlockById(view.At, "rtl");
+                    Ok(InlineKindRect(view, rtl, "lm").Left > BlockRect(view, rtl).Right,
+                        "outside bitmap marker occupies the RTL logical-start gutter");
+                    var missing = BlockById(view.At, "missing");
+                    Ok(InlineKindCount(view, missing, "lm") == 0 && InlineTextRect(view, missing, missing.Mk).Right < BlockRect(view, missing).Left,
+                        "failed marker image falls back to its text marker");
+                    var missingNone = BlockById(view.At, "missing-none");
+                    var missingNoneImages = InlineKindCount(view, missingNone, "lm");
+                    var missingNoneText = PaintedText(view, missingNone);
+                    Ok(missingNoneImages == 0 && missingNone.Mk.Length == 0 && missingNoneText.StartsWith("Missing image", StringComparison.Ordinal),
+                        "failed marker image with none type remains markerless: images=" + missingNoneImages + "; text=" + missingNoneText);
+                    var noneUrl = BlockById(view.At, "shorthand-none-url");
+                    Ok(noneUrl.S.Lst == "n" && InlineKindCount(view, noneUrl, "lm") == 1,
+                        "image marker takes precedence over none marker type");
+                    var cell = BlockById(view.At, "cell-image");
+                    Ok(InlineKindRect(view, cell, "lm").Right < BlockRect(view, cell).Left, "bitmap marker works in a table cell");
+                    dynamicOuter = BlockOuterRect(view, BlockById(view.At, "dynamic"));
+                }
+
+                retained.V = "Retained after image command";
+                Eq(1, view.Js("li('command-image','url(../../assets/lea.ico)')"), "view compact list image command");
+                using (var paint = Render(view))
+                {
+                    var command = BlockById(view.At, "command-image");
+                    Ok(command.S.Li != null && InlineKindRect(view, command, "lm").Right < BlockRect(view, command).Left,
+                        "view list image command reaches marker geometry");
+                }
+                Ok(Object.ReferenceEquals(retained, FieldById(view.At, "image-field")) && retained.V == "Retained after image command",
+                    "view list image command retains field value");
+
+                Move(view, dynamicOuter);
+                using (var paint = Render(view))
+                    Eq(1, InlineKindCount(view, BlockById(view.At, "dynamic"), "lm"), "list image hover installs bitmap marker geometry");
+                Move(view, new Point(0, 0));
+
+                retained.V = "Retained after image resize";
+                view.Size = new Size(350, 3200);
+                Application.DoEvents();
+                using (var paint = Render(view))
+                {
+                    var responsive = BlockById(view.At, "responsive");
+                    Ok(responsive.S.Li != null && InlineKindCount(view, responsive, "lm") == 1,
+                        "responsive list image reaches marker geometry");
+                    Ok(Object.ReferenceEquals(retained, FieldById(view.At, "image-field")) && retained.V == "Retained after image resize",
+                        "list image resize retains field value");
+                }
+            }
+            Console.WriteLine("Lea list image smoke passed: inherited images, shorthand ambiguity, bounded cache/paint, fallbacks, LTR/RTL, tables, hover, commands, and resize.");
+        }
+
         private static void LineClampSmoke(string path)
         {
             var engine = new E { Vw = 720 };
@@ -8957,6 +9117,29 @@ namespace Lea.Tests
                 if ((string)type.GetField("X").GetValue(value) == text) return (Rectangle)type.GetField("R").GetValue(value);
             }
             throw new InvalidOperationException("inline text box unavailable: " + text);
+        }
+
+        private static Rectangle InlineKindRect(V view, B block, string kind)
+        {
+            foreach (var value in LayoutBoxes(view))
+            {
+                var type = value.GetType();
+                if (!(bool)type.GetField("Inline").GetValue(value) || !Object.ReferenceEquals(type.GetField("B").GetValue(value), block)) continue;
+                if ((string)type.GetField("K").GetValue(value) == kind) return (Rectangle)type.GetField("R").GetValue(value);
+            }
+            throw new InvalidOperationException("inline kind box unavailable: " + kind);
+        }
+
+        private static int InlineKindCount(V view, B block, string kind)
+        {
+            var count = 0;
+            foreach (var value in LayoutBoxes(view))
+            {
+                var type = value.GetType();
+                if ((bool)type.GetField("Inline").GetValue(value) && Object.ReferenceEquals(type.GetField("B").GetValue(value), block) &&
+                    (string)type.GetField("K").GetValue(value) == kind) count++;
+            }
+            return count;
         }
 
         private static B FieldBlock(P page, Fi field)

@@ -38,6 +38,7 @@ namespace Lea.Firespider
                 File.WriteAllText(openPage, "<!doctype html><html><head><title>Lea Open Route</title><style>.hot{color:#b91c1c;font-weight:bold}.host-gauge{color:#176b4d;width:180px;height:16px}.host-value{color:#123f8c;width:180px}.host-wrap{width:160px}.host-flex{display:flex;width:300px;height:60px;gap:8px;justify-content:space-between;align-items:center}.host-flex p{width:70px;height:20px}</style><script type='text/lea'>v('who','Firespider')</script></head><body><div id='host-invalid-auto' autofocus>Invalid autofocus</div><input id='host-auto' value='ready' autofocus accesskey='s' required aria-label='Host search' aria-describedby='host-help'><span id='host-help'>Host field help</span><input id='host-secret' type='password' value='host-secret' aria-label='Host password'><div id='host-key' tabindex='-1' accesskey='k'>Host focus key</div><p>Open route fixture</p><p>Second route match</p><p>Third ROUTE match</p><p id='host-wrap' class='host-wrap'>A compact host paragraph wraps across visual lines for Lea.</p><section id='host-flex' class='host-flex'><p id='host-flex-a'>Flex A</p><p id='host-flex-b'>Flex B</p></section><p id='class-state'>Waiting for class state</p><p id='state'>Waiting for host click</p><button id='host-action' type='button' accesskey='b' data-lea=\"tx('state','Hello ${who}'); v('last','click'); a('Safe host click')\">Run safe action</button><details id='host-details'><summary id='host-details-summary'>Host disclosure</summary><p>Host disclosure content</p></details><progress class='host-gauge' id='host-progress' max='10' value='4'>4 of 10</progress><meter class='host-gauge' id='host-meter' min='0' max='4' value='3'>3 of 4</meter><output class='host-value' id='host-output' name='total' for='host-data'>Host total</output><data class='host-value' id='host-data' value='lea-host'>Host label</data><time class='host-value' id='host-time'>2026-08-21</time><ins class='host-value' id='host-edit' cite='go-target.html#host' datetime='2026-08-21T19:00-04:00'>Host edit</ins><table id='host-table'><thead><tr><th id='host-column' scope='col'>Value</th></tr></thead><tbody><tr><th id='host-row' scope='row'>Lea</th></tr></tbody></table><button id='host-value-update' type='button' accesskey='b x' data-lea=\"tx('host-output','Updated host total')\">Update host value</button><button id='host-time-update' type='button' data-lea=\"tx('host-time','2026-08-22')\">Update host time</button></body></html>");
                 File.WriteAllText(mapPage, "<!doctype html><html><head><title>Lea Map Route</title><style>#host-map-image{width:120px;height:90px;object-fit:contain;object-position:center}</style></head><body><img id='host-map-image' width='120' height='60' usemap='#host-map' alt='Host map' src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAApSURBVDhPY7ijpvafGKya/JooPGogboxNMzY8aiBujE0zNkxlA1//BwCR7MvUhfG8CgAAAABJRU5ErkJggg=='><map name='host-map'><area id='host-dead' shape='rect' coords='0,0,10,10'><area id='host-rect' shape='rect' coords='0,0,60,60' tabindex='1' accesskey='m' href='#host-target' alt='Host rectangle'><area id='host-default' shape='default' href='#host-target' alt='Host default'></map><p id='host-target'>Host map target</p></body></html>");
                 File.WriteAllText(stickyPage, "<!doctype html><html><head><title>Lea Sticky Host</title><style>#lead,#tail{height:230px}.rail{position:relative;height:420px;padding:8px;overflow:hidden}.stick{position:sticky;top:14px;height:72px;padding:6px;background:#1d4ed8}.stick p{height:30px;margin:0;background:#176b4d}.fill{height:300px}</style></head><body><p id='lead'>Lead</p><section id='host-sticky-rail' class='rail'><div id='host-sticky' class='stick'><p id='host-sticky-child'>Sticky host</p></div><p id='host-sticky-fill' class='fill'>Fill</p></section><p id='tail'>Tail</p></body></html>");
+                var hostMarker = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAApSURBVDhPY7ijpvafGKya/JooPGogboxNMzY8aiBujE0zNkxlA1//BwCR7MvUhfG8CgAAAABJRU5ErkJggg==";
                 var openMarkup = File.ReadAllText(openPage)
                     .Replace(".host-wrap{width:160px}", ".host-wrap{width:160px}.host-box{box-sizing:border-box;width:180px;height:44px;padding:6px;border:2px solid #176b4d;border-radius:18px 7px/12px 5px;box-shadow:6px 4px 3px 1px rgba(15,76,129,.5),inset 4px 0 0 #a13b18;background-image:linear-gradient(to right,#dff6e9 0%,#bfdbfe 100%)}")
                     .Replace("</style>", ".host-bitmap{width:140px;height:50px;background:#fff url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXYxDP9v0PAAM7Ac+IRop4AAAAAElFTkSuQmCC') no-repeat right bottom/24px 18px;border-radius:12px}</style>")
@@ -65,6 +66,8 @@ namespace Lea.Firespider
                     .Replace("</body>", "<p id='host-clamp' class='host-clamp'>Firespider uses Lea to keep two rendered lines and remove every later retained line.</p><p id='host-clamp-responsive' class='host-clamp-responsive'>Responsive Firespider line clamping becomes one compact line in a narrow browser window.</p><p id='host-clamp-command' class='host-clamp-command'>Compact host commands apply line clamping without long engine method names.</p></body>")
                     .Replace("</style>", ".host-list{width:190px;margin-left:48px}.host-list-upper{list-style-type:upper-alpha;text-align:left}.host-list-inside{list-style:upper-roman inside;text-align:left}.host-list-responsive{list-style-type:circle;list-style-position:outside}.host-list-command{list-style-type:lower-alpha}@media screen and (max-width:500px){.host-list-responsive{list-style-type:square;list-style-position:inside}}</style>")
                     .Replace("</body>", "<ol start='27'><li id='host-list-upper' class='host-list host-list-upper'>Host upper marker</li></ol><ol start='4'><li id='host-list-inside' class='host-list host-list-inside'><strong>HostInside</strong> marker</li></ol><ul><li id='host-list-responsive' class='host-list host-list-responsive'><strong>HostResponsive</strong> marker</li></ul><ol start='3'><li id='host-list-command' class='host-list host-list-command'>Host command marker<input id='host-list-field' value='Host marker field'></li></ol><ol reversed><li id='host-list-reverse-three' class='host-list'>Host reverse three</li><li class='host-list'>Host reverse two</li><li class='host-list'>Host reverse one</li></ol></body>")
+                    .Replace("</style>", ".host-list-image{list-style:upper-alpha url('" + hostMarker + "') outside}.host-list-image-inside{list-style:none url('" + hostMarker + "') inside}.host-list-image-responsive{list-style-type:circle;list-style-image:none}@media screen and (max-width:500px){.host-list-image-responsive{list-style-image:url('" + hostMarker + "')}}</style>")
+                    .Replace("</body>", "<ol><li id='host-list-image' class='host-list host-list-image'><strong>HostImage</strong> outside marker</li><li id='host-list-image-inside' class='host-list host-list-image-inside'><strong>HostImageInside</strong> marker</li><li id='host-list-image-responsive' class='host-list host-list-image-responsive'>Host responsive image marker</li></ol></body>")
                     .Replace(".host-flex{display:flex;width:300px;height:60px;gap:8px;justify-content:space-between;align-items:center}", ".host-flex{display:flex;width:300px;height:60px;flex-wrap:wrap;gap:6px 8px;justify-content:space-between;align-items:center}")
                     .Replace(".host-flex p{width:70px;height:20px}", ".host-flex p{flex:1 1 180px;height:20px}.host-flex #host-flex-b{flex-shrink:2;min-width:80px}.host-flex-column{display:flex;width:180px;height:100px;flex-direction:column-reverse;row-gap:5px;justify-content:space-evenly;align-items:flex-end}.host-flex-column p{width:70px;margin:0;flex:0 1 60px;min-height:30px}.host-flex-column #host-flex-column-a{order:2;align-self:center}.host-flex-column #host-flex-column-b{order:-1}")
                     .Replace("</style>", ".host-grid{display:grid;width:300px;grid-template-columns:100px 1fr 2fr;gap:7px 10px}.host-grid p{height:20px;margin:0}.host-grid #host-grid-span{grid-column:2/span 2}.host-grid-rows{display:grid;width:300px;height:120px;grid-template-columns:1fr 2fr;grid-template-rows:30px 1fr;gap:6px 8px}.host-grid-rows p{margin:0}.host-grid-rows #host-grid-row-a{grid-column:1/span 2;grid-row:1}.host-grid-rows #host-grid-row-b{grid-column:2;grid-row:2}.host-grid-rows #host-grid-row-c{grid-column:1;grid-row-start:2;grid-row-end:span 1}:root{--host-color:#0f4c81;--host-width:155px;--host-pad:7px}.host-var{--host-color:#0f4c81!important;color:var(--host-color)!important;width:var(--host-width)!important;padding:var(--host-pad)}:is(.host-var,#host-never){border-left:4px solid #176b4d}:where(#host-var){padding-left:2px}.host-var:not(.missing,[data-off]){font-weight:bold}#host-flex>p:nth-child(2n+1){border-right:3px solid #176b4d}#host-flex>p:nth-last-child(-n+1){padding-left:9px}#host-flex-column>p:nth-last-of-type(2n){color:#a13b18}#host-flex>p:nth-child(1 of #host-flex-a,#host-flex-b){border-bottom:3px solid #176b4d}#host-flex>p:nth-last-child(1 of #host-flex-a,#host-flex-b){border-top:2px solid #a13b18}#host-has:has(> .host-direct){width:146px;border-left:5px solid #176b4d}#host-has:has(> .host-body .host-ready[data-host=ready]){padding-right:6px}#host-flex:has(+ #host-has){border-top:4px solid #a13b18}#host-has:has(input:focus){background:#dff6e9;font-weight:bold}.host-media{display:none}@media screen and (max-width:500px){:root{--host-width:110px;--host-pad:4px}#host-media{display:block;width:120px;background:#e8f4ef}#host-box{display:none}}</style>")
@@ -464,12 +467,18 @@ namespace Lea.Firespider
                     var hostListInside = BlockById(host.At, "host-list-inside");
                     var hostListResponsive = BlockById(host.At, "host-list-responsive");
                     var hostListCommand = BlockById(host.At, "host-list-command");
+                    var hostListImage = BlockById(host.At, "host-list-image");
+                    var hostListImageInside = BlockById(host.At, "host-list-image-inside");
+                    var hostListImageResponsive = BlockById(host.At, "host-list-image-responsive");
                     var hostListField = FieldById(host.At, "host-list-field");
                     Check(hostListUpper.S.Lst == "A" && hostListUpper.S.Lp == "o" && hostListUpper.Mk == "AA." &&
                         hostListInside.S.Lst == "R" && hostListInside.S.Lp == "i" && hostListInside.Mk == "IV." &&
                         hostListResponsive.S.Lst == "c" && hostListResponsive.S.Lp == "o" && hostListResponsive.Mk == "\u25e6" &&
                         hostListCommand.S.Lst == "a" && hostListCommand.Mk == "c." && BlockById(host.At, "host-list-reverse-three").Mk == "3.",
                         "Firespider bounded list marker type, position, shorthand, and reversed numbering");
+                    Check(hostListImage.S.Li != null && hostListImage.S.Li.Scheme == "data" && hostListImage.S.Lst == "A" && hostListImage.S.Lp == "o" &&
+                        hostListImageInside.S.Li != null && hostListImageInside.S.Lst == "n" && hostListImageInside.S.Lp == "i" && hostListImageResponsive.S.Li == null,
+                        "Firespider bounded list marker image model and shorthand");
                     var hostListUpperContent = BlockContent(host, "host-list-upper");
                     var hostListScroll = host.Sy;
                     host.Sc(hostListUpperContent.Top - host.Sy - 40);
@@ -483,6 +492,12 @@ namespace Lea.Firespider
                     Check(hostListInsideMarker.Left == hostListInsideContent.Left &&
                         InlineTextRect(host, hostListInside, "HostInside").Left > hostListInsideMarker.Right,
                         "Firespider inside list marker geometry: " + hostListInsideMarker + " in " + hostListInsideContent);
+                    var hostImageMarker = InlineKindRect(host, hostListImage, "lm");
+                    var hostInsideImageMarker = InlineKindRect(host, hostListImageInside, "lm");
+                    Check(hostImageMarker.Size == new System.Drawing.Size(20, 10) && hostImageMarker.Right < BlockContent(host, "host-list-image").Left &&
+                        hostInsideImageMarker.Left == BlockContent(host, "host-list-image-inside").Left &&
+                        InlineTextRect(host, hostListImageInside, "HostImageInside").Left > hostInsideImageMarker.Right,
+                        "Firespider list marker image inside/outside geometry");
                     host.Sc(hostListScroll - host.Sy);
                     PaintView(host);
                     Check(host.Js("lst('host-list-command','upper-roman')") == 1, "Firespider compact list marker command");
@@ -509,6 +524,17 @@ namespace Lea.Firespider
                     hostListCommand = BlockById(host.At, "host-list-command");
                     Check(hostListCommand.S.Lst == "s" && hostListCommand.S.Lp == "o" && hostListCommand.Mk == "\u25aa",
                         "Firespider literal DOM list marker model");
+                    Check(host.Js("li('host-list-command','url(" + hostMarker + ")')") == 1, "Firespider compact list image command");
+                    PaintView(host);
+                    hostListCommand = BlockById(host.At, "host-list-command");
+                    Check(hostListCommand.S.Li != null && InlineKindRect(host, hostListCommand, "lm").Right < BlockContent(host, "host-list-command").Left,
+                        "Firespider compact list image command geometry");
+                    Check(host.Js("document.getElementById('host-list-command').style.listStyleImage='none'") == 1,
+                        "Firespider literal DOM list image command");
+                    PaintView(host);
+                    hostListCommand = BlockById(host.At, "host-list-command");
+                    Check(hostListCommand.S.Li == null && InlineTextRect(host, hostListCommand, "\u25aa").Right < BlockContent(host, "host-list-command").Left,
+                        "Firespider literal DOM list image fallback geometry");
                     hostListField.V = "Retained host marker field";
                     var hostOutline = BlockById(host.At, "host-outline");
                     Check(hostOutline.S.Ow == 4 && hostOutline.S.Os == "s" && hostOutline.S.Oc == "#a13b18" && hostOutline.S.Oo == 3 &&
@@ -865,6 +891,9 @@ namespace Lea.Firespider
                     Check(hostListResponsive.S.Lst == "s" && hostListResponsive.S.Lp == "i" && hostListResponsive.Mk == "\u25aa" &&
                         Object.ReferenceEquals(hostListField, FieldById(host.At, "host-list-field")) && hostListField.V == "Retained host marker field",
                         "Firespider responsive list marker and field retention");
+                    hostListImageResponsive = BlockById(host.At, "host-list-image-responsive");
+                    Check(hostListImageResponsive.S.Li != null && InlineKindRect(host, hostListImageResponsive, "lm").Right < BlockContent(host, "host-list-image-responsive").Left,
+                        "Firespider responsive list image marker");
                     host.Size = new System.Drawing.Size(720, 560);
                     Application.DoEvents();
                     PaintView(host);
@@ -904,6 +933,9 @@ namespace Lea.Firespider
                     Check(hostListResponsive.S.Lst == "c" && hostListResponsive.S.Lp == "o" && hostListResponsive.Mk == "\u25e6" &&
                         Object.ReferenceEquals(hostListField, FieldById(host.At, "host-list-field")) && hostListField.V == "Retained host marker field",
                         "Firespider wide list marker restore");
+                    hostListImageResponsive = BlockById(host.At, "host-list-image-responsive");
+                    Check(hostListImageResponsive.S.Li == null && InlineTextRect(host, hostListImageResponsive, "\u25e6").Right < BlockContent(host, "host-list-image-responsive").Left,
+                        "Firespider wide list image fallback restore");
                     Check(BlockById(host.At, "host-progress").Vm.R == 0.4D && BlockById(host.At, "host-meter").Vm.R == 0.75D, "Firespider compact gauge models");
                     Check(host.At.Dvs.Count == 4 && ValueById(host.At, "host-output").V == "Host total" && ValueById(host.At, "host-data").V == "lea-host", "Firespider compact output and data models");
                     Check(ValueById(host.At, "host-time").K == "t" && ValueById(host.At, "host-time").Dt == "2026-08-21", "Firespider compact time model");
@@ -1041,7 +1073,7 @@ namespace Lea.Firespider
                     Check(host.Ck(ById(host.At.D, "host-value-update")) == 1 && ValueById(host.At, "host-output").V == "Updated host total", "Firespider output value rebuild");
                     Check(host.Ck(ById(host.At.D, "host-time-update")) == 1 && ValueById(host.At, "host-time").Dt == "2026-08-22", "Firespider time metadata rebuild");
                     var diagnostics = host.Dg();
-                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 107 && diagnostics.Rs.Count > 0, "Firespider Lea diagnostics");
+                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 109 && diagnostics.Rs.Count > 0, "Firespider Lea diagnostics");
                     var inspectorOpen = type.GetMethod("qleaInspectorOpen", BindingFlags.Instance | BindingFlags.NonPublic);
                     var inspectorSnapshot = type.GetMethod("qleaInspectorSnapshot", BindingFlags.Instance | BindingFlags.NonPublic);
                     var inspectorClear = type.GetMethod("qleaInspectorClear", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -1221,7 +1253,7 @@ namespace Lea.Firespider
                     Check(restoredTabs.TabCount == beforeMiddle - 1 && FindLea(restoredTabs) == null, "middle-click Lea tab close");
                 }
 
-                Console.WriteLine("Firespider CSS interaction and paint smoke passed: compact text-indent, text-wrap/mode/style, line-clamp, list-style/type/position, text-align/all/last, text-decoration, text-underline-offset, text-shadow, text-overflow, text-spacing, text-transform, pointer, outline, radius, box-shadow, gradient, bitmap-background, object-fit, and aspect-ratio aliases reached the compiled host.");
+                Console.WriteLine("Firespider CSS interaction and paint smoke passed: compact text-indent, text-wrap/mode/style, line-clamp, list-style/type/image/position, text-align/all/last, text-decoration, text-underline-offset, text-shadow, text-overflow, text-spacing, text-transform, pointer, outline, radius, box-shadow, gradient, bitmap-background, object-fit, and aspect-ratio aliases reached the compiled host.");
                 Console.WriteLine("Firespider calculated height smoke passed: compact ht, literal style.height, definite parent resolution, shared host geometry, reset, and strict bounds.");
                 Console.WriteLine("Firespider viewport unit smoke passed: vw/vh/vmin/vmax, calc, compact commands, literal reset, live host geometry, and strict bounds.");
                 Console.WriteLine("Firespider font-relative unit smoke passed: em/rem, root font alias, compact commands, literal reset, shared host geometry, and strict bounds.");
@@ -1626,6 +1658,20 @@ namespace Lea.Firespider
                 var type = value.GetType();
                 if (!Object.ReferenceEquals(type.GetField("B").GetValue(value), block) || !(bool)type.GetField("Inline").GetValue(value)) continue;
                 if ((string)type.GetField("X").GetValue(value) == text) return (System.Drawing.Rectangle)type.GetField("R").GetValue(value);
+            }
+            return System.Drawing.Rectangle.Empty;
+        }
+
+        private static System.Drawing.Rectangle InlineKindRect(V view, B block, string kind)
+        {
+            var member = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = member == null ? null : member.GetValue(view) as System.Collections.IEnumerable;
+            if (values == null) throw new InvalidOperationException("Missing Lea layout boxes");
+            foreach (var value in values)
+            {
+                var type = value.GetType();
+                if (!Object.ReferenceEquals(type.GetField("B").GetValue(value), block) || !(bool)type.GetField("Inline").GetValue(value)) continue;
+                if ((string)type.GetField("K").GetValue(value) == kind) return (System.Drawing.Rectangle)type.GetField("R").GetValue(value);
             }
             return System.Drawing.Rectangle.Empty;
         }

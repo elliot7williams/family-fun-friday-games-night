@@ -100,7 +100,8 @@ lc("id", "2")     element line clamp
 lst("upper-roman") body list marker style
 lst("id", "square") element list marker style
 lp("id", "inside") element list marker position
-ls("id", "square inside") list style shorthand
+li("id", "url('marker.png')") element list marker image
+ls("id", "square url('marker.png') inside") list style shorthand
 ts("3px 2px #555") body text shadow
 ts("id", "5px 4px 0 #dc2626") element text shadow
 td("underline dashed red 2px") body text decoration
@@ -833,10 +834,15 @@ keeps it empty and adds no spacer. HTML list/per-item `type`, ordered `start`,
 Roman output is bounded to 1..3999 and otherwise falls back to decimal. Nested
 lists count only direct items. `Lp=o/i` separately stores inherited outside or
 inside position. Defining `lp`, readable `liststyleposition`, and literal
-`style.listStylePosition` change only position. Atomic `ls`/`liststyle` and
-literal `style.listStyle` accept one type, one position, or both in either order
-and reset omitted components. Outside uses a measured logical-start gutter;
-inside consumes first-line width. See `LIST_STYLE.md` and `LIST_POSITION.md`.
+`style.listStylePosition` change only position. `Li` stores an inherited resolved
+marker-image `Uri`, with `null` meaning none. Defining `li`, readable
+`liststyleimage`, and literal `style.listStyleImage` use the existing bounded
+image validator and loader. Atomic `ls`/`liststyle` and literal
+`style.listStyle` accept one type, one image, and one position in any order and
+reset omitted components. Outside uses a measured logical-start gutter; inside
+consumes first-line width. Images preserve aspect ratio inside 64x64 pixels and
+fall back to `B.Mk` after a load/decode failure. See `LIST_STYLE.md`,
+`LIST_POSITION.md`, and `LIST_IMAGE.md`.
 
 Disclosure state stays equally compact. A `details` node uses `N.Op` for its
 page-local open state. Its first direct `summary` block uses `B.Mk` as `>` when

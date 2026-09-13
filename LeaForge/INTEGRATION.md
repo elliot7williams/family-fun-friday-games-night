@@ -344,9 +344,17 @@ Inherited `S.Lp=o/i` adds real outside/inside marker layout. Outside markers
 occupy a measured logical-start gutter and leave full first-line content width;
 inside markers use the existing first-inline-atom path. Hosts can call
 `lp(value)`/`lp(id,value)` for position or `ls(value)`/`ls(id,value)` for the
-atomic type/position shorthand. Readable `liststyleposition`/`liststyle` and
+atomic type/image/position shorthand. Readable `liststyleposition`/`liststyle` and
 literal `style.listStylePosition`/`style.listStyle` assignments need no adapter
 parser or geometry. See `LIST_POSITION.md`.
+
+Inherited `S.Li` stores a resolved list marker image `Uri`; `null` means none.
+CSS `list-style-image` and the three-component shorthand reuse Lea's normal
+origin checks, 24-source picture admission, sandboxed decoder, cache, and
+retained rebuild. Hosts can call `li(value)`/`li(id,value)`, readable
+`liststyleimage`, or literal `style.listStyleImage`. Loaded images preserve
+aspect ratio inside 64x64 pixels and take the inside/outside path selected by
+`S.Lp`; failures use `B.Mk` as the text fallback. See `LIST_IMAGE.md`.
 
 `S.Ws` carries compact `n/nw/p/pw/pl` white-space modes. Lea preserves explicit
 spaces and line breaks for `pre`/`pre-wrap`, keeps line breaks while collapsing
@@ -859,7 +867,7 @@ and 16 alerts.
 
 For easier migration, literal `document.getElementById("id")` statements map
 `textContent/innerText`, `value`, checked/disabled/hidden/open booleans,
-`focus()`, `classList.add/remove/toggle`, and background/color/font-size/display/width/direction/text-indent/text-wrap/text-wrap-mode/text-wrap-style/line-clamp/list-style/list-style-type/list-style-position/text-align/text-align-all/text-align-last/text-decoration/text-underline-offset/text-shadow styles
+`focus()`, `classList.add/remove/toggle`, and background/color/font-size/display/width/direction/text-indent/text-wrap/text-wrap-mode/text-wrap-style/line-clamp/list-style/list-style-type/list-style-image/list-style-position/text-align/text-align-all/text-align-last/text-decoration/text-underline-offset/text-shadow styles
 onto the existing compact commands. The adapter receives no DOM object and adds
 no evaluator. IDs and class names remain bounded literals, every mutation uses
 the normal validators and retained rebuild, and unsupported `innerHTML`,

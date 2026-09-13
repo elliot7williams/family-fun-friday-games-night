@@ -346,20 +346,21 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 102 adds bounded inherited CSS list marker position through compact
-`S.Lp=o/i`, defining `lp`, and atomic shorthand `ls`. Outside markers use a
-measured horizontal logical-start gutter without consuming principal line
-width; inside markers remain the first inline atom. CSS `list-style-position`
-and one/two-component `list-style` support independent longhands, shorthand
-reset, either component order, variables, important tiers, CSS-wide values,
-hover, responsive rebuilds, readable commands, and literal DOM assignments.
-See `LIST_POSITION.md`. All 98 probes pass over 93 fixtures; the compiled
-Firespider host passes all 18 startup regressions and its full interaction
-suite. Next investigate another bounded HTML/CSS compatibility slice while
-keeping list images, `::marker`, cross-item gutter alignment, marker-side,
-custom counters, generated content, vertical writing modes, full Unicode bidi
-shaping, `dir=auto`, and general CSS/JavaScript evaluators outside the current
-boundary.
+Milestone 103 adds bounded inherited CSS list marker images through compact
+`S.Li`, defining `li`, and the existing atomic `ls` shorthand. CSS
+`list-style-image` supports bounded URLs, CSS-wide values, variables, priority,
+hover, media, readable commands, and literal DOM assignments. The shorthand
+accepts one type, one image, and one position in any order with atomic reset and
+standard `none` ambiguity. Marker images reuse the existing sandboxed loader and
+cache, preserve aspect ratio inside 64x64 pixels, use inside/outside LTR/RTL
+geometry, and fall back to marker text after failure. See `LIST_IMAGE.md`. All
+99 probes pass over 94 fixtures; the full default suite and compiled Firespider
+host pass, including all 18 startup regressions, all 42 Boot cases, and all six
+real EXE startup scenarios. Next investigate another bounded HTML/CSS
+compatibility slice while keeping `::marker`, marker-side,
+cross-item gutter alignment, custom counters, generated content, marker image
+sizing, SVG marker decoding, vertical writing modes, full Unicode bidi shaping,
+`dir=auto`, and general CSS/JavaScript evaluators outside the current boundary.
 
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host

@@ -611,6 +611,14 @@ and retained fields. Lea owns the measured gutter and shorthand reset;
 Firespider adds no parser, counter, adapter state, layout branch, or control.
 See `LeaForge/LIST_POSITION.md`.
 
+Hosted lists now expose bounded inherited marker images through `S.Li`. The
+compiled host verifies CSS and data-URL images, compact `li`, literal
+`style.listStyleImage`, three-component shorthand, exact inside/outside image
+geometry, fallback markers, responsive replacement, and retained fields. Lea
+reuses its sandboxed image cache/decoder and applies the 64px display cap;
+Firespider adds no parser, resource cache, adapter state, layout branch, or
+control. See `LeaForge/LIST_IMAGE.md`.
+
 Hosted text alignment now exposes the bounded shorthand/all/last family through
 `S.Ta/Tl`. The compiled host verifies `justify-all`, retained logical RTL
 state, compact `ta/taa/tl`, literal `style.textAlign`, shorthand reset,

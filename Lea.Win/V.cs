@@ -1185,6 +1185,11 @@ namespace Lea.Win
                         PaintVector(pe.Graphics, box, content, pageColor, opacity, clip);
                         continue;
                     }
+                    if (box.K == "lm")
+                    {
+                        if (opacity > 0 && box.Px == null) PaintListMarker(pe.Graphics, box, content, opacity);
+                        continue;
+                    }
                     if (box.K == "img")
                     {
                         if (opacity > 0) PaintPic(pe.Graphics, box, content, pageColor, opacity);
@@ -3129,7 +3134,7 @@ namespace Lea.Win
             var layout = new List<Ix>();
             var y = 0;
             var rtl = InlineReverse(block.S);
-            var outside = OutsideListMarker(block) ? InlineAtom(graphics, block.K, block.Mk, null, block.S, block.K, block.El) : null;
+            var outside = OutsideListMarker(block) ? ListMarkerAtom(graphics, block) : null;
             var markerGap = outside == null ? 0 : Math.Max(2, InlineAtom(graphics, block.K, " ", null, block.S, block.K, block.El).W);
             for (var lineIndex = 0; lineIndex < lines.Count; lineIndex++)
             {
@@ -3192,11 +3197,20 @@ namespace Lea.Win
             var space = block.S == null ? "" : block.S.Ws;
             var wrap = block.S == null || block.S.Wm != "n";
 
-            if ((block.K == "summary" || block.K == "li" && !OutsideListMarker(block)) && !String.IsNullOrEmpty(block.Mk))
+            if (block.K == "summary" && !String.IsNullOrEmpty(block.Mk))
             {
                 var marker = block.Mk;
                 AddInlineWord(graphics, lines, ref line, ref pending, InlineAtom(graphics, block.K, marker, null, block.S, block.K, block.El), width, firstWidth, baseHeight, wrap, block.S == null ? "" : block.S.Wb);
                 pending = InlineAtom(graphics, block.K, " ", null, block.S, block.K, block.El);
+            }
+            else if (block.K == "li" && !OutsideListMarker(block))
+            {
+                var marker = ListMarkerAtom(graphics, block);
+                if (marker != null)
+                {
+                    AddInlineWord(graphics, lines, ref line, ref pending, marker, width, firstWidth, baseHeight, wrap, block.S == null ? "" : block.S.Wb);
+                    pending = InlineAtom(graphics, block.K, " ", null, block.S, block.K, block.El);
+                }
             }
 
             if (block.Is.Count == 0)
@@ -3560,6 +3574,28 @@ namespace Lea.Win
             }
         }
 
+        private Ia ListMarkerAtom(Graphics graphics, B block)
+        {
+            var source = block == null || block.S == null ? null : block.S.Li;
+            Image image;
+            if (source != null && pics.TryGetValue(source.AbsoluteUri, out image) && image != null && image.Width > 0 && image.Height > 0)
+            {
+                var size = ListMarkerSize(image);
+                return new Ia("lm", "", source, block.S, block.K, size.Width, size.Height, size.Height, block.El);
+            }
+            return block == null || String.IsNullOrEmpty(block.Mk) ? null : InlineAtom(graphics, block.K, block.Mk, null, block.S, block.K, block.El);
+        }
+
+        private static Size ListMarkerSize(Image image)
+        {
+            const int limit = 64;
+            var width = Math.Max(1, image.Width);
+            var height = Math.Max(1, image.Height);
+            if (width <= limit && height <= limit) return new Size(width, height);
+            var scale = Math.Min(limit / (double)width, limit / (double)height);
+            return new Size(Math.Max(1, (int)Math.Round(width * scale)), Math.Max(1, (int)Math.Round(height * scale)));
+        }
+
         private static void AddInlineAtom(Il line, Ia atom)
         {
             if (line.As.Count > 0) line.W += InlineGap(line.As[line.As.Count - 1], atom);
@@ -3594,12 +3630,17 @@ namespace Lea.Win
         private static bool NeedsFlow(B block)
         {
             var style = block == null ? null : block.S;
-            return block != null && (OutsideListMarker(block) || block.Is.Count > 0 || (style != null && (style.Dr == "r" || style.Ta.Length > 0 || style.Tl.Length > 0 || style.Ti != 0 || style.Ts != null || CustomDecoration(style) || style.Ls != 0 || style.Wg != 0 || style.Lh > 0 || style.Lm > 0 || style.Ws.Length > 0 || style.Wm.Length > 0 || style.Wt.Length > 0 || style.Wb.Length > 0 || style.Ov.Length > 0 || style.Lc > 0)));
+            return block != null && (HasListMarker(block) || block.Is.Count > 0 || (style != null && (style.Dr == "r" || style.Ta.Length > 0 || style.Tl.Length > 0 || style.Ti != 0 || style.Ts != null || CustomDecoration(style) || style.Ls != 0 || style.Wg != 0 || style.Lh > 0 || style.Lm > 0 || style.Ws.Length > 0 || style.Wm.Length > 0 || style.Wt.Length > 0 || style.Wb.Length > 0 || style.Ov.Length > 0 || style.Lc > 0)));
         }
 
         private static bool OutsideListMarker(B block)
         {
-            return block != null && block.K == "li" && !String.IsNullOrEmpty(block.Mk) && block.S != null && block.S.Lp == "o";
+            return HasListMarker(block) && block.S.Lp == "o";
+        }
+
+        private static bool HasListMarker(B block)
+        {
+            return block != null && block.K == "li" && block.S != null && (!String.IsNullOrEmpty(block.Mk) || block.S.Li != null);
         }
 
         private static string TextAlignment(S style, string align)
@@ -4296,6 +4337,26 @@ namespace Lea.Win
             using (var brush = new SolidBrush(PaintColor(Color.FromArgb(20, color), opacity))) graphics.FillRectangle(brush, rect);
             using (var pen = new Pen(PaintColor(Color.FromArgb(80, color), opacity))) graphics.DrawRectangle(pen, rect.X, rect.Y, rect.Width - 1, rect.Height - 1);
             PaintText(graphics, box.X.Length == 0 ? "Image unavailable" : box.X, Font, new Rectangle(rect.X + 8, rect.Y + 8, rect.Width - 16, rect.Height - 16), color, TextFormatFlags.VerticalCenter | TextFormatFlags.WordBreak, opacity, box.S);
+        }
+
+        private void PaintListMarker(Graphics graphics, Bx box, Rectangle rect, int opacity)
+        {
+            Image image;
+            if (box == null || box.U == null || !pics.TryGetValue(box.U.AbsoluteUri, out image) || image == null) return;
+            var interpolation = graphics.InterpolationMode;
+            var offset = graphics.PixelOffsetMode;
+            try
+            {
+                var tiny = image.Width < 4 || image.Height < 4;
+                graphics.InterpolationMode = tiny ? InterpolationMode.NearestNeighbor : InterpolationMode.HighQualityBicubic;
+                graphics.PixelOffsetMode = tiny ? PixelOffsetMode.Half : PixelOffsetMode.HighQuality;
+                PaintImage(graphics, image, rect, opacity);
+            }
+            finally
+            {
+                graphics.InterpolationMode = interpolation;
+                graphics.PixelOffsetMode = offset;
+            }
         }
 
         private void PaintVector(Graphics graphics, Bx box, Rectangle rect, Color color, int opacity, Rectangle clip)
@@ -5368,6 +5429,7 @@ namespace Lea.Win
                 foreach (var block in page.Bs)
                 {
                     if (block.K == "img") AddPicSource(result, seen, block.U, origin);
+                    if (block.K == "li") AddPicSource(result, seen, block.S == null ? null : block.S.Li, origin);
                     AddPicSource(result, seen, block.S == null || block.S.Bi == null ? null : block.S.Bi.U, origin);
                     if (result.Count == PicLimit) break;
                 }

@@ -16,13 +16,14 @@ parser, counter engine, layout pass, or Firespider control. The inherited
 | `a` / `A` | lower/upper alpha or latin | base-26 letters plus `.` |
 | `r` / `R` | lower/upper Roman | Roman text plus `.` |
 
-CSS `list-style-type` and Lea's bounded one/two-component `list-style` shorthand use
-the ordinary compiled cascade. Variables, important tiers, inline styles,
+CSS `list-style-type` and Lea's bounded type/image/position `list-style` shorthand
+use the ordinary compiled cascade. Variables, important tiers, inline styles,
 explicit inheritance, CSS-wide values, hover, media replacement, and invalid
 declaration preservation therefore need no list-specific cascade. The shorthand
-accepts one supported type, one `inside`/`outside` position, or both in either
+accepts one supported type, one image, and one `inside`/`outside` position in any
 order; omitted components reset and invalid combinations remain atomic. See
-`LIST_POSITION.md` for its compact position state and physical geometry.
+`LIST_POSITION.md` for position geometry and `LIST_IMAGE.md` for image loading,
+fallback, limits, and `none` ambiguity.
 
 HTML `ol type="1|a|A|i|I"`, `ul/menu type="disc|circle|square"`, and matching
 per-`li` `type` attributes establish presentation hints before authored CSS.
@@ -46,14 +47,15 @@ lst("upper-roman")                body list style
 lst("items", "lower-alpha")     element list style
 liststyletype("items", "square") readable form
 lp("items", "inside")           marker position
-ls("items", "upper-roman inside") shorthand
+li("items", "url('marker.png')") marker image
+ls("items", "upper-roman url('marker.png') inside") shorthand
 ```
 
-Literal `style.listStyleType`, `style.listStylePosition`, and `style.listStyle`
-assignments on the body or one literal ID translate to the same validators. An
-empty literal value removes the inline declaration and restores authored CSS.
-Unsupported values are rejected without rebuilding the page or disturbing
-retained field identity.
+Literal `style.listStyleType`, `style.listStyleImage`,
+`style.listStylePosition`, and `style.listStyle` assignments on the body or one
+literal ID translate to the same validators. An empty literal value removes the
+inline declaration and restores authored CSS. Unsupported values are rejected
+without rebuilding the page or disturbing retained field identity.
 
 ## Rendering
 
@@ -73,10 +75,11 @@ retained controls.
 
 ## Boundary
 
-This milestone does not implement `list-style-image`, `::marker`, custom counter
-styles, arbitrary `counter()`/`counters()`, generated content, vertical writing,
-or full Unicode bidi shaping. Bounded inside/outside positioning and shorthand
-composition were added in Milestone 102; see `LIST_POSITION.md`.
+This milestone does not implement `::marker`, custom counter styles, arbitrary
+`counter()`/`counters()`, generated content, vertical writing, or full Unicode
+bidi shaping. Bounded inside/outside positioning was added in Milestone 102 and
+bounded marker images in Milestone 103; see `LIST_POSITION.md` and
+`LIST_IMAGE.md`.
 
 References: [CSS Lists and Counters](https://drafts.csswg.org/css-lists/) and
 [CSS Counter Styles](https://drafts.csswg.org/css-counter-styles-3/).

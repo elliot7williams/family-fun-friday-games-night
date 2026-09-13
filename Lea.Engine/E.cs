@@ -104,6 +104,7 @@ namespace Lea.Engine
         private static readonly Se[] NoSelectors = new Se[0];
         private static readonly Hr[] NoRelatives = new Hr[0];
         private static readonly Encoding HostUtf8 = new UTF8Encoding(false, true);
+        private static readonly Uri ListStyleValidationOrigin = new Uri("http://lea.invalid/");
         private readonly W web = new W();
         private readonly Pc disk = new Pc();
         private readonly List<He> hs = new List<He>();
@@ -3519,8 +3520,9 @@ namespace Lea.Engine
                 else if (name == "text-overflow") TextOverflow(style, inherited, value);
                 else if (name == "line-clamp" || name == "-webkit-line-clamp") LineClamp(style, inherited, value);
                 else if (name == "list-style-type") ListStyleType(style, inherited, value);
+                else if (name == "list-style-image") ListStyleImage(style, inherited, value, origin);
                 else if (name == "list-style-position") ListStylePosition(style, inherited, value);
-                else if (name == "list-style") ListStyle(style, inherited, value);
+                else if (name == "list-style") ListStyle(style, inherited, value, origin);
                 else if (name == "cursor") CursorStyle(style, value);
                 else if (name == "pointer-events") PointerEvents(style, value);
                 else if (name == "object-fit") ObjectFit(style, value);
@@ -5334,54 +5336,114 @@ namespace Lea.Engine
             return position.Length == 0 || position == "inside" || position == "outside" || ListStyleWide(position);
         }
 
-        private static void ListStyle(S style, S inherited, string value)
+        private static void ListStyleImage(S style, S inherited, string value, Uri origin)
         {
-            var shorthand = (value ?? "").Trim().ToLowerInvariant();
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            if (source.Length == 0) return;
+            if (lower == "inherit" || lower == "unset" || lower == "revert" || lower == "revert-layer")
+            {
+                style.Li = inherited == null ? null : inherited.Li;
+                return;
+            }
+            if (lower == "none" || lower == "initial")
+            {
+                style.Li = null;
+                return;
+            }
+            Uri image;
+            if (source.Length <= MaxBackgroundText && BitmapUri(source, origin, out image)) style.Li = image;
+        }
+
+        internal static bool Liv(string value, out string image)
+        {
+            image = (value ?? "").Trim();
+            var lower = image.ToLowerInvariant();
+            if (image.Length == 0 || lower == "none" || ListStyleWide(lower)) return true;
+            Uri url;
+            return image.Length <= MaxBackgroundText && BitmapUri(image, ListStyleValidationOrigin, out url);
+        }
+
+        private static void ListStyle(S style, S inherited, string value, Uri origin)
+        {
+            var shorthand = (value ?? "").Trim();
+            var lower = shorthand.ToLowerInvariant();
             string type;
             string position;
-            if (shorthand.Length == 0 || !ListStyleParts(shorthand, out type, out position)) return;
-            if (ListStyleWide(shorthand))
+            Uri image;
+            if (shorthand.Length == 0 || !ListStyleParts(shorthand, origin, out type, out position, out image)) return;
+            if (ListStyleWide(lower))
             {
-                ListStyleType(style, inherited, shorthand);
-                ListStylePosition(style, inherited, shorthand);
+                ListStyleType(style, inherited, lower);
+                ListStyleImage(style, inherited, lower, origin);
+                ListStylePosition(style, inherited, lower);
                 return;
             }
             style.Lst = type.Length == 0 ? "d" : ListStyleCode(type);
+            style.Li = image;
             style.Lp = position == "inside" ? "i" : "o";
         }
 
         internal static bool Lshv(string value, out string shorthand)
         {
-            shorthand = (value ?? "").Trim().ToLowerInvariant();
+            shorthand = (value ?? "").Trim();
             if (shorthand.Length == 0) return true;
             string type;
             string position;
-            return ListStyleParts(shorthand, out type, out position);
+            Uri image;
+            return ListStyleParts(shorthand, ListStyleValidationOrigin, out type, out position, out image);
         }
 
-        private static bool ListStyleParts(string value, out string type, out string position)
+        private static bool ListStyleParts(string value, Uri origin, out string type, out string position, out Uri image)
         {
             type = "";
             position = "";
-            if (value.Length > 64) return false;
-            if (ListStyleWide(value)) return true;
-            var parts = Regex.Split(value, "\\s+");
-            if (parts.Length == 0 || parts.Length > 2) return false;
-            foreach (var part in parts)
+            image = null;
+            if (value.Length > MaxBackgroundText) return false;
+            var lower = value.ToLowerInvariant();
+            if (ListStyleWide(lower)) return true;
+            List<string> parts;
+            if (!BackgroundParts(value, out parts) || parts.Count == 0 || parts.Count > 3) return false;
+            var none = 0;
+            var imageSeen = false;
+            foreach (var raw in parts)
             {
+                var part = raw.ToLowerInvariant();
                 if (part == "inside" || part == "outside")
                 {
                     if (position.Length > 0) return false;
                     position = part;
                 }
+                else if (part == "none") none++;
                 else if (ListStyleCode(part) != null)
                 {
                     if (type.Length > 0) return false;
                     type = part;
                 }
-                else return false;
+                else
+                {
+                    Uri url;
+                    if (imageSeen || !BitmapUri(raw, origin, out url)) return false;
+                    image = url;
+                    imageSeen = true;
+                }
             }
-            return type.Length > 0 || position.Length > 0;
+            if (type.Length > 0 && imageSeen && none > 0) return false;
+            if (type.Length > 0)
+            {
+                if (none > 1) return false;
+            }
+            else if (imageSeen)
+            {
+                if (none > 1) return false;
+                if (none == 1) type = "none";
+            }
+            else if (none > 0)
+            {
+                if (none > 2) return false;
+                type = "none";
+            }
+            return type.Length > 0 || position.Length > 0 || imageSeen;
         }
 
         private static bool ListStyleWide(string value)

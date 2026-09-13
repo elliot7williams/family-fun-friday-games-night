@@ -14,8 +14,10 @@ item's existing font/style, separated by one bounded measured space, and placed
 beyond the content edge. The principal content keeps its full line width. In
 LTR the marker sits left of the content; in horizontal RTL it sits right of the
 content. `inside` uses Lea's ordinary inline atom path, so its marker and spacer
-consume first-line width and participate in wrapping. `list-style-type:none`
-still emits no marker, spacer, or extra flow record in either position.
+consume first-line width and participate in wrapping. A loaded marker image uses
+the same choice: outside occupies the logical-start gutter, while inside
+contributes its bounded intrinsic geometry to wrapping and line height.
+Markerless fallback emits no marker, spacer, or extra flow record.
 
 ## Cascade And Shorthand
 
@@ -25,18 +27,19 @@ Variables, important tiers, inline declarations, hover, media replacement,
 empty authored restoration, and invalid preservation use the ordinary compiled
 cascade.
 
-The bounded `list-style` shorthand now accepts one type, one position, or both
-in either order. It is atomic and limited to 64 characters. Omitted components
-reset to their initial values: `disc` for type and `outside` for position.
-Duplicate types, duplicate positions, a third token, images, URLs, and unknown
-values preserve the preceding declaration.
+The bounded `list-style` shorthand accepts one type, one image, and one position
+in any order. It is atomic, parenthesis-aware, and limited to 4,096 characters.
+Omitted components reset to their initial values: `disc` for type, `none` for
+image, and `outside` for position. Duplicate, unknown, or overfilled combinations
+preserve the preceding declaration. See `LIST_IMAGE.md` for URL parsing and the
+standard `none` ambiguity.
 
 Examples:
 
 ```css
 li { list-style-position: inside; }
 li { list-style: upper-roman inside; }
-li { list-style: outside square; }
+li { list-style: outside square url("marker.png"); }
 li { list-style: inside; } /* disc inside */
 ```
 
@@ -47,16 +50,18 @@ The short commands keep each responsibility clear:
 ```text
 lst("items", "upper-alpha")      type only
 lp("items", "inside")           position only
-ls("items", "upper-roman inside") shorthand
+li("items", "url('marker.png')") image only
+ls("items", "upper-roman url('marker.png') inside") shorthand
 liststyleposition("items", "outside") readable position
-liststyle("items", "square inside") readable shorthand
+liststyle("items", "square url('marker.png') inside") readable shorthand
 ```
 
-Literal `style.listStyleType`, `style.listStylePosition`, and `style.listStyle`
-assignments on `document.body` or one literal ID map to those same validators.
-An empty literal assignment removes that inline declaration and restores the
-authored cascade. Every accepted command uses the retained rebuild, preserving
-fields, document identity, history, and request state.
+Literal `style.listStyleType`, `style.listStyleImage`,
+`style.listStylePosition`, and `style.listStyle` assignments on `document.body`
+or one literal ID map to those same validators. An empty literal assignment
+removes that inline declaration and restores the authored cascade. Every
+accepted command uses the retained rebuild, preserving fields, document
+identity, history, and request state.
 
 ## Verification
 
@@ -71,8 +76,9 @@ the same model and physical marker gutters without adapter-side geometry.
 
 Lea uses one deterministic measured-space gutter rather than attempting
 cross-item marker-column alignment. This milestone does not add
-`list-style-image`, `::marker`, `marker-side`, custom counter styles, generated
-content, vertical writing, full Unicode bidi shaping, or arbitrary CSSOM.
+`::marker`, `marker-side`, custom counter styles, generated content, vertical
+writing, full Unicode bidi shaping, or arbitrary CSSOM. Bounded marker images
+were added in Milestone 103; see `LIST_IMAGE.md`.
 Outside markers follow each list item's own horizontal direction and are clipped
 when that item has non-visible overflow.
 

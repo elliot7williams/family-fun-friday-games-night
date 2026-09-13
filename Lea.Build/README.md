@@ -117,6 +117,11 @@ longhands, atomic one/two-component shorthand order and reset, CSS-wide values,
 variables, priority, invalid preservation, none, LTR/RTL gutters, wrapping,
 tables, compact/readable/literal commands, hover, retained fields, and
 responsive resize. See `LeaForge/LIST_POSITION.md`.
+`list-image.html` covers inherited/reset marker images, relative and data URLs,
+three-component shorthand order, `none` ambiguity, variables, priority, invalid
+atomicity, cache reuse, bounded image pixels and geometry, text fallback,
+LTR/RTL inside/outside placement, tables, compact/readable/literal commands,
+hover, retained fields, and responsive resize. See `LeaForge/LIST_IMAGE.md`.
 
 ## Firespider Startup Checks
 
@@ -156,6 +161,10 @@ spacing, nested lists, tables, retained fields, hover, and responsive resize.
 `--list-position` isolates inherited marker position, shorthand composition,
 LTR/RTL outside gutters and inside first-line geometry, tables, retained fields,
 commands, hover, and responsive resize.
+`--list-image` isolates inherited marker images, URL-aware shorthand and `none`
+ambiguity, image admission/cache/paint, 64px geometry, text fallback, LTR/RTL
+inside/outside placement, tables, retained fields, commands, hover, and
+responsive resize.
 `--text-align` isolates the inherited text-align shorthand/all/last family,
 logical inheritance and match-parent, justify-all, compact/readable/literal
 commands, LTR/RTL geometry, shorthand resets, tables, hover, and responsive resize.

@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **102**
+Post-1.0 hardening milestones completed: **103**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -14,10 +14,10 @@ modern web platform.
 | Core and alias API | 10% | 10% | Compact API, bounded diagnostics, repeatable reports, history, projects, backups |
 | Networking | 10% | 10% | Bounded request deadlines and downloads, private cookies, typed errors, validators, compression, memory LRU and optional persistent cache |
 | HTML and document tree | 20% | 20% | Bounded tokens, queries, base URLs and fragments, raw/RCDATA text, entities, recovery, HTML-hidden suppression, semantic accessibility, blocks, lists, disclosures, gauges, values, time/edit metadata, responsive image maps, tabindex focus, autofocus/access keys, tables |
-| CSS | 15% | 15% | Compiled relationship, bounded strict relational/functional, An+B/reverse, and filtered structural selectors, declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, inherited horizontal LTR/RTL direction, fixed/percentage/calculated plus direction-aware logical dimensions/insets/margins/padding/borders/radii, classic viewport/font-relative units and bounded size functions, bounded vertical sticky positioning, dynamic hover/focus, inherited cursor/pointer interaction, text transformation, signed letter/word spacing, signed pixel/percentage first-line indentation, inherited text-wrap mode/style, non-inherited 1..32 line clamping, inherited bounded list marker type/position and shorthand, text-align shorthand/all/last with logical state and justify-all, bounded text-decoration line/color/style/thickness and underline offset, and one inherited bounded text-shadow layer, content/border sizing, circular/elliptical radii, bounded outlines, box shadows, gradients, bitmap backgrounds, object fitting and aspect ratios, visibility/opacity, fonts, overflow, boxes, bounded ordered flex and two-axis grid properties |
-| Layout and painting | 20% | 20% | Shared physical/logical box edges and per-edge border styles/colors plus fixed/percentage/calculated, viewport-unit, font-relative, and min/max/clamp dimensions, content/border, aspect-ratio, sticky, direction-aware inline/inside-outside-marker/first-line-indent/bounded balanced wrapping/line-clamping/all-line/final-line/ellipsis and TextPattern range geometry, transformed, spacing-aware, decorated, and bounded shadowed presentation text with raw form retention, native decoration fast path plus lightweight offset-aware custom line paint, normalized rounded backgrounds/borders/outlines/overflow/fields/box-shadows/gradients/bitmaps, pointer-gated retained hits with underlying fallthrough, fitted raster images and maps, ordered flex rows/columns, bounded grid tracks/spans, distribution, alignment, wrapping, grow/shrink, clipping, reflow, painting |
+| CSS | 15% | 15% | Compiled relationship, bounded strict relational/functional, An+B/reverse, and filtered structural selectors, declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, inherited horizontal LTR/RTL direction, fixed/percentage/calculated plus direction-aware logical dimensions/insets/margins/padding/borders/radii, classic viewport/font-relative units and bounded size functions, bounded vertical sticky positioning, dynamic hover/focus, inherited cursor/pointer interaction, text transformation, signed letter/word spacing, signed pixel/percentage first-line indentation, inherited text-wrap mode/style, non-inherited 1..32 line clamping, inherited bounded list marker type/image/position and shorthand, text-align shorthand/all/last with logical state and justify-all, bounded text-decoration line/color/style/thickness and underline offset, and one inherited bounded text-shadow layer, content/border sizing, circular/elliptical radii, bounded outlines, box shadows, gradients, bitmap backgrounds, object fitting and aspect ratios, visibility/opacity, fonts, overflow, boxes, bounded ordered flex and two-axis grid properties |
+| Layout and painting | 20% | 20% | Shared physical/logical box edges and per-edge border styles/colors plus fixed/percentage/calculated, viewport-unit, font-relative, and min/max/clamp dimensions, content/border, aspect-ratio, sticky, direction-aware inline/inside-outside text and image markers/first-line-indent/bounded balanced wrapping/line-clamping/all-line/final-line/ellipsis and TextPattern range geometry, transformed, spacing-aware, decorated, and bounded shadowed presentation text with raw form retention, native decoration fast path plus lightweight offset-aware custom line paint, normalized rounded backgrounds/borders/outlines/overflow/fields/box-shadows/gradients/bitmaps, pointer-gated retained hits with underlying fallthrough, fitted raster images and maps, ordered flex rows/columns, bounded grid tracks/spans, distribution, alignment, wrapping, grow/shrink, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Native field edit commands and one-level undo/redo, bounded multipart files, richer widgets, validation, responsive/fitted images with a zero-capability AppContainer decoder and combined admission, GET/POST submit |
-| Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/body and ID-scoped display/width/height/direction/text-indent/text-wrap/mode/style/line-clamp/list-style/type/position/text-align/all/last/text-decoration/text-underline-offset/text-shadow/logical box/border/radius/style/alert, class, visibility, disclosure, field-state, focus, and literal bounded DOM translation |
+| Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/body and ID-scoped display/width/height/direction/text-indent/text-wrap/mode/style/line-clamp/list-style/type/image/position/text-align/all/last/text-decoration/text-underline-offset/text-shadow/logical box/border/radius/style/alert, class, visibility, disclosure, field-state, focus, and literal bounded DOM translation |
 | Firespider integration and reliability | 10% | 10% | Lea-first New Tab/Ctrl+T, explicit legacy fallback, Inspector with Access view, MSAA/UIA surfaces including read-only text, host-safe focus shortcuts, navigation, sessions, source, host smokes |
 | **Total** | **100%** | **100%** | Scoped Lea 1.0 baseline complete; post-1.0 hardening continues |
 
@@ -29,6 +29,26 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded inherited list marker images through compact `S.Li` resolved
+  `Uri` state. CSS `list-style-image`, defining `li`, readable
+  `liststyleimage`, and literal `style.listStyleImage` share origin checks,
+  variables, important tiers, CSS-wide values, invalid preservation, hover, and
+  responsive replacement. Atomic `list-style`, compact `ls`, readable
+  `liststyle`, and literal `style.listStyle` now accept one type, one image, and
+  one position in any order with omitted-component resets and `none` ambiguity.
+  Marker images reuse the 24-source picture cache and sandboxed decoder, keep
+  intrinsic aspect ratio inside 64x64 pixels, use inside/outside LTR/RTL
+  geometry, and fall back to marker text after missing, blocked, unsupported, or
+  failed resources. Focused and full default suites plus the compiled
+  Firespider host pass, including all 18 startup regressions. All 42 Boot cases
+  and all six real EXE startup scenarios pass without a legacy engine, invalid
+  cast, JIT dialog, or dead startup window. All 99 benchmark probes pass over 94
+  fixtures. Three-round diagnostic medians are 574.938 ms
+  clean start, 4.663 ms local load, and 43.293 ms layout/paint. Retained managed
+  memory is 21,902.0 KiB for 376 pages, or 58.3 KiB/page. Required runtime files
+  are 593.0 KiB with a 247.4 KiB GZip estimate. Runtime 203 is packaged
+  separately and installed runtime 157 remains unchanged. See `LIST_IMAGE.md`.
 
 - Added bounded inherited list marker position through compact `S.Lp=o/i`.
   `outside` now occupies a measured logical-start gutter while principal text

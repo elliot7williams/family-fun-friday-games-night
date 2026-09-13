@@ -17,21 +17,25 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 102 adds bounded inherited list marker position through compact
-`S.Lp=o/i`, defining `lp`, and atomic `ls` shorthand aliases. The default
-outside marker now occupies a measured logical-start gutter while content keeps
-its full first-line width; inside remains the first inline atom and participates
-in wrapping. CSS `list-style-position`, one/two-component `list-style`, readable
-commands, literal DOM routes, CSS-wide values, variables, priority, hover, and
-media replacement share existing paths. The focused engine suite and full
-compiled Firespider host are green, including all 18 startup regressions. All
-98 benchmark probes pass over 93 fixtures. Three-round diagnostic medians are
-1,050.391 ms clean start, 4.666 ms local load, and 37.792 ms layout/paint;
-retained memory is 57.5 KiB/page and the required runtime is 590.5 KiB. Runtime
-202 remains isolated, and installed runtime 157 is unchanged. See
-`LIST_POSITION.md`. Marker images, `::marker`, cross-item gutter alignment,
-custom counters, generated content, vertical writing, full Unicode bidi shaping,
-and general CSS/JavaScript evaluation stay outside this milestone.
+Milestone 103 adds bounded inherited list marker images through compact `S.Li`,
+defining `li`, and the existing atomic `ls` shorthand. CSS `list-style-image`,
+readable commands, literal DOM routes, CSS-wide values, variables, priority,
+hover, and media replacement share existing paths. The shorthand accepts one
+type, one image, and one position in any order with atomic reset and bounded
+`none` ambiguity. Images reuse the sandboxed picture loader/cache, preserve
+aspect ratio inside 64x64 pixels, follow inside/outside LTR/RTL geometry, and
+fall back to text markers after load failure. The full default engine suite and
+compiled Firespider host are green, including all 18 startup regressions. All 42
+Boot cases and all six real EXE startup scenarios pass without a legacy engine,
+invalid cast, JIT dialog, or dead startup window. All 99 benchmark probes pass
+over 94 fixtures. Three-round diagnostic medians are
+574.938 ms clean start, 4.663 ms local load, and 43.293 ms layout/paint;
+retained memory is 58.3 KiB/page and the required runtime is 593.0 KiB. Runtime
+203 remains isolated, and installed runtime 157 is unchanged. See
+`LIST_IMAGE.md`. `::marker`, marker sizing, SVG marker decoding, cross-item
+gutter alignment, custom counters, generated content, vertical writing, full
+Unicode bidi shaping, and general CSS/JavaScript evaluation stay outside this
+milestone.
 
 Milestone 60 installs the existing `V.Ng` hook on main Lea tabs, enforcing host
 rules, offline/locked state, and live ownership. Denied resume retains its

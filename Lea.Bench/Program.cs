@@ -114,7 +114,7 @@ namespace Lea.Bench
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
                 "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "direction-logical.html", "direction-layout.html", "direction-inline.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "direction-overflow.html", "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
-                "go-command.html", "lists.html", "list-style.html", "list-position.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
+                "go-command.html", "lists.html", "list-style.html", "list-position.html", "list-image.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
                 "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html", "svg.html", "svg-geometry.html", "svg-gradients.html", "svg-use-clips.html", "svg-strokes.html",
                 "box-sizing.html", "border-radius.html", "logical-radii.html", "box-shadows.html", "background-gradients.html", "background-images.html", "object-fit.html", "aspect-ratio.html", "outlines.html", "pointer-interaction.html", "text-transform.html", "text-spacing.html", "text-indent.html", "text-decoration.html", "text-underline-offset.html", "text-wrap.html", "text-align.html", "text-align-last.html", "text-shadow.html", "text-overflow.html", "line-clamp.html"
@@ -342,6 +342,65 @@ namespace Lea.Bench
                 Need(Object.ReferenceEquals(field, page.Fs.First(item => item.El != null && item.El.Av("id") == "position-field")),
                     "list position headless command replaced field identity");
                 return "S.Lp one-character inherited inside/outside state, independent longhands, atomic list-style composition and reset, lp/ls/readable/DOM commands, LTR/RTL gutters, table/hover/media paths, and retained fields";
+            });
+            AddProbe(probes, "Bounded list marker images", delegate
+            {
+                var path = Path.Combine(folder, "list-image.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                var marker = block("outside").S.Li;
+                Need(page.S.Li == null && marker != null && marker.Scheme == "data" && block("inside").S.Lp == "i" &&
+                    block("external").S.Li != null && block("external").S.Li.IsFile && block("external").S.Li.LocalPath.EndsWith("lea.ico", StringComparison.OrdinalIgnoreCase),
+                    "list marker image defaults, data URL, or relative origin changed");
+                Need(block("inherited").S.Li.AbsoluteUri == marker.AbsoluteUri && block("initial").S.Li == null &&
+                    block("unset").S.Li.AbsoluteUri == marker.AbsoluteUri && block("important").S.Li.AbsoluteUri == marker.AbsoluteUri &&
+                    block("invalid").S.Li.AbsoluteUri == marker.AbsoluteUri,
+                    "list marker image inheritance or cascade changed");
+                Need(block("shorthand-all").S.Lst == "a" && block("shorthand-all").S.Lp == "i" && block("shorthand-all").S.Li.AbsoluteUri == marker.AbsoluteUri &&
+                    block("shorthand-none-url").S.Lst == "n" && block("shorthand-none-url").S.Li.AbsoluteUri == marker.AbsoluteUri &&
+                    block("shorthand-type-none").S.Lst == "d" && block("shorthand-type-none").S.Li == null &&
+                    block("invalid-shorthand").S.Lst == "s" && block("invalid-shorthand").S.Li.AbsoluteUri == marker.AbsoluteUri,
+                    "list shorthand image composition, none ambiguity, or atomicity changed");
+                var field = page.Fs.First(item => item.El != null && item.El.Av("id") == "image-field");
+                engine.Dy(page, ById(page.D, "dynamic"), null);
+                Need(block("dynamic").S.Li != null, "dynamic list image changed");
+                engine.Vw = 350;
+                Need(block("responsive").S.Li != null && Object.ReferenceEquals(field, page.Fs.First(item => item.El != null && item.El.Av("id") == "image-field")),
+                    "responsive list image or retained field changed");
+                Need(engine.Ck(page, ById(page.D, "set-image")) == 1 && block("command-image").S.Li != null &&
+                    engine.Ck(page, ById(page.D, "set-shorthand")) == 1 && block("command-shorthand").S.Lst == "n" && block("command-shorthand").S.Lp == "i" && block("command-shorthand").S.Li != null,
+                    "compact list image or shorthand command changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 3200);
+                    LoadView(view, path, "list marker image load");
+                    using (var image = Draw(view))
+                    {
+                        var outside = InlineKindRect(view, "outside", "lm");
+                        var inside = InlineKindRect(view, "inside", "lm");
+                        var rtl = InlineKindRect(view, "rtl", "lm");
+                        Need(outside.Size == new Size(20, 10) && outside.Right < BlockContent(view, "outside").Left &&
+                            inside.Left == BlockContent(view, "inside").Left && rtl.Left > BlockContent(view, "rtl").Right &&
+                            ColorDistance(image.GetPixel(outside.Left + 2, outside.Top + outside.Height / 2), Color.FromArgb(220, 38, 38)) < 24 &&
+                            ColorDistance(image.GetPixel(outside.Right - 2, outside.Top + outside.Height / 2), Color.FromArgb(37, 99, 235)) < 24,
+                            "list marker image LTR/RTL geometry or paint changed");
+                        Need(InlineTextRect(view, "missing", view.At.Bs.First(item => item.El != null && item.El.Av("id") == "missing").Mk).Right < BlockContent(view, "missing").Left &&
+                            InlineKindRect(view, "cell-image", "lm").Right < BlockContent(view, "cell-image").Left && ColoredSamples(image) > 0,
+                            "list marker fallback or table geometry changed");
+                    }
+                    var retained = view.At.Fs.First(item => item.El != null && item.El.Av("id") == "image-field");
+                    retained.V = "Retained benchmark image";
+                    Need(view.Js("li('command-image','url(../../assets/lea.ico)')") == 1, "list image view command changed");
+                    view.Size = new Size(350, 3200);
+                    using (var image = Draw(view))
+                    {
+                        Need(view.At.Bs.First(item => item.El != null && item.El.Av("id") == "responsive").S.Li != null &&
+                            Object.ReferenceEquals(retained, view.At.Fs.First(item => item.El != null && item.El.Av("id") == "image-field")) &&
+                            retained.V == "Retained benchmark image", "list image resize or retained value changed");
+                    }
+                }
+                return "S.Li inherited URI state, li/ls/readable/DOM commands, URL-aware atomic shorthand and none ambiguity, sandboxed deduplicated image loading, 64px intrinsic cap, text fallback, inside/outside LTR/RTL paint, tables, hover/media, and retained fields";
             });
             AddProbe(probes, "Bounded disclosures", delegate
             {
@@ -4015,6 +4074,21 @@ namespace Lea.Bench
                     if ((string)type.GetField("X").GetValue(value) == text) return (Rectangle)type.GetField("R").GetValue(value);
                 }
             throw new InvalidOperationException("Missing inline text " + ownerId + ": " + text);
+        }
+
+        private static Rectangle InlineKindRect(V view, string ownerId, string kind)
+        {
+            var field = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = field == null ? null : field.GetValue(view) as System.Collections.IEnumerable;
+            if (values != null)
+                foreach (var value in values)
+                {
+                    var type = value.GetType();
+                    var block = type.GetField("B").GetValue(value) as B;
+                    if (block == null || block.El == null || block.El.Av("id") != ownerId || !(bool)type.GetField("Inline").GetValue(value)) continue;
+                    if ((string)type.GetField("K").GetValue(value) == kind) return (Rectangle)type.GetField("R").GetValue(value);
+                }
+            throw new InvalidOperationException("Missing inline kind " + ownerId + ": " + kind);
         }
 
         private static N ById(N node, string id)
