@@ -113,6 +113,10 @@ LeaForge is where we can grow the more full-featured browser.
   Lea's sandboxed image cache/decoder, with atomic three-component shorthand,
   64px intrinsic caps, text fallback, inside/outside LTR/RTL geometry, and
   literal DOM support; see `LIST_IMAGE.md`
+- bounded terminal `::marker` styling through compact `B.Ms` plus `S.Mc/Mn`,
+  with isolated text properties, 128-unit literal content, image precedence,
+  page/item `ms` and readable `markerstyle` commands, and shared LTR/RTL paint;
+  see `MARKER.md`
 - inherited left/center/right/justify alignment and pixel/relative line spacing
 - external stylesheets with document-order cascade and shared bounded caching
 - compiled relationship, attribute, structural, link, and form-state selectors,

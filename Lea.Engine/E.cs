@@ -42,6 +42,9 @@ namespace Lea.Engine
         private const int MaxGradientStops = 8;
         private const int MaxBackgroundText = 4096;
         private const int MaxBackgroundLength = 2000;
+        private const int MaxMarkerDeclarations = 16;
+        private const int MaxMarkerStyle = 1024;
+        private const int MaxMarkerText = 128;
         private const int MaxPost = 10 * 1024 * 1024;
         private const long MaxDownload = 64L * 1024 * 1024;
         private const int MaxFind = 256;
@@ -2417,9 +2420,11 @@ namespace Lea.Engine
             {
                 if (rules.Count >= limit) return;
                 var query = selector.Trim();
+                var matchQuery = query;
+                bool marker;
                 var parts = new List<string>();
                 var joins = new List<char>();
-                if (query.Length == 0 || !CssParts(query, parts, joins)) continue;
+                if (query.Length == 0 || !CssMarkerSelector(query, out matchQuery, out marker) || !CssParts(matchQuery, parts, joins)) continue;
                 var simple = new List<Se>();
                 foreach (var part in parts)
                 {
@@ -2428,8 +2433,25 @@ namespace Lea.Engine
                     simple.Add(value);
                 }
                 if (simple.Count == parts.Count)
-                    rules.Add(new R(query, declarations, origin, Spec(simple), order++, simple.ToArray(), joins.ToArray(), media));
+                    rules.Add(new R(query, declarations, origin, Spec(simple) + (marker ? 1 : 0), order++, simple.ToArray(), joins.ToArray(), media, marker));
             }
+        }
+
+        private static bool CssMarkerSelector(string query, out string selector, out bool marker)
+        {
+            selector = query ?? "";
+            marker = false;
+            const string suffix = "::marker";
+            if (!selector.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)) return true;
+            marker = true;
+            selector = selector.Substring(0, selector.Length - suffix.Length);
+            if (selector.Length == 0) selector = "*";
+            else
+            {
+                var last = selector[selector.Length - 1];
+                if (Char.IsWhiteSpace(last) || last == '>' || last == '+' || last == '~') selector += "*";
+            }
+            return true;
         }
 
         private static bool CssBlock(string source, ref int at, out string header, out string body)
@@ -3352,7 +3374,7 @@ namespace Lea.Engine
             var style = inherited == null ? new S() : inherited.Inherit();
             var matched = new List<R>();
             foreach (var rule in rules)
-                if (MatchCss(node, rule)) matched.Add(rule);
+                if (!rule.Pm && MatchCss(node, rule)) matched.Add(rule);
             var inline = CssDeclarations(node.Av("style"), StyleOrigin(node));
             foreach (var rule in matched) Custom(style, inherited, rule.Ds, false);
             Custom(style, inherited, inline, false);
@@ -3373,6 +3395,46 @@ namespace Lea.Engine
             Decls(style, inherited, inline, true);
             if (node.A.ContainsKey("data-lea-hidden")) style.D = "none";
             return style;
+        }
+
+        private static S MarkerStyle(N node, S inherited, List<R> rules)
+        {
+            var style = inherited == null ? new S() : inherited.Inherit();
+            style.Tt = "n";
+            style.Ws = "p";
+            style.Wm = "n";
+            var defaults = MarkerDefaults(node);
+            var baseDirection = style.Dr;
+            Custom(style, inherited, defaults, false);
+            Custom(style, inherited, defaults, true);
+            DirectionDeclarations(style, inherited, defaults, false, baseDirection);
+            DirectionDeclarations(style, inherited, defaults, true, baseDirection);
+            MarkerDecls(style, inherited, defaults, false);
+            MarkerDecls(style, inherited, defaults, true);
+            var matched = new List<R>();
+            foreach (var rule in rules)
+                if (rule.Pm && MatchCss(node, rule)) matched.Add(rule);
+            var inline = CssDeclarations(node.Av("data-lea-marker-style"), StyleOrigin(node));
+            foreach (var rule in matched) Custom(style, inherited, rule.Ds, false);
+            Custom(style, inherited, inline, false);
+            foreach (var rule in matched) Custom(style, inherited, rule.Ds, true);
+            Custom(style, inherited, inline, true);
+            foreach (var rule in matched) DirectionDeclarations(style, inherited, rule.Ds, false, baseDirection);
+            DirectionDeclarations(style, inherited, inline, false, baseDirection);
+            foreach (var rule in matched) DirectionDeclarations(style, inherited, rule.Ds, true, baseDirection);
+            DirectionDeclarations(style, inherited, inline, true, baseDirection);
+            foreach (var rule in matched) MarkerDecls(style, inherited, rule.Ds, false);
+            MarkerDecls(style, inherited, inline, false);
+            foreach (var rule in matched) MarkerDecls(style, inherited, rule.Ds, true);
+            MarkerDecls(style, inherited, inline, true);
+            return style;
+        }
+
+        private static Pd[] MarkerDefaults(N node)
+        {
+            for (var current = node == null ? null : node.Up; current != null; current = current.Up)
+                if (current.K == "body") return CssDeclarations(current.Av("data-lea-marker-style"), StyleOrigin(current));
+            return NoDeclarations;
         }
 
         private static Uri StyleOrigin(N node)
@@ -3474,6 +3536,242 @@ namespace Lea.Engine
             if (style.Vo == null) style.Vo = new Dictionary<string, Uri>(StringComparer.Ordinal);
             else if (inherited != null && Object.ReferenceEquals(style.Vo, inherited.Vo)) style.Vo = new Dictionary<string, Uri>(style.Vo, StringComparer.Ordinal);
             return style.Vo;
+        }
+
+        private static void MarkerDecls(S style, S inherited, Pd[] declarations, bool important)
+        {
+            foreach (var declaration in declarations)
+            {
+                if (declaration.C || declaration.I != important || declaration.N == "direction") continue;
+                string value;
+                Uri origin;
+                if (!VarValue(style, declaration.V, declaration.U, out value, out origin)) continue;
+                var name = declaration.N;
+                if (name == "color") MarkerColor(style, inherited, value);
+                else if (name == "font-family") MarkerFontFamily(style, inherited, value);
+                else if (name == "font-weight") MarkerFontWeight(style, inherited, value);
+                else if (name == "font-style") MarkerFontStyle(style, inherited, value);
+                else if (name == "font-size") MarkerFontSize(style, inherited, value);
+                else if (name == "text-transform") MarkerTextTransform(style, inherited, value);
+                else if (name == "letter-spacing") MarkerSpacing(style, inherited, value, true);
+                else if (name == "word-spacing") MarkerSpacing(style, inherited, value, false);
+                else if (name == "line-height") MarkerLineHeight(style, inherited, value);
+                else if (name == "text-shadow") TextShadow(style, inherited, value);
+                else if (name == "content") MarkerContent(style, value);
+            }
+        }
+
+        private static bool MarkerParentValue(string value)
+        {
+            return value == "inherit" || value == "unset";
+        }
+
+        private static bool MarkerRevertValue(string value)
+        {
+            return value == "revert" || value == "revert-layer";
+        }
+
+        private static void MarkerColor(S style, S inherited, string value)
+        {
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            if (MarkerParentValue(lower) || MarkerRevertValue(lower) || lower == "currentcolor")
+                style.F = inherited == null ? "" : inherited.F;
+            else if (lower == "initial") style.F = "";
+            else if (source.Length > 0 && source.Length <= 128 && !MarkerControls(source)) style.F = source;
+        }
+
+        private static void MarkerFontFamily(S style, S inherited, string value)
+        {
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            if (MarkerParentValue(lower) || MarkerRevertValue(lower)) style.Ff = inherited == null ? "" : inherited.Ff;
+            else if (lower == "initial") style.Ff = "";
+            else FontFamily(style, source);
+        }
+
+        private static void MarkerFontWeight(S style, S inherited, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (MarkerParentValue(source) || MarkerRevertValue(source)) style.B = inherited != null && inherited.B;
+            else if (source == "initial" || source == "normal" || source == "lighter" || source == "100" || source == "200" || source == "300" || source == "400" || source == "500" || source == "600") style.B = false;
+            else if (source == "bold" || source == "bolder" || source == "700" || source == "800" || source == "900") style.B = true;
+        }
+
+        private static void MarkerFontStyle(S style, S inherited, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (MarkerParentValue(source) || MarkerRevertValue(source)) style.I = inherited != null && inherited.I;
+            else if (source == "initial" || source == "normal") style.I = false;
+            else if (source == "italic" || source == "oblique") style.I = true;
+        }
+
+        private static void MarkerFontSize(S style, S inherited, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (MarkerParentValue(source) || MarkerRevertValue(source)) { style.Fs = inherited == null ? 0 : inherited.Fs; return; }
+            if (source == "initial") { style.Fs = 0; return; }
+            var size = Regex.Match(source, "^(?<n>[0-9]{1,3})(?:px)?$");
+            int number;
+            if (size.Success && Int32.TryParse(size.Groups["n"].Value, out number) && number > 0 && number < 200) style.Fs = number;
+        }
+
+        private static void MarkerTextTransform(S style, S inherited, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (MarkerParentValue(source)) style.Tt = inherited == null ? "n" : inherited.Tt;
+            else if (MarkerRevertValue(source) || source == "initial" || source == "none") style.Tt = "n";
+            else if (source == "uppercase") style.Tt = "u";
+            else if (source == "lowercase") style.Tt = "l";
+            else if (source == "capitalize") style.Tt = "c";
+        }
+
+        private static void MarkerSpacing(S style, S inherited, string value, bool letters)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "revert-layer") source = "inherit";
+            TextSpacing(style, inherited, source, letters);
+        }
+
+        private static void MarkerLineHeight(S style, S inherited, string value)
+        {
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (MarkerParentValue(source) || MarkerRevertValue(source))
+            {
+                style.Lh = inherited == null ? 0 : inherited.Lh;
+                style.Lm = inherited == null ? 0 : inherited.Lm;
+            }
+            else LineHeight(style, source);
+        }
+
+        private static void MarkerContent(S style, string value)
+        {
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            if (lower == "normal" || lower == "initial" || MarkerParentValue(lower) || MarkerRevertValue(lower))
+            {
+                style.Mc = null;
+                style.Mn = false;
+                return;
+            }
+            if (lower == "none")
+            {
+                style.Mc = null;
+                style.Mn = true;
+                return;
+            }
+            string content;
+            if (MarkerString(source, out content))
+            {
+                style.Mc = content;
+                style.Mn = false;
+            }
+        }
+
+        private static bool MarkerString(string value, out string content)
+        {
+            content = "";
+            var source = (value ?? "").Trim();
+            if (source.Length < 2 || source[0] != source[source.Length - 1] || source[0] != '"' && source[0] != '\'') return false;
+            var quote = source[0];
+            var result = new StringBuilder();
+            for (var index = 1; index < source.Length - 1; index++)
+            {
+                var current = source[index];
+                if (current == quote || current == '\0' || current == '\r' || current == '\n' || current == '\f') return false;
+                if (current != '\\')
+                {
+                    result.Append(current);
+                    if (result.Length > MaxMarkerText) return false;
+                    continue;
+                }
+                if (++index >= source.Length - 1) return false;
+                current = source[index];
+                if (current == '\r' || current == '\n' || current == '\f')
+                {
+                    if (current == '\r' && index + 1 < source.Length - 1 && source[index + 1] == '\n') index++;
+                    continue;
+                }
+                var start = index;
+                while (index < source.Length - 1 && index - start < 6 && Uri.IsHexDigit(source[index])) index++;
+                if (index > start)
+                {
+                    int scalar;
+                    if (!Int32.TryParse(source.Substring(start, index - start), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out scalar)) return false;
+                    if (index < source.Length - 1 && Char.IsWhiteSpace(source[index])) { }
+                    else index--;
+                    var decoded = scalar == 0 || scalar > 0x10ffff || scalar >= 0xd800 && scalar <= 0xdfff ? "\ufffd" : Char.ConvertFromUtf32(scalar);
+                    if (result.Length + decoded.Length > MaxMarkerText) return false;
+                    result.Append(decoded);
+                    continue;
+                }
+                if (current == '\0') return false;
+                result.Append(current);
+                if (result.Length > MaxMarkerText) return false;
+            }
+            content = result.ToString();
+            return true;
+        }
+
+        private static bool MarkerControls(string value)
+        {
+            foreach (var current in value ?? "") if (Char.IsControl(current) && !Char.IsWhiteSpace(current)) return true;
+            return false;
+        }
+
+        internal static bool Msv(string value, out string markerStyle)
+        {
+            markerStyle = (value ?? "").Trim();
+            if (markerStyle.Length == 0) return true;
+            if (markerStyle.Length > MaxMarkerStyle || MarkerControls(markerStyle)) return false;
+            var clean = CssClean(markerStyle);
+            var segments = MarkerDeclarationSegments(clean);
+            if (segments < 1 || segments > MaxMarkerDeclarations) return false;
+            var declarations = CssDeclarations(clean);
+            if (declarations.Length != segments || declarations.Length > MaxMarkerDeclarations) return false;
+            foreach (var declaration in declarations)
+                if (!declaration.C && !MarkerProperty(declaration.N)) return false;
+            return true;
+        }
+
+        private static bool MarkerProperty(string name)
+        {
+            return name == "color" || name == "font-family" || name == "font-weight" || name == "font-style" || name == "font-size" ||
+                name == "text-transform" || name == "letter-spacing" || name == "word-spacing" || name == "line-height" ||
+                name == "text-shadow" || name == "direction" || name == "content";
+        }
+
+        private static int MarkerDeclarationSegments(string source)
+        {
+            var count = 0;
+            var start = 0;
+            var quote = '\0';
+            var escaped = false;
+            var parentheses = 0;
+            for (var index = 0; index <= (source ?? "").Length; index++)
+            {
+                var end = index == source.Length;
+                var current = end ? ';' : source[index];
+                if (!end && quote != '\0')
+                {
+                    if (escaped) escaped = false;
+                    else if (current == '\\') escaped = true;
+                    else if (current == quote) quote = '\0';
+                    continue;
+                }
+                if (!end && (current == '"' || current == '\'')) { quote = current; continue; }
+                if (!end && current == '(') { parentheses++; continue; }
+                if (!end && current == ')')
+                {
+                    if (parentheses == 0) return -1;
+                    parentheses--;
+                    continue;
+                }
+                if (current != ';' || parentheses != 0) continue;
+                if (source.Substring(start, index - start).Trim().Length > 0) count++;
+                start = index + 1;
+            }
+            return quote == '\0' && parentheses == 0 ? count : -1;
         }
 
         private static void Decls(S style, S inherited, Pd[] declarations, bool important)
@@ -7201,7 +7499,8 @@ namespace Lea.Engine
             else if (IsTextBlock(kind) || IsContainerBlock(kind) || Flex(style) || Grid(style))
             {
                 var text = TextValue(Flex(style) || Grid(style) ? DirectText(node) : BlockText(node, PreservesLines(style)), style);
-                var block = new B { K = kind, X = text, Mk = ListMarker(node, style), S = style, El = node };
+                var markerStyle = kind == "li" ? MarkerStyle(node, style, rules) : null;
+                var block = new B { K = kind, X = text, Mk = ListMarker(node, style, markerStyle), Ms = markerStyle, S = style, El = node };
                 if (!Flex(style) && !Grid(style) && HasInlineStructure(node))
                 {
                     var inlineStyle = style.Inherit();
@@ -7210,7 +7509,7 @@ namespace Lea.Engine
                     NormalizeInlines(block);
                     block.X = InlineText(block);
                 }
-                if (block.X.Length > 0 || block.Is.Count > 0 || LayoutContext(style) || (IsContainerBlock(kind) && VisualContext(style))) page.Bs.Add(block);
+                if (block.X.Length > 0 || block.Is.Count > 0 || HasMarkerContent(block) || LayoutContext(style) || (IsContainerBlock(kind) && VisualContext(style))) page.Bs.Add(block);
                 AddNestedBlocks(page, node, baseUrl, rules, style);
                 return;
             }
@@ -8854,21 +9153,26 @@ namespace Lea.Engine
             return null;
         }
 
-        private static string ListMarker(N item, S style)
+        private static string ListMarker(N item, S style, S markerStyle = null)
         {
             if (item == null || item.K != "li") return "";
+            if (markerStyle != null && markerStyle.Mn) return "";
+            if (markerStyle != null && markerStyle.Mc != null) return Tx(markerStyle.Mc, markerStyle);
             int number;
             if (!Int32.TryParse(item.Mk, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out number)) number = 1;
             var type = style == null ? "" : style.Lst;
             if (type.Length == 0) type = item.Up != null && item.Up.K == "ol" ? "1" : "d";
-            if (type == "n") return "";
-            if (type == "d") return "\u2022";
-            if (type == "c") return "\u25e6";
-            if (type == "s") return "\u25aa";
-            if (type == "0") return LeadingZero(number) + ".";
-            if (type == "a" || type == "A") return AlphaMarker(number, type == "A") + ".";
-            if (type == "r" || type == "R") return RomanMarker(number, type == "R") + ".";
-            return number.ToString(CultureInfo.InvariantCulture) + ".";
+            var marker = type == "n" ? "" : type == "d" ? "\u2022" : type == "c" ? "\u25e6" : type == "s" ? "\u25aa" :
+                type == "0" ? LeadingZero(number) + "." : type == "a" || type == "A" ? AlphaMarker(number, type == "A") + "." :
+                type == "r" || type == "R" ? RomanMarker(number, type == "R") + "." : number.ToString(CultureInfo.InvariantCulture) + ".";
+            return Tx(marker, markerStyle ?? style);
+        }
+
+        private static bool HasMarkerContent(B block)
+        {
+            if (block == null || block.K != "li" || block.S == null || block.Ms != null && block.Ms.Mn) return false;
+            if (block.Ms != null && block.Ms.Mc != null) return block.Ms.Mc.Length > 0;
+            return !String.IsNullOrEmpty(block.Mk) || block.S.Li != null;
         }
 
         private static void MarkLists(N node)
@@ -9235,7 +9539,11 @@ namespace Lea.Engine
                 if (child.K == "#text")
                 {
                     var text = TextValue(child.X, inherited);
-                    if (text.Length > 0) cell.Bs.Add(new B { K = fallback, X = text, Mk = ListMarker(child.Up, inherited), S = inherited, El = child.Up });
+                    if (text.Length > 0)
+                    {
+                        var markerStyle = child.Up != null && child.Up.K == "li" ? MarkerStyle(child.Up, inherited, rules) : null;
+                        cell.Bs.Add(new B { K = fallback, X = text, Mk = ListMarker(child.Up, inherited, markerStyle), Ms = markerStyle, S = inherited, El = child.Up });
+                    }
                     continue;
                 }
 
@@ -9280,7 +9588,11 @@ namespace Lea.Engine
                 if (!nested)
                 {
                     var text = TextValue(RawText(child), style);
-                    if (text.Length > 0) cell.Bs.Add(new B { K = CellKind(child.K, fallback), X = text, Mk = ListMarker(child, style), S = style, El = child });
+                    if (text.Length > 0)
+                    {
+                        var markerStyle = child.K == "li" ? MarkerStyle(child, style, rules) : null;
+                        cell.Bs.Add(new B { K = CellKind(child.K, fallback), X = text, Mk = ListMarker(child, style, markerStyle), Ms = markerStyle, S = style, El = child });
+                    }
                     continue;
                 }
                 AddCellBlocks(page, cell, child, baseUrl, rules, style, CellKind(child.K, fallback));
@@ -9891,19 +10203,20 @@ namespace Lea.Engine
             public readonly Mc[] M;
             public readonly string Md;
             public readonly Pd[] Ds;
+            public readonly bool Pm;
 
             public R(R rule, int order)
             {
                 Q = rule.Q; V = rule.V; W = rule.W; O = order;
-                P = rule.P; J = rule.J; M = rule.M; Md = rule.Md; Ds = rule.Ds;
+                P = rule.P; J = rule.J; M = rule.M; Md = rule.Md; Ds = rule.Ds; Pm = rule.Pm;
             }
 
             public R(string query, string values, int weight, int order, Se[] parts, char[] joins)
-                : this(query, values, null, weight, order, parts, joins, new Mc[] { new Mc(0, 0) })
+                : this(query, values, null, weight, order, parts, joins, new Mc[] { new Mc(0, 0) }, false)
             {
             }
 
-            public R(string query, string values, Uri origin, int weight, int order, Se[] parts, char[] joins, Mc[] media)
+            public R(string query, string values, Uri origin, int weight, int order, Se[] parts, char[] joins, Mc[] media, bool marker)
             {
                 Q = query;
                 V = values;
@@ -9912,6 +10225,7 @@ namespace Lea.Engine
                 P = parts;
                 J = joins;
                 M = media ?? new Mc[0];
+                Pm = marker;
                 Ds = CssDeclarations(values, origin);
                 var labels = new List<string>();
                 foreach (var condition in M)

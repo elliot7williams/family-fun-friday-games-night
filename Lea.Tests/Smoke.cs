@@ -96,6 +96,11 @@ namespace Lea.Tests
                     ListImageSmoke(Path.Combine(pages, "list-image.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--marker")
+                {
+                    MarkerSmoke(Path.Combine(pages, "marker.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--text-align-last")
                 {
                     TextAlignLastSmoke(Path.Combine(pages, "text-align-last.html"));
@@ -2454,6 +2459,7 @@ namespace Lea.Tests
                 ListStyleSmoke(Path.Combine(pages, "list-style.html"));
                 ListPositionSmoke(Path.Combine(pages, "list-position.html"));
                 ListImageSmoke(Path.Combine(pages, "list-image.html"));
+                MarkerSmoke(Path.Combine(pages, "marker.html"));
 
                 var recoveryPath = Path.Combine(pages, "recovery.html");
                 var recoveryPage = engine.Go(recoveryPath);
@@ -8396,6 +8402,147 @@ namespace Lea.Tests
                 }
             }
             Console.WriteLine("Lea list image smoke passed: inherited images, shorthand ambiguity, bounded cache/paint, fallbacks, LTR/RTL, tables, hover, commands, and resize.");
+        }
+
+        private static void MarkerSmoke(string path)
+        {
+            var engine = new E { Vw = 720 };
+            var page = engine.Go(path);
+            Func<string, B> block = id => BlockById(page, id);
+
+            var styled = block("styled");
+            Ok(styled.Ms != null && styled.S.F == "#0f766e" && styled.S.Fs == 13 && styled.Ms.F == "#dc2626" &&
+                styled.Ms.Ff == "m" && styled.Ms.Fs == 24 && styled.Ms.B && styled.Ms.I && styled.Ms.Ls == 2 &&
+                styled.Ms.Wg == 4 && styled.Ms.Lh == 32 && styled.Ms.Ts != null,
+                "marker style is compact and isolated from the originating item");
+            Ok(block("default-transform").S.Tt == "u" && block("default-transform").Ms.Tt == "n" && block("default-transform").Mk == "b." &&
+                block("inherit-transform").Ms.Tt == "u" && block("inherit-transform").Mk == "C.",
+                "marker text transform UA default and explicit inheritance");
+            Eq("#7c3aed", block("specific").Ms.F, "marker pseudo-element specificity");
+            Ok(block("child").Ms.F == "#a13b18" && block("child").Ms.Mc == "Child " && block("child").Mk == "Child ",
+                "marker originating-element combinator selector");
+            Ok(block("content").Ms.Mc == "Lea " && block("content").Mk == "Lea " &&
+                block("escaped").Ms.Mc == "\u2605 " && block("escaped").Mk == "\u2605 ",
+                "bounded marker content and CSS escape decoding");
+            Ok(block("none").Ms.Mn && block("none").Mk.Length == 0 && block("none").X.Length > 0,
+                "marker content none suppresses only the marker");
+            Ok(block("variable").Ms.F == "#2563eb" && block("variable").Ms.Mc == "Var " && block("variable").Mk == "Var " &&
+                block("important").Ms.F == "#dc2626", "marker variables and important cascade");
+            Ok(block("image-content").S.Li != null && block("image-content").Ms.Mc == "Text " && block("image-content").Mk == "Text " &&
+                block("image-normal").S.Li != null && block("image-normal").Ms.Mc == null && !block("image-normal").Ms.Mn,
+                "marker content precedence and normal image restoration");
+            Ok(block("inside").S.Lp == "i" && block("inside").Ms.Fs == 22 && block("rtl").S.Dr == "r" && block("rtl").Ms.Dr == "r",
+                "inside and RTL marker state");
+            Ok(block("bad").Ms.Mc == null && block("bad").Ms.F == "#64748b",
+                "unsupported pseudo-element chaining is ignored");
+            Eq(0, engine.Qa(page, "li::marker").Count, "marker pseudo-element is excluded from document queries");
+            Ok(engine.Q(page, "#styled::marker") == null, "marker ID pseudo query is rejected");
+            Eq("Cell ", block("cell").Mk, "marker styling reaches table cell list items");
+
+            var retained = FieldById(page, "marker-field");
+            engine.Dy(page, ById(page.D, "dynamic"), null);
+            Ok(block("dynamic").Mk == "Hot " && block("dynamic").Ms.F == "#dc2626", "marker hover cascade");
+            engine.Dy(page, null, null);
+            Ok(block("dynamic").Mk == "Idle " && block("dynamic").Ms.F == "#64748b", "marker hover restore");
+            engine.Vw = 350;
+            Ok(block("responsive").Mk == "Narrow " && block("responsive").Ms.F == "#2563eb" && block("responsive").Ms.Fs == 20 &&
+                Object.ReferenceEquals(retained, FieldById(page, "marker-field")), "marker media rebuild and field retention");
+
+            Eq(1, engine.Ck(page, ById(page.D, "set-command")), "compact marker style command");
+            Ok(block("command").Ms.F == "#dc2626" && block("command").Ms.Fs == 25 && block("command").Ms.B && block("command").Mk == "Var ",
+                "compact marker style command model");
+            Eq(1, engine.Ck(page, ById(page.D, "set-readable")), "readable marker style command");
+            Ok(block("command-readable").Ms.F == "#2563eb" && block("command-readable").Ms.Fs == 23 && block("command-readable").Ms.I,
+                "readable marker style command model");
+            Eq(0, engine.Js(page, "ms('command','background:red');markerstyle('command','color:red;broken')"),
+                "marker style command rejects unsupported and malformed declarations");
+            var tooMany = new StringBuilder();
+            for (var index = 0; index < 17; index++) tooMany.Append("--m").Append(index).Append(":1;");
+            Eq(0, engine.Js(page, "ms('command','" + tooMany + "')"), "marker style command declaration ceiling");
+            Ok(block("command").Ms.F == "#dc2626" && block("command").Mk == "Var ", "invalid marker commands preserve state");
+            Eq(1, engine.Ck(page, ById(page.D, "clear-command")), "compact marker style clear command");
+            Ok(block("command").Ms.F == "#64748b" && block("command").Mk == "CSS ", "marker style clear restores authored CSS");
+            Eq(1, engine.Js(page, "ms('content:\"All \";font-size:18px')"), "page marker style default command");
+            Ok(block("default-transform").Mk == "All " && block("default-transform").Ms.Fs == 15 && block("content").Mk == "Lea ",
+                "page marker defaults yield to authored pseudo rules");
+            Eq(1, engine.Js(page, "ms('')"), "page marker style default clear");
+            Ok(block("default-transform").Mk == "b." && block("content").Mk == "Lea ", "page marker clear restores authored pseudo rules");
+            Ok(Object.ReferenceEquals(retained, FieldById(page, "marker-field")), "marker commands retain field identity");
+
+            using (var view = new V())
+            {
+                view.Size = new Size(720, 4200);
+                var load = view.GoA(path);
+                while (!load.IsCompleted)
+                {
+                    Application.DoEvents();
+                    Thread.Sleep(2);
+                }
+                load.GetAwaiter().GetResult();
+                retained = FieldById(view.At, "marker-field");
+                Rectangle dynamicOuter;
+                using (var paint = Render(view))
+                {
+                    styled = BlockById(view.At, "styled");
+                    var styledMarker = InlineTextRect(view, styled, "1.");
+                    var styledText = InlineTextRect(view, styled, "Marker");
+                    Ok(styledMarker.Right < BlockRect(view, styled).Left && styledMarker.Height > styledText.Height &&
+                        HasColor(paint, Rectangle.Inflate(styledMarker, 3, 3), Color.FromArgb(220, 38, 38)),
+                        "styled outside marker paints independently in the LTR gutter");
+                    var content = BlockById(view.At, "content");
+                    Ok(InlineTextRect(view, content, "Lea ").Right < BlockRect(view, content).Left,
+                        "custom outside marker content paints in the gutter");
+                    Ok(PaintedText(view, BlockById(view.At, "none")) == "Marker content is suppressed",
+                        "content none removes marker geometry and spacer");
+                    Ok(InlineKindCount(view, BlockById(view.At, "image-content"), "lm") == 0 &&
+                        InlineTextRect(view, BlockById(view.At, "image-content"), "Text ").Right < BlockRect(view, BlockById(view.At, "image-content")).Left,
+                        "custom text marker overrides loaded image geometry");
+                    Ok(InlineKindCount(view, BlockById(view.At, "image-normal"), "lm") == 1,
+                        "normal marker content restores loaded image geometry");
+                    var inside = BlockById(view.At, "inside");
+                    Ok(InlineTextRect(view, inside, "In ").Left == BlockRect(view, inside).Left,
+                        "inside marker content joins the principal line");
+                    var rtl = BlockById(view.At, "rtl");
+                    Ok(InlineTextRect(view, rtl, "RTL ").Left > BlockRect(view, rtl).Right,
+                        "RTL marker content occupies the physical-right gutter");
+                    Ok(InlineTextRect(view, BlockById(view.At, "cell"), "Cell ").Right < BlockRect(view, BlockById(view.At, "cell")).Left,
+                        "table marker content reaches layout and paint");
+                    dynamicOuter = BlockOuterRect(view, BlockById(view.At, "dynamic"));
+                }
+
+                retained.V = "Retained after marker style command";
+                Eq(1, view.Js("ms('command','color:#dc2626;font-size:25px;font-weight:bold;content:var(--marker-content)')"),
+                    "view compact marker style command");
+                using (var paint = Render(view))
+                {
+                    var command = BlockById(view.At, "command");
+                    var marker = InlineTextRect(view, command, "Var ");
+                    Ok(command.Ms.Fs == 25 && marker.Right < BlockRect(view, command).Left &&
+                        HasColor(paint, Rectangle.Inflate(marker, 3, 3), Color.FromArgb(220, 38, 38)),
+                        "view marker command reaches geometry and paint");
+                }
+                Ok(Object.ReferenceEquals(retained, FieldById(view.At, "marker-field")) && retained.V == "Retained after marker style command",
+                    "view marker command retains field value");
+
+                Move(view, dynamicOuter);
+                using (var paint = Render(view))
+                    Ok(BlockById(view.At, "dynamic").Mk == "Hot " && InlineTextRect(view, BlockById(view.At, "dynamic"), "Hot ").Width > 0,
+                        "marker hover rebuild reaches paint geometry");
+                Move(view, new Point(0, 0));
+
+                retained.V = "Retained after marker resize";
+                view.Size = new Size(350, 4200);
+                Application.DoEvents();
+                using (var paint = Render(view))
+                {
+                    var responsive = BlockById(view.At, "responsive");
+                    Ok(responsive.Mk == "Narrow " && InlineTextRect(view, responsive, "Narrow ").Right < BlockRect(view, responsive).Left,
+                        "responsive marker style reaches geometry");
+                    Ok(Object.ReferenceEquals(retained, FieldById(view.At, "marker-field")) && retained.V == "Retained after marker resize",
+                        "marker resize retains field value");
+                }
+            }
+            Console.WriteLine("Lea marker smoke passed: bounded pseudo rules, content, variables, specificity, aliases, images, LTR/RTL geometry, tables, hover, media, and paint.");
         }
 
         private static void LineClampSmoke(string path)

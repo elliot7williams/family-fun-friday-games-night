@@ -3135,7 +3135,7 @@ namespace Lea.Win
             var y = 0;
             var rtl = InlineReverse(block.S);
             var outside = OutsideListMarker(block) ? ListMarkerAtom(graphics, block) : null;
-            var markerGap = outside == null ? 0 : Math.Max(2, InlineAtom(graphics, block.K, " ", null, block.S, block.K, block.El).W);
+            var markerGap = outside == null ? 0 : Math.Max(2, InlineAtom(graphics, block.K, " ", null, block.Ms ?? block.S, block.K, block.El).W);
             for (var lineIndex = 0; lineIndex < lines.Count; lineIndex++)
             {
                 if (lineIndex == 0 && outside != null)
@@ -3209,7 +3209,7 @@ namespace Lea.Win
                 if (marker != null)
                 {
                     AddInlineWord(graphics, lines, ref line, ref pending, marker, width, firstWidth, baseHeight, wrap, block.S == null ? "" : block.S.Wb);
-                    pending = InlineAtom(graphics, block.K, " ", null, block.S, block.K, block.El);
+                    pending = InlineAtom(graphics, block.K, " ", null, block.Ms ?? block.S, block.K, block.El);
                 }
             }
 
@@ -3576,14 +3576,16 @@ namespace Lea.Win
 
         private Ia ListMarkerAtom(Graphics graphics, B block)
         {
-            var source = block == null || block.S == null ? null : block.S.Li;
+            var markerStyle = block == null ? null : block.Ms ?? block.S;
+            var customContent = block != null && block.Ms != null && block.Ms.Mc != null;
+            var source = block == null || block.S == null || customContent ? null : block.S.Li;
             Image image;
             if (source != null && pics.TryGetValue(source.AbsoluteUri, out image) && image != null && image.Width > 0 && image.Height > 0)
             {
                 var size = ListMarkerSize(image);
-                return new Ia("lm", "", source, block.S, block.K, size.Width, size.Height, size.Height, block.El);
+                return new Ia("lm", "", source, markerStyle, block.K, size.Width, size.Height, size.Height, block.El);
             }
-            return block == null || String.IsNullOrEmpty(block.Mk) ? null : InlineAtom(graphics, block.K, block.Mk, null, block.S, block.K, block.El);
+            return block == null || String.IsNullOrEmpty(block.Mk) ? null : InlineAtom(graphics, block.K, block.Mk, null, markerStyle, block.K, block.El);
         }
 
         private static Size ListMarkerSize(Image image)
@@ -3640,7 +3642,9 @@ namespace Lea.Win
 
         private static bool HasListMarker(B block)
         {
-            return block != null && block.K == "li" && block.S != null && (!String.IsNullOrEmpty(block.Mk) || block.S.Li != null);
+            if (block == null || block.K != "li" || block.S == null || block.Ms != null && block.Ms.Mn) return false;
+            if (block.Ms != null && block.Ms.Mc != null) return block.Ms.Mc.Length > 0;
+            return !String.IsNullOrEmpty(block.Mk) || block.S.Li != null;
         }
 
         private static string TextAlignment(S style, string align)

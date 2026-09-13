@@ -15,6 +15,7 @@ namespace Lea.Engine
         public string K { get; internal set; }
         public string X { get; internal set; }
         public string Mk { get; internal set; }
+        public S Ms { get; internal set; }
         public bool Hd { get; internal set; }
         public Uri U { get; internal set; }
         public S S { get; internal set; }

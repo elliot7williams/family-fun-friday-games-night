@@ -122,6 +122,11 @@ three-component shorthand order, `none` ambiguity, variables, priority, invalid
 atomicity, cache reuse, bounded image pixels and geometry, text fallback,
 LTR/RTL inside/outside placement, tables, compact/readable/literal commands,
 hover, retained fields, and responsive resize. See `LeaForge/LIST_IMAGE.md`.
+`marker.html` covers bounded terminal `::marker` selectors, isolated inherited
+and direct marker text styles, quoted/escaped/none content, variables, priority,
+image/type/content precedence, inside/outside LTR/RTL geometry, tables,
+compact/readable commands, hover, retained fields, and responsive resize. See
+`LeaForge/MARKER.md`.
 
 ## Firespider Startup Checks
 
@@ -165,6 +170,10 @@ commands, hover, and responsive resize.
 ambiguity, image admission/cache/paint, 64px geometry, text fallback, LTR/RTL
 inside/outside placement, tables, retained fields, commands, hover, and
 responsive resize.
+`--marker` isolates bounded terminal pseudo rules, marker-only inherited text
+state, specificity, quoted/escaped/none content, custom properties, important
+tiers, command limits, image priority, LTR/RTL geometry, tables, hover, paint,
+and responsive resize.
 `--text-align` isolates the inherited text-align shorthand/all/last family,
 logical inheritance and match-parent, justify-all, compact/readable/literal
 commands, LTR/RTL geometry, shorthand resets, tables, hover, and responsive resize.

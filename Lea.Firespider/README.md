@@ -619,6 +619,14 @@ reuses its sandboxed image cache/decoder and applies the 64px display cap;
 Firespider adds no parser, resource cache, adapter state, layout branch, or
 control. See `LeaForge/LIST_IMAGE.md`.
 
+Hosted lists now expose bounded terminal `::marker` styling through `B.Ms` and
+`S.Mc/Mn`. The compiled host verifies isolated marker typography/content,
+selector specificity, image/content priority, compact `ms`, readable
+`markerstyle`, page defaults, direct item overrides, responsive replacement,
+inside/outside LTR/RTL geometry, and retained fields. Lea owns selector
+matching, cascade, measurement, and paint; Firespider adds no marker parser,
+adapter state, layout branch, or control. See `LeaForge/MARKER.md`.
+
 Hosted text alignment now exposes the bounded shorthand/all/last family through
 `S.Ta/Tl`. The compiled host verifies `justify-all`, retained logical RTL
 state, compact `ta/taa/tl`, literal `style.textAlign`, shorthand reset,

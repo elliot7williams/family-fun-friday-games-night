@@ -356,6 +356,17 @@ retained rebuild. Hosts can call `li(value)`/`li(id,value)`, readable
 aspect ratio inside 64x64 pixels and take the inside/outside path selected by
 `S.Lp`; failures use `B.Mk` as the text fallback. See `LIST_IMAGE.md`.
 
+Terminal `::marker` rules produce an isolated compact style on `B.Ms`; literal
+content uses `S.Mc`, and `S.Mn` suppresses the marker. Lea matches the
+originating list item with its compiled selector and keeps pseudo specificity,
+variables, important tiers, hover, and media behavior inside the engine. Hosts
+can call `ms(value)` for a page marker default or `ms(id,value)` for a direct
+item override; readable `markerstyle` follows the same forms. Input is capped at
+1024 characters and 16 declarations. Supported declarations are color,
+font-family/size/weight/style, text-transform, letter/word spacing, line-height,
+text-shadow, direction, and one quoted `content` string or `none`. No host-side
+selector, cascade, measurement, or paint adapter is needed. See `MARKER.md`.
+
 `S.Ws` carries compact `n/nw/p/pw/pl` white-space modes. Lea preserves explicit
 spaces and line breaks for `pre`/`pre-wrap`, keeps line breaks while collapsing
 spaces for `pre-line`, and disables soft wrapping for `nowrap`/`pre`. `S.Ov`
@@ -873,6 +884,10 @@ no evaluator. IDs and class names remain bounded literals, every mutation uses
 the normal validators and retained rebuild, and unsupported `innerHTML`,
 selectors, computed values, event APIs, or control flow remain inert. See
 `DOM_BRIDGE.md`, `DISPLAY_NAVIGATION.md`, and `CALCULATED_WIDTHS.md`.
+
+`ms`/`markerstyle` are Lea host commands rather than literal browser CSSOM
+properties; bounded `::marker` rules should be supplied through page or named
+stylesheets.
 
 Core downloads use `E.Dl`/`DlA`; `V` forwards those aliases and raises `Dr` for
 links carrying the HTML `download` attribute. The host receives `Du` and `Dn`,

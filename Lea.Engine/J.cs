@@ -269,6 +269,14 @@ namespace Lea.Engine
                 if (!E.Lshv(Expand(page, command.W ?? command.V), out shorthand)) return false;
                 return SetStyle(target, "list-style", shorthand);
             }
+            if (command.N == "ms")
+            {
+                var target = StyleTarget(page, command);
+                if (target == null) return false;
+                string markerStyle;
+                if (!E.Msv(Expand(page, command.W ?? command.V), out markerStyle)) return false;
+                return SetMarkerStyle(target, markerStyle);
+            }
             if (command.N == "ts")
             {
                 var target = StyleTarget(page, command);
@@ -464,6 +472,7 @@ namespace Lea.Engine
             if (count == 1 && (name == "li" || name == "liststyleimage")) return new Cm("li", first);
             if (count == 1 && (name == "lp" || name == "liststyleposition")) return new Cm("lp", first);
             if (count == 1 && (name == "ls" || name == "liststyle")) return new Cm("ls", first);
+            if (count == 1 && (name == "ms" || name == "markerstyle")) return new Cm("ms", first);
             if (count == 1 && (name == "ts" || name == "textshadow")) return new Cm("ts", first);
             if (count == 1 && (name == "td" || name == "textdecoration")) return new Cm("td", first);
             if (count == 1 && (name == "tdl" || name == "textdecorationline")) return new Cm("tdl", first);
@@ -505,6 +514,7 @@ namespace Lea.Engine
             if (count == 2 && (name == "li" || name == "liststyleimage")) return new Cm("li", first, second);
             if (count == 2 && (name == "lp" || name == "liststyleposition")) return new Cm("lp", first, second);
             if (count == 2 && (name == "ls" || name == "liststyle")) return new Cm("ls", first, second);
+            if (count == 2 && (name == "ms" || name == "markerstyle")) return new Cm("ms", first, second);
             if (count == 2 && (name == "ts" || name == "textshadow")) return new Cm("ts", first, second);
             if (count == 2 && (name == "td" || name == "textdecoration")) return new Cm("td", first, second);
             if (count == 2 && (name == "tdl" || name == "textdecorationline")) return new Cm("tdl", first, second);
@@ -795,6 +805,13 @@ namespace Lea.Engine
             if (result.Length > 4096) return false;
             if (result.Length == 0) target.A.Remove("style");
             else target.A["style"] = result.ToString();
+            return true;
+        }
+
+        private static bool SetMarkerStyle(N target, string value)
+        {
+            if (value.Length == 0) target.A.Remove("data-lea-marker-style");
+            else target.A["data-lea-marker-style"] = value;
             return true;
         }
 

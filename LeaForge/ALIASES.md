@@ -35,7 +35,7 @@ read and quick to write.
   redirects or resource requests. Firespider installs it on ordinary and split
   tabs. See `NAVIGATION_POLICY.md` and `SPLIT_VIEW.md` for its callback contract.
 - Page values use one or two letters: `U`, `T`, `H`, `Q`, `D`, `N`, `Bs`, and `Ls`.
-- Page commands use one or two letters where practical: `t`, `a`, `bg`, `fg`, `fs`, `dp`, `wd`, `ht`, `dr`, `ti`, `tw`, `twm`, `tws`, `ta`, `taa`, `tl`, `lc`, `ls`, `lst`, `lp`, `ts`, `td`, `uo`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`; text-decoration components and logical edge families stay within three letters.
+- Page commands use one or two letters where practical: `t`, `a`, `bg`, `fg`, `fs`, `dp`, `wd`, `ht`, `dr`, `ti`, `tw`, `twm`, `tws`, `ta`, `taa`, `tl`, `lc`, `ls`, `lst`, `lp`, `li`, `ms`, `ts`, `td`, `uo`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`; text-decoration components and logical edge families stay within three letters.
 - New public aliases should be no more than three letters.
 - `E/V.Hm` reports the 4 MiB document-body ceiling; `E/V.Csm` reports the
   256 KiB linked-stylesheet ceiling. GET/POST input and optional CSS share
@@ -102,6 +102,8 @@ lst("id", "square") element list marker style
 lp("id", "inside") element list marker position
 li("id", "url('marker.png')") element list marker image
 ls("id", "square url('marker.png') inside") list style shorthand
+ms("color:#2563eb") page marker default
+ms("id", "content:'Lea ';font-weight:bold") element marker style
 ts("3px 2px #555") body text shadow
 ts("id", "5px 4px 0 #dc2626") element text shadow
 td("underline dashed red 2px") body text decoration
@@ -145,7 +147,7 @@ fo("id")              request focus
 go("next.html")        request host navigation
 ```
 
-The two-argument `bg/fg/fs/dp/wd/ht/dr/ti/tw/twm/tws/ta/taa/tl/lc/ls/lst/lp/ts/td/tdl/tdc/tds/tdw/uo/is/bs`, logical box, logical border, and
+The two-argument `bg/fg/fs/dp/wd/ht/dr/ti/tw/twm/tws/ta/taa/tl/lc/ls/lst/lp/li/ms/ts/td/tdl/tdc/tds/tdw/uo/is/bs`, logical box, logical border, and
 radius forms
 target one validated ID. Color and font
 forms reuse the same
@@ -841,8 +843,14 @@ image validator and loader. Atomic `ls`/`liststyle` and literal
 `style.listStyle` accept one type, one image, and one position in any order and
 reset omitted components. Outside uses a measured logical-start gutter; inside
 consumes first-line width. Images preserve aspect ratio inside 64x64 pixels and
-fall back to `B.Mk` after a load/decode failure. See `LIST_STYLE.md`,
-`LIST_POSITION.md`, and `LIST_IMAGE.md`.
+fall back to `B.Mk` after a load/decode failure. `B.Ms` separately stores the
+computed marker pseudo style; `S.Mc/Mn` distinguish bounded literal content,
+ordinary marker content, and suppression. Terminal `::marker` selectors reuse
+the compiled originating-element matcher and cascade while staying isolated
+from `B.S`. The defining `ms(value)` page default, `ms(id,value)` direct style,
+and readable `markerstyle` accept at most 1,024 characters and 16 declarations;
+literal content stops at 128 UTF-16 units. See `LIST_STYLE.md`,
+`LIST_POSITION.md`, `LIST_IMAGE.md`, and `MARKER.md`.
 
 Disclosure state stays equally compact. A `details` node uses `N.Op` for its
 page-local open state. Its first direct `summary` block uses `B.Mk` as `>` when
