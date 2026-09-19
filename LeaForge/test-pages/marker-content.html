@@ -17,7 +17,18 @@
     #variable::marker { content: var(--marker-open) attr(data-code) var(--marker-close); }
     #important::marker { content: "Low "; content: attr(data-marker) !important; }
     #invalid-type::marker { content: "Keep "; content: attr(data-code number); }
-    #invalid-fallback::marker { content: "Keep "; content: attr(data-code, "Fallback "); }
+    #fallback::marker { content: attr(data-code, "Fallback "); }
+    #fallback-present::marker { content: attr(data-code, "Fallback "); }
+    #fallback-empty::marker { content: "E" attr(data-code, "Fallback") " "; }
+    #fallback-raw::marker { content: attr(data-code raw-string, "Raw fallback "); }
+    #fallback-compose::marker { content: "[" attr(data-code, "F13") "] "; }
+    #fallback-escaped::marker { content: attr(data-code, "\2605  fallback "); }
+    #invalid-fallback::marker { content: "Keep "; content: attr(data-code, fallback); }
+    #invalid-fallback-extra::marker { content: "Keep "; content: attr(data-code, "A", "B"); }
+    #fallback-variable::marker { content: attr(data-code, var(--marker-open)); }
+    #invalid-fallback-nested::marker { content: "Keep "; content: attr(data-code, counter(list-item)); }
+    #fallback-boundary::marker { content: attr(data-code, "12345678901234567890123456789012123456789012345678901234567890121234567890123456789012345678901212345678901234567890123456789012"); }
+    #fallback-over::marker { content: "Keep "; content: attr(data-code, "12345678901234567890123456789012123456789012345678901234567890121234567890123456789012345678901212345678901234567890123456789012x"); }
     #eight::marker { content: "1""2""3""4""5""6""7""8"; }
     #nine::marker { content: "Keep "; content: "1""2""3""4""5""6""7""8""9"; }
     #bounded::marker { content: "Keep "; content: attr(data-marker); }
@@ -30,11 +41,11 @@
     #rtl::marker { content: attr(data-marker); color: #7c3aed; }
     #dynamic::marker { content: attr(data-state); color: #64748b; }
     #dynamic:hover::marker { content: "Hot " attr(data-state); color: #dc2626; }
-    #responsive::marker { content: attr(data-wide); }
+    #responsive::marker { content: attr(data-wide, "Wide fallback "); }
     #command::marker, #command-readable::marker { content: "CSS "; color: #64748b; }
-    #cell::marker { content: "Cell " attr(data-code) " "; color: #0f766e; }
+    #cell::marker { content: "Cell " attr(data-code, "T1") " "; color: #0f766e; }
     @media screen and (max-width: 400px) {
-      #responsive::marker { content: attr(data-narrow); color: #2563eb; font-size: 20px; }
+      #responsive::marker { content: attr(data-narrow, "Narrow fallback "); color: #2563eb; font-size: 20px; }
     }
   </style>
 </head>
@@ -51,7 +62,18 @@
     <li id="variable" data-code="D10">Variables around an attribute fragment</li>
     <li id="important" data-marker="Important ">Important attribute content</li>
     <li id="invalid-type" data-code="E11">Unsupported typed attribute is ignored</li>
-    <li id="invalid-fallback" data-code="F12">Unsupported attribute fallback is ignored</li>
+    <li id="fallback">Missing attribute uses quoted fallback</li>
+    <li id="fallback-present" data-code="Present ">Present attribute wins over fallback</li>
+    <li id="fallback-empty" data-code="">Present empty attribute stays empty</li>
+    <li id="fallback-raw">Raw-string attribute accepts quoted fallback</li>
+    <li id="fallback-compose">Fallback composes with other fragments</li>
+    <li id="fallback-escaped">Escaped quoted fallback</li>
+    <li id="invalid-fallback">Unquoted fallback is rejected</li>
+    <li id="invalid-fallback-extra">Extra fallback argument is rejected</li>
+    <li id="fallback-variable">Variable resolves to a quoted fallback</li>
+    <li id="invalid-fallback-nested">Nested fallback function is rejected</li>
+    <li id="fallback-boundary">Exact fallback output boundary</li>
+    <li id="fallback-over">Overlong fallback preserves prior content</li>
     <li id="eight">Eight content fragments</li>
     <li id="nine">Nine content fragments are rejected</li>
     <li id="bounded" data-marker="Short ">Bounded generated output</li>
@@ -60,8 +82,8 @@
     <li id="inside" data-code="IN">Inside generated marker</li>
     <li id="rtl" data-marker="RTL ">RTL generated marker</li>
     <li id="dynamic" data-state="Idle ">Dynamic generated marker <input id="marker-content-field" value="Retained marker content field"></li>
-    <li id="responsive" data-wide="Wide " data-narrow="Narrow ">Responsive generated marker</li>
-    <li id="default" data-code="PAGE">Page-default generated marker</li>
+    <li id="responsive">Responsive generated marker fallback</li>
+    <li id="default" value="21" data-code="PAGE">Page-default generated marker</li>
     <li id="command" data-code="CMD">Compact generated marker command</li>
     <li id="command-readable" data-code="READ">Readable generated marker command</li>
   </ol>
@@ -70,6 +92,6 @@
   <button id="set-readable" data-lea="markerstyle('command-readable','content:attr(data-code);color:#2563eb')">Set readable generated marker</button>
   <button id="clear-command" data-lea="ms('command','')">Clear compact generated marker</button>
 
-  <table><tr><td><ol><li id="cell" data-code="T1">Table generated marker</li></ol></td></tr></table>
+  <table><tr><td><ol><li id="cell">Table generated marker fallback</li></ol></td></tr></table>
 </body>
 </html>

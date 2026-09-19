@@ -482,6 +482,11 @@ namespace Lea.Bench
                 Need(block("important").Mk == "Important " && block("invalid-type").Mk == "Keep " &&
                     block("invalid-fallback").Mk == "Keep " && block("eight").Mk == "12345678" && block("nine").Mk == "Keep ",
                     "marker generated-content cascade or bounds changed");
+                Need(block("fallback").Mk == "Fallback " && block("fallback-present").Mk == "Present " &&
+                    block("fallback-empty").Mk == "E " && block("fallback-raw").Mk == "Raw fallback " &&
+                    block("fallback-compose").Mk == "[F13] " && block("fallback-variable").Mk == "(" &&
+                    block("fallback-boundary").Mk.Length == 128 && block("fallback-over").Mk == "Keep ",
+                    "marker attr fallback values, priority, variables, or bounds changed");
                 Need(block("markup").Mk == "<safe> " && block("image").S.Li != null && block("image").Mk == "Text " &&
                     block("inside").Mk == "[IN] " && block("rtl").Mk == "RTL ",
                     "marker generated-content safety, image priority, or direction changed");
@@ -501,7 +506,7 @@ namespace Lea.Bench
                     engine.Js(page, "ms('')") == 1 && block("default").Mk == "21.",
                     "page marker generated-content default changed");
                 engine.Vw = 350;
-                Need(block("responsive").Mk == "Narrow " && Object.ReferenceEquals(retained,
+                Need(block("responsive").Mk == "Narrow fallback " && Object.ReferenceEquals(retained,
                     page.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "marker-content-field")),
                     "responsive marker generated content or retained field changed");
                 using (var view = NewView())
@@ -528,12 +533,12 @@ namespace Lea.Bench
                     using (var image = Draw(view))
                     {
                         var responsive = view.At.Bs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "responsive");
-                        Need(responsive != null && responsive.Mk == "Narrow " && Object.ReferenceEquals(field,
+                        Need(responsive != null && responsive.Mk == "Narrow fallback " && Object.ReferenceEquals(field,
                             view.At.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "marker-content-field")) &&
                             field.V == "Retained benchmark generated marker", "marker generated-content resize or retained value changed");
                     }
                 }
-                return "eight string/attr raw-string fragments, 128-character output, missing/empty values, variables, priority, commands, image precedence, LTR/RTL paint, tables, hover/media rebuilds, and retained fields";
+                return "eight string/attr raw-string/fallback fragments, 128-character output, missing/empty values, variables, priority, commands, image precedence, LTR/RTL paint, tables, hover/media rebuilds, and retained fields";
             });
             AddProbe(probes, "Bounded marker list counters", delegate
             {
@@ -700,6 +705,14 @@ namespace Lea.Bench
                     block("literal").X == "&amp;Literal entity text" && block("markup").X == "<safe> Attribute markup stays text" &&
                     block("nested").Is.Count(item => item.K == "be" || item.K == "af") == 4,
                     "generated syntax, attributes, text safety, or nested ownership changed");
+                Need(block("fallback").X == "Fallback before Fallback content" &&
+                    block("fallback-present").X == "Present attribute present value" &&
+                    block("fallback-empty").X == "E Empty attribute" &&
+                    block("fallback-compose").X == "[F14] Composed fallback" &&
+                    block("fallback-variable").X == "Variable fallback Variable fallback" &&
+                    block("fallback-invalid").X.StartsWith("Keep ") && block("fallback-extra").X.StartsWith("Keep ") &&
+                    block("fallback-nested").X.StartsWith("Keep "),
+                    "generated attr fallback values, priority, variables, or invalid preservation changed");
                 Need(block("counter-one").X == "Chapter 3: First counter [C]" && block("counter-two").X == "Chapter 4: Second counter [D]" &&
                     block("tree-inner-two").X == "1.2. Tree inner two" && block("tree-two").X == "2. Tree two" &&
                     block("list-item").Mk == "M " && block("list-item").X == "B Marker and generated text A",
@@ -753,7 +766,48 @@ namespace Lea.Bench
                             field.V == "Retained benchmark generated content", "generated command, resize, or retained value changed");
                     }
                 }
-                return "terminal ::before/::after and legacy syntax, compact be/af aliases, bounded string/attr/counter content, inherited text styles, nested/link/value/table ownership, LTR/RTL paint, hover/media rebuilds, replaced-element suppression, and retained fields";
+                return "terminal ::before/::after and legacy syntax, compact be/af aliases, bounded string/attr/fallback/counter content, inherited text styles, nested/link/value/table/accessibility ownership, LTR/RTL paint, hover/media rebuilds, replaced-element suppression, and retained fields";
+            });
+            AddProbe(probes, "Bounded generated attr fallbacks", delegate
+            {
+                var markerEngine = new E { Vw = 350 };
+                var markerPage = markerEngine.Go(Path.Combine(folder, "marker-content.html"));
+                Func<string, B> marker = delegate(string id)
+                {
+                    var found = BlockById(markerPage, id);
+                    Need(found != null, "missing marker fallback block " + id);
+                    return found;
+                };
+                Need(marker("fallback").Mk == "Fallback " && marker("fallback-present").Mk == "Present " &&
+                    marker("fallback-empty").Mk == "E " && marker("fallback-variable").Mk == "(" &&
+                    marker("fallback-boundary").Mk.Length == 128 && marker("fallback-over").Mk == "Keep " &&
+                    marker("responsive").Mk == "Narrow fallback " && marker("cell").Mk == "Cell T1 ",
+                    "marker generated attr fallback contract changed");
+                Need(markerEngine.Js(markerPage, "ms('command-readable',\"content:attr(data-missing, 'COMMAND')\")") == 1 &&
+                    marker("command-readable").Mk == "COMMAND" &&
+                    markerEngine.Js(markerPage, "ms('command-readable',\"content:attr(data-missing, bare)\")") == 0,
+                    "marker attr fallback command validation changed");
+
+                var generatedEngine = new E { Vw = 350 };
+                var generatedPage = generatedEngine.Go(Path.Combine(folder, "generated-content.html"));
+                Func<string, B> generated = delegate(string id)
+                {
+                    var found = BlockById(generatedPage, id);
+                    Need(found != null, "missing before/after fallback block " + id);
+                    return found;
+                };
+                Need(generated("fallback").X == "Fallback before Fallback content" &&
+                    generated("fallback-present").X == "Present attribute present value" &&
+                    generated("fallback-empty").X == "E Empty attribute" &&
+                    generated("responsive").X == "Responsive content Narrow" &&
+                    generated("cell-inner").X == "Inner Nested cell" &&
+                    generatedEngine.Ax(generatedPage, ById(generatedPage.D, "link")).N == "Open second page now",
+                    "before/after attr fallback integration changed");
+                Need(generatedEngine.Js(generatedPage, "be('command',\"content:attr(data-missing, 'Fallback command ')\")") == 1 &&
+                    generated("command").X == "Fallback command Compact command content" &&
+                    generatedEngine.Js(generatedPage, "be('command',\"content:attr(data-missing, bare)\")") == 0,
+                    "before attr fallback command validation changed");
+                return "quoted attr(name, fallback) and raw-string fallback, present/empty priority, variables, exact output bounds, invalid preservation, compact commands, markers, before/after, links, accessibility, tables, hover, and media";
             });
             AddProbe(probes, "Bounded disclosures", delegate
             {
@@ -4023,13 +4077,13 @@ namespace Lea.Bench
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, direction-aware ordered/unordered lists and disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, compound of-S filtered, and terminal ::marker/::before/::after selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, bounded named reset/increment/set counters, inherited horizontal LTR/RTL direction, fixed/percentage/calc dimensions and classic vw/vh/vmin/vmax plus bounded em/rem units, two/three-term min/max and three-term clamp size functions, content/border box, circular/elliptical radii, bounded outlines, box shadows, one inherited bounded text-shadow layer, bounded text-decoration line/color/style/thickness and signed pixel/percentage underline offset, inherited text-align shorthand/all/last with logical state and justify-all, inherited text-wrap mode/style with bounded balance, non-inherited bounded line-clamp/WebKit compatibility, isolated bounded pseudo typography and eight string/attr/named-counter content fragments, and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing, signed pixel/percentage first-line indentation, and text styles, visibility, absolute/fixed and bounded vertical sticky positioning, transforms, responsive image sizing, direction-aware row/column flex, and direction-aware bounded two-axis grid");
+            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, compound of-S filtered, and terminal ::marker/::before/::after selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel-width media queries, bounded named reset/increment/set counters, inherited horizontal LTR/RTL direction, fixed/percentage/calc dimensions and classic vw/vh/vmin/vmax plus bounded em/rem units, two/three-term min/max and three-term clamp size functions, content/border box, circular/elliptical radii, bounded outlines, box shadows, one inherited bounded text-shadow layer, bounded text-decoration line/color/style/thickness and signed pixel/percentage underline offset, inherited text-align shorthand/all/last with logical state and justify-all, inherited text-wrap mode/style with bounded balance, non-inherited bounded line-clamp/WebKit compatibility, isolated bounded pseudo typography and eight string/attr/quoted-attr-fallback/named-counter content fragments, and one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing, signed pixel/percentage first-line indentation, and text styles, visibility, absolute/fixed and bounded vertical sticky positioning, transforms, responsive image sizing, direction-aware row/column flex, and direction-aware bounded two-axis grid");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/box-shadows/gradients, bounded offset and lightweight blurred text shadows, native fast-path plus lightweight offset-aware solid/double/dotted/dashed/wavy text decorations, direction-aware source-stable inline atoms including bounded before/after generated runs, bounded same-count balanced wrapping and 1..32 line clamping, inside/outside text and image markers with isolated pseudo style and concatenated generated text content, first-line indentation, inherited logical all/final/forced-line alignment, and paint-only single-line ellipsis geometry, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Text overflow", "Supported subset", "Non-inherited clip/ellipsis with bounded LTR/RTL physical inline-end markers and grapheme-safe paint-only authored prefixes for inline runs and tables; retained layout/link targets, full logical automation text, and direction-aware partial range geometry; no native-control, Unicode bidi shaping, or custom overflow-marker additions");
             Capability(builder, "Line clamping", "Supported subset", "Non-inherited line-clamp and -webkit-line-clamp none/1..32 with LTR/RTL grapheme-safe ellipsis, reduced flow height, hidden retained boxes/hits, full logical source and UI Automation text, inline runs, forced breaks, balanced text, and table cells; no block-ellipsis strings, longhands, descendant block fragmentation, or legacy WebKit display requirements");
-            Capability(builder, "Marker generated content", "Supported subset", "Terminal ::marker content with up to eight quoted strings, attr(name)/attr(name raw-string), or named/implicit counter()/counters() values concatenated into one bounded text atom; ten built-in styles, eight nested levels and active instances, eight operations per property, 32-character ASCII counter names, 32-unit separators, 64-character attribute names, -999999..999999 counter values, 128 UTF-16 output units, variables, important tiers, ms/markerstyle and cr/ci/cs commands, image priority, tables, hover/media rebuilds, and LTR/RTL inside/outside paint; no typed attr values, attr fallback, reversed/custom counter styles, pseudo-element counter properties, images in content, quote keywords, or alt text");
-            Capability(builder, "Before and after generated content", "Supported subset", "Terminal ::before/::after plus legacy :before/:after produce inline generated runs with up to eight quoted strings, attr(name)/attr(name raw-string), or named counter()/counters() values; 64-character attribute names, 32-character counter names, 32-unit separators, 128 UTF-16 output units, inherited bounded text styling, variables, important tiers, be/beforestyle and af/afterstyle commands, nested/link/value/table ownership, accessibility names and reading order, hover/media rebuilds, and LTR/RTL paint. Replaced/native controls suppress runs; there are no pseudo box-model, flex/grid-item, image, quote, alt-text, or arbitrary CSSOM features");
+            Capability(builder, "Marker generated content", "Supported subset", "Terminal ::marker content with up to eight quoted strings, attr(name)/attr(name raw-string) with an optional quoted missing-value fallback, or named/implicit counter()/counters() values concatenated into one bounded text atom; ten built-in styles, eight nested levels and active instances, eight operations per property, 32-character ASCII counter names, 32-unit separators, 64-character attribute names, -999999..999999 counter values, 128 UTF-16 output units, variables, important tiers, ms/markerstyle and cr/ci/cs commands, image priority, tables, hover/media rebuilds, and LTR/RTL inside/outside paint; no typed attr values, unquoted or functional attr fallbacks, reversed/custom counter styles, pseudo-element counter properties, images in content, quote keywords, or alt text");
+            Capability(builder, "Before and after generated content", "Supported subset", "Terminal ::before/::after plus legacy :before/:after produce inline generated runs with up to eight quoted strings, attr(name)/attr(name raw-string) with an optional quoted missing-value fallback, or named counter()/counters() values; present attributes win even when empty, while missing attributes use the fallback. Attribute names stop at 64 characters and total output at 128 UTF-16 units; inherited bounded text styling, variables, important tiers, be/beforestyle and af/afterstyle commands, nested/link/value/table ownership, accessibility names and reading order, hover/media rebuilds, and LTR/RTL paint remain shared. Replaced/native controls suppress runs; there are no typed attr values, unquoted or functional fallbacks, pseudo box-model, flex/grid-item, image, quote, alt-text, or arbitrary CSSOM features");
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color, font, display, width, height, direction, text indent, text alignment/all/last, text wrap/mode/style, line clamp, list/marker/before/after style, counter reset/increment/set, text decoration, underline offset, and text shadow, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, safe click commands, and literal compatibility translation");
             Capability(builder, "Literal DOM bridge", "Supported subset", "Literal document.getElementById IDs with textContent/innerText, value, checked/disabled/hidden/open, focus(), classList add/remove/toggle, and background/color/fontSize/display/width/height/direction/textIndent/textAlign/textAlignAll/textAlignLast/textWrap/textWrapMode/textWrapStyle/lineClamp/webkitLineClamp/counterReset/counterIncrement/counterSet/textDecoration/textDecorationLine/textDecorationColor/textDecorationStyle/textDecorationThickness/textUnderlineOffset/textShadow; literal location href/assign requests; mapped to bounded Lea aliases");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");

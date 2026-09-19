@@ -365,13 +365,15 @@ item override; readable `markerstyle` follows the same forms. Input is capped at
 1024 characters and 16 declarations. Supported declarations are color,
 font-family/size/weight/style, text-transform, letter/word spacing, line-height,
 text-shadow, direction, and bounded `content`. Content can concatenate up to
-eight quoted strings, `attr(name)`/`attr(name raw-string)`, or named/implicit
+eight quoted strings, `attr(name)`/`attr(name raw-string)` with one optional
+quoted missing-value fallback, or named/implicit
 `counter()`/`counters()` values, with 64-character attribute names,
 32-character ASCII counter names, eight counter levels, 32-unit separators,
 and 128 UTF-16 output units. Attributes and counter values resolve against each
-originating item. No host-side selector, cascade, numbering, measurement,
+originating item. Present attributes win even when empty; missing attributes
+use the fallback. No host-side selector, cascade, numbering, measurement,
 generated-content, or paint adapter is needed. See `MARKER.md`,
-`MARKER_CONTENT.md`, and `MARKER_COUNTERS.md`.
+`MARKER_CONTENT.md`, `ATTR_FALLBACKS.md`, and `MARKER_COUNTERS.md`.
 
 Named counters compile into non-inherited `S.Cr/Ci/Cs` reset/increment/set
 state and a bounded tree-order snapshot on `N.Ct`. Hosts can use `cr`, `ci`,
@@ -388,7 +390,9 @@ inline `be/af` runs. Hosts can call `be(style)`/`af(style)` for the body or
 style, while `content` reuses the eight-fragment/128-unit string, attribute,
 and named-counter grammar. Lea owns cascade, text styling, link/value/table
 ownership, LTR/RTL layout, hover/media rebuilds, accessibility, and paint. No
-host pseudo-element adapter is required. See `GENERATED_CONTENT.md`.
+host pseudo-element adapter is required. Attribute items accept one optional
+quoted missing-value fallback through the shared strict grammar. See
+`GENERATED_CONTENT.md` and `ATTR_FALLBACKS.md`.
 
 `S.Ws` carries compact `n/nw/p/pw/pl` white-space modes. Lea preserves explicit
 spaces and line breaks for `pre`/`pre-wrap`, keeps line breaks while collapsing

@@ -3779,15 +3779,23 @@ namespace Lea.Engine
         {
             content = "";
             if (index + 5 > source.Length || !source.Substring(index, 5).Equals("attr(", StringComparison.OrdinalIgnoreCase)) return false;
-            var close = source.IndexOf(')', index + 5);
-            if (close < 0) return false;
+            int close;
+            if (!MarkerFunctionClose(source, index + 5, out close)) return false;
             var argument = source.Substring(index + 5, close - index - 5).Trim();
-            var match = Regex.Match(argument, "^(?<n>-?[_a-zA-Z][_a-zA-Z0-9-]{0,63})(?:\\s+raw-string)?$", RegexOptions.IgnoreCase);
+            List<string> parts;
+            if (!ShadowParts(argument, ',', out parts) || parts.Count < 1 || parts.Count > 2) return false;
+            var match = Regex.Match(parts[0], "^(?<n>-?[_a-zA-Z][_a-zA-Z0-9-]{0,63})(?:\\s+raw-string)?$", RegexOptions.IgnoreCase);
             if (!match.Success) return false;
+            var fallback = "";
+            if (parts.Count == 2)
+            {
+                var cursor = 0;
+                if (!MarkerStringToken(parts[1], ref cursor, out fallback) || cursor != parts[1].Length || fallback.Length > MaxMarkerText || MarkerControls(fallback)) return false;
+            }
             index = close + 1;
             var name = match.Groups["n"].Value;
             if (name.Length > 64) return false;
-            content = node != null && node.A.ContainsKey(name) ? node.Av(name) : "";
+            content = node != null && node.A.ContainsKey(name) ? node.Av(name) : fallback;
             return content.Length <= MaxMarkerText;
         }
 

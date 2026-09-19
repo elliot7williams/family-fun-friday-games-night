@@ -64,8 +64,8 @@ Firespider host cover implicit and named paths. All 18 startup regressions, all
 
 Lea does not implement custom counter styles or `symbols()`, `reversed()` named
 counters, pseudo-element counter properties, arbitrary `display:list-item`
-implicit counters, typed/fallback attributes, quote/image/alternative generated
-content, separate fragment boxes, general `::before`/`::after`, or a general
-generated-content/CSSOM evaluator.
+implicit counters, typed attributes, unquoted or functional attribute
+fallbacks, quote/image/alternative generated content, separate fragment boxes,
+or a general generated-content/CSSOM evaluator.
 
 Reference: [CSS Lists and Counters Level 3](https://drafts.csswg.org/css-lists-3/#counter-functions).

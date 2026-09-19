@@ -12,16 +12,20 @@ Marker `content` accepts one to eight values in source order:
 - a quoted CSS string
 - `attr(name)`
 - `attr(name raw-string)`
+- `attr(name, "fallback")`
+- `attr(name raw-string, "fallback")`
 
 Whitespace between values separates CSS tokens and does not become generated
 text. Adjacent quoted values are accepted. Each attribute name is a bounded
 unnamespaced identifier of at most 64 characters. An existing attribute
-contributes its literal value without CSS parsing; a missing attribute and an
-existing empty attribute both contribute an empty string.
+contributes its literal value without CSS parsing, including an existing empty
+value. A missing attribute contributes the optional decoded quoted fallback,
+or an empty string when no fallback is supplied.
 
 ```css
 li::marker { content: "[" attr(data-code) "] "; }
 li.notice::marker { content: attr(aria-label raw-string); }
+li.pending::marker { content: attr(data-state, "Pending "); }
 ```
 
 The concatenated result is capped at 128 UTF-16 code units. If a declaration
@@ -43,10 +47,11 @@ ms("item", "content:attr(data-label raw-string)")   one item
 markerstyle("item", "content:'[' attr(data-id) '] '")
 ```
 
-The command validator rejects unsupported typed or fallback `attr()` forms
-before replacing a prior direct marker style. No DOM evaluator or JavaScript
-runtime is involved. Attribute values become marker text only; markup-looking
-text is never tokenized as HTML and cannot create nodes or requests.
+The command validator rejects typed attributes, unquoted or functional
+fallbacks, extra arguments, and malformed forms before replacing a prior
+direct marker style. No DOM evaluator or JavaScript runtime is involved.
+Attribute and fallback values become marker text only; markup-looking text is
+never tokenized as HTML and cannot create nodes or requests.
 
 ## Layout And Paint
 
@@ -60,21 +65,23 @@ marker atom.
 ## Verification
 
 `test-pages/marker-content.html`, focused `Lea.Tests --marker-content`, the
-full default suite, the 103-probe benchmark over 98 fixtures, and the compiled
-Firespider host cover raw and explicit raw-string attributes, missing/empty
-values, ordered/adjacent/escaped/variable fragments, important priority,
+full default suite, the benchmark, and the compiled Firespider host cover raw
+and explicit raw-string attributes, missing quoted fallbacks, present and empty
+priority, ordered/adjacent/escaped/variable fragments, important priority,
 invalid preservation, exact count/name/output bounds, markup-like text, image
 precedence, compact/readable commands, page defaults, retained fields, tables,
 LTR/RTL inside/outside geometry, hover, responsive rebuilds, and paint.
 
 ## Boundary
 
-This slice does not implement typed `attr()` values, `attr()` fallback values,
-or namespaced/escaped attribute names. Bounded named and implicit
+This slice does not implement typed `attr()` values, unquoted or functional
+fallbacks, more than one fallback, or namespaced/escaped attribute names.
+Bounded named and implicit
 `counter()`/`counters()` output is documented in `MARKER_COUNTERS.md` and
 `CSS_COUNTERS.md`; reversed/custom counter styles remain unsupported, as do quote
 keywords, images or alternative text in `content`, separate anonymous fragment
-boxes, `::before`/`::after`, and a general generated-content/CSSOM evaluator.
+boxes, and a general generated-content/CSSOM evaluator. Before/after content
+shares this grammar; see `GENERATED_CONTENT.md` and `ATTR_FALLBACKS.md`.
 
 References: [CSS Generated Content Level 3](https://drafts.csswg.org/css-content-3/#content-property)
 and [CSS Values Level 5 `attr()`](https://drafts.csswg.org/css-values-5/#attr-notation).

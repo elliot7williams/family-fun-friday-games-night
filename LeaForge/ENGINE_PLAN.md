@@ -346,24 +346,25 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 108 adds bounded terminal `::before`/`::after` and legacy
-`:before`/`:after` selectors without adding general pseudo boxes. Generated
-text reuses the marker content grammar, named counter snapshots, inherited
-text styling, compiled cascade, inline layout, link/value ownership, table
-paths, accessibility model, hover/media rebuilds, and retained form identity.
-Defining `be/af` and readable `beforestyle/afterstyle` commands accept a page or
-ID target through the same 1,024-character/16-declaration validator. Content
-stops at eight fragments and 128 UTF-16 units; attribute names stop at 64
-characters. Replaced and native controls suppress runs. See
-`GENERATED_CONTENT.md`. All 104 probes pass over 99 fixtures; the full engine
-suite, compiled Firespider host, all 18 startup regressions, all 42 Boot cases,
-and all six real EXE startup scenarios pass. Next
-investigate another bounded compatibility slice while keeping reversed/custom
-counter styles, pseudo-element counter properties, typed/fallback attributes,
-quote/image/alternative generated content, pseudo box-model/flex/grid items,
-marker-side, cross-item gutter alignment, author marker image sizing, SVG
-marker decoding, vertical writing modes, full Unicode bidi shaping, `dir=auto`,
-and general CSS/JavaScript evaluators outside the current boundary.
+Milestone 109 adds a bounded quoted fallback to the shared generated-content
+attribute item: `attr(name, "fallback")` and
+`attr(name raw-string, "fallback")`. Present attributes win even when empty;
+only missing attributes use the fallback. The existing eight-item,
+64-character attribute-name, and 128-unit output ceilings remain unchanged.
+Typed attributes, unquoted or functional fallbacks, extra arguments, controls,
+and oversized results preserve the prior cascade value. Custom properties,
+`::marker`, `::before`/`::after`, accessibility, links, tables, hover/media,
+`ms`/`markerstyle`, and `be`/`af` share one engine-owned parser. See
+`ATTR_FALLBACKS.md`. All 105 probes pass over 99 fixtures; the full engine and
+compiled Firespider suites, all 18 startup regressions, all 42 Boot cases, and
+all six real EXE startup scenarios pass. Next investigate another bounded
+compatibility slice. Keep reversed/custom
+counter styles, pseudo-element counter properties, typed/unquoted/functional
+attribute fallbacks, quote/image/alternative generated content, pseudo
+box-model/flex/grid items, marker-side, cross-item gutter alignment, author
+marker image sizing, SVG marker decoding, vertical writing modes, full Unicode
+bidi shaping, `dir=auto`, and general CSS/JavaScript evaluators outside the
+current boundary.
 
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host

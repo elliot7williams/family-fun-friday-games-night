@@ -128,9 +128,10 @@ image/type/content precedence, inside/outside LTR/RTL geometry, tables,
 compact/readable commands, hover, retained fields, and responsive resize. See
 `LeaForge/MARKER.md`.
 `marker-content.html` covers up to eight ordered quoted/`attr()` fragments,
-explicit raw-string mode, missing/empty attributes, variables, priority,
-count/name/output bounds, invalid preservation, markup-like text, commands,
-image precedence, tables, LTR/RTL geometry, hover, retained fields, and resize.
+explicit raw-string mode, quoted missing-value fallbacks, present/empty
+priority, variables, count/name/output bounds, invalid preservation,
+markup-like text, commands, image precedence, tables, LTR/RTL geometry, hover,
+retained fields, and resize.
 See `LeaForge/MARKER_CONTENT.md`.
 `marker-counters.html` covers bounded implicit `list-item` `counter()` and
 `counters()` output, ten compact built-in styles, HTML start/value/reversed
@@ -192,9 +193,9 @@ state, specificity, quoted/escaped/none content, custom properties, important
 tiers, command limits, image priority, LTR/RTL geometry, tables, hover, paint,
 and responsive resize.
 `--marker-content` isolates bounded ordered string/attribute content, raw-string
-mode, missing/empty values, variables, priority, exact fragment/name/output
-limits, invalid command preservation, image precedence, tables, LTR/RTL paint,
-hover, and responsive resize.
+mode, quoted missing-value fallbacks, present/empty priority, variables, exact
+fragment/name/output limits, invalid command preservation, image precedence,
+tables, LTR/RTL paint, hover, and responsive resize.
 `--marker-counters` isolates implicit list-item counter output, built-in
 numeric/symbolic styles, nested paths, HTML numbering, exact depth/separator/
 output limits, invalid command preservation, image precedence, tables, LTR/RTL
@@ -204,8 +205,8 @@ scope, named marker output, exact operation/name/value limits,
 compact/readable/literal commands, tables, hover/media, retained fields, and
 paint.
 `--generated-content` isolates terminal double/single-colon before/after rules,
-bounded string/attribute/named-counter content, inherited text styles,
-specificity/variables/important, nested/link/value/table ownership,
+bounded string/attribute/quoted-fallback/named-counter content, inherited text
+styles, specificity/variables/important, nested/link/value/table ownership,
 accessibility names and reading order, compact/readable commands, exact limits,
 replaced-control suppression, LTR/RTL paint, hover/media, and retained fields.
 `--text-align` isolates the inherited text-align shorthand/all/last family,

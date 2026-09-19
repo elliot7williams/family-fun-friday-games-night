@@ -8584,8 +8584,17 @@ namespace Lea.Tests
             Ok(block("escaped").Mk == "\u2605 C9 " && block("variable").Mk == "(D10) ",
                 "escaped strings and variables compose with marker attributes");
             Eq("Important ", block("important").Mk, "important marker attribute content");
-            Ok(block("invalid-type").Mk == "Keep " && block("invalid-fallback").Mk == "Keep ",
-                "unsupported typed and fallback marker attributes preserve prior content");
+            Ok(block("fallback").Mk == "Fallback " && block("fallback-present").Mk == "Present " &&
+                block("fallback-empty").Mk == "E " && block("fallback-raw").Mk == "Raw fallback " &&
+                block("fallback-compose").Mk == "[F13] " && block("fallback-escaped").Mk == "\u2605 fallback " &&
+                block("fallback-variable").Mk == "(",
+                "quoted marker attribute fallbacks and present-value priority");
+            Eq("Keep ", block("invalid-type").Mk, "typed marker attr fallback rejection");
+            Eq("Keep ", block("invalid-fallback").Mk, "unquoted marker attr fallback rejection");
+            Eq("Keep ", block("invalid-fallback-extra").Mk, "extra marker attr fallback rejection");
+            Eq("Keep ", block("invalid-fallback-nested").Mk, "nested marker attr fallback rejection");
+            Ok(block("fallback-boundary").Mk.Length == 128 && block("fallback-over").Mk == "Keep ",
+                "marker attribute fallback output bound");
             Ok(block("eight").Mk == "12345678" && block("nine").Mk == "Keep ",
                 "bounded marker content fragment count");
             Ok(block("markup").Mk == "<safe> " && block("markup").X.IndexOf("<safe>", StringComparison.Ordinal) < 0,
@@ -8595,7 +8604,7 @@ namespace Lea.Tests
             Ok(block("inside").S.Lp == "i" && block("inside").Mk == "[IN] " &&
                 block("rtl").S.Dr == "r" && block("rtl").Mk == "RTL ",
                 "generated marker content keeps inside and RTL state");
-            Eq("Cell T1 ", block("cell").Mk, "generated marker content reaches table lists");
+            Eq("Cell T1 ", block("cell").Mk, "generated marker fallback reaches table lists");
 
             var retained = FieldById(page, "marker-content-field");
             var bounded = ById(page.D, "bounded");
@@ -8623,6 +8632,11 @@ namespace Lea.Tests
                 "readable generated marker command model");
             Eq(0, engine.Js(page, "ms('command','content:attr(data-code number)')"),
                 "generated marker command rejects unsupported attr type");
+            Eq(1, engine.Js(page, "ms('command-readable',\"content:attr(data-missing, 'COMMAND')\")"),
+                "generated marker command accepts quoted attr fallback");
+            Eq("COMMAND", block("command-readable").Mk, "generated marker command fallback result");
+            Eq(0, engine.Js(page, "ms('command-readable',\"content:attr(data-missing, bare)\")"),
+                "generated marker command rejects unquoted attr fallback");
             Eq("CMD", block("command").Mk, "invalid generated marker command preserves state");
             Eq(1, engine.Ck(page, ById(page.D, "clear-command")), "generated marker command clear");
             Eq("CSS ", block("command").Mk, "generated marker command clear restores authored CSS");
@@ -8635,7 +8649,7 @@ namespace Lea.Tests
                 "generated marker rebuilds retain field identity");
 
             engine.Vw = 350;
-            Ok(block("responsive").Mk == "Narrow " && block("responsive").Ms.F == "#2563eb" && block("responsive").Ms.Fs == 20 &&
+            Ok(block("responsive").Mk == "Narrow fallback " && block("responsive").Ms.F == "#2563eb" && block("responsive").Ms.Fs == 20 &&
                 Object.ReferenceEquals(retained, FieldById(page, "marker-content-field")),
                 "responsive marker attribute content and field retention");
 
@@ -8694,14 +8708,14 @@ namespace Lea.Tests
                 using (var paint = Render(view))
                 {
                     var responsive = BlockById(view.At, "responsive");
-                    Ok(responsive.Mk == "Narrow " &&
-                        InlineTextRect(view, responsive, "Narrow ").Right < BlockRect(view, responsive).Left,
+                    Ok(responsive.Mk == "Narrow fallback " &&
+                        InlineTextRect(view, responsive, "Narrow fallback ").Right < BlockRect(view, responsive).Left,
                         "responsive generated marker geometry");
                     Ok(Object.ReferenceEquals(retained, FieldById(view.At, "marker-content-field")) &&
                         retained.V == "Retained after generated marker resize", "generated marker resize retains field value");
                 }
             }
-            Console.WriteLine("Lea marker content smoke passed: bounded string/attr fragments, limits, cascade, commands, images, LTR/RTL geometry, tables, hover, media, and paint.");
+            Console.WriteLine("Lea marker content smoke passed: bounded string/attr/fallback fragments, limits, cascade, commands, images, LTR/RTL geometry, tables, hover, media, and paint.");
         }
 
         private static void MarkerCounterSmoke(string path)
@@ -8848,6 +8862,16 @@ namespace Lea.Tests
                 "generated text style model");
             Eq("Legacy Legacy syntax done", block("legacy").X, "legacy single-colon pseudo syntax");
             Eq("<A7> Attribute content", block("attribute").X, "attribute fragments and text transform");
+            Ok(block("fallback").X == "Fallback before Fallback content" &&
+                block("fallback-present").X == "Present attribute present value" &&
+                block("fallback-empty").X == "E Empty attribute" &&
+                block("fallback-compose").X == "[F14] Composed fallback" &&
+                block("fallback-variable").X == "Variable fallback Variable fallback",
+                "generated attr fallback values present priority and composition");
+            Ok(block("fallback-invalid").X == "Keep Invalid fallback preserves prior value" &&
+                block("fallback-extra").X == "Keep Extra fallback preserves prior value" &&
+                block("fallback-nested").X == "Keep Nested fallback preserves prior value",
+                "invalid generated attr fallback forms preserve prior content");
             Eq("&amp;Literal entity text", block("literal").X, "generated CSS text bypasses HTML entity decoding");
             Eq("<safe> Attribute markup stays text", block("markup").X, "generated attribute markup remains text");
             Ok(block("variable").X == "(V8)Variable fragments" && block("specific").X == "ID Specific cascade" &&
@@ -8865,7 +8889,7 @@ namespace Lea.Tests
                 Run(link, "be").U.AbsoluteUri.EndsWith("second.html", StringComparison.OrdinalIgnoreCase),
                 "generated link runs retain the active target");
             Eq("Open second page now", engine.Ax(page, ById(page.D, "link")).N,
-                "generated link text reaches its accessible name");
+                "generated fallback link text reaches its accessible name");
             Eq("Explicit destination", engine.Ax(page, ById(page.D, "labelled-link")).N,
                 "explicit accessible name owns generated link text");
             Eq("[BE] Basic text [AF]", engine.Ax(page, ById(page.D, "basic")).N,
@@ -8914,6 +8938,15 @@ namespace Lea.Tests
                 "generated hover cascade");
             engine.Dy(page, null, null);
             Eq("Idle Hover content", block("dynamic").X, "generated hover restore");
+            Eq(1, engine.Js(page, "be('command',\"content:attr(data-missing, 'Fallback command ')\")"),
+                "compact before command accepts quoted attr fallback");
+            Eq("Fallback command Compact command content", block("command").X,
+                "compact before command attr fallback result");
+            Eq(0, engine.Js(page, "be('command',\"content:attr(data-missing, bare)\")"),
+                "compact before command rejects unquoted attr fallback");
+            Eq("Fallback command Compact command content", block("command").X,
+                "invalid before fallback command preserves state");
+            Eq(1, engine.Js(page, "be('command','')"), "compact before fallback clear");
             Eq(1, engine.Ck(page, ById(page.D, "set-before")), "compact before command");
             Ok(block("command").X == "CMDCompact command content" && Run(block("command"), "be").S.Fs == 24,
                 "compact before command model");
@@ -8995,7 +9028,7 @@ namespace Lea.Tests
                         retained.V == "Retained after generated resize", "generated content resize retains field value");
                 }
             }
-            Console.WriteLine("Lea generated content smoke passed: before/after syntax, styles, attributes, counters, limits, aliases, links, tables, semantics, accessibility, RTL, hover, media, retention, and paint.");
+            Console.WriteLine("Lea generated content smoke passed: before/after syntax, styles, attributes and fallbacks, counters, limits, aliases, links, tables, semantics, accessibility, RTL, hover, media, retention, and paint.");
         }
 
         private static void CssCounterSmoke(string path)

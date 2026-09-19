@@ -17,23 +17,24 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 108 adds bounded inline `::before`/`::after` generated text, including
-legacy single-colon syntax, through the existing compiled selector/cascade,
-content grammar, named counter state, and inline renderer. Defining `be/af` and
-readable `beforestyle/afterstyle` commands are page/ID scoped. Nested content,
-links, semantic values, tables, accessibility names and reading order, LTR/RTL,
-hover/media rebuilds, and retained fields stay engine-owned; replaced/native
-controls suppress pseudo runs. Content remains bounded to eight fragments and
-128 UTF-16 units, with 64-character attribute names and the existing counter
-limits. All 104 benchmark probes pass over 99 fixtures. The full engine suite,
-compiled host, all 18 startup regressions, all 42 Boot cases, and all six real
-EXE startup scenarios are green. Three-round diagnostic medians are 865.282 ms
-clean start, 6.644 ms local load, and 46.790 ms layout/paint; retained memory is
-66.2 KiB/page and the required runtime is 630.0 KiB. Runtime 208 is packaged
+Milestone 109 extends the shared generated-content grammar with one quoted
+missing-value attribute fallback. `attr(name, "fallback")` and
+`attr(name raw-string, "fallback")` now work in markers and before/after runs;
+present attributes win even when empty. Typed attributes, unquoted or
+functional fallbacks, extra arguments, controls, and oversized output remain
+strictly invalid and preserve the prior cascade value. Variables, compact and
+readable commands, links, tables, accessibility, hover, and media use the same
+engine-owned path. All 105 benchmark probes pass over 99 fixtures. The full
+engine and compiled host suites, all 18 startup regressions, all 42 Boot cases,
+and all six real EXE startup scenarios are green. Three-round diagnostic
+medians are 762.294 ms clean
+start, 6.180 ms local load, and 47.887 ms layout/paint; retained memory is 66.9
+KiB/page and the required runtime is 630.0 KiB. Runtime 209 is packaged
 separately and installed runtime 157 remains unchanged. See
-`GENERATED_CONTENT.md`. Pseudo box-model/flex/grid items, generated images,
-quotes, alt text, arbitrary CSSOM, reversed/custom counters, vertical writing,
-full Unicode bidi, and general JavaScript evaluation remain outside this slice.
+`ATTR_FALLBACKS.md`. Typed/unquoted/functional attribute fallbacks, pseudo
+box-model/flex/grid items, generated images, quotes, alt text, arbitrary CSSOM,
+reversed/custom counters, vertical writing, full Unicode bidi, and general
+JavaScript evaluation remain outside this slice.
 
 Milestone 60 installs the existing `V.Ng` hook on main Lea tabs, enforcing host
 rules, offline/locked state, and live ownership. Denied resume retains its

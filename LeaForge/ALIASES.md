@@ -862,8 +862,9 @@ ordinary marker content, and suppression. Terminal `::marker` selectors reuse
 the compiled originating-element matcher and cascade while staying isolated
 from `B.S`. The defining `ms(value)` page default, `ms(id,value)` direct style,
 and readable `markerstyle` accept at most 1,024 characters and 16 declarations;
-content accepts up to eight quoted strings, `attr(name)`/`attr(name raw-string)`,
-or implicit `list-item` counter items, with 64-character attribute names,
+content accepts up to eight quoted strings, `attr(name)`/`attr(name raw-string)`
+with one optional quoted missing-value fallback, or implicit `list-item`
+counter items, with 64-character attribute names,
 named/implicit counter names up to 32 ASCII characters, eight counter levels,
 32-unit separators, and 128 UTF-16 output units. Non-inherited `S.Cr/Ci/Cs`
 store canonical `counter-reset`, `counter-increment`, and `counter-set` pairs.
@@ -873,7 +874,8 @@ Defining `cr/ci/cs` accept page or ID-scoped forms; readable
 strict validator. Values stop at eight operations, snapshots at eight active
 instances, and integers at -999999..999999. See
 `LIST_STYLE.md`, `LIST_POSITION.md`, `LIST_IMAGE.md`, `MARKER.md`,
-`MARKER_CONTENT.md`, `MARKER_COUNTERS.md`, and `CSS_COUNTERS.md`.
+`MARKER_CONTENT.md`, `ATTR_FALLBACKS.md`, `MARKER_COUNTERS.md`, and
+`CSS_COUNTERS.md`.
 
 Disclosure state stays equally compact. A `details` node uses `N.Op` for its
 page-local open state. Its first direct `summary` block uses `B.Mk` as `>` when

@@ -1,8 +1,9 @@
 # Bounded Before And After Content
 
 Milestone 108 adds a deliberately small generated-content subset to Lea's
-custom renderer. It does not load Chromium, WebView, MSHTML, or another browser
-engine.
+custom renderer. Milestone 109 extends its shared attribute item with one
+quoted missing-value fallback. It does not load Chromium, WebView, MSHTML, or
+another browser engine.
 
 ## Selectors And Cascade
 
@@ -23,16 +24,20 @@ One valid `content` declaration may concatenate up to eight values:
 
 - quoted strings
 - `attr(name)` or `attr(name raw-string)`
+- `attr(name, "fallback")` or `attr(name raw-string, "fallback")`
 - `counter(name[, style])`
 - `counters(name, separator[, style])`
 
 Attribute names stop at 64 characters, counter names at 32 ASCII characters,
 counter nesting and active state at eight entries, separators at 32 UTF-16
 units, counter values at -999999 through 999999, and final output at 128 UTF-16
-units. Missing attributes become empty text. Markup-looking attribute values
-stay text. Invalid, typed, fallback, over-item, or oversized declarations do
-not replace the preceding valid cascade value. `none` and `normal` suppress the
-run.
+units. A present attribute always wins, including a present empty value. A
+missing attribute contributes the optional decoded quoted fallback, or empty
+text when no fallback is supplied. Markup-looking attribute and fallback
+values stay text. Invalid, typed, unquoted/functional fallback, extra-argument,
+over-item, or oversized declarations do not replace the preceding valid
+cascade value. `none` and `normal` suppress the run. Custom properties resolve
+before this grammar is validated.
 
 ## Host Aliases
 
@@ -65,9 +70,10 @@ CSSOM, or JavaScript execution in this subset.
 
 `LeaForge/test-pages/generated-content.html` and the focused
 `Lea.Tests.exe <root> --generated-content` mode cover syntax, cascade, counters,
-limits, commands, links, tables, accessibility, RTL, hover/media rebuilds,
-retention, layout, and paint. The compiled Firespider smoke repeats the host
-paths without adapter-side generated-content code.
+quoted fallbacks, present/empty priority, limits, commands, links, tables,
+accessibility, RTL, hover/media rebuilds, retention, layout, and paint. The
+compiled Firespider smoke repeats the host paths without adapter-side
+generated-content code. See `ATTR_FALLBACKS.md` for the shared strict grammar.
 
 The bounded design follows the relevant model in the
 [CSS Pseudo-Elements specification](https://drafts.csswg.org/css-pseudo-4/) and

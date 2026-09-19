@@ -628,11 +628,13 @@ matching, cascade, measurement, and paint; Firespider adds no marker parser,
 adapter state, layout branch, or control. See `LeaForge/MARKER.md`.
 
 Marker content can now concatenate up to eight quoted strings and
-`attr(name)`/`attr(name raw-string)` values into the existing `S.Mc` atom. The
-compiled host verifies item attribute resolution, string/attribute composition,
-responsive attribute replacement, compact/readable commands, unsupported type
-rejection, exact outside geometry, and retained fields. Firespider still adds no
-DOM evaluator or generated-content adapter. See `LeaForge/MARKER_CONTENT.md`.
+`attr(name)`/`attr(name raw-string)` values, including one quoted missing-value
+fallback, into the existing `S.Mc` atom. The compiled host verifies fallback
+resolution, present/empty priority, string/attribute composition, responsive
+replacement, compact/readable commands, strict invalid rejection, exact
+outside geometry, and retained fields. Firespider still adds no DOM evaluator
+or generated-content adapter. See `LeaForge/MARKER_CONTENT.md` and
+`LeaForge/ATTR_FALLBACKS.md`.
 
 Hosted marker content also resolves bounded `counter(list-item)` and nested
 `counters(list-item, separator)` values through Lea's existing HTML list pass.
@@ -650,10 +652,11 @@ state map, numbering adapter, layout branch, or control. See
 
 Hosted pages now expose bounded inline `::before`/`::after` generated text
 through Lea-owned `be/af` runs. The compiled host verifies string, attribute,
-named-counter, nested link, table, responsive, accessibility, compact `be`, and
-readable `afterstyle` paths with retained fields and painted geometry.
-Firespider adds no pseudo parser, generated-content evaluator, layout branch,
-or control. See `LeaForge/GENERATED_CONTENT.md`.
+quoted missing-value fallback, named-counter, nested link, table, responsive,
+accessibility, compact `be`, and readable `afterstyle` paths with retained
+fields and painted geometry. Firespider adds no pseudo parser,
+generated-content evaluator, layout branch, or control. See
+`LeaForge/GENERATED_CONTENT.md` and `LeaForge/ATTR_FALLBACKS.md`.
 
 Hosted text alignment now exposes the bounded shorthand/all/last family through
 `S.Ta/Tl`. The compiled host verifies `justify-all`, retained logical RTL

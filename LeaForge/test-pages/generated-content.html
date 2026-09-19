@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <title>Lea generated content</title>
   <style>
-    :root { --open: "("; --close: ")"; }
+    :root { --open: "("; --close: ")"; --fallback: "Variable fallback "; }
     body { margin: 24px; color: #172033; background: #ffffff; font-family: "Segoe UI", sans-serif; }
     p, div, li, td { line-height: 1.5; }
     #basic::before { content: "[BE] "; color: #dc2626; font-size: 22px; font-weight: bold; text-shadow: 1px 1px #ffffff; }
@@ -12,6 +12,14 @@
     #legacy:before { content: "Legacy "; color: #0f766e; }
     #legacy:after { content: " done"; color: #a13b18; }
     #attribute::before { content: "<" attr(data-code) "> "; text-transform: uppercase; }
+    #fallback::before { content: attr(data-code, "Fallback before "); color: #0f766e; }
+    #fallback-present::after { content: attr(data-code, " fallback after"); color: #2563eb; }
+    #fallback-empty::before { content: "E" attr(data-code, "Fallback") " "; }
+    #fallback-compose::before { content: "[" attr(data-code, "F14") "] "; }
+    #fallback-variable::before { content: attr(data-code, var(--fallback)); }
+    #fallback-invalid::before { content: "Keep "; content: attr(data-code, bare); }
+    #fallback-extra::before { content: "Keep "; content: attr(data-code, "A", "B"); }
+    #fallback-nested::before { content: "Keep "; content: attr(data-code, counter(item)); }
     #literal::before { content: "&amp;"; }
     #markup::before { content: attr(data-code); color: #7c3aed; }
     #variable::before { content: var(--open) attr(data-code) var(--close); color: #0f766e; }
@@ -23,7 +31,7 @@
     #nested-span::before { content: "S<"; font-weight: bold; }
     #nested-span::after { content: ">S"; font-style: italic; }
     #empty::before { content: "Empty generated block"; color: #0f766e; }
-    #link::before { content: "Open "; color: #dc2626; }
+    #link::before { content: attr(data-open, "Open "); color: #dc2626; }
     #link::after { content: " now"; color: #2563eb; }
     #labelled-link::before { content: "Visual "; }
     #labelled-link::after { content: " only"; }
@@ -47,13 +55,13 @@
     #out129::before { content: "Keep"; content: "12345678901234567890123456789012""12345678901234567890123456789012""12345678901234567890123456789012""12345678901234567890123456789012""x"; }
     #attr64::before { content: attr(abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789ab); }
     #attr65::before { content: "Keep"; content: attr(abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abc); }
-    #dynamic::before { content: "Idle "; color: #64748b; }
-    #dynamic:hover::before { content: "Hot "; color: #dc2626; }
-    #responsive::after { content: " Wide"; color: #7c3aed; }
+    #dynamic::before { content: attr(data-state, "Idle "); color: #64748b; }
+    #dynamic:hover::before { content: attr(data-state, "Hot "); color: #dc2626; }
+    #responsive::after { content: attr(data-state, " Wide"); color: #7c3aed; }
     #command::before, #command-readable::after { content: "CSS "; color: #64748b; }
     #cell::before { content: "Cell<" attr(data-code) "> "; color: #0f766e; }
     #cell::after { content: " done"; color: #2563eb; }
-    #cell-inner::before { content: "Inner "; color: #dc2626; }
+    #cell-inner::before { content: attr(data-prefix, "Inner "); color: #dc2626; }
     #cell-link::after { content: " link"; color: #2563eb; }
     #value::before { content: "At "; color: #0f766e; }
     #value::after { content: " UTC"; color: #2563eb; }
@@ -62,7 +70,7 @@
     #rtl::after { content: " RTL-A"; color: #2563eb; }
     #image::before, #image::after, #native::before, #native::after, #button-native::before { content: "NO"; }
     @media screen and (max-width: 400px) {
-      #responsive::after { content: " Narrow"; color: #2563eb; font-size: 20px; }
+      #responsive::after { content: attr(data-state, " Narrow"); color: #2563eb; font-size: 20px; }
     }
   </style>
 </head>
@@ -71,6 +79,14 @@
   <p id="basic">Basic text</p>
   <p id="legacy">Legacy syntax</p>
   <p id="attribute" data-code="a7">Attribute content</p>
+  <p id="fallback">Fallback content</p>
+  <p id="fallback-present" data-code=" present value">Present attribute</p>
+  <p id="fallback-empty" data-code="">Empty attribute</p>
+  <p id="fallback-compose">Composed fallback</p>
+  <p id="fallback-variable">Variable fallback</p>
+  <p id="fallback-invalid">Invalid fallback preserves prior value</p>
+  <p id="fallback-extra">Extra fallback preserves prior value</p>
+  <p id="fallback-nested">Nested fallback preserves prior value</p>
   <p id="literal">Literal entity text</p>
   <p id="markup" data-code="&lt;safe&gt; ">Attribute markup stays text</p>
   <p id="variable" data-code="V8">Variable fragments</p>
