@@ -46,6 +46,9 @@ namespace Lea.Engine
         private const int MaxMarkerContentItems = 8;
         private const int MaxMarkerCounterDepth = 8;
         private const int MaxMarkerCounterSeparator = 32;
+        private const int MaxQuotePairs = 8;
+        private const int MaxQuoteDepth = 8;
+        private const int MaxQuoteText = 32;
         private const int MaxCounterEntries = 8;
         private const int MaxCounterName = 32;
         private const int MaxCounterOperations = 8;
@@ -1411,7 +1414,7 @@ namespace Lea.Engine
             p.S = Style(body, inherited, rules);
             MarkLists(body);
             var html = p.H ?? "";
-            p.Co = MarkCounters(p.D, rules, p.Cn || html.IndexOf("counter", StringComparison.OrdinalIgnoreCase) >= 0, p.Co);
+            p.Co = MarkCounters(p.D, rules, p.Cn || GeneratedStateSource(html), p.Co);
             if (html.IndexOf("<map", StringComparison.OrdinalIgnoreCase) >= 0) BuildMaps(p, body, p.Bu ?? p.U);
             AddPageGeneratedBlock(p, body, rules, p.S, 'b');
             foreach (var child in body.C) Blocks(p, child, p.Bu ?? p.U, rules, p.S);
@@ -3448,17 +3451,31 @@ namespace Lea.Engine
 
         private static S MarkerStyle(N node, S inherited, List<R> rules)
         {
-            return PseudoStyle(node, inherited, rules, 'm', MarkerDefaults(node));
+            var quoteDepth = 0;
+            return MarkerStyle(node, inherited, rules, ref quoteDepth);
+        }
+
+        private static S MarkerStyle(N node, S inherited, List<R> rules, ref int quoteDepth)
+        {
+            return PseudoStyle(node, inherited, rules, 'm', MarkerDefaults(node), ref quoteDepth);
         }
 
         private static S GeneratedStyle(N node, S inherited, List<R> rules, char pseudo)
         {
-            return PseudoStyle(node, inherited, rules, pseudo, NoDeclarations);
+            var quoteDepth = 0;
+            return GeneratedStyle(node, inherited, rules, pseudo, ref quoteDepth);
         }
 
-        private static S PseudoStyle(N node, S inherited, List<R> rules, char pseudo, Pd[] defaults)
+        private static S GeneratedStyle(N node, S inherited, List<R> rules, char pseudo, ref int quoteDepth)
+        {
+            return PseudoStyle(node, inherited, rules, pseudo, NoDeclarations, ref quoteDepth);
+        }
+
+        private static S PseudoStyle(N node, S inherited, List<R> rules, char pseudo, Pd[] defaults, ref int quoteDepth)
         {
             var style = inherited == null ? new S() : inherited.Inherit();
+            var quoteBase = quoteDepth;
+            var quoteEnd = quoteDepth;
             if (pseudo == 'm')
             {
                 style.Tt = "n";
@@ -3470,8 +3487,6 @@ namespace Lea.Engine
             Custom(style, inherited, defaults, true);
             DirectionDeclarations(style, inherited, defaults, false, baseDirection);
             DirectionDeclarations(style, inherited, defaults, true, baseDirection);
-            MarkerDecls(style, inherited, node, defaults, false);
-            MarkerDecls(style, inherited, node, defaults, true);
             var matched = new List<R>();
             foreach (var rule in rules)
                 if (rule.Ps == pseudo && MatchCss(node, rule)) matched.Add(rule);
@@ -3485,10 +3500,19 @@ namespace Lea.Engine
             DirectionDeclarations(style, inherited, inline, false, baseDirection);
             foreach (var rule in matched) DirectionDeclarations(style, inherited, rule.Ds, true, baseDirection);
             DirectionDeclarations(style, inherited, inline, true, baseDirection);
-            foreach (var rule in matched) MarkerDecls(style, inherited, node, rule.Ds, false);
-            MarkerDecls(style, inherited, node, inline, false);
-            foreach (var rule in matched) MarkerDecls(style, inherited, node, rule.Ds, true);
-            MarkerDecls(style, inherited, node, inline, true);
+            MarkerQuoteDecls(style, inherited, defaults, false);
+            MarkerQuoteDecls(style, inherited, defaults, true);
+            foreach (var rule in matched) MarkerQuoteDecls(style, inherited, rule.Ds, false);
+            MarkerQuoteDecls(style, inherited, inline, false);
+            foreach (var rule in matched) MarkerQuoteDecls(style, inherited, rule.Ds, true);
+            MarkerQuoteDecls(style, inherited, inline, true);
+            MarkerDecls(style, inherited, node, defaults, false, quoteBase, ref quoteEnd);
+            MarkerDecls(style, inherited, node, defaults, true, quoteBase, ref quoteEnd);
+            foreach (var rule in matched) MarkerDecls(style, inherited, node, rule.Ds, false, quoteBase, ref quoteEnd);
+            MarkerDecls(style, inherited, node, inline, false, quoteBase, ref quoteEnd);
+            foreach (var rule in matched) MarkerDecls(style, inherited, node, rule.Ds, true, quoteBase, ref quoteEnd);
+            MarkerDecls(style, inherited, node, inline, true, quoteBase, ref quoteEnd);
+            quoteDepth = quoteEnd;
             return style;
         }
 
@@ -3600,7 +3624,18 @@ namespace Lea.Engine
             return style.Vo;
         }
 
-        private static void MarkerDecls(S style, S inherited, N node, Pd[] declarations, bool important)
+        private static void MarkerQuoteDecls(S style, S inherited, Pd[] declarations, bool important)
+        {
+            foreach (var declaration in declarations)
+            {
+                if (declaration.C || declaration.I != important || declaration.N != "quotes") continue;
+                string value;
+                Uri origin;
+                if (VarValue(style, declaration.V, declaration.U, out value, out origin)) Quotes(style, inherited, value);
+            }
+        }
+
+        private static void MarkerDecls(S style, S inherited, N node, Pd[] declarations, bool important, int quoteBase, ref int quoteEnd)
         {
             foreach (var declaration in declarations)
             {
@@ -3619,7 +3654,7 @@ namespace Lea.Engine
                 else if (name == "word-spacing") MarkerSpacing(style, inherited, value, false);
                 else if (name == "line-height") MarkerLineHeight(style, inherited, value);
                 else if (name == "text-shadow") TextShadow(style, inherited, value);
-                else if (name == "content") MarkerContent(style, node, value);
+                else if (name == "content") MarkerContent(style, node, value, quoteBase, ref quoteEnd);
             }
         }
 
@@ -3706,7 +3741,7 @@ namespace Lea.Engine
             else LineHeight(style, source);
         }
 
-        private static void MarkerContent(S style, N node, string value)
+        private static void MarkerContent(S style, N node, string value, int quoteBase, ref int quoteEnd)
         {
             var source = (value ?? "").Trim();
             var lower = source.ToLowerInvariant();
@@ -3714,23 +3749,27 @@ namespace Lea.Engine
             {
                 style.Mc = null;
                 style.Mn = false;
+                quoteEnd = quoteBase;
                 return;
             }
             if (lower == "none")
             {
                 style.Mc = null;
                 style.Mn = true;
+                quoteEnd = quoteBase;
                 return;
             }
             string content;
-            if (MarkerContentList(node, source, out content))
+            var depth = quoteBase;
+            if (MarkerContentList(style, node, source, ref depth, out content))
             {
                 style.Mc = content;
                 style.Mn = false;
+                quoteEnd = depth;
             }
         }
 
-        private static bool MarkerContentList(N node, string value, out string content)
+        private static bool MarkerContentList(S style, N node, string value, ref int quoteDepth, out string content)
         {
             content = "";
             var source = (value ?? "").Trim();
@@ -3748,12 +3787,41 @@ namespace Lea.Engine
                     if (!MarkerStringToken(source, ref index, out item)) return false;
                 }
                 else if (!MarkerAttribute(node, source, ref index, out item) &&
-                    !MarkerCounter(node, source, ref index, out item)) return false;
+                    !MarkerCounter(node, source, ref index, out item) &&
+                    !MarkerQuote(style, source, ref index, ref quoteDepth, out item)) return false;
                 if (MarkerControls(item) || result.Length + item.Length > MaxMarkerText) return false;
                 result.Append(item);
             }
             if (items == 0) return false;
             content = result.ToString();
+            return true;
+        }
+
+        private static bool MarkerQuote(S style, string source, ref int index, ref int quoteDepth, out string content)
+        {
+            content = "";
+            string keyword = null;
+            foreach (var candidate in new[] { "no-open-quote", "no-close-quote", "open-quote", "close-quote" })
+            {
+                if (index + candidate.Length > source.Length ||
+                    !source.Substring(index, candidate.Length).Equals(candidate, StringComparison.OrdinalIgnoreCase)) continue;
+                var end = index + candidate.Length;
+                if (end < source.Length && (Char.IsLetterOrDigit(source[end]) || source[end] == '-' || source[end] == '_')) return false;
+                keyword = candidate;
+                index = end;
+                break;
+            }
+            if (keyword == null) return false;
+            if (keyword == "open-quote" || keyword == "no-open-quote")
+            {
+                if (quoteDepth >= MaxQuoteDepth) return false;
+                if (keyword == "open-quote") content = (style ?? new S()).Qo(quoteDepth);
+                quoteDepth++;
+                return true;
+            }
+            if (quoteDepth == 0) return true;
+            quoteDepth--;
+            if (keyword == "close-quote") content = (style ?? new S()).Qx(quoteDepth);
             return true;
         }
 
@@ -4057,6 +4125,49 @@ namespace Lea.Engine
             return false;
         }
 
+        private static void Quotes(S style, S inherited, string value)
+        {
+            string[] pairs;
+            int mode;
+            if (!QuoteValues(value, out pairs, out mode)) return;
+            style.Qs = mode == 1 ? null : mode == 2 ? new string[0] : mode == 3 ? inherited == null ? null : inherited.Qs : pairs;
+        }
+
+        internal static bool Quv(string value, out string quotes)
+        {
+            quotes = (value ?? "").Trim();
+            if (quotes.Length == 0) return true;
+            if (quotes.Length > 512 || MarkerControls(quotes)) return false;
+            string[] pairs;
+            int mode;
+            return QuoteValues(quotes, out pairs, out mode);
+        }
+
+        private static bool QuoteValues(string value, out string[] pairs, out int mode)
+        {
+            pairs = null;
+            mode = 0;
+            var source = (value ?? "").Trim();
+            var lower = source.ToLowerInvariant();
+            if (lower == "auto" || lower == "initial" || lower == "revert" || lower == "revert-layer") { mode = 1; return true; }
+            if (lower == "none") { mode = 2; return true; }
+            if (lower == "inherit" || lower == "unset") { mode = 3; return true; }
+            var values = new List<string>();
+            var index = 0;
+            while (index < source.Length)
+            {
+                while (index < source.Length && Char.IsWhiteSpace(source[index])) index++;
+                if (index >= source.Length) break;
+                string item;
+                if (!MarkerStringToken(source, ref index, out item) || item.Length > MaxQuoteText || MarkerControls(item)) return false;
+                values.Add(item);
+                if (values.Count > MaxQuotePairs * 2) return false;
+            }
+            if (values.Count < 2 || values.Count % 2 != 0) return false;
+            pairs = values.ToArray();
+            return true;
+        }
+
         internal static bool Msv(string value, out string markerStyle)
         {
             markerStyle = (value ?? "").Trim();
@@ -4070,6 +4181,12 @@ namespace Lea.Engine
             foreach (var declaration in declarations)
             {
                 if (!declaration.C && !MarkerProperty(declaration.N)) return false;
+                if (!declaration.C && declaration.N == "quotes" &&
+                    declaration.V.IndexOf("var(", StringComparison.OrdinalIgnoreCase) < 0)
+                {
+                    string quotes;
+                    if (!Quv(declaration.V, out quotes)) return false;
+                }
                 if (!declaration.C && declaration.N == "content" &&
                     declaration.V.IndexOf("var(", StringComparison.OrdinalIgnoreCase) < 0 && !MarkerContentValue(declaration.V)) return false;
             }
@@ -4081,15 +4198,16 @@ namespace Lea.Engine
             var source = (value ?? "").Trim();
             var lower = source.ToLowerInvariant();
             string content;
+            var depth = 0;
             return lower == "normal" || lower == "none" || lower == "initial" || MarkerParentValue(lower) || MarkerRevertValue(lower) ||
-                MarkerContentList(null, source, out content);
+                MarkerContentList(new S(), null, source, ref depth, out content);
         }
 
         private static bool MarkerProperty(string name)
         {
             return name == "color" || name == "font-family" || name == "font-weight" || name == "font-style" || name == "font-size" ||
                 name == "text-transform" || name == "letter-spacing" || name == "word-spacing" || name == "line-height" ||
-                name == "text-shadow" || name == "direction" || name == "content";
+                name == "text-shadow" || name == "direction" || name == "quotes" || name == "content";
         }
 
         private static int MarkerDeclarationSegments(string source)
@@ -4175,6 +4293,7 @@ namespace Lea.Engine
                 else if (name == "counter-reset") CounterProperty(style, inherited, value, 0);
                 else if (name == "counter-increment") CounterProperty(style, inherited, value, 1);
                 else if (name == "counter-set") CounterProperty(style, inherited, value, 2);
+                else if (name == "quotes") Quotes(style, inherited, value);
                 else if (name == "cursor") CursorStyle(style, value);
                 else if (name == "pointer-events") PointerEvents(style, value);
                 else if (name == "object-fit") ObjectFit(style, value);
@@ -9533,12 +9652,13 @@ namespace Lea.Engine
             if (!active) return false;
             var inherited = new S();
             N previous = null;
+            var quoteDepth = 0;
             if (root.K == "#doc")
             {
                 foreach (var child in root.C)
-                    if (child.K.Length > 0 && child.K[0] != '#') CounterWalk(child, inherited, rules, ref previous);
+                    if (child.K.Length > 0 && child.K[0] != '#') CounterWalk(child, inherited, rules, ref previous, ref quoteDepth);
             }
-            else CounterWalk(root, inherited, rules, ref previous);
+            else CounterWalk(root, inherited, rules, ref previous, ref quoteDepth);
             return true;
         }
 
@@ -9547,9 +9667,17 @@ namespace Lea.Engine
             if (inline) return true;
             foreach (var rule in rules)
                 foreach (var declaration in rule.Ds)
-                    if (!declaration.C && (rule.Ps == '\0' && (declaration.N == "counter-reset" || declaration.N == "counter-increment" || declaration.N == "counter-set") ||
-                        rule.Ps != '\0' && declaration.N == "content" && declaration.V.IndexOf("counter", StringComparison.OrdinalIgnoreCase) >= 0)) return true;
+                    if (GeneratedStateSource(declaration.V) || !declaration.C && rule.Ps == '\0' &&
+                        (declaration.N == "counter-reset" || declaration.N == "counter-increment" || declaration.N == "counter-set")) return true;
             return false;
+        }
+
+        private static bool GeneratedStateSource(string value)
+        {
+            var source = value ?? "";
+            return source.IndexOf("counter", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                source.IndexOf("open-quote", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                source.IndexOf("close-quote", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private static void ClearCounters(N node)
@@ -9563,7 +9691,7 @@ namespace Lea.Engine
             foreach (var child in node.C) ClearCounters(child);
         }
 
-        private static void CounterWalk(N node, S inherited, List<R> rules, ref N previous)
+        private static void CounterWalk(N node, S inherited, List<R> rules, ref N previous, ref int quoteDepth)
         {
             var source = PreviousElement(node) ?? node.Up;
             var counters = CounterInherited(CounterState(source), CounterState(previous));
@@ -9580,16 +9708,16 @@ namespace Lea.Engine
             CounterApply(counters, node, style.Ci, 1);
             CounterApply(counters, node, style.Cs, 2);
             node.Ct = counters.Count == 0 ? null : counters;
-            if (node.K == "li") node.Gm = MarkerStyle(node, style, rules);
-            node.Gb = GeneratedContentStyle(GeneratedStyle(node, style, rules, 'b'));
+            if (node.K == "li") node.Gm = MarkerStyle(node, style, rules, ref quoteDepth);
+            node.Gb = GeneratedContentStyle(GeneratedStyle(node, style, rules, 'b', ref quoteDepth));
             previous = node;
             foreach (var child in node.C)
-                if (child.K.Length > 0 && child.K[0] != '#') CounterWalk(child, style, rules, ref previous);
+                if (child.K.Length > 0 && child.K[0] != '#') CounterWalk(child, style, rules, ref previous, ref quoteDepth);
             var last = LastElementChild(node);
             var after = last == null ? CounterCopy(node.Ct) : CounterInherited(CounterState(last), CounterState(previous));
             var entry = node.Ct;
             node.Ct = after.Count == 0 ? null : after;
-            node.Ga = GeneratedContentStyle(GeneratedStyle(node, style, rules, 'a'));
+            node.Ga = GeneratedContentStyle(GeneratedStyle(node, style, rules, 'a', ref quoteDepth));
             after = CounterCopy(node.Ct);
             node.Ct = entry;
             var exit = CounterInherited(entry, after);

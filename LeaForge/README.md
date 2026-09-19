@@ -119,10 +119,11 @@ LeaForge is where we can grow the more full-featured browser.
   literal DOM support; see `LIST_IMAGE.md`
 - bounded terminal `::marker` styling through compact `B.Ms` plus `S.Mc/Mn`,
   with isolated text properties, up to eight quoted/`attr()`/implicit
-  list-counter fragments, one quoted missing-value attribute fallback, and 128
+  list-counter/generated-quote fragments, one quoted missing-value attribute fallback, and 128
   generated units, nested paths, image precedence, page/item `ms` and readable
   `markerstyle` commands, and shared LTR/RTL paint; see `MARKER.md`,
-  `MARKER_CONTENT.md`, `ATTR_FALLBACKS.md`, and `MARKER_COUNTERS.md`
+  `MARKER_CONTENT.md`, `ATTR_FALLBACKS.md`, `MARKER_COUNTERS.md`, and
+  `GENERATED_QUOTES.md`
 - inherited left/center/right/justify alignment and pixel/relative line spacing
 - external stylesheets with document-order cascade and shared bounded caching
 - compiled relationship, attribute, structural, link, and form-state selectors,
@@ -267,6 +268,7 @@ fo("id")              request rendered focus
 go("next.html")        request navigation from the host
 be("id", "content:'New '") element before style
 af("id", "content:' done'") element after style
+qu("id", "'<' '>'") element generated quote pairs
 ```
 
 The longer `alert(...)` and `document.title = ...` forms still work. The short
@@ -291,7 +293,9 @@ passwords stay redacted, and `E.Kp`/the WinForms view consume only one valid
 focus request. Disclosure commands accept a `details` ID or its first direct
 `summary` ID and keep `N.Op` plus the authored `open` attribute synchronized.
 `be/af` and readable `beforestyle/afterstyle` apply the bounded inline generated
-content subset described in `GENERATED_CONTENT.md`.
+content subset described in `GENERATED_CONTENT.md`. `qu`, readable `quotes`, and
+literal `style.quotes` configure the bounded generated-quote pairs described in
+`GENERATED_QUOTES.md`.
 
 The .NET Framework test browser opens Lea Inspector with `F12`, `Ctrl+Shift+I`,
 or the `I` toolbar button. Its Summary, Nodes, CSS, Requests, and Messages tabs

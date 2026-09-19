@@ -121,6 +121,11 @@ namespace Lea.Tests
                     GeneratedContentSmoke(Path.Combine(pages, "generated-content.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--generated-quotes")
+                {
+                    GeneratedQuoteSmoke(Path.Combine(pages, "generated-quotes.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--text-align-last")
                 {
                     TextAlignLastSmoke(Path.Combine(pages, "text-align-last.html"));
@@ -2484,6 +2489,7 @@ namespace Lea.Tests
                 MarkerCounterSmoke(Path.Combine(pages, "marker-counters.html"));
                 CssCounterSmoke(Path.Combine(pages, "css-counters.html"));
                 GeneratedContentSmoke(Path.Combine(pages, "generated-content.html"));
+                GeneratedQuoteSmoke(Path.Combine(pages, "generated-quotes.html"));
 
                 var recoveryPath = Path.Combine(pages, "recovery.html");
                 var recoveryPage = engine.Go(recoveryPath);
@@ -9029,6 +9035,102 @@ namespace Lea.Tests
                 }
             }
             Console.WriteLine("Lea generated content smoke passed: before/after syntax, styles, attributes and fallbacks, counters, limits, aliases, links, tables, semantics, accessibility, RTL, hover, media, retention, and paint.");
+        }
+
+        private static void GeneratedQuoteSmoke(string path)
+        {
+            var engine = new E { Vw = 720 };
+            var page = engine.Go(path);
+            Func<string, B> block = id => BlockById(page, id);
+
+            Eq("\u201cDefault quote\u201d", block("default").X, "default generated quote pair");
+            Eq("\u201cOuter \u2018inner\u2019 tail\u201d", block("outer").X, "nested generated quote depth");
+            Eq("<Explicit [nested] pair>", block("explicit").X, "explicit inherited quote pairs");
+            Ok(block("explicit").S.Qc == 2 && block("explicit").S.Qo(0) == "<" && block("explicit").S.Qx(1) == "]" &&
+                Run(block("default"), "be").S.Qc == 2, "compact quote pair aliases");
+            Ok(block("none").X == "No visible quotes" && block("none").S.Qc == 0 && block("zero").X == "Zero-depth close",
+                "none and zero-depth close quote behavior");
+            Ok(block("cross-open").X == "\u201cCross open" && block("cross-close").X == "Cross close\u201d",
+                "quote depth crosses sibling elements");
+            Eq("A Silent \u2018inner\u2019 Z", block("silent").X, "silent quote depth changes");
+            Eq("{Variable quote}", block("variable").X, "variable quote pairs and content keyword");
+            Eq("(Invalid pair preserves prior value)", block("invalid").X, "invalid quote pair preserves cascade");
+            Eq("Keep Invalid quote keyword preserves prior content", block("invalid-content").X,
+                "invalid quote keyword preserves content cascade");
+            Ok(block("eight-pairs").S.Qc == 8 && block("eight-pairs").X == "1Eight pair boundarya" &&
+                block("nine-pairs").S.Qc == 1 && block("nine-pairs").X == "(Nine pair rejection)",
+                "bounded quote pair count");
+            Ok(block("pair-boundary").S.Qo(0).Length == 32 && block("pair-boundary").X.StartsWith("12345678901234567890123456789012", StringComparison.Ordinal) &&
+                block("pair-over").X == "(Pair text overrun)", "bounded quote pair text");
+            Eq("<Pseudo quote override>", block("pseudo-quotes").X, "pseudo-local quotes property");
+            Eq("<quote link>", block("link").X, "quoted link content");
+            Eq("<quote link>", engine.Ax(page, ById(page.D, "link")).N, "generated quotes reach accessible link name");
+            Eq("[Table quote]", block("cell").X, "generated quotes reach table cells");
+            Ok(block("marker").Mk == "\u201c" && block("marker").X == "\u2018Marker quote\u2019\u201d",
+                "marker before and after quote order");
+
+            var retained = FieldById(page, "quote-field");
+            engine.Dy(page, ById(page.D, "dynamic"), null);
+            Eq("<Dynamic quote>", block("dynamic").X, "hover quote pair rebuild");
+            engine.Dy(page, null, null);
+            Eq("(Dynamic quote)", block("dynamic").X, "hover quote pair restore");
+
+            Eq(1, engine.Js(page, "qu('command','\"<\" \">\"')"), "compact quotes command");
+            Eq("<Compact quote command>", block("command").X, "compact quotes command result");
+            Eq(0, engine.Js(page, "qu('command','\"odd\"')"), "invalid compact quotes command");
+            Eq("<Compact quote command>", block("command").X, "invalid quotes command preserves state");
+            Eq(1, engine.Js(page, "quotes('command-readable','\"[\" \"]\"')"), "readable quotes command");
+            Eq("[Readable quote command]", block("command-readable").X, "readable quotes command result");
+            Eq(1, engine.Js(page, "document.getElementById('dom').style.quotes='\"{\" \"}\"'"), "literal DOM quotes command");
+            Eq("{Literal DOM quote command}", block("dom").X, "literal DOM quotes command result");
+            Eq(0, engine.Js(page, "be('command','content:open-quotex')"), "invalid quote content command");
+            Eq("<Compact quote command>", block("command").X, "invalid quote content command preserves state");
+            Eq(1, engine.Js(page, "qu('command','auto')"), "quotes auto command");
+            Eq("\u201cCompact quote command\u201d", block("command").X, "quotes auto restores default pairs");
+
+            engine.Vw = 350;
+            Ok(block("responsive").X == "[Responsive quote ]" && Object.ReferenceEquals(retained, FieldById(page, "quote-field")),
+                "responsive quotes and retained field");
+
+            using (var view = new V())
+            {
+                view.Size = new Size(720, 4600);
+                var load = view.GoA(path);
+                while (!load.IsCompleted)
+                {
+                    Application.DoEvents();
+                    Thread.Sleep(2);
+                }
+                load.GetAwaiter().GetResult();
+                retained = FieldById(view.At, "quote-field");
+                Rectangle dynamicOuter;
+                using (var paint = Render(view))
+                {
+                    var nested = BlockById(view.At, "outer");
+                    Ok(InlineKindRect(view, nested, "be").Width > 0 && InlineKindRect(view, nested, "af").Width > 0 &&
+                        InlineKindRect(view, BlockById(view.At, "cell"), "be").Width > 0,
+                        "generated quote layout and table geometry");
+                    var marker = BlockById(view.At, "marker");
+                    Ok(InlineTextRect(view, marker, "\u201c").Right < BlockRect(view, marker).Left,
+                        "generated marker quote geometry");
+                    dynamicOuter = BlockOuterRect(view, BlockById(view.At, "dynamic"));
+                }
+                Move(view, dynamicOuter);
+                using (var paint = Render(view)) Eq("<Dynamic quote>", BlockById(view.At, "dynamic").X, "hover quote paint rebuild");
+                Move(view, new Point(0, 0));
+                retained.V = "Retained after quote resize";
+                view.Size = new Size(350, 5200);
+                Application.DoEvents();
+                using (var paint = Render(view))
+                {
+                    Ok(BlockById(view.At, "responsive").X == "[Responsive quote ]" &&
+                        InlineKindRect(view, BlockById(view.At, "responsive"), "be").Width > 0,
+                        "responsive quote geometry");
+                    Ok(Object.ReferenceEquals(retained, FieldById(view.At, "quote-field")) &&
+                        retained.V == "Retained after quote resize", "quote resize retains field value");
+                }
+            }
+            Console.WriteLine("Lea generated quote smoke passed: bounded pairs, document depth, markers, before/after, aliases, DOM, links, tables, accessibility, hover, media, retention, and paint.");
         }
 
         private static void CssCounterSmoke(string path)

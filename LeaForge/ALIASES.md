@@ -109,6 +109,8 @@ ms("id", "content:counter(list-item)") generated list number
 be("content:'Lea '") body before style
 be("id", "content:attr(data-code)") element before style
 af("id", "content:' done'") element after style
+qu("auto")          body generated quote pairs
+qu("id", "'<' '>'") element generated quote pairs
 cr("id", "chapter 2") element counter reset
 ci("id", "chapter") element counter increment
 cs("id", "chapter 9") element counter set
@@ -155,7 +157,7 @@ fo("id")              request focus
 go("next.html")        request host navigation
 ```
 
-The two-argument `bg/fg/fs/dp/wd/ht/dr/ti/tw/twm/tws/ta/taa/tl/lc/ls/lst/lp/li/ms/be/af/ts/td/tdl/tdc/tds/tdw/uo/is/bs`, logical box, logical border, and
+The two-argument `bg/fg/fs/dp/wd/ht/dr/qu/ti/tw/twm/tws/ta/taa/tl/lc/ls/lst/lp/li/ms/be/af/ts/td/tdl/tdc/tds/tdw/uo/is/bs`, logical box, logical border, and
 radius forms
 target one validated ID. Color and font
 forms reuse the same
@@ -165,8 +167,14 @@ preserve mutable fields through the shared CSS rebuild.
 
 `be/af` set bounded `::before`/`::after` style overrides on the body or one
 validated ID. Readable `beforestyle/afterstyle` use the same forms. They accept
-the marker text-property subset and string/attribute/named-counter `content`
+the marker text-property subset and string/attribute/named-counter/quote-keyword `content`
 grammar; an empty value restores authored CSS. See `GENERATED_CONTENT.md`.
+
+`qu` sets the inherited `quotes` property on the body or one validated ID;
+readable `quotes` and literal `style.quotes` use the same forms. `S.Qc` returns
+the computed pair count and `S.Qo(depth)`/`S.Qx(depth)` expose the opening and
+closing strings. Values accept `auto`, `none`, CSS-wide forms, or one to eight
+32-unit pairs; generated depth stops at eight. See `GENERATED_QUOTES.md`.
 
 `S.Dr` stores inherited horizontal direction as `l` or `r`. CSS `direction`,
 HTML `dir`, variables, inline/important tiers, and CSS-wide values resolve
@@ -864,7 +872,7 @@ from `B.S`. The defining `ms(value)` page default, `ms(id,value)` direct style,
 and readable `markerstyle` accept at most 1,024 characters and 16 declarations;
 content accepts up to eight quoted strings, `attr(name)`/`attr(name raw-string)`
 with one optional quoted missing-value fallback, or implicit `list-item`
-counter items, with 64-character attribute names,
+counter and generated quote items, with 64-character attribute names,
 named/implicit counter names up to 32 ASCII characters, eight counter levels,
 32-unit separators, and 128 UTF-16 output units. Non-inherited `S.Cr/Ci/Cs`
 store canonical `counter-reset`, `counter-increment`, and `counter-set` pairs.
@@ -875,7 +883,7 @@ strict validator. Values stop at eight operations, snapshots at eight active
 instances, and integers at -999999..999999. See
 `LIST_STYLE.md`, `LIST_POSITION.md`, `LIST_IMAGE.md`, `MARKER.md`,
 `MARKER_CONTENT.md`, `ATTR_FALLBACKS.md`, `MARKER_COUNTERS.md`, and
-`CSS_COUNTERS.md`.
+`CSS_COUNTERS.md`, and `GENERATED_QUOTES.md`.
 
 Disclosure state stays equally compact. A `details` node uses `N.Op` for its
 page-local open state. Its first direct `summary` block uses `B.Mk` as `>` when

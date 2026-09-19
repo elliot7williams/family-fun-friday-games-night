@@ -346,25 +346,25 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 109 adds a bounded quoted fallback to the shared generated-content
-attribute item: `attr(name, "fallback")` and
-`attr(name raw-string, "fallback")`. Present attributes win even when empty;
-only missing attributes use the fallback. The existing eight-item,
-64-character attribute-name, and 128-unit output ceilings remain unchanged.
-Typed attributes, unquoted or functional fallbacks, extra arguments, controls,
-and oversized results preserve the prior cascade value. Custom properties,
-`::marker`, `::before`/`::after`, accessibility, links, tables, hover/media,
-`ms`/`markerstyle`, and `be`/`af` share one engine-owned parser. See
-`ATTR_FALLBACKS.md`. All 105 probes pass over 99 fixtures; the full engine and
-compiled Firespider suites, all 18 startup regressions, all 42 Boot cases, and
-all six real EXE startup scenarios pass. Next investigate another bounded
-compatibility slice. Keep reversed/custom
-counter styles, pseudo-element counter properties, typed/unquoted/functional
-attribute fallbacks, quote/image/alternative generated content, pseudo
-box-model/flex/grid items, marker-side, cross-item gutter alignment, author
-marker image sizing, SVG marker decoding, vertical writing modes, full Unicode
-bidi shaping, `dir=auto`, and general CSS/JavaScript evaluators outside the
-current boundary.
+Milestone 110 adds bounded generated quotes to the shared marker/before/after
+content path. `open-quote`, `close-quote`, `no-open-quote`, and
+`no-close-quote` follow document order across marker, before, children, after,
+and siblings. The inherited `quotes` property accepts `auto`, `none`, or one to
+eight explicit pairs; strings stop at 32 UTF-16 units and active depth at eight.
+The defining `qu`, readable `quotes`, literal `style.quotes`, and compact
+`S.Qc/Qo/Qx` accessors keep the alias-first API. Existing eight-item and
+128-output-unit content ceilings still apply. Variables, cascade priority,
+links, tables, accessibility, hover/media, retention, geometry, and paint share
+the engine-owned path. See `GENERATED_QUOTES.md`. All 106 probes pass over 100
+fixtures; the full engine and compiled Firespider suites, all 18 startup
+regressions, all 42 Boot cases, and all six real EXE startup scenarios pass.
+Next investigate another bounded compatibility slice. Keep locale-sensitive
+automatic quote selection, reversed/custom counter styles, pseudo-element
+counter properties, typed/unquoted/functional attribute fallbacks,
+image/alternative generated content, pseudo box-model/flex/grid items,
+marker-side, cross-item gutter alignment, author marker image sizing, SVG
+marker decoding, vertical writing modes, full Unicode bidi shaping, `dir=auto`,
+and general CSS/JavaScript evaluators outside the current boundary.
 
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host

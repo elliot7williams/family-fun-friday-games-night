@@ -14,6 +14,7 @@ Marker `content` accepts one to eight values in source order:
 - `attr(name raw-string)`
 - `attr(name, "fallback")`
 - `attr(name raw-string, "fallback")`
+- `open-quote`, `close-quote`, `no-open-quote`, or `no-close-quote`
 
 Whitespace between values separates CSS tokens and does not become generated
 text. Adjacent quoted values are accepted. Each attribute name is a bounded
@@ -76,10 +77,10 @@ LTR/RTL inside/outside geometry, hover, responsive rebuilds, and paint.
 
 This slice does not implement typed `attr()` values, unquoted or functional
 fallbacks, more than one fallback, or namespaced/escaped attribute names.
-Bounded named and implicit
+Bounded generated quotes are documented in `GENERATED_QUOTES.md`. Named and implicit
 `counter()`/`counters()` output is documented in `MARKER_COUNTERS.md` and
-`CSS_COUNTERS.md`; reversed/custom counter styles remain unsupported, as do quote
-keywords, images or alternative text in `content`, separate anonymous fragment
+`CSS_COUNTERS.md`; reversed/custom counter styles remain unsupported, as do
+locale-sensitive automatic quote pairs, images or alternative text in `content`, separate anonymous fragment
 boxes, and a general generated-content/CSSOM evaluator. Before/after content
 shares this grammar; see `GENERATED_CONTENT.md` and `ATTR_FALLBACKS.md`.
 

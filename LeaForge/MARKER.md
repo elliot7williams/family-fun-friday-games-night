@@ -36,15 +36,19 @@ The bounded marker declaration set is:
 - `text-transform`, `letter-spacing`, `word-spacing`, and `line-height`
 - one bounded `text-shadow` layer
 - `direction`
+- `quotes`
 - `content`
 
 `content` accepts `normal`, `none`, CSS-wide values, or up to eight quoted
-strings, `attr(name)`/`attr(name raw-string)`, and named or implicit
-`counter()`/`counters()` values. CSS escapes are decoded to Unicode scalar
+strings, `attr(name)`/`attr(name raw-string)`, named or implicit
+`counter()`/`counters()` values, and the four generated quote keywords. The
+inherited `quotes` property accepts `auto`, `none`, or up to eight explicit
+pairs. CSS escapes are decoded to Unicode scalar
 values; invalid scalar values become the replacement character. Attribute
 names are capped at 64 characters, nested counters at eight levels, separators
 at 32 units, and the concatenated string at 128 UTF-16 units. See
-`MARKER_CONTENT.md`, `MARKER_COUNTERS.md`, and `CSS_COUNTERS.md`.
+`MARKER_CONTENT.md`, `MARKER_COUNTERS.md`, `CSS_COUNTERS.md`, and
+`GENERATED_QUOTES.md`.
 `normal` uses the ordinary marker source, so a decoded `list-style-image` wins
 over `list-style-type`. A literal string wins over the image. `none` suppresses
 the marker and its spacer while retaining the list item.
@@ -90,9 +94,9 @@ dialog, or a dead startup window.
 
 ## Boundary
 
-Lea does not yet implement typed/fallback `attr()` values, reversed/custom
-counter styles, pseudo-element counter properties, images or quote keywords
-in `content`, separate anonymous fragment boxes, `marker-side`, cross-item marker
+Lea does not yet implement typed `attr()` values or unquoted/functional
+fallbacks, reversed/custom counter styles, pseudo-element counter properties,
+images or locale-sensitive automatic quote pairs in `content`, separate anonymous fragment boxes, `marker-side`, cross-item marker
 column alignment, author-controlled marker image sizing, SVG image decoding,
 vertical writing, full Unicode bidi shaping, pseudo-element DOM objects, or a
 general CSSOM/JavaScript evaluator.

@@ -1,0 +1,90 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea generated quotes</title>
+  <style>
+    :root { --quote-pairs: "{" "}" "[" "]"; --open-token: open-quote; }
+    body { margin: 24px; color: #172033; background: #ffffff; font-family: "Segoe UI", sans-serif; quotes: "\201c" "\201d" "\2018" "\2019"; }
+    p, li, td { line-height: 1.5; }
+    #default::before, #outer::before, #inner::before { content: open-quote; color: #dc2626; }
+    #default::after, #outer::after, #inner::after { content: close-quote; color: #2563eb; }
+    #explicit { quotes: "<" ">" "[" "]"; }
+    #explicit::before, #explicit-inner::before { content: open-quote; }
+    #explicit::after, #explicit-inner::after { content: close-quote; }
+    #none { quotes: none; }
+    #none::before { content: open-quote; }
+    #none::after { content: close-quote; }
+    #zero::before { content: close-quote; }
+    #cross-open::before { content: open-quote; }
+    #cross-close::after { content: close-quote; }
+    #silent::before { content: no-open-quote "A "; }
+    #silent::after { content: " Z" no-close-quote; }
+    #silent-inner::before { content: open-quote; }
+    #silent-inner::after { content: close-quote; }
+    #variable { quotes: var(--quote-pairs); }
+    #variable::before { content: var(--open-token); }
+    #variable::after { content: close-quote; }
+    #invalid { quotes: "(" ")" "[" "]"; quotes: "odd"; }
+    #invalid::before { content: open-quote; }
+    #invalid::after { content: close-quote; }
+    #invalid-content::before { content: "Keep "; content: open-quotex; }
+    #eight-pairs { quotes: "1" "a" "2" "b" "3" "c" "4" "d" "5" "e" "6" "f" "7" "g" "8" "h"; }
+    #nine-pairs { quotes: "(" ")"; quotes: "1" "a" "2" "b" "3" "c" "4" "d" "5" "e" "6" "f" "7" "g" "8" "h" "9" "i"; }
+    #pair-boundary { quotes: "12345678901234567890123456789012" ")"; }
+    #pair-over { quotes: "(" ")"; quotes: "123456789012345678901234567890123" "]"; }
+    #eight-pairs::before, #nine-pairs::before, #pair-boundary::before, #pair-over::before { content: open-quote; }
+    #eight-pairs::after, #nine-pairs::after, #pair-boundary::after, #pair-over::after { content: close-quote; }
+    #dynamic { quotes: "(" ")"; }
+    #dynamic::before { content: open-quote; }
+    #dynamic::after { content: close-quote; }
+    #dynamic:hover { quotes: "<" ">"; }
+    #responsive { quotes: "{" "}"; }
+    #responsive::before { content: open-quote; }
+    #responsive::after { content: close-quote; }
+    #command, #command-readable, #dom { quotes: "(" ")"; }
+    #command::before, #command-readable::before, #dom::before { content: open-quote; }
+    #command::after, #command-readable::after, #dom::after { content: close-quote; }
+    #pseudo-quotes::before { quotes: "<" ">"; content: open-quote; }
+    #pseudo-quotes::after { quotes: "<" ">"; content: close-quote; }
+    #link { quotes: "<" ">"; }
+    #link::before { content: open-quote; }
+    #link::after { content: close-quote; }
+    #cell { quotes: "[" "]"; }
+    #cell::before { content: open-quote; }
+    #cell::after { content: close-quote; }
+    #marker { quotes: "\201c" "\201d" "\2018" "\2019"; }
+    #marker::marker { content: open-quote; color: #dc2626; }
+    #marker::before { content: open-quote; }
+    #marker::after { content: close-quote close-quote; }
+    @media screen and (max-width: 400px) { #responsive { quotes: "[" "]"; } }
+  </style>
+</head>
+<body>
+  <h1>Generated quotes</h1>
+  <p id="default">Default quote</p>
+  <p id="outer">Outer <span id="inner">inner</span> tail</p>
+  <p id="explicit">Explicit <span id="explicit-inner">nested</span> pair</p>
+  <p id="none">No visible quotes</p>
+  <p id="zero">Zero-depth close</p>
+  <p id="cross-open">Cross open</p>
+  <p id="cross-close">Cross close</p>
+  <p id="silent">Silent <span id="silent-inner">inner</span></p>
+  <p id="variable">Variable quote</p>
+  <p id="invalid">Invalid pair preserves prior value</p>
+  <p id="invalid-content">Invalid quote keyword preserves prior content</p>
+  <p id="eight-pairs">Eight pair boundary</p>
+  <p id="nine-pairs">Nine pair rejection</p>
+  <p id="pair-boundary">Pair text boundary</p>
+  <p id="pair-over">Pair text overrun</p>
+  <p id="dynamic">Dynamic quote</p>
+  <p id="responsive">Responsive quote <input id="quote-field" value="Retained quote field"></p>
+  <p id="command">Compact quote command</p>
+  <p id="command-readable">Readable quote command</p>
+  <p id="dom">Literal DOM quote command</p>
+  <p id="pseudo-quotes">Pseudo quote override</p>
+  <a id="link" href="second.html">quote link</a>
+  <table><tr><td id="cell">Table quote</td></tr></table>
+  <ol><li id="marker">Marker quote</li></ol>
+</body>
+</html>

@@ -658,6 +658,12 @@ fields and painted geometry. Firespider adds no pseudo parser,
 generated-content evaluator, layout branch, or control. See
 `LeaForge/GENERATED_CONTENT.md` and `LeaForge/ATTR_FALLBACKS.md`.
 
+Hosted marker and before/after content also supports bounded generated quotes.
+The compiled host verifies inherited explicit pairs, nested document-order
+depth, accessible link names, compact `qu`, literal `style.quotes`, responsive
+pair replacement, geometry, and retained fields. Firespider adds no quote state,
+pseudo parser, layout branch, or control. See `LeaForge/GENERATED_QUOTES.md`.
+
 Hosted text alignment now exposes the bounded shorthand/all/last family through
 `S.Ta/Tl`. The compiled host verifies `justify-all`, retained logical RTL
 state, compact `ta/taa/tl`, literal `style.textAlign`, shorthand reset,

@@ -145,6 +145,12 @@ case-sensitive names, tree-order scope, self nesting, missing values, exact
 entry/name/integer bounds, hidden branches, formats, variables, priority,
 tables, compact/readable/literal commands, hover/media, retained fields,
 geometry, and paint. See `LeaForge/CSS_COUNTERS.md`.
+`generated-quotes.html` covers inherited `auto`/`none`/explicit quote pairs,
+open/close and silent content keywords, document-order depth across marker,
+before, children, after, and siblings, exact pair/depth/output limits,
+variables, invalid preservation, `qu`/readable/literal commands, links, tables,
+accessibility, hover/media, retained fields, geometry, and paint. See
+`LeaForge/GENERATED_QUOTES.md`.
 
 ## Firespider Startup Checks
 
@@ -209,6 +215,9 @@ bounded string/attribute/quoted-fallback/named-counter content, inherited text
 styles, specificity/variables/important, nested/link/value/table ownership,
 accessibility names and reading order, compact/readable commands, exact limits,
 replaced-control suppression, LTR/RTL paint, hover/media, and retained fields.
+`--generated-quotes` isolates bounded inherited quote pairs and document-order
+generated quote depth, including markers, before/after, exact limits, commands,
+accessibility, tables, hover/media, retained fields, geometry, and paint.
 `--text-align` isolates the inherited text-align shorthand/all/last family,
 logical inheritance and match-parent, justify-all, compact/readable/literal
 commands, LTR/RTL geometry, shorthand resets, tables, hover, and responsive resize.

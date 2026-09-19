@@ -275,7 +275,10 @@ namespace Lea.Engine
                 if (target == null) return false;
                 string markerStyle;
                 if (!E.Msv(Expand(page, command.W ?? command.V), out markerStyle)) return false;
-                return SetMarkerStyle(target, markerStyle);
+                var applied = SetMarkerStyle(target, markerStyle);
+                if (applied && (markerStyle.IndexOf("counter", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    markerStyle.IndexOf("quote", StringComparison.OrdinalIgnoreCase) >= 0)) page.Cn = true;
+                return applied;
             }
             if (command.N == "be" || command.N == "af")
             {
@@ -284,7 +287,18 @@ namespace Lea.Engine
                 string generatedStyle;
                 if (!E.Msv(Expand(page, command.W ?? command.V), out generatedStyle)) return false;
                 var applied = SetPseudoStyle(target, command.N == "be" ? "before" : "after", generatedStyle);
-                if (applied && generatedStyle.IndexOf("counter", StringComparison.OrdinalIgnoreCase) >= 0) page.Cn = true;
+                if (applied && (generatedStyle.IndexOf("counter", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    generatedStyle.IndexOf("quote", StringComparison.OrdinalIgnoreCase) >= 0)) page.Cn = true;
+                return applied;
+            }
+            if (command.N == "qu")
+            {
+                var target = StyleTarget(page, command);
+                if (target == null) return false;
+                string quotes;
+                if (!E.Quv(Expand(page, command.W ?? command.V), out quotes)) return false;
+                var applied = SetStyle(target, "quotes", quotes);
+                if (applied) page.Cn = true;
                 return applied;
             }
             if (command.N == "cr" || command.N == "ci" || command.N == "cs")
@@ -460,6 +474,7 @@ namespace Lea.Engine
             if (member == "style.counterreset") return new Cm("cr", id, value);
             if (member == "style.counterincrement") return new Cm("ci", id, value);
             if (member == "style.counterset") return new Cm("cs", id, value);
+            if (member == "style.quotes") return new Cm("qu", id, value);
             if (member == "style.textshadow") return new Cm("ts", id, value);
             if (member == "style.textdecoration") return new Cm("td", id, value);
             if (member == "style.textdecorationline") return new Cm("tdl", id, value);
@@ -502,6 +517,7 @@ namespace Lea.Engine
             if (count == 1 && (name == "cr" || name == "counterreset")) return new Cm("cr", first);
             if (count == 1 && (name == "ci" || name == "counterincrement")) return new Cm("ci", first);
             if (count == 1 && (name == "cs" || name == "counterset")) return new Cm("cs", first);
+            if (count == 1 && (name == "qu" || name == "quotes")) return new Cm("qu", first);
             if (count == 1 && (name == "ts" || name == "textshadow")) return new Cm("ts", first);
             if (count == 1 && (name == "td" || name == "textdecoration")) return new Cm("td", first);
             if (count == 1 && (name == "tdl" || name == "textdecorationline")) return new Cm("tdl", first);
@@ -549,6 +565,7 @@ namespace Lea.Engine
             if (count == 2 && (name == "cr" || name == "counterreset")) return new Cm("cr", first, second);
             if (count == 2 && (name == "ci" || name == "counterincrement")) return new Cm("ci", first, second);
             if (count == 2 && (name == "cs" || name == "counterset")) return new Cm("cs", first, second);
+            if (count == 2 && (name == "qu" || name == "quotes")) return new Cm("qu", first, second);
             if (count == 2 && (name == "ts" || name == "textshadow")) return new Cm("ts", first, second);
             if (count == 2 && (name == "td" || name == "textdecoration")) return new Cm("td", first, second);
             if (count == 2 && (name == "tdl" || name == "textdecorationline")) return new Cm("tdl", first, second);
@@ -590,6 +607,7 @@ namespace Lea.Engine
             if (name == "document.body.style.counterreset") return new Cm("cr", value);
             if (name == "document.body.style.counterincrement") return new Cm("ci", value);
             if (name == "document.body.style.counterset") return new Cm("cs", value);
+            if (name == "document.body.style.quotes") return new Cm("qu", value);
             if (name == "document.body.style.textshadow") return new Cm("ts", value);
             if (name == "document.body.style.textdecoration") return new Cm("td", value);
             if (name == "document.body.style.textdecorationline") return new Cm("tdl", value);

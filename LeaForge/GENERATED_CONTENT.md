@@ -2,8 +2,9 @@
 
 Milestone 108 adds a deliberately small generated-content subset to Lea's
 custom renderer. Milestone 109 extends its shared attribute item with one
-quoted missing-value fallback. It does not load Chromium, WebView, MSHTML, or
-another browser engine.
+quoted missing-value fallback, and Milestone 110 adds bounded generated quote
+keywords and inherited quote pairs. It does not load Chromium, WebView, MSHTML,
+or another browser engine.
 
 ## Selectors And Cascade
 
@@ -27,6 +28,7 @@ One valid `content` declaration may concatenate up to eight values:
 - `attr(name, "fallback")` or `attr(name raw-string, "fallback")`
 - `counter(name[, style])`
 - `counters(name, separator[, style])`
+- `open-quote`, `close-quote`, `no-open-quote`, or `no-close-quote`
 
 Attribute names stop at 64 characters, counter names at 32 ASCII characters,
 counter nesting and active state at eight entries, separators at 32 UTF-16
@@ -63,17 +65,19 @@ use the rendered generated text for name-from-content roles; explicit
 `aria-labelledby` and `aria-label` continue to take priority. Generated-only
 content appears in accessibility reading order.
 
-Replaced content and native controls suppress these pseudo runs. Lea does not
-provide pseudo margins, padding, borders, backgrounds, dimensions, positioning,
-flex/grid items, generated images, quote keywords, alternative text, arbitrary
-CSSOM, or JavaScript execution in this subset.
+Replaced content and native controls suppress these pseudo runs. Quote depth
+and the inherited `quotes` property use the bounded contract in
+`GENERATED_QUOTES.md`. Lea does not provide pseudo margins, padding, borders,
+backgrounds, dimensions, positioning, flex/grid items, generated images,
+alternative text, arbitrary CSSOM, or JavaScript execution in this subset.
 
 `LeaForge/test-pages/generated-content.html` and the focused
 `Lea.Tests.exe <root> --generated-content` mode cover syntax, cascade, counters,
 quoted fallbacks, present/empty priority, limits, commands, links, tables,
 accessibility, RTL, hover/media rebuilds, retention, layout, and paint. The
 compiled Firespider smoke repeats the host paths without adapter-side
-generated-content code. See `ATTR_FALLBACKS.md` for the shared strict grammar.
+generated-content code. See `ATTR_FALLBACKS.md` for the shared strict attribute
+grammar and `GENERATED_QUOTES.md` for quote state and limits.
 
 The bounded design follows the relevant model in the
 [CSS Pseudo-Elements specification](https://drafts.csswg.org/css-pseudo-4/) and

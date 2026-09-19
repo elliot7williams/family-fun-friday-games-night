@@ -7,6 +7,7 @@ namespace Lea.Engine
     public sealed class S
     {
         public const int Av = -65;
+        private static readonly string[] DefaultQuotes = { "\u201c", "\u201d", "\u2018", "\u2019" };
 
         public string F { get; internal set; }
         public string Bg { get; internal set; }
@@ -172,6 +173,7 @@ namespace Lea.Engine
         internal int[] Wfd { get; set; }
         internal int[] Hfd { get; set; }
         internal string[] Be { get; set; }
+        internal string[] Qs { get; set; }
 
         public int Vc { get { return Vr == null ? 0 : Vr.Count; } }
         public int Gc { get { return Gd == null ? 0 : Gd.Length; } }
@@ -179,6 +181,7 @@ namespace Lea.Engine
         public int Gac { get { return Gad == null ? 0 : Gad.Length; } }
         public int Rac { get { return Rad == null ? 0 : Rad.Length; } }
         public int Bec { get { return Be == null ? 0 : Be.Length; } }
+        public int Qc { get { return Qs == null ? 2 : Qs.Length / 2; } }
         public int Gnc { get { return Gnd == null ? 0 : Gnd.Count; } }
         public int Rnc { get { return Rnd == null ? 0 : Rnd.Count; } }
         public int Aa { get { return Ad == null ? 0 : Ad.Count; } }
@@ -213,6 +216,24 @@ namespace Lea.Engine
         public string Bcv(int edge)
         {
             return Be != null && edge >= 0 && edge < 4 ? Be[edge + 4] : Bc;
+        }
+
+        public string Qo(int depth)
+        {
+            return QuoteValue(depth, false);
+        }
+
+        public string Qx(int depth)
+        {
+            return QuoteValue(depth, true);
+        }
+
+        private string QuoteValue(int depth, bool close)
+        {
+            var values = Qs ?? DefaultQuotes;
+            if (depth < 0 || values.Length == 0) return "";
+            var pair = Math.Min(depth, values.Length / 2 - 1);
+            return values[pair * 2 + (close ? 1 : 0)];
         }
 
         internal void SetBorderStyle(int edge, string value)
@@ -475,7 +496,7 @@ namespace Lea.Engine
 
         internal S Inherit()
         {
-            var style = new S { F = F, Fs = Fs, Ff = Ff, B = B, I = I, Td = Td, Tc = Tc, Tds = Tds, Tw = Tw, Uo = Uo, Uop = Uop, Ta = Ta, Tl = Tl, Dr = Dr, Tt = Tt, Ti = Ti, Tip = Tip, Ts = Ts, Ls = Ls, Wg = Wg, Lh = Lh, Lm = Lm, Ws = Ws, Wm = Wm, Wt = Wt, Wb = Wb, Lst = Lst, Lp = Lp, Li = Li, Cu = Cu, Pe = Pe, Vi = Vi, Op = Op, Ao = Op };
+            var style = new S { F = F, Fs = Fs, Ff = Ff, B = B, I = I, Td = Td, Tc = Tc, Tds = Tds, Tw = Tw, Uo = Uo, Uop = Uop, Ta = Ta, Tl = Tl, Dr = Dr, Tt = Tt, Ti = Ti, Tip = Tip, Ts = Ts, Ls = Ls, Wg = Wg, Lh = Lh, Lm = Lm, Ws = Ws, Wm = Wm, Wt = Wt, Wb = Wb, Lst = Lst, Lp = Lp, Li = Li, Cu = Cu, Pe = Pe, Vi = Vi, Op = Op, Ao = Op, Qs = Qs };
             style.Vr = Vr;
             style.Vo = Vo;
             return style;
