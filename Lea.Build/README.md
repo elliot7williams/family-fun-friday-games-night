@@ -203,6 +203,11 @@ paint, hover, and responsive resize.
 scope, named marker output, exact operation/name/value limits,
 compact/readable/literal commands, tables, hover/media, retained fields, and
 paint.
+`--generated-content` isolates terminal double/single-colon before/after rules,
+bounded string/attribute/named-counter content, inherited text styles,
+specificity/variables/important, nested/link/value/table ownership,
+accessibility names and reading order, compact/readable commands, exact limits,
+replaced-control suppression, LTR/RTL paint, hover/media, and retained fields.
 `--text-align` isolates the inherited text-align shorthand/all/last family,
 logical inheritance and match-parent, justify-all, compact/readable/literal
 commands, LTR/RTL geometry, shorthand resets, tables, hover, and responsive resize.

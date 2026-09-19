@@ -35,7 +35,7 @@ read and quick to write.
   redirects or resource requests. Firespider installs it on ordinary and split
   tabs. See `NAVIGATION_POLICY.md` and `SPLIT_VIEW.md` for its callback contract.
 - Page values use one or two letters: `U`, `T`, `H`, `Q`, `D`, `N`, `Bs`, and `Ls`.
-- Page commands use one or two letters where practical: `t`, `a`, `bg`, `fg`, `fs`, `dp`, `wd`, `ht`, `dr`, `ti`, `tw`, `twm`, `tws`, `ta`, `taa`, `tl`, `lc`, `ls`, `lst`, `lp`, `li`, `ms`, `ts`, `td`, `uo`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`; text-decoration components and logical edge families stay within three letters.
+- Page commands use one or two letters where practical: `t`, `a`, `bg`, `fg`, `fs`, `dp`, `wd`, `ht`, `dr`, `ti`, `tw`, `twm`, `tws`, `ta`, `taa`, `tl`, `lc`, `ls`, `lst`, `lp`, `li`, `ms`, `be`, `af`, `ts`, `td`, `uo`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`; text-decoration components and logical edge families stay within three letters.
 - New public aliases should be no more than three letters.
 - `E/V.Hm` reports the 4 MiB document-body ceiling; `E/V.Csm` reports the
   256 KiB linked-stylesheet ceiling. GET/POST input and optional CSS share
@@ -106,6 +106,9 @@ ms("color:#2563eb") page marker default
 ms("id", "content:'Lea ';font-weight:bold") element marker style
 ms("id", "content:attr(data-code)") generated marker text
 ms("id", "content:counter(list-item)") generated list number
+be("content:'Lea '") body before style
+be("id", "content:attr(data-code)") element before style
+af("id", "content:' done'") element after style
 cr("id", "chapter 2") element counter reset
 ci("id", "chapter") element counter increment
 cs("id", "chapter 9") element counter set
@@ -152,13 +155,18 @@ fo("id")              request focus
 go("next.html")        request host navigation
 ```
 
-The two-argument `bg/fg/fs/dp/wd/ht/dr/ti/tw/twm/tws/ta/taa/tl/lc/ls/lst/lp/li/ms/ts/td/tdl/tdc/tds/tdw/uo/is/bs`, logical box, logical border, and
+The two-argument `bg/fg/fs/dp/wd/ht/dr/ti/tw/twm/tws/ta/taa/tl/lc/ls/lst/lp/li/ms/be/af/ts/td/tdl/tdc/tds/tdw/uo/is/bs`, logical box, logical border, and
 radius forms
 target one validated ID. Color and font
 forms reuse the same
 hex/named-color and 8..96 pixel font bounds as the body forms, reject document
 metadata targets, cap the resulting inline style at 4,096 characters, and
 preserve mutable fields through the shared CSS rebuild.
+
+`be/af` set bounded `::before`/`::after` style overrides on the body or one
+validated ID. Readable `beforestyle/afterstyle` use the same forms. They accept
+the marker text-property subset and string/attribute/named-counter `content`
+grammar; an empty value restores authored CSS. See `GENERATED_CONTENT.md`.
 
 `S.Dr` stores inherited horizontal direction as `l` or `r`. CSS `direction`,
 HTML `dir`, variables, inline/important tiers, and CSS-wide values resolve

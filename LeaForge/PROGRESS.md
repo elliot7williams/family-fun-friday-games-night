@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **107**
+Post-1.0 hardening milestones completed: **108**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -14,10 +14,10 @@ modern web platform.
 | Core and alias API | 10% | 10% | Compact API, bounded diagnostics, repeatable reports, history, projects, backups |
 | Networking | 10% | 10% | Bounded request deadlines and downloads, private cookies, typed errors, validators, compression, memory LRU and optional persistent cache |
 | HTML and document tree | 20% | 20% | Bounded tokens, queries, base URLs and fragments, raw/RCDATA text, entities, recovery, HTML-hidden suppression, semantic accessibility, blocks, lists, disclosures, gauges, values, time/edit metadata, responsive image maps, tabindex focus, autofocus/access keys, tables |
-| CSS | 15% | 15% | Compiled relationship, bounded strict relational/functional, An+B/reverse, filtered structural, and terminal `::marker` selectors; declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, bounded named reset/increment/set counters, inherited horizontal LTR/RTL direction, fixed/percentage/calculated plus direction-aware logical dimensions/insets/margins/padding/borders/radii, classic viewport/font-relative units and bounded size functions, bounded vertical sticky positioning, dynamic hover/focus, inherited cursor/pointer interaction, text transformation, signed letter/word spacing, signed pixel/percentage first-line indentation, inherited text-wrap mode/style, non-inherited 1..32 line clamping, inherited bounded list marker type/image/position and shorthand plus isolated marker typography and bounded string/attribute/named-counter generated content, text-align shorthand/all/last with logical state and justify-all, bounded text-decoration line/color/style/thickness and underline offset, and one inherited bounded text-shadow layer, content/border sizing, circular/elliptical radii, bounded outlines, box shadows, gradients, bitmap backgrounds, object fitting and aspect ratios, visibility/opacity, fonts, overflow, boxes, bounded ordered flex and two-axis grid properties |
-| Layout and painting | 20% | 20% | Shared physical/logical box edges and per-edge border styles/colors plus fixed/percentage/calculated, viewport-unit, font-relative, and min/max/clamp dimensions, content/border, aspect-ratio, sticky, direction-aware inline/inside-outside text and image markers with separate marker style/content, first-line-indent/bounded balanced wrapping/line-clamping/all-line/final-line/ellipsis and TextPattern range geometry, transformed, spacing-aware, decorated, and bounded shadowed presentation text with raw form retention, native decoration fast path plus lightweight offset-aware custom line paint, normalized rounded backgrounds/borders/outlines/overflow/fields/box-shadows/gradients/bitmaps, pointer-gated retained hits with underlying fallthrough, fitted raster images and maps, ordered flex rows/columns, bounded grid tracks/spans, distribution, alignment, wrapping, grow/shrink, clipping, reflow, painting |
+| CSS | 15% | 15% | Compiled relationship, bounded strict relational/functional, An+B/reverse, filtered structural, and terminal `::marker`/`::before`/`::after` selectors; declarations with two-tier important cascade, inherited custom properties and pixel-width media queries, bounded named reset/increment/set counters, inherited horizontal LTR/RTL direction, fixed/percentage/calculated plus direction-aware logical dimensions/insets/margins/padding/borders/radii, classic viewport/font-relative units and bounded size functions, bounded vertical sticky positioning, dynamic hover/focus, inherited cursor/pointer interaction, text transformation, signed letter/word spacing, signed pixel/percentage first-line indentation, inherited text-wrap mode/style, non-inherited 1..32 line clamping, inherited bounded list marker type/image/position and shorthand plus isolated pseudo typography and bounded string/attribute/named-counter generated content, text-align shorthand/all/last with logical state and justify-all, bounded text-decoration line/color/style/thickness and underline offset, and one inherited bounded text-shadow layer, content/border sizing, circular/elliptical radii, bounded outlines, box shadows, gradients, bitmap backgrounds, object fitting and aspect ratios, visibility/opacity, fonts, overflow, boxes, bounded ordered flex and two-axis grid properties |
+| Layout and painting | 20% | 20% | Shared physical/logical box edges and per-edge border styles/colors plus fixed/percentage/calculated, viewport-unit, font-relative, and min/max/clamp dimensions, content/border, aspect-ratio, sticky, direction-aware inline before/after runs and inside/outside text/image markers with separate pseudo style/content, first-line-indent/bounded balanced wrapping/line-clamping/all-line/final-line/ellipsis and TextPattern range geometry, transformed, spacing-aware, decorated, and bounded shadowed presentation text with raw form retention, native decoration fast path plus lightweight offset-aware custom line paint, normalized rounded backgrounds/borders/outlines/overflow/fields/box-shadows/gradients/bitmaps, pointer-gated retained hits with underlying fallthrough, fitted raster images and maps, ordered flex rows/columns, bounded grid tracks/spans, distribution, alignment, wrapping, grow/shrink, clipping, reflow, painting |
 | Resources, forms, and media | 10% | 10% | Native field edit commands and one-level undo/redo, bounded multipart files, richer widgets, validation, responsive/fitted images with a zero-capability AppContainer decoder and combined admission, GET/POST submit |
-| Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/body and ID-scoped display/width/height/direction/text-indent/text-wrap/mode/style/line-clamp/list-style/type/image/position/marker-style/text-align/all/last/text-decoration/text-underline-offset/text-shadow/logical box/border/radius/style/alert, class, visibility, disclosure, field-state, focus, and literal bounded DOM translation |
+| Lea scripting | 5% | 5% | Host-controlled navigation, safe clicks, variables, text/title/body and ID-scoped display/width/height/direction/text-indent/text-wrap/mode/style/line-clamp/list-style/type/image/position/marker/before/after-style/text-align/all/last/text-decoration/text-underline-offset/text-shadow/logical box/border/radius/style/alert, class, visibility, disclosure, field-state, focus, and literal bounded DOM translation |
 | Firespider integration and reliability | 10% | 10% | Lea-first New Tab/Ctrl+T, explicit legacy fallback, Inspector with Access view, MSAA/UIA surfaces including read-only text, host-safe focus shortcuts, navigation, sessions, source, host smokes |
 | **Total** | **100%** | **100%** | Scoped Lea 1.0 baseline complete; post-1.0 hardening continues |
 
@@ -29,6 +29,25 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded inline `::before`/`::after` and legacy `:before`/`:after`
+  generated content through the compiled cascade. Up to eight string,
+  attribute, and named-counter fragments produce at most 128 UTF-16 units;
+  attribute names stop at 64 characters. Generated runs reuse inherited text
+  styling, nested inline/link/value/table ownership, LTR/RTL layout, hover/media
+  rebuilds, retained fields, and accessibility reading order and names with
+  explicit ARIA priority. Defining `be/af` and readable
+  `beforestyle/afterstyle` commands are page/ID scoped through the existing
+  bounded style validator. Replaced/native controls suppress runs; pseudo box
+  model, flex/grid items, images, quote keywords, alt text, and arbitrary CSSOM
+  remain outside the subset. The focused and full suites, compiled Firespider
+  host, all 18 startup regressions, all 42 Boot cases, and all six real EXE
+  startup scenarios pass. All 104 benchmark probes pass over 99 fixtures.
+  Three-round diagnostic medians are 865.282 ms clean start, 6.644 ms local
+  load, and 46.790 ms layout/paint. Retained managed memory is 26,204.5 KiB for
+  396 pages, or 66.2 KiB/page. Required runtime files are 630.0 KiB with a
+  262.5 KiB GZip estimate. Runtime 208 is packaged separately and installed
+  runtime 157 remains unchanged. See `GENERATED_CONTENT.md`.
 
 - Added bounded named CSS counters through non-inherited compact `S.Cr/Ci/Cs`
   state and one tree-order counter pass. `counter-reset`, `counter-increment`,

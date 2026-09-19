@@ -25,6 +25,10 @@ namespace Lea.Engine
         internal bool Fc { get; set; }
         internal string Mk { get; set; }
         internal List<Cn> Ct { get; set; }
+        internal List<Cn> Cx { get; set; }
+        internal S Gb { get; set; }
+        internal S Ga { get; set; }
+        internal S Gm { get; set; }
         internal Uri Bu { get; set; }
 
         public string Av(string name)

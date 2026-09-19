@@ -17,26 +17,23 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 107 adds bounded named CSS counters through compact `S.Cr/Ci/Cs`
-state, one tree-order pass, and defining `cr/ci/cs` aliases. Reset, increment,
-and set order, defaults, duplicates, case-sensitive names, nested scope,
-sibling/descendant flow, hidden suppression, and missing-value zero output stay
-engine-owned. Eight operations, eight active instances, 32-character ASCII
-names, and -999999..999999 values bound the model. Readable and literal DOM
-routes share the validator; named marker output reuses the existing bounded
-content atom and ten styles. The full default engine suite plus the compiled
-host are green, including all 18 startup regressions, all 42 Boot cases, and all
-six real EXE startup scenarios without a legacy engine, invalid cast, JIT
-dialog, or dead startup window. All 103 benchmark probes pass over 98 fixtures.
-Three-round diagnostic medians are 823.481 ms clean start, 6.518 ms local load,
-and 43.727 ms layout/paint; retained memory is 63.4 KiB/page and the required
-runtime is 607.5 KiB. Runtime 207 remains isolated, and installed runtime 157 is
-unchanged. See `CSS_COUNTERS.md` and `MARKER_COUNTERS.md`. Reversed/custom
-counter styles, pseudo-element properties, typed/fallback attributes,
-quote/image/alternative content, general `::before`/`::after` boxes,
-marker-side, cross-item alignment, author marker image sizing, SVG decoding,
-vertical writing, full Unicode bidi, and general CSS/JavaScript evaluation stay
-outside this milestone.
+Milestone 108 adds bounded inline `::before`/`::after` generated text, including
+legacy single-colon syntax, through the existing compiled selector/cascade,
+content grammar, named counter state, and inline renderer. Defining `be/af` and
+readable `beforestyle/afterstyle` commands are page/ID scoped. Nested content,
+links, semantic values, tables, accessibility names and reading order, LTR/RTL,
+hover/media rebuilds, and retained fields stay engine-owned; replaced/native
+controls suppress pseudo runs. Content remains bounded to eight fragments and
+128 UTF-16 units, with 64-character attribute names and the existing counter
+limits. All 104 benchmark probes pass over 99 fixtures. The full engine suite,
+compiled host, all 18 startup regressions, all 42 Boot cases, and all six real
+EXE startup scenarios are green. Three-round diagnostic medians are 865.282 ms
+clean start, 6.644 ms local load, and 46.790 ms layout/paint; retained memory is
+66.2 KiB/page and the required runtime is 630.0 KiB. Runtime 208 is packaged
+separately and installed runtime 157 remains unchanged. See
+`GENERATED_CONTENT.md`. Pseudo box-model/flex/grid items, generated images,
+quotes, alt text, arbitrary CSSOM, reversed/custom counters, vertical writing,
+full Unicode bidi, and general JavaScript evaluation remain outside this slice.
 
 Milestone 60 installs the existing `V.Ng` hook on main Lea tabs, enforcing host
 rules, offline/locked state, and live ownership. Denied resume retains its

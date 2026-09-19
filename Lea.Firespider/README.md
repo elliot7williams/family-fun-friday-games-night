@@ -648,6 +648,13 @@ exact outside geometry, and retained fields. Firespider adds no counter parser,
 state map, numbering adapter, layout branch, or control. See
 `LeaForge/CSS_COUNTERS.md`.
 
+Hosted pages now expose bounded inline `::before`/`::after` generated text
+through Lea-owned `be/af` runs. The compiled host verifies string, attribute,
+named-counter, nested link, table, responsive, accessibility, compact `be`, and
+readable `afterstyle` paths with retained fields and painted geometry.
+Firespider adds no pseudo parser, generated-content evaluator, layout branch,
+or control. See `LeaForge/GENERATED_CONTENT.md`.
+
 Hosted text alignment now exposes the bounded shorthand/all/last family through
 `S.Ta/Tl`. The compiled host verifies `justify-all`, retained logical RTL
 state, compact `ta/taa/tl`, literal `style.textAlign`, shorthand reset,

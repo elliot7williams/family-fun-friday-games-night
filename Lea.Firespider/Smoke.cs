@@ -72,6 +72,8 @@ namespace Lea.Firespider
                     .Replace("</body>", "<ol><li id='host-marker' class='host-list host-marker'>Host styled marker</li><li id='host-marker-inside' class='host-list host-marker-inside'>Host inside styled marker</li><li id='host-marker-generated' class='host-list host-marker-generated' data-code='HOST'>Host generated marker</li><li id='host-marker-responsive' class='host-list host-marker-responsive' data-wide='Wide ' data-narrow='Narrow '>Host responsive styled marker</li><li id='host-marker-command' class='host-list host-marker-command' data-code='CMD'>Host marker command</li></ol><ol start='9'><li>Host outer counter<ol start='3'><li id='host-marker-counter' class='host-list host-marker-counter'>Host nested counter marker</li></ol></li></ol></body>")
                     .Replace("</style>", ".host-css-counter-scope{counter-reset:hostCount 2}.host-css-counter{counter-increment:hostCount 3}.host-css-counter::marker{content:'N' counter(hostCount,upper-roman) ' ';color:#dc2626}.host-css-counter-nested-scope{counter-reset:hostCount 1}.host-css-counter-nested{counter-increment:hostCount 2}.host-css-counter-nested::marker{content:counters(hostCount,'.',upper-roman) ' ';color:#2563eb}</style>")
                     .Replace("</body>", "<div><ol class='host-css-counter-scope'><li id='host-css-counter' class='host-list host-css-counter'>Host named counter<ol class='host-css-counter-nested-scope'><li id='host-css-counter-nested' class='host-list host-css-counter-nested'>Host nested named counter</li></ol></li></ol></div></body>")
+                    .Replace("</style>", ".host-generated::before{content:'[HOST] ';color:#dc2626;font-size:22px;font-weight:bold}.host-generated::after{content:' [A]';color:#2563eb;font-style:italic}.host-generated-link::before{content:'Open ';color:#dc2626}.host-generated-link::after{content:' now';color:#2563eb}.host-generated-scope{counter-reset:hostGenerated 2}.host-generated-counter{counter-increment:hostGenerated}.host-generated-counter::before{content:'G' counter(hostGenerated) ' ';color:#0f766e}.host-generated-cell::before{content:'Cell ';color:#dc2626}.host-generated-command::before{content:'CSS ';color:#64748b}.host-generated-command::after{content:' end';color:#64748b}.host-generated-responsive::after{content:' Wide';color:#64748b}@media screen and (max-width:500px){.host-generated-responsive::after{content:' Narrow';color:#2563eb;font-size:20px}}</style>")
+                    .Replace("</body>", "<p id='host-generated' class='host-generated'>Host generated content</p><a id='host-generated-link' class='host-generated-link' href='#state'>generated link</a><div class='host-generated-scope'><p id='host-generated-counter' class='host-generated-counter'>Generated counter</p></div><table><tr><td id='host-generated-cell' class='host-generated-cell'>Generated table</td></tr></table><p id='host-generated-command' class='host-generated-command' data-before='CMD' data-after='READ'>Host generated command</p><p id='host-generated-responsive' class='host-generated-responsive'>Generated responsive</p></body>")
                     .Replace(".host-flex{display:flex;width:300px;height:60px;gap:8px;justify-content:space-between;align-items:center}", ".host-flex{display:flex;width:300px;height:60px;flex-wrap:wrap;gap:6px 8px;justify-content:space-between;align-items:center}")
                     .Replace(".host-flex p{width:70px;height:20px}", ".host-flex p{flex:1 1 180px;height:20px}.host-flex #host-flex-b{flex-shrink:2;min-width:80px}.host-flex-column{display:flex;width:180px;height:100px;flex-direction:column-reverse;row-gap:5px;justify-content:space-evenly;align-items:flex-end}.host-flex-column p{width:70px;margin:0;flex:0 1 60px;min-height:30px}.host-flex-column #host-flex-column-a{order:2;align-self:center}.host-flex-column #host-flex-column-b{order:-1}")
                     .Replace("</style>", ".host-grid{display:grid;width:300px;grid-template-columns:100px 1fr 2fr;gap:7px 10px}.host-grid p{height:20px;margin:0}.host-grid #host-grid-span{grid-column:2/span 2}.host-grid-rows{display:grid;width:300px;height:120px;grid-template-columns:1fr 2fr;grid-template-rows:30px 1fr;gap:6px 8px}.host-grid-rows p{margin:0}.host-grid-rows #host-grid-row-a{grid-column:1/span 2;grid-row:1}.host-grid-rows #host-grid-row-b{grid-column:2;grid-row:2}.host-grid-rows #host-grid-row-c{grid-column:1;grid-row-start:2;grid-row-end:span 1}:root{--host-color:#0f4c81;--host-width:155px;--host-pad:7px}.host-var{--host-color:#0f4c81!important;color:var(--host-color)!important;width:var(--host-width)!important;padding:var(--host-pad)}:is(.host-var,#host-never){border-left:4px solid #176b4d}:where(#host-var){padding-left:2px}.host-var:not(.missing,[data-off]){font-weight:bold}#host-flex>p:nth-child(2n+1){border-right:3px solid #176b4d}#host-flex>p:nth-last-child(-n+1){padding-left:9px}#host-flex-column>p:nth-last-of-type(2n){color:#a13b18}#host-flex>p:nth-child(1 of #host-flex-a,#host-flex-b){border-bottom:3px solid #176b4d}#host-flex>p:nth-last-child(1 of #host-flex-a,#host-flex-b){border-top:2px solid #a13b18}#host-has:has(> .host-direct){width:146px;border-left:5px solid #176b4d}#host-has:has(> .host-body .host-ready[data-host=ready]){padding-right:6px}#host-flex:has(+ #host-has){border-top:4px solid #a13b18}#host-has:has(input:focus){background:#dff6e9;font-weight:bold}.host-media{display:none}@media screen and (max-width:500px){:root{--host-width:110px;--host-pad:4px}#host-media{display:block;width:120px;background:#e8f4ef}#host-box{display:none}}</style>")
@@ -482,6 +484,12 @@ namespace Lea.Firespider
                     var hostMarkerCommand = BlockById(host.At, "host-marker-command");
                     var hostCssCounter = BlockById(host.At, "host-css-counter");
                     var hostCssCounterNested = BlockById(host.At, "host-css-counter-nested");
+                    var hostGenerated = BlockById(host.At, "host-generated");
+                    var hostGeneratedLink = BlockById(host.At, "host-generated-link");
+                    var hostGeneratedCounter = BlockById(host.At, "host-generated-counter");
+                    var hostGeneratedCell = BlockById(host.At, "host-generated-cell");
+                    var hostGeneratedCommand = BlockById(host.At, "host-generated-command");
+                    var hostGeneratedResponsive = BlockById(host.At, "host-generated-responsive");
                     var hostListField = FieldById(host.At, "host-list-field");
                     Check(hostListUpper.S.Lst == "A" && hostListUpper.S.Lp == "o" && hostListUpper.Mk == "AA." &&
                         hostListInside.S.Lst == "R" && hostListInside.S.Lp == "i" && hostListInside.Mk == "IV." &&
@@ -498,6 +506,12 @@ namespace Lea.Firespider
                         "Firespider bounded marker pseudo-element model");
                     Check(hostCssCounter.Mk == "NV " && hostCssCounter.S.Ci == "hostCount 3" &&
                         hostCssCounterNested.Mk == "V.III ", "Firespider bounded named CSS counter model");
+                    Check(hostGenerated.X == "[HOST] Host generated content [A]" && Run(hostGenerated, "be").S.F == "#dc2626" &&
+                        Run(hostGenerated, "be").S.Fs == 22 && Run(hostGenerated, "af").S.F == "#2563eb" &&
+                        hostGeneratedLink.X == "Open generated link now" && Run(hostGeneratedLink, "be").U != null &&
+                        hostGeneratedCounter.X == "G3 Generated counter" && hostGeneratedCell.X == "Cell Generated table" &&
+                        hostGeneratedCommand.X == "CSS Host generated command end" && hostGeneratedResponsive.X == "Generated responsive Wide",
+                        "Firespider bounded before and after generated-content model");
                     var hostListUpperContent = BlockContent(host, "host-list-upper");
                     var hostListScroll = host.Sy;
                     host.Sc(hostListUpperContent.Top - host.Sy - 40);
@@ -524,6 +538,10 @@ namespace Lea.Firespider
                         InlineTextRect(host, hostCssCounter, "NV ").Right < BlockContent(host, "host-css-counter").Left &&
                         InlineTextRect(host, hostCssCounterNested, "V.III ").Right < BlockContent(host, "host-css-counter-nested").Left,
                         "Firespider marker pseudo-element outside/inside geometry");
+                    Check(InlineKindRect(host, hostGenerated, "be").Width > 0 && InlineKindRect(host, hostGenerated, "af").Width > 0 &&
+                        InlineKindRect(host, hostGenerated, "be").Left < InlineKindRect(host, hostGenerated, "af").Left &&
+                        InlineKindRect(host, hostGeneratedLink, "be").Width > 0 && InlineKindRect(host, hostGeneratedCell, "be").Width > 0,
+                        "Firespider generated before/after link and table geometry");
                     host.Sc(hostListScroll - host.Sy);
                     PaintView(host);
                     Check(host.Js("lst('host-list-command','upper-roman')") == 1, "Firespider compact list marker command");
@@ -603,6 +621,14 @@ namespace Lea.Firespider
                     PaintView(host);
                     hostCssCounter = BlockById(host.At, "host-css-counter");
                     Check(hostCssCounter.Mk == "NVI ", "Firespider literal named counter model");
+                    Check(host.Js("be('host-generated-command','content:attr(data-before);color:#dc2626;font-size:24px');afterstyle('host-generated-command','content:attr(data-after);color:#2563eb;font-style:italic')") == 2,
+                        "Firespider compact and readable generated-content commands");
+                    PaintView(host);
+                    hostGeneratedCommand = BlockById(host.At, "host-generated-command");
+                    Check(hostGeneratedCommand.X == "CMDHost generated commandREAD" && Run(hostGeneratedCommand, "be").S.Fs == 24 &&
+                        Run(hostGeneratedCommand, "af").S.I && InlineKindRect(host, hostGeneratedCommand, "be").Width > 0 &&
+                        host.Js("be('host-generated-command','content:url(no.png)')") == 0,
+                        "Firespider generated-content command model, geometry, and validation");
                     hostListField.V = "Retained host marker field";
                     var hostOutline = BlockById(host.At, "host-outline");
                     Check(hostOutline.S.Ow == 4 && hostOutline.S.Os == "s" && hostOutline.S.Oc == "#a13b18" && hostOutline.S.Oo == 3 &&
@@ -966,6 +992,10 @@ namespace Lea.Firespider
                     Check(hostMarkerResponsive.Mk == "Narrow " && hostMarkerResponsive.Ms.F == "#7c3aed" && hostMarkerResponsive.Ms.Fs == 20 &&
                         Object.ReferenceEquals(hostListField, FieldById(host.At, "host-list-field")),
                         "Firespider responsive marker pseudo-element and field retention");
+                    hostGeneratedResponsive = BlockById(host.At, "host-generated-responsive");
+                    Check(hostGeneratedResponsive.X == "Generated responsive Narrow" && Run(hostGeneratedResponsive, "af").S.Fs == 20 &&
+                        Object.ReferenceEquals(hostListField, FieldById(host.At, "host-list-field")),
+                        "Firespider responsive generated content and field retention");
                     host.Size = new System.Drawing.Size(720, 560);
                     Application.DoEvents();
                     PaintView(host);
@@ -974,6 +1004,9 @@ namespace Lea.Firespider
                         Object.ReferenceEquals(hostTransformField, FieldById(host.At, "host-transform-field")), "Firespider wide text transform restore");
                     Check(BlockById(host.At, "host-spacing-responsive").S.Ls == 5 && BlockById(host.At, "host-spacing-responsive").S.Wg == 10 &&
                         Object.ReferenceEquals(hostSpacingField, FieldById(host.At, "host-spacing-field")), "Firespider wide text spacing restore");
+                    hostGeneratedResponsive = BlockById(host.At, "host-generated-responsive");
+                    Check(hostGeneratedResponsive.X == "Generated responsive Wide" && Object.ReferenceEquals(hostListField, FieldById(host.At, "host-list-field")),
+                        "Firespider wide generated content restore");
                     hostIndentResponsive = BlockById(host.At, "host-indent-responsive");
                     Check(hostIndentResponsive.S.Ti == 12 && !hostIndentResponsive.S.Tip &&
                         InlineTextRect(host, hostIndentResponsive, "HostResponsive").Left == BlockContent(host, "host-indent-responsive").Left + 12,
@@ -1149,7 +1182,7 @@ namespace Lea.Firespider
                     Check(host.Ck(ById(host.At.D, "host-value-update")) == 1 && ValueById(host.At, "host-output").V == "Updated host total", "Firespider output value rebuild");
                     Check(host.Ck(ById(host.At.D, "host-time-update")) == 1 && ValueById(host.At, "host-time").Dt == "2026-08-22", "Firespider time metadata rebuild");
                     var diagnostics = host.Dg();
-                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 117 && diagnostics.Rs.Count > 0, "Firespider Lea diagnostics");
+                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 119 && diagnostics.Rs.Count > 0, "Firespider Lea diagnostics");
                     var inspectorOpen = type.GetMethod("qleaInspectorOpen", BindingFlags.Instance | BindingFlags.NonPublic);
                     var inspectorSnapshot = type.GetMethod("qleaInspectorSnapshot", BindingFlags.Instance | BindingFlags.NonPublic);
                     var inspectorClear = type.GetMethod("qleaInspectorClear", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -1329,7 +1362,7 @@ namespace Lea.Firespider
                     Check(restoredTabs.TabCount == beforeMiddle - 1 && FindLea(restoredTabs) == null, "middle-click Lea tab close");
                 }
 
-                Console.WriteLine("Firespider CSS interaction and paint smoke passed: compact text-indent, text-wrap/mode/style, line-clamp, list-style/type/image/position, marker pseudo-element styling with generated attr and named/list-counter content, counter reset/increment/set aliases, text-align/all/last, text-decoration, text-underline-offset, text-shadow, text-overflow, text-spacing, text-transform, pointer, outline, radius, box-shadow, gradient, bitmap-background, object-fit, and aspect-ratio aliases reached the compiled host.");
+                Console.WriteLine("Firespider CSS interaction and paint smoke passed: compact before/after generated content, text-indent, text-wrap/mode/style, line-clamp, list-style/type/image/position, marker pseudo-element styling with generated attr and named/list-counter content, counter reset/increment/set aliases, text-align/all/last, text-decoration, text-underline-offset, text-shadow, text-overflow, text-spacing, text-transform, pointer, outline, radius, box-shadow, gradient, bitmap-background, object-fit, and aspect-ratio aliases reached the compiled host.");
                 Console.WriteLine("Firespider calculated height smoke passed: compact ht, literal style.height, definite parent resolution, shared host geometry, reset, and strict bounds.");
                 Console.WriteLine("Firespider viewport unit smoke passed: vw/vh/vmin/vmax, calc, compact commands, literal reset, live host geometry, and strict bounds.");
                 Console.WriteLine("Firespider font-relative unit smoke passed: em/rem, root font alias, compact commands, literal reset, shared host geometry, and strict bounds.");
@@ -1342,7 +1375,7 @@ namespace Lea.Firespider
                 Console.WriteLine("Firespider image sandbox smoke passed: zero-capability AppContainer, combined host/helper admission, exact helper ACL, restricted token, low integrity, and Job limits reached the compiled host.");
                 Console.WriteLine("Firespider initial fragment stability smoke passed: Fa/Fj/Fy diagnostics and manual-scroll release reached the compiled host.");
 
-                Console.WriteLine("Firespider Lea smoke passed: bounded horizontal logical margin/padding properties with twelve compact aliases, bounded horizontal logical sizing/insets with short is/bs and familiar DOM aliases, bounded sticky positioning with compact k and shared host geometry, bounded percentage/calc widths with compact wd and literal DOM reflow, bounded display alias and literal location requests, literal bounded DOM translation, inherited cursor and pointer-event aliases with host hit gating and fallthrough, bounded CSS text decoration and inherited underline offsets with compact aliases and host paint, bounded CSS outlines with compact aliases and exact non-layout host paint, bounded CSS aspect ratios with compact aliases and exact host geometry/paint, bounded CSS object-fit and object-position with compact aliases, exact fitted paint, and image-map keyboard/accessibility geometry, bounded CSS bitmap backgrounds with compact aliases and exact host paint, bounded inline SVG aliases, winding, stroke styles, geometry, links, and graphic accessibility, bounded has relational selectors with strict lists, maximum specificity, descendant/child/adjacent and complex host relationships, focus rebuilds, retained fields, queries, Inspector, and geometry, bounded nth-child of-S filters with strict lists, maximum specificity, forward/reverse computed styles, queries, Inspector, and host geometry, bounded precompiled An+B and reverse structural selectors with computed styles, queries, Inspector, and host geometry, bounded is, where, and list-not selector functions with specificity, queries, Inspector, and host geometry, bounded CSS important cascade with G.Ic diagnostics, custom properties, inline, responsive values, Inspector counts, and retained fields, bounded inherited CSS custom properties with S.Vc/Cv and G.Vc aliases, responsive values, Inspector counts, and retained fields, bounded responsive CSS media queries with viewport aliases and retained fields, optional bounded persistent cache aliases and Inspector diagnostics, bounded content-box and border-box geometry, scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, and shrink, semantic accessibility, protected values, rendered bounds, MSAA and UI Automation providers, value, table/grid, and read-only logical text patterns plus Access inspector, bounded autofocus and access keys, keyboard focus and activation, responsive image maps, compact time/edit metadata, output/data values and safe rebuilds, progress and meter gauges, disclosure commands, retained same-page fragments, Lea-first New Tab and explicit legacy fallback, host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
+                Console.WriteLine("Firespider Lea smoke passed: bounded inline before/after generated content with be/af aliases, links, counters, tables, responsive paint, and retained fields; bounded horizontal logical margin/padding properties with twelve compact aliases, bounded horizontal logical sizing/insets with short is/bs and familiar DOM aliases, bounded sticky positioning with compact k and shared host geometry, bounded percentage/calc widths with compact wd and literal DOM reflow, bounded display alias and literal location requests, literal bounded DOM translation, inherited cursor and pointer-event aliases with host hit gating and fallthrough, bounded CSS text decoration and inherited underline offsets with compact aliases and host paint, bounded CSS outlines with compact aliases and exact non-layout host paint, bounded CSS aspect ratios with compact aliases and exact host geometry/paint, bounded CSS object-fit and object-position with compact aliases, exact fitted paint, and image-map keyboard/accessibility geometry, bounded CSS bitmap backgrounds with compact aliases and exact host paint, bounded inline SVG aliases, winding, stroke styles, geometry, links, and graphic accessibility, bounded has relational selectors with strict lists, maximum specificity, descendant/child/adjacent and complex host relationships, focus rebuilds, retained fields, queries, Inspector, and geometry, bounded nth-child of-S filters with strict lists, maximum specificity, forward/reverse computed styles, queries, Inspector, and host geometry, bounded precompiled An+B and reverse structural selectors with computed styles, queries, Inspector, and host geometry, bounded is, where, and list-not selector functions with specificity, queries, Inspector, and host geometry, bounded CSS important cascade with G.Ic diagnostics, custom properties, inline, responsive values, Inspector counts, and retained fields, bounded inherited CSS custom properties with S.Vc/Cv and G.Vc aliases, responsive values, Inspector counts, and retained fields, bounded responsive CSS media queries with viewport aliases and retained fields, optional bounded persistent cache aliases and Inspector diagnostics, bounded content-box and border-box geometry, scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, and shrink, semantic accessibility, protected values, rendered bounds, MSAA and UI Automation providers, value, table/grid, and read-only logical text patterns plus Access inspector, bounded autofocus and access keys, keyboard focus and activation, responsive image maps, compact time/edit metadata, output/data values and safe rebuilds, progress and meter gauges, disclosure commands, retained same-page fragments, Lea-first New Tab and explicit legacy fallback, host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
                 return 0;
             }
             catch (Exception error)
@@ -1553,14 +1586,32 @@ namespace Lea.Firespider
         private static B BlockById(P page, string id)
         {
             foreach (var block in page.Bs)
-                if (block.El != null && block.El.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase)) return block;
+            {
+                var found = BlockById(block, id);
+                if (found != null) return found;
+            }
             throw new InvalidOperationException("Missing Lea block: " + id);
+        }
+
+        private static B BlockById(B block, string id)
+        {
+            if (block == null) return null;
+            if (block.El != null && block.El.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase)) return block;
+            if (block.Tb == null) return null;
+            foreach (var row in block.Tb.Rs)
+                foreach (var cell in row.Cs)
+                    foreach (var part in cell.Bs)
+                    {
+                        var found = BlockById(part, id);
+                        if (found != null) return found;
+                    }
+            return null;
         }
 
         private static bool HasBlock(P page, string id)
         {
             foreach (var block in page.Bs)
-                if (block.El != null && block.El.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase)) return true;
+                if (BlockById(block, id) != null) return true;
             return false;
         }
 
@@ -1750,6 +1801,12 @@ namespace Lea.Firespider
                 if ((string)type.GetField("K").GetValue(value) == kind) return (System.Drawing.Rectangle)type.GetField("R").GetValue(value);
             }
             return System.Drawing.Rectangle.Empty;
+        }
+
+        private static Ir Run(B block, string kind)
+        {
+            foreach (var run in block.Is) if (run.K == kind) return run;
+            throw new InvalidOperationException("Missing Lea inline run: " + kind);
         }
 
         private static Fi FieldById(P page, string id)

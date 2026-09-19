@@ -264,6 +264,8 @@ vl("id", "value")     set bounded field value
 ck("id", "1")         set or toggle checked state
 fo("id")              request rendered focus
 go("next.html")        request navigation from the host
+be("id", "content:'New '") element before style
+af("id", "content:' done'") element after style
 ```
 
 The longer `alert(...)` and `document.title = ...` forms still work. The short
@@ -287,6 +289,8 @@ single rebuild. Values stop at 1,024 characters, file values cannot be set,
 passwords stay redacted, and `E.Kp`/the WinForms view consume only one valid
 focus request. Disclosure commands accept a `details` ID or its first direct
 `summary` ID and keep `N.Op` plus the authored `open` attribute synchronized.
+`be/af` and readable `beforestyle/afterstyle` apply the bounded inline generated
+content subset described in `GENERATED_CONTENT.md`.
 
 The .NET Framework test browser opens Lea Inspector with `F12`, `Ctrl+Shift+I`,
 or the `I` toolbar button. Its Summary, Nodes, CSS, Requests, and Messages tabs

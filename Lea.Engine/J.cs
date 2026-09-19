@@ -277,6 +277,16 @@ namespace Lea.Engine
                 if (!E.Msv(Expand(page, command.W ?? command.V), out markerStyle)) return false;
                 return SetMarkerStyle(target, markerStyle);
             }
+            if (command.N == "be" || command.N == "af")
+            {
+                var target = StyleTarget(page, command);
+                if (target == null) return false;
+                string generatedStyle;
+                if (!E.Msv(Expand(page, command.W ?? command.V), out generatedStyle)) return false;
+                var applied = SetPseudoStyle(target, command.N == "be" ? "before" : "after", generatedStyle);
+                if (applied && generatedStyle.IndexOf("counter", StringComparison.OrdinalIgnoreCase) >= 0) page.Cn = true;
+                return applied;
+            }
             if (command.N == "cr" || command.N == "ci" || command.N == "cs")
             {
                 var target = StyleTarget(page, command);
@@ -487,6 +497,8 @@ namespace Lea.Engine
             if (count == 1 && (name == "lp" || name == "liststyleposition")) return new Cm("lp", first);
             if (count == 1 && (name == "ls" || name == "liststyle")) return new Cm("ls", first);
             if (count == 1 && (name == "ms" || name == "markerstyle")) return new Cm("ms", first);
+            if (count == 1 && (name == "be" || name == "beforestyle")) return new Cm("be", first);
+            if (count == 1 && (name == "af" || name == "afterstyle")) return new Cm("af", first);
             if (count == 1 && (name == "cr" || name == "counterreset")) return new Cm("cr", first);
             if (count == 1 && (name == "ci" || name == "counterincrement")) return new Cm("ci", first);
             if (count == 1 && (name == "cs" || name == "counterset")) return new Cm("cs", first);
@@ -532,6 +544,8 @@ namespace Lea.Engine
             if (count == 2 && (name == "lp" || name == "liststyleposition")) return new Cm("lp", first, second);
             if (count == 2 && (name == "ls" || name == "liststyle")) return new Cm("ls", first, second);
             if (count == 2 && (name == "ms" || name == "markerstyle")) return new Cm("ms", first, second);
+            if (count == 2 && (name == "be" || name == "beforestyle")) return new Cm("be", first, second);
+            if (count == 2 && (name == "af" || name == "afterstyle")) return new Cm("af", first, second);
             if (count == 2 && (name == "cr" || name == "counterreset")) return new Cm("cr", first, second);
             if (count == 2 && (name == "ci" || name == "counterincrement")) return new Cm("ci", first, second);
             if (count == 2 && (name == "cs" || name == "counterset")) return new Cm("cs", first, second);
@@ -835,6 +849,14 @@ namespace Lea.Engine
         {
             if (value.Length == 0) target.A.Remove("data-lea-marker-style");
             else target.A["data-lea-marker-style"] = value;
+            return true;
+        }
+
+        private static bool SetPseudoStyle(N target, string pseudo, string value)
+        {
+            var name = "data-lea-" + pseudo + "-style";
+            if (value.Length == 0) target.A.Remove(name);
+            else target.A[name] = value;
             return true;
         }
 

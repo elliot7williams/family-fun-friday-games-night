@@ -346,24 +346,24 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 107 adds bounded named CSS counters through compact non-inherited
-`S.Cr/Ci/Cs` state and one tree-order pass. Reset, increment, and set apply in
-specification order with case-sensitive names, defaults, duplicate handling,
-nested scope, sibling/descendant flow, hidden suppression, and missing-value
-zero output. Eight operations, eight active instances, 32-character ASCII
-names, and -999999..999999 values bound the feature. Defining `cr/ci/cs`,
-readable commands, and literal DOM properties share one validator and retained
-rebuild; marker output reuses the existing ten representations and bounded
-`S.Mc` atom. See `CSS_COUNTERS.md` and `MARKER_COUNTERS.md`. All 103 probes pass
-over 98 fixtures; the full default suite and compiled Firespider host pass, as
-do all 18 startup regressions, all 42 Boot cases, and all six real EXE startup
-scenarios. Next investigate another bounded HTML/CSS compatibility slice while
-keeping reversed/custom counter styles, pseudo-element counter properties,
-typed/fallback attributes, quote/image/alternative generated content, general
-`::before`/`::after` boxes, marker-side, cross-item gutter alignment, author
-marker image sizing, SVG marker decoding, vertical writing modes, full Unicode
-bidi shaping, `dir=auto`, and general CSS/JavaScript evaluators outside the
-current boundary.
+Milestone 108 adds bounded terminal `::before`/`::after` and legacy
+`:before`/`:after` selectors without adding general pseudo boxes. Generated
+text reuses the marker content grammar, named counter snapshots, inherited
+text styling, compiled cascade, inline layout, link/value ownership, table
+paths, accessibility model, hover/media rebuilds, and retained form identity.
+Defining `be/af` and readable `beforestyle/afterstyle` commands accept a page or
+ID target through the same 1,024-character/16-declaration validator. Content
+stops at eight fragments and 128 UTF-16 units; attribute names stop at 64
+characters. Replaced and native controls suppress runs. See
+`GENERATED_CONTENT.md`. All 104 probes pass over 99 fixtures; the full engine
+suite, compiled Firespider host, all 18 startup regressions, all 42 Boot cases,
+and all six real EXE startup scenarios pass. Next
+investigate another bounded compatibility slice while keeping reversed/custom
+counter styles, pseudo-element counter properties, typed/fallback attributes,
+quote/image/alternative generated content, pseudo box-model/flex/grid items,
+marker-side, cross-item gutter alignment, author marker image sizing, SVG
+marker decoding, vertical writing modes, full Unicode bidi shaping, `dir=auto`,
+and general CSS/JavaScript evaluators outside the current boundary.
 
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host

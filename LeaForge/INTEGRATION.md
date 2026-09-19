@@ -381,6 +381,15 @@ Names are case-sensitive and stop at 32 ASCII characters; properties and active
 snapshots stop at eight entries and values at -999999..999999. Ordinary pages
 skip the pass. See `CSS_COUNTERS.md`.
 
+Terminal `::before`/`::after` and legacy `:before`/`:after` rules create
+inline `be/af` runs. Hosts can call `be(style)`/`af(style)` for the body or
+`be(id,style)`/`af(id,style)` for one element; readable
+`beforestyle`/`afterstyle` use the same forms. The value is bounded like marker
+style, while `content` reuses the eight-fragment/128-unit string, attribute,
+and named-counter grammar. Lea owns cascade, text styling, link/value/table
+ownership, LTR/RTL layout, hover/media rebuilds, accessibility, and paint. No
+host pseudo-element adapter is required. See `GENERATED_CONTENT.md`.
+
 `S.Ws` carries compact `n/nw/p/pw/pl` white-space modes. Lea preserves explicit
 spaces and line breaks for `pre`/`pre-wrap`, keeps line breaks while collapsing
 spaces for `pre-line`, and disables soft wrapping for `nowrap`/`pre`. `S.Ov`

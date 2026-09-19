@@ -116,6 +116,11 @@ namespace Lea.Tests
                     CssCounterSmoke(Path.Combine(pages, "css-counters.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--generated-content")
+                {
+                    GeneratedContentSmoke(Path.Combine(pages, "generated-content.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--text-align-last")
                 {
                     TextAlignLastSmoke(Path.Combine(pages, "text-align-last.html"));
@@ -2478,6 +2483,7 @@ namespace Lea.Tests
                 MarkerContentSmoke(Path.Combine(pages, "marker-content.html"));
                 MarkerCounterSmoke(Path.Combine(pages, "marker-counters.html"));
                 CssCounterSmoke(Path.Combine(pages, "css-counters.html"));
+                GeneratedContentSmoke(Path.Combine(pages, "generated-content.html"));
 
                 var recoveryPath = Path.Combine(pages, "recovery.html");
                 var recoveryPage = engine.Go(recoveryPath);
@@ -8829,6 +8835,169 @@ namespace Lea.Tests
             Console.WriteLine("Lea marker counter smoke passed: bounded counter/list-item styles, nested paths, limits, cascade, aliases, images, LTR/RTL geometry, tables, hover, media, and paint.");
         }
 
+        private static void GeneratedContentSmoke(string path)
+        {
+            var engine = new E { Vw = 720 };
+            var page = engine.Go(path);
+            Func<string, B> block = id => BlockById(page, id);
+
+            Eq("[BE] Basic text [AF]", block("basic").X, "before and after text order");
+            Ok(Run(block("basic"), "be").S.F == "#dc2626" && Run(block("basic"), "be").S.Fs == 22 &&
+                Run(block("basic"), "be").S.B && Run(block("basic"), "be").S.Ts != null &&
+                Run(block("basic"), "af").S.F == "#2563eb" && Run(block("basic"), "af").S.I && Run(block("basic"), "af").S.Ls == 1,
+                "generated text style model");
+            Eq("Legacy Legacy syntax done", block("legacy").X, "legacy single-colon pseudo syntax");
+            Eq("<A7> Attribute content", block("attribute").X, "attribute fragments and text transform");
+            Eq("&amp;Literal entity text", block("literal").X, "generated CSS text bypasses HTML entity decoding");
+            Eq("<safe> Attribute markup stays text", block("markup").X, "generated attribute markup remains text");
+            Ok(block("variable").X == "(V8)Variable fragments" && block("specific").X == "ID Specific cascade" &&
+                block("important").X == "High Important cascade", "variables specificity and important cascade");
+
+            var nested = block("nested");
+            Eq("P<Outer S<inner>S tail>P", nested.X, "nested generated content order");
+            Ok(RunCount(nested, "be") == 2 && RunCount(nested, "af") == 2 &&
+                Object.ReferenceEquals(nested.Is[0].El, ById(page.D, "nested")) &&
+                Object.ReferenceEquals(nested.Is[2].El, ById(page.D, "nested-span")), "nested generated run ownership");
+            Eq("Empty generated block", block("empty").X, "generated content creates an otherwise empty block");
+
+            var link = block("link");
+            Ok(link.X == "Open second page now" && Run(link, "be").U != null && Run(link, "af").U != null &&
+                Run(link, "be").U.AbsoluteUri.EndsWith("second.html", StringComparison.OrdinalIgnoreCase),
+                "generated link runs retain the active target");
+            Eq("Open second page now", engine.Ax(page, ById(page.D, "link")).N,
+                "generated link text reaches its accessible name");
+            Eq("Explicit destination", engine.Ax(page, ById(page.D, "labelled-link")).N,
+                "explicit accessible name owns generated link text");
+            Eq("[BE] Basic text [AF]", engine.Ax(page, ById(page.D, "basic")).N,
+                "generated paragraph text reaches its accessible name in order");
+            Ok(engine.Ax(page, ById(page.D, "empty")).K == "text" &&
+                engine.Ax(page, ById(page.D, "empty")).N == "Empty generated block",
+                "generated-only content reaches accessibility reading order");
+            Ok(block("counter-one").X == "Chapter 3: First counter [C]" &&
+                block("counter-two").X == "Chapter 4: Second counter [D]", "named counters in before and after content");
+            Eq("1. Tree one", block("tree-one").X, "generated outer counter start");
+            Eq("1.1. Tree inner one", block("tree-inner-one").X, "generated nested counter start");
+            Eq("1.2. Tree inner two", block("tree-inner-two").X, "generated nested counter increment");
+            Eq("2. Tree two", block("tree-two").X, "generated counters preserve nested scope");
+            Ok(block("list-item").Mk == "M " && block("list-item").X == "B Marker and generated text A" &&
+                RunCount(block("list-item"), "be") == 1 && RunCount(block("list-item"), "af") == 1,
+                "marker and generated content coexist");
+
+            Ok(RunCount(block("none"), "be") == 0 && RunCount(block("normal"), "af") == 0,
+                "none and normal suppress generated runs");
+            Eq("Keep Invalid content preserves prior value", block("invalid").X, "invalid content preserves earlier cascade value");
+            Ok(Run(block("eight"), "be").X == "12345678" && Run(block("nine"), "be").X == "Keep",
+                "generated content item bound");
+            Ok(Run(block("out128"), "be").X.Length == 128 && Run(block("out129"), "be").X == "Keep",
+                "generated output text bound");
+            Ok(Run(block("attr64"), "be").X == "A64" && Run(block("attr65"), "be").X == "Keep",
+                "generated attribute name bound");
+
+            var simpleCell = block("cell");
+            var nestedCell = block("cell-inner");
+            var cellLink = block("cell-link");
+            Ok(simpleCell.X == "Cell<T1> Simple cell done" && nestedCell.X == "Inner Nested cell" &&
+                cellLink.X == "Cell link" && Run(cellLink, "af").U != null, "generated content reaches table cell paths");
+            var value = ValueById(page, "value");
+            var valueLine = block("value-line");
+            Ok(valueLine.X == "Time At noon UTC." && Object.ReferenceEquals(Run(valueLine, "be").Dv, value) &&
+                Object.ReferenceEquals(Run(valueLine, "af").Dv, value), "generated runs preserve semantic value ownership");
+            Ok(RunCount(block("replaced"), "be") == 0 && RunCount(block("replaced"), "af") == 0 &&
+                FieldBlock(page, FieldById(page, "button-native")).Is.Count == 0,
+                "replaced content and native controls suppress pseudo runs");
+            Ok(block("rtl").S.Dr == "r" && block("rtl").X == "RTL-B Direction flow RTL-A",
+                "generated content follows RTL inline flow");
+
+            var retained = FieldById(page, "generated-field");
+            engine.Dy(page, ById(page.D, "dynamic"), null);
+            Ok(block("dynamic").X == "Hot Hover content" && Run(block("dynamic"), "be").S.F == "#dc2626",
+                "generated hover cascade");
+            engine.Dy(page, null, null);
+            Eq("Idle Hover content", block("dynamic").X, "generated hover restore");
+            Eq(1, engine.Ck(page, ById(page.D, "set-before")), "compact before command");
+            Ok(block("command").X == "CMDCompact command content" && Run(block("command"), "be").S.Fs == 24,
+                "compact before command model");
+            Eq(1, engine.Ck(page, ById(page.D, "clear-before")), "compact before clear");
+            Eq("CSS Compact command content", block("command").X, "before clear restores authored CSS");
+            Eq(1, engine.Ck(page, ById(page.D, "set-after")), "readable after command");
+            Ok(block("command-readable").X == "Readable command contentREAD" && Run(block("command-readable"), "af").S.I,
+                "readable after command model");
+            Eq(0, engine.Js(page, "be('command','content:attr(data-code number)');af('command-readable','content:url(no.png)')"),
+                "invalid generated commands rejected");
+            Ok(block("command").X == "CSS Compact command content" && block("command-readable").X == "Readable command contentREAD",
+                "invalid generated commands preserve state");
+            Eq(1, engine.Js(page, "be('content:\"Page \";color:#0f766e')"), "page before command");
+            Ok(block("page-body").X == "Page" && Run(block("page-body"), "be").S.F == "#0f766e",
+                "page before command creates a body run");
+            Eq(1, engine.Js(page, "be('')"), "page before clear");
+            Ok(!HasBlock(page, "page-body"), "page before clear removes the body run");
+            engine.Vw = 350;
+            Ok(block("responsive").X == "Responsive content Narrow" && Run(block("responsive"), "af").S.Fs == 20 &&
+                Object.ReferenceEquals(retained, FieldById(page, "generated-field")), "responsive generated content and field retention");
+
+            using (var view = new V())
+            {
+                view.Size = new Size(720, 5600);
+                var load = view.GoA(path);
+                while (!load.IsCompleted)
+                {
+                    Application.DoEvents();
+                    Thread.Sleep(2);
+                }
+                load.GetAwaiter().GetResult();
+                retained = FieldById(view.At, "generated-field");
+                Rectangle dynamicOuter;
+                using (var paint = Render(view))
+                {
+                    var basic = BlockById(view.At, "basic");
+                    var before = InlineKindRect(view, basic, "be");
+                    var after = InlineKindRect(view, basic, "af");
+                    Ok(before.Width > 0 && after.Width > 0 && before.Left < after.Left &&
+                        HasColor(paint, Rectangle.Inflate(before, 3, 3), Color.FromArgb(220, 38, 38)) &&
+                        HasColor(paint, Rectangle.Inflate(after, 3, 3), Color.FromArgb(37, 99, 235)),
+                        "generated before and after layout and paint");
+                    Ok(LinkBoxes(view, "second.html", true) >= 4 && Run(BlockById(view.At, "link"), "be").U != null,
+                        "generated link text contributes clickable boxes");
+                    Ok(InlineKindRect(view, BlockById(view.At, "cell"), "be").Width > 0 &&
+                        InlineKindRect(view, BlockById(view.At, "cell-inner"), "be").Width > 0,
+                        "generated table content reaches layout");
+                    Ok(InlineKindRect(view, BlockById(view.At, "rtl"), "be").Width > 0 &&
+                        InlineKindRect(view, BlockById(view.At, "rtl"), "af").Width > 0,
+                        "generated RTL content reaches layout");
+                    dynamicOuter = BlockOuterRect(view, BlockById(view.At, "dynamic"));
+                }
+
+                Move(view, dynamicOuter);
+                using (var paint = Render(view))
+                    Ok(BlockById(view.At, "dynamic").X == "Hot Hover content" &&
+                        InlineKindRect(view, BlockById(view.At, "dynamic"), "be").Width > 0,
+                        "generated hover reaches paint");
+                Move(view, new Point(0, 0));
+
+                Eq(1, view.Js("be('command','content:attr(data-code);color:#dc2626;font-size:24px')"),
+                    "view before command");
+                using (var paint = Render(view))
+                {
+                    var command = BlockById(view.At, "command");
+                    Ok(command.X == "CMDCompact command content" && InlineKindRect(view, command, "be").Width > 0,
+                        "view before command geometry");
+                }
+
+                retained.V = "Retained after generated resize";
+                view.Size = new Size(350, 7000);
+                Application.DoEvents();
+                using (var paint = Render(view))
+                {
+                    var responsive = BlockById(view.At, "responsive");
+                    Ok(responsive.X == "Responsive content Narrow" && InlineKindRect(view, responsive, "af").Width > 0,
+                        "responsive generated content geometry");
+                    Ok(Object.ReferenceEquals(retained, FieldById(view.At, "generated-field")) &&
+                        retained.V == "Retained after generated resize", "generated content resize retains field value");
+                }
+            }
+            Console.WriteLine("Lea generated content smoke passed: before/after syntax, styles, attributes, counters, limits, aliases, links, tables, semantics, accessibility, RTL, hover, media, retention, and paint.");
+        }
+
         private static void CssCounterSmoke(string path)
         {
             var engine = new E { Vw = 720 };
@@ -9541,6 +9710,13 @@ namespace Lea.Tests
         {
             foreach (var run in block.Is) if (run.K == kind) return run;
             throw new InvalidOperationException("inline run unavailable: " + kind);
+        }
+
+        private static int RunCount(B block, string kind)
+        {
+            var count = 0;
+            foreach (var run in block.Is) if (run.K == kind) count++;
+            return count;
         }
 
         private static void Click(V view, Rectangle rect)

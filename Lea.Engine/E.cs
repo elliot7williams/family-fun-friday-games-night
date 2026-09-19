@@ -1411,9 +1411,11 @@ namespace Lea.Engine
             p.S = Style(body, inherited, rules);
             MarkLists(body);
             var html = p.H ?? "";
-            p.Co = MarkCounters(p.D, rules, p.Cn || html.IndexOf("counter-", StringComparison.OrdinalIgnoreCase) >= 0, p.Co);
+            p.Co = MarkCounters(p.D, rules, p.Cn || html.IndexOf("counter", StringComparison.OrdinalIgnoreCase) >= 0, p.Co);
             if (html.IndexOf("<map", StringComparison.OrdinalIgnoreCase) >= 0) BuildMaps(p, body, p.Bu ?? p.U);
+            AddPageGeneratedBlock(p, body, rules, p.S, 'b');
             foreach (var child in body.C) Blocks(p, child, p.Bu ?? p.U, rules, p.S);
+            AddPageGeneratedBlock(p, body, rules, p.S, 'a');
             LinkBlocks(p);
             MarkDisclosures(p);
             BuildAccessibility(p, body, rules);
@@ -1431,7 +1433,9 @@ namespace Lea.Engine
 
             var root = new Ax { K = "document", N = BoundValue(page.T, MaxAccessibilityText), El = body };
             page.Axs.Add(root);
+            AddGeneratedAccessibility(data, body, root, false, "be");
             foreach (var child in body.C) AddAccessibility(data, child, page.S, rules, root, false);
+            AddGeneratedAccessibility(data, body, root, false, "af");
         }
 
         private static void IndexAccessibility(N node, Axc data)
@@ -1501,11 +1505,42 @@ namespace Lea.Engine
 
             var childParent = current;
             var childSuppress = suppressText || current != parent && AccessibilityConsumesText(role);
+            AddGeneratedAccessibility(data, node, childParent, childSuppress, "be");
             foreach (var child in node.C)
             {
                 if (data.P.Axs.Count == MaxAccessibilityNodes) break;
                 AddAccessibility(data, child, style, rules, childParent, childSuppress);
             }
+            AddGeneratedAccessibility(data, node, childParent, childSuppress, "af");
+        }
+
+        private static void AddGeneratedAccessibility(Axc data, N node, Ax parent, bool suppress, string kind)
+        {
+            if (suppress || data.P.Axs.Count == MaxAccessibilityNodes) return;
+            var value = AccessibilityGeneratedText(node, data, kind);
+            if (value.Length > 0) data.P.Axs.Add(new Ax { K = "text", N = value, El = node, Up = parent });
+        }
+
+        private static string AccessibilityGeneratedText(N node, Axc data, string kind)
+        {
+            var result = new StringBuilder();
+            foreach (var block in data.P.Bs)
+                foreach (var run in block.Is)
+                    if (run.K == kind && Object.ReferenceEquals(run.El, node)) AppendAccessibilityText(result, run.X);
+            return BoundValue(result.ToString(), MaxAccessibilityText);
+        }
+
+        private static string AccessibilityRenderedText(N node, Axc data)
+        {
+            var result = new StringBuilder();
+            foreach (var block in data.P.Bs)
+            {
+                var text = new StringBuilder();
+                foreach (var run in block.Is)
+                    if (run.El != null && Owns(node, run.El)) text.Append(run.K == "br" ? " " : run.X);
+                AppendAccessibilityText(result, text.ToString());
+            }
+            return BoundValue(result.ToString(), MaxAccessibilityText);
         }
 
         private static string AccessibilityRole(N node, Axc data)
@@ -1631,7 +1666,8 @@ namespace Lea.Engine
             }
             if (AccessibilityNameFromContent(role))
             {
-                value = BoundValue(Clean(NodeText(node)), MaxAccessibilityText);
+                value = AccessibilityRenderedText(node, data);
+                if (value.Length == 0) value = BoundValue(Clean(NodeText(node)), MaxAccessibilityText);
                 if (value.Length > 0) return value;
             }
             if (node.A.ContainsKey("title")) return BoundValue(Clean(node.Av("title")), MaxAccessibilityText);
@@ -2430,10 +2466,10 @@ namespace Lea.Engine
                 if (rules.Count >= limit) return;
                 var query = selector.Trim();
                 var matchQuery = query;
-                bool marker;
+                char pseudo;
                 var parts = new List<string>();
                 var joins = new List<char>();
-                if (query.Length == 0 || !CssMarkerSelector(query, out matchQuery, out marker) || !CssParts(matchQuery, parts, joins)) continue;
+                if (query.Length == 0 || !CssPseudoSelector(query, out matchQuery, out pseudo) || !CssParts(matchQuery, parts, joins)) continue;
                 var simple = new List<Se>();
                 foreach (var part in parts)
                 {
@@ -2442,17 +2478,21 @@ namespace Lea.Engine
                     simple.Add(value);
                 }
                 if (simple.Count == parts.Count)
-                    rules.Add(new R(query, declarations, origin, Spec(simple) + (marker ? 1 : 0), order++, simple.ToArray(), joins.ToArray(), media, marker));
+                    rules.Add(new R(query, declarations, origin, Spec(simple) + (pseudo == '\0' ? 0 : 1), order++, simple.ToArray(), joins.ToArray(), media, pseudo));
             }
         }
 
-        private static bool CssMarkerSelector(string query, out string selector, out bool marker)
+        private static bool CssPseudoSelector(string query, out string selector, out char pseudo)
         {
             selector = query ?? "";
-            marker = false;
-            const string suffix = "::marker";
-            if (!selector.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)) return true;
-            marker = true;
+            pseudo = '\0';
+            var suffix = "";
+            if (selector.EndsWith("::marker", StringComparison.OrdinalIgnoreCase)) { pseudo = 'm'; suffix = "::marker"; }
+            else if (selector.EndsWith("::before", StringComparison.OrdinalIgnoreCase)) { pseudo = 'b'; suffix = "::before"; }
+            else if (selector.EndsWith("::after", StringComparison.OrdinalIgnoreCase)) { pseudo = 'a'; suffix = "::after"; }
+            else if (selector.EndsWith(":before", StringComparison.OrdinalIgnoreCase)) { pseudo = 'b'; suffix = ":before"; }
+            else if (selector.EndsWith(":after", StringComparison.OrdinalIgnoreCase)) { pseudo = 'a'; suffix = ":after"; }
+            if (pseudo == '\0') return selector.IndexOf("::", StringComparison.Ordinal) < 0;
             selector = selector.Substring(0, selector.Length - suffix.Length);
             if (selector.Length == 0) selector = "*";
             else
@@ -3383,7 +3423,7 @@ namespace Lea.Engine
             var style = inherited == null ? new S() : inherited.Inherit();
             var matched = new List<R>();
             foreach (var rule in rules)
-                if (!rule.Pm && MatchCss(node, rule)) matched.Add(rule);
+                if (rule.Ps == '\0' && MatchCss(node, rule)) matched.Add(rule);
             var inline = CssDeclarations(node.Av("style"), StyleOrigin(node));
             foreach (var rule in matched) Custom(style, inherited, rule.Ds, false);
             Custom(style, inherited, inline, false);
@@ -3408,11 +3448,23 @@ namespace Lea.Engine
 
         private static S MarkerStyle(N node, S inherited, List<R> rules)
         {
+            return PseudoStyle(node, inherited, rules, 'm', MarkerDefaults(node));
+        }
+
+        private static S GeneratedStyle(N node, S inherited, List<R> rules, char pseudo)
+        {
+            return PseudoStyle(node, inherited, rules, pseudo, NoDeclarations);
+        }
+
+        private static S PseudoStyle(N node, S inherited, List<R> rules, char pseudo, Pd[] defaults)
+        {
             var style = inherited == null ? new S() : inherited.Inherit();
-            style.Tt = "n";
-            style.Ws = "p";
-            style.Wm = "n";
-            var defaults = MarkerDefaults(node);
+            if (pseudo == 'm')
+            {
+                style.Tt = "n";
+                style.Ws = "p";
+                style.Wm = "n";
+            }
             var baseDirection = style.Dr;
             Custom(style, inherited, defaults, false);
             Custom(style, inherited, defaults, true);
@@ -3422,8 +3474,9 @@ namespace Lea.Engine
             MarkerDecls(style, inherited, node, defaults, true);
             var matched = new List<R>();
             foreach (var rule in rules)
-                if (rule.Pm && MatchCss(node, rule)) matched.Add(rule);
-            var inline = CssDeclarations(node.Av("data-lea-marker-style"), StyleOrigin(node));
+                if (rule.Ps == pseudo && MatchCss(node, rule)) matched.Add(rule);
+            var attribute = pseudo == 'm' ? "data-lea-marker-style" : pseudo == 'b' ? "data-lea-before-style" : "data-lea-after-style";
+            var inline = CssDeclarations(node.Av(attribute), StyleOrigin(node));
             foreach (var rule in matched) Custom(style, inherited, rule.Ds, false);
             Custom(style, inherited, inline, false);
             foreach (var rule in matched) Custom(style, inherited, rule.Ds, true);
@@ -7774,7 +7827,9 @@ namespace Lea.Engine
                 if (href.Length > 0 && TryUri(baseUrl, href, out link))
                 {
                     page.Ls.Add(new Ln { U = link, T = Clean(text) });
-                    page.Bs.Add(new B { K = kind, X = text.Length == 0 ? link.ToString() : text, U = link, S = style, El = node });
+                    var block = new B { K = kind, X = text.Length == 0 ? link.ToString() : text, U = link, S = style, El = node };
+                    AddBlockInlines(page, block, node, baseUrl, rules, style, link, kind);
+                    page.Bs.Add(block);
                 }
                 return;
             }
@@ -7792,16 +7847,9 @@ namespace Lea.Engine
             else if (IsTextBlock(kind) || IsContainerBlock(kind) || Flex(style) || Grid(style))
             {
                 var text = TextValue(Flex(style) || Grid(style) ? DirectText(node) : BlockText(node, PreservesLines(style)), style);
-                var markerStyle = kind == "li" ? MarkerStyle(node, style, rules) : null;
+                var markerStyle = kind == "li" ? node.Gm ?? MarkerStyle(node, style, rules) : null;
                 var block = new B { K = kind, X = text, Mk = ListMarker(node, style, markerStyle), Ms = markerStyle, S = style, El = node };
-                if (!Flex(style) && !Grid(style) && HasInlineStructure(node))
-                {
-                    var inlineStyle = style.Inherit();
-                    if (IsHeading(kind)) inlineStyle.B = true;
-                    foreach (var child in node.C) AddInline(page, block, child, baseUrl, rules, inlineStyle, null, kind);
-                    NormalizeInlines(block);
-                    block.X = InlineText(block);
-                }
+                if (!Flex(style) && !Grid(style)) AddBlockInlines(page, block, node, baseUrl, rules, style, null, kind);
                 if (block.X.Length > 0 || block.Is.Count > 0 || HasMarkerContent(block) || LayoutContext(style) || (IsContainerBlock(kind) && VisualContext(style))) page.Bs.Add(block);
                 AddNestedBlocks(page, node, baseUrl, rules, style);
                 return;
@@ -9233,12 +9281,7 @@ namespace Lea.Engine
             var text = TextValue(RawText(node), style);
             var model = ValueModel(page, node, text, baseUrl);
             var block = new B { K = node.K, X = text, S = style, Dv = model, El = node };
-            if (HasInlineStructure(node))
-            {
-                foreach (var child in node.C) AddInline(page, block, child, baseUrl, rules, style.Inherit(), null, node.K, model);
-                NormalizeInlines(block);
-                block.X = InlineText(block);
-            }
+            AddBlockInlines(page, block, node, baseUrl, rules, style, null, node.K, model);
             return block;
         }
 
@@ -9495,9 +9538,9 @@ namespace Lea.Engine
         {
             if (inline) return true;
             foreach (var rule in rules)
-                if (!rule.Pm)
-                    foreach (var declaration in rule.Ds)
-                        if (!declaration.C && (declaration.N == "counter-reset" || declaration.N == "counter-increment" || declaration.N == "counter-set")) return true;
+                foreach (var declaration in rule.Ds)
+                    if (!declaration.C && (rule.Ps == '\0' && (declaration.N == "counter-reset" || declaration.N == "counter-increment" || declaration.N == "counter-set") ||
+                        rule.Ps != '\0' && declaration.N == "content" && declaration.V.IndexOf("counter", StringComparison.OrdinalIgnoreCase) >= 0)) return true;
             return false;
         }
 
@@ -9505,17 +9548,22 @@ namespace Lea.Engine
         {
             if (node == null) return;
             node.Ct = null;
+            node.Cx = null;
+            node.Gb = null;
+            node.Ga = null;
+            node.Gm = null;
             foreach (var child in node.C) ClearCounters(child);
         }
 
         private static void CounterWalk(N node, S inherited, List<R> rules, ref N previous)
         {
             var source = PreviousElement(node) ?? node.Up;
-            var counters = CounterInherited(source == null ? null : source.Ct, previous == null ? null : previous.Ct);
+            var counters = CounterInherited(CounterState(source), CounterState(previous));
             node.Ct = counters.Count == 0 ? null : counters;
             var style = Style(node, inherited, rules);
             if (style.D == "none" || CounterNoBox(node.K))
             {
+                node.Cx = CounterCopy(node.Ct);
                 previous = node;
                 foreach (var child in node.C) ClearCounters(child);
                 return;
@@ -9524,10 +9572,46 @@ namespace Lea.Engine
             CounterApply(counters, node, style.Ci, 1);
             CounterApply(counters, node, style.Cs, 2);
             node.Ct = counters.Count == 0 ? null : counters;
+            if (node.K == "li") node.Gm = MarkerStyle(node, style, rules);
+            node.Gb = GeneratedContentStyle(GeneratedStyle(node, style, rules, 'b'));
             previous = node;
-            if (node.K == "li") MarkerStyle(node, style, rules);
             foreach (var child in node.C)
                 if (child.K.Length > 0 && child.K[0] != '#') CounterWalk(child, style, rules, ref previous);
+            var last = LastElementChild(node);
+            var after = last == null ? CounterCopy(node.Ct) : CounterInherited(CounterState(last), CounterState(previous));
+            var entry = node.Ct;
+            node.Ct = after.Count == 0 ? null : after;
+            node.Ga = GeneratedContentStyle(GeneratedStyle(node, style, rules, 'a'));
+            after = CounterCopy(node.Ct);
+            node.Ct = entry;
+            var exit = CounterInherited(entry, after);
+            node.Cx = exit.Count == 0 ? null : exit;
+            previous = node;
+        }
+
+        private static List<Cn> CounterState(N node)
+        {
+            return node == null ? null : node.Cx ?? node.Ct;
+        }
+
+        private static List<Cn> CounterCopy(List<Cn> counters)
+        {
+            var result = new List<Cn>();
+            if (counters != null) foreach (var counter in counters) result.Add(counter.Copy());
+            return result;
+        }
+
+        private static N LastElementChild(N node)
+        {
+            if (node == null) return null;
+            for (var index = node.C.Count - 1; index >= 0; index--)
+                if (node.C[index].K.Length > 0 && node.C[index].K[0] != '#') return node.C[index];
+            return null;
+        }
+
+        private static S GeneratedContentStyle(S style)
+        {
+            return style != null && !style.Mn && style.Mc != null ? style : null;
         }
 
         private static bool CounterNoBox(string kind)
@@ -9793,6 +9877,52 @@ namespace Lea.Engine
             return false;
         }
 
+        private static void AddBlockInlines(P page, B block, N node, Uri baseUrl, List<R> rules, S style, Uri activeLink, string kind, Dv value = null)
+        {
+            var before = GeneratedRunStyle(node, style, rules, 'b');
+            var after = GeneratedRunStyle(node, style, rules, 'a');
+            if (!HasInlineStructure(node) && before == null && after == null) return;
+            var inlineStyle = style.Inherit();
+            if (IsHeading(kind)) inlineStyle.B = true;
+            AddGeneratedRun(block, node, before, activeLink, 'b', value);
+            foreach (var child in node.C) AddInline(page, block, child, baseUrl, rules, inlineStyle, activeLink, kind, value);
+            AddGeneratedRun(block, node, after, activeLink, 'a', value);
+            NormalizeInlines(block);
+            block.X = InlineText(block);
+        }
+
+        private static S GeneratedRunStyle(N node, S inherited, List<R> rules, char pseudo)
+        {
+            if (node == null || !GeneratedHost(node.K)) return null;
+            var cached = pseudo == 'b' ? node.Gb : node.Ga;
+            return cached ?? GeneratedContentStyle(GeneratedStyle(node, inherited, rules, pseudo));
+        }
+
+        private static bool GeneratedHost(string kind)
+        {
+            return kind != "img" && kind != "input" && kind != "textarea" && kind != "select" && kind != "button" &&
+                kind != "progress" && kind != "meter" && kind != "picture" && kind != "svg" && kind != "canvas" &&
+                kind != "video" && kind != "audio" && kind != "iframe" && kind != "object" && kind != "embed" &&
+                kind != "br" && kind != "hr";
+        }
+
+        private static void AddGeneratedRun(B block, N node, S style, Uri activeLink, char pseudo, Dv value = null)
+        {
+            if (style == null || String.IsNullOrEmpty(style.Mc)) return;
+            block.Is.Add(new Ir { K = pseudo == 'b' ? "be" : "af", X = style.Mc, U = activeLink, S = style, Dv = value, El = node });
+        }
+
+        private static void AddPageGeneratedBlock(P page, N node, List<R> rules, S inherited, char pseudo)
+        {
+            var style = GeneratedRunStyle(node, inherited, rules, pseudo);
+            if (style == null || String.IsNullOrEmpty(style.Mc)) return;
+            var block = new B { K = "body", X = "", S = inherited, El = node };
+            AddGeneratedRun(block, node, style, null, pseudo);
+            NormalizeInlines(block);
+            block.X = InlineText(block);
+            if (block.X.Length > 0 || block.Is.Count > 0) page.Bs.Add(block);
+        }
+
         private static void AddInline(P page, B block, N node, Uri baseUrl, List<R> rules, S inherited, Uri activeLink, string inheritedKind, Dv inheritedValue = null)
         {
             if (node.K == "#text")
@@ -9827,7 +9957,12 @@ namespace Lea.Engine
             }
 
             var first = block.Is.Count;
-            if (node.K != "img") foreach (var child in node.C) AddInline(page, block, child, baseUrl, rules, style, link, kind, value);
+            if (GeneratedHost(node.K))
+            {
+                AddGeneratedRun(block, node, GeneratedRunStyle(node, style, rules, 'b'), link, 'b', value);
+                foreach (var child in node.C) AddInline(page, block, child, baseUrl, rules, style, link, kind, value);
+                AddGeneratedRun(block, node, GeneratedRunStyle(node, style, rules, 'a'), link, 'a', value);
+            }
             if (node.K == "a" && link != null && block.Is.Count == first)
                 block.Is.Add(new Ir { K = "a", X = link.ToString(), U = link, S = style, El = node });
         }
@@ -9839,7 +9974,7 @@ namespace Lea.Engine
             {
                 foreach (var run in block.Is)
                 {
-                    if (run.K != "br") run.X = Tx(TextSpace(WebUtility.HtmlDecode(run.X ?? ""), block.S), run.S);
+                    if (run.K != "br") run.X = Tx(TextSpace(GeneratedRun(run) ? run.X ?? "" : WebUtility.HtmlDecode(run.X ?? ""), block.S), run.S);
                     if (run.K != "br" && run.X.Length == 0) continue;
                     var previous = clean.Count == 0 ? null : clean[clean.Count - 1];
                     if (previous != null && previous.K != "br" && previous.K == run.K && previous.U == run.U && Object.ReferenceEquals(previous.S, run.S) && Object.ReferenceEquals(previous.Dv, run.Dv) && Object.ReferenceEquals(previous.El, run.El)) previous.X += run.X;
@@ -9862,7 +9997,7 @@ namespace Lea.Engine
                     continue;
                 }
 
-                var value = WebUtility.HtmlDecode(run.X ?? "");
+                var value = GeneratedRun(run) ? run.X ?? "" : WebUtility.HtmlDecode(run.X ?? "");
                 var text = new StringBuilder();
                 foreach (var ch in value)
                 {
@@ -9887,6 +10022,11 @@ namespace Lea.Engine
             }
             block.Is.Clear();
             foreach (var run in clean) block.Is.Add(run);
+        }
+
+        private static bool GeneratedRun(Ir run)
+        {
+            return run != null && (run.K == "be" || run.K == "af");
         }
 
         private static string InlineText(B block)
@@ -9934,7 +10074,18 @@ namespace Lea.Engine
                     if (!Int32.TryParse(child.Av("colspan"), out span)) span = 1;
                     span = Math.Max(1, Math.Min(16, span));
                     var cell = new Tc { X = TextValue(RawText(child), cellStyle), S = cellStyle, H = child.K == "th", Sp = span, El = child };
-                    AddCellBlocks(page, cell, child, baseUrl, rules, cellStyle, child.K);
+                    if (HasCellStructure(child))
+                    {
+                        AddCellGeneratedBlock(cell, child, rules, cellStyle, child.K, 'b');
+                        AddCellBlocks(page, cell, child, baseUrl, rules, cellStyle, child.K);
+                        AddCellGeneratedBlock(cell, child, rules, cellStyle, child.K, 'a');
+                    }
+                    else
+                    {
+                        var block = new B { K = child.K, X = cell.X, S = cellStyle, El = child };
+                        AddBlockInlines(page, block, child, baseUrl, rules, cellStyle, null, child.K);
+                        if (block.X.Length > 0 || block.Is.Count > 0) cell.Bs.Add(block);
+                    }
                     if (cell.Bs.Count == 0 && cell.X.Length > 0) cell.Bs.Add(new B { K = child.K, X = cell.X, S = cellStyle, El = child });
                     row.Cs.Add(cell);
                     columns += span;
@@ -9986,7 +10137,9 @@ namespace Lea.Engine
                     {
                         if (text.Length == 0) text = link.ToString();
                         page.Ls.Add(new Ln { U = link, T = Clean(text) });
-                        cell.Bs.Add(new B { K = "a", X = text, U = link, S = style, El = child });
+                        var block = new B { K = "a", X = text, U = link, S = style, El = child };
+                        AddBlockInlines(page, block, child, baseUrl, rules, style, link, "a");
+                        cell.Bs.Add(block);
                     }
                     continue;
                 }
@@ -10006,15 +10159,32 @@ namespace Lea.Engine
                 if (!nested)
                 {
                     var text = TextValue(RawText(child), style);
-                    if (text.Length > 0)
+                    var before = GeneratedRunStyle(child, style, rules, 'b');
+                    var after = GeneratedRunStyle(child, style, rules, 'a');
+                    if (text.Length > 0 || before != null || after != null)
                     {
-                        var markerStyle = child.K == "li" ? MarkerStyle(child, style, rules) : null;
-                        cell.Bs.Add(new B { K = CellKind(child.K, fallback), X = text, Mk = ListMarker(child, style, markerStyle), Ms = markerStyle, S = style, El = child });
+                        var markerStyle = child.K == "li" ? child.Gm ?? MarkerStyle(child, style, rules) : null;
+                        var block = new B { K = CellKind(child.K, fallback), X = text, Mk = ListMarker(child, style, markerStyle), Ms = markerStyle, S = style, El = child };
+                        AddBlockInlines(page, block, child, baseUrl, rules, style, null, block.K);
+                        if (block.X.Length > 0 || block.Is.Count > 0 || HasMarkerContent(block)) cell.Bs.Add(block);
                     }
                     continue;
                 }
+                AddCellGeneratedBlock(cell, child, rules, style, CellKind(child.K, fallback), 'b');
                 AddCellBlocks(page, cell, child, baseUrl, rules, style, CellKind(child.K, fallback));
+                AddCellGeneratedBlock(cell, child, rules, style, CellKind(child.K, fallback), 'a');
             }
+        }
+
+        private static void AddCellGeneratedBlock(Tc cell, N node, List<R> rules, S inherited, string kind, char pseudo)
+        {
+            var style = GeneratedRunStyle(node, inherited, rules, pseudo);
+            if (style == null || String.IsNullOrEmpty(style.Mc)) return;
+            var block = new B { K = kind, X = "", S = inherited, El = node };
+            AddGeneratedRun(block, node, style, null, pseudo);
+            NormalizeInlines(block);
+            block.X = InlineText(block);
+            if (block.X.Length > 0 || block.Is.Count > 0) cell.Bs.Add(block);
         }
 
         private static bool HasCellStructure(N node)
@@ -10621,20 +10791,21 @@ namespace Lea.Engine
             public readonly Mc[] M;
             public readonly string Md;
             public readonly Pd[] Ds;
-            public readonly bool Pm;
+            public readonly char Ps;
+            public bool Pm { get { return Ps == 'm'; } }
 
             public R(R rule, int order)
             {
                 Q = rule.Q; V = rule.V; W = rule.W; O = order;
-                P = rule.P; J = rule.J; M = rule.M; Md = rule.Md; Ds = rule.Ds; Pm = rule.Pm;
+                P = rule.P; J = rule.J; M = rule.M; Md = rule.Md; Ds = rule.Ds; Ps = rule.Ps;
             }
 
             public R(string query, string values, int weight, int order, Se[] parts, char[] joins)
-                : this(query, values, null, weight, order, parts, joins, new Mc[] { new Mc(0, 0) }, false)
+                : this(query, values, null, weight, order, parts, joins, new Mc[] { new Mc(0, 0) }, '\0')
             {
             }
 
-            public R(string query, string values, Uri origin, int weight, int order, Se[] parts, char[] joins, Mc[] media, bool marker)
+            public R(string query, string values, Uri origin, int weight, int order, Se[] parts, char[] joins, Mc[] media, char pseudo)
             {
                 Q = query;
                 V = values;
@@ -10643,7 +10814,7 @@ namespace Lea.Engine
                 P = parts;
                 J = joins;
                 M = media ?? new Mc[0];
-                Pm = marker;
+                Ps = pseudo;
                 Ds = CssDeclarations(values, origin);
                 var labels = new List<string>();
                 foreach (var condition in M)
