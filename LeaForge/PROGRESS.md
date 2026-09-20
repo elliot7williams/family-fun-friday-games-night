@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **114**
+Post-1.0 hardening milestones completed: **115**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,28 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded modern media comparison ranges for width, height, and reduced
+  integer aspect ratios. Feature-first, value-first, equality, and
+  same-direction ascending/descending chains accept `<`, `<=`, `=`, `>=`, and
+  `>` while retaining strict boundaries through nested intersections. They
+  compose with legacy min/max syntax, orientation, conjunctions, comma
+  alternatives, nesting, and `<style media>`. Mixed-direction chains,
+  non-pixel dimensions, malformed/zero ratios, over-bound terms, unknown
+  features, and empty equal-edge intersections stay inactive. Diagnostics
+  preserve exact operators through compact `@m/@h/@r` labels, and responsive
+  rebuilds retain mutable fields. The focused and full engine suites and full
+  compiled Firespider host pass, including all 18 startup regressions and live
+  wide, tall, intermediate, equality, strict-boundary, geometry, diagnostic,
+  and retention checks. All 42 Boot cases and all six real EXE startup
+  scenarios remain responsive without a legacy engine, invalid cast, JIT
+  dialog, or dead startup window. All 111 benchmark probes pass over 105
+  fixtures.
+  Three-round diagnostic medians are 608.299 ms clean start, 6.690 ms local
+  load, and 47.917 ms layout/paint. Retained managed memory is 28,710.9 KiB for
+  420 pages, or 68.4 KiB/page. Required runtime files are 631.5 KiB with a
+  262.6 KiB GZip estimate. Runtime 215 is packaged separately and installed
+  runtime 157 remains unchanged. See `MEDIA_RANGE_SYNTAX.md`.
 
 - Added bounded exact, minimum, and maximum viewport aspect-ratio media
   conditions. Positive numerator and denominator terms stop at 8,192, reduce

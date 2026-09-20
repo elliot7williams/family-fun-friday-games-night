@@ -958,10 +958,13 @@ exact `width`, `min-height`, `max-height`, exact `height`, and
 `orientation:portrait/landscape`, and integer `aspect-ratio`,
 `min-aspect-ratio`, or `max-aspect-ratio`, plus conjunctions, comma
 alternatives, four nested `@media` levels, up to eight resulting alternatives,
-and `<style media>`. A square viewport is portrait. Print, negated, unknown,
-non-pixel, and malformed ratio conditions stay inactive. Active diagnostic CSS
-lines use short `@m`, `@h`, `@r`, and `@o` prefixes. See
-`MEDIA_FEATURES.md` and `MEDIA_ASPECT_RATIO.md`.
+and `<style media>`. Modern `<`, `<=`, `=`, `>=`, and `>` comparisons accept
+feature-first, value-first, and same-direction chained width, height, and
+integer-ratio forms. Strict boundaries survive nested intersections. A square
+viewport is portrait. Print, negated, unknown, non-pixel, mixed-direction, and
+malformed ratio conditions stay inactive. Active diagnostic CSS lines use
+short `@m`, `@h`, `@r`, and `@o` prefixes. See `MEDIA_FEATURES.md`,
+`MEDIA_ASPECT_RATIO.md`, and `MEDIA_RANGE_SYNTAX.md`.
 
 Computed styles expose bounded custom properties through `S.Vc` (count) and
 `S.Cv(name)` (case-sensitive raw lookup). `G.Vc` reports the body/document count

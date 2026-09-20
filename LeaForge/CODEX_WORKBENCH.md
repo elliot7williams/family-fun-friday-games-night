@@ -17,21 +17,21 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 114 adds bounded exact/min/max viewport aspect-ratio queries to Lea's
-existing media compiler. Positive integer fractions reduce by GCD and compare
-through bounded 64-bit cross multiplication. Ratios compose with width, height,
-orientation, alternatives, nested intersections, and `<style media>`; invalid
-and empty ranges stay inactive, diagnostics use compact `@r`, and responsive
-rebuilds retain fields. All 110 benchmark probes pass over 104 fixtures. The
+Milestone 115 adds bounded modern media range syntax to Lea's shared compiled
+conditions. Width, height, and reduced integer aspect ratios accept
+feature-first, value-first, equality, and same-direction ascending/descending
+chains with exact strict or inclusive boundaries. They compose with legacy
+min/max syntax, orientation, alternatives, nesting, and `<style media>`;
+invalid, mixed-direction, over-bound, and empty ranges stay inactive. Compact
+diagnostics retain `<`, `<=`, `=`, `>=`, and `>` semantics, and responsive
+rebuilds retain fields. All 111 benchmark probes pass over 105 fixtures. The
 focused and full engine suites, full compiled host suite, all 18 startup
 regressions, all 42 Boot cases, and all six real EXE startup scenarios are
-green. The Boot edit case now disables hover editing before menu selection so
-queued Windows hover messages cannot race the assertion. Three-round diagnostic
-medians are 531.850 ms clean start, 5.337 ms local load, and 44.649 ms
-layout/paint; retained memory is 68.4 KiB/page and the required runtime is
-626.0 KiB. Runtime 214 is packaged separately and installed runtime 157 remains
-unchanged. See `MEDIA_ASPECT_RATIO.md`. General media features, continuous range
-syntax, device ratios, and container
+green. Three-round diagnostic medians are 608.299 ms clean start, 6.690 ms local
+load, and 47.917 ms layout/paint; retained memory is 68.4 KiB/page and the
+required runtime is 631.5 KiB. Runtime 215 is packaged separately and installed
+runtime 157 remains unchanged. See `MEDIA_RANGE_SYNTAX.md`. General media
+features, device ratios, and container
 queries, locale-sensitive automatic quote selection, typed/unquoted/functional
 attribute fallbacks, pseudo box-model/flex/grid items, generated image
 functions and sizing, arbitrary CSSOM, reversed/custom counters, vertical

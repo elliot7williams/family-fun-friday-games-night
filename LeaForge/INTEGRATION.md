@@ -708,11 +708,13 @@ forwards its client pair and rebuilds only when a media boundary changes.
 Existing `Fi` objects and mutable values survive that rebuild. The bounded
 compiler accepts `screen`/`all` with pixel min/max/exact width and height,
 portrait/landscape orientation, bounded reduced integer min/max/exact aspect
-ratios, conjunctions, comma alternatives, nested `@media`, and
-`<style media>`. Dimensions and ratio terms clamp to 1-8,192; a square is
-portrait; query alternatives, nesting, and total rules are capped at 8, 4, and
-1,024. Unsupported media stays inactive instead of silently behaving as screen
-CSS. See `MEDIA_FEATURES.md` and `MEDIA_ASPECT_RATIO.md`.
+ratios, and strict/inclusive feature-first, value-first, or same-direction
+chained comparisons. These compose with conjunctions, comma alternatives,
+nested `@media`, and `<style media>`. Dimensions and ratio terms clamp to
+1-8,192; a square is portrait; query alternatives, nesting, and total rules are
+capped at 8, 4, and 1,024. Unsupported media stays inactive instead of silently
+behaving as screen CSS. See `MEDIA_FEATURES.md`, `MEDIA_ASPECT_RATIO.md`, and
+`MEDIA_RANGE_SYNTAX.md`.
 
 Responsive dimension tuples expose `Wu/Wnu/Wxu` and `Hu/Hnu/Hxu` unit codes:
 `0` is containing percentage, `1` is `vw`, `2` is `vh`, `3` is `vmin`, and `4`

@@ -2671,6 +2671,12 @@ namespace Lea.Engine
             if (source.Length == 0) return new Mc[] { new Mc(0, 0) };
             var result = new List<Mc>();
             var groups = 0;
+            const string dimensionChainPattern = "\\(\\s*(?<an>[0-9]{1,4})\\s*px\\s*(?<ao><=|>=|<|>)\\s*(?<k>width|height)\\s*(?<bo><=|>=|<|>)\\s*(?<bn>[0-9]{1,4})\\s*px\\s*\\)";
+            const string dimensionFeaturePattern = "\\(\\s*(?<k>width|height)\\s*(?<o><=|>=|=|<|>)\\s*(?<n>[0-9]{1,4})\\s*px\\s*\\)";
+            const string dimensionValuePattern = "\\(\\s*(?<n>[0-9]{1,4})\\s*px\\s*(?<o><=|>=|=|<|>)\\s*(?<k>width|height)\\s*\\)";
+            const string ratioChainPattern = "\\(\\s*(?<an>[0-9]{1,4})\\s*/\\s*(?<ad>[0-9]{1,4})\\s*(?<ao><=|>=|<|>)\\s*aspect-ratio\\s*(?<bo><=|>=|<|>)\\s*(?<bn>[0-9]{1,4})\\s*/\\s*(?<bd>[0-9]{1,4})\\s*\\)";
+            const string ratioFeaturePattern = "\\(\\s*aspect-ratio\\s*(?<o><=|>=|=|<|>)\\s*(?<n>[0-9]{1,4})\\s*/\\s*(?<d>[0-9]{1,4})\\s*\\)";
+            const string ratioValuePattern = "\\(\\s*(?<n>[0-9]{1,4})\\s*/\\s*(?<d>[0-9]{1,4})\\s*(?<o><=|>=|=|<|>)\\s*aspect-ratio\\s*\\)";
             foreach (var item in CssGroups(source))
             {
                 if (++groups > MaxMediaGroups) return new Mc[0];
@@ -2679,35 +2685,39 @@ namespace Lea.Engine
                 var matches = Regex.Matches(query, "\\(\\s*(?<k>min-width|max-width|width|min-height|max-height|height)\\s*:\\s*(?<n>[0-9]{1,4})\\s*px\\s*\\)", RegexOptions.IgnoreCase);
                 var orientations = Regex.Matches(query, "\\(\\s*orientation\\s*:\\s*(?<o>portrait|landscape)\\s*\\)", RegexOptions.IgnoreCase);
                 var ratios = Regex.Matches(query, "\\(\\s*(?<k>min-aspect-ratio|max-aspect-ratio|aspect-ratio)\\s*:\\s*(?<n>[0-9]{1,4})\\s*/\\s*(?<d>[0-9]{1,4})\\s*\\)", RegexOptions.IgnoreCase);
+                var dimensionChains = Regex.Matches(query, dimensionChainPattern, RegexOptions.IgnoreCase);
+                var dimensionFeatures = Regex.Matches(query, dimensionFeaturePattern, RegexOptions.IgnoreCase);
+                var dimensionValues = Regex.Matches(query, dimensionValuePattern, RegexOptions.IgnoreCase);
+                var ratioChains = Regex.Matches(query, ratioChainPattern, RegexOptions.IgnoreCase);
+                var ratioFeatures = Regex.Matches(query, ratioFeaturePattern, RegexOptions.IgnoreCase);
+                var ratioValues = Regex.Matches(query, ratioValuePattern, RegexOptions.IgnoreCase);
                 var minimum = 0;
                 var maximum = 0;
+                var minimumExclusive = false;
+                var maximumExclusive = false;
                 var heightMinimum = 0;
                 var heightMaximum = 0;
+                var heightMinimumExclusive = false;
+                var heightMaximumExclusive = false;
                 var ratioMinimum = 0;
                 var ratioMinimumDenominator = 0;
                 var ratioMaximum = 0;
                 var ratioMaximumDenominator = 0;
+                var ratioMinimumExclusive = false;
+                var ratioMaximumExclusive = false;
                 var orientation = '\0';
                 var valid = true;
                 foreach (Match match in matches)
                 {
                     int number;
-                    if (!Int32.TryParse(match.Groups["n"].Value, out number) || number < 1 || number > MaxViewport) { valid = false; break; }
+                    if (!MediaTerm(match.Groups["n"].Value, out number)) { valid = false; break; }
                     var kind = match.Groups["k"].Value.ToLowerInvariant();
-                    if (kind == "min-width") minimum = Math.Max(minimum, number);
-                    else if (kind == "max-width") maximum = maximum == 0 ? number : Math.Min(maximum, number);
-                    else if (kind == "width")
-                    {
-                        minimum = Math.Max(minimum, number);
-                        maximum = maximum == 0 ? number : Math.Min(maximum, number);
-                    }
-                    else if (kind == "min-height") heightMinimum = Math.Max(heightMinimum, number);
-                    else if (kind == "max-height") heightMaximum = heightMaximum == 0 ? number : Math.Min(heightMaximum, number);
-                    else
-                    {
-                        heightMinimum = Math.Max(heightMinimum, number);
-                        heightMaximum = heightMaximum == 0 ? number : Math.Min(heightMaximum, number);
-                    }
+                    if (kind == "min-width") MediaDimension(ref minimum, ref minimumExclusive, ref maximum, ref maximumExclusive, number, ">=");
+                    else if (kind == "max-width") MediaDimension(ref minimum, ref minimumExclusive, ref maximum, ref maximumExclusive, number, "<=");
+                    else if (kind == "width") MediaDimension(ref minimum, ref minimumExclusive, ref maximum, ref maximumExclusive, number, "=");
+                    else if (kind == "min-height") MediaDimension(ref heightMinimum, ref heightMinimumExclusive, ref heightMaximum, ref heightMaximumExclusive, number, ">=");
+                    else if (kind == "max-height") MediaDimension(ref heightMinimum, ref heightMinimumExclusive, ref heightMaximum, ref heightMaximumExclusive, number, "<=");
+                    else MediaDimension(ref heightMinimum, ref heightMinimumExclusive, ref heightMaximum, ref heightMaximumExclusive, number, "=");
                 }
                 foreach (Match match in orientations)
                 {
@@ -2715,40 +2725,103 @@ namespace Lea.Engine
                     if (orientation != '\0' && orientation != next) { valid = false; break; }
                     orientation = next;
                 }
+                foreach (Match match in dimensionChains)
+                {
+                    int left;
+                    int right;
+                    var leftOperator = match.Groups["ao"].Value;
+                    var rightOperator = match.Groups["bo"].Value;
+                    if (!MediaTerm(match.Groups["an"].Value, out left) || !MediaTerm(match.Groups["bn"].Value, out right) ||
+                        leftOperator[0] != rightOperator[0]) { valid = false; break; }
+                    if (match.Groups["k"].Value.Equals("width", StringComparison.OrdinalIgnoreCase))
+                    {
+                        MediaDimension(ref minimum, ref minimumExclusive, ref maximum, ref maximumExclusive, left, MediaInverse(leftOperator));
+                        MediaDimension(ref minimum, ref minimumExclusive, ref maximum, ref maximumExclusive, right, rightOperator);
+                    }
+                    else
+                    {
+                        MediaDimension(ref heightMinimum, ref heightMinimumExclusive, ref heightMaximum, ref heightMaximumExclusive, left, MediaInverse(leftOperator));
+                        MediaDimension(ref heightMinimum, ref heightMinimumExclusive, ref heightMaximum, ref heightMaximumExclusive, right, rightOperator);
+                    }
+                }
+                foreach (Match match in dimensionFeatures)
+                {
+                    int number;
+                    if (!MediaTerm(match.Groups["n"].Value, out number)) { valid = false; break; }
+                    if (match.Groups["k"].Value.Equals("width", StringComparison.OrdinalIgnoreCase))
+                        MediaDimension(ref minimum, ref minimumExclusive, ref maximum, ref maximumExclusive, number, match.Groups["o"].Value);
+                    else MediaDimension(ref heightMinimum, ref heightMinimumExclusive, ref heightMaximum, ref heightMaximumExclusive, number, match.Groups["o"].Value);
+                }
+                foreach (Match match in dimensionValues)
+                {
+                    int number;
+                    if (!MediaTerm(match.Groups["n"].Value, out number)) { valid = false; break; }
+                    if (match.Groups["k"].Value.Equals("width", StringComparison.OrdinalIgnoreCase))
+                        MediaDimension(ref minimum, ref minimumExclusive, ref maximum, ref maximumExclusive, number, MediaInverse(match.Groups["o"].Value));
+                    else MediaDimension(ref heightMinimum, ref heightMinimumExclusive, ref heightMaximum, ref heightMaximumExclusive, number, MediaInverse(match.Groups["o"].Value));
+                }
                 foreach (Match match in ratios)
                 {
                     int numerator;
                     int denominator;
-                    if (!Int32.TryParse(match.Groups["n"].Value, out numerator) || !Int32.TryParse(match.Groups["d"].Value, out denominator) ||
-                        numerator < 1 || numerator > MaxViewport || denominator < 1 || denominator > MaxViewport) { valid = false; break; }
-                    var divisor = RatioGcd(numerator, denominator);
-                    numerator /= divisor;
-                    denominator /= divisor;
+                    if (!MediaRatioTerm(match.Groups["n"].Value, match.Groups["d"].Value, out numerator, out denominator)) { valid = false; break; }
                     var kind = match.Groups["k"].Value.ToLowerInvariant();
-                    if (kind == "min-aspect-ratio" || kind == "aspect-ratio")
-                    {
-                        if (ratioMinimum == 0 || RatioCompare(numerator, denominator, ratioMinimum, ratioMinimumDenominator) > 0)
-                        {
-                            ratioMinimum = numerator;
-                            ratioMinimumDenominator = denominator;
-                        }
-                    }
-                    if (kind == "max-aspect-ratio" || kind == "aspect-ratio")
-                    {
-                        if (ratioMaximum == 0 || RatioCompare(numerator, denominator, ratioMaximum, ratioMaximumDenominator) < 0)
-                        {
-                            ratioMaximum = numerator;
-                            ratioMaximumDenominator = denominator;
-                        }
-                    }
+                    MediaRatio(ref ratioMinimum, ref ratioMinimumDenominator, ref ratioMinimumExclusive,
+                        ref ratioMaximum, ref ratioMaximumDenominator, ref ratioMaximumExclusive, numerator, denominator,
+                        kind == "min-aspect-ratio" ? ">=" : kind == "max-aspect-ratio" ? "<=" : "=");
                 }
-                if (!valid || minimum > 0 && maximum > 0 && minimum > maximum || heightMinimum > 0 && heightMaximum > 0 && heightMinimum > heightMaximum ||
-                    ratioMinimum > 0 && ratioMaximum > 0 && RatioCompare(ratioMinimum, ratioMinimumDenominator, ratioMaximum, ratioMaximumDenominator) > 0) continue;
+                foreach (Match match in ratioChains)
+                {
+                    int leftNumerator;
+                    int leftDenominator;
+                    int rightNumerator;
+                    int rightDenominator;
+                    var leftOperator = match.Groups["ao"].Value;
+                    var rightOperator = match.Groups["bo"].Value;
+                    if (!MediaRatioTerm(match.Groups["an"].Value, match.Groups["ad"].Value, out leftNumerator, out leftDenominator) ||
+                        !MediaRatioTerm(match.Groups["bn"].Value, match.Groups["bd"].Value, out rightNumerator, out rightDenominator) ||
+                        leftOperator[0] != rightOperator[0]) { valid = false; break; }
+                    MediaRatio(ref ratioMinimum, ref ratioMinimumDenominator, ref ratioMinimumExclusive,
+                        ref ratioMaximum, ref ratioMaximumDenominator, ref ratioMaximumExclusive,
+                        leftNumerator, leftDenominator, MediaInverse(leftOperator));
+                    MediaRatio(ref ratioMinimum, ref ratioMinimumDenominator, ref ratioMinimumExclusive,
+                        ref ratioMaximum, ref ratioMaximumDenominator, ref ratioMaximumExclusive,
+                        rightNumerator, rightDenominator, rightOperator);
+                }
+                foreach (Match match in ratioFeatures)
+                {
+                    int numerator;
+                    int denominator;
+                    if (!MediaRatioTerm(match.Groups["n"].Value, match.Groups["d"].Value, out numerator, out denominator)) { valid = false; break; }
+                    MediaRatio(ref ratioMinimum, ref ratioMinimumDenominator, ref ratioMinimumExclusive,
+                        ref ratioMaximum, ref ratioMaximumDenominator, ref ratioMaximumExclusive,
+                        numerator, denominator, match.Groups["o"].Value);
+                }
+                foreach (Match match in ratioValues)
+                {
+                    int numerator;
+                    int denominator;
+                    if (!MediaRatioTerm(match.Groups["n"].Value, match.Groups["d"].Value, out numerator, out denominator)) { valid = false; break; }
+                    MediaRatio(ref ratioMinimum, ref ratioMinimumDenominator, ref ratioMinimumExclusive,
+                        ref ratioMaximum, ref ratioMaximumDenominator, ref ratioMaximumExclusive,
+                        numerator, denominator, MediaInverse(match.Groups["o"].Value));
+                }
+                if (!valid || MediaEmpty(minimum, minimumExclusive, maximum, maximumExclusive) ||
+                    MediaEmpty(heightMinimum, heightMinimumExclusive, heightMaximum, heightMaximumExclusive) ||
+                    MediaRatioEmpty(ratioMinimum, ratioMinimumDenominator, ratioMinimumExclusive,
+                        ratioMaximum, ratioMaximumDenominator, ratioMaximumExclusive)) continue;
                 var remainder = Regex.Replace(query, "\\(\\s*(?:min-width|max-width|width|min-height|max-height|height)\\s*:\\s*[0-9]{1,4}\\s*px\\s*\\)", " ", RegexOptions.IgnoreCase);
                 remainder = Regex.Replace(remainder, "\\(\\s*orientation\\s*:\\s*(?:portrait|landscape)\\s*\\)", " ", RegexOptions.IgnoreCase);
                 remainder = Regex.Replace(remainder, "\\(\\s*(?:min-aspect-ratio|max-aspect-ratio|aspect-ratio)\\s*:\\s*[0-9]{1,4}\\s*/\\s*[0-9]{1,4}\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, dimensionChainPattern, " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, dimensionFeaturePattern, " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, dimensionValuePattern, " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, ratioChainPattern, " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, ratioFeaturePattern, " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, ratioValuePattern, " ", RegexOptions.IgnoreCase);
                 if (remainder.IndexOf('(') >= 0 || remainder.IndexOf(')') >= 0 || remainder.IndexOf(':') >= 0) continue;
-                var meaningful = matches.Count > 0 || orientations.Count > 0 || ratios.Count > 0;
+                var meaningful = matches.Count > 0 || orientations.Count > 0 || ratios.Count > 0 || dimensionChains.Count > 0 ||
+                    dimensionFeatures.Count > 0 || dimensionValues.Count > 0 || ratioChains.Count > 0 || ratioFeatures.Count > 0 || ratioValues.Count > 0;
                 foreach (var token in Regex.Split(remainder.Trim(), "\\s+"))
                 {
                     if (token.Length == 0 || token == "and" || token == "only") continue;
@@ -2757,7 +2830,9 @@ namespace Lea.Engine
                     break;
                 }
                 if (!valid || !meaningful) continue;
-                var condition = new Mc(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator, ratioMaximum, ratioMaximumDenominator, orientation);
+                var condition = new Mc(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator,
+                    ratioMaximum, ratioMaximumDenominator, orientation, minimumExclusive, maximumExclusive,
+                    heightMinimumExclusive, heightMaximumExclusive, ratioMinimumExclusive, ratioMaximumExclusive);
                 var duplicate = false;
                 foreach (var existing in result)
                     if (SameMedia(existing, condition)) { duplicate = true; break; }
@@ -2773,30 +2848,53 @@ namespace Lea.Engine
             foreach (var left in parent)
                 foreach (var right in child)
                 {
-                    var minimum = Math.Max(left.N, right.N);
-                    var maximum = left.X == 0 ? right.X : right.X == 0 ? left.X : Math.Min(left.X, right.X);
-                    var heightMinimum = Math.Max(left.Hn, right.Hn);
-                    var heightMaximum = left.Hx == 0 ? right.Hx : right.Hx == 0 ? left.Hx : Math.Min(left.Hx, right.Hx);
+                    var minimum = left.N;
+                    var minimumExclusive = left.Ne;
+                    if (right.N > minimum) { minimum = right.N; minimumExclusive = right.Ne; }
+                    else if (right.N == minimum) minimumExclusive = minimumExclusive || right.Ne;
+                    var maximum = left.X;
+                    var maximumExclusive = left.Xe;
+                    if (maximum == 0 || right.X > 0 && right.X < maximum) { maximum = right.X; maximumExclusive = right.Xe; }
+                    else if (right.X == maximum) maximumExclusive = maximumExclusive || right.Xe;
+                    var heightMinimum = left.Hn;
+                    var heightMinimumExclusive = left.Hne;
+                    if (right.Hn > heightMinimum) { heightMinimum = right.Hn; heightMinimumExclusive = right.Hne; }
+                    else if (right.Hn == heightMinimum) heightMinimumExclusive = heightMinimumExclusive || right.Hne;
+                    var heightMaximum = left.Hx;
+                    var heightMaximumExclusive = left.Hxe;
+                    if (heightMaximum == 0 || right.Hx > 0 && right.Hx < heightMaximum) { heightMaximum = right.Hx; heightMaximumExclusive = right.Hxe; }
+                    else if (right.Hx == heightMaximum) heightMaximumExclusive = heightMaximumExclusive || right.Hxe;
                     var ratioMinimum = left.Rn;
                     var ratioMinimumDenominator = left.Rd;
+                    var ratioMinimumExclusive = left.Rne;
                     if (ratioMinimum == 0 || right.Rn > 0 && RatioCompare(right.Rn, right.Rd, ratioMinimum, ratioMinimumDenominator) > 0)
                     {
                         ratioMinimum = right.Rn;
                         ratioMinimumDenominator = right.Rd;
+                        ratioMinimumExclusive = right.Rne;
                     }
+                    else if (right.Rn > 0 && RatioCompare(right.Rn, right.Rd, ratioMinimum, ratioMinimumDenominator) == 0)
+                        ratioMinimumExclusive = ratioMinimumExclusive || right.Rne;
                     var ratioMaximum = left.Rx;
                     var ratioMaximumDenominator = left.Rxd;
+                    var ratioMaximumExclusive = left.Rxe;
                     if (ratioMaximum == 0 || right.Rx > 0 && RatioCompare(right.Rx, right.Rxd, ratioMaximum, ratioMaximumDenominator) < 0)
                     {
                         ratioMaximum = right.Rx;
                         ratioMaximumDenominator = right.Rxd;
+                        ratioMaximumExclusive = right.Rxe;
                     }
-                    if (maximum > 0 && minimum > maximum) continue;
-                    if (heightMaximum > 0 && heightMinimum > heightMaximum) continue;
-                    if (ratioMinimum > 0 && ratioMaximum > 0 && RatioCompare(ratioMinimum, ratioMinimumDenominator, ratioMaximum, ratioMaximumDenominator) > 0) continue;
+                    else if (right.Rx > 0 && RatioCompare(right.Rx, right.Rxd, ratioMaximum, ratioMaximumDenominator) == 0)
+                        ratioMaximumExclusive = ratioMaximumExclusive || right.Rxe;
+                    if (MediaEmpty(minimum, minimumExclusive, maximum, maximumExclusive)) continue;
+                    if (MediaEmpty(heightMinimum, heightMinimumExclusive, heightMaximum, heightMaximumExclusive)) continue;
+                    if (MediaRatioEmpty(ratioMinimum, ratioMinimumDenominator, ratioMinimumExclusive,
+                        ratioMaximum, ratioMaximumDenominator, ratioMaximumExclusive)) continue;
                     if (left.O != '\0' && right.O != '\0' && left.O != right.O) continue;
                     var orientation = left.O == '\0' ? right.O : left.O;
-                    var condition = new Mc(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator, ratioMaximum, ratioMaximumDenominator, orientation);
+                    var condition = new Mc(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator,
+                        ratioMaximum, ratioMaximumDenominator, orientation, minimumExclusive, maximumExclusive,
+                        heightMinimumExclusive, heightMaximumExclusive, ratioMinimumExclusive, ratioMaximumExclusive);
                     var duplicate = false;
                     foreach (var existing in result)
                         if (SameMedia(existing, condition)) { duplicate = true; break; }
@@ -2808,7 +2906,84 @@ namespace Lea.Engine
         private static bool SameMedia(Mc left, Mc right)
         {
             return left.N == right.N && left.X == right.X && left.Hn == right.Hn && left.Hx == right.Hx &&
-                left.Rn == right.Rn && left.Rd == right.Rd && left.Rx == right.Rx && left.Rxd == right.Rxd && left.O == right.O;
+                left.Rn == right.Rn && left.Rd == right.Rd && left.Rx == right.Rx && left.Rxd == right.Rxd && left.O == right.O &&
+                left.Ne == right.Ne && left.Xe == right.Xe && left.Hne == right.Hne && left.Hxe == right.Hxe &&
+                left.Rne == right.Rne && left.Rxe == right.Rxe;
+        }
+
+        private static bool MediaTerm(string source, out int value)
+        {
+            return Int32.TryParse(source, out value) && value >= 1 && value <= MaxViewport;
+        }
+
+        private static bool MediaRatioTerm(string numeratorSource, string denominatorSource, out int numerator, out int denominator)
+        {
+            numerator = 0;
+            denominator = 0;
+            if (!MediaTerm(numeratorSource, out numerator) || !MediaTerm(denominatorSource, out denominator)) return false;
+            var divisor = RatioGcd(numerator, denominator);
+            numerator /= divisor;
+            denominator /= divisor;
+            return true;
+        }
+
+        private static string MediaInverse(string value)
+        {
+            if (value == "<") return ">";
+            if (value == "<=") return ">=";
+            if (value == ">") return "<";
+            if (value == ">=") return "<=";
+            return value;
+        }
+
+        private static void MediaDimension(ref int minimum, ref bool minimumExclusive, ref int maximum, ref bool maximumExclusive,
+            int value, string operation)
+        {
+            if (operation == ">" || operation == ">=" || operation == "=")
+            {
+                var exclusive = operation == ">";
+                if (minimum == 0 || value > minimum) { minimum = value; minimumExclusive = exclusive; }
+                else if (value == minimum) minimumExclusive = minimumExclusive || exclusive;
+            }
+            if (operation == "<" || operation == "<=" || operation == "=")
+            {
+                var exclusive = operation == "<";
+                if (maximum == 0 || value < maximum) { maximum = value; maximumExclusive = exclusive; }
+                else if (value == maximum) maximumExclusive = maximumExclusive || exclusive;
+            }
+        }
+
+        private static void MediaRatio(ref int minimum, ref int minimumDenominator, ref bool minimumExclusive,
+            ref int maximum, ref int maximumDenominator, ref bool maximumExclusive,
+            int numerator, int denominator, string operation)
+        {
+            if (operation == ">" || operation == ">=" || operation == "=")
+            {
+                var exclusive = operation == ">";
+                var comparison = minimum == 0 ? 1 : RatioCompare(numerator, denominator, minimum, minimumDenominator);
+                if (comparison > 0) { minimum = numerator; minimumDenominator = denominator; minimumExclusive = exclusive; }
+                else if (comparison == 0) minimumExclusive = minimumExclusive || exclusive;
+            }
+            if (operation == "<" || operation == "<=" || operation == "=")
+            {
+                var exclusive = operation == "<";
+                var comparison = maximum == 0 ? -1 : RatioCompare(numerator, denominator, maximum, maximumDenominator);
+                if (comparison < 0) { maximum = numerator; maximumDenominator = denominator; maximumExclusive = exclusive; }
+                else if (comparison == 0) maximumExclusive = maximumExclusive || exclusive;
+            }
+        }
+
+        private static bool MediaEmpty(int minimum, bool minimumExclusive, int maximum, bool maximumExclusive)
+        {
+            return minimum > 0 && maximum > 0 && (minimum > maximum || minimum == maximum && (minimumExclusive || maximumExclusive));
+        }
+
+        private static bool MediaRatioEmpty(int minimum, int minimumDenominator, bool minimumExclusive,
+            int maximum, int maximumDenominator, bool maximumExclusive)
+        {
+            if (minimum == 0 || maximum == 0) return false;
+            var comparison = RatioCompare(minimum, minimumDenominator, maximum, maximumDenominator);
+            return comparison > 0 || comparison == 0 && (minimumExclusive || maximumExclusive);
         }
 
         private static int RatioCompare(int leftNumerator, int leftDenominator, int rightNumerator, int rightDenominator)
@@ -11108,6 +11283,12 @@ namespace Lea.Engine
             public readonly int Rx;
             public readonly int Rxd;
             public readonly char O;
+            public readonly bool Ne;
+            public readonly bool Xe;
+            public readonly bool Hne;
+            public readonly bool Hxe;
+            public readonly bool Rne;
+            public readonly bool Rxe;
 
             public Mc(int minimum, int maximum)
                 : this(minimum, maximum, 0, 0, 0, 0, 0, 0, '\0')
@@ -11116,6 +11297,15 @@ namespace Lea.Engine
 
             public Mc(int minimum, int maximum, int heightMinimum, int heightMaximum,
                 int ratioMinimum, int ratioMinimumDenominator, int ratioMaximum, int ratioMaximumDenominator, char orientation)
+                : this(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator,
+                    ratioMaximum, ratioMaximumDenominator, orientation, false, false, false, false, false, false)
+            {
+            }
+
+            public Mc(int minimum, int maximum, int heightMinimum, int heightMaximum,
+                int ratioMinimum, int ratioMinimumDenominator, int ratioMaximum, int ratioMaximumDenominator, char orientation,
+                bool minimumExclusive, bool maximumExclusive, bool heightMinimumExclusive, bool heightMaximumExclusive,
+                bool ratioMinimumExclusive, bool ratioMaximumExclusive)
             {
                 N = minimum;
                 X = maximum;
@@ -11126,12 +11316,20 @@ namespace Lea.Engine
                 Rx = ratioMaximum;
                 Rxd = ratioMaximumDenominator;
                 O = orientation;
+                Ne = minimumExclusive;
+                Xe = maximumExclusive;
+                Hne = heightMinimumExclusive;
+                Hxe = heightMaximumExclusive;
+                Rne = ratioMinimumExclusive;
+                Rxe = ratioMaximumExclusive;
             }
 
             public bool On(int width, int height)
             {
-                if (width < N || X > 0 && width > X || height < Hn || Hx > 0 && height > Hx) return false;
-                if (Rn > 0 && RatioCompare(width, height, Rn, Rd) < 0 || Rx > 0 && RatioCompare(width, height, Rx, Rxd) > 0) return false;
+                if (width < N || Ne && width == N || X > 0 && (width > X || Xe && width == X) ||
+                    height < Hn || Hne && height == Hn || Hx > 0 && (height > Hx || Hxe && height == Hx)) return false;
+                if (Rn > 0 && (RatioCompare(width, height, Rn, Rd) < 0 || Rne && RatioCompare(width, height, Rn, Rd) == 0) ||
+                    Rx > 0 && (RatioCompare(width, height, Rx, Rxd) > 0 || Rxe && RatioCompare(width, height, Rx, Rxd) == 0)) return false;
                 return O == '\0' || O == 'p' && height >= width || O == 'l' && width > height;
             }
 
@@ -11140,19 +11338,29 @@ namespace Lea.Engine
                 get
                 {
                     var parts = new List<string>();
-                    if (N == X && N > 0) parts.Add("@m=" + N);
-                    else if (N == 0 && X > 0) parts.Add("@m<=" + X);
-                    else if (N > 0 && X == 0) parts.Add("@m>=" + N);
-                    else if (N > 0 || X > 0) parts.Add("@m" + N + "-" + X);
-                    if (Hn == Hx && Hn > 0) parts.Add("@h=" + Hn);
-                    else if (Hn == 0 && Hx > 0) parts.Add("@h<=" + Hx);
-                    else if (Hn > 0 && Hx == 0) parts.Add("@h>=" + Hn);
-                    else if (Hn > 0 || Hx > 0) parts.Add("@h" + Hn + "-" + Hx);
-                    if (Rn > 0 && Rx > 0 && RatioCompare(Rn, Rd, Rx, Rxd) == 0) parts.Add("@r=" + Rn + "/" + Rd);
+                    if (N == X && N > 0 && !Ne && !Xe) parts.Add("@m=" + N);
+                    else if (N == 0 && X > 0) parts.Add("@m" + (Xe ? "<" : "<=") + X);
+                    else if (N > 0 && X == 0) parts.Add("@m" + (Ne ? ">" : ">=") + N);
+                    else if (N > 0 && X > 0 && !Ne && !Xe) parts.Add("@m" + N + "-" + X);
                     else
                     {
-                        if (Rn > 0) parts.Add("@r>=" + Rn + "/" + Rd);
-                        if (Rx > 0) parts.Add("@r<=" + Rx + "/" + Rxd);
+                        if (N > 0) parts.Add("@m" + (Ne ? ">" : ">=") + N);
+                        if (X > 0) parts.Add("@m" + (Xe ? "<" : "<=") + X);
+                    }
+                    if (Hn == Hx && Hn > 0 && !Hne && !Hxe) parts.Add("@h=" + Hn);
+                    else if (Hn == 0 && Hx > 0) parts.Add("@h" + (Hxe ? "<" : "<=") + Hx);
+                    else if (Hn > 0 && Hx == 0) parts.Add("@h" + (Hne ? ">" : ">=") + Hn);
+                    else if (Hn > 0 && Hx > 0 && !Hne && !Hxe) parts.Add("@h" + Hn + "-" + Hx);
+                    else
+                    {
+                        if (Hn > 0) parts.Add("@h" + (Hne ? ">" : ">=") + Hn);
+                        if (Hx > 0) parts.Add("@h" + (Hxe ? "<" : "<=") + Hx);
+                    }
+                    if (Rn > 0 && Rx > 0 && RatioCompare(Rn, Rd, Rx, Rxd) == 0 && !Rne && !Rxe) parts.Add("@r=" + Rn + "/" + Rd);
+                    else
+                    {
+                        if (Rn > 0) parts.Add("@r" + (Rne ? ">" : ">=") + Rn + "/" + Rd);
+                        if (Rx > 0) parts.Add("@r" + (Rxe ? "<" : "<=") + Rx + "/" + Rxd);
                     }
                     if (O != '\0') parts.Add("@o=" + O);
                     return String.Join("&", parts.ToArray());

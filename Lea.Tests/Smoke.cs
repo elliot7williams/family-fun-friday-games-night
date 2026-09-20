@@ -146,6 +146,11 @@ namespace Lea.Tests
                     MediaAspectSmoke(Path.Combine(pages, "media-aspect-ratio.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--media-ranges")
+                {
+                    MediaRangeSmoke(Path.Combine(pages, "media-ranges.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--text-align-last")
                 {
                     TextAlignLastSmoke(Path.Combine(pages, "text-align-last.html"));
@@ -1523,6 +1528,7 @@ namespace Lea.Tests
                 Eq(8192, mediaQueryEngine.Vw, "maximum viewport clamp");
                 MediaFeatureSmoke(Path.Combine(pages, "media-features.html"));
                 MediaAspectSmoke(Path.Combine(pages, "media-aspect-ratio.html"));
+                MediaRangeSmoke(Path.Combine(pages, "media-ranges.html"));
 
                 var customPath = Path.Combine(pages, "custom-properties.html");
                 var customEngine = new E();
@@ -8092,6 +8098,88 @@ namespace Lea.Tests
                 Ok(Object.ReferenceEquals(viewField, FieldById(view.At, "field")) && viewField.V == "Retained ratio view value", "WinForms ratio resize preserves field state");
             }
             Console.WriteLine("Lea aspect-ratio media smoke passed: exact integer ratios, ranges, intersections, alternatives, diagnostics, retention, and live resize.");
+        }
+
+        private static void MediaRangeSmoke(string path)
+        {
+            var engine = new E();
+            var page = engine.Go(path);
+            Ok(HasBlock(page, "width-ge") && HasBlock(page, "width-reversed") && HasBlock(page, "width-chain") &&
+                HasBlock(page, "width-descending") && HasBlock(page, "height-chain") && HasBlock(page, "ratio-chain") &&
+                HasBlock(page, "ratio-reversed") && HasBlock(page, "combined") && HasBlock(page, "nested"),
+                "default media range selection");
+            Ok(!HasBlock(page, "ratio-wide") && !HasBlock(page, "ratio-tall") && !HasBlock(page, "ratio-descending") &&
+                !HasBlock(page, "equal-width") && !HasBlock(page, "value-first") && !HasBlock(page, "style-range"),
+                "default inactive media ranges and strict ratio boundary");
+            Ok(!HasBlock(page, "mixed-chain") && !HasBlock(page, "invalid-unit") && !HasBlock(page, "zero-ratio") &&
+                !HasBlock(page, "over-bound") && !HasBlock(page, "impossible-width") && !HasBlock(page, "impossible-ratio") &&
+                !HasBlock(page, "unknown-feature"), "invalid and empty media ranges stay inactive");
+            Eq(191, BlockById(page, "width-ge").S.W, "feature-first media range style");
+            var field = FieldById(page, "field");
+            Eq(249, field.S.W, "media range field style");
+            field.V = "Retained range value";
+            var diagnostics = engine.Dg(page);
+            Ok(Has(diagnostics.Cs, "@m>=900") && Has(diagnostics.Cs, "@m>700") &&
+                Has(diagnostics.Cs, "@m>=700&@m<1100") && Has(diagnostics.Cs, "@h>500&@h<=768") &&
+                Has(diagnostics.Cs, "@r>1/1&@r<=4/3") && Has(diagnostics.Cs, "@m>=900&@m<1200&@r>1/1"),
+                "strict, reversed, chained, and nested media range diagnostics");
+
+            engine.Vz(800, 600);
+            Ok(!HasBlock(page, "width-ge") && HasBlock(page, "width-reversed") && HasBlock(page, "width-chain") &&
+                HasBlock(page, "width-descending") && HasBlock(page, "height-chain") && HasBlock(page, "ratio-chain") &&
+                HasBlock(page, "equal-width") && HasBlock(page, "style-range") && !HasBlock(page, "nested"),
+                "eight-hundred pixel range state and equality");
+            Eq(192, BlockById(page, "equal-width").S.W, "range equality style");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained range value" && field.S.W == 210,
+                "range rebuild preserves field state");
+
+            engine.Vz(700, 500);
+            Ok(!HasBlock(page, "width-reversed") && HasBlock(page, "width-chain") && HasBlock(page, "width-descending") &&
+                !HasBlock(page, "height-chain") && !HasBlock(page, "ratio-chain") && HasBlock(page, "ratio-wide") &&
+                HasBlock(page, "style-range"), "strict and inclusive dimension boundaries");
+
+            engine.Vz(1100, 768);
+            Ok(HasBlock(page, "width-ge") && HasBlock(page, "width-reversed") && !HasBlock(page, "width-chain") &&
+                !HasBlock(page, "width-descending") && HasBlock(page, "ratio-wide") && HasBlock(page, "ratio-reversed") &&
+                HasBlock(page, "nested"), "strict upper width boundary and nested range");
+
+            engine.Vz(900, 480);
+            Ok(HasBlock(page, "width-ge") && HasBlock(page, "style-range") && HasBlock(page, "ratio-wide") &&
+                HasBlock(page, "ratio-descending") && !HasBlock(page, "ratio-reversed") && !HasBlock(page, "height-chain"),
+                "wide descending ratio range state");
+            Ok(Has(engine.Dg(page).Cs, "@r>=3/2&@r<2/1") && Has(engine.Dg(page).Cs, "@m600-900"),
+                "descending ratio and inclusive width diagnostics");
+
+            engine.Vz(600, 800);
+            Ok(HasBlock(page, "value-first") && !HasBlock(page, "ratio-tall"), "inclusive width and strict ratio boundary");
+            engine.Vz(480, 800);
+            Ok(HasBlock(page, "value-first") && HasBlock(page, "ratio-tall") && !HasBlock(page, "ratio-chain"),
+                "strict tall ratio range state");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained range value",
+                "all media range rebuilds retain field state");
+
+            using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-30000, -30000), ClientSize = new Size(900, 480) })
+            using (var view = new V())
+            {
+                form.Controls.Add(view);
+                form.Show();
+                view.Go(path);
+                Paint(view);
+                Ok(HasBlock(view.At, "width-ge") && HasBlock(view.At, "ratio-wide") && HasBlock(view.At, "ratio-descending") && HasBlock(view.At, "style-range"),
+                    "WinForms wide media range state");
+                Eq(190, BlockRect(view, BlockById(view.At, "ratio-descending")).Width, "WinForms media range geometry");
+                var viewField = FieldById(view.At, "field");
+                viewField.V = "Retained range view value";
+                form.ClientSize = new Size(480, 800);
+                Application.DoEvents();
+                Paint(view);
+                Ok(view.Vw == view.ClientSize.Width && view.Vh == view.ClientSize.Height && HasBlock(view.At, "value-first") &&
+                    HasBlock(view.At, "ratio-tall") && !HasBlock(view.At, "ratio-wide"), "WinForms tall media range state");
+                Eq(189, BlockRect(view, BlockById(view.At, "ratio-tall")).Width, "WinForms tall range geometry");
+                Ok(Object.ReferenceEquals(viewField, FieldById(view.At, "field")) && viewField.V == "Retained range view value",
+                    "WinForms media range resize preserves field state");
+            }
+            Console.WriteLine("Lea media range smoke passed: feature/value-first comparisons, strict and inclusive chains, rational ratios, intersections, diagnostics, retention, and live resize.");
         }
 
         private static void MediaFeatureSmoke(string path)

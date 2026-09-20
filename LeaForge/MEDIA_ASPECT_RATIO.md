@@ -29,9 +29,10 @@ Active diagnostics use compact `@r` labels:
 ```
 
 Zero, negative, decimal, missing-denominator, over-bound, malformed, and
-unknown ratio features stay inactive. Device aspect-ratio, resolution,
-continuous range syntax, and general media-feature evaluation remain outside
-this bounded subset.
+unknown ratio features stay inactive. Device aspect-ratio, resolution, and
+general media-feature evaluation remain outside this bounded subset. Bounded
+feature-first, value-first, and chained comparison syntax is documented in
+`MEDIA_RANGE_SYNTAX.md`.
 
 No new page or host API is needed. Headless hosts continue to use
 `E.Vz(width,height)`, and WinForms `V` derives the ratio from its live client

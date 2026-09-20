@@ -85,10 +85,12 @@ Dg/Dcl  diagnostics/clear request activity
    alignment, and auto-height column reordering remain outside this subset.)
 9. Add bounded responsive CSS. (`screen`/`all` pixel min/max/exact width and
    height, portrait/landscape orientation, reduced integer min/max/exact aspect
-   ratios, conjunctions, comma alternatives, four nested `@media` levels, and
-   `<style media>` are active through compact `Vw/Vh/Vz` aliases. WinForms
-   resize activation preserves live fields; print, negated, unknown, non-pixel,
-   and malformed ratio queries stay outside the supported subset.)
+   ratios, bounded strict/inclusive feature/value-first and same-direction
+   chained ranges, conjunctions, comma alternatives, four nested `@media`
+   levels, and `<style media>` are active through compact `Vw/Vh/Vz` aliases.
+   WinForms resize activation preserves live fields; print, negated, unknown,
+   non-pixel, mixed-direction, and malformed ratio queries stay outside the
+   supported subset.)
 10. Add bounded CSS custom properties. (Stylesheet declarations now compile
     once; inherited case-sensitive values use lazy copy-on-write storage and
     compact `S.Vc/Cv` plus `G.Vc` aliases. Nested `var()` fallback, cycles,
@@ -347,19 +349,20 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 114 adds bounded exact, minimum, and maximum viewport aspect-ratio
-conditions to the shared media compiler. Positive 1..8192 integer fractions
-are reduced by GCD and compared with 64-bit cross multiplication, avoiding
-floating-point state. Ratios compose with width, height, orientation,
-alternatives, nested intersections, and `<style media>`; empty ranges and
-zero, decimal, malformed, over-bound, or unknown features stay inactive.
-Diagnostics add compact `@r` labels, and responsive rebuilds retain fields.
-See `MEDIA_ASPECT_RATIO.md`. All 110 probes pass over 104 fixtures; the focused
-and full engine suites, compiled Firespider host, all 18 startup regressions,
-all 42 Boot cases, and all six real EXE startup scenarios pass. Runtime 214 is
-packaged separately and installed runtime 157 remains unchanged. Next
-investigate another bounded compatibility slice. Keep
-general media features, continuous range syntax, device ratios, and container
+Milestone 115 adds bounded modern comparison ranges to the shared media
+compiler. Width, height, and reduced positive integer aspect ratios accept
+feature-first, value-first, equality, and same-direction ascending/descending
+chains using `<`, `<=`, `=`, `>=`, and `>`. Strictness survives nested
+intersections; impossible equal edges, mixed-direction chains, non-pixel
+dimensions, malformed ratios, and over-bound terms stay inactive. Conditions
+compose with legacy min/max syntax, orientation, alternatives, nesting, and
+`<style media>`, while compact diagnostics retain exact operators and responsive
+rebuilds retain fields. See `MEDIA_RANGE_SYNTAX.md`. All 111 probes pass over
+105 fixtures; the focused and full engine suites, compiled Firespider host, all
+18 startup regressions, all 42 Boot cases, and all six real EXE startup
+scenarios pass. Runtime 215 is packaged separately and installed runtime 157
+remains unchanged. Next investigate another bounded compatibility slice. Keep
+general media features, device ratios, and container
 queries, locale-sensitive automatic quote selection,
 reversed/custom counter styles, pseudo-element counter properties,
 typed/unquoted/functional attribute fallbacks, pseudo box-model/flex/grid
