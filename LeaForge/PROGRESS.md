@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **112**
+Post-1.0 hardening milestones completed: **113**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,26 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Extended bounded responsive CSS across both viewport axes. Compact `E.Vh`
+  and atomic `E.Vz(width,height)` join `Vw`; `P.Vh`, read-only `V.Vh`, and
+  `G.Vh` expose the applied height to documents, hosts, and diagnostics. Pixel
+  min/max/exact height and portrait/landscape orientation work in conjunctions,
+  comma alternatives, nested intersections, and `<style media>`. Square
+  viewports are portrait. Impossible ranges, conflicting orientations,
+  non-pixel dimensions, and unknown values stay inactive. Active diagnostics
+  add `@h` and `@o`; compiled-rule selection and retained `Fi` models remain
+  shared with width queries. The full engine and compiled Firespider host
+  suites pass, including all 18 startup regressions and live portrait,
+  short-landscape, geometry, diagnostic, and retention checks. All 42 Boot
+  cases and all six real EXE startup scenarios also pass without a JIT dialog,
+  invalid cast, MSHTML fallback, or unresponsive window. All 109 benchmark
+  probes pass over 103 fixtures. Three-round diagnostic medians are
+  1027.283 ms clean start, 6.265 ms local load, and 45.515 ms layout/paint.
+  Retained managed memory is 28,292.6 KiB for 412 pages, or 68.7 KiB/page.
+  Required runtime files are 624.0 KiB with a 260.4 KiB GZip estimate. Runtime
+  213 is packaged separately and installed runtime 157 remains unchanged. See
+  `MEDIA_FEATURES.md`.
 
 - Added bounded `url(...)` bitmap fragments to terminal marker, before, and
   after `content`. Text-only pseudos retain the compact `S.Mc` fast path;

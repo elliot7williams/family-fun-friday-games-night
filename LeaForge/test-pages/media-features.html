@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Height and Orientation Media Features</title>
+  <style>
+    body { color: #26313b; background: #ffffff; }
+    p { margin: 4px 0; padding: 4px; }
+    #portrait, #landscape, #tall, #short, #exact-height, #combined,
+    #either, #nested, #style-media, #invalid-unit, #invalid-orientation,
+    #conflict { display: none; }
+    #field { width: 210px; height: 30px; }
+
+    @media (orientation: portrait) {
+      #portrait { display: block; width: 181px; }
+      #field { width: 180px; }
+    }
+
+    @media screen and (orientation: landscape) {
+      #landscape { display: block; width: 241px; }
+    }
+
+    @media (min-height: 700px) {
+      #tall { display: block; width: 201px; }
+    }
+
+    @media only screen and (max-height: 500px) {
+      #short { display: block; width: 171px; }
+    }
+
+    @media (height: 480px) {
+      #exact-height { display: block; width: 148px; }
+    }
+
+    @media (min-width: 800px) and (max-height: 500px) and (orientation: landscape) {
+      #combined { display: block; width: 260px; }
+    }
+
+    @media (orientation: portrait), screen and (min-height: 900px) {
+      #either { display: block; width: 190px; }
+    }
+
+    @media (max-width: 600px) {
+      @media (min-height: 700px) and (orientation: portrait) {
+        #nested { display: block; width: 172px; }
+      }
+    }
+
+    @media (min-height: 20em) { #invalid-unit { display: block; } }
+    @media (orientation: square) { #invalid-orientation { display: block; } }
+    @media (orientation: portrait) {
+      @media (orientation: landscape) { #conflict { display: block; } }
+    }
+  </style>
+  <style media="screen and (orientation: portrait) and (min-height: 700px)">
+    #style-media { display: block; width: 196px; }
+  </style>
+</head>
+<body>
+  <h1>Height and orientation media features</h1>
+  <p id="portrait">Portrait</p>
+  <p id="landscape">Landscape</p>
+  <p id="tall">Tall viewport</p>
+  <p id="short">Short viewport</p>
+  <p id="exact-height">Exact height</p>
+  <p id="combined">Combined features</p>
+  <p id="either">Comma alternative</p>
+  <p id="nested">Nested intersection</p>
+  <p id="style-media">Style media attribute</p>
+  <p id="invalid-unit">Invalid unit</p>
+  <p id="invalid-orientation">Invalid orientation</p>
+  <p id="conflict">Conflicting orientations</p>
+  <label for="field">Persistent field</label>
+  <input id="field" name="field" value="Initial value">
+</body>
+</html>

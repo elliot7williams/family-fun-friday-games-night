@@ -83,11 +83,12 @@ Dg/Dcl  diagnostics/clear request activity
    Intrinsic min-content sizing, fractional
    factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis
    alignment, and auto-height column reordering remain outside this subset.)
-9. Add bounded responsive CSS. (`screen`/`all` pixel `min-width`, `max-width`,
-   exact `width`, comma alternatives, four nested `@media` levels, and
-   `<style media>` are active through compact `Vw` aliases. WinForms resize
-   activation preserves live fields; print, negated, and non-pixel queries stay
-   outside the supported subset.)
+9. Add bounded responsive CSS. (`screen`/`all` pixel min/max/exact width and
+   height, portrait/landscape orientation, conjunctions, comma alternatives,
+   four nested `@media` levels, and `<style media>` are active through compact
+   `Vw/Vh/Vz` aliases. WinForms resize activation preserves live fields;
+   print, negated, unknown, and non-pixel queries stay outside the supported
+   subset.)
 10. Add bounded CSS custom properties. (Stylesheet declarations now compile
     once; inherited case-sensitive values use lazy copy-on-write storage and
     compact `S.Vc/Cv` plus `G.Vc` aliases. Nested `var()` fallback, cycles,
@@ -346,19 +347,19 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 112 adds bounded `url(...)` bitmap fragments to the shared terminal
-marker/before/after content path. Text-only pseudos retain `S.Mc`; image lists
-use lazy read-only `S.Mf` fragments and inline `Ir.P`, keeping picture sources
-separate from `Ir.U` link targets. Images count toward the eight-item visual
-bound while text remains capped at 128 UTF-16 units. The alternative half does
-not accept images and is emitted once per pseudo. Relative and custom-property
-origins, invalid preservation, links, tables, mixed LTR/RTL marker geometry,
-commands, hover/media rebuilds, retained fields, accessibility, and exact paint
-reuse the existing 24-source sandboxed image path and 64px display cap. See
-`GENERATED_IMAGES.md`. All 108 probes pass over 102 fixtures; the full engine
-and compiled Firespider suites, all 18 startup regressions, all 42 Boot cases,
-and all six real EXE startup scenarios pass. Next investigate another bounded
-compatibility slice. Keep locale-sensitive automatic quote selection,
+Milestone 113 extends the existing bounded media compiler across both viewport
+axes. Compact `E.Vh` and atomic `E.Vz(width,height)` join `Vw`; `P`, `V`, and
+`G` expose the applied height without a second host subsystem. Pixel
+min/max/exact height, portrait/landscape orientation, conjunctions, comma
+alternatives, nested intersections, and `<style media>` reuse compiled rule
+records and retain live fields. Square viewports are portrait; impossible
+ranges, conflicting orientations, non-pixel dimensions, and unknown features
+stay inactive. Diagnostics add compact `@h` and `@o` labels. See
+`MEDIA_FEATURES.md`. All 109 probes pass over 103 fixtures; the full engine and
+compiled Firespider suites, all 18 startup regressions, all 42 Boot cases, and
+all six real EXE startup scenarios pass. Runtime 213 is packaged separately and
+installed runtime 157 remains unchanged. Next investigate another bounded compatibility slice. Keep general media
+features and container queries, locale-sensitive automatic quote selection,
 reversed/custom counter styles, pseudo-element counter properties,
 typed/unquoted/functional attribute fallbacks, pseudo box-model/flex/grid
 items, generated image functions and sizing, marker-side, cross-item gutter

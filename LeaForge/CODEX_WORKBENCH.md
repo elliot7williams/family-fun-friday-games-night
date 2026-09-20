@@ -17,22 +17,20 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 112 adds bounded `url(...)` bitmap fragments to marker and
-before/after visual content. Text-only pseudos keep `S.Mc`; image-containing
-lists use lazy read-only `S.Mf` fragments and inline `Ir.P`, leaving `Ir.U` for
-the owning link. Images count toward the eight-item visual bound while text
-stays capped at 128 UTF-16 units; the independent alternative half rejects
-images and is emitted once per pseudo. Relative/custom-property origins,
-invalid preservation, links, tables, mixed marker geometry, commands,
-hover/media rebuilds, retained fields, accessibility, and exact paint reuse
-the 24-source sandboxed image path and 64px display cap. All 108 benchmark
-probes pass over 102 fixtures. The full engine and compiled host suites, all 18
-startup regressions, all 42 Boot cases, and all six real EXE startup scenarios
-are green. Three-round diagnostic medians are 530.718 ms clean start, 5.075 ms
-local load, and 45.575 ms layout/paint; retained memory is 69.0 KiB/page and
-the required runtime is 622.0 KiB. Runtime 212 is packaged separately and
-installed runtime 157 remains unchanged. See `GENERATED_IMAGES.md`.
-Locale-sensitive automatic quote selection, typed/unquoted/functional
+Milestone 113 adds viewport-height and orientation media features to Lea's
+existing bounded responsive compiler. Compact `E.Vh` and atomic
+`E.Vz(width,height)` feed `P/V/G.Vh`; pixel min/max/exact height,
+portrait/landscape, conjunctions, alternatives, nested intersections, and
+`<style media>` reuse compiled rules and retain fields. Invalid and conflicting
+queries stay inactive, square viewports are portrait, and diagnostics use
+`@h/@o`. All 109 benchmark probes pass over 103 fixtures. The full engine and
+compiled host suites, all 18 startup regressions, all 42 Boot cases, and all
+six real EXE startup scenarios are green. Three-round diagnostic medians are
+1027.283 ms clean start, 6.265 ms local load, and 45.515 ms layout/paint;
+retained memory is 68.7 KiB/page and the required runtime is 624.0 KiB.
+Runtime 213 is packaged separately and installed runtime 157 remains
+unchanged. See `MEDIA_FEATURES.md`. General media features and container
+queries, locale-sensitive automatic quote selection, typed/unquoted/functional
 attribute fallbacks, pseudo box-model/flex/grid items, generated image
 functions and sizing, arbitrary CSSOM, reversed/custom counters, vertical
 writing, full Unicode bidi, and general JavaScript evaluation remain outside

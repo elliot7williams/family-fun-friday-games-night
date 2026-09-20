@@ -153,7 +153,7 @@ namespace Lea.Win
             ed.LostFocus += delegate { EndEdit(false, true); };
             ed.MouseWheel += delegate(object sender, MouseEventArgs args) { Sc(-Math.Sign(args.Delta) * 72); };
             Controls.Add(ed);
-            e.Vw = Math.Max(1, ClientSize.Width);
+            e.Vz(Math.Max(1, ClientSize.Width), Math.Max(1, ClientSize.Height));
         }
 
         protected override AccessibleObject CreateAccessibilityInstance()
@@ -314,7 +314,7 @@ namespace Lea.Win
         public int Sy { get { return sy; } }
         public int Bc { get { lock (layoutGate) return boxes.Count; } }
         public int Vw { get { return e.Vw; } }
-        public int Vh { get { return Math.Max(1, ClientSize.Height); } }
+        public int Vh { get { return e.Vh; } }
         public int Rf { get { return At != null && At.Rf > 0 ? At.Rf : Math.Max(1, (int)Math.Round(Font.Size)); } }
         public N Ke { get { return focus; } }
         public int Kn { get { return FocusTargets(true).Count; } }
@@ -884,7 +884,7 @@ namespace Lea.Win
             focus = null;
             keySlot = -1;
             EndEdit(false);
-            e.Vw = Math.Max(1, ClientSize.Width);
+            e.Vz(Math.Max(1, ClientSize.Width), Math.Max(1, ClientSize.Height));
             e.Dy(page, null, null);
             BeginFragment(page);
             sy = 0;
@@ -1108,8 +1108,8 @@ namespace Lea.Win
             base.OnResize(e);
             var width = Math.Max(1, ClientSize.Width);
             var height = Math.Max(1, ClientSize.Height);
-            var changed = this.e.Vw != width || layoutViewportHeight != height;
-            this.e.Vw = width;
+            var changed = this.e.Vw != width || this.e.Vh != height;
+            this.e.Vz(width, height);
             Dirty();
             QueueFragment(At);
             Invalidate();

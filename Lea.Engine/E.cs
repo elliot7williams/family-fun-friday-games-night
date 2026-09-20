@@ -130,6 +130,7 @@ namespace Lea.Engine
         private int cs = 60;
         private int ch;
         private int vw = 1024;
+        private int vh = 768;
         private bool je = true;
         private Stream download;
         private bool stopped;
@@ -145,13 +146,21 @@ namespace Lea.Engine
         public int Vw
         {
             get { return vw; }
-            set
-            {
-                var next = Math.Max(1, Math.Min(MaxViewport, value));
-                if (vw == next) return;
-                vw = next;
-                ApplyViewport(At);
-            }
+            set { Vz(value, vh); }
+        }
+        public int Vh
+        {
+            get { return vh; }
+            set { Vz(vw, value); }
+        }
+        public void Vz(int width, int height)
+        {
+            var nextWidth = Math.Max(1, Math.Min(MaxViewport, width));
+            var nextHeight = Math.Max(1, Math.Min(MaxViewport, height));
+            if (vw == nextWidth && vh == nextHeight) return;
+            vw = nextWidth;
+            vh = nextHeight;
+            ApplyViewport(At);
         }
         public int Cm
         {
@@ -455,6 +464,7 @@ namespace Lea.Engine
                 V = page.Vs.Count,
                 M = page.Ms.Count,
                 Vw = page.Vw,
+                Vh = page.Vh,
                 Vc = page.S == null ? 0 : page.S.Vc,
                 Cc = Cc,
                 Ch = Ch,
@@ -1350,7 +1360,8 @@ namespace Lea.Engine
             p.Rb = rules;
             p.Ra = rules;
             p.Vw = vw;
-            var active = MediaRules(rules, vw);
+            p.Vh = vh;
+            var active = MediaRules(rules, vw, vh);
             p.R = active;
             Rebuild(p, active, null);
             if (!je) return;
@@ -1362,9 +1373,10 @@ namespace Lea.Engine
         {
             if (page == null) return;
             page.Vw = vw;
+            page.Vh = vh;
             var all = page.Ra as List<R>;
             if (all == null) return;
-            var active = MediaRules(all, vw);
+            var active = MediaRules(all, vw, vh);
             var current = page.R as List<R>;
             if (SameRules(current, active)) return;
             var fields = new Dictionary<N, Fi>();
@@ -1373,11 +1385,11 @@ namespace Lea.Engine
             Rebuild(page, active, fields);
         }
 
-        private static List<R> MediaRules(List<R> rules, int width)
+        private static List<R> MediaRules(List<R> rules, int width, int height)
         {
             var active = new List<R>();
             foreach (var rule in rules)
-                if (rule.On(width)) active.Add(rule);
+                if (rule.On(width, height)) active.Add(rule);
             return active;
         }
 
@@ -2664,9 +2676,13 @@ namespace Lea.Engine
                 if (++groups > MaxMediaGroups) return new Mc[0];
                 var query = item.Trim();
                 if (query.Length == 0 || Regex.IsMatch(query, "(?:^|\\s)not(?:\\s|$)", RegexOptions.IgnoreCase)) continue;
-                var matches = Regex.Matches(query, "\\(\\s*(?<k>min-width|max-width|width)\\s*:\\s*(?<n>[0-9]{1,4})\\s*px\\s*\\)", RegexOptions.IgnoreCase);
+                var matches = Regex.Matches(query, "\\(\\s*(?<k>min-width|max-width|width|min-height|max-height|height)\\s*:\\s*(?<n>[0-9]{1,4})\\s*px\\s*\\)", RegexOptions.IgnoreCase);
+                var orientations = Regex.Matches(query, "\\(\\s*orientation\\s*:\\s*(?<o>portrait|landscape)\\s*\\)", RegexOptions.IgnoreCase);
                 var minimum = 0;
                 var maximum = 0;
+                var heightMinimum = 0;
+                var heightMaximum = 0;
+                var orientation = '\0';
                 var valid = true;
                 foreach (Match match in matches)
                 {
@@ -2675,16 +2691,30 @@ namespace Lea.Engine
                     var kind = match.Groups["k"].Value.ToLowerInvariant();
                     if (kind == "min-width") minimum = Math.Max(minimum, number);
                     else if (kind == "max-width") maximum = maximum == 0 ? number : Math.Min(maximum, number);
-                    else
+                    else if (kind == "width")
                     {
                         minimum = Math.Max(minimum, number);
                         maximum = maximum == 0 ? number : Math.Min(maximum, number);
                     }
+                    else if (kind == "min-height") heightMinimum = Math.Max(heightMinimum, number);
+                    else if (kind == "max-height") heightMaximum = heightMaximum == 0 ? number : Math.Min(heightMaximum, number);
+                    else
+                    {
+                        heightMinimum = Math.Max(heightMinimum, number);
+                        heightMaximum = heightMaximum == 0 ? number : Math.Min(heightMaximum, number);
+                    }
                 }
-                if (!valid || minimum > 0 && maximum > 0 && minimum > maximum) continue;
-                var remainder = Regex.Replace(query, "\\(\\s*(?:min-width|max-width|width)\\s*:\\s*[0-9]{1,4}\\s*px\\s*\\)", " ", RegexOptions.IgnoreCase);
+                foreach (Match match in orientations)
+                {
+                    var next = match.Groups["o"].Value.Equals("portrait", StringComparison.OrdinalIgnoreCase) ? 'p' : 'l';
+                    if (orientation != '\0' && orientation != next) { valid = false; break; }
+                    orientation = next;
+                }
+                if (!valid || minimum > 0 && maximum > 0 && minimum > maximum || heightMinimum > 0 && heightMaximum > 0 && heightMinimum > heightMaximum) continue;
+                var remainder = Regex.Replace(query, "\\(\\s*(?:min-width|max-width|width|min-height|max-height|height)\\s*:\\s*[0-9]{1,4}\\s*px\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*orientation\\s*:\\s*(?:portrait|landscape)\\s*\\)", " ", RegexOptions.IgnoreCase);
                 if (remainder.IndexOf('(') >= 0 || remainder.IndexOf(')') >= 0 || remainder.IndexOf(':') >= 0) continue;
-                var meaningful = matches.Count > 0;
+                var meaningful = matches.Count > 0 || orientations.Count > 0;
                 foreach (var token in Regex.Split(remainder.Trim(), "\\s+"))
                 {
                     if (token.Length == 0 || token == "and" || token == "only") continue;
@@ -2693,10 +2723,10 @@ namespace Lea.Engine
                     break;
                 }
                 if (!valid || !meaningful) continue;
-                var condition = new Mc(minimum, maximum);
+                var condition = new Mc(minimum, maximum, heightMinimum, heightMaximum, orientation);
                 var duplicate = false;
                 foreach (var existing in result)
-                    if (existing.N == condition.N && existing.X == condition.X) { duplicate = true; break; }
+                    if (existing.N == condition.N && existing.X == condition.X && existing.Hn == condition.Hn && existing.Hx == condition.Hx && existing.O == condition.O) { duplicate = true; break; }
                 if (!duplicate) result.Add(condition);
             }
             return result.ToArray();
@@ -2711,11 +2741,16 @@ namespace Lea.Engine
                 {
                     var minimum = Math.Max(left.N, right.N);
                     var maximum = left.X == 0 ? right.X : right.X == 0 ? left.X : Math.Min(left.X, right.X);
+                    var heightMinimum = Math.Max(left.Hn, right.Hn);
+                    var heightMaximum = left.Hx == 0 ? right.Hx : right.Hx == 0 ? left.Hx : Math.Min(left.Hx, right.Hx);
                     if (maximum > 0 && minimum > maximum) continue;
+                    if (heightMaximum > 0 && heightMinimum > heightMaximum) continue;
+                    if (left.O != '\0' && right.O != '\0' && left.O != right.O) continue;
+                    var orientation = left.O == '\0' ? right.O : left.O;
                     var duplicate = false;
                     foreach (var existing in result)
-                        if (existing.N == minimum && existing.X == maximum) { duplicate = true; break; }
-                    if (!duplicate && result.Count < MaxMediaGroups) result.Add(new Mc(minimum, maximum));
+                        if (existing.N == minimum && existing.X == maximum && existing.Hn == heightMinimum && existing.Hx == heightMaximum && existing.O == orientation) { duplicate = true; break; }
+                    if (!duplicate && result.Count < MaxMediaGroups) result.Add(new Mc(minimum, maximum, heightMinimum, heightMaximum, orientation));
                 }
             return result.ToArray();
         }
@@ -10994,27 +11029,45 @@ namespace Lea.Engine
         {
             public readonly int N;
             public readonly int X;
+            public readonly int Hn;
+            public readonly int Hx;
+            public readonly char O;
 
             public Mc(int minimum, int maximum)
+                : this(minimum, maximum, 0, 0, '\0')
+            {
+            }
+
+            public Mc(int minimum, int maximum, int heightMinimum, int heightMaximum, char orientation)
             {
                 N = minimum;
                 X = maximum;
+                Hn = heightMinimum;
+                Hx = heightMaximum;
+                O = orientation;
             }
 
-            public bool On(int width)
+            public bool On(int width, int height)
             {
-                return width >= N && (X == 0 || width <= X);
+                if (width < N || X > 0 && width > X || height < Hn || Hx > 0 && height > Hx) return false;
+                return O == '\0' || O == 'p' && height >= width || O == 'l' && width > height;
             }
 
             public string D
             {
                 get
                 {
-                    if (N == 0 && X == 0) return "";
-                    if (N == X) return "@m=" + N;
-                    if (N == 0) return "@m<=" + X;
-                    if (X == 0) return "@m>=" + N;
-                    return "@m" + N + "-" + X;
+                    var parts = new List<string>();
+                    if (N == X && N > 0) parts.Add("@m=" + N);
+                    else if (N == 0 && X > 0) parts.Add("@m<=" + X);
+                    else if (N > 0 && X == 0) parts.Add("@m>=" + N);
+                    else if (N > 0 || X > 0) parts.Add("@m" + N + "-" + X);
+                    if (Hn == Hx && Hn > 0) parts.Add("@h=" + Hn);
+                    else if (Hn == 0 && Hx > 0) parts.Add("@h<=" + Hx);
+                    else if (Hn > 0 && Hx == 0) parts.Add("@h>=" + Hn);
+                    else if (Hn > 0 || Hx > 0) parts.Add("@h" + Hn + "-" + Hx);
+                    if (O != '\0') parts.Add("@o=" + O);
+                    return String.Join("&", parts.ToArray());
                 }
             }
         }
@@ -11083,10 +11136,10 @@ namespace Lea.Engine
                 Md = String.Join("|", labels.ToArray());
             }
 
-            public bool On(int width)
+            public bool On(int width, int height)
             {
                 foreach (var condition in M)
-                    if (condition.On(width)) return true;
+                    if (condition.On(width, height)) return true;
                 return false;
             }
         }

@@ -136,6 +136,11 @@ namespace Lea.Tests
                     GeneratedImageSmoke(Path.Combine(pages, "generated-images.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--media-features")
+                {
+                    MediaFeatureSmoke(Path.Combine(pages, "media-features.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--text-align-last")
                 {
                     TextAlignLastSmoke(Path.Combine(pages, "text-align-last.html"));
@@ -1511,6 +1516,7 @@ namespace Lea.Tests
                 Eq(1, mediaQueryEngine.Vw, "minimum viewport clamp");
                 mediaQueryEngine.Vw = Int32.MaxValue;
                 Eq(8192, mediaQueryEngine.Vw, "maximum viewport clamp");
+                MediaFeatureSmoke(Path.Combine(pages, "media-features.html"));
 
                 var customPath = Path.Combine(pages, "custom-properties.html");
                 var customEngine = new E();
@@ -8021,6 +8027,76 @@ namespace Lea.Tests
                 .Invoke(view, new object[] { automation, new System.Windows.Point(rectangle.Left + rectangle.Width / 2F, rectangle.Top + rectangle.Height / 2F) });
             range.GetType().GetMethod("ExpandToEnclosingUnit").Invoke(range, new object[] { TextUnit.Word });
             return ((string)range.GetType().GetMethod("GetText").Invoke(range, new object[] { -1 })).Trim();
+        }
+
+        private static void MediaFeatureSmoke(string path)
+        {
+            var engine = new E();
+            Eq(1024, engine.Vw, "default media feature viewport width");
+            Eq(768, engine.Vh, "default viewport height alias");
+            var page = engine.Go(path);
+            Eq(1024, page.Vw, "default media feature page width");
+            Eq(768, page.Vh, "page viewport height alias");
+            Ok(HasBlock(page, "landscape") && HasBlock(page, "tall"), "default landscape and minimum-height rules");
+            Ok(!HasBlock(page, "portrait") && !HasBlock(page, "short") && !HasBlock(page, "exact-height") && !HasBlock(page, "combined"), "default inactive media feature rules");
+            Ok(!HasBlock(page, "invalid-unit") && !HasBlock(page, "invalid-orientation") && !HasBlock(page, "conflict"), "invalid and conflicting media features stay inactive");
+            Eq(241, BlockById(page, "landscape").S.W, "landscape media style");
+            var field = FieldById(page, "field");
+            field.V = "Retained media feature value";
+            var diagnostics = engine.Dg(page);
+            Eq(768, diagnostics.Vh, "diagnostic viewport height alias");
+            Ok(Has(diagnostics.Cs, "@o=l") && Has(diagnostics.Cs, "@h>=700"), "default height and orientation diagnostics");
+
+            engine.Vz(480, 800);
+            Eq(480, engine.Vw, "atomic viewport width alias");
+            Eq(800, engine.Vh, "atomic viewport height alias");
+            Ok(page.Vw == 480 && page.Vh == 800, "atomic viewport dimensions reach page");
+            Ok(HasBlock(page, "portrait") && HasBlock(page, "tall") && HasBlock(page, "either") && HasBlock(page, "nested") && HasBlock(page, "style-media"), "portrait height media rules activate");
+            Ok(!HasBlock(page, "landscape") && !HasBlock(page, "short") && !HasBlock(page, "combined"), "landscape and short rules deactivate in portrait");
+            Eq(181, BlockById(page, "portrait").S.W, "portrait media style");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained media feature value" && field.S.W == 180, "atomic media rebuild preserves field state");
+            diagnostics = engine.Dg(page);
+            Ok(Has(diagnostics.Cs, "@m<=600&@h>=700&@o=p") && Has(diagnostics.Cs, "@o=p") && Has(diagnostics.Cs, "@h>=700"), "intersected media feature diagnostics");
+
+            engine.Vz(900, 480);
+            Ok(HasBlock(page, "landscape") && HasBlock(page, "short") && HasBlock(page, "exact-height") && HasBlock(page, "combined"), "short landscape media rules activate");
+            Ok(!HasBlock(page, "portrait") && !HasBlock(page, "tall") && !HasBlock(page, "either") && !HasBlock(page, "nested") && !HasBlock(page, "style-media"), "portrait and tall rules deactivate in landscape");
+            Eq(260, BlockById(page, "combined").S.W, "combined media feature style");
+            diagnostics = engine.Dg(page);
+            Ok(Has(diagnostics.Cs, "@m>=800&@h<=500&@o=l") && Has(diagnostics.Cs, "@h=480"), "combined and exact-height diagnostics");
+
+            engine.Vz(500, 500);
+            Ok(HasBlock(page, "portrait") && !HasBlock(page, "landscape"), "square viewport follows portrait orientation");
+            engine.Vh = 480;
+            Ok(engine.Vw == 500 && engine.Vh == 480 && HasBlock(page, "landscape") && HasBlock(page, "exact-height"), "height property updates responsive state");
+            engine.Vw = 0;
+            Eq(1, engine.Vw, "minimum viewport width clamp with height support");
+            engine.Vh = 0;
+            Eq(1, engine.Vh, "minimum viewport height clamp");
+            engine.Vz(Int32.MaxValue, Int32.MaxValue);
+            Ok(engine.Vw == 8192 && engine.Vh == 8192, "atomic maximum viewport clamp");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained media feature value", "all media feature rebuilds retain field state");
+
+            using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-30000, -30000), ClientSize = new Size(480, 800) })
+            using (var view = new V())
+            {
+                form.Controls.Add(view);
+                form.Show();
+                view.Go(path);
+                Paint(view);
+                Ok(view.Vw == view.ClientSize.Width && view.Vh == view.ClientSize.Height && view.At.Vh == view.Vh, "WinForms viewport dimensions forward to engine");
+                Ok(HasBlock(view.At, "portrait") && HasBlock(view.At, "nested"), "WinForms portrait media state");
+                var viewField = FieldById(view.At, "field");
+                viewField.V = "Retained view media value";
+                form.ClientSize = new Size(900, 480);
+                Application.DoEvents();
+                Paint(view);
+                Ok(view.Vw == view.ClientSize.Width && view.Vh == view.ClientSize.Height && view.Dg().Vh == view.Vh, "WinForms resize updates width and height aliases");
+                Ok(HasBlock(view.At, "landscape") && HasBlock(view.At, "short") && HasBlock(view.At, "exact-height") && HasBlock(view.At, "combined"), "WinForms landscape media state");
+                Eq(260, BlockRect(view, BlockById(view.At, "combined")).Width, "WinForms combined media geometry");
+                Ok(Object.ReferenceEquals(viewField, FieldById(view.At, "field")) && viewField.V == "Retained view media value", "WinForms media resize preserves field state");
+            }
+            Console.WriteLine("Lea height and orientation media smoke passed: compact Vh/Vz aliases, parsing, intersections, diagnostics, retention, clamps, and live resize.");
         }
 
         private static void ListStyleSmoke(string path)

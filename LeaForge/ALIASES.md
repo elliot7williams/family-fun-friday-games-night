@@ -360,7 +360,7 @@ St/Ct/Sz  response status/type/bytes
 Ca        response reused cached content
 N/B/L/F   nodes/blocks/links/fields
 C/J/V/M   CSS rules/commands/variables/alerts
-Vw        applied viewport width in pixels
+Vw/Vh     applied viewport width/height in pixels
 Vc        document custom-property count
 Ic        active compiled important-declaration count
 Cc/Ch/Kc  cache entries/reuses/cookies
@@ -945,17 +945,21 @@ pseudo-class specificity. Filter alternatives count toward the same sixteen
 authored tests per simple selector. Inner combinators, nested selector-list
 functions, filtered `nth-of-type`, and filtered `nth-last-of-type` stay outside.
 
-Responsive CSS uses the compact `Vw` alias. Hosts may set `E.Vw`; it clamps to
-1-8,192 pixels and reapplies rules only when the active rule set changes.
-`V.Vw` is read-only and follows the control's client width automatically;
-`V.Vh` is the matching live client height. `P.Vw` and `G.Vw` report the width
-applied to the page and diagnostic snapshot.
+Responsive CSS uses compact `Vw` and `Vh` aliases. Hosts may set `E.Vw` or
+`E.Vh`; each clamps to 1-8,192 pixels. `E.Vz(width, height)` applies both as one
+atomic update and is preferred during host resize. Rules are reapplied only
+when the active set changes. `V.Vw/Vh` are read-only and follow the control's
+client viewport automatically. `P.Vw/Vh` and `G.Vw/Vh` report the pair applied
+to the page and diagnostic snapshot.
 `P.Rf` is the explicitly computed root font size, or zero for the host default;
 `V.Rf` is the root font size actually used for layout.
 Lea compiles bounded `screen`/`all` queries with pixel `min-width`, `max-width`,
-or exact `width`, comma alternatives, four nested `@media` levels, up to eight
-alternatives, and `<style media>`. Print, negated, unknown, and non-pixel
-conditions stay inactive. Active diagnostic CSS lines use short `@m` prefixes.
+exact `width`, `min-height`, `max-height`, exact `height`, and
+`orientation:portrait/landscape`, plus conjunctions, comma alternatives, four
+nested `@media` levels, up to eight resulting alternatives, and
+`<style media>`. A square viewport is portrait. Print, negated, unknown, and
+non-pixel conditions stay inactive. Active diagnostic CSS lines use short
+`@m`, `@h`, and `@o` prefixes. See `MEDIA_FEATURES.md`.
 
 Computed styles expose bounded custom properties through `S.Vc` (count) and
 `S.Cv(name)` (case-sensitive raw lookup). `G.Vc` reports the body/document count

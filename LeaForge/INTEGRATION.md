@@ -701,14 +701,17 @@ descendant focus without replacing fields. Empty or malformed lists, nested
 selector-list functions, pseudo-elements, oversized chains, and excess work
 are rejected rather than entering an unbounded tree search.
 
-Responsive styles use `E.Vw`, `P.Vw`, `V.Vw`, `V.Vh`, and `G.Vw`. A headless
-host sets `E.Vw` directly; the WinForms view forwards its client width and rebuilds only
-when a media boundary changes. Existing `Fi` objects and mutable values survive
-that rebuild. The bounded compiler accepts `screen`/`all` with pixel
-`min-width`, `max-width`, and exact `width`, comma alternatives, nested
-`@media`, and `<style media>`. Widths clamp to 1-8,192 pixels; query alternatives,
-nesting, and total rules are capped at 8, 4, and 1,024. Unsupported media stays
-inactive instead of silently behaving as screen CSS.
+Responsive styles use `E.Vw/Vh`, `P.Vw/Vh`, `V.Vw/Vh`, and `G.Vw/Vh`. A
+headless host can set either engine dimension or call compact
+`E.Vz(width, height)` to apply one atomic viewport update. The WinForms view
+forwards its client pair and rebuilds only when a media boundary changes.
+Existing `Fi` objects and mutable values survive that rebuild. The bounded
+compiler accepts `screen`/`all` with pixel min/max/exact width and height,
+portrait/landscape orientation, conjunctions, comma alternatives, nested
+`@media`, and `<style media>`. Dimensions clamp to 1-8,192 pixels; a square is
+portrait; query alternatives, nesting, and total rules are capped at 8, 4, and
+1,024. Unsupported media stays inactive instead of silently behaving as screen
+CSS. See `MEDIA_FEATURES.md`.
 
 Responsive dimension tuples expose `Wu/Wnu/Wxu` and `Hu/Hnu/Hxu` unit codes:
 `0` is containing percentage, `1` is `vw`, `2` is `vh`, `3` is `vmin`, and `4`
