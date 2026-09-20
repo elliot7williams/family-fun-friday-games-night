@@ -868,9 +868,9 @@ namespace Lea.Firespider
                 // ToolStrip raises MouseHover in HandleMouseHover, not OnMouseHover.
                 var hover = typeof(ToolStripItem).GetMethod("HandleMouseHover", Members);
                 var copy = Member<ToolStripItem>(form, "CO");
+                settings["t"] = "";
                 ((ToolStripDropDownItem)copy.OwnerItem).ShowDropDown();
                 copy.Select();
-                settings["t"] = "";
                 hover.Invoke(Member<ToolStripItem>(form, "CO"), new object[] { EventArgs.Empty });
                 Check(Clipboard.GetText() == "unchanged", "hover editing ran while disabled");
                 settings["t"] = "e";

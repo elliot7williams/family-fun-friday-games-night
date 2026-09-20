@@ -350,11 +350,13 @@ feed those same fields for horizontal LTR/RTL pages.
 Responsive CSS also stays inside that surface. `V.Vw/Vh` follow the hosted
 control's client viewport, while `P.Vw/Vh` and `G.Vw/Vh` expose the applied
 pair to the page and Inspector. Bounded screen/all pixel min/max/exact width
-and height, portrait/landscape, conjunction, comma, nested, and style media
-conditions switch compiled rules on resize without replacing live field
-models. The host smoke verifies portrait, short-landscape, narrow, restored
-wide, diagnostic, and retained-field states plus classic viewport-unit geometry
-and commands. See `LeaForge/MEDIA_FEATURES.md`.
+and height, portrait/landscape, reduced integer aspect-ratio ranges,
+conjunction, comma, nested, and style media conditions switch compiled rules
+on resize without replacing live field models. The host smoke verifies
+portrait, short-landscape, tall/wide/intermediate ratio, narrow, restored wide,
+diagnostic, and retained-field states plus classic viewport-unit geometry and
+commands. See `LeaForge/MEDIA_FEATURES.md` and
+`LeaForge/MEDIA_ASPECT_RATIO.md`.
 
 CSS custom properties stay compact as well. Firespider can read `S.Vc`, perform
 case-sensitive `S.Cv(name)` lookup, and see the document count through `G.Vc`

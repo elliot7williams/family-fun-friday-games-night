@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **113**
+Post-1.0 hardening milestones completed: **114**
 
 This measures progress toward Lea 1.0: a small dependable custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
@@ -29,6 +29,26 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded exact, minimum, and maximum viewport aspect-ratio media
+  conditions. Positive numerator and denominator terms stop at 8,192, reduce
+  by GCD, and compare through bounded 64-bit cross multiplication. Ratios
+  compose with width, height, portrait/landscape, conjunctions, comma
+  alternatives, nested intersections, and `<style media>`. Zero, decimal,
+  malformed, over-bound, unknown, and empty ranges stay inactive. Active
+  diagnostics add normalized `@r` labels without a new page or host API, and
+  responsive rebuilds retain mutable fields. The focused and full engine suites
+  and full compiled Firespider host pass, including all 18 startup regressions
+  and live tall, wide, intermediate, exact, square, geometry, diagnostic, and
+  retention checks. All 42 Boot cases pass after the edit case was hardened
+  against a queued Windows hover event, and all six real EXE startup scenarios
+  remain responsive without a legacy engine, invalid cast, JIT dialog, or dead
+  startup window. All 110 benchmark probes pass over 104 fixtures.
+  Three-round diagnostic medians are 531.850 ms clean start, 5.337 ms local
+  load, and 44.649 ms layout/paint. Retained managed memory is 28,455.2 KiB for
+  416 pages, or 68.4 KiB/page. Required runtime files are 626.0 KiB with a
+  261.0 KiB GZip estimate. Runtime 214 is packaged separately and installed
+  runtime 157 remains unchanged. See `MEDIA_ASPECT_RATIO.md`.
 
 - Extended bounded responsive CSS across both viewport axes. Compact `E.Vh`
   and atomic `E.Vz(width,height)` join `Vw`; `P.Vh`, read-only `V.Vh`, and

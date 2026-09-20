@@ -141,6 +141,11 @@ namespace Lea.Tests
                     MediaFeatureSmoke(Path.Combine(pages, "media-features.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--media-aspect")
+                {
+                    MediaAspectSmoke(Path.Combine(pages, "media-aspect-ratio.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--text-align-last")
                 {
                     TextAlignLastSmoke(Path.Combine(pages, "text-align-last.html"));
@@ -1517,6 +1522,7 @@ namespace Lea.Tests
                 mediaQueryEngine.Vw = Int32.MaxValue;
                 Eq(8192, mediaQueryEngine.Vw, "maximum viewport clamp");
                 MediaFeatureSmoke(Path.Combine(pages, "media-features.html"));
+                MediaAspectSmoke(Path.Combine(pages, "media-aspect-ratio.html"));
 
                 var customPath = Path.Combine(pages, "custom-properties.html");
                 var customEngine = new E();
@@ -8027,6 +8033,65 @@ namespace Lea.Tests
                 .Invoke(view, new object[] { automation, new System.Windows.Point(rectangle.Left + rectangle.Width / 2F, rectangle.Top + rectangle.Height / 2F) });
             range.GetType().GetMethod("ExpandToEnclosingUnit").Invoke(range, new object[] { TextUnit.Word });
             return ((string)range.GetType().GetMethod("GetText").Invoke(range, new object[] { -1 })).Trim();
+        }
+
+        private static void MediaAspectSmoke(string path)
+        {
+            var engine = new E();
+            var page = engine.Go(path);
+            Ok(HasBlock(page, "four-three") && HasBlock(page, "combined") && HasBlock(page, "nested"), "default four-by-three media ratio rules");
+            Ok(!HasBlock(page, "wide-ratio") && !HasBlock(page, "tall-ratio") && !HasBlock(page, "square") && !HasBlock(page, "either") && !HasBlock(page, "style-media"), "default inactive media ratio rules");
+            Ok(!HasBlock(page, "zero") && !HasBlock(page, "decimal") && !HasBlock(page, "unknown") && !HasBlock(page, "impossible"), "invalid and impossible media ratios stay inactive");
+            Eq(143, BlockById(page, "four-three").S.W, "exact aspect-ratio style");
+            var field = FieldById(page, "field");
+            Eq(243, field.S.W, "exact aspect-ratio field style");
+            field.V = "Retained ratio value";
+            var diagnostics = engine.Dg(page);
+            Ok(Has(diagnostics.Cs, "@r=4/3") && Has(diagnostics.Cs, "@r>=4/3&@o=l") &&
+                Has(diagnostics.Cs, "@m>=700&@r>=4/3&@r<=16/9"), "normalized and intersected media ratio diagnostics");
+
+            engine.Vz(480, 800);
+            Ok(HasBlock(page, "tall-ratio") && HasBlock(page, "either"), "tall aspect-ratio rules activate inclusively");
+            Ok(!HasBlock(page, "four-three") && !HasBlock(page, "wide-ratio") && !HasBlock(page, "combined") && !HasBlock(page, "nested"), "wide media ratio rules deactivate in tall viewport");
+            Eq(175, BlockById(page, "tall-ratio").S.W, "maximum aspect-ratio style");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained ratio value" && field.S.W == 210, "tall ratio rebuild preserves field state");
+            diagnostics = engine.Dg(page);
+            Ok(Has(diagnostics.Cs, "@r<=3/4") && Has(diagnostics.Cs, "@r<=2/3|@r>=15/8"), "maximum and alternative ratio diagnostics");
+
+            engine.Vz(900, 480);
+            Ok(HasBlock(page, "wide-ratio") && HasBlock(page, "combined") && HasBlock(page, "either") && HasBlock(page, "style-media"), "wide aspect-ratio rules activate inclusively");
+            Ok(!HasBlock(page, "four-three") && !HasBlock(page, "tall-ratio") && !HasBlock(page, "nested"), "exact and bounded ratio rules deactivate when too wide");
+            Eq(169, BlockById(page, "wide-ratio").S.W, "minimum aspect-ratio style");
+            Ok(Has(engine.Dg(page).Cs, "@r>=16/9"), "minimum aspect-ratio diagnostic");
+
+            engine.Vz(800, 600);
+            Ok(HasBlock(page, "four-three") && HasBlock(page, "nested") && !HasBlock(page, "either"), "nested aspect-ratio intersection restores");
+            engine.Vz(500, 500);
+            Ok(HasBlock(page, "square") && !HasBlock(page, "four-three") && !HasBlock(page, "combined"), "square aspect-ratio boundary");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained ratio value", "all ratio rebuilds retain field state");
+
+            using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-30000, -30000), ClientSize = new Size(900, 480) })
+            using (var view = new V())
+            {
+                form.Controls.Add(view);
+                form.Show();
+                view.Go(path);
+                Paint(view);
+                Ok(HasBlock(view.At, "wide-ratio") && HasBlock(view.At, "style-media"), "WinForms wide ratio media state");
+                Eq(169, BlockRect(view, BlockById(view.At, "wide-ratio")).Width, "WinForms wide ratio geometry");
+                var viewField = FieldById(view.At, "field");
+                viewField.V = "Retained ratio view value";
+                form.ClientSize = new Size(480, 800);
+                Application.DoEvents();
+                Paint(view);
+                Ok(view.Vw == view.ClientSize.Width && view.Vh == view.ClientSize.Height,
+                    "WinForms ratio viewport forwarding: " + view.Vw + "x" + view.Vh + " / " + view.ClientSize.Width + "x" + view.ClientSize.Height);
+                Ok(HasBlock(view.At, "tall-ratio") && HasBlock(view.At, "either") && !HasBlock(view.At, "wide-ratio"),
+                    "WinForms tall ratio media state at " + view.Vw + "x" + view.Vh);
+                Eq(175, BlockRect(view, BlockById(view.At, "tall-ratio")).Width, "WinForms tall ratio geometry");
+                Ok(Object.ReferenceEquals(viewField, FieldById(view.At, "field")) && viewField.V == "Retained ratio view value", "WinForms ratio resize preserves field state");
+            }
+            Console.WriteLine("Lea aspect-ratio media smoke passed: exact integer ratios, ranges, intersections, alternatives, diagnostics, retention, and live resize.");
         }
 
         private static void MediaFeatureSmoke(string path)

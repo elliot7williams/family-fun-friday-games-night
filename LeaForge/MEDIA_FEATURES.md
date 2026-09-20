@@ -24,6 +24,8 @@ Lea accepts `screen` and `all` queries containing:
 - `width`, `min-width`, and `max-width` in whole pixels
 - `height`, `min-height`, and `max-height` in whole pixels
 - `orientation: portrait` and `orientation: landscape`
+- `aspect-ratio`, `min-aspect-ratio`, and `max-aspect-ratio` as bounded
+  positive integer fractions
 - `and` conjunctions and comma alternatives
 - up to four nested `@media` levels and eight resulting alternatives
 - the same conditions in a `<style media>` attribute
@@ -36,6 +38,9 @@ ranges and conflicting orientations stay inactive.
 Print, negated, unknown, malformed, non-pixel dimension, and unknown
 orientation queries stay inactive. This remains a deliberately bounded screen
 media subset, not the complete CSS media-query standard.
+
+Aspect-ratio normalization, exact comparison, diagnostics, and limits are
+documented separately in `MEDIA_ASPECT_RATIO.md`.
 
 ## Diagnostics and State
 

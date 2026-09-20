@@ -84,11 +84,11 @@ Dg/Dcl  diagnostics/clear request activity
    factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis
    alignment, and auto-height column reordering remain outside this subset.)
 9. Add bounded responsive CSS. (`screen`/`all` pixel min/max/exact width and
-   height, portrait/landscape orientation, conjunctions, comma alternatives,
-   four nested `@media` levels, and `<style media>` are active through compact
-   `Vw/Vh/Vz` aliases. WinForms resize activation preserves live fields;
-   print, negated, unknown, and non-pixel queries stay outside the supported
-   subset.)
+   height, portrait/landscape orientation, reduced integer min/max/exact aspect
+   ratios, conjunctions, comma alternatives, four nested `@media` levels, and
+   `<style media>` are active through compact `Vw/Vh/Vz` aliases. WinForms
+   resize activation preserves live fields; print, negated, unknown, non-pixel,
+   and malformed ratio queries stay outside the supported subset.)
 10. Add bounded CSS custom properties. (Stylesheet declarations now compile
     once; inherited case-sensitive values use lazy copy-on-write storage and
     compact `S.Vc/Cv` plus `G.Vc` aliases. Nested `var()` fallback, cycles,
@@ -347,19 +347,20 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 113 extends the existing bounded media compiler across both viewport
-axes. Compact `E.Vh` and atomic `E.Vz(width,height)` join `Vw`; `P`, `V`, and
-`G` expose the applied height without a second host subsystem. Pixel
-min/max/exact height, portrait/landscape orientation, conjunctions, comma
-alternatives, nested intersections, and `<style media>` reuse compiled rule
-records and retain live fields. Square viewports are portrait; impossible
-ranges, conflicting orientations, non-pixel dimensions, and unknown features
-stay inactive. Diagnostics add compact `@h` and `@o` labels. See
-`MEDIA_FEATURES.md`. All 109 probes pass over 103 fixtures; the full engine and
-compiled Firespider suites, all 18 startup regressions, all 42 Boot cases, and
-all six real EXE startup scenarios pass. Runtime 213 is packaged separately and
-installed runtime 157 remains unchanged. Next investigate another bounded compatibility slice. Keep general media
-features and container queries, locale-sensitive automatic quote selection,
+Milestone 114 adds bounded exact, minimum, and maximum viewport aspect-ratio
+conditions to the shared media compiler. Positive 1..8192 integer fractions
+are reduced by GCD and compared with 64-bit cross multiplication, avoiding
+floating-point state. Ratios compose with width, height, orientation,
+alternatives, nested intersections, and `<style media>`; empty ranges and
+zero, decimal, malformed, over-bound, or unknown features stay inactive.
+Diagnostics add compact `@r` labels, and responsive rebuilds retain fields.
+See `MEDIA_ASPECT_RATIO.md`. All 110 probes pass over 104 fixtures; the focused
+and full engine suites, compiled Firespider host, all 18 startup regressions,
+all 42 Boot cases, and all six real EXE startup scenarios pass. Runtime 214 is
+packaged separately and installed runtime 157 remains unchanged. Next
+investigate another bounded compatibility slice. Keep
+general media features, continuous range syntax, device ratios, and container
+queries, locale-sensitive automatic quote selection,
 reversed/custom counter styles, pseudo-element counter properties,
 typed/unquoted/functional attribute fallbacks, pseudo box-model/flex/grid
 items, generated image functions and sizing, marker-side, cross-item gutter

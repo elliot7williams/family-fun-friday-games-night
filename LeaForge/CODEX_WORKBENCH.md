@@ -17,19 +17,21 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 113 adds viewport-height and orientation media features to Lea's
-existing bounded responsive compiler. Compact `E.Vh` and atomic
-`E.Vz(width,height)` feed `P/V/G.Vh`; pixel min/max/exact height,
-portrait/landscape, conjunctions, alternatives, nested intersections, and
-`<style media>` reuse compiled rules and retain fields. Invalid and conflicting
-queries stay inactive, square viewports are portrait, and diagnostics use
-`@h/@o`. All 109 benchmark probes pass over 103 fixtures. The full engine and
-compiled host suites, all 18 startup regressions, all 42 Boot cases, and all
-six real EXE startup scenarios are green. Three-round diagnostic medians are
-1027.283 ms clean start, 6.265 ms local load, and 45.515 ms layout/paint;
-retained memory is 68.7 KiB/page and the required runtime is 624.0 KiB.
-Runtime 213 is packaged separately and installed runtime 157 remains
-unchanged. See `MEDIA_FEATURES.md`. General media features and container
+Milestone 114 adds bounded exact/min/max viewport aspect-ratio queries to Lea's
+existing media compiler. Positive integer fractions reduce by GCD and compare
+through bounded 64-bit cross multiplication. Ratios compose with width, height,
+orientation, alternatives, nested intersections, and `<style media>`; invalid
+and empty ranges stay inactive, diagnostics use compact `@r`, and responsive
+rebuilds retain fields. All 110 benchmark probes pass over 104 fixtures. The
+focused and full engine suites, full compiled host suite, all 18 startup
+regressions, all 42 Boot cases, and all six real EXE startup scenarios are
+green. The Boot edit case now disables hover editing before menu selection so
+queued Windows hover messages cannot race the assertion. Three-round diagnostic
+medians are 531.850 ms clean start, 5.337 ms local load, and 44.649 ms
+layout/paint; retained memory is 68.4 KiB/page and the required runtime is
+626.0 KiB. Runtime 214 is packaged separately and installed runtime 157 remains
+unchanged. See `MEDIA_ASPECT_RATIO.md`. General media features, continuous range
+syntax, device ratios, and container
 queries, locale-sensitive automatic quote selection, typed/unquoted/functional
 attribute fallbacks, pseudo box-model/flex/grid items, generated image
 functions and sizing, arbitrary CSSOM, reversed/custom counters, vertical

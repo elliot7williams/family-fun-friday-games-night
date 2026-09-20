@@ -2678,10 +2678,15 @@ namespace Lea.Engine
                 if (query.Length == 0 || Regex.IsMatch(query, "(?:^|\\s)not(?:\\s|$)", RegexOptions.IgnoreCase)) continue;
                 var matches = Regex.Matches(query, "\\(\\s*(?<k>min-width|max-width|width|min-height|max-height|height)\\s*:\\s*(?<n>[0-9]{1,4})\\s*px\\s*\\)", RegexOptions.IgnoreCase);
                 var orientations = Regex.Matches(query, "\\(\\s*orientation\\s*:\\s*(?<o>portrait|landscape)\\s*\\)", RegexOptions.IgnoreCase);
+                var ratios = Regex.Matches(query, "\\(\\s*(?<k>min-aspect-ratio|max-aspect-ratio|aspect-ratio)\\s*:\\s*(?<n>[0-9]{1,4})\\s*/\\s*(?<d>[0-9]{1,4})\\s*\\)", RegexOptions.IgnoreCase);
                 var minimum = 0;
                 var maximum = 0;
                 var heightMinimum = 0;
                 var heightMaximum = 0;
+                var ratioMinimum = 0;
+                var ratioMinimumDenominator = 0;
+                var ratioMaximum = 0;
+                var ratioMaximumDenominator = 0;
                 var orientation = '\0';
                 var valid = true;
                 foreach (Match match in matches)
@@ -2710,11 +2715,40 @@ namespace Lea.Engine
                     if (orientation != '\0' && orientation != next) { valid = false; break; }
                     orientation = next;
                 }
-                if (!valid || minimum > 0 && maximum > 0 && minimum > maximum || heightMinimum > 0 && heightMaximum > 0 && heightMinimum > heightMaximum) continue;
+                foreach (Match match in ratios)
+                {
+                    int numerator;
+                    int denominator;
+                    if (!Int32.TryParse(match.Groups["n"].Value, out numerator) || !Int32.TryParse(match.Groups["d"].Value, out denominator) ||
+                        numerator < 1 || numerator > MaxViewport || denominator < 1 || denominator > MaxViewport) { valid = false; break; }
+                    var divisor = RatioGcd(numerator, denominator);
+                    numerator /= divisor;
+                    denominator /= divisor;
+                    var kind = match.Groups["k"].Value.ToLowerInvariant();
+                    if (kind == "min-aspect-ratio" || kind == "aspect-ratio")
+                    {
+                        if (ratioMinimum == 0 || RatioCompare(numerator, denominator, ratioMinimum, ratioMinimumDenominator) > 0)
+                        {
+                            ratioMinimum = numerator;
+                            ratioMinimumDenominator = denominator;
+                        }
+                    }
+                    if (kind == "max-aspect-ratio" || kind == "aspect-ratio")
+                    {
+                        if (ratioMaximum == 0 || RatioCompare(numerator, denominator, ratioMaximum, ratioMaximumDenominator) < 0)
+                        {
+                            ratioMaximum = numerator;
+                            ratioMaximumDenominator = denominator;
+                        }
+                    }
+                }
+                if (!valid || minimum > 0 && maximum > 0 && minimum > maximum || heightMinimum > 0 && heightMaximum > 0 && heightMinimum > heightMaximum ||
+                    ratioMinimum > 0 && ratioMaximum > 0 && RatioCompare(ratioMinimum, ratioMinimumDenominator, ratioMaximum, ratioMaximumDenominator) > 0) continue;
                 var remainder = Regex.Replace(query, "\\(\\s*(?:min-width|max-width|width|min-height|max-height|height)\\s*:\\s*[0-9]{1,4}\\s*px\\s*\\)", " ", RegexOptions.IgnoreCase);
                 remainder = Regex.Replace(remainder, "\\(\\s*orientation\\s*:\\s*(?:portrait|landscape)\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*(?:min-aspect-ratio|max-aspect-ratio|aspect-ratio)\\s*:\\s*[0-9]{1,4}\\s*/\\s*[0-9]{1,4}\\s*\\)", " ", RegexOptions.IgnoreCase);
                 if (remainder.IndexOf('(') >= 0 || remainder.IndexOf(')') >= 0 || remainder.IndexOf(':') >= 0) continue;
-                var meaningful = matches.Count > 0 || orientations.Count > 0;
+                var meaningful = matches.Count > 0 || orientations.Count > 0 || ratios.Count > 0;
                 foreach (var token in Regex.Split(remainder.Trim(), "\\s+"))
                 {
                     if (token.Length == 0 || token == "and" || token == "only") continue;
@@ -2723,10 +2757,10 @@ namespace Lea.Engine
                     break;
                 }
                 if (!valid || !meaningful) continue;
-                var condition = new Mc(minimum, maximum, heightMinimum, heightMaximum, orientation);
+                var condition = new Mc(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator, ratioMaximum, ratioMaximumDenominator, orientation);
                 var duplicate = false;
                 foreach (var existing in result)
-                    if (existing.N == condition.N && existing.X == condition.X && existing.Hn == condition.Hn && existing.Hx == condition.Hx && existing.O == condition.O) { duplicate = true; break; }
+                    if (SameMedia(existing, condition)) { duplicate = true; break; }
                 if (!duplicate) result.Add(condition);
             }
             return result.ToArray();
@@ -2743,16 +2777,54 @@ namespace Lea.Engine
                     var maximum = left.X == 0 ? right.X : right.X == 0 ? left.X : Math.Min(left.X, right.X);
                     var heightMinimum = Math.Max(left.Hn, right.Hn);
                     var heightMaximum = left.Hx == 0 ? right.Hx : right.Hx == 0 ? left.Hx : Math.Min(left.Hx, right.Hx);
+                    var ratioMinimum = left.Rn;
+                    var ratioMinimumDenominator = left.Rd;
+                    if (ratioMinimum == 0 || right.Rn > 0 && RatioCompare(right.Rn, right.Rd, ratioMinimum, ratioMinimumDenominator) > 0)
+                    {
+                        ratioMinimum = right.Rn;
+                        ratioMinimumDenominator = right.Rd;
+                    }
+                    var ratioMaximum = left.Rx;
+                    var ratioMaximumDenominator = left.Rxd;
+                    if (ratioMaximum == 0 || right.Rx > 0 && RatioCompare(right.Rx, right.Rxd, ratioMaximum, ratioMaximumDenominator) < 0)
+                    {
+                        ratioMaximum = right.Rx;
+                        ratioMaximumDenominator = right.Rxd;
+                    }
                     if (maximum > 0 && minimum > maximum) continue;
                     if (heightMaximum > 0 && heightMinimum > heightMaximum) continue;
+                    if (ratioMinimum > 0 && ratioMaximum > 0 && RatioCompare(ratioMinimum, ratioMinimumDenominator, ratioMaximum, ratioMaximumDenominator) > 0) continue;
                     if (left.O != '\0' && right.O != '\0' && left.O != right.O) continue;
                     var orientation = left.O == '\0' ? right.O : left.O;
+                    var condition = new Mc(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator, ratioMaximum, ratioMaximumDenominator, orientation);
                     var duplicate = false;
                     foreach (var existing in result)
-                        if (existing.N == minimum && existing.X == maximum && existing.Hn == heightMinimum && existing.Hx == heightMaximum && existing.O == orientation) { duplicate = true; break; }
-                    if (!duplicate && result.Count < MaxMediaGroups) result.Add(new Mc(minimum, maximum, heightMinimum, heightMaximum, orientation));
+                        if (SameMedia(existing, condition)) { duplicate = true; break; }
+                    if (!duplicate && result.Count < MaxMediaGroups) result.Add(condition);
                 }
             return result.ToArray();
+        }
+
+        private static bool SameMedia(Mc left, Mc right)
+        {
+            return left.N == right.N && left.X == right.X && left.Hn == right.Hn && left.Hx == right.Hx &&
+                left.Rn == right.Rn && left.Rd == right.Rd && left.Rx == right.Rx && left.Rxd == right.Rxd && left.O == right.O;
+        }
+
+        private static int RatioCompare(int leftNumerator, int leftDenominator, int rightNumerator, int rightDenominator)
+        {
+            return ((long)leftNumerator * rightDenominator).CompareTo((long)rightNumerator * leftDenominator);
+        }
+
+        private static int RatioGcd(int left, int right)
+        {
+            while (right != 0)
+            {
+                var next = left % right;
+                left = right;
+                right = next;
+            }
+            return Math.Max(1, left);
         }
 
         private static void FindAll(N node, string kind, List<N> found)
@@ -11031,25 +11103,35 @@ namespace Lea.Engine
             public readonly int X;
             public readonly int Hn;
             public readonly int Hx;
+            public readonly int Rn;
+            public readonly int Rd;
+            public readonly int Rx;
+            public readonly int Rxd;
             public readonly char O;
 
             public Mc(int minimum, int maximum)
-                : this(minimum, maximum, 0, 0, '\0')
+                : this(minimum, maximum, 0, 0, 0, 0, 0, 0, '\0')
             {
             }
 
-            public Mc(int minimum, int maximum, int heightMinimum, int heightMaximum, char orientation)
+            public Mc(int minimum, int maximum, int heightMinimum, int heightMaximum,
+                int ratioMinimum, int ratioMinimumDenominator, int ratioMaximum, int ratioMaximumDenominator, char orientation)
             {
                 N = minimum;
                 X = maximum;
                 Hn = heightMinimum;
                 Hx = heightMaximum;
+                Rn = ratioMinimum;
+                Rd = ratioMinimumDenominator;
+                Rx = ratioMaximum;
+                Rxd = ratioMaximumDenominator;
                 O = orientation;
             }
 
             public bool On(int width, int height)
             {
                 if (width < N || X > 0 && width > X || height < Hn || Hx > 0 && height > Hx) return false;
+                if (Rn > 0 && RatioCompare(width, height, Rn, Rd) < 0 || Rx > 0 && RatioCompare(width, height, Rx, Rxd) > 0) return false;
                 return O == '\0' || O == 'p' && height >= width || O == 'l' && width > height;
             }
 
@@ -11066,6 +11148,12 @@ namespace Lea.Engine
                     else if (Hn == 0 && Hx > 0) parts.Add("@h<=" + Hx);
                     else if (Hn > 0 && Hx == 0) parts.Add("@h>=" + Hn);
                     else if (Hn > 0 || Hx > 0) parts.Add("@h" + Hn + "-" + Hx);
+                    if (Rn > 0 && Rx > 0 && RatioCompare(Rn, Rd, Rx, Rxd) == 0) parts.Add("@r=" + Rn + "/" + Rd);
+                    else
+                    {
+                        if (Rn > 0) parts.Add("@r>=" + Rn + "/" + Rd);
+                        if (Rx > 0) parts.Add("@r<=" + Rx + "/" + Rxd);
+                    }
                     if (O != '\0') parts.Add("@o=" + O);
                     return String.Join("&", parts.ToArray());
                 }

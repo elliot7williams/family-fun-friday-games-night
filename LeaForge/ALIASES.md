@@ -955,11 +955,13 @@ to the page and diagnostic snapshot.
 `V.Rf` is the root font size actually used for layout.
 Lea compiles bounded `screen`/`all` queries with pixel `min-width`, `max-width`,
 exact `width`, `min-height`, `max-height`, exact `height`, and
-`orientation:portrait/landscape`, plus conjunctions, comma alternatives, four
-nested `@media` levels, up to eight resulting alternatives, and
-`<style media>`. A square viewport is portrait. Print, negated, unknown, and
-non-pixel conditions stay inactive. Active diagnostic CSS lines use short
-`@m`, `@h`, and `@o` prefixes. See `MEDIA_FEATURES.md`.
+`orientation:portrait/landscape`, and integer `aspect-ratio`,
+`min-aspect-ratio`, or `max-aspect-ratio`, plus conjunctions, comma
+alternatives, four nested `@media` levels, up to eight resulting alternatives,
+and `<style media>`. A square viewport is portrait. Print, negated, unknown,
+non-pixel, and malformed ratio conditions stay inactive. Active diagnostic CSS
+lines use short `@m`, `@h`, `@r`, and `@o` prefixes. See
+`MEDIA_FEATURES.md` and `MEDIA_ASPECT_RATIO.md`.
 
 Computed styles expose bounded custom properties through `S.Vc` (count) and
 `S.Cv(name)` (case-sensitive raw lookup). `G.Vc` reports the body/document count
