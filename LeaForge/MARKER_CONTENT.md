@@ -80,9 +80,11 @@ fallbacks, more than one fallback, or namespaced/escaped attribute names.
 Bounded generated quotes are documented in `GENERATED_QUOTES.md`. Named and implicit
 `counter()`/`counters()` output is documented in `MARKER_COUNTERS.md` and
 `CSS_COUNTERS.md`; reversed/custom counter styles remain unsupported, as do
-locale-sensitive automatic quote pairs, images or alternative text in `content`, separate anonymous fragment
-boxes, and a general generated-content/CSSOM evaluator. Before/after content
-shares this grammar; see `GENERATED_CONTENT.md` and `ATTR_FALLBACKS.md`.
+locale-sensitive automatic quote pairs, images in `content`, separate anonymous
+fragment boxes, and a general generated-content/CSSOM evaluator. Bounded
+slash-separated alternatives are documented in `GENERATED_ALT_TEXT.md`.
+Before/after content shares this grammar; see `GENERATED_CONTENT.md` and
+`ATTR_FALLBACKS.md`.
 
 References: [CSS Generated Content Level 3](https://drafts.csswg.org/css-content-3/#content-property)
 and [CSS Values Level 5 `attr()`](https://drafts.csswg.org/css-values-5/#attr-notation).

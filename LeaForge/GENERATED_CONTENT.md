@@ -2,9 +2,10 @@
 
 Milestone 108 adds a deliberately small generated-content subset to Lea's
 custom renderer. Milestone 109 extends its shared attribute item with one
-quoted missing-value fallback, and Milestone 110 adds bounded generated quote
-keywords and inherited quote pairs. It does not load Chromium, WebView, MSHTML,
-or another browser engine.
+quoted missing-value fallback, Milestone 110 adds bounded generated quote
+keywords and inherited quote pairs, and Milestone 111 adds an optional bounded
+alternative list after `/`. It does not load Chromium, WebView, MSHTML, or
+another browser engine.
 
 ## Selectors And Cascade
 
@@ -41,6 +42,12 @@ over-item, or oversized declarations do not replace the preceding valid
 cascade value. `none` and `normal` suppress the run. Custom properties resolve
 before this grammar is validated.
 
+The visual list may be followed by `/` and one to eight alternative strings,
+attributes, or counters producing at most 128 UTF-16 units. `S.Ma=null` means
+no alternative, while an explicit empty string suppresses decorative visual
+text in accessibility output. Quote keywords are not accepted after the slash.
+See `GENERATED_ALT_TEXT.md`.
+
 ## Host Aliases
 
 The defining commands are:
@@ -69,7 +76,7 @@ Replaced content and native controls suppress these pseudo runs. Quote depth
 and the inherited `quotes` property use the bounded contract in
 `GENERATED_QUOTES.md`. Lea does not provide pseudo margins, padding, borders,
 backgrounds, dimensions, positioning, flex/grid items, generated images,
-alternative text, arbitrary CSSOM, or JavaScript execution in this subset.
+arbitrary CSSOM, or JavaScript execution in this subset.
 
 `LeaForge/test-pages/generated-content.html` and the focused
 `Lea.Tests.exe <root> --generated-content` mode cover syntax, cascade, counters,
@@ -77,7 +84,8 @@ quoted fallbacks, present/empty priority, limits, commands, links, tables,
 accessibility, RTL, hover/media rebuilds, retention, layout, and paint. The
 compiled Firespider smoke repeats the host paths without adapter-side
 generated-content code. See `ATTR_FALLBACKS.md` for the shared strict attribute
-grammar and `GENERATED_QUOTES.md` for quote state and limits.
+grammar, `GENERATED_QUOTES.md` for quote state and limits, and
+`GENERATED_ALT_TEXT.md` for accessibility alternatives.
 
 The bounded design follows the relevant model in the
 [CSS Pseudo-Elements specification](https://drafts.csswg.org/css-pseudo-4/) and

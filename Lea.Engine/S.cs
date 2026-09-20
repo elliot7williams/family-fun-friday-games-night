@@ -48,6 +48,7 @@ namespace Lea.Engine
         public string Ci { get; internal set; }
         public string Cs { get; internal set; }
         public string Mc { get; internal set; }
+        public string Ma { get; internal set; }
         public bool Mn { get; internal set; }
         public string Cu { get; internal set; }
         public bool Pe { get; internal set; }

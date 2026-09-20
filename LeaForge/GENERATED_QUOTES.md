@@ -66,7 +66,8 @@ tables, accessibility, hover/media changes, retained fields, geometry, and
 paint.
 
 Lea does not implement locale-sensitive `auto` pairs, language-specific pair
-selection, generated images or alternative text, pseudo box-model or flex/grid
-items, pseudo-element DOM objects, arbitrary CSSOM, or general JavaScript.
+selection, generated images, pseudo box-model or flex/grid items,
+pseudo-element DOM objects, arbitrary CSSOM, or general JavaScript. Optional
+bounded alternative text is documented separately in `GENERATED_ALT_TEXT.md`.
 
 Reference: [CSS Generated Content Level 3](https://drafts.csswg.org/css-content-3/#quotes).

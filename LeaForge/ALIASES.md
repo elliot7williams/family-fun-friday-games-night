@@ -109,6 +109,7 @@ ms("id", "content:counter(list-item)") generated list number
 be("content:'Lea '") body before style
 be("id", "content:attr(data-code)") element before style
 af("id", "content:' done'") element after style
+be("id", "content:'[!] ' / 'Important '") visual / accessibility text
 qu("auto")          body generated quote pairs
 qu("id", "'<' '>'") element generated quote pairs
 cr("id", "chapter 2") element counter reset
@@ -865,8 +866,11 @@ image validator and loader. Atomic `ls`/`liststyle` and literal
 reset omitted components. Outside uses a measured logical-start gutter; inside
 consumes first-line width. Images preserve aspect ratio inside 64x64 pixels and
 fall back to `B.Mk` after a load/decode failure. `B.Ms` separately stores the
-computed marker pseudo style; `S.Mc/Mn` distinguish bounded generated content,
-ordinary marker content, and suppression. Terminal `::marker` selectors reuse
+computed marker pseudo style; `S.Mc/Ma/Mn` distinguish bounded visual content,
+its optional accessibility alternative, ordinary marker content, and
+suppression. `Ma=null` means no alternative, while `Ma=""` intentionally
+suppresses decorative generated text from accessibility. Terminal `::marker`
+selectors reuse
 the compiled originating-element matcher and cascade while staying isolated
 from `B.S`. The defining `ms(value)` page default, `ms(id,value)` direct style,
 and readable `markerstyle` accept at most 1,024 characters and 16 declarations;
@@ -874,7 +878,9 @@ content accepts up to eight quoted strings, `attr(name)`/`attr(name raw-string)`
 with one optional quoted missing-value fallback, or implicit `list-item`
 counter and generated quote items, with 64-character attribute names,
 named/implicit counter names up to 32 ASCII characters, eight counter levels,
-32-unit separators, and 128 UTF-16 output units. Non-inherited `S.Cr/Ci/Cs`
+32-unit separators, and 128 UTF-16 output units. A slash-separated alternative
+list accepts up to eight strings, attributes, or counters and 128 further
+UTF-16 units. Non-inherited `S.Cr/Ci/Cs`
 store canonical `counter-reset`, `counter-increment`, and `counter-set` pairs.
 Defining `cr/ci/cs` accept page or ID-scoped forms; readable
 `counterreset/counterincrement/counterset` and literal
@@ -883,7 +889,7 @@ strict validator. Values stop at eight operations, snapshots at eight active
 instances, and integers at -999999..999999. See
 `LIST_STYLE.md`, `LIST_POSITION.md`, `LIST_IMAGE.md`, `MARKER.md`,
 `MARKER_CONTENT.md`, `ATTR_FALLBACKS.md`, `MARKER_COUNTERS.md`, and
-`CSS_COUNTERS.md`, and `GENERATED_QUOTES.md`.
+`CSS_COUNTERS.md`, `GENERATED_QUOTES.md`, and `GENERATED_ALT_TEXT.md`.
 
 Disclosure state stays equally compact. A `details` node uses `N.Op` for its
 page-local open state. Its first direct `summary` block uses `B.Mk` as `>` when

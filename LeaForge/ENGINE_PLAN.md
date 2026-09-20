@@ -346,25 +346,25 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 110 adds bounded generated quotes to the shared marker/before/after
-content path. `open-quote`, `close-quote`, `no-open-quote`, and
-`no-close-quote` follow document order across marker, before, children, after,
-and siblings. The inherited `quotes` property accepts `auto`, `none`, or one to
-eight explicit pairs; strings stop at 32 UTF-16 units and active depth at eight.
-The defining `qu`, readable `quotes`, literal `style.quotes`, and compact
-`S.Qc/Qo/Qx` accessors keep the alias-first API. Existing eight-item and
-128-output-unit content ceilings still apply. Variables, cascade priority,
-links, tables, accessibility, hover/media, retention, geometry, and paint share
-the engine-owned path. See `GENERATED_QUOTES.md`. All 106 probes pass over 100
-fixtures; the full engine and compiled Firespider suites, all 18 startup
-regressions, all 42 Boot cases, and all six real EXE startup scenarios pass.
-Next investigate another bounded compatibility slice. Keep locale-sensitive
-automatic quote selection, reversed/custom counter styles, pseudo-element
-counter properties, typed/unquoted/functional attribute fallbacks,
-image/alternative generated content, pseudo box-model/flex/grid items,
-marker-side, cross-item gutter alignment, author marker image sizing, SVG
-marker decoding, vertical writing modes, full Unicode bidi shaping, `dir=auto`,
-and general CSS/JavaScript evaluators outside the current boundary.
+Milestone 111 adds optional bounded generated alternative text after `/` to
+the shared marker/before/after content path. Compact `S.Ma` keeps
+`null` (no alternative) distinct from `""` (decorative visual text), while
+`S.Mc` remains the visual atom. Each half has independent eight-item and
+128-unit bounds. The alternative half accepts strings, attributes, quoted
+attribute fallbacks, and counters; quote keywords remain visual-only. Lea
+substitutes alternatives in accessibility names and reading order, including
+table cells and marker-owned list items, without changing layout or paint.
+Defining `be/af/ms` and readable aliases use the same parser. See
+`GENERATED_ALT_TEXT.md`. All 107 probes pass over 101 fixtures; the full
+engine and compiled Firespider suites, all 18 startup regressions, all 42 Boot
+cases, and all six real EXE startup scenarios pass. Next investigate another
+bounded compatibility slice. Keep locale-sensitive automatic quote selection,
+reversed/custom counter styles, pseudo-element counter properties,
+typed/unquoted/functional attribute fallbacks, generated images, pseudo
+box-model/flex/grid items, marker-side, cross-item gutter alignment, author
+marker image sizing, SVG marker decoding, vertical writing modes, full Unicode
+bidi shaping, `dir=auto`, and general CSS/JavaScript evaluators outside the
+current boundary.
 
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host

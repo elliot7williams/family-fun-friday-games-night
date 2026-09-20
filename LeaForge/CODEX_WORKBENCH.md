@@ -17,24 +17,25 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 110 adds bounded generated quotes to markers and before/after runs.
-Four quote keywords share document-order depth across marker, before, children,
-after, and siblings. Inherited `quotes` accepts `auto`, `none`, or one to eight
-explicit pairs; pair strings stop at 32 UTF-16 units and depth at eight. The
-defining `qu`, readable `quotes`, literal `style.quotes`, and compact
-`S.Qc/Qo/Qx` accessors preserve the alias-first surface. Variables, priority,
-links, tables, accessibility, hover/media, retention, geometry, and paint stay
-engine owned. All 106 benchmark probes pass over 100 fixtures. The full engine
-and compiled host suites, all 18 startup regressions, all 42 Boot cases, and all
-six real EXE startup scenarios are green. Three-round diagnostic medians are
-621.923 ms clean start, 5.769 ms local load, and 45.761 ms layout/paint;
-retained memory is 67.8 KiB/page and the required runtime is 633.0 KiB. Runtime
-210 is packaged separately and installed runtime 157 remains unchanged. See
-`GENERATED_QUOTES.md`. Locale-sensitive automatic quote selection,
-typed/unquoted/functional attribute fallbacks, pseudo box-model/flex/grid items,
-generated images, alt text, arbitrary CSSOM, reversed/custom counters, vertical
-writing, full Unicode bidi, and general JavaScript evaluation remain outside
-this slice.
+Milestone 111 adds optional bounded generated alternative text after `/` to
+markers and before/after runs. Compact `S.Ma` distinguishes no alternative
+from an explicit empty decorative alternative, while `S.Mc` stays visual.
+Each half has independent eight-item and 128-unit bounds. Strings, attributes
+with quoted fallbacks, and counters are accepted after the slash; quote
+keywords remain visual-only. Accessibility substitutes alternatives in
+reading order and names, including nested tables and marker-owned list items,
+without changing layout or paint. Defining `be/af/ms` and readable aliases
+share the parser. All 107 benchmark probes pass over 101 fixtures. The full
+engine and compiled host suites, all 18 startup regressions, all 42 Boot cases,
+and all six real EXE startup scenarios are green. Three-round diagnostic
+medians are 516.525 ms clean start, 4.906 ms local load, and 39.974 ms
+layout/paint; retained memory is 68.4 KiB/page and the required runtime is
+635.5 KiB. Runtime 211 is packaged separately and installed runtime 157 remains
+unchanged. See `GENERATED_ALT_TEXT.md`. Locale-sensitive automatic quote
+selection, typed/unquoted/functional attribute fallbacks, pseudo
+box-model/flex/grid items, generated images, arbitrary CSSOM, reversed/custom
+counters, vertical writing, full Unicode bidi, and general JavaScript
+evaluation remain outside this slice.
 
 Milestone 60 installs the existing `V.Ng` hook on main Lea tabs, enforcing host
 rules, offline/locked state, and live ownership. Denied resume retains its

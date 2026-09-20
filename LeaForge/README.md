@@ -117,13 +117,13 @@ LeaForge is where we can grow the more full-featured browser.
   Lea's sandboxed image cache/decoder, with atomic three-component shorthand,
   64px intrinsic caps, text fallback, inside/outside LTR/RTL geometry, and
   literal DOM support; see `LIST_IMAGE.md`
-- bounded terminal `::marker` styling through compact `B.Ms` plus `S.Mc/Mn`,
+- bounded terminal `::marker` styling through compact `B.Ms` plus `S.Mc/Ma/Mn`,
   with isolated text properties, up to eight quoted/`attr()`/implicit
   list-counter/generated-quote fragments, one quoted missing-value attribute fallback, and 128
   generated units, nested paths, image precedence, page/item `ms` and readable
   `markerstyle` commands, and shared LTR/RTL paint; see `MARKER.md`,
   `MARKER_CONTENT.md`, `ATTR_FALLBACKS.md`, `MARKER_COUNTERS.md`, and
-  `GENERATED_QUOTES.md`
+  `GENERATED_QUOTES.md`, and `GENERATED_ALT_TEXT.md`
 - inherited left/center/right/justify alignment and pixel/relative line spacing
 - external stylesheets with document-order cascade and shared bounded caching
 - compiled relationship, attribute, structural, link, and form-state selectors,
@@ -268,6 +268,7 @@ fo("id")              request rendered focus
 go("next.html")        request navigation from the host
 be("id", "content:'New '") element before style
 af("id", "content:' done'") element after style
+be("id", "content:'[!] ' / 'Important '") accessible before text
 qu("id", "'<' '>'") element generated quote pairs
 ```
 

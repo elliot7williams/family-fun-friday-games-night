@@ -126,6 +126,11 @@ namespace Lea.Tests
                     GeneratedQuoteSmoke(Path.Combine(pages, "generated-quotes.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--generated-alt")
+                {
+                    GeneratedAlternativeSmoke(Path.Combine(pages, "generated-alt.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--text-align-last")
                 {
                     TextAlignLastSmoke(Path.Combine(pages, "text-align-last.html"));
@@ -2490,6 +2495,7 @@ namespace Lea.Tests
                 CssCounterSmoke(Path.Combine(pages, "css-counters.html"));
                 GeneratedContentSmoke(Path.Combine(pages, "generated-content.html"));
                 GeneratedQuoteSmoke(Path.Combine(pages, "generated-quotes.html"));
+                GeneratedAlternativeSmoke(Path.Combine(pages, "generated-alt.html"));
 
                 var recoveryPath = Path.Combine(pages, "recovery.html");
                 var recoveryPage = engine.Go(recoveryPath);
@@ -9035,6 +9041,129 @@ namespace Lea.Tests
                 }
             }
             Console.WriteLine("Lea generated content smoke passed: before/after syntax, styles, attributes and fallbacks, counters, limits, aliases, links, tables, semantics, accessibility, RTL, hover, media, retention, and paint.");
+        }
+
+        private static void GeneratedAlternativeSmoke(string path)
+        {
+            var engine = new E { Vw = 720 };
+            var page = engine.Go(path);
+            Func<string, B> block = id => BlockById(page, id);
+            Func<string, string> name = id => engine.Ax(page, ById(page.D, id)).N;
+
+            Ok(block("basic").X == "[!] Basic content" && Run(block("basic"), "be").S.Ma == "Featured " &&
+                name("basic") == "Featured Basic content", "generated visual and alternative text stay separate");
+            Ok(block("decorative").X == "* Decorative content" && Run(block("decorative"), "be").S.Ma == "" &&
+                name("decorative") == "Decorative content", "empty alternative suppresses decorative generated text");
+            Ok(block("attribute").X == "ATTR Attribute content" && name("attribute") == "Attribute Attribute content" &&
+                block("fallback").X == "FALL Fallback content" && name("fallback") == "Fallback Fallback content",
+                "attribute and fallback alternatives");
+            Ok(block("counter").X == "6. Counter content" && name("counter") == "Notice 6: Counter content" &&
+                block("variable").X == "VAR Variable content" && name("variable") == "Variable Variable content",
+                "counter and variable alternatives");
+            Ok(block("quote").X == "<Quote content>" && name("quote") == "Opening Quote content closing",
+                "before and after alternatives");
+            Ok(block("empty-visual").X == "Alternative-only content" && Run(block("empty-visual"), "be").X == "" &&
+                Run(block("empty-visual"), "be").S.Ma == "Alternative only " &&
+                name("empty-visual") == "Alternative only Alternative-only content",
+                "alternative-only generated run");
+
+            Ok(Run(block("eight"), "be").S.Ma == "12345678" && name("eight") == "12345678 Eight items" &&
+                block("nine").X == "KEEP Nine items rejected" && Run(block("nine"), "be").S.Ma == "Preserved ",
+                "bounded alternative item count");
+            Ok(Run(block("boundary"), "be").S.Ma.Length == 128 && block("over").X == "KEEP Over-bound content" &&
+                Run(block("over"), "be").S.Ma == "Preserved ", "bounded alternative output");
+            Ok(block("missing-alt").X == "KEEP Missing alternative" && block("extra-slash").X == "KEEP Extra slash" &&
+                block("quote-alt").X == "KEEP Quote alternative rejection" &&
+                name("missing-alt") == "Preserved Missing alternative" &&
+                name("extra-slash") == "Preserved Extra slash" &&
+                name("quote-alt") == "Preserved Quote alternative rejection",
+                "invalid alternative declarations preserve prior content");
+
+            Eq("Open destination now", name("link"), "generated alternatives reach accessible link names");
+            Eq("Explicit destination", name("labelled"), "explicit accessibility label keeps priority");
+            Ok(block("cell").X == "CELL Table content" && name("cell") == "Accessible Table content",
+                "generated alternatives reach table cells");
+            Ok(block("marker").Mk == "! " && block("marker").Ms.Ma == "Important item: " &&
+                name("marker") == "Important item: Marker content", "marker alternative reaches list-item name");
+
+            var retained = FieldById(page, "alt-field");
+            engine.Dy(page, ById(page.D, "dynamic"), null);
+            Ok(block("dynamic").X == "HOT Dynamic content" && name("dynamic") == "Hovered Dynamic content",
+                "hover alternative rebuild");
+            engine.Dy(page, null, null);
+            Ok(block("dynamic").X == "IDLE Dynamic content" && name("dynamic") == "Idle Dynamic content",
+                "hover alternative restore");
+
+            Eq(1, engine.Js(page, "be('command',\"content:'CMD ' / 'Command '\")"), "before alternative command");
+            Ok(block("command").X == "CMD Command content" && name("command") == "Command Command content" &&
+                Run(block("command"), "be").S.Ma == "Command ", "before alternative command result");
+            Eq(1, engine.Js(page, "af('command-after',\"content:' DONE' / ' finished'\")"), "after alternative command");
+            Ok(block("command-after").X == "After command DONE" && name("command-after") == "After command finished",
+                "after alternative command result");
+            Eq(1, engine.Js(page, "ms('marker-command',\"content:'M ' / 'Marker command: '\")"),
+                "marker alternative command");
+            Ok(block("marker-command").Mk == "M " && block("marker-command").Ms.Ma == "Marker command: " &&
+                name("marker-command") == "Marker command: Marker command", "marker alternative command result");
+            Eq(0, engine.Js(page, "be('command',\"content:'BAD ' / open-quote\")"),
+                "command rejects quote keyword in alternative");
+            Eq("CMD Command content", block("command").X, "invalid alternative command preserves state");
+            Ok(Object.ReferenceEquals(retained, FieldById(page, "alt-field")),
+                "alternative commands retain field identity");
+
+            engine.Vw = 350;
+            Ok(block("responsive").X == "NARROW Responsive content" &&
+                name("responsive") == "Narrow Responsive content" &&
+                Object.ReferenceEquals(retained, FieldById(page, "alt-field")),
+                "responsive alternative and retained field");
+
+            using (var view = new V())
+            {
+                view.Size = new Size(720, 5200);
+                var load = view.GoA(path);
+                while (!load.IsCompleted)
+                {
+                    Application.DoEvents();
+                    Thread.Sleep(2);
+                }
+                load.GetAwaiter().GetResult();
+                retained = FieldById(view.At, "alt-field");
+                Rectangle dynamicOuter;
+                using (var paint = Render(view))
+                {
+                    Ok(InlineKindRect(view, BlockById(view.At, "basic"), "be").Width > 0 &&
+                        InlineKindRect(view, BlockById(view.At, "cell"), "be").Width > 0 &&
+                        InlineTextRect(view, BlockById(view.At, "marker"), "! ").Right < BlockRect(view, BlockById(view.At, "marker")).Left,
+                        "alternative fixture visual layout and paint");
+                    Ok(view.At != null && view.Ax(ById(view.At.D, "link")).N == "Open destination now",
+                        "view alternative accessibility model");
+                    dynamicOuter = BlockOuterRect(view, BlockById(view.At, "dynamic"));
+                }
+                Move(view, dynamicOuter);
+                using (var paint = Render(view))
+                    Ok(BlockById(view.At, "dynamic").X == "HOT Dynamic content" &&
+                        view.Ax(ById(view.At.D, "dynamic")).N == "Hovered Dynamic content",
+                        "hover alternative reaches view paint and accessibility");
+                Move(view, new Point(0, 0));
+
+                Eq(1, view.Js("be('command',\"content:'CMD ' / 'Command '\")"), "view alternative command");
+                using (var paint = Render(view))
+                    Ok(BlockById(view.At, "command").X == "CMD Command content" &&
+                        InlineKindRect(view, BlockById(view.At, "command"), "be").Width > 0,
+                        "view alternative command reaches geometry");
+
+                retained.V = "Retained after alternative resize";
+                view.Size = new Size(350, 5200);
+                Application.DoEvents();
+                using (var paint = Render(view))
+                {
+                    Ok(BlockById(view.At, "responsive").X == "NARROW Responsive content" &&
+                        view.Ax(ById(view.At.D, "responsive")).N == "Narrow Responsive content",
+                        "responsive alternative reaches view model");
+                    Ok(Object.ReferenceEquals(retained, FieldById(view.At, "alt-field")) &&
+                        retained.V == "Retained after alternative resize", "alternative resize retains field value");
+                }
+            }
+            Console.WriteLine("Lea generated alternative smoke passed: bounded speech text, empty alternatives, attributes, counters, variables, links, tables, markers, commands, hover, media, retention, accessibility, and paint.");
         }
 
         private static void GeneratedQuoteSmoke(string path)

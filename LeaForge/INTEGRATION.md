@@ -357,7 +357,8 @@ aspect ratio inside 64x64 pixels and take the inside/outside path selected by
 `S.Lp`; failures use `B.Mk` as the text fallback. See `LIST_IMAGE.md`.
 
 Terminal `::marker` rules produce an isolated compact style on `B.Ms`; literal
-content uses `S.Mc`, and `S.Mn` suppresses the marker. Lea matches the
+content uses visual `S.Mc`, optional accessibility alternative `S.Ma`, and
+`S.Mn` suppresses the marker. Lea matches the
 originating list item with its compiled selector and keeps pseudo specificity,
 variables, important tiers, hover, and media behavior inside the engine. Hosts
 can call `ms(value)` for a page marker default or `ms(id,value)` for a direct
@@ -374,7 +375,9 @@ originating item. Present attributes win even when empty; missing attributes
 use the fallback. No host-side selector, cascade, numbering, measurement,
 generated-content, or paint adapter is needed. See `MARKER.md`,
 `MARKER_CONTENT.md`, `ATTR_FALLBACKS.md`, `MARKER_COUNTERS.md`, and
-`GENERATED_QUOTES.md`.
+`GENERATED_QUOTES.md`. An optional slash-separated alternative list accepts
+strings, attributes, and counters under independent eight-item/128-unit bounds;
+see `GENERATED_ALT_TEXT.md`.
 
 Named counters compile into non-inherited `S.Cr/Ci/Cs` reset/increment/set
 state and a bounded tree-order snapshot on `N.Ct`. Hosts can use `cr`, `ci`,
@@ -393,7 +396,8 @@ named-counter, and generated-quote grammar. Lea owns cascade, text styling, link
 ownership, LTR/RTL layout, hover/media rebuilds, accessibility, and paint. No
 host pseudo-element adapter is required. Attribute items accept one optional
 quoted missing-value fallback through the shared strict grammar. See
-`GENERATED_CONTENT.md`, `ATTR_FALLBACKS.md`, and `GENERATED_QUOTES.md`.
+`GENERATED_CONTENT.md`, `ATTR_FALLBACKS.md`, `GENERATED_QUOTES.md`, and
+`GENERATED_ALT_TEXT.md`.
 
 The inherited `quotes` property uses compact `S.Qc`, `S.Qo(depth)`, and
 `S.Qx(depth)` accessors. Hosts can set it with `qu(value)` on the body,

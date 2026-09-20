@@ -620,7 +620,7 @@ Firespider adds no parser, resource cache, adapter state, layout branch, or
 control. See `LeaForge/LIST_IMAGE.md`.
 
 Hosted lists now expose bounded terminal `::marker` styling through `B.Ms` and
-`S.Mc/Mn`. The compiled host verifies isolated marker typography/content,
+`S.Mc/Ma/Mn`. The compiled host verifies isolated marker typography/content,
 selector specificity, image/content priority, compact `ms`, readable
 `markerstyle`, page defaults, direct item overrides, responsive replacement,
 inside/outside LTR/RTL geometry, and retained fields. Lea owns selector
@@ -663,6 +663,14 @@ The compiled host verifies inherited explicit pairs, nested document-order
 depth, accessible link names, compact `qu`, literal `style.quotes`, responsive
 pair replacement, geometry, and retained fields. Firespider adds no quote state,
 pseudo parser, layout branch, or control. See `LeaForge/GENERATED_QUOTES.md`.
+
+Hosted marker and before/after content now also exposes optional bounded
+alternative text through `S.Ma`. The compiled host keeps visual marker/link/
+table/responsive output unchanged while verifying substituted accessible names,
+explicit empty decoration suppression, compact `be/ms` commands, invalid
+preservation, and retained fields. Firespider adds no speech parser,
+accessibility adapter, layout branch, or control. See
+`LeaForge/GENERATED_ALT_TEXT.md`.
 
 Hosted text alignment now exposes the bounded shorthand/all/last family through
 `S.Ta/Tl`. The compiled host verifies `justify-all`, retained logical RTL

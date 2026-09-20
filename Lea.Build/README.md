@@ -218,6 +218,11 @@ replaced-control suppression, LTR/RTL paint, hover/media, and retained fields.
 `--generated-quotes` isolates bounded inherited quote pairs and document-order
 generated quote depth, including markers, before/after, exact limits, commands,
 accessibility, tables, hover/media, retained fields, geometry, and paint.
+`--generated-alt` isolates visual/alternative generated-content separation,
+explicit empty alternatives, attributes, fallbacks, counters, variables,
+eight-item and 128-unit limits, invalid preservation, links, explicit ARIA
+priority, tables, markers, commands, hover/media, retained fields, geometry,
+paint, and accessibility.
 `--text-align` isolates the inherited text-align shorthand/all/last family,
 logical inheritance and match-parent, justify-all, compact/readable/literal
 commands, LTR/RTL geometry, shorthand resets, tables, hover, and responsive resize.
