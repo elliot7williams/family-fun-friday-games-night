@@ -3,6 +3,14 @@ using System.Collections.Generic;
 
 namespace Lea.Engine
 {
+    // Cf is one bounded generated-content fragment.
+    public sealed class Cf
+    {
+        public string K { get; internal set; }
+        public string X { get; internal set; }
+        public Uri U { get; internal set; }
+    }
+
     // S is Lea's compact computed style.
     public sealed class S
     {
@@ -49,6 +57,7 @@ namespace Lea.Engine
         public string Cs { get; internal set; }
         public string Mc { get; internal set; }
         public string Ma { get; internal set; }
+        public IList<Cf> Mf { get; internal set; }
         public bool Mn { get; internal set; }
         public string Cu { get; internal set; }
         public bool Pe { get; internal set; }

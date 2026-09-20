@@ -672,6 +672,15 @@ preservation, and retained fields. Firespider adds no speech parser,
 accessibility adapter, layout branch, or control. See
 `LeaForge/GENERATED_ALT_TEXT.md`.
 
+Hosted marker and before/after content now also accepts bounded visual
+`url(...)` bitmap fragments. The compiled host verifies mixed text/image
+fragments, image-only links, marker geometry, alternatives, compact `be`,
+responsive replacement, accessibility, and retained fields. Lea owns the
+24-source admission, origin checks, sandboxed decode, 64px intrinsic display
+cap, layout, hit testing, and paint; Firespider adds no image-content parser,
+cache, decoder, adapter state, layout branch, or control. See
+`LeaForge/GENERATED_IMAGES.md`.
+
 Hosted text alignment now exposes the bounded shorthand/all/last family through
 `S.Ta/Tl`. The compiled host verifies `justify-all`, retained logical RTL
 state, compact `ta/taa/tl`, literal `style.textAlign`, shorthand reset,

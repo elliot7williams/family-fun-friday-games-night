@@ -151,6 +151,11 @@ before, children, after, and siblings, exact pair/depth/output limits,
 variables, invalid preservation, `qu`/readable/literal commands, links, tables,
 accessibility, hover/media, retained fields, geometry, and paint. See
 `LeaForge/GENERATED_QUOTES.md`.
+`generated-images.html` covers mixed string/bitmap generated fragments,
+relative/data URLs, variables, alternatives, image-only links, tables,
+inside/outside markers, exact item bounds, invalid preservation, commands,
+hover/media rebuilds, retained fields, sandboxed loading, geometry, and paint.
+See `LeaForge/GENERATED_IMAGES.md`.
 
 ## Firespider Startup Checks
 
@@ -223,6 +228,10 @@ explicit empty alternatives, attributes, fallbacks, counters, variables,
 eight-item and 128-unit limits, invalid preservation, links, explicit ARIA
 priority, tables, markers, commands, hover/media, retained fields, geometry,
 paint, and accessibility.
+`--generated-images` isolates mixed string/bitmap before, after, and marker
+content, relative/data URL origins, visual/alternative separation, links,
+tables, exact item limits, invalid preservation, compact commands, hover/media
+rebuilds, shared image admission, retained fields, geometry, and paint.
 `--text-align` isolates the inherited text-align shorthand/all/last family,
 logical inheritance and match-parent, justify-all, compact/readable/literal
 commands, LTR/RTL geometry, shorthand resets, tables, hover, and responsive resize.

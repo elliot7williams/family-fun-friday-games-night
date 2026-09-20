@@ -1,9 +1,10 @@
 # Bounded Marker Generated Content
 
 Milestone 105 extends Lea's terminal `::marker` slice with a bounded CSS
-generated-content list. The result still occupies the existing `S.Mc` string
-and one marker layout atom, so this compatibility gain adds no document node,
-public model type, resource loader, or second layout pass.
+generated-content list. Text-only results still occupy the existing `S.Mc`
+string and one marker layout atom. Milestone 112 adds lazy `S.Mf` fragments
+when the visual list includes a bitmap URL, reusing Lea's existing resource
+loader and layout pass without adding a document node or host adapter.
 
 ## Content Grammar
 
@@ -15,6 +16,7 @@ Marker `content` accepts one to eight values in source order:
 - `attr(name, "fallback")`
 - `attr(name raw-string, "fallback")`
 - `open-quote`, `close-quote`, `no-open-quote`, or `no-close-quote`
+- a `url(...)` bitmap image
 
 Whitespace between values separates CSS tokens and does not become generated
 text. Adjacent quoted values are accepted. Each attribute name is a bounded
@@ -29,7 +31,8 @@ li.notice::marker { content: attr(aria-label raw-string); }
 li.pending::marker { content: attr(data-state, "Pending "); }
 ```
 
-The concatenated result is capped at 128 UTF-16 code units. If a declaration
+The concatenated text result is capped at 128 UTF-16 code units. Images count
+toward the eight-item limit but not that text limit. If a declaration
 has an unsupported item, more than eight items, malformed quoting, unsafe
 control input, or oversized output, that declaration is ignored and the prior
 cascade value remains. CSS variables are resolved before this grammar is
@@ -57,11 +60,12 @@ never tokenized as HTML and cannot create nodes or requests.
 ## Layout And Paint
 
 The generated result follows the same priority and geometry as existing marker
-text. A non-null generated string takes priority over `list-style-image` and
+text. Generated content takes priority over `list-style-image` and
 `list-style-type`. `content:none` still removes the marker, while `normal`
-restores the normal image/type path. Outside, inside, LTR, RTL, table, font,
-spacing, shadow, opacity, hover, and responsive behavior remain in Lea's one
-marker atom.
+restores the normal image/type path. Mixed text and bitmap fragments remain in
+source order in the logical-start outside gutter or inside first line. LTR,
+RTL, table, font, spacing, shadow, opacity, hover, and responsive behavior stay
+inside Lea's existing marker pass.
 
 ## Verification
 
@@ -79,9 +83,11 @@ This slice does not implement typed `attr()` values, unquoted or functional
 fallbacks, more than one fallback, or namespaced/escaped attribute names.
 Bounded generated quotes are documented in `GENERATED_QUOTES.md`. Named and implicit
 `counter()`/`counters()` output is documented in `MARKER_COUNTERS.md` and
-`CSS_COUNTERS.md`; reversed/custom counter styles remain unsupported, as do
-locale-sensitive automatic quote pairs, images in `content`, separate anonymous
-fragment boxes, and a general generated-content/CSSOM evaluator. Bounded
+`CSS_COUNTERS.md`; bounded visual `url(...)` fragments are documented in
+`GENERATED_IMAGES.md`. Reversed/custom counter styles remain unsupported, as do
+locale-sensitive automatic quote pairs, image functions, author-controlled
+generated-image sizing, separate anonymous fragment boxes, and a general
+generated-content/CSSOM evaluator. Bounded
 slash-separated alternatives are documented in `GENERATED_ALT_TEXT.md`.
 Before/after content shares this grammar; see `GENERATED_CONTENT.md` and
 `ATTR_FALLBACKS.md`.

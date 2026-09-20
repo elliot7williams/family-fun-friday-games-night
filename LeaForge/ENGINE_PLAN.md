@@ -346,25 +346,25 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 111 adds optional bounded generated alternative text after `/` to
-the shared marker/before/after content path. Compact `S.Ma` keeps
-`null` (no alternative) distinct from `""` (decorative visual text), while
-`S.Mc` remains the visual atom. Each half has independent eight-item and
-128-unit bounds. The alternative half accepts strings, attributes, quoted
-attribute fallbacks, and counters; quote keywords remain visual-only. Lea
-substitutes alternatives in accessibility names and reading order, including
-table cells and marker-owned list items, without changing layout or paint.
-Defining `be/af/ms` and readable aliases use the same parser. See
-`GENERATED_ALT_TEXT.md`. All 107 probes pass over 101 fixtures; the full
-engine and compiled Firespider suites, all 18 startup regressions, all 42 Boot
-cases, and all six real EXE startup scenarios pass. Next investigate another
-bounded compatibility slice. Keep locale-sensitive automatic quote selection,
+Milestone 112 adds bounded `url(...)` bitmap fragments to the shared terminal
+marker/before/after content path. Text-only pseudos retain `S.Mc`; image lists
+use lazy read-only `S.Mf` fragments and inline `Ir.P`, keeping picture sources
+separate from `Ir.U` link targets. Images count toward the eight-item visual
+bound while text remains capped at 128 UTF-16 units. The alternative half does
+not accept images and is emitted once per pseudo. Relative and custom-property
+origins, invalid preservation, links, tables, mixed LTR/RTL marker geometry,
+commands, hover/media rebuilds, retained fields, accessibility, and exact paint
+reuse the existing 24-source sandboxed image path and 64px display cap. See
+`GENERATED_IMAGES.md`. All 108 probes pass over 102 fixtures; the full engine
+and compiled Firespider suites, all 18 startup regressions, all 42 Boot cases,
+and all six real EXE startup scenarios pass. Next investigate another bounded
+compatibility slice. Keep locale-sensitive automatic quote selection,
 reversed/custom counter styles, pseudo-element counter properties,
-typed/unquoted/functional attribute fallbacks, generated images, pseudo
-box-model/flex/grid items, marker-side, cross-item gutter alignment, author
-marker image sizing, SVG marker decoding, vertical writing modes, full Unicode
-bidi shaping, `dir=auto`, and general CSS/JavaScript evaluators outside the
-current boundary.
+typed/unquoted/functional attribute fallbacks, pseudo box-model/flex/grid
+items, generated image functions and sizing, marker-side, cross-item gutter
+alignment, SVG marker decoding, vertical writing modes, full Unicode bidi
+shaping, `dir=auto`, and general CSS/JavaScript evaluators outside the current
+boundary.
 
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host

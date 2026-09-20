@@ -296,7 +296,8 @@ focus request. Disclosure commands accept a `details` ID or its first direct
 `be/af` and readable `beforestyle/afterstyle` apply the bounded inline generated
 content subset described in `GENERATED_CONTENT.md`. `qu`, readable `quotes`, and
 literal `style.quotes` configure the bounded generated-quote pairs described in
-`GENERATED_QUOTES.md`.
+`GENERATED_QUOTES.md`. Visual `url(...)` fragments for before, after, and marker
+content reuse the sandboxed image path described in `GENERATED_IMAGES.md`.
 
 The .NET Framework test browser opens Lea Inspector with `F12`, `Ctrl+Shift+I`,
 or the `I` toolbar button. Its Summary, Nodes, CSS, Requests, and Messages tabs

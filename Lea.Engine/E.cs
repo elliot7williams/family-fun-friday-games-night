@@ -1527,9 +1527,12 @@ namespace Lea.Engine
         private static string AccessibilityGeneratedText(N node, Axc data, string kind)
         {
             var result = new StringBuilder();
+            var alternatives = new HashSet<S>();
             foreach (var block in AccessibilityBlocks(data.P.Bs))
                 foreach (var run in block.Is)
-                    if (run.K == kind && Object.ReferenceEquals(run.El, node)) AppendAccessibilityText(result, GeneratedAccessibilityText(run));
+                    if (run.K == kind && Object.ReferenceEquals(run.El, node) &&
+                        (run.S == null || run.S.Ma == null || alternatives.Add(run.S)))
+                        AppendAccessibilityText(result, GeneratedAccessibilityText(run));
             return BoundValue(result.ToString(), MaxAccessibilityText);
         }
 
@@ -1561,11 +1564,17 @@ namespace Lea.Engine
                 var ownsBlock = block.El != null && Owns(node, block.El);
                 if (ownsBlock && block.Ms != null && block.Ms.Ma != null) text.Append(block.Ms.Ma);
                 var ownsRun = false;
+                var alternatives = new HashSet<S>();
                 foreach (var run in block.Is)
                     if (run.El != null && Owns(node, run.El))
                     {
                         ownsRun = true;
-                        text.Append(run.K == "br" ? " " : run.K == "be" || run.K == "af" ? GeneratedAccessibilityText(run) : run.X);
+                        if (run.K == "br") text.Append(' ');
+                        else if (run.K == "be" || run.K == "af")
+                        {
+                            if (run.S == null || run.S.Ma == null || alternatives.Add(run.S)) text.Append(GeneratedAccessibilityText(run));
+                        }
+                        else text.Append(run.X);
                     }
                 if (ownsBlock && !ownsRun) text.Append(block.X);
                 AppendAccessibilityText(result, text.ToString());
@@ -3681,7 +3690,7 @@ namespace Lea.Engine
                 else if (name == "word-spacing") MarkerSpacing(style, inherited, value, false);
                 else if (name == "line-height") MarkerLineHeight(style, inherited, value);
                 else if (name == "text-shadow") TextShadow(style, inherited, value);
-                else if (name == "content") MarkerContent(style, node, value, quoteBase, ref quoteEnd);
+                else if (name == "content") MarkerContent(style, node, value, origin, quoteBase, ref quoteEnd);
             }
         }
 
@@ -3768,7 +3777,7 @@ namespace Lea.Engine
             else LineHeight(style, source);
         }
 
-        private static void MarkerContent(S style, N node, string value, int quoteBase, ref int quoteEnd)
+        private static void MarkerContent(S style, N node, string value, Uri origin, int quoteBase, ref int quoteEnd)
         {
             var source = (value ?? "").Trim();
             var lower = source.ToLowerInvariant();
@@ -3776,6 +3785,7 @@ namespace Lea.Engine
             {
                 style.Mc = null;
                 style.Ma = null;
+                style.Mf = null;
                 style.Mn = false;
                 quoteEnd = quoteBase;
                 return;
@@ -3784,33 +3794,40 @@ namespace Lea.Engine
             {
                 style.Mc = null;
                 style.Ma = null;
+                style.Mf = null;
                 style.Mn = true;
                 quoteEnd = quoteBase;
                 return;
             }
             string content;
             string alternative;
+            IList<Cf> fragments;
             var depth = quoteBase;
-            if (MarkerContentList(style, node, source, ref depth, out content, out alternative))
+            if (MarkerContentList(style, node, source, origin, ref depth, out content, out alternative, out fragments))
             {
                 style.Mc = content;
                 style.Ma = alternative;
+                style.Mf = fragments;
                 style.Mn = false;
                 quoteEnd = depth;
             }
         }
 
-        private static bool MarkerContentList(S style, N node, string value, ref int quoteDepth, out string content, out string alternative)
+        private static bool MarkerContentList(S style, N node, string value, Uri origin, ref int quoteDepth,
+            out string content, out string alternative, out IList<Cf> fragments)
         {
             content = "";
             alternative = null;
+            fragments = null;
             var source = (value ?? "").Trim();
             var result = new StringBuilder();
             var speech = new StringBuilder();
+            var visual = new List<Cf>();
             var index = 0;
             var items = 0;
             var speechItems = 0;
             var inAlternative = false;
+            var hasImage = false;
             while (index < source.Length)
             {
                 while (index < source.Length && Char.IsWhiteSpace(source[index])) index++;
@@ -3828,6 +3845,13 @@ namespace Lea.Engine
                 }
                 else if (++items > MaxMarkerContentItems) return false;
                 string item;
+                Uri image;
+                if (!inAlternative && MarkerImage(source, ref index, origin, out image))
+                {
+                    hasImage = true;
+                    visual.Add(new Cf { K = "i", X = "", U = image });
+                    continue;
+                }
                 if (source[index] == '"' || source[index] == '\'')
                 {
                     if (!MarkerStringToken(source, ref index, out item)) return false;
@@ -3838,10 +3862,30 @@ namespace Lea.Engine
                 var output = inAlternative ? speech : result;
                 if (MarkerControls(item) || output.Length + item.Length > MaxMarkerText) return false;
                 output.Append(item);
+                if (!inAlternative && item.Length > 0)
+                {
+                    var previous = visual.Count == 0 ? null : visual[visual.Count - 1];
+                    if (previous != null && previous.K == "t") previous.X += item;
+                    else visual.Add(new Cf { K = "t", X = item });
+                }
             }
             if (items == 0 || inAlternative && speechItems == 0) return false;
             content = result.ToString();
             alternative = inAlternative ? speech.ToString() : null;
+            if (hasImage) fragments = visual.AsReadOnly();
+            return true;
+        }
+
+        private static bool MarkerImage(string source, ref int index, Uri origin, out Uri image)
+        {
+            image = null;
+            if (index + 4 > source.Length || !source.Substring(index, 4).Equals("url(", StringComparison.OrdinalIgnoreCase)) return false;
+            int close;
+            if (!MarkerFunctionClose(source, index + 4, out close)) return false;
+            var token = source.Substring(index, close - index + 1);
+            if (!BitmapUri(token, origin, out image) &&
+                (origin != null || !BitmapUri(token, new Uri("https://lea.invalid/"), out image))) return false;
+            index = close + 1;
             return true;
         }
 
@@ -4236,20 +4280,21 @@ namespace Lea.Engine
                     if (!Quv(declaration.V, out quotes)) return false;
                 }
                 if (!declaration.C && declaration.N == "content" &&
-                    declaration.V.IndexOf("var(", StringComparison.OrdinalIgnoreCase) < 0 && !MarkerContentValue(declaration.V)) return false;
+                    declaration.V.IndexOf("var(", StringComparison.OrdinalIgnoreCase) < 0 && !MarkerContentValue(declaration.V, declaration.U)) return false;
             }
             return true;
         }
 
-        private static bool MarkerContentValue(string value)
+        private static bool MarkerContentValue(string value, Uri origin)
         {
             var source = (value ?? "").Trim();
             var lower = source.ToLowerInvariant();
             string content;
             string alternative;
+            IList<Cf> fragments;
             var depth = 0;
             return lower == "normal" || lower == "none" || lower == "initial" || MarkerParentValue(lower) || MarkerRevertValue(lower) ||
-                MarkerContentList(new S(), null, source, ref depth, out content, out alternative);
+                MarkerContentList(new S(), null, source, origin, ref depth, out content, out alternative, out fragments);
         }
 
         private static bool MarkerProperty(string name)
@@ -9689,7 +9734,7 @@ namespace Lea.Engine
         private static bool HasMarkerContent(B block)
         {
             if (block == null || block.K != "li" || block.S == null || block.Ms != null && block.Ms.Mn) return false;
-            if (block.Ms != null && block.Ms.Mc != null) return block.Ms.Mc.Length > 0;
+            if (block.Ms != null && (block.Ms.Mc != null || block.Ms.Mf != null)) return GeneratedContentPresent(block.Ms);
             return !String.IsNullOrEmpty(block.Mk) || block.S.Li != null;
         }
 
@@ -10093,14 +10138,26 @@ namespace Lea.Engine
 
         private static void AddGeneratedRun(B block, N node, S style, Uri activeLink, char pseudo, Dv value = null)
         {
-            if (style == null || String.IsNullOrEmpty(style.Mc) && String.IsNullOrEmpty(style.Ma)) return;
-            block.Is.Add(new Ir { K = pseudo == 'b' ? "be" : "af", X = style.Mc, U = activeLink, S = style, Dv = value, El = node });
+            if (!GeneratedContentPresent(style)) return;
+            var kind = pseudo == 'b' ? "be" : "af";
+            if (style.Mf != null)
+            {
+                foreach (var fragment in style.Mf)
+                    block.Is.Add(new Ir { K = kind, X = fragment.X ?? "", U = activeLink, P = fragment.U, S = style, Dv = value, El = node });
+                return;
+            }
+            block.Is.Add(new Ir { K = kind, X = style.Mc, U = activeLink, S = style, Dv = value, El = node });
+        }
+
+        private static bool GeneratedContentPresent(S style)
+        {
+            return style != null && (!String.IsNullOrEmpty(style.Mc) || !String.IsNullOrEmpty(style.Ma) || style.Mf != null && style.Mf.Count > 0);
         }
 
         private static void AddPageGeneratedBlock(P page, N node, List<R> rules, S inherited, char pseudo)
         {
             var style = GeneratedRunStyle(node, inherited, rules, pseudo);
-            if (style == null || String.IsNullOrEmpty(style.Mc) && String.IsNullOrEmpty(style.Ma)) return;
+            if (!GeneratedContentPresent(style)) return;
             var block = new B { K = "body", X = "", S = inherited, El = node };
             AddGeneratedRun(block, node, style, null, pseudo);
             NormalizeInlines(block);
@@ -10160,10 +10217,10 @@ namespace Lea.Engine
                 foreach (var run in block.Is)
                 {
                     if (run.K != "br") run.X = Tx(TextSpace(GeneratedRun(run) ? run.X ?? "" : WebUtility.HtmlDecode(run.X ?? ""), block.S), run.S);
-                    if (run.K != "br" && run.X.Length == 0 &&
+                    if (run.K != "br" && run.X.Length == 0 && run.P == null &&
                         (!GeneratedRun(run) || run.S == null || String.IsNullOrEmpty(run.S.Ma))) continue;
                     var previous = clean.Count == 0 ? null : clean[clean.Count - 1];
-                    if (previous != null && previous.K != "br" && previous.K == run.K && previous.U == run.U && Object.ReferenceEquals(previous.S, run.S) && Object.ReferenceEquals(previous.Dv, run.Dv) && Object.ReferenceEquals(previous.El, run.El)) previous.X += run.X;
+                    if (previous != null && previous.P == null && run.P == null && previous.K != "br" && previous.K == run.K && previous.U == run.U && Object.ReferenceEquals(previous.S, run.S) && Object.ReferenceEquals(previous.Dv, run.Dv) && Object.ReferenceEquals(previous.El, run.El)) previous.X += run.X;
                     else clean.Add(run);
                 }
                 block.Is.Clear();
@@ -10180,6 +10237,18 @@ namespace Lea.Engine
                     clean.Add(run);
                     pendingSpace = false;
                     lineHasText = false;
+                    continue;
+                }
+
+                if (run.P != null)
+                {
+                    if (pendingSpace && lineHasText)
+                    {
+                        clean.Add(new Ir { K = run.K, X = " ", U = run.U, S = run.S, Dv = run.Dv, El = run.El });
+                        pendingSpace = false;
+                    }
+                    clean.Add(run);
+                    lineHasText = true;
                     continue;
                 }
 
@@ -10209,7 +10278,7 @@ namespace Lea.Engine
                 }
                 run.X = Tx(text.ToString(), run.S);
                 var previous = clean.Count == 0 ? null : clean[clean.Count - 1];
-                if (previous != null && previous.K != "br" && previous.K == run.K && previous.U == run.U && Object.ReferenceEquals(previous.S, run.S) && Object.ReferenceEquals(previous.Dv, run.Dv) && Object.ReferenceEquals(previous.El, run.El)) previous.X += run.X;
+                if (previous != null && previous.P == null && run.P == null && previous.K != "br" && previous.K == run.K && previous.U == run.U && Object.ReferenceEquals(previous.S, run.S) && Object.ReferenceEquals(previous.Dv, run.Dv) && Object.ReferenceEquals(previous.El, run.El)) previous.X += run.X;
                 else clean.Add(run);
             }
             block.Is.Clear();
@@ -10371,7 +10440,7 @@ namespace Lea.Engine
         private static void AddCellGeneratedBlock(Tc cell, N node, List<R> rules, S inherited, string kind, char pseudo)
         {
             var style = GeneratedRunStyle(node, inherited, rules, pseudo);
-            if (style == null || String.IsNullOrEmpty(style.Mc) && String.IsNullOrEmpty(style.Ma)) return;
+            if (!GeneratedContentPresent(style)) return;
             var block = new B { K = kind, X = "", S = inherited, El = node };
             AddGeneratedRun(block, node, style, null, pseudo);
             NormalizeInlines(block);

@@ -17,25 +17,26 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 111 adds optional bounded generated alternative text after `/` to
-markers and before/after runs. Compact `S.Ma` distinguishes no alternative
-from an explicit empty decorative alternative, while `S.Mc` stays visual.
-Each half has independent eight-item and 128-unit bounds. Strings, attributes
-with quoted fallbacks, and counters are accepted after the slash; quote
-keywords remain visual-only. Accessibility substitutes alternatives in
-reading order and names, including nested tables and marker-owned list items,
-without changing layout or paint. Defining `be/af/ms` and readable aliases
-share the parser. All 107 benchmark probes pass over 101 fixtures. The full
-engine and compiled host suites, all 18 startup regressions, all 42 Boot cases,
-and all six real EXE startup scenarios are green. Three-round diagnostic
-medians are 516.525 ms clean start, 4.906 ms local load, and 39.974 ms
-layout/paint; retained memory is 68.4 KiB/page and the required runtime is
-635.5 KiB. Runtime 211 is packaged separately and installed runtime 157 remains
-unchanged. See `GENERATED_ALT_TEXT.md`. Locale-sensitive automatic quote
-selection, typed/unquoted/functional attribute fallbacks, pseudo
-box-model/flex/grid items, generated images, arbitrary CSSOM, reversed/custom
-counters, vertical writing, full Unicode bidi, and general JavaScript
-evaluation remain outside this slice.
+Milestone 112 adds bounded `url(...)` bitmap fragments to marker and
+before/after visual content. Text-only pseudos keep `S.Mc`; image-containing
+lists use lazy read-only `S.Mf` fragments and inline `Ir.P`, leaving `Ir.U` for
+the owning link. Images count toward the eight-item visual bound while text
+stays capped at 128 UTF-16 units; the independent alternative half rejects
+images and is emitted once per pseudo. Relative/custom-property origins,
+invalid preservation, links, tables, mixed marker geometry, commands,
+hover/media rebuilds, retained fields, accessibility, and exact paint reuse
+the 24-source sandboxed image path and 64px display cap. All 108 benchmark
+probes pass over 102 fixtures. The full engine and compiled host suites, all 18
+startup regressions, all 42 Boot cases, and all six real EXE startup scenarios
+are green. Three-round diagnostic medians are 530.718 ms clean start, 5.075 ms
+local load, and 45.575 ms layout/paint; retained memory is 69.0 KiB/page and
+the required runtime is 622.0 KiB. Runtime 212 is packaged separately and
+installed runtime 157 remains unchanged. See `GENERATED_IMAGES.md`.
+Locale-sensitive automatic quote selection, typed/unquoted/functional
+attribute fallbacks, pseudo box-model/flex/grid items, generated image
+functions and sizing, arbitrary CSSOM, reversed/custom counters, vertical
+writing, full Unicode bidi, and general JavaScript evaluation remain outside
+this slice.
 
 Milestone 60 installs the existing `V.Ng` hook on main Lea tabs, enforcing host
 rules, offline/locked state, and live ownership. Denied resume retains its

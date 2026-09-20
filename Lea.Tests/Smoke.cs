@@ -131,6 +131,11 @@ namespace Lea.Tests
                     GeneratedAlternativeSmoke(Path.Combine(pages, "generated-alt.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--generated-images")
+                {
+                    GeneratedImageSmoke(Path.Combine(pages, "generated-images.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--text-align-last")
                 {
                     TextAlignLastSmoke(Path.Combine(pages, "text-align-last.html"));
@@ -2496,6 +2501,7 @@ namespace Lea.Tests
                 GeneratedContentSmoke(Path.Combine(pages, "generated-content.html"));
                 GeneratedQuoteSmoke(Path.Combine(pages, "generated-quotes.html"));
                 GeneratedAlternativeSmoke(Path.Combine(pages, "generated-alt.html"));
+                GeneratedImageSmoke(Path.Combine(pages, "generated-images.html"));
 
                 var recoveryPath = Path.Combine(pages, "recovery.html");
                 var recoveryPage = engine.Go(recoveryPath);
@@ -8967,7 +8973,7 @@ namespace Lea.Tests
             Eq(1, engine.Ck(page, ById(page.D, "set-after")), "readable after command");
             Ok(block("command-readable").X == "Readable command contentREAD" && Run(block("command-readable"), "af").S.I,
                 "readable after command model");
-            Eq(0, engine.Js(page, "be('command','content:attr(data-code number)');af('command-readable','content:url(no.png)')"),
+            Eq(0, engine.Js(page, "be('command','content:attr(data-code number)');af('command-readable','content:url(javascript:blocked)')"),
                 "invalid generated commands rejected");
             Ok(block("command").X == "CSS Compact command content" && block("command-readable").X == "Readable command contentREAD",
                 "invalid generated commands preserve state");
@@ -9164,6 +9170,137 @@ namespace Lea.Tests
                 }
             }
             Console.WriteLine("Lea generated alternative smoke passed: bounded speech text, empty alternatives, attributes, counters, variables, links, tables, markers, commands, hover, media, retention, accessibility, and paint.");
+        }
+
+        private static void GeneratedImageSmoke(string path)
+        {
+            var engine = new E { Vw = 720 };
+            var page = engine.Go(path);
+            Func<string, B> block = id => BlockById(page, id);
+            Func<string, string> name = id => engine.Ax(page, ById(page.D, id)).N;
+            Func<string, S> before = delegate(string id)
+            {
+                var owner = block(id);
+                foreach (var run in owner.Is) if (run.K == "be") return run.S;
+                throw new InvalidOperationException("generated image before run unavailable: " + id);
+            };
+
+            var mixed = before("mixed");
+            var picture = mixed.Mf[1].U;
+            Ok(mixed.Mf != null && mixed.Mf.Count == 3 && mixed.Mf[0].K == "t" && mixed.Mf[1].K == "i" &&
+                mixed.Mf[2].K == "t" && picture != null && picture.Scheme == "data" && mixed.Mc == "Start  end " &&
+                name("mixed") == "Generated picture: Mixed content", "generated image mixed fragment model and accessibility");
+            Ok(Run(block("after"), "af").S.Mf.Count == 2 && name("after") == "After content picture after" &&
+                before("only").Mf.Count == 1 && before("only").Mc == "" && name("only") == "Only picture Only content" &&
+                name("decorative") == "Decorative content", "generated image before, after, only, and decorative alternatives");
+            Ok(before("relative").Mf[0].U.IsFile && before("relative").Mf[0].U.LocalPath.EndsWith("lea.ico", StringComparison.OrdinalIgnoreCase) &&
+                before("attribute").Mf.Count == 3 && before("attribute").Mc == "A3" && name("attribute") == "Attribute picture Attribute content",
+                "generated image relative origin, attributes, and counters");
+            Ok(block("image-link").X == "" && Run(block("image-link"), "be").U != null &&
+                name("image-link") == "Open generated picture" && name("labelled") == "Explicit picture link" &&
+                name("cell") == "Cell picture Table content", "generated image links, explicit labels, and table cells");
+            Ok(block("marker").Ms.Mf.Count == 3 && block("marker").Ms.Ma == "Picture marker: " &&
+                name("marker") == "Picture marker: Marker content" && block("marker-inside").Ms.Mf.Count == 2 &&
+                name("marker-inside") == "Inside picture marker: Inside marker content", "generated image marker model and names");
+            Ok(before("eight").Mf.Count == 8 && name("eight") == "Eight pictures Eight content" &&
+                before("nine").Mf == null && before("nine").Mc == "KEEP " && name("nine") == "Preserved Nine content",
+                "generated image exact item bound");
+            Ok(before("bad-scheme").Mf == null && before("bad-scheme").Mc == "KEEP " &&
+                before("alt-image").Mf == null && before("alt-image").Mc == "KEEP " &&
+                before("missing").Mf.Count == 1 && before("missing").Mf[0].U.IsFile,
+                "generated image invalid preservation and missing source model");
+
+            var retained = FieldById(page, "generated-image-field");
+            engine.Dy(page, ById(page.D, "dynamic"), null);
+            Ok(before("dynamic").Mf != null && name("dynamic") == "Hovered picture Dynamic content", "generated image hover rebuild");
+            engine.Dy(page, null, null);
+            Ok(before("dynamic").Mf == null && before("dynamic").Mc == "IDLE ", "generated image hover restore");
+
+            Eq(1, engine.Js(page, "be('command',\"content:'<' url(../../assets/lea.ico) '>' / 'Command picture '\")"),
+                "generated image before command");
+            Ok(before("command").Mf.Count == 3 && before("command").Mf[1].U.IsFile &&
+                name("command") == "Command picture Command content", "generated image command model");
+            Eq(1, engine.Js(page, "ms('marker-command',\"content:url(../../assets/lea.ico) ' M' / 'Command marker: '\")"),
+                "generated image marker command");
+            Ok(block("marker-command").Ms.Mf.Count == 2 && name("marker-command") == "Command marker: Marker command",
+                "generated image marker command model");
+            Eq(0, engine.Js(page, "be('command',\"content:url(javascript:blocked) / 'Bad '\")"),
+                "generated image command rejects unsafe scheme");
+            Ok(before("command").Mf.Count == 3 && Object.ReferenceEquals(retained, FieldById(page, "generated-image-field")),
+                "invalid generated image command preserves style and field");
+
+            engine.Vw = 350;
+            Ok(before("responsive").Mf.Count == 1 && name("responsive") == "Narrow picture Responsive content" &&
+                Object.ReferenceEquals(retained, FieldById(page, "generated-image-field")), "responsive generated image and retained field");
+
+            using (var view = new V())
+            {
+                view.Size = new Size(720, 5200);
+                var load = view.GoA(path);
+                while (!load.IsCompleted)
+                {
+                    Application.DoEvents();
+                    Thread.Sleep(2);
+                }
+                load.GetAwaiter().GetResult();
+                retained = FieldById(view.At, "generated-image-field");
+                Ok(PicCached(view, PictureRun(BlockById(view.At, "mixed"), "be").P) &&
+                    PicCached(view, PictureRun(BlockById(view.At, "relative"), "be").P),
+                    "generated images share the bounded sandboxed picture cache");
+
+                Rectangle dynamicOuter;
+                using (var paint = Render(view))
+                {
+                    var mixedBlock = BlockById(view.At, "mixed");
+                    var mixedPicture = InlinePictureRect(view, mixedBlock, "be");
+                    Ok(mixedPicture.Size == new Size(20, 10) && InlineTextRect(view, mixedBlock, "Start").Right < mixedPicture.Left &&
+                        mixedPicture.Right < InlineTextRect(view, mixedBlock, "end").Left &&
+                        ColorDistance(paint.GetPixel(mixedPicture.Left + 2, mixedPicture.Top + mixedPicture.Height / 2), Color.FromArgb(220, 38, 38)) < 24 &&
+                        ColorDistance(paint.GetPixel(mixedPicture.Right - 2, mixedPicture.Top + mixedPicture.Height / 2), Color.FromArgb(37, 99, 235)) < 24,
+                        "generated inline image order, intrinsic geometry, and paint");
+                    var linkBlock = BlockById(view.At, "image-link");
+                    var linkPicture = InlinePictureRect(view, linkBlock, "be");
+                    Eq(linkPicture, HitElementRect(view, "image-link"), "generated image-only link hit geometry");
+                    var marker = BlockById(view.At, "marker");
+                    var markerPicture = InlinePictureRect(view, marker, "lm");
+                    Ok(markerPicture.Size == new Size(20, 10) && markerPicture.Right < BlockRect(view, marker).Left,
+                        "generated outside marker image geometry");
+                    var inside = BlockById(view.At, "marker-inside");
+                    Ok(InlinePictureRect(view, inside, "lm").Left == BlockRect(view, inside).Left,
+                        "generated inside marker image geometry");
+                    Ok(InlinePictureRect(view, BlockById(view.At, "cell"), "be").Width == 20 &&
+                        InlinePictureCount(view, BlockById(view.At, "eight"), "be") == 8,
+                        "generated table and eight-fragment image geometry");
+                    dynamicOuter = BlockOuterRect(view, BlockById(view.At, "dynamic"));
+                }
+
+                retained.V = "Retained after generated image command";
+                Eq(1, view.Js("be('command',\"content:url(../../assets/lea.ico) / 'View picture '\")"),
+                    "view generated image command");
+                using (var paint = Render(view))
+                    Ok(InlinePictureRect(view, BlockById(view.At, "command"), "be").Width > 0,
+                        "view generated image command reaches geometry");
+
+                Move(view, dynamicOuter);
+                using (var paint = Render(view))
+                    Ok(InlinePictureCount(view, BlockById(view.At, "dynamic"), "be") == 1 &&
+                        view.Ax(ById(view.At.D, "dynamic")).N == "Hovered picture Dynamic content",
+                        "generated image hover reaches paint and accessibility");
+                Move(view, new Point(0, 0));
+
+                retained.V = "Retained after generated image resize";
+                view.Size = new Size(350, 5200);
+                Application.DoEvents();
+                using (var paint = Render(view))
+                {
+                    Ok(InlinePictureCount(view, BlockById(view.At, "responsive"), "be") == 1 &&
+                        view.Ax(ById(view.At.D, "responsive")).N == "Narrow picture Responsive content",
+                        "responsive generated image reaches geometry and accessibility");
+                    Ok(Object.ReferenceEquals(retained, FieldById(view.At, "generated-image-field")) &&
+                        retained.V == "Retained after generated image resize", "generated image resize retains field value");
+                }
+            }
+            Console.WriteLine("Lea generated image smoke passed: mixed fragments, alternatives, links, tables, markers, commands, hover, media, sandboxed resources, geometry, paint, and retention.");
         }
 
         private static void GeneratedQuoteSmoke(string path)
@@ -9976,6 +10113,12 @@ namespace Lea.Tests
             throw new InvalidOperationException("inline run unavailable: " + kind);
         }
 
+        private static Ir PictureRun(B block, string kind)
+        {
+            foreach (var run in block.Is) if (run.K == kind && run.P != null) return run;
+            throw new InvalidOperationException("inline picture run unavailable: " + kind);
+        }
+
         private static int RunCount(B block, string kind)
         {
             var count = 0;
@@ -10135,6 +10278,32 @@ namespace Lea.Tests
                 if ((string)type.GetField("K").GetValue(value) == kind) return (Rectangle)type.GetField("R").GetValue(value);
             }
             throw new InvalidOperationException("inline kind box unavailable: " + kind);
+        }
+
+        private static Rectangle InlinePictureRect(V view, B block, string kind)
+        {
+            foreach (var value in LayoutBoxes(view))
+            {
+                var type = value.GetType();
+                var picture = type.GetField("P").GetValue(value) as Uri;
+                if (!(bool)type.GetField("Inline").GetValue(value) || picture == null ||
+                    !Object.ReferenceEquals(type.GetField("B").GetValue(value), block)) continue;
+                if ((string)type.GetField("K").GetValue(value) == kind) return (Rectangle)type.GetField("R").GetValue(value);
+            }
+            throw new InvalidOperationException("inline picture box unavailable: " + kind);
+        }
+
+        private static int InlinePictureCount(V view, B block, string kind)
+        {
+            var count = 0;
+            foreach (var value in LayoutBoxes(view))
+            {
+                var type = value.GetType();
+                if ((bool)type.GetField("Inline").GetValue(value) && type.GetField("P").GetValue(value) is Uri &&
+                    Object.ReferenceEquals(type.GetField("B").GetValue(value), block) &&
+                    (string)type.GetField("K").GetValue(value) == kind) count++;
+            }
+            return count;
         }
 
         private static int InlineKindCount(V view, B block, string kind)

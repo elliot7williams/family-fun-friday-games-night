@@ -114,7 +114,7 @@ namespace Lea.Bench
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
                 "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "direction-logical.html", "direction-layout.html", "direction-inline.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "custom-properties.html", "important-cascade.html",
                 "direction-overflow.html", "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
-                "go-command.html", "lists.html", "list-style.html", "list-position.html", "list-image.html", "marker.html", "marker-content.html", "marker-counters.html", "css-counters.html", "generated-content.html", "generated-quotes.html", "generated-alt.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
+                "go-command.html", "lists.html", "list-style.html", "list-position.html", "list-image.html", "marker.html", "marker-content.html", "marker-counters.html", "css-counters.html", "generated-content.html", "generated-quotes.html", "generated-alt.html", "generated-images.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
                 "focus-shortcuts.html", "accessibility.html", "state-commands.html", "flex.html", "grid.html", "grid-areas.html", "grid-lines.html", "grid-flow.html", "grid-auto-tracks.html", "grid-shorthand.html", "grid-alignment.html", "grid-content-alignment.html", "svg.html", "svg-geometry.html", "svg-gradients.html", "svg-use-clips.html", "svg-strokes.html",
                 "box-sizing.html", "border-radius.html", "logical-radii.html", "box-shadows.html", "background-gradients.html", "background-images.html", "object-fit.html", "aspect-ratio.html", "outlines.html", "pointer-interaction.html", "text-transform.html", "text-spacing.html", "text-indent.html", "text-decoration.html", "text-underline-offset.html", "text-wrap.html", "text-align.html", "text-align-last.html", "text-shadow.html", "text-overflow.html", "line-clamp.html"
@@ -732,7 +732,7 @@ namespace Lea.Bench
                 Need(retained != null && engine.Ck(page, ById(page.D, "set-before")) == 1 &&
                     block("command").X == "CMDCompact command content" &&
                     engine.Ck(page, ById(page.D, "set-after")) == 1 && block("command-readable").X == "Readable command contentREAD" &&
-                    engine.Js(page, "be('command','content:url(no.png)')") == 0,
+                    engine.Js(page, "be('command','content:url(javascript:blocked)')") == 0,
                     "generated-content commands or validation changed");
                 engine.Dy(page, ById(page.D, "dynamic"), null);
                 Need(block("dynamic").X == "Hot Hover content", "generated hover state changed");
@@ -934,6 +934,64 @@ namespace Lea.Bench
                             field.V == "Retained benchmark alternative", "generated alternative resize or retained field changed");
                 }
                 return "visual/speech separation, empty alternatives, strings, attributes, counters, variables, eight-item and 128-unit bounds, invalid preservation, links, explicit ARIA priority, tables, markers, commands, hover/media rebuilds, accessibility, paint, and retained fields";
+            });
+            AddProbe(probes, "Bounded generated images", delegate
+            {
+                var path = Path.Combine(folder, "generated-images.html");
+                var engine = new E { Vw = 720 };
+                var page = engine.Go(path);
+                Func<string, B> block = id => BlockById(page, id);
+                Func<string, string> name = id => engine.Ax(page, ById(page.D, id)).N;
+                Func<string, S> before = id => block(id).Is.First(run => run.K == "be").S;
+                var mixed = before("mixed");
+                Need(mixed.Mf != null && mixed.Mf.Count == 3 && mixed.Mf[1].K == "i" && mixed.Mf[1].U.Scheme == "data" &&
+                    mixed.Mc == "Start  end " && name("mixed") == "Generated picture: Mixed content" &&
+                    before("relative").Mf[0].U.IsFile && before("relative").Mf[0].U.LocalPath.EndsWith("lea.ico", StringComparison.OrdinalIgnoreCase),
+                    "generated image fragments, alternatives, or relative origins changed");
+                Need(name("only") == "Only picture Only content" && name("decorative") == "Decorative content" &&
+                    name("image-link") == "Open generated picture" && name("labelled") == "Explicit picture link" &&
+                    name("cell") == "Cell picture Table content", "generated image accessibility integration changed");
+                Need(block("marker").Ms.Mf.Count == 3 && name("marker") == "Picture marker: Marker content" &&
+                    block("marker-inside").Ms.Mf.Count == 2 && before("eight").Mf.Count == 8 &&
+                    before("nine").Mf == null && before("nine").Mc == "KEEP " && before("bad-scheme").Mf == null &&
+                    before("alt-image").Mf == null, "generated image markers, bounds, or invalid preservation changed");
+                var field = page.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "generated-image-field");
+                engine.Dy(page, ById(page.D, "dynamic"), null);
+                Need(before("dynamic").Mf != null && name("dynamic") == "Hovered picture Dynamic content" &&
+                    engine.Js(page, "be('command',\"content:'<' url(../../assets/lea.ico) '>' / 'Command picture '\")") == 1 &&
+                    before("command").Mf.Count == 3 && engine.Js(page, "ms('marker-command',\"content:url(../../assets/lea.ico) ' M' / 'Command marker: '\")") == 1 &&
+                    block("marker-command").Ms.Mf.Count == 2, "generated image dynamic or command paths changed");
+                engine.Vw = 350;
+                Need(before("responsive").Mf.Count == 1 && name("responsive") == "Narrow picture Responsive content" &&
+                    Object.ReferenceEquals(field, page.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "generated-image-field")),
+                    "responsive generated image or retained field changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(720, 5200);
+                    LoadView(view, path, "generated image load");
+                    using (var image = Draw(view))
+                    {
+                        var inline = InlinePictureRect(view, "mixed", "be");
+                        var marker = InlinePictureRect(view, "marker", "lm");
+                        Need(inline.Size == new Size(20, 10) && marker.Size == new Size(20, 10) &&
+                            marker.Right < BlockContent(view, "marker").Left &&
+                            InlinePictureRect(view, "marker-inside", "lm").Left == BlockContent(view, "marker-inside").Left &&
+                            InlinePictureCount(view, "eight", "be") == 8 &&
+                            ColorDistance(image.GetPixel(inline.Left + 2, inline.Top + inline.Height / 2), Color.FromArgb(220, 38, 38)) < 24,
+                            "generated image geometry or paint changed");
+                    }
+                    field = view.At.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "generated-image-field");
+                    Need(field != null && view.Js("be('command',\"content:url(../../assets/lea.ico) / 'View picture '\")") == 1,
+                        "generated image view command changed");
+                    field.V = "Retained benchmark generated image";
+                    view.Size = new Size(350, 5200);
+                    using (var image = Draw(view))
+                        Need(InlinePictureCount(view, "responsive", "be") == 1 &&
+                            view.Ax(ById(view.At.D, "responsive")).N == "Narrow picture Responsive content" &&
+                            Object.ReferenceEquals(field, view.At.Fs.FirstOrDefault(item => item.El != null && item.El.Av("id") == "generated-image-field")) &&
+                            field.V == "Retained benchmark generated image", "generated image resize or retained value changed");
+                }
+                return "mixed string/image fragments, variables, relative origins, alternatives, links, tables, markers, eight-item bounds, invalid preservation, commands, hover/media rebuilds, sandboxed resources, geometry, paint, and retained fields";
             });
             AddProbe(probes, "Bounded disclosures", delegate
             {
@@ -4208,8 +4266,8 @@ namespace Lea.Bench
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Text overflow", "Supported subset", "Non-inherited clip/ellipsis with bounded LTR/RTL physical inline-end markers and grapheme-safe paint-only authored prefixes for inline runs and tables; retained layout/link targets, full logical automation text, and direction-aware partial range geometry; no native-control, Unicode bidi shaping, or custom overflow-marker additions");
             Capability(builder, "Line clamping", "Supported subset", "Non-inherited line-clamp and -webkit-line-clamp none/1..32 with LTR/RTL grapheme-safe ellipsis, reduced flow height, hidden retained boxes/hits, full logical source and UI Automation text, inline runs, forced breaks, balanced text, and table cells; no block-ellipsis strings, longhands, descendant block fragmentation, or legacy WebKit display requirements");
-            Capability(builder, "Marker generated content", "Supported subset", "Terminal ::marker content with up to eight quoted strings, attr(name)/attr(name raw-string) with an optional quoted missing-value fallback, named/implicit counter()/counters() values, or open-quote/close-quote/no-open-quote/no-close-quote concatenated into one bounded visual atom; one slash-separated alternative accepts up to eight string/attr/counter items and 128 further UTF-16 units in S.Ma. Inherited quotes accepts auto, none, or up to eight 32-unit pairs with eight active levels; ten built-in styles, eight nested counter levels and active instances, eight operations per property, 32-character ASCII counter names, 32-unit separators, 64-character attribute names, -999999..999999 counter values, 128 UTF-16 visual output units, variables, important tiers, ms/markerstyle, qu/quotes, and cr/ci/cs commands, image priority, accessible list-item names, tables, hover/media rebuilds, and LTR/RTL inside/outside paint; no typed attr values, unquoted or functional attr fallbacks, reversed/custom counter styles, pseudo-element counter properties, images in content, or locale-specific auto quotes");
-            Capability(builder, "Before and after generated content", "Supported subset", "Terminal ::before/::after plus legacy :before/:after produce inline generated runs with up to eight quoted strings, attr(name)/attr(name raw-string) with an optional quoted missing-value fallback, named counter()/counters() values, or open-quote/close-quote/no-open-quote/no-close-quote; one slash-separated alternative accepts up to eight string/attr/counter items and 128 further UTF-16 units in S.Ma, including explicit empty decoration suppression and alternative-only runs. Inherited quotes accepts auto, none, or up to eight 32-unit pairs with eight active document-order levels. Present attributes win even when empty, while missing attributes use the fallback. Attribute names stop at 64 characters and visual output at 128 UTF-16 units; inherited bounded text styling, variables, important tiers, be/beforestyle, af/afterstyle, and qu/quotes commands, nested/link/value/table ownership, accessibility names and reading order, hover/media rebuilds, and LTR/RTL paint remain shared. Replaced/native controls suppress runs; there are no typed attr values, unquoted or functional fallbacks, pseudo box-model, flex/grid-item, image, locale-specific auto quote, or arbitrary CSSOM features");
+            Capability(builder, "Marker generated content", "Supported subset", "Terminal ::marker content with up to eight quoted strings, attr(name)/attr(name raw-string) with an optional quoted missing-value fallback, named/implicit counter()/counters() values, open-quote/close-quote/no-open-quote/no-close-quote, or sandboxed url(...) bitmap fragments in source order; one slash-separated alternative accepts up to eight string/attr/counter items and 128 further UTF-16 units in S.Ma. Inherited quotes accepts auto, none, or up to eight 32-unit pairs with eight active levels; ten built-in styles, eight nested counter levels and active instances, eight operations per property, 32-character ASCII counter names, 32-unit separators, 64-character attribute names, -999999..999999 counter values, 128 UTF-16 visual text units, variables, important tiers, ms/markerstyle, qu/quotes, and cr/ci/cs commands, accessible list-item names, tables, hover/media rebuilds, and LTR/RTL inside/outside image/text paint. Generated pictures share the 24-source sandboxed image path and 64px intrinsic display cap; no images are accepted after the alternative slash. There are no typed attr values, unquoted or functional attr fallbacks, reversed/custom counter styles, pseudo-element counter properties, image functions, author image sizing, or locale-specific auto quotes");
+            Capability(builder, "Before and after generated content", "Supported subset", "Terminal ::before/::after plus legacy :before/:after produce inline generated runs with up to eight quoted strings, attr(name)/attr(name raw-string) with an optional quoted missing-value fallback, named counter()/counters() values, open-quote/close-quote/no-open-quote/no-close-quote, or sandboxed url(...) bitmap fragments in source order; one slash-separated alternative accepts up to eight string/attr/counter items and 128 further UTF-16 units in S.Ma, including explicit empty decoration suppression and alternative-only runs. Inherited quotes accepts auto, none, or up to eight 32-unit pairs with eight active document-order levels. Present attributes win even when empty, while missing attributes use the fallback. Attribute names stop at 64 characters and visual text at 128 UTF-16 units; generated pictures share the 24-source sandboxed image path and 64px intrinsic display cap. Inherited bounded text styling, variables, important tiers, be/beforestyle, af/afterstyle, and qu/quotes commands, nested/link/value/table ownership, accessibility names and reading order, hover/media rebuilds, and LTR/RTL paint remain shared. Replaced/native controls suppress runs; there are no typed attr values, unquoted or functional fallbacks, pseudo box-model, flex/grid-item, image functions, author image sizing, locale-specific auto quote, or arbitrary CSSOM features");
             Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color, font, display, width, height, direction, quotes, text indent, text alignment/all/last, text wrap/mode/style, line clamp, list/marker/before/after style, counter reset/increment/set, text decoration, underline offset, and text shadow, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, safe click commands, and literal compatibility translation");
             Capability(builder, "Literal DOM bridge", "Supported subset", "Literal document.getElementById IDs with textContent/innerText, value, checked/disabled/hidden/open, focus(), classList add/remove/toggle, and background/color/fontSize/display/width/height/direction/quotes/textIndent/textAlign/textAlignAll/textAlignLast/textWrap/textWrapMode/textWrapStyle/lineClamp/webkitLineClamp/counterReset/counterIncrement/counterSet/textDecoration/textDecorationLine/textDecorationColor/textDecorationStyle/textDecorationThickness/textUnderlineOffset/textShadow; literal location href/assign requests; mapped to bounded Lea aliases");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
@@ -4637,6 +4695,40 @@ namespace Lea.Bench
                     var type = value.GetType();
                     var block = type.GetField("B").GetValue(value) as B;
                     if (block == null || block.El == null || block.El.Av("id") != ownerId || !(bool)type.GetField("Inline").GetValue(value)) continue;
+                    if ((string)type.GetField("K").GetValue(value) == kind) count++;
+                }
+            return count;
+        }
+
+        private static Rectangle InlinePictureRect(V view, string ownerId, string kind)
+        {
+            var field = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = field == null ? null : field.GetValue(view) as System.Collections.IEnumerable;
+            if (values != null)
+                foreach (var value in values)
+                {
+                    var type = value.GetType();
+                    var block = type.GetField("B").GetValue(value) as B;
+                    var picture = type.GetField("P").GetValue(value) as Uri;
+                    if (block == null || block.El == null || block.El.Av("id") != ownerId || picture == null ||
+                        !(bool)type.GetField("Inline").GetValue(value)) continue;
+                    if ((string)type.GetField("K").GetValue(value) == kind) return (Rectangle)type.GetField("R").GetValue(value);
+                }
+            throw new InvalidOperationException("Missing inline picture " + ownerId + ": " + kind);
+        }
+
+        private static int InlinePictureCount(V view, string ownerId, string kind)
+        {
+            var count = 0;
+            var field = typeof(V).GetField("boxes", BindingFlags.Instance | BindingFlags.NonPublic);
+            var values = field == null ? null : field.GetValue(view) as System.Collections.IEnumerable;
+            if (values != null)
+                foreach (var value in values)
+                {
+                    var type = value.GetType();
+                    var block = type.GetField("B").GetValue(value) as B;
+                    if (block == null || block.El == null || block.El.Av("id") != ownerId ||
+                        !(bool)type.GetField("Inline").GetValue(value) || !(type.GetField("P").GetValue(value) is Uri)) continue;
                     if ((string)type.GetField("K").GetValue(value) == kind) count++;
                 }
             return count;

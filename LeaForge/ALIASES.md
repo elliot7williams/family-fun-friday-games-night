@@ -168,8 +168,11 @@ preserve mutable fields through the shared CSS rebuild.
 
 `be/af` set bounded `::before`/`::after` style overrides on the body or one
 validated ID. Readable `beforestyle/afterstyle` use the same forms. They accept
-the marker text-property subset and string/attribute/named-counter/quote-keyword `content`
-grammar; an empty value restores authored CSS. See `GENERATED_CONTENT.md`.
+the marker text-property subset and bounded
+string/attribute/named-counter/quote-keyword/`url(...)` `content` grammar; an
+empty value restores authored CSS. The same image syntax works through `ms`;
+no extra image command is needed. See `GENERATED_CONTENT.md` and
+`GENERATED_IMAGES.md`.
 
 `qu` sets the inherited `quotes` property on the body or one validated ID;
 readable `quotes` and literal `style.quotes` use the same forms. `S.Qc` returns

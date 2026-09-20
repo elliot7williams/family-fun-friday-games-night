@@ -12,7 +12,9 @@ li::marker { content: "[NEW] " / "New item: "; }
 
 ## Compact Model
 
-`S.Mc` remains the visual generated-content atom. `S.Ma` is the optional
+`S.Mc` remains the visual generated-content text atom. Image-containing visual
+lists additionally use the lazy `S.Mf` fragment list described in
+`GENERATED_IMAGES.md`. `S.Ma` is the optional
 alternative atom:
 
 - `null` means no alternative was supplied, so accessibility uses `S.Mc`
@@ -21,7 +23,9 @@ alternative atom:
 
 `S.Ma` is non-inherited and exists only on the computed marker, before, or
 after pseudo style. It adds no layout box, paint branch, resource, or host-side
-adapter state. A declaration such as `content: "" / "Status: "` retains a
+adapter state. One alternative is emitted for the whole pseudo even when its
+visual side has several text/image fragments. A declaration such as
+`content: "" / "Status: "` retains a
 zero-width generated run so its alternative remains available to accessibility.
 
 ## Bounded Grammar
@@ -51,7 +55,8 @@ item's accessible name. Table-cell blocks use the same recursive accessibility
 walk as ordinary blocks. Explicit `aria-labelledby` and `aria-label` remain
 higher priority.
 
-Visual text, geometry, hit testing, links, and paint continue to use `S.Mc`.
+Visual text, geometry, hit testing, links, and paint continue to use `S.Mc`
+and, when present, `S.Mf`.
 Empty alternatives therefore suppress decorative speech without hiding what is
 painted.
 
@@ -74,5 +79,6 @@ The benchmark and compiled Firespider host repeat the integration paths.
 
 This bounded design follows the alternative-text model in
 [CSS Generated Content Level 3](https://www.w3.org/TR/css-content-3/) without
-claiming support for generated images, speech styling, or the full CSS content
-model.
+claiming support for images in the alternative half, speech styling, or the
+full CSS content model. Bounded visual bitmap fragments are documented in
+`GENERATED_IMAGES.md`.

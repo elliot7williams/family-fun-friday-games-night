@@ -10,16 +10,16 @@ These are repeatable local diagnostic samples, not performance promises. Re-run 
 
 | Measurement | Result |
 | --- | ---: |
-| Clean process + engine + first page median | 516.525 ms |
-| Clean process + engine + first page p95 | 517.737 ms |
-| Local page load median | 4.906 ms |
-| Local page load p95 | 14.973 ms |
-| Layout + bitmap paint median | 39.974 ms |
-| Layout + bitmap paint p95 | 228.118 ms |
-| Retained managed memory | 27643.6 KB for 404 loaded pages |
-| Retained managed memory per page | 68.4 KB |
-| Engine runtime files | 635.5 KB |
-| Engine runtime GZip estimate | 265.0 KB (41.7% of raw) |
+| Clean process + engine + first page median | 530.718 ms |
+| Clean process + engine + first page p95 | 535.710 ms |
+| Local page load median | 5.075 ms |
+| Local page load p95 | 15.089 ms |
+| Layout + bitmap paint median | 45.575 ms |
+| Layout + bitmap paint p95 | 223.024 ms |
+| Retained managed memory | 28133.1 KB for 408 loaded pages |
+| Retained managed memory per page | 69.0 KB |
+| Engine runtime files | 622.0 KB |
+| Engine runtime GZip estimate | 259.5 KB (41.7% of raw) |
 
 ## Fixture Loads
 
@@ -27,107 +27,108 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 
 | Fixture | Bytes | Nodes | CSS rules | Median | p95 |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| `index.html` | 1032 | 19 | 1 | 2.561 ms | 3.804 ms |
-| `recovery.html` | 1040 | 39 | 0 | 2.852 ms | 2.866 ms |
-| `html-tokens.html` | 943 | 15 | 2 | 1.544 ms | 1.709 ms |
-| `selectors.html` | 1017 | 20 | 10 | 2.381 ms | 2.543 ms |
-| `selector-functions.html` | 2586 | 23 | 18 | 3.906 ms | 5.783 ms |
-| `selector-arithmetic.html` | 1955 | 25 | 18 | 5.945 ms | 6.029 ms |
-| `selector-filtered-position.html` | 2375 | 25 | 13 | 4.629 ms | 5.760 ms |
-| `selector-relational.html` | 2027 | 28 | 15 | 3.996 ms | 5.586 ms |
-| `layout.html` | 616 | 9 | 4 | 0.957 ms | 2.704 ms |
-| `tables.html` | 894 | 28 | 6 | 2.386 ms | 3.058 ms |
-| `forms.html` | 1566 | 25 | 7 | 2.013 ms | 2.618 ms |
-| `editing.html` | 880 | 18 | 6 | 2.065 ms | 2.769 ms |
-| `retained-data.html` | 1254 | 32 | 4 | 1.951 ms | 2.669 ms |
-| `stylesheets.html` | 829 | 16 | 4 | 1.248 ms | 1.848 ms |
-| `load-lifecycle.html` | 445 | 10 | 4 | 1.012 ms | 1.352 ms |
-| `image-loading.html` | 802 | 12 | 4 | 0.919 ms | 1.435 ms |
-| `image-preflight.html` | 727 | 10 | 2 | 0.773 ms | 0.846 ms |
-| `input-loading.html` | 434 | 13 | 4 | 1.600 ms | 1.708 ms |
-| `cache-identity.html` | 609 | 12 | 2 | 1.769 ms | 2.272 ms |
-| `events-vars.html` | 1132 | 14 | 5 | 2.063 ms | 2.469 ms |
-| `dom-bridge.html` | 2134 | 20 | 5 | 2.877 ms | 5.245 ms |
-| `display-navigation.html` | 1554 | 19 | 6 | 2.050 ms | 3.325 ms |
-| `calculated-widths.html` | 3031 | 41 | 24 | 4.803 ms | 7.177 ms |
-| `calculated-heights.html` | 4598 | 47 | 34 | 8.771 ms | 9.458 ms |
-| `viewport-units.html` | 5907 | 55 | 41 | 10.398 ms | 11.772 ms |
-| `font-relative-units.html` | 5438 | 49 | 35 | 9.910 ms | 11.956 ms |
-| `size-functions.html` | 6894 | 56 | 36 | 11.752 ms | 12.878 ms |
-| `logical-sizing-insets.html` | 3221 | 24 | 16 | 4.905 ms | 6.210 ms |
-| `logical-box-model.html` | 5522 | 25 | 15 | 5.121 ms | 5.273 ms |
-| `logical-borders.html` | 7903 | 25 | 17 | 6.541 ms | 8.683 ms |
-| `direction-logical.html` | 3833 | 30 | 23 | 5.551 ms | 6.570 ms |
-| `direction-layout.html` | 4452 | 62 | 31 | 16.437 ms | 17.251 ms |
-| `direction-inline.html` | 3556 | 60 | 37 | 8.364 ms | 8.707 ms |
-| `sticky-positioning.html` | 1785 | 18 | 13 | 2.429 ms | 3.006 ms |
-| `responsive-media.html` | 2575 | 21 | 5 | 2.412 ms | 4.036 ms |
-| `media-queries.html` | 2229 | 24 | 16 | 2.586 ms | 2.708 ms |
-| `custom-properties.html` | 2890 | 23 | 17 | 3.603 ms | 5.214 ms |
-| `important-cascade.html` | 2748 | 19 | 16 | 3.181 ms | 4.936 ms |
-| `direction-overflow.html` | 2246 | 27 | 20 | 3.882 ms | 3.890 ms |
-| `stacking-contexts.html` | 3149 | 32 | 22 | 6.904 ms | 6.954 ms |
-| `external.html` | 502 | 12 | 6 | 2.222 ms | 3.324 ms |
-| `base-url.html` | 819 | 17 | 5 | 1.404 ms | 1.536 ms |
-| `class-commands.html` | 1169 | 15 | 4 | 2.938 ms | 3.465 ms |
-| `go-command.html` | 971 | 12 | 6 | 2.031 ms | 2.376 ms |
-| `lists.html` | 1849 | 39 | 5 | 3.449 ms | 4.967 ms |
-| `list-style.html` | 5755 | 86 | 36 | 14.653 ms | 15.206 ms |
-| `list-position.html` | 5606 | 67 | 40 | 9.612 ms | 10.545 ms |
-| `list-image.html` | 5824 | 56 | 37 | 10.828 ms | 11.669 ms |
-| `marker.html` | 4091 | 37 | 31 | 5.347 ms | 6.757 ms |
-| `marker-content.html` | 6636 | 51 | 41 | 10.851 ms | 13.424 ms |
-| `marker-counters.html` | 6440 | 80 | 40 | 14.714 ms | 18.083 ms |
-| `css-counters.html` | 10619 | 121 | 87 | 21.888 ms | 25.895 ms |
-| `generated-content.html` | 8369 | 72 | 73 | 16.168 ms | 19.195 ms |
-| `generated-quotes.html` | 4638 | 38 | 73 | 7.228 ms | 8.622 ms |
-| `generated-alt.html` | 3864 | 35 | 34 | 6.861 ms | 11.953 ms |
-| `disclosure.html` | 2270 | 34 | 9 | 4.414 ms | 6.958 ms |
-| `fragments.html` | 2234 | 31 | 11 | 4.794 ms | 5.277 ms |
-| `fragment-stability.html` | 1515 | 13 | 3 | 2.087 ms | 2.798 ms |
-| `gauges.html` | 2115 | 25 | 14 | 2.712 ms | 4.864 ms |
-| `values.html` | 1734 | 26 | 7 | 1.842 ms | 2.086 ms |
-| `time-edits.html` | 1966 | 27 | 7 | 2.726 ms | 2.846 ms |
-| `image-maps.html` | 2569 | 30 | 6 | 2.648 ms | 2.766 ms |
-| `keyboard-focus.html` | 3721 | 41 | 18 | 5.843 ms | 7.069 ms |
-| `focus-shortcuts.html` | 1838 | 20 | 13 | 3.115 ms | 4.585 ms |
-| `accessibility.html` | 3148 | 60 | 4 | 4.557 ms | 5.304 ms |
-| `state-commands.html` | 2711 | 37 | 9 | 6.541 ms | 7.730 ms |
-| `flex.html` | 6942 | 57 | 57 | 14.973 ms | 15.152 ms |
-| `grid.html` | 5699 | 62 | 37 | 16.652 ms | 19.700 ms |
-| `grid-areas.html` | 3189 | 31 | 20 | 7.423 ms | 8.184 ms |
-| `grid-lines.html` | 5342 | 45 | 31 | 13.070 ms | 13.524 ms |
-| `grid-flow.html` | 4271 | 45 | 38 | 13.285 ms | 14.567 ms |
-| `grid-auto-tracks.html` | 4332 | 41 | 25 | 9.162 ms | 9.258 ms |
-| `grid-shorthand.html` | 5060 | 48 | 33 | 14.374 ms | 15.103 ms |
-| `grid-alignment.html` | 3129 | 27 | 23 | 6.756 ms | 8.057 ms |
-| `grid-content-alignment.html` | 2723 | 37 | 18 | 9.021 ms | 10.172 ms |
-| `svg.html` | 1775 | 25 | 4 | 3.010 ms | 3.103 ms |
-| `svg-geometry.html` | 2470 | 31 | 2 | 3.518 ms | 4.906 ms |
-| `svg-gradients.html` | 3238 | 43 | 3 | 2.962 ms | 3.878 ms |
-| `svg-use-clips.html` | 2947 | 48 | 3 | 4.132 ms | 4.407 ms |
-| `svg-strokes.html` | 2832 | 28 | 5 | 2.756 ms | 3.646 ms |
-| `box-sizing.html` | 2744 | 20 | 13 | 3.690 ms | 4.588 ms |
-| `border-radius.html` | 1695 | 16 | 12 | 2.576 ms | 3.871 ms |
-| `logical-radii.html` | 4754 | 22 | 14 | 3.995 ms | 6.395 ms |
-| `box-shadows.html` | 2445 | 22 | 19 | 4.358 ms | 5.245 ms |
-| `background-gradients.html` | 2943 | 22 | 19 | 5.043 ms | 5.133 ms |
-| `background-images.html` | 4326 | 26 | 23 | 6.158 ms | 8.279 ms |
-| `object-fit.html` | 5828 | 25 | 16 | 4.149 ms | 5.457 ms |
-| `aspect-ratio.html` | 5640 | 49 | 38 | 8.616 ms | 10.907 ms |
-| `outlines.html` | 2871 | 23 | 19 | 5.550 ms | 6.819 ms |
-| `pointer-interaction.html` | 3471 | 30 | 27 | 8.322 ms | 8.787 ms |
-| `text-transform.html` | 3150 | 32 | 25 | 5.852 ms | 7.771 ms |
-| `text-spacing.html` | 3942 | 33 | 26 | 6.208 ms | 8.638 ms |
-| `text-indent.html` | 2947 | 26 | 20 | 6.640 ms | 7.201 ms |
-| `text-decoration.html` | 3829 | 34 | 24 | 7.103 ms | 7.861 ms |
-| `text-underline-offset.html` | 4690 | 36 | 29 | 8.840 ms | 9.683 ms |
-| `text-wrap.html` | 5382 | 47 | 35 | 11.018 ms | 11.730 ms |
-| `text-align.html` | 4395 | 44 | 32 | 9.333 ms | 11.422 ms |
-| `text-align-last.html` | 3465 | 38 | 27 | 10.387 ms | 11.014 ms |
-| `text-shadow.html` | 2640 | 25 | 19 | 4.830 ms | 5.959 ms |
-| `text-overflow.html` | 3878 | 34 | 26 | 8.697 ms | 10.018 ms |
-| `line-clamp.html` | 5339 | 46 | 29 | 9.597 ms | 12.707 ms |
+| `index.html` | 1032 | 19 | 1 | 3.824 ms | 4.578 ms |
+| `recovery.html` | 1040 | 39 | 0 | 3.567 ms | 3.785 ms |
+| `html-tokens.html` | 943 | 15 | 2 | 2.631 ms | 3.327 ms |
+| `selectors.html` | 1017 | 20 | 10 | 2.564 ms | 2.596 ms |
+| `selector-functions.html` | 2586 | 23 | 18 | 6.108 ms | 6.428 ms |
+| `selector-arithmetic.html` | 1955 | 25 | 18 | 5.034 ms | 5.610 ms |
+| `selector-filtered-position.html` | 2375 | 25 | 13 | 4.677 ms | 8.313 ms |
+| `selector-relational.html` | 2027 | 28 | 15 | 4.048 ms | 5.239 ms |
+| `layout.html` | 616 | 9 | 4 | 1.426 ms | 1.740 ms |
+| `tables.html` | 894 | 28 | 6 | 3.971 ms | 4.025 ms |
+| `forms.html` | 1566 | 25 | 7 | 2.568 ms | 3.842 ms |
+| `editing.html` | 880 | 18 | 6 | 2.321 ms | 2.696 ms |
+| `retained-data.html` | 1254 | 32 | 4 | 3.126 ms | 7.518 ms |
+| `stylesheets.html` | 829 | 16 | 4 | 1.378 ms | 1.511 ms |
+| `load-lifecycle.html` | 445 | 10 | 4 | 0.836 ms | 3.291 ms |
+| `image-loading.html` | 802 | 12 | 4 | 1.391 ms | 1.516 ms |
+| `image-preflight.html` | 727 | 10 | 2 | 1.302 ms | 1.378 ms |
+| `input-loading.html` | 434 | 13 | 4 | 1.658 ms | 2.283 ms |
+| `cache-identity.html` | 609 | 12 | 2 | 1.750 ms | 2.250 ms |
+| `events-vars.html` | 1132 | 14 | 5 | 3.319 ms | 4.087 ms |
+| `dom-bridge.html` | 2134 | 20 | 5 | 4.106 ms | 5.590 ms |
+| `display-navigation.html` | 1554 | 19 | 6 | 3.758 ms | 3.900 ms |
+| `calculated-widths.html` | 3031 | 41 | 24 | 5.889 ms | 8.755 ms |
+| `calculated-heights.html` | 4598 | 47 | 34 | 8.872 ms | 9.341 ms |
+| `viewport-units.html` | 5907 | 55 | 41 | 9.530 ms | 11.470 ms |
+| `font-relative-units.html` | 5438 | 49 | 35 | 8.111 ms | 10.744 ms |
+| `size-functions.html` | 6894 | 56 | 36 | 11.494 ms | 11.776 ms |
+| `logical-sizing-insets.html` | 3221 | 24 | 16 | 3.527 ms | 4.158 ms |
+| `logical-box-model.html` | 5522 | 25 | 15 | 7.108 ms | 7.938 ms |
+| `logical-borders.html` | 7903 | 25 | 17 | 5.844 ms | 7.245 ms |
+| `direction-logical.html` | 3833 | 30 | 23 | 4.269 ms | 6.139 ms |
+| `direction-layout.html` | 4452 | 62 | 31 | 16.587 ms | 17.184 ms |
+| `direction-inline.html` | 3556 | 60 | 37 | 7.294 ms | 9.181 ms |
+| `sticky-positioning.html` | 1785 | 18 | 13 | 2.649 ms | 4.846 ms |
+| `responsive-media.html` | 2575 | 21 | 5 | 1.918 ms | 2.072 ms |
+| `media-queries.html` | 2229 | 24 | 16 | 2.872 ms | 5.234 ms |
+| `custom-properties.html` | 2890 | 23 | 17 | 3.988 ms | 5.609 ms |
+| `important-cascade.html` | 2748 | 19 | 16 | 2.740 ms | 2.850 ms |
+| `direction-overflow.html` | 2246 | 27 | 20 | 4.218 ms | 4.235 ms |
+| `stacking-contexts.html` | 3149 | 32 | 22 | 5.906 ms | 7.384 ms |
+| `external.html` | 502 | 12 | 6 | 2.211 ms | 4.463 ms |
+| `base-url.html` | 819 | 17 | 5 | 1.290 ms | 1.415 ms |
+| `class-commands.html` | 1169 | 15 | 4 | 2.224 ms | 2.440 ms |
+| `go-command.html` | 971 | 12 | 6 | 3.603 ms | 4.194 ms |
+| `lists.html` | 1849 | 39 | 5 | 5.320 ms | 6.255 ms |
+| `list-style.html` | 5755 | 86 | 36 | 14.011 ms | 15.964 ms |
+| `list-position.html` | 5606 | 67 | 40 | 8.652 ms | 9.307 ms |
+| `list-image.html` | 5824 | 56 | 37 | 11.588 ms | 12.916 ms |
+| `marker.html` | 4091 | 37 | 31 | 7.804 ms | 9.726 ms |
+| `marker-content.html` | 6636 | 51 | 41 | 13.949 ms | 15.250 ms |
+| `marker-counters.html` | 6440 | 80 | 40 | 14.598 ms | 14.760 ms |
+| `css-counters.html` | 10619 | 121 | 87 | 18.925 ms | 18.970 ms |
+| `generated-content.html` | 8369 | 72 | 73 | 16.340 ms | 16.347 ms |
+| `generated-quotes.html` | 4638 | 38 | 73 | 8.409 ms | 8.625 ms |
+| `generated-alt.html` | 3864 | 35 | 34 | 6.599 ms | 6.815 ms |
+| `generated-images.html` | 3982 | 31 | 29 | 4.790 ms | 7.000 ms |
+| `disclosure.html` | 2270 | 34 | 9 | 4.219 ms | 5.019 ms |
+| `fragments.html` | 2234 | 31 | 11 | 3.689 ms | 3.792 ms |
+| `fragment-stability.html` | 1515 | 13 | 3 | 1.625 ms | 2.609 ms |
+| `gauges.html` | 2115 | 25 | 14 | 3.112 ms | 3.289 ms |
+| `values.html` | 1734 | 26 | 7 | 2.204 ms | 2.731 ms |
+| `time-edits.html` | 1966 | 27 | 7 | 2.144 ms | 2.212 ms |
+| `image-maps.html` | 2569 | 30 | 6 | 2.463 ms | 4.416 ms |
+| `keyboard-focus.html` | 3721 | 41 | 18 | 9.582 ms | 10.131 ms |
+| `focus-shortcuts.html` | 1838 | 20 | 13 | 3.122 ms | 8.744 ms |
+| `accessibility.html` | 3148 | 60 | 4 | 4.536 ms | 5.304 ms |
+| `state-commands.html` | 2711 | 37 | 9 | 9.493 ms | 9.517 ms |
+| `flex.html` | 6942 | 57 | 57 | 14.918 ms | 16.653 ms |
+| `grid.html` | 5699 | 62 | 37 | 17.814 ms | 18.041 ms |
+| `grid-areas.html` | 3189 | 31 | 20 | 6.641 ms | 9.854 ms |
+| `grid-lines.html` | 5342 | 45 | 31 | 13.576 ms | 13.897 ms |
+| `grid-flow.html` | 4271 | 45 | 38 | 12.713 ms | 15.089 ms |
+| `grid-auto-tracks.html` | 4332 | 41 | 25 | 13.597 ms | 14.883 ms |
+| `grid-shorthand.html` | 5060 | 48 | 33 | 13.491 ms | 15.664 ms |
+| `grid-alignment.html` | 3129 | 27 | 23 | 8.365 ms | 8.707 ms |
+| `grid-content-alignment.html` | 2723 | 37 | 18 | 8.630 ms | 10.567 ms |
+| `svg.html` | 1775 | 25 | 4 | 2.755 ms | 3.094 ms |
+| `svg-geometry.html` | 2470 | 31 | 2 | 4.124 ms | 4.544 ms |
+| `svg-gradients.html` | 3238 | 43 | 3 | 2.954 ms | 3.585 ms |
+| `svg-use-clips.html` | 2947 | 48 | 3 | 3.879 ms | 5.068 ms |
+| `svg-strokes.html` | 2832 | 28 | 5 | 3.237 ms | 4.443 ms |
+| `box-sizing.html` | 2744 | 20 | 13 | 3.339 ms | 5.392 ms |
+| `border-radius.html` | 1695 | 16 | 12 | 2.741 ms | 2.862 ms |
+| `logical-radii.html` | 4754 | 22 | 14 | 4.754 ms | 5.479 ms |
+| `box-shadows.html` | 2445 | 22 | 19 | 4.672 ms | 7.003 ms |
+| `background-gradients.html` | 2943 | 22 | 19 | 4.451 ms | 6.627 ms |
+| `background-images.html` | 4326 | 26 | 23 | 6.921 ms | 8.320 ms |
+| `object-fit.html` | 5828 | 25 | 16 | 5.379 ms | 7.418 ms |
+| `aspect-ratio.html` | 5640 | 49 | 38 | 9.669 ms | 10.136 ms |
+| `outlines.html` | 2871 | 23 | 19 | 4.668 ms | 6.579 ms |
+| `pointer-interaction.html` | 3471 | 30 | 27 | 8.057 ms | 10.155 ms |
+| `text-transform.html` | 3150 | 32 | 25 | 8.157 ms | 8.401 ms |
+| `text-spacing.html` | 3942 | 33 | 26 | 9.216 ms | 9.679 ms |
+| `text-indent.html` | 2947 | 26 | 20 | 5.804 ms | 6.506 ms |
+| `text-decoration.html` | 3829 | 34 | 24 | 7.970 ms | 8.571 ms |
+| `text-underline-offset.html` | 4690 | 36 | 29 | 7.738 ms | 10.490 ms |
+| `text-wrap.html` | 5382 | 47 | 35 | 11.063 ms | 12.347 ms |
+| `text-align.html` | 4395 | 44 | 32 | 10.122 ms | 11.724 ms |
+| `text-align-last.html` | 3465 | 38 | 27 | 10.027 ms | 12.988 ms |
+| `text-shadow.html` | 2640 | 25 | 19 | 4.531 ms | 6.798 ms |
+| `text-overflow.html` | 3878 | 34 | 26 | 7.856 ms | 9.098 ms |
+| `line-clamp.html` | 5339 | 46 | 29 | 10.071 ms | 11.118 ms |
 
 ## Executable Probes
 
@@ -146,6 +147,7 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 | Bounded generated attr fallbacks | PASS | quoted attr(name, fallback) and raw-string fallback, present/empty priority, variables, exact output bounds, invalid preservation, compact commands, markers, before/after, links, accessibility, tables, hover, and media |
 | Bounded generated quotes | PASS | open/close and silent quote keywords, inherited auto/none/eight-pair quotes, eight-depth document order, 32-unit pairs, 128-unit output, variables, invalid preservation, qu and literal DOM commands, markers, links, tables, accessibility, hover/media rebuilds, paint, and retained fields |
 | Bounded generated alternatives | PASS | visual/speech separation, empty alternatives, strings, attributes, counters, variables, eight-item and 128-unit bounds, invalid preservation, links, explicit ARIA priority, tables, markers, commands, hover/media rebuilds, accessibility, paint, and retained fields |
+| Bounded generated images | PASS | mixed string/image fragments, variables, relative origins, alternatives, links, tables, markers, eight-item bounds, invalid preservation, commands, hover/media rebuilds, sandboxed resources, geometry, paint, and retained fields |
 | Bounded disclosures | PASS | Nested open state, retained fields, compact markers, host/view toggles, and painted content |
 | Retained fragment navigation | PASS | 128-entry history, zero-fetch page retention, encoded/named targets, hidden reveal, table placement, and resize coverage |
 | Stable initial fragments | PASS | Fa/Fj/Fy diagnostics, first-paint retention, responsive host settlement, and manual-scroll release |
@@ -253,8 +255,8 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 | Forms | Supported subset | GET/POST, validation, text/select/choice/file/range/date/color/time-family controls |
 | Text overflow | Supported subset | Non-inherited clip/ellipsis with bounded LTR/RTL physical inline-end markers and grapheme-safe paint-only authored prefixes for inline runs and tables; retained layout/link targets, full logical automation text, and direction-aware partial range geometry; no native-control, Unicode bidi shaping, or custom overflow-marker additions |
 | Line clamping | Supported subset | Non-inherited line-clamp and -webkit-line-clamp none/1..32 with LTR/RTL grapheme-safe ellipsis, reduced flow height, hidden retained boxes/hits, full logical source and UI Automation text, inline runs, forced breaks, balanced text, and table cells; no block-ellipsis strings, longhands, descendant block fragmentation, or legacy WebKit display requirements |
-| Marker generated content | Supported subset | Terminal ::marker content with up to eight quoted strings, attr(name)/attr(name raw-string) with an optional quoted missing-value fallback, named/implicit counter()/counters() values, or open-quote/close-quote/no-open-quote/no-close-quote concatenated into one bounded visual atom; one slash-separated alternative accepts up to eight string/attr/counter items and 128 further UTF-16 units in S.Ma. Inherited quotes accepts auto, none, or up to eight 32-unit pairs with eight active levels; ten built-in styles, eight nested counter levels and active instances, eight operations per property, 32-character ASCII counter names, 32-unit separators, 64-character attribute names, -999999..999999 counter values, 128 UTF-16 visual output units, variables, important tiers, ms/markerstyle, qu/quotes, and cr/ci/cs commands, image priority, accessible list-item names, tables, hover/media rebuilds, and LTR/RTL inside/outside paint; no typed attr values, unquoted or functional attr fallbacks, reversed/custom counter styles, pseudo-element counter properties, images in content, or locale-specific auto quotes |
-| Before and after generated content | Supported subset | Terminal ::before/::after plus legacy :before/:after produce inline generated runs with up to eight quoted strings, attr(name)/attr(name raw-string) with an optional quoted missing-value fallback, named counter()/counters() values, or open-quote/close-quote/no-open-quote/no-close-quote; one slash-separated alternative accepts up to eight string/attr/counter items and 128 further UTF-16 units in S.Ma, including explicit empty decoration suppression and alternative-only runs. Inherited quotes accepts auto, none, or up to eight 32-unit pairs with eight active document-order levels. Present attributes win even when empty, while missing attributes use the fallback. Attribute names stop at 64 characters and visual output at 128 UTF-16 units; inherited bounded text styling, variables, important tiers, be/beforestyle, af/afterstyle, and qu/quotes commands, nested/link/value/table ownership, accessibility names and reading order, hover/media rebuilds, and LTR/RTL paint remain shared. Replaced/native controls suppress runs; there are no typed attr values, unquoted or functional fallbacks, pseudo box-model, flex/grid-item, image, locale-specific auto quote, or arbitrary CSSOM features |
+| Marker generated content | Supported subset | Terminal ::marker content with up to eight quoted strings, attr(name)/attr(name raw-string) with an optional quoted missing-value fallback, named/implicit counter()/counters() values, open-quote/close-quote/no-open-quote/no-close-quote, or sandboxed url(...) bitmap fragments in source order; one slash-separated alternative accepts up to eight string/attr/counter items and 128 further UTF-16 units in S.Ma. Inherited quotes accepts auto, none, or up to eight 32-unit pairs with eight active levels; ten built-in styles, eight nested counter levels and active instances, eight operations per property, 32-character ASCII counter names, 32-unit separators, 64-character attribute names, -999999..999999 counter values, 128 UTF-16 visual text units, variables, important tiers, ms/markerstyle, qu/quotes, and cr/ci/cs commands, accessible list-item names, tables, hover/media rebuilds, and LTR/RTL inside/outside image/text paint. Generated pictures share the 24-source sandboxed image path and 64px intrinsic display cap; no images are accepted after the alternative slash. There are no typed attr values, unquoted or functional attr fallbacks, reversed/custom counter styles, pseudo-element counter properties, image functions, author image sizing, or locale-specific auto quotes |
+| Before and after generated content | Supported subset | Terminal ::before/::after plus legacy :before/:after produce inline generated runs with up to eight quoted strings, attr(name)/attr(name raw-string) with an optional quoted missing-value fallback, named counter()/counters() values, open-quote/close-quote/no-open-quote/no-close-quote, or sandboxed url(...) bitmap fragments in source order; one slash-separated alternative accepts up to eight string/attr/counter items and 128 further UTF-16 units in S.Ma, including explicit empty decoration suppression and alternative-only runs. Inherited quotes accepts auto, none, or up to eight 32-unit pairs with eight active document-order levels. Present attributes win even when empty, while missing attributes use the fallback. Attribute names stop at 64 characters and visual text at 128 UTF-16 units; generated pictures share the 24-source sandboxed image path and 64px intrinsic display cap. Inherited bounded text styling, variables, important tiers, be/beforestyle, af/afterstyle, and qu/quotes commands, nested/link/value/table ownership, accessibility names and reading order, hover/media rebuilds, and LTR/RTL paint remain shared. Replaced/native controls suppress runs; there are no typed attr values, unquoted or functional fallbacks, pseudo box-model, flex/grid-item, image functions, author image sizing, locale-specific auto quote, or arbitrary CSSOM features |
 | Lea command scripting | Supported | Bounded title, body/ID-scoped color, font, display, width, height, direction, quotes, text indent, text alignment/all/last, text wrap/mode/style, line clamp, list/marker/before/after style, counter reset/increment/set, text decoration, underline offset, and text shadow, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, safe click commands, and literal compatibility translation |
 | Literal DOM bridge | Supported subset | Literal document.getElementById IDs with textContent/innerText, value, checked/disabled/hidden/open, focus(), classList add/remove/toggle, and background/color/fontSize/display/width/height/direction/quotes/textIndent/textAlign/textAlignAll/textAlignLast/textWrap/textWrapMode/textWrapStyle/lineClamp/webkitLineClamp/counterReset/counterIncrement/counterSet/textDecoration/textDecorationLine/textDecorationColor/textDecorationStyle/textDecorationThickness/textUnderlineOffset/textShadow; literal location href/assign requests; mapped to bounded Lea aliases |
 | General JavaScript and DOM APIs | Not supported | Lea deliberately does not execute arbitrary JavaScript |
@@ -278,11 +280,11 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 
 | Artifact | Bytes | Size |
 | --- | ---: | ---: |
-| `Lea.Engine.dll` | 361984 | 353.5 KB |
-| `Lea.Win.dll` | 279552 | 273.0 KB |
+| `Lea.Engine.dll` | 354816 | 346.5 KB |
+| `Lea.Win.dll` | 272896 | 266.5 KB |
 | `Lea.Image.exe` | 9216 | 9.0 KB |
 | `Lea.Win.Test.exe` | 395776 | 386.5 KB |
-| `Lea.Bench.exe` | 411648 | 402.0 KB |
+| `Lea.Bench.exe` | 398848 | 389.5 KB |
 | `Firespider Internet 19.exe` | 1117696 | 1091.5 KB |
 
 The engine runtime size is `Lea.Engine.dll`, `Lea.Win.dll`, and the required `Lea.Image.exe` decoder helper. Test and report executables are listed separately and are not required when embedding Lea in Firespider.

@@ -1185,6 +1185,16 @@ namespace Lea.Win
                         PaintVector(pe.Graphics, box, content, pageColor, opacity, clip);
                         continue;
                     }
+                    if (box.P != null)
+                    {
+                        if (opacity > 0) PaintInlinePicture(pe.Graphics, box.P, content, opacity);
+                        if (box.U != null && PointerEnabled(box.S))
+                        {
+                            var hit = VisibleRect(rect, clip);
+                            if (!hit.IsEmpty) hits.Add(new Hit(hit, box.U, null, box.El));
+                        }
+                        continue;
+                    }
                     if (box.K == "lm")
                     {
                         if (opacity > 0 && box.Px == null) PaintListMarker(pe.Graphics, box, content, opacity);
@@ -3134,15 +3144,25 @@ namespace Lea.Win
             var layout = new List<Ix>();
             var y = 0;
             var rtl = InlineReverse(block.S);
-            var outside = OutsideListMarker(block) ? ListMarkerAtom(graphics, block) : null;
-            var markerGap = outside == null ? 0 : Math.Max(2, InlineAtom(graphics, block.K, " ", null, block.Ms ?? block.S, block.K, block.El).W);
+            var outside = OutsideListMarker(block) ? ListMarkerAtoms(graphics, block) : new List<Ia>();
+            var outsideWidth = InlineAtomsWidth(outside);
+            var markerGap = outside.Count == 0 ? 0 : Math.Max(2, InlineAtom(graphics, block.K, " ", null, block.Ms ?? block.S, block.K, block.El).W);
             for (var lineIndex = 0; lineIndex < lines.Count; lineIndex++)
             {
-                if (lineIndex == 0 && outside != null)
+                if (lineIndex == 0 && outside.Count > 0)
                 {
-                    var markerX = rtl ? width + markerGap : -outside.W - markerGap;
-                    var markerRect = new Rectangle(markerX, y + Math.Max(0, (lines[lineIndex].H - outside.H) / 2), outside.W, outside.H);
-                    layout.Add(new Ix(outside.K, outside.X, outside.U, outside.S, markerRect, outside.El));
+                    var markerX = rtl ? width + markerGap + outsideWidth : -outsideWidth - markerGap;
+                    Ia markerPrevious = null;
+                    foreach (var atom in outside)
+                    {
+                        var gap = markerPrevious == null ? 0 : InlineGap(markerPrevious, atom);
+                        if (rtl) markerX -= gap + atom.W;
+                        else markerX += gap;
+                        var markerRect = new Rectangle(markerX, y + Math.Max(0, (lines[lineIndex].H - atom.H) / 2), atom.W, atom.H);
+                        layout.Add(new Ix(atom.K, atom.X, atom.U, atom.S, markerRect, atom.El, atom.P));
+                        if (!rtl) markerX += atom.W;
+                        markerPrevious = atom;
+                    }
                 }
                 var first = layout.Count;
                 var current = lines[lineIndex];
@@ -3176,7 +3196,7 @@ namespace Lea.Win
                     if (rtl) x -= gap + atomWidth;
                     else x += gap;
                     var rect = new Rectangle(x, y + Math.Max(0, (current.H - atom.H) / 2), atomWidth, atom.H);
-                    layout.Add(new Ix(atom.K, atom.X, atom.U, atom.S, rect, atom.El));
+                    layout.Add(new Ix(atom.K, atom.X, atom.U, atom.S, rect, atom.El, atom.P));
                     if (!rtl) x += atomWidth;
                     previous = atom;
                 }
@@ -3205,10 +3225,11 @@ namespace Lea.Win
             }
             else if (block.K == "li" && !OutsideListMarker(block))
             {
-                var marker = ListMarkerAtom(graphics, block);
-                if (marker != null)
+                var markers = ListMarkerAtoms(graphics, block);
+                if (markers.Count > 0)
                 {
-                    AddInlineWord(graphics, lines, ref line, ref pending, marker, width, firstWidth, baseHeight, wrap, block.S == null ? "" : block.S.Wb);
+                    foreach (var marker in markers)
+                        AddInlineWord(graphics, lines, ref line, ref pending, marker, width, firstWidth, baseHeight, wrap, block.S == null ? "" : block.S.Wb);
                     pending = InlineAtom(graphics, block.K, " ", null, block.Ms ?? block.S, block.K, block.El);
                 }
             }
@@ -3226,6 +3247,14 @@ namespace Lea.Win
                         FinishInlineLine(lines, ref line, baseHeight, true, true);
                         pending = null;
                         endedWithBreak = true;
+                        continue;
+                    }
+                    if (run.P != null)
+                    {
+                        AddInlineWord(graphics, lines, ref line, ref pending,
+                            GeneratedImageAtom(run.K, run.P, run.U, run.S, block.K, run.El),
+                            width, firstWidth, baseHeight, wrap, run.S == null ? "" : run.S.Wb);
+                        endedWithBreak = false;
                         continue;
                     }
                     AddInlineText(graphics, lines, ref line, ref pending, run.K, run.X, run.U, run.S, block.K, run.El, width, firstWidth, baseHeight, space, wrap, ref endedWithBreak);
@@ -3499,6 +3528,21 @@ namespace Lea.Win
                 return;
             }
 
+            if (word.P != null)
+            {
+                var pictureAvailable = lines.Count == 0 ? firstWidth : width;
+                var gap = PendingWidth(line, pending, word);
+                if (line.As.Count > 0 && line.W + gap + word.W > pictureAvailable)
+                {
+                    FinishInlineLine(lines, ref line, baseHeight, false);
+                    pending = null;
+                }
+                if (line.As.Count > 0 && pending != null) AddInlineAtom(line, pending);
+                AddInlineAtom(line, word);
+                pending = null;
+                return;
+            }
+
             var breaking = String.IsNullOrEmpty(mode) ? "b" : mode;
             var available = lines.Count == 0 ? firstWidth : width;
             if (breaking == "n" || breaking == "k")
@@ -3574,18 +3618,59 @@ namespace Lea.Win
             }
         }
 
-        private Ia ListMarkerAtom(Graphics graphics, B block)
+        private Ia GeneratedImageAtom(string kind, Uri source, Uri link, S style, string baseKind, N element)
         {
-            var markerStyle = block == null ? null : block.Ms ?? block.S;
-            var customContent = block != null && block.Ms != null && block.Ms.Mc != null;
-            var source = block == null || block.S == null || customContent ? null : block.S.Li;
             Image image;
             if (source != null && pics.TryGetValue(source.AbsoluteUri, out image) && image != null && image.Width > 0 && image.Height > 0)
             {
                 var size = ListMarkerSize(image);
-                return new Ia("lm", "", source, markerStyle, block.K, size.Width, size.Height, size.Height, block.El);
+                return new Ia(kind, "", link, style, baseKind, size.Width, size.Height, size.Height, element, source);
             }
-            return block == null || String.IsNullOrEmpty(block.Mk) ? null : InlineAtom(graphics, block.K, block.Mk, null, markerStyle, block.K, block.El);
+            var fallback = 16;
+            using (var font = BoxFont(kind, style, false, link != null, baseKind)) fallback = Math.Max(1, Math.Min(64, CssLineHeight(style, font.Height)));
+            return new Ia(kind, "", link, style, baseKind, fallback, fallback, fallback, element, source);
+        }
+
+        private List<Ia> ListMarkerAtoms(Graphics graphics, B block)
+        {
+            var result = new List<Ia>();
+            if (block == null) return result;
+            var markerStyle = block.Ms ?? block.S;
+            var customContent = block.Ms != null && (block.Ms.Mc != null || block.Ms.Mf != null);
+            if (customContent && block.Ms.Mf != null)
+            {
+                foreach (var fragment in block.Ms.Mf)
+                {
+                    if (fragment.K == "i" && fragment.U != null)
+                        result.Add(GeneratedImageAtom("lm", fragment.U, null, markerStyle, block.K, block.El));
+                    else if (!String.IsNullOrEmpty(fragment.X))
+                        result.Add(InlineAtom(graphics, block.K, E.Tx(fragment.X, markerStyle), null, markerStyle, block.K, block.El));
+                }
+                return result;
+            }
+            var source = block.S == null || customContent ? null : block.S.Li;
+            Image image;
+            if (source != null && pics.TryGetValue(source.AbsoluteUri, out image) && image != null && image.Width > 0 && image.Height > 0)
+            {
+                var size = ListMarkerSize(image);
+                result.Add(new Ia("lm", "", source, markerStyle, block.K, size.Width, size.Height, size.Height, block.El));
+                return result;
+            }
+            if (!String.IsNullOrEmpty(block.Mk)) result.Add(InlineAtom(graphics, block.K, block.Mk, null, markerStyle, block.K, block.El));
+            return result;
+        }
+
+        private static int InlineAtomsWidth(IList<Ia> atoms)
+        {
+            var width = 0;
+            Ia previous = null;
+            foreach (var atom in atoms)
+            {
+                if (previous != null) width += InlineGap(previous, atom);
+                width += atom.W;
+                previous = atom;
+            }
+            return width;
         }
 
         private static Size ListMarkerSize(Image image)
@@ -3643,7 +3728,8 @@ namespace Lea.Win
         private static bool HasListMarker(B block)
         {
             if (block == null || block.K != "li" || block.S == null || block.Ms != null && block.Ms.Mn) return false;
-            if (block.Ms != null && block.Ms.Mc != null) return block.Ms.Mc.Length > 0;
+            if (block.Ms != null && (block.Ms.Mc != null || block.Ms.Mf != null))
+                return !String.IsNullOrEmpty(block.Ms.Mc) || !String.IsNullOrEmpty(block.Ms.Ma) || block.Ms.Mf != null && block.Ms.Mf.Count > 0;
             return !String.IsNullOrEmpty(block.Mk) || block.S.Li != null;
         }
 
@@ -3679,7 +3765,7 @@ namespace Lea.Win
                 var paint = part.C;
                 rect.Offset(content.X, content.Y);
                 paint.Offset(content.X, content.Y);
-                boxes.Add(new Bx(part.K, part.X, part.U, part.S, rect, paint, false, block, true, clip, part.El) { Px = part.Px });
+                boxes.Add(new Bx(part.K, part.X, part.U, part.S, rect, paint, false, block, true, clip, part.El, part.P) { Px = part.Px });
             }
         }
 
@@ -4347,6 +4433,26 @@ namespace Lea.Win
         {
             Image image;
             if (box == null || box.U == null || !pics.TryGetValue(box.U.AbsoluteUri, out image) || image == null) return;
+            var interpolation = graphics.InterpolationMode;
+            var offset = graphics.PixelOffsetMode;
+            try
+            {
+                var tiny = image.Width < 4 || image.Height < 4;
+                graphics.InterpolationMode = tiny ? InterpolationMode.NearestNeighbor : InterpolationMode.HighQualityBicubic;
+                graphics.PixelOffsetMode = tiny ? PixelOffsetMode.Half : PixelOffsetMode.HighQuality;
+                PaintImage(graphics, image, rect, opacity);
+            }
+            finally
+            {
+                graphics.InterpolationMode = interpolation;
+                graphics.PixelOffsetMode = offset;
+            }
+        }
+
+        private void PaintInlinePicture(Graphics graphics, Uri source, Rectangle rect, int opacity)
+        {
+            Image image;
+            if (source == null || !pics.TryGetValue(source.AbsoluteUri, out image) || image == null) return;
             var interpolation = graphics.InterpolationMode;
             var offset = graphics.PixelOffsetMode;
             try
@@ -5432,9 +5538,7 @@ namespace Lea.Win
             {
                 foreach (var block in page.Bs)
                 {
-                    if (block.K == "img") AddPicSource(result, seen, block.U, origin);
-                    if (block.K == "li") AddPicSource(result, seen, block.S == null ? null : block.S.Li, origin);
-                    AddPicSource(result, seen, block.S == null || block.S.Bi == null ? null : block.S.Bi.U, origin);
+                    AddBlockPicSources(result, seen, block, origin);
                     if (result.Count == PicLimit) break;
                 }
                 if (result.Count < PicLimit)
@@ -5445,6 +5549,36 @@ namespace Lea.Win
                     }
             }
             return result;
+        }
+
+        private static void AddBlockPicSources(ICollection<Uri> result, ISet<string> seen, B block, Uri origin)
+        {
+            if (block == null || result.Count >= PicLimit) return;
+            if (block.K == "img") AddPicSource(result, seen, block.U, origin);
+            if (block.K == "li")
+            {
+                AddPicSource(result, seen, block.S == null ? null : block.S.Li, origin);
+                if (block.Ms != null && block.Ms.Mf != null)
+                    foreach (var fragment in block.Ms.Mf)
+                    {
+                        AddPicSource(result, seen, fragment.U, origin);
+                        if (result.Count == PicLimit) return;
+                    }
+            }
+            AddPicSource(result, seen, block.S == null || block.S.Bi == null ? null : block.S.Bi.U, origin);
+            foreach (var run in block.Is)
+            {
+                AddPicSource(result, seen, run.P, origin);
+                if (result.Count == PicLimit) return;
+            }
+            if (block.Tb == null) return;
+            foreach (var row in block.Tb.Rs)
+                foreach (var cell in row.Cs)
+                    foreach (var child in cell.Bs)
+                    {
+                        AddBlockPicSources(result, seen, child, origin);
+                        if (result.Count == PicLimit) return;
+                    }
         }
 
         private static void AddPicSource(ICollection<Uri> result, ISet<string> seen, Uri source, Uri origin)
@@ -9090,6 +9224,7 @@ namespace Lea.Win
             public readonly string X;
             public string Px;
             public readonly Uri U;
+            public readonly Uri P;
             public readonly S S;
             public Rectangle R;
             public Rectangle C;
@@ -9106,16 +9241,17 @@ namespace Lea.Win
             public bool Fm;
             public bool Fa;
 
-            public Bx(string kind, string text, Uri url, S style, Rectangle rect, bool title, B block = null, bool inline = false, Rectangle clip = default(Rectangle), N element = null)
-                : this(kind, text, url, style, rect, rect, title, block, inline, clip, element)
+            public Bx(string kind, string text, Uri url, S style, Rectangle rect, bool title, B block = null, bool inline = false, Rectangle clip = default(Rectangle), N element = null, Uri picture = null)
+                : this(kind, text, url, style, rect, rect, title, block, inline, clip, element, picture)
             {
             }
 
-            public Bx(string kind, string text, Uri url, S style, Rectangle rect, Rectangle content, bool title, B block = null, bool inline = false, Rectangle clip = default(Rectangle), N element = null)
+            public Bx(string kind, string text, Uri url, S style, Rectangle rect, Rectangle content, bool title, B block = null, bool inline = false, Rectangle clip = default(Rectangle), N element = null, Uri picture = null)
             {
                 K = kind;
                 X = text ?? "";
                 U = url;
+                P = picture;
                 S = style;
                 R = rect;
                 C = content;
@@ -9152,6 +9288,7 @@ namespace Lea.Win
             public readonly string K;
             public readonly string X;
             public readonly Uri U;
+            public readonly Uri P;
             public readonly S S;
             public readonly string Z;
             public readonly int W;
@@ -9159,11 +9296,12 @@ namespace Lea.Win
             public readonly int L;
             public readonly N El;
 
-            public Ia(string kind, string text, Uri url, S style, string baseKind, int width, int height, int lineHeight, N element)
+            public Ia(string kind, string text, Uri url, S style, string baseKind, int width, int height, int lineHeight, N element, Uri picture = null)
             {
                 K = kind;
                 X = text;
                 U = url;
+                P = picture;
                 S = style;
                 Z = baseKind;
                 W = width;
@@ -9187,16 +9325,18 @@ namespace Lea.Win
             public readonly string X;
             public string Px;
             public readonly Uri U;
+            public readonly Uri P;
             public readonly S S;
             public Rectangle R;
             public Rectangle C;
             public readonly N El;
 
-            public Ix(string kind, string text, Uri url, S style, Rectangle rect, N element)
+            public Ix(string kind, string text, Uri url, S style, Rectangle rect, N element, Uri picture = null)
             {
                 K = kind;
                 X = text;
                 U = url;
+                P = picture;
                 S = style;
                 R = rect;
                 C = rect;

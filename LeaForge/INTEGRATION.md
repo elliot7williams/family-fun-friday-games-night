@@ -377,7 +377,11 @@ generated-content, or paint adapter is needed. See `MARKER.md`,
 `MARKER_CONTENT.md`, `ATTR_FALLBACKS.md`, `MARKER_COUNTERS.md`, and
 `GENERATED_QUOTES.md`. An optional slash-separated alternative list accepts
 strings, attributes, and counters under independent eight-item/128-unit bounds;
-see `GENERATED_ALT_TEXT.md`.
+see `GENERATED_ALT_TEXT.md`. Visual content may also contain bounded
+`url(...)` bitmap fragments. Image-containing pseudos expose ordered `S.Mf`
+fragments; generated inline runs carry the picture source in `Ir.P`, leaving
+`Ir.U` available for the owning link. Hosts do not load or paint these
+resources themselves. See `GENERATED_IMAGES.md`.
 
 Named counters compile into non-inherited `S.Cr/Ci/Cs` reset/increment/set
 state and a bounded tree-order snapshot on `N.Ct`. Hosts can use `cr`, `ci`,
@@ -392,12 +396,14 @@ inline `be/af` runs. Hosts can call `be(style)`/`af(style)` for the body or
 `be(id,style)`/`af(id,style)` for one element; readable
 `beforestyle`/`afterstyle` use the same forms. The value is bounded like marker
 style, while `content` reuses the eight-fragment/128-unit string, attribute,
-named-counter, and generated-quote grammar. Lea owns cascade, text styling, link/value/table
+named-counter, generated-quote, and visual `url(...)` grammar. Lea owns cascade,
+text styling, resource admission, link/value/table
 ownership, LTR/RTL layout, hover/media rebuilds, accessibility, and paint. No
 host pseudo-element adapter is required. Attribute items accept one optional
 quoted missing-value fallback through the shared strict grammar. See
 `GENERATED_CONTENT.md`, `ATTR_FALLBACKS.md`, `GENERATED_QUOTES.md`, and
-`GENERATED_ALT_TEXT.md`.
+`GENERATED_ALT_TEXT.md`. Image fragments use the existing 24-source sandboxed
+picture path and 64px intrinsic display cap; see `GENERATED_IMAGES.md`.
 
 The inherited `quotes` property uses compact `S.Qc`, `S.Qo(depth)`, and
 `S.Qx(depth)` accessors. Hosts can set it with `qu(value)` on the body,
