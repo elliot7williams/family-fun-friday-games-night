@@ -151,6 +151,11 @@ namespace Lea.Tests
                     MediaRangeSmoke(Path.Combine(pages, "media-ranges.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--supports")
+                {
+                    SupportsSmoke(Path.Combine(pages, "supports-queries.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--text-align-last")
                 {
                     TextAlignLastSmoke(Path.Combine(pages, "text-align-last.html"));
@@ -1529,6 +1534,7 @@ namespace Lea.Tests
                 MediaFeatureSmoke(Path.Combine(pages, "media-features.html"));
                 MediaAspectSmoke(Path.Combine(pages, "media-aspect-ratio.html"));
                 MediaRangeSmoke(Path.Combine(pages, "media-ranges.html"));
+                SupportsSmoke(Path.Combine(pages, "supports-queries.html"));
 
                 var customPath = Path.Combine(pages, "custom-properties.html");
                 var customEngine = new E();
@@ -8180,6 +8186,62 @@ namespace Lea.Tests
                     "WinForms media range resize preserves field state");
             }
             Console.WriteLine("Lea media range smoke passed: feature/value-first comparisons, strict and inclusive chains, rational ratios, intersections, diagnostics, retention, and live resize.");
+        }
+
+        private static void SupportsSmoke(string path)
+        {
+            var engine = new E();
+            var page = engine.Go(path);
+            Ok(HasBlock(page, "grid") && HasBlock(page, "flex") && HasBlock(page, "sticky") && HasBlock(page, "ratio") &&
+                HasBlock(page, "calculated") && HasBlock(page, "selector-has") && HasBlock(page, "selector-nth") &&
+                HasBlock(page, "negated") && HasBlock(page, "conjunction") && HasBlock(page, "alternative") &&
+                HasBlock(page, "grouped") && HasBlock(page, "custom-property") && HasBlock(page, "nested-support") &&
+                HasBlock(page, "nested-media") && !HasBlock(page, "media-nested"), "supported declaration, selector, logic, and nested conditions");
+            var rejectedSupports = new[] { "false-display", "false-position", "false-selector", "mixed-logic", "malformed",
+                "invalid-value", "unknown-property", "too-deep", "too-many" };
+            var escapedSupports = new List<string>();
+            foreach (var id in rejectedSupports) if (HasBlock(page, id)) escapedSupports.Add(id);
+            Ok(escapedSupports.Count == 0, "unsupported, malformed, and over-limit supports conditions stay inactive: " +
+                String.Join(",", escapedSupports.ToArray()));
+            Eq(201, BlockById(page, "grid").S.W, "supported grid condition style");
+            Eq(206, BlockById(page, "selector-has").S.W, "supported selector condition style");
+            var field = FieldById(page, "field");
+            Eq(247, field.S.W, "supports condition field style");
+            field.V = "Retained supports value";
+            var diagnostics = engine.Dg(page);
+            Ok(Has(diagnostics.Cs, "@s(display:grid)") && Has(diagnostics.Cs, "@s(selector(:has(>.ready)))") &&
+                Has(diagnostics.Cs, "@s(display:grid)&@s(position:sticky)") &&
+                Has(diagnostics.Cs, "@s(display:grid)&@m>=800"), "supports and conditional nesting diagnostics");
+
+            engine.Vz(500, 700);
+            Ok(!HasBlock(page, "nested-media") && HasBlock(page, "media-nested"), "media then supports responsive state");
+            Ok(Has(engine.Dg(page).Cs, "@s(selector(:has(*)))&@m<=600"), "media-nested supports diagnostic");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained supports value" && field.S.W == 247,
+                "supports media rebuild preserves field state");
+            engine.Vz(900, 600);
+            Ok(HasBlock(page, "nested-media") && !HasBlock(page, "media-nested"), "supports then media wide restore");
+
+            using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-30000, -30000), ClientSize = new Size(900, 600) })
+            using (var view = new V())
+            {
+                form.Controls.Add(view);
+                form.Show();
+                view.Go(path);
+                Paint(view);
+                Ok(HasBlock(view.At, "grid") && HasBlock(view.At, "selector-has") && HasBlock(view.At, "nested-media") &&
+                    !HasBlock(view.At, "media-nested"), "WinForms supports wide state");
+                Eq(215, BlockRect(view, BlockById(view.At, "nested-media")).Width, "WinForms supports-media geometry");
+                var viewField = FieldById(view.At, "field");
+                viewField.V = "Retained supports view value";
+                form.ClientSize = new Size(500, 700);
+                Application.DoEvents();
+                Paint(view);
+                Ok(!HasBlock(view.At, "nested-media") && HasBlock(view.At, "media-nested"), "WinForms media-supports narrow state");
+                Eq(216, BlockRect(view, BlockById(view.At, "media-nested")).Width, "WinForms media-supports geometry");
+                Ok(Object.ReferenceEquals(viewField, FieldById(view.At, "field")) && viewField.V == "Retained supports view value",
+                    "WinForms supports resize preserves field state");
+            }
+            Console.WriteLine("Lea supports-query smoke passed: declaration and selector checks, not/and/or, grouped and nested conditions, limits, diagnostics, retention, and live resize.");
         }
 
         private static void MediaFeatureSmoke(string path)

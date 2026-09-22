@@ -17,26 +17,25 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 115 adds bounded modern media range syntax to Lea's shared compiled
-conditions. Width, height, and reduced integer aspect ratios accept
-feature-first, value-first, equality, and same-direction ascending/descending
-chains with exact strict or inclusive boundaries. They compose with legacy
-min/max syntax, orientation, alternatives, nesting, and `<style media>`;
-invalid, mixed-direction, over-bound, and empty ranges stay inactive. Compact
-diagnostics retain `<`, `<=`, `=`, `>=`, and `>` semantics, and responsive
-rebuilds retain fields. All 111 benchmark probes pass over 105 fixtures. The
-focused and full engine suites, full compiled host suite, all 18 startup
-regressions, all 42 Boot cases, and all six real EXE startup scenarios are
-green. Three-round diagnostic medians are 608.299 ms clean start, 6.690 ms local
-load, and 47.917 ms layout/paint; retained memory is 68.4 KiB/page and the
-required runtime is 631.5 KiB. Runtime 215 is packaged separately and installed
-runtime 157 remains unchanged. See `MEDIA_RANGE_SYNTAX.md`. General media
-features, device ratios, and container
-queries, locale-sensitive automatic quote selection, typed/unquoted/functional
-attribute fallbacks, pseudo box-model/flex/grid items, generated image
-functions and sizing, arbitrary CSSOM, reversed/custom counters, vertical
-writing, full Unicode bidi, and general JavaScript evaluation remain outside
-this slice.
+Milestone 116 adds bounded CSS `@supports` feature queries to Lea's shared
+compiled-rule path. Declaration conditions reuse documented Lea value parsers;
+`selector(...)` reuses the compiled selector grammar. Grouped case-insensitive
+`not`, `and`, and `or` compose with nested supports/media blocks under strict
+four-level, eight-term, and 2,048-character limits. Unknown, malformed, mixed
+ungrouped, and over-limit conditions stay inactive. Active rules expose compact
+`@s(...)` diagnostics and media rebuilds retain live fields. All 112 benchmark
+probes pass over 106 fixtures. The focused and full engine suites, final
+compiled host suite, all 18 startup regressions, all 42 Boot cases, and all six
+real EXE startup scenarios are green. Three-round diagnostic medians are
+708.758 ms clean start, 5.706 ms local load, and 41.211 ms layout/paint;
+retained memory is 68.4 KiB/page and the required runtime is 636.5 KiB. Runtime
+216 is packaged separately and installed runtime 157 remains unchanged. See
+`SUPPORTS_QUERIES.md`. Container/style queries, `font-tech()`/`font-format()`,
+general-enclosed conditions, JavaScript `CSS.supports()`, locale-sensitive
+automatic quote selection, typed/unquoted/functional attribute fallbacks,
+pseudo box-model/flex/grid items, generated image functions and sizing,
+arbitrary CSSOM, reversed/custom counters, vertical writing, full Unicode bidi,
+and general JavaScript evaluation remain outside this slice.
 
 Milestone 60 installs the existing `V.Ng` hook on main Lea tabs, enforcing host
 rules, offline/locked state, and live ownership. Denied resume retains its

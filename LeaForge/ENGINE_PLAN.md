@@ -349,21 +349,20 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 115 adds bounded modern comparison ranges to the shared media
-compiler. Width, height, and reduced positive integer aspect ratios accept
-feature-first, value-first, equality, and same-direction ascending/descending
-chains using `<`, `<=`, `=`, `>=`, and `>`. Strictness survives nested
-intersections; impossible equal edges, mixed-direction chains, non-pixel
-dimensions, malformed ratios, and over-bound terms stay inactive. Conditions
-compose with legacy min/max syntax, orientation, alternatives, nesting, and
-`<style media>`, while compact diagnostics retain exact operators and responsive
-rebuilds retain fields. See `MEDIA_RANGE_SYNTAX.md`. All 111 probes pass over
-105 fixtures; the focused and full engine suites, compiled Firespider host, all
-18 startup regressions, all 42 Boot cases, and all six real EXE startup
-scenarios pass. Runtime 215 is packaged separately and installed runtime 157
-remains unchanged. Next investigate another bounded compatibility slice. Keep
-general media features, device ratios, and container
-queries, locale-sensitive automatic quote selection,
+Milestone 116 adds bounded CSS `@supports` feature queries to the shared
+compiled-rule path. Declaration conditions reuse documented Lea value parsers,
+while `selector(...)` reuses the real compiled selector grammar. Case-insensitive
+`not`, `and`, and `or` support explicit grouping, nested supports/media blocks,
+four condition levels, eight terms, and 2,048 characters. Unknown, malformed,
+mixed ungrouped, and over-limit conditions stay inactive; active rules retain
+compact `@s(...)` diagnostics and mutable fields across media resize. See
+`SUPPORTS_QUERIES.md`. All 112 probes pass over 106 fixtures; the focused and
+full engine suites, compiled Firespider host, all 18 startup regressions, all 42
+Boot cases, and all six real EXE startup scenarios pass. Runtime 216 is packaged
+separately and installed runtime 157 remains unchanged. Next investigate another
+bounded compatibility slice. Keep general media features, device ratios,
+container and style queries, `font-tech()`/`font-format()`, general-enclosed
+conditions, JavaScript `CSS.supports()`, locale-sensitive automatic quote selection,
 reversed/custom counter styles, pseudo-element counter properties,
 typed/unquoted/functional attribute fallbacks, pseudo box-model/flex/grid
 items, generated image functions and sizing, marker-side, cross-item gutter

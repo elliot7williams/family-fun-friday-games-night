@@ -1,0 +1,123 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea CSS Supports Queries</title>
+  <style>
+    body { color: #26313b; background: #ffffff; }
+    p { margin: 4px 0; padding: 4px; }
+    #grid, #flex, #sticky, #ratio, #calculated, #selector-has,
+    #selector-nth, #negated, #conjunction, #alternative, #grouped,
+    #custom-property, #nested-support, #nested-media, #media-nested,
+    #false-display, #false-position, #false-selector, #mixed-logic,
+    #malformed, #invalid-value, #unknown-property, #too-deep, #too-many {
+      display: none;
+    }
+    #field { width: 210px; height: 30px; }
+
+    @supports (display: grid) {
+      #grid { display: block; width: 201px; }
+      #field { width: 247px; }
+    }
+
+    @supports (display: flex) {
+      #flex { display: block; width: 202px; }
+    }
+
+    @supports (position: sticky) {
+      #sticky { display: block; width: 203px; }
+    }
+
+    @supports (aspect-ratio: 4/3) {
+      #ratio { display: block; width: 204px; }
+    }
+
+    @supports (width: clamp(100px, 50%, 300px)) {
+      #calculated { display: block; width: 205px; }
+    }
+
+    @supports selector(:has(> .ready)) {
+      #selector-has { display: block; width: 206px; }
+    }
+
+    @supports selector(:nth-child(2n+1)) {
+      #selector-nth { display: block; width: 207px; }
+    }
+
+    @supports not (display: ruby) {
+      #negated { display: block; width: 208px; }
+    }
+
+    @supports (display: grid) and (position: sticky) {
+      #conjunction { display: block; width: 209px; }
+    }
+
+    @supports (display: ruby) or (display: flex) {
+      #alternative { display: block; width: 211px; }
+    }
+
+    @supports ((display: grid) and ((position: sticky))) {
+      #grouped { display: block; width: 212px; }
+    }
+
+    @supports (--lea-value: ready) {
+      #custom-property { display: block; width: 213px; }
+    }
+
+    @supports (display: grid) {
+      @supports (position: sticky) {
+        #nested-support { display: block; width: 214px; }
+      }
+      @media (width >= 800px) {
+        #nested-media { display: block; width: 215px; }
+      }
+    }
+
+    @media (width <= 600px) {
+      @supports selector(:has(*)) {
+        #media-nested { display: block; width: 216px; }
+      }
+    }
+
+    @supports (display: ruby) { #false-display { display: block; } }
+    @supports (position: anchor) { #false-position { display: block; } }
+    @supports selector(:state(open)) { #false-selector { display: block; } }
+    @supports (display: grid) and (position: sticky) or (display: flex) { #mixed-logic { display: block; } }
+    @supports (display grid) { #malformed { display: block; } }
+    @supports (width: 101vw) { #invalid-value { display: block; } }
+    @supports (unknown-property: ready) { #unknown-property { display: block; } }
+    @supports (((((display: grid))))) { #too-deep { display: block; } }
+    @supports (display: grid) and (display: grid) and (display: grid) and (display: grid) and (display: grid) and (display: grid) and (display: grid) and (display: grid) and (display: grid) { #too-many { display: block; } }
+  </style>
+</head>
+<body>
+  <h1>CSS supports queries</h1>
+  <div class="ready">Selector support target</div>
+  <p id="grid">Grid declaration support</p>
+  <p id="flex">Flex declaration support</p>
+  <p id="sticky">Sticky declaration support</p>
+  <p id="ratio">Aspect ratio support</p>
+  <p id="calculated">Calculated width support</p>
+  <p id="selector-has">Relational selector support</p>
+  <p id="selector-nth">Structural selector support</p>
+  <p id="negated">Negated unsupported declaration</p>
+  <p id="conjunction">Support conjunction</p>
+  <p id="alternative">Support alternative</p>
+  <p id="grouped">Grouped support condition</p>
+  <p id="custom-property">Custom property support</p>
+  <p id="nested-support">Nested support condition</p>
+  <p id="nested-media">Support then media</p>
+  <p id="media-nested">Media then support</p>
+  <p id="false-display">Unsupported display</p>
+  <p id="false-position">Unsupported position</p>
+  <p id="false-selector">Unsupported selector</p>
+  <p id="mixed-logic">Mixed top-level logic</p>
+  <p id="malformed">Malformed declaration condition</p>
+  <p id="invalid-value">Invalid supported property value</p>
+  <p id="unknown-property">Unknown property</p>
+  <p id="too-deep">Over-depth condition</p>
+  <p id="too-many">Over-term condition</p>
+  <label for="field">Persistent field</label>
+  <input id="field" name="field" value="Initial value">
+</body>
+</html>

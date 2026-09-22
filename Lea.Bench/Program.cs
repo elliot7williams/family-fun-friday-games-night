@@ -112,7 +112,7 @@ namespace Lea.Bench
             var names = new[]
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
-                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "direction-logical.html", "direction-layout.html", "direction-inline.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "media-features.html", "media-aspect-ratio.html", "media-ranges.html", "custom-properties.html", "important-cascade.html",
+                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "direction-logical.html", "direction-layout.html", "direction-inline.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "media-features.html", "media-aspect-ratio.html", "media-ranges.html", "supports-queries.html", "custom-properties.html", "important-cascade.html",
                 "direction-overflow.html", "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "list-style.html", "list-position.html", "list-image.html", "marker.html", "marker-content.html", "marker-counters.html", "css-counters.html", "generated-content.html", "generated-quotes.html", "generated-alt.html", "generated-images.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -1598,6 +1598,51 @@ namespace Lea.Bench
                         liveField.V == "Retained range view value", "media range view resize replaced field state");
                 }
                 return "feature/value-first and ascending/descending width, height, and rational aspect-ratio comparisons, strict/inclusive boundaries, nesting, style media, invalid-query rejection, compact diagnostics, retention, and live resize";
+            });
+            AddProbe(probes, "CSS supports queries", delegate
+            {
+                var path = Path.Combine(folder, "supports-queries.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                Func<string, bool> has = id => page.Bs.Any(block => block.El != null && block.El.Av("id") == id);
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark supports value";
+                Need(has("grid") && has("flex") && has("sticky") && has("ratio") && has("calculated") &&
+                    has("selector-has") && has("selector-nth") && has("negated") && has("conjunction") &&
+                    has("alternative") && has("grouped") && has("custom-property") && has("nested-support") &&
+                    has("nested-media") && !has("media-nested"), "supported declaration, selector, logic, or nesting changed");
+                Need(!has("false-display") && !has("false-position") && !has("false-selector") && !has("mixed-logic") &&
+                    !has("malformed") && !has("invalid-value") && !has("unknown-property") && !has("too-deep") && !has("too-many"),
+                    "unsupported or over-limit supports condition escaped bounds");
+                Need(engine.Dg(page).Cs.Any(value => value.Contains("@s(display:grid)")) &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@s(selector(:has(>.ready)))")) &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@s(display:grid)&@s(position:sticky)")) &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@s(display:grid)&@m>=800")),
+                    "supports diagnostics or nesting changed");
+                engine.Vz(500, 700);
+                Need(!has("nested-media") && has("media-nested") &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@s(selector(:has(*)))&@m<=600")),
+                    "media then supports responsive state changed");
+                Need(Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark supports value", "supports rebuild replaced field state");
+                engine.Vz(900, 600);
+                Need(has("nested-media") && !has("media-nested"), "supports then media wide restore changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(900, 600);
+                    view.Go(path);
+                    using (var widePaint = Draw(view))
+                        Need(BlockContent(view, "nested-media").Width == 215 && BlockContent(view, "selector-has").Width == 206,
+                            "supports wide view geometry changed");
+                    var liveField = view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                    liveField.V = "Retained supports view value";
+                    view.Size = new Size(500, 700);
+                    using (var narrowPaint = Draw(view))
+                        Need(BlockContent(view, "media-nested").Width == 216, "supports narrow view geometry changed");
+                    Need(Object.ReferenceEquals(liveField, view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                        liveField.V == "Retained supports view value", "supports view resize replaced field state");
+                }
+                return "bounded declaration capability checks, selector() through the compiled selector grammar, not/and/or logic, grouped and nested supports/media blocks, strict depth/term limits, @s diagnostics, retention, and live resize";
             });
             AddProbe(probes, "Bounded CSS custom properties", delegate
             {
@@ -4397,7 +4442,7 @@ namespace Lea.Bench
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, direction-aware ordered/unordered lists and disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, compound of-S filtered, and terminal ::marker/::before/::after selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel width/height, portrait/landscape, exact/min/max integer aspect-ratio, and bounded strict/inclusive feature/value-first and chained media ranges, bounded named reset/increment/set counters and generated quote depth, inherited horizontal LTR/RTL direction and bounded quote pairs, fixed/percentage/calc dimensions and classic vw/vh/vmin/vmax plus bounded em/rem units, two/three-term min/max and three-term clamp size functions, content/border box, circular/elliptical radii, bounded outlines, box shadows, one inherited bounded text-shadow layer, bounded text-decoration line/color/style/thickness and signed pixel/percentage underline offset, inherited text-align shorthand/all/last with logical state and justify-all, inherited text-wrap mode/style with bounded balance, non-inherited bounded line-clamp/WebKit compatibility, isolated bounded pseudo typography, eight string/attr/quoted-attr-fallback/named-counter/quote-keyword visual fragments, and an optional eight-item/128-unit string/attr/counter alternative list, plus one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing, signed pixel/percentage first-line indentation, and text styles, visibility, absolute/fixed and bounded vertical sticky positioning, transforms, responsive image sizing, direction-aware row/column flex, and direction-aware bounded two-axis grid");
+            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, compound of-S filtered, and terminal ::marker/::before/::after selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel width/height, portrait/landscape, exact/min/max integer aspect-ratio, bounded strict/inclusive feature/value-first and chained media ranges, and bounded @supports declaration checks plus selector() through the compiled selector grammar with grouped not/and/or logic, bounded named reset/increment/set counters and generated quote depth, inherited horizontal LTR/RTL direction and bounded quote pairs, fixed/percentage/calc dimensions and classic vw/vh/vmin/vmax plus bounded em/rem units, two/three-term min/max and three-term clamp size functions, content/border box, circular/elliptical radii, bounded outlines, box shadows, one inherited bounded text-shadow layer, bounded text-decoration line/color/style/thickness and signed pixel/percentage underline offset, inherited text-align shorthand/all/last with logical state and justify-all, inherited text-wrap mode/style with bounded balance, non-inherited bounded line-clamp/WebKit compatibility, isolated bounded pseudo typography, eight string/attr/quoted-attr-fallback/named-counter/quote-keyword visual fragments, and an optional eight-item/128-unit string/attr/counter alternative list, plus one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing, signed pixel/percentage first-line indentation, and text styles, visibility, absolute/fixed and bounded vertical sticky positioning, transforms, responsive image sizing, direction-aware row/column flex, and direction-aware bounded two-axis grid");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/box-shadows/gradients, bounded offset and lightweight blurred text shadows, native fast-path plus lightweight offset-aware solid/double/dotted/dashed/wavy text decorations, direction-aware source-stable inline atoms including bounded before/after generated runs, bounded same-count balanced wrapping and 1..32 line clamping, inside/outside text and image markers with isolated pseudo style and concatenated generated text content, first-line indentation, inherited logical all/final/forced-line alignment, and paint-only single-line ellipsis geometry, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Text overflow", "Supported subset", "Non-inherited clip/ellipsis with bounded LTR/RTL physical inline-end markers and grapheme-safe paint-only authored prefixes for inline runs and tables; retained layout/link targets, full logical automation text, and direction-aware partial range geometry; no native-control, Unicode bidi shaping, or custom overflow-marker additions");

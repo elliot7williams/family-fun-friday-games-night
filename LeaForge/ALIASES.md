@@ -966,6 +966,15 @@ malformed ratio conditions stay inactive. Active diagnostic CSS lines use
 short `@m`, `@h`, `@r`, and `@o` prefixes. See `MEDIA_FEATURES.md`,
 `MEDIA_ASPECT_RATIO.md`, and `MEDIA_RANGE_SYNTAX.md`.
 
+Bounded `@supports` blocks compile without a new public object or long command.
+Declaration conditions reuse the documented display, position, sizing, flex,
+grid, object, wrapping, overflow, clamp, pointer, and custom-property parsers;
+`selector(...)` reuses the compiled selector grammar. Grouped `not`, `and`, and
+`or` stop at eight terms and four levels, and mixed operators require explicit
+grouping. Active diagnostic lines use short `@s(...)` labels and compose with
+the existing media labels. Unknown, malformed, and over-limit conditions stay
+inactive. See `SUPPORTS_QUERIES.md`.
+
 Computed styles expose bounded custom properties through `S.Vc` (count) and
 `S.Cv(name)` (case-sensitive raw lookup). `G.Vc` reports the body/document count
 without copying raw values into diagnostics. Styles inherit their map lazily and

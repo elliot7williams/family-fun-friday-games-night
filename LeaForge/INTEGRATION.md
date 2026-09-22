@@ -716,6 +716,16 @@ capped at 8, 4, and 1,024. Unsupported media stays inactive instead of silently
 behaving as screen CSS. See `MEDIA_FEATURES.md`, `MEDIA_ASPECT_RATIO.md`, and
 `MEDIA_RANGE_SYNTAX.md`.
 
+`@supports` is also engine-owned. The compiler recognizes a bounded set of
+declaration families through their real Lea value parsers and checks one
+`selector(...)` through the compiled selector grammar. Grouped `not`, `and`,
+and `or`, four condition/nesting levels, eight terms, and 2,048 characters are
+accepted; malformed, mixed ungrouped, unknown, and over-limit conditions stay
+inactive. Active rules expose compact `@s(...)` labels through `G.Cs`. Nested
+media still rebuilds on viewport changes without replacing mutable `Fi`
+objects. Hosts do not need a capability callback or adapter-side parser. See
+`SUPPORTS_QUERIES.md`.
+
 Responsive dimension tuples expose `Wu/Wnu/Wxu` and `Hu/Hnu/Hxu` unit codes:
 `0` is containing percentage, `1` is `vw`, `2` is `vh`, `3` is `vmin`, and `4`
 is `vmax`; `5` is `em` and `6` is `rem`. The WinForms renderer resolves

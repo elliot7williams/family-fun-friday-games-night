@@ -359,6 +359,14 @@ narrow, restored wide, diagnostics, and retained fields plus classic
 viewport-unit geometry and commands. See `LeaForge/MEDIA_FEATURES.md`,
 `LeaForge/MEDIA_ASPECT_RATIO.md`, and `LeaForge/MEDIA_RANGE_SYNTAX.md`.
 
+Bounded `@supports` feature queries remain inside the same engine surface.
+Declaration conditions reuse Lea's value parsers, `selector(...)` reuses its
+compiled selector grammar, and grouped `not`/`and`/`or` conditions can nest
+with media rules. The compiled host smoke verifies wide and narrow states,
+exact geometry, compact `@s` plus `@m` diagnostics, intermediate restoration,
+and retained live fields. Firespider adds no capability API or condition parser.
+See `LeaForge/SUPPORTS_QUERIES.md`.
+
 CSS custom properties stay compact as well. Firespider can read `S.Vc`, perform
 case-sensitive `S.Cv(name)` lookup, and see the document count through `G.Vc`
 and the Inspector. Declarations compile once, inherited maps remain lazy and

@@ -25,6 +25,9 @@ namespace Lea.Engine
         private const int MaxHostCss = 128 * 1024;
         private const int MaxMediaDepth = 4;
         private const int MaxMediaGroups = 8;
+        private const int MaxSupportsDepth = 4;
+        private const int MaxSupportsTerms = 8;
+        private const int MaxSupportsText = 2048;
         private const int MaxViewport = 8192;
         private const int MaxCssFunctionGroups = 8;
         private const int MaxCssFunctionTests = 16;
@@ -2487,7 +2490,8 @@ namespace Lea.Engine
             foreach (var child in node.C) CssRules(child, baseUrl, sheets, rules, ref order);
         }
 
-        private static void CssSource(string source, Uri origin, List<R> rules, ref int order, Mc[] media, int depth, int limit = MaxCssRules)
+        private static void CssSource(string source, Uri origin, List<R> rules, ref int order, Mc[] media, int depth,
+            int limit = MaxCssRules, string supports = "")
         {
             if (String.IsNullOrEmpty(source) || media == null || media.Length == 0 || depth > MaxMediaDepth) return;
             var at = 0;
@@ -2501,15 +2505,24 @@ namespace Lea.Engine
                 {
                     if (depth == MaxMediaDepth) continue;
                     var nested = CssIntersect(media, CssMedia(Regex.Replace(query, "^@media", "", RegexOptions.IgnoreCase)));
-                    if (nested.Length > 0) CssSource(body, origin, rules, ref order, nested, depth + 1, limit);
+                    if (nested.Length > 0) CssSource(body, origin, rules, ref order, nested, depth + 1, limit, supports);
+                    continue;
+                }
+                if (Regex.IsMatch(query, "^@supports(?:\\s|\\()", RegexOptions.IgnoreCase))
+                {
+                    if (depth == MaxMediaDepth) continue;
+                    var condition = Regex.Replace(query, "^@supports", "", RegexOptions.IgnoreCase).Trim();
+                    if (CssSupports(condition, 0))
+                        CssSource(body, origin, rules, ref order, media, depth + 1, limit, CssSupportsLabel(supports, condition));
                     continue;
                 }
                 if (query[0] == '@') continue;
-                CssRule(query, CssClean(body), origin, rules, ref order, media, limit);
+                CssRule(query, CssClean(body), origin, rules, ref order, media, limit, supports);
             }
         }
 
-        private static void CssRule(string selectors, string declarations, Uri origin, List<R> rules, ref int order, Mc[] media, int limit = MaxCssRules)
+        private static void CssRule(string selectors, string declarations, Uri origin, List<R> rules, ref int order, Mc[] media,
+            int limit = MaxCssRules, string supports = "")
         {
             if (String.IsNullOrWhiteSpace(declarations) || declarations.Length > 64 * 1024) return;
             foreach (var selector in CssGroups(selectors))
@@ -2529,8 +2542,306 @@ namespace Lea.Engine
                     simple.Add(value);
                 }
                 if (simple.Count == parts.Count)
-                    rules.Add(new R(query, declarations, origin, Spec(simple) + (pseudo == '\0' ? 0 : 1), order++, simple.ToArray(), joins.ToArray(), media, pseudo));
+                    rules.Add(new R(query, declarations, origin, Spec(simple) + (pseudo == '\0' ? 0 : 1), order++, simple.ToArray(), joins.ToArray(), media, pseudo, supports));
             }
+        }
+
+        private static bool CssSupports(string source, int depth)
+        {
+            bool valid;
+            return CssSupports(source, depth, out valid) && valid;
+        }
+
+        private static bool CssSupports(string source, int depth, out bool valid)
+        {
+            valid = false;
+            var condition = (source ?? "").Trim();
+            if (depth > MaxSupportsDepth || condition.Length == 0 || condition.Length > MaxSupportsText) return false;
+            List<string> terms;
+            char operation;
+            if (!CssSupportsTerms(condition, out terms, out operation)) return false;
+            if (terms.Count > 1)
+            {
+                var result = operation == 'a';
+                foreach (var term in terms)
+                {
+                    bool termValid;
+                    var next = CssSupports(term, depth + 1, out termValid);
+                    if (!termValid) return false;
+                    if (operation == 'a') result = result && next;
+                    else result = result || next;
+                }
+                valid = true;
+                return result;
+            }
+            if (Regex.IsMatch(condition, "^not\\s+", RegexOptions.IgnoreCase))
+            {
+                bool childValid;
+                var result = CssSupports(Regex.Replace(condition, "^not\\s+", "", RegexOptions.IgnoreCase), depth + 1, out childValid);
+                valid = childValid;
+                return childValid && !result;
+            }
+            string selector;
+            if (CssSupportsFunction(condition, "selector", out selector))
+            {
+                valid = true;
+                return CssSupportsSelector(selector);
+            }
+            string inner;
+            if (!CssSupportsWrapped(condition, out inner)) return false;
+            if (depth == MaxSupportsDepth) return false;
+            if (CssSupportsColon(inner) >= 1)
+            {
+                valid = true;
+                return CssSupportsDeclaration(inner);
+            }
+            return CssSupports(inner, depth + 1, out valid);
+        }
+
+        private static bool CssSupportsTerms(string source, out List<string> terms, out char operation)
+        {
+            terms = new List<string>();
+            operation = '\0';
+            var start = 0;
+            var depth = 0;
+            var quote = '\0';
+            for (var index = 0; index < source.Length; index++)
+            {
+                var value = source[index];
+                if (quote != '\0')
+                {
+                    if (value == quote && (index == 0 || source[index - 1] != '\\')) quote = '\0';
+                    continue;
+                }
+                if (value == '"' || value == '\'') { quote = value; continue; }
+                if (value == '(') { depth++; continue; }
+                if (value == ')')
+                {
+                    if (depth == 0) return false;
+                    depth--;
+                    continue;
+                }
+                if (depth != 0) continue;
+                var next = CssSupportsOperator(source, index);
+                if (next == '\0') continue;
+                if (operation != '\0' && operation != next) return false;
+                operation = next;
+                var term = source.Substring(start, index - start).Trim();
+                if (term.Length == 0 || terms.Count == MaxSupportsTerms) return false;
+                terms.Add(term);
+                var length = next == 'a' ? 3 : 2;
+                index += length - 1;
+                start = index + 1;
+            }
+            if (quote != '\0' || depth != 0) return false;
+            var last = source.Substring(start).Trim();
+            if (last.Length == 0 || terms.Count == MaxSupportsTerms) return false;
+            terms.Add(last);
+            return true;
+        }
+
+        private static char CssSupportsOperator(string source, int index)
+        {
+            if (index > 0 && !Char.IsWhiteSpace(source[index - 1])) return '\0';
+            if (index + 3 <= source.Length && source.Substring(index, 3).Equals("and", StringComparison.OrdinalIgnoreCase) &&
+                (index + 3 == source.Length || Char.IsWhiteSpace(source[index + 3]))) return 'a';
+            if (index + 2 <= source.Length && source.Substring(index, 2).Equals("or", StringComparison.OrdinalIgnoreCase) &&
+                (index + 2 == source.Length || Char.IsWhiteSpace(source[index + 2]))) return 'o';
+            return '\0';
+        }
+
+        private static bool CssSupportsWrapped(string source, out string inner)
+        {
+            inner = "";
+            if (source.Length < 2 || source[0] != '(' || source[source.Length - 1] != ')') return false;
+            var depth = 0;
+            var quote = '\0';
+            for (var index = 0; index < source.Length; index++)
+            {
+                var value = source[index];
+                if (quote != '\0')
+                {
+                    if (value == quote && (index == 0 || source[index - 1] != '\\')) quote = '\0';
+                    continue;
+                }
+                if (value == '"' || value == '\'') { quote = value; continue; }
+                if (value == '(') depth++;
+                else if (value == ')' && --depth == 0 && index != source.Length - 1) return false;
+                if (depth < 0) return false;
+            }
+            if (quote != '\0' || depth != 0) return false;
+            inner = source.Substring(1, source.Length - 2).Trim();
+            return inner.Length > 0;
+        }
+
+        private static bool CssSupportsFunction(string source, string name, out string body)
+        {
+            body = "";
+            if (!source.StartsWith(name + "(", StringComparison.OrdinalIgnoreCase) || source[source.Length - 1] != ')') return false;
+            var open = name.Length;
+            var depth = 0;
+            var quote = '\0';
+            for (var index = open; index < source.Length; index++)
+            {
+                var value = source[index];
+                if (quote != '\0')
+                {
+                    if (value == quote && source[index - 1] != '\\') quote = '\0';
+                    continue;
+                }
+                if (value == '"' || value == '\'') { quote = value; continue; }
+                if (value == '(') depth++;
+                else if (value == ')' && --depth == 0 && index != source.Length - 1) return false;
+                if (depth < 0) return false;
+            }
+            if (quote != '\0' || depth != 0) return false;
+            body = source.Substring(open + 1, source.Length - open - 2).Trim();
+            return body.Length > 0 && body.Length <= MaxQueryLength;
+        }
+
+        private static int CssSupportsColon(string source)
+        {
+            var depth = 0;
+            var quote = '\0';
+            for (var index = 0; index < source.Length; index++)
+            {
+                var value = source[index];
+                if (quote != '\0')
+                {
+                    if (value == quote && (index == 0 || source[index - 1] != '\\')) quote = '\0';
+                    continue;
+                }
+                if (value == '"' || value == '\'') quote = value;
+                else if (value == '(') depth++;
+                else if (value == ')' && depth > 0) depth--;
+                else if (value == ':' && depth == 0) return index;
+            }
+            return -1;
+        }
+
+        private static bool CssSupportsSelector(string selector)
+        {
+            if (selector.Length == 0 || selector.Length > MaxQueryLength) return false;
+            var rules = new List<R>();
+            var order = 0;
+            CssRule(selector, "display:block", null, rules, ref order, new Mc[] { new Mc(0, 0) }, 2);
+            return rules.Count == 1;
+        }
+
+        private static bool CssSupportsDeclaration(string source)
+        {
+            var declarations = CssDeclarations(source);
+            if (declarations.Length != 1 || declarations[0].I) return false;
+            var declaration = declarations[0];
+            if (declaration.C) return declaration.N.Length <= MaxCustomName && declaration.V.Length <= MaxCustomValue;
+            var name = declaration.N;
+            var value = declaration.V.Trim();
+            var lower = value.ToLowerInvariant();
+            if (name == "display")
+                return Regex.IsMatch(lower, "^(?:none|block|inline|inline-block|flex|inline-flex|grid|inline-grid|list-item|table|table-row|table-cell|initial|inherit|unset|revert|revert-layer)$");
+            if (name == "position") return Regex.IsMatch(lower, "^(?:static|relative|absolute|fixed|sticky|initial|unset|revert)$");
+            if (name == "box-sizing") return Regex.IsMatch(lower, "^(?:content-box|border-box|initial|unset|revert)$");
+            if (name == "aspect-ratio")
+            {
+                var style = new S { Rw = -1D, Rh = -1D };
+                AspectRatio(style, value);
+                return style.Rw >= 0D;
+            }
+            if (name == "width" || name == "inline-size" || name == "min-width" || name == "min-inline-size" ||
+                name == "max-width" || name == "max-inline-size")
+                return CssSupportsSize(value, name.StartsWith("min-", StringComparison.Ordinal) ? 1 : name.StartsWith("max-", StringComparison.Ordinal) ? 2 : 0, false);
+            if (name == "height" || name == "block-size" || name == "min-height" || name == "min-block-size" ||
+                name == "max-height" || name == "max-block-size")
+                return CssSupportsSize(value, name.StartsWith("min-", StringComparison.Ordinal) ? 1 : name.StartsWith("max-", StringComparison.Ordinal) ? 2 : 0, true);
+            if (name == "flex-direction") return Regex.IsMatch(lower, "^(?:row|row-reverse|column|column-reverse|initial|normal)$");
+            if (name == "flex-wrap") return Regex.IsMatch(lower, "^(?:nowrap|wrap|initial|normal)$");
+            int number;
+            if (name == "flex-grow" || name == "flex-shrink") return GrowValue(value, out number);
+            if (name == "flex-basis") return BasisValue(value, out number);
+            if (name == "gap" || name == "grid-gap")
+            {
+                var values = Regex.Split(lower, "\\s+");
+                int second;
+                return values.Length >= 1 && values.Length <= 2 && GapValue(values[0], out number) &&
+                    GapValue(values.Length == 2 ? values[1] : values[0], out second);
+            }
+            if (name == "row-gap" || name == "column-gap" || name == "grid-row-gap" || name == "grid-column-gap") return GapValue(value, out number);
+            string alignment;
+            if (name == "justify-content") return ContentAlignmentValue(value, true, out alignment);
+            if (name == "align-content") return ContentAlignmentValue(value, false, out alignment);
+            if (name == "justify-items") return AlignmentValue(value, false, true, out alignment);
+            if (name == "align-items") return AlignmentValue(value, false, false, out alignment);
+            if (name == "justify-self") return AlignmentValue(value, true, true, out alignment);
+            if (name == "align-self") return AlignmentValue(value, true, false, out alignment);
+            if (name == "grid-template-columns") return CssSupportsGrid(value, false, false);
+            if (name == "grid-template-rows") return CssSupportsGrid(value, true, false);
+            if (name == "grid-auto-columns") return CssSupportsGrid(value, false, true);
+            if (name == "grid-auto-rows") return CssSupportsGrid(value, true, true);
+            if (name == "grid-auto-flow")
+            {
+                var style = new S { Gf = "?" };
+                GridAutoFlow(style, value);
+                return style.Gf != "?";
+            }
+            if (name == "object-fit")
+            {
+                var style = new S { Of = "?" };
+                ObjectFit(style, value);
+                return style.Of != "?";
+            }
+            if (name == "object-position")
+            {
+                var style = new S { Ox = Int32.MinValue, Oy = Int32.MinValue };
+                ObjectPosition(style, value);
+                return style.Ox != Int32.MinValue;
+            }
+            if (name == "text-wrap") return Twv(value, 0, out alignment) && alignment.Length > 0;
+            if (name == "text-wrap-mode") return Twv(value, 1, out alignment) && alignment.Length > 0;
+            if (name == "text-wrap-style") return Twv(value, 2, out alignment) && alignment.Length > 0;
+            if (name == "pointer-events") return Regex.IsMatch(lower, "^(?:auto|none|initial|inherit|unset|revert)$");
+            if (name == "overflow") return Regex.IsMatch(lower, "^(?:visible|hidden|clip|auto|scroll|initial)$");
+            if (name == "text-overflow") return Regex.IsMatch(lower, "^(?:clip|ellipsis|initial|inherit|unset|revert)$");
+            string clamp;
+            if (name == "line-clamp" || name == "-webkit-line-clamp") return Lcv(value, out clamp) && clamp.Length > 0;
+            return false;
+        }
+
+        private static bool CssSupportsSize(string value, int part, bool height)
+        {
+            int pixels;
+            int percent;
+            int offset;
+            int unit;
+            int function;
+            int[] values;
+            bool inherit;
+            return height ? HeightValue(value, part, out pixels, out percent, out offset, out unit, out inherit, out function, out values) :
+                WidthValue(value, part, out pixels, out percent, out offset, out unit, out inherit, out function, out values);
+        }
+
+        private static bool CssSupportsGrid(string value, bool rows, bool automatic)
+        {
+            var style = new S();
+            var marker = new[] { Int32.MinValue };
+            if (automatic)
+            {
+                if (rows) style.Rad = marker; else style.Gad = marker;
+                GridAutoTracks(style, value, rows);
+                return !Object.ReferenceEquals(rows ? style.Rad : style.Gad, marker);
+            }
+            if (rows) style.Rd = marker; else style.Gd = marker;
+            GridTemplate(style, value, rows);
+            return !Object.ReferenceEquals(rows ? style.Rd : style.Gd, marker);
+        }
+
+        private static string CssSupportsLabel(string existing, string condition)
+        {
+            var compact = Regex.Replace(condition ?? "", "\\s+", "");
+            string inner;
+            if (CssSupportsWrapped(compact, out inner)) compact = inner;
+            if (compact.Length > 96) compact = compact.Substring(0, 96);
+            var label = "@s(" + compact + ")";
+            return String.IsNullOrEmpty(existing) ? label : existing + "&" + label;
         }
 
         private static bool CssPseudoSelector(string query, out string selector, out char pseudo)
@@ -11415,7 +11726,8 @@ namespace Lea.Engine
             {
             }
 
-            public R(string query, string values, Uri origin, int weight, int order, Se[] parts, char[] joins, Mc[] media, char pseudo)
+            public R(string query, string values, Uri origin, int weight, int order, Se[] parts, char[] joins, Mc[] media, char pseudo,
+                string supports = "")
             {
                 Q = query;
                 V = values;
@@ -11429,7 +11741,8 @@ namespace Lea.Engine
                 var labels = new List<string>();
                 foreach (var condition in M)
                     if (condition.D.Length > 0) labels.Add(condition.D);
-                Md = String.Join("|", labels.ToArray());
+                var mediaLabel = String.Join("|", labels.ToArray());
+                Md = String.IsNullOrEmpty(supports) ? mediaLabel : mediaLabel.Length == 0 ? supports : supports + "&" + mediaLabel;
             }
 
             public bool On(int width, int height)
