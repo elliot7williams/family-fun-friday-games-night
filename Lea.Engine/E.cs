@@ -28,6 +28,9 @@ namespace Lea.Engine
         private const int MaxSupportsDepth = 4;
         private const int MaxSupportsTerms = 8;
         private const int MaxSupportsText = 2048;
+        private const int MaxCssLayers = 16;
+        private const int MaxCssLayerDepth = 3;
+        private const int MaxCssLayerName = 32;
         private const int MaxViewport = 8192;
         private const int MaxCssFunctionGroups = 8;
         private const int MaxCssFunctionTests = 16;
@@ -287,7 +290,8 @@ namespace Lea.Engine
             if (length > MaxHostCss || index < 0 && next.Count == MaxHostSheets) return 0;
             var compiled = new List<R>();
             var order = 0;
-            CssSource(source, page.Bu ?? page.U, compiled, ref order, CssMedia(""), 0, MaxCssRules + 1);
+            CssSource(source, page.Bu ?? page.U, compiled, ref order, CssMedia(""), 0, MaxCssRules + 1, "",
+                new Dictionary<string, int>(StringComparer.Ordinal), "");
             if (count + compiled.Count > MaxCssRules) return 0;
             var sheet = new Sh(key, source, bytes, compiled);
             if (index < 0) next.Add(sheet); else next[index] = sheet;
@@ -320,10 +324,38 @@ namespace Lea.Engine
 
         private void SetSheets(P page, List<R> authored, List<Sh> sheets)
         {
-            var all = new List<R>(authored);
-            var order = authored.Count;
+            var layerNames = new List<string>();
+            var layerRules = new List<R>(authored);
+            layerRules.Sort(CompareLayerRules);
+            foreach (var rule in layerRules)
+                if (rule.L >= 0 && !layerNames.Contains(rule.Ln)) layerNames.Add(rule.Ln);
             foreach (var sheet in sheets)
-                foreach (var rule in sheet.Rs) all.Add(new R(rule, order++));
+            {
+                layerRules = new List<R>(sheet.Rs);
+                layerRules.Sort(CompareLayerRules);
+                foreach (var rule in layerRules)
+                    if (rule.L >= 0 && !layerNames.Contains(rule.Ln) && layerNames.Count < MaxCssLayers) layerNames.Add(rule.Ln);
+            }
+            var layerRanks = new Dictionary<string, int>(StringComparer.Ordinal);
+            for (var index = 0; index < layerNames.Count; index++) layerRanks[layerNames[index]] = index;
+            var sourceRules = new List<R>();
+            var ordered = new List<R>(authored);
+            ordered.Sort(CompareSourceRules);
+            sourceRules.AddRange(ordered);
+            foreach (var sheet in sheets)
+            {
+                ordered = new List<R>(sheet.Rs);
+                ordered.Sort(CompareSourceRules);
+                sourceRules.AddRange(ordered);
+            }
+            var all = new List<R>(sourceRules.Count);
+            var order = 0;
+            foreach (var rule in sourceRules)
+            {
+                var layer = -1;
+                if (rule.L >= 0 && !layerRanks.TryGetValue(rule.Ln, out layer)) continue;
+                all.Add(new R(rule, order++, layer));
+            }
             all.Sort(CompareRules);
             page.Rh = sheets.Count == 0 ? null : sheets;
             page.Sn = sheets.Count;
@@ -2461,18 +2493,41 @@ namespace Lea.Engine
         {
             var rules = new List<R>();
             var order = 0;
-            CssRules(root, baseUrl, sheets, rules, ref order);
+            CssRules(root, baseUrl, sheets, rules, ref order, new Dictionary<string, int>(StringComparer.Ordinal));
             rules.Sort(CompareRules);
             return rules;
         }
 
         private static int CompareRules(R left, R right)
         {
+            var leftLayer = left.L < 0 ? MaxCssLayers : left.L;
+            var rightLayer = right.L < 0 ? MaxCssLayers : right.L;
+            var layer = leftLayer.CompareTo(rightLayer);
+            if (layer != 0) return layer;
             var weight = left.W.CompareTo(right.W);
             return weight != 0 ? weight : left.O.CompareTo(right.O);
         }
 
-        private static void CssRules(N node, Uri baseUrl, IDictionary<N, Sc> sheets, List<R> rules, ref int order)
+        private static int CompareImportantRules(R left, R right)
+        {
+            if (left.L < 0 && right.L >= 0) return -1;
+            if (left.L >= 0 && right.L < 0) return 1;
+            var layer = left.L < 0 ? 0 : right.L.CompareTo(left.L);
+            if (layer != 0) return layer;
+            var weight = left.W.CompareTo(right.W);
+            return weight != 0 ? weight : left.O.CompareTo(right.O);
+        }
+
+        private static int CompareLayerRules(R left, R right)
+        {
+            var layer = left.L.CompareTo(right.L);
+            return layer != 0 ? layer : left.O.CompareTo(right.O);
+        }
+
+        private static int CompareSourceRules(R left, R right) { return left.O.CompareTo(right.O); }
+
+        private static void CssRules(N node, Uri baseUrl, IDictionary<N, Sc> sheets, List<R> rules, ref int order,
+            Dictionary<string, int> layers)
         {
             string source = null;
             var origin = baseUrl;
@@ -2485,15 +2540,16 @@ namespace Lea.Engine
             if (source != null)
             {
                 var media = CssMedia(node.Av("media"));
-                if (media.Length > 0) CssSource(source, origin, rules, ref order, media, 0);
+                if (media.Length > 0) CssSource(source, origin, rules, ref order, media, 0, MaxCssRules, "", layers, "");
             }
-            foreach (var child in node.C) CssRules(child, baseUrl, sheets, rules, ref order);
+            foreach (var child in node.C) CssRules(child, baseUrl, sheets, rules, ref order, layers);
         }
 
         private static void CssSource(string source, Uri origin, List<R> rules, ref int order, Mc[] media, int depth,
-            int limit = MaxCssRules, string supports = "")
+            int limit = MaxCssRules, string supports = "", Dictionary<string, int> layers = null, string layerName = "")
         {
             if (String.IsNullOrEmpty(source) || media == null || media.Length == 0 || depth > MaxMediaDepth) return;
+            if (layers == null) layers = new Dictionary<string, int>(StringComparer.Ordinal);
             var at = 0;
             string header;
             string body;
@@ -2505,7 +2561,7 @@ namespace Lea.Engine
                 {
                     if (depth == MaxMediaDepth) continue;
                     var nested = CssIntersect(media, CssMedia(Regex.Replace(query, "^@media", "", RegexOptions.IgnoreCase)));
-                    if (nested.Length > 0) CssSource(body, origin, rules, ref order, nested, depth + 1, limit, supports);
+                    if (nested.Length > 0) CssSource(body, origin, rules, ref order, nested, depth + 1, limit, supports, layers, layerName);
                     continue;
                 }
                 if (Regex.IsMatch(query, "^@supports(?:\\s|\\()", RegexOptions.IgnoreCase))
@@ -2513,16 +2569,33 @@ namespace Lea.Engine
                     if (depth == MaxMediaDepth) continue;
                     var condition = Regex.Replace(query, "^@supports", "", RegexOptions.IgnoreCase).Trim();
                     if (CssSupports(condition, 0))
-                        CssSource(body, origin, rules, ref order, media, depth + 1, limit, CssSupportsLabel(supports, condition));
+                        CssSource(body, origin, rules, ref order, media, depth + 1, limit, CssSupportsLabel(supports, condition), layers, layerName);
+                    continue;
+                }
+                if (Regex.IsMatch(query, "^@layer(?:\\s|$)", RegexOptions.IgnoreCase))
+                {
+                    if (depth == MaxMediaDepth) continue;
+                    var nested = CssLayerName(layerName, Regex.Replace(query, "^@layer", "", RegexOptions.IgnoreCase));
+                    if (nested == null) continue;
+                    int rank;
+                    if (!layers.TryGetValue(nested, out rank))
+                    {
+                        if (layers.Count == MaxCssLayers) continue;
+                        rank = layers.Count;
+                        layers[nested] = rank;
+                    }
+                    CssSource(body, origin, rules, ref order, media, depth + 1, limit, supports, layers, nested);
                     continue;
                 }
                 if (query[0] == '@') continue;
-                CssRule(query, CssClean(body), origin, rules, ref order, media, limit, supports);
+                var layer = -1;
+                if (layerName.Length > 0 && !layers.TryGetValue(layerName, out layer)) continue;
+                CssRule(query, CssClean(body), origin, rules, ref order, media, limit, supports, layerName, layer);
             }
         }
 
         private static void CssRule(string selectors, string declarations, Uri origin, List<R> rules, ref int order, Mc[] media,
-            int limit = MaxCssRules, string supports = "")
+            int limit = MaxCssRules, string supports = "", string layerName = "", int layer = -1)
         {
             if (String.IsNullOrWhiteSpace(declarations) || declarations.Length > 64 * 1024) return;
             foreach (var selector in CssGroups(selectors))
@@ -2542,8 +2615,23 @@ namespace Lea.Engine
                     simple.Add(value);
                 }
                 if (simple.Count == parts.Count)
-                    rules.Add(new R(query, declarations, origin, Spec(simple) + (pseudo == '\0' ? 0 : 1), order++, simple.ToArray(), joins.ToArray(), media, pseudo, supports));
+                    rules.Add(new R(query, declarations, origin, Spec(simple) + (pseudo == '\0' ? 0 : 1), order++, simple.ToArray(), joins.ToArray(), media, pseudo, supports, layerName, layer));
             }
+        }
+
+        private static string CssLayerName(string parent, string input)
+        {
+            var source = (input ?? "").Trim();
+            if (source.Length == 0 || source.Length > MaxCssLayerDepth * (MaxCssLayerName + 1) - 1 || source.IndexOf(',') >= 0) return null;
+            var parts = new List<string>();
+            if (!String.IsNullOrEmpty(parent)) parts.AddRange(parent.Split('.'));
+            parts.AddRange(source.Split('.'));
+            if (parts.Count > MaxCssLayerDepth) return null;
+            foreach (var part in parts)
+                if (part.Length == 0 || part.Length > MaxCssLayerName ||
+                    !Regex.IsMatch(part, "^-?[A-Za-z_][A-Za-z0-9_-]*$") ||
+                    Regex.IsMatch(part, "^(?:initial|inherit|unset|revert|revert-layer)$", RegexOptions.IgnoreCase)) return null;
+            return String.Join(".", parts.ToArray());
         }
 
         private static bool CssSupports(string source, int depth)
@@ -4056,10 +4144,11 @@ namespace Lea.Engine
             var matched = new List<R>();
             foreach (var rule in rules)
                 if (rule.Ps == '\0' && MatchCss(node, rule)) matched.Add(rule);
+            var important = ImportantRules(matched);
             var inline = CssDeclarations(node.Av("style"), StyleOrigin(node));
             foreach (var rule in matched) Custom(style, inherited, rule.Ds, false);
             Custom(style, inherited, inline, false);
-            foreach (var rule in matched) Custom(style, inherited, rule.Ds, true);
+            foreach (var rule in important) Custom(style, inherited, rule.Ds, true);
             Custom(style, inherited, inline, true);
             TagStyle(style, node.K);
             ListTypeAttribute(style, node);
@@ -4067,12 +4156,12 @@ namespace Lea.Engine
             var baseDirection = style.Dr;
             foreach (var rule in matched) DirectionDeclarations(style, inherited, rule.Ds, false, baseDirection);
             DirectionDeclarations(style, inherited, inline, false, baseDirection);
-            foreach (var rule in matched) DirectionDeclarations(style, inherited, rule.Ds, true, baseDirection);
+            foreach (var rule in important) DirectionDeclarations(style, inherited, rule.Ds, true, baseDirection);
             DirectionDeclarations(style, inherited, inline, true, baseDirection);
             if (node.A.ContainsKey("hidden")) style.D = "none";
             foreach (var rule in matched) Decls(style, inherited, rule.Ds, false);
             Decls(style, inherited, inline, false);
-            foreach (var rule in matched) Decls(style, inherited, rule.Ds, true);
+            foreach (var rule in important) Decls(style, inherited, rule.Ds, true);
             Decls(style, inherited, inline, true);
             if (node.A.ContainsKey("data-lea-hidden")) style.D = "none";
             return style;
@@ -4119,30 +4208,42 @@ namespace Lea.Engine
             var matched = new List<R>();
             foreach (var rule in rules)
                 if (rule.Ps == pseudo && MatchCss(node, rule)) matched.Add(rule);
+            var important = ImportantRules(matched);
             var attribute = pseudo == 'm' ? "data-lea-marker-style" : pseudo == 'b' ? "data-lea-before-style" : "data-lea-after-style";
             var inline = CssDeclarations(node.Av(attribute), StyleOrigin(node));
             foreach (var rule in matched) Custom(style, inherited, rule.Ds, false);
             Custom(style, inherited, inline, false);
-            foreach (var rule in matched) Custom(style, inherited, rule.Ds, true);
+            foreach (var rule in important) Custom(style, inherited, rule.Ds, true);
             Custom(style, inherited, inline, true);
             foreach (var rule in matched) DirectionDeclarations(style, inherited, rule.Ds, false, baseDirection);
             DirectionDeclarations(style, inherited, inline, false, baseDirection);
-            foreach (var rule in matched) DirectionDeclarations(style, inherited, rule.Ds, true, baseDirection);
+            foreach (var rule in important) DirectionDeclarations(style, inherited, rule.Ds, true, baseDirection);
             DirectionDeclarations(style, inherited, inline, true, baseDirection);
             MarkerQuoteDecls(style, inherited, defaults, false);
             MarkerQuoteDecls(style, inherited, defaults, true);
             foreach (var rule in matched) MarkerQuoteDecls(style, inherited, rule.Ds, false);
             MarkerQuoteDecls(style, inherited, inline, false);
-            foreach (var rule in matched) MarkerQuoteDecls(style, inherited, rule.Ds, true);
+            foreach (var rule in important) MarkerQuoteDecls(style, inherited, rule.Ds, true);
             MarkerQuoteDecls(style, inherited, inline, true);
             MarkerDecls(style, inherited, node, defaults, false, quoteBase, ref quoteEnd);
             MarkerDecls(style, inherited, node, defaults, true, quoteBase, ref quoteEnd);
             foreach (var rule in matched) MarkerDecls(style, inherited, node, rule.Ds, false, quoteBase, ref quoteEnd);
             MarkerDecls(style, inherited, node, inline, false, quoteBase, ref quoteEnd);
-            foreach (var rule in matched) MarkerDecls(style, inherited, node, rule.Ds, true, quoteBase, ref quoteEnd);
+            foreach (var rule in important) MarkerDecls(style, inherited, node, rule.Ds, true, quoteBase, ref quoteEnd);
             MarkerDecls(style, inherited, node, inline, true, quoteBase, ref quoteEnd);
             quoteDepth = quoteEnd;
             return style;
+        }
+
+        private static List<R> ImportantRules(List<R> rules)
+        {
+            if (rules.Count < 2) return rules;
+            var layered = false;
+            foreach (var rule in rules) if (rule.L >= 0) { layered = true; break; }
+            if (!layered) return rules;
+            var important = new List<R>(rules);
+            important.Sort(CompareImportantRules);
+            return important;
         }
 
         private static Pd[] MarkerDefaults(N node)
@@ -9219,11 +9320,12 @@ namespace Lea.Engine
                 var alpha = 1D;
                 double authoredAlpha;
                 if (stop.Av("stop-opacity").Length > 0 && SvgAlpha(stop.Av("stop-opacity"), out authoredAlpha)) alpha = authoredAlpha;
-                foreach (var rule in rules)
-                    if (MatchCss(stop, rule)) SvgStopDeclarations(rule.Ds, false, stopStyle, ref color, ref alpha);
+                var matched = new List<R>();
+                foreach (var rule in rules) if (MatchCss(stop, rule)) matched.Add(rule);
+                var important = ImportantRules(matched);
+                foreach (var rule in matched) SvgStopDeclarations(rule.Ds, false, stopStyle, ref color, ref alpha);
                 SvgStopDeclarations(CssDeclarations(stop.Av("style")), false, stopStyle, ref color, ref alpha);
-                foreach (var rule in rules)
-                    if (MatchCss(stop, rule)) SvgStopDeclarations(rule.Ds, true, stopStyle, ref color, ref alpha);
+                foreach (var rule in important) SvgStopDeclarations(rule.Ds, true, stopStyle, ref color, ref alpha);
                 SvgStopDeclarations(CssDeclarations(stop.Av("style")), true, stopStyle, ref color, ref alpha);
                 if (color.Equals("currentcolor", StringComparison.OrdinalIgnoreCase)) color = stopStyle.F;
                 if (color.Length == 0 || color.Length > 64 || color.IndexOf("url(", StringComparison.OrdinalIgnoreCase) >= 0) return false;
@@ -9315,12 +9417,13 @@ namespace Lea.Engine
             SvgPaintSet(paint, "stroke-dasharray", node.Av("stroke-dasharray"));
             SvgPaintSet(paint, "stroke-dashoffset", node.Av("stroke-dashoffset"));
             SvgClipSet(paint, node.Av("clip-path"), ref clipChanged);
-            foreach (var rule in rules)
-                if (MatchCss(node, rule)) SvgPaintDeclarations(rule.Ds, false, css, paint, ref transform, ref clipChanged, root);
+            var matched = new List<R>();
+            foreach (var rule in rules) if (MatchCss(node, rule)) matched.Add(rule);
+            var important = ImportantRules(matched);
+            foreach (var rule in matched) SvgPaintDeclarations(rule.Ds, false, css, paint, ref transform, ref clipChanged, root);
             var inline = CssDeclarations(node.Av("style"));
             SvgPaintDeclarations(inline, false, css, paint, ref transform, ref clipChanged, root);
-            foreach (var rule in rules)
-                if (MatchCss(node, rule)) SvgPaintDeclarations(rule.Ds, true, css, paint, ref transform, ref clipChanged, root);
+            foreach (var rule in important) SvgPaintDeclarations(rule.Ds, true, css, paint, ref transform, ref clipChanged, root);
             SvgPaintDeclarations(inline, true, css, paint, ref transform, ref clipChanged, root);
             if (transform != null) paint.M = SvgMatrixMultiply(inherited.M, transform);
             if (clipChanged) paint.Xm = (double[])paint.M.Clone();
@@ -11713,12 +11816,20 @@ namespace Lea.Engine
             public readonly string Md;
             public readonly Pd[] Ds;
             public readonly char Ps;
+            public readonly string Ln;
+            public readonly int L;
             public bool Pm { get { return Ps == 'm'; } }
 
             public R(R rule, int order)
+                : this(rule, order, rule.L)
+            {
+            }
+
+            public R(R rule, int order, int layer)
             {
                 Q = rule.Q; V = rule.V; W = rule.W; O = order;
-                P = rule.P; J = rule.J; M = rule.M; Md = rule.Md; Ds = rule.Ds; Ps = rule.Ps;
+                P = rule.P; J = rule.J; M = rule.M; Ds = rule.Ds; Ps = rule.Ps; Su = rule.Su; Ln = rule.Ln; L = layer;
+                Md = RuleLabel(Su, M, Ln);
             }
 
             public R(string query, string values, int weight, int order, Se[] parts, char[] joins)
@@ -11727,7 +11838,7 @@ namespace Lea.Engine
             }
 
             public R(string query, string values, Uri origin, int weight, int order, Se[] parts, char[] joins, Mc[] media, char pseudo,
-                string supports = "")
+                string supports = "", string layerName = "", int layer = -1)
             {
                 Q = query;
                 V = values;
@@ -11737,12 +11848,24 @@ namespace Lea.Engine
                 J = joins;
                 M = media ?? new Mc[0];
                 Ps = pseudo;
+                Su = supports ?? "";
+                Ln = layerName ?? "";
+                L = layer;
                 Ds = CssDeclarations(values, origin);
+                Md = RuleLabel(Su, M, Ln);
+            }
+
+            private readonly string Su;
+
+            private static string RuleLabel(string supports, Mc[] media, string layer)
+            {
                 var labels = new List<string>();
-                foreach (var condition in M)
+                foreach (var condition in media)
                     if (condition.D.Length > 0) labels.Add(condition.D);
                 var mediaLabel = String.Join("|", labels.ToArray());
-                Md = String.IsNullOrEmpty(supports) ? mediaLabel : mediaLabel.Length == 0 ? supports : supports + "&" + mediaLabel;
+                var prefix = String.IsNullOrEmpty(layer) ? "" : "@l(" + layer + ")";
+                if (!String.IsNullOrEmpty(supports)) prefix = prefix.Length == 0 ? supports : prefix + "&" + supports;
+                return prefix.Length == 0 ? mediaLabel : mediaLabel.Length == 0 ? prefix : prefix + "&" + mediaLabel;
             }
 
             public bool On(int width, int height)

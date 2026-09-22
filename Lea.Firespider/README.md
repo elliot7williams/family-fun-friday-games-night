@@ -367,6 +367,13 @@ exact geometry, compact `@s` plus `@m` diagnostics, intermediate restoration,
 and retained live fields. Firespider adds no capability API or condition parser.
 See `LeaForge/SUPPORTS_QUERIES.md`.
 
+Bounded named cascade layers also remain entirely inside Lea. The compiled host
+smoke verifies later-layer normal order, reversed important order, unlayered
+normal precedence, supports/media nesting, compact `@l` diagnostics, wide,
+narrow, and intermediate geometry, and retained live fields. Authored and
+native `Ss` sheets share the engine's bounded layer ranks; Firespider adds no
+layer state or parser. See `LeaForge/CASCADE_LAYERS.md`.
+
 CSS custom properties stay compact as well. Firespider can read `S.Vc`, perform
 case-sensitive `S.Cv(name)` lookup, and see the document count through `G.Vc`
 and the Inspector. Declarations compile once, inherited maps remain lazy and

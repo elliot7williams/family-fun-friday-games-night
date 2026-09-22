@@ -726,6 +726,15 @@ media still rebuilds on viewport changes without replacing mutable `Fi`
 objects. Hosts do not need a capability callback or adapter-side parser. See
 `SUPPORTS_QUERIES.md`.
 
+Named `@layer` blocks are engine-owned as well. Hosts do not assign layer ranks
+or add an adapter API. Lea merges authored and `Ss` native sheets into one
+bounded layer order, applies later-layer/unlayered normal precedence and reversed
+important precedence, and leaves inline declarations strongest. Reopened and
+nested names, custom properties, generated pseudo content, SVG paint, and
+supports/media nesting use the same compiled records. `G.Cs` exposes compact
+`@l(name)` diagnostics. The limits and unsupported anonymous/order-statement/
+full-rollback forms are documented in `CASCADE_LAYERS.md`.
+
 Responsive dimension tuples expose `Wu/Wnu/Wxu` and `Hu/Hnu/Hxu` unit codes:
 `0` is containing percentage, `1` is `vw`, `2` is `vh`, `3` is `vmin`, and `4`
 is `vmax`; `5` is `em` and `6` is `rem`. The WinForms renderer resolves

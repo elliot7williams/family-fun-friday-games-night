@@ -349,18 +349,19 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 116 adds bounded CSS `@supports` feature queries to the shared
-compiled-rule path. Declaration conditions reuse documented Lea value parsers,
-while `selector(...)` reuses the real compiled selector grammar. Case-insensitive
-`not`, `and`, and `or` support explicit grouping, nested supports/media blocks,
-four condition levels, eight terms, and 2,048 characters. Unknown, malformed,
-mixed ungrouped, and over-limit conditions stay inactive; active rules retain
-compact `@s(...)` diagnostics and mutable fields across media resize. See
-`SUPPORTS_QUERIES.md`. All 112 probes pass over 106 fixtures; the focused and
-full engine suites, compiled Firespider host, all 18 startup regressions, all 42
-Boot cases, and all six real EXE startup scenarios pass. Runtime 216 is packaged
-separately and installed runtime 157 remains unchanged. Next investigate another
-bounded compatibility slice. Keep general media features, device ratios,
+Milestone 117 adds bounded named CSS cascade layers to the shared compiled-rule
+path. Named block layers use normal later-layer order, unlayered normal priority,
+reversed important order, and the existing strongest inline tiers. Reopened and
+nested names, local specificity/source order, custom properties, generated
+pseudo content, direction, SVG paint/stops, media/supports nesting, native-sheet
+merging, compact `@l(...)` diagnostics, retained fields, and live resize are
+covered under strict 16-layer and three-segment limits. Anonymous layers, comma
+order statements, and full `revert-layer` rollback remain outside this bounded
+slice. See `CASCADE_LAYERS.md`. All 113 probes pass over 108 fixtures; the
+focused and full engine suites, compiled Firespider host, all 42 Boot cases, and
+all six real EXE startup scenarios pass. Runtime 217 is staged separately and
+installed runtime 157 remains unchanged. Next investigate
+another bounded compatibility slice. Keep general media features, device ratios,
 container and style queries, `font-tech()`/`font-format()`, general-enclosed
 conditions, JavaScript `CSS.supports()`, locale-sensitive automatic quote selection,
 reversed/custom counter styles, pseudo-element counter properties,

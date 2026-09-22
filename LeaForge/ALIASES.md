@@ -975,6 +975,17 @@ grouping. Active diagnostic lines use short `@s(...)` labels and compose with
 the existing media labels. Unknown, malformed, and over-limit conditions stay
 inactive. See `SUPPORTS_QUERIES.md`.
 
+Bounded named `@layer` blocks also need no public object or command. Later named
+layers win normal declarations, unlayered normal declarations win over layers,
+and important order reverses so the earliest named layer wins over later and
+unlayered important rules. Inline normal and important declarations retain their
+existing strongest positions. Reopened names merge; nested names compose as
+`parent.child`; authored and `Ss` native sheets share one layer order. Active
+diagnostic lines add compact `@l(name)` labels that compose with `@s` and `@m`.
+Lea accepts at most 16 names with three 32-character segments. Anonymous layers,
+comma order statements, and full `revert-layer` rollback stay unsupported. See
+`CASCADE_LAYERS.md`.
+
 Computed styles expose bounded custom properties through `S.Vc` (count) and
 `S.Cv(name)` (case-sensitive raw lookup). `G.Vc` reports the body/document count
 without copying raw values into diagnostics. Styles inherit their map lazily and

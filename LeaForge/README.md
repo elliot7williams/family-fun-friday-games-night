@@ -142,6 +142,10 @@ LeaForge is where we can grow the more full-featured browser.
 - bounded CSS `@supports` declaration checks and `selector(...)` capability
   checks with grouped `not`/`and`/`or`, nested media, compact `@s` diagnostics,
   strict depth/term/text limits, and retained fields; see `SUPPORTS_QUERIES.md`
+- bounded named CSS `@layer` blocks with later normal, unlayered normal,
+  reversed important, and strongest inline order; reopened/nested names,
+  native-sheet merging, conditional nesting, compact `@l` diagnostics, and
+  strict name/layer limits; see `CASCADE_LAYERS.md`
 - compiled declarations plus bounded inherited CSS custom properties with
   compact `S.Vc/Cv`, nested `var()` fallback, lazy maps, and strict limits
 - bounded normal/important cascade for supported declarations, with stylesheet

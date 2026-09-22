@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Cascade Layer Limits</title>
+  <style>
+    @layer l01 { #layer-01 { display: block; width: 101px; } }
+    @layer l02 { #layer-02 { display: block; width: 102px; } }
+    @layer l03 { #layer-03 { display: block; width: 103px; } }
+    @layer l04 { #layer-04 { display: block; width: 104px; } }
+    @layer l05 { #layer-05 { display: block; width: 105px; } }
+    @layer l06 { #layer-06 { display: block; width: 106px; } }
+    @layer l07 { #layer-07 { display: block; width: 107px; } }
+    @layer l08 { #layer-08 { display: block; width: 108px; } }
+    @layer l09 { #layer-09 { display: block; width: 109px; } }
+    @layer l10 { #layer-10 { display: block; width: 110px; } }
+    @layer l11 { #layer-11 { display: block; width: 111px; } }
+    @layer l12 { #layer-12 { display: block; width: 112px; } }
+    @layer l13 { #layer-13 { display: block; width: 113px; } }
+    @layer l14 { #layer-14 { display: block; width: 114px; } }
+    @layer l15 { #layer-15 { display: block; width: 115px; } }
+    @layer l16 { #layer-16 { display: block; width: 116px; } }
+    @layer l17 { #layer-17 { display: block; width: 117px; } }
+    @layer bad,name { #invalid-list { display: block; } }
+    @layer too.many.nested.parts { #invalid-depth { display: block; } }
+    @layer { #anonymous-layer { display: block; } }
+  </style>
+</head>
+<body>
+  <p hidden id="layer-01">Layer 1</p>
+  <p hidden id="layer-02">Layer 2</p>
+  <p hidden id="layer-03">Layer 3</p>
+  <p hidden id="layer-04">Layer 4</p>
+  <p hidden id="layer-05">Layer 5</p>
+  <p hidden id="layer-06">Layer 6</p>
+  <p hidden id="layer-07">Layer 7</p>
+  <p hidden id="layer-08">Layer 8</p>
+  <p hidden id="layer-09">Layer 9</p>
+  <p hidden id="layer-10">Layer 10</p>
+  <p hidden id="layer-11">Layer 11</p>
+  <p hidden id="layer-12">Layer 12</p>
+  <p hidden id="layer-13">Layer 13</p>
+  <p hidden id="layer-14">Layer 14</p>
+  <p hidden id="layer-15">Layer 15</p>
+  <p hidden id="layer-16">Layer 16</p>
+  <p hidden id="layer-17">Layer 17</p>
+  <p hidden id="invalid-list">Invalid list</p>
+  <p hidden id="invalid-depth">Invalid depth</p>
+  <p hidden id="anonymous-layer">Anonymous layer</p>
+</body>
+</html>

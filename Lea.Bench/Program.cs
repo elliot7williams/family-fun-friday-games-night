@@ -112,7 +112,7 @@ namespace Lea.Bench
             var names = new[]
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
-                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "direction-logical.html", "direction-layout.html", "direction-inline.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "media-features.html", "media-aspect-ratio.html", "media-ranges.html", "supports-queries.html", "custom-properties.html", "important-cascade.html",
+                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "direction-logical.html", "direction-layout.html", "direction-inline.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "media-features.html", "media-aspect-ratio.html", "media-ranges.html", "supports-queries.html", "cascade-layers.html", "cascade-layer-limits.html", "custom-properties.html", "important-cascade.html",
                 "direction-overflow.html", "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "list-style.html", "list-position.html", "list-image.html", "marker.html", "marker-content.html", "marker-counters.html", "css-counters.html", "generated-content.html", "generated-quotes.html", "generated-alt.html", "generated-images.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -1643,6 +1643,59 @@ namespace Lea.Bench
                         liveField.V == "Retained supports view value", "supports view resize replaced field state");
                 }
                 return "bounded declaration capability checks, selector() through the compiled selector grammar, not/and/or logic, grouped and nested supports/media blocks, strict depth/term limits, @s diagnostics, retention, and live resize";
+            });
+            AddProbe(probes, "CSS cascade layers", delegate
+            {
+                var path = Path.Combine(folder, "cascade-layers.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(block("normal-order").S.W == 201 && block("same-layer").S.W == 211 && block("same-layer").S.H == 31 &&
+                    block("merged").S.W == 221 && block("merged").S.H == 32, "normal layer order or named merge changed");
+                Need(block("important-order").S.W == 131 && block("important-unlayered").S.W == 141 &&
+                    block("unlayered-normal").S.W == 361 && block("inline-normal").S.W == 371 && block("inline-important").S.W == 381,
+                    "normal, unlayered, important, or inline layer priority changed");
+                Need(block("custom-normal").S.W == 251 && block("custom-important").S.F == "#a13b18" &&
+                    block("nested-order").S.W == 272 && block("nested-order").S.F == "#a13b18" &&
+                    block("same-layer-specificity").S.W == 181 && block("same-layer-source").S.W == 283,
+                    "layered custom property, nesting, specificity, or source order changed");
+                var before = block("layer-before").Is.First(item => item.K == "be");
+                Need(before.X == "Theme" && before.S.F == "#a13b18", "layered pseudo content priority changed");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark layer value";
+                Need(block("layer-wide").S.W == 291 && !page.Bs.Any(item => item.El != null && item.El.Av("id") == "layer-narrow") &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@l(responsive)&@s(display:grid)&@m>=800")),
+                    "layered wide condition or diagnostic changed");
+                engine.Vz(500, 700);
+                Need(block("layer-narrow").S.W == 292 && !page.Bs.Any(item => item.El != null && item.El.Av("id") == "layer-wide") &&
+                    Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark layer value", "layered narrow rebuild or retention changed");
+                Need(engine.Ss(page, "layer-one", "@layer injected{#sheet-normal{width:251px}#sheet-important{width:251px!important}}") == 1 &&
+                    engine.Ss(page, "layer-two", "@layer later{#sheet-normal{width:252px}#sheet-important{width:252px!important}}#sheet-normal{width:253px}#sheet-important{width:253px!important}") == 1 &&
+                    block("sheet-normal").S.W == 253 && block("sheet-important").S.W == 251,
+                    "injected layer merge or priority changed");
+                var limits = new E();
+                var limitPage = limits.Go(Path.Combine(folder, "cascade-layer-limits.html"));
+                for (var index = 1; index <= 16; index++)
+                    Need(limitPage.Bs.Any(item => item.El != null && item.El.Av("id") == "layer-" + index.ToString("00")), "bounded layer missing " + index);
+                Need(!limitPage.Bs.Any(item => item.El != null && item.El.Av("id") == "layer-17") &&
+                    !limitPage.Bs.Any(item => item.El != null && item.El.Av("id") == "invalid-list") &&
+                    !limitPage.Bs.Any(item => item.El != null && item.El.Av("id") == "invalid-depth") &&
+                    !limitPage.Bs.Any(item => item.El != null && item.El.Av("id") == "anonymous-layer"),
+                    "over-limit or malformed layer escaped bounds");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(900, 600);
+                    view.Go(path);
+                    using (var widePaint = Draw(view)) Need(BlockContent(view, "layer-wide").Width == 291, "layered wide view geometry changed");
+                    var liveField = view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                    liveField.V = "Retained layer view value";
+                    view.Size = new Size(500, 700);
+                    using (var narrowPaint = Draw(view)) Need(BlockContent(view, "layer-narrow").Width == 292, "layered narrow view geometry changed");
+                    Need(Object.ReferenceEquals(liveField, view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                        liveField.V == "Retained layer view value", "layered view resize replaced field state");
+                }
+                return "named and nested @layer blocks, later-normal/unlayered/earlier-important/inline precedence, local specificity and source order, custom properties, pseudo content, supports/media nesting, native sheets, 16-layer bounds, diagnostics, retention, and live resize";
             });
             AddProbe(probes, "Bounded CSS custom properties", delegate
             {
@@ -4442,7 +4495,7 @@ namespace Lea.Bench
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, direction-aware ordered/unordered lists and disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, compound of-S filtered, and terminal ::marker/::before/::after selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel width/height, portrait/landscape, exact/min/max integer aspect-ratio, bounded strict/inclusive feature/value-first and chained media ranges, and bounded @supports declaration checks plus selector() through the compiled selector grammar with grouped not/and/or logic, bounded named reset/increment/set counters and generated quote depth, inherited horizontal LTR/RTL direction and bounded quote pairs, fixed/percentage/calc dimensions and classic vw/vh/vmin/vmax plus bounded em/rem units, two/three-term min/max and three-term clamp size functions, content/border box, circular/elliptical radii, bounded outlines, box shadows, one inherited bounded text-shadow layer, bounded text-decoration line/color/style/thickness and signed pixel/percentage underline offset, inherited text-align shorthand/all/last with logical state and justify-all, inherited text-wrap mode/style with bounded balance, non-inherited bounded line-clamp/WebKit compatibility, isolated bounded pseudo typography, eight string/attr/quoted-attr-fallback/named-counter/quote-keyword visual fragments, and an optional eight-item/128-unit string/attr/counter alternative list, plus one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing, signed pixel/percentage first-line indentation, and text styles, visibility, absolute/fixed and bounded vertical sticky positioning, transforms, responsive image sizing, direction-aware row/column flex, and direction-aware bounded two-axis grid");
+            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, compound of-S filtered, and terminal ::marker/::before/::after selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel width/height, portrait/landscape, exact/min/max integer aspect-ratio, bounded strict/inclusive feature/value-first and chained media ranges, bounded @supports declaration checks plus selector() through the compiled selector grammar with grouped not/and/or logic, and bounded named @layer blocks with later-normal, unlayered-normal, reversed-important, inline, nested-name, and native-sheet ordering, bounded named reset/increment/set counters and generated quote depth, inherited horizontal LTR/RTL direction and bounded quote pairs, fixed/percentage/calc dimensions and classic vw/vh/vmin/vmax plus bounded em/rem units, two/three-term min/max and three-term clamp size functions, content/border box, circular/elliptical radii, bounded outlines, box shadows, one inherited bounded text-shadow layer, bounded text-decoration line/color/style/thickness and signed pixel/percentage underline offset, inherited text-align shorthand/all/last with logical state and justify-all, inherited text-wrap mode/style with bounded balance, non-inherited bounded line-clamp/WebKit compatibility, isolated bounded pseudo typography, eight string/attr/quoted-attr-fallback/named-counter/quote-keyword visual fragments, and an optional eight-item/128-unit string/attr/counter alternative list, plus one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing, signed pixel/percentage first-line indentation, and text styles, visibility, absolute/fixed and bounded vertical sticky positioning, transforms, responsive image sizing, direction-aware row/column flex, and direction-aware bounded two-axis grid");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/box-shadows/gradients, bounded offset and lightweight blurred text shadows, native fast-path plus lightweight offset-aware solid/double/dotted/dashed/wavy text decorations, direction-aware source-stable inline atoms including bounded before/after generated runs, bounded same-count balanced wrapping and 1..32 line clamping, inside/outside text and image markers with isolated pseudo style and concatenated generated text content, first-line indentation, inherited logical all/final/forced-line alignment, and paint-only single-line ellipsis geometry, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Text overflow", "Supported subset", "Non-inherited clip/ellipsis with bounded LTR/RTL physical inline-end markers and grapheme-safe paint-only authored prefixes for inline runs and tables; retained layout/link targets, full logical automation text, and direction-aware partial range geometry; no native-control, Unicode bidi shaping, or custom overflow-marker additions");

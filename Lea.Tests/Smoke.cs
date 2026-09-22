@@ -156,6 +156,11 @@ namespace Lea.Tests
                     SupportsSmoke(Path.Combine(pages, "supports-queries.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--layers")
+                {
+                    LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--text-align-last")
                 {
                     TextAlignLastSmoke(Path.Combine(pages, "text-align-last.html"));
@@ -1535,6 +1540,7 @@ namespace Lea.Tests
                 MediaAspectSmoke(Path.Combine(pages, "media-aspect-ratio.html"));
                 MediaRangeSmoke(Path.Combine(pages, "media-ranges.html"));
                 SupportsSmoke(Path.Combine(pages, "supports-queries.html"));
+                LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
 
                 var customPath = Path.Combine(pages, "custom-properties.html");
                 var customEngine = new E();
@@ -8186,6 +8192,93 @@ namespace Lea.Tests
                     "WinForms media range resize preserves field state");
             }
             Console.WriteLine("Lea media range smoke passed: feature/value-first comparisons, strict and inclusive chains, rational ratios, intersections, diagnostics, retention, and live resize.");
+        }
+
+        private static void LayerSmoke(string path, string limitPath)
+        {
+            var engine = new E();
+            var page = engine.Go(path);
+            Func<string, B> block = id => BlockById(page, id);
+            Eq(201, block("normal-order").S.W, "later normal layer beats earlier specificity");
+            Ok(block("same-layer").S.W == 211 && block("same-layer").S.H == 31 &&
+                block("merged").S.W == 221 && block("merged").S.H == 32,
+                "same named layer merges while preserving specificity");
+            Eq(131, block("important-order").S.W, "important layer order reverses");
+            Eq(141, block("important-unlayered").S.W, "layered important beats unlayered important");
+            Eq(361, block("unlayered-normal").S.W, "unlayered normal beats layered normal");
+            Eq(371, block("inline-normal").S.W, "inline normal beats layered normal");
+            Eq(381, block("inline-important").S.W, "inline important beats layered important");
+            Ok(block("custom-normal").S.W == 251 && block("custom-important").S.F == "#a13b18",
+                "normal and important custom properties follow layer order");
+            Ok(block("nested-order").S.W == 272 && block("nested-order").S.F == "#a13b18",
+                "nested layer normal and important order");
+            Ok(block("same-layer-specificity").S.W == 181 && block("same-layer-source").S.W == 283,
+                "specificity and source order remain local to one layer");
+            Ok(Run(block("layer-before"), "be").X == "Theme" && Run(block("layer-before"), "be").S.F == "#a13b18",
+                "generated pseudo content follows normal and important layer order");
+            Ok(HasBlock(page, "layer-wide") && !HasBlock(page, "layer-narrow") && block("layer-wide").S.W == 291,
+                "layered supports and wide media state");
+            var field = FieldById(page, "field");
+            Eq(242, field.S.W, "later layer field style");
+            field.V = "Retained layer value";
+            Ok(Has(engine.Dg(page).Cs, "@l(base)") && Has(engine.Dg(page).Cs, "@l(framework.theme)") &&
+                Has(engine.Dg(page).Cs, "@l(responsive)&@s(display:grid)&@m>=800"),
+                "compact layer and nested condition diagnostics");
+
+            engine.Vz(500, 700);
+            Ok(!HasBlock(page, "layer-wide") && HasBlock(page, "layer-narrow") && block("layer-narrow").S.W == 292 &&
+                Has(engine.Dg(page).Cs, "@l(responsive)&@s(selector(:has(*)))&@m<=600"),
+                "media then supports then layer narrow state and diagnostic");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained layer value",
+                "layered responsive rebuild retains field state");
+
+            Eq(1, engine.Ss(page, "layer-one", "@layer injected{#sheet-normal{width:251px}#sheet-important{width:251px!important}}"),
+                "first injected layer accepted");
+            Eq(1, engine.Ss(page, "layer-two", "@layer later{#sheet-normal{width:252px}#sheet-important{width:252px!important}}#sheet-normal{width:253px}#sheet-important{width:253px!important}"),
+                "second injected layer and unlayered rules accepted");
+            Ok(block("sheet-normal").S.W == 253 && block("sheet-important").S.W == 251,
+                "injected unlayered normal and first-layer important precedence");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained layer value",
+                "injected layer rebuild retains field state");
+            Eq(1, engine.Sd(page, "layer-two"), "later injected sheet removed");
+            Ok(block("sheet-normal").S.W == 251 && block("sheet-important").S.W == 251,
+                "remaining injected layer restores both priorities");
+            Eq(1, engine.Sd(page, "layer-one"), "first injected sheet removed");
+
+            var limits = new E().Go(limitPath);
+            for (var index = 1; index <= 16; index++)
+            {
+                var id = "layer-" + index.ToString("00");
+                Ok(HasBlock(limits, id), "bounded layer accepted " + id);
+                Eq(100 + index, BlockById(limits, id).S.W, "bounded layer style " + id);
+            }
+            Ok(!HasBlock(limits, "layer-17") && !HasBlock(limits, "invalid-list") &&
+                !HasBlock(limits, "invalid-depth") && !HasBlock(limits, "anonymous-layer"),
+                "seventeenth, list, over-depth, and anonymous layers stay inactive");
+            var limitDiagnostics = new E();
+            var limitPage = limitDiagnostics.Go(limitPath);
+            Ok(Has(limitDiagnostics.Dg(limitPage).Cs, "@l(l01)") && Has(limitDiagnostics.Dg(limitPage).Cs, "@l(l16)") &&
+                !Has(limitDiagnostics.Dg(limitPage).Cs, "@l(l17)"), "layer diagnostic ceiling");
+
+            using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-30000, -30000), ClientSize = new Size(900, 600) })
+            using (var view = new V())
+            {
+                form.Controls.Add(view);
+                form.Show();
+                view.Go(path);
+                Paint(view);
+                Eq(201, BlockRect(view, BlockById(view.At, "normal-order")).Width, "WinForms layered normal geometry");
+                Eq(291, BlockRect(view, BlockById(view.At, "layer-wide")).Width, "WinForms layered wide geometry");
+                var viewField = FieldById(view.At, "field");
+                viewField.V = "Retained layer view value";
+                form.ClientSize = new Size(500, 700);
+                Application.DoEvents();
+                Paint(view);
+                Eq(292, BlockRect(view, BlockById(view.At, "layer-narrow")).Width, "WinForms layered narrow geometry");
+                Ok(Object.ReferenceEquals(viewField, FieldById(view.At, "field")) && viewField.V == "Retained layer view value",
+                    "WinForms layered resize retains field state");
+            }
+            Console.WriteLine("Lea cascade-layer smoke passed: named and nested layers, normal/unlayered/important/inline order, custom properties, pseudo content, conditional nesting, injected sheets, limits, diagnostics, retention, and live resize.");
         }
 
         private static void SupportsSmoke(string path)
