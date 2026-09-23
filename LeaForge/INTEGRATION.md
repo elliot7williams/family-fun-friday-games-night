@@ -522,6 +522,15 @@ rounded box, image, and field outlines with opacity and ancestor clipping while
 leaving `V.Rb`/`V.Rc`, hit routes, accessibility bounds, native editor
 placement, document height, and following flow unchanged.
 
+Authored CSS colors accept bounded legacy comma and modern space/slash
+`hsl()`/`hsla()` syntax in the same compact state used by existing named, hex,
+and RGB/RGBA colors. Unitless or `deg`, `grad`, `rad`, and `turn` hues normalize
+to one turn; percentage saturation/lightness and numeric or percentage alpha
+clamp at paint time. This is shared by text, backgrounds, borders, outlines,
+decorations, shadows, gradients, generated content, fields, and SVG paint, so
+embedding hosts need no HSL conversion layer. See `HSL_COLORS.md` for bounds and
+explicit exclusions.
+
 Inherited pointer interaction is available through `S.Cu/Pe`. Hosts can inspect
 the compact automatic/default, pointer, text, wait, crosshair, move, help,
 not-allowed, and axis-resize cursor state without translating CSS keywords.
@@ -997,7 +1006,8 @@ Presentation and inline transform lists support matrix, translate, scale,
 centered rotate, skewX, and skewY with cumulative group inheritance.
 Presentation attributes, specificity-ordered stylesheets, inline styles,
 custom-property values, and important priority cover fill, stroke, stroke width,
-opacity, fill/stroke opacity, font size, text anchor, and `currentColor`.
+opacity, fill/stroke opacity, font size, text anchor, and `currentColor`, with
+bounded HSL/HSLA colors sharing the ordinary HTML color conversion path.
 Local linear and radial gradients resolve once through `Vg.Ds` and `Vs.Fd/Sd`.
 They support object-bounds/user-space coordinates, percentage values, radial
 focus, up to four `href` inheritance hops, gradient transforms, and up to 16

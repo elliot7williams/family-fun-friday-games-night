@@ -349,18 +349,20 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 117 adds bounded named CSS cascade layers to the shared compiled-rule
-path. Named block layers use normal later-layer order, unlayered normal priority,
-reversed important order, and the existing strongest inline tiers. Reopened and
-nested names, local specificity/source order, custom properties, generated
-pseudo content, direction, SVG paint/stops, media/supports nesting, native-sheet
-merging, compact `@l(...)` diagnostics, retained fields, and live resize are
-covered under strict 16-layer and three-segment limits. Anonymous layers, comma
-order statements, and full `revert-layer` rollback remain outside this bounded
-slice. See `CASCADE_LAYERS.md`. All 113 probes pass over 108 fixtures; the
-focused and full engine suites, compiled Firespider host, all 42 Boot cases, and
-all six real EXE startup scenarios pass. Runtime 217 is staged separately and
-installed runtime 157 remains unchanged. Next investigate
+Milestone 118 adds bounded legacy and modern CSS HSL/HSLA colors to the shared
+color validator and WinForms painter. Comma and space/slash forms support finite
+signed unitless/degree, gradian, radian, and turn hues, normalized wrapping,
+percentage saturation/lightness, and numeric or percentage alpha. Existing
+compact records carry the authored value through text, backgrounds, physical
+and logical borders, outlines, decorations, shadows, gradients, generated
+content, variables, layers, media, fields, SVG fill/stroke/stops, and declaration
+`@supports` checks without a new public API. Mixed syntaxes, duplicate slashes,
+missing percentages, `none` channels, relative colors, channel calculations,
+and newer color spaces remain outside this bounded slice. See `HSL_COLORS.md`.
+All 114 probes pass over 109 fixtures; the focused and full engine suites,
+compiled Firespider host, all 42 Boot cases, and all six real EXE startup
+scenarios pass. Runtime 218 is packaged separately and installed runtime 157
+remains unchanged. Next investigate
 another bounded compatibility slice. Keep general media features, device ratios,
 container and style queries, `font-tech()`/`font-format()`, general-enclosed
 conditions, JavaScript `CSS.supports()`, locale-sensitive automatic quote selection,
@@ -487,7 +489,7 @@ The previous completed milestone adds bounded CSS background gradients through
 compact `S.Gi`, `Gi.K/A/X/Y/Ss`, and `Cs.C/P` state. One atomic linear or radial
 layer accepts up to eight normalized stops, integer degree or direction heads,
 and centered or percentage radial origins. Supported colors include named,
-hex, `rgb()`/`rgba()`, alpha, `currentColor`, and transparent forms; variables,
+hex, `rgb()`/`rgba()`, `hsl()`/`hsla()`, alpha, `currentColor`, and transparent forms; variables,
 important tiers, resets, malformed preservation, and noninheritance use the
 existing cascade. Rounded page, box, and field paint shares effective opacity,
 ancestor clipping, stable layout/hits, resize, benchmark, and Firespider host
@@ -498,7 +500,7 @@ The previous completed milestone adds bounded CSS box shadows through compact
 `S.Sw` lists and `Sw.X/Y/B/R/C/I` offsets, blur, spread, color, and inset state.
 Atomic lists accept up to four entries; offsets and spread cap at 512 pixels,
 blur caps at 128 pixels, and painting uses at most 12 concentric bands. Hex,
-named, `rgb()`/`rgba()`, modern slash alpha, `currentColor`, variables,
+named, `rgb()`/`rgba()`, `hsl()`/`hsla()`, modern slash alpha, `currentColor`, variables,
 important tiers, resets, malformed preservation, and noninheritance feed one
 rounded outer/inset painter. Exact alpha/blur/field pixels, unchanged layout and
 link hits, resize, benchmark, and Firespider host coverage remain on the

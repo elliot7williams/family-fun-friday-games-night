@@ -1,0 +1,88 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea HSL colors</title>
+  <style>
+    html, body { margin: 0; padding: 0; background: white; color: black; font-family: Arial; }
+    .swatch { display: block; width: 180px; height: 36px; margin: 12px; padding: 0; }
+    #legacy { background-color: hsl(120, 100%, 25%); color: hsl(0, 0%, 100%); }
+    #modern { background-color: hsl(240 100% 50% / 50%); }
+    #alpha { background-color: hsla(0, 100%, 50%, .5); }
+    #units {
+      background-color: hsl(.5turn 100% 50%);
+      border: 4px solid hsl(200grad 100% 50%);
+      outline: 3px solid hsl(3.141592653589793rad 100% 50%);
+      outline-offset: 2px;
+    }
+    #wrapped { background-color: hsl(-120deg 100% 50%); }
+    #clamped { background-color: hsl(30 120% -10%); }
+    #shadow { background: white; box-shadow: 10px 0 0 hsl(300 100% 25%); }
+    #shadow-atomic {
+      background: white;
+      box-shadow: 4px 0 0 hsl(30 100% 50%);
+      box-shadow: 8px 0 0 hsl(30 50 50);
+    }
+    #gradient {
+      background-image: linear-gradient(90deg, hsl(0 100% 50%) 0%, hsl(120 100% 25%) 50%, hsl(240 100% 50%) 100%);
+    }
+    #gradient-atomic {
+      background-image: linear-gradient(90deg, hsl(60 100% 50%) 0%, hsl(180 100% 50%) 100%);
+      background-image: linear-gradient(90deg, hsl(60 50 50), blue);
+    }
+    #decor {
+      color: hsl(210 100% 35%);
+      text-decoration: underline solid hsl(330 100% 40%) 3px;
+      text-shadow: 2px 2px 0 hsl(45 100% 50%);
+    }
+    :root { --tone: hsl(150 100% 25%); }
+    #variable { background-color: var(--tone); }
+    @layer hsl-base { #layered { background-color: hsl(60 100% 50%); } }
+    @layer hsl-theme { #layered { background-color: hsl(180 100% 50%); } }
+    #generated::before { content: "HSL "; color: hsl(270 100% 50%); text-shadow: 1px 1px 0 hsl(60 100% 50%); }
+    #responsive { background-color: hsl(30 100% 50%); }
+    @media (max-width: 600px) { #responsive { background-color: hsl(280 100% 50%); } }
+    #supported, #unsupported, #unsupported-mixed, #unsupported-slash, #unsupported-none { display: none; }
+    @supports (color: hsl(120 100% 25%)) { #supported { display: block; background-color: hsl(120 100% 25%); } }
+    @supports (color: hsl(120 50 25)) { #unsupported { display: block; } }
+    @supports (color: hsl(120, 100%, 25% / 50%)) { #unsupported-mixed { display: block; } }
+    @supports (color: hsl(120 100% 25% / 50% / 25%)) { #unsupported-slash { display: block; } }
+    @supports (color: hsl(none 100% 25%)) { #unsupported-none { display: block; } }
+    input { width: 180px; height: 32px; margin: 12px; color: hsl(210 100% 35%); background-color: hsl(180 60% 90%); border: 3px solid hsl(180 100% 25%); }
+    svg { width: 180px; height: 70px; margin: 12px; }
+    #svg-fill { fill: hsl(15 100% 50%); stroke: hsl(210 100% 40%); stroke-width: 4; }
+    #svg-stop-a { stop-color: hsl(300 100% 50%); }
+    #svg-stop-b { stop-color: hsl(60 100% 50%); }
+  </style>
+</head>
+<body>
+  <p id="legacy" class="swatch">Legacy</p>
+  <p id="modern" class="swatch">Modern alpha</p>
+  <p id="alpha" class="swatch">Legacy alpha</p>
+  <p id="units" class="swatch">Hue units</p>
+  <p id="wrapped" class="swatch">Wrapped hue</p>
+  <p id="clamped" class="swatch">Clamped channels</p>
+  <p id="shadow" class="swatch">Shadow</p>
+  <p id="shadow-atomic" class="swatch">Atomic shadow</p>
+  <p id="gradient" class="swatch">Gradient</p>
+  <p id="gradient-atomic" class="swatch">Atomic gradient</p>
+  <p id="decor" class="swatch">Decoration</p>
+  <p id="variable" class="swatch">Variable</p>
+  <p id="layered" class="swatch">Layered</p>
+  <p id="generated" class="swatch">generated</p>
+  <p id="responsive" class="swatch">Responsive</p>
+  <p id="supported" class="swatch">Supported</p>
+  <p id="unsupported" class="swatch">Unsupported</p>
+  <p id="unsupported-mixed" class="swatch">Unsupported mixed syntax</p>
+  <p id="unsupported-slash" class="swatch">Unsupported duplicate slash</p>
+  <p id="unsupported-none" class="swatch">Unsupported none hue</p>
+  <input id="field" value="Retained HSL field">
+  <svg id="svg" viewBox="0 0 180 70" role="img" aria-label="HSL vector">
+    <defs>
+      <linearGradient id="hsl-gradient"><stop id="svg-stop-a" offset="0%"></stop><stop id="svg-stop-b" offset="100%"></stop></linearGradient>
+    </defs>
+    <rect id="svg-fill" x="4" y="4" width="76" height="62"></rect>
+    <rect id="svg-gradient" x="94" y="4" width="82" height="62" fill="url(#hsl-gradient)"></rect>
+  </svg>
+</body>
+</html>

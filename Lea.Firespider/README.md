@@ -524,6 +524,13 @@ Hosted Lea pages expose bounded CSS background gradients through `S.Gi`,
 onto the same rounded box and verifies its kind, angle, normalized stops, and
 colors through the public model without adding adapter-side paint logic.
 
+Hosted Lea pages also accept bounded legacy and modern HSL/HSLA colors through
+the existing authored-color records. Unitless, degree, gradian, radian, and turn
+hues, normalized wrapping, percentage channels, numeric/percentage alpha,
+shadows, gradients, generated text, fields, and inline SVG all use the shared
+engine and WinForms paths. The compiled host verifies exact background, border,
+shadow, and gradient pixels without adding a Firespider color converter.
+
 Hosted Lea pages expose bounded bitmap backgrounds through `S.Bi` and compact
 `Bi.U/R/X/Y/Xp/Yp/W/H/Wp/Hp/Wa/Ha/K` state. The host smoke compiles a data
 image with no-repeat, bottom-right positioning, pixel sizing, and rounded

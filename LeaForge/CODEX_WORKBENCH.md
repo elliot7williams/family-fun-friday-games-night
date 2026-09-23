@@ -17,21 +17,23 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 117 adds bounded named CSS cascade layers to Lea's shared compiled-rule
-path. Named block layers use later-layer normal order, unlayered normal priority,
-reversed important order, and the existing strongest inline tiers. Reopened and
-nested names, local specificity/source order, custom properties, pseudo content,
-direction, SVG paint/stops, supports/media nesting, native-sheet merging, compact
-`@l(...)` diagnostics, retained fields, and live resize are covered under strict
-16-layer and three-segment limits. Anonymous layers, comma order statements, and
-full `revert-layer` rollback stay outside the slice. All 113 benchmark probes pass
-over 108 fixtures. The focused and full engine suites and compiled Firespider
-host are green. All 42 Boot cases and all six real EXE startup scenarios remain
-responsive without a legacy engine, invalid cast, JIT dialog, or dead startup
-window. Three-round diagnostic medians are 527.970 ms clean start,
-5.441 ms local load, and 39.099 ms layout/paint; retained memory is 68.4
-KiB/page and the required runtime is 639.5 KiB. Runtime 217 is staged separately
-and installed runtime 157 remains unchanged. See `CASCADE_LAYERS.md`. Container/style queries,
+Milestone 118 adds bounded legacy and modern CSS HSL/HSLA colors to Lea's shared
+color validator and WinForms painter. Comma and space/slash syntax support
+unitless/degree, gradian, radian, and turn hues, normalized wrapping, clamped
+percentage channels, and numeric or percentage alpha. The existing compact
+records cover text, backgrounds, borders, outlines, decorations, shadows,
+gradients, generated content, variables, layers, media, fields, SVG paint/stops,
+and declaration `@supports` checks without a new alias or dependency. Mixed
+syntax, duplicate slashes, missing percentages, `none` channels, relative
+colors, channel calculations, and newer color spaces remain outside the slice.
+All 114 benchmark probes pass over 109 fixtures. The focused and full engine
+suites and compiled Firespider host are green. All 42 Boot cases and all six
+real EXE startup scenarios remain responsive without a legacy engine, invalid
+cast, JIT dialog, or dead startup window. Three-round diagnostic medians are
+529.692 ms clean start, 5.526 ms local load, and 41.683 ms layout/paint;
+retained memory is 68.5 KiB/page and the required runtime is 642.0 KiB. Runtime
+218 is packaged separately and installed runtime 157 remains unchanged. See
+`HSL_COLORS.md`. Container/style queries,
 `font-tech()`/`font-format()`,
 general-enclosed conditions, JavaScript `CSS.supports()`, locale-sensitive
 automatic quote selection, typed/unquoted/functional attribute fallbacks,

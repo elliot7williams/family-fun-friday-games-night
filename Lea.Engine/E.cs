@@ -2825,6 +2825,11 @@ namespace Lea.Engine
             var name = declaration.N;
             var value = declaration.V.Trim();
             var lower = value.ToLowerInvariant();
+            if (name == "color" || name == "background-color" || name == "outline-color" ||
+                name == "text-decoration-color" || name == "border-color" ||
+                name == "border-top-color" || name == "border-right-color" ||
+                name == "border-bottom-color" || name == "border-left-color" || name == "stop-color")
+                return ShadowColor(value);
             if (name == "display")
                 return Regex.IsMatch(lower, "^(?:none|block|inline|inline-block|flex|inline-flex|grid|inline-grid|list-item|table|table-row|table-cell|initial|inherit|unset|revert|revert-layer)$");
             if (name == "position") return Regex.IsMatch(lower, "^(?:static|relative|absolute|fixed|sticky|initial|unset|revert)$");
@@ -8623,8 +8628,14 @@ namespace Lea.Engine
         private static bool ShadowFunctionColor(string source)
         {
             var match = Regex.Match(source ?? "", "^rgba?\\((?<v>[^()]{1,48})\\)$", RegexOptions.IgnoreCase);
-            if (!match.Success) return false;
-            var body = match.Groups["v"].Value.Trim();
+            if (match.Success) return ShadowRgbColor(match.Groups["v"].Value);
+            match = Regex.Match(source ?? "", "^hsla?\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
+            return match.Success && ShadowHslColor(match.Groups["v"].Value);
+        }
+
+        private static bool ShadowRgbColor(string value)
+        {
+            var body = (value ?? "").Trim();
             string[] channels;
             string alpha = null;
             if (body.IndexOf(',') >= 0)
@@ -8648,6 +8659,50 @@ namespace Lea.Engine
             }
             return ShadowColorNumber(channels[0]) && ShadowColorNumber(channels[1]) && ShadowColorNumber(channels[2]) &&
                 (alpha == null || ShadowColorNumber(alpha));
+        }
+
+        private static bool ShadowHslColor(string value)
+        {
+            var body = (value ?? "").Trim();
+            string[] channels;
+            string alpha = null;
+            if (body.IndexOf(',') >= 0)
+            {
+                var values = body.Split(',');
+                if (values.Length < 3 || values.Length > 4 || body.IndexOf('/') >= 0) return false;
+                channels = new string[] { values[0].Trim(), values[1].Trim(), values[2].Trim() };
+                if (values.Length == 4) alpha = values[3].Trim();
+            }
+            else
+            {
+                var slash = body.IndexOf('/');
+                if (slash >= 0)
+                {
+                    if (body.IndexOf('/', slash + 1) >= 0) return false;
+                    alpha = body.Substring(slash + 1).Trim();
+                    body = body.Substring(0, slash).Trim();
+                }
+                channels = Regex.Split(body, "\\s+");
+                if (channels.Length != 3) return false;
+            }
+            return ShadowHue(channels[0]) && ShadowPercent(channels[1]) && ShadowPercent(channels[2]) &&
+                (alpha == null || ShadowColorNumber(alpha));
+        }
+
+        private static bool ShadowHue(string source)
+        {
+            var match = Regex.Match(source ?? "", "^(?<n>[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:e[+-]?[0-9]+)?)(?:deg|grad|rad|turn)?$", RegexOptions.IgnoreCase);
+            double number;
+            return match.Success && Double.TryParse(match.Groups["n"].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out number) &&
+                !Double.IsNaN(number) && !Double.IsInfinity(number);
+        }
+
+        private static bool ShadowPercent(string source)
+        {
+            if (String.IsNullOrWhiteSpace(source) || !source.EndsWith("%", StringComparison.Ordinal)) return false;
+            double number;
+            return Double.TryParse(source.Substring(0, source.Length - 1), NumberStyles.Float, CultureInfo.InvariantCulture, out number) &&
+                !Double.IsNaN(number) && !Double.IsInfinity(number);
         }
 
         private static bool ShadowColorNumber(string source)

@@ -7398,8 +7398,15 @@ namespace Lea.Win
         {
             color = Color.Empty;
             var match = Regex.Match(source ?? "", "^rgba?\\((?<v>[^()]*)\\)$", RegexOptions.IgnoreCase);
-            if (!match.Success) return false;
-            var body = match.Groups["v"].Value.Trim();
+            if (match.Success) return CssRgbColor(match.Groups["v"].Value, out color);
+            match = Regex.Match(source ?? "", "^hsla?\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
+            return match.Success && CssHslColor(match.Groups["v"].Value, out color);
+        }
+
+        private static bool CssRgbColor(string value, out Color color)
+        {
+            color = Color.Empty;
+            var body = (value ?? "").Trim();
             string[] channels;
             string alpha = null;
             if (body.IndexOf(',') >= 0)
@@ -7428,6 +7435,86 @@ namespace Lea.Win
             if (!CssColorChannel(channels[0], out red) || !CssColorChannel(channels[1], out green) || !CssColorChannel(channels[2], out blue) || !CssAlpha(alpha, out opacity)) return false;
             color = Color.FromArgb(opacity, red, green, blue);
             return true;
+        }
+
+        private static bool CssHslColor(string value, out Color color)
+        {
+            color = Color.Empty;
+            var body = (value ?? "").Trim();
+            string[] channels;
+            string alpha = null;
+            if (body.IndexOf(',') >= 0)
+            {
+                var values = body.Split(',');
+                if (values.Length < 3 || values.Length > 4 || body.IndexOf('/') >= 0) return false;
+                channels = new string[] { values[0].Trim(), values[1].Trim(), values[2].Trim() };
+                if (values.Length == 4) alpha = values[3].Trim();
+            }
+            else
+            {
+                var slash = body.IndexOf('/');
+                if (slash >= 0)
+                {
+                    if (body.IndexOf('/', slash + 1) >= 0) return false;
+                    alpha = body.Substring(slash + 1).Trim();
+                    body = body.Substring(0, slash).Trim();
+                }
+                channels = Regex.Split(body, "\\s+");
+                if (channels.Length != 3) return false;
+            }
+            double hue;
+            double saturation;
+            double lightness;
+            int opacity;
+            if (!CssHue(channels[0], out hue) || !CssPercent(channels[1], out saturation) ||
+                !CssPercent(channels[2], out lightness) || !CssAlpha(alpha, out opacity)) return false;
+            var chroma = (1D - Math.Abs(2D * lightness - 1D)) * saturation;
+            var sector = hue / 60D;
+            var middle = chroma * (1D - Math.Abs(sector % 2D - 1D));
+            double red;
+            double green;
+            double blue;
+            if (sector < 1D) { red = chroma; green = middle; blue = 0D; }
+            else if (sector < 2D) { red = middle; green = chroma; blue = 0D; }
+            else if (sector < 3D) { red = 0D; green = chroma; blue = middle; }
+            else if (sector < 4D) { red = 0D; green = middle; blue = chroma; }
+            else if (sector < 5D) { red = middle; green = 0D; blue = chroma; }
+            else { red = chroma; green = 0D; blue = middle; }
+            var offset = lightness - chroma / 2D;
+            color = Color.FromArgb(opacity, CssByte(red + offset), CssByte(green + offset), CssByte(blue + offset));
+            return true;
+        }
+
+        private static bool CssHue(string source, out double value)
+        {
+            value = 0D;
+            var match = Regex.Match(source ?? "", "^(?<n>[+-]?(?:[0-9]+(?:\\.[0-9]*)?|\\.[0-9]+)(?:e[+-]?[0-9]+)?)(?<u>deg|grad|rad|turn)?$", RegexOptions.IgnoreCase);
+            double number;
+            if (!match.Success || !Double.TryParse(match.Groups["n"].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out number) ||
+                Double.IsNaN(number) || Double.IsInfinity(number)) return false;
+            var unit = match.Groups["u"].Value.ToLowerInvariant();
+            if (unit == "grad") number *= .9D;
+            else if (unit == "rad") number *= 180D / Math.PI;
+            else if (unit == "turn") number *= 360D;
+            value = number % 360D;
+            if (value < 0D) value += 360D;
+            return true;
+        }
+
+        private static bool CssPercent(string source, out double value)
+        {
+            value = 0D;
+            if (String.IsNullOrWhiteSpace(source) || !source.EndsWith("%", StringComparison.Ordinal)) return false;
+            double number;
+            if (!Double.TryParse(source.Substring(0, source.Length - 1), NumberStyles.Float, CultureInfo.InvariantCulture, out number) ||
+                Double.IsNaN(number) || Double.IsInfinity(number)) return false;
+            value = Math.Max(0D, Math.Min(1D, number / 100D));
+            return true;
+        }
+
+        private static int CssByte(double value)
+        {
+            return (int)Math.Round(Math.Max(0D, Math.Min(1D, value)) * 255D);
         }
 
         private static bool CssColorChannel(string source, out int value)

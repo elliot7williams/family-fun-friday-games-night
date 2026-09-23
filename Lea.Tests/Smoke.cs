@@ -161,6 +161,11 @@ namespace Lea.Tests
                     LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--hsl")
+                {
+                    HslColorSmoke(Path.Combine(pages, "hsl-colors.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--text-align-last")
                 {
                     TextAlignLastSmoke(Path.Combine(pages, "text-align-last.html"));
@@ -1541,6 +1546,7 @@ namespace Lea.Tests
                 MediaRangeSmoke(Path.Combine(pages, "media-ranges.html"));
                 SupportsSmoke(Path.Combine(pages, "supports-queries.html"));
                 LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
+                HslColorSmoke(Path.Combine(pages, "hsl-colors.html"));
 
                 var customPath = Path.Combine(pages, "custom-properties.html");
                 var customEngine = new E();
@@ -8279,6 +8285,111 @@ namespace Lea.Tests
                     "WinForms layered resize retains field state");
             }
             Console.WriteLine("Lea cascade-layer smoke passed: named and nested layers, normal/unlayered/important/inline order, custom properties, pseudo content, conditional nesting, injected sheets, limits, diagnostics, retention, and live resize.");
+        }
+
+        private static void HslColorSmoke(string path)
+        {
+            var engine = new E { Vw = 760, Vh = 1300 };
+            var page = engine.Go(path);
+            Func<string, B> block = id => BlockById(page, id);
+            Eq("hsl(120, 100%, 25%)", block("legacy").S.Bg, "legacy HSL background state");
+            Eq("hsl(240 100% 50% / 50%)", block("modern").S.Bg, "modern HSL alpha state");
+            Eq("hsla(0, 100%, 50%, .5)", block("alpha").S.Bg, "legacy HSLA state");
+            Ok(block("units").S.Bg == "hsl(.5turn 100% 50%)" && block("units").S.Bcv(0) == "hsl(200grad 100% 50%)" &&
+                block("units").S.Oc == "hsl(3.141592653589793rad 100% 50%)", "HSL hue unit model");
+            Eq("hsl(-120deg 100% 50%)", block("wrapped").S.Bg, "negative HSL hue state");
+            Eq("hsl(30 120% -10%)", block("clamped").S.Bg, "HSL saturation and lightness clamp state");
+            Ok(block("shadow").S.Sw.Count == 1 && block("shadow").S.Sw[0].C == "hsl(300 100% 25%)" &&
+                block("shadow-atomic").S.Sw.Count == 1 && block("shadow-atomic").S.Sw[0].X == 4 &&
+                block("shadow-atomic").S.Sw[0].C == "hsl(30 100% 50%)", "HSL shadow parsing and atomic rejection");
+            Ok(block("gradient").S.Gi != null && block("gradient").S.Gi.Ss.Count == 3 &&
+                block("gradient").S.Gi.Ss[1].C == "hsl(120 100% 25%)" &&
+                block("gradient-atomic").S.Gi != null && block("gradient-atomic").S.Gi.Ss[0].C == "hsl(60 100% 50%)",
+                "HSL gradient parsing and atomic rejection");
+            Ok(block("decor").S.F == "hsl(210 100% 35%)" && block("decor").S.Tc == "hsl(330 100% 40%)" &&
+                block("decor").S.Ts != null && block("decor").S.Ts.C == "hsl(45 100% 50%)", "HSL text color model");
+            Eq("hsl(150 100% 25%)", block("variable").S.Bg, "HSL custom property resolution");
+            Eq("hsl(180 100% 50%)", block("layered").S.Bg, "HSL cascade layer order");
+            var generated = Run(block("generated"), "be");
+            Ok(generated != null && generated.S.F == "hsl(270 100% 50%)" && generated.S.Ts != null &&
+                generated.S.Ts.C == "hsl(60 100% 50%)", "HSL generated content style");
+            Ok(HasBlock(page, "supported") && !HasBlock(page, "unsupported") &&
+                !HasBlock(page, "unsupported-mixed") && !HasBlock(page, "unsupported-slash") &&
+                !HasBlock(page, "unsupported-none") &&
+                Has(engine.Dg(page).Cs, "@s(color:hsl(120100%25%))"), "HSL supports query capability");
+            var field = FieldById(page, "field");
+            Ok(field.S.F == "hsl(210 100% 35%)" && field.S.Bg == "hsl(180 60% 90%)" &&
+                field.S.Bcv(0) == "hsl(180 100% 25%)", "HSL native field style");
+            field.V = "Retained HSL value";
+            var svg = block("svg").Vg;
+            Ok(svg != null && svg.Ss.Count == 2 && svg.Ss[0].F == "hsl(15 100% 50%)" &&
+                svg.Ss[0].S == "hsl(210 100% 40%)" && svg.Ds.Count == 1 &&
+                svg.Ds[0].Ss.Count == 2 && svg.Ds[0].Ss[0].C == "hsl(300 100% 50%)" &&
+                svg.Ds[0].Ss[1].C == "hsl(60 100% 50%)", "HSL SVG paint and gradient stops");
+
+            engine.Vz(500, 1300);
+            Eq("hsl(280 100% 50%)", block("responsive").S.Bg, "responsive HSL state");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained HSL value",
+                "responsive HSL rebuild retains field state");
+
+            using (var view = new V { Size = new Size(760, 1300) })
+            {
+                view.Go(path);
+                using (var image = Render(view))
+                {
+                    var legacy = BlockRect(view, BlockById(view.At, "legacy"));
+                    var modern = BlockRect(view, BlockById(view.At, "modern"));
+                    var alpha = BlockRect(view, BlockById(view.At, "alpha"));
+                    var units = BlockOuterRect(view, BlockById(view.At, "units"));
+                    var wrapped = BlockRect(view, BlockById(view.At, "wrapped"));
+                    var clamped = BlockRect(view, BlockById(view.At, "clamped"));
+                    var shadow = BlockOuterRect(view, BlockById(view.At, "shadow"));
+                    var atomic = BlockOuterRect(view, BlockById(view.At, "shadow-atomic"));
+                    var gradient = BlockRect(view, BlockById(view.At, "gradient"));
+                    var input = BlockRect(view, FieldBlock(view.At, FieldById(view.At, "field")));
+                    var vector = BlockRect(view, BlockById(view.At, "svg"));
+                    Ok(ColorDistance(image.GetPixel(legacy.Right - 5, legacy.Top + 5), Color.FromArgb(0, 128, 0)) < 4,
+                        "legacy HSL background paint");
+                    Ok(ColorDistance(image.GetPixel(modern.Right - 5, modern.Top + 5), Color.FromArgb(127, 127, 255)) < 8 &&
+                        ColorDistance(image.GetPixel(alpha.Right - 5, alpha.Top + 5), Color.FromArgb(255, 127, 127)) < 8,
+                        "modern and legacy HSL alpha paint");
+                    Ok(ColorDistance(CenterPixel(image, units), Color.Cyan) < 4 &&
+                        ColorDistance(image.GetPixel(units.Left + units.Width / 2, units.Top + 2), Color.Cyan) < 8 &&
+                        ColorDistance(image.GetPixel(units.Left - 5, units.Top + units.Height / 2), Color.Cyan) < 8,
+                        "turn, grad, and radian HSL paint");
+                    Ok(ColorDistance(image.GetPixel(wrapped.Right - 5, wrapped.Top + 5), Color.Blue) < 4 &&
+                        ColorDistance(image.GetPixel(clamped.Right - 5, clamped.Top + 5), Color.Black) < 4,
+                        "wrapped and clamped HSL paint");
+                    Ok(ColorDistance(image.GetPixel(shadow.Right + 5, shadow.Top + shadow.Height / 2), Color.FromArgb(128, 0, 128)) < 8 &&
+                        ColorDistance(image.GetPixel(atomic.Right + 2, atomic.Top + atomic.Height / 2), Color.FromArgb(255, 128, 0)) < 8,
+                        "HSL shadow paint and invalid fallback");
+                    Ok(ColorDistance(image.GetPixel(gradient.Left + 5, gradient.Top + gradient.Height / 2), Color.Red) < 35 &&
+                        ColorDistance(image.GetPixel(gradient.Right - 5, gradient.Top + gradient.Height / 2), Color.Blue) < 35,
+                        "HSL gradient paint");
+                    Ok(ColorDistance(image.GetPixel(input.Right - 8, input.Top + input.Height / 2), Color.FromArgb(214, 245, 245)) < 12,
+                        "HSL native field paint");
+                    var vectorFill = image.GetPixel(vector.Left + 30, vector.Top + 30);
+                    var vectorStart = image.GetPixel(vector.Left + 97, vector.Top + 30);
+                    var vectorEnd = image.GetPixel(vector.Right - 5, vector.Top + 30);
+                    Ok(ColorDistance(vectorFill, Color.FromArgb(255, 64, 0)) < 12 &&
+                        ColorDistance(vectorStart, Color.FromArgb(255, 0, 255)) < 35 &&
+                        ColorDistance(vectorEnd, Color.Yellow) < 35,
+                        "HSL SVG fill and gradient paint: " + vectorFill + "/" + vectorStart + "/" + vectorEnd);
+                }
+                var liveField = FieldById(view.At, "field");
+                liveField.V = "Retained HSL view value";
+                view.Size = new Size(500, 1300);
+                Application.DoEvents();
+                using (var image = Render(view))
+                {
+                    var responsive = BlockRect(view, BlockById(view.At, "responsive"));
+                    Ok(ColorDistance(image.GetPixel(responsive.Right - 5, responsive.Top + 5), Color.FromArgb(170, 0, 255)) < 8,
+                        "responsive HSL paint");
+                }
+                Ok(Object.ReferenceEquals(liveField, FieldById(view.At, "field")) && liveField.V == "Retained HSL view value",
+                    "HSL live resize retains field state");
+            }
+            Console.WriteLine("Lea HSL color smoke passed: legacy and modern syntax, hue units, wrapping, clamping, alpha, supports, variables, layers, shadows, gradients, generated content, fields, SVG, responsive paint, and retention.");
         }
 
         private static void SupportsSmoke(string path)
