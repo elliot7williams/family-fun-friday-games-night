@@ -7498,7 +7498,11 @@ namespace Lea.Win
             match = Regex.Match(source ?? "", "^hsla?\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
             if (match.Success) return CssHslColor(match.Groups["v"].Value, out color);
             match = Regex.Match(source ?? "", "^hwb\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
-            return match.Success && CssHwbColor(match.Groups["v"].Value, out color);
+            if (match.Success) return CssHwbColor(match.Groups["v"].Value, out color);
+            match = Regex.Match(source ?? "", "^oklab\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
+            if (match.Success) return CssOklabColor(match.Groups["v"].Value, false, out color);
+            match = Regex.Match(source ?? "", "^oklch\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
+            return match.Success && CssOklabColor(match.Groups["v"].Value, true, out color);
         }
 
         private static bool CssRgbColor(string value, out Color color)
@@ -7611,6 +7615,187 @@ namespace Lea.Win
             }
             color = Color.FromArgb(opacity, CssByte(red), CssByte(green), CssByte(blue));
             return true;
+        }
+
+        private static bool CssOklabColor(string value, bool polar, out Color color)
+        {
+            color = Color.Empty;
+            var body = (value ?? "").Trim();
+            if (body.IndexOf(',') >= 0) return false;
+            string alpha = null;
+            var slash = body.IndexOf('/');
+            if (slash >= 0)
+            {
+                if (body.IndexOf('/', slash + 1) >= 0) return false;
+                alpha = body.Substring(slash + 1).Trim();
+                body = body.Substring(0, slash).Trim();
+            }
+            var channels = Regex.Split(body, "\\s+");
+            double lightness;
+            double second;
+            double third;
+            int opacity;
+            if (channels.Length != 3 || !CssOklabComponent(channels[0], 1D, 0D, 1D, out lightness) ||
+                !CssOklabComponent(channels[1], .4D, polar ? 0D : -4D, 4D, out second) ||
+                (polar ? !CssHue(channels[2], out third) : !CssOklabComponent(channels[2], .4D, -4D, 4D, out third)) ||
+                !CssAlpha(alpha, out opacity)) return false;
+            var a = polar ? second * Math.Cos(third * Math.PI / 180D) : second;
+            var b = polar ? second * Math.Sin(third * Math.PI / 180D) : third;
+            double red;
+            double green;
+            double blue;
+            CssOklabRgb(lightness, a, b, out red, out green, out blue);
+            color = Color.FromArgb(opacity, CssByte(red), CssByte(green), CssByte(blue));
+            return true;
+        }
+
+        private static bool CssOklabComponent(string source, double percentScale, double minimum, double maximum, out double value)
+        {
+            value = 0D;
+            if (String.IsNullOrWhiteSpace(source)) return false;
+            var percent = source.EndsWith("%", StringComparison.Ordinal);
+            double number;
+            if (!Double.TryParse(percent ? source.Substring(0, source.Length - 1) : source, NumberStyles.Float,
+                CultureInfo.InvariantCulture, out number) || Double.IsNaN(number) || Double.IsInfinity(number)) return false;
+            value = percent ? number * percentScale / 100D : number;
+            value = Math.Max(minimum, Math.Min(maximum, value));
+            return true;
+        }
+
+        private static void CssOklabRgb(double lightness, double a, double b,
+            out double red, out double green, out double blue)
+        {
+            if (lightness <= 0D) { red = green = blue = 0D; return; }
+            if (lightness >= 1D) { red = green = blue = 1D; return; }
+            CssOklabToSrgb(lightness, a, b, out red, out green, out blue);
+            if (CssSrgbInGamut(red, green, blue))
+            {
+                red = CssUnit(red); green = CssUnit(green); blue = CssUnit(blue);
+                return;
+            }
+
+            // CSS gamut mapping keeps Oklab lightness and hue while reducing chroma.
+            var chroma = Math.Sqrt(a * a + b * b);
+            if (chroma <= 0D) { red = CssUnit(red); green = CssUnit(green); blue = CssUnit(blue); return; }
+            var cosine = a / chroma;
+            var sine = b / chroma;
+            double clippedRed = CssUnit(red);
+            double clippedGreen = CssUnit(green);
+            double clippedBlue = CssUnit(blue);
+            if (CssOklabDelta(lightness, a, b, clippedRed, clippedGreen, clippedBlue) < .02D)
+            {
+                red = clippedRed; green = clippedGreen; blue = clippedBlue;
+                return;
+            }
+            var minimum = 0D;
+            var maximum = chroma;
+            var minimumInGamut = true;
+            while (maximum - minimum > .0001D)
+            {
+                var current = (minimum + maximum) / 2D;
+                var currentA = current * cosine;
+                var currentB = current * sine;
+                CssOklabToSrgb(lightness, currentA, currentB, out red, out green, out blue);
+                if (minimumInGamut && CssSrgbInGamut(red, green, blue))
+                {
+                    minimum = current;
+                    continue;
+                }
+                clippedRed = CssUnit(red);
+                clippedGreen = CssUnit(green);
+                clippedBlue = CssUnit(blue);
+                var difference = CssOklabDelta(lightness, currentA, currentB, clippedRed, clippedGreen, clippedBlue);
+                if (difference < .02D)
+                {
+                    if (.02D - difference < .0001D)
+                    {
+                        red = clippedRed; green = clippedGreen; blue = clippedBlue;
+                        return;
+                    }
+                    minimumInGamut = false;
+                    minimum = current;
+                }
+                else maximum = current;
+            }
+            red = clippedRed; green = clippedGreen; blue = clippedBlue;
+        }
+
+        private static void CssOklabToSrgb(double lightness, double a, double b,
+            out double red, out double green, out double blue)
+        {
+            var lRoot = lightness + .3963377773761749D * a + .2158037573099136D * b;
+            var mRoot = lightness - .1055613458156586D * a - .0638541728258133D * b;
+            var sRoot = lightness - .0894841775298119D * a - 1.2914855480194092D * b;
+            var l = lRoot * lRoot * lRoot;
+            var m = mRoot * mRoot * mRoot;
+            var s = sRoot * sRoot * sRoot;
+            var x = 1.2268798758459243D * l - .5578149944602171D * m + .2813910456659647D * s;
+            var y = -.0405757452148008D * l + 1.112286803280317D * m - .0717110580655164D * s;
+            var z = -.0763729366746601D * l - .4214933324022432D * m + 1.5869240198367816D * s;
+            red = CssSrgbGamma(12831D / 3959D * x - 329D / 214D * y - 1974D / 3959D * z);
+            green = CssSrgbGamma(-851781D / 878810D * x + 1648619D / 878810D * y + 36519D / 878810D * z);
+            blue = CssSrgbGamma(705D / 12673D * x - 2585D / 12673D * y + 705D / 667D * z);
+        }
+
+        private static void CssSrgbToOklab(double red, double green, double blue,
+            out double lightness, out double a, out double b)
+        {
+            red = CssSrgbLinear(red);
+            green = CssSrgbLinear(green);
+            blue = CssSrgbLinear(blue);
+            var x = 506752D / 1228815D * red + 87881D / 245763D * green + 12673D / 70218D * blue;
+            var y = 87098D / 409605D * red + 175762D / 245763D * green + 12673D / 175545D * blue;
+            var z = 7918D / 409605D * red + 87881D / 737289D * green + 1001167D / 1053270D * blue;
+            var l = CssCubeRoot(.819022437996703D * x + .3619062600528904D * y - .1288737815209879D * z);
+            var m = CssCubeRoot(.0329836539323885D * x + .9292868615863434D * y + .0361446663506424D * z);
+            var s = CssCubeRoot(.0481771893596242D * x + .2642395317527308D * y + .6335478284694309D * z);
+            lightness = .210454268309314D * l + .7936177747023054D * m - .0040720430116193D * s;
+            a = 1.9779985324311684D * l - 2.4285922420485799D * m + .450593709617411D * s;
+            b = .0259040424655478D * l + .7827717124575296D * m - .8086757549230774D * s;
+        }
+
+        private static double CssOklabDelta(double lightness, double a, double b,
+            double red, double green, double blue)
+        {
+            double clippedLightness;
+            double clippedA;
+            double clippedB;
+            CssSrgbToOklab(red, green, blue, out clippedLightness, out clippedA, out clippedB);
+            var lightnessDifference = lightness - clippedLightness;
+            var aDifference = a - clippedA;
+            var bDifference = b - clippedB;
+            return Math.Sqrt(lightnessDifference * lightnessDifference + aDifference * aDifference + bDifference * bDifference);
+        }
+
+        private static double CssSrgbGamma(double value)
+        {
+            var sign = value < 0D ? -1D : 1D;
+            var absolute = Math.Abs(value);
+            return absolute > .0031308D ? sign * (1.055D * Math.Pow(absolute, 1D / 2.4D) - .055D) : 12.92D * value;
+        }
+
+        private static double CssSrgbLinear(double value)
+        {
+            var sign = value < 0D ? -1D : 1D;
+            var absolute = Math.Abs(value);
+            return absolute <= .04045D ? value / 12.92D : sign * Math.Pow((absolute + .055D) / 1.055D, 2.4D);
+        }
+
+        private static double CssCubeRoot(double value)
+        {
+            return value < 0D ? -Math.Pow(-value, 1D / 3D) : Math.Pow(value, 1D / 3D);
+        }
+
+        private static bool CssSrgbInGamut(double red, double green, double blue)
+        {
+            const double tolerance = .0000001D;
+            return red >= -tolerance && red <= 1D + tolerance && green >= -tolerance && green <= 1D + tolerance &&
+                blue >= -tolerance && blue <= 1D + tolerance;
+        }
+
+        private static double CssUnit(double value)
+        {
+            return Math.Max(0D, Math.Min(1D, value));
         }
 
         private static void CssHslRgb(double hue, double saturation, double lightness,

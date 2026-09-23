@@ -1,0 +1,104 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Oklab colors</title>
+  <style>
+    html, body { margin: 0; padding: 0; background: white; color: black; font-family: Arial; }
+    .swatch { display: block; width: 190px; height: 36px; margin: 12px; padding: 0; }
+    #lab-red { background-color: oklab(0.6279553606 0.2248630611 0.1258462985); }
+    #lab-percent { background-color: oklab(62.79553606% 56.215765275% 31.461574625%); }
+    #lch-blue { background-color: oklch(0.4520137184 0.3132143717 264.0520206); }
+    #lch-percent { background-color: oklch(62.79553606% 64.420826925% 29.2338852); }
+    #alpha { background-color: oklab(0.6279553606 0.2248630611 0.1258462985 / 50%); }
+    #units {
+      background-color: oklch(0.8664396115 0.2948272403 0.395820386turn);
+      border: 4px solid oklch(0.8664396115 0.2948272403 158.328154grad);
+      outline: 3px solid oklch(0.8664396115 0.2948272403 2.487rad);
+      outline-offset: 2px;
+    }
+    #wrapped { background-color: oklch(0.6279553606 0.2576833077 389.2338852deg); }
+    #white-clamp { background-color: oklab(120% 4 -4); }
+    #black-clamp { background-color: oklab(-20% -4 4); }
+    #chroma-clamp { background-color: oklch(0.5 -1 20); }
+    #gamut { background-color: oklch(0.72 0.5 40); }
+    #mix { background-color: color-mix(in srgb, oklab(0.6279553606 0.2248630611 0.1258462985), oklch(0.4520137184 0.3132143717 264.0520206)); }
+    #shadow { background: white; box-shadow: 10px 0 0 oklch(0.6279553606 0.2576833077 29.2338852); }
+    #shadow-atomic {
+      background: white;
+      box-shadow: 4px 0 0 oklab(0.6279553606 0.2248630611 0.1258462985);
+      box-shadow: 8px 0 0 oklab(0.6, 0.2, 0.1);
+    }
+    #gradient {
+      background-image: linear-gradient(90deg, oklab(0.6279553606 0.2248630611 0.1258462985) 0%, oklch(0.4520137184 0.3132143717 264.0520206) 100%);
+    }
+    #gradient-atomic {
+      background-image: linear-gradient(90deg, oklab(0.8664396115 -0.2338875742 0.1794984799), oklab(0.6279553606 0.2248630611 0.1258462985));
+      background-image: linear-gradient(90deg, oklab(0.6 0.2 0.1 / 50% / 25%), blue);
+    }
+    #decor {
+      color: oklch(0.4520137184 0.3132143717 264.0520206);
+      text-decoration: underline solid oklab(0.6279553606 0.2248630611 0.1258462985) 3px;
+      text-shadow: 2px 2px 0 oklab(0.8664396115 -0.2338875742 0.1794984799);
+    }
+    :root { --tone: oklch(0.8664396115 0.2948272403 142.4953389); }
+    #variable { background-color: var(--tone); }
+    @layer ok-base { #layered { background-color: oklab(0.6279553606 0.2248630611 0.1258462985); } }
+    @layer ok-theme { #layered { background-color: oklch(0.4520137184 0.3132143717 264.0520206); } }
+    #generated::before { content: "OKX "; color: oklch(0.4520137184 0.3132143717 264.0520206); text-shadow: 1px 1px 0 oklab(0.8664396115 -0.2338875742 0.1794984799); }
+    #responsive { background-color: oklab(0.6279553606 0.2248630611 0.1258462985); }
+    @media (max-width: 600px) { #responsive { background-color: oklch(0.4520137184 0.3132143717 264.0520206); } }
+    #supported-lab, #supported-lch, #unsupported-comma, #unsupported-slash, #unsupported-none, #unsupported-nested, #unsupported-missing { display: none; }
+    @supports (color: oklab(0.6 0.2 0.1)) { #supported-lab { display: block; background-color: oklab(0.6 0.2 0.1); } }
+    @supports (color: oklch(0.6 0.2 40)) { #supported-lch { display: block; background-color: oklch(0.6 0.2 40); } }
+    @supports (color: oklab(0.6, 0.2, 0.1)) { #unsupported-comma { display: block; } }
+    @supports (color: oklch(0.6 0.2 40 / 50% / 25%)) { #unsupported-slash { display: block; } }
+    @supports (color: oklab(none 0.2 0.1)) { #unsupported-none { display: block; } }
+    @supports (color: oklch(calc(0.6) 0.2 40)) { #unsupported-nested { display: block; } }
+    @supports (color: oklab(0.6 0.2)) { #unsupported-missing { display: block; } }
+    input { width: 190px; height: 32px; margin: 12px; color: oklch(0.4520137184 0.3132143717 264.0520206); background-color: oklab(0.8664396115 -0.2338875742 0.1794984799 / 20%); border: 3px solid oklab(0.6279553606 0.2248630611 0.1258462985); }
+    svg { width: 190px; height: 70px; margin: 12px; }
+    #svg-fill { fill: oklab(0.6279553606 0.2248630611 0.1258462985); stroke: oklch(0.4520137184 0.3132143717 264.0520206); stroke-width: 4; }
+    #svg-stop-a { stop-color: oklab(0.8664396115 -0.2338875742 0.1794984799); }
+    #svg-stop-b { stop-color: oklch(0.4520137184 0.3132143717 264.0520206); }
+  </style>
+</head>
+<body>
+  <p id="lab-red" class="swatch">Oklab red</p>
+  <p id="lab-percent" class="swatch">Oklab percentages</p>
+  <p id="lch-blue" class="swatch">OkLCh blue</p>
+  <p id="lch-percent" class="swatch">OkLCh percentages</p>
+  <p id="alpha" class="swatch">Alpha</p>
+  <p id="units" class="swatch">Hue units</p>
+  <p id="wrapped" class="swatch">Wrapped hue</p>
+  <p id="white-clamp" class="swatch">White clamp</p>
+  <p id="black-clamp" class="swatch">Black clamp</p>
+  <p id="chroma-clamp" class="swatch">Chroma clamp</p>
+  <p id="gamut" class="swatch">Gamut mapped</p>
+  <p id="mix" class="swatch">Mixed Oklab stops</p>
+  <p id="shadow" class="swatch">Shadow</p>
+  <p id="shadow-atomic" class="swatch">Atomic shadow</p>
+  <p id="gradient" class="swatch">Gradient</p>
+  <p id="gradient-atomic" class="swatch">Atomic gradient</p>
+  <p id="decor" class="swatch">Decoration</p>
+  <p id="variable" class="swatch">Variable</p>
+  <p id="layered" class="swatch">Layered</p>
+  <p id="generated" class="swatch">Generated</p>
+  <p id="responsive" class="swatch">Responsive</p>
+  <p id="supported-lab" class="swatch">Oklab supported</p>
+  <p id="supported-lch" class="swatch">OkLCh supported</p>
+  <p id="unsupported-comma" class="swatch">Unsupported comma syntax</p>
+  <p id="unsupported-slash" class="swatch">Unsupported duplicate slash</p>
+  <p id="unsupported-none" class="swatch">Unsupported none channel</p>
+  <p id="unsupported-nested" class="swatch">Unsupported nested function</p>
+  <p id="unsupported-missing" class="swatch">Unsupported missing channel</p>
+  <input id="field" value="Retained Oklab field">
+  <svg id="svg" viewBox="0 0 190 70" role="img" aria-label="Oklab vector">
+    <defs>
+      <linearGradient id="ok-gradient"><stop id="svg-stop-a" offset="0%"></stop><stop id="svg-stop-b" offset="100%"></stop></linearGradient>
+    </defs>
+    <rect id="svg-fill" x="4" y="4" width="80" height="62"></rect>
+    <rect id="svg-gradient" x="98" y="4" width="88" height="62" fill="url(#ok-gradient)"></rect>
+  </svg>
+</body>
+</html>

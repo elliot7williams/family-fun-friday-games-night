@@ -349,20 +349,19 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 120 adds bounded two-stop CSS `color-mix(in srgb, ...)` to the shared
-color validator and WinForms painter. Named, hex, RGB/RGBA, HSL/HSLA, HWB,
-`transparent`, and `currentColor` stops accept omitted or 0..100% weights.
-Omitted weights receive their complement, explicit weights normalize, low
-totals reduce alpha, and paint uses premultiplied-alpha sRGB interpolation.
-Existing compact records carry mixes through text, backgrounds,
-physical/logical borders, outlines, decorations, shadows, gradients, generated
-content, variables, layers, media, fields, SVG fill/stroke/stops, and declaration
-`@supports` checks without a new public API. Other spaces, hue interpolation,
-nested mixes, extra stops, invalid percentages, zero totals, and overlong input
-remain outside this bounded slice. See `COLOR_MIX.md`. All 116 probes pass over
-111 fixtures; the focused and full engine suites, compiled Firespider host, all
-42 Boot cases, and all six real EXE startup scenarios pass. Runtime 220 is
-packaged separately and installed runtime 157 remains unchanged. Next investigate
+Milestone 121 adds bounded modern CSS `oklab()` and `oklch()` to the shared
+color validator and WinForms painter. Numeric and percentage channels, optional
+slash alpha, four OkLCh hue units, D65 conversion, and bounded CSS-style
+local-MINDE sRGB gamut mapping share the existing authored-color records.
+Text, backgrounds, borders, outlines, decorations, shadows, gradients,
+generated content, variables, layers, media, fields, sRGB mix stops, SVG paint,
+and declaration `@supports` checks need no new public API. Comma forms, `none`,
+relative or calculated channels, `lab()`/`lch()`, wide-gamut profiles, and
+overlong input remain outside this slice. See `OKLAB_COLORS.md`. All 117 probes
+pass over 112 fixtures; focused and full source/staged suites, the compiled
+Firespider host, all 42 Boot cases, and all six real EXE startup scenarios pass.
+Runtime 221 is packaged separately and installed runtime 157 remains unchanged.
+Next investigate
 another bounded compatibility slice. Keep general media features, device ratios,
 container and style queries, `font-tech()`/`font-format()`, general-enclosed
 conditions, JavaScript `CSS.supports()`, locale-sensitive automatic quote selection,
@@ -489,7 +488,7 @@ The previous completed milestone adds bounded CSS background gradients through
 compact `S.Gi`, `Gi.K/A/X/Y/Ss`, and `Cs.C/P` state. One atomic linear or radial
 layer accepts up to eight normalized stops, integer degree or direction heads,
 and centered or percentage radial origins. Supported colors include named,
-hex, `rgb()`/`rgba()`, `hsl()`/`hsla()`, `hwb()`, bounded two-stop sRGB mixes,
+hex, `rgb()`/`rgba()`, `hsl()`/`hsla()`, `hwb()`, `oklab()`, `oklch()`, bounded two-stop sRGB mixes,
 alpha, `currentColor`, and transparent forms; variables,
 important tiers, resets, malformed preservation, and noninheritance use the
 existing cascade. Rounded page, box, and field paint shares effective opacity,
@@ -501,7 +500,7 @@ The previous completed milestone adds bounded CSS box shadows through compact
 `S.Sw` lists and `Sw.X/Y/B/R/C/I` offsets, blur, spread, color, and inset state.
 Atomic lists accept up to four entries; offsets and spread cap at 512 pixels,
 blur caps at 128 pixels, and painting uses at most 12 concentric bands. Hex,
-named, `rgb()`/`rgba()`, `hsl()`/`hsla()`, `hwb()`, bounded two-stop sRGB mixes,
+named, `rgb()`/`rgba()`, `hsl()`/`hsla()`, `hwb()`, `oklab()`, `oklch()`, bounded two-stop sRGB mixes,
 modern slash alpha, `currentColor`, variables,
 important tiers, resets, malformed preservation, and noninheritance feed one
 rounded outer/inset painter. Exact alpha/blur/field pixels, unchanged layout and

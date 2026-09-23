@@ -537,7 +537,15 @@ variables, layers, media, fields, shadows, gradients, generated text, and SVG.
 The compiled host verifies the public state and exact mixed-background, border,
 shadow, and gradient pixels without adding a host-side converter.
 
-Bounded two-stop `color-mix(in srgb, ...)` expressions also flow through the
+Modern `oklab()` and `oklch()` colors follow the same host-neutral route. Lea
+handles numeric/percentage channels, four hue units, alpha, D65 conversion, and
+bounded local-MINDE sRGB gamut mapping across variables, layers, media, fields,
+shadows, gradients, generated text, and SVG. The compiled host verifies public
+state plus exact background, border, shadow, and gradient paint without a
+Firespider color-space implementation.
+
+Bounded two-stop `color-mix(in srgb, ...)` expressions, including Oklab and
+OkLCh base stops, also flow through the
 existing authored-color records. Omitted and normalized weights, low-total
 alpha, premultiplied transparent/translucent stops, `currentColor`, variables,
 layers, media, fields, shadows, gradients, generated text, and SVG need no host

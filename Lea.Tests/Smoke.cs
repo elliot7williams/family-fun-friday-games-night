@@ -171,6 +171,11 @@ namespace Lea.Tests
                     HwbColorSmoke(Path.Combine(pages, "hwb-colors.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--oklab")
+                {
+                    OklabColorSmoke(Path.Combine(pages, "oklab-colors.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--color-mix")
                 {
                     ColorMixSmoke(Path.Combine(pages, "color-mix.html"));
@@ -1558,6 +1563,7 @@ namespace Lea.Tests
                 LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
                 HslColorSmoke(Path.Combine(pages, "hsl-colors.html"));
                 HwbColorSmoke(Path.Combine(pages, "hwb-colors.html"));
+                OklabColorSmoke(Path.Combine(pages, "oklab-colors.html"));
                 ColorMixSmoke(Path.Combine(pages, "color-mix.html"));
 
                 var customPath = Path.Combine(pages, "custom-properties.html");
@@ -8510,6 +8516,140 @@ namespace Lea.Tests
                     "HWB live resize retains field state");
             }
             Console.WriteLine("Lea HWB color smoke passed: modern syntax, hue units, wrapping, normalization, clamping, alpha, supports, variables, layers, shadows, gradients, generated content, fields, SVG, responsive paint, and retention.");
+        }
+
+        private static void OklabColorSmoke(string path)
+        {
+            var engine = new E { Vw = 760, Vh = 2200 };
+            var page = engine.Go(path);
+            Func<string, B> block = id => BlockById(page, id);
+            Eq("oklab(0.6279553606 0.2248630611 0.1258462985)", block("lab-red").S.Bg, "Oklab numeric state");
+            Eq("oklab(62.79553606% 56.215765275% 31.461574625%)", block("lab-percent").S.Bg, "Oklab percentage state");
+            Eq("oklch(0.4520137184 0.3132143717 264.0520206)", block("lch-blue").S.Bg, "OkLCh numeric state");
+            Eq("oklch(62.79553606% 64.420826925% 29.2338852)", block("lch-percent").S.Bg, "OkLCh percentage state");
+            Eq("oklab(0.6279553606 0.2248630611 0.1258462985 / 50%)", block("alpha").S.Bg, "Oklab alpha state");
+            Ok(block("units").S.Bg == "oklch(0.8664396115 0.2948272403 0.395820386turn)" &&
+                block("units").S.Bcv(0) == "oklch(0.8664396115 0.2948272403 158.328154grad)" &&
+                block("units").S.Oc == "oklch(0.8664396115 0.2948272403 2.487rad)", "OkLCh hue unit model");
+            Eq("oklch(0.6279553606 0.2576833077 389.2338852deg)", block("wrapped").S.Bg, "wrapped OkLCh hue state");
+            Eq("oklab(120% 4 -4)", block("white-clamp").S.Bg, "Oklab white clamp state");
+            Eq("oklab(-20% -4 4)", block("black-clamp").S.Bg, "Oklab black clamp state");
+            Eq("oklch(0.5 -1 20)", block("chroma-clamp").S.Bg, "OkLCh chroma clamp state");
+            Eq("oklch(0.72 0.5 40)", block("gamut").S.Bg, "OkLCh gamut state");
+            Eq("color-mix(in srgb, oklab(0.6279553606 0.2248630611 0.1258462985), oklch(0.4520137184 0.3132143717 264.0520206))",
+                block("mix").S.Bg, "Oklab color mix stop state");
+            Ok(block("shadow").S.Sw.Count == 1 && block("shadow").S.Sw[0].C == "oklch(0.6279553606 0.2576833077 29.2338852)" &&
+                block("shadow-atomic").S.Sw.Count == 1 && block("shadow-atomic").S.Sw[0].X == 4 &&
+                block("shadow-atomic").S.Sw[0].C == "oklab(0.6279553606 0.2248630611 0.1258462985)",
+                "Oklab shadow parsing and atomic rejection");
+            Ok(block("gradient").S.Gi != null && block("gradient").S.Gi.Ss.Count == 2 &&
+                block("gradient").S.Gi.Ss[0].C == "oklab(0.6279553606 0.2248630611 0.1258462985)" &&
+                block("gradient-atomic").S.Gi != null &&
+                block("gradient-atomic").S.Gi.Ss[0].C == "oklab(0.8664396115 -0.2338875742 0.1794984799)",
+                "Oklab gradient parsing and atomic rejection");
+            Ok(block("decor").S.F == "oklch(0.4520137184 0.3132143717 264.0520206)" &&
+                block("decor").S.Tc == "oklab(0.6279553606 0.2248630611 0.1258462985)" &&
+                block("decor").S.Ts != null && block("decor").S.Ts.C == "oklab(0.8664396115 -0.2338875742 0.1794984799)",
+                "Oklab text color model");
+            Eq("oklch(0.8664396115 0.2948272403 142.4953389)", block("variable").S.Bg, "OkLCh custom property resolution");
+            Eq("oklch(0.4520137184 0.3132143717 264.0520206)", block("layered").S.Bg, "OkLCh cascade layer order");
+            var generated = Run(block("generated"), "be");
+            Ok(generated != null && generated.S.F == "oklch(0.4520137184 0.3132143717 264.0520206)" &&
+                generated.S.Ts != null && generated.S.Ts.C == "oklab(0.8664396115 -0.2338875742 0.1794984799)",
+                "Oklab generated content style");
+            Ok(HasBlock(page, "supported-lab") && HasBlock(page, "supported-lch") &&
+                !HasBlock(page, "unsupported-comma") && !HasBlock(page, "unsupported-slash") &&
+                !HasBlock(page, "unsupported-none") && !HasBlock(page, "unsupported-nested") &&
+                !HasBlock(page, "unsupported-missing") && Has(engine.Dg(page).Cs, "@s(color:oklab(0.60.20.1))") &&
+                Has(engine.Dg(page).Cs, "@s(color:oklch(0.60.240))"), "Oklab supports query capability");
+            var field = FieldById(page, "field");
+            Ok(field.S.F == "oklch(0.4520137184 0.3132143717 264.0520206)" &&
+                field.S.Bg == "oklab(0.8664396115 -0.2338875742 0.1794984799 / 20%)" &&
+                field.S.Bcv(0) == "oklab(0.6279553606 0.2248630611 0.1258462985)", "Oklab native field style");
+            field.V = "Retained Oklab value";
+            var svg = block("svg").Vg;
+            Ok(svg != null && svg.Ss.Count == 2 && svg.Ss[0].F == "oklab(0.6279553606 0.2248630611 0.1258462985)" &&
+                svg.Ss[0].S == "oklch(0.4520137184 0.3132143717 264.0520206)" && svg.Ds.Count == 1 &&
+                svg.Ds[0].Ss.Count == 2 && svg.Ds[0].Ss[0].C == "oklab(0.8664396115 -0.2338875742 0.1794984799)" &&
+                svg.Ds[0].Ss[1].C == "oklch(0.4520137184 0.3132143717 264.0520206)", "Oklab SVG paint and gradient stops");
+
+            engine.Vz(500, 2200);
+            Eq("oklch(0.4520137184 0.3132143717 264.0520206)", block("responsive").S.Bg, "responsive Oklab state");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained Oklab value",
+                "responsive Oklab rebuild retains field state");
+
+            using (var view = new V { Size = new Size(760, 2200) })
+            {
+                view.Go(path);
+                using (var image = Render(view))
+                {
+                    var lab = BlockRect(view, BlockById(view.At, "lab-red"));
+                    var labPercent = BlockRect(view, BlockById(view.At, "lab-percent"));
+                    var lch = BlockRect(view, BlockById(view.At, "lch-blue"));
+                    var lchPercent = BlockRect(view, BlockById(view.At, "lch-percent"));
+                    var alpha = BlockRect(view, BlockById(view.At, "alpha"));
+                    var units = BlockOuterRect(view, BlockById(view.At, "units"));
+                    var wrapped = BlockRect(view, BlockById(view.At, "wrapped"));
+                    var white = BlockRect(view, BlockById(view.At, "white-clamp"));
+                    var black = BlockRect(view, BlockById(view.At, "black-clamp"));
+                    var neutral = BlockRect(view, BlockById(view.At, "chroma-clamp"));
+                    var gamut = BlockRect(view, BlockById(view.At, "gamut"));
+                    var mix = BlockRect(view, BlockById(view.At, "mix"));
+                    var shadow = BlockOuterRect(view, BlockById(view.At, "shadow"));
+                    var atomic = BlockOuterRect(view, BlockById(view.At, "shadow-atomic"));
+                    var gradient = BlockRect(view, BlockById(view.At, "gradient"));
+                    var input = BlockRect(view, FieldBlock(view.At, FieldById(view.At, "field")));
+                    var vector = BlockRect(view, BlockById(view.At, "svg"));
+                    Ok(ColorDistance(image.GetPixel(lab.Right - 5, lab.Top + 5), Color.Red) < 5 &&
+                        ColorDistance(image.GetPixel(labPercent.Right - 5, labPercent.Top + 5), Color.Red) < 5 &&
+                        ColorDistance(image.GetPixel(lch.Right - 5, lch.Top + 5), Color.Blue) < 5 &&
+                        ColorDistance(image.GetPixel(lchPercent.Right - 5, lchPercent.Top + 5), Color.Red) < 5,
+                        "Oklab and OkLCh numeric and percentage paint");
+                    Ok(ColorDistance(image.GetPixel(alpha.Right - 5, alpha.Top + 5), Color.FromArgb(255, 127, 127)) < 8,
+                        "Oklab alpha paint");
+                    Ok(ColorDistance(CenterPixel(image, units), Color.Lime) < 5 &&
+                        ColorDistance(image.GetPixel(units.Left + units.Width / 2, units.Top + 2), Color.Lime) < 8 &&
+                        ColorDistance(image.GetPixel(units.Left - 5, units.Top + units.Height / 2), Color.Lime) < 8,
+                        "turn, grad, and radian OkLCh paint");
+                    Ok(ColorDistance(image.GetPixel(wrapped.Right - 5, wrapped.Top + 5), Color.Red) < 5 &&
+                        ColorDistance(image.GetPixel(white.Right - 5, white.Top + 5), Color.White) < 4 &&
+                        ColorDistance(image.GetPixel(black.Right - 5, black.Top + 5), Color.Black) < 4 &&
+                        ColorDistance(image.GetPixel(neutral.Right - 5, neutral.Top + 5), Color.FromArgb(99, 99, 99)) < 5,
+                        "wrapped and clamped Oklab paint");
+                    var gamutPixel = image.GetPixel(gamut.Right - 5, gamut.Top + 5);
+                    Ok(gamutPixel.R > 220 && gamutPixel.G > 40 && gamutPixel.G < 180 && gamutPixel.B < 100,
+                        "Oklab perceptual gamut mapping: " + gamutPixel);
+                    Ok(ColorDistance(image.GetPixel(mix.Right - 5, mix.Top + 5), Color.FromArgb(128, 0, 128)) < 8,
+                        "Oklab color mix stop paint");
+                    Ok(ColorDistance(image.GetPixel(shadow.Right + 5, shadow.Top + shadow.Height / 2), Color.Red) < 8 &&
+                        ColorDistance(image.GetPixel(atomic.Right + 2, atomic.Top + atomic.Height / 2), Color.Red) < 8,
+                        "Oklab shadow paint and invalid fallback");
+                    Ok(ColorDistance(image.GetPixel(gradient.Left + 5, gradient.Top + gradient.Height / 2), Color.Red) < 35 &&
+                        ColorDistance(image.GetPixel(gradient.Right - 5, gradient.Top + gradient.Height / 2), Color.Blue) < 35,
+                        "Oklab gradient paint");
+                    Ok(ColorDistance(image.GetPixel(input.Right - 8, input.Top + input.Height / 2), Color.FromArgb(204, 255, 204)) < 12,
+                        "Oklab native field paint");
+                    var vectorFill = image.GetPixel(vector.Left + 30, vector.Top + 30);
+                    var vectorStart = image.GetPixel(vector.Left + 101, vector.Top + 30);
+                    var vectorEnd = image.GetPixel(vector.Right - 5, vector.Top + 30);
+                    Ok(ColorDistance(vectorFill, Color.Red) < 12 && ColorDistance(vectorStart, Color.Lime) < 35 &&
+                        ColorDistance(vectorEnd, Color.Blue) < 35,
+                        "Oklab SVG fill and gradient paint: " + vectorFill + "/" + vectorStart + "/" + vectorEnd);
+                }
+                var liveField = FieldById(view.At, "field");
+                liveField.V = "Retained Oklab view value";
+                view.Size = new Size(500, 2200);
+                Application.DoEvents();
+                using (var image = Render(view))
+                {
+                    var responsive = BlockRect(view, BlockById(view.At, "responsive"));
+                    Ok(ColorDistance(image.GetPixel(responsive.Right - 5, responsive.Top + 5), Color.Blue) < 5,
+                        "responsive Oklab paint");
+                }
+                Ok(Object.ReferenceEquals(liveField, FieldById(view.At, "field")) && liveField.V == "Retained Oklab view value",
+                    "Oklab live resize retains field state");
+            }
+            Console.WriteLine("Lea Oklab smoke passed: numeric and percentage Oklab/OkLCh, hue units, wrapping, clamping, local-MINDE gamut mapping, alpha, color mixing, supports, variables, layers, shadows, gradients, generated content, fields, SVG, responsive paint, and retention.");
         }
 
         private static void ColorMixSmoke(string path)

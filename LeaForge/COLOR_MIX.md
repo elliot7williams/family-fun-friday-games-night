@@ -13,11 +13,12 @@ Lea accepts two colors in the sRGB interpolation space:
 ```css
 color: color-mix(in srgb, red, blue);
 background: color-mix(in srgb, hsl(120 100% 25%) 25%, hwb(240 0% 0%));
+outline-color: color-mix(in srgb, oklab(.63 .22 .13), oklch(.45 .31 264));
 border-color: color-mix(in srgb, currentColor 40%, white);
 ```
 
 Each stop accepts one existing bounded named, hex, RGB/RGBA, HSL/HSLA, HWB,
-`transparent`, or `currentColor` value and an optional finite 0..100%
+Oklab/OkLCh, `transparent`, or `currentColor` value and an optional finite 0..100%
 percentage. Nested `color-mix()` stops are rejected.
 
 If neither percentage is present, both weights are 50%. If one is omitted, it
