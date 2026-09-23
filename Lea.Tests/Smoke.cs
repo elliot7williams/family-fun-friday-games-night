@@ -171,6 +171,11 @@ namespace Lea.Tests
                     HwbColorSmoke(Path.Combine(pages, "hwb-colors.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--color-mix")
+                {
+                    ColorMixSmoke(Path.Combine(pages, "color-mix.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--text-align-last")
                 {
                     TextAlignLastSmoke(Path.Combine(pages, "text-align-last.html"));
@@ -1553,6 +1558,7 @@ namespace Lea.Tests
                 LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
                 HslColorSmoke(Path.Combine(pages, "hsl-colors.html"));
                 HwbColorSmoke(Path.Combine(pages, "hwb-colors.html"));
+                ColorMixSmoke(Path.Combine(pages, "color-mix.html"));
 
                 var customPath = Path.Combine(pages, "custom-properties.html");
                 var customEngine = new E();
@@ -8504,6 +8510,121 @@ namespace Lea.Tests
                     "HWB live resize retains field state");
             }
             Console.WriteLine("Lea HWB color smoke passed: modern syntax, hue units, wrapping, normalization, clamping, alpha, supports, variables, layers, shadows, gradients, generated content, fields, SVG, responsive paint, and retention.");
+        }
+
+        private static void ColorMixSmoke(string path)
+        {
+            var engine = new E { Vw = 760, Vh = 1800 };
+            var page = engine.Go(path);
+            Func<string, B> block = id => BlockById(page, id);
+            Eq("color-mix(in srgb, red, blue)", block("equal").S.Bg, "equal color mix state");
+            Eq("color-mix(in srgb, red 25%, blue)", block("complement").S.Bg, "color mix omitted complement state");
+            Eq("color-mix(in srgb, red, blue 25%)", block("reverse").S.Bg, "color mix reverse complement state");
+            Eq("color-mix(in srgb, red 20%, blue 20%)", block("low-total").S.Bg, "color mix low total state");
+            Eq("color-mix(in srgb, red 80%, blue 80%)", block("high-total").S.Bg, "color mix high total state");
+            Eq("color-mix(in srgb, transparent, red)", block("transparent-mix").S.Bg, "transparent color mix state");
+            Eq("color-mix(in srgb, rgba(255, 0, 0, .5), blue)", block("premultiplied").S.Bg,
+                "premultiplied color mix state");
+            Eq("color-mix(in srgb, hsl(120 100% 25%) 25%, hwb(240 0% 0%))", block("functions").S.Bg,
+                "functional color mix state");
+            Eq("color-mix(in srgb, currentColor 25%, white)", block("current").S.Bcv(0), "current color mix state");
+            Ok(block("shadow").S.Sw.Count == 1 && block("shadow").S.Sw[0].C == "color-mix(in srgb, red, blue)" &&
+                block("shadow-atomic").S.Sw.Count == 1 && block("shadow-atomic").S.Sw[0].X == 4 &&
+                block("shadow-atomic").S.Sw[0].C == "color-mix(in srgb, red 25%, blue)",
+                "color mix shadow parsing and atomic rejection");
+            Ok(block("gradient").S.Gi != null && block("gradient").S.Gi.Ss.Count == 2 &&
+                block("gradient").S.Gi.Ss[0].C == "color-mix(in srgb, red 75%, blue)" &&
+                block("gradient-atomic").S.Gi != null &&
+                block("gradient-atomic").S.Gi.Ss[0].C == "color-mix(in srgb, red, white)",
+                "color mix gradient parsing and atomic rejection");
+            Ok(block("decor").S.F == "color-mix(in srgb, #0066cc 75%, white)" &&
+                block("decor").S.Tc == "color-mix(in srgb, red 40%, blue)" && block("decor").S.Ts != null &&
+                block("decor").S.Ts.C == "color-mix(in srgb, yellow, red)", "color mix text model");
+            Eq("color-mix(in srgb, green 60%, white)", block("variable").S.Bg, "color mix custom property resolution");
+            Eq("color-mix(in srgb, blue, white)", block("layered").S.Bg, "color mix cascade layer order");
+            var generated = Run(block("generated"), "be");
+            Ok(generated != null && generated.S.F == "color-mix(in srgb, red, blue)" && generated.S.Ts != null &&
+                generated.S.Ts.C == "color-mix(in srgb, yellow, red)", "color mix generated content style");
+            Ok(HasBlock(page, "supported") && !HasBlock(page, "unsupported-space") &&
+                !HasBlock(page, "unsupported-extra") && !HasBlock(page, "unsupported-zero") &&
+                !HasBlock(page, "unsupported-negative") && !HasBlock(page, "unsupported-over") &&
+                !HasBlock(page, "unsupported-nested") &&
+                Has(engine.Dg(page).Cs, "@s(color:color-mix(insrgb,red25%,blue))"), "color mix supports capability");
+            var field = FieldById(page, "field");
+            Ok(field.S.F == "color-mix(in srgb, black 75%, white)" &&
+                field.S.Bg == "color-mix(in srgb, cyan 20%, white)" &&
+                field.S.Bcv(0) == "color-mix(in srgb, cyan 50%, black)", "color mix native field style");
+            field.V = "Retained color mix value";
+            var svg = block("svg").Vg;
+            Ok(svg != null && svg.Ss.Count == 2 && svg.Ss[0].F == "color-mix(in srgb, red, blue)" &&
+                svg.Ss[0].S == "color-mix(in srgb, blue 75%, black)" && svg.Ds.Count == 1 &&
+                svg.Ds[0].Ss.Count == 2 && svg.Ds[0].Ss[0].C == "color-mix(in srgb, red 75%, blue)" &&
+                svg.Ds[0].Ss[1].C == "color-mix(in srgb, red, blue 75%)", "color mix SVG state");
+
+            engine.Vz(500, 1800);
+            Eq("color-mix(in srgb, blue 75%, white)", block("responsive").S.Bg, "responsive color mix state");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained color mix value",
+                "responsive color mix rebuild retains field state");
+
+            using (var view = new V { Size = new Size(760, 1800) })
+            {
+                view.Go(path);
+                using (var image = Render(view))
+                {
+                    var equal = BlockRect(view, BlockById(view.At, "equal"));
+                    var complement = BlockRect(view, BlockById(view.At, "complement"));
+                    var reverse = BlockRect(view, BlockById(view.At, "reverse"));
+                    var low = BlockRect(view, BlockById(view.At, "low-total"));
+                    var high = BlockRect(view, BlockById(view.At, "high-total"));
+                    var transparent = BlockRect(view, BlockById(view.At, "transparent-mix"));
+                    var premultiplied = BlockRect(view, BlockById(view.At, "premultiplied"));
+                    var functions = BlockRect(view, BlockById(view.At, "functions"));
+                    var current = BlockOuterRect(view, BlockById(view.At, "current"));
+                    var shadow = BlockOuterRect(view, BlockById(view.At, "shadow"));
+                    var atomic = BlockOuterRect(view, BlockById(view.At, "shadow-atomic"));
+                    var gradient = BlockRect(view, BlockById(view.At, "gradient"));
+                    var input = BlockRect(view, FieldBlock(view.At, FieldById(view.At, "field")));
+                    var vector = BlockRect(view, BlockById(view.At, "svg"));
+                    Ok(ColorDistance(image.GetPixel(equal.Right - 5, equal.Top + 5), Color.FromArgb(128, 0, 128)) < 4 &&
+                        ColorDistance(image.GetPixel(complement.Right - 5, complement.Top + 5), Color.FromArgb(64, 0, 191)) < 4 &&
+                        ColorDistance(image.GetPixel(reverse.Right - 5, reverse.Top + 5), Color.FromArgb(191, 0, 64)) < 4,
+                        "equal and complement color mix paint");
+                    Ok(ColorDistance(image.GetPixel(low.Right - 5, low.Top + 5), Color.FromArgb(204, 153, 204)) < 8 &&
+                        ColorDistance(image.GetPixel(high.Right - 5, high.Top + 5), Color.FromArgb(128, 0, 128)) < 4,
+                        "low and high total color mix paint");
+                    Ok(ColorDistance(image.GetPixel(transparent.Right - 5, transparent.Top + 5), Color.FromArgb(255, 127, 127)) < 8 &&
+                        ColorDistance(image.GetPixel(premultiplied.Right - 5, premultiplied.Top + 5), Color.FromArgb(127, 63, 191)) < 10,
+                        "transparent and premultiplied color mix paint");
+                    Ok(ColorDistance(image.GetPixel(functions.Right - 5, functions.Top + 5), Color.FromArgb(0, 32, 191)) < 5 &&
+                        ColorDistance(image.GetPixel(current.Left + current.Width / 2, current.Top + 2), Color.FromArgb(191, 223, 191)) < 8,
+                        "functional and current color mix paint");
+                    Ok(ColorDistance(image.GetPixel(shadow.Right + 5, shadow.Top + shadow.Height / 2), Color.FromArgb(128, 0, 128)) < 8 &&
+                        ColorDistance(image.GetPixel(atomic.Right + 2, atomic.Top + atomic.Height / 2), Color.FromArgb(64, 0, 191)) < 8,
+                        "color mix shadow paint and invalid fallback");
+                    Ok(ColorDistance(image.GetPixel(gradient.Left + 5, gradient.Top + gradient.Height / 2), Color.FromArgb(191, 0, 64)) < 35 &&
+                        ColorDistance(image.GetPixel(gradient.Right - 5, gradient.Top + gradient.Height / 2), Color.FromArgb(64, 0, 191)) < 35,
+                        "color mix gradient paint");
+                    Ok(ColorDistance(image.GetPixel(input.Right - 8, input.Top + input.Height / 2), Color.FromArgb(204, 255, 255)) < 12,
+                        "color mix native field paint");
+                    Ok(ColorDistance(image.GetPixel(vector.Left + 30, vector.Top + 30), Color.FromArgb(128, 0, 128)) < 12 &&
+                        ColorDistance(image.GetPixel(vector.Left + 101, vector.Top + 30), Color.FromArgb(191, 0, 64)) < 35 &&
+                        ColorDistance(image.GetPixel(vector.Right - 5, vector.Top + 30), Color.FromArgb(64, 0, 191)) < 35,
+                        "color mix SVG fill and gradient paint");
+                }
+                var liveField = FieldById(view.At, "field");
+                liveField.V = "Retained color mix view value";
+                view.Size = new Size(500, 1800);
+                Application.DoEvents();
+                using (var image = Render(view))
+                {
+                    var responsive = BlockRect(view, BlockById(view.At, "responsive"));
+                    Ok(ColorDistance(image.GetPixel(responsive.Right - 5, responsive.Top + 5), Color.FromArgb(64, 64, 255)) < 8,
+                        "responsive color mix paint");
+                }
+                Ok(Object.ReferenceEquals(liveField, FieldById(view.At, "field")) && liveField.V == "Retained color mix view value",
+                    "color mix live resize retains field state");
+            }
+            Console.WriteLine("Lea color-mix smoke passed: bounded sRGB stops, omitted and normalized weights, reduced and premultiplied alpha, current color, supports, variables, layers, shadows, gradients, generated content, fields, SVG, responsive paint, and retention.");
         }
 
         private static void SupportsSmoke(string path)

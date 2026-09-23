@@ -53,9 +53,10 @@ computed value. Responsive rebuilds retain mutable field identity and values.
 ## Compatibility boundary
 
 This milestone does not add the CSS `none` channel keyword, relative colors,
-`calc()` or other expressions inside channels, `color-mix()`, `lab()`, `lch()`,
+`calc()` or other expressions inside channels, `lab()`, `lch()`,
 `oklab()`, `oklch()`, wide-gamut `color()`, or color-profile management. Bounded
-modern HWB is documented separately in `HWB_COLORS.md`. Lea's compact page-script
+modern HWB and sRGB mixing are documented separately in `HWB_COLORS.md` and
+`COLOR_MIX.md`. Lea's compact page-script
 `bg` and `fg` commands keep their existing command-specific validation; this
 milestone covers authored CSS and all shared style paths that already use the
 bounded CSS color parser.

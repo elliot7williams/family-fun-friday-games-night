@@ -537,6 +537,13 @@ variables, layers, media, fields, shadows, gradients, generated text, and SVG.
 The compiled host verifies the public state and exact mixed-background, border,
 shadow, and gradient pixels without adding a host-side converter.
 
+Bounded two-stop `color-mix(in srgb, ...)` expressions also flow through the
+existing authored-color records. Omitted and normalized weights, low-total
+alpha, premultiplied transparent/translucent stops, `currentColor`, variables,
+layers, media, fields, shadows, gradients, generated text, and SVG need no host
+logic. The compiled host verifies exact background, current-color border,
+shadow, and gradient pixels.
+
 Hosted Lea pages expose bounded bitmap backgrounds through `S.Bi` and compact
 `Bi.U/R/X/Y/Xp/Yp/W/H/Wp/Hp/Wa/Ha/K` state. The host smoke compiles a data
 image with no-repeat, bottom-right positioning, pixel sizing, and rounded

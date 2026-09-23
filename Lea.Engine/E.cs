@@ -44,6 +44,7 @@ namespace Lea.Engine
         private const int MaxCustomValue = 512;
         private const int MaxVarDepth = 8;
         private const int MaxVarValue = 1024;
+        private const int MaxColorText = 160;
         private const int MaxGradientText = 1024;
         private const int MaxGradientStops = 8;
         private const int MaxBackgroundText = 4096;
@@ -6485,7 +6486,7 @@ namespace Lea.Engine
             var lower = source.ToLowerInvariant();
             if (lower == "inherit") { inherit = true; return true; }
             if (DecorationReset(lower)) return true;
-            if (source.Length == 0 || source.Length > 64 || DecorationColorKeyword(lower) || !ShadowColor(source)) return false;
+            if (source.Length == 0 || source.Length > MaxColorText || DecorationColorKeyword(lower) || !ShadowColor(source)) return false;
             color = source;
             return true;
         }
@@ -8618,11 +8619,60 @@ namespace Lea.Engine
 
         private static bool ShadowColor(string value)
         {
-            if (String.IsNullOrWhiteSpace(value) || value.Length > 64) return false;
+            if (String.IsNullOrWhiteSpace(value) || value.Length > MaxColorText) return false;
             var source = value.Trim();
+            return ShadowColorMix(source) || ShadowBaseColor(source);
+        }
+
+        private static bool ShadowBaseColor(string source)
+        {
+            if (String.IsNullOrWhiteSpace(source) || source.Length > 64) return false;
             if (Regex.IsMatch(source, "^#[0-9a-f]{3}(?:[0-9a-f])?$|^#[0-9a-f]{6}(?:[0-9a-f]{2})?$", RegexOptions.IgnoreCase)) return true;
             if (Regex.IsMatch(source, "^[a-z]{1,32}$", RegexOptions.IgnoreCase)) return true;
             return ShadowFunctionColor(source);
+        }
+
+        private static bool ShadowColorMix(string source)
+        {
+            if (!source.StartsWith("color-mix(", StringComparison.OrdinalIgnoreCase) ||
+                !source.EndsWith(")", StringComparison.Ordinal) || source.Length > MaxColorText) return false;
+            List<string> groups;
+            if (!ShadowParts(source.Substring(10, source.Length - 11), ',', out groups) || groups.Count != 3 ||
+                !Regex.IsMatch(groups[0], "^in\\s+srgb$", RegexOptions.IgnoreCase)) return false;
+            string first;
+            string second;
+            double firstWeight;
+            double secondWeight;
+            bool hasFirst;
+            bool hasSecond;
+            if (!ShadowColorMixStop(groups[1], out first, out firstWeight, out hasFirst) ||
+                !ShadowColorMixStop(groups[2], out second, out secondWeight, out hasSecond)) return false;
+            if (!hasFirst && !hasSecond) return true;
+            if (!hasFirst) firstWeight = 100D - secondWeight;
+            if (!hasSecond) secondWeight = 100D - firstWeight;
+            return firstWeight >= 0D && secondWeight >= 0D && firstWeight + secondWeight > 0D;
+        }
+
+        private static bool ShadowColorMixStop(string source, out string color, out double weight, out bool hasWeight)
+        {
+            color = "";
+            weight = 0D;
+            hasWeight = false;
+            List<string> parts;
+            if (!ShadowParts((source ?? "").Trim(), '\0', out parts) || parts.Count < 1 || parts.Count > 2 ||
+                !ShadowBaseColor(parts[0])) return false;
+            color = parts[0];
+            if (parts.Count == 1) return true;
+            hasWeight = ShadowColorMixPercent(parts[1], out weight);
+            return hasWeight;
+        }
+
+        private static bool ShadowColorMixPercent(string source, out double value)
+        {
+            value = 0D;
+            if (!ShadowPercent(source) || !Double.TryParse(source.Substring(0, source.Length - 1),
+                NumberStyles.Float, CultureInfo.InvariantCulture, out value)) return false;
+            return value >= 0D && value <= 100D;
         }
 
         private static bool ShadowFunctionColor(string source)

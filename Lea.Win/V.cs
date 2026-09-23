@@ -7368,12 +7368,108 @@ namespace Lea.Win
         {
             if (String.IsNullOrWhiteSpace(value)) return fallback;
             var source = value.Trim();
-            if (source.Equals("currentcolor", StringComparison.OrdinalIgnoreCase)) return fallback;
-            if (source.Equals("transparent", StringComparison.OrdinalIgnoreCase)) return Color.Transparent;
             Color color;
-            if (CssHexColor(source, out color) || CssFunctionColor(source, out color)) return color;
-            try { return ColorTranslator.FromHtml(source); }
-            catch { return fallback; }
+            return CssMixColor(source, fallback, out color) || CssBaseColor(source, fallback, out color) ? color : fallback;
+        }
+
+        private static bool CssBaseColor(string source, Color fallback, out Color color)
+        {
+            color = Color.Empty;
+            if (String.IsNullOrWhiteSpace(source) || source.Length > 64) return false;
+            if (source.Equals("currentcolor", StringComparison.OrdinalIgnoreCase)) { color = fallback; return true; }
+            if (source.Equals("transparent", StringComparison.OrdinalIgnoreCase)) { color = Color.Transparent; return true; }
+            if (CssHexColor(source, out color) || CssFunctionColor(source, out color)) return true;
+            try { color = ColorTranslator.FromHtml(source); return true; }
+            catch { color = Color.Empty; return false; }
+        }
+
+        private static bool CssMixColor(string source, Color fallback, out Color color)
+        {
+            color = Color.Empty;
+            if (String.IsNullOrWhiteSpace(source) || source.Length > 160 ||
+                !source.StartsWith("color-mix(", StringComparison.OrdinalIgnoreCase) ||
+                !source.EndsWith(")", StringComparison.Ordinal)) return false;
+            List<string> groups;
+            if (!CssColorParts(source.Substring(10, source.Length - 11), ',', out groups) || groups.Count != 3 ||
+                !Regex.IsMatch(groups[0], "^in\\s+srgb$", RegexOptions.IgnoreCase)) return false;
+            Color first;
+            Color second;
+            double firstWeight;
+            double secondWeight;
+            bool hasFirst;
+            bool hasSecond;
+            if (!CssMixStop(groups[1], fallback, out first, out firstWeight, out hasFirst) ||
+                !CssMixStop(groups[2], fallback, out second, out secondWeight, out hasSecond)) return false;
+            if (!hasFirst && !hasSecond) { firstWeight = secondWeight = .5D; }
+            else
+            {
+                if (!hasFirst) firstWeight = 1D - secondWeight;
+                if (!hasSecond) secondWeight = 1D - firstWeight;
+            }
+            var total = firstWeight + secondWeight;
+            if (firstWeight < 0D || secondWeight < 0D || total <= 0D) return false;
+            var alphaScale = Math.Min(1D, total);
+            firstWeight /= total;
+            secondWeight /= total;
+            var firstAlpha = first.A / 255D;
+            var secondAlpha = second.A / 255D;
+            var mixedAlpha = firstWeight * firstAlpha + secondWeight * secondAlpha;
+            var red = 0D;
+            var green = 0D;
+            var blue = 0D;
+            if (mixedAlpha > 0D)
+            {
+                red = (first.R / 255D * firstAlpha * firstWeight + second.R / 255D * secondAlpha * secondWeight) / mixedAlpha;
+                green = (first.G / 255D * firstAlpha * firstWeight + second.G / 255D * secondAlpha * secondWeight) / mixedAlpha;
+                blue = (first.B / 255D * firstAlpha * firstWeight + second.B / 255D * secondAlpha * secondWeight) / mixedAlpha;
+            }
+            color = Color.FromArgb(CssByte(mixedAlpha * alphaScale), CssByte(red), CssByte(green), CssByte(blue));
+            return true;
+        }
+
+        private static bool CssMixStop(string source, Color fallback, out Color color, out double weight, out bool hasWeight)
+        {
+            color = Color.Empty;
+            weight = 0D;
+            hasWeight = false;
+            List<string> parts;
+            if (!CssColorParts((source ?? "").Trim(), '\0', out parts) || parts.Count < 1 || parts.Count > 2 ||
+                !CssBaseColor(parts[0], fallback, out color)) return false;
+            if (parts.Count == 1) return true;
+            hasWeight = CssMixPercent(parts[1], out weight);
+            return hasWeight;
+        }
+
+        private static bool CssMixPercent(string source, out double value)
+        {
+            value = 0D;
+            if (String.IsNullOrWhiteSpace(source) || !source.EndsWith("%", StringComparison.Ordinal) ||
+                !Double.TryParse(source.Substring(0, source.Length - 1), NumberStyles.Float,
+                    CultureInfo.InvariantCulture, out value) || Double.IsNaN(value) || Double.IsInfinity(value) ||
+                value < 0D || value > 100D) return false;
+            value /= 100D;
+            return true;
+        }
+
+        private static bool CssColorParts(string source, char separator, out List<string> parts)
+        {
+            parts = new List<string>();
+            var start = 0;
+            var parentheses = 0;
+            for (var index = 0; index <= source.Length; index++)
+            {
+                var end = index == source.Length;
+                var value = end ? separator : source[index];
+                if (!end && value == '(') { parentheses++; continue; }
+                if (!end && value == ')') { if (parentheses == 0) return false; parentheses--; continue; }
+                var split = end || (parentheses == 0 && (separator == '\0' ? Char.IsWhiteSpace(value) : value == separator));
+                if (!split) continue;
+                var part = source.Substring(start, index - start).Trim();
+                if (part.Length > 0) parts.Add(part);
+                else if (separator != '\0') return false;
+                start = index + 1;
+            }
+            return parentheses == 0;
         }
 
         private static bool CssHexColor(string source, out Color color)

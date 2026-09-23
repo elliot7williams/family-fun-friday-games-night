@@ -17,23 +17,24 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 119 adds bounded modern CSS `hwb()` colors to Lea's shared color
-validator and WinForms painter. Space-separated hue, whiteness, and blackness
-support unitless/degree, gradian, radian, and turn hues, normalized wrapping,
-clamped percentage channels, numeric/percentage slash alpha, and CSS gray
-normalization. The existing compact records cover text, backgrounds, borders,
-outlines, decorations, shadows, gradients, generated content, variables,
-layers, media, fields, SVG paint/stops, and declaration `@supports` checks
-without a new alias or dependency. Commas, duplicate slashes, missing
-percentages, `none` channels, relative colors, and channel expressions remain
-outside the slice. All 115 benchmark probes pass over 110 fixtures. The focused
-and full engine suites and compiled Firespider host are green. All 42 Boot cases and all six
-real EXE startup scenarios remain responsive without a legacy engine, invalid
-cast, JIT dialog, or dead startup window. Three-round diagnostic medians are
-696.028 ms clean start, 5.715 ms local load, and 41.915 ms layout/paint;
-retained memory is 68.6 KiB/page and the required runtime is 643.0 KiB. Runtime
-219 is packaged separately and installed runtime 157 remains unchanged. See
-`HWB_COLORS.md`. Container/style queries,
+Milestone 120 adds bounded two-stop CSS `color-mix(in srgb, ...)` to Lea's
+shared color validator and WinForms painter. Named, hex, RGB/RGBA, HSL/HSLA,
+HWB, transparent, and current-color stops accept omitted or explicit weights;
+the painter normalizes explicit totals, reduces alpha for low totals, and uses
+premultiplied-alpha sRGB interpolation. Existing compact records cover text,
+backgrounds, borders, outlines, decorations, shadows, gradients, generated
+content, variables, layers, media, fields, SVG paint/stops, and declaration
+`@supports` checks without a new alias or dependency. Other spaces, hue
+interpolation clauses, nested mixes, extra stops, invalid percentages, zero
+totals, and overlong input remain outside the slice. All 116 benchmark probes
+pass over 111 fixtures. The focused and full engine suites and compiled
+Firespider host are green. All 42 Boot cases and all six real EXE startup
+scenarios remain responsive without a legacy engine, invalid cast, JIT dialog,
+or dead startup window. Three-round diagnostic medians are 730.060 ms clean
+start, 6.673 ms local load, and 41.446 ms layout/paint; retained memory is 68.8
+KiB/page and the required runtime is 645.5 KiB. Runtime 220 is packaged
+separately and installed runtime 157 remains unchanged. See `COLOR_MIX.md`.
+Container/style queries,
 `font-tech()`/`font-format()`,
 general-enclosed conditions, JavaScript `CSS.supports()`, locale-sensitive
 automatic quote selection, typed/unquoted/functional attribute fallbacks,
