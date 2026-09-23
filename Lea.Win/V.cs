@@ -7503,6 +7503,8 @@ namespace Lea.Win
             if (match.Success) return CssLabColor(match.Groups["v"].Value, false, out color);
             match = Regex.Match(source ?? "", "^lch\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
             if (match.Success) return CssLabColor(match.Groups["v"].Value, true, out color);
+            match = Regex.Match(source ?? "", "^color\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
+            if (match.Success) return CssPredefinedColor(match.Groups["v"].Value, out color);
             match = Regex.Match(source ?? "", "^oklab\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
             if (match.Success) return CssOklabColor(match.Groups["v"].Value, false, out color);
             match = Regex.Match(source ?? "", "^oklch\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
@@ -7705,10 +7707,98 @@ namespace Lea.Win
             var x = (fx3 > epsilon ? fx3 : (116D * fx - 16D) / kappa) * (.3457D / .3585D);
             var y = lightness > kappa * epsilon ? fy3 : lightness / kappa;
             var z = (fz3 > epsilon ? fz3 : (116D * fz - 16D) / kappa) * ((1D - .3457D - .3585D) / .3585D);
-            var d65X = .955473421488075D * x - .02309845494876471D * y + .06325924320057072D * z;
-            var d65Y = -.0283697093338637D * x + 1.0099953980813041D * y + .021041441191917323D * z;
-            var d65Z = .012314014864481998D * x - .020507649298898964D * y + 1.330365926242124D * z;
+            double d65X;
+            double d65Y;
+            double d65Z;
+            CssD50ToD65(x, y, z, out d65X, out d65Y, out d65Z);
             CssXyzToOklab(d65X, d65Y, d65Z, out okLightness, out okA, out okB);
+        }
+
+        private static void CssD50ToD65(double x, double y, double z,
+            out double d65X, out double d65Y, out double d65Z)
+        {
+            d65X = .955473421488075D * x - .02309845494876471D * y + .06325924320057072D * z;
+            d65Y = -.0283697093338637D * x + 1.0099953980813041D * y + .021041441191917323D * z;
+            d65Z = .012314014864481998D * x - .020507649298898964D * y + 1.330365926242124D * z;
+        }
+
+        private static bool CssPredefinedColor(string value, out Color color)
+        {
+            color = Color.Empty;
+            var body = (value ?? "").Trim();
+            if (body.IndexOf(',') >= 0) return false;
+            string alpha = null;
+            var slash = body.IndexOf('/');
+            if (slash >= 0)
+            {
+                if (body.IndexOf('/', slash + 1) >= 0) return false;
+                alpha = body.Substring(slash + 1).Trim();
+                body = body.Substring(0, slash).Trim();
+            }
+            var channels = Regex.Split(body, "\\s+");
+            if (channels.Length != 4) return false;
+            var space = channels[0].ToLowerInvariant();
+            if (space != "srgb" && space != "srgb-linear" &&
+                space != "display-p3" && space != "display-p3-linear" &&
+                space != "xyz" && space != "xyz-d50" && space != "xyz-d65") return false;
+            double first;
+            double second;
+            double third;
+            int opacity;
+            if (!CssOklabComponent(channels[1], 1D, -10D, 10D, out first) ||
+                !CssOklabComponent(channels[2], 1D, -10D, 10D, out second) ||
+                !CssOklabComponent(channels[3], 1D, -10D, 10D, out third) ||
+                !CssAlpha(alpha, out opacity)) return false;
+            var rgbSpace = space == "srgb" || space == "srgb-linear" ||
+                space == "display-p3" || space == "display-p3-linear";
+            var linear = space.EndsWith("-linear", StringComparison.Ordinal);
+            if (rgbSpace && !linear)
+            {
+                first = CssSrgbLinear(first);
+                second = CssSrgbLinear(second);
+                third = CssSrgbLinear(third);
+            }
+            double x;
+            double y;
+            double z;
+            if (space.StartsWith("display-p3", StringComparison.Ordinal))
+            {
+                x = 608311D / 1250200D * first + 189793D / 714400D * second + 198249D / 1000160D * third;
+                y = 35783D / 156275D * first + 247089D / 357200D * second + 198249D / 2500400D * third;
+                z = 32229D / 714400D * second + 5220557D / 5000800D * third;
+            }
+            else if (space == "srgb" || space == "srgb-linear")
+            {
+                x = 506752D / 1228815D * first + 87881D / 245763D * second + 12673D / 70218D * third;
+                y = 87098D / 409605D * first + 175762D / 245763D * second + 12673D / 175545D * third;
+                z = 7918D / 409605D * first + 87881D / 737289D * second + 1001167D / 1053270D * third;
+            }
+            else
+            {
+                x = first;
+                y = second;
+                z = third;
+                if (space == "xyz-d50")
+                {
+                    double adaptedX;
+                    double adaptedY;
+                    double adaptedZ;
+                    CssD50ToD65(x, y, z, out adaptedX, out adaptedY, out adaptedZ);
+                    x = adaptedX;
+                    y = adaptedY;
+                    z = adaptedZ;
+                }
+            }
+            double lightness;
+            double a;
+            double b;
+            CssXyzToOklab(x, y, z, out lightness, out a, out b);
+            double red;
+            double green;
+            double blue;
+            CssOklabRgb(lightness, a, b, out red, out green, out blue);
+            color = Color.FromArgb(opacity, CssByte(red), CssByte(green), CssByte(blue));
+            return true;
         }
 
         private static bool CssOklabComponent(string source, double percentScale, double minimum, double maximum, out double value)

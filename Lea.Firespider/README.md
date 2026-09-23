@@ -544,6 +544,13 @@ across variables, layers, media, fields, shadows, gradients, generated text,
 and SVG. The compiled host verifies public state plus exact background, border,
 shadow, and gradient paint without a Firespider color-space implementation.
 
+Bounded predefined CSS `color()` values also stay entirely inside Lea. The
+engine handles sRGB, linear sRGB, Display P3, linear Display P3, XYZ D50/D65,
+the `xyz` alias, optional alpha, Bradford adaptation, and local-MINDE sRGB gamut
+mapping across the existing shared paths. The compiled host verifies public
+state plus exact background, border, shadow, generated-content, and gradient
+paint without adding a Firespider color-space implementation.
+
 Modern `oklab()` and `oklch()` colors follow the same host-neutral route. Lea
 handles numeric/percentage channels, four hue units, alpha, D65 conversion, and
 bounded local-MINDE sRGB gamut mapping across variables, layers, media, fields,

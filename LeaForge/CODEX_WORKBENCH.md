@@ -17,23 +17,24 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 122 adds bounded modern CSS CIE `lab()` and `lch()` to Lea's shared
-color validator and WinForms painter. Numeric/percentage channels, optional
-slash alpha, four LCH hue units, D50 Lab-to-XYZ conversion, Bradford
-D50-to-D65 adaptation, and bounded CSS-style local-MINDE Oklab gamut mapping
-share the existing compact authored-color records. Text, backgrounds, borders,
-outlines, decorations, shadows, gradients, generated content, variables,
-layers, media, fields, sRGB mix stops, SVG paint, and declaration `@supports`
-checks need no new alias or dependency. Comma forms, `none`, relative or
-calculated channels, wide-gamut profiles, and overlong input remain outside the
-slice. All 118 benchmark probes pass over 113 fixtures. Focused and full
-source/staged suites and the compiled Firespider host are green. All 42 Boot
-cases and all six real EXE startup scenarios remain responsive without MSHTML,
-an invalid cast, JIT dialog, or dead startup window. Three-round diagnostic
-medians are 799.612 ms clean start, 8.569 ms local load, and 47.724 ms
-layout/paint; retained memory is 69.4 KiB/page and the required runtime is
-651.0 KiB. Runtime 222 is packaged separately and installed runtime 157 remains
-unchanged. See `LAB_COLORS.md`.
+Milestone 123 adds bounded predefined CSS `color()` to Lea's shared color
+validator and WinForms painter. Numeric/percentage channels and optional alpha
+cover sRGB, linear sRGB, Display P3, linear Display P3, XYZ D50/D65, and the
+`xyz` D65 alias. CSS Color 4 transfer curves and matrices, shared Bradford
+D50-to-D65 adaptation, and bounded local-MINDE sRGB gamut mapping reuse the
+existing compact authored-color records. Text, backgrounds, borders, outlines,
+decorations, shadows, gradients, generated content, variables, layers, media,
+fields, sRGB mix stops, SVG paint, and declaration `@supports` need no new
+alias or dependency. Comma forms, `none`, relative or calculated channels,
+custom profiles, A98 RGB, ProPhoto RGB, Rec. 2020, and overlong input remain
+outside the slice. All 119 benchmark probes pass over 114 fixtures. Focused and
+full source/staged suites and the compiled Firespider host are green. All 42
+Boot cases and all six real EXE startup scenarios remain responsive without
+MSHTML, an invalid cast, JIT dialog, or dead startup window. Three-round
+diagnostic medians are 611.914 ms clean start, 6.768 ms local load, and 45.787
+ms layout/paint; retained memory is 69.7 KiB/page and the required runtime is
+652.5 KiB. Runtime 223 is packaged separately and installed runtime 157 remains
+unchanged. See `PREDEFINED_COLORS.md`.
 Container/style queries,
 `font-tech()`/`font-format()`,
 general-enclosed conditions, JavaScript `CSS.supports()`, locale-sensitive

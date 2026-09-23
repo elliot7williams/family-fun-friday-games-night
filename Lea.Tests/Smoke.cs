@@ -176,6 +176,11 @@ namespace Lea.Tests
                     LabColorSmoke(Path.Combine(pages, "lab-colors.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--predefined-colors")
+                {
+                    PredefinedColorSmoke(Path.Combine(pages, "predefined-colors.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--oklab")
                 {
                     OklabColorSmoke(Path.Combine(pages, "oklab-colors.html"));
@@ -1569,6 +1574,7 @@ namespace Lea.Tests
                 HslColorSmoke(Path.Combine(pages, "hsl-colors.html"));
                 HwbColorSmoke(Path.Combine(pages, "hwb-colors.html"));
                 LabColorSmoke(Path.Combine(pages, "lab-colors.html"));
+                PredefinedColorSmoke(Path.Combine(pages, "predefined-colors.html"));
                 OklabColorSmoke(Path.Combine(pages, "oklab-colors.html"));
                 ColorMixSmoke(Path.Combine(pages, "color-mix.html"));
 
@@ -8658,6 +8664,156 @@ namespace Lea.Tests
                     "Lab live resize retains field state");
             }
             Console.WriteLine("Lea CIE Lab smoke passed: numeric and percentage Lab/LCH, D50-to-D65 Bradford adaptation, hue units, wrapping, clamping, local-MINDE gamut mapping, alpha, color mixing, supports, variables, layers, shadows, gradients, generated content, fields, SVG, responsive paint, and retention.");
+        }
+
+        private static void PredefinedColorSmoke(string path)
+        {
+            var engine = new E { Vw = 760, Vh = 2300 };
+            var page = engine.Go(path);
+            Func<string, B> block = id => BlockById(page, id);
+            Eq("color(srgb 0 0 1)", block("srgb-blue").S.Bg, "predefined sRGB state");
+            Eq("color(srgb 100% 0% 0%)", block("srgb-percent").S.Bg, "predefined sRGB percentage state");
+            Eq("color(srgb-linear 0 1 0)", block("srgb-linear").S.Bg, "predefined linear sRGB state");
+            Eq("color(display-p3 0.445 0.529 0.891)", block("p3-reference").S.Bg, "Display P3 state");
+            Eq("color(display-p3 44.5% 52.9% 89.1%)", block("p3-percent").S.Bg, "Display P3 percentage state");
+            Eq("color(display-p3 0.591 0.123 0.264)", block("p3-pair").S.Bg, "Display P3 transfer state");
+            Eq("color(display-p3-linear 0.3081 0.014 0.0567)", block("p3-linear-pair").S.Bg,
+                "linear Display P3 state");
+            Eq("color(xyz-d50 0.2005 0.14089 0.4472)", block("xyz-d50").S.Bg, "XYZ D50 state");
+            Eq("color(xyz-d65 0.21661 0.14602 0.59452)", block("xyz-d65").S.Bg, "XYZ D65 state");
+            Eq("color(xyz 0.21661 0.14602 0.59452)", block("xyz-alias").S.Bg, "XYZ alias state");
+            Eq("color(display-p3 0.445 0.529 0.891 / 50%)", block("alpha").S.Bg, "predefined alpha state");
+            Eq("color(display-p3 1 1 0)", block("gamut").S.Bg, "Display P3 gamut state");
+            Eq("color(display-p3 1.1 .4 .2)", block("extended").S.Bg, "extended Display P3 state");
+            Eq("color-mix(in srgb, color(srgb 1 0 0), color(display-p3 0 0 1))", block("mix").S.Bg,
+                "predefined color mix stop state");
+            Ok(block("shadow").S.Sw.Count == 1 &&
+                block("shadow").S.Sw[0].C == "color(display-p3 0.445 0.529 0.891)" &&
+                block("shadow-atomic").S.Sw.Count == 1 && block("shadow-atomic").S.Sw[0].X == 4 &&
+                block("shadow-atomic").S.Sw[0].C == "color(srgb 1 0 0)",
+                "predefined shadow parsing and atomic rejection");
+            Ok(block("gradient").S.Gi != null && block("gradient").S.Gi.Ss.Count == 2 &&
+                block("gradient").S.Gi.Ss[0].C == "color(srgb 1 0 0)" &&
+                block("gradient").S.Gi.Ss[1].C == "color(display-p3 0 0 1)" &&
+                block("gradient-atomic").S.Gi != null &&
+                block("gradient-atomic").S.Gi.Ss[0].C == "color(srgb 0 1 0)",
+                "predefined gradient parsing and atomic rejection");
+            Ok(block("decor").S.F == "color(display-p3 0 0 1)" &&
+                block("decor").S.Tc == "color(display-p3 0.445 0.529 0.891)" &&
+                block("decor").S.Ts != null && block("decor").S.Ts.C == "color(display-p3 1 1 0)",
+                "predefined text color model");
+            Eq("color(display-p3 0.445 0.529 0.891)", block("variable").S.Bg,
+                "predefined custom property resolution");
+            Eq("color(display-p3 0 0 1)", block("layered").S.Bg, "predefined cascade layer order");
+            var generated = Run(block("generated"), "be");
+            Ok(generated != null && generated.S.F == "color(display-p3 0.445 0.529 0.891)" &&
+                generated.S.Ts != null && generated.S.Ts.C == "color(display-p3 1 1 0)",
+                "predefined generated content style");
+            Ok(HasBlock(page, "supported-srgb") && HasBlock(page, "supported-linear") &&
+                HasBlock(page, "supported-p3") && HasBlock(page, "supported-p3-linear") && HasBlock(page, "supported-xyz") &&
+                !HasBlock(page, "unsupported-space") && !HasBlock(page, "unsupported-comma") &&
+                !HasBlock(page, "unsupported-slash") && !HasBlock(page, "unsupported-none") &&
+                !HasBlock(page, "unsupported-nested") && !HasBlock(page, "unsupported-missing"),
+                "predefined supports query capability");
+            var field = FieldById(page, "field");
+            Ok(field.S.F == "color(display-p3 0 0 1)" &&
+                field.S.Bg == "color(display-p3 1 1 0 / 20%)" &&
+                field.S.Bcv(0) == "color(display-p3 0.445 0.529 0.891)",
+                "predefined native field style");
+            field.V = "Retained predefined value";
+            var svg = block("svg").Vg;
+            Ok(svg != null && svg.Ss.Count == 2 &&
+                svg.Ss[0].F == "color(display-p3 0.445 0.529 0.891)" &&
+                svg.Ss[0].S == "color(display-p3 0 0 1)" && svg.Ds.Count == 1 &&
+                svg.Ds[0].Ss.Count == 2 && svg.Ds[0].Ss[0].C == "color(display-p3 1 1 0)" &&
+                svg.Ds[0].Ss[1].C == "color(srgb 1 0 0)", "predefined SVG paint and gradient stops");
+
+            engine.Vz(500, 2300);
+            Eq("color(display-p3 0 0 1)", block("responsive").S.Bg, "responsive predefined state");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained predefined value",
+                "responsive predefined rebuild retains field state");
+
+            using (var view = new V { Size = new Size(760, 2300) })
+            {
+                view.Go(path);
+                using (var image = Render(view))
+                {
+                    var reference = Color.FromArgb(108, 136, 234);
+                    var srgbBlue = BlockRect(view, BlockById(view.At, "srgb-blue"));
+                    var srgbPercent = BlockRect(view, BlockById(view.At, "srgb-percent"));
+                    var srgbLinear = BlockRect(view, BlockById(view.At, "srgb-linear"));
+                    var p3 = BlockRect(view, BlockById(view.At, "p3-reference"));
+                    var p3Percent = BlockRect(view, BlockById(view.At, "p3-percent"));
+                    var p3Pair = BlockRect(view, BlockById(view.At, "p3-pair"));
+                    var p3LinearPair = BlockRect(view, BlockById(view.At, "p3-linear-pair"));
+                    var xyzD50 = BlockRect(view, BlockById(view.At, "xyz-d50"));
+                    var xyzD65 = BlockRect(view, BlockById(view.At, "xyz-d65"));
+                    var xyzAlias = BlockRect(view, BlockById(view.At, "xyz-alias"));
+                    var alpha = BlockRect(view, BlockById(view.At, "alpha"));
+                    var gamut = BlockRect(view, BlockById(view.At, "gamut"));
+                    var extended = BlockRect(view, BlockById(view.At, "extended"));
+                    var mix = BlockRect(view, BlockById(view.At, "mix"));
+                    var shadow = BlockOuterRect(view, BlockById(view.At, "shadow"));
+                    var atomic = BlockOuterRect(view, BlockById(view.At, "shadow-atomic"));
+                    var gradient = BlockRect(view, BlockById(view.At, "gradient"));
+                    var input = BlockRect(view, FieldBlock(view.At, FieldById(view.At, "field")));
+                    var vector = BlockRect(view, BlockById(view.At, "svg"));
+                    Ok(ColorDistance(image.GetPixel(srgbBlue.Right - 5, srgbBlue.Top + 5), Color.Blue) < 5 &&
+                        ColorDistance(image.GetPixel(srgbPercent.Right - 5, srgbPercent.Top + 5), Color.Red) < 5 &&
+                        ColorDistance(image.GetPixel(srgbLinear.Right - 5, srgbLinear.Top + 5), Color.Lime) < 5,
+                        "predefined sRGB and linear sRGB paint");
+                    Ok(ColorDistance(image.GetPixel(p3.Right - 5, p3.Top + 5), reference) < 10 &&
+                        ColorDistance(image.GetPixel(p3Percent.Right - 5, p3Percent.Top + 5), reference) < 10,
+                        "Display P3 numeric and percentage paint");
+                    var p3PairPixel = image.GetPixel(p3Pair.Right - 5, p3Pair.Top + 5);
+                    var p3LinearPixel = image.GetPixel(p3LinearPair.Right - 5, p3LinearPair.Top + 5);
+                    Ok(ColorDistance(p3PairPixel, p3LinearPixel) < 8,
+                        "Display P3 transfer pair paint: " + p3PairPixel + "/" + p3LinearPixel);
+                    var xyzReference = Color.FromArgb(118, 84, 205);
+                    Ok(ColorDistance(image.GetPixel(xyzD50.Right - 5, xyzD50.Top + 5), xyzReference) < 6 &&
+                        ColorDistance(image.GetPixel(xyzD65.Right - 5, xyzD65.Top + 5), xyzReference) < 6 &&
+                        ColorDistance(image.GetPixel(xyzAlias.Right - 5, xyzAlias.Top + 5), xyzReference) < 6,
+                        "XYZ D50, D65, and alias paint");
+                    Ok(ColorDistance(image.GetPixel(alpha.Right - 5, alpha.Top + 5), Color.FromArgb(181, 196, 245)) < 12,
+                        "predefined alpha paint");
+                    var gamutPixel = image.GetPixel(gamut.Right - 5, gamut.Top + 5);
+                    var extendedPixel = image.GetPixel(extended.Right - 5, extended.Top + 5);
+                    Ok(gamutPixel.R > 230 && gamutPixel.G > 220 && gamutPixel.B < 100,
+                        "Display P3 gamut paint: " + gamutPixel);
+                    Ok(extendedPixel.R > 210 && extendedPixel.G > 40 && extendedPixel.G < 190 && extendedPixel.B < 160,
+                        "extended Display P3 paint: " + extendedPixel);
+                    var mixPixel = image.GetPixel(mix.Right - 5, mix.Top + 5);
+                    Ok(mixPixel.R > 100 && mixPixel.B > 100 && mixPixel.G < 80,
+                        "predefined color mix paint: " + mixPixel);
+                    Ok(ColorDistance(image.GetPixel(shadow.Right + 5, shadow.Top + shadow.Height / 2), reference) < 12 &&
+                        ColorDistance(image.GetPixel(atomic.Right + 2, atomic.Top + atomic.Height / 2), Color.Red) < 10,
+                        "predefined shadow paint and invalid fallback");
+                    Ok(ColorDistance(image.GetPixel(gradient.Left + 5, gradient.Top + gradient.Height / 2), Color.Red) < 35 &&
+                        ColorDistance(image.GetPixel(gradient.Right - 5, gradient.Top + gradient.Height / 2), Color.Blue) < 35,
+                        "predefined gradient paint");
+                    Ok(ColorDistance(image.GetPixel(input.Right - 8, input.Top + input.Height / 2), Color.FromArgb(255, 255, 204)) < 18,
+                        "predefined native field paint");
+                    var vectorFill = image.GetPixel(vector.Left + 30, vector.Top + 30);
+                    var vectorStart = image.GetPixel(vector.Left + 101, vector.Top + 30);
+                    var vectorEnd = image.GetPixel(vector.Right - 5, vector.Top + 30);
+                    Ok(ColorDistance(vectorFill, reference) < 15 && ColorDistance(vectorStart, Color.Yellow) < 40 &&
+                        ColorDistance(vectorEnd, Color.Red) < 35,
+                        "predefined SVG fill and gradient paint: " + vectorFill + "/" + vectorStart + "/" + vectorEnd);
+                }
+                var liveField = FieldById(view.At, "field");
+                liveField.V = "Retained predefined view value";
+                view.Size = new Size(500, 2300);
+                Application.DoEvents();
+                using (var image = Render(view))
+                {
+                    var responsive = BlockRect(view, BlockById(view.At, "responsive"));
+                    Ok(ColorDistance(image.GetPixel(responsive.Right - 5, responsive.Top + 5), Color.Blue) < 15,
+                        "responsive predefined paint");
+                }
+                Ok(Object.ReferenceEquals(liveField, FieldById(view.At, "field")) &&
+                    liveField.V == "Retained predefined view value", "predefined live resize retains field state");
+            }
+            Console.WriteLine("Lea predefined color smoke passed: sRGB, linear sRGB, Display P3, linear Display P3, XYZ D50/D65, percentages, extended channels, Bradford adaptation, alpha, local-MINDE gamut mapping, color mixing, supports, variables, layers, shadows, gradients, generated content, fields, SVG, responsive paint, and retention.");
         }
 
         private static void OklabColorSmoke(string path)

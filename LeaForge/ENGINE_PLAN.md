@@ -349,18 +349,19 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 122 adds bounded modern CSS CIE `lab()` and `lch()` to the shared
-color validator and WinForms painter. Numeric and percentage channels, optional
-slash alpha, four LCH hue units, D50 Lab-to-XYZ conversion, Bradford
-D50-to-D65 adaptation, and the existing bounded CSS-style local-MINDE Oklab
-sRGB gamut mapper share the authored-color records. Text, backgrounds, borders,
-outlines, decorations, shadows, gradients, generated content, variables,
-layers, media, fields, sRGB mix stops, SVG paint, and declaration `@supports`
-checks need no new public API. Comma forms, `none`, relative or calculated
-channels, wide-gamut profiles, and overlong input remain outside this slice.
-See `LAB_COLORS.md`. All 118 probes pass over 113 fixtures; focused and full
+Milestone 123 adds bounded predefined CSS `color()` to the shared color
+validator and WinForms painter. Numeric/percentage channels and optional alpha
+cover sRGB, linear sRGB, Display P3, linear Display P3, XYZ D50/D65, and the
+`xyz` D65 alias. CSS Color 4 transfer curves and matrices, shared Bradford
+D50-to-D65 adaptation, and bounded local-MINDE sRGB gamut mapping reuse the
+authored-color records across text, backgrounds, borders, outlines,
+decorations, shadows, gradients, generated content, variables, layers, media,
+fields, sRGB mix stops, SVG paint, and declaration `@supports`. Comma forms,
+`none`, relative or calculated channels, custom profiles, A98 RGB, ProPhoto
+RGB, Rec. 2020, and overlong input remain outside this slice. See
+`PREDEFINED_COLORS.md`. All 119 probes pass over 114 fixtures; focused and full
 source/staged suites, the compiled Firespider host, all 42 Boot cases, and all
-six real EXE startup scenarios pass. Runtime 222 is packaged separately and
+six real EXE startup scenarios pass. Runtime 223 is packaged separately and
 installed runtime 157 remains unchanged. Next investigate
 another bounded compatibility slice. Keep general media features, device ratios,
 container and style queries, `font-tech()`/`font-format()`, general-enclosed

@@ -62,8 +62,9 @@ computed value. Responsive rebuilds retain mutable field identity and values.
 ## Compatibility boundary
 
 This milestone does not add legacy comma forms, relative colors, `calc()` or
-other channel expressions, wide-gamut `color()`, ICC profiles, or arbitrary
-color-space conversion. Lea's compact page-script `bg` and `fg` commands keep
+other channel expressions, ICC profiles, or arbitrary color-space conversion.
+Bounded predefined sRGB/Display-P3/XYZ `color()` is documented separately in
+`PREDEFINED_COLORS.md`. Lea's compact page-script `bg` and `fg` commands keep
 their command-specific validation; this milestone covers authored CSS and the
 shared style paths that already use the bounded CSS color parser.
 

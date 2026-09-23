@@ -18,7 +18,7 @@ border-color: color-mix(in srgb, currentColor 40%, white);
 ```
 
 Each stop accepts one existing bounded named, hex, RGB/RGBA, HSL/HSLA, HWB,
-CIE Lab/LCH, Oklab/OkLCh, `transparent`, or `currentColor` value and an optional finite 0..100%
+CIE Lab/LCH, predefined `color()`, Oklab/OkLCh, `transparent`, or `currentColor` value and an optional finite 0..100%
 percentage. Nested `color-mix()` stops are rejected.
 
 If neither percentage is present, both weights are 50%. If one is omitted, it
@@ -55,6 +55,7 @@ This milestone does not add interpolation spaces other than sRGB, custom color
 profiles, hue interpolation methods, more than two stops, nested mixes,
 relative colors, or channel expressions. Negative and over-100 stop
 percentages, a zero total, unknown spaces, and malformed grouping are rejected.
+Predefined base colors are documented separately in `PREDEFINED_COLORS.md`.
 Lea's compact page-script `bg` and `fg` commands keep their existing
 command-specific validation; this milestone covers authored CSS and shared
 style paths that already use the bounded CSS color parser.

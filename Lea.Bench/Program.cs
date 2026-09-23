@@ -112,7 +112,7 @@ namespace Lea.Bench
             var names = new[]
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
-                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "direction-logical.html", "direction-layout.html", "direction-inline.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "media-features.html", "media-aspect-ratio.html", "media-ranges.html", "supports-queries.html", "cascade-layers.html", "cascade-layer-limits.html", "hsl-colors.html", "hwb-colors.html", "lab-colors.html", "oklab-colors.html", "color-mix.html", "custom-properties.html", "important-cascade.html",
+                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "direction-logical.html", "direction-layout.html", "direction-inline.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "media-features.html", "media-aspect-ratio.html", "media-ranges.html", "supports-queries.html", "cascade-layers.html", "cascade-layer-limits.html", "hsl-colors.html", "hwb-colors.html", "lab-colors.html", "predefined-colors.html", "oklab-colors.html", "color-mix.html", "custom-properties.html", "important-cascade.html",
                 "direction-overflow.html", "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "list-style.html", "list-position.html", "list-image.html", "marker.html", "marker-content.html", "marker-counters.html", "css-counters.html", "generated-content.html", "generated-quotes.html", "generated-alt.html", "generated-images.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -1935,6 +1935,102 @@ namespace Lea.Bench
                         liveField.V == "Retained Lab view value", "Lab view resize replaced field state");
                 }
                 return "modern CIE Lab/LCH numbers and percentages, D50 conversion with Bradford D50-to-D65 adaptation, hue units and wrapping, channel clamping, local-MINDE sRGB gamut mapping, alpha, color-mix stops, supports, variables, layers, shadows, gradients, generated content, fields, SVG, responsive paint, and retention";
+            });
+            AddProbe(probes, "Predefined CSS colors", delegate
+            {
+                var path = Path.Combine(folder, "predefined-colors.html");
+                var engine = new E { Vw = 760, Vh = 2300 };
+                var page = engine.Go(path);
+                Func<string, B> block = id => page.Bs.First(item => item.El != null && item.El.Av("id") == id);
+                Need(block("srgb-blue").S.Bg == "color(srgb 0 0 1)" &&
+                    block("srgb-linear").S.Bg == "color(srgb-linear 0 1 0)" &&
+                    block("p3-reference").S.Bg == "color(display-p3 0.445 0.529 0.891)" &&
+                    block("p3-linear-pair").S.Bg == "color(display-p3-linear 0.3081 0.014 0.0567)",
+                    "predefined RGB syntax state changed");
+                Need(block("xyz-d50").S.Bg == "color(xyz-d50 0.2005 0.14089 0.4472)" &&
+                    block("xyz-d65").S.Bg == "color(xyz-d65 0.21661 0.14602 0.59452)" &&
+                    block("xyz-alias").S.Bg == "color(xyz 0.21661 0.14602 0.59452)",
+                    "predefined XYZ syntax state changed");
+                Need(block("gamut").S.Bg == "color(display-p3 1 1 0)" &&
+                    block("extended").S.Bg == "color(display-p3 1.1 .4 .2)" &&
+                    block("mix").S.Bg.StartsWith("color-mix(in srgb, color(", StringComparison.Ordinal),
+                    "predefined extended or mix state changed");
+                Need(block("shadow").S.Sw.Count == 1 && block("shadow-atomic").S.Sw.Count == 1 &&
+                    block("shadow-atomic").S.Sw[0].X == 4 && block("gradient").S.Gi != null &&
+                    block("gradient").S.Gi.Ss.Count == 2 && block("gradient-atomic").S.Gi != null &&
+                    block("gradient-atomic").S.Gi.Ss[0].C == "color(srgb 0 1 0)",
+                    "predefined shadow, gradient, or atomic rejection changed");
+                Need(block("decor").S.Tc == "color(display-p3 0.445 0.529 0.891)" &&
+                    block("variable").S.Bg == "color(display-p3 0.445 0.529 0.891)" &&
+                    block("layered").S.Bg == "color(display-p3 0 0 1)",
+                    "predefined decoration, variable, or layer state changed");
+                Need(page.Bs.Any(item => item.El != null && item.El.Av("id") == "supported-srgb") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "supported-linear") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "supported-p3") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "supported-p3-linear") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "supported-xyz") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-space") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-comma") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-slash") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-none") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-nested") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "unsupported-missing"),
+                    "predefined supports capability changed");
+                var svg = block("svg").Vg;
+                Need(svg != null && svg.Ss.Count == 2 && svg.Ss[0].F.StartsWith("color(display-p3", StringComparison.Ordinal) &&
+                    svg.Ds.Count == 1 && svg.Ds[0].Ss.Count == 2 && svg.Ds[0].Ss[1].C == "color(srgb 1 0 0)",
+                    "predefined SVG state changed");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark predefined value";
+                engine.Vz(500, 2300);
+                Need(block("responsive").S.Bg == "color(display-p3 0 0 1)" &&
+                    Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark predefined value", "responsive predefined state or retention changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(760, 2300);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                    {
+                        var p3 = BlockContent(view, "p3-reference");
+                        var p3Percent = BlockContent(view, "p3-percent");
+                        var p3Pair = BlockContent(view, "p3-pair");
+                        var p3LinearPair = BlockContent(view, "p3-linear-pair");
+                        var xyzD50 = BlockContent(view, "xyz-d50");
+                        var xyzD65 = BlockContent(view, "xyz-d65");
+                        var gamut = BlockContent(view, "gamut");
+                        var vector = BlockContent(view, "svg");
+                        var p3Reference = Color.FromArgb(108, 136, 234);
+                        var xyzReference = Color.FromArgb(118, 84, 205);
+                        Need(ColorDistance(image.GetPixel(p3.Right - 5, p3.Top + 5), p3Reference) < 10 &&
+                            ColorDistance(image.GetPixel(p3Percent.Right - 5, p3Percent.Top + 5), p3Reference) < 10 &&
+                            ColorDistance(image.GetPixel(p3Pair.Right - 5, p3Pair.Top + 5),
+                                image.GetPixel(p3LinearPair.Right - 5, p3LinearPair.Top + 5)) < 8,
+                            "predefined P3 paint changed");
+                        Need(ColorDistance(image.GetPixel(xyzD50.Right - 5, xyzD50.Top + 5), xyzReference) < 6 &&
+                            ColorDistance(image.GetPixel(xyzD65.Right - 5, xyzD65.Top + 5), xyzReference) < 6,
+                            "predefined XYZ paint changed");
+                        var mapped = image.GetPixel(gamut.Right - 5, gamut.Top + 5);
+                        Need(mapped.R > 230 && mapped.G > 220 && mapped.B < 100,
+                            "predefined gamut paint changed");
+                        Need(ColorDistance(image.GetPixel(vector.Left + 30, vector.Top + 30), p3Reference) < 15 &&
+                            ColorDistance(image.GetPixel(vector.Left + 101, vector.Top + 30), Color.Yellow) < 40 &&
+                            ColorDistance(image.GetPixel(vector.Right - 5, vector.Top + 30), Color.Red) < 35,
+                            "predefined SVG paint changed");
+                    }
+                    var liveField = view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                    liveField.V = "Retained predefined view value";
+                    view.Size = new Size(500, 2300);
+                    using (var image = Draw(view))
+                    {
+                        var responsive = BlockContent(view, "responsive");
+                        Need(ColorDistance(image.GetPixel(responsive.Right - 5, responsive.Top + 5), Color.Blue) < 15,
+                            "responsive predefined paint changed");
+                    }
+                    Need(Object.ReferenceEquals(liveField, view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                        liveField.V == "Retained predefined view value", "predefined view resize replaced field state");
+                }
+                return "bounded color() with sRGB, linear sRGB, Display P3, linear Display P3, XYZ D50/D65 and xyz alias, percentages, extended channels, alpha, Bradford adaptation, local-MINDE sRGB gamut mapping, color-mix stops, supports, variables, layers, shadows, gradients, generated content, fields, SVG, responsive paint, and retention";
             });
             AddProbe(probes, "Modern Oklab colors", delegate
             {
@@ -4908,7 +5004,7 @@ namespace Lea.Bench
             Capability(builder, "Local files and HTTP/HTTPS", "Supported", "Bounded navigation, redirects, cache, cookies, compression, private mode, and typed errors");
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, direction-aware ordered/unordered lists and disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
-            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, compound of-S filtered, and terminal ::marker/::before/::after selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel width/height, portrait/landscape, exact/min/max integer aspect-ratio, bounded strict/inclusive feature/value-first and chained media ranges, bounded @supports declaration checks plus selector() through the compiled selector grammar with grouped not/and/or logic, and bounded named @layer blocks with later-normal, unlayered-normal, reversed-important, inline, nested-name, and native-sheet ordering, bounded named reset/increment/set counters and generated quote depth, inherited horizontal LTR/RTL direction and bounded quote pairs, fixed/percentage/calc dimensions and classic vw/vh/vmin/vmax plus bounded em/rem units, two/three-term min/max and three-term clamp size functions, named/hex/RGB, bounded legacy or modern HSL/HSLA, bounded modern HWB, bounded modern CIE Lab/LCH with D50 conversion and Bradford D50-to-D65 adaptation, bounded modern Oklab/OkLCh with D65 conversion, shared local-MINDE sRGB gamut mapping, and bounded two-stop color-mix(in srgb, ...) colors with normalized hue, clamped channels/alpha, HWB gray normalization, omitted/normalized mix weights, reduced low-total alpha, and premultiplied-alpha interpolation across gradients, shadows, fields, and SVG paint, content/border box, circular/elliptical radii, bounded outlines, box shadows, one inherited bounded text-shadow layer, bounded text-decoration line/color/style/thickness and signed pixel/percentage underline offset, inherited text-align shorthand/all/last with logical state and justify-all, inherited text-wrap mode/style with bounded balance, non-inherited bounded line-clamp/WebKit compatibility, isolated bounded pseudo typography, eight string/attr/quoted-attr-fallback/named-counter/quote-keyword visual fragments, and an optional eight-item/128-unit string/attr/counter alternative list, plus one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing, signed pixel/percentage first-line indentation, and text styles, visibility, absolute/fixed and bounded vertical sticky positioning, transforms, responsive image sizing, direction-aware row/column flex, and direction-aware bounded two-axis grid");
+            Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, compound of-S filtered, and terminal ::marker/::before/::after selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel width/height, portrait/landscape, exact/min/max integer aspect-ratio, bounded strict/inclusive feature/value-first and chained media ranges, bounded @supports declaration checks plus selector() through the compiled selector grammar with grouped not/and/or logic, and bounded named @layer blocks with later-normal, unlayered-normal, reversed-important, inline, nested-name, and native-sheet ordering, bounded named reset/increment/set counters and generated quote depth, inherited horizontal LTR/RTL direction and bounded quote pairs, fixed/percentage/calc dimensions and classic vw/vh/vmin/vmax plus bounded em/rem units, two/three-term min/max and three-term clamp size functions, named/hex/RGB, bounded legacy or modern HSL/HSLA, bounded modern HWB, bounded modern CIE Lab/LCH with D50 conversion and Bradford D50-to-D65 adaptation, bounded predefined color() with sRGB, linear sRGB, Display P3, linear Display P3, XYZ D50/D65 and Bradford adaptation, bounded modern Oklab/OkLCh with D65 conversion, shared local-MINDE sRGB gamut mapping, and bounded two-stop color-mix(in srgb, ...) colors with normalized hue, clamped channels/alpha, HWB gray normalization, omitted/normalized mix weights, reduced low-total alpha, and premultiplied-alpha interpolation across gradients, shadows, fields, and SVG paint, content/border box, circular/elliptical radii, bounded outlines, box shadows, one inherited bounded text-shadow layer, bounded text-decoration line/color/style/thickness and signed pixel/percentage underline offset, inherited text-align shorthand/all/last with logical state and justify-all, inherited text-wrap mode/style with bounded balance, non-inherited bounded line-clamp/WebKit compatibility, isolated bounded pseudo typography, eight string/attr/quoted-attr-fallback/named-counter/quote-keyword visual fragments, and an optional eight-item/128-unit string/attr/counter alternative list, plus one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing, signed pixel/percentage first-line indentation, and text styles, visibility, absolute/fixed and bounded vertical sticky positioning, transforms, responsive image sizing, direction-aware row/column flex, and direction-aware bounded two-axis grid");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/box-shadows/gradients, bounded offset and lightweight blurred text shadows, native fast-path plus lightweight offset-aware solid/double/dotted/dashed/wavy text decorations, direction-aware source-stable inline atoms including bounded before/after generated runs, bounded same-count balanced wrapping and 1..32 line clamping, inside/outside text and image markers with isolated pseudo style and concatenated generated text content, first-line indentation, inherited logical all/final/forced-line alignment, and paint-only single-line ellipsis geometry, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Text overflow", "Supported subset", "Non-inherited clip/ellipsis with bounded LTR/RTL physical inline-end markers and grapheme-safe paint-only authored prefixes for inline runs and tables; retained layout/link targets, full logical automation text, and direction-aware partial range geometry; no native-control, Unicode bidi shaping, or custom overflow-marker additions");

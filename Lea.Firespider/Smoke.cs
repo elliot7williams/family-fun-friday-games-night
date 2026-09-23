@@ -67,6 +67,8 @@ namespace Lea.Firespider
                     .Replace("<p id='host-outline'", "<p id='host-hwb' class='host-hwb'>Host color</p><p id='host-hwb-gradient' class='host-hwb-gradient'>Host gradient</p><p id='host-outline'")
                     .Replace("</style>", ".host-lab{width:160px;height:44px;background:lab(44.36% 36.05 -58.99);border:4px solid lab(29.567% 68.298 -112.0294);box-shadow:8px 0 0 lab(97.607% -15.753 93.388)}.host-lab::before{content:'LQZ ';color:lab(29.567% 68.298 -112.0294)}.host-lab-gradient{width:160px;height:44px;background-image:linear-gradient(90deg,lab(29.567% 68.298 -112.0294),lab(97.607% -15.753 93.388))}</style>")
                     .Replace("<p id='host-outline'", "<p id='host-lab' class='host-lab'>Host color</p><p id='host-lab-gradient' class='host-lab-gradient'>Host gradient</p><p id='host-outline'")
+                    .Replace("</style>", ".host-predefined{width:160px;height:44px;background:color(display-p3 0.445 0.529 0.891);border:4px solid color(xyz-d50 0.2005 0.14089 0.4472);box-shadow:8px 0 0 color(display-p3 1 1 0)}.host-predefined::before{content:'CPX ';color:color(srgb 0 0 1)}.host-predefined-gradient{width:160px;height:44px;background-image:linear-gradient(90deg,color(srgb 1 0 0),color(display-p3 0 0 1))}</style>")
+                    .Replace("<p id='host-outline'", "<p id='host-predefined' class='host-predefined'>Host color</p><p id='host-predefined-gradient' class='host-predefined-gradient'>Host gradient</p><p id='host-outline'")
                     .Replace("</style>", ".host-ok{width:160px;height:44px;background:oklab(0.6279553606 0.2248630611 0.1258462985);border:4px solid oklch(0.4520137184 0.3132143717 264.0520206);box-shadow:8px 0 0 oklab(0.8664396115 -0.2338875742 0.1794984799)}.host-ok::before{content:'QZK ';color:oklch(0.4520137184 0.3132143717 264.0520206)}.host-ok-gradient{width:160px;height:44px;background-image:linear-gradient(90deg,oklab(0.6279553606 0.2248630611 0.1258462985),oklch(0.4520137184 0.3132143717 264.0520206))}</style>")
                     .Replace("<p id='host-outline'", "<p id='host-ok' class='host-ok'>Host color</p><p id='host-ok-gradient' class='host-ok-gradient'>Host gradient</p><p id='host-outline'")
                     .Replace("</style>", ".host-mix{width:160px;height:44px;color:green;background:color-mix(in srgb,red 25%,blue);border:4px solid color-mix(in srgb,currentColor 25%,white);box-shadow:8px 0 0 color-mix(in srgb,red,blue)}.host-mix::before{content:'CMX ';color:color-mix(in srgb,yellow,red)}.host-mix-gradient{width:160px;height:44px;background-image:linear-gradient(90deg,color-mix(in srgb,red 75%,blue),color-mix(in srgb,red,blue 75%))}</style>")
@@ -805,6 +807,41 @@ namespace Lea.Firespider
                         Check(ColorDistance(labPaint.GetPixel(labGradientRect.Left + 6, labGradientRect.Top + labGradientRect.Height / 2), System.Drawing.Color.Blue) < 35 &&
                             ColorDistance(labPaint.GetPixel(labGradientRect.Right - 6, labGradientRect.Top + labGradientRect.Height / 2), System.Drawing.Color.Yellow) < 35,
                             "Firespider Lab gradient paint");
+                    }
+                    var hostPredefined = BlockById(host.At, "host-predefined");
+                    var hostPredefinedBefore = Run(hostPredefined, "be");
+                    var hostPredefinedGradient = BlockById(host.At, "host-predefined-gradient");
+                    Check(hostPredefined.S.Bg == "color(display-p3 0.445 0.529 0.891)" &&
+                        hostPredefined.S.Bcv(0) == "color(xyz-d50 0.2005 0.14089 0.4472)" &&
+                        hostPredefined.S.Sw.Count == 1 && hostPredefined.S.Sw[0].C == "color(display-p3 1 1 0)" &&
+                        hostPredefinedBefore != null && hostPredefinedBefore.S.F == "color(srgb 0 0 1)" &&
+                        hostPredefinedGradient.S.Gi != null && hostPredefinedGradient.S.Gi.Ss.Count == 2 &&
+                        hostPredefinedGradient.S.Gi.Ss[0].C == "color(srgb 1 0 0)" &&
+                        hostPredefinedGradient.S.Gi.Ss[1].C == "color(display-p3 0 0 1)",
+                        "Firespider predefined color model");
+                    var automationPredefined = automationRoot.FindFirst(TreeScope.Descendants,
+                        new PropertyCondition(AutomationElement.AutomationIdProperty, "host-predefined"));
+                    Check(automationPredefined != null, "Firespider predefined color automation element");
+                    ((TextPattern)automationTextPattern).RangeFromChild(automationPredefined).ScrollIntoView(true);
+                    PaintView(host);
+                    using (var predefinedPaint = RenderView(host))
+                    {
+                        var predefinedRect = BlockOuter(host, "host-predefined");
+                        predefinedRect.Offset(0, -host.Sy);
+                        var predefinedGradientRect = BlockOuter(host, "host-predefined-gradient");
+                        predefinedGradientRect.Offset(0, -host.Sy);
+                        Check(ColorDistance(predefinedPaint.GetPixel(predefinedRect.Right - 8,
+                                predefinedRect.Top + predefinedRect.Height / 2), System.Drawing.Color.FromArgb(108, 136, 234)) < 12 &&
+                            ColorDistance(predefinedPaint.GetPixel(predefinedRect.Left + predefinedRect.Width / 2,
+                                predefinedRect.Top + 2), System.Drawing.Color.FromArgb(118, 84, 205)) < 12 &&
+                            ColorDistance(predefinedPaint.GetPixel(predefinedRect.Right + 4,
+                                predefinedRect.Top + predefinedRect.Height / 2), System.Drawing.Color.Yellow) < 15,
+                            "Firespider predefined background, XYZ border, and P3 shadow paint");
+                        Check(ColorDistance(predefinedPaint.GetPixel(predefinedGradientRect.Left + 6,
+                                predefinedGradientRect.Top + predefinedGradientRect.Height / 2), System.Drawing.Color.Red) < 35 &&
+                            ColorDistance(predefinedPaint.GetPixel(predefinedGradientRect.Right - 6,
+                                predefinedGradientRect.Top + predefinedGradientRect.Height / 2), System.Drawing.Color.Blue) < 35,
+                            "Firespider predefined gradient paint");
                     }
                     var hostOk = BlockById(host.At, "host-ok");
                     var hostOkBefore = Run(hostOk, "be");
@@ -1703,6 +1740,7 @@ namespace Lea.Firespider
                 Console.WriteLine("Firespider direction smoke passed: inherited RTL mapping, direction-aware flex/grid/inline, list-marker, inline-end ellipsis, and TextPattern range geometry reached the compiled host.");
                 Console.WriteLine("Firespider image sandbox smoke passed: zero-capability AppContainer, combined host/helper admission, exact helper ACL, restricted token, low integrity, and Job limits reached the compiled host.");
                 Console.WriteLine("Firespider initial fragment stability smoke passed: Fa/Fj/Fy diagnostics and manual-scroll release reached the compiled host.");
+                Console.WriteLine("Firespider predefined color smoke passed: sRGB, linear sRGB, Display P3, linear Display P3, XYZ D50/D65, Bradford adaptation, local-MINDE gamut mapping, generated content, gradients, automation, and exact host paint reached the compiled host.");
 
                     Console.WriteLine("Firespider Lea smoke passed: bounded inline before/after/marker generated content with quoted attr fallbacks, visual/accessibility alternatives, generated quote depth, and sandboxed bitmap fragments, be/af/ms/qu aliases, accessibility, links, counters, tables, responsive paint, and retained fields; bounded horizontal logical margin/padding properties with twelve compact aliases, bounded horizontal logical sizing/insets with short is/bs and familiar DOM aliases, bounded sticky positioning with compact k and shared host geometry, bounded percentage/calc widths with compact wd and literal DOM reflow, bounded display alias and literal location requests, literal bounded DOM translation, inherited cursor and pointer-event aliases with host hit gating and fallthrough, bounded CSS text decoration and inherited underline offsets with compact aliases and host paint, bounded CSS outlines with compact aliases and exact non-layout host paint, bounded CSS aspect ratios with compact aliases and exact host geometry/paint, bounded CSS object-fit and object-position with compact aliases, exact fitted paint, and image-map keyboard/accessibility geometry, bounded CSS bitmap backgrounds with compact aliases and exact host paint, modern bounded HSL/HSLA, HWB, CIE Lab/LCH with D50-to-D65 Bradford adaptation, Oklab, and OkLCh plus local-MINDE gamut mapping and premultiplied sRGB color mixing with hue units, alpha, gradients, SVG, and exact host paint, bounded inline SVG aliases, winding, stroke styles, geometry, links, and graphic accessibility, bounded has relational selectors with strict lists, maximum specificity, descendant/child/adjacent and complex host relationships, focus rebuilds, retained fields, queries, Inspector, and geometry, bounded nth-child of-S filters with strict lists, maximum specificity, forward/reverse computed styles, queries, Inspector, and host geometry, bounded precompiled An+B and reverse structural selectors with computed styles, queries, Inspector, and host geometry, bounded is, where, and list-not selector functions with specificity, queries, Inspector, and geometry, bounded CSS important cascade with G.Ic diagnostics, custom properties, inline, responsive values, Inspector counts, and retained fields, bounded inherited CSS custom properties with S.Vc/Cv and G.Vc aliases, responsive values, Inspector counts, and retained fields, bounded responsive CSS media queries with compact width/height aliases, portrait/landscape, exact/min/max aspect-ratio states, modern strict/inclusive range syntax, bounded @supports declaration and selector capability checks, bounded named cascade layers with normal/unlayered/reversed-important order, diagnostics, and retained fields, optional bounded persistent cache aliases and Inspector diagnostics, bounded content-box and border-box geometry, scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, and shrink, semantic accessibility, protected values, rendered bounds, MSAA and UI Automation providers, value, table/grid, and read-only logical text patterns plus Access inspector, bounded autofocus and access keys, keyboard focus and activation, responsive image maps, compact time/edit metadata, output/data values and safe rebuilds, progress and meter gauges, disclosure commands, retained same-page fragments, Lea-first New Tab and explicit legacy fallback, host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
                 return 0;

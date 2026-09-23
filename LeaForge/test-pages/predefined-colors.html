@@ -1,0 +1,111 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea predefined colors</title>
+  <style>
+    html, body { margin: 0; padding: 0; background: white; color: black; font-family: Arial; }
+    .swatch { display: block; width: 190px; height: 36px; margin: 12px; padding: 0; }
+    #srgb-blue { background-color: color(srgb 0 0 1); }
+    #srgb-percent { background-color: color(srgb 100% 0% 0%); }
+    #srgb-linear { background-color: color(srgb-linear 0 1 0); }
+    #p3-reference { background-color: color(display-p3 0.445 0.529 0.891); }
+    #p3-percent { background-color: color(display-p3 44.5% 52.9% 89.1%); }
+    #p3-pair { background-color: color(display-p3 0.591 0.123 0.264); }
+    #p3-linear-pair { background-color: color(display-p3-linear 0.3081 0.014 0.0567); }
+    #xyz-d50 { background-color: color(xyz-d50 0.2005 0.14089 0.4472); }
+    #xyz-d65 { background-color: color(xyz-d65 0.21661 0.14602 0.59452); }
+    #xyz-alias { background-color: color(xyz 0.21661 0.14602 0.59452); }
+    #alpha { background-color: color(display-p3 0.445 0.529 0.891 / 50%); }
+    #gamut { background-color: color(display-p3 1 1 0); }
+    #extended { background-color: color(display-p3 1.1 .4 .2); }
+    #mix { background-color: color-mix(in srgb, color(srgb 1 0 0), color(display-p3 0 0 1)); }
+    #shadow { background: white; box-shadow: 10px 0 0 color(display-p3 0.445 0.529 0.891); }
+    #shadow-atomic {
+      background: white;
+      box-shadow: 4px 0 0 color(srgb 1 0 0);
+      box-shadow: 8px 0 0 color(display-p3, 1, 0, 0);
+    }
+    #gradient { background-image: linear-gradient(90deg, color(srgb 1 0 0), color(display-p3 0 0 1)); }
+    #gradient-atomic {
+      background-image: linear-gradient(90deg, color(srgb 0 1 0), color(display-p3 0 0 1));
+      background-image: linear-gradient(90deg, color(unknown 1 0 0), blue);
+    }
+    #decor {
+      color: color(display-p3 0 0 1);
+      text-decoration: underline solid color(display-p3 0.445 0.529 0.891) 3px;
+      text-shadow: 2px 2px 0 color(display-p3 1 1 0);
+    }
+    :root { --tone: color(display-p3 0.445 0.529 0.891); }
+    #variable { background-color: var(--tone); }
+    @layer color-base { #layered { background-color: color(srgb 1 0 0); } }
+    @layer color-theme { #layered { background-color: color(display-p3 0 0 1); } }
+    #generated::before { content: "PCX "; color: color(display-p3 0.445 0.529 0.891); text-shadow: 1px 1px 0 color(display-p3 1 1 0); }
+    #responsive { background-color: color(srgb 1 0 0); }
+    @media (max-width: 600px) { #responsive { background-color: color(display-p3 0 0 1); } }
+    #supported-srgb, #supported-linear, #supported-p3, #supported-p3-linear, #supported-xyz,
+    #unsupported-space, #unsupported-comma, #unsupported-slash, #unsupported-none,
+    #unsupported-nested, #unsupported-missing { display: none; }
+    @supports (color: color(srgb 1 0 0)) { #supported-srgb { display: block; } }
+    @supports (color: color(srgb-linear 1 0 0)) { #supported-linear { display: block; } }
+    @supports (color: color(display-p3 1 0 0)) { #supported-p3 { display: block; } }
+    @supports (color: color(display-p3-linear 1 0 0)) { #supported-p3-linear { display: block; } }
+    @supports (color: color(xyz-d50 .2 .14 .45)) { #supported-xyz { display: block; } }
+    @supports (color: color(a98-rgb 1 0 0)) { #unsupported-space { display: block; } }
+    @supports (color: color(display-p3, 1, 0, 0)) { #unsupported-comma { display: block; } }
+    @supports (color: color(srgb 1 0 0 / 50% / 25%)) { #unsupported-slash { display: block; } }
+    @supports (color: color(srgb none 0 0)) { #unsupported-none { display: block; } }
+    @supports (color: color(srgb calc(1) 0 0)) { #unsupported-nested { display: block; } }
+    @supports (color: color(srgb 1 0)) { #unsupported-missing { display: block; } }
+    input { width: 190px; height: 32px; margin: 12px; color: color(display-p3 0 0 1); background-color: color(display-p3 1 1 0 / 20%); border: 3px solid color(display-p3 0.445 0.529 0.891); }
+    svg { width: 190px; height: 70px; margin: 12px; }
+    #svg-fill { fill: color(display-p3 0.445 0.529 0.891); stroke: color(display-p3 0 0 1); stroke-width: 4; }
+    #svg-stop-a { stop-color: color(display-p3 1 1 0); }
+    #svg-stop-b { stop-color: color(srgb 1 0 0); }
+  </style>
+</head>
+<body>
+  <p id="srgb-blue" class="swatch">sRGB blue</p>
+  <p id="srgb-percent" class="swatch">sRGB percentages</p>
+  <p id="srgb-linear" class="swatch">Linear sRGB</p>
+  <p id="p3-reference" class="swatch">Display P3 reference</p>
+  <p id="p3-percent" class="swatch">Display P3 percentages</p>
+  <p id="p3-pair" class="swatch">Display P3 pair</p>
+  <p id="p3-linear-pair" class="swatch">Linear Display P3 pair</p>
+  <p id="xyz-d50" class="swatch">XYZ D50</p>
+  <p id="xyz-d65" class="swatch">XYZ D65</p>
+  <p id="xyz-alias" class="swatch">XYZ alias</p>
+  <p id="alpha" class="swatch">Alpha</p>
+  <p id="gamut" class="swatch">P3 gamut mapped</p>
+  <p id="extended" class="swatch">Extended P3</p>
+  <p id="mix" class="swatch">Mixed predefined stops</p>
+  <p id="shadow" class="swatch">Shadow</p>
+  <p id="shadow-atomic" class="swatch">Atomic shadow</p>
+  <p id="gradient" class="swatch">Gradient</p>
+  <p id="gradient-atomic" class="swatch">Atomic gradient</p>
+  <p id="decor" class="swatch">Decoration</p>
+  <p id="variable" class="swatch">Variable</p>
+  <p id="layered" class="swatch">Layered</p>
+  <p id="generated" class="swatch">Generated</p>
+  <p id="responsive" class="swatch">Responsive</p>
+  <p id="supported-srgb" class="swatch">sRGB supported</p>
+  <p id="supported-linear" class="swatch">Linear sRGB supported</p>
+  <p id="supported-p3" class="swatch">P3 supported</p>
+  <p id="supported-p3-linear" class="swatch">Linear P3 supported</p>
+  <p id="supported-xyz" class="swatch">XYZ supported</p>
+  <p id="unsupported-space" class="swatch">Unsupported space</p>
+  <p id="unsupported-comma" class="swatch">Unsupported comma syntax</p>
+  <p id="unsupported-slash" class="swatch">Unsupported duplicate slash</p>
+  <p id="unsupported-none" class="swatch">Unsupported none channel</p>
+  <p id="unsupported-nested" class="swatch">Unsupported nested function</p>
+  <p id="unsupported-missing" class="swatch">Unsupported missing channel</p>
+  <input id="field" value="Retained predefined field">
+  <svg id="svg" viewBox="0 0 190 70" role="img" aria-label="Predefined color vector">
+    <defs>
+      <linearGradient id="predefined-gradient"><stop id="svg-stop-a" offset="0%"></stop><stop id="svg-stop-b" offset="100%"></stop></linearGradient>
+    </defs>
+    <rect id="svg-fill" x="4" y="4" width="80" height="62"></rect>
+    <rect id="svg-gradient" x="98" y="4" width="88" height="62" fill="url(#predefined-gradient)"></rect>
+  </svg>
+</body>
+</html>

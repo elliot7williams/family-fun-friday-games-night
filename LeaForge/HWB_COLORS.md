@@ -49,10 +49,10 @@ computed value. Responsive rebuilds retain mutable field identity and values.
 ## Compatibility boundary
 
 This milestone does not add comma-separated HWB, the CSS `none` channel keyword,
-relative colors, `calc()` or other channel expressions, wide-gamut `color()`,
-or color-profile management. Bounded CIE Lab/LCH, Oklab/OkLCh, and sRGB mixing
-are documented separately in `LAB_COLORS.md`, `OKLAB_COLORS.md`, and
-`COLOR_MIX.md`. Lea's compact
+relative colors, `calc()` or other channel expressions, or color-profile
+management. Bounded CIE Lab/LCH, predefined sRGB/Display-P3/XYZ `color()`,
+Oklab/OkLCh, and sRGB mixing are documented separately in `LAB_COLORS.md`,
+`PREDEFINED_COLORS.md`, `OKLAB_COLORS.md`, and `COLOR_MIX.md`. Lea's compact
 page-script `bg` and `fg` commands keep their existing command-specific
 validation; this milestone covers authored CSS and the shared style paths that
 already use the bounded CSS color parser.

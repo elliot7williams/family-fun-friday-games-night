@@ -545,6 +545,14 @@ media, fields, shadows, gradients, generated content, SVG, and `@supports` all
 share this path. Hosts need no color-space or gamut-mapping code. See
 `LAB_COLORS.md`.
 
+Bounded predefined CSS `color()` values remain host-neutral as well. Lea
+accepts sRGB, linear sRGB, Display P3, linear Display P3, `xyz`/XYZ D65, and
+XYZ D50 channels with optional alpha. `V` applies the CSS Color 4 transfer,
+matrix, Bradford-adaptation, and shared local-MINDE sRGB gamut paths while the
+host continues to read the existing authored-color records. Variables, layers,
+media, fields, shadows, gradients, generated content, SVG, color-mix stops, and
+`@supports` need no adapter changes. See `PREDEFINED_COLORS.md`.
+
 Modern `oklab()` and `oklch()` colors also retain authored values in the same
 records. `V` applies the CSS Color 4 D65 matrices and bounded local-MINDE sRGB
 gamut mapping with fixed lightness and hue, a 0.02 JND, and 0.0001 search
