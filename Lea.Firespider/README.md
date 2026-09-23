@@ -531,6 +531,12 @@ shadows, gradients, generated text, fields, and inline SVG all use the shared
 engine and WinForms paths. The compiled host verifies exact background, border,
 shadow, and gradient pixels without adding a Firespider color converter.
 
+Modern `hwb()` colors share those records and paint paths. The engine handles
+clamped whiteness/blackness, CSS gray normalization, numeric/percentage alpha,
+variables, layers, media, fields, shadows, gradients, generated text, and SVG.
+The compiled host verifies the public state and exact mixed-background, border,
+shadow, and gradient pixels without adding a host-side converter.
+
 Hosted Lea pages expose bounded bitmap backgrounds through `S.Bi` and compact
 `Bi.U/R/X/Y/Xp/Yp/W/H/Wp/Hp/Wa/Ha/K` state. The host smoke compiles a data
 image with no-repeat, bottom-right positioning, pixel sizing, and rounded

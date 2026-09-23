@@ -531,6 +531,12 @@ decorations, shadows, gradients, generated content, fields, and SVG paint, so
 embedding hosts need no HSL conversion layer. See `HSL_COLORS.md` for bounds and
 explicit exclusions.
 
+Modern `hwb()` colors use that same path with space-separated hue, whiteness,
+and blackness plus optional slash alpha. Whiteness/blackness are percentages;
+when their clamped sum reaches 100%, `V` applies CSS gray normalization before
+painting. Hosts continue to read authored colors from the existing records and
+need no conversion code. See `HWB_COLORS.md`.
+
 Inherited pointer interaction is available through `S.Cu/Pe`. Hosts can inspect
 the compact automatic/default, pointer, text, wait, crosshair, move, help,
 not-allowed, and axis-resize cursor state without translating CSS keywords.
@@ -1007,7 +1013,7 @@ centered rotate, skewX, and skewY with cumulative group inheritance.
 Presentation attributes, specificity-ordered stylesheets, inline styles,
 custom-property values, and important priority cover fill, stroke, stroke width,
 opacity, fill/stroke opacity, font size, text anchor, and `currentColor`, with
-bounded HSL/HSLA colors sharing the ordinary HTML color conversion path.
+bounded HSL/HSLA and HWB colors sharing the ordinary HTML color conversion path.
 Local linear and radial gradients resolve once through `Vg.Ds` and `Vs.Fd/Sd`.
 They support object-bounds/user-space coordinates, percentage values, radial
 focus, up to four `href` inheritance hops, gradient transforms, and up to 16

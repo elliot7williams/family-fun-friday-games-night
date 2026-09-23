@@ -8630,7 +8630,9 @@ namespace Lea.Engine
             var match = Regex.Match(source ?? "", "^rgba?\\((?<v>[^()]{1,48})\\)$", RegexOptions.IgnoreCase);
             if (match.Success) return ShadowRgbColor(match.Groups["v"].Value);
             match = Regex.Match(source ?? "", "^hsla?\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
-            return match.Success && ShadowHslColor(match.Groups["v"].Value);
+            if (match.Success) return ShadowHslColor(match.Groups["v"].Value);
+            match = Regex.Match(source ?? "", "^hwb\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
+            return match.Success && ShadowHwbColor(match.Groups["v"].Value);
         }
 
         private static bool ShadowRgbColor(string value)
@@ -8687,6 +8689,23 @@ namespace Lea.Engine
             }
             return ShadowHue(channels[0]) && ShadowPercent(channels[1]) && ShadowPercent(channels[2]) &&
                 (alpha == null || ShadowColorNumber(alpha));
+        }
+
+        private static bool ShadowHwbColor(string value)
+        {
+            var body = (value ?? "").Trim();
+            if (body.IndexOf(',') >= 0) return false;
+            string alpha = null;
+            var slash = body.IndexOf('/');
+            if (slash >= 0)
+            {
+                if (body.IndexOf('/', slash + 1) >= 0) return false;
+                alpha = body.Substring(slash + 1).Trim();
+                body = body.Substring(0, slash).Trim();
+            }
+            var channels = Regex.Split(body, "\\s+");
+            return channels.Length == 3 && ShadowHue(channels[0]) && ShadowPercent(channels[1]) &&
+                ShadowPercent(channels[2]) && (alpha == null || ShadowColorNumber(alpha));
         }
 
         private static bool ShadowHue(string source)

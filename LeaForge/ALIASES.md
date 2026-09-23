@@ -270,7 +270,7 @@ and `c` for color: `biw/biy/bic`, `bbw/bby/bbc`, plus `si*`, `ei*`, `sb*`, and
 `eb*` for the four logical edges. Axis components accept one or two values.
 Widths are bounded to 0..100 pixels or thin/medium/thick; styles are
 none/hidden/solid/dashed/dotted/double; colors use bounded named, hex, RGB/RGBA,
-and legacy or modern HSL/HSLA forms. Readable names and all 24 literal `style.borderInline*` and
+legacy or modern HSL/HSLA, and modern HWB forms. Readable names and all 24 literal `style.borderInline*` and
 `style.borderBlock*` properties share the same atomic parser. Empty assignments
 restore authored CSS. See `LOGICAL_BORDERS.md`.
 
@@ -1059,7 +1059,7 @@ width, `Os=n/s/d/o/a` stores none, solid, dashed, dotted, or automatic style,
 The `outline` shorthand accepts up to three unordered width/style/color parts
 atomically; `outline-width`, `outline-style`, `outline-color`, and
 `outline-offset` update their individual state. Named, 3/4/6/8-digit hex,
-`rgb()`/`rgba()` and `hsl()`/`hsla()` comma or space/slash colors, alpha, transparent, and
+`rgb()`/`rgba()`, `hsl()`/`hsla()`, and `hwb()` colors, alpha, transparent, and
 `currentColor` share the bounded color path. Variables, important tiers,
 CSS-wide resets, malformed preservation, responsive rules, and dynamic
 `:focus` rebuilds use the normal cascade. The custom painter follows rounded
@@ -1090,7 +1090,7 @@ and vertical offsets in `X/Y`, blur in `B`, spread in `R`, authored color in
 entries atomically, with two required and up to four pixel or compact unitless
 lengths. Offsets and spread are signed and clamp to 512 pixels; blur is
 nonnegative and clamps to 128 pixels. Named and 3/4/6/8-digit hex colors,
-`rgb()`/`rgba()` and `hsl()`/`hsla()` comma or space/slash forms, `transparent`, and `currentColor`
+`rgb()`/`rgba()`, `hsl()`/`hsla()`, and modern space/slash `hwb()` forms, `transparent`, and `currentColor`
 are accepted. `none` and CSS-wide reset values clear the list. The WinForms
 painter caps soft shadows at 12 bands, respects rounded corners, opacity and
 ancestor overflow, supports outer and inset field shadows, and leaves layout,
@@ -1146,7 +1146,7 @@ atomic `linear-gradient()` or `radial-gradient()` layer in `background` or
 `background-image`; omitted positions interpolate between explicit stops.
 Linear heads accept integer `deg` values or `to` direction keywords. Radial
 heads accept `circle`/`ellipse` and keyword or percentage origins after `at`.
-Named, hex, `rgb()`/`rgba()`, `hsl()`/`hsla()`, `transparent`, and `currentColor` colors share the
+Named, hex, `rgb()`/`rgba()`, `hsl()`/`hsla()`, `hwb()`, `transparent`, and `currentColor` colors share the
 bounded color parser. Reset values clear the image; malformed, overlong,
 multiple-layer, repeating, length-stop, or over-eight-stop declarations preserve
 the previous computed image. Page, rounded-box, and ordinary-field painters

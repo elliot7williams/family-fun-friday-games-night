@@ -7400,7 +7400,9 @@ namespace Lea.Win
             var match = Regex.Match(source ?? "", "^rgba?\\((?<v>[^()]*)\\)$", RegexOptions.IgnoreCase);
             if (match.Success) return CssRgbColor(match.Groups["v"].Value, out color);
             match = Regex.Match(source ?? "", "^hsla?\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
-            return match.Success && CssHslColor(match.Groups["v"].Value, out color);
+            if (match.Success) return CssHslColor(match.Groups["v"].Value, out color);
+            match = Regex.Match(source ?? "", "^hwb\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
+            return match.Success && CssHwbColor(match.Groups["v"].Value, out color);
         }
 
         private static bool CssRgbColor(string value, out Color color)
@@ -7468,12 +7470,59 @@ namespace Lea.Win
             int opacity;
             if (!CssHue(channels[0], out hue) || !CssPercent(channels[1], out saturation) ||
                 !CssPercent(channels[2], out lightness) || !CssAlpha(alpha, out opacity)) return false;
-            var chroma = (1D - Math.Abs(2D * lightness - 1D)) * saturation;
-            var sector = hue / 60D;
-            var middle = chroma * (1D - Math.Abs(sector % 2D - 1D));
             double red;
             double green;
             double blue;
+            CssHslRgb(hue, saturation, lightness, out red, out green, out blue);
+            color = Color.FromArgb(opacity, CssByte(red), CssByte(green), CssByte(blue));
+            return true;
+        }
+
+        private static bool CssHwbColor(string value, out Color color)
+        {
+            color = Color.Empty;
+            var body = (value ?? "").Trim();
+            if (body.IndexOf(',') >= 0) return false;
+            string alpha = null;
+            var slash = body.IndexOf('/');
+            if (slash >= 0)
+            {
+                if (body.IndexOf('/', slash + 1) >= 0) return false;
+                alpha = body.Substring(slash + 1).Trim();
+                body = body.Substring(0, slash).Trim();
+            }
+            var channels = Regex.Split(body, "\\s+");
+            double hue;
+            double whiteness;
+            double blackness;
+            int opacity;
+            if (channels.Length != 3 || !CssHue(channels[0], out hue) || !CssPercent(channels[1], out whiteness) ||
+                !CssPercent(channels[2], out blackness) || !CssAlpha(alpha, out opacity)) return false;
+            double red;
+            double green;
+            double blue;
+            if (whiteness + blackness >= 1D)
+            {
+                red = green = blue = whiteness / (whiteness + blackness);
+            }
+            else
+            {
+                CssHslRgb(hue, 1D, .5D, out red, out green, out blue);
+                var factor = 1D - whiteness - blackness;
+                red = red * factor + whiteness;
+                green = green * factor + whiteness;
+                blue = blue * factor + whiteness;
+            }
+            color = Color.FromArgb(opacity, CssByte(red), CssByte(green), CssByte(blue));
+            return true;
+        }
+
+        private static void CssHslRgb(double hue, double saturation, double lightness,
+            out double red, out double green, out double blue)
+        {
+            var chroma = (1D - Math.Abs(2D * lightness - 1D)) * saturation;
+            var sector = hue / 60D;
+            var middle = chroma * (1D - Math.Abs(sector % 2D - 1D));
             if (sector < 1D) { red = chroma; green = middle; blue = 0D; }
             else if (sector < 2D) { red = middle; green = chroma; blue = 0D; }
             else if (sector < 3D) { red = 0D; green = chroma; blue = middle; }
@@ -7481,8 +7530,9 @@ namespace Lea.Win
             else if (sector < 5D) { red = middle; green = 0D; blue = chroma; }
             else { red = chroma; green = 0D; blue = middle; }
             var offset = lightness - chroma / 2D;
-            color = Color.FromArgb(opacity, CssByte(red + offset), CssByte(green + offset), CssByte(blue + offset));
-            return true;
+            red += offset;
+            green += offset;
+            blue += offset;
         }
 
         private static bool CssHue(string source, out double value)

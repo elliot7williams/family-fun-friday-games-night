@@ -179,16 +179,17 @@ LeaForge is where we can grow the more full-featured browser.
 - inherited visibility and effective opacity across text, boxes, controls, and images
 - default HTML `hidden` rendering suppression plus focus, autofocus, and access-key exclusion
 - responsive `<picture>`/`srcset` selection and bounded base64 embedded images
-- compact CSS cascade for named, hex, RGB/RGBA, and bounded legacy/modern
-  HSL/HSLA colors, fonts, boxes, overflow, and inline styles; HSL accepts
-  degree/gradian/radian/turn hues, normalized wrapping, clamped percentage
-  channels and alpha, and shared HTML/field/SVG paint; see `HSL_COLORS.md`
+- compact CSS cascade for named, hex, RGB/RGBA, bounded legacy/modern
+  HSL/HSLA, and modern HWB colors, fonts, boxes, overflow, and inline styles;
+  hue formats accept degree/gradian/radian/turn units and normalized wrapping,
+  while HWB adds clamped whiteness/blackness and gray normalization across
+  shared HTML/field/SVG paint; see `HSL_COLORS.md` and `HWB_COLORS.md`
 - bounded rounded outer/inset CSS box shadows through compact `S.Sw` and
-  `Sw.X/Y/B/R/C/I`, atomic four-entry lists, RGB/HSL alpha/current colors, variables,
+  `Sw.X/Y/B/R/C/I`, atomic four-entry lists, RGB/HSL/HWB alpha/current colors, variables,
   priority/reset/bounds, ordinary fields, and a 12-band blur ceiling
 - bounded linear/radial CSS background gradients through compact `S.Gi`,
   `Gi.K/A/X/Y/Ss`, and `Cs.C/P`, with one atomic layer, eight normalized stops,
-  RGB/HSL alpha/current colors, variables, priority/reset/bounds, rounded page/box/field
+  RGB/HSL/HWB alpha/current colors, variables, priority/reset/bounds, rounded page/box/field
   paint, opacity, clipping, and resize-safe hit geometry
 - bounded `flex`/`inline-flex` row and column flow with compact
   `Fd/Jc/Ai/As/Gp/Wr/Rg/Fg/Sh/Fb/Or` state, stable order and reversal,

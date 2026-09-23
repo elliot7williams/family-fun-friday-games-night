@@ -166,6 +166,11 @@ namespace Lea.Tests
                     HslColorSmoke(Path.Combine(pages, "hsl-colors.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--hwb")
+                {
+                    HwbColorSmoke(Path.Combine(pages, "hwb-colors.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--text-align-last")
                 {
                     TextAlignLastSmoke(Path.Combine(pages, "text-align-last.html"));
@@ -1547,6 +1552,7 @@ namespace Lea.Tests
                 SupportsSmoke(Path.Combine(pages, "supports-queries.html"));
                 LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
                 HslColorSmoke(Path.Combine(pages, "hsl-colors.html"));
+                HwbColorSmoke(Path.Combine(pages, "hwb-colors.html"));
 
                 var customPath = Path.Combine(pages, "custom-properties.html");
                 var customEngine = new E();
@@ -8390,6 +8396,114 @@ namespace Lea.Tests
                     "HSL live resize retains field state");
             }
             Console.WriteLine("Lea HSL color smoke passed: legacy and modern syntax, hue units, wrapping, clamping, alpha, supports, variables, layers, shadows, gradients, generated content, fields, SVG, responsive paint, and retention.");
+        }
+
+        private static void HwbColorSmoke(string path)
+        {
+            var engine = new E { Vw = 760, Vh = 1600 };
+            var page = engine.Go(path);
+            Func<string, B> block = id => BlockById(page, id);
+            Eq("hwb(0 0% 0%)", block("pure").S.Bg, "pure HWB background state");
+            Eq("hwb(120 20% 30%)", block("mixed").S.Bg, "mixed HWB background state");
+            Eq("hwb(240 0% 0% / 50%)", block("alpha").S.Bg, "HWB alpha state");
+            Eq("hwb(0 0% 0% / .5)", block("alpha-number").S.Bg, "HWB numeric alpha state");
+            Ok(block("units").S.Bg == "hwb(.5turn 0% 0%)" && block("units").S.Bcv(0) == "hwb(200grad 0% 0%)" &&
+                block("units").S.Oc == "hwb(3.141592653589793rad 0% 0%)", "HWB hue unit model");
+            Eq("hwb(-120deg 0% 0%)", block("wrapped").S.Bg, "negative HWB hue state");
+            Eq("hwb(30 80% 40%)", block("normalized").S.Bg, "HWB gray normalization state");
+            Eq("hwb(60 120% -20%)", block("clamped").S.Bg, "HWB channel clamp state");
+            Ok(block("shadow").S.Sw.Count == 1 && block("shadow").S.Sw[0].C == "hwb(300 0% 50%)" &&
+                block("shadow-atomic").S.Sw.Count == 1 && block("shadow-atomic").S.Sw[0].X == 4 &&
+                block("shadow-atomic").S.Sw[0].C == "hwb(30 0% 0%)", "HWB shadow parsing and atomic rejection");
+            Ok(block("gradient").S.Gi != null && block("gradient").S.Gi.Ss.Count == 3 &&
+                block("gradient").S.Gi.Ss[1].C == "hwb(120 20% 30%)" &&
+                block("gradient-atomic").S.Gi != null && block("gradient-atomic").S.Gi.Ss[0].C == "hwb(60 0% 0%)",
+                "HWB gradient parsing and atomic rejection");
+            Ok(block("decor").S.F == "hwb(210 0% 30%)" && block("decor").S.Tc == "hwb(330 0% 20%)" &&
+                block("decor").S.Ts != null && block("decor").S.Ts.C == "hwb(45 0% 0%)", "HWB text color model");
+            Eq("hwb(150 10% 35%)", block("variable").S.Bg, "HWB custom property resolution");
+            Eq("hwb(180 0% 0%)", block("layered").S.Bg, "HWB cascade layer order");
+            var generated = Run(block("generated"), "be");
+            Ok(generated != null && generated.S.F == "hwb(270 0% 0%)" && generated.S.Ts != null &&
+                generated.S.Ts.C == "hwb(60 0% 0%)", "HWB generated content style");
+            Ok(HasBlock(page, "supported") && !HasBlock(page, "unsupported-comma") &&
+                !HasBlock(page, "unsupported-percent") && !HasBlock(page, "unsupported-slash") &&
+                !HasBlock(page, "unsupported-none") && !HasBlock(page, "unsupported-nested") &&
+                Has(engine.Dg(page).Cs, "@s(color:hwb(12020%30%))"), "HWB supports query capability");
+            var field = FieldById(page, "field");
+            Ok(field.S.F == "hwb(210 0% 30%)" && field.S.Bg == "hwb(180 80% 5%)" &&
+                field.S.Bcv(0) == "hwb(180 0% 50%)", "HWB native field style");
+            field.V = "Retained HWB value";
+            var svg = block("svg").Vg;
+            Ok(svg != null && svg.Ss.Count == 2 && svg.Ss[0].F == "hwb(15 0% 0%)" &&
+                svg.Ss[0].S == "hwb(210 0% 20%)" && svg.Ds.Count == 1 &&
+                svg.Ds[0].Ss.Count == 2 && svg.Ds[0].Ss[0].C == "hwb(300 0% 0%)" &&
+                svg.Ds[0].Ss[1].C == "hwb(60 0% 0%)", "HWB SVG paint and gradient stops");
+
+            engine.Vz(500, 1600);
+            Eq("hwb(280 0% 0%)", block("responsive").S.Bg, "responsive HWB state");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained HWB value",
+                "responsive HWB rebuild retains field state");
+
+            using (var view = new V { Size = new Size(760, 1600) })
+            {
+                view.Go(path);
+                using (var image = Render(view))
+                {
+                    var pure = BlockRect(view, BlockById(view.At, "pure"));
+                    var mixed = BlockRect(view, BlockById(view.At, "mixed"));
+                    var alpha = BlockRect(view, BlockById(view.At, "alpha"));
+                    var alphaNumber = BlockRect(view, BlockById(view.At, "alpha-number"));
+                    var units = BlockOuterRect(view, BlockById(view.At, "units"));
+                    var wrapped = BlockRect(view, BlockById(view.At, "wrapped"));
+                    var normalized = BlockRect(view, BlockById(view.At, "normalized"));
+                    var clamped = BlockRect(view, BlockById(view.At, "clamped"));
+                    var shadow = BlockOuterRect(view, BlockById(view.At, "shadow"));
+                    var atomic = BlockOuterRect(view, BlockById(view.At, "shadow-atomic"));
+                    var gradient = BlockRect(view, BlockById(view.At, "gradient"));
+                    var input = BlockRect(view, FieldBlock(view.At, FieldById(view.At, "field")));
+                    var vector = BlockRect(view, BlockById(view.At, "svg"));
+                    Ok(ColorDistance(image.GetPixel(pure.Right - 5, pure.Top + 5), Color.Red) < 4 &&
+                        ColorDistance(image.GetPixel(mixed.Right - 5, mixed.Top + 5), Color.FromArgb(51, 178, 51)) < 4,
+                        "pure and mixed HWB background paint");
+                    Ok(ColorDistance(image.GetPixel(alpha.Right - 5, alpha.Top + 5), Color.FromArgb(127, 127, 255)) < 8 &&
+                        ColorDistance(image.GetPixel(alphaNumber.Right - 5, alphaNumber.Top + 5), Color.FromArgb(255, 127, 127)) < 8,
+                        "HWB percentage and numeric alpha paint");
+                    Ok(ColorDistance(CenterPixel(image, units), Color.Cyan) < 4 &&
+                        ColorDistance(image.GetPixel(units.Left + units.Width / 2, units.Top + 2), Color.Cyan) < 8 &&
+                        ColorDistance(image.GetPixel(units.Left - 5, units.Top + units.Height / 2), Color.Cyan) < 8,
+                        "turn, grad, and radian HWB paint");
+                    Ok(ColorDistance(image.GetPixel(wrapped.Right - 5, wrapped.Top + 5), Color.Blue) < 4 &&
+                        ColorDistance(image.GetPixel(normalized.Right - 5, normalized.Top + 5), Color.FromArgb(170, 170, 170)) < 4 &&
+                        ColorDistance(image.GetPixel(clamped.Right - 5, clamped.Top + 5), Color.White) < 4,
+                        "wrapped, normalized, and clamped HWB paint");
+                    Ok(ColorDistance(image.GetPixel(shadow.Right + 5, shadow.Top + shadow.Height / 2), Color.FromArgb(128, 0, 128)) < 8 &&
+                        ColorDistance(image.GetPixel(atomic.Right + 2, atomic.Top + atomic.Height / 2), Color.FromArgb(255, 128, 0)) < 8,
+                        "HWB shadow paint and invalid fallback");
+                    Ok(ColorDistance(image.GetPixel(gradient.Left + 5, gradient.Top + gradient.Height / 2), Color.Red) < 35 &&
+                        ColorDistance(image.GetPixel(gradient.Right - 5, gradient.Top + gradient.Height / 2), Color.Blue) < 35,
+                        "HWB gradient paint");
+                    Ok(ColorDistance(image.GetPixel(input.Right - 8, input.Top + input.Height / 2), Color.FromArgb(204, 242, 242)) < 12,
+                        "HWB native field paint");
+                    Ok(ColorDistance(image.GetPixel(vector.Left + 30, vector.Top + 30), Color.FromArgb(255, 64, 0)) < 12 &&
+                        ColorDistance(image.GetPixel(vector.Left + 97, vector.Top + 30), Color.Magenta) < 35 &&
+                        ColorDistance(image.GetPixel(vector.Right - 5, vector.Top + 30), Color.Yellow) < 35,
+                        "HWB SVG fill and gradient paint");
+                }
+                var liveField = FieldById(view.At, "field");
+                liveField.V = "Retained HWB view value";
+                view.Size = new Size(500, 1600);
+                Application.DoEvents();
+                using (var image = Render(view))
+                {
+                    var responsive = BlockRect(view, BlockById(view.At, "responsive"));
+                    Ok(ColorDistance(image.GetPixel(responsive.Right - 5, responsive.Top + 5), Color.FromArgb(170, 0, 255)) < 8,
+                        "responsive HWB paint");
+                }
+                Ok(Object.ReferenceEquals(liveField, FieldById(view.At, "field")) && liveField.V == "Retained HWB view value",
+                    "HWB live resize retains field state");
+            }
+            Console.WriteLine("Lea HWB color smoke passed: modern syntax, hue units, wrapping, normalization, clamping, alpha, supports, variables, layers, shadows, gradients, generated content, fields, SVG, responsive paint, and retention.");
         }
 
         private static void SupportsSmoke(string path)

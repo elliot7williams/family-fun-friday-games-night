@@ -17,23 +17,23 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 118 adds bounded legacy and modern CSS HSL/HSLA colors to Lea's shared
-color validator and WinForms painter. Comma and space/slash syntax support
-unitless/degree, gradian, radian, and turn hues, normalized wrapping, clamped
-percentage channels, and numeric or percentage alpha. The existing compact
-records cover text, backgrounds, borders, outlines, decorations, shadows,
-gradients, generated content, variables, layers, media, fields, SVG paint/stops,
-and declaration `@supports` checks without a new alias or dependency. Mixed
-syntax, duplicate slashes, missing percentages, `none` channels, relative
-colors, channel calculations, and newer color spaces remain outside the slice.
-All 114 benchmark probes pass over 109 fixtures. The focused and full engine
-suites and compiled Firespider host are green. All 42 Boot cases and all six
+Milestone 119 adds bounded modern CSS `hwb()` colors to Lea's shared color
+validator and WinForms painter. Space-separated hue, whiteness, and blackness
+support unitless/degree, gradian, radian, and turn hues, normalized wrapping,
+clamped percentage channels, numeric/percentage slash alpha, and CSS gray
+normalization. The existing compact records cover text, backgrounds, borders,
+outlines, decorations, shadows, gradients, generated content, variables,
+layers, media, fields, SVG paint/stops, and declaration `@supports` checks
+without a new alias or dependency. Commas, duplicate slashes, missing
+percentages, `none` channels, relative colors, and channel expressions remain
+outside the slice. All 115 benchmark probes pass over 110 fixtures. The focused
+and full engine suites and compiled Firespider host are green. All 42 Boot cases and all six
 real EXE startup scenarios remain responsive without a legacy engine, invalid
 cast, JIT dialog, or dead startup window. Three-round diagnostic medians are
-529.692 ms clean start, 5.526 ms local load, and 41.683 ms layout/paint;
-retained memory is 68.5 KiB/page and the required runtime is 642.0 KiB. Runtime
-218 is packaged separately and installed runtime 157 remains unchanged. See
-`HSL_COLORS.md`. Container/style queries,
+696.028 ms clean start, 5.715 ms local load, and 41.915 ms layout/paint;
+retained memory is 68.6 KiB/page and the required runtime is 643.0 KiB. Runtime
+219 is packaged separately and installed runtime 157 remains unchanged. See
+`HWB_COLORS.md`. Container/style queries,
 `font-tech()`/`font-format()`,
 general-enclosed conditions, JavaScript `CSS.supports()`, locale-sensitive
 automatic quote selection, typed/unquoted/functional attribute fallbacks,
