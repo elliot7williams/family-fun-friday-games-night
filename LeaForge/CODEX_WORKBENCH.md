@@ -17,22 +17,23 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 121 adds bounded modern CSS `oklab()` and `oklch()` to Lea's shared
+Milestone 122 adds bounded modern CSS CIE `lab()` and `lch()` to Lea's shared
 color validator and WinForms painter. Numeric/percentage channels, optional
-slash alpha, four OkLCh hue units, D65 conversion, and bounded CSS-style
-local-MINDE sRGB gamut mapping share the existing compact authored-color
-records. Text, backgrounds, borders, outlines, decorations, shadows, gradients,
-generated content, variables, layers, media, fields, sRGB mix stops, SVG paint,
-and declaration `@supports` checks need no new alias or dependency. Comma forms,
-`none`, relative/calculated channels, `lab()`/`lch()`, wide-gamut profiles, and
-overlong input remain outside the slice. All 117 benchmark probes pass over 112
-fixtures. Focused and full source/staged suites and the compiled Firespider host
-are green. All 42 Boot cases and all six real EXE startup scenarios remain
-responsive without MSHTML, an invalid cast, JIT dialog, or dead startup window.
-Three-round diagnostic medians are 721.573 ms clean start, 6.595 ms local load,
-and 48.196 ms layout/paint; retained memory is 69.1 KiB/page and the required
-runtime is 649.0 KiB. Runtime 221 is packaged separately and installed runtime
-157 remains unchanged. See `OKLAB_COLORS.md`.
+slash alpha, four LCH hue units, D50 Lab-to-XYZ conversion, Bradford
+D50-to-D65 adaptation, and bounded CSS-style local-MINDE Oklab gamut mapping
+share the existing compact authored-color records. Text, backgrounds, borders,
+outlines, decorations, shadows, gradients, generated content, variables,
+layers, media, fields, sRGB mix stops, SVG paint, and declaration `@supports`
+checks need no new alias or dependency. Comma forms, `none`, relative or
+calculated channels, wide-gamut profiles, and overlong input remain outside the
+slice. All 118 benchmark probes pass over 113 fixtures. Focused and full
+source/staged suites and the compiled Firespider host are green. All 42 Boot
+cases and all six real EXE startup scenarios remain responsive without MSHTML,
+an invalid cast, JIT dialog, or dead startup window. Three-round diagnostic
+medians are 799.612 ms clean start, 8.569 ms local load, and 47.724 ms
+layout/paint; retained memory is 69.4 KiB/page and the required runtime is
+651.0 KiB. Runtime 222 is packaged separately and installed runtime 157 remains
+unchanged. See `LAB_COLORS.md`.
 Container/style queries,
 `font-tech()`/`font-format()`,
 general-enclosed conditions, JavaScript `CSS.supports()`, locale-sensitive

@@ -7499,6 +7499,10 @@ namespace Lea.Win
             if (match.Success) return CssHslColor(match.Groups["v"].Value, out color);
             match = Regex.Match(source ?? "", "^hwb\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
             if (match.Success) return CssHwbColor(match.Groups["v"].Value, out color);
+            match = Regex.Match(source ?? "", "^lab\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
+            if (match.Success) return CssLabColor(match.Groups["v"].Value, false, out color);
+            match = Regex.Match(source ?? "", "^lch\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
+            if (match.Success) return CssLabColor(match.Groups["v"].Value, true, out color);
             match = Regex.Match(source ?? "", "^oklab\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
             if (match.Success) return CssOklabColor(match.Groups["v"].Value, false, out color);
             match = Regex.Match(source ?? "", "^oklch\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
@@ -7649,6 +7653,64 @@ namespace Lea.Win
             return true;
         }
 
+        private static bool CssLabColor(string value, bool polar, out Color color)
+        {
+            color = Color.Empty;
+            var body = (value ?? "").Trim();
+            if (body.IndexOf(',') >= 0) return false;
+            string alpha = null;
+            var slash = body.IndexOf('/');
+            if (slash >= 0)
+            {
+                if (body.IndexOf('/', slash + 1) >= 0) return false;
+                alpha = body.Substring(slash + 1).Trim();
+                body = body.Substring(0, slash).Trim();
+            }
+            var channels = Regex.Split(body, "\\s+");
+            double lightness;
+            double second;
+            double third;
+            int opacity;
+            if (channels.Length != 3 || !CssOklabComponent(channels[0], 100D, 0D, 100D, out lightness) ||
+                !CssOklabComponent(channels[1], polar ? 150D : 125D, polar ? 0D : -1250D, polar ? 1500D : 1250D, out second) ||
+                (polar ? !CssHue(channels[2], out third) : !CssOklabComponent(channels[2], 125D, -1250D, 1250D, out third)) ||
+                !CssAlpha(alpha, out opacity)) return false;
+            if (lightness <= 0D) { color = Color.FromArgb(opacity, 0, 0, 0); return true; }
+            if (lightness >= 100D) { color = Color.FromArgb(opacity, 255, 255, 255); return true; }
+            var a = polar ? second * Math.Cos(third * Math.PI / 180D) : second;
+            var b = polar ? second * Math.Sin(third * Math.PI / 180D) : third;
+            double okLightness;
+            double okA;
+            double okB;
+            CssLabToOklab(lightness, a, b, out okLightness, out okA, out okB);
+            double red;
+            double green;
+            double blue;
+            CssOklabRgb(okLightness, okA, okB, out red, out green, out blue);
+            color = Color.FromArgb(opacity, CssByte(red), CssByte(green), CssByte(blue));
+            return true;
+        }
+
+        private static void CssLabToOklab(double lightness, double a, double b,
+            out double okLightness, out double okA, out double okB)
+        {
+            const double epsilon = 216D / 24389D;
+            const double kappa = 24389D / 27D;
+            var fy = (lightness + 16D) / 116D;
+            var fx = a / 500D + fy;
+            var fz = fy - b / 200D;
+            var fx3 = fx * fx * fx;
+            var fy3 = fy * fy * fy;
+            var fz3 = fz * fz * fz;
+            var x = (fx3 > epsilon ? fx3 : (116D * fx - 16D) / kappa) * (.3457D / .3585D);
+            var y = lightness > kappa * epsilon ? fy3 : lightness / kappa;
+            var z = (fz3 > epsilon ? fz3 : (116D * fz - 16D) / kappa) * ((1D - .3457D - .3585D) / .3585D);
+            var d65X = .955473421488075D * x - .02309845494876471D * y + .06325924320057072D * z;
+            var d65Y = -.0283697093338637D * x + 1.0099953980813041D * y + .021041441191917323D * z;
+            var d65Z = .012314014864481998D * x - .020507649298898964D * y + 1.330365926242124D * z;
+            CssXyzToOklab(d65X, d65Y, d65Z, out okLightness, out okA, out okB);
+        }
+
         private static bool CssOklabComponent(string source, double percentScale, double minimum, double maximum, out double value)
         {
             value = 0D;
@@ -7746,6 +7808,12 @@ namespace Lea.Win
             var x = 506752D / 1228815D * red + 87881D / 245763D * green + 12673D / 70218D * blue;
             var y = 87098D / 409605D * red + 175762D / 245763D * green + 12673D / 175545D * blue;
             var z = 7918D / 409605D * red + 87881D / 737289D * green + 1001167D / 1053270D * blue;
+            CssXyzToOklab(x, y, z, out lightness, out a, out b);
+        }
+
+        private static void CssXyzToOklab(double x, double y, double z,
+            out double lightness, out double a, out double b)
+        {
             var l = CssCubeRoot(.819022437996703D * x + .3619062600528904D * y - .1288737815209879D * z);
             var m = CssCubeRoot(.0329836539323885D * x + .9292868615863434D * y + .0361446663506424D * z);
             var s = CssCubeRoot(.0481771893596242D * x + .2642395317527308D * y + .6335478284694309D * z);

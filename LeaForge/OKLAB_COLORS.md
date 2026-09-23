@@ -60,8 +60,9 @@ computed value. Responsive rebuilds retain mutable field identity and values.
 ## Compatibility boundary
 
 This milestone does not add legacy comma forms, relative colors, `calc()` or
-other channel expressions, `lab()`, `lch()`, wide-gamut `color()`, ICC profiles,
-or arbitrary color-space conversion. Lea's compact page-script `bg` and `fg`
+other channel expressions, wide-gamut `color()`, ICC profiles, or arbitrary
+color-space conversion. CIE Lab/LCH is documented separately in
+`LAB_COLORS.md`. Lea's compact page-script `bg` and `fg`
 commands keep their command-specific validation; this milestone covers authored
 CSS and the shared style paths that already use the bounded CSS color parser.
 

@@ -537,6 +537,13 @@ variables, layers, media, fields, shadows, gradients, generated text, and SVG.
 The compiled host verifies the public state and exact mixed-background, border,
 shadow, and gradient pixels without adding a host-side converter.
 
+Modern CIE `lab()` and `lch()` colors also stay inside Lea. The engine handles
+numeric/percentage channels, four LCH hue units, alpha, D50 Lab conversion,
+Bradford D50-to-D65 adaptation, and bounded local-MINDE sRGB gamut mapping
+across variables, layers, media, fields, shadows, gradients, generated text,
+and SVG. The compiled host verifies public state plus exact background, border,
+shadow, and gradient paint without a Firespider color-space implementation.
+
 Modern `oklab()` and `oklch()` colors follow the same host-neutral route. Lea
 handles numeric/percentage channels, four hue units, alpha, D65 conversion, and
 bounded local-MINDE sRGB gamut mapping across variables, layers, media, fields,
@@ -544,8 +551,8 @@ shadows, gradients, generated text, and SVG. The compiled host verifies public
 state plus exact background, border, shadow, and gradient paint without a
 Firespider color-space implementation.
 
-Bounded two-stop `color-mix(in srgb, ...)` expressions, including Oklab and
-OkLCh base stops, also flow through the
+Bounded two-stop `color-mix(in srgb, ...)` expressions, including CIE Lab/LCH
+and Oklab/OkLCh base stops, also flow through the
 existing authored-color records. Omitted and normalized weights, low-total
 alpha, premultiplied transparent/translucent stops, `currentColor`, variables,
 layers, media, fields, shadows, gradients, generated text, and SVG need no host

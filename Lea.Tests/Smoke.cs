@@ -171,6 +171,11 @@ namespace Lea.Tests
                     HwbColorSmoke(Path.Combine(pages, "hwb-colors.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--lab")
+                {
+                    LabColorSmoke(Path.Combine(pages, "lab-colors.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--oklab")
                 {
                     OklabColorSmoke(Path.Combine(pages, "oklab-colors.html"));
@@ -1563,6 +1568,7 @@ namespace Lea.Tests
                 LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
                 HslColorSmoke(Path.Combine(pages, "hsl-colors.html"));
                 HwbColorSmoke(Path.Combine(pages, "hwb-colors.html"));
+                LabColorSmoke(Path.Combine(pages, "lab-colors.html"));
                 OklabColorSmoke(Path.Combine(pages, "oklab-colors.html"));
                 ColorMixSmoke(Path.Combine(pages, "color-mix.html"));
 
@@ -8516,6 +8522,142 @@ namespace Lea.Tests
                     "HWB live resize retains field state");
             }
             Console.WriteLine("Lea HWB color smoke passed: modern syntax, hue units, wrapping, normalization, clamping, alpha, supports, variables, layers, shadows, gradients, generated content, fields, SVG, responsive paint, and retention.");
+        }
+
+        private static void LabColorSmoke(string path)
+        {
+            var engine = new E { Vw = 760, Vh = 2200 };
+            var page = engine.Go(path);
+            Func<string, B> block = id => BlockById(page, id);
+            Eq("lab(44.36% 36.05 -58.99)", block("lab-purple").S.Bg, "Lab numeric state");
+            Eq("lab(44.36 28.84% -47.192%)", block("lab-percent").S.Bg, "Lab percentage state");
+            Eq("lch(44.36 69.1333682095701 301.429958490306)", block("lch-purple").S.Bg, "LCH numeric state");
+            Eq("lch(44.36% 46.0889121397134% 301.429958490306)", block("lch-percent").S.Bg, "LCH percentage state");
+            Eq("lab(44.36% 36.05 -58.99 / 50%)", block("alpha").S.Bg, "Lab alpha state");
+            Ok(block("units").S.Bg == "lch(44.36 69.1333682095701 0.83730544025085turn)" &&
+                block("units").S.Bcv(0) == "lch(44.36 69.1333682095701 334.92217610034grad)" &&
+                block("units").S.Oc == "lch(44.36 69.1333682095701 5.26094523980568rad)", "LCH hue unit model");
+            Eq("lch(44.36 69.1333682095701 661.429958490306deg)", block("wrapped").S.Bg, "wrapped LCH hue state");
+            Eq("lab(120% 1250 -1250)", block("white-clamp").S.Bg, "Lab white clamp state");
+            Eq("lab(-20% -1250 1250)", block("black-clamp").S.Bg, "Lab black clamp state");
+            Eq("lch(50 -1 20)", block("chroma-clamp").S.Bg, "LCH chroma clamp state");
+            Eq("lch(70 230 40)", block("gamut").S.Bg, "LCH gamut state");
+            Eq("color-mix(in srgb, lab(29.567% 68.298 -112.0294), lab(97.607% -15.753 93.388))",
+                block("mix").S.Bg, "Lab color mix stop state");
+            Ok(block("shadow").S.Sw.Count == 1 && block("shadow").S.Sw[0].C == "lab(44.36% 36.05 -58.99)" &&
+                block("shadow-atomic").S.Sw.Count == 1 && block("shadow-atomic").S.Sw[0].X == 4 &&
+                block("shadow-atomic").S.Sw[0].C == "lch(44.36 69.1333682095701 301.429958490306)",
+                "Lab shadow parsing and atomic rejection");
+            Ok(block("gradient").S.Gi != null && block("gradient").S.Gi.Ss.Count == 2 &&
+                block("gradient").S.Gi.Ss[0].C == "lab(29.567% 68.298 -112.0294)" &&
+                block("gradient-atomic").S.Gi != null &&
+                block("gradient-atomic").S.Gi.Ss[0].C == "lab(97.607% -15.753 93.388)",
+                "Lab gradient parsing and atomic rejection");
+            Ok(block("decor").S.F == "lab(29.567% 68.298 -112.0294)" &&
+                block("decor").S.Tc == "lab(44.36% 36.05 -58.99)" && block("decor").S.Ts != null &&
+                block("decor").S.Ts.C == "lab(97.607% -15.753 93.388)", "Lab text color model");
+            Eq("lch(29.567 131.206719600636 301.368303737467)", block("variable").S.Bg, "LCH custom property resolution");
+            Eq("lab(97.607% -15.753 93.388)", block("layered").S.Bg, "Lab cascade layer order");
+            var generated = Run(block("generated"), "be");
+            Ok(generated != null && generated.S.F == "lab(29.567% 68.298 -112.0294)" &&
+                generated.S.Ts != null && generated.S.Ts.C == "lab(97.607% -15.753 93.388)",
+                "Lab generated content style");
+            Ok(HasBlock(page, "supported-lab") && HasBlock(page, "supported-lch") &&
+                !HasBlock(page, "unsupported-comma") && !HasBlock(page, "unsupported-slash") &&
+                !HasBlock(page, "unsupported-none") && !HasBlock(page, "unsupported-nested") &&
+                !HasBlock(page, "unsupported-missing") && Has(engine.Dg(page).Cs, "@s(color:lab(5020-30))") &&
+                Has(engine.Dg(page).Cs, "@s(color:lch(5040270))"), "Lab supports query capability");
+            var field = FieldById(page, "field");
+            Ok(field.S.F == "lab(29.567% 68.298 -112.0294)" &&
+                field.S.Bg == "lab(97.607% -15.753 93.388 / 20%)" &&
+                field.S.Bcv(0) == "lab(44.36% 36.05 -58.99)", "Lab native field style");
+            field.V = "Retained Lab value";
+            var svg = block("svg").Vg;
+            Ok(svg != null && svg.Ss.Count == 2 && svg.Ss[0].F == "lab(44.36% 36.05 -58.99)" &&
+                svg.Ss[0].S == "lab(29.567% 68.298 -112.0294)" && svg.Ds.Count == 1 &&
+                svg.Ds[0].Ss.Count == 2 && svg.Ds[0].Ss[0].C == "lab(97.607% -15.753 93.388)" &&
+                svg.Ds[0].Ss[1].C == "lch(29.567 131.206719600636 301.368303737467)",
+                "Lab SVG paint and gradient stops");
+
+            engine.Vz(500, 2200);
+            Eq("lab(29.567% 68.298 -112.0294)", block("responsive").S.Bg, "responsive Lab state");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained Lab value",
+                "responsive Lab rebuild retains field state");
+
+            using (var view = new V { Size = new Size(760, 2200) })
+            {
+                view.Go(path);
+                using (var image = Render(view))
+                {
+                    var purple = Color.FromArgb(118, 84, 205);
+                    var lab = BlockRect(view, BlockById(view.At, "lab-purple"));
+                    var labPercent = BlockRect(view, BlockById(view.At, "lab-percent"));
+                    var lch = BlockRect(view, BlockById(view.At, "lch-purple"));
+                    var lchPercent = BlockRect(view, BlockById(view.At, "lch-percent"));
+                    var alpha = BlockRect(view, BlockById(view.At, "alpha"));
+                    var units = BlockOuterRect(view, BlockById(view.At, "units"));
+                    var wrapped = BlockRect(view, BlockById(view.At, "wrapped"));
+                    var white = BlockRect(view, BlockById(view.At, "white-clamp"));
+                    var black = BlockRect(view, BlockById(view.At, "black-clamp"));
+                    var neutral = BlockRect(view, BlockById(view.At, "chroma-clamp"));
+                    var gamut = BlockRect(view, BlockById(view.At, "gamut"));
+                    var mix = BlockRect(view, BlockById(view.At, "mix"));
+                    var shadow = BlockOuterRect(view, BlockById(view.At, "shadow"));
+                    var atomic = BlockOuterRect(view, BlockById(view.At, "shadow-atomic"));
+                    var gradient = BlockRect(view, BlockById(view.At, "gradient"));
+                    var input = BlockRect(view, FieldBlock(view.At, FieldById(view.At, "field")));
+                    var vector = BlockRect(view, BlockById(view.At, "svg"));
+                    Ok(ColorDistance(image.GetPixel(lab.Right - 5, lab.Top + 5), purple) < 6 &&
+                        ColorDistance(image.GetPixel(labPercent.Right - 5, labPercent.Top + 5), purple) < 6 &&
+                        ColorDistance(image.GetPixel(lch.Right - 5, lch.Top + 5), purple) < 6 &&
+                        ColorDistance(image.GetPixel(lchPercent.Right - 5, lchPercent.Top + 5), purple) < 6,
+                        "Lab and LCH numeric and percentage paint");
+                    Ok(ColorDistance(image.GetPixel(alpha.Right - 5, alpha.Top + 5), Color.FromArgb(187, 170, 230)) < 10,
+                        "Lab alpha paint");
+                    Ok(ColorDistance(CenterPixel(image, units), purple) < 6 &&
+                        ColorDistance(image.GetPixel(units.Left + units.Width / 2, units.Top + 2), purple) < 10 &&
+                        ColorDistance(image.GetPixel(units.Left - 5, units.Top + units.Height / 2), purple) < 10,
+                        "turn, grad, and radian LCH paint");
+                    Ok(ColorDistance(image.GetPixel(wrapped.Right - 5, wrapped.Top + 5), purple) < 6 &&
+                        ColorDistance(image.GetPixel(white.Right - 5, white.Top + 5), Color.White) < 4 &&
+                        ColorDistance(image.GetPixel(black.Right - 5, black.Top + 5), Color.Black) < 4 &&
+                        ColorDistance(image.GetPixel(neutral.Right - 5, neutral.Top + 5), Color.FromArgb(119, 119, 119)) < 6,
+                        "wrapped and clamped Lab paint");
+                    var gamutPixel = image.GetPixel(gamut.Right - 5, gamut.Top + 5);
+                    Ok(gamutPixel.R > 240 && gamutPixel.G > 80 && gamutPixel.G < 190 &&
+                        gamutPixel.B > 80 && gamutPixel.B < 190,
+                        "Lab perceptual gamut mapping: " + gamutPixel);
+                    Ok(ColorDistance(image.GetPixel(mix.Right - 5, mix.Top + 5), Color.FromArgb(128, 128, 128)) < 8,
+                        "Lab color mix stop paint");
+                    Ok(ColorDistance(image.GetPixel(shadow.Right + 5, shadow.Top + shadow.Height / 2), purple) < 10 &&
+                        ColorDistance(image.GetPixel(atomic.Right + 2, atomic.Top + atomic.Height / 2), purple) < 10,
+                        "Lab shadow paint and invalid fallback");
+                    Ok(ColorDistance(image.GetPixel(gradient.Left + 5, gradient.Top + gradient.Height / 2), Color.Blue) < 35 &&
+                        ColorDistance(image.GetPixel(gradient.Right - 5, gradient.Top + gradient.Height / 2), Color.Yellow) < 35,
+                        "Lab gradient paint");
+                    Ok(ColorDistance(image.GetPixel(input.Right - 8, input.Top + input.Height / 2), Color.FromArgb(255, 255, 204)) < 12,
+                        "Lab native field paint");
+                    var vectorFill = image.GetPixel(vector.Left + 30, vector.Top + 30);
+                    var vectorStart = image.GetPixel(vector.Left + 101, vector.Top + 30);
+                    var vectorEnd = image.GetPixel(vector.Right - 5, vector.Top + 30);
+                    Ok(ColorDistance(vectorFill, purple) < 12 && ColorDistance(vectorStart, Color.Yellow) < 35 &&
+                        ColorDistance(vectorEnd, Color.Blue) < 35,
+                        "Lab SVG fill and gradient paint: " + vectorFill + "/" + vectorStart + "/" + vectorEnd);
+                }
+                var liveField = FieldById(view.At, "field");
+                liveField.V = "Retained Lab view value";
+                view.Size = new Size(500, 2200);
+                Application.DoEvents();
+                using (var image = Render(view))
+                {
+                    var responsive = BlockRect(view, BlockById(view.At, "responsive"));
+                    Ok(ColorDistance(image.GetPixel(responsive.Right - 5, responsive.Top + 5), Color.Blue) < 6,
+                        "responsive Lab paint");
+                }
+                Ok(Object.ReferenceEquals(liveField, FieldById(view.At, "field")) && liveField.V == "Retained Lab view value",
+                    "Lab live resize retains field state");
+            }
+            Console.WriteLine("Lea CIE Lab smoke passed: numeric and percentage Lab/LCH, D50-to-D65 Bradford adaptation, hue units, wrapping, clamping, local-MINDE gamut mapping, alpha, color mixing, supports, variables, layers, shadows, gradients, generated content, fields, SVG, responsive paint, and retention.");
         }
 
         private static void OklabColorSmoke(string path)

@@ -8683,6 +8683,10 @@ namespace Lea.Engine
             if (match.Success) return ShadowHslColor(match.Groups["v"].Value);
             match = Regex.Match(source ?? "", "^hwb\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
             if (match.Success) return ShadowHwbColor(match.Groups["v"].Value);
+            match = Regex.Match(source ?? "", "^lab\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
+            if (match.Success) return ShadowLabColor(match.Groups["v"].Value, false);
+            match = Regex.Match(source ?? "", "^lch\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
+            if (match.Success) return ShadowLabColor(match.Groups["v"].Value, true);
             match = Regex.Match(source ?? "", "^oklab\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
             if (match.Success) return ShadowOklabColor(match.Groups["v"].Value, false);
             match = Regex.Match(source ?? "", "^oklch\\((?<v>[^()]{1,80})\\)$", RegexOptions.IgnoreCase);
@@ -8763,6 +8767,24 @@ namespace Lea.Engine
         }
 
         private static bool ShadowOklabColor(string value, bool polar)
+        {
+            var body = (value ?? "").Trim();
+            if (body.IndexOf(',') >= 0) return false;
+            string alpha = null;
+            var slash = body.IndexOf('/');
+            if (slash >= 0)
+            {
+                if (body.IndexOf('/', slash + 1) >= 0) return false;
+                alpha = body.Substring(slash + 1).Trim();
+                body = body.Substring(0, slash).Trim();
+            }
+            var channels = Regex.Split(body, "\\s+");
+            return channels.Length == 3 && ShadowColorNumber(channels[0]) && ShadowColorNumber(channels[1]) &&
+                (polar ? ShadowHue(channels[2]) : ShadowColorNumber(channels[2])) &&
+                (alpha == null || ShadowColorNumber(alpha));
+        }
+
+        private static bool ShadowLabColor(string value, bool polar)
         {
             var body = (value ?? "").Trim();
             if (body.IndexOf(',') >= 0) return false;

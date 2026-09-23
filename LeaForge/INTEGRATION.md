@@ -537,6 +537,14 @@ when their clamped sum reaches 100%, `V` applies CSS gray normalization before
 painting. Hosts continue to read authored colors from the existing records and
 need no conversion code. See `HWB_COLORS.md`.
 
+Modern CIE `lab()` and `lch()` colors follow the same host-neutral route. `V`
+converts D50 Lab to XYZ, applies the CSS Bradford D50-to-D65 adaptation, and
+reuses Lea's bounded local-MINDE Oklab gamut mapper before sRGB paint.
+Numeric/percentage channels, four LCH hue units, alpha, variables, layers,
+media, fields, shadows, gradients, generated content, SVG, and `@supports` all
+share this path. Hosts need no color-space or gamut-mapping code. See
+`LAB_COLORS.md`.
+
 Modern `oklab()` and `oklch()` colors also retain authored values in the same
 records. `V` applies the CSS Color 4 D65 matrices and bounded local-MINDE sRGB
 gamut mapping with fixed lightness and hue, a 0.02 JND, and 0.0001 search
@@ -546,7 +554,7 @@ share this path. Hosts need no color-space or gamut-mapping code. See
 `OKLAB_COLORS.md`.
 
 Bounded `color-mix(in srgb, ...)` expressions use two existing base colors,
-including Oklab and OkLCh, and
+including CIE Lab/LCH and Oklab/OkLCh, and
 optional 0..100% weights. `V` supplies omitted complements, normalizes positive
 totals, reduces alpha below a 100% total, and interpolates premultiplied alpha.
 The outer expression caps at 160 characters and nested mixes are rejected.
@@ -1028,7 +1036,7 @@ centered rotate, skewX, and skewY with cumulative group inheritance.
 Presentation attributes, specificity-ordered stylesheets, inline styles,
 custom-property values, and important priority cover fill, stroke, stroke width,
 opacity, fill/stroke opacity, font size, text anchor, and `currentColor`, with
-bounded HSL/HSLA, HWB, Oklab/OkLCh, and two-stop sRGB mixed colors sharing the ordinary HTML color conversion path.
+bounded HSL/HSLA, HWB, CIE Lab/LCH, Oklab/OkLCh, and two-stop sRGB mixed colors sharing the ordinary HTML color conversion path.
 Local linear and radial gradients resolve once through `Vg.Ds` and `Vs.Fd/Sd`.
 They support object-bounds/user-space coordinates, percentage values, radial
 focus, up to four `href` inheritance hops, gradient transforms, and up to 16
