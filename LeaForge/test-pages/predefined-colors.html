@@ -44,14 +44,14 @@
     #responsive { background-color: color(srgb 1 0 0); }
     @media (max-width: 600px) { #responsive { background-color: color(display-p3 0 0 1); } }
     #supported-srgb, #supported-linear, #supported-p3, #supported-p3-linear, #supported-xyz,
-    #unsupported-space, #unsupported-comma, #unsupported-slash, #unsupported-none,
+    #supported-a98, #unsupported-comma, #unsupported-slash, #unsupported-none,
     #unsupported-nested, #unsupported-missing { display: none; }
     @supports (color: color(srgb 1 0 0)) { #supported-srgb { display: block; } }
     @supports (color: color(srgb-linear 1 0 0)) { #supported-linear { display: block; } }
     @supports (color: color(display-p3 1 0 0)) { #supported-p3 { display: block; } }
     @supports (color: color(display-p3-linear 1 0 0)) { #supported-p3-linear { display: block; } }
     @supports (color: color(xyz-d50 .2 .14 .45)) { #supported-xyz { display: block; } }
-    @supports (color: color(a98-rgb 1 0 0)) { #unsupported-space { display: block; } }
+    @supports (color: color(a98-rgb 1 0 0)) { #supported-a98 { display: block; } }
     @supports (color: color(display-p3, 1, 0, 0)) { #unsupported-comma { display: block; } }
     @supports (color: color(srgb 1 0 0 / 50% / 25%)) { #unsupported-slash { display: block; } }
     @supports (color: color(srgb none 0 0)) { #unsupported-none { display: block; } }
@@ -93,7 +93,7 @@
   <p id="supported-p3" class="swatch">P3 supported</p>
   <p id="supported-p3-linear" class="swatch">Linear P3 supported</p>
   <p id="supported-xyz" class="swatch">XYZ supported</p>
-  <p id="unsupported-space" class="swatch">Unsupported space</p>
+  <p id="supported-a98" class="swatch">A98 RGB supported</p>
   <p id="unsupported-comma" class="swatch">Unsupported comma syntax</p>
   <p id="unsupported-slash" class="swatch">Unsupported duplicate slash</p>
   <p id="unsupported-none" class="swatch">Unsupported none channel</p>

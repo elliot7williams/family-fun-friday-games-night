@@ -551,6 +551,13 @@ mapping across the existing shared paths. The compiled host verifies public
 state plus exact background, border, shadow, generated-content, and gradient
 paint without adding a Firespider color-space implementation.
 
+The remaining CSS Color 4 predefined RGB spaces also stay inside Lea. A98 RGB,
+ProPhoto RGB, and Rec. 2020 use their bounded extended transfer curves and XYZ
+matrices; ProPhoto shares Lea's Bradford D50-to-D65 adaptation before the
+existing local-MINDE sRGB gamut path. The compiled host verifies public state,
+UI Automation reachability, and exact background, border, shadow, generated
+content, and gradient paint without any Firespider color conversion.
+
 Modern `oklab()` and `oklch()` colors follow the same host-neutral route. Lea
 handles numeric/percentage channels, four hue units, alpha, D65 conversion, and
 bounded local-MINDE sRGB gamut mapping across variables, layers, media, fields,

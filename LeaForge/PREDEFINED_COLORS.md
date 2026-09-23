@@ -1,6 +1,6 @@
 # Bounded Predefined CSS Colors
 
-Milestone 123 adds a bounded CSS `color()` subset to Lea's shared color path.
+Milestone 123 adds a bounded CSS `color()` core to Lea's shared color path.
 The engine validates and retains authored color text in the existing compact
 style records. The WinForms adapter converts it directly to sRGB while
 painting, so no new public type, alias, dependency, browser runtime, or
@@ -22,6 +22,9 @@ The supported spaces are:
 - `srgb-linear`
 - `display-p3`
 - `display-p3-linear`
+- `a98-rgb` (added by Milestone 124)
+- `prophoto-rgb` (added by Milestone 124)
+- `rec2020` (added by Milestone 124)
 - `xyz`, an alias of `xyz-d65`
 - `xyz-d50`
 - `xyz-d65`
@@ -69,16 +72,17 @@ computed value. Responsive rebuilds retain mutable field identity and values.
 
 ## Compatibility boundary
 
-This milestone does not add `a98-rgb`, `prophoto-rgb`, `rec2020`, custom color
-profiles, relative colors, `calc()` or other channel expressions, missing
-components, or arbitrary color-space conversion. Lea's compact page-script
+This core milestone does not add custom color profiles, relative colors,
+`calc()` or other channel expressions, missing components, or arbitrary
+color-space conversion. A98 RGB, ProPhoto RGB, and Rec. 2020 are added by
+Milestone 124 and documented in `WIDE_GAMUT_COLORS.md`. Lea's compact page-script
 `bg` and `fg` commands keep their command-specific validation; this milestone
 covers authored CSS and the shared style paths that already use the bounded CSS
 color parser.
 
 ## Verification
 
-`test-pages/predefined-colors.html` covers all seven accepted space names,
+`test-pages/predefined-colors.html` covers the seven Milestone 123 space names,
 numeric and percentage channels, alpha, equivalent gamma/linear P3 pairs,
 extended and out-of-gamut channels, color-mix stops, malformed atomic fallback,
 shadows, gradients, text, generated content, variables, layers, media,

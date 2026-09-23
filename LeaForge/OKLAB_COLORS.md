@@ -61,8 +61,9 @@ computed value. Responsive rebuilds retain mutable field identity and values.
 
 This milestone does not add legacy comma forms, relative colors, `calc()` or
 other channel expressions, ICC profiles, or arbitrary color-space conversion.
-CIE Lab/LCH and bounded predefined sRGB/Display-P3/XYZ `color()` are documented
-separately in `LAB_COLORS.md` and `PREDEFINED_COLORS.md`. Lea's compact page-script `bg` and `fg`
+CIE Lab/LCH and bounded predefined sRGB/Display-P3/A98/ProPhoto/Rec. 2020/XYZ
+`color()` are documented separately in `LAB_COLORS.md`,
+`PREDEFINED_COLORS.md`, and `WIDE_GAMUT_COLORS.md`. Lea's compact page-script `bg` and `fg`
 commands keep their command-specific validation; this milestone covers authored
 CSS and the shared style paths that already use the bounded CSS color parser.
 

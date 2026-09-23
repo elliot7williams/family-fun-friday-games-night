@@ -349,20 +349,21 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 123 adds bounded predefined CSS `color()` to the shared color
-validator and WinForms painter. Numeric/percentage channels and optional alpha
-cover sRGB, linear sRGB, Display P3, linear Display P3, XYZ D50/D65, and the
-`xyz` D65 alias. CSS Color 4 transfer curves and matrices, shared Bradford
-D50-to-D65 adaptation, and bounded local-MINDE sRGB gamut mapping reuse the
+Milestone 124 completes the standard predefined CSS Color 4 RGB spaces with
+bounded `color(a98-rgb ...)`, `color(prophoto-rgb ...)`, and
+`color(rec2020 ...)` support in the shared validator and WinForms painter.
+Standard transfer curves and matrices, shared Bradford D50-to-D65 adaptation
+for ProPhoto RGB, and bounded local-MINDE sRGB gamut mapping reuse the compact
 authored-color records across text, backgrounds, borders, outlines,
 decorations, shadows, gradients, generated content, variables, layers, media,
-fields, sRGB mix stops, SVG paint, and declaration `@supports`. Comma forms,
-`none`, relative or calculated channels, custom profiles, A98 RGB, ProPhoto
-RGB, Rec. 2020, and overlong input remain outside this slice. See
-`PREDEFINED_COLORS.md`. All 119 probes pass over 114 fixtures; focused and full
-source/staged suites, the compiled Firespider host, all 42 Boot cases, and all
-six real EXE startup scenarios pass. Runtime 223 is packaged separately and
-installed runtime 157 remains unchanged. Next investigate
+fields, sRGB mix stops, SVG paint, and declaration `@supports`. Numeric and
+percentage channels, extended finite channels, and optional alpha are covered;
+custom profiles, relative or calculated channels, `none`, malformed forms, and
+overlong input remain outside this slice. See `WIDE_GAMUT_COLORS.md`. All 120
+probes pass over 115 fixtures; focused and full source/staged suites, the
+compiled Firespider host, all 42 Boot cases, and all six real EXE startup
+scenarios pass. Runtime 224 is packaged separately and installed runtime 157
+remains unchanged. Next investigate
 another bounded compatibility slice. Keep general media features, device ratios,
 container and style queries, `font-tech()`/`font-format()`, general-enclosed
 conditions, JavaScript `CSS.supports()`, locale-sensitive automatic quote selection,

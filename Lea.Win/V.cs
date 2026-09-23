@@ -7740,6 +7740,7 @@ namespace Lea.Win
             var space = channels[0].ToLowerInvariant();
             if (space != "srgb" && space != "srgb-linear" &&
                 space != "display-p3" && space != "display-p3-linear" &&
+                space != "a98-rgb" && space != "prophoto-rgb" && space != "rec2020" &&
                 space != "xyz" && space != "xyz-d50" && space != "xyz-d65") return false;
             double first;
             double second;
@@ -7749,14 +7750,29 @@ namespace Lea.Win
                 !CssOklabComponent(channels[2], 1D, -10D, 10D, out second) ||
                 !CssOklabComponent(channels[3], 1D, -10D, 10D, out third) ||
                 !CssAlpha(alpha, out opacity)) return false;
-            var rgbSpace = space == "srgb" || space == "srgb-linear" ||
-                space == "display-p3" || space == "display-p3-linear";
-            var linear = space.EndsWith("-linear", StringComparison.Ordinal);
-            if (rgbSpace && !linear)
+            if (space == "srgb" || space == "display-p3")
             {
                 first = CssSrgbLinear(first);
                 second = CssSrgbLinear(second);
                 third = CssSrgbLinear(third);
+            }
+            else if (space == "a98-rgb")
+            {
+                first = CssSignedPower(first, 563D / 256D);
+                second = CssSignedPower(second, 563D / 256D);
+                third = CssSignedPower(third, 563D / 256D);
+            }
+            else if (space == "prophoto-rgb")
+            {
+                first = CssProPhotoLinear(first);
+                second = CssProPhotoLinear(second);
+                third = CssProPhotoLinear(third);
+            }
+            else if (space == "rec2020")
+            {
+                first = CssSignedPower(first, 2.4D);
+                second = CssSignedPower(second, 2.4D);
+                third = CssSignedPower(third, 2.4D);
             }
             double x;
             double y;
@@ -7773,21 +7789,39 @@ namespace Lea.Win
                 y = 87098D / 409605D * first + 175762D / 245763D * second + 12673D / 175545D * third;
                 z = 7918D / 409605D * first + 87881D / 737289D * second + 1001167D / 1053270D * third;
             }
+            else if (space == "a98-rgb")
+            {
+                x = 573536D / 994567D * first + 263643D / 1420810D * second + 187206D / 994567D * third;
+                y = 591459D / 1989134D * first + 6239551D / 9945670D * second + 374412D / 4972835D * third;
+                z = 53769D / 1989134D * first + 351524D / 4972835D * second + 4929758D / 4972835D * third;
+            }
+            else if (space == "prophoto-rgb")
+            {
+                x = .79776664490064230D * first + .13518129740053308D * second + .03134773412839220D * third;
+                y = .28807482881940130D * first + .71183523424187300D * second + .00008993693872564D * third;
+                z = .82510460251046020D * third;
+            }
+            else if (space == "rec2020")
+            {
+                x = 63426534D / 99577255D * first + 20160776D / 139408157D * second + 47086771D / 278816314D * third;
+                y = 26158966D / 99577255D * first + 472592308D / 697040785D * second + 8267143D / 139408157D * third;
+                z = 19567812D / 697040785D * second + 295819943D / 278816314D * third;
+            }
             else
             {
                 x = first;
                 y = second;
                 z = third;
-                if (space == "xyz-d50")
-                {
-                    double adaptedX;
-                    double adaptedY;
-                    double adaptedZ;
-                    CssD50ToD65(x, y, z, out adaptedX, out adaptedY, out adaptedZ);
-                    x = adaptedX;
-                    y = adaptedY;
-                    z = adaptedZ;
-                }
+            }
+            if (space == "xyz-d50" || space == "prophoto-rgb")
+            {
+                double adaptedX;
+                double adaptedY;
+                double adaptedZ;
+                CssD50ToD65(x, y, z, out adaptedX, out adaptedY, out adaptedZ);
+                x = adaptedX;
+                y = adaptedY;
+                z = adaptedZ;
             }
             double lightness;
             double a;
@@ -7937,6 +7971,16 @@ namespace Lea.Win
             var sign = value < 0D ? -1D : 1D;
             var absolute = Math.Abs(value);
             return absolute <= .04045D ? value / 12.92D : sign * Math.Pow((absolute + .055D) / 1.055D, 2.4D);
+        }
+
+        private static double CssSignedPower(double value, double exponent)
+        {
+            return value < 0D ? -Math.Pow(-value, exponent) : Math.Pow(value, exponent);
+        }
+
+        private static double CssProPhotoLinear(double value)
+        {
+            return Math.Abs(value) <= 16D / 512D ? value / 16D : CssSignedPower(value, 1.8D);
         }
 
         private static double CssCubeRoot(double value)

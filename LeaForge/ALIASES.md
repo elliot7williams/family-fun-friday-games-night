@@ -271,7 +271,8 @@ and `c` for color: `biw/biy/bic`, `bbw/bby/bbc`, plus `si*`, `ei*`, `sb*`, and
 Widths are bounded to 0..100 pixels or thin/medium/thick; styles are
 none/hidden/solid/dashed/dotted/double; colors use bounded named, hex, RGB/RGBA,
 legacy or modern HSL/HSLA, modern HWB, modern CIE Lab/LCH, predefined sRGB,
-linear-sRGB, Display-P3, linear-Display-P3, and XYZ `color()`, modern
+linear-sRGB, Display-P3, linear-Display-P3, A98-RGB, ProPhoto-RGB, Rec.-2020,
+and XYZ `color()`, modern
 Oklab/OkLCh, and two-stop sRGB mix forms. Readable names and all 24 literal `style.borderInline*` and
 `style.borderBlock*` properties share the same atomic parser. Empty assignments
 restore authored CSS. See `LOGICAL_BORDERS.md`.

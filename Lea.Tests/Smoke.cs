@@ -181,6 +181,11 @@ namespace Lea.Tests
                     PredefinedColorSmoke(Path.Combine(pages, "predefined-colors.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--wide-gamut-colors")
+                {
+                    WideGamutColorSmoke(Path.Combine(pages, "wide-gamut-colors.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--oklab")
                 {
                     OklabColorSmoke(Path.Combine(pages, "oklab-colors.html"));
@@ -1575,6 +1580,7 @@ namespace Lea.Tests
                 HwbColorSmoke(Path.Combine(pages, "hwb-colors.html"));
                 LabColorSmoke(Path.Combine(pages, "lab-colors.html"));
                 PredefinedColorSmoke(Path.Combine(pages, "predefined-colors.html"));
+                WideGamutColorSmoke(Path.Combine(pages, "wide-gamut-colors.html"));
                 OklabColorSmoke(Path.Combine(pages, "oklab-colors.html"));
                 ColorMixSmoke(Path.Combine(pages, "color-mix.html"));
 
@@ -8711,7 +8717,7 @@ namespace Lea.Tests
                 "predefined generated content style");
             Ok(HasBlock(page, "supported-srgb") && HasBlock(page, "supported-linear") &&
                 HasBlock(page, "supported-p3") && HasBlock(page, "supported-p3-linear") && HasBlock(page, "supported-xyz") &&
-                !HasBlock(page, "unsupported-space") && !HasBlock(page, "unsupported-comma") &&
+                HasBlock(page, "supported-a98") && !HasBlock(page, "unsupported-comma") &&
                 !HasBlock(page, "unsupported-slash") && !HasBlock(page, "unsupported-none") &&
                 !HasBlock(page, "unsupported-nested") && !HasBlock(page, "unsupported-missing"),
                 "predefined supports query capability");
@@ -8814,6 +8820,156 @@ namespace Lea.Tests
                     liveField.V == "Retained predefined view value", "predefined live resize retains field state");
             }
             Console.WriteLine("Lea predefined color smoke passed: sRGB, linear sRGB, Display P3, linear Display P3, XYZ D50/D65, percentages, extended channels, Bradford adaptation, alpha, local-MINDE gamut mapping, color mixing, supports, variables, layers, shadows, gradients, generated content, fields, SVG, responsive paint, and retention.");
+        }
+
+        private static void WideGamutColorSmoke(string path)
+        {
+            var engine = new E { Vw = 760, Vh = 2500 };
+            var page = engine.Go(path);
+            Func<string, B> block = id => BlockById(page, id);
+            Eq("color(a98-rgb 0.44091 0.49971 0.37408)", block("a98-reference").S.Bg, "A98 RGB state");
+            Eq("color(a98-rgb 44.091% 49.971% 37.408%)", block("a98-percent").S.Bg,
+                "A98 RGB percentage state");
+            Eq("color(prophoto-rgb 0.36589 0.41717 0.31333)", block("prophoto-reference").S.Bg,
+                "ProPhoto RGB state");
+            Eq("color(prophoto-rgb .03125 .03125 .03125)", block("prophoto-toe").S.Bg,
+                "ProPhoto RGB toe state");
+            Eq("color(rec2020 0.522 0.557 0.892)", block("rec2020-reference").S.Bg, "Rec. 2020 state");
+            Eq("color(rec2020 52.2% 55.7% 89.2%)", block("rec2020-percent").S.Bg,
+                "Rec. 2020 percentage state");
+            Eq("color(rec2020 0.522 0.557 0.892 / 50%)", block("alpha").S.Bg, "wide-gamut alpha state");
+            Eq("color(rec2020 0.42053 0.97978 0.00579)", block("gamut").S.Bg, "Rec. 2020 gamut state");
+            Eq("color(prophoto-rgb 1.1 -.1 .2)", block("extended").S.Bg, "extended ProPhoto state");
+            Eq("color-mix(in srgb, color(a98-rgb 1 0 0), color(rec2020 0 0 1))", block("mix").S.Bg,
+                "wide-gamut color mix stop state");
+            Ok(block("shadow").S.Sw.Count == 1 &&
+                block("shadow").S.Sw[0].C == "color(a98-rgb 0.44091 0.49971 0.37408)" &&
+                block("shadow-atomic").S.Sw.Count == 1 && block("shadow-atomic").S.Sw[0].X == 4 &&
+                block("shadow-atomic").S.Sw[0].C == "color(rec2020 0.522 0.557 0.892)",
+                "wide-gamut shadow parsing and atomic rejection");
+            Ok(block("gradient").S.Gi != null && block("gradient").S.Gi.Ss.Count == 2 &&
+                block("gradient").S.Gi.Ss[0].C == "color(a98-rgb 1 0 0)" &&
+                block("gradient").S.Gi.Ss[1].C == "color(rec2020 0 0 1)" &&
+                block("gradient-atomic").S.Gi != null &&
+                block("gradient-atomic").S.Gi.Ss[0].C == "color(prophoto-rgb 0 1 0)",
+                "wide-gamut gradient parsing and atomic rejection");
+            Ok(block("decor").S.F == "color(rec2020 0.522 0.557 0.892)" &&
+                block("decor").S.Tc == "color(a98-rgb 0.44091 0.49971 0.37408)" &&
+                block("decor").S.Ts != null && block("decor").S.Ts.C == "color(prophoto-rgb 0.36589 0.41717 0.31333)",
+                "wide-gamut text color model");
+            Eq("color(prophoto-rgb 0.36589 0.41717 0.31333)", block("variable").S.Bg,
+                "wide-gamut custom property resolution");
+            Eq("color(rec2020 0.522 0.557 0.892)", block("layered").S.Bg, "wide-gamut cascade layer order");
+            var generated = Run(block("generated"), "be");
+            Ok(generated != null && generated.S.F == "color(a98-rgb 0.44091 0.49971 0.37408)" &&
+                generated.S.Ts != null && generated.S.Ts.C == "color(rec2020 0.522 0.557 0.892)",
+                "wide-gamut generated content style");
+            Ok(HasBlock(page, "supported-a98") && HasBlock(page, "supported-prophoto") &&
+                HasBlock(page, "supported-rec2020") && !HasBlock(page, "unsupported-linear") &&
+                !HasBlock(page, "unsupported-profile") && !HasBlock(page, "unsupported-none") &&
+                !HasBlock(page, "unsupported-comma") && !HasBlock(page, "unsupported-nested") &&
+                !HasBlock(page, "unsupported-missing"), "wide-gamut supports query capability");
+            var field = FieldById(page, "field");
+            Ok(field.S.F == "color(rec2020 0.522 0.557 0.892)" &&
+                field.S.Bg == "color(rec2020 0.522 0.557 0.892 / 20%)" &&
+                field.S.Bcv(0) == "color(a98-rgb 0.44091 0.49971 0.37408)",
+                "wide-gamut native field style");
+            field.V = "Retained wide gamut value";
+            var svg = block("svg").Vg;
+            Ok(svg != null && svg.Ss.Count == 2 &&
+                svg.Ss[0].F == "color(prophoto-rgb 0.36589 0.41717 0.31333)" &&
+                svg.Ss[0].S == "color(rec2020 0.522 0.557 0.892)" && svg.Ds.Count == 1 &&
+                svg.Ds[0].Ss.Count == 2 && svg.Ds[0].Ss[0].C == "color(a98-rgb 1 0 0)" &&
+                svg.Ds[0].Ss[1].C == "color(rec2020 0 0 1)", "wide-gamut SVG paint and gradient stops");
+
+            engine.Vz(500, 2500);
+            Eq("color(rec2020 0.522 0.557 0.892)", block("responsive").S.Bg, "responsive wide-gamut state");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained wide gamut value",
+                "responsive wide-gamut rebuild retains field state");
+
+            using (var view = new V { Size = new Size(760, 2500) })
+            {
+                view.Go(path);
+                using (var image = Render(view))
+                {
+                    var leafReference = Color.FromArgb(106, 128, 94);
+                    var blueReference = Color.FromArgb(108, 136, 234);
+                    var a98 = BlockRect(view, BlockById(view.At, "a98-reference"));
+                    var a98Percent = BlockRect(view, BlockById(view.At, "a98-percent"));
+                    var a98Neutral = BlockRect(view, BlockById(view.At, "a98-neutral"));
+                    var prophoto = BlockRect(view, BlockById(view.At, "prophoto-reference"));
+                    var prophotoNeutral = BlockRect(view, BlockById(view.At, "prophoto-neutral"));
+                    var prophotoToe = BlockRect(view, BlockById(view.At, "prophoto-toe"));
+                    var rec2020 = BlockRect(view, BlockById(view.At, "rec2020-reference"));
+                    var rec2020Percent = BlockRect(view, BlockById(view.At, "rec2020-percent"));
+                    var rec2020Neutral = BlockRect(view, BlockById(view.At, "rec2020-neutral"));
+                    var alpha = BlockRect(view, BlockById(view.At, "alpha"));
+                    var gamut = BlockRect(view, BlockById(view.At, "gamut"));
+                    var extended = BlockRect(view, BlockById(view.At, "extended"));
+                    var mix = BlockRect(view, BlockById(view.At, "mix"));
+                    var shadow = BlockOuterRect(view, BlockById(view.At, "shadow"));
+                    var atomic = BlockOuterRect(view, BlockById(view.At, "shadow-atomic"));
+                    var gradient = BlockRect(view, BlockById(view.At, "gradient"));
+                    var input = BlockRect(view, FieldBlock(view.At, FieldById(view.At, "field")));
+                    var vector = BlockRect(view, BlockById(view.At, "svg"));
+                    Ok(ColorDistance(image.GetPixel(a98.Right - 5, a98.Top + 5), leafReference) < 9 &&
+                        ColorDistance(image.GetPixel(a98Percent.Right - 5, a98Percent.Top + 5), leafReference) < 9 &&
+                        ColorDistance(image.GetPixel(prophoto.Right - 5, prophoto.Top + 5), leafReference) < 9,
+                        "A98 and ProPhoto reference paint");
+                    Ok(ColorDistance(image.GetPixel(rec2020.Right - 5, rec2020.Top + 5), blueReference) < 10 &&
+                        ColorDistance(image.GetPixel(rec2020Percent.Right - 5, rec2020Percent.Top + 5), blueReference) < 10,
+                        "Rec. 2020 reference paint");
+                    var a98Gray = image.GetPixel(a98Neutral.Right - 5, a98Neutral.Top + 5);
+                    var prophotoGray = image.GetPixel(prophotoNeutral.Right - 5, prophotoNeutral.Top + 5);
+                    var prophotoToeGray = image.GetPixel(prophotoToe.Right - 5, prophotoToe.Top + 5);
+                    var rec2020Gray = image.GetPixel(rec2020Neutral.Right - 5, rec2020Neutral.Top + 5);
+                    Ok(Math.Abs(a98Gray.R - a98Gray.G) < 3 && a98Gray.R >= 120 && a98Gray.R <= 136 &&
+                        Math.Abs(prophotoGray.R - prophotoGray.G) < 3 && prophotoGray.R >= 138 && prophotoGray.R <= 154 &&
+                        Math.Abs(prophotoToeGray.R - prophotoToeGray.G) < 3 && prophotoToeGray.R >= 3 && prophotoToeGray.R <= 12 &&
+                        Math.Abs(rec2020Gray.R - rec2020Gray.G) < 3 && rec2020Gray.R >= 112 && rec2020Gray.R <= 128,
+                        "wide-gamut transfer paint: " + a98Gray + "/" + prophotoGray + "/" + prophotoToeGray + "/" + rec2020Gray);
+                    Ok(ColorDistance(image.GetPixel(alpha.Right - 5, alpha.Top + 5), Color.FromArgb(182, 196, 245)) < 12,
+                        "wide-gamut alpha paint");
+                    var gamutPixel = image.GetPixel(gamut.Right - 5, gamut.Top + 5);
+                    var extendedPixel = image.GetPixel(extended.Right - 5, extended.Top + 5);
+                    Ok(gamutPixel.G > 210 && gamutPixel.G > gamutPixel.R + 50 && gamutPixel.G > gamutPixel.B + 80,
+                        "Rec. 2020 gamut paint: " + gamutPixel);
+                    Ok(extendedPixel.R > 170 && extendedPixel.R > extendedPixel.G + 60,
+                        "extended ProPhoto paint: " + extendedPixel);
+                    var mixPixel = image.GetPixel(mix.Right - 5, mix.Top + 5);
+                    Ok(mixPixel.R > 90 && mixPixel.B > 90 && mixPixel.G < 110,
+                        "wide-gamut color mix paint: " + mixPixel);
+                    Ok(ColorDistance(image.GetPixel(shadow.Right + 5, shadow.Top + shadow.Height / 2), leafReference) < 12 &&
+                        ColorDistance(image.GetPixel(atomic.Right + 2, atomic.Top + atomic.Height / 2), blueReference) < 12,
+                        "wide-gamut shadow paint and invalid fallback");
+                    var gradientStart = image.GetPixel(gradient.Left + 5, gradient.Top + gradient.Height / 2);
+                    var gradientEnd = image.GetPixel(gradient.Right - 5, gradient.Top + gradient.Height / 2);
+                    Ok(gradientStart.R > 200 && gradientStart.R > gradientStart.G + 100 &&
+                        gradientEnd.B > 120 && gradientEnd.B > gradientEnd.R + 80 && gradientEnd.B > gradientEnd.G + 40,
+                        "wide-gamut gradient paint: " + gradientStart + "/" + gradientEnd);
+                    Ok(ColorDistance(image.GetPixel(input.Right - 8, input.Top + input.Height / 2), Color.FromArgb(226, 231, 251)) < 20,
+                        "wide-gamut native field paint");
+                    var vectorFill = image.GetPixel(vector.Left + 30, vector.Top + 30);
+                    var vectorStart = image.GetPixel(vector.Left + 101, vector.Top + 30);
+                    var vectorEnd = image.GetPixel(vector.Right - 5, vector.Top + 30);
+                    Ok(ColorDistance(vectorFill, leafReference) < 15 && vectorStart.R > 170 &&
+                        vectorEnd.B > 120 && vectorEnd.B > vectorEnd.R + 70,
+                        "wide-gamut SVG fill and gradient paint: " + vectorFill + "/" + vectorStart + "/" + vectorEnd);
+                }
+                var liveField = FieldById(view.At, "field");
+                liveField.V = "Retained wide gamut view value";
+                view.Size = new Size(500, 2500);
+                Application.DoEvents();
+                using (var image = Render(view))
+                {
+                    var responsive = BlockRect(view, BlockById(view.At, "responsive"));
+                    Ok(ColorDistance(image.GetPixel(responsive.Right - 5, responsive.Top + 5), Color.FromArgb(108, 136, 234)) < 12,
+                        "responsive wide-gamut paint");
+                }
+                Ok(Object.ReferenceEquals(liveField, FieldById(view.At, "field")) &&
+                    liveField.V == "Retained wide gamut view value", "wide-gamut live resize retains field state");
+            }
+            Console.WriteLine("Lea wide-gamut color smoke passed: A98 RGB, ProPhoto RGB, Rec. 2020, percentages, transfer curves, D50 adaptation, extended channels, alpha, local-MINDE gamut mapping, color mixing, supports, variables, layers, shadows, gradients, generated content, fields, SVG, responsive paint, and retention.");
         }
 
         private static void OklabColorSmoke(string path)

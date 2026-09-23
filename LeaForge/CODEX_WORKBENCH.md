@@ -17,24 +17,22 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 123 adds bounded predefined CSS `color()` to Lea's shared color
-validator and WinForms painter. Numeric/percentage channels and optional alpha
-cover sRGB, linear sRGB, Display P3, linear Display P3, XYZ D50/D65, and the
-`xyz` D65 alias. CSS Color 4 transfer curves and matrices, shared Bradford
-D50-to-D65 adaptation, and bounded local-MINDE sRGB gamut mapping reuse the
-existing compact authored-color records. Text, backgrounds, borders, outlines,
-decorations, shadows, gradients, generated content, variables, layers, media,
-fields, sRGB mix stops, SVG paint, and declaration `@supports` need no new
-alias or dependency. Comma forms, `none`, relative or calculated channels,
-custom profiles, A98 RGB, ProPhoto RGB, Rec. 2020, and overlong input remain
-outside the slice. All 119 benchmark probes pass over 114 fixtures. Focused and
-full source/staged suites and the compiled Firespider host are green. All 42
-Boot cases and all six real EXE startup scenarios remain responsive without
-MSHTML, an invalid cast, JIT dialog, or dead startup window. Three-round
-diagnostic medians are 611.914 ms clean start, 6.768 ms local load, and 45.787
-ms layout/paint; retained memory is 69.7 KiB/page and the required runtime is
-652.5 KiB. Runtime 223 is packaged separately and installed runtime 157 remains
-unchanged. See `PREDEFINED_COLORS.md`.
+Milestone 124 completes the standard predefined CSS Color 4 RGB spaces with
+bounded `color(a98-rgb ...)`, `color(prophoto-rgb ...)`, and
+`color(rec2020 ...)` support. Standard transfer curves and matrices, shared
+Bradford D50-to-D65 adaptation for ProPhoto RGB, and bounded local-MINDE sRGB
+gamut mapping reuse the existing compact authored-color records. Text,
+backgrounds, borders, outlines, decorations, shadows, gradients, generated
+content, variables, layers, media, fields, sRGB mix stops, SVG paint, and
+declaration `@supports` need no new alias or dependency. All 120 benchmark
+probes pass over 115 fixtures. Focused and full source/staged suites and the
+compiled Firespider host are green. All 42 Boot cases and all six real EXE
+startup scenarios remain responsive without MSHTML, an invalid cast, JIT
+dialog, or dead startup window. Three-round diagnostic medians are 633.262 ms
+clean start, 6.620 ms local load, and 40.723 ms layout/paint; retained memory is
+70.1 KiB/page and the required runtime is 653.5 KiB. Runtime 224 is packaged
+separately and installed runtime 157 remains unchanged. See
+`WIDE_GAMUT_COLORS.md`.
 Container/style queries,
 `font-tech()`/`font-format()`,
 general-enclosed conditions, JavaScript `CSS.supports()`, locale-sensitive

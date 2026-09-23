@@ -8818,7 +8818,8 @@ namespace Lea.Engine
             }
             var channels = Regex.Split(body, "\\s+");
             if (channels.Length != 4 || !Regex.IsMatch(channels[0],
-                "^(?:srgb|srgb-linear|display-p3|display-p3-linear|xyz|xyz-d50|xyz-d65)$", RegexOptions.IgnoreCase))
+                "^(?:srgb|srgb-linear|display-p3|display-p3-linear|a98-rgb|prophoto-rgb|rec2020|xyz|xyz-d50|xyz-d65)$",
+                RegexOptions.IgnoreCase))
                 return false;
             return ShadowColorNumber(channels[1]) && ShadowColorNumber(channels[2]) && ShadowColorNumber(channels[3]) &&
                 (alpha == null || ShadowColorNumber(alpha));
