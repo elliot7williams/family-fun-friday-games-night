@@ -748,20 +748,24 @@ descendant focus without replacing fields. Empty or malformed lists, nested
 selector-list functions, pseudo-elements, oversized chains, and excess work
 are rejected rather than entering an unbounded tree search.
 
-Responsive styles use `E.Vw/Vh`, `P.Vw/Vh`, `V.Vw/Vh`, and `G.Vw/Vh`. A
+Responsive styles use `E.Vw/Vh/Dp`, `P.Vw/Vh/Dp`, `V.Vw/Vh/Dp`, and
+`G.Vw/Vh/Dp`. A
 headless host can set either engine dimension or call compact
 `E.Vz(width, height)` to apply one atomic viewport update. The WinForms view
-forwards its client pair and rebuilds only when a media boundary changes.
+forwards its client pair and live monitor DPI and rebuilds only when a media
+boundary changes. A host may set `V.Dp` explicitly to override automatic DPI
+tracking.
 Existing `Fi` objects and mutable values survive that rebuild. The bounded
 compiler accepts `screen`/`all` with pixel min/max/exact width and height,
 portrait/landscape orientation, bounded reduced integer min/max/exact aspect
-ratios, and strict/inclusive feature-first, value-first, or same-direction
-chained comparisons. These compose with conjunctions, comma alternatives,
+ratios, `dpi`/`dppx`/`dpcm` resolution, and strict/inclusive feature-first,
+value-first, or same-direction chained comparisons. These compose with conjunctions, comma alternatives,
 nested `@media`, and `<style media>`. Dimensions and ratio terms clamp to
 1-8,192; a square is portrait; query alternatives, nesting, and total rules are
 capped at 8, 4, and 1,024. Unsupported media stays inactive instead of silently
 behaving as screen CSS. See `MEDIA_FEATURES.md`, `MEDIA_ASPECT_RATIO.md`, and
-`MEDIA_RANGE_SYNTAX.md`.
+`MEDIA_RANGE_SYNTAX.md`; density bounds, conversions, and automatic WinForms
+behavior are in `MEDIA_RESOLUTION.md`.
 
 `@supports` is also engine-owned. The compiler recognizes a bounded set of
 declaration families through their real Lea value parsers and checks one

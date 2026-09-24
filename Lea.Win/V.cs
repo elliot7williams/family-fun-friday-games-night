@@ -66,6 +66,7 @@ namespace Lea.Win
         private int layoutViewportHeight = 1;
         private int layoutRootFontSize = 10;
         private bool layoutDirty = true;
+        private bool densityExplicit;
         private bool sticky;
         private bool picBusy;
         private bool picStop;
@@ -200,6 +201,11 @@ namespace Lea.Win
 
         protected override void WndProc(ref Message message)
         {
+            if (message.Msg == 0x02E0 && !densityExplicit)
+            {
+                var density = (int)(message.WParam.ToInt64() & 0xffffL);
+                if (density > 0) SetDensity(density, false);
+            }
             if (message.Msg == 0x0002)
             {
                 // Release UI Automation's native provider event-map references.
@@ -212,6 +218,13 @@ namespace Lea.Win
                 return;
             }
             base.WndProc(ref message);
+        }
+
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
+            if (densityExplicit) return;
+            using (var graphics = CreateGraphics()) SetDensity((int)Math.Round(graphics.DpiX), false);
         }
 
         private Ur UiRoot { get { return ur ?? (ur = new Ur(this)); } }
@@ -315,6 +328,7 @@ namespace Lea.Win
         public int Bc { get { lock (layoutGate) return boxes.Count; } }
         public int Vw { get { return e.Vw; } }
         public int Vh { get { return e.Vh; } }
+        public int Dp { get { return e.Dp; } set { SetDensity(value, true); } }
         public int Rf { get { return At != null && At.Rf > 0 ? At.Rf : Math.Max(1, (int)Math.Round(Font.Size)); } }
         public N Ke { get { return focus; } }
         public int Kn { get { return FocusTargets(true).Count; } }
@@ -1087,6 +1101,18 @@ namespace Lea.Win
         private void Dirty()
         {
             layoutDirty = true;
+        }
+
+        private void SetDensity(int value, bool explicitlySet)
+        {
+            if (explicitlySet) densityExplicit = true;
+            var previous = e.Dp;
+            e.Dp = value;
+            if (previous == e.Dp) return;
+            Dirty();
+            QueueFragment(At);
+            Invalidate();
+            if (At != null && IsHandleCreated) NotifyAccessibility(AccessibleEvents.Reorder);
         }
 
         private Bx[] BoxSnapshot()

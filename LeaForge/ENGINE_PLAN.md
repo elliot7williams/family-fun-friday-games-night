@@ -349,22 +349,17 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 124 completes the standard predefined CSS Color 4 RGB spaces with
-bounded `color(a98-rgb ...)`, `color(prophoto-rgb ...)`, and
-`color(rec2020 ...)` support in the shared validator and WinForms painter.
-Standard transfer curves and matrices, shared Bradford D50-to-D65 adaptation
-for ProPhoto RGB, and bounded local-MINDE sRGB gamut mapping reuse the compact
-authored-color records across text, backgrounds, borders, outlines,
-decorations, shadows, gradients, generated content, variables, layers, media,
-fields, sRGB mix stops, SVG paint, and declaration `@supports`. Numeric and
-percentage channels, extended finite channels, and optional alpha are covered;
-custom profiles, relative or calculated channels, `none`, malformed forms, and
-overlong input remain outside this slice. See `WIDE_GAMUT_COLORS.md`. All 120
-probes pass over 115 fixtures; focused and full source/staged suites, the
-compiled Firespider host, all 42 Boot cases, and all six real EXE startup
-scenarios pass. Runtime 224 is packaged separately and installed runtime 157
-remains unchanged. Next investigate
-another bounded compatibility slice. Keep general media features, device ratios,
+Milestone 125 adds bounded CSS resolution media queries with compact
+`E/P/G/V.Dp` density aliases. Boolean, exact/min/max, feature-first,
+value-first, and same-direction chained ranges accept finite `dpi`, `dppx`, and
+`dpcm` terms. Width, height, orientation, aspect ratio, alternatives, nested
+media, style media, compact diagnostics, responsive paint, and retained fields
+share the compiled media path. WinForms views follow live monitor DPI until a
+host sets an explicit density. See `MEDIA_RESOLUTION.md`. All 121 probes pass
+over 116 fixtures; focused and full source/staged suites, the compiled
+Firespider host, all 42 Boot cases, and all six real EXE startup scenarios pass.
+Runtime 225 is packaged separately and installed runtime 157 remains unchanged.
+Next investigate another bounded compatibility slice. Keep device ratios,
 container and style queries, `font-tech()`/`font-format()`, general-enclosed
 conditions, JavaScript `CSS.supports()`, locale-sensitive automatic quote selection,
 reversed/custom counter styles, pseudo-element counter properties,

@@ -151,6 +151,11 @@ namespace Lea.Tests
                     MediaRangeSmoke(Path.Combine(pages, "media-ranges.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--media-resolution")
+                {
+                    MediaResolutionSmoke(Path.Combine(pages, "media-resolution.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--supports")
                 {
                     SupportsSmoke(Path.Combine(pages, "supports-queries.html"));
@@ -1574,6 +1579,7 @@ namespace Lea.Tests
                 MediaFeatureSmoke(Path.Combine(pages, "media-features.html"));
                 MediaAspectSmoke(Path.Combine(pages, "media-aspect-ratio.html"));
                 MediaRangeSmoke(Path.Combine(pages, "media-ranges.html"));
+                MediaResolutionSmoke(Path.Combine(pages, "media-resolution.html"));
                 SupportsSmoke(Path.Combine(pages, "supports-queries.html"));
                 LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
                 HslColorSmoke(Path.Combine(pages, "hsl-colors.html"));
@@ -8234,6 +8240,96 @@ namespace Lea.Tests
                     "WinForms media range resize preserves field state");
             }
             Console.WriteLine("Lea media range smoke passed: feature/value-first comparisons, strict and inclusive chains, rational ratios, intersections, diagnostics, retention, and live resize.");
+        }
+
+        private static void MediaResolutionSmoke(string path)
+        {
+            var engine = new E { Vw = 760, Vh = 1000 };
+            Eq(96, engine.Dp, "default resolution DPI alias");
+            var page = engine.Go(path);
+            Eq(96, page.Dp, "default page resolution alias");
+            Ok(HasBlock(page, "boolean") && HasBlock(page, "exact-dpi") && HasBlock(page, "exact-dppx") &&
+                HasBlock(page, "exact-dpcm") && HasBlock(page, "legacy-min") && HasBlock(page, "legacy-max") &&
+                HasBlock(page, "feature-first") && HasBlock(page, "value-first") && HasBlock(page, "range") &&
+                HasBlock(page, "positive") && HasBlock(page, "negative-lower") && HasBlock(page, "combined") &&
+                HasBlock(page, "alternative") && HasBlock(page, "low") && HasBlock(page, "nested"),
+                "default resolution media state");
+            Ok(!HasBlock(page, "high-dpi") && !HasBlock(page, "high-dppx") && !HasBlock(page, "high-dpcm") &&
+                !HasBlock(page, "high-min") && !HasBlock(page, "high-strict") && !HasBlock(page, "high-range"),
+                "default high-resolution rules inactive");
+            Ok(!HasBlock(page, "zero-exact") && !HasBlock(page, "zero-max") && !HasBlock(page, "negative-upper") &&
+                !HasBlock(page, "empty-range") && !HasBlock(page, "bad-chain") && !HasBlock(page, "bad-unit") &&
+                !HasBlock(page, "unsupported-infinite") && !HasBlock(page, "bad-function") && !HasBlock(page, "bad-trailing"),
+                "zero, negative, empty, and malformed resolution rules inactive");
+            Eq(102, BlockById(page, "exact-dpi").S.W, "DPI media geometry");
+            Eq(103, BlockById(page, "exact-dppx").S.W, "DPPX media geometry");
+            Eq(104, BlockById(page, "exact-dpcm").S.W, "DPCM media geometry");
+            var field = FieldById(page, "field");
+            Eq(180, field.S.W, "default resolution field width");
+            field.V = "Retained resolution engine value";
+            var diagnostics = engine.Dg(page);
+            Eq(96, diagnostics.Dp, "diagnostic resolution alias");
+            Ok(Has(diagnostics.Cs, "@d=96dpi") && Has(diagnostics.Cs, "@d>=96dpi") &&
+                Has(diagnostics.Cs, "@d>48dpi&@d<=96dpi") && Has(diagnostics.Cs, "@m>=700&@d>=96dpi"),
+                "resolution media diagnostics");
+
+            engine.Dp = 192;
+            Ok(page.Dp == 192 && engine.Dg(page).Dp == 192, "high-resolution alias reaches page and diagnostics");
+            Ok(HasBlock(page, "boolean") && HasBlock(page, "legacy-min") && !HasBlock(page, "legacy-max") &&
+                HasBlock(page, "feature-first") && HasBlock(page, "value-first") && !HasBlock(page, "range") &&
+                HasBlock(page, "high-dpi") && HasBlock(page, "high-dppx") && HasBlock(page, "high-dpcm") &&
+                HasBlock(page, "high-min") && HasBlock(page, "high-strict") && HasBlock(page, "high-range") &&
+                !HasBlock(page, "low"), "two-DPPX resolution media state");
+            Ok(BlockById(page, "high-dpi").S.W == 201 && BlockById(page, "high-dppx").S.W == 202 &&
+                BlockById(page, "high-dpcm").S.W == 203 && BlockById(page, "high-range").S.W == 206,
+                "equivalent high-resolution unit geometry");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained resolution engine value" &&
+                field.S.W == 240, "density rebuild preserves field identity and value");
+
+            engine.Dp = 144;
+            Ok(!HasBlock(page, "high-dpi") && !HasBlock(page, "high-dppx") && !HasBlock(page, "high-min") &&
+                HasBlock(page, "high-strict") && !HasBlock(page, "low"), "intermediate resolution strict state");
+            engine.Vw = 900;
+            Ok(HasBlock(page, "combined") && !HasBlock(page, "alternative") && HasBlock(page, "nested"),
+                "resolution and width intersection plus comma alternative");
+            engine.Vw = 760;
+            engine.Dp = 0;
+            Eq(1, engine.Dp, "minimum resolution alias clamp");
+            engine.Dp = Int32.MaxValue;
+            Eq(960, engine.Dp, "maximum resolution alias clamp");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained resolution engine value",
+                "resolution clamps retain field state");
+
+            using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-30000, -30000), ClientSize = new Size(760, 1000) })
+            using (var view = new V { Dp = 192 })
+            {
+                form.Controls.Add(view);
+                form.Show();
+                view.Go(path);
+                using (var image = Render(view))
+                {
+                    var responsive = BlockRect(view, BlockById(view.At, "responsive"));
+                    Ok(view.Dp == 192 && view.At.Dp == 192 && HasBlock(view.At, "high-dppx") &&
+                        responsive.Width == 240 && ColorDistance(image.GetPixel(responsive.Right - 5, responsive.Top + 5),
+                            Color.FromArgb(37, 99, 235)) < 8, "WinForms high-resolution state and paint");
+                }
+                var viewField = FieldById(view.At, "field");
+                viewField.V = "Retained resolution view value";
+                view.Dp = 96;
+                Application.DoEvents();
+                using (var image = Render(view))
+                {
+                    var responsive = BlockRect(view, BlockById(view.At, "responsive"));
+                    Ok(view.Dp == 96 && view.At.Dp == 96 && HasBlock(view.At, "exact-dppx") &&
+                        !HasBlock(view.At, "high-dppx") && responsive.Width == 180 &&
+                        ColorDistance(image.GetPixel(responsive.Right - 5, responsive.Top + 5),
+                            Color.FromArgb(220, 38, 38)) < 8, "WinForms low-resolution state and paint");
+                }
+                Ok(Object.ReferenceEquals(viewField, FieldById(view.At, "field")) &&
+                    viewField.V == "Retained resolution view value" && viewField.S.W == 180,
+                    "WinForms density rebuild retains field state");
+            }
+            Console.WriteLine("Lea resolution media smoke passed: Dp alias, dpi/dppx/dpcm conversion, boolean/legacy/modern/range syntax, negative and strict bounds, nesting, diagnostics, field retention, automatic WinForms density plumbing, and exact paint.");
         }
 
         private static void LayerSmoke(string path, string limitPath)

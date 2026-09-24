@@ -138,6 +138,7 @@ namespace Lea.Engine
         private int ch;
         private int vw = 1024;
         private int vh = 768;
+        private int dp = 96;
         private bool je = true;
         private Stream download;
         private bool stopped;
@@ -159,6 +160,17 @@ namespace Lea.Engine
         {
             get { return vh; }
             set { Vz(vw, value); }
+        }
+        public int Dp
+        {
+            get { return dp; }
+            set
+            {
+                var next = Math.Max(1, Math.Min(960, value));
+                if (dp == next) return;
+                dp = next;
+                ApplyViewport(At);
+            }
         }
         public void Vz(int width, int height)
         {
@@ -501,6 +513,7 @@ namespace Lea.Engine
                 M = page.Ms.Count,
                 Vw = page.Vw,
                 Vh = page.Vh,
+                Dp = page.Dp,
                 Vc = page.S == null ? 0 : page.S.Vc,
                 Cc = Cc,
                 Ch = Ch,
@@ -1397,7 +1410,8 @@ namespace Lea.Engine
             p.Ra = rules;
             p.Vw = vw;
             p.Vh = vh;
-            var active = MediaRules(rules, vw, vh);
+            p.Dp = dp;
+            var active = MediaRules(rules, vw, vh, dp);
             p.R = active;
             Rebuild(p, active, null);
             if (!je) return;
@@ -1410,9 +1424,10 @@ namespace Lea.Engine
             if (page == null) return;
             page.Vw = vw;
             page.Vh = vh;
+            page.Dp = dp;
             var all = page.Ra as List<R>;
             if (all == null) return;
-            var active = MediaRules(all, vw, vh);
+            var active = MediaRules(all, vw, vh, dp);
             var current = page.R as List<R>;
             if (SameRules(current, active)) return;
             var fields = new Dictionary<N, Fi>();
@@ -1421,11 +1436,11 @@ namespace Lea.Engine
             Rebuild(page, active, fields);
         }
 
-        private static List<R> MediaRules(List<R> rules, int width, int height)
+        private static List<R> MediaRules(List<R> rules, int width, int height, int density)
         {
             var active = new List<R>();
             foreach (var rule in rules)
-                if (rule.On(width, height)) active.Add(rule);
+                if (rule.On(width, height, density)) active.Add(rule);
             return active;
         }
 
@@ -3082,6 +3097,10 @@ namespace Lea.Engine
             const string ratioChainPattern = "\\(\\s*(?<an>[0-9]{1,4})\\s*/\\s*(?<ad>[0-9]{1,4})\\s*(?<ao><=|>=|<|>)\\s*aspect-ratio\\s*(?<bo><=|>=|<|>)\\s*(?<bn>[0-9]{1,4})\\s*/\\s*(?<bd>[0-9]{1,4})\\s*\\)";
             const string ratioFeaturePattern = "\\(\\s*aspect-ratio\\s*(?<o><=|>=|=|<|>)\\s*(?<n>[0-9]{1,4})\\s*/\\s*(?<d>[0-9]{1,4})\\s*\\)";
             const string ratioValuePattern = "\\(\\s*(?<n>[0-9]{1,4})\\s*/\\s*(?<d>[0-9]{1,4})\\s*(?<o><=|>=|=|<|>)\\s*aspect-ratio\\s*\\)";
+            const string resolutionNumberPattern = "[+-]?(?:[0-9]{1,4}(?:\\.[0-9]{1,4})?|\\.[0-9]{1,4})";
+            const string resolutionChainPattern = "\\(\\s*(?<av>" + resolutionNumberPattern + ")\\s*(?<au>dpi|dppx|dpcm)\\s*(?<ao><=|>=|<|>)\\s*resolution\\s*(?<bo><=|>=|<|>)\\s*(?<bv>" + resolutionNumberPattern + ")\\s*(?<bu>dpi|dppx|dpcm)\\s*\\)";
+            const string resolutionFeaturePattern = "\\(\\s*resolution\\s*(?<o><=|>=|=|<|>)\\s*(?<v>" + resolutionNumberPattern + ")\\s*(?<u>dpi|dppx|dpcm)\\s*\\)";
+            const string resolutionValuePattern = "\\(\\s*(?<v>" + resolutionNumberPattern + ")\\s*(?<u>dpi|dppx|dpcm)\\s*(?<o><=|>=|=|<|>)\\s*resolution\\s*\\)";
             foreach (var item in CssGroups(source))
             {
                 if (++groups > MaxMediaGroups) return new Mc[0];
@@ -3096,6 +3115,11 @@ namespace Lea.Engine
                 var ratioChains = Regex.Matches(query, ratioChainPattern, RegexOptions.IgnoreCase);
                 var ratioFeatures = Regex.Matches(query, ratioFeaturePattern, RegexOptions.IgnoreCase);
                 var ratioValues = Regex.Matches(query, ratioValuePattern, RegexOptions.IgnoreCase);
+                var resolutions = Regex.Matches(query, "\\(\\s*(?<k>min-resolution|max-resolution|resolution)\\s*:\\s*(?<v>" + resolutionNumberPattern + ")\\s*(?<u>dpi|dppx|dpcm)\\s*\\)", RegexOptions.IgnoreCase);
+                var resolutionBooleans = Regex.Matches(query, "\\(\\s*resolution\\s*\\)", RegexOptions.IgnoreCase);
+                var resolutionChains = Regex.Matches(query, resolutionChainPattern, RegexOptions.IgnoreCase);
+                var resolutionFeatures = Regex.Matches(query, resolutionFeaturePattern, RegexOptions.IgnoreCase);
+                var resolutionValues = Regex.Matches(query, resolutionValuePattern, RegexOptions.IgnoreCase);
                 var minimum = 0;
                 var maximum = 0;
                 var minimumExclusive = false;
@@ -3111,6 +3135,10 @@ namespace Lea.Engine
                 var ratioMinimumExclusive = false;
                 var ratioMaximumExclusive = false;
                 var orientation = '\0';
+                var densityMinimum = Int32.MinValue;
+                var densityMaximum = Int32.MaxValue;
+                var densityMinimumExclusive = false;
+                var densityMaximumExclusive = false;
                 var valid = true;
                 foreach (Match match in matches)
                 {
@@ -3211,10 +3239,51 @@ namespace Lea.Engine
                         ref ratioMaximum, ref ratioMaximumDenominator, ref ratioMaximumExclusive,
                         numerator, denominator, MediaInverse(match.Groups["o"].Value));
                 }
+                foreach (Match match in resolutions)
+                {
+                    int resolution;
+                    if (!MediaResolutionTerm(match.Groups["v"].Value, match.Groups["u"].Value, out resolution)) { valid = false; break; }
+                    var kind = match.Groups["k"].Value.ToLowerInvariant();
+                    MediaResolution(ref densityMinimum, ref densityMinimumExclusive, ref densityMaximum,
+                        ref densityMaximumExclusive, resolution,
+                        kind == "min-resolution" ? ">=" : kind == "max-resolution" ? "<=" : "=");
+                }
+                foreach (Match match in resolutionChains)
+                {
+                    int left;
+                    int right;
+                    var leftOperator = match.Groups["ao"].Value;
+                    var rightOperator = match.Groups["bo"].Value;
+                    if (!MediaResolutionTerm(match.Groups["av"].Value, match.Groups["au"].Value, out left) ||
+                        !MediaResolutionTerm(match.Groups["bv"].Value, match.Groups["bu"].Value, out right) ||
+                        leftOperator[0] != rightOperator[0]) { valid = false; break; }
+                    MediaResolution(ref densityMinimum, ref densityMinimumExclusive, ref densityMaximum,
+                        ref densityMaximumExclusive, left, MediaInverse(leftOperator));
+                    MediaResolution(ref densityMinimum, ref densityMinimumExclusive, ref densityMaximum,
+                        ref densityMaximumExclusive, right, rightOperator);
+                }
+                foreach (Match match in resolutionFeatures)
+                {
+                    int resolution;
+                    if (!MediaResolutionTerm(match.Groups["v"].Value, match.Groups["u"].Value, out resolution)) { valid = false; break; }
+                    MediaResolution(ref densityMinimum, ref densityMinimumExclusive, ref densityMaximum,
+                        ref densityMaximumExclusive, resolution, match.Groups["o"].Value);
+                }
+                foreach (Match match in resolutionValues)
+                {
+                    int resolution;
+                    if (!MediaResolutionTerm(match.Groups["v"].Value, match.Groups["u"].Value, out resolution)) { valid = false; break; }
+                    MediaResolution(ref densityMinimum, ref densityMinimumExclusive, ref densityMaximum,
+                        ref densityMaximumExclusive, resolution, MediaInverse(match.Groups["o"].Value));
+                }
+                if (resolutionBooleans.Count > 0)
+                    MediaResolution(ref densityMinimum, ref densityMinimumExclusive, ref densityMaximum,
+                        ref densityMaximumExclusive, 0, ">");
                 if (!valid || MediaEmpty(minimum, minimumExclusive, maximum, maximumExclusive) ||
                     MediaEmpty(heightMinimum, heightMinimumExclusive, heightMaximum, heightMaximumExclusive) ||
                     MediaRatioEmpty(ratioMinimum, ratioMinimumDenominator, ratioMinimumExclusive,
-                        ratioMaximum, ratioMaximumDenominator, ratioMaximumExclusive)) continue;
+                        ratioMaximum, ratioMaximumDenominator, ratioMaximumExclusive) ||
+                    MediaResolutionEmpty(densityMinimum, densityMinimumExclusive, densityMaximum, densityMaximumExclusive)) continue;
                 var remainder = Regex.Replace(query, "\\(\\s*(?:min-width|max-width|width|min-height|max-height|height)\\s*:\\s*[0-9]{1,4}\\s*px\\s*\\)", " ", RegexOptions.IgnoreCase);
                 remainder = Regex.Replace(remainder, "\\(\\s*orientation\\s*:\\s*(?:portrait|landscape)\\s*\\)", " ", RegexOptions.IgnoreCase);
                 remainder = Regex.Replace(remainder, "\\(\\s*(?:min-aspect-ratio|max-aspect-ratio|aspect-ratio)\\s*:\\s*[0-9]{1,4}\\s*/\\s*[0-9]{1,4}\\s*\\)", " ", RegexOptions.IgnoreCase);
@@ -3224,9 +3293,16 @@ namespace Lea.Engine
                 remainder = Regex.Replace(remainder, ratioChainPattern, " ", RegexOptions.IgnoreCase);
                 remainder = Regex.Replace(remainder, ratioFeaturePattern, " ", RegexOptions.IgnoreCase);
                 remainder = Regex.Replace(remainder, ratioValuePattern, " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*(?:min-resolution|max-resolution|resolution)\\s*:\\s*" + resolutionNumberPattern + "\\s*(?:dpi|dppx|dpcm)\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*resolution\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, resolutionChainPattern, " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, resolutionFeaturePattern, " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, resolutionValuePattern, " ", RegexOptions.IgnoreCase);
                 if (remainder.IndexOf('(') >= 0 || remainder.IndexOf(')') >= 0 || remainder.IndexOf(':') >= 0) continue;
                 var meaningful = matches.Count > 0 || orientations.Count > 0 || ratios.Count > 0 || dimensionChains.Count > 0 ||
-                    dimensionFeatures.Count > 0 || dimensionValues.Count > 0 || ratioChains.Count > 0 || ratioFeatures.Count > 0 || ratioValues.Count > 0;
+                    dimensionFeatures.Count > 0 || dimensionValues.Count > 0 || ratioChains.Count > 0 || ratioFeatures.Count > 0 ||
+                    ratioValues.Count > 0 || resolutions.Count > 0 || resolutionBooleans.Count > 0 || resolutionChains.Count > 0 ||
+                    resolutionFeatures.Count > 0 || resolutionValues.Count > 0;
                 foreach (var token in Regex.Split(remainder.Trim(), "\\s+"))
                 {
                     if (token.Length == 0 || token == "and" || token == "only") continue;
@@ -3237,7 +3313,8 @@ namespace Lea.Engine
                 if (!valid || !meaningful) continue;
                 var condition = new Mc(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator,
                     ratioMaximum, ratioMaximumDenominator, orientation, minimumExclusive, maximumExclusive,
-                    heightMinimumExclusive, heightMaximumExclusive, ratioMinimumExclusive, ratioMaximumExclusive);
+                    heightMinimumExclusive, heightMaximumExclusive, ratioMinimumExclusive, ratioMaximumExclusive,
+                    densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive);
                 var duplicate = false;
                 foreach (var existing in result)
                     if (SameMedia(existing, condition)) { duplicate = true; break; }
@@ -3291,15 +3368,33 @@ namespace Lea.Engine
                     }
                     else if (right.Rx > 0 && RatioCompare(right.Rx, right.Rxd, ratioMaximum, ratioMaximumDenominator) == 0)
                         ratioMaximumExclusive = ratioMaximumExclusive || right.Rxe;
+                    var densityMinimum = left.Dn;
+                    var densityMinimumExclusive = left.Dne;
+                    if (right.Dn != Int32.MinValue && (densityMinimum == Int32.MinValue || right.Dn > densityMinimum))
+                    {
+                        densityMinimum = right.Dn;
+                        densityMinimumExclusive = right.Dne;
+                    }
+                    else if (right.Dn == densityMinimum) densityMinimumExclusive = densityMinimumExclusive || right.Dne;
+                    var densityMaximum = left.Dx;
+                    var densityMaximumExclusive = left.Dxe;
+                    if (right.Dx != Int32.MaxValue && (densityMaximum == Int32.MaxValue || right.Dx < densityMaximum))
+                    {
+                        densityMaximum = right.Dx;
+                        densityMaximumExclusive = right.Dxe;
+                    }
+                    else if (right.Dx == densityMaximum) densityMaximumExclusive = densityMaximumExclusive || right.Dxe;
                     if (MediaEmpty(minimum, minimumExclusive, maximum, maximumExclusive)) continue;
                     if (MediaEmpty(heightMinimum, heightMinimumExclusive, heightMaximum, heightMaximumExclusive)) continue;
                     if (MediaRatioEmpty(ratioMinimum, ratioMinimumDenominator, ratioMinimumExclusive,
                         ratioMaximum, ratioMaximumDenominator, ratioMaximumExclusive)) continue;
+                    if (MediaResolutionEmpty(densityMinimum, densityMinimumExclusive, densityMaximum, densityMaximumExclusive)) continue;
                     if (left.O != '\0' && right.O != '\0' && left.O != right.O) continue;
                     var orientation = left.O == '\0' ? right.O : left.O;
                     var condition = new Mc(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator,
                         ratioMaximum, ratioMaximumDenominator, orientation, minimumExclusive, maximumExclusive,
-                        heightMinimumExclusive, heightMaximumExclusive, ratioMinimumExclusive, ratioMaximumExclusive);
+                        heightMinimumExclusive, heightMaximumExclusive, ratioMinimumExclusive, ratioMaximumExclusive,
+                        densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive);
                     var duplicate = false;
                     foreach (var existing in result)
                         if (SameMedia(existing, condition)) { duplicate = true; break; }
@@ -3313,7 +3408,8 @@ namespace Lea.Engine
             return left.N == right.N && left.X == right.X && left.Hn == right.Hn && left.Hx == right.Hx &&
                 left.Rn == right.Rn && left.Rd == right.Rd && left.Rx == right.Rx && left.Rxd == right.Rxd && left.O == right.O &&
                 left.Ne == right.Ne && left.Xe == right.Xe && left.Hne == right.Hne && left.Hxe == right.Hxe &&
-                left.Rne == right.Rne && left.Rxe == right.Rxe;
+                left.Rne == right.Rne && left.Rxe == right.Rxe && left.Dn == right.Dn && left.Dx == right.Dx &&
+                left.Dne == right.Dne && left.Dxe == right.Dxe;
         }
 
         private static bool MediaTerm(string source, out int value)
@@ -3329,6 +3425,23 @@ namespace Lea.Engine
             var divisor = RatioGcd(numerator, denominator);
             numerator /= divisor;
             denominator /= divisor;
+            return true;
+        }
+
+        private static bool MediaResolutionTerm(string source, string unit, out int value)
+        {
+            value = 0;
+            decimal number;
+            if (!Decimal.TryParse(source, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint,
+                CultureInfo.InvariantCulture, out number)) return false;
+            decimal factor;
+            if (unit.Equals("dppx", StringComparison.OrdinalIgnoreCase)) factor = 96000M;
+            else if (unit.Equals("dpcm", StringComparison.OrdinalIgnoreCase)) factor = 2540M;
+            else if (unit.Equals("dpi", StringComparison.OrdinalIgnoreCase)) factor = 1000M;
+            else return false;
+            var scaled = Decimal.Round(number * factor, 0, MidpointRounding.AwayFromZero);
+            if (scaled < -960000000M || scaled > 960000000M) return false;
+            value = Decimal.ToInt32(scaled);
             return true;
         }
 
@@ -3378,6 +3491,23 @@ namespace Lea.Engine
             }
         }
 
+        private static void MediaResolution(ref int minimum, ref bool minimumExclusive,
+            ref int maximum, ref bool maximumExclusive, int value, string operation)
+        {
+            if (operation == ">" || operation == ">=" || operation == "=")
+            {
+                var exclusive = operation == ">";
+                if (minimum == Int32.MinValue || value > minimum) { minimum = value; minimumExclusive = exclusive; }
+                else if (value == minimum) minimumExclusive = minimumExclusive || exclusive;
+            }
+            if (operation == "<" || operation == "<=" || operation == "=")
+            {
+                var exclusive = operation == "<";
+                if (maximum == Int32.MaxValue || value < maximum) { maximum = value; maximumExclusive = exclusive; }
+                else if (value == maximum) maximumExclusive = maximumExclusive || exclusive;
+            }
+        }
+
         private static bool MediaEmpty(int minimum, bool minimumExclusive, int maximum, bool maximumExclusive)
         {
             return minimum > 0 && maximum > 0 && (minimum > maximum || minimum == maximum && (minimumExclusive || maximumExclusive));
@@ -3389,6 +3519,12 @@ namespace Lea.Engine
             if (minimum == 0 || maximum == 0) return false;
             var comparison = RatioCompare(minimum, minimumDenominator, maximum, maximumDenominator);
             return comparison > 0 || comparison == 0 && (minimumExclusive || maximumExclusive);
+        }
+
+        private static bool MediaResolutionEmpty(int minimum, bool minimumExclusive, int maximum, bool maximumExclusive)
+        {
+            return minimum != Int32.MinValue && maximum != Int32.MaxValue &&
+                (minimum > maximum || minimum == maximum && (minimumExclusive || maximumExclusive));
         }
 
         private static int RatioCompare(int leftNumerator, int leftDenominator, int rightNumerator, int rightDenominator)
@@ -11894,6 +12030,10 @@ namespace Lea.Engine
             public readonly bool Hxe;
             public readonly bool Rne;
             public readonly bool Rxe;
+            public readonly int Dn;
+            public readonly int Dx;
+            public readonly bool Dne;
+            public readonly bool Dxe;
 
             public Mc(int minimum, int maximum)
                 : this(minimum, maximum, 0, 0, 0, 0, 0, 0, '\0')
@@ -11911,6 +12051,18 @@ namespace Lea.Engine
                 int ratioMinimum, int ratioMinimumDenominator, int ratioMaximum, int ratioMaximumDenominator, char orientation,
                 bool minimumExclusive, bool maximumExclusive, bool heightMinimumExclusive, bool heightMaximumExclusive,
                 bool ratioMinimumExclusive, bool ratioMaximumExclusive)
+                : this(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator,
+                    ratioMaximum, ratioMaximumDenominator, orientation, minimumExclusive, maximumExclusive,
+                    heightMinimumExclusive, heightMaximumExclusive, ratioMinimumExclusive, ratioMaximumExclusive,
+                    Int32.MinValue, Int32.MaxValue, false, false)
+            {
+            }
+
+            public Mc(int minimum, int maximum, int heightMinimum, int heightMaximum,
+                int ratioMinimum, int ratioMinimumDenominator, int ratioMaximum, int ratioMaximumDenominator, char orientation,
+                bool minimumExclusive, bool maximumExclusive, bool heightMinimumExclusive, bool heightMaximumExclusive,
+                bool ratioMinimumExclusive, bool ratioMaximumExclusive, int densityMinimum, int densityMaximum,
+                bool densityMinimumExclusive, bool densityMaximumExclusive)
             {
                 N = minimum;
                 X = maximum;
@@ -11927,14 +12079,21 @@ namespace Lea.Engine
                 Hxe = heightMaximumExclusive;
                 Rne = ratioMinimumExclusive;
                 Rxe = ratioMaximumExclusive;
+                Dn = densityMinimum;
+                Dx = densityMaximum;
+                Dne = densityMinimumExclusive;
+                Dxe = densityMaximumExclusive;
             }
 
-            public bool On(int width, int height)
+            public bool On(int width, int height, int density)
             {
                 if (width < N || Ne && width == N || X > 0 && (width > X || Xe && width == X) ||
                     height < Hn || Hne && height == Hn || Hx > 0 && (height > Hx || Hxe && height == Hx)) return false;
                 if (Rn > 0 && (RatioCompare(width, height, Rn, Rd) < 0 || Rne && RatioCompare(width, height, Rn, Rd) == 0) ||
                     Rx > 0 && (RatioCompare(width, height, Rx, Rxd) > 0 || Rxe && RatioCompare(width, height, Rx, Rxd) == 0)) return false;
+                var scaledDensity = density * 1000;
+                if (Dn != Int32.MinValue && (scaledDensity < Dn || Dne && scaledDensity == Dn) ||
+                    Dx != Int32.MaxValue && (scaledDensity > Dx || Dxe && scaledDensity == Dx)) return false;
                 return O == '\0' || O == 'p' && height >= width || O == 'l' && width > height;
             }
 
@@ -11968,8 +12127,19 @@ namespace Lea.Engine
                         if (Rx > 0) parts.Add("@r" + (Rxe ? "<" : "<=") + Rx + "/" + Rxd);
                     }
                     if (O != '\0') parts.Add("@o=" + O);
+                    if (Dn == Dx && Dn != Int32.MinValue && !Dne && !Dxe) parts.Add("@d=" + DensityText(Dn));
+                    else
+                    {
+                        if (Dn != Int32.MinValue) parts.Add("@d" + (Dne ? ">" : ">=") + DensityText(Dn));
+                        if (Dx != Int32.MaxValue) parts.Add("@d" + (Dxe ? "<" : "<=") + DensityText(Dx));
+                    }
                     return String.Join("&", parts.ToArray());
                 }
+            }
+
+            private static string DensityText(int value)
+            {
+                return (value / 1000D).ToString("0.###", CultureInfo.InvariantCulture) + "dpi";
             }
         }
 
@@ -12059,10 +12229,10 @@ namespace Lea.Engine
                 return prefix.Length == 0 ? mediaLabel : mediaLabel.Length == 0 ? prefix : prefix + "&" + mediaLabel;
             }
 
-            public bool On(int width, int height)
+            public bool On(int width, int height, int density)
             {
                 foreach (var condition in M)
-                    if (condition.On(width, height)) return true;
+                    if (condition.On(width, height, density)) return true;
                 return false;
             }
         }

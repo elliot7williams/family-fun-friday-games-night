@@ -17,22 +17,19 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 124 completes the standard predefined CSS Color 4 RGB spaces with
-bounded `color(a98-rgb ...)`, `color(prophoto-rgb ...)`, and
-`color(rec2020 ...)` support. Standard transfer curves and matrices, shared
-Bradford D50-to-D65 adaptation for ProPhoto RGB, and bounded local-MINDE sRGB
-gamut mapping reuse the existing compact authored-color records. Text,
-backgrounds, borders, outlines, decorations, shadows, gradients, generated
-content, variables, layers, media, fields, sRGB mix stops, SVG paint, and
-declaration `@supports` need no new alias or dependency. All 120 benchmark
-probes pass over 115 fixtures. Focused and full source/staged suites and the
-compiled Firespider host are green. All 42 Boot cases and all six real EXE
-startup scenarios remain responsive without MSHTML, an invalid cast, JIT
-dialog, or dead startup window. Three-round diagnostic medians are 633.262 ms
-clean start, 6.620 ms local load, and 40.723 ms layout/paint; retained memory is
-70.1 KiB/page and the required runtime is 653.5 KiB. Runtime 224 is packaged
-separately and installed runtime 157 remains unchanged. See
-`WIDE_GAMUT_COLORS.md`.
+Milestone 125 adds bounded CSS resolution media queries with compact
+`E/P/G/V.Dp` density aliases. Boolean, legacy exact/min/max, feature-first,
+value-first, and same-direction chained ranges accept `dpi`, `dppx`, and
+`dpcm`. WinForms views follow live monitor DPI until a host sets an explicit
+value; nested/intersected rules, diagnostics, responsive geometry/paint, and
+retained fields stay on Lea's compiled media path. All 121 benchmark probes
+pass over 116 fixtures. Focused and full source/staged suites and the compiled
+Firespider host are green. All 42 Boot cases and all six real EXE startup
+scenarios remain responsive without MSHTML, an invalid cast, JIT dialog, or
+dead startup window. Three-round diagnostic medians are 567.127 ms clean start,
+6.994 ms local load, and 45.296 ms layout/paint; retained memory is 70.1
+KiB/page and the required runtime is 658.5 KiB. Runtime 225 is packaged separately
+and installed runtime 157 remains unchanged. See `MEDIA_RESOLUTION.md`.
 Container/style queries,
 `font-tech()`/`font-format()`,
 general-enclosed conditions, JavaScript `CSS.supports()`, locale-sensitive

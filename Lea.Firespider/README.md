@@ -10,6 +10,13 @@ Its timer status handler is also routed safely across startup, empty, Lea, and
 legacy-tab states, so it never dereferences a missing control or casts a Lea
 view to the legacy `WebBrowser` type.
 
+Resolution media queries now stay engine-owned through compact `E/P/G/V.Dp`
+aliases. The WinForms view follows its live monitor DPI until a host sets an
+explicit density, and Firespider needs no adapter-side media parser. The
+compiled host smoke covers `dpi`/`dppx`/`dpcm`, modern ranges, diagnostics,
+retained fields, responsive geometry, and exact paint. See
+`LeaForge/MEDIA_RESOLUTION.md`.
+
 Initial fragments now stay aligned while first paint, host sizing, and decoded
 intrinsic images settle. `V.Fa/Fj/Fy` expose the retained anchor, placement
 count, and target Y directly to the host; normal scrolling releases the anchor.

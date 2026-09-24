@@ -136,9 +136,10 @@ LeaForge is where we can grow the more full-featured browser.
   following-sibling, and four-part compiled chains, maximum specificity,
   dynamic focus restyling, and deterministic traversal limits
 - bounded responsive `screen`/`all` pixel width/height,
-  portrait/landscape, integer aspect-ratio, and strict/inclusive modern range
-  media queries with compact `Vw/Vh/Vz` aliases, nested conditions, live
-  WinForms resize, and retained fields; see `MEDIA_RANGE_SYNTAX.md`
+  portrait/landscape, integer aspect-ratio, and `dpi`/`dppx`/`dpcm` resolution
+  media queries with strict/inclusive modern ranges, compact `Vw/Vh/Vz/Dp`
+  aliases, nested conditions, live WinForms viewport/DPI updates, and retained
+  fields; see `MEDIA_RANGE_SYNTAX.md` and `MEDIA_RESOLUTION.md`
 - bounded CSS `@supports` declaration checks and `selector(...)` capability
   checks with grouped `not`/`and`/`or`, nested media, compact `@s` diagnostics,
   strict depth/term/text limits, and retained fields; see `SUPPORTS_QUERIES.md`

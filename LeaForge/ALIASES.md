@@ -35,6 +35,11 @@ read and quick to write.
   redirects or resource requests. Firespider installs it on ordinary and split
   tabs. See `NAVIGATION_POLICY.md` and `SPLIT_VIEW.md` for its callback contract.
 - Page values use one or two letters: `U`, `T`, `H`, `Q`, `D`, `N`, `Bs`, and `Ls`.
+- `Dp` is display density in dots per inch. `E.Dp` and explicit `V.Dp` writes
+  clamp to 1..960; `P.Dp` stores the value used by the page and `G.Dp` reports
+  it. WinForms `V` follows the live monitor DPI until a host sets an explicit
+  value. Resolution media queries accept `dpi`, `dppx`, and `dpcm`; see
+  `MEDIA_RESOLUTION.md`.
 - Page commands use one or two letters where practical: `t`, `a`, `bg`, `fg`, `fs`, `dp`, `wd`, `ht`, `dr`, `ti`, `tw`, `twm`, `tws`, `ta`, `taa`, `tl`, `lc`, `ls`, `lst`, `lp`, `li`, `ms`, `be`, `af`, `ts`, `td`, `uo`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`; text-decoration components and logical edge families stay within three letters.
 - New public aliases should be no more than three letters.
 - `E/V.Hm` reports the 4 MiB document-body ceiling; `E/V.Csm` reports the

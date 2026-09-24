@@ -23,6 +23,10 @@ Reduced positive integer aspect ratios accept the same forms:
 @media (16/9 > aspect-ratio) { }
 ```
 
+Finite `dpi`, `dppx`, and `dpcm` resolution values accept the same forms and
+chained ranges. Their conversion, bounds, and compact `Dp` host state are
+documented in `MEDIA_RESOLUTION.md`.
+
 Ascending and descending chains may mix strict and inclusive operators:
 
 ```css
@@ -57,8 +61,8 @@ Diagnostics preserve strict boundaries with compact labels:
 @r>1/1&@r<=4/3
 ```
 
-Decimal values, non-pixel dimensions, zero or malformed ratios, mixed chains,
-over-bound terms, device dimensions/ratios, resolution, `calc()`, variables,
+Decimal dimension values, non-pixel dimensions, zero or malformed ratios,
+mixed chains, over-bound terms, device dimensions/ratios, `calc()`, variables,
 and unknown features remain inactive. This is a deterministic bounded subset,
 not a general media-feature evaluator.
 
