@@ -17,19 +17,18 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 125 adds bounded CSS resolution media queries with compact
-`E/P/G/V.Dp` density aliases. Boolean, legacy exact/min/max, feature-first,
-value-first, and same-direction chained ranges accept `dpi`, `dppx`, and
-`dpcm`. WinForms views follow live monitor DPI until a host sets an explicit
-value; nested/intersected rules, diagnostics, responsive geometry/paint, and
-retained fields stay on Lea's compiled media path. All 121 benchmark probes
-pass over 116 fixtures. Focused and full source/staged suites and the compiled
-Firespider host are green. All 42 Boot cases and all six real EXE startup
-scenarios remain responsive without MSHTML, an invalid cast, JIT dialog, or
-dead startup window. Three-round diagnostic medians are 567.127 ms clean start,
-6.994 ms local load, and 45.296 ms layout/paint; retained memory is 70.1
-KiB/page and the required runtime is 658.5 KiB. Runtime 225 is packaged separately
-and installed runtime 157 remains unchanged. See `MEDIA_RESOLUTION.md`.
+Milestone 126 adds bounded CSS `prefers-color-scheme` media queries with compact
+`E/P/G/V.Th` theme aliases. `l` and `d` select light and dark; headless Lea
+defaults deterministically to light, while WinForms views sample the Windows
+application theme until a host sets an explicit value. Boolean, exact values,
+nested/intersected rules, diagnostics, responsive geometry/paint, and retained
+fields stay on Lea's compiled media path. All 122 benchmark probes pass over
+117 fixtures. Focused and full source/staged suites, the compiled Firespider
+host, all 42 Boot cases, and all six real EXE startup scenarios are green.
+Three-round diagnostic medians are 908.565 ms clean start, 8.498 ms local load,
+and 44.488 ms layout/paint; retained memory is 69.9 KiB/page and the required
+runtime is 660.5 KiB. Runtime 226 is packaged separately and installed runtime
+157 remains unchanged. See `MEDIA_COLOR_SCHEME.md`.
 Container/style queries,
 `font-tech()`/`font-format()`,
 general-enclosed conditions, JavaScript `CSS.supports()`, locale-sensitive

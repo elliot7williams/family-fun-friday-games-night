@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea preferred color scheme media queries</title>
+  <style>
+    html, body { margin: 0; padding: 0; background: white; color: black; font-family: Arial; }
+    .probe { display: none; width: 96px; height: 24px; margin: 4px; }
+    #base { display: block; background: #e2e8f0; }
+    #responsive { display: block; width: 180px; height: 40px; margin: 8px; background: #f8fafc; color: #111827; }
+    input { display: block; width: 180px; height: 30px; margin: 8px; }
+
+    @media (prefers-color-scheme) { #boolean { display: block; width: 101px; } }
+    @media (prefers-color-scheme: light) {
+      #light { display: block; width: 102px; }
+      #responsive { width: 181px; background: #f8fafc; color: #111827; }
+    }
+    @media screen and (min-width: 700px) and (prefers-color-scheme: light) {
+      #light-combined { display: block; width: 103px; }
+    }
+    @media (prefers-color-scheme: dark), (max-width: 800px) {
+      #alternative { display: block; width: 104px; }
+    }
+
+    @media (prefers-color-scheme: dark) {
+      #dark { display: block; width: 201px; }
+      #responsive { width: 241px; background: #111827; color: #f8fafc; }
+      input { width: 240px; }
+    }
+    @media (min-width: 700px) {
+      @media (prefers-color-scheme: dark) {
+        #dark-nested { display: block; width: 202px; }
+      }
+    }
+    @media (prefers-color-scheme: light) {
+      @media (prefers-color-scheme: dark) { #conflict { display: block; } }
+    }
+
+    @media (prefers-color-scheme: no-preference) { #invalid-old-value { display: block; } }
+    @media (prefers-color-scheme: sepia) { #invalid-value { display: block; } }
+    @media (prefers-color-scheme >= dark) { #invalid-range { display: block; } }
+    @media (prefers-color-scheme: dark) trailing { #invalid-trailing { display: block; } }
+  </style>
+  <style media="(prefers-color-scheme: dark)">
+    #style-dark { display: block; width: 203px; }
+  </style>
+</head>
+<body>
+  <p id="base" class="probe">Base</p>
+  <p id="boolean" class="probe">Boolean preference</p>
+  <p id="light" class="probe">Light preference</p>
+  <p id="light-combined" class="probe">Light and wide</p>
+  <p id="alternative" class="probe">Dark or narrow</p>
+  <p id="dark" class="probe">Dark preference</p>
+  <p id="dark-nested" class="probe">Nested dark preference</p>
+  <p id="style-dark" class="probe">Dark style media</p>
+  <p id="conflict" class="probe">Conflicting preferences</p>
+  <p id="invalid-old-value" class="probe">Old preference value</p>
+  <p id="invalid-value" class="probe">Unknown preference</p>
+  <p id="invalid-range" class="probe">Invalid discrete range</p>
+  <p id="invalid-trailing" class="probe">Trailing media text</p>
+  <p id="responsive">Preferred scheme paint</p>
+  <input id="field" value="Retained preferred scheme value">
+</body>
+</html>

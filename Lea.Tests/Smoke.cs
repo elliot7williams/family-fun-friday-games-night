@@ -156,6 +156,11 @@ namespace Lea.Tests
                     MediaResolutionSmoke(Path.Combine(pages, "media-resolution.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--media-theme")
+                {
+                    MediaThemeSmoke(Path.Combine(pages, "media-color-scheme.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--supports")
                 {
                     SupportsSmoke(Path.Combine(pages, "supports-queries.html"));
@@ -1580,6 +1585,7 @@ namespace Lea.Tests
                 MediaAspectSmoke(Path.Combine(pages, "media-aspect-ratio.html"));
                 MediaRangeSmoke(Path.Combine(pages, "media-ranges.html"));
                 MediaResolutionSmoke(Path.Combine(pages, "media-resolution.html"));
+                MediaThemeSmoke(Path.Combine(pages, "media-color-scheme.html"));
                 SupportsSmoke(Path.Combine(pages, "supports-queries.html"));
                 LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
                 HslColorSmoke(Path.Combine(pages, "hsl-colors.html"));
@@ -8330,6 +8336,95 @@ namespace Lea.Tests
                     "WinForms density rebuild retains field state");
             }
             Console.WriteLine("Lea resolution media smoke passed: Dp alias, dpi/dppx/dpcm conversion, boolean/legacy/modern/range syntax, negative and strict bounds, nesting, diagnostics, field retention, automatic WinForms density plumbing, and exact paint.");
+        }
+
+        private static void MediaThemeSmoke(string path)
+        {
+            var engine = new E { Vw = 760, Vh = 1000 };
+            Eq('l', engine.Th, "default preferred color scheme alias");
+            engine.Th = 'x';
+            Eq('l', engine.Th, "invalid preferred color scheme alias ignored");
+            var page = engine.Go(path);
+            Eq('l', page.Th, "default page preferred color scheme alias");
+            Ok(HasBlock(page, "boolean") && HasBlock(page, "light") && HasBlock(page, "light-combined") &&
+                HasBlock(page, "alternative"), "default light color scheme media state");
+            Ok(!HasBlock(page, "dark") && !HasBlock(page, "dark-nested") && !HasBlock(page, "style-dark") &&
+                !HasBlock(page, "conflict"), "dark and conflicting scheme rules initially inactive");
+            Ok(!HasBlock(page, "invalid-old-value") && !HasBlock(page, "invalid-value") &&
+                !HasBlock(page, "invalid-range") && !HasBlock(page, "invalid-trailing"),
+                "unsupported color scheme media values stay inactive");
+            Eq(181, BlockById(page, "responsive").S.W, "light color scheme geometry");
+            var field = FieldById(page, "field");
+            Eq(180, field.S.W, "light color scheme field width");
+            field.V = "Retained preferred scheme engine value";
+            var diagnostics = engine.Dg(page);
+            Eq('l', diagnostics.Th, "diagnostic preferred color scheme alias");
+            Ok(Has(diagnostics.Cs, "@t=l") && Has(diagnostics.Cs, "@m>=700&@t=l"),
+                "light color scheme media diagnostics");
+
+            engine.Th = 'D';
+            Ok(engine.Th == 'd' && page.Th == 'd' && engine.Dg(page).Th == 'd',
+                "dark preferred color scheme aliases");
+            Ok(HasBlock(page, "boolean") && !HasBlock(page, "light") && !HasBlock(page, "light-combined") &&
+                HasBlock(page, "alternative") && HasBlock(page, "dark") && HasBlock(page, "dark-nested") &&
+                HasBlock(page, "style-dark") && !HasBlock(page, "conflict"), "dark color scheme media state");
+            Ok(BlockById(page, "dark").S.W == 201 && BlockById(page, "dark-nested").S.W == 202 &&
+                BlockById(page, "style-dark").S.W == 203 && BlockById(page, "responsive").S.W == 241,
+                "dark nested and style-media geometry");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) &&
+                field.V == "Retained preferred scheme engine value" && field.S.W == 240,
+                "theme rebuild preserves field identity and value");
+            Ok(Has(engine.Dg(page).Cs, "@t=d") && Has(engine.Dg(page).Cs, "@m>=700&@t=d"),
+                "dark color scheme media diagnostics");
+
+            engine.Vw = 900;
+            Ok(HasBlock(page, "alternative") && HasBlock(page, "dark-nested"),
+                "dark preference keeps alternative and wide nested rules");
+            engine.Th = 'l';
+            Ok(!HasBlock(page, "alternative") && HasBlock(page, "light-combined") && !HasBlock(page, "dark-nested"),
+                "light preference and width intersection state");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) &&
+                field.V == "Retained preferred scheme engine value", "all theme rebuilds retain field state");
+
+            using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-30000, -30000), ClientSize = new Size(760, 1000) })
+            using (var view = new V { Th = 'd' })
+            {
+                form.Controls.Add(view);
+                form.Show();
+                view.Go(path);
+                using (var image = Render(view))
+                {
+                    var responsive = BlockRect(view, BlockById(view.At, "responsive"));
+                    Ok(view.Th == 'd' && view.At.Th == 'd' && HasBlock(view.At, "dark") &&
+                        responsive.Width == 241 && ColorDistance(image.GetPixel(responsive.Right - 5, responsive.Top + 5),
+                            Color.FromArgb(17, 24, 39)) < 8, "WinForms dark theme state and paint");
+                }
+                var viewField = FieldById(view.At, "field");
+                viewField.V = "Retained preferred scheme view value";
+                view.Th = 'l';
+                Application.DoEvents();
+                using (var image = Render(view))
+                {
+                    var responsive = BlockRect(view, BlockById(view.At, "responsive"));
+                    Ok(view.Th == 'l' && view.At.Th == 'l' && HasBlock(view.At, "light") && !HasBlock(view.At, "dark") &&
+                        responsive.Width == 181 && ColorDistance(image.GetPixel(responsive.Right - 5, responsive.Top + 5),
+                            Color.FromArgb(248, 250, 252)) < 8, "WinForms light theme state and paint");
+                }
+                Ok(Object.ReferenceEquals(viewField, FieldById(view.At, "field")) &&
+                    viewField.V == "Retained preferred scheme view value" && viewField.S.W == 180,
+                    "WinForms theme rebuild retains field state");
+            }
+
+            using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-30000, -30000) })
+            using (var view = new V())
+            {
+                form.Controls.Add(view);
+                form.Show();
+                var method = typeof(V).GetMethod("SystemTheme", BindingFlags.Static | BindingFlags.NonPublic);
+                Ok(method != null && view.Th == (char)method.Invoke(null, null),
+                    "WinForms automatically samples the Windows application theme");
+            }
+            Console.WriteLine("Lea preferred color scheme media smoke passed: compact Th aliases, boolean/light/dark syntax, nesting, alternatives, style media, diagnostics, field retention, Windows theme plumbing, and exact paint.");
         }
 
         private static void LayerSmoke(string path, string limitPath)

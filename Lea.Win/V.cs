@@ -67,6 +67,7 @@ namespace Lea.Win
         private int layoutRootFontSize = 10;
         private bool layoutDirty = true;
         private bool densityExplicit;
+        private bool themeExplicit;
         private bool sticky;
         private bool picBusy;
         private bool picStop;
@@ -206,6 +207,7 @@ namespace Lea.Win
                 var density = (int)(message.WParam.ToInt64() & 0xffffL);
                 if (density > 0) SetDensity(density, false);
             }
+            if (message.Msg == 0x001A && !themeExplicit) SetTheme(SystemTheme(), false);
             if (message.Msg == 0x0002)
             {
                 // Release UI Automation's native provider event-map references.
@@ -223,8 +225,9 @@ namespace Lea.Win
         protected override void OnHandleCreated(EventArgs e)
         {
             base.OnHandleCreated(e);
-            if (densityExplicit) return;
-            using (var graphics = CreateGraphics()) SetDensity((int)Math.Round(graphics.DpiX), false);
+            if (!densityExplicit)
+                using (var graphics = CreateGraphics()) SetDensity((int)Math.Round(graphics.DpiX), false);
+            if (!themeExplicit) SetTheme(SystemTheme(), false);
         }
 
         private Ur UiRoot { get { return ur ?? (ur = new Ur(this)); } }
@@ -329,6 +332,7 @@ namespace Lea.Win
         public int Vw { get { return e.Vw; } }
         public int Vh { get { return e.Vh; } }
         public int Dp { get { return e.Dp; } set { SetDensity(value, true); } }
+        public char Th { get { return e.Th; } set { SetTheme(value, true); } }
         public int Rf { get { return At != null && At.Rf > 0 ? At.Rf : Math.Max(1, (int)Math.Round(Font.Size)); } }
         public N Ke { get { return focus; } }
         public int Kn { get { return FocusTargets(true).Count; } }
@@ -1113,6 +1117,32 @@ namespace Lea.Win
             QueueFragment(At);
             Invalidate();
             if (At != null && IsHandleCreated) NotifyAccessibility(AccessibleEvents.Reorder);
+        }
+
+        private void SetTheme(char value, bool explicitlySet)
+        {
+            var next = Char.ToLowerInvariant(value);
+            if (next != 'l' && next != 'd') return;
+            if (explicitlySet) themeExplicit = true;
+            var previous = e.Th;
+            e.Th = next;
+            if (previous == e.Th) return;
+            Dirty();
+            QueueFragment(At);
+            Invalidate();
+            if (At != null && IsHandleCreated) NotifyAccessibility(AccessibleEvents.Reorder);
+        }
+
+        private static char SystemTheme()
+        {
+            try
+            {
+                var value = Microsoft.Win32.Registry.GetValue(
+                    @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize",
+                    "AppsUseLightTheme", 1);
+                return Convert.ToInt32(value, CultureInfo.InvariantCulture) == 0 ? 'd' : 'l';
+            }
+            catch { return 'l'; }
         }
 
         private Bx[] BoxSnapshot()

@@ -17,6 +17,13 @@ compiled host smoke covers `dpi`/`dppx`/`dpcm`, modern ranges, diagnostics,
 retained fields, responsive geometry, and exact paint. See
 `LeaForge/MEDIA_RESOLUTION.md`.
 
+Preferred color-scheme media queries stay on that same compiled path through
+compact `E/P/G/V.Th` aliases. Headless Lea defaults deterministically to light;
+the WinForms view samples the Windows application theme until a host sets an
+explicit light or dark value. Firespider adds no theme parser. The compiled
+host covers selection, diagnostics, retained fields, responsive geometry, and
+exact paint. See `LeaForge/MEDIA_COLOR_SCHEME.md`.
+
 Initial fragments now stay aligned while first paint, host sizing, and decoded
 intrinsic images settle. `V.Fa/Fj/Fy` expose the retained anchor, placement
 count, and target Y directly to the host; normal scrolling releases the anchor.

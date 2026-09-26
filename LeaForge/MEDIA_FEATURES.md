@@ -28,6 +28,7 @@ Lea accepts `screen` and `all` queries containing:
   positive integer fractions
 - `resolution`, `min-resolution`, and `max-resolution` in bounded `dpi`,
   `dppx`, or `dpcm` values
+- boolean `prefers-color-scheme` plus exact `light` and `dark` values
 - feature-first, value-first, and ascending/descending comparison ranges for
   width, height, aspect ratio, and resolution
 - `and` conjunctions and comma alternatives
@@ -50,11 +51,13 @@ strict-boundary behavior are in `MEDIA_RANGE_SYNTAX.md`.
 ## Diagnostics and State
 
 Active CSS diagnostics retain `@m` for width and add `@h` for height, `@o`
-for orientation, and `@d` for normalized resolution. For example:
+for orientation, `@d` for normalized resolution, and `@t` for theme. For
+example:
 
 ```text
 @m>=800&@h<=500&@o=l
 @m>=800&@d>=192dpi
+@m>=800&@t=d
 ```
 
 Changing either viewport dimension recompiles no CSS. Lea selects from the
@@ -63,6 +66,8 @@ Mutable `Fi` field objects and their values are retained across those rebuilds.
 
 Resolution syntax, conversion, bounds, and host density behavior are documented
 in `MEDIA_RESOLUTION.md`.
+Preferred color-scheme syntax and host theme behavior are documented in
+`MEDIA_COLOR_SCHEME.md`.
 
 Coverage lives in `test-pages/media-features.html`, the focused
 `Lea.Tests --media-features` mode, the compatibility benchmark, and the

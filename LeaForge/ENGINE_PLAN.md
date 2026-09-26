@@ -349,16 +349,16 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 125 adds bounded CSS resolution media queries with compact
-`E/P/G/V.Dp` density aliases. Boolean, exact/min/max, feature-first,
-value-first, and same-direction chained ranges accept finite `dpi`, `dppx`, and
-`dpcm` terms. Width, height, orientation, aspect ratio, alternatives, nested
-media, style media, compact diagnostics, responsive paint, and retained fields
-share the compiled media path. WinForms views follow live monitor DPI until a
-host sets an explicit density. See `MEDIA_RESOLUTION.md`. All 121 probes pass
-over 116 fixtures; focused and full source/staged suites, the compiled
-Firespider host, all 42 Boot cases, and all six real EXE startup scenarios pass.
-Runtime 225 is packaged separately and installed runtime 157 remains unchanged.
+Milestone 126 adds bounded CSS `prefers-color-scheme` media queries with compact
+`E/P/G/V.Th` theme aliases. `l` and `d` select light and dark; headless Lea
+defaults deterministically to light, while WinForms views sample the Windows
+application theme until a host sets an explicit value. Boolean, exact
+light/dark, width intersections, alternatives, nested media, style media,
+compact diagnostics, responsive paint, and retained fields share the compiled
+media path. See `MEDIA_COLOR_SCHEME.md`. All 122 probes pass over 117 fixtures;
+focused and full source/staged suites, the compiled Firespider host, all 42 Boot
+cases, and all six real EXE startup scenarios pass. Runtime 226 is packaged
+separately and installed runtime 157 remains unchanged.
 Next investigate another bounded compatibility slice. Keep device ratios,
 container and style queries, `font-tech()`/`font-format()`, general-enclosed
 conditions, JavaScript `CSS.supports()`, locale-sensitive automatic quote selection,
