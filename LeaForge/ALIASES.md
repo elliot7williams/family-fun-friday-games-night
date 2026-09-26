@@ -44,6 +44,10 @@ read and quick to write.
   `E.Th` defaults to light, `P.Th` stores the applied value, and `G.Th` reports
   it. WinForms `V` samples the Windows application theme until a host sets an
   explicit value. See `MEDIA_COLOR_SCHEME.md`.
+- `Rm` is the reduced-motion preference. `n` means no preference and `r` means
+  reduce. `E.Rm` defaults to no preference, `P.Rm` stores the applied value,
+  and `G.Rm` reports it. WinForms `V` samples Windows client-area animation
+  policy until a host sets an explicit value. See `MEDIA_REDUCED_MOTION.md`.
 - Page commands use one or two letters where practical: `t`, `a`, `bg`, `fg`, `fs`, `dp`, `wd`, `ht`, `dr`, `ti`, `tw`, `twm`, `tws`, `ta`, `taa`, `tl`, `lc`, `ls`, `lst`, `lp`, `li`, `ms`, `be`, `af`, `ts`, `td`, `uo`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`; text-decoration components and logical edge families stay within three letters.
 - New public aliases should be no more than three letters.
 - `E/V.Hm` reports the 4 MiB document-body ceiling; `E/V.Csm` reports the

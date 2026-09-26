@@ -161,6 +161,11 @@ namespace Lea.Tests
                     MediaThemeSmoke(Path.Combine(pages, "media-color-scheme.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--media-motion")
+                {
+                    MediaMotionSmoke(Path.Combine(pages, "media-reduced-motion.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--supports")
                 {
                     SupportsSmoke(Path.Combine(pages, "supports-queries.html"));
@@ -1586,6 +1591,7 @@ namespace Lea.Tests
                 MediaRangeSmoke(Path.Combine(pages, "media-ranges.html"));
                 MediaResolutionSmoke(Path.Combine(pages, "media-resolution.html"));
                 MediaThemeSmoke(Path.Combine(pages, "media-color-scheme.html"));
+                MediaMotionSmoke(Path.Combine(pages, "media-reduced-motion.html"));
                 SupportsSmoke(Path.Combine(pages, "supports-queries.html"));
                 LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
                 HslColorSmoke(Path.Combine(pages, "hsl-colors.html"));
@@ -8425,6 +8431,100 @@ namespace Lea.Tests
                     "WinForms automatically samples the Windows application theme");
             }
             Console.WriteLine("Lea preferred color scheme media smoke passed: compact Th aliases, boolean/light/dark syntax, nesting, alternatives, style media, diagnostics, field retention, Windows theme plumbing, and exact paint.");
+        }
+
+        private static void MediaMotionSmoke(string path)
+        {
+            var engine = new E { Vw = 760, Vh = 1000 };
+            Eq('n', engine.Rm, "default reduced motion alias");
+            engine.Rm = 'x';
+            Eq('n', engine.Rm, "invalid reduced motion alias ignored");
+            var page = engine.Go(path);
+            Eq('n', page.Rm, "default page reduced motion alias");
+            Ok(!HasBlock(page, "boolean") && HasBlock(page, "no-preference") &&
+                HasBlock(page, "no-preference-combined") && HasBlock(page, "alternative"),
+                "default no-preference motion media state and false boolean context");
+            Ok(!HasBlock(page, "reduce") && !HasBlock(page, "reduce-nested") &&
+                !HasBlock(page, "style-reduce") && !HasBlock(page, "conflict"),
+                "reduced and conflicting motion rules initially inactive");
+            Ok(!HasBlock(page, "invalid-value") && !HasBlock(page, "invalid-range") &&
+                !HasBlock(page, "invalid-trailing"), "unsupported reduced motion queries stay inactive");
+            Eq(183, BlockById(page, "responsive").S.W, "no-preference motion geometry");
+            var field = FieldById(page, "field");
+            Eq(182, field.S.W, "no-preference motion field width");
+            field.V = "Retained reduced motion engine value";
+            var diagnostics = engine.Dg(page);
+            Eq('n', diagnostics.Rm, "diagnostic reduced motion alias");
+            Ok(Has(diagnostics.Cs, "@rm=n") && Has(diagnostics.Cs, "@m>=700&@rm=n"),
+                "no-preference motion diagnostics");
+
+            engine.Rm = 'R';
+            Ok(engine.Rm == 'r' && page.Rm == 'r' && engine.Dg(page).Rm == 'r',
+                "reduced motion aliases");
+            Ok(HasBlock(page, "boolean") && !HasBlock(page, "no-preference") &&
+                !HasBlock(page, "no-preference-combined") && HasBlock(page, "alternative") &&
+                HasBlock(page, "reduce") && HasBlock(page, "reduce-nested") &&
+                HasBlock(page, "style-reduce") && !HasBlock(page, "conflict"),
+                "reduced motion media state and true boolean context");
+            Ok(BlockById(page, "reduce").S.W == 201 && BlockById(page, "reduce-nested").S.W == 202 &&
+                BlockById(page, "style-reduce").S.W == 203 && BlockById(page, "responsive").S.W == 243,
+                "reduced motion nested and style-media geometry");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) &&
+                field.V == "Retained reduced motion engine value" && field.S.W == 242,
+                "motion rebuild preserves field identity and value");
+            Ok(Has(engine.Dg(page).Cs, "@rm=r") && Has(engine.Dg(page).Cs, "@m>=700&@rm=r"),
+                "reduced motion diagnostics");
+
+            engine.Vw = 900;
+            Ok(HasBlock(page, "alternative") && HasBlock(page, "reduce-nested"),
+                "reduced motion keeps alternative and wide nested rules");
+            engine.Rm = 'n';
+            Ok(!HasBlock(page, "alternative") && HasBlock(page, "no-preference-combined") &&
+                !HasBlock(page, "reduce-nested"), "no-preference motion and width intersection state");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) &&
+                field.V == "Retained reduced motion engine value", "all motion rebuilds retain field state");
+
+            using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-30000, -30000), ClientSize = new Size(760, 1000) })
+            using (var view = new V { Rm = 'r' })
+            {
+                form.Controls.Add(view);
+                form.Show();
+                view.Go(path);
+                using (var image = Render(view))
+                {
+                    var responsive = BlockRect(view, BlockById(view.At, "responsive"));
+                    Ok(view.Rm == 'r' && view.At.Rm == 'r' && HasBlock(view.At, "boolean") &&
+                        HasBlock(view.At, "reduce") && responsive.Width == 243 &&
+                        ColorDistance(image.GetPixel(responsive.Right - 5, responsive.Top + 5),
+                            Color.FromArgb(49, 46, 129)) < 8, "WinForms reduced motion state and paint");
+                }
+                var viewField = FieldById(view.At, "field");
+                viewField.V = "Retained reduced motion view value";
+                view.Rm = 'n';
+                Application.DoEvents();
+                using (var image = Render(view))
+                {
+                    var responsive = BlockRect(view, BlockById(view.At, "responsive"));
+                    Ok(view.Rm == 'n' && view.At.Rm == 'n' && !HasBlock(view.At, "boolean") &&
+                        HasBlock(view.At, "no-preference") && !HasBlock(view.At, "reduce") &&
+                        responsive.Width == 183 && ColorDistance(image.GetPixel(responsive.Right - 5, responsive.Top + 5),
+                            Color.FromArgb(220, 252, 231)) < 8, "WinForms no-preference motion state and paint");
+                }
+                Ok(Object.ReferenceEquals(viewField, FieldById(view.At, "field")) &&
+                    viewField.V == "Retained reduced motion view value" && viewField.S.W == 182,
+                    "WinForms motion rebuild retains field state");
+            }
+
+            using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-30000, -30000) })
+            using (var view = new V())
+            {
+                form.Controls.Add(view);
+                form.Show();
+                var method = typeof(V).GetMethod("SystemMotion", BindingFlags.Static | BindingFlags.NonPublic);
+                Ok(method != null && view.Rm == (char)method.Invoke(null, null),
+                    "WinForms automatically samples the Windows client-area animation preference");
+            }
+            Console.WriteLine("Lea reduced motion media smoke passed: compact Rm aliases, boolean/no-preference/reduce syntax, nesting, alternatives, style media, diagnostics, field retention, Windows motion plumbing, and exact paint.");
         }
 
         private static void LayerSmoke(string path, string limitPath)

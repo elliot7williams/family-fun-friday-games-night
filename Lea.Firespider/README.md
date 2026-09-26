@@ -24,6 +24,14 @@ explicit light or dark value. Firespider adds no theme parser. The compiled
 host covers selection, diagnostics, retained fields, responsive geometry, and
 exact paint. See `LeaForge/MEDIA_COLOR_SCHEME.md`.
 
+Reduced-motion media queries use compact `E/P/G/V.Rm` aliases on the same path.
+Headless Lea defaults deterministically to no preference; the WinForms view
+samples Windows client-area animation policy until a host sets an explicit
+no-preference or reduce value. Firespider adds no motion parser or animation
+runtime. The compiled host covers exact and boolean selection, diagnostics,
+retained fields, responsive geometry, and exact paint. See
+`LeaForge/MEDIA_REDUCED_MOTION.md`.
+
 Initial fragments now stay aligned while first paint, host sizing, and decoded
 intrinsic images settle. `V.Fa/Fj/Fy` expose the retained anchor, placement
 count, and target Y directly to the host; normal scrolling releases the anchor.

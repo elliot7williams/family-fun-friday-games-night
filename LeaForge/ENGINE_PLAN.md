@@ -349,16 +349,17 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 126 adds bounded CSS `prefers-color-scheme` media queries with compact
-`E/P/G/V.Th` theme aliases. `l` and `d` select light and dark; headless Lea
-defaults deterministically to light, while WinForms views sample the Windows
-application theme until a host sets an explicit value. Boolean, exact
-light/dark, width intersections, alternatives, nested media, style media,
-compact diagnostics, responsive paint, and retained fields share the compiled
-media path. See `MEDIA_COLOR_SCHEME.md`. All 122 probes pass over 117 fixtures;
-focused and full source/staged suites, the compiled Firespider host, all 42 Boot
-cases, and all six real EXE startup scenarios pass. Runtime 226 is packaged
-separately and installed runtime 157 remains unchanged.
+Milestone 127 adds bounded CSS `prefers-reduced-motion` media queries with
+compact `E/P/G/V.Rm` aliases. `n` and `r` select no-preference and reduce;
+headless Lea defaults deterministically to no-preference, while WinForms views
+sample the Windows client-area animation setting until a host sets an explicit
+value. Boolean motion queries are active only for reduce. Exact values, width
+intersections, alternatives, nested media, style media, compact diagnostics,
+responsive paint, and retained fields share the compiled media path. See
+`MEDIA_REDUCED_MOTION.md`. All 123 probes pass over 118 fixtures; focused and
+full source/staged suites, the compiled Firespider host, all 42 Boot cases, and
+all six real EXE startup scenarios pass. Runtime 227 is packaged separately and
+installed runtime 157 remains unchanged.
 Next investigate another bounded compatibility slice. Keep device ratios,
 container and style queries, `font-tech()`/`font-format()`, general-enclosed
 conditions, JavaScript `CSS.supports()`, locale-sensitive automatic quote selection,

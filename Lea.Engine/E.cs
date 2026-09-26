@@ -140,6 +140,7 @@ namespace Lea.Engine
         private int vh = 768;
         private int dp = 96;
         private char th = 'l';
+        private char rm = 'n';
         private bool je = true;
         private Stream download;
         private bool stopped;
@@ -181,6 +182,17 @@ namespace Lea.Engine
                 var next = Char.ToLowerInvariant(value);
                 if (next != 'l' && next != 'd' || th == next) return;
                 th = next;
+                ApplyViewport(At);
+            }
+        }
+        public char Rm
+        {
+            get { return rm; }
+            set
+            {
+                var next = Char.ToLowerInvariant(value);
+                if (next != 'n' && next != 'r' || rm == next) return;
+                rm = next;
                 ApplyViewport(At);
             }
         }
@@ -527,6 +539,7 @@ namespace Lea.Engine
                 Vh = page.Vh,
                 Dp = page.Dp,
                 Th = page.Th,
+                Rm = page.Rm,
                 Vc = page.S == null ? 0 : page.S.Vc,
                 Cc = Cc,
                 Ch = Ch,
@@ -1425,7 +1438,8 @@ namespace Lea.Engine
             p.Vh = vh;
             p.Dp = dp;
             p.Th = th;
-            var active = MediaRules(rules, vw, vh, dp, th);
+            p.Rm = rm;
+            var active = MediaRules(rules, vw, vh, dp, th, rm);
             p.R = active;
             Rebuild(p, active, null);
             if (!je) return;
@@ -1440,9 +1454,10 @@ namespace Lea.Engine
             page.Vh = vh;
             page.Dp = dp;
             page.Th = th;
+            page.Rm = rm;
             var all = page.Ra as List<R>;
             if (all == null) return;
-            var active = MediaRules(all, vw, vh, dp, th);
+            var active = MediaRules(all, vw, vh, dp, th, rm);
             var current = page.R as List<R>;
             if (SameRules(current, active)) return;
             var fields = new Dictionary<N, Fi>();
@@ -1451,11 +1466,11 @@ namespace Lea.Engine
             Rebuild(page, active, fields);
         }
 
-        private static List<R> MediaRules(List<R> rules, int width, int height, int density, char theme)
+        private static List<R> MediaRules(List<R> rules, int width, int height, int density, char theme, char motion)
         {
             var active = new List<R>();
             foreach (var rule in rules)
-                if (rule.On(width, height, density, theme)) active.Add(rule);
+                if (rule.On(width, height, density, theme, motion)) active.Add(rule);
             return active;
         }
 
@@ -3137,6 +3152,8 @@ namespace Lea.Engine
                 var resolutionValues = Regex.Matches(query, resolutionValuePattern, RegexOptions.IgnoreCase);
                 var themes = Regex.Matches(query, "\\(\\s*prefers-color-scheme\\s*:\\s*(?<t>light|dark)\\s*\\)", RegexOptions.IgnoreCase);
                 var themeBooleans = Regex.Matches(query, "\\(\\s*prefers-color-scheme\\s*\\)", RegexOptions.IgnoreCase);
+                var motions = Regex.Matches(query, "\\(\\s*prefers-reduced-motion\\s*:\\s*(?<m>no-preference|reduce)\\s*\\)", RegexOptions.IgnoreCase);
+                var motionBooleans = Regex.Matches(query, "\\(\\s*prefers-reduced-motion\\s*\\)", RegexOptions.IgnoreCase);
                 var minimum = 0;
                 var maximum = 0;
                 var minimumExclusive = false;
@@ -3157,6 +3174,7 @@ namespace Lea.Engine
                 var densityMinimumExclusive = false;
                 var densityMaximumExclusive = false;
                 var theme = '\0';
+                var motion = '\0';
                 var valid = true;
                 foreach (Match match in matches)
                 {
@@ -3181,6 +3199,17 @@ namespace Lea.Engine
                     var next = match.Groups["t"].Value.Equals("dark", StringComparison.OrdinalIgnoreCase) ? 'd' : 'l';
                     if (theme != '\0' && theme != next) { valid = false; break; }
                     theme = next;
+                }
+                foreach (Match match in motions)
+                {
+                    var next = match.Groups["m"].Value.Equals("reduce", StringComparison.OrdinalIgnoreCase) ? 'r' : 'n';
+                    if (motion != '\0' && motion != next) { valid = false; break; }
+                    motion = next;
+                }
+                if (motionBooleans.Count > 0)
+                {
+                    if (motion != '\0' && motion != 'r') valid = false;
+                    motion = 'r';
                 }
                 foreach (Match match in dimensionChains)
                 {
@@ -3324,11 +3353,14 @@ namespace Lea.Engine
                 remainder = Regex.Replace(remainder, resolutionValuePattern, " ", RegexOptions.IgnoreCase);
                 remainder = Regex.Replace(remainder, "\\(\\s*prefers-color-scheme\\s*:\\s*(?:light|dark)\\s*\\)", " ", RegexOptions.IgnoreCase);
                 remainder = Regex.Replace(remainder, "\\(\\s*prefers-color-scheme\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*prefers-reduced-motion\\s*:\\s*(?:no-preference|reduce)\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*prefers-reduced-motion\\s*\\)", " ", RegexOptions.IgnoreCase);
                 if (remainder.IndexOf('(') >= 0 || remainder.IndexOf(')') >= 0 || remainder.IndexOf(':') >= 0) continue;
                 var meaningful = matches.Count > 0 || orientations.Count > 0 || ratios.Count > 0 || dimensionChains.Count > 0 ||
                     dimensionFeatures.Count > 0 || dimensionValues.Count > 0 || ratioChains.Count > 0 || ratioFeatures.Count > 0 ||
                     ratioValues.Count > 0 || resolutions.Count > 0 || resolutionBooleans.Count > 0 || resolutionChains.Count > 0 ||
-                    resolutionFeatures.Count > 0 || resolutionValues.Count > 0 || themes.Count > 0 || themeBooleans.Count > 0;
+                    resolutionFeatures.Count > 0 || resolutionValues.Count > 0 || themes.Count > 0 || themeBooleans.Count > 0 ||
+                    motions.Count > 0 || motionBooleans.Count > 0;
                 foreach (var token in Regex.Split(remainder.Trim(), "\\s+"))
                 {
                     if (token.Length == 0 || token == "and" || token == "only") continue;
@@ -3340,7 +3372,7 @@ namespace Lea.Engine
                 var condition = new Mc(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator,
                     ratioMaximum, ratioMaximumDenominator, orientation, minimumExclusive, maximumExclusive,
                     heightMinimumExclusive, heightMaximumExclusive, ratioMinimumExclusive, ratioMaximumExclusive,
-                    densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive, theme);
+                    densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive, theme, motion);
                 var duplicate = false;
                 foreach (var existing in result)
                     if (SameMedia(existing, condition)) { duplicate = true; break; }
@@ -3419,10 +3451,12 @@ namespace Lea.Engine
                     var orientation = left.O == '\0' ? right.O : left.O;
                     if (left.Th != '\0' && right.Th != '\0' && left.Th != right.Th) continue;
                     var theme = left.Th == '\0' ? right.Th : left.Th;
+                    if (left.Rm != '\0' && right.Rm != '\0' && left.Rm != right.Rm) continue;
+                    var motion = left.Rm == '\0' ? right.Rm : left.Rm;
                     var condition = new Mc(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator,
                         ratioMaximum, ratioMaximumDenominator, orientation, minimumExclusive, maximumExclusive,
                         heightMinimumExclusive, heightMaximumExclusive, ratioMinimumExclusive, ratioMaximumExclusive,
-                        densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive, theme);
+                        densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive, theme, motion);
                     var duplicate = false;
                     foreach (var existing in result)
                         if (SameMedia(existing, condition)) { duplicate = true; break; }
@@ -3437,7 +3471,7 @@ namespace Lea.Engine
                 left.Rn == right.Rn && left.Rd == right.Rd && left.Rx == right.Rx && left.Rxd == right.Rxd && left.O == right.O &&
                 left.Ne == right.Ne && left.Xe == right.Xe && left.Hne == right.Hne && left.Hxe == right.Hxe &&
                 left.Rne == right.Rne && left.Rxe == right.Rxe && left.Dn == right.Dn && left.Dx == right.Dx &&
-                left.Dne == right.Dne && left.Dxe == right.Dxe && left.Th == right.Th;
+                left.Dne == right.Dne && left.Dxe == right.Dxe && left.Th == right.Th && left.Rm == right.Rm;
         }
 
         private static bool MediaTerm(string source, out int value)
@@ -12063,6 +12097,7 @@ namespace Lea.Engine
             public readonly bool Dne;
             public readonly bool Dxe;
             public readonly char Th;
+            public readonly char Rm;
 
             public Mc(int minimum, int maximum)
                 : this(minimum, maximum, 0, 0, 0, 0, 0, 0, '\0')
@@ -12095,7 +12130,7 @@ namespace Lea.Engine
                 : this(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator,
                     ratioMaximum, ratioMaximumDenominator, orientation, minimumExclusive, maximumExclusive,
                     heightMinimumExclusive, heightMaximumExclusive, ratioMinimumExclusive, ratioMaximumExclusive,
-                    densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive, '\0')
+                    densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive, '\0', '\0')
             {
             }
 
@@ -12104,6 +12139,18 @@ namespace Lea.Engine
                 bool minimumExclusive, bool maximumExclusive, bool heightMinimumExclusive, bool heightMaximumExclusive,
                 bool ratioMinimumExclusive, bool ratioMaximumExclusive, int densityMinimum, int densityMaximum,
                 bool densityMinimumExclusive, bool densityMaximumExclusive, char theme)
+                : this(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator,
+                    ratioMaximum, ratioMaximumDenominator, orientation, minimumExclusive, maximumExclusive,
+                    heightMinimumExclusive, heightMaximumExclusive, ratioMinimumExclusive, ratioMaximumExclusive,
+                    densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive, theme, '\0')
+            {
+            }
+
+            public Mc(int minimum, int maximum, int heightMinimum, int heightMaximum,
+                int ratioMinimum, int ratioMinimumDenominator, int ratioMaximum, int ratioMaximumDenominator, char orientation,
+                bool minimumExclusive, bool maximumExclusive, bool heightMinimumExclusive, bool heightMaximumExclusive,
+                bool ratioMinimumExclusive, bool ratioMaximumExclusive, int densityMinimum, int densityMaximum,
+                bool densityMinimumExclusive, bool densityMaximumExclusive, char theme, char motion)
             {
                 N = minimum;
                 X = maximum;
@@ -12125,9 +12172,10 @@ namespace Lea.Engine
                 Dne = densityMinimumExclusive;
                 Dxe = densityMaximumExclusive;
                 Th = theme;
+                Rm = motion;
             }
 
-            public bool On(int width, int height, int density, char theme)
+            public bool On(int width, int height, int density, char theme, char motion)
             {
                 if (width < N || Ne && width == N || X > 0 && (width > X || Xe && width == X) ||
                     height < Hn || Hne && height == Hn || Hx > 0 && (height > Hx || Hxe && height == Hx)) return false;
@@ -12137,7 +12185,7 @@ namespace Lea.Engine
                 if (Dn != Int32.MinValue && (scaledDensity < Dn || Dne && scaledDensity == Dn) ||
                     Dx != Int32.MaxValue && (scaledDensity > Dx || Dxe && scaledDensity == Dx)) return false;
                 return (O == '\0' || O == 'p' && height >= width || O == 'l' && width > height) &&
-                    (Th == '\0' || Th == theme);
+                    (Th == '\0' || Th == theme) && (Rm == '\0' || Rm == motion);
             }
 
             public string D
@@ -12171,6 +12219,7 @@ namespace Lea.Engine
                     }
                     if (O != '\0') parts.Add("@o=" + O);
                     if (Th != '\0') parts.Add("@t=" + Th);
+                    if (Rm != '\0') parts.Add("@rm=" + Rm);
                     if (Dn == Dx && Dn != Int32.MinValue && !Dne && !Dxe) parts.Add("@d=" + DensityText(Dn));
                     else
                     {
@@ -12273,10 +12322,10 @@ namespace Lea.Engine
                 return prefix.Length == 0 ? mediaLabel : mediaLabel.Length == 0 ? prefix : prefix + "&" + mediaLabel;
             }
 
-            public bool On(int width, int height, int density, char theme)
+            public bool On(int width, int height, int density, char theme, char motion)
             {
                 foreach (var condition in M)
-                    if (condition.On(width, height, density, theme)) return true;
+                    if (condition.On(width, height, density, theme, motion)) return true;
                 return false;
             }
         }

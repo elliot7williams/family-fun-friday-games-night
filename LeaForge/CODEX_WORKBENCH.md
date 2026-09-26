@@ -17,18 +17,19 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 126 adds bounded CSS `prefers-color-scheme` media queries with compact
-`E/P/G/V.Th` theme aliases. `l` and `d` select light and dark; headless Lea
-defaults deterministically to light, while WinForms views sample the Windows
-application theme until a host sets an explicit value. Boolean, exact values,
-nested/intersected rules, diagnostics, responsive geometry/paint, and retained
-fields stay on Lea's compiled media path. All 122 benchmark probes pass over
-117 fixtures. Focused and full source/staged suites, the compiled Firespider
-host, all 42 Boot cases, and all six real EXE startup scenarios are green.
-Three-round diagnostic medians are 908.565 ms clean start, 8.498 ms local load,
-and 44.488 ms layout/paint; retained memory is 69.9 KiB/page and the required
-runtime is 660.5 KiB. Runtime 226 is packaged separately and installed runtime
-157 remains unchanged. See `MEDIA_COLOR_SCHEME.md`.
+Milestone 127 adds bounded CSS `prefers-reduced-motion` media queries with
+compact `E/P/G/V.Rm` motion aliases. `n` and `r` select no-preference and
+reduce; headless Lea defaults deterministically to no-preference, while
+WinForms views sample the Windows client-area animation setting until a host
+sets an explicit value. Boolean, exact, nested/intersected rules, diagnostics,
+responsive geometry/paint, and retained fields stay on Lea's compiled media
+path. All 123 benchmark probes pass over 118 fixtures. Focused and full
+source/staged suites, the compiled Firespider host, all 42 Boot cases, and all
+six real EXE startup scenarios are green. Three-round diagnostic medians are
+708.700 ms clean start, 8.274 ms local load, and 42.686 ms layout/paint;
+retained memory is 69.6 KiB/page and the required runtime is 662.5 KiB.
+Runtime 227 is packaged separately and installed runtime 157 remains unchanged.
+See `MEDIA_REDUCED_MOTION.md`.
 Container/style queries,
 `font-tech()`/`font-format()`,
 general-enclosed conditions, JavaScript `CSS.supports()`, locale-sensitive

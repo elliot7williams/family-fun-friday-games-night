@@ -68,6 +68,7 @@ namespace Lea.Win
         private bool layoutDirty = true;
         private bool densityExplicit;
         private bool themeExplicit;
+        private bool motionExplicit;
         private bool sticky;
         private bool picBusy;
         private bool picStop;
@@ -174,6 +175,10 @@ namespace Lea.Win
 
         [DllImport("user32.dll", ExactSpelling = true)]
         private static extern bool OpenClipboard(IntPtr owner);
+        [DllImport("user32.dll", EntryPoint = "SystemParametersInfoW", ExactSpelling = true, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool SystemParametersInfo(uint action, uint parameter,
+            [MarshalAs(UnmanagedType.Bool)] out bool value, uint flags);
         [DllImport("user32.dll", ExactSpelling = true)]
         private static extern bool CloseClipboard();
         [DllImport("user32.dll", ExactSpelling = true)]
@@ -207,7 +212,11 @@ namespace Lea.Win
                 var density = (int)(message.WParam.ToInt64() & 0xffffL);
                 if (density > 0) SetDensity(density, false);
             }
-            if (message.Msg == 0x001A && !themeExplicit) SetTheme(SystemTheme(), false);
+            if (message.Msg == 0x001A)
+            {
+                if (!themeExplicit) SetTheme(SystemTheme(), false);
+                if (!motionExplicit) SetMotion(SystemMotion(), false);
+            }
             if (message.Msg == 0x0002)
             {
                 // Release UI Automation's native provider event-map references.
@@ -228,6 +237,7 @@ namespace Lea.Win
             if (!densityExplicit)
                 using (var graphics = CreateGraphics()) SetDensity((int)Math.Round(graphics.DpiX), false);
             if (!themeExplicit) SetTheme(SystemTheme(), false);
+            if (!motionExplicit) SetMotion(SystemMotion(), false);
         }
 
         private Ur UiRoot { get { return ur ?? (ur = new Ur(this)); } }
@@ -333,6 +343,7 @@ namespace Lea.Win
         public int Vh { get { return e.Vh; } }
         public int Dp { get { return e.Dp; } set { SetDensity(value, true); } }
         public char Th { get { return e.Th; } set { SetTheme(value, true); } }
+        public char Rm { get { return e.Rm; } set { SetMotion(value, true); } }
         public int Rf { get { return At != null && At.Rf > 0 ? At.Rf : Math.Max(1, (int)Math.Round(Font.Size)); } }
         public N Ke { get { return focus; } }
         public int Kn { get { return FocusTargets(true).Count; } }
@@ -1143,6 +1154,30 @@ namespace Lea.Win
                 return Convert.ToInt32(value, CultureInfo.InvariantCulture) == 0 ? 'd' : 'l';
             }
             catch { return 'l'; }
+        }
+
+        private void SetMotion(char value, bool explicitlySet)
+        {
+            var next = Char.ToLowerInvariant(value);
+            if (next != 'n' && next != 'r') return;
+            if (explicitlySet) motionExplicit = true;
+            var previous = e.Rm;
+            e.Rm = next;
+            if (previous == e.Rm) return;
+            Dirty();
+            QueueFragment(At);
+            Invalidate();
+            if (At != null && IsHandleCreated) NotifyAccessibility(AccessibleEvents.Reorder);
+        }
+
+        private static char SystemMotion()
+        {
+            try
+            {
+                bool enabled;
+                return SystemParametersInfo(0x1042, 0, out enabled, 0) && !enabled ? 'r' : 'n';
+            }
+            catch { return 'n'; }
         }
 
         private Bx[] BoxSnapshot()
