@@ -95,7 +95,11 @@ Lea's first script bridge is allow-listed rather than a general JavaScript VM.
 `E.Je` and `V.Je` enable page commands and drive scripting media queries, while `E.Js(page, code)` and
 `V.Js(code)` run a bounded host-provided command string. `P.Jc` counts accepted
 commands and `P.Ms` holds bounded alert messages. `V.Al` fires once for each new
-message and `V.Am` exposes the current message. Supported page commands are:
+message and `V.Am` exposes the current message. `E/V.Su(condition)` and
+`E/V.Su(property, value)` report the same bounded CSS capability used by
+`@supports`; literal page scripts may use those shapes through
+`if (CSS.supports(...)) { ... } else { ... }`. See `SUPPORTS_QUERIES.md`.
+Supported page commands are:
 
 ```text
 t("Title")       title

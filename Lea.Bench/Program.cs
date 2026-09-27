@@ -112,7 +112,7 @@ namespace Lea.Bench
             var names = new[]
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
-                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "direction-logical.html", "direction-layout.html", "direction-inline.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "media-features.html", "media-aspect-ratio.html", "media-ranges.html", "media-resolution.html", "media-color-scheme.html", "media-reduced-motion.html", "media-reduced-data.html", "media-contrast.html", "media-scripting.html", "supports-queries.html", "cascade-layers.html", "cascade-layer-limits.html", "hsl-colors.html", "hwb-colors.html", "lab-colors.html", "predefined-colors.html", "wide-gamut-colors.html", "oklab-colors.html", "color-mix.html", "custom-properties.html", "important-cascade.html",
+                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "direction-logical.html", "direction-layout.html", "direction-inline.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "media-features.html", "media-aspect-ratio.html", "media-ranges.html", "media-resolution.html", "media-color-scheme.html", "media-reduced-motion.html", "media-reduced-data.html", "media-contrast.html", "media-scripting.html", "supports-queries.html", "css-supports-script.html", "cascade-layers.html", "cascade-layer-limits.html", "hsl-colors.html", "hwb-colors.html", "lab-colors.html", "predefined-colors.html", "wide-gamut-colors.html", "oklab-colors.html", "color-mix.html", "custom-properties.html", "important-cascade.html",
                 "direction-overflow.html", "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "list-style.html", "list-position.html", "list-image.html", "marker.html", "marker-content.html", "marker-counters.html", "css-counters.html", "generated-content.html", "generated-quotes.html", "generated-alt.html", "generated-images.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -1965,6 +1965,39 @@ namespace Lea.Bench
                         liveField.V == "Retained supports view value", "supports view resize replaced field state");
                 }
                 return "bounded declaration capability checks, selector() through the compiled selector grammar, not/and/or logic, grouped and nested supports/media blocks, strict depth/term limits, @s diagnostics, retention, and live resize";
+            });
+            AddProbe(probes, "CSS supports script guards", delegate
+            {
+                var path = Path.Combine(folder, "css-supports-script.html");
+                var engine = new E();
+                Need(engine.Su("display", "grid") && engine.Su("display: grid") &&
+                    engine.Su("selector(:has(*))") && !engine.Su("display", "ruby") && !engine.Su(" display", "grid"),
+                    "compact host support capability changed");
+                var page = engine.Go(path);
+                var status = ById(page.D, "status");
+                var block = page.Bs.First(item => item.El == status);
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                Need(page.Jc == 7 && status.C[0].X == "Two argument support" &&
+                    status.Av("class") == "base bare fallback negated selector" && block.S.W == 248 && block.S.Bg == "#dff5e8",
+                    "literal property/value, one-argument, else, negated, selector, or nested startup guard changed");
+                field.V = "Retained benchmark CSS supports value";
+                Need(engine.Js(page, "if(CSS.supports('display','grid')){wd('field','247px');}") == 1 &&
+                    Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark CSS supports value" && field.S.W == 247,
+                    "host guard or retained field rebuild changed");
+                Need(engine.Js(page, "if(CSS.supports('display',value)){tx('status','bad');}") == 0 &&
+                    status.C[0].X == "Two argument support", "computed support argument escaped the literal boundary");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(700, 700);
+                    view.Go(path);
+                    Need(view.Su("display", "grid") && view.Js("if(CSS.supports('display','grid')){wd('field','249px');}") == 1,
+                        "WinForms supports aliases or guard changed");
+                    using (var image = Draw(view))
+                        Need(BlockContent(view, "field").Width == 249 && ColoredSamples(image) > 0,
+                            "WinForms supports guard geometry or paint changed");
+                }
+                return "compact E/V.Su capability aliases, literal CSS.supports property/value and condition guards, else and negation, selector and compound checks, four-level nesting, shared command limits, retained rebuilds, and WinForms paint";
             });
             AddProbe(probes, "CSS cascade layers", delegate
             {

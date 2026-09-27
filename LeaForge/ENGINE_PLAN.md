@@ -349,22 +349,23 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 130 adds bounded CSS `prefers-reduced-data` media queries through
-compact `E/P/G/V.Pdt` aliases. `n` selects no-preference and `r` selects reduce;
-the boolean form is active only for reduce. Headless and WinForms hosts control
-the preference explicitly. Exact values, width intersections, alternatives,
-nested media, style media, compact diagnostics, responsive paint, and retained
-fields share the compiled media path. This selector does not add `Save-Data`,
-cancel resources, or infer network policy. See `MEDIA_REDUCED_DATA.md`. All 126
-probes pass over 121 fixtures; focused and full source/staged suites, the
-compiled Firespider host, all 42 Boot cases, and all six real EXE startup
-scenarios pass. Runtime 230 is packaged separately and installed runtime 157
-remains unchanged. Its image launcher also preserves zero-capability
-AppContainer decoding from FAT32/non-ACL source volumes by SHA-256 verifying and
-staging only the bounded helper in a content-addressed local cache.
+Milestone 131 adds standards-shaped bounded `CSS.supports()` compatibility by
+reusing Lea's compiled `@supports` declaration, selector, and logical-condition
+parsers. Compact `E/V.Su` overloads accept condition text or a property/value
+pair. Literal page scripts may select an allow-listed command block with
+`if (CSS.supports(...))`, optional `!`, and optional `else`; four guard levels
+share the existing 32-command ceiling and retained rebuild path. Computed
+arguments, arbitrary expressions, loops, functions, CSSOM mutation, and a
+general JavaScript evaluator remain inert. See `SUPPORTS_QUERIES.md`.
+All 127 compatibility probes pass over 122 fixtures. Focused, full source,
+exact package-mirror, and compiled Firespider host suites pass; all 42 Boot
+cases are accounted for after the known clipboard-sensitive `edit` retry, and
+all six real EXE startup scenarios remain responsive. The direct FAT32-stage
+feature and zero-capability image-decode checks also pass. Runtime 231 is staged
+separately and installed runtime 157 remains unchanged.
 Next investigate another bounded compatibility slice. Keep device ratios,
 container and style queries, `font-tech()`/`font-format()`, general-enclosed
-conditions, JavaScript `CSS.supports()`, locale-sensitive automatic quote selection,
+conditions, locale-sensitive automatic quote selection,
 reversed/custom counter styles, pseudo-element counter properties,
 typed/unquoted/functional attribute fallbacks, pseudo box-model/flex/grid
 items, generated image functions and sizing, marker-side, cross-item gutter

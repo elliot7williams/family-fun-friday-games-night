@@ -1010,6 +1010,14 @@ and select values, and keeps passwords redacted. `ck` toggles or explicitly
 sets checkbox/radio state and preserves radio-group exclusivity. Existing field
 objects remain retained by DOM owner while hidden.
 
+Hosts can query Lea's compiled CSS capabilities with compact
+`E/V.Su(condition)` or `E/V.Su(property, value)` overloads. The allow-listed
+script parser accepts only quoted literal `CSS.supports(...)` calls as an
+`if` guard, optional leading `!`, and one optional `else` block. It reuses the
+same declaration/selector/logic parsers as `@supports`, nests to four levels,
+and spends from the same 32-command budget. No values are evaluated and no
+general JavaScript or CSSOM object is introduced. See `SUPPORTS_QUERIES.md`.
+
 `fo` queues one enabled, non-HTML-hidden focus target; the first accepted
 request wins. Headless hosts take it once with `E.Kp(page)`. `V` resolves it
 against final rendered focus targets, scrolls it into view, and clears stale

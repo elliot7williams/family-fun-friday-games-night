@@ -10,6 +10,8 @@ namespace Lea.Engine
         private const int MaxBlocks = 8;
         private const int MaxCode = 16 * 1024;
         private const int MaxCommands = 32;
+        private const int MaxSupportsDepth = 4;
+        private const int MaxSupportsText = 2048;
         private const int MaxAlerts = 16;
         private const int MaxVariables = 16;
         private const int MaxClasses = 32;
@@ -28,7 +30,7 @@ namespace Lea.Engine
             {
                 if (blocks++ >= MaxBlocks || left == 0) break;
                 if (script.Av("src").Length > 0 || !Type(script.Av("type"))) continue;
-                count += Run(page, Raw(script), ref left);
+                count += Run(page, Raw(script), ref left, 0);
             }
             return count;
         }
@@ -36,22 +38,119 @@ namespace Lea.Engine
         internal static int Run(P page, string code)
         {
             var left = MaxCommands;
-            return Run(page, code, ref left);
+            return Run(page, code, ref left, 0);
         }
 
-        private static int Run(P page, string code, ref int left)
+        private static int Run(P page, string code, ref int left, int depth)
         {
             if (page == null || String.IsNullOrWhiteSpace(code) || code.Length > MaxCode || left < 1) return 0;
             var count = 0;
             foreach (var statement in Statements(code))
             {
                 if (left == 0) break;
+                bool supported;
+                string yes;
+                string no;
+                if (SupportsGuard(statement, depth, out supported, out yes, out no))
+                {
+                    var branch = supported ? yes : no;
+                    if (branch.Length > 0) count += Run(page, branch, ref left, depth + 1);
+                    continue;
+                }
                 var command = Parse(statement);
                 if (command == null || !Apply(page, command)) continue;
                 count++;
                 left--;
             }
             return count;
+        }
+
+        private static bool SupportsGuard(string source, int depth, out bool supported, out string yes, out string no)
+        {
+            supported = false;
+            yes = "";
+            no = "";
+            if (depth >= MaxSupportsDepth) return false;
+            var at = 0;
+            if (!Word(source, ref at, "if")) return false;
+            string condition;
+            if (!Group(source, ref at, '(', ')', out condition) || !SupportsCall(condition, out supported) ||
+                !Group(source, ref at, '{', '}', out yes)) return false;
+            Space(source, ref at);
+            if (at == source.Length) return true;
+            if (!Word(source, ref at, "else") || !Group(source, ref at, '{', '}', out no)) return false;
+            Space(source, ref at);
+            return at == source.Length;
+        }
+
+        private static bool SupportsCall(string source, out bool supported)
+        {
+            supported = false;
+            var expression = (source ?? "").Trim();
+            var invert = false;
+            if (expression.StartsWith("!", StringComparison.Ordinal))
+            {
+                invert = true;
+                expression = expression.Substring(1).TrimStart();
+            }
+            var reader = new Rd(expression);
+            if (reader.Name() != "CSS.supports" || !reader.Take('(')) return false;
+            string first;
+            if (!reader.Quoted(out first, MaxSupportsText)) return false;
+            string second = null;
+            if (reader.Take(','))
+            {
+                if (!reader.Quoted(out second, MaxSupportsText)) return false;
+            }
+            if (!reader.Take(')') || !reader.End()) return false;
+            supported = second == null ? E.Suc(first) : E.Sup(first, second);
+            if (invert) supported = !supported;
+            return true;
+        }
+
+        private static bool Word(string source, ref int at, string word)
+        {
+            Space(source, ref at);
+            if (at + word.Length > source.Length || !source.Substring(at, word.Length).Equals(word, StringComparison.Ordinal)) return false;
+            var end = at + word.Length;
+            if (end < source.Length && (Char.IsLetterOrDigit(source[end]) || source[end] == '_' || source[end] == '$')) return false;
+            at = end;
+            return true;
+        }
+
+        private static bool Group(string source, ref int at, char open, char close, out string body)
+        {
+            body = "";
+            Space(source, ref at);
+            if (at >= source.Length || source[at] != open) return false;
+            var start = ++at;
+            var level = 1;
+            var quote = '\0';
+            var escape = false;
+            while (at < source.Length)
+            {
+                var ch = source[at++];
+                if (quote != '\0')
+                {
+                    if (escape) escape = false;
+                    else if (ch == '\\') escape = true;
+                    else if (ch == quote) quote = '\0';
+                    continue;
+                }
+                if (ch == '\'' || ch == '"') { quote = ch; continue; }
+                if (ch == open) level++;
+                else if (ch == close && --level == 0)
+                {
+                    body = source.Substring(start, at - start - 1);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static void Space(string source, ref int at)
+        {
+            while (at < source.Length && Char.IsWhiteSpace(source[at])) at++;
         }
 
         private static bool Apply(P page, Cm command)
@@ -1224,6 +1323,11 @@ namespace Lea.Engine
 
             internal bool Value(out string value)
             {
+                return Value(out value, 1024);
+            }
+
+            private bool Value(out string value, int maximum)
+            {
                 value = "";
                 Space();
                 if (at >= source.Length) return false;
@@ -1238,7 +1342,7 @@ namespace Lea.Engine
 
                 var quote = source[at++];
                 var result = new StringBuilder();
-                while (at < source.Length && result.Length <= 1024)
+                while (at < source.Length && result.Length <= maximum)
                 {
                     var ch = source[at++];
                     if (ch == quote) { value = result.ToString(); return true; }
@@ -1264,13 +1368,18 @@ namespace Lea.Engine
 
             internal bool Quoted(out string value)
             {
+                return Quoted(out value, 1024);
+            }
+
+            internal bool Quoted(out string value, int maximum)
+            {
                 Space();
                 if (at >= source.Length || source[at] != '\'' && source[at] != '"')
                 {
                     value = "";
                     return false;
                 }
-                return Value(out value);
+                return Value(out value, maximum);
             }
 
             internal bool Flag(out bool value)

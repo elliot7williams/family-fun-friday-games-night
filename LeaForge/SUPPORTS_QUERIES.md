@@ -1,6 +1,7 @@
 # Bounded CSS Supports Queries
 
-Lea accepts a deliberately bounded subset of CSS `@supports` feature queries.
+Lea accepts a deliberately bounded subset of CSS `@supports` feature queries
+and literal JavaScript `CSS.supports()` checks.
 The condition is evaluated while the stylesheet is compiled. A true condition
 adds its rules to the ordinary compiled cascade; false, malformed, unknown, or
 over-limit conditions leave the whole block inactive.
@@ -51,6 +52,36 @@ declaration. A property or value outside this documented list returns false,
 even when another part of Lea happens to understand it. This conservative rule
 keeps capability checks predictable as the engine grows.
 
+## Script And Host Checks
+
+The compact `E.Su` and `V.Su` aliases expose both standards-shaped overloads:
+
+```csharp
+engine.Su("display", "grid");
+engine.Su("(display: grid) and selector(:has(*))");
+```
+
+The one-argument overload also implies declaration parentheses, so
+`Su("display: grid")` is accepted. The property argument receives no trimming
+or escape processing; leading/trailing whitespace, malformed names, multiple
+declarations, and `!important` return false.
+
+Lea's allow-listed page-command layer recognizes literal guards:
+
+```javascript
+if (CSS.supports("display", "grid")) { ac("panel", "grid"); }
+if (CSS.supports("selector(:has(*))")) { sh("advanced"); }
+if (!CSS.supports("position", "anchor")) { ac("panel", "fallback"); }
+if (CSS.supports("display: ruby")) { sh("ruby"); } else { sh("plain"); }
+```
+
+Only one or two quoted literal arguments are accepted. The selected block is
+run through the ordinary Lea command parser, so it shares the 32-command
+budget, retained rebuild behavior, and click/host bridges. Guards nest four
+levels. Computed arguments, variables as arguments, extra arguments, arbitrary
+conditions, `else if`, loops, functions, promises, CSSOM mutation, and general
+JavaScript evaluation remain inert.
+
 ## Limits
 
 - condition text: 2,048 characters;
@@ -64,7 +95,7 @@ An unmatched parenthesis or quote, an empty term, excess depth or terms, a
 mixed ungrouped operator level, multiple declarations, `!important`, or an
 unknown function keeps the block inactive. Lea does not implement
 `font-tech()`, `font-format()`, general-enclosed future syntax, container style
-queries, or a JavaScript `CSS.supports()` object.
+queries, or a general JavaScript `CSS` object.
 
 ## Diagnostics And Rebuilds
 
@@ -82,5 +113,9 @@ re-evaluates on `E.Vz(width,height)` or a `Lea.Win.V` resize, and that rebuild
 retains existing field objects and their mutable values.
 
 Coverage lives in `test-pages/supports-queries.html`, the focused
-`Lea.Tests.exe . --supports` suite, the compatibility benchmark, and the
-compiled Firespider host smoke.
+`Lea.Tests.exe . --supports` suite, plus `test-pages/css-supports-script.html`
+and `Lea.Tests.exe . --css-supports-script`. Both paths run in the compatibility
+benchmark and the compiled Firespider host smoke.
+
+The overloads and implied-parentheses behavior follow the W3C CSS Conditional
+Rules definition: <https://www.w3.org/TR/css-conditional-3/#the-css-namespace>.

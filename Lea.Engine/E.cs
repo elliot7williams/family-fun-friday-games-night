@@ -450,6 +450,10 @@ namespace Lea.Engine
             return count;
         }
 
+        // Su reports whether this Lea build accepts a bounded CSS condition.
+        public bool Su(string condition) { return Suc(condition); }
+        public bool Su(string property, string value) { return Sup(property, value); }
+
         // Ck runs a page element's safe Lea click commands.
         public int Ck(P page, N element)
         {
@@ -2726,6 +2730,22 @@ namespace Lea.Engine
         {
             bool valid;
             return CssSupports(source, depth, out valid) && valid;
+        }
+
+        internal static bool Suc(string condition)
+        {
+            var source = condition ?? "";
+            if (source.Length == 0 || source.Length > MaxSupportsText) return false;
+            if (CssSupports(source, 0)) return true;
+            return source.Length <= MaxSupportsText - 2 && CssSupports("(" + source + ")", 0);
+        }
+
+        internal static bool Sup(string property, string value)
+        {
+            if (property == null || value == null || property.Length == 0 || property.Length > MaxCustomName ||
+                property != property.Trim() || !Regex.IsMatch(property, "^(?:--[A-Za-z_][A-Za-z0-9_-]*|-?[A-Za-z_][A-Za-z0-9_-]*)$") ||
+                property.Length + value.Length + 1 > MaxSupportsText) return false;
+            return CssSupportsDeclaration(property + ":" + value);
         }
 
         private static bool CssSupports(string source, int depth, out bool valid)

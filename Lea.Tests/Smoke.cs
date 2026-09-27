@@ -186,6 +186,11 @@ namespace Lea.Tests
                     SupportsSmoke(Path.Combine(pages, "supports-queries.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--css-supports-script")
+                {
+                    CssSupportsScriptSmoke(Path.Combine(pages, "css-supports-script.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--layers")
                 {
                     LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
@@ -1611,6 +1616,7 @@ namespace Lea.Tests
                 MediaContrastSmoke(Path.Combine(pages, "media-contrast.html"));
                 MediaScriptingSmoke(Path.Combine(pages, "media-scripting.html"));
                 SupportsSmoke(Path.Combine(pages, "supports-queries.html"));
+                CssSupportsScriptSmoke(Path.Combine(pages, "css-supports-script.html"));
                 LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
                 HslColorSmoke(Path.Combine(pages, "hsl-colors.html"));
                 HwbColorSmoke(Path.Combine(pages, "hwb-colors.html"));
@@ -9851,6 +9857,69 @@ namespace Lea.Tests
                     "WinForms supports resize preserves field state");
             }
             Console.WriteLine("Lea supports-query smoke passed: declaration and selector checks, not/and/or, grouped and nested conditions, limits, diagnostics, retention, and live resize.");
+        }
+
+        private static void CssSupportsScriptSmoke(string path)
+        {
+            var engine = new E();
+            Ok(engine.Su("display", "grid") && engine.Su("display: grid") &&
+                engine.Su("(display: grid) and selector(:has(*))") && engine.Su("--lea-ready", "ready"),
+                "compact host supports alias accepts property/value, implied declaration, compound selector, and custom property checks");
+            Ok(!engine.Su("display", "ruby") && !engine.Su(" display", "grid") &&
+                !engine.Su("display;color", "grid") && !engine.Su("display", "grid!important") &&
+                !engine.Su(new string('x', 2049)), "unsupported, injected, important, whitespace-prefixed, and oversized host checks stay false");
+
+            var page = engine.Go(path);
+            Eq(7, page.Jc, "CSS.supports startup command count");
+            Eq("Two argument support", ById(page.D, "status").C[0].X, "two-argument true branch text");
+            Eq("base bare fallback negated selector", ById(page.D, "status").Av("class"), "one-argument, else, negated, and selector branches");
+            Eq(248, BlockById(page, "status").S.W, "four-level compound support branch style");
+            Eq("#dff5e8", BlockById(page, "status").S.Bg, "support branch background style");
+
+            var field = FieldById(page, "field");
+            field.V = "Retained CSS supports value";
+            Eq(1, engine.Js(page, "if (CSS.supports('display', 'grid')) { wd('field', '247px'); }"), "host-provided supports guard");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained CSS supports value" && field.S.W == 247,
+                "supports guard rebuild retains field identity and value");
+            Eq(2, engine.Ck(page, ById(page.D, "guard")), "supports guard click command count");
+            Eq("Clicked support", ById(page.D, "status").C[0].X, "supports guard click text");
+            Eq(260, BlockById(page, "status").S.W, "supports guard click style");
+
+            Eq(0, engine.Js(page, "if (CSS.supports('display', value)) { tx('status', 'computed'); } if (CSS.supports('display', 'grid', 'extra')) { tx('status', 'extra'); } if (css.supports('display', 'grid')) { tx('status', 'case'); }"),
+                "computed, extra-argument, and wrong-case calls stay inert");
+            Eq("Clicked support", ById(page.D, "status").C[0].X, "rejected calls preserve page state");
+
+            var four = "if(CSS.supports('display','grid')){if(CSS.supports('display','flex')){if(CSS.supports('position','sticky')){if(CSS.supports('aspect-ratio','4/3')){tx('status','Four levels');}}}}";
+            Eq(1, engine.Js(page, four), "four nested supports guards accepted");
+            var five = "if(CSS.supports('display','grid')){if(CSS.supports('display','flex')){if(CSS.supports('position','sticky')){if(CSS.supports('aspect-ratio','4/3')){if(CSS.supports('display','grid')){tx('status','Too deep');}}}}}";
+            Eq(0, engine.Js(page, five), "fifth nested supports guard rejected");
+            Eq("Four levels", ById(page.D, "status").C[0].X, "over-depth guard does not run its body");
+
+            var budget = new StringBuilder("if(CSS.supports('display','grid')){");
+            for (var index = 0; index < 40; index++) budget.Append("tx('status','Budget ").Append(index).Append("');");
+            budget.Append('}');
+            Eq(32, engine.Js(page, budget.ToString()), "supports branch shares the 32-command budget");
+            Eq("Budget 31", ById(page.D, "status").C[0].X, "supports branch stops at the command ceiling");
+            Eq(43, page.Jc, "CSS.supports commands use ordinary cumulative accounting");
+
+            using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-30000, -30000), ClientSize = new Size(700, 700) })
+            using (var view = new V())
+            {
+                form.Controls.Add(view);
+                form.Show();
+                view.Go(path);
+                Paint(view);
+                Ok(view.Su("display", "grid") && view.Su("selector(:has(*))") && !view.Su("display", "ruby"),
+                    "WinForms compact supports aliases");
+                var liveField = FieldById(view.At, "field");
+                liveField.V = "Retained view supports value";
+                Eq(1, view.Js("if(CSS.supports('display','grid')){wd('field','249px');}"), "WinForms supports guard command");
+                Paint(view);
+                Ok(Object.ReferenceEquals(liveField, FieldById(view.At, "field")) && liveField.V == "Retained view supports value" && liveField.S.W == 249,
+                    "WinForms supports rebuild retains field state");
+                Eq(249, BlockRect(view, BlockById(view.At, "field")).Width, "WinForms supports guard exact geometry");
+            }
+            Console.WriteLine("Lea CSS.supports script smoke passed: compact host aliases, literal one/two-argument guards, else and negation, nesting and command limits, click/host bridges, exact geometry, and retained fields.");
         }
 
         private static void MediaFeatureSmoke(string path)

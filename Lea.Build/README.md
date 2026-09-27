@@ -240,6 +240,10 @@ physical/logical/justify values, compact/readable/literal commands, final and
 forced-line LTR/RTL geometry, stable boxes, tables, hover, and responsive resize.
 `--sheets` isolates native named CSS, byte/rule limits, retained data,
 painting, and editor font/selection/undo. It is included in `--core`.
+`--css-supports-script` isolates compact `E/V.Su` capability overloads and
+literal one/two-argument `CSS.supports()` guards, including else/negation,
+selector and compound checks, four-level nesting, the shared command ceiling,
+click/host bridges, retained fields, exact geometry, and strict rejection.
 These test modes do not retry or suppress failed assertions. Windows
 clipboard access can fail while another process holds it. Record separately
 which modes passed; a clipboard-free run is not a complete default-suite pass.

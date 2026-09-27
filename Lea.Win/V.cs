@@ -708,6 +708,9 @@ namespace Lea.Win
             return Commands(e.Js(At, code));
         }
 
+        public bool Su(string condition) { return e.Su(condition); }
+        public bool Su(string property, string value) { return e.Su(property, value); }
+
         public int Ss(string key, string source)
         {
             if (closed || At == null) return 0;

@@ -17,24 +17,23 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 130 adds bounded CSS `prefers-reduced-data` media queries through
-compact `E/P/G/V.Pdt` aliases. `n` selects no-preference and `r` selects reduce;
-the boolean form is active only for reduce. Boolean, exact,
-nested/intersected rules, diagnostics, responsive geometry/paint, and retained
-fields stay on Lea's compiled media path. Hosts control the preference
-explicitly; it does not add `Save-Data`, cancel resources, or infer connection
-policy. All 126 benchmark probes pass over 121 fixtures. Focused and full
-source/staged suites, the compiled Firespider host, all 42 Boot cases, and all
-six real EXE startup scenarios are green. Three-round diagnostic medians are
-591.221 ms clean start, 6.799 ms local load, and 36.196 ms layout/paint;
-retained memory is 69.0 KiB/page and the required runtime is 686.5 KiB.
-Runtime 230 is packaged separately and installed runtime 157 remains unchanged.
-The release also preserves AppContainer image isolation on FAT32/non-ACL source
-volumes by verifying and staging only the bounded helper in a content-addressed
-local cache. See `MEDIA_REDUCED_DATA.md` and `IMAGE_ISOLATION.md`.
+Milestone 131 adds bounded standards-shaped `CSS.supports()` checks without a
+general JavaScript VM. Compact `E/V.Su` overloads query condition text or one
+property/value pair through the existing `@supports` parser. Literal page
+scripts can guard allow-listed commands with one/two-argument
+`CSS.supports(...)`, optional `!`, optional `else`, four nested levels, and the
+shared 32-command budget. Computed arguments and arbitrary expressions remain
+inert. Focused, full source, exact package-mirror, and compiled Firespider host
+suites pass. All 127 compatibility probes pass over 122 fixtures; all 42 Boot
+cases are accounted for after the known clipboard-sensitive `edit` retry, and
+all six real EXE startup scenarios are responsive. Three-round diagnostic
+medians are 955.931 ms clean start, 8.349 ms local load, and 40.097 ms
+layout/paint; retained memory is 68.6 KiB/page and required runtime files are
+690.0 KiB. Runtime 231 is staged separately and installed runtime 157 remains
+unchanged. See `SUPPORTS_QUERIES.md`.
 Container/style queries,
 `font-tech()`/`font-format()`,
-general-enclosed conditions, JavaScript `CSS.supports()`, locale-sensitive
+general-enclosed conditions, locale-sensitive
 automatic quote selection, typed/unquoted/functional attribute fallbacks,
 pseudo box-model/flex/grid items, generated image functions and sizing,
 arbitrary CSSOM, reversed/custom counters, vertical writing, full Unicode bidi,

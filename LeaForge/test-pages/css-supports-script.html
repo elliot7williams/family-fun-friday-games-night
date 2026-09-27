@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea CSS Supports Script</title>
+  <style>
+    body { color: #26313b; background: #ffffff; }
+    #status { display: block; width: 200px; padding: 4px; }
+    #field { display: block; width: 220px; height: 30px; }
+  </style>
+</head>
+<body>
+  <h1>CSS supports script</h1>
+  <p id="status" class="base">Before support checks</p>
+  <label for="field">Persistent field</label>
+  <input id="field" name="field" value="Initial value">
+  <button id="guard" type="button" data-lea="if(CSS.supports('display','grid')){tx('status','Clicked support');wd('status','260px');}else{tx('status','Unsupported');}">Run guarded command</button>
+  <script>
+    if (CSS.supports("display", "grid")) {
+      tx("status", "Two argument support");
+      bg("status", "#dff5e8");
+    };
+    if (CSS.supports("display: grid")) { ac("status", "bare"); };
+    if (CSS.supports("(display: ruby)")) { tx("status", "Unsupported"); } else { ac("status", "fallback"); };
+    if (!CSS.supports("position", "anchor")) { ac("status", "negated"); };
+    if (CSS.supports("selector(:has(*))")) { ac("status", "selector"); };
+    if (CSS.supports("(display: grid) and (position: sticky)")) {
+      if (CSS.supports("width", "clamp(100px, 50%, 300px)")) {
+        if (CSS.supports("display", "flex")) {
+          if (CSS.supports("aspect-ratio", "4/3")) { wd("status", "248px"); };
+        };
+      };
+    };
+    if (CSS.supports("display", "ruby")) { tx("status", "False branch escaped"); };
+    if (CSS.supports("display", value)) { tx("status", "Computed argument escaped"); };
+    if (CSS.supports("display", "grid", "extra")) { tx("status", "Extra argument escaped"); };
+    if (css.supports("display", "grid")) { tx("status", "Wrong case escaped"); };
+  </script>
+</body>
+</html>

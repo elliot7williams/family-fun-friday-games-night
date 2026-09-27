@@ -411,7 +411,11 @@ Declaration conditions reuse Lea's value parsers, `selector(...)` reuses its
 compiled selector grammar, and grouped `not`/`and`/`or` conditions can nest
 with media rules. The compiled host smoke verifies wide and narrow states,
 exact geometry, compact `@s` plus `@m` diagnostics, intermediate restoration,
-and retained live fields. Firespider adds no capability API or condition parser.
+and retained live fields. Compact `V.Su(condition)` and
+`V.Su(property, value)` expose the same capability checks to the host, while
+literal `CSS.supports(...)` script and click guards select only Lea's existing
+allow-listed commands. Firespider adds no separate condition parser or general
+JavaScript runtime.
 See `LeaForge/SUPPORTS_QUERIES.md`.
 
 Bounded named cascade layers also remain entirely inside Lea. The compiled host

@@ -65,6 +65,10 @@ LeaForge is where we can grow the more full-featured browser.
 - bounded keyboard navigation through `Ti` and `Ke/Kn/Ki/Kb/Kf/Ka`, ordered tabindex targets, shared-map regions, visible rings, scrolling, and host activation
 - bounded autofocus and host-safe page shortcuts through `Af/Afs`, `Ak/Aks`, and `An/Kl/Aa`, with conflict fallback, resolved-fragment suppression, and `Alt+Shift` activation
 - bounded semantic accessibility through `Ax/Axs/St/Is` and `V.Ab/Ao`, with HTML/ARIA roles, labels, hierarchy, protected values, rendered bounds, WinForms/MSAA children, native UI Automation fragments, interaction and `Tb/Tr/Tc` grid/table patterns, plus read-only logical TextPattern ranges with direction-aware visual-line, partial-range, and point geometry
+- bounded standards-shaped `CSS.supports()` checks through compact
+  `E/V.Su` overloads and literal allow-listed `if/else` command guards, reusing
+  the existing declaration/selector/logic parsers and shared command limits;
+  see `SUPPORTS_QUERIES.md`
 - wrapped inline bold/italic text, styled spans, line breaks, and links inside text blocks
 - inherited font-family fallbacks plus native current-color underline and
   line-through decoration
