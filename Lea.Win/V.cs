@@ -69,6 +69,7 @@ namespace Lea.Win
         private bool densityExplicit;
         private bool themeExplicit;
         private bool motionExplicit;
+        private bool contrastExplicit;
         private bool sticky;
         private bool picBusy;
         private bool picStop;
@@ -216,6 +217,7 @@ namespace Lea.Win
             {
                 if (!themeExplicit) SetTheme(SystemTheme(), false);
                 if (!motionExplicit) SetMotion(SystemMotion(), false);
+                if (!contrastExplicit) SetContrast(SystemContrast(), false);
             }
             if (message.Msg == 0x0002)
             {
@@ -238,6 +240,7 @@ namespace Lea.Win
                 using (var graphics = CreateGraphics()) SetDensity((int)Math.Round(graphics.DpiX), false);
             if (!themeExplicit) SetTheme(SystemTheme(), false);
             if (!motionExplicit) SetMotion(SystemMotion(), false);
+            if (!contrastExplicit) SetContrast(SystemContrast(), false);
         }
 
         private Ur UiRoot { get { return ur ?? (ur = new Ur(this)); } }
@@ -344,6 +347,7 @@ namespace Lea.Win
         public int Dp { get { return e.Dp; } set { SetDensity(value, true); } }
         public char Th { get { return e.Th; } set { SetTheme(value, true); } }
         public char Rm { get { return e.Rm; } set { SetMotion(value, true); } }
+        public char Pc { get { return e.Pc; } set { SetContrast(value, true); } }
         public int Rf { get { return At != null && At.Rf > 0 ? At.Rf : Math.Max(1, (int)Math.Round(Font.Size)); } }
         public N Ke { get { return focus; } }
         public int Kn { get { return FocusTargets(true).Count; } }
@@ -1177,6 +1181,26 @@ namespace Lea.Win
                 bool enabled;
                 return SystemParametersInfo(0x1042, 0, out enabled, 0) && !enabled ? 'r' : 'n';
             }
+            catch { return 'n'; }
+        }
+
+        private void SetContrast(char value, bool explicitlySet)
+        {
+            var next = Char.ToLowerInvariant(value);
+            if (next != 'n' && next != 'l' && next != 'm' && next != 'c') return;
+            if (explicitlySet) contrastExplicit = true;
+            var previous = e.Pc;
+            e.Pc = next;
+            if (previous == e.Pc) return;
+            Dirty();
+            QueueFragment(At);
+            Invalidate();
+            if (At != null && IsHandleCreated) NotifyAccessibility(AccessibleEvents.Reorder);
+        }
+
+        private static char SystemContrast()
+        {
+            try { return SystemInformation.HighContrast ? 'c' : 'n'; }
             catch { return 'n'; }
         }
 

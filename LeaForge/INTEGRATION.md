@@ -748,19 +748,20 @@ descendant focus without replacing fields. Empty or malformed lists, nested
 selector-list functions, pseudo-elements, oversized chains, and excess work
 are rejected rather than entering an unbounded tree search.
 
-Responsive styles use `E.Vw/Vh/Dp/Th/Rm`, `P.Vw/Vh/Dp/Th/Rm`,
-`V.Vw/Vh/Dp/Th/Rm`, and `G.Vw/Vh/Dp/Th/Rm`. A
+Responsive styles use `E.Vw/Vh/Dp/Th/Rm/Pc`, `P.Vw/Vh/Dp/Th/Rm/Pc`,
+`V.Vw/Vh/Dp/Th/Rm/Pc`, and `G.Vw/Vh/Dp/Th/Rm/Pc`. A
 headless host can set either engine dimension or call compact
 `E.Vz(width, height)` to apply one atomic viewport update. The WinForms view
 forwards its client pair, live monitor DPI, Windows application theme, and
-client-area animation preference and rebuilds only when a media boundary
-changes. A host may set `V.Dp`, `V.Th`, or `V.Rm` explicitly to override
-automatic platform tracking.
+client-area animation and high-contrast preferences and rebuilds only when a
+media boundary changes. A host may set `V.Dp`, `V.Th`, `V.Rm`, or `V.Pc`
+explicitly to override automatic platform tracking.
 Existing `Fi` objects and mutable values survive that rebuild. The bounded
 compiler accepts `screen`/`all` with pixel min/max/exact width and height,
 portrait/landscape orientation, bounded reduced integer min/max/exact aspect
 ratios, `dpi`/`dppx`/`dpcm` resolution, light/dark `prefers-color-scheme`,
-no-preference/reduce `prefers-reduced-motion`, and strict/inclusive feature-first,
+no-preference/reduce `prefers-reduced-motion`, no-preference/less/more/custom
+`prefers-contrast`, and strict/inclusive feature-first,
 value-first, or same-direction chained comparisons. These compose with conjunctions, comma alternatives,
 nested `@media`, and `<style media>`. Dimensions and ratio terms clamp to
 1-8,192; a square is portrait; query alternatives, nesting, and total rules are
@@ -772,6 +773,9 @@ Preferred-theme aliases, Windows behavior, diagnostics, and limits are in
 `MEDIA_COLOR_SCHEME.md`.
 Reduced-motion aliases, Windows behavior, boolean semantics, and limits are in
 `MEDIA_REDUCED_MOTION.md`.
+Preferred-contrast aliases, Windows behavior, boolean semantics, and limits are
+in `MEDIA_CONTRAST.md`. Lea does not advertise `forced-colors: active` because
+it does not yet enforce a system color palette.
 
 `@supports` is also engine-owned. The compiler recognizes a bounded set of
 declaration families through their real Lea value parsers and checks one

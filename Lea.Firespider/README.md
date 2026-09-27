@@ -32,6 +32,15 @@ runtime. The compiled host covers exact and boolean selection, diagnostics,
 retained fields, responsive geometry, and exact paint. See
 `LeaForge/MEDIA_REDUCED_MOTION.md`.
 
+Preferred-contrast media queries use compact `E/P/G/V.Pc` aliases. Headless
+Lea defaults deterministically to no preference; the WinForms view maps Windows
+High Contrast to the standards-defined custom preference until a host sets an
+explicit no-preference, less, more, or custom value. Firespider adds no contrast
+parser. The compiled host covers all exact values, boolean selection,
+diagnostics, retained fields, responsive geometry, and exact paint. Lea does
+not report forced colors because it does not yet enforce a system palette. See
+`LeaForge/MEDIA_CONTRAST.md`.
+
 Initial fragments now stay aligned while first paint, host sizing, and decoded
 intrinsic images settle. `V.Fa/Fj/Fy` expose the retained anchor, placement
 count, and target Y directly to the host; normal scrolling releases the anchor.

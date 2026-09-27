@@ -112,7 +112,7 @@ namespace Lea.Bench
             var names = new[]
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
-                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "direction-logical.html", "direction-layout.html", "direction-inline.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "media-features.html", "media-aspect-ratio.html", "media-ranges.html", "media-resolution.html", "media-color-scheme.html", "media-reduced-motion.html", "supports-queries.html", "cascade-layers.html", "cascade-layer-limits.html", "hsl-colors.html", "hwb-colors.html", "lab-colors.html", "predefined-colors.html", "wide-gamut-colors.html", "oklab-colors.html", "color-mix.html", "custom-properties.html", "important-cascade.html",
+                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "direction-logical.html", "direction-layout.html", "direction-inline.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "media-features.html", "media-aspect-ratio.html", "media-ranges.html", "media-resolution.html", "media-color-scheme.html", "media-reduced-motion.html", "media-contrast.html", "supports-queries.html", "cascade-layers.html", "cascade-layer-limits.html", "hsl-colors.html", "hwb-colors.html", "lab-colors.html", "predefined-colors.html", "wide-gamut-colors.html", "oklab-colors.html", "color-mix.html", "custom-properties.html", "important-cascade.html",
                 "direction-overflow.html", "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "list-style.html", "list-position.html", "list-image.html", "marker.html", "marker-content.html", "marker-counters.html", "css-counters.html", "generated-content.html", "generated-quotes.html", "generated-alt.html", "generated-images.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -1760,6 +1760,66 @@ namespace Lea.Bench
                         liveField.V == "Retained motion view value", "motion view rebuild replaced field state");
                 }
                 return "compact E/P/G/V.Rm aliases, deterministic no-preference default, automatic Windows client-area animation sampling, false/true boolean context, exact no-preference/reduce queries, width intersections, alternatives, nested conflict rejection, style media, diagnostics, exact paint, and retained fields";
+            });
+            AddProbe(probes, "Preferred contrast media queries", delegate
+            {
+                var path = Path.Combine(folder, "media-contrast.html");
+                var engine = new E { Vw = 760, Vh = 1000 };
+                var page = engine.Go(path);
+                Func<string, bool> has = id => page.Bs.Any(block => block.El != null && block.El.Av("id") == id);
+                Need(engine.Pc == 'n' && page.Pc == 'n' && engine.Dg(page).Pc == 'n',
+                    "default preferred contrast aliases changed");
+                Need(!has("boolean") && has("no-preference") && has("no-preference-combined") && has("alternative") &&
+                    !has("less") && !has("more") && !has("custom") && !has("conflict"),
+                    "default contrast selection or boolean context changed");
+                Need(!has("invalid-value") && !has("invalid-range") && !has("invalid-trailing") &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@pc=n")) &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@m>=700&@pc=n")),
+                    "invalid contrast query or no-preference diagnostics changed");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark contrast value";
+                engine.Pc = 'l';
+                Need(has("boolean") && has("less") && !has("more") && !has("custom") && field.S.W == 234 &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@pc")) &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@pc=l")),
+                    "less contrast selection, boolean context, or diagnostics changed");
+                engine.Pc = 'm';
+                Need(has("boolean") && !has("less") && has("more") && !has("custom") && has("alternative") && field.S.W == 244,
+                    "more contrast selection changed");
+                engine.Pc = 'c';
+                Need(has("boolean") && !has("less") && !has("more") && has("custom") && has("custom-nested") &&
+                    has("boolean-custom") && has("style-custom") && !has("boolean-conflict") && !has("conflict") && field.S.W == 254 &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@pc=c")),
+                    "custom contrast selection, nesting, or diagnostics changed");
+                Need(Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark contrast value", "contrast rebuild replaced field state");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(760, 1000);
+                    view.Pc = 'c';
+                    view.Go(path);
+                    using (var customPaint = Draw(view))
+                    {
+                        var responsive = BlockContent(view, "responsive");
+                        Need(view.Pc == 'c' && view.At.Pc == 'c' &&
+                            view.At.Bs.Any(block => block.El != null && block.El.Av("id") == "boolean") && responsive.Width == 255 &&
+                            ColorDistance(customPaint.GetPixel(responsive.Right - 5, responsive.Top + 5), Color.FromArgb(63, 63, 70)) < 8,
+                            "custom contrast view paint changed");
+                    }
+                    var liveField = view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                    liveField.V = "Retained contrast view value";
+                    view.Pc = 'n';
+                    using (var normalPaint = Draw(view))
+                    {
+                        var responsive = BlockContent(view, "responsive");
+                        Need(view.Pc == 'n' && view.At.Pc == 'n' && responsive.Width == 185 &&
+                            ColorDistance(normalPaint.GetPixel(responsive.Right - 5, responsive.Top + 5), Color.FromArgb(224, 242, 254)) < 8,
+                            "no-preference contrast view paint changed");
+                    }
+                    Need(Object.ReferenceEquals(liveField, view.At.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                        liveField.V == "Retained contrast view value", "contrast view rebuild replaced field state");
+                }
+                return "compact E/P/G/V.Pc aliases, deterministic no-preference default, automatic Windows high-contrast sampling as custom, false/true boolean context, exact no-preference/less/more/custom queries, width intersections, alternatives, nested conflict rejection, style media, diagnostics, exact paint, and retained fields";
             });
             AddProbe(probes, "CSS supports queries", delegate
             {
@@ -5250,6 +5310,7 @@ namespace Lea.Bench
             Capability(builder, "Optional persistent cache", "Supported", "Memory-only default, gzip entries, LRU entry/byte ceilings, validators, private isolation, and corrupt-entry recovery");
             Capability(builder, "HTML documents", "Partial", "Bounded quote-aware tokens, raw text, RCDATA, entities, recovery, semantic blocks, accessibility roles, direction-aware ordered/unordered lists and disclosures, gauges, values, time/edit metadata, image maps, tables, and forms; not the full Living Standard");
             Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, compound of-S filtered, and terminal ::marker/::before/::after selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all pixel width/height, portrait/landscape, exact/min/max integer aspect-ratio, dpi/dppx/dpcm resolution queries with compact Dp density aliases, light/dark prefers-color-scheme queries with compact Th theme aliases, no-preference/reduce prefers-reduced-motion queries with compact Rm motion aliases, bounded strict/inclusive feature/value-first and chained media ranges, bounded @supports declaration checks plus selector() through the compiled selector grammar with grouped not/and/or logic, and bounded named @layer blocks with later-normal, unlayered-normal, reversed-important, inline, nested-name, and native-sheet ordering, bounded named reset/increment/set counters and generated quote depth, inherited horizontal LTR/RTL direction and bounded quote pairs, fixed/percentage/calc dimensions and classic vw/vh/vmin/vmax plus bounded em/rem units, two/three-term min/max and three-term clamp size functions, named/hex/RGB, bounded legacy or modern HSL/HSLA, bounded modern HWB, bounded modern CIE Lab/LCH with D50 conversion and Bradford D50-to-D65 adaptation, bounded predefined color() with sRGB, linear sRGB, Display P3, linear Display P3, A98 RGB, ProPhoto RGB, Rec. 2020, XYZ D50/D65 and Bradford adaptation, bounded modern Oklab/OkLCh with D65 conversion, shared local-MINDE sRGB gamut mapping, and bounded two-stop color-mix(in srgb, ...) colors with normalized hue, clamped channels/alpha, HWB gray normalization, omitted/normalized mix weights, reduced low-total alpha, and premultiplied-alpha interpolation across gradients, shadows, fields, and SVG paint, content/border box, circular/elliptical radii, bounded outlines, box shadows, one inherited bounded text-shadow layer, bounded text-decoration line/color/style/thickness and signed pixel/percentage underline offset, inherited text-align shorthand/all/last with logical state and justify-all, inherited text-wrap mode/style with bounded balance, non-inherited bounded line-clamp/WebKit compatibility, isolated bounded pseudo typography, eight string/attr/quoted-attr-fallback/named-counter/quote-keyword visual fragments, and an optional eight-item/128-unit string/attr/counter alternative list, plus one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing, signed pixel/percentage first-line indentation, and text styles, visibility, absolute/fixed and bounded vertical sticky positioning, transforms, responsive image sizing, direction-aware row/column flex, and direction-aware bounded two-axis grid");
+            Capability(builder, "Preferred contrast media queries", "Supported subset", "Boolean and exact no-preference/less/more/custom queries with compact Pc aliases, nested intersections, diagnostics, retained fields, and Windows High Contrast mapped conservatively to custom; forced palette enforcement and forced-colors remain unsupported");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/box-shadows/gradients, bounded offset and lightweight blurred text shadows, native fast-path plus lightweight offset-aware solid/double/dotted/dashed/wavy text decorations, direction-aware source-stable inline atoms including bounded before/after generated runs, bounded same-count balanced wrapping and 1..32 line clamping, inside/outside text and image markers with isolated pseudo style and concatenated generated text content, first-line indentation, inherited logical all/final/forced-line alignment, and paint-only single-line ellipsis geometry, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");
             Capability(builder, "Forms", "Supported subset", "GET/POST, validation, text/select/choice/file/range/date/color/time-family controls");
             Capability(builder, "Text overflow", "Supported subset", "Non-inherited clip/ellipsis with bounded LTR/RTL physical inline-end markers and grapheme-safe paint-only authored prefixes for inline runs and tables; retained layout/link targets, full logical automation text, and direction-aware partial range geometry; no native-control, Unicode bidi shaping, or custom overflow-marker additions");

@@ -17,19 +17,19 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 127 adds bounded CSS `prefers-reduced-motion` media queries with
-compact `E/P/G/V.Rm` motion aliases. `n` and `r` select no-preference and
-reduce; headless Lea defaults deterministically to no-preference, while
-WinForms views sample the Windows client-area animation setting until a host
-sets an explicit value. Boolean, exact, nested/intersected rules, diagnostics,
-responsive geometry/paint, and retained fields stay on Lea's compiled media
-path. All 123 benchmark probes pass over 118 fixtures. Focused and full
-source/staged suites, the compiled Firespider host, all 42 Boot cases, and all
-six real EXE startup scenarios are green. Three-round diagnostic medians are
-708.700 ms clean start, 8.274 ms local load, and 42.686 ms layout/paint;
-retained memory is 69.6 KiB/page and the required runtime is 662.5 KiB.
-Runtime 227 is packaged separately and installed runtime 157 remains unchanged.
-See `MEDIA_REDUCED_MOTION.md`.
+Milestone 128 adds bounded CSS `prefers-contrast` media queries with compact
+`E/P/G/V.Pc` contrast aliases. `n`, `l`, `m`, and `c` select no-preference,
+less, more, and custom. Headless Lea defaults deterministically to
+no-preference, while WinForms views map Windows High Contrast to custom until a
+host sets an explicit value. Boolean, exact, nested/intersected rules,
+diagnostics, responsive geometry/paint, and retained fields stay on Lea's
+compiled media path. All 124 benchmark probes pass over 119 fixtures. Focused
+and full source/staged suites, the compiled Firespider host, all 42 Boot cases,
+and all six real EXE startup scenarios are green. Three-round diagnostic
+medians are 692.788 ms clean start, 7.989 ms local load, and 39.432 ms
+layout/paint; retained memory is 69.5 KiB/page and the required runtime is
+664.5 KiB. Runtime 228 is packaged separately and installed runtime 157 remains
+unchanged. See `MEDIA_CONTRAST.md`.
 Container/style queries,
 `font-tech()`/`font-format()`,
 general-enclosed conditions, JavaScript `CSS.supports()`, locale-sensitive

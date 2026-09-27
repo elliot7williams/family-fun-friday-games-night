@@ -63,6 +63,8 @@ namespace Lea.Firespider
                     .Replace("</body>", "<p id='host-theme-light' class='host-theme-light'>Light theme host</p><p id='host-theme-dark' class='host-theme-dark'>Dark theme host</p><p id='host-theme-responsive' class='host-theme-responsive'>Responsive theme host</p></body>")
                     .Replace("</style>", ".host-motion-normal,.host-motion-reduce,.host-motion-boolean{display:none}.host-motion-responsive{display:block;width:184px;height:34px;background:#dcfce7}@media (prefers-reduced-motion:no-preference){.host-motion-normal{display:block;width:214px}}@media (prefers-reduced-motion:reduce){.host-motion-reduce{display:block;width:244px}.host-motion-responsive{width:244px;background:#312e81}}@media (prefers-reduced-motion){.host-motion-boolean{display:block;width:245px}}</style>")
                     .Replace("</body>", "<p id='host-motion-normal' class='host-motion-normal'>Normal motion host</p><p id='host-motion-reduce' class='host-motion-reduce'>Reduced motion host</p><p id='host-motion-boolean' class='host-motion-boolean'>Boolean reduced motion host</p><p id='host-motion-responsive' class='host-motion-responsive'>Responsive motion host</p></body>")
+                    .Replace("</style>", ".host-contrast-normal,.host-contrast-less,.host-contrast-more,.host-contrast-custom,.host-contrast-boolean{display:none}.host-contrast-responsive{display:block;width:186px;height:34px;background:#e0f2fe}@media (prefers-contrast:no-preference){.host-contrast-normal{display:block;width:216px}}@media (prefers-contrast:less){.host-contrast-less{display:block;width:236px}.host-contrast-responsive{width:236px;background:#fef3c7}}@media (prefers-contrast:more){.host-contrast-more{display:block;width:246px}.host-contrast-responsive{width:246px;background:#111827}}@media (prefers-contrast:custom){.host-contrast-custom{display:block;width:256px}.host-contrast-responsive{width:256px;background:#3f3f46}}@media (prefers-contrast){.host-contrast-boolean{display:block;width:257px}}</style>")
+                    .Replace("</body>", "<p id='host-contrast-normal' class='host-contrast-normal'>Normal contrast host</p><p id='host-contrast-less' class='host-contrast-less'>Less contrast host</p><p id='host-contrast-more' class='host-contrast-more'>More contrast host</p><p id='host-contrast-custom' class='host-contrast-custom'>Custom contrast host</p><p id='host-contrast-boolean' class='host-contrast-boolean'>Boolean contrast host</p><p id='host-contrast-responsive' class='host-contrast-responsive'>Responsive contrast host</p></body>")
                     .Replace("</style>", ".host-support-wide,.host-support-narrow{display:none}@supports (display:grid){@supports selector(:has(*)){@media (width>=800px){.host-support-wide{display:block;width:208px}}}}@media (width<=500px){@supports not (display:ruby){.host-support-narrow{display:block;width:168px}}}</style>")
                     .Replace("</body>", "<p id='host-support-wide' class='host-support-wide'>Wide supports host</p><p id='host-support-narrow' class='host-support-narrow'>Narrow supports host</p></body>")
                     .Replace("</style>", "@layer host-base{#host-layer-normal{width:171px}#host-layer-important{width:172px!important}.host-layer-wide,.host-layer-narrow{display:none}}@layer host-theme{.host-layer-normal{width:271px}#host-layer-important{width:272px!important}#host-layer-unlayered{width:273px}@supports (display:grid){@media (width>=800px){#host-layer-wide{display:block;width:209px}}}}#host-layer-unlayered{width:373px}@media (width<=500px){@layer host-theme{@supports selector(:has(*)){#host-layer-narrow{display:block;width:169px}}}}</style>")
@@ -265,6 +267,7 @@ namespace Lea.Firespider
                     host.Dp = 96;
                     host.Th = 'l';
                     host.Rm = 'n';
+                    host.Pc = 'n';
                     var opened = (bool)type.GetMethod("qleaOpenPath", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(form, new object[] { openPage });
                     try
                     {
@@ -1616,22 +1619,25 @@ namespace Lea.Firespider
                     var inspector = inspectorOpen.Invoke(form, null) as Form;
                     Check(inspector != null && inspector.Name == "LeaInspector" && inspector.Text == "Lea Inspector", "Firespider Lea Inspector open");
                     Check((bool)inspectorSnapshot.Invoke(form, null), "Firespider Lea Inspector refresh");
-                    Check(Member<TextBox>(form, "qleaInspectorSummary").Text.Contains("Response   200") &&
-                        Member<TextBox>(form, "qleaInspectorSummary").Text.Contains("px viewport") &&
-                        Member<TextBox>(form, "qleaInspectorSummary").Text.Contains("custom") &&
-                        Member<TextBox>(form, "qleaInspectorSummary").Text.Contains("important") &&
-                        Member<TextBox>(form, "qleaInspectorSummary").Text.Contains("Disk       0 entries") &&
-                        Member<TextBox>(form, "qleaInspectorNodes").Text.Contains("body") &&
-                        Member<TextBox>(form, "qleaInspectorCss").Text.Contains(".hot") &&
-                        Member<TextBox>(form, "qleaInspectorCss").Text.Contains(":is") &&
-                        Member<TextBox>(form, "qleaInspectorCss").Text.Contains("nth-last") &&
-                        Member<TextBox>(form, "qleaInspectorCss").Text.Contains(" of #host-flex") &&
-                        Member<TextBox>(form, "qleaInspectorCss").Text.Contains(":has") &&
-                        Member<TextBox>(form, "qleaInspectorCss").Text.Contains("grid-template") &&
-                        Member<TextBox>(form, "qleaInspectorRequests").Text.Contains("GET 200 file") &&
-                        Member<TextBox>(form, "qleaInspectorMessages").Text.Contains("commands") &&
-                        Member<TextBox>(form, "qleaInspectorAccess").Text.Contains("document") &&
-                        Member<TextBox>(form, "qleaInspectorAccess").Text.Contains("Host search"), "Firespider Lea Inspector bounded tabs");
+                    var inspectorSummaryText = Member<TextBox>(form, "qleaInspectorSummary").Text;
+                    var inspectorCssText = Member<TextBox>(form, "qleaInspectorCss").Text;
+                    Check(inspectorSummaryText.Contains("Response   200") && inspectorSummaryText.Contains("px viewport") &&
+                        inspectorSummaryText.Contains("normal contrast") && inspectorSummaryText.Contains("custom") &&
+                        inspectorSummaryText.Contains("important") && inspectorSummaryText.Contains("Disk       0 entries"),
+                        "Firespider Lea Inspector bounded summary");
+                    Check(Member<TextBox>(form, "qleaInspectorNodes").Text.Contains("body"), "Firespider Lea Inspector bounded nodes");
+                    Check(inspectorCssText.Contains(".hot"), "Firespider Lea Inspector CSS class rule");
+                    Check(inspectorCssText.Contains(":is"), "Firespider Lea Inspector CSS selector function");
+                    Check(inspectorCssText.Contains("nth-last"), "Firespider Lea Inspector CSS structural selector");
+                    Check(inspectorCssText.Contains(":has"), "Firespider Lea Inspector CSS relational selector");
+                    Check(inspectorCssText.Contains("@pc=n"), "Firespider Lea Inspector CSS contrast condition");
+                    Check(Member<TextBox>(form, "qleaInspectorRequests").Text.Contains("GET 200 file"),
+                        "Firespider Lea Inspector bounded requests");
+                    Check(Member<TextBox>(form, "qleaInspectorMessages").Text.Contains("commands"),
+                        "Firespider Lea Inspector bounded messages");
+                    Check(Member<TextBox>(form, "qleaInspectorAccess").Text.Contains("document") &&
+                        Member<TextBox>(form, "qleaInspectorAccess").Text.Contains("Host search"),
+                        "Firespider Lea Inspector bounded access");
                     Check((bool)inspectorClear.Invoke(form, null) && host.Dg().Rs.Count == 0 &&
                         Member<TextBox>(form, "qleaInspectorRequests").Text.Length == 0, "Firespider Lea Inspector clear requests");
                     inspector.Close();
@@ -1739,6 +1745,54 @@ namespace Lea.Firespider
                         Object.ReferenceEquals(hostResponsiveField, FieldById(host.At, "host-auto")) &&
                         hostResponsiveField.V == "Retained reduced motion host value",
                         "Firespider reduced motion restore and field retention");
+                    hostResponsiveField.V = "Retained preferred contrast host value";
+                    Check(host.Pc == 'n' && host.At.Pc == 'n' && host.Dg().Pc == 'n' &&
+                        HasBlock(host.At, "host-contrast-normal") && !HasBlock(host.At, "host-contrast-less") &&
+                        !HasBlock(host.At, "host-contrast-more") && !HasBlock(host.At, "host-contrast-custom") &&
+                        !HasBlock(host.At, "host-contrast-boolean") && BlockById(host.At, "host-contrast-responsive").S.W == 186 &&
+                        Has(host.Dg().Cs, "@pc=n"), "Firespider no-preference contrast media state and diagnostics");
+                    host.Pc = 'l';
+                    PaintView(host);
+                    Check(host.Pc == 'l' && host.At.Pc == 'l' && host.Dg().Pc == 'l' &&
+                        HasBlock(host.At, "host-contrast-less") && !HasBlock(host.At, "host-contrast-more") &&
+                        !HasBlock(host.At, "host-contrast-custom") && HasBlock(host.At, "host-contrast-boolean") &&
+                        BlockById(host.At, "host-contrast-responsive").S.W == 236 && Has(host.Dg().Cs, "@pc=l"),
+                        "Firespider less contrast rebuild and boolean context");
+                    host.Pc = 'm';
+                    PaintView(host);
+                    Check(!HasBlock(host.At, "host-contrast-less") && HasBlock(host.At, "host-contrast-more") &&
+                        !HasBlock(host.At, "host-contrast-custom") && HasBlock(host.At, "host-contrast-boolean") &&
+                        BlockById(host.At, "host-contrast-responsive").S.W == 246 && Has(host.Dg().Cs, "@pc=m"),
+                        "Firespider more contrast rebuild and boolean context");
+                    host.Pc = 'c';
+                    PaintView(host);
+                    Check(host.Pc == 'c' && host.At.Pc == 'c' && host.Dg().Pc == 'c' &&
+                        !HasBlock(host.At, "host-contrast-less") && !HasBlock(host.At, "host-contrast-more") &&
+                        HasBlock(host.At, "host-contrast-custom") && HasBlock(host.At, "host-contrast-boolean") &&
+                        BlockById(host.At, "host-contrast-responsive").S.W == 256 &&
+                        Object.ReferenceEquals(hostResponsiveField, FieldById(host.At, "host-auto")) &&
+                        hostResponsiveField.V == "Retained preferred contrast host value" && Has(host.Dg().Cs, "@pc=c"),
+                        "Firespider custom contrast rebuild, boolean context, and field retention");
+                    var automationContrast = automationRoot.FindFirst(TreeScope.Descendants,
+                        new PropertyCondition(AutomationElement.AutomationIdProperty, "host-contrast-responsive"));
+                    Check(automationContrast != null, "Firespider preferred contrast automation element");
+                    ((TextPattern)automationTextPattern).RangeFromChild(automationContrast).ScrollIntoView(true);
+                    PaintView(host);
+                    using (var contrastPaint = RenderView(host))
+                    {
+                        var contrastRect = BlockContent(host, "host-contrast-responsive");
+                        contrastRect.Offset(0, -host.Sy);
+                        Check(contrastRect.Width == 256 && ColorDistance(contrastPaint.GetPixel(contrastRect.Right - 5, contrastRect.Top + 5),
+                            System.Drawing.Color.FromArgb(63, 63, 70)) < 8, "Firespider custom contrast exact paint");
+                    }
+                    host.Pc = 'n';
+                    PaintView(host);
+                    Check(HasBlock(host.At, "host-contrast-normal") && !HasBlock(host.At, "host-contrast-less") &&
+                        !HasBlock(host.At, "host-contrast-more") && !HasBlock(host.At, "host-contrast-custom") &&
+                        !HasBlock(host.At, "host-contrast-boolean") && BlockById(host.At, "host-contrast-responsive").S.W == 186 &&
+                        Object.ReferenceEquals(hostResponsiveField, FieldById(host.At, "host-auto")) &&
+                        hostResponsiveField.V == "Retained preferred contrast host value",
+                        "Firespider preferred contrast restore and field retention");
                     var goRequests = 0;
                     host.Gr += delegate { goRequests++; };
                     Check(host.Js("window.location.assign('" + new Uri(start).AbsoluteUri + "')") == 1, "Firespider familiar location request accepted");
@@ -1897,6 +1951,7 @@ namespace Lea.Firespider
                 Console.WriteLine("Firespider resolution media smoke passed: compact Dp aliases, dpi/dppx/dpcm queries, automatic WinForms density plumbing, diagnostics, retained fields, responsive geometry, and exact host paint reached the compiled host.");
                 Console.WriteLine("Firespider preferred color scheme media smoke passed: compact Th aliases, light/dark queries, automatic Windows theme plumbing, diagnostics, retained fields, responsive geometry, and exact host paint reached the compiled host.");
                 Console.WriteLine("Firespider reduced motion media smoke passed: compact Rm aliases, no-preference/reduce queries, boolean context, automatic Windows animation-preference plumbing, diagnostics, retained fields, responsive geometry, and exact host paint reached the compiled host.");
+                Console.WriteLine("Firespider preferred contrast media smoke passed: compact Pc aliases, no-preference/less/more/custom queries, boolean context, automatic Windows high-contrast plumbing, diagnostics, retained fields, responsive geometry, and exact host paint reached the compiled host.");
 
                     Console.WriteLine("Firespider Lea smoke passed: bounded inline before/after/marker generated content with quoted attr fallbacks, visual/accessibility alternatives, generated quote depth, and sandboxed bitmap fragments, be/af/ms/qu aliases, accessibility, links, counters, tables, responsive paint, and retained fields; bounded horizontal logical margin/padding properties with twelve compact aliases, bounded horizontal logical sizing/insets with short is/bs and familiar DOM aliases, bounded sticky positioning with compact k and shared host geometry, bounded percentage/calc widths with compact wd and literal DOM reflow, bounded display alias and literal location requests, literal bounded DOM translation, inherited cursor and pointer-event aliases with host hit gating and fallthrough, bounded CSS text decoration and inherited underline offsets with compact aliases and host paint, bounded CSS outlines with compact aliases and exact non-layout host paint, bounded CSS aspect ratios with compact aliases and exact host geometry/paint, bounded CSS object-fit and object-position with compact aliases, exact fitted paint, and image-map keyboard/accessibility geometry, bounded CSS bitmap backgrounds with compact aliases and exact host paint, modern bounded HSL/HSLA, HWB, CIE Lab/LCH with D50-to-D65 Bradford adaptation, Oklab, and OkLCh plus local-MINDE gamut mapping and premultiplied sRGB color mixing with hue units, alpha, gradients, SVG, and exact host paint, bounded inline SVG aliases, winding, stroke styles, geometry, links, and graphic accessibility, bounded has relational selectors with strict lists, maximum specificity, descendant/child/adjacent and complex host relationships, focus rebuilds, retained fields, queries, Inspector, and geometry, bounded nth-child of-S filters with strict lists, maximum specificity, forward/reverse computed styles, queries, Inspector, and host geometry, bounded precompiled An+B and reverse structural selectors with computed styles, queries, Inspector, and host geometry, bounded is, where, and list-not selector functions with specificity, queries, Inspector, and geometry, bounded CSS important cascade with G.Ic diagnostics, custom properties, inline, responsive values, Inspector counts, and retained fields, bounded inherited CSS custom properties with S.Vc/Cv and G.Vc aliases, responsive values, Inspector counts, and retained fields, bounded responsive CSS media queries with compact width/height/density/theme/motion aliases, portrait/landscape, exact/min/max aspect-ratio, dpi/dppx/dpcm resolution, light/dark preferred color scheme, and no-preference/reduce motion states, modern strict/inclusive feature/value-first and chained range syntax, bounded @supports declaration and selector capability checks, bounded named cascade layers with normal/unlayered/reversed-important order, diagnostics, and retained fields, optional bounded persistent cache aliases and Inspector diagnostics, bounded content-box and border-box geometry, scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, and shrink, semantic accessibility, protected values, rendered bounds, MSAA and UI Automation providers, value, table/grid, and read-only logical text patterns plus Access inspector, bounded autofocus and access keys, keyboard focus and activation, responsive image maps, compact time/edit metadata, output/data values and safe rebuilds, progress and meter gauges, disclosure commands, retained same-page fragments, Lea-first New Tab and explicit legacy fallback, host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
                 return 0;

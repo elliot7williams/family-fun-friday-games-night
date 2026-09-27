@@ -166,6 +166,11 @@ namespace Lea.Tests
                     MediaMotionSmoke(Path.Combine(pages, "media-reduced-motion.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--media-contrast")
+                {
+                    MediaContrastSmoke(Path.Combine(pages, "media-contrast.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--supports")
                 {
                     SupportsSmoke(Path.Combine(pages, "supports-queries.html"));
@@ -1592,6 +1597,7 @@ namespace Lea.Tests
                 MediaResolutionSmoke(Path.Combine(pages, "media-resolution.html"));
                 MediaThemeSmoke(Path.Combine(pages, "media-color-scheme.html"));
                 MediaMotionSmoke(Path.Combine(pages, "media-reduced-motion.html"));
+                MediaContrastSmoke(Path.Combine(pages, "media-contrast.html"));
                 SupportsSmoke(Path.Combine(pages, "supports-queries.html"));
                 LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
                 HslColorSmoke(Path.Combine(pages, "hsl-colors.html"));
@@ -8525,6 +8531,113 @@ namespace Lea.Tests
                     "WinForms automatically samples the Windows client-area animation preference");
             }
             Console.WriteLine("Lea reduced motion media smoke passed: compact Rm aliases, boolean/no-preference/reduce syntax, nesting, alternatives, style media, diagnostics, field retention, Windows motion plumbing, and exact paint.");
+        }
+
+        private static void MediaContrastSmoke(string path)
+        {
+            var engine = new E { Vw = 760, Vh = 1000 };
+            Eq('n', engine.Pc, "default preferred contrast alias");
+            engine.Pc = 'x';
+            Eq('n', engine.Pc, "invalid preferred contrast alias ignored");
+            var page = engine.Go(path);
+            Eq('n', page.Pc, "default page preferred contrast alias");
+            Ok(!HasBlock(page, "boolean") && HasBlock(page, "no-preference") &&
+                HasBlock(page, "no-preference-combined") && HasBlock(page, "alternative"),
+                "default no-preference contrast state and false boolean context");
+            Ok(!HasBlock(page, "less") && !HasBlock(page, "more") && !HasBlock(page, "custom") &&
+                !HasBlock(page, "custom-nested") && !HasBlock(page, "boolean-custom") &&
+                !HasBlock(page, "style-custom") && !HasBlock(page, "boolean-conflict") && !HasBlock(page, "conflict"),
+                "preferred contrast alternatives and conflicts initially inactive");
+            Ok(!HasBlock(page, "invalid-value") && !HasBlock(page, "invalid-range") &&
+                !HasBlock(page, "invalid-trailing"), "unsupported preferred contrast queries stay inactive");
+            Eq(185, BlockById(page, "responsive").S.W, "no-preference contrast geometry");
+            var field = FieldById(page, "field");
+            Eq(184, field.S.W, "no-preference contrast field width");
+            field.V = "Retained preferred contrast engine value";
+            var diagnostics = engine.Dg(page);
+            Eq('n', diagnostics.Pc, "diagnostic preferred contrast alias");
+            Ok(Has(diagnostics.Cs, "@pc=n") && Has(diagnostics.Cs, "@m>=700&@pc=n"),
+                "no-preference contrast diagnostics");
+
+            engine.Pc = 'L';
+            Ok(engine.Pc == 'l' && page.Pc == 'l' && engine.Dg(page).Pc == 'l' && HasBlock(page, "boolean") &&
+                HasBlock(page, "less") && !HasBlock(page, "more") && !HasBlock(page, "custom") &&
+                BlockById(page, "responsive").S.W == 235 && field.S.W == 234,
+                "less contrast aliases, boolean context, and geometry");
+            Ok(Has(engine.Dg(page).Cs, "@pc") && Has(engine.Dg(page).Cs, "@pc=l"),
+                "less contrast boolean and exact diagnostics");
+
+            engine.Pc = 'm';
+            Ok(HasBlock(page, "boolean") && !HasBlock(page, "less") && HasBlock(page, "more") &&
+                !HasBlock(page, "custom") && HasBlock(page, "alternative") &&
+                BlockById(page, "responsive").S.W == 245 && field.S.W == 244,
+                "more contrast selection and geometry");
+
+            engine.Pc = 'c';
+            Ok(HasBlock(page, "boolean") && !HasBlock(page, "less") && !HasBlock(page, "more") &&
+                HasBlock(page, "custom") && HasBlock(page, "custom-nested") && HasBlock(page, "boolean-custom") &&
+                HasBlock(page, "style-custom") && !HasBlock(page, "boolean-conflict") && !HasBlock(page, "conflict"),
+                "custom contrast selection, boolean intersection, and conflict rejection");
+            Ok(BlockById(page, "custom").S.W == 221 && BlockById(page, "custom-nested").S.W == 222 &&
+                BlockById(page, "boolean-custom").S.W == 223 && BlockById(page, "style-custom").S.W == 224 &&
+                BlockById(page, "responsive").S.W == 255 && field.S.W == 254,
+                "custom contrast nested and style-media geometry");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) &&
+                field.V == "Retained preferred contrast engine value" && Has(engine.Dg(page).Cs, "@pc=c"),
+                "contrast rebuild preserves field identity, value, and diagnostics");
+
+            engine.Vw = 900;
+            Ok(!HasBlock(page, "alternative") && HasBlock(page, "custom-nested"),
+                "custom contrast wide alternative and nested state");
+            engine.Pc = 'm';
+            Ok(HasBlock(page, "alternative") && !HasBlock(page, "custom-nested"),
+                "more contrast wide alternative state");
+            engine.Pc = 'n';
+            Ok(!HasBlock(page, "boolean") && HasBlock(page, "no-preference-combined") && !HasBlock(page, "alternative") &&
+                Object.ReferenceEquals(field, FieldById(page, "field")) &&
+                field.V == "Retained preferred contrast engine value", "all contrast rebuilds retain field state");
+
+            using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-30000, -30000), ClientSize = new Size(760, 1000) })
+            using (var view = new V { Pc = 'c' })
+            {
+                form.Controls.Add(view);
+                form.Show();
+                view.Go(path);
+                using (var image = Render(view))
+                {
+                    var responsive = BlockRect(view, BlockById(view.At, "responsive"));
+                    Ok(view.Pc == 'c' && view.At.Pc == 'c' && HasBlock(view.At, "boolean") &&
+                        HasBlock(view.At, "custom") && responsive.Width == 255 &&
+                        ColorDistance(image.GetPixel(responsive.Right - 5, responsive.Top + 5),
+                            Color.FromArgb(63, 63, 70)) < 8, "WinForms custom contrast state and paint");
+                }
+                var viewField = FieldById(view.At, "field");
+                viewField.V = "Retained preferred contrast view value";
+                view.Pc = 'n';
+                Application.DoEvents();
+                using (var image = Render(view))
+                {
+                    var responsive = BlockRect(view, BlockById(view.At, "responsive"));
+                    Ok(view.Pc == 'n' && view.At.Pc == 'n' && !HasBlock(view.At, "boolean") &&
+                        HasBlock(view.At, "no-preference") && !HasBlock(view.At, "custom") &&
+                        responsive.Width == 185 && ColorDistance(image.GetPixel(responsive.Right - 5, responsive.Top + 5),
+                            Color.FromArgb(224, 242, 254)) < 8, "WinForms no-preference contrast state and paint");
+                }
+                Ok(Object.ReferenceEquals(viewField, FieldById(view.At, "field")) &&
+                    viewField.V == "Retained preferred contrast view value" && viewField.S.W == 184,
+                    "WinForms contrast rebuild retains field state");
+            }
+
+            using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-30000, -30000) })
+            using (var view = new V())
+            {
+                form.Controls.Add(view);
+                form.Show();
+                var method = typeof(V).GetMethod("SystemContrast", BindingFlags.Static | BindingFlags.NonPublic);
+                Ok(method != null && view.Pc == (char)method.Invoke(null, null),
+                    "WinForms automatically samples the Windows high-contrast preference");
+            }
+            Console.WriteLine("Lea preferred contrast media smoke passed: compact Pc aliases, boolean/no-preference/less/more/custom syntax, nesting, alternatives, style media, diagnostics, field retention, Windows high-contrast plumbing, and exact paint.");
         }
 
         private static void LayerSmoke(string path, string limitPath)

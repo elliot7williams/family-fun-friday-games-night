@@ -31,6 +31,8 @@ Lea accepts `screen` and `all` queries containing:
 - boolean `prefers-color-scheme` plus exact `light` and `dark` values
 - boolean `prefers-reduced-motion` plus exact `no-preference` and `reduce`
   values; its boolean form is active only for reduce
+- boolean `prefers-contrast` plus exact `no-preference`, `less`, `more`, and
+  `custom` values; its boolean form is inactive only for no-preference
 - feature-first, value-first, and ascending/descending comparison ranges for
   width, height, aspect ratio, and resolution
 - `and` conjunctions and comma alternatives
@@ -53,14 +55,15 @@ strict-boundary behavior are in `MEDIA_RANGE_SYNTAX.md`.
 ## Diagnostics and State
 
 Active CSS diagnostics retain `@m` for width and add `@h` for height, `@o`
-for orientation, `@d` for normalized resolution, `@t` for theme, and `@rm`
-for reduced motion. For example:
+for orientation, `@d` for normalized resolution, `@t` for theme, `@rm`
+for reduced motion, and `@pc` for preferred contrast. For example:
 
 ```text
 @m>=800&@h<=500&@o=l
 @m>=800&@d>=192dpi
 @m>=800&@t=d
 @m>=800&@rm=r
+@m>=800&@pc=m
 ```
 
 Changing either viewport dimension recompiles no CSS. Lea selects from the
@@ -73,6 +76,8 @@ Preferred color-scheme syntax and host theme behavior are documented in
 `MEDIA_COLOR_SCHEME.md`.
 Reduced-motion syntax, boolean semantics, and host behavior are documented in
 `MEDIA_REDUCED_MOTION.md`.
+Preferred-contrast syntax, boolean semantics, and host behavior are documented
+in `MEDIA_CONTRAST.md`.
 
 Coverage lives in `test-pages/media-features.html`, the focused
 `Lea.Tests --media-features` mode, the compatibility benchmark, and the

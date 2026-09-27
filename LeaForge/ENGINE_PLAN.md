@@ -349,16 +349,17 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 127 adds bounded CSS `prefers-reduced-motion` media queries with
-compact `E/P/G/V.Rm` aliases. `n` and `r` select no-preference and reduce;
-headless Lea defaults deterministically to no-preference, while WinForms views
-sample the Windows client-area animation setting until a host sets an explicit
-value. Boolean motion queries are active only for reduce. Exact values, width
-intersections, alternatives, nested media, style media, compact diagnostics,
-responsive paint, and retained fields share the compiled media path. See
-`MEDIA_REDUCED_MOTION.md`. All 123 probes pass over 118 fixtures; focused and
-full source/staged suites, the compiled Firespider host, all 42 Boot cases, and
-all six real EXE startup scenarios pass. Runtime 227 is packaged separately and
+Milestone 128 adds bounded CSS `prefers-contrast` media queries with compact
+`E/P/G/V.Pc` aliases. `n`, `l`, `m`, and `c` select no-preference, less, more,
+and custom. Headless Lea defaults deterministically to no-preference, while
+WinForms views map Windows High Contrast to custom until a host sets an
+explicit value. Boolean contrast queries are inactive for no-preference and
+active for less, more, or custom. Exact values, width intersections,
+alternatives, nested media, style media, compact diagnostics, responsive
+paint, and retained fields share the compiled media path. See
+`MEDIA_CONTRAST.md`. All 124 probes pass over 119 fixtures; focused and full
+source/staged suites, the compiled Firespider host, all 42 Boot cases, and all
+six real EXE startup scenarios pass. Runtime 228 is packaged separately and
 installed runtime 157 remains unchanged.
 Next investigate another bounded compatibility slice. Keep device ratios,
 container and style queries, `font-tech()`/`font-format()`, general-enclosed
