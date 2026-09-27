@@ -171,6 +171,11 @@ namespace Lea.Tests
                     MediaContrastSmoke(Path.Combine(pages, "media-contrast.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--media-scripting")
+                {
+                    MediaScriptingSmoke(Path.Combine(pages, "media-scripting.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--supports")
                 {
                     SupportsSmoke(Path.Combine(pages, "supports-queries.html"));
@@ -1598,6 +1603,7 @@ namespace Lea.Tests
                 MediaThemeSmoke(Path.Combine(pages, "media-color-scheme.html"));
                 MediaMotionSmoke(Path.Combine(pages, "media-reduced-motion.html"));
                 MediaContrastSmoke(Path.Combine(pages, "media-contrast.html"));
+                MediaScriptingSmoke(Path.Combine(pages, "media-scripting.html"));
                 SupportsSmoke(Path.Combine(pages, "supports-queries.html"));
                 LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
                 HslColorSmoke(Path.Combine(pages, "hsl-colors.html"));
@@ -8638,6 +8644,82 @@ namespace Lea.Tests
                     "WinForms automatically samples the Windows high-contrast preference");
             }
             Console.WriteLine("Lea preferred contrast media smoke passed: compact Pc aliases, boolean/no-preference/less/more/custom syntax, nesting, alternatives, style media, diagnostics, field retention, Windows high-contrast plumbing, and exact paint.");
+        }
+
+        private static void MediaScriptingSmoke(string path)
+        {
+            var engine = new E { Vw = 760, Vh = 1000 };
+            Ok(engine.Je, "default scripting alias");
+            var page = engine.Go(path);
+            Ok(page.Je && HasBlock(page, "boolean") && HasBlock(page, "enabled") &&
+                HasBlock(page, "enabled-combined") && HasBlock(page, "alternative") &&
+                HasBlock(page, "enabled-nested") && HasBlock(page, "boolean-enabled"),
+                "default enabled scripting state and boolean context");
+            Ok(!HasBlock(page, "none") && !HasBlock(page, "initial-only") && !HasBlock(page, "style-none") &&
+                !HasBlock(page, "boolean-conflict") && !HasBlock(page, "exact-conflict"),
+                "disabled, initial-only, and conflicting scripting rules initially inactive");
+            Ok(!HasBlock(page, "invalid-value") && !HasBlock(page, "invalid-range") &&
+                !HasBlock(page, "invalid-trailing"), "unsupported scripting queries stay inactive");
+            Eq(250, BlockById(page, "responsive").S.W, "enabled scripting geometry");
+            var field = FieldById(page, "field");
+            Eq(249, field.S.W, "enabled scripting field width");
+            field.V = "Retained scripting engine value";
+            var diagnostics = engine.Dg(page);
+            Ok(diagnostics.Je && Has(diagnostics.Cs, "@je") && Has(diagnostics.Cs, "@je=e") &&
+                Has(diagnostics.Cs, "@m>=700&@je=e"), "enabled scripting diagnostics");
+
+            engine.Je = false;
+            Ok(!engine.Je && !page.Je && !engine.Dg(page).Je && !HasBlock(page, "boolean") &&
+                !HasBlock(page, "enabled") && !HasBlock(page, "enabled-combined") &&
+                HasBlock(page, "none") && HasBlock(page, "style-none") && HasBlock(page, "alternative"),
+                "disabled scripting selection and false boolean context");
+            Ok(!HasBlock(page, "initial-only") && !HasBlock(page, "enabled-nested") &&
+                !HasBlock(page, "boolean-enabled") && !HasBlock(page, "boolean-conflict") &&
+                !HasBlock(page, "exact-conflict"), "disabled scripting nesting and conflicts");
+            Ok(BlockById(page, "none").S.W == 211 && BlockById(page, "style-none").S.W == 212 &&
+                BlockById(page, "responsive").S.W == 190 && field.S.W == 189 &&
+                Object.ReferenceEquals(field, FieldById(page, "field")) &&
+                field.V == "Retained scripting engine value" && Has(engine.Dg(page).Cs, "@je=n"),
+                "disabled scripting geometry, field retention, and diagnostics");
+
+            engine.Vw = 900;
+            Ok(HasBlock(page, "alternative") && !HasBlock(page, "enabled-nested"),
+                "disabled scripting wide alternative state");
+            engine.Je = true;
+            Ok(page.Je && !HasBlock(page, "alternative") && HasBlock(page, "enabled-nested") &&
+                Object.ReferenceEquals(field, FieldById(page, "field")) &&
+                field.V == "Retained scripting engine value", "enabled scripting wide state and field retention");
+
+            using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-30000, -30000), ClientSize = new Size(760, 1000) })
+            using (var view = new V())
+            {
+                form.Controls.Add(view);
+                form.Show();
+                view.Go(path);
+                using (var image = Render(view))
+                {
+                    var responsive = BlockRect(view, BlockById(view.At, "responsive"));
+                    Ok(view.Je && view.At.Je && HasBlock(view.At, "boolean") && HasBlock(view.At, "enabled") &&
+                        responsive.Width == 250 && ColorDistance(image.GetPixel(responsive.Right - 5, responsive.Top + 5),
+                            Color.FromArgb(17, 24, 39)) < 8, "WinForms enabled scripting state and paint");
+                }
+                var viewField = FieldById(view.At, "field");
+                viewField.V = "Retained scripting view value";
+                view.Je = false;
+                Application.DoEvents();
+                using (var image = Render(view))
+                {
+                    var responsive = BlockRect(view, BlockById(view.At, "responsive"));
+                    Ok(!view.Je && !view.At.Je && !HasBlock(view.At, "boolean") && HasBlock(view.At, "none") &&
+                        HasBlock(view.At, "style-none") && responsive.Width == 190 &&
+                        ColorDistance(image.GetPixel(responsive.Right - 5, responsive.Top + 5),
+                            Color.FromArgb(224, 242, 254)) < 8, "WinForms disabled scripting state and paint");
+                }
+                Ok(Object.ReferenceEquals(viewField, FieldById(view.At, "field")) &&
+                    viewField.V == "Retained scripting view value" && viewField.S.W == 189,
+                    "WinForms scripting rebuild retains field state");
+            }
+            Console.WriteLine("Lea scripting media smoke passed: existing compact Je aliases, boolean/none/initial-only/enabled syntax, nesting, alternatives, style media, diagnostics, field retention, and exact paint.");
         }
 
         private static void LayerSmoke(string path, string limitPath)

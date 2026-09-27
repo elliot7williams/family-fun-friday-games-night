@@ -17,19 +17,18 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 128 adds bounded CSS `prefers-contrast` media queries with compact
-`E/P/G/V.Pc` contrast aliases. `n`, `l`, `m`, and `c` select no-preference,
-less, more, and custom. Headless Lea defaults deterministically to
-no-preference, while WinForms views map Windows High Contrast to custom until a
-host sets an explicit value. Boolean, exact, nested/intersected rules,
-diagnostics, responsive geometry/paint, and retained fields stay on Lea's
-compiled media path. All 124 benchmark probes pass over 119 fixtures. Focused
-and full source/staged suites, the compiled Firespider host, all 42 Boot cases,
-and all six real EXE startup scenarios are green. Three-round diagnostic
-medians are 692.788 ms clean start, 7.989 ms local load, and 39.432 ms
-layout/paint; retained memory is 69.5 KiB/page and the required runtime is
-664.5 KiB. Runtime 228 is packaged separately and installed runtime 157 remains
-unchanged. See `MEDIA_CONTRAST.md`.
+Milestone 129 adds bounded CSS `scripting` media queries through the existing
+compact `E/P/G/V.Je` permission aliases. True selects enabled and false selects
+none; initial-only syntax is valid but never selected because Lea has no
+one-shot script mode. Boolean, exact, nested/intersected rules, diagnostics,
+responsive geometry/paint, and retained fields stay on Lea's compiled media
+path. All 125 benchmark probes pass over 120 fixtures. Focused and full
+source/staged suites, the compiled Firespider host, all 42 Boot cases, and all
+six real EXE startup scenarios are green. Three-round diagnostic medians are
+583.675 ms clean start, 7.046 ms local load, and 37.360 ms layout/paint;
+retained memory is 69.3 KiB/page and the required runtime is 666.5 KiB.
+Runtime 229 is packaged separately and installed runtime 157 remains unchanged.
+See `MEDIA_SCRIPTING.md`.
 Container/style queries,
 `font-tech()`/`font-format()`,
 general-enclosed conditions, JavaScript `CSS.supports()`, locale-sensitive

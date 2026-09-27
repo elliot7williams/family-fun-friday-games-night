@@ -41,6 +41,15 @@ diagnostics, retained fields, responsive geometry, and exact paint. Lea does
 not report forced colors because it does not yet enforce a system palette. See
 `LeaForge/MEDIA_CONTRAST.md`.
 
+Scripting media queries reuse the existing compact `E/P/G/V.Je` permission
+alias. Enabled is the default; hosts can switch to none without reparsing CSS,
+and responsive rebuilds retain fields. Lea recognizes the standards-defined
+initial-only value but never reports it because the command layer is either
+available or disabled for the current page. The compiled host covers boolean
+and exact selection, diagnostics, UI Automation visibility, responsive
+geometry, retained fields, and exact paint. Firespider adds no script-state
+parser or general JavaScript runtime. See `LeaForge/MEDIA_SCRIPTING.md`.
+
 Initial fragments now stay aligned while first paint, host sizing, and decoded
 intrinsic images settle. `V.Fa/Fj/Fy` expose the retained anchor, placement
 count, and target Y directly to the host; normal scrolling releases the anchor.

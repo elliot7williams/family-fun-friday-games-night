@@ -275,7 +275,7 @@ namespace Lea.Win.Test
                 data.U == null ? "" : data.U.ToString(),
                 "",
                 "Response   " + data.St + "  " + data.Ct + "  " + data.Sz + " bytes" + (data.Ca ? "  cache" : ""),
-                "Document   " + data.N + " nodes  " + data.B + " blocks  " + v.Axs.Count + " access  " + data.Vw + "x" + data.Vh + "px viewport  " + data.Dp + "dpi  " + (data.Th == 'd' ? "dark" : "light") + " theme  " + (data.Rm == 'r' ? "reduced" : "normal") + " motion  " + (data.Pc == 'l' ? "less" : data.Pc == 'm' ? "more" : data.Pc == 'c' ? "custom" : "normal") + " contrast",
+                "Document   " + data.N + " nodes  " + data.B + " blocks  " + v.Axs.Count + " access  " + data.Vw + "x" + data.Vh + "px viewport  " + data.Dp + "dpi  " + (data.Th == 'd' ? "dark" : "light") + " theme  " + (data.Rm == 'r' ? "reduced" : "normal") + " motion  " + (data.Pc == 'l' ? "less" : data.Pc == 'm' ? "more" : data.Pc == 'c' ? "custom" : "normal") + " contrast  " + (data.Je ? "enabled" : "disabled") + " scripting",
                 "Content    " + data.L + " links  " + data.F + " fields  " + data.C + " CSS rules  " + data.Vc + " custom  " + data.Ic + " important",
                 "Commands   " + data.J + " accepted  " + data.V + " variables  " + data.M + " alerts",
                 "Engine     " + data.Cc + " cached  " + data.Ch + " reuses  " + data.Kc + " cookies"
@@ -336,7 +336,7 @@ namespace Lea.Win.Test
                     break;
                 }
             var passed = inspectorSummary.Text.Contains("Response   200") &&
-                inspectorSummary.Text.Contains("px viewport") && inspectorSummary.Text.Contains("dpi") && inspectorSummary.Text.Contains("theme") && inspectorSummary.Text.Contains("motion") && inspectorSummary.Text.Contains("contrast") &&
+                inspectorSummary.Text.Contains("px viewport") && inspectorSummary.Text.Contains("dpi") && inspectorSummary.Text.Contains("theme") && inspectorSummary.Text.Contains("motion") && inspectorSummary.Text.Contains("contrast") && inspectorSummary.Text.Contains("scripting") &&
                 inspectorNodes.Text.Contains("body") && inspectorCss.Text.Contains("body") &&
                 inspectorRequests.Text.Contains("GET 200 file") && inspectorMessages.Text.Contains("commands") &&
                 inspectorAccess.Text.Contains("document") && v.Ao != null && keyPassed && accessPassed;

@@ -311,7 +311,7 @@ namespace Lea.Win
         public long Dm { get { return e.Dm; } }
         public int Tm { get { return e.Tm; } set { e.Tm = value; } }
         public bool Pv { get { return e.Pv; } set { e.Pv = value; } }
-        public bool Je { get { return e.Je; } set { e.Je = value; } }
+        public bool Je { get { return e.Je; } set { SetScripting(value); } }
         private Func<Uri, bool> navigationGuard;
         public Func<Uri, bool> Ng
         {
@@ -1202,6 +1202,17 @@ namespace Lea.Win
         {
             try { return SystemInformation.HighContrast ? 'c' : 'n'; }
             catch { return 'n'; }
+        }
+
+        private void SetScripting(bool value)
+        {
+            var previous = e.Je;
+            e.Je = value;
+            if (previous == e.Je) return;
+            Dirty();
+            QueueFragment(At);
+            Invalidate();
+            if (At != null && IsHandleCreated) NotifyAccessibility(AccessibleEvents.Reorder);
         }
 
         private Bx[] BoxSnapshot()

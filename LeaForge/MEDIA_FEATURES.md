@@ -33,6 +33,8 @@ Lea accepts `screen` and `all` queries containing:
   values; its boolean form is active only for reduce
 - boolean `prefers-contrast` plus exact `no-preference`, `less`, `more`, and
   `custom` values; its boolean form is inactive only for no-preference
+- boolean `scripting` plus exact `none`, `initial-only`, and `enabled` values;
+  Lea reports none or enabled, so initial-only is valid but stays inactive
 - feature-first, value-first, and ascending/descending comparison ranges for
   width, height, aspect ratio, and resolution
 - `and` conjunctions and comma alternatives
@@ -56,7 +58,8 @@ strict-boundary behavior are in `MEDIA_RANGE_SYNTAX.md`.
 
 Active CSS diagnostics retain `@m` for width and add `@h` for height, `@o`
 for orientation, `@d` for normalized resolution, `@t` for theme, `@rm`
-for reduced motion, and `@pc` for preferred contrast. For example:
+for reduced motion, `@pc` for preferred contrast, and `@je` for scripting. For
+example:
 
 ```text
 @m>=800&@h<=500&@o=l
@@ -64,6 +67,7 @@ for reduced motion, and `@pc` for preferred contrast. For example:
 @m>=800&@t=d
 @m>=800&@rm=r
 @m>=800&@pc=m
+@m>=800&@je=e
 ```
 
 Changing either viewport dimension recompiles no CSS. Lea selects from the
@@ -78,6 +82,8 @@ Reduced-motion syntax, boolean semantics, and host behavior are documented in
 `MEDIA_REDUCED_MOTION.md`.
 Preferred-contrast syntax, boolean semantics, and host behavior are documented
 in `MEDIA_CONTRAST.md`.
+Scripting syntax, `Je` state changes, and execution boundaries are documented
+in `MEDIA_SCRIPTING.md`.
 
 Coverage lives in `test-pages/media-features.html`, the focused
 `Lea.Tests --media-features` mode, the compatibility benchmark, and the

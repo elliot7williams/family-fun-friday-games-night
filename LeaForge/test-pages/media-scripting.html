@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea scripting media queries</title>
+  <style>
+    html, body { margin: 0; padding: 0; background: white; color: black; font-family: Arial; }
+    .probe { display: none; width: 96px; height: 24px; margin: 4px; }
+    #base { display: block; background: #e2e8f0; }
+    #responsive { display: block; width: 250px; height: 40px; margin: 8px; background: #111827; color: #f9fafb; }
+    input { display: block; width: 249px; height: 30px; margin: 8px; }
+
+    @media (scripting) { #boolean { display: block; width: 101px; } }
+    @media (scripting: enabled) {
+      #enabled { display: block; width: 201px; }
+      #responsive { width: 250px; background: #111827; color: #f9fafb; }
+    }
+    @media screen and (min-width: 700px) and (scripting: enabled) {
+      #enabled-combined { display: block; width: 202px; }
+    }
+    @media (scripting: none), (max-width: 800px) {
+      #alternative { display: block; width: 203px; }
+    }
+
+    @media (scripting: none) {
+      #none { display: block; width: 211px; }
+      #responsive { width: 190px; background: #e0f2fe; color: #0c4a6e; }
+      input { width: 189px; }
+    }
+    @media (scripting: initial-only) { #initial-only { display: block; width: 221px; } }
+    @media (min-width: 700px) {
+      @media (scripting: enabled) { #enabled-nested { display: block; width: 204px; } }
+    }
+    @media (scripting) {
+      @media (scripting: enabled) { #boolean-enabled { display: block; width: 205px; } }
+      @media (scripting: none) { #boolean-conflict { display: block; } }
+    }
+    @media (scripting: none) {
+      @media (scripting: enabled) { #exact-conflict { display: block; } }
+    }
+
+    @media (scripting: available) { #invalid-value { display: block; } }
+    @media (scripting >= enabled) { #invalid-range { display: block; } }
+    @media (scripting: enabled) trailing { #invalid-trailing { display: block; } }
+  </style>
+  <style media="(scripting: none)">
+    #style-none { display: block; width: 212px; }
+  </style>
+</head>
+<body>
+  <p id="base" class="probe">Base</p>
+  <p id="boolean" class="probe">Boolean scripting</p>
+  <p id="enabled" class="probe">Scripting enabled</p>
+  <p id="enabled-combined" class="probe">Enabled and wide</p>
+  <p id="alternative" class="probe">No scripting or narrow</p>
+  <p id="none" class="probe">Scripting disabled</p>
+  <p id="initial-only" class="probe">Initial-only scripting</p>
+  <p id="enabled-nested" class="probe">Nested enabled scripting</p>
+  <p id="boolean-enabled" class="probe">Boolean and enabled scripting</p>
+  <p id="style-none" class="probe">Disabled scripting style media</p>
+  <p id="boolean-conflict" class="probe">Boolean none conflict</p>
+  <p id="exact-conflict" class="probe">Conflicting scripting modes</p>
+  <p id="invalid-value" class="probe">Unknown scripting mode</p>
+  <p id="invalid-range" class="probe">Invalid scripting range</p>
+  <p id="invalid-trailing" class="probe">Trailing media text</p>
+  <p id="responsive">Scripting media paint</p>
+  <input id="field" value="Retained scripting media value">
+</body>
+</html>

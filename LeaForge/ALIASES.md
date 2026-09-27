@@ -52,6 +52,11 @@ read and quick to write.
   more, and `c` custom. `E.Pc` defaults to no preference, `P.Pc` stores the
   applied value, and `G.Pc` reports it. WinForms `V` maps Windows High Contrast
   to custom until a host sets an explicit value. See `MEDIA_CONTRAST.md`.
+- `Je` is the scripting permission and media state. `true` means enabled and
+  `false` means none. `E.Je` defaults to true, `P.Je` stores the applied state,
+  and `G.Je` reports it. Lea recognizes `scripting: initial-only` but never
+  selects it because the engine has no one-shot script mode. See
+  `MEDIA_SCRIPTING.md`.
 - Page commands use one or two letters where practical: `t`, `a`, `bg`, `fg`, `fs`, `dp`, `wd`, `ht`, `dr`, `ti`, `tw`, `twm`, `tws`, `ta`, `taa`, `tl`, `lc`, `ls`, `lst`, `lp`, `li`, `ms`, `be`, `af`, `ts`, `td`, `uo`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`; text-decoration components and logical edge families stay within three letters.
 - New public aliases should be no more than three letters.
 - `E/V.Hm` reports the 4 MiB document-body ceiling; `E/V.Csm` reports the
@@ -83,7 +88,7 @@ The aliases are the small public language of Lea. The readable internal classes
 are the implementation underneath it.
 
 Lea's first script bridge is allow-listed rather than a general JavaScript VM.
-`E.Je` and `V.Je` enable page commands, while `E.Js(page, code)` and
+`E.Je` and `V.Je` enable page commands and drive scripting media queries, while `E.Js(page, code)` and
 `V.Js(code)` run a bounded host-provided command string. `P.Jc` counts accepted
 commands and `P.Ms` holds bounded alert messages. `V.Al` fires once for each new
 message and `V.Am` exposes the current message. Supported page commands are:

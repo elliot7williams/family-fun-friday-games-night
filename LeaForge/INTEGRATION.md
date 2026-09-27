@@ -748,21 +748,23 @@ descendant focus without replacing fields. Empty or malformed lists, nested
 selector-list functions, pseudo-elements, oversized chains, and excess work
 are rejected rather than entering an unbounded tree search.
 
-Responsive styles use `E.Vw/Vh/Dp/Th/Rm/Pc`, `P.Vw/Vh/Dp/Th/Rm/Pc`,
-`V.Vw/Vh/Dp/Th/Rm/Pc`, and `G.Vw/Vh/Dp/Th/Rm/Pc`. A
+Responsive styles use `E.Vw/Vh/Dp/Th/Rm/Pc/Je`, `P.Vw/Vh/Dp/Th/Rm/Pc/Je`,
+`V.Vw/Vh/Dp/Th/Rm/Pc/Je`, and `G.Vw/Vh/Dp/Th/Rm/Pc/Je`. A
 headless host can set either engine dimension or call compact
 `E.Vz(width, height)` to apply one atomic viewport update. The WinForms view
 forwards its client pair, live monitor DPI, Windows application theme, and
 client-area animation and high-contrast preferences and rebuilds only when a
 media boundary changes. A host may set `V.Dp`, `V.Th`, `V.Rm`, or `V.Pc`
-explicitly to override automatic platform tracking.
+explicitly to override automatic platform tracking, and may set `V.Je` to
+enable or disable Lea's bounded scripting layer.
 Existing `Fi` objects and mutable values survive that rebuild. The bounded
 compiler accepts `screen`/`all` with pixel min/max/exact width and height,
 portrait/landscape orientation, bounded reduced integer min/max/exact aspect
 ratios, `dpi`/`dppx`/`dpcm` resolution, light/dark `prefers-color-scheme`,
 no-preference/reduce `prefers-reduced-motion`, no-preference/less/more/custom
-`prefers-contrast`, and strict/inclusive feature-first,
-value-first, or same-direction chained comparisons. These compose with conjunctions, comma alternatives,
+`prefers-contrast`, none/initial-only/enabled `scripting`, and strict/inclusive
+feature-first, value-first, or same-direction chained comparisons. These
+compose with conjunctions, comma alternatives,
 nested `@media`, and `<style media>`. Dimensions and ratio terms clamp to
 1-8,192; a square is portrait; query alternatives, nesting, and total rules are
 capped at 8, 4, and 1,024. Unsupported media stays inactive instead of silently
@@ -776,6 +778,8 @@ Reduced-motion aliases, Windows behavior, boolean semantics, and limits are in
 Preferred-contrast aliases, Windows behavior, boolean semantics, and limits are
 in `MEDIA_CONTRAST.md`. Lea does not advertise `forced-colors: active` because
 it does not yet enforce a system color palette.
+Scripting media syntax, `Je` rebuild behavior, and the inactive initial-only
+boundary are in `MEDIA_SCRIPTING.md`.
 
 `@supports` is also engine-owned. The compiler recognizes a bounded set of
 declaration families through their real Lea value parsers and checks one
@@ -969,9 +973,12 @@ local datetime join the existing checks and CSS validity state. Uploads are
 bounded to eight files, 4 MB each and 8 MB combined.
 
 The first script boundary is an allow-listed command layer, not a general
-JavaScript runtime. `E.Je`/`V.Je` enable it and `E.Js(page, code)`/`V.Js(code)`
-provide the compact host bridge. Pages expose accepted-command count through
-`P.Jc` and bounded alert messages through `P.Ms`. The WinForms view raises `Al`
+JavaScript runtime. `E.Je`/`V.Je` enable it and drive boolean or exact
+`scripting` media queries; `P.Je/G.Je` expose the applied state.
+`E.Js(page, code)`/`V.Js(code)` provide the compact host bridge. Changing `Je`
+reselects compiled CSS without rerunning skipped inline commands. Pages expose
+accepted-command count through `P.Jc` and bounded alert messages through
+`P.Ms`. The WinForms view raises `Al`
 for each new message and exposes it through `Am`; it never lets page code open a
 native dialog directly. Inline scripts may set the title, body background,
 foreground, font size, direction, and text indentation using

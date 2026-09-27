@@ -349,18 +349,17 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 128 adds bounded CSS `prefers-contrast` media queries with compact
-`E/P/G/V.Pc` aliases. `n`, `l`, `m`, and `c` select no-preference, less, more,
-and custom. Headless Lea defaults deterministically to no-preference, while
-WinForms views map Windows High Contrast to custom until a host sets an
-explicit value. Boolean contrast queries are inactive for no-preference and
-active for less, more, or custom. Exact values, width intersections,
-alternatives, nested media, style media, compact diagnostics, responsive
-paint, and retained fields share the compiled media path. See
-`MEDIA_CONTRAST.md`. All 124 probes pass over 119 fixtures; focused and full
-source/staged suites, the compiled Firespider host, all 42 Boot cases, and all
-six real EXE startup scenarios pass. Runtime 228 is packaged separately and
-installed runtime 157 remains unchanged.
+Milestone 129 adds bounded CSS `scripting` media queries through the existing
+compact `E/P/G/V.Je` permission aliases. True selects enabled and false selects
+none; Lea recognizes initial-only syntax but never reports it because the
+engine has no one-shot script mode. Boolean scripting queries are inactive for
+none and active for enabled. Exact values, width intersections, alternatives,
+nested media, style media, compact diagnostics, responsive paint, and retained
+fields share the compiled media path. Changing `Je` does not rerun skipped
+inline commands. See `MEDIA_SCRIPTING.md`. All 125 probes pass over 120
+fixtures; focused and full source/staged suites, the compiled Firespider host,
+all 42 Boot cases, and all six real EXE startup scenarios pass. Runtime 229 is
+packaged separately and installed runtime 157 remains unchanged.
 Next investigate another bounded compatibility slice. Keep device ratios,
 container and style queries, `font-tech()`/`font-format()`, general-enclosed
 conditions, JavaScript `CSS.supports()`, locale-sensitive automatic quote selection,
