@@ -36,6 +36,13 @@ bytes, and the worker Job lifetime peak, then adds the structural preflight
 reservation with saturating arithmetic. Over-limit or unavailable samples fail
 closed, release the bitmap reservation, and terminate the helper.
 
+Milestone 130 / runtime 230 keeps that isolation available when the browser is
+run from FAT32 or another filesystem without persistent ACLs. Lea hashes the
+bounded helper, copies only those verified bytes to a content-addressed per-user
+cache on an ACL-capable local volume, re-verifies the cached copy before reuse,
+and launches the same zero-capability AppContainer from there. The source path
+reported by `Ie` does not change, and there is no unrestricted fallback.
+
 ## Compact API
 
 ```csharp
@@ -67,7 +74,11 @@ bool memoryAdmitted = view.Iad;
 `Ie` is the image-helper executable path. It defaults to `Lea.Image.exe` beside
 the application or `Lea.Win.dll`; a host may set an explicit full path before
 navigation. `Ii` reports whether that file currently exists. Missing helpers
-produce a normal failed-image placeholder and do not fail the document.
+produce a normal failed-image placeholder and do not fail the document. When
+that path is on a volume without persistent ACLs, the launcher stages a
+SHA-256-addressed copy under the current user's local application-data folder.
+The source is capped at 16 MiB and both the copied bytes and reused local copy
+must match the source digest before the AppContainer ACL is applied.
 
 `Iw` is the process ID used by the view's most recent admitted decode request.
 It remains available after the request for diagnostics. `Ik` counts helpers
@@ -146,6 +157,9 @@ file, directory tree, network, or package capability is granted. Windows builds
 the restricted low-integrity child token; while the process is still suspended,
 Lea queries that actual token and requires the exact AppContainer identity,
 zero capabilities, low integrity, and at most the traversal privilege enabled.
+For a non-ACL source volume, the configured helper at launch time is the
+verified content-addressed local copy; no directory tree or source volume is
+granted to the AppContainer.
 The same startup request enables DEP, SEHOP, heap-corruption termination, forced
 relocation, bottom-up ASLR, and architecture-supported high-entropy ASLR. The
 helper is created hidden and suspended with `CreateProcessAsUser`, and Windows'
@@ -244,13 +258,19 @@ the reservation, and observe termination of the exact helper. Current full-suite
 measurements are recorded in `PROGRESS.md` and
 `COMPATIBILITY_PERFORMANCE.md`.
 
+Runtime 230 also runs the compiled load lifecycle directly from a FAT32 release
+stage. That probe exercises non-ACL detection, verified local helper caching,
+the AppContainer handshake, bounded image response, and normal page completion.
+
 ## Remaining Limits
 
 The helper is now a zero-capability AppContainer, but it is not a complete
 operating-system or codec sandbox. Its deterministic per-user profile persists
 after browser exit, and Windows/system paths available to AppContainers remain
 available. The helper-file ACE is intentionally retained so later launches do
-not need broader directory access. Lea has not enabled the `internetClient`,
+not need broader directory access. Content-addressed helper copies from non-ACL
+volumes also remain in the per-user local cache; each is bounded to 16 MiB and
+is re-verified before reuse. Lea has not enabled the `internetClient`,
 private-network, documents, pictures, music, videos, or broad-filesystem
 capabilities. `It/Im` remain explicit bitmap reservations while `Icl/Ihm/Icm/Iad`
 add the combined admission boundary. The combined signal is conservative point

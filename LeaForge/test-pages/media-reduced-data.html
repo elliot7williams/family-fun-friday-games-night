@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea preferred reduced data media queries</title>
+  <style>
+    html, body { margin: 0; padding: 0; background: white; color: black; font-family: Arial; }
+    .probe { display: none; width: 96px; height: 24px; margin: 4px; }
+    #base { display: block; background: #e2e8f0; }
+    #responsive { display: block; width: 187px; height: 40px; margin: 8px; background: #fef3c7; color: #78350f; }
+    input { display: block; width: 186px; height: 30px; margin: 8px; }
+
+    @media (prefers-reduced-data) { #boolean { display: block; width: 101px; } }
+    @media (prefers-reduced-data: no-preference) {
+      #no-preference { display: block; width: 102px; }
+      #responsive { width: 187px; background: #fef3c7; color: #78350f; }
+    }
+    @media screen and (min-width: 700px) and (prefers-reduced-data: no-preference) {
+      #no-preference-combined { display: block; width: 103px; }
+    }
+    @media (prefers-reduced-data: reduce), (max-width: 800px) {
+      #alternative { display: block; width: 104px; }
+    }
+
+    @media (prefers-reduced-data: reduce) {
+      #reduce { display: block; width: 205px; }
+      #responsive { width: 247px; background: #0f766e; color: #f0fdfa; }
+      input { width: 246px; }
+    }
+    @media (min-width: 700px) {
+      @media (prefers-reduced-data: reduce) {
+        #reduce-nested { display: block; width: 206px; }
+      }
+    }
+    @media (prefers-reduced-data: no-preference) {
+      @media (prefers-reduced-data: reduce) { #conflict { display: block; } }
+    }
+
+    @media (prefers-reduced-data: less) { #invalid-value { display: block; } }
+    @media (prefers-reduced-data >= reduce) { #invalid-range { display: block; } }
+    @media (prefers-reduced-data: reduce) trailing { #invalid-trailing { display: block; } }
+  </style>
+  <style media="(prefers-reduced-data: reduce)">
+    #style-reduce { display: block; width: 207px; }
+  </style>
+</head>
+<body>
+  <p id="base" class="probe">Base</p>
+  <p id="boolean" class="probe">Boolean reduced data</p>
+  <p id="no-preference" class="probe">No data preference</p>
+  <p id="no-preference-combined" class="probe">No preference and wide</p>
+  <p id="alternative" class="probe">Reduce or narrow</p>
+  <p id="reduce" class="probe">Reduced data</p>
+  <p id="reduce-nested" class="probe">Nested reduced data</p>
+  <p id="style-reduce" class="probe">Reduced data style media</p>
+  <p id="conflict" class="probe">Conflicting data preferences</p>
+  <p id="invalid-value" class="probe">Unknown data preference</p>
+  <p id="invalid-range" class="probe">Invalid discrete range</p>
+  <p id="invalid-trailing" class="probe">Trailing media text</p>
+  <p id="responsive">Reduced data paint</p>
+  <input id="field" value="Retained reduced data value">
+</body>
+</html>

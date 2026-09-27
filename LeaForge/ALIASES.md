@@ -48,6 +48,10 @@ read and quick to write.
   reduce. `E.Rm` defaults to no preference, `P.Rm` stores the applied value,
   and `G.Rm` reports it. WinForms `V` samples Windows client-area animation
   policy until a host sets an explicit value. See `MEDIA_REDUCED_MOTION.md`.
+- `Pdt` is the reduced-data preference. `n` means no preference and `r` means
+  reduce. `E.Pdt` defaults to no preference, while `P.Pdt` and `G.Pdt` expose
+  the applied value. `V.Pdt` is explicitly host-controlled and does not infer
+  network policy or change resource loading. See `MEDIA_REDUCED_DATA.md`.
 - `Pc` is the preferred-contrast state. `n` means no preference, `l` less, `m`
   more, and `c` custom. `E.Pc` defaults to no preference, `P.Pc` stores the
   applied value, and `G.Pc` reports it. WinForms `V` maps Windows High Contrast

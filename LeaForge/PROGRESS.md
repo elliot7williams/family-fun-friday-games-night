@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **129**
+Post-1.0 hardening milestones completed: **130**
 
 Broader lightweight-browser readiness: **about 65%**. This is a practical
 project estimate, not a standards conformance score. Full Chrome/Safari-class
@@ -33,6 +33,29 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded CSS `prefers-reduced-data` media queries with compact
+  `E/P/G/V.Pdt` aliases. `n` selects no-preference and `r` selects reduce;
+  headless and WinForms hosts default deterministically to no-preference and
+  change the state explicitly rather than inferring a connection policy.
+  Boolean queries are active only for reduce. Exact values, width
+  intersections, alternatives, nested media, and style media share the
+  compiled path; conflicting and unsupported conditions stay inactive. Live
+  changes retain mutable fields and expose compact `@pdt=n/r` diagnostics.
+  This selector does not add `Save-Data`, cancel resources, or automatically
+  choose smaller assets. Runtime 230 also detects non-ACL filesystems such as
+  FAT32 and SHA-256 stages only the bounded image helper in a verified
+  content-addressed local cache, preserving the zero-capability AppContainer
+  instead of falling back to an unrestricted decoder. Focused and full
+  source/staged suites plus the final
+  compiled Firespider host pass. All 42 Boot cases and all six real EXE startup
+  scenarios remain responsive without MSHTML, an invalid cast, JIT dialog, or
+  dead startup window. All 126 benchmark probes pass over 121 fixtures.
+  Three-round diagnostic medians are 591.221 ms clean start, 6.799 ms local
+  load, and 36.196 ms layout/paint. Retained managed memory is 33,405.4 KiB for
+  484 pages, or 69.0 KiB/page. Required runtime files are 686.5 KiB with a
+  283.3 KiB GZip estimate. Runtime 230 is packaged separately and installed
+  runtime 157 remains unchanged. See `MEDIA_REDUCED_DATA.md`.
 
 - Added bounded CSS `scripting` media queries through the existing compact
   `E/P/G/V.Je` permission aliases. Lea defaults to enabled; false selects none,

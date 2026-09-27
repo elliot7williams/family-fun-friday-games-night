@@ -17,18 +17,21 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 129 adds bounded CSS `scripting` media queries through the existing
-compact `E/P/G/V.Je` permission aliases. True selects enabled and false selects
-none; initial-only syntax is valid but never selected because Lea has no
-one-shot script mode. Boolean, exact, nested/intersected rules, diagnostics,
-responsive geometry/paint, and retained fields stay on Lea's compiled media
-path. All 125 benchmark probes pass over 120 fixtures. Focused and full
+Milestone 130 adds bounded CSS `prefers-reduced-data` media queries through
+compact `E/P/G/V.Pdt` aliases. `n` selects no-preference and `r` selects reduce;
+the boolean form is active only for reduce. Boolean, exact,
+nested/intersected rules, diagnostics, responsive geometry/paint, and retained
+fields stay on Lea's compiled media path. Hosts control the preference
+explicitly; it does not add `Save-Data`, cancel resources, or infer connection
+policy. All 126 benchmark probes pass over 121 fixtures. Focused and full
 source/staged suites, the compiled Firespider host, all 42 Boot cases, and all
 six real EXE startup scenarios are green. Three-round diagnostic medians are
-583.675 ms clean start, 7.046 ms local load, and 37.360 ms layout/paint;
-retained memory is 69.3 KiB/page and the required runtime is 666.5 KiB.
-Runtime 229 is packaged separately and installed runtime 157 remains unchanged.
-See `MEDIA_SCRIPTING.md`.
+591.221 ms clean start, 6.799 ms local load, and 36.196 ms layout/paint;
+retained memory is 69.0 KiB/page and the required runtime is 686.5 KiB.
+Runtime 230 is packaged separately and installed runtime 157 remains unchanged.
+The release also preserves AppContainer image isolation on FAT32/non-ACL source
+volumes by verifying and staging only the bounded helper in a content-addressed
+local cache. See `MEDIA_REDUCED_DATA.md` and `IMAGE_ISOLATION.md`.
 Container/style queries,
 `font-tech()`/`font-format()`,
 general-enclosed conditions, JavaScript `CSS.supports()`, locale-sensitive

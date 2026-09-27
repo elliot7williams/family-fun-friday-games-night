@@ -31,6 +31,8 @@ Lea accepts `screen` and `all` queries containing:
 - boolean `prefers-color-scheme` plus exact `light` and `dark` values
 - boolean `prefers-reduced-motion` plus exact `no-preference` and `reduce`
   values; its boolean form is active only for reduce
+- boolean `prefers-reduced-data` plus exact `no-preference` and `reduce`
+  values; its boolean form is active only for reduce
 - boolean `prefers-contrast` plus exact `no-preference`, `less`, `more`, and
   `custom` values; its boolean form is inactive only for no-preference
 - boolean `scripting` plus exact `none`, `initial-only`, and `enabled` values;
@@ -58,14 +60,15 @@ strict-boundary behavior are in `MEDIA_RANGE_SYNTAX.md`.
 
 Active CSS diagnostics retain `@m` for width and add `@h` for height, `@o`
 for orientation, `@d` for normalized resolution, `@t` for theme, `@rm`
-for reduced motion, `@pc` for preferred contrast, and `@je` for scripting. For
-example:
+for reduced motion, `@pdt` for reduced data, `@pc` for preferred contrast, and
+`@je` for scripting. For example:
 
 ```text
 @m>=800&@h<=500&@o=l
 @m>=800&@d>=192dpi
 @m>=800&@t=d
 @m>=800&@rm=r
+@m>=800&@pdt=r
 @m>=800&@pc=m
 @m>=800&@je=e
 ```
@@ -80,6 +83,8 @@ Preferred color-scheme syntax and host theme behavior are documented in
 `MEDIA_COLOR_SCHEME.md`.
 Reduced-motion syntax, boolean semantics, and host behavior are documented in
 `MEDIA_REDUCED_MOTION.md`.
+Reduced-data syntax, explicit host control, and resource boundaries are
+documented in `MEDIA_REDUCED_DATA.md`.
 Preferred-contrast syntax, boolean semantics, and host behavior are documented
 in `MEDIA_CONTRAST.md`.
 Scripting syntax, `Je` state changes, and execution boundaries are documented

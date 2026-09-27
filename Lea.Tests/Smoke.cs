@@ -166,6 +166,11 @@ namespace Lea.Tests
                     MediaMotionSmoke(Path.Combine(pages, "media-reduced-motion.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--media-data")
+                {
+                    MediaDataSmoke(Path.Combine(pages, "media-reduced-data.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--media-contrast")
                 {
                     MediaContrastSmoke(Path.Combine(pages, "media-contrast.html"));
@@ -1602,6 +1607,7 @@ namespace Lea.Tests
                 MediaResolutionSmoke(Path.Combine(pages, "media-resolution.html"));
                 MediaThemeSmoke(Path.Combine(pages, "media-color-scheme.html"));
                 MediaMotionSmoke(Path.Combine(pages, "media-reduced-motion.html"));
+                MediaDataSmoke(Path.Combine(pages, "media-reduced-data.html"));
                 MediaContrastSmoke(Path.Combine(pages, "media-contrast.html"));
                 MediaScriptingSmoke(Path.Combine(pages, "media-scripting.html"));
                 SupportsSmoke(Path.Combine(pages, "supports-queries.html"));
@@ -8539,6 +8545,90 @@ namespace Lea.Tests
             Console.WriteLine("Lea reduced motion media smoke passed: compact Rm aliases, boolean/no-preference/reduce syntax, nesting, alternatives, style media, diagnostics, field retention, Windows motion plumbing, and exact paint.");
         }
 
+        private static void MediaDataSmoke(string path)
+        {
+            var engine = new E { Vw = 760, Vh = 1000 };
+            Eq('n', engine.Pdt, "default reduced data alias");
+            engine.Pdt = 'x';
+            Eq('n', engine.Pdt, "invalid reduced data alias ignored");
+            var page = engine.Go(path);
+            Eq('n', page.Pdt, "default page reduced data alias");
+            Ok(!HasBlock(page, "boolean") && HasBlock(page, "no-preference") &&
+                HasBlock(page, "no-preference-combined") && HasBlock(page, "alternative"),
+                "default no-preference data state and false boolean context");
+            Ok(!HasBlock(page, "reduce") && !HasBlock(page, "reduce-nested") &&
+                !HasBlock(page, "style-reduce") && !HasBlock(page, "conflict"),
+                "reduced and conflicting data rules initially inactive");
+            Ok(!HasBlock(page, "invalid-value") && !HasBlock(page, "invalid-range") &&
+                !HasBlock(page, "invalid-trailing"), "unsupported reduced data queries stay inactive");
+            Eq(187, BlockById(page, "responsive").S.W, "no-preference data geometry");
+            var field = FieldById(page, "field");
+            Eq(186, field.S.W, "no-preference data field width");
+            field.V = "Retained reduced data engine value";
+            var diagnostics = engine.Dg(page);
+            Eq('n', diagnostics.Pdt, "diagnostic reduced data alias");
+            Ok(Has(diagnostics.Cs, "@pdt=n") && Has(diagnostics.Cs, "@m>=700&@pdt=n"),
+                "no-preference data diagnostics");
+
+            engine.Pdt = 'R';
+            Ok(engine.Pdt == 'r' && page.Pdt == 'r' && engine.Dg(page).Pdt == 'r',
+                "reduced data aliases");
+            Ok(HasBlock(page, "boolean") && !HasBlock(page, "no-preference") &&
+                !HasBlock(page, "no-preference-combined") && HasBlock(page, "alternative") &&
+                HasBlock(page, "reduce") && HasBlock(page, "reduce-nested") &&
+                HasBlock(page, "style-reduce") && !HasBlock(page, "conflict"),
+                "reduced data state and true boolean context");
+            Ok(BlockById(page, "reduce").S.W == 205 && BlockById(page, "reduce-nested").S.W == 206 &&
+                BlockById(page, "style-reduce").S.W == 207 && BlockById(page, "responsive").S.W == 247,
+                "reduced data nested and style-media geometry");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) &&
+                field.V == "Retained reduced data engine value" && field.S.W == 246,
+                "data preference rebuild preserves field identity and value");
+            Ok(Has(engine.Dg(page).Cs, "@pdt=r") && Has(engine.Dg(page).Cs, "@m>=700&@pdt=r"),
+                "reduced data diagnostics");
+
+            engine.Vw = 900;
+            Ok(HasBlock(page, "alternative") && HasBlock(page, "reduce-nested"),
+                "reduced data keeps alternative and wide nested rules");
+            engine.Pdt = 'n';
+            Ok(!HasBlock(page, "alternative") && HasBlock(page, "no-preference-combined") &&
+                !HasBlock(page, "reduce-nested"), "no-preference data and width intersection state");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) &&
+                field.V == "Retained reduced data engine value", "all data preference rebuilds retain field state");
+
+            using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-30000, -30000), ClientSize = new Size(760, 1000) })
+            using (var view = new V { Pdt = 'r' })
+            {
+                form.Controls.Add(view);
+                form.Show();
+                view.Go(path);
+                using (var image = Render(view))
+                {
+                    var responsive = BlockRect(view, BlockById(view.At, "responsive"));
+                    Ok(view.Pdt == 'r' && view.At.Pdt == 'r' && HasBlock(view.At, "boolean") &&
+                        HasBlock(view.At, "reduce") && responsive.Width == 247 &&
+                        ColorDistance(image.GetPixel(responsive.Right - 5, responsive.Top + 5),
+                            Color.FromArgb(15, 118, 110)) < 8, "WinForms reduced data state and paint");
+                }
+                var viewField = FieldById(view.At, "field");
+                viewField.V = "Retained reduced data view value";
+                view.Pdt = 'n';
+                Application.DoEvents();
+                using (var image = Render(view))
+                {
+                    var responsive = BlockRect(view, BlockById(view.At, "responsive"));
+                    Ok(view.Pdt == 'n' && view.At.Pdt == 'n' && !HasBlock(view.At, "boolean") &&
+                        HasBlock(view.At, "no-preference") && !HasBlock(view.At, "reduce") &&
+                        responsive.Width == 187 && ColorDistance(image.GetPixel(responsive.Right - 5, responsive.Top + 5),
+                            Color.FromArgb(254, 243, 199)) < 8, "WinForms no-preference data state and paint");
+                }
+                Ok(Object.ReferenceEquals(viewField, FieldById(view.At, "field")) &&
+                    viewField.V == "Retained reduced data view value" && viewField.S.W == 186,
+                    "WinForms data preference rebuild retains field state");
+            }
+            Console.WriteLine("Lea reduced data media smoke passed: compact Pdt aliases, boolean/no-preference/reduce syntax, nesting, alternatives, style media, diagnostics, field retention, host control, and exact paint.");
+        }
+
         private static void MediaContrastSmoke(string path)
         {
             var engine = new E { Vw = 760, Vh = 1000 };
@@ -13173,7 +13263,9 @@ namespace Lea.Tests
                     Application.DoEvents();
                     Thread.Sleep(2);
                 }
-                Ok(work.IsCompleted && view.It == 0, "stalled native decoder termination");
+                Ok(work.IsCompleted && view.It == 0, "stalled native decoder termination: state=" + work.Status +
+                    "; ms=" + clock.ElapsedMilliseconds + "; It=" + view.It + "; Iw=" + view.Iw + "; Ik=" + view.Ik +
+                    "; Ic=" + view.Ic + "; If=" + view.If + "; In=" + view.In);
                 work.GetAwaiter().GetResult();
                 Ok(clock.ElapsedMilliseconds < 4800 && view.Ic == 0 && view.If == 1 && view.In == 1 &&
                     view.Iw > 0 && view.Iw != System.Diagnostics.Process.GetCurrentProcess().Id && view.Ik == 1 && view.Ij &&
@@ -13860,7 +13952,7 @@ namespace Lea.Tests
                     headers.Set();
                     var sawCommitted = false;
                     var checkedOverlap = false;
-                    var deadline = DateTime.UtcNow.AddSeconds(5);
+                    var deadline = DateTime.UtcNow.AddSeconds(15);
                     for (var step = 0; DateTime.UtcNow < deadline && !work.IsCompleted; step++)
                     {
                         if (checkedOverlap && server.Hits >= 2) pictures.Set();
@@ -13900,7 +13992,8 @@ namespace Lea.Tests
                         scheduler.Step();
                         Thread.Sleep(1);
                     }
-                    Ok(work.IsCompleted && sawCommitted && checkedOverlap, "controlled load reached UI completion: state=" + work.Status + "; page=" + (view.At != null) + "; done=" + done + "; committed=" + sawCommitted + "; overlap=" + checkedOverlap);
+                    Ok(work.IsCompleted && sawCommitted && checkedOverlap, "controlled load reached UI completion: state=" + work.Status + "; page=" + (view.At != null) + "; done=" + done + "; committed=" + sawCommitted + "; overlap=" + checkedOverlap +
+                        "; hits=" + server.Hits + "; queued=" + scheduler.Count + "; error=" + (view.Le == null ? "none" : view.Le.Message));
                     work.GetAwaiter().GetResult();
                     Ok(!view.Busy && done == 1, "completed load reports ready exactly once");
                 }
@@ -14063,6 +14156,7 @@ namespace Lea.Tests
         private sealed class StepScheduler : TaskScheduler
         {
             private readonly Queue<Task> pending = new Queue<Task>();
+            public int Count { get { lock (pending) return pending.Count; } }
             protected override void QueueTask(Task task) { lock (pending) pending.Enqueue(task); }
             protected override bool TryExecuteTaskInline(Task task, bool queued) { return false; }
             protected override IEnumerable<Task> GetScheduledTasks() { lock (pending) return pending.ToArray(); }

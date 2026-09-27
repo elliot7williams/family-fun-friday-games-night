@@ -1192,7 +1192,7 @@ Partial Class j
             If(data.U Is Nothing, "", data.U.ToString()),
             "",
             "Response   " & data.St.ToString() & "  " & If(data.Ct, "") & "  " & data.Sz.ToString() & " bytes" & If(data.Ca, "  cache", ""),
-            "Document   " & data.N.ToString() & " nodes  " & data.B.ToString() & " blocks  " & host.Axs.Count.ToString() & " access  " & data.Vw.ToString() & "x" & data.Vh.ToString() & "px viewport  " & data.Dp.ToString() & "dpi  " & If(data.Th = "d"c, "dark", "light") & " theme  " & If(data.Rm = "r"c, "reduced", "normal") & " motion  " & If(data.Pc = "l"c, "less", If(data.Pc = "m"c, "more", If(data.Pc = "c"c, "custom", "normal"))) & " contrast  " & If(data.Je, "enabled", "disabled") & " scripting",
+            "Document   " & data.N.ToString() & " nodes  " & data.B.ToString() & " blocks  " & host.Axs.Count.ToString() & " access  " & data.Vw.ToString() & "x" & data.Vh.ToString() & "px viewport  " & data.Dp.ToString() & "dpi  " & If(data.Th = "d"c, "dark", "light") & " theme  " & If(data.Rm = "r"c, "reduced", "normal") & " motion  " & If(data.Pdt = "r"c, "reduced", "normal") & " data  " & If(data.Pc = "l"c, "less", If(data.Pc = "m"c, "more", If(data.Pc = "c"c, "custom", "normal"))) & " contrast  " & If(data.Je, "enabled", "disabled") & " scripting",
             "Content    " & data.L.ToString() & " links  " & data.F.ToString() & " fields  " & data.C.ToString() & " CSS rules  " & data.Vc.ToString() & " custom  " & data.Ic.ToString() & " important",
             "Commands   " & data.J.ToString() & " accepted  " & data.V.ToString() & " variables  " & data.M.ToString() & " alerts",
             "Engine     " & data.Cc.ToString() & " memory  " & data.Ch.ToString() & " reuses  " & data.Kc.ToString() & " cookies",

@@ -17,7 +17,8 @@ LeaForge is where we can grow the more full-featured browser.
   restricted low-integrity token, suspended Job prebinding, explicit inherited
   pipes, process mitigations, shared `Ip/Im/It/In/If` accounting, compact
   `Ie/Ii/Iw/Ik/Ij/Ih/Ipm/Irt/Ili/Isp/Ihl/Ias/Icp/Icr/Img/Ipk/Iac/Ind/Ial`
-  sandbox diagnostics, `Icl/Ihm/Icm/Iad` combined host/helper admission, and
+  sandbox diagnostics, verified content-addressed helper staging for FAT32 and
+  other non-ACL volumes, `Icl/Ihm/Icm/Iad` combined host/helper admission, and
   cross-view bitmap accounting; see `IMAGE_PREFLIGHT.md` and
   `IMAGE_ISOLATION.md`
 - exact URI-normalized cache identity with case-sensitive path/query resources,
@@ -138,13 +139,15 @@ LeaForge is where we can grow the more full-featured browser.
 - bounded responsive `screen`/`all` pixel width/height,
   portrait/landscape, integer aspect-ratio, `dpi`/`dppx`/`dpcm` resolution,
   light/dark `prefers-color-scheme`, and no-preference/reduce
-  `prefers-reduced-motion`, no-preference/less/more/custom `prefers-contrast`,
+  `prefers-reduced-motion`, no-preference/reduce `prefers-reduced-data`,
+  no-preference/less/more/custom `prefers-contrast`,
   and none/initial-only/enabled `scripting` media queries with strict/inclusive
   modern ranges,
-  compact `Vw/Vh/Vz/Dp/Th/Rm/Pc/Je` aliases, nested conditions, live WinForms
+  compact `Vw/Vh/Vz/Dp/Th/Rm/Pdt/Pc/Je` aliases, nested conditions, live WinForms
   viewport/DPI/preference updates, and retained fields; see
   `MEDIA_RANGE_SYNTAX.md`, `MEDIA_RESOLUTION.md`, `MEDIA_COLOR_SCHEME.md`,
-  `MEDIA_REDUCED_MOTION.md`, `MEDIA_CONTRAST.md`, and `MEDIA_SCRIPTING.md`
+  `MEDIA_REDUCED_MOTION.md`, `MEDIA_REDUCED_DATA.md`, `MEDIA_CONTRAST.md`, and
+  `MEDIA_SCRIPTING.md`
 - bounded CSS `@supports` declaration checks and `selector(...)` capability
   checks with grouped `not`/`and`/`or`, nested media, compact `@s` diagnostics,
   strict depth/term/text limits, and retained fields; see `SUPPORTS_QUERIES.md`

@@ -399,6 +399,13 @@ narrow, restored wide, diagnostics, and retained fields plus classic
 viewport-unit geometry and commands. See `LeaForge/MEDIA_FEATURES.md`,
 `LeaForge/MEDIA_ASPECT_RATIO.md`, and `LeaForge/MEDIA_RANGE_SYNTAX.md`.
 
+Preference media stays engine-owned too. Firespider can explicitly set
+`V.Pdt=n/r` to select no-preference or reduced-data CSS, while `P.Pdt` and
+`G.Pdt` expose the applied value to the page and Inspector. The host smoke
+verifies boolean and exact queries, diagnostics, retained fields, UI Automation
+geometry, and paint. This selector does not itself add `Save-Data`, cancel
+resources, or infer connection policy. See `LeaForge/MEDIA_REDUCED_DATA.md`.
+
 Bounded `@supports` feature queries remain inside the same engine surface.
 Declaration conditions reuse Lea's value parsers, `selector(...)` reuses its
 compiled selector grammar, and grouped `not`/`and`/`or` conditions can nest

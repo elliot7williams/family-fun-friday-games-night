@@ -748,21 +748,22 @@ descendant focus without replacing fields. Empty or malformed lists, nested
 selector-list functions, pseudo-elements, oversized chains, and excess work
 are rejected rather than entering an unbounded tree search.
 
-Responsive styles use `E.Vw/Vh/Dp/Th/Rm/Pc/Je`, `P.Vw/Vh/Dp/Th/Rm/Pc/Je`,
-`V.Vw/Vh/Dp/Th/Rm/Pc/Je`, and `G.Vw/Vh/Dp/Th/Rm/Pc/Je`. A
+Responsive styles use `E.Vw/Vh/Dp/Th/Rm/Pdt/Pc/Je`, `P.Vw/Vh/Dp/Th/Rm/Pdt/Pc/Je`,
+`V.Vw/Vh/Dp/Th/Rm/Pdt/Pc/Je`, and `G.Vw/Vh/Dp/Th/Rm/Pdt/Pc/Je`. A
 headless host can set either engine dimension or call compact
 `E.Vz(width, height)` to apply one atomic viewport update. The WinForms view
 forwards its client pair, live monitor DPI, Windows application theme, and
 client-area animation and high-contrast preferences and rebuilds only when a
 media boundary changes. A host may set `V.Dp`, `V.Th`, `V.Rm`, or `V.Pc`
-explicitly to override automatic platform tracking, and may set `V.Je` to
-enable or disable Lea's bounded scripting layer.
+explicitly to override automatic platform tracking, may set host-controlled
+`V.Pdt`, and may set `V.Je` to enable or disable Lea's bounded scripting layer.
 Existing `Fi` objects and mutable values survive that rebuild. The bounded
 compiler accepts `screen`/`all` with pixel min/max/exact width and height,
 portrait/landscape orientation, bounded reduced integer min/max/exact aspect
 ratios, `dpi`/`dppx`/`dpcm` resolution, light/dark `prefers-color-scheme`,
-no-preference/reduce `prefers-reduced-motion`, no-preference/less/more/custom
-`prefers-contrast`, none/initial-only/enabled `scripting`, and strict/inclusive
+no-preference/reduce `prefers-reduced-motion`, no-preference/reduce
+`prefers-reduced-data`, no-preference/less/more/custom `prefers-contrast`,
+none/initial-only/enabled `scripting`, and strict/inclusive
 feature-first, value-first, or same-direction chained comparisons. These
 compose with conjunctions, comma alternatives,
 nested `@media`, and `<style media>`. Dimensions and ratio terms clamp to
@@ -775,6 +776,8 @@ Preferred-theme aliases, Windows behavior, diagnostics, and limits are in
 `MEDIA_COLOR_SCHEME.md`.
 Reduced-motion aliases, Windows behavior, boolean semantics, and limits are in
 `MEDIA_REDUCED_MOTION.md`.
+Reduced-data aliases, explicit host behavior, boolean semantics, and resource
+boundaries are in `MEDIA_REDUCED_DATA.md`.
 Preferred-contrast aliases, Windows behavior, boolean semantics, and limits are
 in `MEDIA_CONTRAST.md`. Lea does not advertise `forced-colors: active` because
 it does not yet enforce a system color palette.
@@ -927,7 +930,10 @@ helper mitigation handshake mask and `Ipk` is the Job's peak process-memory
 value. `Iac/Ind/Ial` confirm a deterministic AppContainer token, zero
 capabilities including no network capability, and an identity-scoped
 read/execute ACE on only the helper executable. Lea creates or reuses the
-per-user profile on first native decode. If profile creation, ACL installation,
+per-user profile on first native decode. If the browser is running from FAT32
+or another volume without persistent ACLs, Lea SHA-256 verifies and stages only
+the bounded helper in a content-addressed per-user local cache, then applies the
+same executable-only ACE there. If staging, profile creation, ACL installation,
 token inspection, or any existing Job/mitigation gate fails, the image fails
 closed without an unrestricted fallback. `Icl` configures a 128 MiB-1 GiB
 combined host/helper ceiling (384 MiB default). `Ihm/Icm/Iad` report the host

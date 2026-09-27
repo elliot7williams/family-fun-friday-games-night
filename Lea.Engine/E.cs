@@ -142,6 +142,7 @@ namespace Lea.Engine
         private char th = 'l';
         private char rm = 'n';
         private char pc = 'n';
+        private char pdt = 'n';
         private bool je = true;
         private Stream download;
         private bool stopped;
@@ -205,6 +206,17 @@ namespace Lea.Engine
                 var next = Char.ToLowerInvariant(value);
                 if (next != 'n' && next != 'l' && next != 'm' && next != 'c' || pc == next) return;
                 pc = next;
+                ApplyViewport(At);
+            }
+        }
+        public char Pdt
+        {
+            get { return pdt; }
+            set
+            {
+                var next = Char.ToLowerInvariant(value);
+                if (next != 'n' && next != 'r' || pdt == next) return;
+                pdt = next;
                 ApplyViewport(At);
             }
         }
@@ -562,6 +574,7 @@ namespace Lea.Engine
                 Th = page.Th,
                 Rm = page.Rm,
                 Pc = page.Pc,
+                Pdt = page.Pdt,
                 Je = page.Je,
                 Vc = page.S == null ? 0 : page.S.Vc,
                 Cc = Cc,
@@ -1463,8 +1476,9 @@ namespace Lea.Engine
             p.Th = th;
             p.Rm = rm;
             p.Pc = pc;
+            p.Pdt = pdt;
             p.Je = je;
-            var active = MediaRules(rules, vw, vh, dp, th, rm, pc, je ? 'e' : 'n');
+            var active = MediaRules(rules, vw, vh, dp, th, rm, pc, je ? 'e' : 'n', pdt);
             p.R = active;
             Rebuild(p, active, null);
             if (!je) return;
@@ -1481,10 +1495,11 @@ namespace Lea.Engine
             page.Th = th;
             page.Rm = rm;
             page.Pc = pc;
+            page.Pdt = pdt;
             page.Je = je;
             var all = page.Ra as List<R>;
             if (all == null) return;
-            var active = MediaRules(all, vw, vh, dp, th, rm, pc, je ? 'e' : 'n');
+            var active = MediaRules(all, vw, vh, dp, th, rm, pc, je ? 'e' : 'n', pdt);
             var current = page.R as List<R>;
             if (SameRules(current, active)) return;
             var fields = new Dictionary<N, Fi>();
@@ -1493,11 +1508,11 @@ namespace Lea.Engine
             Rebuild(page, active, fields);
         }
 
-        private static List<R> MediaRules(List<R> rules, int width, int height, int density, char theme, char motion, char contrast, char scripting)
+        private static List<R> MediaRules(List<R> rules, int width, int height, int density, char theme, char motion, char contrast, char scripting, char preferredData)
         {
             var active = new List<R>();
             foreach (var rule in rules)
-                if (rule.On(width, height, density, theme, motion, contrast, scripting)) active.Add(rule);
+                if (rule.On(width, height, density, theme, motion, contrast, scripting, preferredData)) active.Add(rule);
             return active;
         }
 
@@ -3181,6 +3196,8 @@ namespace Lea.Engine
                 var themeBooleans = Regex.Matches(query, "\\(\\s*prefers-color-scheme\\s*\\)", RegexOptions.IgnoreCase);
                 var motions = Regex.Matches(query, "\\(\\s*prefers-reduced-motion\\s*:\\s*(?<m>no-preference|reduce)\\s*\\)", RegexOptions.IgnoreCase);
                 var motionBooleans = Regex.Matches(query, "\\(\\s*prefers-reduced-motion\\s*\\)", RegexOptions.IgnoreCase);
+                var dataPreferences = Regex.Matches(query, "\\(\\s*prefers-reduced-data\\s*:\\s*(?<p>no-preference|reduce)\\s*\\)", RegexOptions.IgnoreCase);
+                var dataBooleans = Regex.Matches(query, "\\(\\s*prefers-reduced-data\\s*\\)", RegexOptions.IgnoreCase);
                 var contrasts = Regex.Matches(query, "\\(\\s*prefers-contrast\\s*:\\s*(?<c>no-preference|less|more|custom)\\s*\\)", RegexOptions.IgnoreCase);
                 var contrastBooleans = Regex.Matches(query, "\\(\\s*prefers-contrast\\s*\\)", RegexOptions.IgnoreCase);
                 var scripts = Regex.Matches(query, "\\(\\s*scripting\\s*:\\s*(?<s>none|initial-only|enabled)\\s*\\)", RegexOptions.IgnoreCase);
@@ -3206,6 +3223,7 @@ namespace Lea.Engine
                 var densityMaximumExclusive = false;
                 var theme = '\0';
                 var motion = '\0';
+                var preferredData = '\0';
                 var contrast = '\0';
                 var scripting = '\0';
                 var valid = true;
@@ -3243,6 +3261,17 @@ namespace Lea.Engine
                 {
                     if (motion != '\0' && motion != 'r') valid = false;
                     motion = 'r';
+                }
+                foreach (Match match in dataPreferences)
+                {
+                    var next = match.Groups["p"].Value.Equals("reduce", StringComparison.OrdinalIgnoreCase) ? 'r' : 'n';
+                    if (preferredData != '\0' && preferredData != next) { valid = false; break; }
+                    preferredData = next;
+                }
+                if (dataBooleans.Count > 0)
+                {
+                    if (preferredData != '\0' && preferredData != 'r') valid = false;
+                    preferredData = 'r';
                 }
                 foreach (Match match in contrasts)
                 {
@@ -3412,6 +3441,8 @@ namespace Lea.Engine
                 remainder = Regex.Replace(remainder, "\\(\\s*prefers-color-scheme\\s*\\)", " ", RegexOptions.IgnoreCase);
                 remainder = Regex.Replace(remainder, "\\(\\s*prefers-reduced-motion\\s*:\\s*(?:no-preference|reduce)\\s*\\)", " ", RegexOptions.IgnoreCase);
                 remainder = Regex.Replace(remainder, "\\(\\s*prefers-reduced-motion\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*prefers-reduced-data\\s*:\\s*(?:no-preference|reduce)\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*prefers-reduced-data\\s*\\)", " ", RegexOptions.IgnoreCase);
                 remainder = Regex.Replace(remainder, "\\(\\s*prefers-contrast\\s*:\\s*(?:no-preference|less|more|custom)\\s*\\)", " ", RegexOptions.IgnoreCase);
                 remainder = Regex.Replace(remainder, "\\(\\s*prefers-contrast\\s*\\)", " ", RegexOptions.IgnoreCase);
                 remainder = Regex.Replace(remainder, "\\(\\s*scripting\\s*:\\s*(?:none|initial-only|enabled)\\s*\\)", " ", RegexOptions.IgnoreCase);
@@ -3421,7 +3452,8 @@ namespace Lea.Engine
                     dimensionFeatures.Count > 0 || dimensionValues.Count > 0 || ratioChains.Count > 0 || ratioFeatures.Count > 0 ||
                     ratioValues.Count > 0 || resolutions.Count > 0 || resolutionBooleans.Count > 0 || resolutionChains.Count > 0 ||
                     resolutionFeatures.Count > 0 || resolutionValues.Count > 0 || themes.Count > 0 || themeBooleans.Count > 0 ||
-                    motions.Count > 0 || motionBooleans.Count > 0 || contrasts.Count > 0 || contrastBooleans.Count > 0 ||
+                    motions.Count > 0 || motionBooleans.Count > 0 || dataPreferences.Count > 0 || dataBooleans.Count > 0 ||
+                    contrasts.Count > 0 || contrastBooleans.Count > 0 ||
                     scripts.Count > 0 || scriptBooleans.Count > 0;
                 foreach (var token in Regex.Split(remainder.Trim(), "\\s+"))
                 {
@@ -3434,7 +3466,7 @@ namespace Lea.Engine
                 var condition = new Mc(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator,
                     ratioMaximum, ratioMaximumDenominator, orientation, minimumExclusive, maximumExclusive,
                     heightMinimumExclusive, heightMaximumExclusive, ratioMinimumExclusive, ratioMaximumExclusive,
-                    densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive, theme, motion, contrast, scripting);
+                    densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive, theme, motion, contrast, scripting, preferredData);
                 var duplicate = false;
                 foreach (var existing in result)
                     if (SameMedia(existing, condition)) { duplicate = true; break; }
@@ -3515,6 +3547,8 @@ namespace Lea.Engine
                     var theme = left.Th == '\0' ? right.Th : left.Th;
                     if (left.Rm != '\0' && right.Rm != '\0' && left.Rm != right.Rm) continue;
                     var motion = left.Rm == '\0' ? right.Rm : left.Rm;
+                    if (left.Pdt != '\0' && right.Pdt != '\0' && left.Pdt != right.Pdt) continue;
+                    var preferredData = left.Pdt == '\0' ? right.Pdt : left.Pdt;
                     char contrast;
                     if (left.Pc == '\0') contrast = right.Pc;
                     else if (right.Pc == '\0' || left.Pc == right.Pc) contrast = left.Pc;
@@ -3530,7 +3564,7 @@ namespace Lea.Engine
                     var condition = new Mc(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator,
                         ratioMaximum, ratioMaximumDenominator, orientation, minimumExclusive, maximumExclusive,
                         heightMinimumExclusive, heightMaximumExclusive, ratioMinimumExclusive, ratioMaximumExclusive,
-                        densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive, theme, motion, contrast, scripting);
+                        densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive, theme, motion, contrast, scripting, preferredData);
                     var duplicate = false;
                     foreach (var existing in result)
                         if (SameMedia(existing, condition)) { duplicate = true; break; }
@@ -3546,7 +3580,7 @@ namespace Lea.Engine
                 left.Ne == right.Ne && left.Xe == right.Xe && left.Hne == right.Hne && left.Hxe == right.Hxe &&
                 left.Rne == right.Rne && left.Rxe == right.Rxe && left.Dn == right.Dn && left.Dx == right.Dx &&
                 left.Dne == right.Dne && left.Dxe == right.Dxe && left.Th == right.Th && left.Rm == right.Rm && left.Pc == right.Pc &&
-                left.Je == right.Je;
+                left.Je == right.Je && left.Pdt == right.Pdt;
         }
 
         private static bool MediaTerm(string source, out int value)
@@ -12175,6 +12209,7 @@ namespace Lea.Engine
             public readonly char Rm;
             public readonly char Pc;
             public readonly char Je;
+            public readonly char Pdt;
 
             public Mc(int minimum, int maximum)
                 : this(minimum, maximum, 0, 0, 0, 0, 0, 0, '\0')
@@ -12252,6 +12287,20 @@ namespace Lea.Engine
                 bool minimumExclusive, bool maximumExclusive, bool heightMinimumExclusive, bool heightMaximumExclusive,
                 bool ratioMinimumExclusive, bool ratioMaximumExclusive, int densityMinimum, int densityMaximum,
                 bool densityMinimumExclusive, bool densityMaximumExclusive, char theme, char motion, char contrast, char scripting)
+                : this(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator,
+                    ratioMaximum, ratioMaximumDenominator, orientation, minimumExclusive, maximumExclusive,
+                    heightMinimumExclusive, heightMaximumExclusive, ratioMinimumExclusive, ratioMaximumExclusive,
+                    densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive,
+                    theme, motion, contrast, scripting, '\0')
+            {
+            }
+
+            public Mc(int minimum, int maximum, int heightMinimum, int heightMaximum,
+                int ratioMinimum, int ratioMinimumDenominator, int ratioMaximum, int ratioMaximumDenominator, char orientation,
+                bool minimumExclusive, bool maximumExclusive, bool heightMinimumExclusive, bool heightMaximumExclusive,
+                bool ratioMinimumExclusive, bool ratioMaximumExclusive, int densityMinimum, int densityMaximum,
+                bool densityMinimumExclusive, bool densityMaximumExclusive, char theme, char motion, char contrast, char scripting,
+                char preferredData)
             {
                 N = minimum;
                 X = maximum;
@@ -12276,9 +12325,10 @@ namespace Lea.Engine
                 Rm = motion;
                 Pc = contrast;
                 Je = scripting;
+                Pdt = preferredData;
             }
 
-            public bool On(int width, int height, int density, char theme, char motion, char contrast, char scripting)
+            public bool On(int width, int height, int density, char theme, char motion, char contrast, char scripting, char preferredData)
             {
                 if (width < N || Ne && width == N || X > 0 && (width > X || Xe && width == X) ||
                     height < Hn || Hne && height == Hn || Hx > 0 && (height > Hx || Hxe && height == Hx)) return false;
@@ -12290,7 +12340,8 @@ namespace Lea.Engine
                 return (O == '\0' || O == 'p' && height >= width || O == 'l' && width > height) &&
                     (Th == '\0' || Th == theme) && (Rm == '\0' || Rm == motion) &&
                     (Pc == '\0' || Pc == '*' && contrast != 'n' || Pc == contrast) &&
-                    (Je == '\0' || Je == '*' && scripting != 'n' || Je == scripting);
+                    (Je == '\0' || Je == '*' && scripting != 'n' || Je == scripting) &&
+                    (Pdt == '\0' || Pdt == preferredData);
             }
 
             public string D
@@ -12327,6 +12378,7 @@ namespace Lea.Engine
                     if (Rm != '\0') parts.Add("@rm=" + Rm);
                     if (Pc != '\0') parts.Add(Pc == '*' ? "@pc" : "@pc=" + Pc);
                     if (Je != '\0') parts.Add(Je == '*' ? "@je" : "@je=" + Je);
+                    if (Pdt != '\0') parts.Add("@pdt=" + Pdt);
                     if (Dn == Dx && Dn != Int32.MinValue && !Dne && !Dxe) parts.Add("@d=" + DensityText(Dn));
                     else
                     {
@@ -12429,10 +12481,10 @@ namespace Lea.Engine
                 return prefix.Length == 0 ? mediaLabel : mediaLabel.Length == 0 ? prefix : prefix + "&" + mediaLabel;
             }
 
-            public bool On(int width, int height, int density, char theme, char motion, char contrast, char scripting)
+            public bool On(int width, int height, int density, char theme, char motion, char contrast, char scripting, char preferredData)
             {
                 foreach (var condition in M)
-                    if (condition.On(width, height, density, theme, motion, contrast, scripting)) return true;
+                    if (condition.On(width, height, density, theme, motion, contrast, scripting, preferredData)) return true;
                 return false;
             }
         }

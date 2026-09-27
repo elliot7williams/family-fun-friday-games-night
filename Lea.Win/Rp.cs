@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
+using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,6 +20,8 @@ namespace Lea.Win
         private const uint Suspended = 0x00000004;
         private const uint NoWindow = 0x08000000;
         private const uint ExtendedStartup = 0x00080000;
+        private const uint PersistentAcls = 0x00000008;
+        private const long WorkerFileLimit = 16L * 1024 * 1024;
         private static readonly IntPtr HandleList = new IntPtr(0x00020002);
         private static readonly IntPtr MitigationPolicy = new IntPtr(0x00020007);
         private static readonly IntPtr SecurityCapabilities = new IntPtr(0x00020009);
@@ -25,6 +29,9 @@ namespace Lea.Win
         private const long StartupPolicy = 0x00111105L;
         private const string ContainerName = "Lea.Image.Decoder";
         private const int AlreadyExists = unchecked((int)0x800700b7);
+        private static readonly object portableGate = new object();
+        private static readonly Dictionary<string, Tuple<string, string>> portable =
+            new Dictionary<string, Tuple<string, string>>(StringComparer.OrdinalIgnoreCase);
 
         public Process P { get; private set; }
         public Stream I { get; private set; }
@@ -65,6 +72,48 @@ namespace Lea.Win
             F = fileAcl;
             Task.Factory.StartNew(() => Drain(errors), default(System.Threading.CancellationToken),
                 TaskCreationOptions.LongRunning, TaskScheduler.Default);
+        }
+
+        internal static string Prepare(string path)
+        {
+            var full = Path.GetFullPath(path);
+            if (!System.IO.File.Exists(full) || HasPersistentAcls(full)) return full;
+            lock (portableGate)
+            {
+                Tuple<string, string> cached;
+                if (portable.TryGetValue(full, out cached) && System.IO.File.Exists(cached.Item1) &&
+                    Digest(cached.Item1).Equals(cached.Item2, StringComparison.OrdinalIgnoreCase)) return cached.Item1;
+                var source = new FileInfo(full);
+                if (source.Length < 1 || source.Length > WorkerFileLimit)
+                    throw new InvalidDataException("Lea image worker exceeds the portable staging limit.");
+                var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                if (String.IsNullOrWhiteSpace(local)) local = Path.GetTempPath();
+                var directory = Path.Combine(local, "Lea", "Image");
+                Directory.CreateDirectory(directory);
+                if (!HasPersistentAcls(directory))
+                    throw new NotSupportedException("Lea image isolation requires an ACL-capable local cache.");
+                var digest = Digest(full);
+                var target = Path.Combine(directory, "Lea.Image-" + digest + ".exe");
+                if (!System.IO.File.Exists(target) || !Digest(target).Equals(digest, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (System.IO.File.Exists(target)) System.IO.File.Delete(target);
+                    var temporary = target + "." + Guid.NewGuid().ToString("N") + ".tmp";
+                    try
+                    {
+                        System.IO.File.Copy(full, temporary, false);
+                        if (!Digest(temporary).Equals(digest, StringComparison.OrdinalIgnoreCase))
+                            throw new InvalidDataException("Lea image worker changed during portable staging.");
+                        try { System.IO.File.Move(temporary, target); }
+                        catch (IOException)
+                        {
+                            if (!System.IO.File.Exists(target) || !Digest(target).Equals(digest, StringComparison.OrdinalIgnoreCase)) throw;
+                        }
+                    }
+                    finally { if (System.IO.File.Exists(temporary)) System.IO.File.Delete(temporary); }
+                }
+                portable[full] = Tuple.Create(target, digest);
+                return target;
+            }
         }
 
         public static Rp Open(string path, string args, string directory, long memory, int cpu)
@@ -320,6 +369,31 @@ namespace Lea.Win
             return false;
         }
 
+        private static bool HasPersistentAcls(string path)
+        {
+            try
+            {
+                var root = Path.GetPathRoot(Path.GetFullPath(path));
+                uint serial;
+                uint component;
+                uint flags;
+                return !String.IsNullOrEmpty(root) && GetVolumeInformation(root, null, 0, out serial,
+                    out component, out flags, null, 0) && (flags & PersistentAcls) != 0;
+            }
+            catch (Exception) { return false; }
+        }
+
+        private static string Digest(string path)
+        {
+            byte[] value;
+            using (var algorithm = SHA256.Create())
+            using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
+                value = algorithm.ComputeHash(stream);
+            var text = new StringBuilder(value.Length * 2);
+            foreach (var item in value) text.Append(item.ToString("x2"));
+            return text.ToString();
+        }
+
         private static uint Aslr(IntPtr process)
         {
             uint policy;
@@ -442,6 +516,11 @@ namespace Lea.Win
         [DllImport("kernel32.dll", SetLastError = true)] private static extern uint ResumeThread(IntPtr thread);
         [DllImport("kernel32.dll", SetLastError = true)] [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool GetProcessMitigationPolicy(IntPtr process, int kind, out uint policy, UIntPtr length);
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool GetVolumeInformation(string root, StringBuilder volumeName, uint volumeNameSize,
+            out uint serial, out uint maximumComponentLength, out uint fileSystemFlags,
+            StringBuilder fileSystemName, uint fileSystemNameSize);
         [DllImport("kernel32.dll")] [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool TerminateProcess(IntPtr process, uint exitCode);
         [DllImport("kernel32.dll")] [return: MarshalAs(UnmanagedType.Bool)]

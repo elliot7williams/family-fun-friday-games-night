@@ -349,17 +349,19 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 129 adds bounded CSS `scripting` media queries through the existing
-compact `E/P/G/V.Je` permission aliases. True selects enabled and false selects
-none; Lea recognizes initial-only syntax but never reports it because the
-engine has no one-shot script mode. Boolean scripting queries are inactive for
-none and active for enabled. Exact values, width intersections, alternatives,
+Milestone 130 adds bounded CSS `prefers-reduced-data` media queries through
+compact `E/P/G/V.Pdt` aliases. `n` selects no-preference and `r` selects reduce;
+the boolean form is active only for reduce. Headless and WinForms hosts control
+the preference explicitly. Exact values, width intersections, alternatives,
 nested media, style media, compact diagnostics, responsive paint, and retained
-fields share the compiled media path. Changing `Je` does not rerun skipped
-inline commands. See `MEDIA_SCRIPTING.md`. All 125 probes pass over 120
-fixtures; focused and full source/staged suites, the compiled Firespider host,
-all 42 Boot cases, and all six real EXE startup scenarios pass. Runtime 229 is
-packaged separately and installed runtime 157 remains unchanged.
+fields share the compiled media path. This selector does not add `Save-Data`,
+cancel resources, or infer network policy. See `MEDIA_REDUCED_DATA.md`. All 126
+probes pass over 121 fixtures; focused and full source/staged suites, the
+compiled Firespider host, all 42 Boot cases, and all six real EXE startup
+scenarios pass. Runtime 230 is packaged separately and installed runtime 157
+remains unchanged. Its image launcher also preserves zero-capability
+AppContainer decoding from FAT32/non-ACL source volumes by SHA-256 verifying and
+staging only the bounded helper in a content-addressed local cache.
 Next investigate another bounded compatibility slice. Keep device ratios,
 container and style queries, `font-tech()`/`font-format()`, general-enclosed
 conditions, JavaScript `CSS.supports()`, locale-sensitive automatic quote selection,

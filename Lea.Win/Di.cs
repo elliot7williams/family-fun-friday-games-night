@@ -158,7 +158,7 @@ namespace Lea.Win
 
         private static Rp Open(string path, string args)
         {
-            var full = P(path);
+            var full = Rp.Prepare(P(path));
             var limit = L;
             var cpu = C;
             var key = full + "\0" + (args ?? "") + "\0" + limit + "\0" + cpu;

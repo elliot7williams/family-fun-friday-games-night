@@ -348,6 +348,7 @@ namespace Lea.Win
         public char Th { get { return e.Th; } set { SetTheme(value, true); } }
         public char Rm { get { return e.Rm; } set { SetMotion(value, true); } }
         public char Pc { get { return e.Pc; } set { SetContrast(value, true); } }
+        public char Pdt { get { return e.Pdt; } set { SetPreferredData(value); } }
         public int Rf { get { return At != null && At.Rf > 0 ? At.Rf : Math.Max(1, (int)Math.Round(Font.Size)); } }
         public N Ke { get { return focus; } }
         public int Kn { get { return FocusTargets(true).Count; } }
@@ -1202,6 +1203,19 @@ namespace Lea.Win
         {
             try { return SystemInformation.HighContrast ? 'c' : 'n'; }
             catch { return 'n'; }
+        }
+
+        private void SetPreferredData(char value)
+        {
+            var next = Char.ToLowerInvariant(value);
+            if (next != 'n' && next != 'r') return;
+            var previous = e.Pdt;
+            e.Pdt = next;
+            if (previous == e.Pdt) return;
+            Dirty();
+            QueueFragment(At);
+            Invalidate();
+            if (At != null && IsHandleCreated) NotifyAccessibility(AccessibleEvents.Reorder);
         }
 
         private void SetScripting(bool value)
