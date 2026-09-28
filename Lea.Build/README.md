@@ -244,6 +244,10 @@ painting, and editor font/selection/undo. It is included in `--core`.
 literal one/two-argument `CSS.supports()` guards, including else/negation,
 selector and compound checks, four-level nesting, the shared command ceiling,
 click/host bridges, retained fields, exact geometry, and strict rejection.
+`--match-media-script` isolates compact `E/V.Mq` live media checks and literal
+global/window `matchMedia(...).matches` guards, including viewport and
+preference state, else/negation, mixed four-level nesting, the shared command
+ceiling, click/host bridges, retained fields, resize, and exact geometry.
 These test modes do not retry or suppress failed assertions. Windows
 clipboard access can fail while another process holds it. Record separately
 which modes passed; a clipboard-free run is not a complete default-suite pass.

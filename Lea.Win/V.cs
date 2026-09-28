@@ -710,6 +710,7 @@ namespace Lea.Win
 
         public bool Su(string condition) { return e.Su(condition); }
         public bool Su(string property, string value) { return e.Su(property, value); }
+        public bool Mq(string query) { return e.Mq(query); }
 
         public int Ss(string key, string source)
         {

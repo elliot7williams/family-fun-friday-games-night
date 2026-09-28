@@ -191,6 +191,11 @@ namespace Lea.Tests
                     CssSupportsScriptSmoke(Path.Combine(pages, "css-supports-script.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--match-media-script")
+                {
+                    MatchMediaScriptSmoke(Path.Combine(pages, "match-media-script.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--layers")
                 {
                     LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
@@ -1617,6 +1622,7 @@ namespace Lea.Tests
                 MediaScriptingSmoke(Path.Combine(pages, "media-scripting.html"));
                 SupportsSmoke(Path.Combine(pages, "supports-queries.html"));
                 CssSupportsScriptSmoke(Path.Combine(pages, "css-supports-script.html"));
+                MatchMediaScriptSmoke(Path.Combine(pages, "match-media-script.html"));
                 LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
                 HslColorSmoke(Path.Combine(pages, "hsl-colors.html"));
                 HwbColorSmoke(Path.Combine(pages, "hwb-colors.html"));
@@ -9920,6 +9926,100 @@ namespace Lea.Tests
                 Eq(249, BlockRect(view, BlockById(view.At, "field")).Width, "WinForms supports guard exact geometry");
             }
             Console.WriteLine("Lea CSS.supports script smoke passed: compact host aliases, literal one/two-argument guards, else and negation, nesting and command limits, click/host bridges, exact geometry, and retained fields.");
+        }
+
+        private static void MatchMediaScriptSmoke(string path)
+        {
+            var engine = new E { Vw = 900, Vh = 600, Dp = 144, Th = 'd', Rm = 'r', Pc = 'm', Pdt = 'r' };
+            Ok(engine.Mq("") && engine.Mq("screen") && engine.Mq("(min-width: 800px)") &&
+                engine.Mq("(orientation: landscape)") && engine.Mq("(resolution: 1.5dppx)") &&
+                engine.Mq("(prefers-color-scheme: dark)") && engine.Mq("(prefers-reduced-motion: reduce)") &&
+                engine.Mq("(prefers-reduced-data: reduce)") && engine.Mq("(prefers-contrast: more)") &&
+                engine.Mq("(scripting: enabled)") && engine.Mq("(max-width: 500px), (min-width: 800px)"),
+                "compact host media alias evaluates the live viewport and preference state");
+            Ok(!engine.Mq("(max-width: 500px)") && !engine.Mq("(prefers-color-scheme: light)") &&
+                !engine.Mq("(width: 50em)") && !engine.Mq("not all") && !engine.Mq(null) &&
+                !engine.Mq(new string('x', 2049)), "false, unsupported, negated, null, and oversized host queries stay false");
+
+            var page = engine.Go(path);
+            Eq(8, page.Jc, "matchMedia startup command count");
+            Eq("Wide media match", ById(page.D, "status").C[0].X, "global matchMedia true branch text");
+            Eq("base global window dark reduced elsewide", ById(page.D, "status").Av("class"),
+                "global, window, preference, and else media branches");
+            Eq(248, BlockById(page, "status").S.W, "four-level mixed guard style");
+            Eq("#dff5e8", BlockById(page, "status").S.Bg, "media guard background style");
+
+            var field = FieldById(page, "field");
+            field.V = "Retained match media value";
+            Eq(1, engine.Js(page, "if(matchMedia('(min-width:800px)').matches){wd('field','247px');}"),
+                "host-provided wide media guard");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained match media value" && field.S.W == 247,
+                "wide media guard rebuild retains field identity and value");
+
+            engine.Vz(420, 700);
+            Ok(engine.Mq("(max-width: 500px)") && engine.Mq("(orientation: portrait)") &&
+                !engine.Mq("(min-width: 800px)") && page.Vw == 420 && page.Vh == 700,
+                "host media alias follows live viewport changes");
+            Eq(1, engine.Js(page, "if(!matchMedia('(min-width:800px)').matches){wd('field','217px');}"),
+                "negated narrow media guard");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained match media value" && field.S.W == 217,
+                "narrow media guard rebuild retains field identity and value");
+            Eq(2, engine.Ck(page, ById(page.D, "guard")), "matchMedia click guard command count");
+            Eq("Clicked narrow", ById(page.D, "status").C[0].X, "matchMedia click branch text");
+            Eq(260, BlockById(page, "status").S.W, "matchMedia click branch style");
+
+            var four = "if(CSS.supports('display','grid')){if(matchMedia('(max-width:500px)').matches){if(CSS.supports('selector(:has(*))')){if(window.matchMedia('(orientation:portrait)').matches){tx('status','Four mixed levels');}}}}";
+            Eq(1, engine.Js(page, four), "four mixed conditional guard levels accepted");
+            var five = "if(CSS.supports('display','grid')){if(matchMedia('(max-width:500px)').matches){if(CSS.supports('selector(:has(*))')){if(window.matchMedia('(orientation:portrait)').matches){if(matchMedia('(width:420px)').matches){tx('status','Too deep');}}}}}";
+            Eq(0, engine.Js(page, five), "fifth mixed conditional guard level rejected");
+            Eq("Four mixed levels", ById(page.D, "status").C[0].X, "over-depth mixed guard preserves page state");
+
+            Eq(0, engine.Js(page, "if(matchMedia(query).matches){tx('status','computed');} if(matchMedia('(min-width:1px)','extra').matches){tx('status','extra');} if(MatchMedia('(min-width:1px)').matches){tx('status','case');} if(matchMedia('(min-width:1px)').addListener){tx('status','listener');} if(matchMedia('(min-width:1px)').matches===true){tx('status','expression');}"),
+                "computed, extra-argument, wrong-case, listener, and expression forms stay inert");
+            Eq("Four mixed levels", ById(page.D, "status").C[0].X, "rejected media calls preserve page state");
+
+            var budget = new StringBuilder("if(matchMedia('(max-width:500px)').matches){");
+            for (var index = 0; index < 40; index++) budget.Append("tx('status','Budget ").Append(index).Append("');");
+            budget.Append('}');
+            Eq(32, engine.Js(page, budget.ToString()), "media branch shares the 32-command budget");
+            Eq("Budget 31", ById(page.D, "status").C[0].X, "media branch stops at the command ceiling");
+            Eq(45, page.Jc, "matchMedia commands use ordinary cumulative accounting");
+
+            using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-30000, -30000), ClientSize = new Size(900, 700) })
+            using (var view = new V { Dock = DockStyle.Fill })
+            {
+                form.Controls.Add(view);
+                form.Show();
+                view.Dp = 144;
+                view.Th = 'd';
+                view.Rm = 'r';
+                view.Pc = 'm';
+                view.Pdt = 'r';
+                view.Go(path);
+                Paint(view);
+                Ok(view.Mq("(min-width:800px)") && view.Mq("(orientation:landscape)") &&
+                    view.Mq("(prefers-color-scheme:dark)") && !view.Mq("(max-width:500px)"),
+                    "WinForms compact media alias uses live view state");
+                var liveField = FieldById(view.At, "field");
+                liveField.V = "Retained view match media value";
+                Eq(1, view.Js("if(window.matchMedia('(min-width:800px)').matches){wd('field','249px');}"),
+                    "WinForms wide media guard command");
+                Paint(view);
+                Eq(249, BlockRect(view, BlockById(view.At, "field")).Width, "WinForms wide media guard exact geometry");
+                form.ClientSize = new Size(420, 700);
+                Application.DoEvents();
+                Paint(view);
+                Ok(view.Mq("(max-width:500px)") && view.Mq("(orientation:portrait)") && !view.Mq("(min-width:800px)"),
+                    "WinForms compact media alias follows resize");
+                Eq(1, view.Js("if(matchMedia('(max-width:500px)').matches){wd('field','219px');}"),
+                    "WinForms narrow media guard command");
+                Paint(view);
+                Ok(Object.ReferenceEquals(liveField, FieldById(view.At, "field")) &&
+                    liveField.V == "Retained view match media value" && liveField.S.W == 219,
+                    "WinForms media rebuild retains field state");
+                Eq(219, BlockRect(view, BlockById(view.At, "field")).Width, "WinForms narrow media guard exact geometry");
+            }
+            Console.WriteLine("Lea matchMedia script smoke passed: compact Mq aliases, literal global/window guards, live viewport and preferences, else and negation, mixed nesting and command limits, click/host bridges, exact geometry, and retained fields.");
         }
 
         private static void MediaFeatureSmoke(string path)

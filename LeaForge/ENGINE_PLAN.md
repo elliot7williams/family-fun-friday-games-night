@@ -349,20 +349,17 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 131 adds standards-shaped bounded `CSS.supports()` compatibility by
-reusing Lea's compiled `@supports` declaration, selector, and logical-condition
-parsers. Compact `E/V.Su` overloads accept condition text or a property/value
-pair. Literal page scripts may select an allow-listed command block with
-`if (CSS.supports(...))`, optional `!`, and optional `else`; four guard levels
-share the existing 32-command ceiling and retained rebuild path. Computed
-arguments, arbitrary expressions, loops, functions, CSSOM mutation, and a
-general JavaScript evaluator remain inert. See `SUPPORTS_QUERIES.md`.
-All 127 compatibility probes pass over 122 fixtures. Focused, full source,
-exact package-mirror, and compiled Firespider host suites pass; all 42 Boot
-cases are accounted for after the known clipboard-sensitive `edit` retry, and
-all six real EXE startup scenarios remain responsive. The direct FAT32-stage
-feature and zero-capability image-decode checks also pass. Runtime 231 is staged
-separately and installed runtime 157 remains unchanged.
+Milestone 132 adds standards-shaped bounded media-query scripting by reusing
+Lea's compiled media parser and applied host state. Compact `E/V.Mq(query)`
+evaluates the live viewport, density, preferences, and scripting mode. Literal
+global or `window.matchMedia("...").matches` guards may select an allow-listed
+command block with optional `!` and `else`; mixed media/support guards share the
+four-level depth and 32-command ceiling. Computed queries, listeners, saved
+objects, arbitrary expressions, and a general JavaScript evaluator remain
+inert. See `MATCH_MEDIA.md`. All 128 compatibility probes pass over 123
+fixtures. Focused, full source, compiled Firespider host, separate editing, all
+42 Boot cases in one run, and all six real EXE startup scenarios pass. Runtime
+232 is packaged separately and installed runtime 157 remains unchanged.
 Next investigate another bounded compatibility slice. Keep device ratios,
 container and style queries, `font-tech()`/`font-format()`, general-enclosed
 conditions, locale-sensitive automatic quote selection,

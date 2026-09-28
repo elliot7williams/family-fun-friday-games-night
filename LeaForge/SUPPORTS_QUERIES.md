@@ -78,7 +78,8 @@ if (CSS.supports("display: ruby")) { sh("ruby"); } else { sh("plain"); }
 Only one or two quoted literal arguments are accepted. The selected block is
 run through the ordinary Lea command parser, so it shares the 32-command
 budget, retained rebuild behavior, and click/host bridges. Guards nest four
-levels. Computed arguments, variables as arguments, extra arguments, arbitrary
+levels total when mixed with literal `matchMedia(...).matches` guards. Computed
+arguments, variables as arguments, extra arguments, arbitrary
 conditions, `else if`, loops, functions, promises, CSSOM mutation, and general
 JavaScript evaluation remain inert.
 

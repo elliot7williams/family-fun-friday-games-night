@@ -112,7 +112,7 @@ namespace Lea.Bench
             var names = new[]
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
-                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "direction-logical.html", "direction-layout.html", "direction-inline.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "media-features.html", "media-aspect-ratio.html", "media-ranges.html", "media-resolution.html", "media-color-scheme.html", "media-reduced-motion.html", "media-reduced-data.html", "media-contrast.html", "media-scripting.html", "supports-queries.html", "css-supports-script.html", "cascade-layers.html", "cascade-layer-limits.html", "hsl-colors.html", "hwb-colors.html", "lab-colors.html", "predefined-colors.html", "wide-gamut-colors.html", "oklab-colors.html", "color-mix.html", "custom-properties.html", "important-cascade.html",
+                "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "direction-logical.html", "direction-layout.html", "direction-inline.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "media-features.html", "media-aspect-ratio.html", "media-ranges.html", "media-resolution.html", "media-color-scheme.html", "media-reduced-motion.html", "media-reduced-data.html", "media-contrast.html", "media-scripting.html", "supports-queries.html", "css-supports-script.html", "match-media-script.html", "cascade-layers.html", "cascade-layer-limits.html", "hsl-colors.html", "hwb-colors.html", "lab-colors.html", "predefined-colors.html", "wide-gamut-colors.html", "oklab-colors.html", "color-mix.html", "custom-properties.html", "important-cascade.html",
                 "direction-overflow.html", "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "list-style.html", "list-position.html", "list-image.html", "marker.html", "marker-content.html", "marker-counters.html", "css-counters.html", "generated-content.html", "generated-quotes.html", "generated-alt.html", "generated-images.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -1998,6 +1998,53 @@ namespace Lea.Bench
                             "WinForms supports guard geometry or paint changed");
                 }
                 return "compact E/V.Su capability aliases, literal CSS.supports property/value and condition guards, else and negation, selector and compound checks, four-level nesting, shared command limits, retained rebuilds, and WinForms paint";
+            });
+            AddProbe(probes, "Match media script guards", delegate
+            {
+                var path = Path.Combine(folder, "match-media-script.html");
+                var engine = new E { Vw = 900, Vh = 600, Dp = 144, Th = 'd', Rm = 'r', Pc = 'm', Pdt = 'r' };
+                Need(engine.Mq("(min-width:800px)") && engine.Mq("(orientation:landscape)") &&
+                    engine.Mq("(resolution:1.5dppx)") && engine.Mq("(prefers-color-scheme:dark)") &&
+                    engine.Mq("(prefers-reduced-motion:reduce)") && engine.Mq("(prefers-reduced-data:reduce)") &&
+                    engine.Mq("(prefers-contrast:more)") && engine.Mq("(scripting:enabled)") &&
+                    !engine.Mq("(max-width:500px)") && !engine.Mq("(width:50em)"),
+                    "compact host media matching changed");
+                var page = engine.Go(path);
+                var status = ById(page.D, "status");
+                var block = page.Bs.First(item => item.El == status);
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                Need(page.Jc == 8 && status.C[0].X == "Wide media match" &&
+                    status.Av("class") == "base global window dark reduced elsewide" && block.S.W == 248 && block.S.Bg == "#dff5e8",
+                    "literal global/window, preference, else, or mixed nested startup guard changed");
+                field.V = "Retained benchmark match media value";
+                engine.Vz(420, 700);
+                Need(engine.Mq("(max-width:500px)") && engine.Mq("(orientation:portrait)") &&
+                    engine.Js(page, "if(!matchMedia('(min-width:800px)').matches){wd('field','217px');}") == 1 &&
+                    Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark match media value" && field.S.W == 217,
+                    "live media state, negated guard, or retained field rebuild changed");
+                Need(engine.Js(page, "if(matchMedia(query).matches){tx('status','bad');}") == 0 &&
+                    status.C[0].X == "Wide media match", "computed media argument escaped the literal boundary");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(900, 700);
+                    view.Th = 'd';
+                    view.Rm = 'r';
+                    view.Pc = 'm';
+                    view.Pdt = 'r';
+                    view.Go(path);
+                    Need(view.Mq("(min-width:800px)") &&
+                        view.Js("if(window.matchMedia('(min-width:800px)').matches){wd('field','249px');}") == 1,
+                        "WinForms media alias or guard changed");
+                    using (var image = Draw(view))
+                        Need(BlockContent(view, "field").Width == 249 && ColoredSamples(image) > 0,
+                            "WinForms media guard geometry or paint changed");
+                    view.Size = new Size(420, 700);
+                    using (var image = Draw(view)) { }
+                    Need(view.Mq("(max-width:500px)") && view.Mq("(orientation:portrait)"),
+                        "WinForms media alias did not follow resize");
+                }
+                return "compact E/V.Mq aliases, literal global/window matchMedia matches guards, live viewport and preference state, else and negation, mixed four-level nesting, shared command limits, retained rebuilds, and WinForms paint";
             });
             AddProbe(probes, "CSS cascade layers", delegate
             {
@@ -5451,7 +5498,7 @@ namespace Lea.Bench
             Capability(builder, "Line clamping", "Supported subset", "Non-inherited line-clamp and -webkit-line-clamp none/1..32 with LTR/RTL grapheme-safe ellipsis, reduced flow height, hidden retained boxes/hits, full logical source and UI Automation text, inline runs, forced breaks, balanced text, and table cells; no block-ellipsis strings, longhands, descendant block fragmentation, or legacy WebKit display requirements");
             Capability(builder, "Marker generated content", "Supported subset", "Terminal ::marker content with up to eight quoted strings, attr(name)/attr(name raw-string) with an optional quoted missing-value fallback, named/implicit counter()/counters() values, open-quote/close-quote/no-open-quote/no-close-quote, or sandboxed url(...) bitmap fragments in source order; one slash-separated alternative accepts up to eight string/attr/counter items and 128 further UTF-16 units in S.Ma. Inherited quotes accepts auto, none, or up to eight 32-unit pairs with eight active levels; ten built-in styles, eight nested counter levels and active instances, eight operations per property, 32-character ASCII counter names, 32-unit separators, 64-character attribute names, -999999..999999 counter values, 128 UTF-16 visual text units, variables, important tiers, ms/markerstyle, qu/quotes, and cr/ci/cs commands, accessible list-item names, tables, hover/media rebuilds, and LTR/RTL inside/outside image/text paint. Generated pictures share the 24-source sandboxed image path and 64px intrinsic display cap; no images are accepted after the alternative slash. There are no typed attr values, unquoted or functional attr fallbacks, reversed/custom counter styles, pseudo-element counter properties, image functions, author image sizing, or locale-specific auto quotes");
             Capability(builder, "Before and after generated content", "Supported subset", "Terminal ::before/::after plus legacy :before/:after produce inline generated runs with up to eight quoted strings, attr(name)/attr(name raw-string) with an optional quoted missing-value fallback, named counter()/counters() values, open-quote/close-quote/no-open-quote/no-close-quote, or sandboxed url(...) bitmap fragments in source order; one slash-separated alternative accepts up to eight string/attr/counter items and 128 further UTF-16 units in S.Ma, including explicit empty decoration suppression and alternative-only runs. Inherited quotes accepts auto, none, or up to eight 32-unit pairs with eight active document-order levels. Present attributes win even when empty, while missing attributes use the fallback. Attribute names stop at 64 characters and visual text at 128 UTF-16 units; generated pictures share the 24-source sandboxed image path and 64px intrinsic display cap. Inherited bounded text styling, variables, important tiers, be/beforestyle, af/afterstyle, and qu/quotes commands, nested/link/value/table ownership, accessibility names and reading order, hover/media rebuilds, and LTR/RTL paint remain shared. Replaced/native controls suppress runs; there are no typed attr values, unquoted or functional fallbacks, pseudo box-model, flex/grid-item, image functions, author image sizing, locale-specific auto quote, or arbitrary CSSOM features");
-            Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color, font, display, width, height, direction, quotes, text indent, text alignment/all/last, text wrap/mode/style, line clamp, list/marker/before/after style, counter reset/increment/set, text decoration, underline offset, and text shadow, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, safe click commands, and literal compatibility translation");
+            Capability(builder, "Lea command scripting", "Supported", "Bounded title, body/ID-scoped color, font, display, width, height, direction, quotes, text indent, text alignment/all/last, text wrap/mode/style, line clamp, list/marker/before/after style, counter reset/increment/set, text decoration, underline offset, and text shadow, alert, variable, text, class, visibility, disclosure, disabled/value/checked state, focus, host navigation request, safe click commands, literal compatibility translation, CSS.supports guards, and live matchMedia matches guards");
             Capability(builder, "Literal DOM bridge", "Supported subset", "Literal document.getElementById IDs with textContent/innerText, value, checked/disabled/hidden/open, focus(), classList add/remove/toggle, and background/color/fontSize/display/width/height/direction/quotes/textIndent/textAlign/textAlignAll/textAlignLast/textWrap/textWrapMode/textWrapStyle/lineClamp/webkitLineClamp/counterReset/counterIncrement/counterSet/textDecoration/textDecorationLine/textDecorationColor/textDecorationStyle/textDecorationThickness/textUnderlineOffset/textShadow; literal location href/assign requests; mapped to bounded Lea aliases");
             Capability(builder, "General JavaScript and DOM APIs", "Not supported", "Lea deliberately does not execute arbitrary JavaScript");
             Capability(builder, "Flexbox", "Supported subset", "Row/row-reverse and fixed-height column/column-reverse containers, content/border-box pixel bases, stable -64..64 order on nowrap rows and bounded columns, bounded row wrap, fixed/equal-share/weighted grow and integer weighted-shrink slots, explicit pixel min/max floors, pixel row/column gaps, start/center/end/space-between/space-around/space-evenly justification, and container/item stretch/start/center/end cross alignment; no intrinsic min-content sizing, fractional factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis alignment, or auto-height column reordering guarantee");

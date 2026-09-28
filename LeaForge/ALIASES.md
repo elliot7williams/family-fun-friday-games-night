@@ -99,6 +99,10 @@ message and `V.Am` exposes the current message. `E/V.Su(condition)` and
 `E/V.Su(property, value)` report the same bounded CSS capability used by
 `@supports`; literal page scripts may use those shapes through
 `if (CSS.supports(...)) { ... } else { ... }`. See `SUPPORTS_QUERIES.md`.
+`E/V.Mq(query)` evaluates Lea's compiled media-query subset against current
+host state. Literal scripts may use `matchMedia("...").matches` or
+`window.matchMedia("...").matches` as the same bounded `if` guard. See
+`MATCH_MEDIA.md`.
 Supported page commands are:
 
 ```text

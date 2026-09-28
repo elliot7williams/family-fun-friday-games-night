@@ -25,6 +25,7 @@ namespace Lea.Engine
         private const int MaxHostCss = 128 * 1024;
         private const int MaxMediaDepth = 4;
         private const int MaxMediaGroups = 8;
+        private const int MaxMediaText = 2048;
         private const int MaxSupportsDepth = 4;
         private const int MaxSupportsTerms = 8;
         private const int MaxSupportsText = 2048;
@@ -453,6 +454,9 @@ namespace Lea.Engine
         // Su reports whether this Lea build accepts a bounded CSS condition.
         public bool Su(string condition) { return Suc(condition); }
         public bool Su(string property, string value) { return Sup(property, value); }
+
+        // Mq evaluates Lea's bounded media-query subset against the live host state.
+        public bool Mq(string query) { return Mqs(query, vw, vh, dp, th, rm, pc, je ? 'e' : 'n', pdt); }
 
         // Ck runs a page element's safe Lea click commands.
         public int Ck(P page, N element)
@@ -2746,6 +2750,21 @@ namespace Lea.Engine
                 property != property.Trim() || !Regex.IsMatch(property, "^(?:--[A-Za-z_][A-Za-z0-9_-]*|-?[A-Za-z_][A-Za-z0-9_-]*)$") ||
                 property.Length + value.Length + 1 > MaxSupportsText) return false;
             return CssSupportsDeclaration(property + ":" + value);
+        }
+
+        internal static bool Mqs(P page, string query)
+        {
+            return page != null && Mqs(query, page.Vw, page.Vh, page.Dp, page.Th, page.Rm, page.Pc,
+                page.Je ? 'e' : 'n', page.Pdt);
+        }
+
+        private static bool Mqs(string query, int width, int height, int density, char theme, char motion,
+            char contrast, char scripting, char preferredData)
+        {
+            if (query == null || query.Length > MaxMediaText) return false;
+            foreach (var condition in CssMedia(query))
+                if (condition.On(width, height, density, theme, motion, contrast, scripting, preferredData)) return true;
+            return false;
         }
 
         private static bool CssSupports(string source, int depth, out bool valid)

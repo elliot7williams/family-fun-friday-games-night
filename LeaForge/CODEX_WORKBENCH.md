@@ -17,20 +17,19 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 131 adds bounded standards-shaped `CSS.supports()` checks without a
-general JavaScript VM. Compact `E/V.Su` overloads query condition text or one
-property/value pair through the existing `@supports` parser. Literal page
-scripts can guard allow-listed commands with one/two-argument
-`CSS.supports(...)`, optional `!`, optional `else`, four nested levels, and the
-shared 32-command budget. Computed arguments and arbitrary expressions remain
-inert. Focused, full source, exact package-mirror, and compiled Firespider host
-suites pass. All 127 compatibility probes pass over 122 fixtures; all 42 Boot
-cases are accounted for after the known clipboard-sensitive `edit` retry, and
-all six real EXE startup scenarios are responsive. Three-round diagnostic
-medians are 955.931 ms clean start, 8.349 ms local load, and 40.097 ms
-layout/paint; retained memory is 68.6 KiB/page and required runtime files are
-690.0 KiB. Runtime 231 is staged separately and installed runtime 157 remains
-unchanged. See `SUPPORTS_QUERIES.md`.
+Milestone 132 adds bounded standards-shaped media-query scripting without a
+general JavaScript VM. Compact `E/V.Mq(query)` evaluates Lea's existing media
+parser against live viewport, density, preference, and scripting state.
+Literal global or `window.matchMedia("...").matches` guards support optional
+`!` and `else`, mix with `CSS.supports()` to four levels, and share the
+32-command ceiling. Computed queries, listeners, saved objects, and arbitrary
+expressions remain inert. Focused and full source, compiled Firespider host,
+all 42 Boot cases, and all six real EXE startup scenarios pass. All 128
+compatibility probes pass over 123 fixtures. Three-round diagnostic medians
+are 549.435 ms clean start, 7.063 ms local load, and 39.150 ms layout/paint;
+retained memory is 68.3 KiB/page and required runtime files are 691.0 KiB.
+Runtime 232 is packaged separately and installed runtime 157 remains unchanged.
+See `MATCH_MEDIA.md`.
 Container/style queries,
 `font-tech()`/`font-format()`,
 general-enclosed conditions, locale-sensitive

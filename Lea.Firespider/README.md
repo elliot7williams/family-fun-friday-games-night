@@ -418,6 +418,13 @@ allow-listed commands. Firespider adds no separate condition parser or general
 JavaScript runtime.
 See `LeaForge/SUPPORTS_QUERIES.md`.
 
+Compact `V.Mq(query)` evaluates the same live viewport, monitor DPI,
+preferences, and scripting state used by Firespider's Lea tab. Literal global
+or `window.matchMedia("...").matches` script and click guards select existing
+allow-listed commands through that parser. Computed queries, listeners, saved
+query objects, and arbitrary expressions remain inert. See
+`LeaForge/MATCH_MEDIA.md`.
+
 Bounded named cascade layers also remain entirely inside Lea. The compiled host
 smoke verifies later-layer normal order, reversed important order, unlayered
 normal precedence, supports/media nesting, compact `@l` diagnostics, wide,

@@ -69,6 +69,9 @@ LeaForge is where we can grow the more full-featured browser.
   `E/V.Su` overloads and literal allow-listed `if/else` command guards, reusing
   the existing declaration/selector/logic parsers and shared command limits;
   see `SUPPORTS_QUERIES.md`
+- bounded standards-shaped media matching through compact `E/V.Mq` aliases and
+  literal global/window `matchMedia(...).matches` guards, reusing current
+  viewport, DPI, preferences, and shared command limits; see `MATCH_MEDIA.md`
 - wrapped inline bold/italic text, styled spans, line breaks, and links inside text blocks
 - inherited font-family fallbacks plus native current-color underline and
   line-through decoration

@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Match Media Script</title>
+  <style>
+    body { color: #26313b; background: #ffffff; }
+    #status { display: block; width: 200px; padding: 4px; }
+    #field { display: block; width: 220px; height: 30px; }
+  </style>
+</head>
+<body>
+  <h1>Match media script</h1>
+  <p id="status" class="base">Before media checks</p>
+  <label for="field">Persistent field</label>
+  <input id="field" name="field" value="Initial value">
+  <button id="guard" type="button" data-lea="if(matchMedia('(max-width:500px)').matches){tx('status','Clicked narrow');wd('status','260px');}else{tx('status','Clicked wide');}">Run media guard</button>
+  <script>
+    if (matchMedia("(min-width: 800px)").matches) {
+      tx("status", "Wide media match");
+      bg("status", "#dff5e8");
+    };
+    if (matchMedia("screen and (width >= 800px)").matches) { ac("status", "global"); };
+    if (window.matchMedia("(orientation: landscape)").matches) { ac("status", "window"); };
+    if (matchMedia("(prefers-color-scheme: dark)").matches) { ac("status", "dark"); };
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) { ac("status", "reduced"); };
+    if (matchMedia("(max-width: 500px)").matches) { tx("status", "Wrong branch"); } else { ac("status", "elsewide"); };
+    if (CSS.supports("display", "grid")) {
+      if (matchMedia("(min-width: 800px)").matches) {
+        if (CSS.supports("selector(:has(*))")) {
+          if (window.matchMedia("(orientation: landscape)").matches) { wd("status", "248px"); };
+        };
+      };
+    };
+    if (matchMedia(query).matches) { tx("status", "Computed query escaped"); };
+    if (matchMedia("(min-width: 1px)", "extra").matches) { tx("status", "Extra argument escaped"); };
+    if (MatchMedia("(min-width: 1px)").matches) { tx("status", "Wrong case escaped"); };
+    if (matchMedia("(min-width: 1px)").matches === true) { tx("status", "Expression escaped"); };
+  </script>
+</body>
+</html>

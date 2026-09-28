@@ -10,8 +10,8 @@ namespace Lea.Engine
         private const int MaxBlocks = 8;
         private const int MaxCode = 16 * 1024;
         private const int MaxCommands = 32;
-        private const int MaxSupportsDepth = 4;
-        private const int MaxSupportsText = 2048;
+        private const int MaxGuardDepth = 4;
+        private const int MaxConditionText = 2048;
         private const int MaxAlerts = 16;
         private const int MaxVariables = 16;
         private const int MaxClasses = 32;
@@ -51,7 +51,7 @@ namespace Lea.Engine
                 bool supported;
                 string yes;
                 string no;
-                if (SupportsGuard(statement, depth, out supported, out yes, out no))
+                if (ConditionalGuard(page, statement, depth, out supported, out yes, out no))
                 {
                     var branch = supported ? yes : no;
                     if (branch.Length > 0) count += Run(page, branch, ref left, depth + 1);
@@ -65,16 +65,17 @@ namespace Lea.Engine
             return count;
         }
 
-        private static bool SupportsGuard(string source, int depth, out bool supported, out string yes, out string no)
+        private static bool ConditionalGuard(P page, string source, int depth, out bool supported, out string yes, out string no)
         {
             supported = false;
             yes = "";
             no = "";
-            if (depth >= MaxSupportsDepth) return false;
+            if (depth >= MaxGuardDepth) return false;
             var at = 0;
             if (!Word(source, ref at, "if")) return false;
             string condition;
-            if (!Group(source, ref at, '(', ')', out condition) || !SupportsCall(condition, out supported) ||
+            if (!Group(source, ref at, '(', ')', out condition) ||
+                (!SupportsCall(condition, out supported) && !MatchMediaCall(page, condition, out supported)) ||
                 !Group(source, ref at, '{', '}', out yes)) return false;
             Space(source, ref at);
             if (at == source.Length) return true;
@@ -96,15 +97,36 @@ namespace Lea.Engine
             var reader = new Rd(expression);
             if (reader.Name() != "CSS.supports" || !reader.Take('(')) return false;
             string first;
-            if (!reader.Quoted(out first, MaxSupportsText)) return false;
+            if (!reader.Quoted(out first, MaxConditionText)) return false;
             string second = null;
             if (reader.Take(','))
             {
-                if (!reader.Quoted(out second, MaxSupportsText)) return false;
+                if (!reader.Quoted(out second, MaxConditionText)) return false;
             }
             if (!reader.Take(')') || !reader.End()) return false;
             supported = second == null ? E.Suc(first) : E.Sup(first, second);
             if (invert) supported = !supported;
+            return true;
+        }
+
+        private static bool MatchMediaCall(P page, string source, out bool matches)
+        {
+            matches = false;
+            var expression = (source ?? "").Trim();
+            var invert = false;
+            if (expression.StartsWith("!", StringComparison.Ordinal))
+            {
+                invert = true;
+                expression = expression.Substring(1).TrimStart();
+            }
+            var reader = new Rd(expression);
+            var name = reader.Name();
+            if ((name != "matchMedia" && name != "window.matchMedia") || !reader.Take('(')) return false;
+            string query;
+            if (!reader.Quoted(out query, MaxConditionText) || !reader.Take(')') || !reader.Take('.') ||
+                reader.Name() != "matches" || !reader.End()) return false;
+            matches = E.Mqs(page, query);
+            if (invert) matches = !matches;
             return true;
         }
 

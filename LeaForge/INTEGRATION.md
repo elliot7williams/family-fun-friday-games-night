@@ -1018,6 +1018,13 @@ same declaration/selector/logic parsers as `@supports`, nests to four levels,
 and spends from the same 32-command budget. No values are evaluated and no
 general JavaScript or CSSOM object is introduced. See `SUPPORTS_QUERIES.md`.
 
+Hosts can evaluate Lea's current media state with compact `E/V.Mq(query)`.
+Literal page commands accept global or `window.matchMedia("...").matches`
+guards with optional `!` and `else`. They reuse the compiled media parser,
+current viewport/DPI/preferences, four-level mixed conditional depth, and
+32-command budget. Computed queries, listeners, saved query objects, and
+arbitrary expressions stay inert. See `MATCH_MEDIA.md`.
+
 `fo` queues one enabled, non-HTML-hidden focus target; the first accepted
 request wins. Headless hosts take it once with `E.Kp(page)`. `V` resolves it
 against final rendered focus targets, scrolls it into view, and clears stale
