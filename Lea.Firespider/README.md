@@ -389,8 +389,9 @@ feed those same fields for horizontal LTR/RTL pages.
 
 Responsive CSS also stays inside that surface. `V.Vw/Vh` follow the hosted
 control's client viewport, while `P.Vw/Vh` and `G.Vw/Vh` expose the applied
-pair to the page and Inspector. Bounded screen/all pixel min/max/exact width
-and height, portrait/landscape, reduced integer aspect-ratio ranges,
+pair to the page and Inspector. Bounded screen/all plus fixed non-matching
+print, whole-query `not`, no-op `only` before media types, pixel min/max/exact
+width and height, portrait/landscape, reduced integer aspect-ratio ranges,
 feature/value-first and same-direction chained strict/inclusive comparisons,
 conjunction, comma, nested, and style media conditions switch compiled rules
 on resize without replacing live field models. The host smoke verifies
@@ -398,6 +399,8 @@ portrait, short-landscape, tall/wide/intermediate ratio and range states,
 narrow, restored wide, diagnostics, and retained fields plus classic
 viewport-unit geometry and commands. See `LeaForge/MEDIA_FEATURES.md`,
 `LeaForge/MEDIA_ASPECT_RATIO.md`, and `LeaForge/MEDIA_RANGE_SYNTAX.md`.
+Modifier grammar, nested predicate intersections, script guards, and strict
+malformed rejection are in `LeaForge/MEDIA_MODIFIERS.md`.
 
 Preference media stays engine-owned too. Firespider can explicitly set
 `V.Pdt=n/r` to select no-preference or reduced-data CSS, while `P.Pdt` and
@@ -423,7 +426,10 @@ preferences, and scripting state used by Firespider's Lea tab. Literal global
 or `window.matchMedia("...").matches` script and click guards select existing
 allow-listed commands through that parser. Computed queries, listeners, saved
 query objects, and arbitrary expressions remain inert. See
-`LeaForge/MATCH_MEDIA.md`.
+`LeaForge/MATCH_MEDIA.md`. Whole-query modifier behavior shares this path; the
+compiled host checks `not print`, strict `only screen`, negated width, CSS
+selection, and nested literal guards without adapter-side parsing. See
+`LeaForge/MEDIA_MODIFIERS.md`.
 
 Bounded named cascade layers also remain entirely inside Lea. The compiled host
 smoke verifies later-layer normal order, reversed important order, unlayered

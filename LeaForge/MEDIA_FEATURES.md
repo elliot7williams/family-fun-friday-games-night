@@ -19,7 +19,7 @@ diagnostics. A WinForms `V` updates both values from its client size and keeps
 
 ## Supported Queries
 
-Lea accepts `screen` and `all` queries containing:
+Lea accepts `screen`, `all`, and fixed non-matching `print` queries containing:
 
 - `width`, `min-width`, and `max-width` in whole pixels
 - `height`, `min-height`, and `max-height` in whole pixels
@@ -42,15 +42,19 @@ Lea accepts `screen` and `all` queries containing:
 - `and` conjunctions and comma alternatives
 - up to four nested `@media` levels and eight resulting alternatives
 - the same conditions in a `<style media>` attribute
+- one leading whole-query `not`, or no-op `only` before a media type
 
 Portrait is active when height is greater than or equal to width, so a square
 viewport is portrait. Landscape requires width to be greater than height.
 Nested conditions intersect both dimension ranges and orientation. Impossible
 ranges and conflicting orientations stay inactive.
 
-Print, negated, unknown, malformed, non-pixel dimension, mixed-direction range,
-and unknown orientation queries stay inactive. This remains a deliberately
-bounded screen media subset, not the complete CSS media-query standard.
+Unknown media types, misplaced/repeated modifiers, malformed queries,
+non-pixel dimensions, mixed-direction ranges, and unknown orientations stay
+inactive. `print` itself is recognized but false in Lea's fixed screen host;
+`not print` is therefore true. This remains a deliberately bounded screen
+media subset, not the complete CSS media-query standard. See
+`MEDIA_MODIFIERS.md` for modifier grammar and nested predicate intersections.
 
 Aspect-ratio normalization, exact comparison, diagnostics, and limits are
 documented separately in `MEDIA_ASPECT_RATIO.md`. Modern comparison grammar and

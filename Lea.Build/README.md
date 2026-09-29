@@ -248,6 +248,10 @@ click/host bridges, retained fields, exact geometry, and strict rejection.
 global/window `matchMedia(...).matches` guards, including viewport and
 preference state, else/negation, mixed four-level nesting, the shared command
 ceiling, click/host bridges, retained fields, resize, and exact geometry.
+`--media-modifiers` isolates whole-query `not`, no-op `only` before recognized
+media types, fixed screen/print behavior, comma alternatives, nested predicate
+intersections, style media, literal matchMedia guards, malformed placement,
+diagnostics, retained fields, resize, and exact WinForms geometry.
 These test modes do not retry or suppress failed assertions. Windows
 clipboard access can fail while another process holds it. Record separately
 which modes passed; a clipboard-free run is not a complete default-suite pass.

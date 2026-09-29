@@ -758,7 +758,8 @@ media boundary changes. A host may set `V.Dp`, `V.Th`, `V.Rm`, or `V.Pc`
 explicitly to override automatic platform tracking, may set host-controlled
 `V.Pdt`, and may set `V.Je` to enable or disable Lea's bounded scripting layer.
 Existing `Fi` objects and mutable values survive that rebuild. The bounded
-compiler accepts `screen`/`all` with pixel min/max/exact width and height,
+compiler accepts `screen`/`all` plus fixed non-matching `print`, whole-query
+`not`, no-op `only` before a media type, pixel min/max/exact width and height,
 portrait/landscape orientation, bounded reduced integer min/max/exact aspect
 ratios, `dpi`/`dppx`/`dpcm` resolution, light/dark `prefers-color-scheme`,
 no-preference/reduce `prefers-reduced-motion`, no-preference/reduce
@@ -768,9 +769,10 @@ feature-first, value-first, or same-direction chained comparisons. These
 compose with conjunctions, comma alternatives,
 nested `@media`, and `<style media>`. Dimensions and ratio terms clamp to
 1-8,192; a square is portrait; query alternatives, nesting, and total rules are
-capped at 8, 4, and 1,024. Unsupported media stays inactive instead of silently
-behaving as screen CSS. See `MEDIA_FEATURES.md`, `MEDIA_ASPECT_RATIO.md`, and
-`MEDIA_RANGE_SYNTAX.md`; density bounds, conversions, and automatic WinForms
+capped at 8, 4, and 1,024. Unsupported media and misplaced modifiers stay
+inactive instead of silently behaving as screen CSS. See `MEDIA_FEATURES.md`,
+`MEDIA_ASPECT_RATIO.md`, `MEDIA_RANGE_SYNTAX.md`, and `MEDIA_MODIFIERS.md`;
+density bounds, conversions, and automatic WinForms
 behavior are in `MEDIA_RESOLUTION.md`.
 Preferred-theme aliases, Windows behavior, diagnostics, and limits are in
 `MEDIA_COLOR_SCHEME.md`.
@@ -1024,6 +1026,8 @@ guards with optional `!` and `else`. They reuse the compiled media parser,
 current viewport/DPI/preferences, four-level mixed conditional depth, and
 32-command budget. Computed queries, listeners, saved query objects, and
 arbitrary expressions stay inert. See `MATCH_MEDIA.md`.
+Whole-query modifiers and fixed screen/print semantics are in
+`MEDIA_MODIFIERS.md`.
 
 `fo` queues one enabled, non-HTML-hidden focus target; the first accepted
 request wins. Headless hosts take it once with `E.Kp(page)`. `V` resolves it

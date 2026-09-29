@@ -20,7 +20,8 @@ if (!matchMedia("(prefers-reduced-motion: reduce)").matches) { sh("motion"); }
 
 `Mq` supports the media features already compiled by Lea:
 
-- `screen` and `all` media types;
+- `screen`, `all`, and fixed non-matching `print` media types;
+- whole-query `not` and no-op `only` before a media type;
 - pixel width and height, orientation, and reduced integer aspect ratios;
 - `dpi`, `dppx`, and `dpcm` resolution;
 - color scheme, reduced motion, reduced data, and contrast preferences;
@@ -29,7 +30,7 @@ if (!matchMedia("(prefers-reduced-motion: reduce)").matches) { sh("motion"); }
 - `and` conjunctions and up to eight comma alternatives.
 
 An empty string matches the ordinary all-media state. Null, malformed,
-unknown, negated, or over-limit queries return false. Values are checked
+unknown, misplaced-modifier, or over-limit queries return false. Values are checked
 against current engine state on every host call. A WinForms `V.Mq` call after a
 resize or preference update therefore sees the new state without retaining a
 separate query object.
@@ -59,6 +60,8 @@ click-handler guards evaluate the page's current media state when invoked.
 Coverage lives in `test-pages/match-media-script.html` and the focused
 `Lea.Tests.exe . --match-media-script` suite. The same fixture is exercised by
 the compatibility benchmark and the compiled Firespider host smoke.
+Modifier grammar, fixed screen/print semantics, and nested intersections are
+covered separately in `MEDIA_MODIFIERS.md`.
 
 The API shape follows the W3C CSSOM View definition of `matchMedia()` and the
 read-only `MediaQueryList.matches` state:

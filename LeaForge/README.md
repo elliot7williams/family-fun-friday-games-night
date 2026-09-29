@@ -71,7 +71,8 @@ LeaForge is where we can grow the more full-featured browser.
   see `SUPPORTS_QUERIES.md`
 - bounded standards-shaped media matching through compact `E/V.Mq` aliases and
   literal global/window `matchMedia(...).matches` guards, reusing current
-  viewport, DPI, preferences, and shared command limits; see `MATCH_MEDIA.md`
+  viewport, DPI, preferences, whole-query `not`, strict `only`, and shared
+  command limits; see `MATCH_MEDIA.md` and `MEDIA_MODIFIERS.md`
 - wrapped inline bold/italic text, styled spans, line breaks, and links inside text blocks
 - inherited font-family fallbacks plus native current-color underline and
   line-through decoration
@@ -143,7 +144,8 @@ LeaForge is where we can grow the more full-featured browser.
 - strict bounded `:has(...)` relational lists with descendant, child, adjacent,
   following-sibling, and four-part compiled chains, maximum specificity,
   dynamic focus restyling, and deterministic traversal limits
-- bounded responsive `screen`/`all` pixel width/height,
+- bounded responsive `screen`/`all` plus fixed non-matching `print`, whole-query
+  `not`, no-op `only` before media types, pixel width/height,
   portrait/landscape, integer aspect-ratio, `dpi`/`dppx`/`dpcm` resolution,
   light/dark `prefers-color-scheme`, and no-preference/reduce
   `prefers-reduced-motion`, no-preference/reduce `prefers-reduced-data`,
@@ -153,7 +155,8 @@ LeaForge is where we can grow the more full-featured browser.
   compact `Vw/Vh/Vz/Dp/Th/Rm/Pdt/Pc/Je` aliases, nested conditions, live WinForms
   viewport/DPI/preference updates, and retained fields; see
   `MEDIA_RANGE_SYNTAX.md`, `MEDIA_RESOLUTION.md`, `MEDIA_COLOR_SCHEME.md`,
-  `MEDIA_REDUCED_MOTION.md`, `MEDIA_REDUCED_DATA.md`, `MEDIA_CONTRAST.md`, and
+  `MEDIA_REDUCED_MOTION.md`, `MEDIA_REDUCED_DATA.md`, `MEDIA_CONTRAST.md`,
+  `MEDIA_MODIFIERS.md`, and
   `MEDIA_SCRIPTING.md`
 - bounded CSS `@supports` declaration checks and `selector(...)` capability
   checks with grouped `not`/`and`/`or`, nested media, compact `@s` diagnostics,

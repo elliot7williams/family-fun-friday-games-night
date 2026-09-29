@@ -196,6 +196,11 @@ namespace Lea.Tests
                     MatchMediaScriptSmoke(Path.Combine(pages, "match-media-script.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--media-modifiers")
+                {
+                    MediaModifierSmoke(Path.Combine(pages, "media-modifiers.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--layers")
                 {
                     LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
@@ -1623,6 +1628,7 @@ namespace Lea.Tests
                 SupportsSmoke(Path.Combine(pages, "supports-queries.html"));
                 CssSupportsScriptSmoke(Path.Combine(pages, "css-supports-script.html"));
                 MatchMediaScriptSmoke(Path.Combine(pages, "match-media-script.html"));
+                MediaModifierSmoke(Path.Combine(pages, "media-modifiers.html"));
                 LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
                 HslColorSmoke(Path.Combine(pages, "hsl-colors.html"));
                 HwbColorSmoke(Path.Combine(pages, "hwb-colors.html"));
@@ -10020,6 +10026,91 @@ namespace Lea.Tests
                 Eq(219, BlockRect(view, BlockById(view.At, "field")).Width, "WinForms narrow media guard exact geometry");
             }
             Console.WriteLine("Lea matchMedia script smoke passed: compact Mq aliases, literal global/window guards, live viewport and preferences, else and negation, mixed nesting and command limits, click/host bridges, exact geometry, and retained fields.");
+        }
+
+        private static void MediaModifierSmoke(string path)
+        {
+            var engine = new E { Vw = 900, Vh = 600 };
+            Ok(engine.Mq("not print") && engine.Mq("only screen and (min-width:800px)") &&
+                engine.Mq("not screen and (max-width:500px)") && engine.Mq("not (orientation:portrait)") &&
+                engine.Mq("not screen and (min-width:800px), (width:900px)"),
+                "wide host media modifiers");
+            Ok(!engine.Mq("not all") && !engine.Mq("not screen") &&
+                !engine.Mq("not screen and (min-width:800px)") && !engine.Mq("only print"),
+                "wide false media modifiers");
+            Ok(!engine.Mq("only (min-width:1px)") && !engine.Mq("screen not (min-width:1px)") &&
+                !engine.Mq("not unknown") && !engine.Mq("not only screen") &&
+                !engine.Mq("(min-width:1px) screen") && !engine.Mq("screen (min-width:1px)") &&
+                !engine.Mq("only screen and"),
+                "invalid media modifier placement stays inactive");
+
+            var page = engine.Go(path);
+            Eq(4, page.Jc, "media modifier startup command count");
+            Eq("base notprint onlywide wide landscape", ById(page.D, "status").Av("class"),
+                "wide media modifier script branches");
+            Ok(HasBlock(page, "not-print") && HasBlock(page, "only-wide") && HasBlock(page, "not-portrait") &&
+                HasBlock(page, "alternate") && !HasBlock(page, "not-wide") && !HasBlock(page, "nested-not") &&
+                !HasBlock(page, "style-not") && !HasBlock(page, "invalid"),
+                "wide media modifier CSS selection");
+            Eq(260, FieldById(page, "field").S.W, "wide only modifier field width");
+            var diagnostics = engine.Dg(page);
+            Ok(Has(diagnostics.Cs, "!(@type=print)") && Has(diagnostics.Cs, "!(@o=p)") &&
+                Has(diagnostics.Cs, "@m>=800") && Has(diagnostics.Cs, "@m=900"),
+                "wide media modifier diagnostics");
+
+            var field = FieldById(page, "field");
+            field.V = "Retained media modifier value";
+            engine.Vz(420, 700);
+            Ok(engine.Mq("not print") && engine.Mq("not screen and (min-width:800px)") &&
+                !engine.Mq("not screen and (max-width:500px)") && !engine.Mq("not (orientation:portrait)"),
+                "narrow host media modifiers");
+            Ok(HasBlock(page, "not-print") && HasBlock(page, "not-wide") && HasBlock(page, "nested-not") &&
+                HasBlock(page, "alternate") && HasBlock(page, "style-not") && !HasBlock(page, "only-wide") &&
+                !HasBlock(page, "not-portrait") && !HasBlock(page, "invalid"),
+                "narrow and nested media modifier CSS selection");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) &&
+                field.V == "Retained media modifier value" && field.S.W == 180,
+                "media modifier rebuild retains field identity and value");
+            diagnostics = engine.Dg(page);
+            Ok(Has(diagnostics.Cs, "!(@m>=800)") && Has(diagnostics.Cs, "(@m>=300&!(@m>=800))"),
+                "negated and nested media modifier diagnostics");
+            Eq(1, engine.Js(page, "if(window.matchMedia('not screen and (min-width:800px)').matches){wd('field','177px');}"),
+                "live negated matchMedia guard command");
+            Eq(177, field.S.W, "live negated matchMedia guard style");
+            Eq(0, engine.Js(page, "if(matchMedia('only (min-width:1px)').matches){tx('status','bad');}"),
+                "invalid only guard stays inert");
+
+            using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-30000, -30000), ClientSize = new Size(900, 600) })
+            using (var view = new V { Dock = DockStyle.Fill })
+            {
+                form.Controls.Add(view);
+                form.Show();
+                view.Go(path);
+                Paint(view);
+                Ok(view.Mq("not print") && view.Mq("only screen and (min-width:800px)") &&
+                    !view.Mq("not screen and (min-width:800px)"),
+                    "WinForms wide media modifiers");
+                Eq(260, BlockRect(view, BlockById(view.At, "field")).Width,
+                    "WinForms wide only modifier geometry");
+                var liveField = FieldById(view.At, "field");
+                liveField.V = "Retained view modifier value";
+                form.ClientSize = new Size(420, 700);
+                Application.DoEvents();
+                Paint(view);
+                Ok(view.Mq("not screen and (min-width:800px)") && !view.Mq("not (orientation:portrait)"),
+                    "WinForms modifiers follow resize");
+                Ok(Object.ReferenceEquals(liveField, FieldById(view.At, "field")) &&
+                    liveField.V == "Retained view modifier value",
+                    "WinForms modifier resize retains field");
+                Eq(180, BlockRect(view, BlockById(view.At, "field")).Width,
+                    "WinForms narrow negated modifier geometry");
+                Eq(1, view.Js("if(matchMedia('not print').matches){wd('field','179px');}"),
+                    "WinForms not-print script guard");
+                Paint(view);
+                Eq(179, BlockRect(view, BlockById(view.At, "field")).Width,
+                    "WinForms modifier script exact geometry");
+            }
+            Console.WriteLine("Lea media modifier smoke passed: bounded not/only queries, fixed screen/print semantics, alternatives, nested intersections, style media, matchMedia guards, diagnostics, resize, paint, and retained fields.");
         }
 
         private static void MediaFeatureSmoke(string path)

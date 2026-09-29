@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Media Query Modifiers</title>
+  <style>
+    body { color: #26313b; background: #ffffff; }
+    p { margin: 4px 0; padding: 4px; }
+    #not-print, #only-wide, #not-wide, #not-portrait, #nested-not, #alternate, #style-not, #invalid { display: none; }
+    #field { display: block; width: 220px; height: 30px; background: #f3f5f7; }
+
+    @media not print {
+      #not-print { display: block; width: 201px; background: #dff5e8; }
+    }
+
+    @media only screen and (min-width: 800px) {
+      #only-wide { display: block; width: 202px; background: #dcecff; }
+      #field { width: 260px; }
+    }
+
+    @media not screen and (min-width: 800px) {
+      #not-wide { display: block; width: 203px; background: #fff4d6; }
+      #field { width: 180px; }
+    }
+
+    @media not (orientation: portrait) {
+      #not-portrait { display: block; width: 204px; background: #f4e8ff; }
+    }
+
+    @media (min-width: 300px) {
+      @media not screen and (min-width: 800px) {
+        #nested-not { display: block; width: 205px; background: #ffe9e2; }
+      }
+    }
+
+    @media not screen and (min-width: 800px), (width: 900px) {
+      #alternate { display: block; width: 206px; background: #e8f4ef; }
+    }
+
+    @media only (min-width: 1px) { #invalid { display: block; } }
+    @media screen not (min-width: 1px) { #invalid { display: block; } }
+    @media not unknown { #invalid { display: block; } }
+    @media (min-width: 1px) screen { #invalid { display: block; } }
+    @media screen (min-width: 1px) { #invalid { display: block; } }
+    @media only screen and { #invalid { display: block; } }
+  </style>
+  <style media="not screen and (min-width: 800px)">
+    #style-not { display: block; width: 207px; background: #e8f4ef; }
+  </style>
+</head>
+<body>
+  <h1>Media query modifiers</h1>
+  <p id="status" class="base">Before modifier checks</p>
+  <p id="not-print">Not print</p>
+  <p id="only-wide">Only wide screen</p>
+  <p id="not-wide">Not wide screen</p>
+  <p id="not-portrait">Not portrait</p>
+  <p id="nested-not">Nested not</p>
+  <p id="alternate">Negated alternative</p>
+  <p id="style-not">Style media not</p>
+  <p id="invalid">Invalid modifier</p>
+  <label for="field">Persistent field</label>
+  <input id="field" name="field" value="Initial value">
+  <script>
+    if (matchMedia("not print").matches) { ac("status", "notprint"); };
+    if (matchMedia("only screen and (min-width:800px)").matches) { ac("status", "onlywide"); };
+    if (matchMedia("not screen and (min-width:800px)").matches) { ac("status", "narrow"); } else { ac("status", "wide"); };
+    if (window.matchMedia("not (orientation:portrait)").matches) { ac("status", "landscape"); };
+  </script>
+</body>
+</html>

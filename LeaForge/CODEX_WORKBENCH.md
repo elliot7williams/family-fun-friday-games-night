@@ -17,19 +17,19 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 132 adds bounded standards-shaped media-query scripting without a
-general JavaScript VM. Compact `E/V.Mq(query)` evaluates Lea's existing media
-parser against live viewport, density, preference, and scripting state.
-Literal global or `window.matchMedia("...").matches` guards support optional
-`!` and `else`, mix with `CSS.supports()` to four levels, and share the
-32-command ceiling. Computed queries, listeners, saved objects, and arbitrary
-expressions remain inert. Focused and full source, compiled Firespider host,
-all 42 Boot cases, and all six real EXE startup scenarios pass. All 128
-compatibility probes pass over 123 fixtures. Three-round diagnostic medians
-are 549.435 ms clean start, 7.063 ms local load, and 39.150 ms layout/paint;
-retained memory is 68.3 KiB/page and required runtime files are 691.0 KiB.
-Runtime 232 is packaged separately and installed runtime 157 remains unchanged.
-See `MATCH_MEDIA.md`.
+Milestone 133 adds bounded Media Queries Level 4 modifiers without another
+parser or public object. Whole-query `not`, no-op `only` before a media type,
+and fixed screen/all/print semantics now flow through `@media`, style media,
+compact `E/V.Mq`, and literal global/window `matchMedia(...).matches` guards.
+Nested negation intersects as exact bounded predicates; unknown types and
+misplaced/repeated modifiers remain inactive. Focused/full source, native
+editing, matching compiled Firespider host, extracted-package core/edit, all 42
+Boot cases, and all six real EXE startup scenarios pass. All 129 compatibility
+probes pass over 124 fixtures. Three-round diagnostic medians are 735.376 ms clean start, 7.882 ms
+local load, and 39.059 ms layout/paint; retained memory is 68.1 KiB/page and
+required runtime files are 692.5 KiB with a 286.3 KiB GZip estimate. Runtime
+233 is packaged separately and installed runtime 157 remains unchanged. See
+`MEDIA_MODIFIERS.md`.
 Container/style queries,
 `font-tech()`/`font-format()`,
 general-enclosed conditions, locale-sensitive
@@ -277,8 +277,9 @@ boundaries, hover/media activation, WinForms geometry, and retained fields cover
 the path. The preceding custom-property fixture covers lazy inherited maps,
 compact `S.Vc/Cv` and `G.Vc`, nested/cycle fallbacks, and strict count/name/value/
 depth/output limits. Compact `E/V/P/G.Vw`
-state drives bounded screen/all pixel min/max/exact, comma, nested, and style
-media conditions. Rules compile once, WinForms resize activates only the matching
+state drives bounded screen/all/print media with whole-query `not`, strict
+`only`, pixel min/max/exact, comma, nested, and style media conditions. Rules
+compile once, WinForms resize activates only the matching
 set, diagnostics carry short `@m` labels, and mutable fields retain identity.
 Non-inherited compact `Bz=c/b` state applies pixel
 width/height, min/max, and flex-basis values to the content or border edge across

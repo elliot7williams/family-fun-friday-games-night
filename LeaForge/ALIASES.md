@@ -102,7 +102,7 @@ message and `V.Am` exposes the current message. `E/V.Su(condition)` and
 `E/V.Mq(query)` evaluates Lea's compiled media-query subset against current
 host state. Literal scripts may use `matchMedia("...").matches` or
 `window.matchMedia("...").matches` as the same bounded `if` guard. See
-`MATCH_MEDIA.md`.
+`MATCH_MEDIA.md` and `MEDIA_MODIFIERS.md`.
 Supported page commands are:
 
 ```text
@@ -990,7 +990,8 @@ client viewport automatically. `P.Vw/Vh` and `G.Vw/Vh` report the pair applied
 to the page and diagnostic snapshot.
 `P.Rf` is the explicitly computed root font size, or zero for the host default;
 `V.Rf` is the root font size actually used for layout.
-Lea compiles bounded `screen`/`all` queries with pixel `min-width`, `max-width`,
+Lea compiles bounded `screen`/`all` plus fixed non-matching `print` queries with
+one leading whole-query `not` or no-op `only` before a media type, pixel `min-width`, `max-width`,
 exact `width`, `min-height`, `max-height`, exact `height`, and
 `orientation:portrait/landscape`, and integer `aspect-ratio`,
 `min-aspect-ratio`, or `max-aspect-ratio`, plus conjunctions, comma
@@ -998,10 +999,10 @@ alternatives, four nested `@media` levels, up to eight resulting alternatives,
 and `<style media>`. Modern `<`, `<=`, `=`, `>=`, and `>` comparisons accept
 feature-first, value-first, and same-direction chained width, height, and
 integer-ratio forms. Strict boundaries survive nested intersections. A square
-viewport is portrait. Print, negated, unknown, non-pixel, mixed-direction, and
-malformed ratio conditions stay inactive. Active diagnostic CSS lines use
+viewport is portrait. Unknown media types, misplaced modifiers, non-pixel,
+mixed-direction, and malformed ratio conditions stay inactive. Active diagnostic CSS lines use
 short `@m`, `@h`, `@r`, and `@o` prefixes. See `MEDIA_FEATURES.md`,
-`MEDIA_ASPECT_RATIO.md`, and `MEDIA_RANGE_SYNTAX.md`.
+`MEDIA_ASPECT_RATIO.md`, `MEDIA_RANGE_SYNTAX.md`, and `MEDIA_MODIFIERS.md`.
 
 Bounded `@supports` blocks compile without a new public object or long command.
 Declaration conditions reuse the documented display, position, sizing, flex,

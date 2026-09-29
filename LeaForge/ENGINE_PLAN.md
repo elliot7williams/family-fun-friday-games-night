@@ -83,13 +83,14 @@ Dg/Dcl  diagnostics/clear request activity
    Intrinsic min-content sizing, fractional
    factors, wrapped ordering, column wrapping, wrap-reverse, wrapped cross-axis
    alignment, and auto-height column reordering remain outside this subset.)
-9. Add bounded responsive CSS. (`screen`/`all` pixel min/max/exact width and
+9. Add bounded responsive CSS. (`screen`/`all` plus fixed non-matching `print`,
+   whole-query `not`, no-op `only` before a media type, pixel min/max/exact width and
    height, portrait/landscape orientation, reduced integer min/max/exact aspect
    ratios, bounded strict/inclusive feature/value-first and same-direction
    chained ranges, conjunctions, comma alternatives, four nested `@media`
    levels, and `<style media>` are active through compact `Vw/Vh/Vz` aliases.
-   WinForms resize activation preserves live fields; print, negated, unknown,
-   non-pixel, mixed-direction, and malformed ratio queries stay outside the
+   WinForms resize activation preserves live fields; unknown media types,
+   misplaced modifiers, non-pixel, mixed-direction, and malformed ratio queries stay outside the
    supported subset.)
 10. Add bounded CSS custom properties. (Stylesheet declarations now compile
     once; inherited case-sensitive values use lazy copy-on-write storage and
@@ -349,18 +350,19 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 132 adds standards-shaped bounded media-query scripting by reusing
-Lea's compiled media parser and applied host state. Compact `E/V.Mq(query)`
-evaluates the live viewport, density, preferences, and scripting mode. Literal
-global or `window.matchMedia("...").matches` guards may select an allow-listed
-command block with optional `!` and `else`; mixed media/support guards share the
-four-level depth and 32-command ceiling. Computed queries, listeners, saved
-objects, arbitrary expressions, and a general JavaScript evaluator remain
-inert. See `MATCH_MEDIA.md`. All 128 compatibility probes pass over 123
-fixtures. Focused, full source, compiled Firespider host, separate editing, all
-42 Boot cases in one run, and all six real EXE startup scenarios pass. Runtime
-232 is packaged separately and installed runtime 157 remains unchanged.
-Next investigate another bounded compatibility slice. Keep device ratios,
+Milestone 133 adds bounded Media Queries Level 4 modifiers to Lea's shared
+compiler. Whole-query `not`, no-op `only` before a media type, and fixed
+screen/all/print semantics now work through CSS, style media, `E/V.Mq`, and
+literal `matchMedia(...).matches` guards. Negated nested media uses exact
+bounded predicate intersections; malformed placement remains inactive. See
+`MEDIA_MODIFIERS.md`. All 129 compatibility probes pass over 124 fixtures;
+focused/full source, native edit, matching compiled Firespider host, exact
+extracted-package core/edit, all 42 Boot cases, and all six real EXE startup
+scenarios pass. Current
+diagnostic medians are 735.376 ms startup, 7.882 ms load, and 39.059 ms
+layout/paint, with 68.1 KiB retained per page and a 286.3 KiB GZip engine
+estimate. Runtime 233 is packaged separately while installed runtime 157 stays
+unchanged. Next investigate another bounded compatibility slice. Keep device ratios,
 container and style queries, `font-tech()`/`font-format()`, general-enclosed
 conditions, locale-sensitive automatic quote selection,
 reversed/custom counter styles, pseudo-element counter properties,

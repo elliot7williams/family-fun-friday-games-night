@@ -3216,7 +3216,21 @@ namespace Lea.Engine
             {
                 if (++groups > MaxMediaGroups) return new Mc[0];
                 var query = item.Trim();
-                if (query.Length == 0 || Regex.IsMatch(query, "(?:^|\\s)not(?:\\s|$)", RegexOptions.IgnoreCase)) continue;
+                if (query.Length == 0) continue;
+                var modifier = Regex.Match(query, "^(?<m>not|only)\\s+(?<q>.+)$", RegexOptions.IgnoreCase);
+                var negated = modifier.Success && modifier.Groups["m"].Value.Equals("not", StringComparison.OrdinalIgnoreCase);
+                var only = modifier.Success && !negated;
+                if (modifier.Success) query = modifier.Groups["q"].Value.Trim();
+                if (query.Length == 0 || Regex.IsMatch(query, "(?:^|\\s)(?:not|only)(?:\\s|$)", RegexOptions.IgnoreCase)) continue;
+                var typeMatch = Regex.Match(query, "^(?<t>screen|all|print)(?:\\s+and\\s+(?=\\S)|$)", RegexOptions.IgnoreCase);
+                if (only && !typeMatch.Success) continue;
+                if (!typeMatch.Success && Regex.IsMatch(query, "(?:^|\\s)(?:screen|all|print)(?:\\s|$)", RegexOptions.IgnoreCase)) continue;
+                var mediaType = '\0';
+                if (typeMatch.Success)
+                {
+                    var type = typeMatch.Groups["t"].Value.ToLowerInvariant();
+                    mediaType = type == "screen" ? 's' : type == "print" ? 'p' : 'a';
+                }
                 var matches = Regex.Matches(query, "\\(\\s*(?<k>min-width|max-width|width|min-height|max-height|height)\\s*:\\s*(?<n>[0-9]{1,4})\\s*px\\s*\\)", RegexOptions.IgnoreCase);
                 var orientations = Regex.Matches(query, "\\(\\s*orientation\\s*:\\s*(?<o>portrait|landscape)\\s*\\)", RegexOptions.IgnoreCase);
                 var ratios = Regex.Matches(query, "\\(\\s*(?<k>min-aspect-ratio|max-aspect-ratio|aspect-ratio)\\s*:\\s*(?<n>[0-9]{1,4})\\s*/\\s*(?<d>[0-9]{1,4})\\s*\\)", RegexOptions.IgnoreCase);
@@ -3496,8 +3510,8 @@ namespace Lea.Engine
                     scripts.Count > 0 || scriptBooleans.Count > 0;
                 foreach (var token in Regex.Split(remainder.Trim(), "\\s+"))
                 {
-                    if (token.Length == 0 || token == "and" || token == "only") continue;
-                    if (token == "screen" || token == "all") { meaningful = true; continue; }
+                    if (token.Length == 0 || token == "and") continue;
+                    if (token == "screen" || token == "all" || token == "print") { meaningful = true; continue; }
                     valid = false;
                     break;
                 }
@@ -3505,7 +3519,8 @@ namespace Lea.Engine
                 var condition = new Mc(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator,
                     ratioMaximum, ratioMaximumDenominator, orientation, minimumExclusive, maximumExclusive,
                     heightMinimumExclusive, heightMaximumExclusive, ratioMinimumExclusive, ratioMaximumExclusive,
-                    densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive, theme, motion, contrast, scripting, preferredData);
+                    densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive, theme, motion, contrast, scripting, preferredData,
+                    mediaType, negated);
                 var duplicate = false;
                 foreach (var existing in result)
                     if (SameMedia(existing, condition)) { duplicate = true; break; }
@@ -3521,6 +3536,15 @@ namespace Lea.Engine
             foreach (var left in parent)
                 foreach (var right in child)
                 {
+                    if (left.Cp || right.Cp || left.Nt || right.Nt)
+                    {
+                        var composite = MediaAll(left) ? right : MediaAll(right) ? left : new Mc(left, right);
+                        var repeated = false;
+                        foreach (var existing in result)
+                            if (SameMedia(existing, composite)) { repeated = true; break; }
+                        if (!repeated && result.Count < MaxMediaGroups) result.Add(composite);
+                        continue;
+                    }
                     var minimum = left.N;
                     var minimumExclusive = left.Ne;
                     if (right.N > minimum) { minimum = right.N; minimumExclusive = right.Ne; }
@@ -3600,10 +3624,12 @@ namespace Lea.Engine
                     else if (left.Je == '*' && right.Je != 'n') scripting = right.Je;
                     else if (right.Je == '*' && left.Je != 'n') scripting = left.Je;
                     else continue;
+                    var mediaType = MediaTypeIntersection(left.Mt, right.Mt);
                     var condition = new Mc(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator,
                         ratioMaximum, ratioMaximumDenominator, orientation, minimumExclusive, maximumExclusive,
                         heightMinimumExclusive, heightMaximumExclusive, ratioMinimumExclusive, ratioMaximumExclusive,
-                        densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive, theme, motion, contrast, scripting, preferredData);
+                        densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive, theme, motion, contrast, scripting, preferredData,
+                        mediaType, false);
                     var duplicate = false;
                     foreach (var existing in result)
                         if (SameMedia(existing, condition)) { duplicate = true; break; }
@@ -3614,12 +3640,27 @@ namespace Lea.Engine
 
         private static bool SameMedia(Mc left, Mc right)
         {
+            if (left == null || right == null) return left == right;
+            if (left.Cp || right.Cp)
+                return left.Cp == right.Cp && SameMedia(left.A, right.A) && SameMedia(left.B, right.B);
             return left.N == right.N && left.X == right.X && left.Hn == right.Hn && left.Hx == right.Hx &&
                 left.Rn == right.Rn && left.Rd == right.Rd && left.Rx == right.Rx && left.Rxd == right.Rxd && left.O == right.O &&
                 left.Ne == right.Ne && left.Xe == right.Xe && left.Hne == right.Hne && left.Hxe == right.Hxe &&
                 left.Rne == right.Rne && left.Rxe == right.Rxe && left.Dn == right.Dn && left.Dx == right.Dx &&
                 left.Dne == right.Dne && left.Dxe == right.Dxe && left.Th == right.Th && left.Rm == right.Rm && left.Pc == right.Pc &&
-                left.Je == right.Je && left.Pdt == right.Pdt;
+                left.Je == right.Je && left.Pdt == right.Pdt && left.Mt == right.Mt && left.Nt == right.Nt;
+        }
+
+        private static char MediaTypeIntersection(char left, char right)
+        {
+            if (left == '\0' || left == 'a') return right;
+            if (right == '\0' || right == 'a' || left == right) return left;
+            return 'x';
+        }
+
+        private static bool MediaAll(Mc condition)
+        {
+            return condition != null && !condition.Cp && !condition.Nt && condition.D.Length == 0;
         }
 
         private static bool MediaTerm(string source, out int value)
@@ -12249,6 +12290,11 @@ namespace Lea.Engine
             public readonly char Pc;
             public readonly char Je;
             public readonly char Pdt;
+            public readonly char Mt;
+            public readonly bool Nt;
+            public readonly Mc A;
+            public readonly Mc B;
+            public bool Cp { get { return A != null; } }
 
             public Mc(int minimum, int maximum)
                 : this(minimum, maximum, 0, 0, 0, 0, 0, 0, '\0')
@@ -12340,6 +12386,20 @@ namespace Lea.Engine
                 bool ratioMinimumExclusive, bool ratioMaximumExclusive, int densityMinimum, int densityMaximum,
                 bool densityMinimumExclusive, bool densityMaximumExclusive, char theme, char motion, char contrast, char scripting,
                 char preferredData)
+                : this(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator,
+                    ratioMaximum, ratioMaximumDenominator, orientation, minimumExclusive, maximumExclusive,
+                    heightMinimumExclusive, heightMaximumExclusive, ratioMinimumExclusive, ratioMaximumExclusive,
+                    densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive,
+                    theme, motion, contrast, scripting, preferredData, '\0', false)
+            {
+            }
+
+            public Mc(int minimum, int maximum, int heightMinimum, int heightMaximum,
+                int ratioMinimum, int ratioMinimumDenominator, int ratioMaximum, int ratioMaximumDenominator, char orientation,
+                bool minimumExclusive, bool maximumExclusive, bool heightMinimumExclusive, bool heightMaximumExclusive,
+                bool ratioMinimumExclusive, bool ratioMaximumExclusive, int densityMinimum, int densityMaximum,
+                bool densityMinimumExclusive, bool densityMaximumExclusive, char theme, char motion, char contrast, char scripting,
+                char preferredData, char mediaType, bool negated)
             {
                 N = minimum;
                 X = maximum;
@@ -12365,28 +12425,43 @@ namespace Lea.Engine
                 Pc = contrast;
                 Je = scripting;
                 Pdt = preferredData;
+                Mt = mediaType;
+                Nt = negated;
+            }
+
+            public Mc(Mc left, Mc right)
+            {
+                Dn = Int32.MinValue;
+                Dx = Int32.MaxValue;
+                A = left;
+                B = right;
             }
 
             public bool On(int width, int height, int density, char theme, char motion, char contrast, char scripting, char preferredData)
             {
-                if (width < N || Ne && width == N || X > 0 && (width > X || Xe && width == X) ||
-                    height < Hn || Hne && height == Hn || Hx > 0 && (height > Hx || Hxe && height == Hx)) return false;
-                if (Rn > 0 && (RatioCompare(width, height, Rn, Rd) < 0 || Rne && RatioCompare(width, height, Rn, Rd) == 0) ||
-                    Rx > 0 && (RatioCompare(width, height, Rx, Rxd) > 0 || Rxe && RatioCompare(width, height, Rx, Rxd) == 0)) return false;
+                if (Cp) return A.On(width, height, density, theme, motion, contrast, scripting, preferredData) &&
+                    B.On(width, height, density, theme, motion, contrast, scripting, preferredData);
+                var matches = Mt != 'p' && Mt != 'x' &&
+                    !(width < N || Ne && width == N || X > 0 && (width > X || Xe && width == X) ||
+                    height < Hn || Hne && height == Hn || Hx > 0 && (height > Hx || Hxe && height == Hx));
+                if (matches && (Rn > 0 && (RatioCompare(width, height, Rn, Rd) < 0 || Rne && RatioCompare(width, height, Rn, Rd) == 0) ||
+                    Rx > 0 && (RatioCompare(width, height, Rx, Rxd) > 0 || Rxe && RatioCompare(width, height, Rx, Rxd) == 0))) matches = false;
                 var scaledDensity = density * 1000;
-                if (Dn != Int32.MinValue && (scaledDensity < Dn || Dne && scaledDensity == Dn) ||
-                    Dx != Int32.MaxValue && (scaledDensity > Dx || Dxe && scaledDensity == Dx)) return false;
-                return (O == '\0' || O == 'p' && height >= width || O == 'l' && width > height) &&
+                if (matches && (Dn != Int32.MinValue && (scaledDensity < Dn || Dne && scaledDensity == Dn) ||
+                    Dx != Int32.MaxValue && (scaledDensity > Dx || Dxe && scaledDensity == Dx))) matches = false;
+                matches = matches && (O == '\0' || O == 'p' && height >= width || O == 'l' && width > height) &&
                     (Th == '\0' || Th == theme) && (Rm == '\0' || Rm == motion) &&
                     (Pc == '\0' || Pc == '*' && contrast != 'n' || Pc == contrast) &&
                     (Je == '\0' || Je == '*' && scripting != 'n' || Je == scripting) &&
                     (Pdt == '\0' || Pdt == preferredData);
+                return Nt ? !matches : matches;
             }
 
             public string D
             {
                 get
                 {
+                    if (Cp) return "(" + A.D + "&" + B.D + ")";
                     var parts = new List<string>();
                     if (N == X && N > 0 && !Ne && !Xe) parts.Add("@m=" + N);
                     else if (N == 0 && X > 0) parts.Add("@m" + (Xe ? "<" : "<=") + X);
@@ -12424,7 +12499,10 @@ namespace Lea.Engine
                         if (Dn != Int32.MinValue) parts.Add("@d" + (Dne ? ">" : ">=") + DensityText(Dn));
                         if (Dx != Int32.MaxValue) parts.Add("@d" + (Dxe ? "<" : "<=") + DensityText(Dx));
                     }
-                    return String.Join("&", parts.ToArray());
+                    if (Mt == 'p') parts.Insert(0, "@type=print");
+                    else if (Mt == 'x') parts.Insert(0, "@type=none");
+                    var value = String.Join("&", parts.ToArray());
+                    return Nt ? "!(" + (value.Length == 0 ? "@all" : value) + ")" : value;
                 }
             }
 
