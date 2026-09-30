@@ -30,6 +30,9 @@ namespace Lea.Engine
         internal S Ga { get; set; }
         internal S Gm { get; set; }
         internal Uri Bu { get; set; }
+        internal int Cw { get; set; }
+        internal int Ch { get; set; }
+        internal bool Cv { get; set; }
 
         public string Av(string name)
         {

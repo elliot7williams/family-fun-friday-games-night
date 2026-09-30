@@ -113,7 +113,7 @@ namespace Lea.Bench
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
                 "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "direction-logical.html", "direction-layout.html", "direction-inline.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "media-features.html", "media-aspect-ratio.html", "media-ranges.html", "media-resolution.html", "media-color-scheme.html", "media-reduced-motion.html", "media-reduced-data.html", "media-contrast.html", "media-scripting.html", "supports-queries.html", "css-supports-script.html", "match-media-script.html", "media-modifiers.html", "media-interaction.html", "cascade-layers.html", "cascade-layer-limits.html", "hsl-colors.html", "hwb-colors.html", "lab-colors.html", "predefined-colors.html", "wide-gamut-colors.html", "oklab-colors.html", "color-mix.html", "custom-properties.html", "important-cascade.html",
-                "container-style.html",
+                "container-style.html", "container-size.html",
                 "direction-overflow.html", "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "list-style.html", "list-position.html", "list-image.html", "marker.html", "marker-content.html", "marker-counters.html", "css-counters.html", "generated-content.html", "generated-quotes.html", "generated-alt.html", "generated-images.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -2177,6 +2177,54 @@ namespace Lea.Bench
                         "wide style container WinForms geometry changed");
                 }
                 return "bounded exact custom-property style queries, named and nearest ancestors, not/and/or, nested containers/media/supports/layers, diagnostics, class and native-sheet rebuilds, retained fields, and WinForms geometry";
+            });
+            AddProbe(probes, "Size container queries", delegate
+            {
+                var path = Path.Combine(folder, "container-size.html");
+                var engine = new E();
+                Need(engine.Su("container-type", "inline-size") && engine.Su("container", "shell frame / inline-size") &&
+                    !engine.Su("container-type", "width"), "size container capability changed");
+                var page = engine.Go(path);
+                var shell = ById(page.D, "shell");
+                var inner = ById(page.D, "inner");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                Need(page.Bs.First(item => item.El == shell).S.Ct == "i" && page.Bs.First(item => item.El == inner).S.Ct == "s" &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "style-only") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "wide"),
+                    "pre-feedback size container state changed");
+                field.V = "Retained benchmark size value";
+                Need(engine.Cz(page, new List<Cz> { new Cz(shell, 520, 20), new Cz(inner, 320, 180) }) == 1 &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "nearest") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "wide") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "chain") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "height-exact") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "mixed") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "nested") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "wrong-axis") &&
+                    field.S.W == 260 && Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark size value", "wide size selection or field retention changed");
+                Need(engine.Ck(page, ById(page.D, "make-narrow")) == 1 &&
+                    engine.Cz(page, new List<Cz> { new Cz(shell, 240, 20), new Cz(inner, 320, 180) }) == 1 &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "wide") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "narrow") && field.S.W == 140,
+                    "narrow size feedback changed");
+                Need(engine.Dg(page).Cs.Any(value => value.Contains("@c(shell:(width>=500px))")),
+                    "size container diagnostics changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(900, 760);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                        Need(BlockContent(view, "shell").Width == 520 && BlockContent(view, "inner").Height == 180 &&
+                            BlockContent(view, "field").Width == 260 && view.At.Bs.Any(item => item.El != null && item.El.Av("id") == "wide"),
+                            "automatic wide size feedback or geometry changed");
+                    view.Ck(ById(view.At.D, "make-narrow"));
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "shell").Width == 240 && BlockContent(view, "field").Width == 140 &&
+                        view.At.Bs.Any(item => item.El != null && item.El.Av("id") == "narrow"),
+                        "automatic narrow size feedback or geometry changed");
+                }
+                return "bounded container shorthand and S.Ct types, atomic E.Cz content-box feedback, named and nearest width/height ranges, style combinations, nesting, diagnostics, retained fields, and automatic bounded WinForms relayout";
             });
             AddProbe(probes, "CSS cascade layers", delegate
             {
@@ -5624,7 +5672,8 @@ namespace Lea.Bench
             Capability(builder, "CSS", "Partial", "Compiled relationship, bounded strict has, is/where/list-not, An+B/reverse structural, compound of-S filtered, and terminal ::marker/::before/::after selectors, declarations with two-tier important cascade, inherited custom properties and var() fallback, screen/all/print media types with whole-query not and strict only modifiers, pixel width/height, portrait/landscape, exact/min/max integer aspect-ratio, dpi/dppx/dpcm resolution queries with compact Dp density aliases, light/dark prefers-color-scheme queries with compact Th theme aliases, no-preference/reduce prefers-reduced-motion queries with compact Rm motion aliases, no-preference/reduce prefers-reduced-data queries with compact Pdt aliases, no-preference/less/more/custom prefers-contrast queries with compact Pc aliases, none/initial-only/enabled scripting queries with compact Je aliases, and pointer/hover plus any-pointer/any-hover interaction queries with compact Pt/Hv/Ap/Ah/Mi aliases, bounded strict/inclusive feature/value-first and chained media ranges, bounded @supports declaration checks plus selector() through the compiled selector grammar with grouped not/and/or logic, and bounded named @layer blocks with later-normal, unlayered-normal, reversed-important, inline, nested-name, and native-sheet ordering, bounded named reset/increment/set counters and generated quote depth, inherited horizontal LTR/RTL direction and bounded quote pairs, fixed/percentage/calc dimensions and classic vw/vh/vmin/vmax plus bounded em/rem units, two/three-term min/max and three-term clamp size functions, named/hex/RGB, bounded legacy or modern HSL/HSLA, bounded modern HWB, bounded modern CIE Lab/LCH with D50 conversion and Bradford D50-to-D65 adaptation, bounded predefined color() with sRGB, linear sRGB, Display P3, linear Display P3, A98 RGB, ProPhoto RGB, Rec. 2020, XYZ D50/D65 and Bradford adaptation, bounded modern Oklab/OkLCh with D65 conversion, shared local-MINDE sRGB gamut mapping, and bounded two-stop color-mix(in srgb, ...) colors with normalized hue, clamped channels/alpha, HWB gray normalization, omitted/normalized mix weights, reduced low-total alpha, and premultiplied-alpha interpolation across gradients, shadows, fields, and SVG paint, content/border box, circular/elliptical radii, bounded outlines, box shadows, one inherited bounded text-shadow layer, bounded text-decoration line/color/style/thickness and signed pixel/percentage underline offset, inherited text-align shorthand/all/last with logical state and justify-all, inherited text-wrap mode/style with bounded balance, non-inherited bounded line-clamp/WebKit compatibility, isolated bounded pseudo typography, eight string/attr/quoted-attr-fallback/named-counter/quote-keyword visual fragments, and an optional eight-item/128-unit string/attr/counter alternative list, plus one-layer linear/radial gradients, object fit/position, bounded aspect ratios, inherited cursor/pointer interaction, bounded text transform, signed integer letter/word spacing, signed pixel/percentage first-line indentation, and text styles, visibility, absolute/fixed and bounded vertical sticky positioning, transforms, responsive image sizing, direction-aware row/column flex, and direction-aware bounded two-axis grid");
             Capability(builder, "Media query modifiers", "Supported subset", "Whole-query not, no-op only before a media type, fixed screen/all matching, fixed print non-matching, comma alternatives, nested predicate intersections, style media, diagnostics, and shared host/script matchMedia evaluation; nested logical conditions, speech, and arbitrary unknown media types remain unsupported");
             Capability(builder, "Interaction media queries", "Supported subset", "Boolean and exact pointer none/coarse/fine, hover none/hover, any-pointer unions including simultaneous coarse and fine, and any-hover queries with compact Pt/Hv/Ap/Ah/Mi aliases, nesting, style media, diagnostics, retained fields, live matchMedia guards, and conservative Windows mouse/touch/pen plumbing; dynamic per-device identity and non-Windows automatic detection remain unsupported");
-            Capability(builder, "Style container queries", "Supported subset", "Bounded exact custom-property style() tests over nearest or named ancestor containers, computed container-name lists through compact S.Cn, grouped not/and/or logic, nested containers/media/supports/layers, diagnostics, class and native-sheet rebuilds, retained fields, and WinForms geometry; size, scroll-state, general-property, relative-value, and container-unit queries remain unsupported");
+            Capability(builder, "Style container queries", "Supported subset", "Bounded exact custom-property style() tests over nearest or named ancestor containers, computed container-name lists through compact S.Cn, grouped not/and/or logic, nested containers/media/supports/layers, diagnostics, class and native-sheet rebuilds, retained fields, and WinForms geometry; scroll-state, general-property, relative-value, and container-unit queries remain unsupported");
+            Capability(builder, "Size container queries", "Supported subset", "Bounded normal/inline-size/size container types through compact S.Ct, container-name/type shorthand, atomic E.Cz content-box snapshots, automatic WinForms feedback with a three-pass ceiling, nearest and named width/height/inline-size/block-size integer-pixel comparisons, min/max syntax, strict/inclusive and value-first ranges, not/and/or, style combinations, nesting, diagnostics, native sheets, and retained fields; scroll-state, relative units, aspect-ratio/orientation, writing modes, and container units remain unsupported");
             Capability(builder, "Preferred contrast media queries", "Supported subset", "Boolean and exact no-preference/less/more/custom queries with compact Pc aliases, nested intersections, diagnostics, retained fields, and Windows High Contrast mapped conservatively to custom; forced palette enforcement and forced-colors remain unsupported");
             Capability(builder, "Scripting media queries", "Supported subset", "Boolean and exact none/initial-only/enabled queries reuse the compact Je host permission alias, nested intersections, diagnostics, retained fields, and responsive paint; Lea reports enabled or none, recognizes initial-only as valid but never reports that mode, and does not add a general JavaScript runtime");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/box-shadows/gradients, bounded offset and lightweight blurred text shadows, native fast-path plus lightweight offset-aware solid/double/dotted/dashed/wavy text decorations, direction-aware source-stable inline atoms including bounded before/after generated runs, bounded same-count balanced wrapping and 1..32 line clamping, inside/outside text and image markers with isolated pseudo style and concatenated generated text content, first-line indentation, inherited logical all/final/forced-line alignment, and paint-only single-line ellipsis geometry, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");

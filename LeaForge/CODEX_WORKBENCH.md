@@ -17,6 +17,25 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
+Milestone 136 adds bounded CSS size container queries through the existing
+compiled style, retained rebuild, and WinForms layout paths. Compact
+`S.Ct=n/i/s` state and atomic `E.Cz` content-box snapshots support named or
+nearest eligible ancestors, width/height/inline-size/block-size features,
+exact/min/max and comparison syntax, boolean and chained ranges, grouped
+conditions, and combined `style()` plus size queries. WinForms feeds actual
+retained content boxes through at most three stable feedback passes while
+preserving live fields. Focused/full source, native editing, matching host, all
+42 Boot cases, and all six real EXE startup scenarios pass. All 132
+compatibility probes pass over 127 fixtures. Three-round medians are 600.170 ms
+clean start, 7.623 ms local load, and 39.279 ms layout/paint; retained memory is
+73.0 KiB/page and the required runtime set is 690.5 KiB with a 284.6 KiB GZip
+estimate. Runtime 236 is packaged separately and installed runtime 157 remains
+unchanged. See `CONTAINER_SIZE_QUERIES.md`. Scroll-state queries, container
+units, general-property queries, full intrinsic size containment,
+`font-tech()`/`font-format()`, general-enclosed conditions, arbitrary CSSOM,
+vertical writing, full Unicode bidi, and general JavaScript evaluation remain
+outside this slice.
+
 Milestone 135 adds bounded CSS container style queries through the existing
 compiled style and retained rebuild paths. Exact custom-property `style()`
 features select nearest or `S.Cn`-named ancestors, including different nested

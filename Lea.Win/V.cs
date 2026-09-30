@@ -58,6 +58,8 @@ namespace Lea.Win
         private const int MaxAutomationTextChildren = 64;
         private const int BalanceLineLimit = 8;
         private const int BalanceTextLimit = 2048;
+        private const int MaxContainerSizes = 256;
+        private const int MaxContainerPasses = 3;
         private int sy;
         private int docHeight;
         private int layoutBottom;
@@ -1488,15 +1490,10 @@ namespace Lea.Win
 
         private void Lay(Graphics graphics)
         {
-            Lay(graphics, null);
+            lock (layoutGate) LayCore(graphics, null, 0);
         }
 
-        private void Lay(Graphics graphics, IDictionary<B, int> resolved)
-        {
-            lock (layoutGate) LayCore(graphics, resolved);
-        }
-
-        private void LayCore(Graphics graphics, IDictionary<B, int> resolved)
+        private void LayCore(Graphics graphics, IDictionary<B, int> resolved, int containerPass)
         {
             boxes.Clear();
             boxOwners.Clear();
@@ -1717,7 +1714,7 @@ namespace Lea.Win
 
             if (resolved == null && measured.Count > 0)
             {
-                Lay(graphics, measured);
+                LayCore(graphics, measured, containerPass);
                 return;
             }
 
@@ -1726,6 +1723,12 @@ namespace Lea.Win
             if (HasHeight(style, rootContaining.Height)) docHeight = Math.Max(docHeight, 18 + style.Mt + ResolvedHeight(style, 0, rootContaining.Height) + style.Pt + style.Pb + BorderWidth(style, 0) + BorderWidth(style, 2) + style.Mb);
             else if (HasRatio(style)) docHeight = Math.Max(docHeight, 18 + style.Mt + RatioContentHeight(style, width) + style.Pt + style.Pb + BorderWidth(style, 0) + BorderWidth(style, 2) + style.Mb);
             StackBoxes();
+            var rootHeight = HasHeight(style, rootContaining.Height) ? ResolvedHeight(style, 0, rootContaining.Height) : Math.Max(0, docHeight - anchorTop - 20);
+            if (containerPass < MaxContainerPasses && e.Cz(At, ContainerSizes(width, rootHeight)) > 0)
+            {
+                LayCore(graphics, null, containerPass + 1);
+                return;
+            }
             foreach (var box in BoxSnapshot())
             {
                 box.SetBase();
@@ -1736,6 +1739,36 @@ namespace Lea.Win
             sy = Math.Min(sy, MaxScroll());
             ApplySticky();
             if (findQuery.Length > 0) RebuildFind(findIndex);
+        }
+
+        private IList<Cz> ContainerSizes(int rootWidth, int rootHeight)
+        {
+            var result = new List<Cz>();
+            var seen = new HashSet<N>();
+            if (At == null) return result;
+            var body = ContainerBody(At.D);
+            if (body != null && At.S != null && At.S.Ct != "n" && seen.Add(body))
+                result.Add(new Cz(body, Math.Max(0, Math.Min(8192, rootWidth)), Math.Max(0, Math.Min(8192, rootHeight))));
+            foreach (var block in At.Bs)
+            {
+                Bx box;
+                if (!boxOwners.TryGetValue(block, out box) || box == null || box.El == null || box.S == null || box.S.Ct == "n" || !seen.Add(box.El)) continue;
+                result.Add(new Cz(box.El, Math.Max(0, Math.Min(8192, box.C.Width)), Math.Max(0, Math.Min(8192, box.C.Height))));
+                if (result.Count == MaxContainerSizes) break;
+            }
+            return result;
+        }
+
+        private static N ContainerBody(N node)
+        {
+            if (node == null) return null;
+            if (node.K == "body") return node;
+            foreach (var child in node.C)
+            {
+                var body = ContainerBody(child);
+                if (body != null) return body;
+            }
+            return null;
         }
 
         private void CloseContexts(B next, IList<Lc> active, ref int rootY, IDictionary<B, int> measured)

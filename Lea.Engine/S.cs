@@ -6,10 +6,11 @@ namespace Lea.Engine
     // Scq is one computed ancestor in Lea's bounded style-container chain.
     internal sealed class Scq
     {
+        internal readonly N N;
         internal readonly S S;
         internal readonly Scq Up;
 
-        internal Scq(S style, Scq parent) { S = style; Up = parent; }
+        internal Scq(N node, S style, Scq parent) { N = node; S = style; Up = parent; }
     }
 
     // Cf is one bounded generated-content fragment.
@@ -63,6 +64,7 @@ namespace Lea.Engine
         public Uri Li { get; internal set; }
         public string Cr { get; internal set; }
         public string Cn { get; internal set; }
+        public string Ct { get; internal set; }
         public string Ci { get; internal set; }
         public string Cs { get; internal set; }
         public string Mc { get; internal set; }
@@ -474,6 +476,7 @@ namespace Lea.Engine
             Lp = "o";
             Cr = "";
             Cn = "";
+            Ct = "n";
             Ci = "";
             Cs = "";
             Cu = "";

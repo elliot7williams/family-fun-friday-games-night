@@ -354,28 +354,28 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 134 adds bounded Media Queries Level 4 interaction features to Lea's
-shared compiler. Primary `pointer`/`hover` and union
-`any-pointer`/`any-hover` state now flows through CSS, style media, compact
-`E/V.Mq`, and literal `matchMedia(...).matches` guards. The short
-`Pt/Hv/Ap/Ah/Mi` host aliases include exact coarse-plus-fine hybrid semantics;
-WinForms conservatively tracks Windows mouse, touch, and pen capability until
-overridden. See `MEDIA_INTERACTION.md`. All 130 compatibility probes pass over
-125 fixtures; focused/full source, native edit, matching compiled Firespider
-host, exact extracted-package core/edit, all 42 Boot cases, and all six real
-EXE startup scenarios pass. Current diagnostic medians are 567.113 ms startup,
-7.621 ms load, and 38.984 ms layout/paint, with 67.9 KiB retained per page and
-a 288.3 KiB GZip engine estimate. Runtime 234 is packaged separately while
-installed runtime 157 stays unchanged. Next investigate another bounded
-compatibility slice. Keep device ratios,
-container and style queries, `font-tech()`/`font-format()`, general-enclosed
-conditions, locale-sensitive automatic quote selection,
-reversed/custom counter styles, pseudo-element counter properties,
-typed/unquoted/functional attribute fallbacks, pseudo box-model/flex/grid
-items, generated image functions and sizing, marker-side, cross-item gutter
-alignment, SVG marker decoding, vertical writing modes, full Unicode bidi
-shaping, `dir=auto`, and general CSS/JavaScript evaluators outside the current
-boundary.
+Milestone 136 adds bounded CSS size container queries to Lea's shared compiler
+and retained layout path. Compact `S.Ct=n/i/s` state and atomic `E.Cz`
+content-box snapshots support named or nearest eligible ancestors,
+width/height/inline-size/block-size features, legacy and comparison syntax,
+boolean and chained ranges, grouped conditions, and combined style/size
+queries. WinForms feeds actual retained content boxes through at most three
+stable layout passes while preserving live fields. See
+`CONTAINER_SIZE_QUERIES.md`. All 132 compatibility probes pass over 127
+fixtures; focused/full source, native edit, matching compiled Firespider host,
+all 42 Boot cases, and all six real EXE startup scenarios pass. Current
+diagnostic medians are 600.170 ms startup, 7.623 ms load, and 39.279 ms
+layout/paint, with 73.0 KiB retained per page and a 284.6 KiB GZip engine
+estimate. Runtime 236 is packaged separately while installed runtime 157 stays
+unchanged. Next investigate another bounded compatibility slice. Keep
+scroll-state queries, container units, full intrinsic size containment,
+general-property queries, `font-tech()`/`font-format()`, general-enclosed
+conditions, locale-sensitive automatic quote selection, reversed/custom
+counter styles, pseudo-element counter properties, typed/unquoted/functional
+attribute fallbacks, pseudo box-model/flex/grid items, generated image
+functions and sizing, marker-side, cross-item gutter alignment, SVG marker
+decoding, vertical writing modes, full Unicode bidi shaping, `dir=auto`, and
+general CSS/JavaScript evaluators outside the current boundary.
 
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host

@@ -62,8 +62,14 @@ Container style queries remain engine-owned. Computed `S.Cn` stores bounded
 rules select nearest or named ancestors through the normal retained rebuild.
 The host smoke covers named and differently nested containers, diagnostics,
 script class mutations, field identity/value retention, and geometry.
-Firespider adds no containment parser or layout state. Size and scroll-state
-queries remain outside this subset. See `LeaForge/CONTAINER_STYLE_QUERIES.md`.
+Size queries are engine-owned too. Compact `S.Ct=n/i/s` stores the computed
+container type, `E.Cz` accepts atomic bounded content-box snapshots, and
+`Lea.Win.V` automatically feeds actual host geometry through a three-pass
+ceiling. The compiled host covers width/height selection, dynamic resize,
+diagnostics, and retained fields. Firespider adds no containment parser or
+layout state. Scroll-state queries remain outside this subset. See
+`LeaForge/CONTAINER_STYLE_QUERIES.md` and
+`LeaForge/CONTAINER_SIZE_QUERIES.md`.
 
 Initial fragments now stay aligned while first paint, host sizing, and decoded
 intrinsic images settle. `V.Fa/Fj/Fy` expose the retained anchor, placement

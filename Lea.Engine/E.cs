@@ -34,6 +34,7 @@ namespace Lea.Engine
         private const int MaxContainerText = 2048;
         private const int MaxContainerNames = 4;
         private const int MaxContainerName = 32;
+        private const int MaxContainerSizes = 256;
         private const int MaxCssLayers = 16;
         private const int MaxCssLayerDepth = 3;
         private const int MaxCssLayerName = 32;
@@ -373,6 +374,55 @@ namespace Lea.Engine
             foreach (var field in page.Fs) if (field.El != null) fields[field.El] = field;
             Rebuild(page, rules, fields);
             return page;
+        }
+
+        // Cz atomically applies one bounded host content-box snapshot.
+        public int Cz(P page, IList<Cz> sizes)
+        {
+            QueryPage(page);
+            if (sizes == null || sizes.Count > MaxContainerSizes) return 0;
+            var rules = page.R as List<R>;
+            if (rules == null) return 0;
+            var next = new Dictionary<N, Cz>();
+            foreach (var size in sizes)
+            {
+                if (size == null || size.E == null || !Owns(page.D, size.E) ||
+                    size.W < 0 || size.W > MaxViewport || size.H < 0 || size.H > MaxViewport ||
+                    next.ContainsKey(size.E)) return 0;
+                next[size.E] = size;
+            }
+            if (SameContainerSizes(page.Czs, next)) return 0;
+
+            foreach (var prior in page.Czs.Keys)
+            {
+                prior.Cv = false;
+                prior.Cw = 0;
+                prior.Ch = 0;
+            }
+            page.Czs.Clear();
+            foreach (var pair in next)
+            {
+                pair.Key.Cw = pair.Value.W;
+                pair.Key.Ch = pair.Value.H;
+                pair.Key.Cv = true;
+                page.Czs[pair.Key] = pair.Value;
+            }
+
+            var fields = new Dictionary<N, Fi>();
+            foreach (var field in page.Fs) if (field.El != null) fields[field.El] = field;
+            Rebuild(page, rules, fields);
+            return 1;
+        }
+
+        private static bool SameContainerSizes(IDictionary<N, Cz> left, IDictionary<N, Cz> right)
+        {
+            if (left == null || right == null || left.Count != right.Count) return false;
+            foreach (var pair in left)
+            {
+                Cz size;
+                if (!right.TryGetValue(pair.Key, out size) || pair.Value.W != size.W || pair.Value.H != size.H) return false;
+            }
+            return true;
         }
 
         // Ss installs or replaces a bounded named author sheet without changing the DOM.
@@ -2108,7 +2158,7 @@ namespace Lea.Engine
 
         private static bool LayoutContext(S style)
         {
-            return style != null && (Flex(style) || Grid(style) || style.Pn == "r" || style.Pn == "a" || style.Pn == "f" || style.Pn == "k" || style.Zc || (style.Ov.Length > 0 && style.Ov != "v"));
+            return style != null && (Flex(style) || Grid(style) || style.Ct != "n" || style.Pn == "r" || style.Pn == "a" || style.Pn == "f" || style.Pn == "k" || style.Zc || (style.Ov.Length > 0 && style.Ov != "v"));
         }
 
         private static bool Flex(S style)
@@ -2867,9 +2917,88 @@ namespace Lea.Engine
                 result = new Kx(declaration.N, value);
                 return true;
             }
+            var sizeTerms = 0;
+            if (ContainerSizeCondition(condition, out result, out sizeTerms))
+            {
+                terms += sizeTerms;
+                return terms <= MaxContainerTerms;
+            }
             string inner;
             if (!CssSupportsWrapped(condition, out inner) || depth == MaxContainerDepth) return false;
             return ContainerCondition(inner, depth + 1, ref terms, out result);
+        }
+
+        private static bool ContainerSizeCondition(string condition, out Kx result, out int terms)
+        {
+            result = null;
+            terms = 0;
+            var source = (condition ?? "").Trim();
+            string inner;
+            if (CssSupportsWrapped(source, out inner)) source = inner;
+            const string feature = "width|height|inline-size|block-size";
+            const string number = "[0-9]{1,4}";
+            var chain = Regex.Match(source, "^(?<an>" + number + ")\\s*px\\s*(?<ao><=|>=|<|>)\\s*(?<k>" + feature + ")\\s*(?<bo><=|>=|<|>)\\s*(?<bn>" + number + ")\\s*px$", RegexOptions.IgnoreCase);
+            if (chain.Success)
+            {
+                int left;
+                int right;
+                var leftOperator = chain.Groups["ao"].Value;
+                var rightOperator = chain.Groups["bo"].Value;
+                if (!ContainerTerm(chain.Groups["an"].Value, out left) || !ContainerTerm(chain.Groups["bn"].Value, out right) ||
+                    leftOperator[0] != rightOperator[0]) return false;
+                var axis = ContainerAxis(chain.Groups["k"].Value);
+                result = new Kx('a', new[]
+                {
+                    new Kx(axis, MediaInverse(leftOperator), left),
+                    new Kx(axis, rightOperator, right)
+                });
+                terms = 2;
+                return true;
+            }
+            var legacy = Regex.Match(source, "^(?<k>min-|max-)?(?<f>" + feature + ")\\s*:\\s*(?<n>" + number + ")\\s*px$", RegexOptions.IgnoreCase);
+            if (legacy.Success)
+            {
+                int value;
+                if (!ContainerTerm(legacy.Groups["n"].Value, out value)) return false;
+                var prefix = legacy.Groups["k"].Value.ToLowerInvariant();
+                result = new Kx(ContainerAxis(legacy.Groups["f"].Value), prefix == "min-" ? ">=" : prefix == "max-" ? "<=" : "=", value);
+                terms = 1;
+                return true;
+            }
+            var direct = Regex.Match(source, "^(?<k>" + feature + ")\\s*(?<o><=|>=|=|<|>)\\s*(?<n>" + number + ")\\s*px$", RegexOptions.IgnoreCase);
+            if (direct.Success)
+            {
+                int value;
+                if (!ContainerTerm(direct.Groups["n"].Value, out value)) return false;
+                result = new Kx(ContainerAxis(direct.Groups["k"].Value), direct.Groups["o"].Value, value);
+                terms = 1;
+                return true;
+            }
+            var reversed = Regex.Match(source, "^(?<n>" + number + ")\\s*px\\s*(?<o><=|>=|=|<|>)\\s*(?<k>" + feature + ")$", RegexOptions.IgnoreCase);
+            if (reversed.Success)
+            {
+                int value;
+                if (!ContainerTerm(reversed.Groups["n"].Value, out value)) return false;
+                result = new Kx(ContainerAxis(reversed.Groups["k"].Value), MediaInverse(reversed.Groups["o"].Value), value);
+                terms = 1;
+                return true;
+            }
+            var boolean = Regex.Match(source, "^(?<k>" + feature + ")$", RegexOptions.IgnoreCase);
+            if (!boolean.Success) return false;
+            result = new Kx(ContainerAxis(boolean.Groups["k"].Value), ">", 0);
+            terms = 1;
+            return true;
+        }
+
+        private static char ContainerAxis(string feature)
+        {
+            var value = (feature ?? "").ToLowerInvariant();
+            return value == "height" || value == "block-size" ? 'h' : 'w';
+        }
+
+        private static bool ContainerTerm(string source, out int value)
+        {
+            return Int32.TryParse(source, out value) && value >= 0 && value <= MaxViewport;
         }
 
         private static bool ContainerOn(S inherited, Kq[] queries)
@@ -2883,32 +3012,62 @@ namespace Lea.Engine
             foreach (var query in queries)
             {
                 var container = chain;
-                if (query.N.Length > 0)
-                    while (container != null && !ContainerHasName(container.S.Cn, query.N)) container = container.Up;
-                if (container == null || !ContainerExpression(container.S, query.X)) return false;
+                while (container != null &&
+                    (query.N.Length > 0 && !ContainerHasName(container.S.Cn, query.N) || !ContainerEligible(container, query.A))) container = container.Up;
+                if (container == null || !ContainerExpression(container, query.X)) return false;
             }
             return true;
         }
 
-        private static bool ContainerExpression(S style, Kx expression)
+        private static bool ContainerEligible(Scq container, int axes)
         {
-            if (style == null || expression == null) return false;
-            if (expression.K == 'n') return !ContainerExpression(style, expression.C[0]);
+            if (container == null || container.S == null) return false;
+            if (axes == 0) return true;
+            if (container.N == null || !container.N.Cv) return false;
+            return (axes & 2) != 0 ? container.S.Ct == "s" : container.S.Ct == "i" || container.S.Ct == "s";
+        }
+
+        private static int ContainerAxes(Kx expression)
+        {
+            if (expression == null) return 0;
+            if (expression.K == 'w') return 1;
+            if (expression.K == 'h') return 2;
+            var result = 0;
+            foreach (var child in expression.C) result |= ContainerAxes(child);
+            return result;
+        }
+
+        private static bool ContainerExpression(Scq container, Kx expression)
+        {
+            if (container == null || container.S == null || expression == null) return false;
+            if (expression.K == 'n') return !ContainerExpression(container, expression.C[0]);
             if (expression.K == 'a')
             {
-                foreach (var child in expression.C) if (!ContainerExpression(style, child)) return false;
+                foreach (var child in expression.C) if (!ContainerExpression(container, child)) return false;
                 return true;
             }
             if (expression.K == 'o')
             {
-                foreach (var child in expression.C) if (ContainerExpression(style, child)) return true;
+                foreach (var child in expression.C) if (ContainerExpression(container, child)) return true;
                 return false;
             }
+            if (expression.K == 'w' || expression.K == 'h')
+            {
+                if (container.N == null || !container.N.Cv) return false;
+                var dimension = expression.K == 'w' ? container.N.Cw : container.N.Ch;
+                int expected;
+                if (!Int32.TryParse(expression.V, out expected)) return false;
+                if (expression.N == "=") return dimension == expected;
+                if (expression.N == ">") return dimension > expected;
+                if (expression.N == ">=") return dimension >= expected;
+                if (expression.N == "<") return dimension < expected;
+                return expression.N == "<=" && dimension <= expected;
+            }
             string actual;
-            if (style.Vr == null || !style.Vr.TryGetValue(expression.N, out actual)) return false;
+            if (container.S.Vr == null || !container.S.Vr.TryGetValue(expression.N, out actual)) return false;
             string actualValue;
             string expectedValue;
-            return VarValue(style, actual, out actualValue) && VarValue(style, expression.V, out expectedValue) &&
+            return VarValue(container.S, actual, out actualValue) && VarValue(container.S, expression.V, out expectedValue) &&
                 actualValue.Trim().Equals(expectedValue.Trim(), StringComparison.Ordinal);
         }
 
@@ -2946,6 +3105,37 @@ namespace Lea.Engine
             }
             names = String.Join(" ", unique.ToArray());
             return true;
+        }
+
+        private static bool ContainerTypeValue(string value, S inherited, out string type)
+        {
+            type = "n";
+            var source = (value ?? "").Trim().ToLowerInvariant();
+            if (source == "inherit") { type = inherited == null ? "n" : inherited.Ct; return true; }
+            if (source == "normal" || source == "initial" || source == "unset" || source == "revert" || source == "revert-layer") return true;
+            if (source == "inline-size") { type = "i"; return true; }
+            if (source == "size") { type = "s"; return true; }
+            return false;
+        }
+
+        private static bool ContainerValue(string value, S inherited, out string names, out string type)
+        {
+            names = "";
+            type = "n";
+            var source = (value ?? "").Trim();
+            if (source.Equals("inherit", StringComparison.OrdinalIgnoreCase))
+            {
+                names = inherited == null ? "" : inherited.Cn;
+                type = inherited == null ? "n" : inherited.Ct;
+                return true;
+            }
+            if (Regex.IsMatch(source, "^(?:none|initial|unset|revert|revert-layer)$", RegexOptions.IgnoreCase)) return true;
+            var slash = source.IndexOf('/');
+            if (slash >= 0 && source.IndexOf('/', slash + 1) >= 0) return false;
+            var nameValue = slash < 0 ? source : source.Substring(0, slash).Trim();
+            var typeValue = slash < 0 ? "normal" : source.Substring(slash + 1).Trim();
+            return nameValue.Length > 0 && typeValue.Length > 0 &&
+                ContainerNameValue(nameValue, null, out names) && ContainerTypeValue(typeValue, null, out type);
         }
 
         private static bool CssSupports(string source, int depth)
@@ -3175,6 +3365,17 @@ namespace Lea.Engine
             {
                 string names;
                 return ContainerNameValue(value, null, out names);
+            }
+            if (name == "container-type")
+            {
+                string type;
+                return ContainerTypeValue(value, null, out type);
+            }
+            if (name == "container")
+            {
+                string names;
+                string type;
+                return ContainerValue(value, null, out names, out type);
             }
             if (name == "color" || name == "background-color" || name == "outline-color" ||
                 name == "text-decoration-color" || name == "border-color" ||
@@ -4861,7 +5062,7 @@ namespace Lea.Engine
             foreach (var rule in important) Decls(style, inherited, rule.Ds, true);
             Decls(style, inherited, inline, true);
             if (node.A.ContainsKey("data-lea-hidden")) style.D = "none";
-            style.Sq = new Scq(style, inherited == null ? null : inherited.Sq);
+            style.Sq = new Scq(node, style, inherited == null ? null : inherited.Sq);
             return style;
         }
 
@@ -5784,6 +5985,17 @@ namespace Lea.Engine
                 {
                     string names;
                     if (ContainerNameValue(value, inherited, out names)) style.Cn = names;
+                }
+                else if (name == "container-type")
+                {
+                    string type;
+                    if (ContainerTypeValue(value, inherited, out type)) style.Ct = type;
+                }
+                else if (name == "container")
+                {
+                    string names;
+                    string type;
+                    if (ContainerValue(value, inherited, out names, out type)) { style.Cn = names; style.Ct = type; }
                 }
                 else if (name == "cursor") CursorStyle(style, value);
                 else if (name == "pointer-events") PointerEvents(style, value);
@@ -12883,11 +13095,13 @@ namespace Lea.Engine
             public readonly string N;
             public readonly string D;
             public readonly Kx X;
+            public readonly int A;
 
             public Kq(string name, string source, Kx expression)
             {
                 N = name ?? "";
                 X = expression;
+                A = ContainerAxes(expression);
                 var compact = Regex.Replace(source ?? "", "\\s+", "");
                 if (compact.Length > 96) compact = compact.Substring(0, 96);
                 D = "@c(" + (N.Length == 0 ? "" : N + ":") + compact + ")";
@@ -12915,6 +13129,14 @@ namespace Lea.Engine
                 N = "";
                 V = "";
                 C = children ?? new Kx[0];
+            }
+
+            public Kx(char axis, string operation, int value)
+            {
+                K = axis;
+                N = operation ?? "";
+                V = value.ToString(CultureInfo.InvariantCulture);
+                C = new Kx[0];
             }
         }
 

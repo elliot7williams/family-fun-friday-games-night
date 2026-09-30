@@ -211,6 +211,11 @@ namespace Lea.Tests
                     ContainerStyleSmoke(Path.Combine(pages, "container-style.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--container-size")
+                {
+                    ContainerSizeSmoke(Path.Combine(pages, "container-size.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--layers")
                 {
                     LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
@@ -1641,6 +1646,7 @@ namespace Lea.Tests
                 MediaModifierSmoke(Path.Combine(pages, "media-modifiers.html"));
                 MediaInteractionSmoke(Path.Combine(pages, "media-interaction.html"));
                 ContainerStyleSmoke(Path.Combine(pages, "container-style.html"));
+                ContainerSizeSmoke(Path.Combine(pages, "container-size.html"));
                 LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
                 HslColorSmoke(Path.Combine(pages, "hsl-colors.html"));
                 HwbColorSmoke(Path.Combine(pages, "hwb-colors.html"));
@@ -10319,6 +10325,104 @@ namespace Lea.Tests
                     "WinForms container rebuild retains field");
             }
             Console.WriteLine("Lea style container smoke passed: bounded named and nearest @container style queries, custom-property resolution, not/and/or, nested media/supports/layers/containers, diagnostics, dynamic classes, native sheets, retained fields, and exact WinForms geometry.");
+        }
+
+        private static void ContainerSizeSmoke(string path)
+        {
+            var engine = new E();
+            Ok(engine.Su("container-type", "inline-size") && engine.Su("container-type", "size") &&
+                engine.Su("container", "shell frame / inline-size") && engine.Su("container", "inner / size") &&
+                !engine.Su("container-type", "width") && !engine.Su("container", "shell / width"),
+                "container type and shorthand capability");
+            var page = engine.Go(path);
+            var shellNode = ById(page.D, "shell");
+            var innerNode = ById(page.D, "inner");
+            var shell = BlockById(page, "shell");
+            var inner = BlockById(page, "inner");
+            Eq("shell frame", shell.S.Cn, "size container shorthand names");
+            Eq("i", shell.S.Ct, "inline-size computed alias");
+            Eq("s", inner.S.Ct, "size computed alias");
+            Ok(HasBlock(page, "style-only") && !HasBlock(page, "nearest") && !HasBlock(page, "wide"),
+                "style queries run before host size feedback");
+            var field = FieldById(page, "field");
+            field.V = "Retained size query value";
+
+            Eq(1, engine.Cz(page, new List<Cz> { new Cz(shellNode, 520, 20), new Cz(innerNode, 320, 180) }),
+                "bounded container size snapshot");
+            Ok(HasBlock(page, "nearest") && HasBlock(page, "wide") && HasBlock(page, "chain") &&
+                HasBlock(page, "value-first") && HasBlock(page, "height-exact") && HasBlock(page, "block-size") &&
+                HasBlock(page, "mixed") && HasBlock(page, "alternative") && HasBlock(page, "negated") &&
+                HasBlock(page, "nested") && HasBlock(page, "conditional") && !HasBlock(page, "narrow"),
+                "named nearest range logical and nested size queries");
+            Ok(!HasBlock(page, "wrong-axis") && !HasBlock(page, "invalid-unit") && !HasBlock(page, "invalid-chain"),
+                "ineligible and malformed size queries stay inactive");
+            Eq(260, field.S.W, "wide container field width");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained size query value",
+                "size feedback retains field identity and value");
+            Eq(0, engine.Cz(page, new List<Cz> { new Cz(shellNode, 520, 20), new Cz(innerNode, 320, 180) }),
+                "unchanged container snapshot is inert");
+            Eq(0, engine.Cz(page, new List<Cz> { new Cz(shellNode, 9000, 20) }),
+                "oversized container snapshot rejected atomically");
+            Eq(0, engine.Cz(page, new List<Cz> { new Cz(shellNode, 520, 20), new Cz(shellNode, 520, 20) }),
+                "duplicate container snapshot rejected atomically");
+            Ok(HasBlock(page, "wide") && field.S.W == 260, "invalid snapshots preserve active size state");
+            var diagnostics = engine.Dg(page);
+            Ok(Has(diagnostics.Cs, "@c(shell:(width>=500px))") &&
+                Has(diagnostics.Cs, "@c(inner:(height>=180px))") && Has(diagnostics.Cs, "@l(container-size-demo)"),
+                "size container diagnostics compose with nesting and layers");
+
+            Eq(1, engine.Ck(page, ById(page.D, "make-narrow")), "narrow container class command");
+            Eq(1, engine.Cz(page, new List<Cz> { new Cz(shellNode, 240, 20), new Cz(innerNode, 320, 180) }),
+                "narrow measured container snapshot");
+            Ok(!HasBlock(page, "wide") && !HasBlock(page, "chain") && !HasBlock(page, "value-first") &&
+                !HasBlock(page, "nested") && !HasBlock(page, "conditional") && HasBlock(page, "narrow") && field.S.W == 140,
+                "narrow size query reevaluation");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained size query value",
+                "narrow feedback retains field state");
+            Eq(1, engine.Ck(page, ById(page.D, "make-wide")), "wide container class command");
+            Eq(1, engine.Cz(page, new List<Cz> { new Cz(shellNode, 520, 20), new Cz(innerNode, 320, 180) }),
+                "wide measured container restoration");
+            Ok(HasBlock(page, "wide") && !HasBlock(page, "narrow") && field.S.W == 260,
+                "wide size query restoration");
+            Eq(1, engine.Ss(page, "container-size", "@container shell (width >= 500px){#wide{width:231px}}"),
+                "native size container sheet install");
+            Eq(231, BlockById(page, "wide").S.W, "native size container sheet width");
+            Eq(1, engine.Sd(page, "container-size"), "native size container sheet remove");
+            Eq(203, BlockById(page, "wide").S.W, "native size container sheet removal restores width");
+
+            using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-30000, -30000), ClientSize = new Size(900, 760) })
+            using (var view = new V { Dock = DockStyle.Fill })
+            {
+                form.Controls.Add(view);
+                form.Show();
+                view.Go(path);
+                Paint(view);
+                Eq(520, BlockRect(view, BlockById(view.At, "shell")).Width,
+                    "WinForms measured inline container width");
+                Eq(180, BlockRect(view, BlockById(view.At, "inner")).Height,
+                    "WinForms measured size container height");
+                Eq(260, BlockRect(view, BlockById(view.At, "field")).Width,
+                    "WinForms automatic wide size query geometry");
+                Ok(HasBlock(view.At, "wide") && HasBlock(view.At, "nested") && !HasBlock(view.At, "narrow"),
+                    "WinForms automatic size feedback activation");
+                var liveField = FieldById(view.At, "field");
+                liveField.V = "Retained view size value";
+                Eq(1, view.Ck(ById(view.At.D, "make-narrow")), "WinForms narrow container command");
+                Paint(view);
+                Eq(240, BlockRect(view, BlockById(view.At, "shell")).Width,
+                    "WinForms narrow measured container width");
+                Eq(140, BlockRect(view, BlockById(view.At, "field")).Width,
+                    "WinForms automatic narrow size query geometry");
+                Ok(!HasBlock(view.At, "wide") && HasBlock(view.At, "narrow") &&
+                    Object.ReferenceEquals(liveField, FieldById(view.At, "field")) && liveField.V == "Retained view size value",
+                    "WinForms size feedback rebuild retains field");
+                Eq(1, view.Ck(ById(view.At.D, "make-wide")), "WinForms wide container command");
+                Paint(view);
+                Ok(HasBlock(view.At, "wide") && !HasBlock(view.At, "narrow") &&
+                    BlockRect(view, BlockById(view.At, "field")).Width == 260,
+                    "WinForms wide size feedback restoration");
+            }
+            Console.WriteLine("Lea size container smoke passed: bounded container shorthand and types, atomic Cz feedback, nearest/named width and height queries, ranges, logic, nesting, diagnostics, native sheets, retained fields, and automatic WinForms geometry.");
         }
 
         private static void MediaFeatureSmoke(string path)

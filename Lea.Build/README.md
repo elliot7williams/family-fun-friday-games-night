@@ -262,6 +262,12 @@ exact WinForms geometry.
 `var()` comparison, grouped `not`/`and`/`or`, nested container/media/supports/
 layer conditions, strict unsupported-query rejection, diagnostics, class and
 native-sheet rebuilds, retained fields, and exact WinForms geometry.
+`--container-size` isolates bounded `container-name`/`container-type` and the
+`container` shorthand, compact `S.Ct`, atomic `E.Cz` content-box snapshots,
+nearest/named width and height features, min/max and modern ranges, logical
+size aliases, grouped size/style conditions, nesting, diagnostics, malformed
+and ineligible queries, native sheets, retained fields, and automatic bounded
+WinForms feedback with exact geometry.
 These test modes do not retry or suppress failed assertions. Windows
 clipboard access can fail while another process holds it. Record separately
 which modes passed; a clipboard-free run is not a complete default-suite pass.

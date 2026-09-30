@@ -1,8 +1,8 @@
 # Container Style Queries
 
 Milestone 135 adds a bounded, standards-shaped subset of CSS container style
-queries to Lea's existing compiled stylesheet path. It does not add a second CSS
-engine, layout feedback loop, or browser dependency.
+queries to Lea's existing compiled stylesheet path. Style-only queries do not
+need the size feedback path added later in Milestone 136.
 
 ## Supported Shape
 
@@ -63,16 +63,15 @@ existing `@m`, `@s`, and `@l` media, supports, and layer labels.
 - 32 ASCII identifier characters per name
 - custom properties only, using the existing declaration and variable bounds
 
-Malformed rules, unknown names, CSS-wide cascade-dependent query values, size
-conditions, and unsupported property queries stay inactive.
+Malformed rules, unknown names, CSS-wide cascade-dependent query values, and
+unsupported property queries stay inactive.
 
 ## Deliberately Unsupported
 
-Lea does not yet implement size or scroll-state container queries,
-`container-type`, container-relative units, general property style queries,
-relative-value comparisons, typed custom properties, or query-related CSSOM.
-Size queries need a stable used-size/containment feedback model; adding syntax
-without that model would produce misleading results.
+Milestone 136 adds the separate bounded size-query and `container-type` path
+documented in `CONTAINER_SIZE_QUERIES.md`. Scroll-state queries,
+container-relative units, general property style queries, relative-value
+comparisons, typed custom properties, and query-related CSSOM remain unsupported.
 
 The behavior follows the container selection and computed-value model in the
 W3C CSS Containment Module Level 3 draft:

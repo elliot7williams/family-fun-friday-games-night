@@ -1,0 +1,108 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Container Size Queries</title>
+  <style>
+    body { font-family: sans-serif; }
+    .shell {
+      --mode: compact;
+      container: shell frame / inline-size;
+      width: 520px;
+    }
+    .shell.narrow { width: 240px; }
+    .inner {
+      container: inner / size;
+      width: 320px;
+      height: 180px;
+    }
+    .probe { display: none; height: 20px; }
+    #field { width: 110px; }
+
+    @container shell style(--mode: compact) {
+      #style-only { display: block; width: 201px; }
+    }
+    @container (min-width: 300px) {
+      #nearest { display: block; width: 202px; }
+    }
+    @container shell (width >= 500px) {
+      #wide { display: block; width: 203px; }
+      #field { width: 260px; }
+      .shell { height: 333px; }
+    }
+    @container shell (500px <= inline-size <= 520px) {
+      #chain { display: block; width: 204px; }
+    }
+    @container shell (500px <= width) {
+      #value-first { display: block; width: 205px; }
+    }
+    @container inner (height: 180px) {
+      #height-exact { display: block; width: 206px; }
+    }
+    @container inner (block-size > 170px) {
+      #block-size { display: block; width: 207px; }
+    }
+    @container inner (width >= 300px) and style(--mode: compact) {
+      #mixed { display: block; width: 208px; }
+    }
+    @container inner (width < 100px) or (height >= 180px) {
+      #alternative { display: block; width: 209px; }
+    }
+    @container inner not (width > 400px) {
+      #negated { display: block; width: 210px; }
+    }
+    @container shell (width >= 500px) {
+      @container inner (height >= 180px) {
+        #nested { display: block; width: 211px; }
+      }
+    }
+    @media screen and (min-width: 1px) {
+      @supports (container-type: inline-size) {
+        @layer container-size-demo {
+          @container shell (inline-size >= 500px) {
+            #conditional { display: block !important; width: 212px !important; }
+          }
+        }
+      }
+    }
+    @container shell (240px <= width < 300px) {
+      #narrow { display: block; width: 213px; }
+      #field { width: 140px; }
+    }
+    @container shell (height >= 1px) {
+      #wrong-axis { display: block; }
+    }
+    @container shell (width > 1em) {
+      #invalid-unit { display: block; }
+    }
+    @container shell (500px < width > 700px) {
+      #invalid-chain { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <section id="shell" class="shell">
+    <div id="inner" class="inner">
+      <p id="style-only" class="probe">Style only</p>
+      <p id="nearest" class="probe">Nearest size container</p>
+      <p id="wide" class="probe">Wide named container</p>
+      <p id="chain" class="probe">Chained range</p>
+      <p id="value-first" class="probe">Value first range</p>
+      <p id="height-exact" class="probe">Exact height</p>
+      <p id="block-size" class="probe">Block size alias</p>
+      <p id="mixed" class="probe">Style and size</p>
+      <p id="alternative" class="probe">Alternative axes</p>
+      <p id="negated" class="probe">Negated size</p>
+      <p id="nested" class="probe">Nested size containers</p>
+      <p id="conditional" class="probe">Conditional size container</p>
+      <p id="narrow" class="probe">Narrow named container</p>
+      <p id="wrong-axis" class="probe">Ineligible height axis</p>
+      <p id="invalid-unit" class="probe">Invalid unit</p>
+      <p id="invalid-chain" class="probe">Invalid chain</p>
+      <input id="field" value="container size field">
+    </div>
+  </section>
+  <button id="make-narrow" data-lea="ac('shell','narrow');">Narrow</button>
+  <button id="make-wide" data-lea="rc('shell','narrow');">Wide</button>
+</body>
+</html>
