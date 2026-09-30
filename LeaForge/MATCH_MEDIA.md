@@ -2,8 +2,9 @@
 
 Lea exposes its compiled media-query subset through the compact `E.Mq` and
 `V.Mq` aliases and through literal `matchMedia(...).matches` page-command
-guards. Both routes evaluate the same live viewport, density, preference, and
-scripting state used by `@media`; Lea does not carry a second query parser.
+guards. Both routes evaluate the same live viewport, density, preference,
+scripting, and interaction state used by `@media`; Lea does not carry a second
+query parser.
 
 ```csharp
 engine.Mq("(min-width: 800px)");
@@ -26,6 +27,7 @@ if (!matchMedia("(prefers-reduced-motion: reduce)").matches) { sh("motion"); }
 - `dpi`, `dppx`, and `dpcm` resolution;
 - color scheme, reduced motion, reduced data, and contrast preferences;
 - `scripting` state;
+- primary `pointer`/`hover` and union `any-pointer`/`any-hover` state;
 - legacy min/max forms and strict or inclusive feature/value ranges;
 - `and` conjunctions and up to eight comma alternatives.
 
@@ -61,7 +63,9 @@ Coverage lives in `test-pages/match-media-script.html` and the focused
 `Lea.Tests.exe . --match-media-script` suite. The same fixture is exercised by
 the compatibility benchmark and the compiled Firespider host smoke.
 Modifier grammar, fixed screen/print semantics, and nested intersections are
-covered separately in `MEDIA_MODIFIERS.md`.
+covered separately in `MEDIA_MODIFIERS.md`. Interaction values, compact host
+aliases, hybrid union behavior, and platform detection are in
+`MEDIA_INTERACTION.md`.
 
 The API shape follows the W3C CSSOM View definition of `matchMedia()` and the
 read-only `MediaQueryList.matches` state:

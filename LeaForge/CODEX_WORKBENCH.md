@@ -17,19 +17,20 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
-Milestone 133 adds bounded Media Queries Level 4 modifiers without another
-parser or public object. Whole-query `not`, no-op `only` before a media type,
-and fixed screen/all/print semantics now flow through `@media`, style media,
+Milestone 134 adds bounded Media Queries Level 4 interaction features without
+another parser or public object. Primary `pointer`/`hover` and union
+`any-pointer`/`any-hover` state now flows through `@media`, style media,
 compact `E/V.Mq`, and literal global/window `matchMedia(...).matches` guards.
-Nested negation intersects as exact bounded predicates; unknown types and
-misplaced/repeated modifiers remain inactive. Focused/full source, native
-editing, matching compiled Firespider host, extracted-package core/edit, all 42
-Boot cases, and all six real EXE startup scenarios pass. All 129 compatibility
-probes pass over 124 fixtures. Three-round diagnostic medians are 735.376 ms clean start, 7.882 ms
-local load, and 39.059 ms layout/paint; retained memory is 68.1 KiB/page and
-required runtime files are 692.5 KiB with a 286.3 KiB GZip estimate. Runtime
-233 is packaged separately and installed runtime 157 remains unchanged. See
-`MEDIA_MODIFIERS.md`.
+Short `Pt/Hv/Ap/Ah/Mi` aliases model desktop, touch, no-pointer, and exact
+coarse-plus-fine hybrid input; WinForms samples Windows input capability until
+overridden. Focused/full source, native editing, matching compiled Firespider
+host, extracted-package core/edit, all 42 Boot cases, and all six real EXE
+startup scenarios pass. All 130 compatibility probes pass over 125 fixtures.
+Three-round diagnostic medians are 567.113 ms clean start, 7.621 ms local load,
+and 38.984 ms layout/paint; retained memory is 67.9 KiB/page and required
+runtime files are 698.5 KiB with a 288.3 KiB GZip estimate. Runtime 234 is
+packaged separately and installed runtime 157 remains unchanged. See
+`MEDIA_INTERACTION.md`.
 Container/style queries,
 `font-tech()`/`font-format()`,
 general-enclosed conditions, locale-sensitive

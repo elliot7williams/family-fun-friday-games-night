@@ -70,6 +70,7 @@ namespace Lea.Win
         private bool themeExplicit;
         private bool motionExplicit;
         private bool contrastExplicit;
+        private bool interactionExplicit;
         private bool sticky;
         private bool picBusy;
         private bool picStop;
@@ -181,6 +182,8 @@ namespace Lea.Win
         private static extern bool SystemParametersInfo(uint action, uint parameter,
             [MarshalAs(UnmanagedType.Bool)] out bool value, uint flags);
         [DllImport("user32.dll", ExactSpelling = true)]
+        private static extern int GetSystemMetrics(int index);
+        [DllImport("user32.dll", ExactSpelling = true)]
         private static extern bool CloseClipboard();
         [DllImport("user32.dll", ExactSpelling = true)]
         private static extern IntPtr GetClipboardData(uint format);
@@ -219,6 +222,7 @@ namespace Lea.Win
                 if (!motionExplicit) SetMotion(SystemMotion(), false);
                 if (!contrastExplicit) SetContrast(SystemContrast(), false);
             }
+            if (message.Msg == 0x0219 && !interactionExplicit) RefreshInteraction(false);
             if (message.Msg == 0x0002)
             {
                 // Release UI Automation's native provider event-map references.
@@ -241,6 +245,7 @@ namespace Lea.Win
             if (!themeExplicit) SetTheme(SystemTheme(), false);
             if (!motionExplicit) SetMotion(SystemMotion(), false);
             if (!contrastExplicit) SetContrast(SystemContrast(), false);
+            if (!interactionExplicit) RefreshInteraction(false);
         }
 
         private Ur UiRoot { get { return ur ?? (ur = new Ur(this)); } }
@@ -349,6 +354,14 @@ namespace Lea.Win
         public char Rm { get { return e.Rm; } set { SetMotion(value, true); } }
         public char Pc { get { return e.Pc; } set { SetContrast(value, true); } }
         public char Pdt { get { return e.Pdt; } set { SetPreferredData(value); } }
+        public char Pt { get { return e.Pt; } set { SetInteraction(value, e.Hv, e.Ap, e.Ah, true); } }
+        public bool Hv { get { return e.Hv; } set { SetInteraction(e.Pt, value, e.Ap, e.Ah, true); } }
+        public char Ap { get { return e.Ap; } set { SetInteraction(e.Pt, e.Hv, value, e.Ah, true); } }
+        public bool Ah { get { return e.Ah; } set { SetInteraction(e.Pt, e.Hv, e.Ap, value, true); } }
+        public void Mi(char pointer, bool hover, char anyPointer, bool anyHover)
+        {
+            SetInteraction(pointer, hover, anyPointer, anyHover, true);
+        }
         public int Rf { get { return At != null && At.Rf > 0 ? At.Rf : Math.Max(1, (int)Math.Round(Font.Size)); } }
         public N Ke { get { return focus; } }
         public int Kn { get { return FocusTargets(true).Count; } }
@@ -1220,6 +1233,58 @@ namespace Lea.Win
             QueueFragment(At);
             Invalidate();
             if (At != null && IsHandleCreated) NotifyAccessibility(AccessibleEvents.Reorder);
+        }
+
+        private void RefreshInteraction(bool explicitlySet)
+        {
+            char pointer;
+            bool hover;
+            char anyPointer;
+            bool anyHover;
+            SystemInteraction(out pointer, out hover, out anyPointer, out anyHover);
+            SetInteraction(pointer, hover, anyPointer, anyHover, explicitlySet);
+        }
+
+        private void SetInteraction(char pointer, bool hover, char anyPointer, bool anyHover, bool explicitlySet)
+        {
+            var nextPointer = Char.ToLowerInvariant(pointer);
+            var nextAnyPointer = Char.ToLowerInvariant(anyPointer);
+            if (nextPointer != 'n' && nextPointer != 'c' && nextPointer != 'f' ||
+                nextAnyPointer != 'n' && nextAnyPointer != 'c' && nextAnyPointer != 'f' && nextAnyPointer != 'b') return;
+            if (explicitlySet) interactionExplicit = true;
+            var previousPointer = e.Pt;
+            var previousHover = e.Hv;
+            var previousAnyPointer = e.Ap;
+            var previousAnyHover = e.Ah;
+            e.Mi(nextPointer, hover, nextAnyPointer, anyHover);
+            if (previousPointer == e.Pt && previousHover == e.Hv && previousAnyPointer == e.Ap && previousAnyHover == e.Ah) return;
+            Dirty();
+            QueueFragment(At);
+            Invalidate();
+            if (At != null && IsHandleCreated) NotifyAccessibility(AccessibleEvents.Reorder);
+        }
+
+        private static void SystemInteraction(out char pointer, out bool hover, out char anyPointer, out bool anyHover)
+        {
+            try
+            {
+                var digitizer = GetSystemMetrics(94);
+                var touch = GetSystemMetrics(95) > 0 || (digitizer & 0x03) != 0;
+                var pen = (digitizer & 0x0c) != 0;
+                var mouse = SystemInformation.MousePresent;
+                var fine = mouse || pen;
+                pointer = mouse ? 'f' : touch ? 'c' : pen ? 'f' : 'n';
+                hover = mouse;
+                anyPointer = touch && fine ? 'b' : touch ? 'c' : fine ? 'f' : 'n';
+                anyHover = mouse;
+            }
+            catch
+            {
+                pointer = 'f';
+                hover = true;
+                anyPointer = 'f';
+                anyHover = true;
+            }
         }
 
         private void SetScripting(bool value)

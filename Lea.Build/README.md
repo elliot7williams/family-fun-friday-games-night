@@ -252,6 +252,11 @@ ceiling, click/host bridges, retained fields, resize, and exact geometry.
 media types, fixed screen/print behavior, comma alternatives, nested predicate
 intersections, style media, literal matchMedia guards, malformed placement,
 diagnostics, retained fields, resize, and exact WinForms geometry.
+`--media-interaction` isolates compact `Pt/Hv/Ap/Ah/Mi` state, primary
+pointer/hover and any-pointer/any-hover queries, coarse-plus-fine hybrid unions,
+boolean/exact/not/nested/style-media selection, literal matchMedia guards,
+malformed rejection, diagnostics, retained fields, Windows host plumbing, and
+exact WinForms geometry.
 These test modes do not retry or suppress failed assertions. Windows
 clipboard access can fail while another process holds it. Record separately
 which modes passed; a clipboard-free run is not a complete default-suite pass.

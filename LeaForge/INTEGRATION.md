@@ -748,15 +748,20 @@ descendant focus without replacing fields. Empty or malformed lists, nested
 selector-list functions, pseudo-elements, oversized chains, and excess work
 are rejected rather than entering an unbounded tree search.
 
-Responsive styles use `E.Vw/Vh/Dp/Th/Rm/Pdt/Pc/Je`, `P.Vw/Vh/Dp/Th/Rm/Pdt/Pc/Je`,
-`V.Vw/Vh/Dp/Th/Rm/Pdt/Pc/Je`, and `G.Vw/Vh/Dp/Th/Rm/Pdt/Pc/Je`. A
+Responsive styles use `E.Vw/Vh/Dp/Th/Rm/Pdt/Pc/Je/Pt/Hv/Ap/Ah`,
+`P.Vw/Vh/Dp/Th/Rm/Pdt/Pc/Je/Pt/Hv/Ap/Ah`,
+`V.Vw/Vh/Dp/Th/Rm/Pdt/Pc/Je/Pt/Hv/Ap/Ah`, and
+`G.Vw/Vh/Dp/Th/Rm/Pdt/Pc/Je/Pt/Hv/Ap/Ah`. A
 headless host can set either engine dimension or call compact
 `E.Vz(width, height)` to apply one atomic viewport update. The WinForms view
 forwards its client pair, live monitor DPI, Windows application theme, and
-client-area animation and high-contrast preferences and rebuilds only when a
-media boundary changes. A host may set `V.Dp`, `V.Th`, `V.Rm`, or `V.Pc`
+client-area animation, high-contrast preferences, and conservative mouse,
+touch, and pen capabilities, and rebuilds only when a media boundary changes.
+A host may set `V.Dp`, `V.Th`, `V.Rm`, or `V.Pc`
 explicitly to override automatic platform tracking, may set host-controlled
-`V.Pdt`, and may set `V.Je` to enable or disable Lea's bounded scripting layer.
+`V.Pdt`, may set `V.Je` to enable or disable Lea's bounded scripting layer,
+and may call `V.Mi(pointer, hover, anyPointer, anyHover)` to atomically replace
+the detected interaction state.
 Existing `Fi` objects and mutable values survive that rebuild. The bounded
 compiler accepts `screen`/`all` plus fixed non-matching `print`, whole-query
 `not`, no-op `only` before a media type, pixel min/max/exact width and height,
@@ -764,7 +769,8 @@ portrait/landscape orientation, bounded reduced integer min/max/exact aspect
 ratios, `dpi`/`dppx`/`dpcm` resolution, light/dark `prefers-color-scheme`,
 no-preference/reduce `prefers-reduced-motion`, no-preference/reduce
 `prefers-reduced-data`, no-preference/less/more/custom `prefers-contrast`,
-none/initial-only/enabled `scripting`, and strict/inclusive
+none/initial-only/enabled `scripting`, primary `pointer`/`hover`, union
+`any-pointer`/`any-hover`, and strict/inclusive
 feature-first, value-first, or same-direction chained comparisons. These
 compose with conjunctions, comma alternatives,
 nested `@media`, and `<style media>`. Dimensions and ratio terms clamp to
@@ -785,6 +791,8 @@ in `MEDIA_CONTRAST.md`. Lea does not advertise `forced-colors: active` because
 it does not yet enforce a system color palette.
 Scripting media syntax, `Je` rebuild behavior, and the inactive initial-only
 boundary are in `MEDIA_SCRIPTING.md`.
+Interaction aliases, hybrid any-pointer semantics, device sampling, and
+diagnostics are in `MEDIA_INTERACTION.md`.
 
 `@supports` is also engine-owned. The compiler recognizes a bounded set of
 declaration families through their real Lea value parsers and checks one
@@ -1023,11 +1031,13 @@ general JavaScript or CSSOM object is introduced. See `SUPPORTS_QUERIES.md`.
 Hosts can evaluate Lea's current media state with compact `E/V.Mq(query)`.
 Literal page commands accept global or `window.matchMedia("...").matches`
 guards with optional `!` and `else`. They reuse the compiled media parser,
-current viewport/DPI/preferences, four-level mixed conditional depth, and
+current viewport/DPI/preferences/interaction state, four-level mixed
+conditional depth, and
 32-command budget. Computed queries, listeners, saved query objects, and
 arbitrary expressions stay inert. See `MATCH_MEDIA.md`.
 Whole-query modifiers and fixed screen/print semantics are in
-`MEDIA_MODIFIERS.md`.
+`MEDIA_MODIFIERS.md`; input capability semantics are in
+`MEDIA_INTERACTION.md`.
 
 `fo` queues one enabled, non-HTML-hidden focus target; the first accepted
 request wins. Headless hosts take it once with `E.Kp(page)`. `V` resolves it

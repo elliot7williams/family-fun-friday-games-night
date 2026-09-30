@@ -37,6 +37,11 @@ Lea accepts `screen`, `all`, and fixed non-matching `print` queries containing:
   `custom` values; its boolean form is inactive only for no-preference
 - boolean `scripting` plus exact `none`, `initial-only`, and `enabled` values;
   Lea reports none or enabled, so initial-only is valid but stays inactive
+- boolean and exact `pointer: none | coarse | fine` and
+  `hover: none | hover` primary-device values
+- boolean and exact `any-pointer: none | coarse | fine` and
+  `any-hover: none | hover` union values; a hybrid can match both coarse and
+  fine any-pointer queries
 - feature-first, value-first, and ascending/descending comparison ranges for
   width, height, aspect ratio, and resolution
 - `and` conjunctions and comma alternatives
@@ -64,8 +69,8 @@ strict-boundary behavior are in `MEDIA_RANGE_SYNTAX.md`.
 
 Active CSS diagnostics retain `@m` for width and add `@h` for height, `@o`
 for orientation, `@d` for normalized resolution, `@t` for theme, `@rm`
-for reduced motion, `@pdt` for reduced data, `@pc` for preferred contrast, and
-`@je` for scripting. For example:
+for reduced motion, `@pdt` for reduced data, `@pc` for preferred contrast,
+`@je` for scripting, and `@pt/@hv/@ap/@ah` for interaction state. For example:
 
 ```text
 @m>=800&@h<=500&@o=l
@@ -75,6 +80,7 @@ for reduced motion, `@pdt` for reduced data, `@pc` for preferred contrast, and
 @m>=800&@pdt=r
 @m>=800&@pc=m
 @m>=800&@je=e
+@m>=800&@pt=f&@hv=h&@ap=b&@ah=h
 ```
 
 Changing either viewport dimension recompiles no CSS. Lea selects from the
@@ -93,6 +99,8 @@ Preferred-contrast syntax, boolean semantics, and host behavior are documented
 in `MEDIA_CONTRAST.md`.
 Scripting syntax, `Je` state changes, and execution boundaries are documented
 in `MEDIA_SCRIPTING.md`.
+Interaction syntax, compact `Pt/Hv/Ap/Ah/Mi` host state, hybrid semantics, and
+Windows device sampling are documented in `MEDIA_INTERACTION.md`.
 
 Coverage lives in `test-pages/media-features.html`, the focused
 `Lea.Tests --media-features` mode, the compatibility benchmark, and the

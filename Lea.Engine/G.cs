@@ -37,6 +37,10 @@ namespace Lea.Engine
         public char Rm { get; internal set; }
         public char Pc { get; internal set; }
         public char Pdt { get; internal set; }
+        public char Pt { get; internal set; }
+        public bool Hv { get; internal set; }
+        public char Ap { get; internal set; }
+        public bool Ah { get; internal set; }
         public bool Je { get; internal set; }
         public int Vc { get; internal set; }
         public int Ic { get; internal set; }

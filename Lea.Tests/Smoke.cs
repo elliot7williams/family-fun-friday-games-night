@@ -201,6 +201,11 @@ namespace Lea.Tests
                     MediaModifierSmoke(Path.Combine(pages, "media-modifiers.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--media-interaction")
+                {
+                    MediaInteractionSmoke(Path.Combine(pages, "media-interaction.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--layers")
                 {
                     LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
@@ -1629,6 +1634,7 @@ namespace Lea.Tests
                 CssSupportsScriptSmoke(Path.Combine(pages, "css-supports-script.html"));
                 MatchMediaScriptSmoke(Path.Combine(pages, "match-media-script.html"));
                 MediaModifierSmoke(Path.Combine(pages, "media-modifiers.html"));
+                MediaInteractionSmoke(Path.Combine(pages, "media-interaction.html"));
                 LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
                 HslColorSmoke(Path.Combine(pages, "hsl-colors.html"));
                 HwbColorSmoke(Path.Combine(pages, "hwb-colors.html"));
@@ -10111,6 +10117,113 @@ namespace Lea.Tests
                     "WinForms modifier script exact geometry");
             }
             Console.WriteLine("Lea media modifier smoke passed: bounded not/only queries, fixed screen/print semantics, alternatives, nested intersections, style media, matchMedia guards, diagnostics, resize, paint, and retained fields.");
+        }
+
+        private static void MediaInteractionSmoke(string path)
+        {
+            var engine = new E();
+            Ok(engine.Pt == 'f' && engine.Hv && engine.Ap == 'f' && engine.Ah,
+                "default interaction media aliases");
+            Ok(engine.Mq("(pointer)") && engine.Mq("(pointer:fine)") && engine.Mq("(hover)") &&
+                engine.Mq("(hover:hover)") && engine.Mq("(any-pointer)") &&
+                engine.Mq("(any-pointer:fine)") && engine.Mq("(any-hover)") && engine.Mq("(any-hover:hover)"),
+                "default desktop interaction media queries");
+            Ok(!engine.Mq("(pointer:none)") && !engine.Mq("(pointer:coarse)") && !engine.Mq("(hover:none)") &&
+                !engine.Mq("(any-pointer:none)") && !engine.Mq("(any-pointer:coarse)") && !engine.Mq("(any-hover:none)"),
+                "default false interaction media queries");
+            Ok(!engine.Mq("(pointer:medium)") && !engine.Mq("(hover:coarse)") &&
+                !engine.Mq("(min-pointer:fine)") && !engine.Mq("(pointer>fine)") &&
+                !engine.Mq("(pointer:fine) and (pointer:coarse)") &&
+                !engine.Mq("(any-pointer:none) and (any-pointer:fine)") &&
+                !engine.Mq("(any-hover:none) and (any-hover:hover)"),
+                "invalid or conflicting interaction media stays inactive");
+
+            var page = engine.Go(path);
+            Eq(4, page.Jc, "interaction media startup command count");
+            Eq("base fine hover anyfine anyhover", ById(page.D, "status").Av("class"),
+                "desktop interaction matchMedia script branches");
+            Ok(HasBlock(page, "fine") && HasBlock(page, "hover") && HasBlock(page, "any-fine") &&
+                HasBlock(page, "any-hover") && !HasBlock(page, "coarse") && !HasBlock(page, "none") &&
+                !HasBlock(page, "no-hover") && !HasBlock(page, "any-coarse") && !HasBlock(page, "any-none") &&
+                !HasBlock(page, "any-no-hover") && !HasBlock(page, "hybrid") && !HasBlock(page, "not-fine") &&
+                !HasBlock(page, "invalid"),
+                "desktop interaction CSS selection");
+            Eq(260, FieldById(page, "field").S.W, "desktop pointer field width");
+            Eq(240, BlockById(page, "style-state").S.W, "interaction style media attribute");
+            var diagnostics = engine.Dg(page);
+            Ok(Has(diagnostics.Cs, "@pt=f") && Has(diagnostics.Cs, "@hv=h") &&
+                Has(diagnostics.Cs, "@ap=f") && Has(diagnostics.Cs, "@ah=h"),
+                "interaction media diagnostics");
+
+            var field = FieldById(page, "field");
+            field.V = "Retained interaction value";
+            engine.Mi('c', false, 'b', true);
+            Ok(engine.Pt == 'c' && !engine.Hv && engine.Ap == 'b' && engine.Ah &&
+                engine.Mq("(pointer:coarse)") && engine.Mq("(hover:none)") &&
+                engine.Mq("(any-pointer:coarse)") && engine.Mq("(any-pointer:fine)") &&
+                engine.Mq("(any-pointer:coarse) and (any-pointer:fine)") && engine.Mq("(any-hover:hover)"),
+                "touch-first hybrid interaction aliases and queries");
+            Ok(HasBlock(page, "coarse") && HasBlock(page, "no-hover") && HasBlock(page, "any-fine") &&
+                HasBlock(page, "any-coarse") && HasBlock(page, "any-hover") && HasBlock(page, "hybrid") &&
+                HasBlock(page, "not-fine") && !HasBlock(page, "fine") && !HasBlock(page, "hover") &&
+                !HasBlock(page, "none") && !HasBlock(page, "any-none") && !HasBlock(page, "any-no-hover") &&
+                !HasBlock(page, "invalid"),
+                "touch-first hybrid interaction CSS selection");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) &&
+                field.V == "Retained interaction value" && field.S.W == 180,
+                "interaction rebuild retains field identity and value");
+            diagnostics = engine.Dg(page);
+            Ok(diagnostics.Pt == 'c' && !diagnostics.Hv && diagnostics.Ap == 'b' && diagnostics.Ah &&
+                Has(diagnostics.Cs, "@ap=b"),
+                "hybrid interaction diagnostics and nested intersection");
+            Eq(1, engine.Js(page, "if(window.matchMedia('(pointer:coarse)').matches){wd('field','177px');}"),
+                "live interaction matchMedia guard command");
+            Eq(177, field.S.W, "live interaction matchMedia guard style");
+
+            engine.Mi('n', false, 'n', false);
+            Ok(!engine.Mq("(pointer)") && engine.Mq("(pointer:none)") && !engine.Mq("(hover)") &&
+                engine.Mq("(hover:none)") && !engine.Mq("(any-pointer)") && engine.Mq("(any-pointer:none)") &&
+                !engine.Mq("(any-hover)") && engine.Mq("(any-hover:none)"),
+                "no-pointer boolean and exact interaction queries");
+            Ok(HasBlock(page, "none") && HasBlock(page, "no-hover") && HasBlock(page, "any-none") &&
+                HasBlock(page, "any-no-hover") && HasBlock(page, "not-fine") && !HasBlock(page, "fine") &&
+                !HasBlock(page, "coarse") && !HasBlock(page, "any-fine") && !HasBlock(page, "any-coarse") &&
+                !HasBlock(page, "any-hover") && !HasBlock(page, "hybrid") && !HasBlock(page, "invalid"),
+                "no-pointer interaction CSS selection");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) &&
+                field.V == "Retained interaction value" && field.S.W == 177,
+                "no-pointer rebuild retains field and inline command width");
+            engine.Mi('x', true, 'x', true);
+            Ok(engine.Pt == 'n' && !engine.Hv && engine.Ap == 'n' && !engine.Ah,
+                "invalid compact interaction update is atomic");
+
+            using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-30000, -30000), ClientSize = new Size(900, 600) })
+            using (var view = new V { Dock = DockStyle.Fill })
+            {
+                form.Controls.Add(view);
+                form.Show();
+                view.Mi('f', true, 'f', true);
+                view.Go(path);
+                Paint(view);
+                Ok(view.Pt == 'f' && view.Hv && view.Ap == 'f' && view.Ah &&
+                    view.Mq("(pointer:fine) and (hover:hover)"),
+                    "WinForms desktop interaction aliases");
+                Eq(260, BlockRect(view, BlockById(view.At, "field")).Width,
+                    "WinForms desktop interaction geometry");
+                var liveField = FieldById(view.At, "field");
+                liveField.V = "Retained view interaction value";
+                view.Mi('c', false, 'b', true);
+                Paint(view);
+                Ok(view.Mq("(pointer:coarse) and (hover:none)") &&
+                    view.Mq("(any-pointer:coarse) and (any-pointer:fine)") && view.Mq("(any-hover:hover)"),
+                    "WinForms hybrid interaction state");
+                Ok(Object.ReferenceEquals(liveField, FieldById(view.At, "field")) &&
+                    liveField.V == "Retained view interaction value",
+                    "WinForms interaction change retains field");
+                Eq(180, BlockRect(view, BlockById(view.At, "field")).Width,
+                    "WinForms hybrid interaction geometry");
+            }
+            Console.WriteLine("Lea interaction media smoke passed: compact Pt/Hv/Ap/Ah/Mi aliases, pointer/hover and any-pointer/any-hover queries, hybrid unions, nesting, diagnostics, retained fields, live matchMedia guards, Windows plumbing, and exact paint.");
         }
 
         private static void MediaFeatureSmoke(string path)

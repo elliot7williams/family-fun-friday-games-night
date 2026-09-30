@@ -144,6 +144,10 @@ namespace Lea.Engine
         private char rm = 'n';
         private char pc = 'n';
         private char pdt = 'n';
+        private char pt = 'f';
+        private bool hv = true;
+        private char ap = 'f';
+        private bool ah = true;
         private bool je = true;
         private Stream download;
         private bool stopped;
@@ -220,6 +224,39 @@ namespace Lea.Engine
                 pdt = next;
                 ApplyViewport(At);
             }
+        }
+        public char Pt
+        {
+            get { return pt; }
+            set { Mi(value, hv, ap, ah); }
+        }
+        public bool Hv
+        {
+            get { return hv; }
+            set { Mi(pt, value, ap, ah); }
+        }
+        public char Ap
+        {
+            get { return ap; }
+            set { Mi(pt, hv, value, ah); }
+        }
+        public bool Ah
+        {
+            get { return ah; }
+            set { Mi(pt, hv, ap, value); }
+        }
+        public void Mi(char pointer, bool hover, char anyPointer, bool anyHover)
+        {
+            var nextPointer = Char.ToLowerInvariant(pointer);
+            var nextAnyPointer = Char.ToLowerInvariant(anyPointer);
+            if (nextPointer != 'n' && nextPointer != 'c' && nextPointer != 'f' ||
+                nextAnyPointer != 'n' && nextAnyPointer != 'c' && nextAnyPointer != 'f' && nextAnyPointer != 'b') return;
+            if (pt == nextPointer && hv == hover && ap == nextAnyPointer && ah == anyHover) return;
+            pt = nextPointer;
+            hv = hover;
+            ap = nextAnyPointer;
+            ah = anyHover;
+            ApplyViewport(At);
         }
         public void Vz(int width, int height)
         {
@@ -319,12 +356,12 @@ namespace Lea.Engine
             if (rules == null) return page;
             if (!Owns(page.D, hover)) hover = null;
             if (!Owns(page.D, focus)) focus = null;
-            if (Object.ReferenceEquals(page.Hv, hover) && Object.ReferenceEquals(page.Fc, focus)) return page;
+            if (Object.ReferenceEquals(page.Hn, hover) && Object.ReferenceEquals(page.Fc, focus)) return page;
 
             ClearState(page.D);
             for (var node = hover; node != null; node = node.Up) node.Hv = true;
             if (focus != null) focus.Fc = true;
-            page.Hv = hover;
+            page.Hn = hover;
             page.Fc = focus;
 
             var fields = new Dictionary<N, Fi>();
@@ -456,7 +493,10 @@ namespace Lea.Engine
         public bool Su(string property, string value) { return Sup(property, value); }
 
         // Mq evaluates Lea's bounded media-query subset against the live host state.
-        public bool Mq(string query) { return Mqs(query, vw, vh, dp, th, rm, pc, je ? 'e' : 'n', pdt); }
+        public bool Mq(string query)
+        {
+            return Mqs(query, vw, vh, dp, th, rm, pc, je ? 'e' : 'n', pdt, pt, hv ? 'h' : 'n', ap, ah ? 'h' : 'n');
+        }
 
         // Ck runs a page element's safe Lea click commands.
         public int Ck(P page, N element)
@@ -583,6 +623,10 @@ namespace Lea.Engine
                 Rm = page.Rm,
                 Pc = page.Pc,
                 Pdt = page.Pdt,
+                Pt = page.Pt,
+                Hv = page.Hv,
+                Ap = page.Ap,
+                Ah = page.Ah,
                 Je = page.Je,
                 Vc = page.S == null ? 0 : page.S.Vc,
                 Cc = Cc,
@@ -1485,8 +1529,13 @@ namespace Lea.Engine
             p.Rm = rm;
             p.Pc = pc;
             p.Pdt = pdt;
+            p.Pt = pt;
+            p.Hv = hv;
+            p.Ap = ap;
+            p.Ah = ah;
             p.Je = je;
-            var active = MediaRules(rules, vw, vh, dp, th, rm, pc, je ? 'e' : 'n', pdt);
+            var active = MediaRules(rules, vw, vh, dp, th, rm, pc, je ? 'e' : 'n', pdt,
+                pt, hv ? 'h' : 'n', ap, ah ? 'h' : 'n');
             p.R = active;
             Rebuild(p, active, null);
             if (!je) return;
@@ -1504,10 +1553,15 @@ namespace Lea.Engine
             page.Rm = rm;
             page.Pc = pc;
             page.Pdt = pdt;
+            page.Pt = pt;
+            page.Hv = hv;
+            page.Ap = ap;
+            page.Ah = ah;
             page.Je = je;
             var all = page.Ra as List<R>;
             if (all == null) return;
-            var active = MediaRules(all, vw, vh, dp, th, rm, pc, je ? 'e' : 'n', pdt);
+            var active = MediaRules(all, vw, vh, dp, th, rm, pc, je ? 'e' : 'n', pdt,
+                pt, hv ? 'h' : 'n', ap, ah ? 'h' : 'n');
             var current = page.R as List<R>;
             if (SameRules(current, active)) return;
             var fields = new Dictionary<N, Fi>();
@@ -1516,11 +1570,13 @@ namespace Lea.Engine
             Rebuild(page, active, fields);
         }
 
-        private static List<R> MediaRules(List<R> rules, int width, int height, int density, char theme, char motion, char contrast, char scripting, char preferredData)
+        private static List<R> MediaRules(List<R> rules, int width, int height, int density, char theme, char motion,
+            char contrast, char scripting, char preferredData, char pointer, char hover, char anyPointer, char anyHover)
         {
             var active = new List<R>();
             foreach (var rule in rules)
-                if (rule.On(width, height, density, theme, motion, contrast, scripting, preferredData)) active.Add(rule);
+                if (rule.On(width, height, density, theme, motion, contrast, scripting, preferredData,
+                    pointer, hover, anyPointer, anyHover)) active.Add(rule);
             return active;
         }
 
@@ -2755,15 +2811,16 @@ namespace Lea.Engine
         internal static bool Mqs(P page, string query)
         {
             return page != null && Mqs(query, page.Vw, page.Vh, page.Dp, page.Th, page.Rm, page.Pc,
-                page.Je ? 'e' : 'n', page.Pdt);
+                page.Je ? 'e' : 'n', page.Pdt, page.Pt, page.Hv ? 'h' : 'n', page.Ap, page.Ah ? 'h' : 'n');
         }
 
         private static bool Mqs(string query, int width, int height, int density, char theme, char motion,
-            char contrast, char scripting, char preferredData)
+            char contrast, char scripting, char preferredData, char pointer, char hover, char anyPointer, char anyHover)
         {
             if (query == null || query.Length > MaxMediaText) return false;
             foreach (var condition in CssMedia(query))
-                if (condition.On(width, height, density, theme, motion, contrast, scripting, preferredData)) return true;
+                if (condition.On(width, height, density, theme, motion, contrast, scripting, preferredData,
+                    pointer, hover, anyPointer, anyHover)) return true;
             return false;
         }
 
@@ -3255,6 +3312,10 @@ namespace Lea.Engine
                 var contrastBooleans = Regex.Matches(query, "\\(\\s*prefers-contrast\\s*\\)", RegexOptions.IgnoreCase);
                 var scripts = Regex.Matches(query, "\\(\\s*scripting\\s*:\\s*(?<s>none|initial-only|enabled)\\s*\\)", RegexOptions.IgnoreCase);
                 var scriptBooleans = Regex.Matches(query, "\\(\\s*scripting\\s*\\)", RegexOptions.IgnoreCase);
+                var pointers = Regex.Matches(query, "\\(\\s*(?<a>any-)?pointer\\s*:\\s*(?<p>none|coarse|fine)\\s*\\)", RegexOptions.IgnoreCase);
+                var pointerBooleans = Regex.Matches(query, "\\(\\s*(?<a>any-)?pointer\\s*\\)", RegexOptions.IgnoreCase);
+                var hovers = Regex.Matches(query, "\\(\\s*(?<a>any-)?hover\\s*:\\s*(?<h>none|hover)\\s*\\)", RegexOptions.IgnoreCase);
+                var hoverBooleans = Regex.Matches(query, "\\(\\s*(?<a>any-)?hover\\s*\\)", RegexOptions.IgnoreCase);
                 var minimum = 0;
                 var maximum = 0;
                 var minimumExclusive = false;
@@ -3279,6 +3340,10 @@ namespace Lea.Engine
                 var preferredData = '\0';
                 var contrast = '\0';
                 var scripting = '\0';
+                var pointer = '\0';
+                var hover = '\0';
+                var anyPointer = '\0';
+                var anyHover = '\0';
                 var valid = true;
                 foreach (Match match in matches)
                 {
@@ -3349,6 +3414,41 @@ namespace Lea.Engine
                 {
                     if (scripting == 'n') valid = false;
                     else if (scripting == '\0') scripting = '*';
+                }
+                foreach (Match match in pointers)
+                {
+                    var mode = match.Groups["p"].Value.ToLowerInvariant();
+                    var next = mode == "coarse" ? 'c' : mode == "fine" ? 'f' : 'n';
+                    if (match.Groups["a"].Success)
+                    {
+                        if (!MediaAnyPointer(ref anyPointer, next)) { valid = false; break; }
+                    }
+                    else if (!MediaDiscrete(ref pointer, next)) { valid = false; break; }
+                }
+                foreach (Match match in pointerBooleans)
+                {
+                    if (match.Groups["a"].Success)
+                    {
+                        if (!MediaAnyPointer(ref anyPointer, '*')) { valid = false; break; }
+                    }
+                    else if (!MediaDiscrete(ref pointer, '*')) { valid = false; break; }
+                }
+                foreach (Match match in hovers)
+                {
+                    var next = match.Groups["h"].Value.Equals("hover", StringComparison.OrdinalIgnoreCase) ? 'h' : 'n';
+                    if (match.Groups["a"].Success)
+                    {
+                        if (!MediaDiscrete(ref anyHover, next)) { valid = false; break; }
+                    }
+                    else if (!MediaDiscrete(ref hover, next)) { valid = false; break; }
+                }
+                foreach (Match match in hoverBooleans)
+                {
+                    if (match.Groups["a"].Success)
+                    {
+                        if (!MediaDiscrete(ref anyHover, '*')) { valid = false; break; }
+                    }
+                    else if (!MediaDiscrete(ref hover, '*')) { valid = false; break; }
                 }
                 foreach (Match match in dimensionChains)
                 {
@@ -3500,14 +3600,18 @@ namespace Lea.Engine
                 remainder = Regex.Replace(remainder, "\\(\\s*prefers-contrast\\s*\\)", " ", RegexOptions.IgnoreCase);
                 remainder = Regex.Replace(remainder, "\\(\\s*scripting\\s*:\\s*(?:none|initial-only|enabled)\\s*\\)", " ", RegexOptions.IgnoreCase);
                 remainder = Regex.Replace(remainder, "\\(\\s*scripting\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*(?:any-)?pointer\\s*:\\s*(?:none|coarse|fine)\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*(?:any-)?pointer\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*(?:any-)?hover\\s*:\\s*(?:none|hover)\\s*\\)", " ", RegexOptions.IgnoreCase);
+                remainder = Regex.Replace(remainder, "\\(\\s*(?:any-)?hover\\s*\\)", " ", RegexOptions.IgnoreCase);
                 if (remainder.IndexOf('(') >= 0 || remainder.IndexOf(')') >= 0 || remainder.IndexOf(':') >= 0) continue;
                 var meaningful = matches.Count > 0 || orientations.Count > 0 || ratios.Count > 0 || dimensionChains.Count > 0 ||
                     dimensionFeatures.Count > 0 || dimensionValues.Count > 0 || ratioChains.Count > 0 || ratioFeatures.Count > 0 ||
                     ratioValues.Count > 0 || resolutions.Count > 0 || resolutionBooleans.Count > 0 || resolutionChains.Count > 0 ||
                     resolutionFeatures.Count > 0 || resolutionValues.Count > 0 || themes.Count > 0 || themeBooleans.Count > 0 ||
                     motions.Count > 0 || motionBooleans.Count > 0 || dataPreferences.Count > 0 || dataBooleans.Count > 0 ||
-                    contrasts.Count > 0 || contrastBooleans.Count > 0 ||
-                    scripts.Count > 0 || scriptBooleans.Count > 0;
+                    contrasts.Count > 0 || contrastBooleans.Count > 0 || scripts.Count > 0 || scriptBooleans.Count > 0 ||
+                    pointers.Count > 0 || pointerBooleans.Count > 0 || hovers.Count > 0 || hoverBooleans.Count > 0;
                 foreach (var token in Regex.Split(remainder.Trim(), "\\s+"))
                 {
                     if (token.Length == 0 || token == "and") continue;
@@ -3520,7 +3624,7 @@ namespace Lea.Engine
                     ratioMaximum, ratioMaximumDenominator, orientation, minimumExclusive, maximumExclusive,
                     heightMinimumExclusive, heightMaximumExclusive, ratioMinimumExclusive, ratioMaximumExclusive,
                     densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive, theme, motion, contrast, scripting, preferredData,
-                    mediaType, negated);
+                    mediaType, negated, pointer, hover, anyPointer, anyHover);
                 var duplicate = false;
                 foreach (var existing in result)
                     if (SameMedia(existing, condition)) { duplicate = true; break; }
@@ -3624,12 +3728,20 @@ namespace Lea.Engine
                     else if (left.Je == '*' && right.Je != 'n') scripting = right.Je;
                     else if (right.Je == '*' && left.Je != 'n') scripting = left.Je;
                     else continue;
+                    var pointer = left.Pt;
+                    if (!MediaDiscrete(ref pointer, right.Pt)) continue;
+                    var hover = left.Hv;
+                    if (!MediaDiscrete(ref hover, right.Hv)) continue;
+                    var anyPointer = left.Ap;
+                    if (!MediaAnyPointer(ref anyPointer, right.Ap)) continue;
+                    var anyHover = left.Ah;
+                    if (!MediaDiscrete(ref anyHover, right.Ah)) continue;
                     var mediaType = MediaTypeIntersection(left.Mt, right.Mt);
                     var condition = new Mc(minimum, maximum, heightMinimum, heightMaximum, ratioMinimum, ratioMinimumDenominator,
                         ratioMaximum, ratioMaximumDenominator, orientation, minimumExclusive, maximumExclusive,
                         heightMinimumExclusive, heightMaximumExclusive, ratioMinimumExclusive, ratioMaximumExclusive,
                         densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive, theme, motion, contrast, scripting, preferredData,
-                        mediaType, false);
+                        mediaType, false, pointer, hover, anyPointer, anyHover);
                     var duplicate = false;
                     foreach (var existing in result)
                         if (SameMedia(existing, condition)) { duplicate = true; break; }
@@ -3648,7 +3760,8 @@ namespace Lea.Engine
                 left.Ne == right.Ne && left.Xe == right.Xe && left.Hne == right.Hne && left.Hxe == right.Hxe &&
                 left.Rne == right.Rne && left.Rxe == right.Rxe && left.Dn == right.Dn && left.Dx == right.Dx &&
                 left.Dne == right.Dne && left.Dxe == right.Dxe && left.Th == right.Th && left.Rm == right.Rm && left.Pc == right.Pc &&
-                left.Je == right.Je && left.Pdt == right.Pdt && left.Mt == right.Mt && left.Nt == right.Nt;
+                left.Je == right.Je && left.Pdt == right.Pdt && left.Mt == right.Mt && left.Nt == right.Nt &&
+                left.Pt == right.Pt && left.Hv == right.Hv && left.Ap == right.Ap && left.Ah == right.Ah;
         }
 
         private static char MediaTypeIntersection(char left, char right)
@@ -3656,6 +3769,30 @@ namespace Lea.Engine
             if (left == '\0' || left == 'a') return right;
             if (right == '\0' || right == 'a' || left == right) return left;
             return 'x';
+        }
+
+        private static bool MediaDiscrete(ref char current, char next)
+        {
+            if (next == '\0' || current == next) return true;
+            if (current == '\0') { current = next; return true; }
+            if (current == '*')
+            {
+                if (next == 'n') return false;
+                current = next;
+                return true;
+            }
+            return next == '*' && current != 'n';
+        }
+
+        private static bool MediaAnyPointer(ref char current, char next)
+        {
+            if (next == '\0' || current == next) return true;
+            if (current == '\0') { current = next; return true; }
+            if (current == 'n' || next == 'n') return false;
+            if (current == '*') { current = next; return true; }
+            if (next == '*') return true;
+            current = 'b';
+            return true;
         }
 
         private static bool MediaAll(Mc condition)
@@ -12292,6 +12429,10 @@ namespace Lea.Engine
             public readonly char Pdt;
             public readonly char Mt;
             public readonly bool Nt;
+            public readonly char Pt;
+            public readonly char Hv;
+            public readonly char Ap;
+            public readonly char Ah;
             public readonly Mc A;
             public readonly Mc B;
             public bool Cp { get { return A != null; } }
@@ -12390,7 +12531,7 @@ namespace Lea.Engine
                     ratioMaximum, ratioMaximumDenominator, orientation, minimumExclusive, maximumExclusive,
                     heightMinimumExclusive, heightMaximumExclusive, ratioMinimumExclusive, ratioMaximumExclusive,
                     densityMinimum, densityMaximum, densityMinimumExclusive, densityMaximumExclusive,
-                    theme, motion, contrast, scripting, preferredData, '\0', false)
+                    theme, motion, contrast, scripting, preferredData, '\0', false, '\0', '\0', '\0', '\0')
             {
             }
 
@@ -12399,7 +12540,7 @@ namespace Lea.Engine
                 bool minimumExclusive, bool maximumExclusive, bool heightMinimumExclusive, bool heightMaximumExclusive,
                 bool ratioMinimumExclusive, bool ratioMaximumExclusive, int densityMinimum, int densityMaximum,
                 bool densityMinimumExclusive, bool densityMaximumExclusive, char theme, char motion, char contrast, char scripting,
-                char preferredData, char mediaType, bool negated)
+                char preferredData, char mediaType, bool negated, char pointer, char hover, char anyPointer, char anyHover)
             {
                 N = minimum;
                 X = maximum;
@@ -12427,6 +12568,10 @@ namespace Lea.Engine
                 Pdt = preferredData;
                 Mt = mediaType;
                 Nt = negated;
+                Pt = pointer;
+                Hv = hover;
+                Ap = anyPointer;
+                Ah = anyHover;
             }
 
             public Mc(Mc left, Mc right)
@@ -12437,10 +12582,13 @@ namespace Lea.Engine
                 B = right;
             }
 
-            public bool On(int width, int height, int density, char theme, char motion, char contrast, char scripting, char preferredData)
+            public bool On(int width, int height, int density, char theme, char motion, char contrast, char scripting,
+                char preferredData, char pointer, char hover, char anyPointer, char anyHover)
             {
-                if (Cp) return A.On(width, height, density, theme, motion, contrast, scripting, preferredData) &&
-                    B.On(width, height, density, theme, motion, contrast, scripting, preferredData);
+                if (Cp) return A.On(width, height, density, theme, motion, contrast, scripting, preferredData,
+                        pointer, hover, anyPointer, anyHover) &&
+                    B.On(width, height, density, theme, motion, contrast, scripting, preferredData,
+                        pointer, hover, anyPointer, anyHover);
                 var matches = Mt != 'p' && Mt != 'x' &&
                     !(width < N || Ne && width == N || X > 0 && (width > X || Xe && width == X) ||
                     height < Hn || Hne && height == Hn || Hx > 0 && (height > Hx || Hxe && height == Hx));
@@ -12453,7 +12601,8 @@ namespace Lea.Engine
                     (Th == '\0' || Th == theme) && (Rm == '\0' || Rm == motion) &&
                     (Pc == '\0' || Pc == '*' && contrast != 'n' || Pc == contrast) &&
                     (Je == '\0' || Je == '*' && scripting != 'n' || Je == scripting) &&
-                    (Pdt == '\0' || Pdt == preferredData);
+                    (Pdt == '\0' || Pdt == preferredData) && DiscreteOn(Pt, pointer) &&
+                    DiscreteOn(Hv, hover) && AnyPointerOn(Ap, anyPointer) && DiscreteOn(Ah, anyHover);
                 return Nt ? !matches : matches;
             }
 
@@ -12493,6 +12642,10 @@ namespace Lea.Engine
                     if (Pc != '\0') parts.Add(Pc == '*' ? "@pc" : "@pc=" + Pc);
                     if (Je != '\0') parts.Add(Je == '*' ? "@je" : "@je=" + Je);
                     if (Pdt != '\0') parts.Add("@pdt=" + Pdt);
+                    if (Pt != '\0') parts.Add(Pt == '*' ? "@pt" : "@pt=" + Pt);
+                    if (Hv != '\0') parts.Add(Hv == '*' ? "@hv" : "@hv=" + Hv);
+                    if (Ap != '\0') parts.Add(Ap == '*' ? "@ap" : "@ap=" + Ap);
+                    if (Ah != '\0') parts.Add(Ah == '*' ? "@ah" : "@ah=" + Ah);
                     if (Dn == Dx && Dn != Int32.MinValue && !Dne && !Dxe) parts.Add("@d=" + DensityText(Dn));
                     else
                     {
@@ -12509,6 +12662,21 @@ namespace Lea.Engine
             private static string DensityText(int value)
             {
                 return (value / 1000D).ToString("0.###", CultureInfo.InvariantCulture) + "dpi";
+            }
+
+            private static bool DiscreteOn(char expected, char actual)
+            {
+                return expected == '\0' || expected == '*' && actual != 'n' || expected == actual;
+            }
+
+            private static bool AnyPointerOn(char expected, char actual)
+            {
+                if (expected == '\0') return true;
+                if (expected == '*') return actual != 'n';
+                if (expected == 'n') return actual == 'n';
+                if (expected == 'c') return actual == 'c' || actual == 'b';
+                if (expected == 'f') return actual == 'f' || actual == 'b';
+                return expected == 'b' && actual == 'b';
             }
         }
 
@@ -12598,10 +12766,12 @@ namespace Lea.Engine
                 return prefix.Length == 0 ? mediaLabel : mediaLabel.Length == 0 ? prefix : prefix + "&" + mediaLabel;
             }
 
-            public bool On(int width, int height, int density, char theme, char motion, char contrast, char scripting, char preferredData)
+            public bool On(int width, int height, int density, char theme, char motion, char contrast, char scripting,
+                char preferredData, char pointer, char hover, char anyPointer, char anyHover)
             {
                 foreach (var condition in M)
-                    if (condition.On(width, height, density, theme, motion, contrast, scripting, preferredData)) return true;
+                    if (condition.On(width, height, density, theme, motion, contrast, scripting, preferredData,
+                        pointer, hover, anyPointer, anyHover)) return true;
                 return false;
             }
         }

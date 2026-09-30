@@ -75,6 +75,8 @@ namespace Lea.Firespider
                     .Replace("</body>", "<p id='host-media-action' data-lea=\"if(matchMedia('(min-width:1px)').matches){tx('state','Matched media host');}else{tx('state','Unmatched media host');}\">Media guard action</p></body>")
                     .Replace("</style>", ".host-modifier-not-print,.host-modifier-not-wide{display:none}@media not print{.host-modifier-not-print{display:block;width:210px}}@media not screen and (min-width:800px){.host-modifier-not-wide{display:block;width:170px}}</style>")
                     .Replace("</body>", "<p id='host-modifier-not-print' class='host-modifier-not-print'>Not print host</p><p id='host-modifier-not-wide' class='host-modifier-not-wide'>Not wide host</p></body>")
+                    .Replace("</style>", ".host-interaction-fine,.host-interaction-coarse,.host-interaction-hybrid{display:none}@media (pointer:fine) and (hover:hover){.host-interaction-fine{display:block;width:211px}}@media (pointer:coarse) and (hover:none){.host-interaction-coarse{display:block;width:171px}}@media (any-pointer:coarse){@media (any-pointer:fine){.host-interaction-hybrid{display:block;width:221px}}}</style>")
+                    .Replace("</body>", "<p id='host-interaction-fine' class='host-interaction-fine'>Fine pointer host</p><p id='host-interaction-coarse' class='host-interaction-coarse'>Coarse pointer host</p><p id='host-interaction-hybrid' class='host-interaction-hybrid'>Hybrid pointer host</p></body>")
                     .Replace("</style>", "@layer host-base{#host-layer-normal{width:171px}#host-layer-important{width:172px!important}.host-layer-wide,.host-layer-narrow{display:none}}@layer host-theme{.host-layer-normal{width:271px}#host-layer-important{width:272px!important}#host-layer-unlayered{width:273px}@supports (display:grid){@media (width>=800px){#host-layer-wide{display:block;width:209px}}}}#host-layer-unlayered{width:373px}@media (width<=500px){@layer host-theme{@supports selector(:has(*)){#host-layer-narrow{display:block;width:169px}}}}</style>")
                     .Replace("</body>", "<p id='host-layer-normal' class='host-layer-normal'>Layer normal host</p><p id='host-layer-important'>Layer important host</p><p id='host-layer-unlayered'>Layer unlayered host</p><p id='host-layer-wide' class='host-layer-wide'>Wide layer host</p><p id='host-layer-narrow' class='host-layer-narrow'>Narrow layer host</p></body>")
                     .Replace("</style>", ".host-hsl{width:160px;height:44px;background:hsl(180 100% 50%);border:4px solid hsl(200grad 100% 50%);box-shadow:8px 0 0 hsl(300 100% 25%)}.host-hsl::before{content:'HSL ';color:hsl(270 100% 50%)}.host-hsl-gradient{width:160px;height:44px;background-image:linear-gradient(90deg,hsl(0 100% 50%),hsl(240 100% 50%))}</style>")
@@ -277,6 +279,7 @@ namespace Lea.Firespider
                     host.Rm = 'n';
                     host.Pc = 'n';
                     host.Pdt = 'n';
+                    host.Mi('f', true, 'f', true);
                     host.Je = true;
                     var opened = (bool)type.GetMethod("qleaOpenPath", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(form, new object[] { openPage });
                     try
@@ -1221,12 +1224,33 @@ namespace Lea.Firespider
                         !host.Mq("only (min-width:1px)") && HasBlock(host.At, "host-modifier-not-print") &&
                         (host.Vw < 800 ? HasBlock(host.At, "host-modifier-not-wide") : !HasBlock(host.At, "host-modifier-not-wide")),
                         "Firespider media query modifier aliases and CSS state");
+                    Check(host.Pt == 'f' && host.Hv && host.Ap == 'f' && host.Ah &&
+                        host.Mq("(pointer:fine) and (hover:hover)") &&
+                        host.Mq("(any-pointer:fine) and (any-hover:hover)") &&
+                        HasBlock(host.At, "host-interaction-fine") && !HasBlock(host.At, "host-interaction-coarse") &&
+                        !HasBlock(host.At, "host-interaction-hybrid"),
+                        "Firespider desktop interaction media aliases and CSS state");
+                    hostResponsiveField.V = "Retained interaction media host value";
+                    host.Mi('c', false, 'b', true);
+                    Check(host.Pt == 'c' && !host.Hv && host.Ap == 'b' && host.Ah &&
+                        host.Mq("(pointer:coarse) and (hover:none)") &&
+                        host.Mq("(any-pointer:coarse) and (any-pointer:fine)") &&
+                        HasBlock(host.At, "host-interaction-coarse") && HasBlock(host.At, "host-interaction-hybrid") &&
+                        !HasBlock(host.At, "host-interaction-fine") &&
+                        Object.ReferenceEquals(hostResponsiveField, FieldById(host.At, "host-auto")) &&
+                        hostResponsiveField.V == "Retained interaction media host value",
+                        "Firespider hybrid interaction media state and retained field");
+                    host.Mi('f', true, 'f', true);
+                    Check(HasBlock(host.At, "host-interaction-fine") && !HasBlock(host.At, "host-interaction-coarse") &&
+                        Object.ReferenceEquals(hostResponsiveField, FieldById(host.At, "host-auto")) &&
+                        hostResponsiveField.V == "Retained interaction media host value",
+                        "Firespider desktop interaction media restore");
                     hostResponsiveField.V = "Retained match media host value";
-                    Check(host.Js("if(window.matchMedia('(width:" + host.Vw + "px)').matches){if(matchMedia('not print').matches){ac('class-state','host-media-script');}}") == 1 &&
+                    Check(host.Js("if(window.matchMedia('(width:" + host.Vw + "px)').matches){if(matchMedia('not print').matches){if(matchMedia('(pointer:fine)').matches){ac('class-state','host-media-script');}}}") == 1 &&
                         host.Q1("#class-state.host-media-script") != null &&
                         Object.ReferenceEquals(hostResponsiveField, FieldById(host.At, "host-auto")) &&
                         hostResponsiveField.V == "Retained match media host value",
-                        "Firespider literal nested media modifier guard and retained field");
+                        "Firespider literal nested media modifier and interaction guard with retained field");
                     Check(host.Ck(ById(host.At.D, "host-media-action")) == 1 &&
                         ById(host.At.D, "state").C[0].X == "Matched media host",
                         "Firespider match media click guard");
@@ -2079,6 +2103,7 @@ namespace Lea.Firespider
                 Console.WriteLine("Firespider scripting media smoke passed: existing compact Je aliases, none/initial-only/enabled queries, boolean context, diagnostics, retained fields, responsive geometry, and exact host paint reached the compiled host.");
                 Console.WriteLine("Firespider match media smoke passed: compact Mq aliases and literal global/window matchMedia guards reached the compiled host with live viewport, density, preferences, click commands, and retained fields.");
                 Console.WriteLine("Firespider media modifier smoke passed: whole-query not, strict only, fixed screen/print semantics, CSS selection, and nested literal matchMedia guards reached the compiled host.");
+                Console.WriteLine("Firespider interaction media smoke passed: compact Pt/Hv/Ap/Ah/Mi aliases, pointer/hover and any-pointer/any-hover queries, hybrid unions, CSS selection, retained fields, and nested matchMedia guards reached the compiled host.");
 
                 Console.WriteLine("Firespider Lea smoke passed: bounded inline before/after/marker generated content with quoted attr fallbacks, visual/accessibility alternatives, generated quote depth, and sandboxed bitmap fragments, be/af/ms/qu aliases, accessibility, links, counters, tables, responsive paint, and retained fields; bounded horizontal logical margin/padding properties with twelve compact aliases, bounded horizontal logical sizing/insets with short is/bs and familiar DOM aliases, bounded sticky positioning with compact k and shared host geometry, bounded percentage/calc widths with compact wd and literal DOM reflow, bounded display alias and literal location requests, literal bounded DOM translation, inherited cursor and pointer-event aliases with host hit gating and fallthrough, bounded CSS text decoration and inherited underline offsets with compact aliases and host paint, bounded CSS outlines with compact aliases and exact non-layout host paint, bounded CSS aspect ratios with compact aliases and exact host geometry/paint, bounded CSS object-fit and object-position with compact aliases, exact fitted paint, and image-map keyboard/accessibility geometry, bounded CSS bitmap backgrounds with compact aliases and exact host paint, modern bounded HSL/HSLA, HWB, CIE Lab/LCH with D50-to-D65 Bradford adaptation, Oklab, and OkLCh plus local-MINDE gamut mapping and premultiplied sRGB color mixing with hue units, alpha, gradients, SVG, and exact host paint, bounded inline SVG aliases, winding, stroke styles, geometry, links, and graphic accessibility, bounded has relational selectors with strict lists, maximum specificity, descendant/child/adjacent and complex host relationships, focus rebuilds, retained fields, queries, Inspector, and geometry, bounded nth-child of-S filters with strict lists, maximum specificity, forward/reverse computed styles, queries, Inspector, and host geometry, bounded precompiled An+B and reverse structural selectors with computed styles, queries, Inspector, and host geometry, bounded is, where, and list-not selector functions with specificity, queries, Inspector, and geometry, bounded CSS important cascade with G.Ic diagnostics, custom properties, inline, responsive values, Inspector counts, and retained fields, bounded inherited CSS custom properties with S.Vc/Cv and G.Vc aliases, responsive values, Inspector counts, and retained fields, bounded responsive CSS media queries with compact width/height/density/theme/motion/data/contrast/scripting aliases, portrait/landscape, exact/min/max aspect-ratio, dpi/dppx/dpcm resolution, light/dark preferred color scheme, no-preference/reduce motion and data, no-preference/less/more/custom contrast, and none/enabled scripting states, modern strict/inclusive feature/value-first and chained range syntax, bounded @supports declaration and selector capability checks, compact E/V.Su aliases and literal CSS.supports script/click guards, bounded named cascade layers with normal/unlayered/reversed-important order, diagnostics, and retained fields, optional bounded persistent cache aliases and Inspector diagnostics, bounded content-box and border-box geometry, scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, and shrink, semantic accessibility, protected values, rendered bounds, MSAA and UI Automation providers, value, table/grid, and read-only logical text patterns plus Access inspector, bounded autofocus and access keys, keyboard focus and activation, responsive image maps, compact time/edit metadata, output/data values and safe rebuilds, progress and meter gauges, disclosure commands, retained same-page fragments, Lea-first New Tab and explicit legacy fallback, host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
                 return 0;

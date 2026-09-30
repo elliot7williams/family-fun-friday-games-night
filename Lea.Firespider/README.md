@@ -50,6 +50,13 @@ and exact selection, diagnostics, UI Automation visibility, responsive
 geometry, retained fields, and exact paint. Firespider adds no script-state
 parser or general JavaScript runtime. See `LeaForge/MEDIA_SCRIPTING.md`.
 
+Interaction media queries use compact `E/P/G/V.Pt/Hv/Ap/Ah` state and the
+atomic `E/V.Mi` update. The WinForms view conservatively samples Windows mouse,
+touch, and pen capabilities until Firespider explicitly overrides the state.
+The compiled host covers desktop, touch-first hybrid, no-pointer, boolean,
+exact, nested, diagnostic, retained-field, and exact-paint paths. Firespider
+adds no input-media parser. See `LeaForge/MEDIA_INTERACTION.md`.
+
 Initial fragments now stay aligned while first paint, host sizing, and decoded
 intrinsic images settle. `V.Fa/Fj/Fy` expose the retained anchor, placement
 count, and target Y directly to the host; normal scrolling releases the anchor.
@@ -422,14 +429,15 @@ JavaScript runtime.
 See `LeaForge/SUPPORTS_QUERIES.md`.
 
 Compact `V.Mq(query)` evaluates the same live viewport, monitor DPI,
-preferences, and scripting state used by Firespider's Lea tab. Literal global
-or `window.matchMedia("...").matches` script and click guards select existing
-allow-listed commands through that parser. Computed queries, listeners, saved
-query objects, and arbitrary expressions remain inert. See
+preferences, scripting, and interaction state used by Firespider's Lea tab.
+Literal global or `window.matchMedia("...").matches` script and click guards
+select existing allow-listed commands through that parser. Computed queries,
+listeners, saved query objects, and arbitrary expressions remain inert. See
 `LeaForge/MATCH_MEDIA.md`. Whole-query modifier behavior shares this path; the
 compiled host checks `not print`, strict `only screen`, negated width, CSS
 selection, and nested literal guards without adapter-side parsing. See
-`LeaForge/MEDIA_MODIFIERS.md`.
+`LeaForge/MEDIA_MODIFIERS.md`. Pointer/hover and any-pointer/any-hover host
+checks share it too; see `LeaForge/MEDIA_INTERACTION.md`.
 
 Bounded named cascade layers also remain entirely inside Lea. The compiled host
 smoke verifies later-layer normal order, reversed important order, unlayered

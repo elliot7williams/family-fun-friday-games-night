@@ -61,6 +61,12 @@ read and quick to write.
   and `G.Je` reports it. Lea recognizes `scripting: initial-only` but never
   selects it because the engine has no one-shot script mode. See
   `MEDIA_SCRIPTING.md`.
+- `Pt/Hv/Ap/Ah` describe primary pointer, primary hover, any-pointer union,
+  and any-hover state. Pointer values are `n/c/f`; `Ap` also accepts `b` for a
+  coarse-plus-fine hybrid. `Mi(pointer, hover, anyPointer, anyHover)` validates
+  and applies the complete state atomically. Headless Lea defaults to desktop
+  input, while WinForms samples Windows devices until explicitly overridden.
+  See `MEDIA_INTERACTION.md`.
 - Page commands use one or two letters where practical: `t`, `a`, `bg`, `fg`, `fs`, `dp`, `wd`, `ht`, `dr`, `ti`, `tw`, `twm`, `tws`, `ta`, `taa`, `tl`, `lc`, `ls`, `lst`, `lp`, `li`, `ms`, `be`, `af`, `ts`, `td`, `uo`, `v`, `tx`, `ac`, `rc`, `tc`, `hd`, `sh`, `op`, `cl`, `tg`, `ds`, `en`, `vl`, `ck`, `fo`, and `go`; text-decoration components and logical edge families stay within three letters.
 - New public aliases should be no more than three letters.
 - `E/V.Hm` reports the 4 MiB document-body ceiling; `E/V.Csm` reports the
@@ -102,7 +108,7 @@ message and `V.Am` exposes the current message. `E/V.Su(condition)` and
 `E/V.Mq(query)` evaluates Lea's compiled media-query subset against current
 host state. Literal scripts may use `matchMedia("...").matches` or
 `window.matchMedia("...").matches` as the same bounded `if` guard. See
-`MATCH_MEDIA.md` and `MEDIA_MODIFIERS.md`.
+`MATCH_MEDIA.md`, `MEDIA_MODIFIERS.md`, and `MEDIA_INTERACTION.md`.
 Supported page commands are:
 
 ```text

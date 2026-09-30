@@ -51,6 +51,10 @@ namespace Lea.Engine
         public char Rm { get; internal set; }
         public char Pc { get; internal set; }
         public char Pdt { get; internal set; }
+        public char Pt { get; internal set; }
+        public bool Hv { get; internal set; }
+        public char Ap { get; internal set; }
+        public bool Ah { get; internal set; }
         public bool Je { get; internal set; }
         public int Rf { get; internal set; }
         public int Sn { get; internal set; }
@@ -58,7 +62,7 @@ namespace Lea.Engine
         internal object Ra { get; set; }
         internal object Rb { get; set; }
         internal object Rh { get; set; }
-        internal N Hv { get; set; }
+        internal N Hn { get; set; }
         internal N Fc { get; set; }
         internal N Kq { get; set; }
         internal IDictionary<N, Fi> Fr { get; private set; }

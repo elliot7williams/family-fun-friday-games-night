@@ -150,14 +150,14 @@ LeaForge is where we can grow the more full-featured browser.
   light/dark `prefers-color-scheme`, and no-preference/reduce
   `prefers-reduced-motion`, no-preference/reduce `prefers-reduced-data`,
   no-preference/less/more/custom `prefers-contrast`,
-  and none/initial-only/enabled `scripting` media queries with strict/inclusive
-  modern ranges,
-  compact `Vw/Vh/Vz/Dp/Th/Rm/Pdt/Pc/Je` aliases, nested conditions, live WinForms
-  viewport/DPI/preference updates, and retained fields; see
+  none/initial-only/enabled `scripting`, and primary/union
+  `pointer`/`hover` interaction media queries with strict/inclusive modern
+  ranges, compact `Vw/Vh/Vz/Dp/Th/Rm/Pdt/Pc/Je/Pt/Hv/Ap/Ah/Mi` aliases,
+  nested conditions, live WinForms viewport/DPI/preference/device updates, and
+  retained fields; see
   `MEDIA_RANGE_SYNTAX.md`, `MEDIA_RESOLUTION.md`, `MEDIA_COLOR_SCHEME.md`,
   `MEDIA_REDUCED_MOTION.md`, `MEDIA_REDUCED_DATA.md`, `MEDIA_CONTRAST.md`,
-  `MEDIA_MODIFIERS.md`, and
-  `MEDIA_SCRIPTING.md`
+  `MEDIA_MODIFIERS.md`, `MEDIA_SCRIPTING.md`, and `MEDIA_INTERACTION.md`
 - bounded CSS `@supports` declaration checks and `selector(...)` capability
   checks with grouped `not`/`and`/`or`, nested media, compact `@s` diagnostics,
   strict depth/term/text limits, and retained fields; see `SUPPORTS_QUERIES.md`
