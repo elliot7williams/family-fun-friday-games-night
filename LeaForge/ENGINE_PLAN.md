@@ -72,6 +72,10 @@ Dg/Dcl  diagnostics/clear request activity
 4. Replace one-WinForms-control-per-node rendering with lightweight layout boxes. (Reusable `Bx` layout pass added.)
 5. Paint text, backgrounds, borders, links, controls, and images onto one surface. (Text, nested bold/italic inline runs, backgrounds, solid/dashed/dotted borders, links, images, and basic form controls are active.)
 6. Add scrolling and hit testing from layout boxes. (Visible-box painting and bounded vertical scrolling added.)
+   Bounded custom-property `@container style()` queries now select nearest or
+   named ancestors through computed `S.Cn`, with grouped conditions and retained
+   rebuilds. Size queries remain deferred until the layout engine has a stable
+   used-size containment feedback model; see `CONTAINER_STYLE_QUERIES.md`.
 7. Add compact table row/cell layout. (Equal columns, wrapped text, CSS boxes,
    bounded `colspan`, nested blocks, clickable links, malformed-markup recovery,
    and narrow-view reflow are active.)

@@ -29,6 +29,11 @@ namespace Lea.Engine
         private const int MaxSupportsDepth = 4;
         private const int MaxSupportsTerms = 8;
         private const int MaxSupportsText = 2048;
+        private const int MaxContainerDepth = 4;
+        private const int MaxContainerTerms = 8;
+        private const int MaxContainerText = 2048;
+        private const int MaxContainerNames = 4;
+        private const int MaxContainerName = 32;
         private const int MaxCssLayers = 16;
         private const int MaxCssLayerDepth = 3;
         private const int MaxCssLayerName = 32;
@@ -2698,10 +2703,12 @@ namespace Lea.Engine
         }
 
         private static void CssSource(string source, Uri origin, List<R> rules, ref int order, Mc[] media, int depth,
-            int limit = MaxCssRules, string supports = "", Dictionary<string, int> layers = null, string layerName = "")
+            int limit = MaxCssRules, string supports = "", Dictionary<string, int> layers = null, string layerName = "",
+            Kq[] containers = null)
         {
             if (String.IsNullOrEmpty(source) || media == null || media.Length == 0 || depth > MaxMediaDepth) return;
             if (layers == null) layers = new Dictionary<string, int>(StringComparer.Ordinal);
+            if (containers == null) containers = new Kq[0];
             var at = 0;
             string header;
             string body;
@@ -2713,7 +2720,7 @@ namespace Lea.Engine
                 {
                     if (depth == MaxMediaDepth) continue;
                     var nested = CssIntersect(media, CssMedia(Regex.Replace(query, "^@media", "", RegexOptions.IgnoreCase)));
-                    if (nested.Length > 0) CssSource(body, origin, rules, ref order, nested, depth + 1, limit, supports, layers, layerName);
+                    if (nested.Length > 0) CssSource(body, origin, rules, ref order, nested, depth + 1, limit, supports, layers, layerName, containers);
                     continue;
                 }
                 if (Regex.IsMatch(query, "^@supports(?:\\s|\\()", RegexOptions.IgnoreCase))
@@ -2721,7 +2728,7 @@ namespace Lea.Engine
                     if (depth == MaxMediaDepth) continue;
                     var condition = Regex.Replace(query, "^@supports", "", RegexOptions.IgnoreCase).Trim();
                     if (CssSupports(condition, 0))
-                        CssSource(body, origin, rules, ref order, media, depth + 1, limit, CssSupportsLabel(supports, condition), layers, layerName);
+                        CssSource(body, origin, rules, ref order, media, depth + 1, limit, CssSupportsLabel(supports, condition), layers, layerName, containers);
                     continue;
                 }
                 if (Regex.IsMatch(query, "^@layer(?:\\s|$)", RegexOptions.IgnoreCase))
@@ -2736,18 +2743,29 @@ namespace Lea.Engine
                         rank = layers.Count;
                         layers[nested] = rank;
                     }
-                    CssSource(body, origin, rules, ref order, media, depth + 1, limit, supports, layers, nested);
+                    CssSource(body, origin, rules, ref order, media, depth + 1, limit, supports, layers, nested, containers);
+                    continue;
+                }
+                if (Regex.IsMatch(query, "^@container(?:\\s|$)", RegexOptions.IgnoreCase))
+                {
+                    if (depth == MaxMediaDepth || containers.Length == MaxContainerDepth) continue;
+                    Kq container;
+                    if (!ContainerQuery(Regex.Replace(query, "^@container", "", RegexOptions.IgnoreCase), out container)) continue;
+                    var nested = new Kq[containers.Length + 1];
+                    Array.Copy(containers, nested, containers.Length);
+                    nested[nested.Length - 1] = container;
+                    CssSource(body, origin, rules, ref order, media, depth + 1, limit, supports, layers, layerName, nested);
                     continue;
                 }
                 if (query[0] == '@') continue;
                 var layer = -1;
                 if (layerName.Length > 0 && !layers.TryGetValue(layerName, out layer)) continue;
-                CssRule(query, CssClean(body), origin, rules, ref order, media, limit, supports, layerName, layer);
+                CssRule(query, CssClean(body), origin, rules, ref order, media, limit, supports, layerName, layer, containers);
             }
         }
 
         private static void CssRule(string selectors, string declarations, Uri origin, List<R> rules, ref int order, Mc[] media,
-            int limit = MaxCssRules, string supports = "", string layerName = "", int layer = -1)
+            int limit = MaxCssRules, string supports = "", string layerName = "", int layer = -1, Kq[] containers = null)
         {
             if (String.IsNullOrWhiteSpace(declarations) || declarations.Length > 64 * 1024) return;
             foreach (var selector in CssGroups(selectors))
@@ -2767,7 +2785,7 @@ namespace Lea.Engine
                     simple.Add(value);
                 }
                 if (simple.Count == parts.Count)
-                    rules.Add(new R(query, declarations, origin, Spec(simple) + (pseudo == '\0' ? 0 : 1), order++, simple.ToArray(), joins.ToArray(), media, pseudo, supports, layerName, layer));
+                    rules.Add(new R(query, declarations, origin, Spec(simple) + (pseudo == '\0' ? 0 : 1), order++, simple.ToArray(), joins.ToArray(), media, pseudo, supports, layerName, layer, containers));
             }
         }
 
@@ -2784,6 +2802,150 @@ namespace Lea.Engine
                     !Regex.IsMatch(part, "^-?[A-Za-z_][A-Za-z0-9_-]*$") ||
                     Regex.IsMatch(part, "^(?:initial|inherit|unset|revert|revert-layer)$", RegexOptions.IgnoreCase)) return null;
             return String.Join(".", parts.ToArray());
+        }
+
+        private static bool ContainerQuery(string input, out Kq result)
+        {
+            result = null;
+            var source = (input ?? "").Trim();
+            if (source.Length == 0 || source.Length > MaxContainerText) return false;
+            var name = "";
+            var condition = source;
+            if (!source.StartsWith("style(", StringComparison.OrdinalIgnoreCase) &&
+                !Regex.IsMatch(source, "^(?:not\\s+|\\()", RegexOptions.IgnoreCase))
+            {
+                var split = source.IndexOfAny(new[] { ' ', '\t', '\r', '\n', '\f' });
+                if (split < 1) return false;
+                name = source.Substring(0, split);
+                condition = source.Substring(split).Trim();
+                if (!ContainerNameIdentifier(name)) return false;
+            }
+            var terms = 0;
+            Kx expression;
+            if (!ContainerCondition(condition, 0, ref terms, out expression) || expression == null) return false;
+            result = new Kq(name, condition, expression);
+            return true;
+        }
+
+        private static bool ContainerCondition(string source, int depth, ref int terms, out Kx result)
+        {
+            result = null;
+            var condition = (source ?? "").Trim();
+            if (depth > MaxContainerDepth || condition.Length == 0 || condition.Length > MaxContainerText) return false;
+            List<string> groups;
+            char operation;
+            if (!CssSupportsTerms(condition, out groups, out operation)) return false;
+            if (groups.Count > 1)
+            {
+                var children = new List<Kx>();
+                foreach (var group in groups)
+                {
+                    Kx child;
+                    if (!ContainerCondition(group, depth + 1, ref terms, out child)) return false;
+                    children.Add(child);
+                }
+                result = new Kx(operation, children.ToArray());
+                return true;
+            }
+            if (Regex.IsMatch(condition, "^not\\s+", RegexOptions.IgnoreCase))
+            {
+                Kx child;
+                if (!ContainerCondition(Regex.Replace(condition, "^not\\s+", "", RegexOptions.IgnoreCase), depth + 1, ref terms, out child)) return false;
+                result = new Kx('n', new[] { child });
+                return true;
+            }
+            string body;
+            if (CssSupportsFunction(condition, "style", out body))
+            {
+                var declarations = CssDeclarations(body);
+                if (declarations.Length != 1 || !declarations[0].C || declarations[0].I || ++terms > MaxContainerTerms) return false;
+                var declaration = declarations[0];
+                var value = declaration.V.Trim();
+                if (value.Length == 0 || value.Length > MaxCustomValue ||
+                    value.Equals("revert", StringComparison.OrdinalIgnoreCase) ||
+                    value.Equals("revert-layer", StringComparison.OrdinalIgnoreCase)) return false;
+                result = new Kx(declaration.N, value);
+                return true;
+            }
+            string inner;
+            if (!CssSupportsWrapped(condition, out inner) || depth == MaxContainerDepth) return false;
+            return ContainerCondition(inner, depth + 1, ref terms, out result);
+        }
+
+        private static bool ContainerOn(S inherited, Kq[] queries)
+        {
+            return ContainerOn(inherited == null ? null : inherited.Sq, queries);
+        }
+
+        private static bool ContainerOn(Scq chain, Kq[] queries)
+        {
+            if (queries == null || queries.Length == 0) return true;
+            foreach (var query in queries)
+            {
+                var container = chain;
+                if (query.N.Length > 0)
+                    while (container != null && !ContainerHasName(container.S.Cn, query.N)) container = container.Up;
+                if (container == null || !ContainerExpression(container.S, query.X)) return false;
+            }
+            return true;
+        }
+
+        private static bool ContainerExpression(S style, Kx expression)
+        {
+            if (style == null || expression == null) return false;
+            if (expression.K == 'n') return !ContainerExpression(style, expression.C[0]);
+            if (expression.K == 'a')
+            {
+                foreach (var child in expression.C) if (!ContainerExpression(style, child)) return false;
+                return true;
+            }
+            if (expression.K == 'o')
+            {
+                foreach (var child in expression.C) if (ContainerExpression(style, child)) return true;
+                return false;
+            }
+            string actual;
+            if (style.Vr == null || !style.Vr.TryGetValue(expression.N, out actual)) return false;
+            string actualValue;
+            string expectedValue;
+            return VarValue(style, actual, out actualValue) && VarValue(style, expression.V, out expectedValue) &&
+                actualValue.Trim().Equals(expectedValue.Trim(), StringComparison.Ordinal);
+        }
+
+        private static bool ContainerHasName(string names, string name)
+        {
+            foreach (var value in Regex.Split((names ?? "").Trim(), "\\s+"))
+                if (value.Equals(name, StringComparison.Ordinal)) return true;
+            return false;
+        }
+
+        private static bool ContainerNameIdentifier(string value)
+        {
+            return !String.IsNullOrEmpty(value) && value.Length <= MaxContainerName &&
+                Regex.IsMatch(value, "^-?[A-Za-z_][A-Za-z0-9_-]*$") &&
+                !Regex.IsMatch(value, "^(?:none|and|or|not|initial|inherit|unset|revert|revert-layer|default)$", RegexOptions.IgnoreCase);
+        }
+
+        private static bool ContainerNameValue(string value, S inherited, out string names)
+        {
+            names = "";
+            var source = (value ?? "").Trim();
+            if (source.Equals("inherit", StringComparison.OrdinalIgnoreCase))
+            {
+                names = inherited == null ? "" : inherited.Cn;
+                return true;
+            }
+            if (Regex.IsMatch(source, "^(?:none|initial|unset|revert|revert-layer)$", RegexOptions.IgnoreCase)) return true;
+            var parts = Regex.Split(source, "\\s+");
+            if (parts.Length == 0 || parts.Length > MaxContainerNames) return false;
+            var unique = new List<string>();
+            foreach (var part in parts)
+            {
+                if (!ContainerNameIdentifier(part)) return false;
+                if (!unique.Contains(part)) unique.Add(part);
+            }
+            names = String.Join(" ", unique.ToArray());
+            return true;
         }
 
         private static bool CssSupports(string source, int depth)
@@ -3009,6 +3171,11 @@ namespace Lea.Engine
             var name = declaration.N;
             var value = declaration.V.Trim();
             var lower = value.ToLowerInvariant();
+            if (name == "container-name")
+            {
+                string names;
+                return ContainerNameValue(value, null, out names);
+            }
             if (name == "color" || name == "background-color" || name == "outline-color" ||
                 name == "text-decoration-color" || name == "border-color" ||
                 name == "border-top-color" || name == "border-right-color" ||
@@ -4673,7 +4840,7 @@ namespace Lea.Engine
             var style = inherited == null ? new S() : inherited.Inherit();
             var matched = new List<R>();
             foreach (var rule in rules)
-                if (rule.Ps == '\0' && MatchCss(node, rule)) matched.Add(rule);
+                if (rule.Ps == '\0' && ContainerOn(inherited, rule.Kqs) && MatchCss(node, rule)) matched.Add(rule);
             var important = ImportantRules(matched);
             var inline = CssDeclarations(node.Av("style"), StyleOrigin(node));
             foreach (var rule in matched) Custom(style, inherited, rule.Ds, false);
@@ -4694,6 +4861,7 @@ namespace Lea.Engine
             foreach (var rule in important) Decls(style, inherited, rule.Ds, true);
             Decls(style, inherited, inline, true);
             if (node.A.ContainsKey("data-lea-hidden")) style.D = "none";
+            style.Sq = new Scq(style, inherited == null ? null : inherited.Sq);
             return style;
         }
 
@@ -4737,7 +4905,7 @@ namespace Lea.Engine
             DirectionDeclarations(style, inherited, defaults, true, baseDirection);
             var matched = new List<R>();
             foreach (var rule in rules)
-                if (rule.Ps == pseudo && MatchCss(node, rule)) matched.Add(rule);
+                if (rule.Ps == pseudo && ContainerOn(inherited, rule.Kqs) && MatchCss(node, rule)) matched.Add(rule);
             var important = ImportantRules(matched);
             var attribute = pseudo == 'm' ? "data-lea-marker-style" : pseudo == 'b' ? "data-lea-before-style" : "data-lea-after-style";
             var inline = CssDeclarations(node.Av(attribute), StyleOrigin(node));
@@ -5612,6 +5780,11 @@ namespace Lea.Engine
                 else if (name == "counter-increment") CounterProperty(style, inherited, value, 1);
                 else if (name == "counter-set") CounterProperty(style, inherited, value, 2);
                 else if (name == "quotes") Quotes(style, inherited, value);
+                else if (name == "container-name")
+                {
+                    string names;
+                    if (ContainerNameValue(value, inherited, out names)) style.Cn = names;
+                }
                 else if (name == "cursor") CursorStyle(style, value);
                 else if (name == "pointer-events") PointerEvents(style, value);
                 else if (name == "object-fit") ObjectFit(style, value);
@@ -10036,7 +10209,8 @@ namespace Lea.Engine
                 double authoredAlpha;
                 if (stop.Av("stop-opacity").Length > 0 && SvgAlpha(stop.Av("stop-opacity"), out authoredAlpha)) alpha = authoredAlpha;
                 var matched = new List<R>();
-                foreach (var rule in rules) if (MatchCss(stop, rule)) matched.Add(rule);
+                foreach (var rule in rules)
+                    if (ContainerOn(gradientStyle, rule.Kqs) && MatchCss(stop, rule)) matched.Add(rule);
                 var important = ImportantRules(matched);
                 foreach (var rule in matched) SvgStopDeclarations(rule.Ds, false, stopStyle, ref color, ref alpha);
                 SvgStopDeclarations(CssDeclarations(stop.Av("style")), false, stopStyle, ref color, ref alpha);
@@ -10133,7 +10307,9 @@ namespace Lea.Engine
             SvgPaintSet(paint, "stroke-dashoffset", node.Av("stroke-dashoffset"));
             SvgClipSet(paint, node.Av("clip-path"), ref clipChanged);
             var matched = new List<R>();
-            foreach (var rule in rules) if (MatchCss(node, rule)) matched.Add(rule);
+            var chain = css == null || css.Sq == null ? null : css.Sq.Up;
+            foreach (var rule in rules)
+                if (ContainerOn(chain, rule.Kqs) && MatchCss(node, rule)) matched.Add(rule);
             var important = ImportantRules(matched);
             foreach (var rule in matched) SvgPaintDeclarations(rule.Ds, false, css, paint, ref transform, ref clipChanged, root);
             var inline = CssDeclarations(node.Av("style"));
@@ -12702,6 +12878,46 @@ namespace Lea.Engine
             public Sh(string key, string source, int bytes, List<R> rules) { K = key; X = source; Sz = bytes; Rs = rules; }
         }
 
+        private sealed class Kq
+        {
+            public readonly string N;
+            public readonly string D;
+            public readonly Kx X;
+
+            public Kq(string name, string source, Kx expression)
+            {
+                N = name ?? "";
+                X = expression;
+                var compact = Regex.Replace(source ?? "", "\\s+", "");
+                if (compact.Length > 96) compact = compact.Substring(0, 96);
+                D = "@c(" + (N.Length == 0 ? "" : N + ":") + compact + ")";
+            }
+        }
+
+        private sealed class Kx
+        {
+            public readonly char K;
+            public readonly string N;
+            public readonly string V;
+            public readonly Kx[] C;
+
+            public Kx(string name, string value)
+            {
+                K = 'v';
+                N = name;
+                V = value;
+                C = new Kx[0];
+            }
+
+            public Kx(char operation, Kx[] children)
+            {
+                K = operation;
+                N = "";
+                V = "";
+                C = children ?? new Kx[0];
+            }
+        }
+
         private sealed class R
         {
             public readonly string Q;
@@ -12716,6 +12932,7 @@ namespace Lea.Engine
             public readonly char Ps;
             public readonly string Ln;
             public readonly int L;
+            public readonly Kq[] Kqs;
             public bool Pm { get { return Ps == 'm'; } }
 
             public R(R rule, int order)
@@ -12726,8 +12943,8 @@ namespace Lea.Engine
             public R(R rule, int order, int layer)
             {
                 Q = rule.Q; V = rule.V; W = rule.W; O = order;
-                P = rule.P; J = rule.J; M = rule.M; Ds = rule.Ds; Ps = rule.Ps; Su = rule.Su; Ln = rule.Ln; L = layer;
-                Md = RuleLabel(Su, M, Ln);
+                P = rule.P; J = rule.J; M = rule.M; Ds = rule.Ds; Ps = rule.Ps; Su = rule.Su; Ln = rule.Ln; L = layer; Kqs = rule.Kqs;
+                Md = RuleLabel(Su, M, Ln, Kqs);
             }
 
             public R(string query, string values, int weight, int order, Se[] parts, char[] joins)
@@ -12736,7 +12953,7 @@ namespace Lea.Engine
             }
 
             public R(string query, string values, Uri origin, int weight, int order, Se[] parts, char[] joins, Mc[] media, char pseudo,
-                string supports = "", string layerName = "", int layer = -1)
+                string supports = "", string layerName = "", int layer = -1, Kq[] containers = null)
             {
                 Q = query;
                 V = values;
@@ -12749,15 +12966,18 @@ namespace Lea.Engine
                 Su = supports ?? "";
                 Ln = layerName ?? "";
                 L = layer;
+                Kqs = containers ?? new Kq[0];
                 Ds = CssDeclarations(values, origin);
-                Md = RuleLabel(Su, M, Ln);
+                Md = RuleLabel(Su, M, Ln, Kqs);
             }
 
             private readonly string Su;
 
-            private static string RuleLabel(string supports, Mc[] media, string layer)
+            private static string RuleLabel(string supports, Mc[] media, string layer, Kq[] containers)
             {
                 var labels = new List<string>();
+                if (containers != null)
+                    foreach (var container in containers) labels.Add(container.D);
                 foreach (var condition in media)
                     if (condition.D.Length > 0) labels.Add(condition.D);
                 var mediaLabel = String.Join("|", labels.ToArray());

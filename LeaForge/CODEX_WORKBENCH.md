@@ -17,6 +17,27 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
+Milestone 135 adds bounded CSS container style queries through the existing
+compiled style and retained rebuild paths. Exact custom-property `style()`
+features select nearest or `S.Cn`-named ancestors, including different nested
+containers, grouped `not`/`and`/`or`, bounded `var()` resolution, and nesting
+through media/supports/layers. Dynamic value and name changes, native sheets,
+diagnostics, field retention, WinForms geometry, and compiled Firespider hosting
+are covered. Focused/full source, native editing, matching host, all 42 Boot
+cases, and all six real EXE startup scenarios pass. All 131 compatibility probes
+pass over 126 fixtures. Three-round medians are 615.196 ms clean start, 8.222 ms
+local load, and 36.282 ms layout/paint; retained memory is 72.1 KiB/page and the
+required runtime set is 684.0 KiB with a 282.3 KiB GZip estimate. Runtime 235 is
+packaged separately and installed runtime 157 remains unchanged. See
+`CONTAINER_STYLE_QUERIES.md`. Size/scroll-state queries, container units,
+general property queries,
+`font-tech()`/`font-format()`,
+general-enclosed conditions, locale-sensitive automatic quote selection,
+typed/unquoted/functional attribute fallbacks, pseudo box-model/flex/grid items,
+generated image functions and sizing, arbitrary CSSOM, reversed/custom
+counters, vertical writing, full Unicode bidi, and general JavaScript
+evaluation remain outside this slice.
+
 Milestone 134 adds bounded Media Queries Level 4 interaction features without
 another parser or public object. Primary `pointer`/`hover` and union
 `any-pointer`/`any-hover` state now flows through `@media`, style media,
@@ -31,7 +52,6 @@ and 38.984 ms layout/paint; retained memory is 67.9 KiB/page and required
 runtime files are 698.5 KiB with a 288.3 KiB GZip estimate. Runtime 234 is
 packaged separately and installed runtime 157 remains unchanged. See
 `MEDIA_INTERACTION.md`.
-Container/style queries,
 `font-tech()`/`font-format()`,
 general-enclosed conditions, locale-sensitive
 automatic quote selection, typed/unquoted/functional attribute fallbacks,

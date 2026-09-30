@@ -206,6 +206,11 @@ namespace Lea.Tests
                     MediaInteractionSmoke(Path.Combine(pages, "media-interaction.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--container-style")
+                {
+                    ContainerStyleSmoke(Path.Combine(pages, "container-style.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--layers")
                 {
                     LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
@@ -1635,6 +1640,7 @@ namespace Lea.Tests
                 MatchMediaScriptSmoke(Path.Combine(pages, "match-media-script.html"));
                 MediaModifierSmoke(Path.Combine(pages, "media-modifiers.html"));
                 MediaInteractionSmoke(Path.Combine(pages, "media-interaction.html"));
+                ContainerStyleSmoke(Path.Combine(pages, "container-style.html"));
                 LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
                 HslColorSmoke(Path.Combine(pages, "hsl-colors.html"));
                 HwbColorSmoke(Path.Combine(pages, "hwb-colors.html"));
@@ -10224,6 +10230,95 @@ namespace Lea.Tests
                     "WinForms hybrid interaction geometry");
             }
             Console.WriteLine("Lea interaction media smoke passed: compact Pt/Hv/Ap/Ah/Mi aliases, pointer/hover and any-pointer/any-hover queries, hybrid unions, nesting, diagnostics, retained fields, live matchMedia guards, Windows plumbing, and exact paint.");
+        }
+
+        private static void ContainerStyleSmoke(string path)
+        {
+            var engine = new E();
+            Ok(engine.Su("container-name", "shell frame") && engine.Su("container-name", "none") &&
+                !engine.Su("container-name", "and") && !engine.Su("container-name", "one two three four five"),
+                "container-name capability and bounds");
+            var page = engine.Go(path);
+            var shell = BlockById(page, "shell");
+            var inner = BlockById(page, "inner");
+            Eq("shell frame", shell.S.Cn, "computed container name list");
+            Eq("inner", inner.S.Cn, "nested computed container name");
+            Eq(140, shell.S.H, "container cannot select itself as its query container");
+            Ok(HasBlock(page, "nearest"), "nearest unnamed style container query");
+            Ok(HasBlock(page, "named-compact") && !HasBlock(page, "named-wide") && HasBlock(page, "second-name"),
+                "named style container queries and name lists");
+            Ok(!HasBlock(page, "renamed"), "inactive alternate container name");
+            Ok(HasBlock(page, "negated") && HasBlock(page, "conjunction") && HasBlock(page, "alternative") &&
+                HasBlock(page, "grouped"), "container query logical conditions");
+            Ok(HasBlock(page, "resolved"), "container query custom-property value resolution");
+            Ok(HasBlock(page, "nested"), "nested style container queries select different ancestors");
+            Ok(HasBlock(page, "conditional"), "container query media supports and layer nesting");
+            Ok(!HasBlock(page, "missing-name") && !HasBlock(page, "ordinary-property") &&
+                !HasBlock(page, "size-query") && !HasBlock(page, "mixed-logic"),
+                "unsupported and malformed container queries stay inactive");
+            Eq(171, BlockById(page, "nearest").S.W, "nearest unnamed container query width");
+            Eq(221, BlockById(page, "named-compact").S.W, "named container query width");
+            Eq(228, BlockById(page, "nested").S.W, "nested different-container query width");
+            var field = FieldById(page, "field");
+            Eq(260, field.S.W, "compact container field width");
+            field.V = "Retained container style value";
+            var diagnostics = engine.Dg(page);
+            Ok(Has(diagnostics.Cs, "@c(shell:style(--mode:compact))") &&
+                Has(diagnostics.Cs, "@c(inner:style(--mode:cozy))") &&
+                Has(diagnostics.Cs, "@l(container-demo)") && Has(diagnostics.Cs, "@s(container-name:shell)"),
+                "container query diagnostics compose with nesting supports and layers");
+
+            Eq(1, engine.Ck(page, ById(page.D, "wide")), "container wide class command");
+            Ok(HasBlock(page, "nearest") && !HasBlock(page, "named-compact") && HasBlock(page, "named-wide") &&
+                !HasBlock(page, "second-name") && !HasBlock(page, "negated") && !HasBlock(page, "conjunction") &&
+                !HasBlock(page, "alternative") && !HasBlock(page, "grouped") && !HasBlock(page, "resolved") &&
+                !HasBlock(page, "nested") && !HasBlock(page, "conditional"),
+                "class rebuild reevaluates named style container state");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) &&
+                field.V == "Retained container style value" && field.S.W == 300,
+                "container query rebuild retains field identity and value");
+            Eq(1, engine.Ck(page, ById(page.D, "compact")), "container compact class command");
+            Ok(HasBlock(page, "named-compact") && !HasBlock(page, "named-wide") && field.S.W == 260,
+                "container compact state restoration");
+
+            Eq(1, engine.Ck(page, ById(page.D, "rename")), "container name class command");
+            Eq("alternate", BlockById(page, "shell").S.Cn, "dynamic computed container name");
+            Ok(!HasBlock(page, "named-compact") && !HasBlock(page, "second-name") && HasBlock(page, "renamed") &&
+                field.S.W == 120 && Object.ReferenceEquals(field, FieldById(page, "field")) &&
+                field.V == "Retained container style value", "container name rebuild and retained field");
+            Eq(1, engine.Ck(page, ById(page.D, "unrename")), "container name restore command");
+            Eq("shell frame", BlockById(page, "shell").S.Cn, "restored computed container names");
+            Ok(HasBlock(page, "named-compact") && !HasBlock(page, "renamed") && field.S.W == 260,
+                "container name restoration");
+
+            Eq(1, engine.Ss(page, "container-style", "@container shell style(--mode:compact){#named-compact{width:231px}}"),
+                "native sheet container query install");
+            Eq(231, BlockById(page, "named-compact").S.W, "native sheet container query width");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained container style value",
+                "native container sheet retains field");
+            Eq(1, engine.Sd(page, "container-style"), "native sheet container query remove");
+            Eq(221, BlockById(page, "named-compact").S.W, "native container sheet removal restores width");
+
+            using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-30000, -30000), ClientSize = new Size(900, 700) })
+            using (var view = new V { Dock = DockStyle.Fill })
+            {
+                form.Controls.Add(view);
+                form.Show();
+                view.Go(path);
+                Paint(view);
+                Eq(260, BlockRect(view, BlockById(view.At, "field")).Width,
+                    "WinForms compact container query geometry");
+                var liveField = FieldById(view.At, "field");
+                liveField.V = "Retained view container value";
+                Eq(1, view.Ck(ById(view.At.D, "wide")), "WinForms container class command");
+                Paint(view);
+                Eq(300, BlockRect(view, BlockById(view.At, "field")).Width,
+                    "WinForms wide container query geometry");
+                Ok(Object.ReferenceEquals(liveField, FieldById(view.At, "field")) &&
+                    liveField.V == "Retained view container value",
+                    "WinForms container rebuild retains field");
+            }
+            Console.WriteLine("Lea style container smoke passed: bounded named and nearest @container style queries, custom-property resolution, not/and/or, nested media/supports/layers/containers, diagnostics, dynamic classes, native sheets, retained fields, and exact WinForms geometry.");
         }
 
         private static void MediaFeatureSmoke(string path)

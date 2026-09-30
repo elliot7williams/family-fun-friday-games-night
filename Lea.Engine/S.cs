@@ -3,6 +3,15 @@ using System.Collections.Generic;
 
 namespace Lea.Engine
 {
+    // Scq is one computed ancestor in Lea's bounded style-container chain.
+    internal sealed class Scq
+    {
+        internal readonly S S;
+        internal readonly Scq Up;
+
+        internal Scq(S style, Scq parent) { S = style; Up = parent; }
+    }
+
     // Cf is one bounded generated-content fragment.
     public sealed class Cf
     {
@@ -53,6 +62,7 @@ namespace Lea.Engine
         public string Lp { get; internal set; }
         public Uri Li { get; internal set; }
         public string Cr { get; internal set; }
+        public string Cn { get; internal set; }
         public string Ci { get; internal set; }
         public string Cs { get; internal set; }
         public string Mc { get; internal set; }
@@ -184,6 +194,7 @@ namespace Lea.Engine
         internal int[] Hfd { get; set; }
         internal string[] Be { get; set; }
         internal string[] Qs { get; set; }
+        internal Scq Sq { get; set; }
 
         public int Vc { get { return Vr == null ? 0 : Vr.Count; } }
         public int Gc { get { return Gd == null ? 0 : Gd.Length; } }
@@ -462,6 +473,7 @@ namespace Lea.Engine
             Lst = "";
             Lp = "o";
             Cr = "";
+            Cn = "";
             Ci = "";
             Cs = "";
             Cu = "";
@@ -509,6 +521,7 @@ namespace Lea.Engine
             var style = new S { F = F, Fs = Fs, Ff = Ff, B = B, I = I, Td = Td, Tc = Tc, Tds = Tds, Tw = Tw, Uo = Uo, Uop = Uop, Ta = Ta, Tl = Tl, Dr = Dr, Tt = Tt, Ti = Ti, Tip = Tip, Ts = Ts, Ls = Ls, Wg = Wg, Lh = Lh, Lm = Lm, Ws = Ws, Wm = Wm, Wt = Wt, Wb = Wb, Lst = Lst, Lp = Lp, Li = Li, Cu = Cu, Pe = Pe, Vi = Vi, Op = Op, Ao = Op, Qs = Qs };
             style.Vr = Vr;
             style.Vo = Vo;
+            style.Sq = Sq;
             return style;
         }
     }

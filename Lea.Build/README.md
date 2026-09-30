@@ -257,6 +257,11 @@ pointer/hover and any-pointer/any-hover queries, coarse-plus-fine hybrid unions,
 boolean/exact/not/nested/style-media selection, literal matchMedia guards,
 malformed rejection, diagnostics, retained fields, Windows host plumbing, and
 exact WinForms geometry.
+`--container-style` isolates bounded nearest and named ancestor
+`@container style()` queries, computed `S.Cn` name lists, custom-property and
+`var()` comparison, grouped `not`/`and`/`or`, nested container/media/supports/
+layer conditions, strict unsupported-query rejection, diagnostics, class and
+native-sheet rebuilds, retained fields, and exact WinForms geometry.
 These test modes do not retry or suppress failed assertions. Windows
 clipboard access can fail while another process holds it. Record separately
 which modes passed; a clipboard-free run is not a complete default-suite pass.

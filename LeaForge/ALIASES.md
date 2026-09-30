@@ -1042,6 +1042,13 @@ underscores, raw values are at most 512 characters, recursion is capped at eight
 and expanded values at 1,024 characters. Missing, cyclic, invalid, oversized, or
 excess properties make that declaration use its fallback or remain ignored.
 
+`S.Cn` is the computed `container-name` list as one space-separated string;
+empty means `none`. Lea retains up to four unique 32-character ASCII names and
+uses them for bounded named `@container ... style(--property:value)` ancestor
+selection. Unnamed style queries select the nearest ancestor. Query conditions
+reuse computed `S.Cv(...)` values and bounded `var()` resolution; no new host
+object or long public API is required. See `CONTAINER_STYLE_QUERIES.md`.
+
 Each compiled declaration also keeps one priority bit. A final, top-level,
 case-insensitive literal `!important` marker is removed from the value and moves
 that declaration into Lea's important tier; text inside quotes or functions is

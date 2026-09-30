@@ -41,6 +41,8 @@ namespace Lea.Firespider
                 var hostMarker = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAKCAYAAAC0VX7mAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAApSURBVDhPY7ijpvafGKya/JooPGogboxNMzY8aiBujE0zNkxlA1//BwCR7MvUhfG8CgAAAABJRU5ErkJggg==";
                 var openMarkup = File.ReadAllText(openPage)
                     .Replace(".host-wrap{width:160px}", ".host-wrap{width:160px}.host-box{box-sizing:border-box;width:180px;height:44px;padding:6px;border:2px solid #176b4d;border-radius:18px 7px/12px 5px;box-shadow:6px 4px 3px 1px rgba(15,76,129,.5),inset 4px 0 0 #a13b18;background-image:linear-gradient(to right,#dff6e9 0%,#bfdbfe 100%)}")
+                    .Replace("</style>", ".host-container-shell{--host-mode:compact;container-name:host-shell;width:400px}.host-container-shell.wide{--host-mode:wide}.host-container-inner{--host-inner:cozy;container-name:host-inner;width:380px}.host-container-compact,.host-container-wide,.host-container-nested{display:none}@container host-shell style(--host-mode:compact){#host-container-compact{display:block;width:222px}#host-container-field{width:262px}}@container host-shell style(--host-mode:compact){@container host-inner style(--host-inner:cozy){#host-container-nested{display:block;width:232px}}}@container host-shell style(--host-mode:wide){#host-container-wide{display:block;width:282px}#host-container-field{width:302px}}</style>")
+                    .Replace("</body>", "<section id='host-container-shell' class='host-container-shell'><div id='host-container-inner' class='host-container-inner'><p id='host-container-compact' class='host-container-compact'>Compact container host</p><p id='host-container-wide' class='host-container-wide'>Wide container host</p><p id='host-container-nested' class='host-container-nested'>Nested container host</p><input id='host-container-field' value='container host'></div></section></body>")
                     .Replace("</style>", ".host-bitmap{width:140px;height:50px;background:#fff url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXYxDP9v0PAAM7Ac+IRop4AAAAAElFTkSuQmCC') no-repeat right bottom/24px 18px;border-radius:12px}</style>")
                     .Replace("<section id='host-flex'", "<p id='host-bitmap' class='host-bitmap'>Bitmap host</p><section id='host-flex'")
                     .Replace("</style>", ".host-ratio{width:160px;aspect-ratio:2/1;background:#dff6e9}</style>")
@@ -1245,6 +1247,33 @@ namespace Lea.Firespider
                         Object.ReferenceEquals(hostResponsiveField, FieldById(host.At, "host-auto")) &&
                         hostResponsiveField.V == "Retained interaction media host value",
                         "Firespider desktop interaction media restore");
+                    var hostContainerShell = BlockById(host.At, "host-container-shell");
+                    var hostContainerInner = BlockById(host.At, "host-container-inner");
+                    var hostContainerField = FieldById(host.At, "host-container-field");
+                    Check(host.Su("container-name", "host-shell") && hostContainerShell.S.Cn == "host-shell" &&
+                        hostContainerInner.S.Cn == "host-inner",
+                        "Firespider computed style container names");
+                    Check(HasBlock(host.At, "host-container-compact") && HasBlock(host.At, "host-container-nested") &&
+                        !HasBlock(host.At, "host-container-wide") && hostContainerField.S.W == 262,
+                        "Firespider named and nested style container selection");
+                    var hostContainerDiagnostics = host.Dg().Cs;
+                    Check(Has(hostContainerDiagnostics, "@c(host-shell:style(--host-mode:compact))") &&
+                        Has(hostContainerDiagnostics, "@c(host-inner:style(--host-inner:cozy))"),
+                        "Firespider style container diagnostics");
+                    hostContainerField.V = "Retained container host value";
+                    Check(host.Js("ac('host-container-shell','wide')") == 1 &&
+                        !HasBlock(host.At, "host-container-compact") && !HasBlock(host.At, "host-container-nested") &&
+                        HasBlock(host.At, "host-container-wide") &&
+                        Object.ReferenceEquals(hostContainerField, FieldById(host.At, "host-container-field")) &&
+                        hostContainerField.V == "Retained container host value" && hostContainerField.S.W == 302,
+                        "Firespider wide style container rebuild and retained field");
+                    Check(host.Js("rc('host-container-shell','wide')") == 1 &&
+                        HasBlock(host.At, "host-container-compact") && HasBlock(host.At, "host-container-nested") &&
+                        !HasBlock(host.At, "host-container-wide") && hostContainerField.S.W == 262 &&
+                        Object.ReferenceEquals(hostContainerField, FieldById(host.At, "host-container-field")) &&
+                        hostContainerField.V == "Retained container host value",
+                        "Firespider compact style container restoration");
+                    PaintView(host);
                     hostResponsiveField.V = "Retained match media host value";
                     Check(host.Js("if(window.matchMedia('(width:" + host.Vw + "px)').matches){if(matchMedia('not print').matches){if(matchMedia('(pointer:fine)').matches){ac('class-state','host-media-script');}}}") == 1 &&
                         host.Q1("#class-state.host-media-script") != null &&
@@ -1688,7 +1717,7 @@ namespace Lea.Firespider
                     Check(host.Ck(ById(host.At.D, "host-value-update")) == 1 && ValueById(host.At, "host-output").V == "Updated host total", "Firespider output value rebuild");
                     Check(host.Ck(ById(host.At.D, "host-time-update")) == 1 && ValueById(host.At, "host-time").Dt == "2026-08-22", "Firespider time metadata rebuild");
                     var diagnostics = host.Dg();
-                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 127 && diagnostics.Rs.Count > 0,
+                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 129 && diagnostics.Rs.Count > 0,
                         "Firespider Lea diagnostics: nodes=" + (diagnostics == null ? -1 : diagnostics.N) +
                         ", rules=" + (diagnostics == null ? -1 : diagnostics.J) +
                         ", requests=" + (diagnostics == null ? -1 : diagnostics.Rs.Count));
@@ -1711,7 +1740,7 @@ namespace Lea.Firespider
                         "Firespider Lea Inspector disk summary: " + inspectorSummaryText);
                     Check(Member<TextBox>(form, "qleaInspectorNodes").Text.Contains("body"), "Firespider Lea Inspector bounded nodes");
                     Check(inspectorCssText.Contains(".hot"), "Firespider Lea Inspector CSS class rule");
-                    Check(inspectorCssText.Contains(":is"), "Firespider Lea Inspector CSS selector function");
+                    Check(inspectorCssText.Contains(":where"), "Firespider Lea Inspector CSS selector function");
                     Check(inspectorCssText.Contains("@pc=n"), "Firespider Lea Inspector CSS contrast condition");
                     Check(inspectorCssText.Contains("@je=e"), "Firespider Lea Inspector CSS scripting condition");
                     Check(Member<TextBox>(form, "qleaInspectorRequests").Text.Contains("GET 200 file"),
@@ -2104,6 +2133,7 @@ namespace Lea.Firespider
                 Console.WriteLine("Firespider match media smoke passed: compact Mq aliases and literal global/window matchMedia guards reached the compiled host with live viewport, density, preferences, click commands, and retained fields.");
                 Console.WriteLine("Firespider media modifier smoke passed: whole-query not, strict only, fixed screen/print semantics, CSS selection, and nested literal matchMedia guards reached the compiled host.");
                 Console.WriteLine("Firespider interaction media smoke passed: compact Pt/Hv/Ap/Ah/Mi aliases, pointer/hover and any-pointer/any-hover queries, hybrid unions, CSS selection, retained fields, and nested matchMedia guards reached the compiled host.");
+                Console.WriteLine("Firespider style container smoke passed: bounded named and nearest ancestor style queries, computed S.Cn names, nested containers, diagnostics, script class rebuilds, retained fields, and host geometry reached the compiled host.");
 
                 Console.WriteLine("Firespider Lea smoke passed: bounded inline before/after/marker generated content with quoted attr fallbacks, visual/accessibility alternatives, generated quote depth, and sandboxed bitmap fragments, be/af/ms/qu aliases, accessibility, links, counters, tables, responsive paint, and retained fields; bounded horizontal logical margin/padding properties with twelve compact aliases, bounded horizontal logical sizing/insets with short is/bs and familiar DOM aliases, bounded sticky positioning with compact k and shared host geometry, bounded percentage/calc widths with compact wd and literal DOM reflow, bounded display alias and literal location requests, literal bounded DOM translation, inherited cursor and pointer-event aliases with host hit gating and fallthrough, bounded CSS text decoration and inherited underline offsets with compact aliases and host paint, bounded CSS outlines with compact aliases and exact non-layout host paint, bounded CSS aspect ratios with compact aliases and exact host geometry/paint, bounded CSS object-fit and object-position with compact aliases, exact fitted paint, and image-map keyboard/accessibility geometry, bounded CSS bitmap backgrounds with compact aliases and exact host paint, modern bounded HSL/HSLA, HWB, CIE Lab/LCH with D50-to-D65 Bradford adaptation, Oklab, and OkLCh plus local-MINDE gamut mapping and premultiplied sRGB color mixing with hue units, alpha, gradients, SVG, and exact host paint, bounded inline SVG aliases, winding, stroke styles, geometry, links, and graphic accessibility, bounded has relational selectors with strict lists, maximum specificity, descendant/child/adjacent and complex host relationships, focus rebuilds, retained fields, queries, Inspector, and geometry, bounded nth-child of-S filters with strict lists, maximum specificity, forward/reverse computed styles, queries, Inspector, and host geometry, bounded precompiled An+B and reverse structural selectors with computed styles, queries, Inspector, and host geometry, bounded is, where, and list-not selector functions with specificity, queries, Inspector, and geometry, bounded CSS important cascade with G.Ic diagnostics, custom properties, inline, responsive values, Inspector counts, and retained fields, bounded inherited CSS custom properties with S.Vc/Cv and G.Vc aliases, responsive values, Inspector counts, and retained fields, bounded responsive CSS media queries with compact width/height/density/theme/motion/data/contrast/scripting aliases, portrait/landscape, exact/min/max aspect-ratio, dpi/dppx/dpcm resolution, light/dark preferred color scheme, no-preference/reduce motion and data, no-preference/less/more/custom contrast, and none/enabled scripting states, modern strict/inclusive feature/value-first and chained range syntax, bounded @supports declaration and selector capability checks, compact E/V.Su aliases and literal CSS.supports script/click guards, bounded named cascade layers with normal/unlayered/reversed-important order, diagnostics, and retained fields, optional bounded persistent cache aliases and Inspector diagnostics, bounded content-box and border-box geometry, scoped style commands, ordered row and column flex layout with around/evenly distribution, item alignment, wrapping, growth, and shrink, semantic accessibility, protected values, rendered bounds, MSAA and UI Automation providers, value, table/grid, and read-only logical text patterns plus Access inspector, bounded autofocus and access keys, keyboard focus and activation, responsive image maps, compact time/edit metadata, output/data values and safe rebuilds, progress and meter gauges, disclosure commands, retained same-page fragments, Lea-first New Tab and explicit legacy fallback, host-controlled go requests, Inspector open/refresh/clear and legacy isolation, class mutations, diagnostics, safe clicks and variables, find and downloads, scripts and alerts, open/save/send, private cookies, close routing, sessions, source, menu, timer, start page, and navigation.");
                 return 0;

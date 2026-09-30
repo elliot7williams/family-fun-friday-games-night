@@ -69,6 +69,10 @@ LeaForge is where we can grow the more full-featured browser.
   `E/V.Su` overloads and literal allow-listed `if/else` command guards, reusing
   the existing declaration/selector/logic parsers and shared command limits;
   see `SUPPORTS_QUERIES.md`
+- bounded standards-shaped `@container` custom-property `style()` queries over
+  nearest or named ancestors, with computed `S.Cn`, grouped `not`/`and`/`or`,
+  nested media/supports/layers, retained rebuilds, and diagnostics; size and
+  scroll-state queries remain unsupported; see `CONTAINER_STYLE_QUERIES.md`
 - bounded standards-shaped media matching through compact `E/V.Mq` aliases and
   literal global/window `matchMedia(...).matches` guards, reusing current
   viewport, DPI, preferences, whole-query `not`, strict `only`, and shared

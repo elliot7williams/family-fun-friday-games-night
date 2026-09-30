@@ -57,6 +57,14 @@ The compiled host covers desktop, touch-first hybrid, no-pointer, boolean,
 exact, nested, diagnostic, retained-field, and exact-paint paths. Firespider
 adds no input-media parser. See `LeaForge/MEDIA_INTERACTION.md`.
 
+Container style queries remain engine-owned. Computed `S.Cn` stores bounded
+`container-name` lists, and compiled `@container ... style(--property:value)`
+rules select nearest or named ancestors through the normal retained rebuild.
+The host smoke covers named and differently nested containers, diagnostics,
+script class mutations, field identity/value retention, and geometry.
+Firespider adds no containment parser or layout state. Size and scroll-state
+queries remain outside this subset. See `LeaForge/CONTAINER_STYLE_QUERIES.md`.
+
 Initial fragments now stay aligned while first paint, host sizing, and decoded
 intrinsic images settle. `V.Fa/Fj/Fy` expose the retained anchor, placement
 count, and target Y directly to the host; normal scrolling releases the anchor.

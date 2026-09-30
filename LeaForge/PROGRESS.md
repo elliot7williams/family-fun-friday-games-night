@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **134**
+Post-1.0 hardening milestones completed: **135**
 
 Broader lightweight-browser readiness: **about 65%**. This is a practical
 project estimate, not a standards conformance score. Full Chrome/Safari-class
@@ -33,6 +33,27 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded CSS container style queries to the shared compiled stylesheet
+  path. Exact custom-property `style(--name:value)` features now select the
+  nearest ancestor or the nearest ancestor named through computed `S.Cn`;
+  grouped `not`/`and`/`or`, different nested ancestors, bounded `var()`
+  resolution, and nesting through media, supports, and layers are active.
+  Class/name changes and native-sheet installation reevaluate through the
+  retained rebuild path without replacing live fields. Size, scroll-state,
+  general-property, relative-value, and container-unit queries remain
+  unsupported. A dedicated fixture and focused suite cover computed name lists,
+  self-query suppression, malformed/unsupported rejection, diagnostics,
+  dynamic values and names, retained fields, and exact WinForms geometry.
+  Focused and full source suites, native clipboard/edit checks, the matching
+  compiled Firespider host, all 42 Boot cases, and all six real EXE startup
+  scenarios pass without MSHTML, an invalid cast, JIT dialog, or dead startup
+  window. All 131 compatibility probes pass over 126 fixtures. Three-round
+  diagnostic medians are 615.196 ms clean start, 8.222 ms local load, and
+  36.282 ms layout/paint. Retained managed memory is 36,358.5 KiB for 504
+  pages, or 72.1 KiB/page. Required runtime files are 684.0 KiB with a 282.3
+  KiB GZip estimate. Runtime 235 is packaged separately and installed runtime
+  157 remains unchanged. See `CONTAINER_STYLE_QUERIES.md`.
 
 - Added bounded Media Queries Level 4 interaction features to the shared
   compiled media path. Primary `pointer`/`hover` and union

@@ -72,6 +72,12 @@ remain available for small tools and deterministic local tests.
 property defaults to 15,000 and clamps to 100 through 60,000. It applies to
 synchronous and asynchronous HTTP page, POST, stylesheet, and download work.
 
+Hosts may inspect an element's computed `B.S.Cn` string for its bounded
+`container-name` list. Lea evaluates supported `@container style()` rules during
+the ordinary retained style rebuild, so embedding code does not create or
+synchronize container objects. See `CONTAINER_STYLE_QUERIES.md` for the exact
+custom-property subset and unsupported size-query scope.
+
 `E.Ng` and `V.Ng` optionally accept a synchronous `Func<Uri, bool>` host policy
 for explicit document navigation. False raises `Er.K="blocked"` before a page
 fetch/history change; null allows the usual behavior. GET, POST/multipart,

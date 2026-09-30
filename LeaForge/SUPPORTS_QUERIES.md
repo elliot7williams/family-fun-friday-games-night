@@ -45,6 +45,7 @@ Feature queries conservatively recognize these existing Lea parsers:
 - `text-wrap`, `text-wrap-mode`, and `text-wrap-style`;
 - `pointer-events`, `overflow`, `text-overflow`, `line-clamp`, and
   `-webkit-line-clamp`;
+- bounded `container-name` lists;
 - bounded custom-property declarations.
 
 Each condition calls the same bounded value parser used by the corresponding
@@ -95,8 +96,9 @@ JavaScript evaluation remain inert.
 An unmatched parenthesis or quote, an empty term, excess depth or terms, a
 mixed ungrouped operator level, multiple declarations, `!important`, or an
 unknown function keeps the block inactive. Lea does not implement
-`font-tech()`, `font-format()`, general-enclosed future syntax, container style
-queries, or a general JavaScript `CSS` object.
+`font-tech()`, `font-format()`, general-enclosed future syntax, or a general
+JavaScript `CSS` object. Bounded custom-property container style queries are
+documented separately in `CONTAINER_STYLE_QUERIES.md`.
 
 ## Diagnostics And Rebuilds
 
