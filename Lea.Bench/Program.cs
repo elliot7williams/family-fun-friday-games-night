@@ -113,7 +113,7 @@ namespace Lea.Bench
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
                 "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "direction-logical.html", "direction-layout.html", "direction-inline.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "media-features.html", "media-aspect-ratio.html", "media-ranges.html", "media-resolution.html", "media-color-scheme.html", "media-reduced-motion.html", "media-reduced-data.html", "media-contrast.html", "media-scripting.html", "supports-queries.html", "css-supports-script.html", "match-media-script.html", "media-modifiers.html", "media-interaction.html", "cascade-layers.html", "cascade-layer-limits.html", "hsl-colors.html", "hwb-colors.html", "lab-colors.html", "predefined-colors.html", "wide-gamut-colors.html", "oklab-colors.html", "color-mix.html", "custom-properties.html", "important-cascade.html",
-                "container-style.html", "container-size.html",
+                "container-style.html", "container-size.html", "container-features.html",
                 "direction-overflow.html", "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "list-style.html", "list-position.html", "list-image.html", "marker.html", "marker-content.html", "marker-counters.html", "css-counters.html", "generated-content.html", "generated-quotes.html", "generated-alt.html", "generated-images.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -2225,6 +2225,64 @@ namespace Lea.Bench
                         "automatic narrow size feedback or geometry changed");
                 }
                 return "bounded container shorthand and S.Ct types, atomic E.Cz content-box feedback, named and nearest width/height ranges, style combinations, nesting, diagnostics, retained fields, and automatic bounded WinForms relayout";
+            });
+            AddProbe(probes, "Container ratio and orientation queries", delegate
+            {
+                var path = Path.Combine(folder, "container-features.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var frame = ById(page.D, "frame");
+                var portrait = ById(page.D, "portrait");
+                var square = ById(page.D, "square");
+                var inline = ById(page.D, "inline-only");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                Need(!page.Bs.Any(item => item.El != null && item.El.Av("id") == "ratio-exact"),
+                    "pre-feedback container ratio state changed");
+                field.V = "Retained benchmark feature value";
+                Need(engine.Cz(page, new List<Cz>
+                {
+                    new Cz(frame, 400, 300), new Cz(portrait, 180, 320),
+                    new Cz(square, 220, 220), new Cz(inline, 400, 300)
+                }) == 1 && page.Bs.Any(item => item.El != null && item.El.Av("id") == "ratio-boolean") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "ratio-exact") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "ratio-reduced") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "ratio-chain") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "ratio-descending") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "landscape") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "portrait-result") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "square-portrait") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "nested") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "inline-ineligible") &&
+                    field.S.W == 270 && Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark feature value", "landscape container feature selection changed");
+                Need(engine.Ck(page, ById(page.D, "make-tall")) == 1 &&
+                    engine.Cz(page, new List<Cz>
+                    {
+                        new Cz(frame, 240, 360), new Cz(portrait, 180, 320),
+                        new Cz(square, 220, 220), new Cz(inline, 400, 300)
+                    }) == 1 && page.Bs.Any(item => item.El != null && item.El.Av("id") == "frame-portrait") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "tall-ratio") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "ratio-exact") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "landscape") && field.S.W == 150,
+                    "portrait container feature feedback changed");
+                Need(engine.Dg(page).Cs.Any(value => value.Contains("@c(frame:(aspect-ratio:4/3))")) &&
+                    engine.Dg(page).Cs.Any(value => value.Contains("@c(frame:(orientation:landscape))")),
+                    "container feature diagnostics changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(900, 1050);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                        Need(BlockContent(view, "frame").Width == 400 && BlockContent(view, "frame").Height == 300 &&
+                            BlockContent(view, "field").Width == 270 && view.At.Bs.Any(item => item.El != null && item.El.Av("id") == "ratio-exact"),
+                            "automatic landscape container features changed");
+                    view.Ck(ById(view.At.D, "make-tall"));
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "frame").Width == 240 && BlockContent(view, "frame").Height == 360 &&
+                        BlockContent(view, "field").Width == 150 && view.At.Bs.Any(item => item.El != null && item.El.Av("id") == "frame-portrait"),
+                        "automatic portrait container features changed");
+                }
+                return "bounded container aspect-ratio boolean/exact/min/max/direct/value-first/chained ranges and portrait/landscape features, both-axis eligibility, nested logic, diagnostics, retained fields, and automatic WinForms relayout";
             });
             AddProbe(probes, "CSS cascade layers", delegate
             {
@@ -5673,7 +5731,7 @@ namespace Lea.Bench
             Capability(builder, "Media query modifiers", "Supported subset", "Whole-query not, no-op only before a media type, fixed screen/all matching, fixed print non-matching, comma alternatives, nested predicate intersections, style media, diagnostics, and shared host/script matchMedia evaluation; nested logical conditions, speech, and arbitrary unknown media types remain unsupported");
             Capability(builder, "Interaction media queries", "Supported subset", "Boolean and exact pointer none/coarse/fine, hover none/hover, any-pointer unions including simultaneous coarse and fine, and any-hover queries with compact Pt/Hv/Ap/Ah/Mi aliases, nesting, style media, diagnostics, retained fields, live matchMedia guards, and conservative Windows mouse/touch/pen plumbing; dynamic per-device identity and non-Windows automatic detection remain unsupported");
             Capability(builder, "Style container queries", "Supported subset", "Bounded exact custom-property style() tests over nearest or named ancestor containers, computed container-name lists through compact S.Cn, grouped not/and/or logic, nested containers/media/supports/layers, diagnostics, class and native-sheet rebuilds, retained fields, and WinForms geometry; scroll-state, general-property, relative-value, and container-unit queries remain unsupported");
-            Capability(builder, "Size container queries", "Supported subset", "Bounded normal/inline-size/size container types through compact S.Ct, container-name/type shorthand, atomic E.Cz content-box snapshots, automatic WinForms feedback with a three-pass ceiling, nearest and named width/height/inline-size/block-size integer-pixel comparisons, min/max syntax, strict/inclusive and value-first ranges, not/and/or, style combinations, nesting, diagnostics, native sheets, and retained fields; scroll-state, relative units, aspect-ratio/orientation, writing modes, and container units remain unsupported");
+            Capability(builder, "Size container queries", "Supported subset", "Bounded normal/inline-size/size container types through compact S.Ct, container-name/type shorthand, atomic E.Cz content-box snapshots, automatic WinForms feedback with a three-pass ceiling, nearest and named width/height/inline-size/block-size integer-pixel comparisons, reduced integer aspect-ratio boolean/exact/min/max and strict/inclusive feature/value-first/chained ranges, portrait/landscape orientation with square portrait semantics, not/and/or, style combinations, nesting, diagnostics, native sheets, and retained fields; scroll-state, relative units, writing modes, and container units remain unsupported");
             Capability(builder, "Preferred contrast media queries", "Supported subset", "Boolean and exact no-preference/less/more/custom queries with compact Pc aliases, nested intersections, diagnostics, retained fields, and Windows High Contrast mapped conservatively to custom; forced palette enforcement and forced-colors remain unsupported");
             Capability(builder, "Scripting media queries", "Supported subset", "Boolean and exact none/initial-only/enabled queries reuse the compact Je host permission alias, nested intersections, diagnostics, retained fields, and responsive paint; Lea reports enabled or none, recognizes initial-only as valid but never reports that mode, and does not add a general JavaScript runtime");
             Capability(builder, "Layout and painting", "Partial", "Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/box-shadows/gradients, bounded offset and lightweight blurred text shadows, native fast-path plus lightweight offset-aware solid/double/dotted/dashed/wavy text decorations, direction-aware source-stable inline atoms including bounded before/after generated runs, bounded same-count balanced wrapping and 1..32 line clamping, inside/outside text and image markers with isolated pseudo style and concatenated generated text content, first-line indentation, inherited logical all/final/forced-line alignment, and paint-only single-line ellipsis geometry, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer");

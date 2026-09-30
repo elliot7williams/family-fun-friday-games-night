@@ -17,6 +17,24 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
+Milestone 137 extends Lea's bounded size-container compiler with reduced
+integer `aspect-ratio` ranges and portrait/landscape orientation. Boolean,
+exact/min/max, feature-first, value-first, and ascending/descending chained
+forms use the existing `Kx` tree and `E.Cz` measurements; both-axis eligibility
+keeps inline-size containers inactive. Named/nearest selection, style
+conditions, grouped logic, nested media/supports/layers, diagnostics, native
+sheets, dynamic class sizes, retained fields, and automatic WinForms feedback
+are covered. Focused/full source, native editing, matching host, all 42 Boot
+cases, and all six real EXE startup scenarios pass. All 133 compatibility
+probes pass over 128 fixtures. Three-round medians are 774.972 ms clean start,
+8.095 ms local load, and 41.400 ms layout/paint; retained memory is 73.0
+KiB/page and the required runtime set is 693.0 KiB with a 285.0 KiB GZip
+estimate. Runtime 237 is packaged separately and installed runtime 157 remains
+unchanged. See `CONTAINER_RATIO_ORIENTATION.md`. Decimal/single-number ratios,
+container units, relative query lengths, scroll-state queries, vertical
+writing, full intrinsic containment, arbitrary CSSOM, and general JavaScript
+evaluation remain outside this slice.
+
 Milestone 136 adds bounded CSS size container queries through the existing
 compiled style, retained rebuild, and WinForms layout paths. Compact
 `S.Ct=n/i/s` state and atomic `E.Cz` content-box snapshots support named or

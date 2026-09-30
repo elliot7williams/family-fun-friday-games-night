@@ -268,6 +268,11 @@ nearest/named width and height features, min/max and modern ranges, logical
 size aliases, grouped size/style conditions, nesting, diagnostics, malformed
 and ineligible queries, native sheets, retained fields, and automatic bounded
 WinForms feedback with exact geometry.
+`--container-features` isolates reduced-integer `aspect-ratio` boolean/exact/
+min/max and strict/inclusive feature-first/value-first/chained ranges plus
+portrait/landscape orientation, square portrait semantics, both-axis
+eligibility, nested logic, diagnostics, malformed rejection, native sheets,
+retained fields, and automatic bounded WinForms relayout.
 These test modes do not retry or suppress failed assertions. Windows
 clipboard access can fail while another process holds it. Record separately
 which modes passed; a clipboard-free run is not a complete default-suite pass.

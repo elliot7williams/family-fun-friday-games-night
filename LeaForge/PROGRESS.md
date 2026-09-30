@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **136**
+Post-1.0 hardening milestones completed: **137**
 
 Broader lightweight-browser readiness: **about 65%**. This is a practical
 project estimate, not a standards conformance score. Full Chrome/Safari-class
@@ -33,6 +33,30 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded `aspect-ratio` and `orientation` features to the existing CSS
+  size-container path. Boolean/exact/min/max, strict/inclusive feature-first,
+  value-first, and ascending/descending chained ranges use reduced 1..8,192
+  integer ratios; portrait includes square boxes and landscape requires a
+  wider box. Both features require `container-type:size`, reuse atomic `E.Cz`
+  content-box measurements, and compose with named/nearest selection,
+  `style()`, grouped logic, nested media/supports/layers, native sheets,
+  diagnostics, pseudo/SVG rules, and retained rebuilds. A dedicated fixture
+  covers missing and zero measurements, reduced equivalence, both chain
+  directions, square orientation, malformed values, inline-size rejection,
+  dynamic landscape/portrait changes, retained fields, and exact automatic
+  WinForms geometry. Focused and full source suites, native clipboard/edit
+  checks, the matching compiled Firespider host, all 42 Boot cases, and all six
+  real EXE startup scenarios pass without MSHTML, an invalid cast, JIT dialog,
+  or dead startup window. All 133 compatibility probes pass over 128 fixtures.
+  Three-round diagnostic medians are 774.972 ms clean start, 8.095 ms local
+  load, and 41.400 ms layout/paint. Retained managed memory is 37,367.8 KiB
+  for 512 pages, or 73.0 KiB/page. Required runtime files are 693.0 KiB with a
+  285.0 KiB GZip estimate. Runtime 237 is packaged separately and installed
+  runtime 157 remains unchanged. Decimal/single-number ratios, container units,
+  relative query lengths, scroll-state queries, vertical writing, and complete
+  intrinsic containment remain outside this slice. See
+  `CONTAINER_RATIO_ORIENTATION.md`.
 
 - Added bounded CSS size container queries to the shared compiled stylesheet
   and retained layout paths. Compact `S.Ct=n/i/s` state supports normal,

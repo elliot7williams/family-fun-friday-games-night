@@ -216,6 +216,11 @@ namespace Lea.Tests
                     ContainerSizeSmoke(Path.Combine(pages, "container-size.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--container-features")
+                {
+                    ContainerFeatureSmoke(Path.Combine(pages, "container-features.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--layers")
                 {
                     LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
@@ -1647,6 +1652,7 @@ namespace Lea.Tests
                 MediaInteractionSmoke(Path.Combine(pages, "media-interaction.html"));
                 ContainerStyleSmoke(Path.Combine(pages, "container-style.html"));
                 ContainerSizeSmoke(Path.Combine(pages, "container-size.html"));
+                ContainerFeatureSmoke(Path.Combine(pages, "container-features.html"));
                 LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
                 HslColorSmoke(Path.Combine(pages, "hsl-colors.html"));
                 HwbColorSmoke(Path.Combine(pages, "hwb-colors.html"));
@@ -10423,6 +10429,115 @@ namespace Lea.Tests
                     "WinForms wide size feedback restoration");
             }
             Console.WriteLine("Lea size container smoke passed: bounded container shorthand and types, atomic Cz feedback, nearest/named width and height queries, ranges, logic, nesting, diagnostics, native sheets, retained fields, and automatic WinForms geometry.");
+        }
+
+        private static void ContainerFeatureSmoke(string path)
+        {
+            var engine = new E();
+            var page = engine.Go(path);
+            var frameNode = ById(page.D, "frame");
+            var portraitNode = ById(page.D, "portrait");
+            var squareNode = ById(page.D, "square");
+            var inlineNode = ById(page.D, "inline-only");
+            var field = FieldById(page, "field");
+            Ok(!HasBlock(page, "ratio-boolean") && !HasBlock(page, "ratio-exact") && !HasBlock(page, "landscape"),
+                "ratio and orientation queries wait for host feedback");
+            field.V = "Retained container feature value";
+
+            Eq(1, engine.Cz(page, new List<Cz>
+            {
+                new Cz(frameNode, 400, 300), new Cz(portraitNode, 180, 320),
+                new Cz(squareNode, 220, 220), new Cz(inlineNode, 400, 300)
+            }), "landscape ratio and orientation snapshot");
+            Ok(HasBlock(page, "ratio-boolean") && HasBlock(page, "ratio-exact") && HasBlock(page, "ratio-reduced") &&
+                HasBlock(page, "ratio-min") && HasBlock(page, "ratio-max") &&
+                HasBlock(page, "ratio-direct") && HasBlock(page, "ratio-chain") && HasBlock(page, "ratio-descending") &&
+                HasBlock(page, "ratio-value-first") && HasBlock(page, "landscape") &&
+                HasBlock(page, "combined") && HasBlock(page, "negated") &&
+                HasBlock(page, "portrait-result") && HasBlock(page, "portrait-ratio") &&
+                HasBlock(page, "square-portrait") && HasBlock(page, "nested") &&
+                HasBlock(page, "conditional") && !HasBlock(page, "frame-portrait") &&
+                !HasBlock(page, "tall-ratio"), "landscape ratio ranges and discrete orientation selection");
+            Ok(!HasBlock(page, "inline-ineligible") && !HasBlock(page, "invalid-zero") &&
+                !HasBlock(page, "invalid-decimal") && !HasBlock(page, "invalid-chain") &&
+                !HasBlock(page, "invalid-orientation"), "ineligible and malformed container features stay inactive");
+            Eq(270, field.S.W, "landscape orientation field width");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained container feature value",
+                "container feature feedback retains field identity and value");
+            var diagnostics = engine.Dg(page);
+            Ok(Has(diagnostics.Cs, "@c(frame:(aspect-ratio:4/3))") &&
+                Has(diagnostics.Cs, "@c(frame:(orientation:landscape))") &&
+                Has(diagnostics.Cs, "@l(container-feature-demo)"), "ratio orientation and layer diagnostics");
+
+            Eq(1, engine.Cz(page, new List<Cz>
+            {
+                new Cz(frameNode, 0, 300), new Cz(portraitNode, 180, 320),
+                new Cz(squareNode, 220, 220), new Cz(inlineNode, 400, 300)
+            }), "zero-width ratio snapshot");
+            Ok(!HasBlock(page, "ratio-boolean") && HasBlock(page, "frame-portrait") && !HasBlock(page, "landscape"),
+                "boolean ratio and zero-width orientation semantics");
+
+            Eq(1, engine.Ck(page, ById(page.D, "make-tall")), "portrait frame class command");
+            Eq(1, engine.Cz(page, new List<Cz>
+            {
+                new Cz(frameNode, 240, 360), new Cz(portraitNode, 180, 320),
+                new Cz(squareNode, 220, 220), new Cz(inlineNode, 400, 300)
+            }), "portrait ratio and orientation snapshot");
+            Ok(HasBlock(page, "ratio-boolean") && HasBlock(page, "ratio-max") &&
+                HasBlock(page, "frame-portrait") && HasBlock(page, "tall-ratio") &&
+                !HasBlock(page, "ratio-exact") && !HasBlock(page, "ratio-reduced") && !HasBlock(page, "ratio-min") &&
+                !HasBlock(page, "ratio-direct") && !HasBlock(page, "ratio-chain") && !HasBlock(page, "ratio-descending") &&
+                !HasBlock(page, "ratio-value-first") && !HasBlock(page, "landscape") &&
+                !HasBlock(page, "combined") && !HasBlock(page, "negated") &&
+                !HasBlock(page, "nested") && !HasBlock(page, "conditional") && field.S.W == 150,
+                "portrait ratio reevaluation");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained container feature value",
+                "portrait feature rebuild retains field state");
+            Eq(1, engine.Ck(page, ById(page.D, "make-landscape")), "landscape frame class command");
+            Eq(1, engine.Cz(page, new List<Cz>
+            {
+                new Cz(frameNode, 400, 300), new Cz(portraitNode, 180, 320),
+                new Cz(squareNode, 220, 220), new Cz(inlineNode, 400, 300)
+            }), "landscape feature restoration");
+            Ok(HasBlock(page, "ratio-exact") && HasBlock(page, "landscape") && !HasBlock(page, "frame-portrait") && field.S.W == 270,
+                "landscape ratio restoration");
+            Eq(1, engine.Ss(page, "container-features", "@container frame (orientation:landscape){#ratio-exact{width:231px}}"),
+                "native orientation container sheet install");
+            Eq(231, BlockById(page, "ratio-exact").S.W, "native orientation container sheet width");
+            Eq(1, engine.Sd(page, "container-features"), "native orientation container sheet remove");
+            Eq(202, BlockById(page, "ratio-exact").S.W, "native orientation sheet removal restores width");
+
+            using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-30000, -30000), ClientSize = new Size(900, 1050) })
+            using (var view = new V { Dock = DockStyle.Fill })
+            {
+                form.Controls.Add(view);
+                form.Show();
+                view.Go(path);
+                Paint(view);
+                Eq(400, BlockRect(view, BlockById(view.At, "frame")).Width, "WinForms landscape container width");
+                Eq(300, BlockRect(view, BlockById(view.At, "frame")).Height, "WinForms landscape container height");
+                Eq(270, BlockRect(view, BlockById(view.At, "field")).Width, "WinForms landscape feature field width");
+                Ok(HasBlock(view.At, "ratio-exact") && HasBlock(view.At, "landscape") && HasBlock(view.At, "nested") &&
+                    HasBlock(view.At, "square-portrait") && !HasBlock(view.At, "frame-portrait"),
+                    "WinForms automatic landscape feature feedback");
+                var liveField = FieldById(view.At, "field");
+                liveField.V = "Retained view feature value";
+                Eq(1, view.Ck(ById(view.At.D, "make-tall")), "WinForms portrait feature command");
+                Paint(view);
+                Eq(240, BlockRect(view, BlockById(view.At, "frame")).Width, "WinForms portrait container width");
+                Eq(360, BlockRect(view, BlockById(view.At, "frame")).Height, "WinForms portrait container height");
+                Eq(150, BlockRect(view, BlockById(view.At, "field")).Width, "WinForms portrait feature field width");
+                Ok(HasBlock(view.At, "frame-portrait") && HasBlock(view.At, "tall-ratio") &&
+                    !HasBlock(view.At, "landscape") && !HasBlock(view.At, "nested") &&
+                    Object.ReferenceEquals(liveField, FieldById(view.At, "field")) && liveField.V == "Retained view feature value",
+                    "WinForms portrait feedback and retained field");
+                Eq(1, view.Ck(ById(view.At.D, "make-landscape")), "WinForms landscape restore command");
+                Paint(view);
+                Ok(HasBlock(view.At, "ratio-exact") && HasBlock(view.At, "landscape") &&
+                    !HasBlock(view.At, "frame-portrait") && BlockRect(view, BlockById(view.At, "field")).Width == 270,
+                    "WinForms landscape feature restoration");
+            }
+            Console.WriteLine("Lea advanced container feature smoke passed: bounded aspect-ratio and orientation queries, boolean/exact/min/max/direct/value-first/chained ranges, square portrait semantics, size-axis eligibility, logic, diagnostics, native sheets, retained fields, and automatic WinForms relayout.");
         }
 
         private static void MediaFeatureSmoke(string path)

@@ -354,28 +354,29 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
-Milestone 136 adds bounded CSS size container queries to Lea's shared compiler
-and retained layout path. Compact `S.Ct=n/i/s` state and atomic `E.Cz`
-content-box snapshots support named or nearest eligible ancestors,
-width/height/inline-size/block-size features, legacy and comparison syntax,
-boolean and chained ranges, grouped conditions, and combined style/size
-queries. WinForms feeds actual retained content boxes through at most three
-stable layout passes while preserving live fields. See
-`CONTAINER_SIZE_QUERIES.md`. All 132 compatibility probes pass over 127
-fixtures; focused/full source, native edit, matching compiled Firespider host,
-all 42 Boot cases, and all six real EXE startup scenarios pass. Current
-diagnostic medians are 600.170 ms startup, 7.623 ms load, and 39.279 ms
-layout/paint, with 73.0 KiB retained per page and a 284.6 KiB GZip engine
-estimate. Runtime 236 is packaged separately while installed runtime 157 stays
-unchanged. Next investigate another bounded compatibility slice. Keep
-scroll-state queries, container units, full intrinsic size containment,
-general-property queries, `font-tech()`/`font-format()`, general-enclosed
-conditions, locale-sensitive automatic quote selection, reversed/custom
-counter styles, pseudo-element counter properties, typed/unquoted/functional
-attribute fallbacks, pseudo box-model/flex/grid items, generated image
-functions and sizing, marker-side, cross-item gutter alignment, SVG marker
-decoding, vertical writing modes, full Unicode bidi shaping, `dir=auto`, and
-general CSS/JavaScript evaluators outside the current boundary.
+Milestone 137 extends Lea's bounded size-container compiler with reduced
+integer `aspect-ratio` ranges and portrait/landscape orientation. Boolean,
+exact/min/max, feature-first, value-first, and ascending/descending chained
+forms reuse the compact `Kx` tree and atomic `E.Cz` measurements. Both-axis
+eligibility selects only `container-type:size`; named/nearest ancestors,
+style conditions, grouped logic, nested media/supports/layers, diagnostics,
+native sheets, retained fields, and automatic WinForms feedback remain shared.
+See `CONTAINER_RATIO_ORIENTATION.md`. All 133 compatibility probes pass over
+128 fixtures; focused/full source, native edit, matching compiled Firespider
+host, all 42 Boot cases, and all six real EXE startup scenarios pass. Current
+diagnostic medians are 774.972 ms startup, 8.095 ms load, and 41.400 ms
+layout/paint, with 73.0 KiB retained per page and a 285.0 KiB GZip engine
+estimate. Runtime 237 is packaged separately while installed runtime 157 stays
+unchanged. Next investigate another bounded compatibility slice. Keep decimal
+and single-number container ratios, scroll-state queries, container units,
+relative query lengths, full intrinsic size containment, general-property
+queries, `font-tech()`/`font-format()`, general-enclosed conditions,
+locale-sensitive automatic quote selection, reversed/custom counter styles,
+pseudo-element counter properties, typed/unquoted/functional attribute
+fallbacks, pseudo box-model/flex/grid items, generated image functions and
+sizing, marker-side, cross-item gutter alignment, SVG marker decoding,
+vertical writing modes, full Unicode bidi shaping, `dir=auto`, and general
+CSS/JavaScript evaluators outside the current boundary.
 
 Keep the stable empty UI Automation visible-range fallback until a native-safe
 non-empty bridge survives both direct and external MTA clients. Continue host

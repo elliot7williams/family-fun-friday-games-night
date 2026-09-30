@@ -2935,6 +2935,71 @@ namespace Lea.Engine
             var source = (condition ?? "").Trim();
             string inner;
             if (CssSupportsWrapped(source, out inner)) source = inner;
+            var orientation = Regex.Match(source, "^orientation\\s*:\\s*(?<v>portrait|landscape)$", RegexOptions.IgnoreCase);
+            if (orientation.Success)
+            {
+                result = new Kx('d', orientation.Groups["v"].Value.StartsWith("p", StringComparison.OrdinalIgnoreCase) ? "p" : "l");
+                terms = 1;
+                return true;
+            }
+            const string ratioNumber = "[0-9]{1,4}";
+            var ratioChain = Regex.Match(source, "^(?<an>" + ratioNumber + ")\\s*/\\s*(?<ad>" + ratioNumber + ")\\s*(?<ao><=|>=|<|>)\\s*aspect-ratio\\s*(?<bo><=|>=|<|>)\\s*(?<bn>" + ratioNumber + ")\\s*/\\s*(?<bd>" + ratioNumber + ")$", RegexOptions.IgnoreCase);
+            if (ratioChain.Success)
+            {
+                int leftNumerator;
+                int leftDenominator;
+                int rightNumerator;
+                int rightDenominator;
+                var leftOperator = ratioChain.Groups["ao"].Value;
+                var rightOperator = ratioChain.Groups["bo"].Value;
+                if (!MediaRatioTerm(ratioChain.Groups["an"].Value, ratioChain.Groups["ad"].Value, out leftNumerator, out leftDenominator) ||
+                    !MediaRatioTerm(ratioChain.Groups["bn"].Value, ratioChain.Groups["bd"].Value, out rightNumerator, out rightDenominator) ||
+                    leftOperator[0] != rightOperator[0]) return false;
+                result = new Kx('a', new[]
+                {
+                    new Kx('r', MediaInverse(leftOperator), leftNumerator, leftDenominator),
+                    new Kx('r', rightOperator, rightNumerator, rightDenominator)
+                });
+                terms = 2;
+                return true;
+            }
+            var ratioLegacy = Regex.Match(source, "^(?<k>min-|max-)?aspect-ratio\\s*:\\s*(?<n>" + ratioNumber + ")\\s*/\\s*(?<d>" + ratioNumber + ")$", RegexOptions.IgnoreCase);
+            if (ratioLegacy.Success)
+            {
+                int numerator;
+                int denominator;
+                if (!MediaRatioTerm(ratioLegacy.Groups["n"].Value, ratioLegacy.Groups["d"].Value, out numerator, out denominator)) return false;
+                var prefix = ratioLegacy.Groups["k"].Value.ToLowerInvariant();
+                result = new Kx('r', prefix == "min-" ? ">=" : prefix == "max-" ? "<=" : "=", numerator, denominator);
+                terms = 1;
+                return true;
+            }
+            var ratioDirect = Regex.Match(source, "^aspect-ratio\\s*(?<o><=|>=|=|<|>)\\s*(?<n>" + ratioNumber + ")\\s*/\\s*(?<d>" + ratioNumber + ")$", RegexOptions.IgnoreCase);
+            if (ratioDirect.Success)
+            {
+                int numerator;
+                int denominator;
+                if (!MediaRatioTerm(ratioDirect.Groups["n"].Value, ratioDirect.Groups["d"].Value, out numerator, out denominator)) return false;
+                result = new Kx('r', ratioDirect.Groups["o"].Value, numerator, denominator);
+                terms = 1;
+                return true;
+            }
+            var ratioReversed = Regex.Match(source, "^(?<n>" + ratioNumber + ")\\s*/\\s*(?<d>" + ratioNumber + ")\\s*(?<o><=|>=|=|<|>)\\s*aspect-ratio$", RegexOptions.IgnoreCase);
+            if (ratioReversed.Success)
+            {
+                int numerator;
+                int denominator;
+                if (!MediaRatioTerm(ratioReversed.Groups["n"].Value, ratioReversed.Groups["d"].Value, out numerator, out denominator)) return false;
+                result = new Kx('r', MediaInverse(ratioReversed.Groups["o"].Value), numerator, denominator);
+                terms = 1;
+                return true;
+            }
+            if (source.Equals("aspect-ratio", StringComparison.OrdinalIgnoreCase))
+            {
+                result = new Kx('r', "b", 1, 1);
+                terms = 1;
+                return true;
+            }
             const string feature = "width|height|inline-size|block-size";
             const string number = "[0-9]{1,4}";
             var chain = Regex.Match(source, "^(?<an>" + number + ")\\s*px\\s*(?<ao><=|>=|<|>)\\s*(?<k>" + feature + ")\\s*(?<bo><=|>=|<|>)\\s*(?<bn>" + number + ")\\s*px$", RegexOptions.IgnoreCase);
@@ -3032,6 +3097,7 @@ namespace Lea.Engine
             if (expression == null) return 0;
             if (expression.K == 'w') return 1;
             if (expression.K == 'h') return 2;
+            if (expression.K == 'r' || expression.K == 'd') return 3;
             var result = 0;
             foreach (var child in expression.C) result |= ContainerAxes(child);
             return result;
@@ -3050,6 +3116,28 @@ namespace Lea.Engine
             {
                 foreach (var child in expression.C) if (ContainerExpression(container, child)) return true;
                 return false;
+            }
+            if (expression.K == 'd')
+            {
+                if (container.N == null || !container.N.Cv) return false;
+                var orientation = container.N.Ch >= container.N.Cw ? "p" : "l";
+                return orientation == expression.V;
+            }
+            if (expression.K == 'r')
+            {
+                if (container.N == null || !container.N.Cv) return false;
+                if (expression.N == "b") return container.N.Cw > 0;
+                if (container.N.Cw == 0 && container.N.Ch == 0) return false;
+                var parts = expression.V.Split('/');
+                int numerator;
+                int denominator;
+                if (parts.Length != 2 || !Int32.TryParse(parts[0], out numerator) || !Int32.TryParse(parts[1], out denominator)) return false;
+                var comparison = RatioCompare(container.N.Cw, container.N.Ch, numerator, denominator);
+                if (expression.N == "=") return comparison == 0;
+                if (expression.N == ">") return comparison > 0;
+                if (expression.N == ">=") return comparison >= 0;
+                if (expression.N == "<") return comparison < 0;
+                return expression.N == "<=" && comparison <= 0;
             }
             if (expression.K == 'w' || expression.K == 'h')
             {
@@ -13136,6 +13224,22 @@ namespace Lea.Engine
                 K = axis;
                 N = operation ?? "";
                 V = value.ToString(CultureInfo.InvariantCulture);
+                C = new Kx[0];
+            }
+
+            public Kx(char feature, string value)
+            {
+                K = feature;
+                N = "";
+                V = value ?? "";
+                C = new Kx[0];
+            }
+
+            public Kx(char feature, string operation, int numerator, int denominator)
+            {
+                K = feature;
+                N = operation ?? "";
+                V = numerator.ToString(CultureInfo.InvariantCulture) + "/" + denominator.ToString(CultureInfo.InvariantCulture);
                 C = new Kx[0];
             }
         }

@@ -66,10 +66,15 @@ Size queries are engine-owned too. Compact `S.Ct=n/i/s` stores the computed
 container type, `E.Cz` accepts atomic bounded content-box snapshots, and
 `Lea.Win.V` automatically feeds actual host geometry through a three-pass
 ceiling. The compiled host covers width/height selection, dynamic resize,
-diagnostics, and retained fields. Firespider adds no containment parser or
-layout state. Scroll-state queries remain outside this subset. See
+diagnostics, and retained fields. Reduced integer `aspect-ratio` ranges and
+portrait/landscape orientation use the same measured content boxes, with
+square boxes treated as portrait and both-axis eligibility enforced. The host
+smoke covers ratio/orientation diagnostics, script-driven landscape/portrait
+relayout, and retained field identity/value. Firespider adds no containment
+parser or layout state. Scroll-state queries remain outside this subset. See
 `LeaForge/CONTAINER_STYLE_QUERIES.md` and
-`LeaForge/CONTAINER_SIZE_QUERIES.md`.
+`LeaForge/CONTAINER_SIZE_QUERIES.md` plus
+`LeaForge/CONTAINER_RATIO_ORIENTATION.md`.
 
 Initial fragments now stay aligned while first paint, host sizing, and decoded
 intrinsic images settle. `V.Fa/Fj/Fy` expose the retained anchor, placement

@@ -1,0 +1,142 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Container Ratio And Orientation Queries</title>
+  <style>
+    body { font-family: sans-serif; }
+    .frame {
+      --state: ready;
+      container: frame / size;
+      width: 400px;
+      height: 300px;
+    }
+    .frame.tall { width: 240px; height: 360px; }
+    .portrait { container: portrait / size; width: 180px; height: 320px; }
+    .square { container: square / size; width: 220px; height: 220px; }
+    .inline-only { container: inline-only / inline-size; width: 400px; height: 300px; }
+    .probe { display: none; height: 18px; }
+    #field { width: 110px; }
+
+    @container frame (aspect-ratio) {
+      #ratio-boolean { display: block; width: 201px; }
+    }
+    @container frame (aspect-ratio: 4/3) {
+      #ratio-exact { display: block; width: 202px; }
+    }
+    @container frame (aspect-ratio: 8/6) {
+      #ratio-reduced { display: block; width: 218px; }
+    }
+    @container frame (min-aspect-ratio: 1/1) {
+      #ratio-min { display: block; width: 203px; }
+    }
+    @container frame (max-aspect-ratio: 3/2) {
+      #ratio-max { display: block; width: 204px; }
+    }
+    @container frame (aspect-ratio >= 4/3) {
+      #ratio-direct { display: block; width: 205px; }
+    }
+    @container frame (1/1 < aspect-ratio <= 4/3) {
+      #ratio-chain { display: block; width: 206px; }
+    }
+    @container frame (3/2 >= aspect-ratio > 1/1) {
+      #ratio-descending { display: block; width: 219px; }
+    }
+    @container frame (4/3 <= aspect-ratio) {
+      #ratio-value-first { display: block; width: 207px; }
+    }
+    @container frame (orientation: landscape) {
+      #landscape { display: block; width: 208px; }
+      #field { width: 270px; }
+    }
+    @container frame (orientation: portrait) {
+      #frame-portrait { display: block; width: 209px; }
+      #field { width: 150px; }
+    }
+    @container frame (aspect-ratio < 1/1) {
+      #tall-ratio { display: block; width: 210px; }
+    }
+    @container frame (orientation: landscape) and style(--state: ready) {
+      #combined { display: block; width: 211px; }
+    }
+    @container frame not (orientation: portrait) {
+      #negated { display: block; width: 212px; }
+    }
+    @container portrait (orientation: portrait) {
+      #portrait-result { display: block; width: 213px; }
+    }
+    @container portrait (aspect-ratio < 1/1) {
+      #portrait-ratio { display: block; width: 214px; }
+    }
+    @container square (orientation: portrait) {
+      #square-portrait { display: block; width: 215px; }
+    }
+    @container frame (orientation: landscape) {
+      @container portrait (aspect-ratio < 1/1) {
+        #nested { display: block; width: 216px; }
+      }
+    }
+    @media screen and (min-width: 1px) {
+      @supports (container-type: size) {
+        @layer container-feature-demo {
+          @container frame (aspect-ratio >= 4/3) {
+            #conditional { display: block !important; width: 217px !important; }
+          }
+        }
+      }
+    }
+    @container inline-only (aspect-ratio: 4/3) {
+      #inline-ineligible { display: block; }
+    }
+    @container frame (aspect-ratio: 0/1) {
+      #invalid-zero { display: block; }
+    }
+    @container frame (aspect-ratio: 1.5/1) {
+      #invalid-decimal { display: block; }
+    }
+    @container frame (1/1 < aspect-ratio > 2/1) {
+      #invalid-chain { display: block; }
+    }
+    @container frame (orientation: square) {
+      #invalid-orientation { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <section id="frame" class="frame">
+    <p id="ratio-boolean" class="probe">Boolean ratio</p>
+    <p id="ratio-exact" class="probe">Exact ratio</p>
+    <p id="ratio-reduced" class="probe">Reduced exact ratio</p>
+    <p id="ratio-min" class="probe">Minimum ratio</p>
+    <p id="ratio-max" class="probe">Maximum ratio</p>
+    <p id="ratio-direct" class="probe">Direct ratio</p>
+    <p id="ratio-chain" class="probe">Chained ratio</p>
+    <p id="ratio-descending" class="probe">Descending ratio</p>
+    <p id="ratio-value-first" class="probe">Value first ratio</p>
+    <p id="landscape" class="probe">Landscape</p>
+    <p id="frame-portrait" class="probe">Frame portrait</p>
+    <p id="tall-ratio" class="probe">Tall ratio</p>
+    <p id="combined" class="probe">Combined style and orientation</p>
+    <p id="negated" class="probe">Negated orientation</p>
+    <p id="conditional" class="probe">Conditional ratio</p>
+    <p id="invalid-zero" class="probe">Invalid zero ratio</p>
+    <p id="invalid-decimal" class="probe">Invalid decimal ratio</p>
+    <p id="invalid-chain" class="probe">Invalid ratio chain</p>
+    <p id="invalid-orientation" class="probe">Invalid orientation</p>
+    <input id="field" value="container feature field">
+    <section id="portrait" class="portrait">
+      <p id="portrait-result" class="probe">Portrait result</p>
+      <p id="portrait-ratio" class="probe">Portrait ratio</p>
+      <p id="nested" class="probe">Nested feature query</p>
+    </section>
+  </section>
+  <section id="square" class="square">
+    <p id="square-portrait" class="probe">Square is portrait</p>
+  </section>
+  <section id="inline-only" class="inline-only">
+    <p id="inline-ineligible" class="probe">Inline container is ineligible</p>
+  </section>
+  <button id="make-tall" data-lea="ac('frame','tall');">Tall</button>
+  <button id="make-landscape" data-lea="rc('frame','tall');">Landscape</button>
+</body>
+</html>

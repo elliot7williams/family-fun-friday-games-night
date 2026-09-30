@@ -800,6 +800,19 @@ boundary are in `MEDIA_SCRIPTING.md`.
 Interaction aliases, hybrid any-pointer semantics, device sampling, and
 diagnostics are in `MEDIA_INTERACTION.md`.
 
+Container queries remain engine-owned. `S.Cn` exposes the bounded computed
+name list and compact `S.Ct=n/i/s` exposes normal, inline-size, or size query
+eligibility. A headless renderer submits one complete content-box snapshot as
+`IList<Cz>` through `E.Cz(page, sizes)`; each `Cz` contains short `E/W/H`
+element, width, and height members. The update is atomic, accepts at most 256
+owned elements with 0..8,192 pixel axes, returns `1` only when state changed,
+and retains mutable fields during the rebuild. `Lea.Win.V` performs this bridge
+automatically from actual retained content rectangles with a three-pass
+ceiling. Width/height/logical-size, reduced-integer aspect-ratio, and
+portrait/landscape features share named/nearest ancestor selection and bounded
+style-query logic. See `CONTAINER_STYLE_QUERIES.md`,
+`CONTAINER_SIZE_QUERIES.md`, and `CONTAINER_RATIO_ORIENTATION.md`.
+
 `@supports` is also engine-owned. The compiler recognizes a bounded set of
 declaration families through their real Lea value parsers and checks one
 `selector(...)` through the compiled selector grammar. Grouped `not`, `and`,

@@ -71,8 +71,12 @@ LeaForge is where we can grow the more full-featured browser.
   see `SUPPORTS_QUERIES.md`
 - bounded standards-shaped `@container` custom-property `style()` queries over
   nearest or named ancestors, with computed `S.Cn`, grouped `not`/`and`/`or`,
-  nested media/supports/layers, retained rebuilds, and diagnostics; size and
-  scroll-state queries remain unsupported; see `CONTAINER_STYLE_QUERIES.md`
+  nested media/supports/layers, retained rebuilds, and diagnostics; compact
+  `S.Ct` plus atomic `E.Cz` measurements add nearest/named width, height,
+  reduced-integer aspect-ratio, and portrait/landscape size queries with
+  automatic bounded WinForms feedback; scroll-state queries remain
+  unsupported; see `CONTAINER_STYLE_QUERIES.md`,
+  `CONTAINER_SIZE_QUERIES.md`, and `CONTAINER_RATIO_ORIENTATION.md`
 - bounded standards-shaped media matching through compact `E/V.Mq` aliases and
   literal global/window `matchMedia(...).matches` guards, reusing current
   viewport, DPI, preferences, whole-query `not`, strict `only`, and shared

@@ -49,6 +49,11 @@ tree. Nested container rules select their own ancestors and continue to compose
 with supported media, supports, layer, linked-sheet, pseudo, SVG, and native
 stylesheet paths.
 
+Milestone 137 adds bounded reduced-integer `aspect-ratio` ranges and discrete
+portrait/landscape orientation over the same measurements. These features need
+both axes and therefore select only `container-type:size` ancestors. See
+`CONTAINER_RATIO_ORIENTATION.md` for syntax, limits, and verification.
+
 ## Feedback API
 
 `Cz` is a compact immutable host record containing `E`, `W`, and `H` for one
@@ -84,10 +89,9 @@ definite heights are the dependable boundary for block-axis queries.
 ## Deliberately Unsupported
 
 Container-relative units (`cqw`, `cqh`, and related units), relative query
-lengths, aspect-ratio and orientation container features, scroll-state queries,
-vertical writing modes, query CSSOM, and full intrinsic containment remain
-outside this milestone. General-property style queries and typed custom
-properties also remain outside the style-query subset.
+lengths, scroll-state queries, vertical writing modes, query CSSOM, and full
+intrinsic containment remain outside this milestone. General-property style
+queries and typed custom properties also remain outside the style-query subset.
 
 The selection and feature model follows the CSS Containment Module Level 3:
 https://www.w3.org/TR/css-contain-3/
