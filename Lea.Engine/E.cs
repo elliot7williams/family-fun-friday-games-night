@@ -3001,56 +3001,63 @@ namespace Lea.Engine
                 return true;
             }
             const string feature = "width|height|inline-size|block-size";
-            const string number = "[0-9]{1,4}";
-            var chain = Regex.Match(source, "^(?<an>" + number + ")\\s*px\\s*(?<ao><=|>=|<|>)\\s*(?<k>" + feature + ")\\s*(?<bo><=|>=|<|>)\\s*(?<bn>" + number + ")\\s*px$", RegexOptions.IgnoreCase);
+            const string number = "(?:0|[1-9][0-9]{0,3})(?:\\.[0-9]{1,2})?";
+            const string unit = "px|em|rem";
+            var chain = Regex.Match(source, "^(?<an>" + number + ")(?<au>" + unit + ")?\\s*(?<ao><=|>=|<|>)\\s*(?<k>" + feature + ")\\s*(?<bo><=|>=|<|>)\\s*(?<bn>" + number + ")(?<bu>" + unit + ")?$", RegexOptions.IgnoreCase);
             if (chain.Success)
             {
                 int left;
                 int right;
+                char leftUnit;
+                char rightUnit;
                 var leftOperator = chain.Groups["ao"].Value;
                 var rightOperator = chain.Groups["bo"].Value;
-                if (!ContainerTerm(chain.Groups["an"].Value, out left) || !ContainerTerm(chain.Groups["bn"].Value, out right) ||
+                if (!ContainerTerm(chain.Groups["an"].Value, chain.Groups["au"].Value, out left, out leftUnit) ||
+                    !ContainerTerm(chain.Groups["bn"].Value, chain.Groups["bu"].Value, out right, out rightUnit) ||
                     leftOperator[0] != rightOperator[0]) return false;
                 var axis = ContainerAxis(chain.Groups["k"].Value);
                 result = new Kx('a', new[]
                 {
-                    new Kx(axis, MediaInverse(leftOperator), left),
-                    new Kx(axis, rightOperator, right)
+                    new Kx(axis, MediaInverse(leftOperator), left, leftUnit),
+                    new Kx(axis, rightOperator, right, rightUnit)
                 });
                 terms = 2;
                 return true;
             }
-            var legacy = Regex.Match(source, "^(?<k>min-|max-)?(?<f>" + feature + ")\\s*:\\s*(?<n>" + number + ")\\s*px$", RegexOptions.IgnoreCase);
+            var legacy = Regex.Match(source, "^(?<k>min-|max-)?(?<f>" + feature + ")\\s*:\\s*(?<n>" + number + ")(?<u>" + unit + ")?$", RegexOptions.IgnoreCase);
             if (legacy.Success)
             {
                 int value;
-                if (!ContainerTerm(legacy.Groups["n"].Value, out value)) return false;
+                char valueUnit;
+                if (!ContainerTerm(legacy.Groups["n"].Value, legacy.Groups["u"].Value, out value, out valueUnit)) return false;
                 var prefix = legacy.Groups["k"].Value.ToLowerInvariant();
-                result = new Kx(ContainerAxis(legacy.Groups["f"].Value), prefix == "min-" ? ">=" : prefix == "max-" ? "<=" : "=", value);
+                result = new Kx(ContainerAxis(legacy.Groups["f"].Value), prefix == "min-" ? ">=" : prefix == "max-" ? "<=" : "=", value, valueUnit);
                 terms = 1;
                 return true;
             }
-            var direct = Regex.Match(source, "^(?<k>" + feature + ")\\s*(?<o><=|>=|=|<|>)\\s*(?<n>" + number + ")\\s*px$", RegexOptions.IgnoreCase);
+            var direct = Regex.Match(source, "^(?<k>" + feature + ")\\s*(?<o><=|>=|=|<|>)\\s*(?<n>" + number + ")(?<u>" + unit + ")?$", RegexOptions.IgnoreCase);
             if (direct.Success)
             {
                 int value;
-                if (!ContainerTerm(direct.Groups["n"].Value, out value)) return false;
-                result = new Kx(ContainerAxis(direct.Groups["k"].Value), direct.Groups["o"].Value, value);
+                char valueUnit;
+                if (!ContainerTerm(direct.Groups["n"].Value, direct.Groups["u"].Value, out value, out valueUnit)) return false;
+                result = new Kx(ContainerAxis(direct.Groups["k"].Value), direct.Groups["o"].Value, value, valueUnit);
                 terms = 1;
                 return true;
             }
-            var reversed = Regex.Match(source, "^(?<n>" + number + ")\\s*px\\s*(?<o><=|>=|=|<|>)\\s*(?<k>" + feature + ")$", RegexOptions.IgnoreCase);
+            var reversed = Regex.Match(source, "^(?<n>" + number + ")(?<u>" + unit + ")?\\s*(?<o><=|>=|=|<|>)\\s*(?<k>" + feature + ")$", RegexOptions.IgnoreCase);
             if (reversed.Success)
             {
                 int value;
-                if (!ContainerTerm(reversed.Groups["n"].Value, out value)) return false;
-                result = new Kx(ContainerAxis(reversed.Groups["k"].Value), MediaInverse(reversed.Groups["o"].Value), value);
+                char valueUnit;
+                if (!ContainerTerm(reversed.Groups["n"].Value, reversed.Groups["u"].Value, out value, out valueUnit)) return false;
+                result = new Kx(ContainerAxis(reversed.Groups["k"].Value), MediaInverse(reversed.Groups["o"].Value), value, valueUnit);
                 terms = 1;
                 return true;
             }
             var boolean = Regex.Match(source, "^(?<k>" + feature + ")$", RegexOptions.IgnoreCase);
             if (!boolean.Success) return false;
-            result = new Kx(ContainerAxis(boolean.Groups["k"].Value), ">", 0);
+            result = new Kx(ContainerAxis(boolean.Groups["k"].Value), ">", 0, 'p');
             terms = 1;
             return true;
         }
@@ -3061,9 +3068,21 @@ namespace Lea.Engine
             return value == "height" || value == "block-size" ? 'h' : 'w';
         }
 
-        private static bool ContainerTerm(string source, out int value)
+        private static bool ContainerTerm(string source, string unit, out int value, out char code)
         {
-            return Int32.TryParse(source, out value) && value >= 0 && value <= MaxViewport;
+            value = 0;
+            code = '\0';
+            decimal number;
+            if (!Decimal.TryParse(source, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out number) || number < 0) return false;
+            var suffix = (unit ?? "").ToLowerInvariant();
+            if (suffix.Length == 0 && number != 0) return false;
+            if (suffix.Length == 0 || suffix == "px") code = 'p';
+            else if (suffix == "em") code = 'e';
+            else if (suffix == "rem") code = 'r';
+            else return false;
+            if (number > (code == 'p' ? MaxViewport : 100)) return false;
+            value = Decimal.ToInt32(number * 100M);
+            return true;
         }
 
         private static bool ContainerOn(S inherited, Kq[] queries)
@@ -3143,13 +3162,14 @@ namespace Lea.Engine
             {
                 if (container.N == null || !container.N.Cv) return false;
                 var dimension = expression.K == 'w' ? container.N.Cw : container.N.Ch;
-                int expected;
-                if (!Int32.TryParse(expression.V, out expected)) return false;
-                if (expression.N == "=") return dimension == expected;
-                if (expression.N == ">") return dimension > expected;
-                if (expression.N == ">=") return dimension >= expected;
-                if (expression.N == "<") return dimension < expected;
-                return expression.N == "<=" && dimension <= expected;
+                var expected = ContainerExpected(container, expression);
+                if (expected < 0) return false;
+                var measured = (long)dimension * 100L;
+                if (expression.N == "=") return measured == expected;
+                if (expression.N == ">") return measured > expected;
+                if (expression.N == ">=") return measured >= expected;
+                if (expression.N == "<") return measured < expected;
+                return expression.N == "<=" && measured <= expected;
             }
             string actual;
             if (container.S.Vr == null || !container.S.Vr.TryGetValue(expression.N, out actual)) return false;
@@ -3157,6 +3177,20 @@ namespace Lea.Engine
             string expectedValue;
             return VarValue(container.S, actual, out actualValue) && VarValue(container.S, expression.V, out expectedValue) &&
                 actualValue.Trim().Equals(expectedValue.Trim(), StringComparison.Ordinal);
+        }
+
+        private static long ContainerExpected(Scq container, Kx expression)
+        {
+            if (expression.U == 'p') return expression.L;
+            if (expression.U == 'e') return (long)expression.L * ContainerFont(container == null ? null : container.S);
+            if (expression.U != 'r') return -1;
+            while (container != null && container.Up != null) container = container.Up;
+            return (long)expression.L * ContainerFont(container == null ? null : container.S);
+        }
+
+        private static int ContainerFont(S style)
+        {
+            return style != null && style.Fs > 0 ? style.Fs : 16;
         }
 
         private static bool ContainerHasName(string names, string name)
@@ -13220,6 +13254,8 @@ namespace Lea.Engine
             public readonly string N;
             public readonly string V;
             public readonly Kx[] C;
+            public readonly int L;
+            public readonly char U;
 
             public Kx(string name, string value)
             {
@@ -13227,6 +13263,8 @@ namespace Lea.Engine
                 N = name;
                 V = value;
                 C = new Kx[0];
+                L = 0;
+                U = '\0';
             }
 
             public Kx(char operation, Kx[] children)
@@ -13235,14 +13273,18 @@ namespace Lea.Engine
                 N = "";
                 V = "";
                 C = children ?? new Kx[0];
+                L = 0;
+                U = '\0';
             }
 
-            public Kx(char axis, string operation, int value)
+            public Kx(char axis, string operation, int value, char unit)
             {
                 K = axis;
                 N = operation ?? "";
-                V = value.ToString(CultureInfo.InvariantCulture);
+                V = "";
                 C = new Kx[0];
+                L = value;
+                U = unit;
             }
 
             public Kx(char feature, string value)
@@ -13251,6 +13293,8 @@ namespace Lea.Engine
                 N = "";
                 V = value ?? "";
                 C = new Kx[0];
+                L = 0;
+                U = '\0';
             }
 
             public Kx(char feature, string operation, int numerator, int denominator)
@@ -13259,6 +13303,8 @@ namespace Lea.Engine
                 N = operation ?? "";
                 V = numerator.ToString(CultureInfo.InvariantCulture) + "/" + denominator.ToString(CultureInfo.InvariantCulture);
                 C = new Kx[0];
+                L = 0;
+                U = '\0';
             }
         }
 

@@ -113,7 +113,7 @@ namespace Lea.Bench
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
                 "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "direction-logical.html", "direction-layout.html", "direction-inline.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "media-features.html", "media-aspect-ratio.html", "media-ranges.html", "media-resolution.html", "media-color-scheme.html", "media-reduced-motion.html", "media-reduced-data.html", "media-contrast.html", "media-scripting.html", "supports-queries.html", "css-supports-script.html", "match-media-script.html", "media-modifiers.html", "media-interaction.html", "cascade-layers.html", "cascade-layer-limits.html", "hsl-colors.html", "hwb-colors.html", "lab-colors.html", "predefined-colors.html", "wide-gamut-colors.html", "oklab-colors.html", "color-mix.html", "custom-properties.html", "important-cascade.html",
-                "container-style.html", "container-size.html", "container-features.html", "container-units.html",
+                "container-style.html", "container-size.html", "container-features.html", "container-query-lengths.html", "container-units.html",
                 "direction-overflow.html", "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "list-style.html", "list-position.html", "list-image.html", "marker.html", "marker-content.html", "marker-counters.html", "css-counters.html", "generated-content.html", "generated-quotes.html", "generated-alt.html", "generated-images.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -2283,6 +2283,48 @@ namespace Lea.Bench
                         "automatic portrait container features changed");
                 }
                 return "bounded container aspect-ratio boolean/exact/min/max/direct/value-first/chained ranges and portrait/landscape features, both-axis eligibility, nested logic, diagnostics, retained fields, and automatic WinForms relayout";
+            });
+            AddProbe(probes, "Relative container query lengths", delegate
+            {
+                var path = Path.Combine(folder, "container-query-lengths.html");
+                var engine = new E();
+                var page = engine.Go(path);
+                var outer = ById(page.D, "outer");
+                var inner = ById(page.D, "inner");
+                var emField = page.Fs.Single(item => item.El != null && item.El.Av("id") == "em-field");
+                var remField = page.Fs.Single(item => item.El != null && item.El.Av("id") == "rem-field");
+                emField.V = "Retained benchmark em query value";
+                remField.V = "Retained benchmark rem query value";
+                Need(engine.Cz(page, new List<Cz> { new Cz(outer, 500, 300), new Cz(inner, 320, 120) }) == 1 &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "em-direct") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "em-decimal") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "rem-chain") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "pixel-decimal") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "false-em") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "invalid-unit") &&
+                    emField.S.W == 260 && remField.S.W == 270 &&
+                    Object.ReferenceEquals(emField, page.Fs.Single(item => item.El != null && item.El.Av("id") == "em-field")) &&
+                    emField.V == "Retained benchmark em query value", "relative container query selection changed");
+                Need(engine.Ck(page, ById(page.D, "large-inner")) == 1 &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "em-direct") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "rem-chain") && emField.S.W == 110,
+                    "container-font query feedback changed");
+                Need(engine.Ss(page, "relative-root-font", "html{font-size:12px}") == 1 &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "rem-chain") && remField.S.W == 120,
+                    "root-font query feedback changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(900, 900);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                        Need(BlockContent(view, "em-field").Width == 260 && BlockContent(view, "rem-field").Width == 270,
+                            "automatic relative query geometry changed");
+                    view.Ck(ById(view.At.D, "large-inner"));
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "em-field").Width == 110 && BlockContent(view, "rem-field").Width == 270,
+                        "automatic container-font query geometry changed");
+                }
+                return "fixed-hundredth px/em/rem size-query terms, selected-container and root font bases, decimal ranges, unitless zero, diagnostics, native sheets, retained fields, and exact WinForms feedback";
             });
             AddProbe(probes, "Container relative units", delegate
             {

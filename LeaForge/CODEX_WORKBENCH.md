@@ -17,6 +17,21 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
+Milestone 139 adds fixed-hundredth `px`, selected-container `em`, and root
+`rem` thresholds to the compact `Kx` size-query tree. One-character `p/e/r`
+codes support up to two fractional digits, unitless zero, every existing
+comparison form, independent live container/root font changes, diagnostics,
+native sheets, retained fields, and exact WinForms geometry without runtime
+decimal or floating-point parsing. Focused, neighboring, benchmark, full
+source/staged core and edit, matching compiled Firespider host, all 42 Boot,
+and all six real EXE startup suites pass. All 135 compatibility probes
+pass over 130 fixtures. Three-round medians are 860.342 ms clean start, 11.178
+ms local load, and 55.986 ms layout/paint; retained memory is 73.2 KiB/page
+and the required runtime set is 695.0 KiB with a 285.9 KiB GZip estimate.
+Runtime 239 is packaged separately as
+`F:\Lea-runtime-239-ready_2026-10-02_19-22-18.zip`; installed runtime 157 stays unchanged.
+See `CONTAINER_QUERY_LENGTHS.md`.
+
 Milestone 138 adds bounded container-relative dimensions through the existing
 compact size tuples and `E.Cz` feedback. `cqw`, `cqh`, `cqi`, `cqb`, `cqmin`,
 and `cqmax` use unit codes 7..12, independently select the nearest eligible

@@ -32,7 +32,7 @@ unnamed queries select the nearest eligible ancestor.
 
 ## Query Shape
 
-The supported feature forms use bounded integer pixels:
+The supported feature forms use bounded pixel or font-relative lengths:
 
 ```css
 @container panel (min-width: 300px) { }
@@ -40,6 +40,8 @@ The supported feature forms use bounded integer pixels:
 @container panel (300px <= inline-size < 600px) { }
 @container panel (height: 180px) { }
 @container panel (block-size > 160px) { }
+@container panel (width > 39em) { }
+@container page (49rem < width <= 50rem) { }
 ```
 
 Boolean width/height features, feature-first and value-first comparisons,
@@ -53,6 +55,12 @@ Milestone 137 adds bounded reduced-integer `aspect-ratio` ranges and discrete
 portrait/landscape orientation over the same measurements. These features need
 both axes and therefore select only `container-type:size` ancestors. See
 `CONTAINER_RATIO_ORIENTATION.md` for syntax, limits, and verification.
+
+Milestone 139 compiles `px`, selected-container `em`, and root `rem` query
+thresholds into fixed hundredths with compact `p/e/r` unit codes. Up to two
+fractional digits, mixed-unit chains, and unitless zero share every existing
+comparison form without runtime decimal parsing. See
+`CONTAINER_QUERY_LENGTHS.md` for exact ranges and boundaries.
 
 Milestone 138 reuses the same atomic measurements for bounded `cqw`, `cqh`,
 `cqi`, `cqb`, `cqmin`, and `cqmax` dimensions. Unit axes select ancestors
@@ -78,7 +86,9 @@ the body itself is a container.
 ## Limits
 
 - 256 measured containers per page snapshot
-- `0..8192` pixels per reported axis and query value
+- `0..8192` pixels per reported axis and pixel query value
+- `0..100` em/rem per font-relative query value
+- up to two query-length fractional digits
 - three automatic WinForms feedback passes
 - four nested conditional/container levels
 - eight size/style terms per condition
@@ -93,8 +103,9 @@ definite heights are the dependable boundary for block-axis queries.
 
 ## Deliberately Unsupported
 
-Relative query lengths, scroll-state queries, vertical writing modes, query
-CSSOM, and full intrinsic containment remain outside this milestone.
+Viewport- and container-relative query lengths, scroll-state queries, vertical
+writing modes, query CSSOM, and full intrinsic containment remain outside this
+milestone.
 Container units outside bounded dimension properties remain unsupported.
 General-property style
 queries and typed custom properties also remain outside the style-query subset.

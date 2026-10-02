@@ -354,6 +354,24 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
+Milestone 139 adds bounded `px`, selected-container `em`, and root `rem`
+thresholds to the existing size-container query compiler. `Kx.L/U` store fixed
+hundredths and compact `p/e/r` codes; up to two fractional digits, unitless
+zero, legacy/direct/value-first/chained comparisons, dynamic font rebuilds,
+diagnostics, native sheets, retained fields, and automatic WinForms feedback
+share existing paths. Focused, neighboring, benchmark, and matching compiled
+Firespider host suites pass. All 135 compatibility probes pass over 130
+fixtures. Three-round medians are 860.342 ms startup, 11.178 ms load, and
+55.986 ms paint; retained memory is 73.2 KiB/page and required files are 695.0
+KiB with a 285.9 KiB GZip estimate. Focused, neighboring, benchmark, full
+source/staged core and edit, matching compiled Firespider host, all 42 Boot,
+and all six real EXE startup suites pass. Runtime 239 is packaged separately as
+`F:\Lea-runtime-239-ready_2026-10-02_19-22-18.zip` while
+installed runtime 157 stays unchanged. See `CONTAINER_QUERY_LENGTHS.md`.
+Viewport/container-relative thresholds, vertical writing, scroll-state
+queries, complete intrinsic containment, arbitrary CSSOM, and general
+JavaScript remain future work.
+
 Milestone 138 adds bounded container-relative dimensions through the existing
 compact size records and measured-container feedback. Unit codes 7..12 cover
 `cqw`, `cqh`, `cqi`, `cqb`, `cqmin`, and `cqmax`; inline and block axes select
@@ -368,8 +386,8 @@ ms paint; retained memory is 73.3 KiB/page and required files are 713.0 KiB
 with a 293.1 KiB GZip estimate. Runtime 238 is packaged separately as
 `F:\Lea-runtime-238-ready_2026-10-02_18-15-09.zip` while installed runtime 157
 stays unchanged. See `CONTAINER_UNITS.md`. Universal container lengths,
-relative query thresholds,
-vertical writing, scroll-state queries, complete intrinsic containment,
+viewport/container-relative query thresholds, vertical writing,
+scroll-state queries, complete intrinsic containment,
 arbitrary CSSOM, and general JavaScript remain future work.
 
 Milestone 137 extends Lea's bounded size-container compiler with reduced

@@ -221,6 +221,11 @@ namespace Lea.Tests
                     ContainerFeatureSmoke(Path.Combine(pages, "container-features.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--container-query-lengths")
+                {
+                    ContainerQueryLengthSmoke(Path.Combine(pages, "container-query-lengths.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--container-units")
                 {
                     ContainerUnitSmoke(Path.Combine(pages, "container-units.html"));
@@ -1658,6 +1663,7 @@ namespace Lea.Tests
                 ContainerStyleSmoke(Path.Combine(pages, "container-style.html"));
                 ContainerSizeSmoke(Path.Combine(pages, "container-size.html"));
                 ContainerFeatureSmoke(Path.Combine(pages, "container-features.html"));
+                ContainerQueryLengthSmoke(Path.Combine(pages, "container-query-lengths.html"));
                 ContainerUnitSmoke(Path.Combine(pages, "container-units.html"));
                 LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
                 HslColorSmoke(Path.Combine(pages, "hsl-colors.html"));
@@ -10653,6 +10659,97 @@ namespace Lea.Tests
                 Eq(160, BlockRect(view, BlockById(view.At, "cqw")).Width, "WinForms wide cqw restoration");
             }
             Console.WriteLine("Lea container unit smoke passed: compact cqw/cqh/cqi/cqb/cqmin/cqmax codes, independent axis selection, viewport fallback, calc/min/max/clamp/variables, computed inheritance, commands, native sheets, retained fields, and bounded WinForms feedback.");
+        }
+
+        private static void ContainerQueryLengthSmoke(string path)
+        {
+            var engine = new E();
+            var page = engine.Go(path);
+            var outerNode = ById(page.D, "outer");
+            var innerNode = ById(page.D, "inner");
+            var emField = FieldById(page, "em-field");
+            var remField = FieldById(page, "rem-field");
+            emField.V = "Retained em query value";
+            remField.V = "Retained rem query value";
+            Ok(!HasBlock(page, "em-direct") && !HasBlock(page, "rem-chain"),
+                "relative query lengths wait for container measurements");
+
+            Eq(1, engine.Cz(page, new List<Cz> { new Cz(outerNode, 500, 300), new Cz(innerNode, 320, 120) }),
+                "relative query length measurement snapshot");
+            Ok(HasBlock(page, "em-direct") && HasBlock(page, "em-legacy") && HasBlock(page, "em-decimal") &&
+                HasBlock(page, "mixed-chain") && HasBlock(page, "em-chain") && HasBlock(page, "rem-chain") &&
+                HasBlock(page, "em-exact") && HasBlock(page, "pixel-decimal") && HasBlock(page, "zero-unitless") &&
+                HasBlock(page, "zero-relative"), "font-relative decimal and zero query forms");
+            Ok(!HasBlock(page, "false-em") && !HasBlock(page, "false-rem") && !HasBlock(page, "wrong-axis") &&
+                !HasBlock(page, "invalid-precision") && !HasBlock(page, "invalid-unitless") &&
+                !HasBlock(page, "invalid-em-limit") && !HasBlock(page, "invalid-pixel-limit") &&
+                !HasBlock(page, "invalid-unit") && !HasBlock(page, "invalid-chain"),
+                "false ineligible and malformed relative query lengths stay inactive");
+            Eq(260, emField.S.W, "container em field width");
+            Eq(270, remField.S.W, "root rem field width");
+            Ok(Object.ReferenceEquals(emField, FieldById(page, "em-field")) &&
+                Object.ReferenceEquals(remField, FieldById(page, "rem-field")) &&
+                emField.V == "Retained em query value" && remField.V == "Retained rem query value",
+                "relative query feedback retains fields");
+            var diagnostics = engine.Dg(page);
+            Ok(Has(diagnostics.Cs, "@c(inner:(width>39em))") &&
+                Has(diagnostics.Cs, "@c(inner:(31.25em<inline-size))") &&
+                Has(diagnostics.Cs, "@c(outer:(49rem<width<=50rem))"),
+                "relative query diagnostics preserve compact units");
+
+            Eq(1, engine.Ck(page, ById(page.D, "large-inner")), "large container font command");
+            Ok(!HasBlock(page, "em-direct") && !HasBlock(page, "em-legacy") && !HasBlock(page, "em-decimal") &&
+                HasBlock(page, "mixed-chain") && HasBlock(page, "pixel-decimal") && HasBlock(page, "rem-chain") &&
+                emField.S.W == 110 && remField.S.W == 270,
+                "container em thresholds use selected container font");
+            Ok(Object.ReferenceEquals(emField, FieldById(page, "em-field")) && emField.V == "Retained em query value",
+                "container font rebuild retains em field");
+            Eq(1, engine.Ck(page, ById(page.D, "small-inner")), "small container font restore command");
+            Ok(HasBlock(page, "em-direct") && emField.S.W == 260, "container em query restoration");
+
+            Eq(1, engine.Ss(page, "relative-root-font", "html{font-size:12px}"), "large root font sheet install");
+            Ok(!HasBlock(page, "rem-chain") && HasBlock(page, "em-direct") && remField.S.W == 120 && emField.S.W == 260,
+                "rem thresholds use computed root font independently");
+            Ok(Object.ReferenceEquals(remField, FieldById(page, "rem-field")) && remField.V == "Retained rem query value",
+                "root font rebuild retains rem field");
+            Eq(1, engine.Sd(page, "relative-root-font"), "large root font sheet remove");
+            Ok(HasBlock(page, "rem-chain") && remField.S.W == 270, "root rem query restoration");
+
+            Eq(1, engine.Ss(page, "container-query-lengths", "@container inner (width >= 40em){#em-legacy{width:231px}}"),
+                "native relative container query sheet install");
+            Eq(231, BlockById(page, "em-legacy").S.W, "native em query sheet width");
+            Eq(1, engine.Sd(page, "container-query-lengths"), "native relative container query sheet remove");
+            Eq(202, BlockById(page, "em-legacy").S.W, "native em query sheet removal restores width");
+
+            using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-30000, -30000), ClientSize = new Size(900, 900) })
+            using (var view = new V { Dock = DockStyle.Fill })
+            {
+                form.Controls.Add(view);
+                form.Show();
+                view.Go(path);
+                Paint(view);
+                Eq(260, BlockRect(view, BlockById(view.At, "em-field")).Width, "WinForms em query geometry");
+                Eq(270, BlockRect(view, BlockById(view.At, "rem-field")).Width, "WinForms rem query geometry");
+                var liveEm = FieldById(view.At, "em-field");
+                var liveRem = FieldById(view.At, "rem-field");
+                liveEm.V = "Retained view em query value";
+                liveRem.V = "Retained view rem query value";
+                Eq(1, view.Ck(ById(view.At.D, "large-inner")), "WinForms large container font command");
+                Paint(view);
+                Eq(110, BlockRect(view, BlockById(view.At, "em-field")).Width, "WinForms large-font em query geometry");
+                Eq(270, BlockRect(view, BlockById(view.At, "rem-field")).Width, "WinForms rem independence from container font");
+                Ok(Object.ReferenceEquals(liveEm, FieldById(view.At, "em-field")) &&
+                    Object.ReferenceEquals(liveRem, FieldById(view.At, "rem-field")) &&
+                    liveEm.V == "Retained view em query value" && liveRem.V == "Retained view rem query value",
+                    "WinForms relative query rebuild retains fields");
+                Eq(1, view.Ck(ById(view.At.D, "small-inner")), "WinForms small container font restore command");
+                Eq(1, view.Ss("relative-root-font", "html{font-size:12px}"), "WinForms large root font sheet install");
+                Paint(view);
+                Eq(260, BlockRect(view, BlockById(view.At, "em-field")).Width, "WinForms em independence from root font");
+                Eq(120, BlockRect(view, BlockById(view.At, "rem-field")).Width, "WinForms large-root rem query geometry");
+                Eq(1, view.Sd("relative-root-font"), "WinForms large root font sheet remove");
+            }
+            Console.WriteLine("Lea relative container query length smoke passed: fixed hundredth px/em/rem terms, container/root font bases, decimal ranges, unitless zero, diagnostics, native sheets, retained fields, and exact WinForms geometry.");
         }
 
         private static void MediaFeatureSmoke(string path)

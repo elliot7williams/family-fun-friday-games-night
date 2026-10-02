@@ -1,0 +1,89 @@
+<!doctype html>
+<html id="root">
+<head>
+  <meta charset="utf-8">
+  <title>Lea Relative Container Query Lengths</title>
+  <style>
+    html { font-size: 10px; }
+    html.root-large { font-size: 12px; }
+    body { font-family: sans-serif; }
+    .outer { container: outer / size; width: 500px; height: 300px; font-size: 20px; }
+    .inner { container: inner / inline-size; width: 320px; height: 120px; font-size: 8px; }
+    .inner.large { font-size: 12px; }
+    .probe { display: none; width: 100px; height: 20px; }
+    #em-field { width: 110px; }
+    #rem-field { width: 120px; }
+
+    @container inner (width > 39em) {
+      #em-direct { display: block; width: 201px; }
+      #em-field { width: 260px; }
+    }
+    @container inner (min-width: 40em) {
+      #em-legacy { display: block; width: 202px; }
+    }
+    @container inner (31.25em < inline-size) {
+      #em-decimal { display: block; width: 203px; }
+    }
+    @container inner (20em < width <= 40rem) {
+      #mixed-chain { display: block; width: 204px; }
+    }
+    @container outer (24em < width < 26em) {
+      #em-chain { display: block; width: 205px; }
+    }
+    @container outer (49rem < width <= 50rem) {
+      #rem-chain { display: block; width: 206px; }
+      #rem-field { width: 270px; }
+    }
+    @container outer (width: 25em) {
+      #em-exact { display: block; width: 207px; }
+    }
+    @container inner (319.5px < width <= 320px) {
+      #pixel-decimal { display: block; width: 208px; }
+    }
+    @container inner (0 < width) {
+      #zero-unitless { display: block; width: 209px; }
+    }
+    @container inner (inline-size >= 0rem) {
+      #zero-relative { display: block; width: 210px; }
+    }
+    @container inner (width > 40.01em) { #false-em { display: block; } }
+    @container outer (width > 50.01rem) { #false-rem { display: block; } }
+    @container inner (height > 1em) { #wrong-axis { display: block; } }
+    @container inner (width > 31.251em) { #invalid-precision { display: block; } }
+    @container inner (width > 2) { #invalid-unitless { display: block; } }
+    @container inner (width > 100.01em) { #invalid-em-limit { display: block; } }
+    @container inner (width > 8192.01px) { #invalid-pixel-limit { display: block; } }
+    @container inner (width > 2vw) { #invalid-unit { display: block; } }
+    @container inner (1em < width > 2em) { #invalid-chain { display: block; } }
+  </style>
+</head>
+<body>
+  <section id="outer" class="outer">
+    <section id="inner" class="inner">
+      <p id="em-direct" class="probe">Direct em query</p>
+      <p id="em-legacy" class="probe">Legacy em query</p>
+      <p id="em-decimal" class="probe">Decimal em query</p>
+      <p id="mixed-chain" class="probe">Mixed em and rem chain</p>
+      <p id="em-chain" class="probe">Container font chain</p>
+      <p id="rem-chain" class="probe">Root font chain</p>
+      <p id="em-exact" class="probe">Exact em query</p>
+      <p id="pixel-decimal" class="probe">Decimal pixel query</p>
+      <p id="zero-unitless" class="probe">Unitless zero query</p>
+      <p id="zero-relative" class="probe">Relative zero query</p>
+      <p id="false-em" class="probe">False em boundary</p>
+      <p id="false-rem" class="probe">False rem boundary</p>
+      <p id="wrong-axis" class="probe">Wrong axis</p>
+      <p id="invalid-precision" class="probe">Invalid precision</p>
+      <p id="invalid-unitless" class="probe">Invalid unitless length</p>
+      <p id="invalid-em-limit" class="probe">Invalid em limit</p>
+      <p id="invalid-pixel-limit" class="probe">Invalid pixel limit</p>
+      <p id="invalid-unit" class="probe">Invalid relative unit</p>
+      <p id="invalid-chain" class="probe">Invalid chain</p>
+      <input id="em-field" value="em query field">
+      <input id="rem-field" value="rem query field">
+    </section>
+  </section>
+  <button id="large-inner" type="button" data-lea="ac('inner','large')">Large container font</button>
+  <button id="small-inner" type="button" data-lea="rc('inner','large')">Small container font</button>
+</body>
+</html>

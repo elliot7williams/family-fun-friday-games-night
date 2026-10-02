@@ -810,8 +810,11 @@ and retains mutable fields during the rebuild. `Lea.Win.V` performs this bridge
 automatically from actual retained content rectangles with a three-pass
 ceiling. Width/height/logical-size, reduced-integer aspect-ratio, and
 portrait/landscape features share named/nearest ancestor selection and bounded
-style-query logic. See `CONTAINER_STYLE_QUERIES.md`,
-`CONTAINER_SIZE_QUERIES.md`, and `CONTAINER_RATIO_ORIENTATION.md`.
+style-query logic. Query thresholds accept fixed-hundredth `px`, selected-
+container `em`, and root `rem` values through compact `p/e/r` codes; hosts do
+not provide font callbacks. See `CONTAINER_STYLE_QUERIES.md`,
+`CONTAINER_SIZE_QUERIES.md`, `CONTAINER_RATIO_ORIENTATION.md`, and
+`CONTAINER_QUERY_LENGTHS.md`.
 Container-relative dimensions reuse those measurements without a host-side
 API: unit codes 7..12 represent `cqw`, `cqh`, `cqi`, `cqb`, `cqmin`, and
 `cqmax`. Inline and block bases select their nearest eligible ancestors

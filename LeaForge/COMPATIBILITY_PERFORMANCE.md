@@ -1,6 +1,6 @@
 # Lea Compatibility and Performance Report
 
-- Generated: **2026-10-01 UTC**
+- Generated: **2026-10-02 UTC**
 - Runtime: **.NET 4.0.30319.42000, 32-bit**
 - Method: **3 clean-process starts; 3 loads per fixture; 3 render rounds at 1024x720**
 
@@ -10,16 +10,16 @@ These are repeatable local diagnostic samples, not performance promises. Re-run 
 
 | Measurement | Result |
 | --- | ---: |
-| Clean process + engine + first page median | 668.801 ms |
-| Clean process + engine + first page p95 | 695.046 ms |
-| Local page load median | 7.022 ms |
-| Local page load p95 | 30.629 ms |
-| Layout + bitmap paint median | 30.869 ms |
-| Layout + bitmap paint p95 | 161.945 ms |
-| Retained managed memory | 37813.5 KB for 516 loaded pages |
-| Retained managed memory per page | 73.3 KB |
-| Engine runtime files | 713.0 KB |
-| Engine runtime GZip estimate | 293.1 KB (41.1% of raw) |
+| Clean process + engine + first page median | 860.342 ms |
+| Clean process + engine + first page p95 | 1061.927 ms |
+| Local page load median | 11.178 ms |
+| Local page load p95 | 56.942 ms |
+| Layout + bitmap paint median | 55.986 ms |
+| Layout + bitmap paint p95 | 297.205 ms |
+| Retained managed memory | 38042.6 KB for 520 loaded pages |
+| Retained managed memory per page | 73.2 KB |
+| Engine runtime files | 695.0 KB |
+| Engine runtime GZip estimate | 285.9 KB (41.1% of raw) |
 
 ## Fixture Loads
 
@@ -27,135 +27,136 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 
 | Fixture | Bytes | Nodes | CSS rules | Median | p95 |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| `index.html` | 1032 | 19 | 1 | 2.563 ms | 2.690 ms |
-| `recovery.html` | 1040 | 39 | 0 | 1.977 ms | 2.576 ms |
-| `html-tokens.html` | 943 | 15 | 2 | 1.495 ms | 2.057 ms |
-| `selectors.html` | 1017 | 20 | 10 | 1.835 ms | 3.125 ms |
-| `selector-functions.html` | 2586 | 23 | 18 | 4.012 ms | 5.892 ms |
-| `selector-arithmetic.html` | 1955 | 25 | 18 | 6.194 ms | 7.101 ms |
-| `selector-filtered-position.html` | 2375 | 25 | 13 | 7.130 ms | 8.306 ms |
-| `selector-relational.html` | 2027 | 28 | 15 | 5.329 ms | 5.372 ms |
-| `layout.html` | 616 | 9 | 4 | 1.805 ms | 2.197 ms |
-| `tables.html` | 894 | 28 | 6 | 3.198 ms | 3.752 ms |
-| `forms.html` | 1566 | 25 | 7 | 3.695 ms | 3.697 ms |
-| `editing.html` | 880 | 18 | 6 | 2.199 ms | 2.322 ms |
-| `retained-data.html` | 1254 | 32 | 4 | 3.193 ms | 3.650 ms |
-| `stylesheets.html` | 829 | 16 | 4 | 2.228 ms | 2.330 ms |
-| `load-lifecycle.html` | 445 | 10 | 4 | 1.159 ms | 1.277 ms |
-| `image-loading.html` | 802 | 12 | 4 | 1.304 ms | 1.375 ms |
-| `image-preflight.html` | 727 | 10 | 2 | 1.561 ms | 2.498 ms |
-| `input-loading.html` | 434 | 13 | 4 | 1.437 ms | 1.932 ms |
-| `cache-identity.html` | 609 | 12 | 2 | 1.091 ms | 1.300 ms |
-| `events-vars.html` | 1132 | 14 | 5 | 3.673 ms | 3.707 ms |
-| `dom-bridge.html` | 2134 | 20 | 5 | 5.225 ms | 7.976 ms |
-| `display-navigation.html` | 1554 | 19 | 6 | 3.315 ms | 3.489 ms |
-| `calculated-widths.html` | 3031 | 41 | 24 | 5.422 ms | 5.631 ms |
-| `calculated-heights.html` | 4598 | 47 | 34 | 7.583 ms | 8.161 ms |
-| `viewport-units.html` | 5907 | 55 | 41 | 14.533 ms | 15.803 ms |
-| `font-relative-units.html` | 5438 | 49 | 35 | 15.795 ms | 16.624 ms |
-| `size-functions.html` | 6894 | 56 | 36 | 16.584 ms | 21.263 ms |
-| `logical-sizing-insets.html` | 3221 | 24 | 16 | 6.338 ms | 6.393 ms |
-| `logical-box-model.html` | 5522 | 25 | 15 | 5.986 ms | 7.679 ms |
-| `logical-borders.html` | 7903 | 25 | 17 | 8.252 ms | 8.694 ms |
-| `direction-logical.html` | 3833 | 30 | 23 | 7.204 ms | 8.509 ms |
-| `direction-layout.html` | 4452 | 62 | 31 | 20.731 ms | 22.954 ms |
-| `direction-inline.html` | 3556 | 60 | 37 | 10.626 ms | 11.158 ms |
-| `sticky-positioning.html` | 1785 | 18 | 13 | 3.945 ms | 3.954 ms |
-| `responsive-media.html` | 2575 | 21 | 5 | 3.448 ms | 3.590 ms |
-| `media-queries.html` | 2229 | 24 | 16 | 29.550 ms | 30.629 ms |
-| `media-features.html` | 2446 | 22 | 17 | 36.254 ms | 38.883 ms |
-| `media-aspect-ratio.html` | 2334 | 22 | 19 | 24.085 ms | 25.096 ms |
-| `media-ranges.html` | 3867 | 32 | 35 | 35.761 ms | 35.960 ms |
-| `media-resolution.html` | 4791 | 39 | 20 | 55.385 ms | 55.530 ms |
-| `media-color-scheme.html` | 2851 | 22 | 10 | 25.588 ms | 27.278 ms |
-| `media-reduced-motion.html` | 2835 | 21 | 9 | 24.153 ms | 29.023 ms |
-| `media-reduced-data.html` | 2791 | 21 | 9 | 26.396 ms | 33.631 ms |
-| `media-contrast.html` | 3630 | 25 | 9 | 40.783 ms | 46.023 ms |
-| `media-scripting.html` | 3101 | 24 | 12 | 30.707 ms | 31.238 ms |
-| `supports-queries.html` | 4457 | 34 | 42 | 9.305 ms | 9.408 ms |
-| `css-supports-script.html` | 1807 | 12 | 3 | 2.230 ms | 2.729 ms |
-| `match-media-script.html` | 1977 | 12 | 3 | 14.100 ms | 15.141 ms |
-| `media-modifiers.html` | 2731 | 20 | 15 | 24.997 ms | 25.345 ms |
-| `media-interaction.html` | 2690 | 24 | 20 | 38.914 ms | 39.147 ms |
-| `cascade-layers.html` | 3619 | 25 | 36 | 7.546 ms | 7.801 ms |
-| `cascade-layer-limits.html` | 2205 | 26 | 16 | 1.959 ms | 1.975 ms |
-| `hsl-colors.html` | 4493 | 34 | 31 | 9.084 ms | 9.816 ms |
-| `hwb-colors.html` | 4859 | 37 | 34 | 9.955 ms | 10.529 ms |
-| `lab-colors.html` | 6060 | 42 | 40 | 11.897 ms | 12.070 ms |
-| `predefined-colors.html` | 6730 | 48 | 50 | 15.489 ms | 16.289 ms |
-| `wide-gamut-colors.html` | 6628 | 45 | 44 | 14.996 ms | 16.089 ms |
-| `oklab-colors.html` | 6533 | 42 | 40 | 14.322 ms | 15.092 ms |
-| `color-mix.html` | 5881 | 39 | 36 | 11.372 ms | 11.526 ms |
-| `custom-properties.html` | 2890 | 23 | 17 | 4.945 ms | 5.477 ms |
-| `important-cascade.html` | 2748 | 19 | 16 | 5.019 ms | 5.179 ms |
-| `container-style.html` | 4164 | 29 | 24 | 10.975 ms | 11.542 ms |
-| `container-size.html` | 3677 | 27 | 23 | 14.437 ms | 14.541 ms |
-| `container-features.html` | 5404 | 37 | 30 | 12.269 ms | 13.232 ms |
-| `container-units.html` | 3725 | 34 | 27 | 7.080 ms | 8.866 ms |
-| `direction-overflow.html` | 2246 | 27 | 20 | 4.034 ms | 4.365 ms |
-| `stacking-contexts.html` | 3149 | 32 | 22 | 6.484 ms | 10.631 ms |
-| `external.html` | 502 | 12 | 6 | 4.979 ms | 5.140 ms |
-| `base-url.html` | 819 | 17 | 5 | 1.461 ms | 2.159 ms |
-| `class-commands.html` | 1169 | 15 | 4 | 2.963 ms | 3.320 ms |
-| `go-command.html` | 971 | 12 | 6 | 2.057 ms | 2.394 ms |
-| `lists.html` | 1849 | 39 | 5 | 3.180 ms | 3.882 ms |
-| `list-style.html` | 5755 | 86 | 36 | 13.503 ms | 14.409 ms |
-| `list-position.html` | 5606 | 67 | 40 | 9.721 ms | 12.596 ms |
-| `list-image.html` | 5824 | 56 | 37 | 11.031 ms | 12.900 ms |
-| `marker.html` | 4091 | 37 | 31 | 7.078 ms | 7.190 ms |
-| `marker-content.html` | 6636 | 51 | 41 | 11.084 ms | 11.472 ms |
-| `marker-counters.html` | 6440 | 80 | 40 | 13.523 ms | 14.086 ms |
-| `css-counters.html` | 10619 | 121 | 87 | 19.116 ms | 20.418 ms |
-| `generated-content.html` | 8369 | 72 | 73 | 15.732 ms | 16.272 ms |
-| `generated-quotes.html` | 4638 | 38 | 73 | 7.577 ms | 7.678 ms |
-| `generated-alt.html` | 3864 | 35 | 34 | 7.472 ms | 7.823 ms |
-| `generated-images.html` | 3982 | 31 | 29 | 6.857 ms | 6.976 ms |
-| `disclosure.html` | 2270 | 34 | 9 | 4.169 ms | 4.206 ms |
-| `fragments.html` | 2234 | 31 | 11 | 3.372 ms | 3.416 ms |
-| `fragment-stability.html` | 1515 | 13 | 3 | 1.405 ms | 1.620 ms |
-| `gauges.html` | 2115 | 25 | 14 | 2.944 ms | 3.260 ms |
-| `values.html` | 1734 | 26 | 7 | 2.061 ms | 2.429 ms |
-| `time-edits.html` | 1966 | 27 | 7 | 2.437 ms | 3.192 ms |
-| `image-maps.html` | 2569 | 30 | 6 | 2.230 ms | 2.270 ms |
-| `keyboard-focus.html` | 3721 | 41 | 18 | 5.172 ms | 5.542 ms |
-| `focus-shortcuts.html` | 1838 | 20 | 13 | 2.505 ms | 2.546 ms |
-| `accessibility.html` | 3148 | 60 | 4 | 4.340 ms | 4.592 ms |
-| `state-commands.html` | 2711 | 37 | 9 | 6.575 ms | 7.136 ms |
-| `flex.html` | 6942 | 57 | 57 | 13.799 ms | 14.383 ms |
-| `grid.html` | 5699 | 62 | 37 | 15.368 ms | 15.850 ms |
-| `grid-areas.html` | 3189 | 31 | 20 | 6.274 ms | 6.562 ms |
-| `grid-lines.html` | 5342 | 45 | 31 | 10.672 ms | 11.080 ms |
-| `grid-flow.html` | 4271 | 45 | 38 | 11.386 ms | 12.806 ms |
-| `grid-auto-tracks.html` | 4332 | 41 | 25 | 8.414 ms | 8.541 ms |
-| `grid-shorthand.html` | 5060 | 48 | 33 | 12.441 ms | 12.530 ms |
-| `grid-alignment.html` | 3129 | 27 | 23 | 5.824 ms | 6.409 ms |
-| `grid-content-alignment.html` | 2723 | 37 | 18 | 8.464 ms | 9.353 ms |
-| `svg.html` | 1775 | 25 | 4 | 2.292 ms | 2.630 ms |
-| `svg-geometry.html` | 2470 | 31 | 2 | 3.114 ms | 3.583 ms |
-| `svg-gradients.html` | 3238 | 43 | 3 | 2.862 ms | 3.231 ms |
-| `svg-use-clips.html` | 2947 | 48 | 3 | 3.201 ms | 3.827 ms |
-| `svg-strokes.html` | 2832 | 28 | 5 | 3.349 ms | 3.745 ms |
-| `box-sizing.html` | 2744 | 20 | 13 | 3.498 ms | 3.797 ms |
-| `border-radius.html` | 1695 | 16 | 12 | 2.640 ms | 3.301 ms |
-| `logical-radii.html` | 4754 | 22 | 14 | 4.374 ms | 4.687 ms |
-| `box-shadows.html` | 2445 | 22 | 19 | 3.969 ms | 5.130 ms |
-| `background-gradients.html` | 2943 | 22 | 19 | 3.940 ms | 4.259 ms |
-| `background-images.html` | 4326 | 26 | 23 | 7.433 ms | 7.754 ms |
-| `object-fit.html` | 5828 | 25 | 16 | 5.625 ms | 5.635 ms |
-| `aspect-ratio.html` | 5640 | 49 | 38 | 10.719 ms | 11.199 ms |
-| `outlines.html` | 2871 | 23 | 19 | 7.811 ms | 10.739 ms |
-| `pointer-interaction.html` | 3471 | 30 | 27 | 8.659 ms | 9.150 ms |
-| `text-transform.html` | 3150 | 32 | 25 | 7.242 ms | 7.549 ms |
-| `text-spacing.html` | 3942 | 33 | 26 | 8.661 ms | 8.701 ms |
-| `text-indent.html` | 2947 | 26 | 20 | 7.097 ms | 7.864 ms |
-| `text-decoration.html` | 3829 | 34 | 24 | 7.954 ms | 8.544 ms |
-| `text-underline-offset.html` | 4690 | 36 | 29 | 8.862 ms | 9.088 ms |
-| `text-wrap.html` | 5382 | 47 | 35 | 10.825 ms | 11.295 ms |
-| `text-align.html` | 4395 | 44 | 32 | 9.971 ms | 10.360 ms |
-| `text-align-last.html` | 3465 | 38 | 27 | 7.978 ms | 8.302 ms |
-| `text-shadow.html` | 2640 | 25 | 19 | 6.009 ms | 6.966 ms |
-| `text-overflow.html` | 3878 | 34 | 26 | 9.235 ms | 9.303 ms |
-| `line-clamp.html` | 5339 | 46 | 29 | 10.868 ms | 11.643 ms |
+| `index.html` | 1032 | 19 | 1 | 3.688 ms | 6.543 ms |
+| `recovery.html` | 1040 | 39 | 0 | 3.260 ms | 5.111 ms |
+| `html-tokens.html` | 943 | 15 | 2 | 3.050 ms | 3.919 ms |
+| `selectors.html` | 1017 | 20 | 10 | 3.915 ms | 5.608 ms |
+| `selector-functions.html` | 2586 | 23 | 18 | 6.022 ms | 18.843 ms |
+| `selector-arithmetic.html` | 1955 | 25 | 18 | 5.403 ms | 8.170 ms |
+| `selector-filtered-position.html` | 2375 | 25 | 13 | 9.224 ms | 13.065 ms |
+| `selector-relational.html` | 2027 | 28 | 15 | 4.739 ms | 6.928 ms |
+| `layout.html` | 616 | 9 | 4 | 1.680 ms | 1.808 ms |
+| `tables.html` | 894 | 28 | 6 | 4.514 ms | 6.094 ms |
+| `forms.html` | 1566 | 25 | 7 | 4.128 ms | 9.346 ms |
+| `editing.html` | 880 | 18 | 6 | 2.860 ms | 3.815 ms |
+| `retained-data.html` | 1254 | 32 | 4 | 3.668 ms | 4.073 ms |
+| `stylesheets.html` | 829 | 16 | 4 | 1.820 ms | 2.122 ms |
+| `load-lifecycle.html` | 445 | 10 | 4 | 0.832 ms | 1.331 ms |
+| `image-loading.html` | 802 | 12 | 4 | 1.545 ms | 3.294 ms |
+| `image-preflight.html` | 727 | 10 | 2 | 2.127 ms | 2.151 ms |
+| `input-loading.html` | 434 | 13 | 4 | 2.042 ms | 2.411 ms |
+| `cache-identity.html` | 609 | 12 | 2 | 2.081 ms | 2.745 ms |
+| `events-vars.html` | 1132 | 14 | 5 | 3.444 ms | 3.947 ms |
+| `dom-bridge.html` | 2134 | 20 | 5 | 5.475 ms | 6.194 ms |
+| `display-navigation.html` | 1554 | 19 | 6 | 4.232 ms | 4.556 ms |
+| `calculated-widths.html` | 3031 | 41 | 24 | 12.647 ms | 13.193 ms |
+| `calculated-heights.html` | 4598 | 47 | 34 | 14.969 ms | 15.340 ms |
+| `viewport-units.html` | 5907 | 55 | 41 | 13.986 ms | 16.126 ms |
+| `font-relative-units.html` | 5438 | 49 | 35 | 15.906 ms | 16.521 ms |
+| `size-functions.html` | 6894 | 56 | 36 | 21.975 ms | 22.119 ms |
+| `logical-sizing-insets.html` | 3221 | 24 | 16 | 5.032 ms | 9.731 ms |
+| `logical-box-model.html` | 5522 | 25 | 15 | 9.344 ms | 12.321 ms |
+| `logical-borders.html` | 7903 | 25 | 17 | 10.098 ms | 10.134 ms |
+| `direction-logical.html` | 3833 | 30 | 23 | 5.537 ms | 6.596 ms |
+| `direction-layout.html` | 4452 | 62 | 31 | 17.419 ms | 25.336 ms |
+| `direction-inline.html` | 3556 | 60 | 37 | 11.127 ms | 11.285 ms |
+| `sticky-positioning.html` | 1785 | 18 | 13 | 2.838 ms | 6.190 ms |
+| `responsive-media.html` | 2575 | 21 | 5 | 3.224 ms | 4.941 ms |
+| `media-queries.html` | 2229 | 24 | 16 | 31.397 ms | 31.924 ms |
+| `media-features.html` | 2446 | 22 | 17 | 31.267 ms | 34.681 ms |
+| `media-aspect-ratio.html` | 2334 | 22 | 19 | 32.765 ms | 39.984 ms |
+| `media-ranges.html` | 3867 | 32 | 35 | 71.238 ms | 79.544 ms |
+| `media-resolution.html` | 4791 | 39 | 20 | 106.133 ms | 109.955 ms |
+| `media-color-scheme.html` | 2851 | 22 | 10 | 56.942 ms | 68.975 ms |
+| `media-reduced-motion.html` | 2835 | 21 | 9 | 61.282 ms | 62.805 ms |
+| `media-reduced-data.html` | 2791 | 21 | 9 | 43.767 ms | 50.545 ms |
+| `media-contrast.html` | 3630 | 25 | 9 | 66.823 ms | 70.976 ms |
+| `media-scripting.html` | 3101 | 24 | 12 | 63.242 ms | 63.901 ms |
+| `supports-queries.html` | 4457 | 34 | 42 | 21.180 ms | 25.829 ms |
+| `css-supports-script.html` | 1807 | 12 | 3 | 3.286 ms | 8.042 ms |
+| `match-media-script.html` | 1977 | 12 | 3 | 54.577 ms | 78.991 ms |
+| `media-modifiers.html` | 2731 | 20 | 15 | 49.871 ms | 79.572 ms |
+| `media-interaction.html` | 2690 | 24 | 20 | 96.177 ms | 117.997 ms |
+| `cascade-layers.html` | 3619 | 25 | 36 | 13.474 ms | 13.936 ms |
+| `cascade-layer-limits.html` | 2205 | 26 | 16 | 3.683 ms | 5.396 ms |
+| `hsl-colors.html` | 4493 | 34 | 31 | 21.911 ms | 24.334 ms |
+| `hwb-colors.html` | 4859 | 37 | 34 | 26.334 ms | 36.435 ms |
+| `lab-colors.html` | 6060 | 42 | 40 | 27.616 ms | 35.199 ms |
+| `predefined-colors.html` | 6730 | 48 | 50 | 31.505 ms | 32.060 ms |
+| `wide-gamut-colors.html` | 6628 | 45 | 44 | 43.570 ms | 49.406 ms |
+| `oklab-colors.html` | 6533 | 42 | 40 | 31.556 ms | 32.929 ms |
+| `color-mix.html` | 5881 | 39 | 36 | 23.579 ms | 29.352 ms |
+| `custom-properties.html` | 2890 | 23 | 17 | 8.105 ms | 12.286 ms |
+| `important-cascade.html` | 2748 | 19 | 16 | 7.969 ms | 12.743 ms |
+| `container-style.html` | 4164 | 29 | 24 | 20.443 ms | 25.024 ms |
+| `container-size.html` | 3677 | 27 | 23 | 28.642 ms | 29.707 ms |
+| `container-features.html` | 5404 | 37 | 30 | 27.343 ms | 40.698 ms |
+| `container-query-lengths.html` | 4013 | 31 | 24 | 23.728 ms | 27.806 ms |
+| `container-units.html` | 3725 | 34 | 27 | 10.333 ms | 19.767 ms |
+| `direction-overflow.html` | 2246 | 27 | 20 | 4.305 ms | 7.333 ms |
+| `stacking-contexts.html` | 3149 | 32 | 22 | 6.113 ms | 9.353 ms |
+| `external.html` | 502 | 12 | 6 | 7.196 ms | 7.968 ms |
+| `base-url.html` | 819 | 17 | 5 | 2.156 ms | 3.419 ms |
+| `class-commands.html` | 1169 | 15 | 4 | 1.808 ms | 2.241 ms |
+| `go-command.html` | 971 | 12 | 6 | 3.162 ms | 5.405 ms |
+| `lists.html` | 1849 | 39 | 5 | 5.219 ms | 5.928 ms |
+| `list-style.html` | 5755 | 86 | 36 | 19.064 ms | 24.375 ms |
+| `list-position.html` | 5606 | 67 | 40 | 15.954 ms | 17.056 ms |
+| `list-image.html` | 5824 | 56 | 37 | 17.281 ms | 20.270 ms |
+| `marker.html` | 4091 | 37 | 31 | 7.987 ms | 10.528 ms |
+| `marker-content.html` | 6636 | 51 | 41 | 15.003 ms | 18.166 ms |
+| `marker-counters.html` | 6440 | 80 | 40 | 19.719 ms | 24.457 ms |
+| `css-counters.html` | 10619 | 121 | 87 | 28.587 ms | 33.382 ms |
+| `generated-content.html` | 8369 | 72 | 73 | 25.332 ms | 32.286 ms |
+| `generated-quotes.html` | 4638 | 38 | 73 | 17.221 ms | 18.279 ms |
+| `generated-alt.html` | 3864 | 35 | 34 | 10.475 ms | 11.285 ms |
+| `generated-images.html` | 3982 | 31 | 29 | 7.590 ms | 10.230 ms |
+| `disclosure.html` | 2270 | 34 | 9 | 6.204 ms | 7.215 ms |
+| `fragments.html` | 2234 | 31 | 11 | 6.340 ms | 7.003 ms |
+| `fragment-stability.html` | 1515 | 13 | 3 | 1.573 ms | 2.163 ms |
+| `gauges.html` | 2115 | 25 | 14 | 3.226 ms | 6.687 ms |
+| `values.html` | 1734 | 26 | 7 | 2.788 ms | 3.519 ms |
+| `time-edits.html` | 1966 | 27 | 7 | 3.483 ms | 4.963 ms |
+| `image-maps.html` | 2569 | 30 | 6 | 5.144 ms | 5.736 ms |
+| `keyboard-focus.html` | 3721 | 41 | 18 | 10.058 ms | 11.883 ms |
+| `focus-shortcuts.html` | 1838 | 20 | 13 | 4.746 ms | 5.531 ms |
+| `accessibility.html` | 3148 | 60 | 4 | 5.420 ms | 7.007 ms |
+| `state-commands.html` | 2711 | 37 | 9 | 7.070 ms | 9.569 ms |
+| `flex.html` | 6942 | 57 | 57 | 18.684 ms | 18.929 ms |
+| `grid.html` | 5699 | 62 | 37 | 23.988 ms | 24.551 ms |
+| `grid-areas.html` | 3189 | 31 | 20 | 10.224 ms | 11.372 ms |
+| `grid-lines.html` | 5342 | 45 | 31 | 21.111 ms | 30.137 ms |
+| `grid-flow.html` | 4271 | 45 | 38 | 25.871 ms | 28.188 ms |
+| `grid-auto-tracks.html` | 4332 | 41 | 25 | 18.565 ms | 25.534 ms |
+| `grid-shorthand.html` | 5060 | 48 | 33 | 18.261 ms | 19.663 ms |
+| `grid-alignment.html` | 3129 | 27 | 23 | 14.349 ms | 16.141 ms |
+| `grid-content-alignment.html` | 2723 | 37 | 18 | 18.194 ms | 20.183 ms |
+| `svg.html` | 1775 | 25 | 4 | 3.421 ms | 6.841 ms |
+| `svg-geometry.html` | 2470 | 31 | 2 | 5.604 ms | 7.021 ms |
+| `svg-gradients.html` | 3238 | 43 | 3 | 5.322 ms | 6.269 ms |
+| `svg-use-clips.html` | 2947 | 48 | 3 | 11.229 ms | 11.897 ms |
+| `svg-strokes.html` | 2832 | 28 | 5 | 5.328 ms | 8.051 ms |
+| `box-sizing.html` | 2744 | 20 | 13 | 8.356 ms | 11.074 ms |
+| `border-radius.html` | 1695 | 16 | 12 | 2.916 ms | 3.210 ms |
+| `logical-radii.html` | 4754 | 22 | 14 | 7.583 ms | 8.553 ms |
+| `box-shadows.html` | 2445 | 22 | 19 | 7.119 ms | 7.334 ms |
+| `background-gradients.html` | 2943 | 22 | 19 | 7.456 ms | 9.950 ms |
+| `background-images.html` | 4326 | 26 | 23 | 14.995 ms | 17.227 ms |
+| `object-fit.html` | 5828 | 25 | 16 | 13.211 ms | 14.906 ms |
+| `aspect-ratio.html` | 5640 | 49 | 38 | 21.335 ms | 23.162 ms |
+| `outlines.html` | 2871 | 23 | 19 | 13.635 ms | 15.748 ms |
+| `pointer-interaction.html` | 3471 | 30 | 27 | 21.011 ms | 22.865 ms |
+| `text-transform.html` | 3150 | 32 | 25 | 13.217 ms | 17.659 ms |
+| `text-spacing.html` | 3942 | 33 | 26 | 13.218 ms | 15.488 ms |
+| `text-indent.html` | 2947 | 26 | 20 | 10.293 ms | 10.335 ms |
+| `text-decoration.html` | 3829 | 34 | 24 | 12.933 ms | 17.225 ms |
+| `text-underline-offset.html` | 4690 | 36 | 29 | 16.635 ms | 19.028 ms |
+| `text-wrap.html` | 5382 | 47 | 35 | 22.269 ms | 22.313 ms |
+| `text-align.html` | 4395 | 44 | 32 | 21.815 ms | 23.975 ms |
+| `text-align-last.html` | 3465 | 38 | 27 | 16.395 ms | 24.054 ms |
+| `text-shadow.html` | 2640 | 25 | 19 | 13.856 ms | 14.152 ms |
+| `text-overflow.html` | 3878 | 34 | 26 | 28.169 ms | 36.575 ms |
+| `line-clamp.html` | 5339 | 46 | 29 | 24.926 ms | 34.917 ms |
 
 ## Executable Probes
 
@@ -210,6 +211,7 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 | Style container queries | PASS | bounded exact custom-property style queries, named and nearest ancestors, not/and/or, nested containers/media/supports/layers, diagnostics, class and native-sheet rebuilds, retained fields, and WinForms geometry |
 | Size container queries | PASS | bounded container shorthand and S.Ct types, atomic E.Cz content-box feedback, named and nearest width/height ranges, style combinations, nesting, diagnostics, retained fields, and automatic bounded WinForms relayout |
 | Container ratio and orientation queries | PASS | bounded container aspect-ratio boolean/exact/min/max/direct/value-first/chained ranges and portrait/landscape features, both-axis eligibility, nested logic, diagnostics, retained fields, and automatic WinForms relayout |
+| Relative container query lengths | PASS | fixed-hundredth px/em/rem size-query terms, selected-container and root font bases, decimal ranges, unitless zero, diagnostics, native sheets, retained fields, and exact WinForms feedback |
 | Container relative units | PASS | compact cqw/cqh/cqi/cqb/cqmin/cqmax codes, per-axis nearest containers, viewport fallback, calc/min/max/clamp/variables, computed inheritance, commands, native sheets, retained fields, and bounded WinForms feedback |
 | CSS cascade layers | PASS | named and nested @layer blocks, later-normal/unlayered/earlier-important/inline precedence, local specificity and source order, custom properties, pseudo content, supports/media nesting, native sheets, 16-layer bounds, diagnostics, retention, and live resize |
 | Modern HSL colors | PASS | legacy comma and modern space/slash hsl/hsla, degree/grad/radian/turn hue normalization, channel clamping, alpha, supports, variables, layers, shadows, gradients, generated content, fields, SVG, responsive paint, and retention |
@@ -307,8 +309,7 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 | Media query modifiers | Supported subset | Whole-query not, no-op only before a media type, fixed screen/all matching, fixed print non-matching, comma alternatives, nested predicate intersections, style media, diagnostics, and shared host/script matchMedia evaluation; nested logical conditions, speech, and arbitrary unknown media types remain unsupported |
 | Interaction media queries | Supported subset | Boolean and exact pointer none/coarse/fine, hover none/hover, any-pointer unions including simultaneous coarse and fine, and any-hover queries with compact Pt/Hv/Ap/Ah/Mi aliases, nesting, style media, diagnostics, retained fields, live matchMedia guards, and conservative Windows mouse/touch/pen plumbing; dynamic per-device identity and non-Windows automatic detection remain unsupported |
 | Style container queries | Supported subset | Bounded exact custom-property style() tests over nearest or named ancestor containers, computed container-name lists through compact S.Cn, grouped not/and/or logic, nested containers/media/supports/layers, diagnostics, class and native-sheet rebuilds, retained fields, and WinForms geometry; scroll-state, general-property, relative-value, and container-unit queries remain unsupported |
-| Size container queries | Supported subset | Bounded normal/inline-size/size container types through compact S.Ct, container-name/type shorthand, atomic E.Cz content-box snapshots, automatic WinForms feedback with a three-pass ceiling, nearest and named width/height/inline-size/block-size integer-pixel comparisons, reduced integer aspect-ratio boolean/exact/min/max and strict/inclusive feature/value-first/chained ranges, portrait/landscape orientation with square portrait semantics, not/and/or, style combinations, nesting, diagnostics, native sheets, and retained fields; scroll-state, relative query thresholds, and vertical writing modes remain unsupported |
-| Container relative units | Supported subset | Bounded cqw/cqh/cqi/cqb/cqmin/cqmax width/height dimensions and constraints use compact codes 7..12, independent nearest inline/block container selection, client-viewport fallback, calc/min/max/clamp/custom-property values, explicit computed inheritance, commands, native sheets, retained fields, and the shared three-pass feedback; other property families and vertical writing remain unsupported |
+| Size container queries | Supported subset | Bounded normal/inline-size/size container types through compact S.Ct, container-name/type shorthand, atomic E.Cz content-box snapshots, automatic WinForms feedback with a three-pass ceiling, nearest and named width/height/inline-size/block-size integer-pixel comparisons, reduced integer aspect-ratio boolean/exact/min/max and strict/inclusive feature/value-first/chained ranges, portrait/landscape orientation with square portrait semantics, not/and/or, style combinations, nesting, diagnostics, native sheets, and retained fields; scroll-state, relative units, writing modes, and container units remain unsupported |
 | Preferred contrast media queries | Supported subset | Boolean and exact no-preference/less/more/custom queries with compact Pc aliases, nested intersections, diagnostics, retained fields, and Windows High Contrast mapped conservatively to custom; forced palette enforcement and forced-colors remain unsupported |
 | Scripting media queries | Supported subset | Boolean and exact none/initial-only/enabled queries reuse the compact Je host permission alias, nested intersections, diagnostics, retained fields, and responsive paint; Lea reports enabled or none, recognizes initial-only as valid but never reports that mode, and does not add a general JavaScript runtime |
 | Layout and painting | Partial | Custom WinForms content/border box, normalized rounded backgrounds/borders/outlines/overflow/fields/box-shadows/gradients, bounded offset and lightweight blurred text shadows, native fast-path plus lightweight offset-aware solid/double/dotted/dashed/wavy text decorations, direction-aware source-stable inline atoms including bounded before/after generated runs, bounded same-count balanced wrapping and 1..32 line clamping, inside/outside text and image markers with isolated pseudo style and concatenated generated text content, first-line indentation, inherited logical all/final/forced-line alignment, and paint-only single-line ellipsis geometry, invariant transformed and spacing-aware presentation text with raw form retention, shared line-edge and inline-boundary tracking metrics, fitted raster images and maps, shared aspect-ratio sizing, pointer-gated retained hits with underlying fallthrough, row/column flex, bounded grid, table, form, inline vector, clipping, scroll, and stacking renderer |
@@ -340,11 +341,11 @@ Each sample includes local file input, HTML parsing, CSS compilation, document m
 
 | Artifact | Bytes | Size |
 | --- | ---: | ---: |
-| `Lea.Engine.dll` | 420352 | 410.5 KB |
-| `Lea.Win.dll` | 300544 | 293.5 KB |
+| `Lea.Engine.dll` | 411648 | 402.0 KB |
+| `Lea.Win.dll` | 290816 | 284.0 KB |
 | `Lea.Image.exe` | 9216 | 9.0 KB |
-| `Lea.Win.Test.exe` | 396800 | 387.5 KB |
-| `Lea.Bench.exe` | 566784 | 553.5 KB |
+| `Lea.Win.Test.exe` | 395776 | 386.5 KB |
+| `Lea.Bench.exe` | 536576 | 524.0 KB |
 | `Firespider Internet 19.exe` | 1117696 | 1091.5 KB |
 
 The engine runtime size is `Lea.Engine.dll`, `Lea.Win.dll`, and the required `Lea.Image.exe` decoder helper. Test and report executables are listed separately and are not required when embedding Lea in Firespider.

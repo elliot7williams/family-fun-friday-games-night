@@ -273,6 +273,10 @@ min/max and strict/inclusive feature-first/value-first/chained ranges plus
 portrait/landscape orientation, square portrait semantics, both-axis
 eligibility, nested logic, diagnostics, malformed rejection, native sheets,
 retained fields, and automatic bounded WinForms relayout.
+`--container-query-lengths` isolates fixed-hundredth `px`/`em`/`rem` size-query
+thresholds, selected-container and root font bases, decimals, unitless zero,
+all comparison forms, dynamic fonts, diagnostics, malformed bounds, native
+sheets, retained fields, and exact WinForms geometry.
 `--container-units` isolates compact `cqw`/`cqh`/`cqi`/`cqb`/`cqmin`/`cqmax`
 dimension codes, independent nearest inline/block ancestor selection, viewport
 fallback, calculations and size functions, custom properties, computed

@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **138**
+Post-1.0 hardening milestones completed: **139**
 
 Broader lightweight-browser readiness: **about 65%**. This is a practical
 project estimate, not a standards conformance score. Full Chrome/Safari-class
@@ -33,6 +33,27 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded font-relative size-container query thresholds to the existing
+  compact `Kx` tree. Pixel, selected-container `em`, and root `rem` values use
+  fixed integer hundredths and one-character `p/e/r` codes, accept up to two
+  fractional digits, compose across legacy/direct/value-first/chained forms,
+  and allow unitless zero without runtime decimal or floating-point parsing.
+  Dynamic container and root fonts reevaluate independently while `E.Cz`
+  measurements and mutable fields remain retained. A dedicated fixture covers
+  mixed-unit chains, exact boundaries, malformed limits, axis eligibility,
+  diagnostics, native sheets, and exact WinForms geometry. Focused,
+  neighboring, benchmark, full source/staged core and edit, matching compiled
+  Firespider host, all 42 Boot, and all six real EXE startup suites pass.
+  All 135 compatibility probes pass over 130 fixtures. Three-round diagnostic
+  medians are 860.342 ms clean start, 11.178 ms local load, and 55.986 ms
+  layout/paint. Retained managed memory is 38,042.6 KiB for 520 pages, or 73.2
+  KiB/page. Required runtime files are 695.0 KiB with a 285.9 KiB GZip
+  estimate. Runtime 239 is packaged separately as
+  `F:\Lea-runtime-239-ready_2026-10-02_19-22-18.zip`; installed runtime 157
+  remains unchanged. Viewport/container-relative query thresholds, vertical writing,
+  scroll-state queries, and complete intrinsic containment remain future work.
+  See `CONTAINER_QUERY_LENGTHS.md`.
 
 - Added bounded `cqw`, `cqh`, `cqi`, `cqb`, `cqmin`, and `cqmax` dimensions to
   the compact width/height tuple and size-function path. Unit codes 7..12 use
