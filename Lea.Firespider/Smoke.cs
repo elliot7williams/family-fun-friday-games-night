@@ -45,6 +45,8 @@ namespace Lea.Firespider
                     .Replace("</body>", "<section id='host-container-shell' class='host-container-shell'><div id='host-container-inner' class='host-container-inner'><p id='host-container-compact' class='host-container-compact'>Compact container host</p><p id='host-container-wide' class='host-container-wide'>Wide container host</p><p id='host-container-nested' class='host-container-nested'>Nested container host</p><p id='host-container-size-wide' class='host-container-size-wide'>Wide size container host</p><p id='host-container-size-high' class='host-container-size-high'>High size container host</p><p id='host-container-size-narrow' class='host-container-size-narrow'>Narrow size container host</p><input id='host-container-field' value='container host'><input id='host-container-size-field' value='size container host'></div></section></body>")
                     .Replace("</style>", ".host-container-feature{container:host-feature / size;width:320px;height:240px}.host-container-feature.portrait{width:180px;height:300px}.host-feature-landscape,.host-feature-portrait,.host-feature-ratio{display:none}#host-feature-field{width:100px}@container host-feature (orientation:landscape){#host-feature-landscape{display:block;width:245px}#host-feature-field{width:240px}}@container host-feature (orientation:portrait){#host-feature-portrait{display:block;width:246px}#host-feature-field{width:140px}}@container host-feature (aspect-ratio:4/3){#host-feature-ratio{display:block;width:247px}}@container host-feature (1/1 < aspect-ratio <= 4/3){#host-feature-ratio{height:31px}}</style>")
                     .Replace("</body>", "<section id='host-container-feature' class='host-container-feature'><p id='host-feature-landscape' class='host-feature-landscape'>Landscape container host</p><p id='host-feature-portrait' class='host-feature-portrait'>Portrait container host</p><p id='host-feature-ratio' class='host-feature-ratio'>Ratio container host</p><input id='host-feature-field' value='container feature host'></section></body>")
+                    .Replace("</style>", ".host-container-unit{container:host-unit / size;width:360px;height:240px}.host-container-unit.narrow{width:200px}#host-unit-cqw{width:50cqw;height:20px}#host-unit-cqh{width:50cqh;height:20px}#host-unit-min{width:10cqmin;height:20px}#host-unit-max{width:80px;height:10cqmax}#host-unit-field{display:block;width:25cqw;height:30px}</style>")
+                    .Replace("</body>", "<section id='host-container-unit' class='host-container-unit'><p id='host-unit-cqw'>Container width unit host</p><p id='host-unit-cqh'>Container height unit host</p><p id='host-unit-min'>Container minimum unit host</p><p id='host-unit-max'>Container maximum unit host</p><input id='host-unit-field' value='container unit host'></section></body>")
                     .Replace("</style>", ".host-bitmap{width:140px;height:50px;background:#fff url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAANSURBVBhXYxDP9v0PAAM7Ac+IRop4AAAAAElFTkSuQmCC') no-repeat right bottom/24px 18px;border-radius:12px}</style>")
                     .Replace("<section id='host-flex'", "<p id='host-bitmap' class='host-bitmap'>Bitmap host</p><section id='host-flex'")
                     .Replace("</style>", ".host-ratio{width:160px;aspect-ratio:2/1;background:#dff6e9}</style>")
@@ -1255,6 +1257,7 @@ namespace Lea.Firespider
                     var hostContainerField = FieldById(host.At, "host-container-field");
                     var hostContainerSizeField = FieldById(host.At, "host-container-size-field");
                     var hostContainerFeatureField = FieldById(host.At, "host-feature-field");
+                    var hostContainerUnitField = FieldById(host.At, "host-unit-field");
                     Check(host.Su("container-name", "host-shell") && host.Su("container-type", "inline-size") &&
                         host.Su("container", "host-shell / inline-size") && hostContainerShell.S.Cn == "host-shell" &&
                         hostContainerShell.S.Ct == "i" && hostContainerInner.S.Cn == "host-inner" && hostContainerInner.S.Ct == "s",
@@ -1320,6 +1323,26 @@ namespace Lea.Firespider
                         Object.ReferenceEquals(hostContainerFeatureField, FieldById(host.At, "host-feature-field")) &&
                         hostContainerFeatureField.V == "Retained feature container host value",
                         "Firespider landscape container feature restoration");
+                    Check(host.Su("width", "50cqw") && host.Su("height", "25cqh") &&
+                        BlockContent(host, "host-unit-cqw").Width == 180 && BlockContent(host, "host-unit-cqh").Width == 120 &&
+                        BlockContent(host, "host-unit-min").Width == 24 && BlockContent(host, "host-unit-max").Height == 36 &&
+                        BlockContent(host, "host-unit-field").Width == 90,
+                        "Firespider automatic container unit geometry");
+                    hostContainerUnitField.V = "Retained container unit host value";
+                    Check(host.Js("ac('host-container-unit','narrow')") == 1, "Firespider narrow container unit command");
+                    PaintView(host);
+                    Check(BlockContent(host, "host-unit-cqw").Width == 100 && BlockContent(host, "host-unit-cqh").Width == 120 &&
+                        BlockContent(host, "host-unit-min").Width == 20 && BlockContent(host, "host-unit-max").Height == 24 &&
+                        BlockContent(host, "host-unit-field").Width == 50 &&
+                        Object.ReferenceEquals(hostContainerUnitField, FieldById(host.At, "host-unit-field")) &&
+                        hostContainerUnitField.V == "Retained container unit host value",
+                        "Firespider dynamic container unit feedback and retained field");
+                    Check(host.Js("rc('host-container-unit','narrow')") == 1, "Firespider container unit restore command");
+                    PaintView(host);
+                    Check(BlockContent(host, "host-unit-cqw").Width == 180 && BlockContent(host, "host-unit-field").Width == 90 &&
+                        Object.ReferenceEquals(hostContainerUnitField, FieldById(host.At, "host-unit-field")) &&
+                        hostContainerUnitField.V == "Retained container unit host value",
+                        "Firespider container unit restoration");
                     PaintView(host);
                     hostResponsiveField.V = "Retained match media host value";
                     Check(host.Js("if(window.matchMedia('(width:" + host.Vw + "px)').matches){if(matchMedia('not print').matches){if(matchMedia('(pointer:fine)').matches){ac('class-state','host-media-script');}}}") == 1 &&
@@ -1764,7 +1787,7 @@ namespace Lea.Firespider
                     Check(host.Ck(ById(host.At.D, "host-value-update")) == 1 && ValueById(host.At, "host-output").V == "Updated host total", "Firespider output value rebuild");
                     Check(host.Ck(ById(host.At.D, "host-time-update")) == 1 && ValueById(host.At, "host-time").Dt == "2026-08-22", "Firespider time metadata rebuild");
                     var diagnostics = host.Dg();
-                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 133 && diagnostics.Rs.Count > 0,
+                    Check(diagnostics != null && diagnostics.N > 0 && diagnostics.J == 135 && diagnostics.Rs.Count > 0,
                         "Firespider Lea diagnostics: nodes=" + (diagnostics == null ? -1 : diagnostics.N) +
                         ", commands=" + (diagnostics == null ? -1 : diagnostics.J) +
                         ", requests=" + (diagnostics == null ? -1 : diagnostics.Rs.Count));

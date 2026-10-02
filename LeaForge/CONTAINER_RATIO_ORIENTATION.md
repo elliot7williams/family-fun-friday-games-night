@@ -72,9 +72,13 @@ orientation, unmeasured, and axis-ineligible queries stay inactive.
 
 ## Deliberately Unsupported
 
-Decimal or single-number ratio syntax, relative query lengths, container units,
-vertical writing modes, scroll-state queries, query CSSOM, and complete
+Decimal or single-number ratio syntax, relative query lengths, vertical writing
+modes, scroll-state queries, query CSSOM, and complete
 intrinsic size-containment effects remain outside this milestone.
+
+Milestone 138 adds container-relative dimension units over the same content-box
+measurements; see `CONTAINER_UNITS.md`. Those units are not accepted as query
+thresholds in this bounded ratio/orientation slice.
 
 The feature definitions follow the W3C CSS Containment Module Level 3 draft:
 https://www.w3.org/TR/css-contain-3/

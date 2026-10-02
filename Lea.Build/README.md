@@ -273,6 +273,11 @@ min/max and strict/inclusive feature-first/value-first/chained ranges plus
 portrait/landscape orientation, square portrait semantics, both-axis
 eligibility, nested logic, diagnostics, malformed rejection, native sheets,
 retained fields, and automatic bounded WinForms relayout.
+`--container-units` isolates compact `cqw`/`cqh`/`cqi`/`cqb`/`cqmin`/`cqmax`
+dimension codes, independent nearest inline/block ancestor selection, viewport
+fallback, calculations and size functions, custom properties, computed
+inheritance, commands, native sheets, dynamic measurements, retained fields,
+and exact bounded WinForms geometry.
 These test modes do not retry or suppress failed assertions. Windows
 clipboard access can fail while another process holds it. Record separately
 which modes passed; a clipboard-free run is not a complete default-suite pass.

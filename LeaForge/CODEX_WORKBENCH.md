@@ -17,6 +17,22 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
+Milestone 138 adds bounded container-relative dimensions through the existing
+compact size tuples and `E.Cz` feedback. `cqw`, `cqh`, `cqi`, `cqb`, `cqmin`,
+and `cqmax` use unit codes 7..12, independently select the nearest eligible
+ancestor for each horizontal axis, and fall back to the client viewport when
+one is missing. The same path covers custom properties, `calc()`, size
+functions, constraints, explicit computed inheritance, commands, native
+sheets, dynamic container changes, retained fields, and exact WinForms host
+geometry. Focused, full-core, native-edit, and matching compiled Firespider
+host suites pass, together with all 42 boot cases and all six real EXE startup
+scenarios. All 134 compatibility probes pass over 129 fixtures. Three-round
+medians are 668.801 ms clean start, 7.022 ms local load, and 30.869 ms
+layout/paint; retained memory is 73.3 KiB/page and the required runtime set is
+713.0 KiB with a 293.1 KiB GZip estimate. Runtime 238 is packaged separately
+as `F:\Lea-runtime-238-ready_2026-10-02_18-15-09.zip`; installed runtime 157
+stays unchanged. See `CONTAINER_UNITS.md`.
+
 Milestone 137 extends Lea's bounded size-container compiler with reduced
 integer `aspect-ratio` ranges and portrait/landscape orientation. Boolean,
 exact/min/max, feature-first, value-first, and ascending/descending chained
@@ -31,7 +47,7 @@ probes pass over 128 fixtures. Three-round medians are 774.972 ms clean start,
 KiB/page and the required runtime set is 693.0 KiB with a 285.0 KiB GZip
 estimate. Runtime 237 is packaged separately and installed runtime 157 remains
 unchanged. See `CONTAINER_RATIO_ORIENTATION.md`. Decimal/single-number ratios,
-container units, relative query lengths, scroll-state queries, vertical
+relative query lengths, scroll-state queries, vertical
 writing, full intrinsic containment, arbitrary CSSOM, and general JavaScript
 evaluation remain outside this slice.
 

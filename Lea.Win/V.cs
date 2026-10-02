@@ -3246,7 +3246,7 @@ namespace Lea.Win
                 var magnitude = height ? part == 0 ? style.Hp : part == 1 ? style.Hnp : style.Hxp : part == 0 ? style.Wp : part == 1 ? style.Wnp : style.Wxp;
                 var offset = height ? part == 0 ? style.Ho : part == 1 ? style.Hno : style.Hxo : part == 0 ? style.Wo : part == 1 ? style.Wno : style.Wxo;
                 var unit = height ? part == 0 ? style.Hu : part == 1 ? style.Hnu : style.Hxu : part == 0 ? style.Wu : part == 1 ? style.Wnu : style.Wxu;
-                declared = magnitude > 0 ? RelativePixels(unit, magnitude, reference, style) + offset : pixels;
+                declared = magnitude > 0 ? RelativePixels(unit, magnitude, reference, style, height, part) + offset : pixels;
             }
             else
             {
@@ -3268,7 +3268,7 @@ namespace Lea.Win
             var magnitude = height ? style.Hv(part, argument, 1) : style.Wv(part, argument, 1);
             var offset = height ? style.Hv(part, argument, 2) : style.Wv(part, argument, 2);
             var unit = height ? style.Hv(part, argument, 3) : style.Wv(part, argument, 3);
-            return magnitude > 0 ? RelativePixels(unit, magnitude, reference, style) + offset : pixels;
+            return magnitude > 0 ? RelativePixels(unit, magnitude, reference, style, height, part) + offset : pixels;
         }
 
         private static bool FunctionHasPercentage(S style, bool height, int part)
@@ -3293,7 +3293,7 @@ namespace Lea.Win
             return part == 0 ? style.Hk : part == 1 ? style.Hnk : style.Hxk;
         }
 
-        private int SizeReference(int unit, int reference, S style)
+        private int SizeReference(int unit, int reference, S style, bool height, int part)
         {
             if (unit == 1) return layoutViewportWidth;
             if (unit == 2) return layoutViewportHeight;
@@ -3301,13 +3301,15 @@ namespace Lea.Win
             if (unit == 4) return Math.Max(layoutViewportWidth, layoutViewportHeight);
             if (unit == 5) return style != null && style.Fs > 0 ? style.Fs : Math.Max(1, (int)Math.Round(Font.Size));
             if (unit == 6) return layoutRootFontSize;
+            if (unit >= 7 && unit <= 12 && style != null)
+                return style.Cq(unit, layoutViewportWidth, layoutViewportHeight, height, part);
             return Math.Max(1, reference);
         }
 
-        private int RelativePixels(int unit, int magnitude, int reference, S style)
+        private int RelativePixels(int unit, int magnitude, int reference, S style, bool height, int part)
         {
-            var scale = SizeReference(unit, reference, style);
-            return (int)Math.Round(unit >= 5 ? scale * (double)magnitude : scale * magnitude / 100D);
+            var scale = SizeReference(unit, reference, style, height, part);
+            return (int)Math.Round(unit == 5 || unit == 6 ? scale * (double)magnitude : scale * magnitude / 100D);
         }
 
         private bool PreferredRatio(B block)

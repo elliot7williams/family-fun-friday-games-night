@@ -8263,8 +8263,16 @@ namespace Lea.Engine
             else if (part == 1) style.Wn = pixels;
             else style.Wx = pixels;
             style.SetWidth(part, percent, offset, unit);
-            if (inherit) style.CopyFunction(false, part, inherited);
-            else style.SetFunction(false, part, function, values);
+            if (inherit)
+            {
+                style.CopyFunction(false, part, inherited);
+                style.CopyContainerOrigin(false, part, inherited);
+            }
+            else
+            {
+                style.SetFunction(false, part, function, values);
+                style.SetContainerOrigin(false, part, null);
+            }
         }
 
         internal static bool Wd(string value, out string width)
@@ -8301,8 +8309,16 @@ namespace Lea.Engine
             else if (part == 1) style.Hn = pixels;
             else style.Hx = pixels;
             style.SetHeight(part, percent, offset, unit);
-            if (inherit) style.CopyFunction(true, part, inherited);
-            else style.SetFunction(true, part, function, values);
+            if (inherit)
+            {
+                style.CopyFunction(true, part, inherited);
+                style.CopyContainerOrigin(true, part, inherited);
+            }
+            else
+            {
+                style.SetFunction(true, part, function, values);
+                style.SetContainerOrigin(true, part, null);
+            }
         }
 
         private static bool HeightValue(string value, int part, out int pixels, out int percent, out int offset, out int unit, out bool inherit, out int function, out int[] values)
@@ -8403,7 +8419,7 @@ namespace Lea.Engine
             if (fixedValue.Success && Int32.TryParse(fixedValue.Groups["n"].Value, out pixels) && pixels <= 2000) return true;
             pixels = 0;
 
-            var relative = Regex.Match(source, "^(?<p>[1-9][0-9]{0,2})(?<u>%|vw|vh|vmin|vmax|em|rem)$");
+            var relative = Regex.Match(source, "^(?<p>[1-9][0-9]{0,2})(?<u>%|vw|vh|vmin|vmax|em|rem|cqw|cqh|cqi|cqb|cqmin|cqmax)$");
             if (relative.Success && Int32.TryParse(relative.Groups["p"].Value, out percent) && percent <= 100)
             {
                 unit = RelativeUnit(relative.Groups["u"].Value);
@@ -8411,7 +8427,7 @@ namespace Lea.Engine
             }
             percent = 0;
 
-            var calculated = Regex.Match(source, "^calc\\(\\s*(?<p>[1-9][0-9]{0,2})(?<u>%|vw|vh|vmin|vmax|em|rem)\\s*(?<s>[+-])\\s*(?<n>[0-9]{1,4})px\\s*\\)$");
+            var calculated = Regex.Match(source, "^calc\\(\\s*(?<p>[1-9][0-9]{0,2})(?<u>%|vw|vh|vmin|vmax|em|rem|cqw|cqh|cqi|cqb|cqmin|cqmax)\\s*(?<s>[+-])\\s*(?<n>[0-9]{1,4})px\\s*\\)$");
             int amount;
             if (!calculated.Success || !Int32.TryParse(calculated.Groups["p"].Value, out percent) || percent > 100 ||
                 !Int32.TryParse(calculated.Groups["n"].Value, out amount) || amount > 2000) return false;
@@ -8422,7 +8438,9 @@ namespace Lea.Engine
 
         private static int RelativeUnit(string unit)
         {
-            return unit == "vw" ? 1 : unit == "vh" ? 2 : unit == "vmin" ? 3 : unit == "vmax" ? 4 : unit == "em" ? 5 : unit == "rem" ? 6 : 0;
+            return unit == "vw" ? 1 : unit == "vh" ? 2 : unit == "vmin" ? 3 : unit == "vmax" ? 4 :
+                unit == "em" ? 5 : unit == "rem" ? 6 : unit == "cqw" ? 7 : unit == "cqh" ? 8 :
+                unit == "cqi" ? 9 : unit == "cqb" ? 10 : unit == "cqmin" ? 11 : unit == "cqmax" ? 12 : 0;
         }
 
         private static void Border(S style, S inherited, string value, int mask)

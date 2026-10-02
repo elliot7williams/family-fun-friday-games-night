@@ -194,6 +194,8 @@ namespace Lea.Engine
         internal int[] Hd { get; set; }
         internal int[] Wfd { get; set; }
         internal int[] Hfd { get; set; }
+        internal Scq[] Wqo { get; set; }
+        internal Scq[] Hqo { get; set; }
         internal string[] Be { get; set; }
         internal string[] Qs { get; set; }
         internal Scq Sq { get; set; }
@@ -352,6 +354,18 @@ namespace Lea.Engine
             return FunctionValue(true, part, argument, value);
         }
 
+        // Cq resolves one container-relative unit against this property's origin.
+        public int Cq(int unit, int viewportWidth, int viewportHeight, bool height, int part)
+        {
+            if (unit < 7 || unit > 12 || part < 0 || part > 2) return 0;
+            var origin = ContainerOrigin(height, part);
+            var inline = ContainerAxis(origin, false, viewportWidth);
+            var block = ContainerAxis(origin, true, viewportHeight);
+            if (unit == 7 || unit == 9) return inline;
+            if (unit == 8 || unit == 10) return block;
+            return unit == 11 ? Math.Min(inline, block) : Math.Max(inline, block);
+        }
+
         internal void SetWidth(int part, int percent, int offset, int unit)
         {
             if (part < 0 || part > 2) return;
@@ -409,6 +423,23 @@ namespace Lea.Engine
             SetFunction(height, part, kind, values);
         }
 
+        internal void SetContainerOrigin(bool height, int part, Scq origin)
+        {
+            if (part < 0 || part > 2) return;
+            var origins = height ? Hqo : Wqo;
+            if (origins == null && origin != null) origins = new Scq[3];
+            if (origins == null) return;
+            origins[part] = origin;
+            if (origins[0] == null && origins[1] == null && origins[2] == null) origins = null;
+            if (height) Hqo = origins;
+            else Wqo = origins;
+        }
+
+        internal void CopyContainerOrigin(bool height, int part, S inherited)
+        {
+            SetContainerOrigin(height, part, inherited == null ? null : inherited.ContainerOrigin(height, part));
+        }
+
         private int WidthValue(int part, int value)
         {
             return Wd == null ? 0 : Wd[part * 3 + value];
@@ -436,6 +467,26 @@ namespace Lea.Engine
             var data = height ? Hfd : Wfd;
             return data == null || part < 0 || part > 2 || argument < 0 || argument > 2 || value < 0 || value > 3 ?
                 0 : data[part * 14 + 2 + argument * 4 + value];
+        }
+
+        private Scq ContainerOrigin(bool height, int part)
+        {
+            var origins = height ? Hqo : Wqo;
+            return origins != null && origins[part] != null ? origins[part] : Sq;
+        }
+
+        private static int ContainerAxis(Scq origin, bool block, int fallback)
+        {
+            for (var container = origin == null ? null : origin.Up; container != null; container = container.Up)
+            {
+                if (container.N == null || !container.N.Cv || container.S == null) continue;
+                if (block)
+                {
+                    if (container.S.Ct == "s") return container.N.Ch;
+                }
+                else if (container.S.Ct == "i" || container.S.Ct == "s") return container.N.Cw;
+            }
+            return Math.Max(1, Math.Min(8192, fallback));
         }
 
         private int GridLine(string name, bool rows)

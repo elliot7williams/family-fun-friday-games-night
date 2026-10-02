@@ -113,7 +113,7 @@ namespace Lea.Bench
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
                 "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "direction-logical.html", "direction-layout.html", "direction-inline.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "media-features.html", "media-aspect-ratio.html", "media-ranges.html", "media-resolution.html", "media-color-scheme.html", "media-reduced-motion.html", "media-reduced-data.html", "media-contrast.html", "media-scripting.html", "supports-queries.html", "css-supports-script.html", "match-media-script.html", "media-modifiers.html", "media-interaction.html", "cascade-layers.html", "cascade-layer-limits.html", "hsl-colors.html", "hwb-colors.html", "lab-colors.html", "predefined-colors.html", "wide-gamut-colors.html", "oklab-colors.html", "color-mix.html", "custom-properties.html", "important-cascade.html",
-                "container-style.html", "container-size.html", "container-features.html",
+                "container-style.html", "container-size.html", "container-features.html", "container-units.html",
                 "direction-overflow.html", "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "list-style.html", "list-position.html", "list-image.html", "marker.html", "marker-content.html", "marker-counters.html", "css-counters.html", "generated-content.html", "generated-quotes.html", "generated-alt.html", "generated-images.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -2283,6 +2283,47 @@ namespace Lea.Bench
                         "automatic portrait container features changed");
                 }
                 return "bounded container aspect-ratio boolean/exact/min/max/direct/value-first/chained ranges and portrait/landscape features, both-axis eligibility, nested logic, diagnostics, retained fields, and automatic WinForms relayout";
+            });
+            AddProbe(probes, "Container relative units", delegate
+            {
+                var path = Path.Combine(folder, "container-units.html");
+                var engine = new E();
+                Need(engine.Su("width", "50cqw") && engine.Su("height", "25cqh") &&
+                    engine.Su("width", "10cqmin") && engine.Su("height", "10cqmax") &&
+                    !engine.Su("width", "101cqw"), "container unit capability changed");
+                var page = engine.Go(path);
+                var outer = ById(page.D, "outer");
+                var inner = ById(page.D, "inner");
+                var source = ById(page.D, "source");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "field");
+                field.V = "Retained benchmark container unit value";
+                Need(engine.Cz(page, new List<Cz>
+                {
+                    new Cz(outer, 500, 300), new Cz(inner, 320, 120), new Cz(source, 64, 50)
+                }) == 1, "container unit feedback changed");
+                var cqw = page.Bs.First(item => item.El != null && item.El.Av("id") == "cqw").S;
+                var cqh = page.Bs.First(item => item.El != null && item.El.Av("id") == "cqh-width").S;
+                var inherited = page.Bs.First(item => item.El != null && item.El.Av("id") == "inherited").S;
+                Need(cqw.Wu == 7 && cqw.Cq(7, page.Vw, page.Vh, false, 0) == 320 &&
+                    cqh.Wu == 8 && cqh.Cq(8, page.Vw, page.Vh, false, 0) == 300 &&
+                    inherited.Cq(7, page.Vw, page.Vh, false, 0) == 320 &&
+                    Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "field")) &&
+                    field.V == "Retained benchmark container unit value", "container unit model or retention changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(900, 1100);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                        Need(BlockContent(view, "cqw").Width == 160 && BlockContent(view, "cqh-width").Width == 150 &&
+                            BlockContent(view, "cqmin").Width == 30 && BlockContent(view, "cqmax").Height == 32 &&
+                            BlockContent(view, "source").Width == 64 && BlockContent(view, "inherited").Width == 64,
+                            "automatic container unit geometry changed");
+                    view.Ck(ById(view.At.D, "make-narrow"));
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "cqw").Width == 100 && BlockContent(view, "source").Width == 40 &&
+                        BlockContent(view, "inherited").Width == 40, "dynamic container unit feedback changed");
+                }
+                return "compact cqw/cqh/cqi/cqb/cqmin/cqmax codes, per-axis nearest containers, viewport fallback, calc/min/max/clamp/variables, computed inheritance, commands, native sheets, retained fields, and bounded WinForms feedback";
             });
             AddProbe(probes, "CSS cascade layers", delegate
             {

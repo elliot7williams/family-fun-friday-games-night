@@ -354,6 +354,24 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
+Milestone 138 adds bounded container-relative dimensions through the existing
+compact size records and measured-container feedback. Unit codes 7..12 cover
+`cqw`, `cqh`, `cqi`, `cqb`, `cqmin`, and `cqmax`; inline and block axes select
+independently, missing axes use the viewport fallback, and explicit inheritance
+preserves the originating computed basis. Width/height constraints,
+`calc()`/`min()`/`max()`/`clamp()`, custom properties, commands, native sheets,
+retained fields, and dynamic WinForms relayout share existing paths. Focused,
+full-core, native-edit, matching compiled Firespider host, all 42 boot, and all
+six real EXE startup checks pass. All 134 compatibility probes pass over 129
+fixtures. Three-round medians are 668.801 ms startup, 7.022 ms load, and 30.869
+ms paint; retained memory is 73.3 KiB/page and required files are 713.0 KiB
+with a 293.1 KiB GZip estimate. Runtime 238 is packaged separately as
+`F:\Lea-runtime-238-ready_2026-10-02_18-15-09.zip` while installed runtime 157
+stays unchanged. See `CONTAINER_UNITS.md`. Universal container lengths,
+relative query thresholds,
+vertical writing, scroll-state queries, complete intrinsic containment,
+arbitrary CSSOM, and general JavaScript remain future work.
+
 Milestone 137 extends Lea's bounded size-container compiler with reduced
 integer `aspect-ratio` ranges and portrait/landscape orientation. Boolean,
 exact/min/max, feature-first, value-first, and ascending/descending chained
@@ -368,7 +386,7 @@ diagnostic medians are 774.972 ms startup, 8.095 ms load, and 41.400 ms
 layout/paint, with 73.0 KiB retained per page and a 285.0 KiB GZip engine
 estimate. Runtime 237 is packaged separately while installed runtime 157 stays
 unchanged. Next investigate another bounded compatibility slice. Keep decimal
-and single-number container ratios, scroll-state queries, container units,
+and single-number container ratios, scroll-state queries,
 relative query lengths, full intrinsic size containment, general-property
 queries, `font-tech()`/`font-format()`, general-enclosed conditions,
 locale-sensitive automatic quote selection, reversed/custom counter styles,

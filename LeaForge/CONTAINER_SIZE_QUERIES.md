@@ -54,6 +54,11 @@ portrait/landscape orientation over the same measurements. These features need
 both axes and therefore select only `container-type:size` ancestors. See
 `CONTAINER_RATIO_ORIENTATION.md` for syntax, limits, and verification.
 
+Milestone 138 reuses the same atomic measurements for bounded `cqw`, `cqh`,
+`cqi`, `cqb`, `cqmin`, and `cqmax` dimensions. Unit axes select ancestors
+independently and fall back to the client viewport when no eligible container
+exists. See `CONTAINER_UNITS.md` for value syntax and the supported properties.
+
 ## Feedback API
 
 `Cz` is a compact immutable host record containing `E`, `W`, and `H` for one
@@ -88,9 +93,10 @@ definite heights are the dependable boundary for block-axis queries.
 
 ## Deliberately Unsupported
 
-Container-relative units (`cqw`, `cqh`, and related units), relative query
-lengths, scroll-state queries, vertical writing modes, query CSSOM, and full
-intrinsic containment remain outside this milestone. General-property style
+Relative query lengths, scroll-state queries, vertical writing modes, query
+CSSOM, and full intrinsic containment remain outside this milestone.
+Container units outside bounded dimension properties remain unsupported.
+General-property style
 queries and typed custom properties also remain outside the style-query subset.
 
 The selection and feature model follows the CSS Containment Module Level 3:

@@ -221,6 +221,11 @@ namespace Lea.Tests
                     ContainerFeatureSmoke(Path.Combine(pages, "container-features.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--container-units")
+                {
+                    ContainerUnitSmoke(Path.Combine(pages, "container-units.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--layers")
                 {
                     LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
@@ -1653,6 +1658,7 @@ namespace Lea.Tests
                 ContainerStyleSmoke(Path.Combine(pages, "container-style.html"));
                 ContainerSizeSmoke(Path.Combine(pages, "container-size.html"));
                 ContainerFeatureSmoke(Path.Combine(pages, "container-features.html"));
+                ContainerUnitSmoke(Path.Combine(pages, "container-units.html"));
                 LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
                 HslColorSmoke(Path.Combine(pages, "hsl-colors.html"));
                 HwbColorSmoke(Path.Combine(pages, "hwb-colors.html"));
@@ -10538,6 +10544,115 @@ namespace Lea.Tests
                     "WinForms landscape feature restoration");
             }
             Console.WriteLine("Lea advanced container feature smoke passed: bounded aspect-ratio and orientation queries, boolean/exact/min/max/direct/value-first/chained ranges, square portrait semantics, size-axis eligibility, logic, diagnostics, native sheets, retained fields, and automatic WinForms relayout.");
+        }
+
+        private static void ContainerUnitSmoke(string path)
+        {
+            var engine = new E();
+            Ok(engine.Su("width", "50cqw") && engine.Su("height", "25cqh") &&
+                engine.Su("width", "25cqi") && engine.Su("height", "25cqb") &&
+                engine.Su("width", "10cqmin") && engine.Su("height", "10cqmax") &&
+                engine.Su("width", "calc(50cqw - 10px)") && engine.Su("width", "min(80cqw,200px,70cqh)") &&
+                !engine.Su("width", "101cqw") && !engine.Su("height", "1.5cqb") && !engine.Su("width", "20cqv"),
+                "container unit capability and bounds");
+            var page = engine.Go(path);
+            var outerNode = ById(page.D, "outer");
+            var innerNode = ById(page.D, "inner");
+            var sourceNode = ById(page.D, "source");
+            Ok(BlockById(page, "cqw").S.Wu == 7 && BlockById(page, "cqh-width").S.Wu == 8 &&
+                BlockById(page, "cqi").S.Wu == 9 && BlockById(page, "cqb").S.Hu == 10 &&
+                BlockById(page, "cqmin").S.Wu == 11 && BlockById(page, "cqmax").S.Hu == 12,
+                "compact container unit codes");
+            Ok(BlockById(page, "calc").S.Wu == 7 && BlockById(page, "calc").S.Wo == -10 &&
+                BlockById(page, "minimum-fn").S.Wk == 1 && BlockById(page, "clamped").S.Wk == 3,
+                "calculated and size-function container unit model");
+            Ok(BlockById(page, "invalid").S.W == 120 && BlockById(page, "invalid").S.H == 50,
+                "invalid container units preserve prior declarations");
+            var field = FieldById(page, "field");
+            field.V = "Retained container unit value";
+            Eq(1, engine.Cz(page, new List<Cz>
+            {
+                new Cz(outerNode, 500, 300), new Cz(innerNode, 320, 120), new Cz(sourceNode, 64, 50)
+            }), "container unit measurement snapshot");
+            var cqw = BlockById(page, "cqw").S;
+            Eq(320, cqw.Cq(7, page.Vw, page.Vh, false, 0), "cqw nearest inline-axis basis");
+            Eq(300, BlockById(page, "cqh-width").S.Cq(8, page.Vw, page.Vh, false, 0), "cqh skips inline-only container");
+            Eq(300, BlockById(page, "cqmin").S.Cq(11, page.Vw, page.Vh, false, 0), "cqmin independent axis bases");
+            Eq(320, BlockById(page, "cqmax").S.Cq(12, page.Vw, page.Vh, true, 0), "cqmax independent axis bases");
+            Eq(320, BlockById(page, "inherited").S.Cq(7, page.Vw, page.Vh, false, 0), "inherited unit keeps originating basis");
+            Eq(page.Vw, BlockById(page, "fallback").S.Cq(7, page.Vw, page.Vh, false, 0), "missing inline container viewport fallback");
+            Eq(page.Vh, BlockById(page, "fallback-block").S.Cq(8, page.Vw, page.Vh, false, 0), "missing block container viewport fallback");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained container unit value",
+                "container unit snapshot retains field identity and value");
+
+            Eq(2, engine.Ck(page, ById(page.D, "set-units")), "compact container unit commands");
+            Ok(BlockById(page, "command").S.Wu == 7 && BlockById(page, "command").S.Hu == 10,
+                "compact commands reach container unit model");
+            Eq(2, engine.Ck(page, ById(page.D, "dom-units")), "literal DOM container unit commands");
+            Ok(BlockById(page, "command").S.Wu == 11 && BlockById(page, "command").S.Hu == 12,
+                "literal DOM min max container unit model");
+            Eq(2, engine.Ck(page, ById(page.D, "clear-units")), "container unit command reset");
+            Ok(BlockById(page, "command").S.W == 90 && BlockById(page, "command").S.H == 40 &&
+                BlockById(page, "command").S.Wu == 0 && BlockById(page, "command").S.Hu == 0,
+                "container unit reset restores authored dimensions");
+            Eq(0, engine.Js(page, "wd('command','0cqw');ht('command','101cqb');width('command','1.5cqi');"),
+                "invalid container unit commands rejected");
+            Eq(1, engine.Ss(page, "container-units", "#native{width:40cqw;height:20cqb}"),
+                "native container unit sheet install");
+            Ok(BlockById(page, "native").S.Wu == 7 && BlockById(page, "native").S.Hu == 10,
+                "native sheet container unit model");
+            Eq(1, engine.Sd(page, "container-units"), "native container unit sheet remove");
+            Eq(40, BlockById(page, "native").S.W, "native sheet removal restores dimensions");
+
+            Eq(1, engine.Ck(page, ById(page.D, "make-narrow")), "narrow container unit class command");
+            Eq(1, engine.Cz(page, new List<Cz>
+            {
+                new Cz(outerNode, 500, 300), new Cz(innerNode, 200, 120), new Cz(sourceNode, 40, 50)
+            }), "narrow container unit measurement snapshot");
+            Eq(200, BlockById(page, "cqw").S.Cq(7, page.Vw, page.Vh, false, 0), "narrow cqw basis update");
+            Ok(Object.ReferenceEquals(field, FieldById(page, "field")) && field.V == "Retained container unit value",
+                "narrow container unit rebuild retains field");
+            Eq(1, engine.Ck(page, ById(page.D, "make-wide")), "wide container unit class command");
+
+            using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new Point(-30000, -30000), ClientSize = new Size(900, 1100) })
+            using (var view = new V { Dock = DockStyle.Fill })
+            {
+                form.Controls.Add(view);
+                form.Show();
+                view.Go(path);
+                Paint(view);
+                Eq(160, BlockRect(view, BlockById(view.At, "cqw")).Width, "WinForms cqw geometry");
+                Eq(150, BlockRect(view, BlockById(view.At, "cqh-width")).Width, "WinForms cqh cross-axis geometry");
+                Eq(80, BlockRect(view, BlockById(view.At, "cqi")).Width, "WinForms cqi geometry");
+                Eq(75, BlockRect(view, BlockById(view.At, "cqb")).Height, "WinForms cqb geometry");
+                Eq(30, BlockRect(view, BlockById(view.At, "cqmin")).Width, "WinForms cqmin geometry");
+                Eq(32, BlockRect(view, BlockById(view.At, "cqmax")).Height, "WinForms cqmax geometry");
+                Eq(new Size(150, 80), BlockRect(view, BlockById(view.At, "calc")).Size, "WinForms calculated container units");
+                Eq(80, BlockRect(view, BlockById(view.At, "minimum")).Width, "WinForms container unit minimum");
+                Eq(155, BlockRect(view, BlockById(view.At, "maximum")).Width, "WinForms container unit maximum");
+                Eq(200, BlockRect(view, BlockById(view.At, "minimum-fn")).Width, "WinForms mixed-axis min function");
+                Eq(160, BlockRect(view, BlockById(view.At, "clamped")).Width, "WinForms container unit clamp function");
+                Eq(new Size(130, 60), BlockRect(view, BlockById(view.At, "variable")).Size, "WinForms variable container units");
+                Eq(64, BlockRect(view, BlockById(view.At, "source")).Width, "WinForms container-unit source width");
+                Eq(64, BlockRect(view, BlockById(view.At, "inherited")).Width, "WinForms inherited computed container width");
+                Eq((int)Math.Round(view.ClientSize.Width * .25D), BlockRect(view, BlockById(view.At, "fallback")).Width,
+                    "WinForms missing-container width fallback");
+                Eq((int)Math.Round(view.ClientSize.Height * .25D), BlockRect(view, BlockById(view.At, "fallback-block")).Width,
+                    "WinForms missing block-axis fallback");
+                var liveField = FieldById(view.At, "field");
+                liveField.V = "Retained view container unit value";
+                Eq(1, view.Ck(ById(view.At.D, "make-narrow")), "WinForms narrow container unit command");
+                Paint(view);
+                Eq(100, BlockRect(view, BlockById(view.At, "cqw")).Width, "WinForms narrow cqw geometry");
+                Eq(40, BlockRect(view, BlockById(view.At, "source")).Width, "WinForms narrow source geometry");
+                Eq(40, BlockRect(view, BlockById(view.At, "inherited")).Width, "WinForms narrow inherited geometry");
+                Ok(Object.ReferenceEquals(liveField, FieldById(view.At, "field")) && liveField.V == "Retained view container unit value",
+                    "WinForms container unit feedback retains field");
+                Eq(1, view.Ck(ById(view.At.D, "make-wide")), "WinForms wide container unit restore command");
+                Paint(view);
+                Eq(160, BlockRect(view, BlockById(view.At, "cqw")).Width, "WinForms wide cqw restoration");
+            }
+            Console.WriteLine("Lea container unit smoke passed: compact cqw/cqh/cqi/cqb/cqmin/cqmax codes, independent axis selection, viewport fallback, calc/min/max/clamp/variables, computed inheritance, commands, native sheets, retained fields, and bounded WinForms feedback.");
         }
 
         private static void MediaFeatureSmoke(string path)

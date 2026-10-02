@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Container Relative Units</title>
+  <style>
+    body { font-family: sans-serif; }
+    .outer { container: outer / size; width: 500px; height: 300px; }
+    .inner { container: inner / inline-size; width: 320px; height: 120px; }
+    .inner.narrow { width: 200px; }
+    .unit { display: block; margin: 0; padding: 0; }
+    #cqw { width: 50cqw; height: 20px; }
+    #cqh-width { width: 50cqh; height: 20px; }
+    #cqi { width: 25cqi; height: 20px; }
+    #cqb { width: 80px; height: 25cqb; }
+    #cqmin { width: 10cqmin; height: 20px; }
+    #cqmax { width: 80px; height: 10cqmax; }
+    #calc { width: calc(50cqw - 10px); height: calc(25cqb + 5px); }
+    #minimum { width: 10px; min-width: 25cqw; height: 20px; }
+    #maximum { width: 100cqw; max-width: calc(50cqw - 5px); height: 20px; }
+    #minimum-fn { width: min(80cqw, 200px, 70cqh); height: 20px; }
+    #clamped { width: clamp(100px, 50cqw, 180px); height: 20px; }
+    #variable { --unit-width: calc(40cqi + 2px); --unit-height: 20cqb; width: var(--unit-width); height: var(--unit-height); }
+    #source { container: source / inline-size; width: 20cqw; height: 50px; }
+    #inherited { width: inherit; height: 20px; }
+    #field { display: block; width: 25cqw; height: 30px; }
+    #native { width: 40px; height: 20px; }
+    #invalid { width: 120px; width: 101cqw; height: 50px; height: 1.5cqb; }
+    #fallback { width: 25cqw; height: 10cqh; }
+    .inline-fallback { container: inline-fallback / inline-size; width: 400px; height: 100px; }
+    #fallback-block { width: 25cqh; height: 20px; }
+    #command { width: 90px; height: 40px; }
+    button { display: block; width: 300px; }
+  </style>
+</head>
+<body>
+  <section id="outer" class="outer">
+    <section id="inner" class="inner">
+      <div id="cqw" class="unit">cqw</div>
+      <div id="cqh-width" class="unit">cqh as width</div>
+      <div id="cqi" class="unit">cqi</div>
+      <div id="cqb" class="unit">cqb</div>
+      <div id="cqmin" class="unit">cqmin</div>
+      <div id="cqmax" class="unit">cqmax</div>
+      <div id="calc" class="unit">calculated units</div>
+      <div id="minimum" class="unit">minimum unit</div>
+      <div id="maximum" class="unit">maximum unit</div>
+      <div id="minimum-fn" class="unit">minimum function</div>
+      <div id="clamped" class="unit">clamped unit</div>
+      <div id="variable" class="unit">variable units</div>
+      <section id="source" class="unit"><div id="inherited" class="unit">inherited computed size</div></section>
+      <input id="field" value="container unit field">
+      <div id="native" class="unit">native sheet target</div>
+      <div id="invalid" class="unit">invalid values retain earlier declarations</div>
+    </section>
+  </section>
+  <div id="fallback" class="unit">viewport fallback</div>
+  <section id="inline-fallback" class="inline-fallback"><div id="fallback-block" class="unit">missing block axis fallback</div></section>
+  <div id="command" class="unit">command target</div>
+  <button id="set-units" type="button" data-lea="wd('command','calc(50cqw - 5px)');ht('command','25cqb')">Set units</button>
+  <button id="dom-units" type="button" onclick="document.getElementById('command').style.width='25cqmin';document.getElementById('command').style.height='25cqmax'">Set DOM units</button>
+  <button id="clear-units" type="button" onclick="document.getElementById('command').style.width='';document.getElementById('command').style.height=''">Restore authored size</button>
+  <button id="make-narrow" type="button" data-lea="ac('inner','narrow')">Narrow container</button>
+  <button id="make-wide" type="button" data-lea="rc('inner','narrow')">Wide container</button>
+</body>
+</html>

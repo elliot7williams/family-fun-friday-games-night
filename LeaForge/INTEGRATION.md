@@ -812,6 +812,13 @@ ceiling. Width/height/logical-size, reduced-integer aspect-ratio, and
 portrait/landscape features share named/nearest ancestor selection and bounded
 style-query logic. See `CONTAINER_STYLE_QUERIES.md`,
 `CONTAINER_SIZE_QUERIES.md`, and `CONTAINER_RATIO_ORIENTATION.md`.
+Container-relative dimensions reuse those measurements without a host-side
+API: unit codes 7..12 represent `cqw`, `cqh`, `cqi`, `cqb`, `cqmin`, and
+`cqmax`. Inline and block bases select their nearest eligible ancestors
+independently, and a missing axis uses the current client viewport. Compact
+`S.Cq(unit, viewportWidth, viewportHeight, height, part)` exposes the selected
+basis for diagnostics; normal hosts only need to keep using `E.Cz`. See
+`CONTAINER_UNITS.md`.
 
 `@supports` is also engine-owned. The compiler recognizes a bounded set of
 declaration families through their real Lea value parsers and checks one
@@ -834,11 +841,14 @@ full-rollback forms are documented in `CASCADE_LAYERS.md`.
 
 Responsive dimension tuples expose `Wu/Wnu/Wxu` and `Hu/Hnu/Hxu` unit codes:
 `0` is containing percentage, `1` is `vw`, `2` is `vh`, `3` is `vmin`, and `4`
-is `vmax`; `5` is `em` and `6` is `rem`. The WinForms renderer resolves
-viewport units from live client dimensions, `em` from the target's computed
-font, and `rem` from `P.Rf` or the host fallback exposed by `V.Rf`. The same
-values flow through layout, paint, hits, fields, and accessibility while tuple
-storage remains lazy. See `VIEWPORT_UNITS.md` and `FONT_RELATIVE_UNITS.md`.
+is `vmax`; `5` is `em`, `6` is `rem`, and `7..12` are the six container units.
+The WinForms renderer resolves viewport units from live client dimensions,
+`em` from the target's computed
+font, `rem` from `P.Rf` or the host fallback exposed by `V.Rf`, and container
+units from the bounded measurement snapshot. The same values flow through
+layout, paint, hits, fields, and accessibility while tuple
+storage remains lazy. See `VIEWPORT_UNITS.md`, `FONT_RELATIVE_UNITS.md`, and
+`CONTAINER_UNITS.md`.
 
 CSS declarations are compiled once per stylesheet rule. Bounded custom
 properties inherit through the compact style tree and use lazy copy-on-write
