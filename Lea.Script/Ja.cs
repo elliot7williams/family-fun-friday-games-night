@@ -20,6 +20,25 @@ namespace Lea.Script
         internal void Begin() { Calls = 0; Changes = 0; }
         internal void Reset() { nodes.Clear(); keys.Clear(); }
 
+        internal object[] Path(N target)
+        {
+            if (target == null) return new object[0];
+            if (!engine.Jn(page, target)) throw new ArgumentException("The event target is not connected to the bound page.");
+            var path = new List<object>();
+            for (var current = target; current != null && current != page.D; current = current.Up)
+            {
+                if (path.Count == 128) throw new LimitException();
+                path.Add(Key(current));
+            }
+            return path.ToArray();
+        }
+
+        internal static void EventType(string type)
+        {
+            if (type != "click" && type != "input" && type != "change" && type != "submit" && type != "DOMContentLoaded" && type != "load")
+                throw new ArgumentException("Unsupported Lea event type.", "type");
+        }
+
         internal object Call(object[] args)
         {
             if (++Calls > 256 || !engine.Je) throw new LimitException();

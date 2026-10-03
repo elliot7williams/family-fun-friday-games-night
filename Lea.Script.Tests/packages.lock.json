@@ -67,6 +67,19 @@
           "Jint": "[4.16.4, )",
           "Lea.Engine": "[1.0.0, )"
         }
+      },
+      "lea.script.win": {
+        "type": "Project",
+        "dependencies": {
+          "Lea.Script": "[1.0.0, )",
+          "Lea.Win": "[1.0.0, )"
+        }
+      },
+      "lea.win": {
+        "type": "Project",
+        "dependencies": {
+          "Lea.Engine": "[1.0.0, )"
+        }
       }
     },
     ".NETFramework,Version=v4.6.2/win7-x86": {}

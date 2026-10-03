@@ -1,14 +1,14 @@
 # Lea 1.0 Progress
 
-Current completion: **100%**
+Scoped Lea 1.0 baseline completion: **100%**
 
-Post-1.0 hardening milestones completed: **143**
+Post-1.0 hardening milestones completed: **144**
 
 Broader lightweight-browser readiness: **about 65%**. This is a practical
 project estimate, not a standards conformance score. Full Chrome/Safari-class
 web-platform parity is much farther away and is not Lea's size target.
 
-This measures progress toward Lea 1.0: a small dependable custom engine that can
+The table below measures the original Lea 1.0 scope: a small custom engine that can
 replace Firespider's legacy browser control for supported pages. It does not
 claim compatibility with every feature in Chrome, Safari, Firefox, or the full
 modern web platform.
@@ -33,6 +33,26 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added optional native WinForms JavaScript integration, six bounded DOM event
+  types, capture/bubble ordering, cancellation, inline/DOM0 handlers, and a
+  separate compiled `Lea.Script.Browser.exe`. Compact view/provider aliases
+  connect isolated scripts to layout, retained native fields, inline page
+  initialization and image-aware load events. Bounded queues and page/permission
+  generations prevent stale completions after navigation, Stop, detach or
+  disposal. The adapter permits local file/about pages, excludes UNC files,
+  and refuses HTTP/HTTPS scripts without starting an interpreter.
+  All 294 script checks pass from source output and the extracted package;
+  full core/native-edit regressions and all six staged Firespider EXE startup
+  cases pass. The broader Boot harness passes 24 of 42 cases, then stops because
+  the older staged host still creates legacy split-view controls; the remaining
+  cases are not verified in this run. The installed browser remains unchanged.
+  The 40-file ZIP is 2,946,831 bytes; 23 binary/config files total 7,920,283
+  bytes, plus the icon and fixtures. Functional event/view tests use the
+  documented five-second budget; the separate browser smoke passes with its
+  two-second default. Cold-start deadlines and broader compatibility remain
+  work, not performance claims. Broader readiness stays about 65%.
+  See `NATIVE_JAVASCRIPT.md` for artifacts, verification and remaining limits.
 
 - Added `Jp`, a process-isolated optional JavaScript session with three-character
   `ExA` asynchronous execution and `St` cancellation. A unique temporary
@@ -2205,5 +2225,11 @@ modern web platform.
 - Add a native-safe non-empty visible-range bridge outside the .NET Framework
   managed provider array boundary; retain the stable empty fallback until range
   handles survive both in-process and external MTA clients.
-- Keep expanding the bounded HTML/CSS subset and Lea-first host routes without
-  adding a general JavaScript VM or external browser runtime.
+- Migrate and rebuild the Firespider host deliberately before adopting the
+  optional .NET Framework 4.6.2 scripting adapter; finish split-view routing and
+  rerun the complete host matrix without replacing the installed build first.
+- Expand the bounded HTML/CSS and DOM subsets, browser event-loop semantics,
+  origin/network policies and compatibility tests. Keep remote scripting
+  disabled until those boundaries are implemented and tested.
+- Measure cold/warm script and page-loading costs in controlled runs. Keep the
+  JavaScript module optional and do not equate compressed size with runtime speed.

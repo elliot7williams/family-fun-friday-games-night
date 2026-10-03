@@ -10,6 +10,7 @@ namespace Lea.Script
     {
         private const int Magic = 0x5341454c;
         internal const int MaxFrame = 128 * 1024;
+        internal const int Version = 2;
         private static readonly Encoding Utf8 = new UTF8Encoding(false, true);
 
         internal static void Write(Stream stream, object value)
@@ -21,7 +22,7 @@ namespace Lea.Script
             if (bytes.Length > MaxFrame) throw new InvalidDataException("Script frame is too large.");
             var header = new byte[12];
             Put(header, 0, Magic);
-            Put(header, 4, 1);
+            Put(header, 4, Version);
             Put(header, 8, bytes.Length);
             stream.Write(header, 0, header.Length);
             stream.Write(bytes, 0, bytes.Length);
@@ -32,7 +33,7 @@ namespace Lea.Script
         {
             var header = ReadBytes(stream, 12);
             var length = Get(header, 8);
-            if (Get(header, 0) != Magic || Get(header, 4) != 1 || length < 2 || length > MaxFrame)
+            if (Get(header, 0) != Magic || Get(header, 4) != Version || length < 2 || length > MaxFrame)
                 throw new InvalidDataException("Invalid script frame header.");
             try
             {
@@ -57,11 +58,12 @@ namespace Lea.Script
             var kind = Text(frame, "k", 8);
             if (kind == "end")
             {
-                Fields(frame, "k", "i", "s", "m");
+                Fields(frame, "k", "i", "s", "m", "d");
                 var status = Text(frame, "s", 8);
                 if (status != "ok" && status != "js" && status != "limit")
                     throw new InvalidDataException("Unexpected worker result.");
                 Text(frame, "m", 512);
+                if (!(frame["d"] is bool)) throw new InvalidDataException("Invalid event cancellation result.");
             }
             else
             {

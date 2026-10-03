@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net462</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <StartupObject>Lea.Script.Browser.Program</StartupObject>
+    <ApplicationIcon>..\assets\lea.ico</ApplicationIcon>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Web.Extensions" />
+    <ProjectReference Include="..\Lea.Script.Win\Lea.Script.Win.csproj" />
+    <ProjectReference Include="..\Lea.Script.Worker\Lea.Script.Worker.csproj" ReferenceOutputAssembly="false" />
+    <Compile Include="..\Lea.Win.Test\Test.cs" Link="TestWindow.cs" />
+    <None Include="..\LeaForge\test-pages\javascript-view.html" Link="LeaForge\test-pages\javascript-view.html" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\LeaForge\test-pages\javascript-runtime.html" Link="LeaForge\test-pages\javascript-runtime.html" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\assets\lea.ico" Link="assets\lea.ico" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <Target Name="CopyWorkers" AfterTargets="Build">
+    <ItemGroup>
+      <WorkerFiles Include="..\Lea.Script.Worker\bin\$(Configuration)\net462\*.dll;..\Lea.Script.Worker\bin\$(Configuration)\net462\*.exe;..\Lea.Script.Worker\bin\$(Configuration)\net462\*.exe.config" />
+    </ItemGroup>
+    <Copy SourceFiles="@(WorkerFiles)" DestinationFolder="$(TargetDir)ScriptWorker" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="..\Lea.Image\bin\$(Configuration)\Lea.Image.exe" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="true" />
+  </Target>
+</Project>

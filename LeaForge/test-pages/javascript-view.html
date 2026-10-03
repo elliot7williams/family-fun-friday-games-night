@@ -1,0 +1,59 @@
+<!doctype html>
+<html><head><title>Lea event browser</title><style>
+body { font-family: Segoe UI; color: #23272b; background: #ffffff; margin: 24px; }
+header { display: flex; align-items: center; gap: 12px; border-bottom: 2px solid #168477; padding-bottom: 12px; }
+h1 { font-size: 28px; margin: 0; }
+h2 { font-size: 18px; margin-top: 22px; }
+button, input { margin: 4px; }
+#result { color: #b84235; font-size: 20px; }
+#events { color: #168477; }
+.literal { color: #168477; }
+</style></head><body>
+<header><img src="../../assets/lea.ico" width="40" height="40" alt="Lea"><h1>Lea</h1></header>
+<h2>Counter</h2><button id="counter" type="button">Add</button><span id="result">0</span>
+<h2>Fields</h2><label>Name <input id="field" value="Lea"></label><p id="echo">Lea</p>
+<label><input id="check" type="checkbox"> Enabled</label><p id="events">Waiting</p>
+<h2>Form</h2><form id="form" action="javascript-runtime.html" method="get">
+<input id="name" name="name" value="Ada"><button id="send" type="submit">Submit</button></form>
+<p id="submitted">Not submitted</p>
+<p><a id="blocked" href="javascript-runtime.html">Stay here</a> | <a id="next" href="javascript-runtime.html">Next page</a></p>
+<p id="alias">Lea commands</p>
+<div id="outer"><span id="target">Event target</span></div>
+<div id="inline" onclick="document.title += 'A'; return false;">Inline handler</div>
+<script type="text/lea">ac('alias','literal');</script>
+<script>
+var starts = 1, count = 0, inputs = 0, changes = 0;
+document.getElementById('counter').addEventListener('click', function () {
+  count++;
+  document.getElementById('result').textContent = String(count);
+  document.title = 'Lea ' + count;
+});
+document.getElementById('field').addEventListener('input', function () {
+  inputs++;
+  document.getElementById('echo').textContent = this.value;
+});
+document.getElementById('field').addEventListener('change', function () { changes++; });
+document.getElementById('check').addEventListener('click', function () {
+  document.getElementById('events').textContent = 'click:' + this.checked;
+});
+document.getElementById('check').addEventListener('input', function () {
+  document.getElementById('events').textContent += '|input:' + this.checked;
+});
+document.getElementById('check').addEventListener('change', function () {
+  document.getElementById('events').textContent += '|change:' + this.checked;
+});
+document.getElementById('blocked').addEventListener('click', function (event) {
+  event.preventDefault();
+  document.getElementById('events').textContent = 'Navigation prevented';
+});
+document.getElementById('form').addEventListener('submit', function (event) {
+  event.preventDefault();
+  document.getElementById('submitted').textContent = 'Hello ' + document.getElementById('name').value;
+});
+document.addEventListener('DOMContentLoaded', function () {
+  document.getElementById('events').textContent = 'Ready:' + document.readyState;
+});
+window.addEventListener('load', function () { document.title = 'Lea ready'; });
+</script>
+<script>var second = starts + 1;</script>
+</body></html>

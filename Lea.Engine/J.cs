@@ -19,7 +19,7 @@ namespace Lea.Engine
         private const int MaxClassText = 512;
         private const int MaxFieldValue = 1024;
 
-        internal static int Pg(P page, N root)
+        internal static int Pg(P page, N root, bool classic)
         {
             var scripts = new List<N>();
             Find(root, scripts);
@@ -30,6 +30,8 @@ namespace Lea.Engine
             {
                 if (blocks++ >= MaxBlocks || left == 0) break;
                 if (script.Av("src").Length > 0 || !Type(script.Av("type"))) continue;
+                var type = script.Av("type").Trim().ToLowerInvariant();
+                if (!classic && type != "text/lea" && type != "application/lea") continue;
                 count += Run(page, Raw(script), ref left, 0);
             }
             return count;

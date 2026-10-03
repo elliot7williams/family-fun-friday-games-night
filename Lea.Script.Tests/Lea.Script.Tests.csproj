@@ -8,6 +8,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Drawing" />
+    <ProjectReference Include="..\Lea.Script.Win\Lea.Script.Win.csproj" />
     <ProjectReference Include="..\Lea.Script\Lea.Script.csproj" />
     <ProjectReference Include="..\Lea.Script.Worker\Lea.Script.Worker.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
@@ -16,5 +18,6 @@
       <WorkerFiles Include="..\Lea.Script.Worker\bin\$(Configuration)\net462\*.dll;..\Lea.Script.Worker\bin\$(Configuration)\net462\*.exe;..\Lea.Script.Worker\bin\$(Configuration)\net462\*.exe.config" />
     </ItemGroup>
     <Copy SourceFiles="@(WorkerFiles)" DestinationFolder="$(TargetDir)ScriptWorker" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="..\Lea.Image\bin\$(Configuration)\Lea.Image.exe" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="true" />
   </Target>
 </Project>

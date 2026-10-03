@@ -155,6 +155,7 @@ namespace Lea.Engine
         private char ap = 'f';
         private bool ah = true;
         private bool je = true;
+        private bool jb = true;
         private long jg;
         private Stream download;
         private bool stopped;
@@ -529,6 +530,15 @@ namespace Lea.Engine
             ApplyViewport(page);
         }
 
+        // Jb lets an optional runtime own classic scripts without disabling typed mutations.
+        public bool Jb { get { return jb; } set { jb = value; } }
+
+        public bool Jn(P page, N element)
+        {
+            QueryPage(page);
+            return element != null && Connected(page.D, element);
+        }
+
         // Js runs only Lea's bounded allow-listed page commands.
         public int Js(P page, string code)
         {
@@ -594,7 +604,7 @@ namespace Lea.Engine
             if (!OwnsPage(page)) throw new ArgumentException("The page does not belong to this Lea engine.", "page");
             if (element == null || !Owns(page.D, element)) return 0;
             var code = element.Av("data-lea");
-            if (String.IsNullOrWhiteSpace(code)) code = element.Av("onclick");
+            if (String.IsNullOrWhiteSpace(code) && jb) code = element.Av("onclick");
             return String.IsNullOrWhiteSpace(code) ? 0 : Js(page, code);
         }
 
@@ -1628,7 +1638,7 @@ namespace Lea.Engine
             p.R = active;
             Rebuild(p, active, null);
             if (!je) return;
-            p.Jc = J.Pg(p, p.D);
+            p.Jc = J.Pg(p, p.D, jb);
             if (p.Jc > 0) Rebuild(p, active, null);
         }
 

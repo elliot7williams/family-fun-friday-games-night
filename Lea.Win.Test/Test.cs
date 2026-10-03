@@ -37,9 +37,11 @@ namespace Lea.Win.Test
         private readonly TextBox inspectorMessages = InspectorText();
         private readonly TextBox inspectorAccess = InspectorText();
 
-        public TestWindow(string start)
+        internal V View { get { return v; } }
+
+        public TestWindow(string start, Action<V> attach = null, string label = "Lea Win Test")
         {
-            Text = "Lea Win Test";
+            Text = label;
             StartPosition = FormStartPosition.CenterScreen;
             ClientSize = new Size(980, 680);
             MinimumSize = new Size(640, 420);
@@ -133,7 +135,7 @@ namespace Lea.Win.Test
             v.Changed += delegate
             {
                 u.Text = v.U == null ? u.Text : v.U.ToString();
-                Text = (v.T.Length == 0 ? "Lea Win Test" : v.T + " - Lea Win Test");
+                Text = (v.T.Length == 0 ? label : v.T + " - " + label);
                 bk.Enabled = v.CanBk;
                 fw.Enabled = v.CanFw;
                 dl.Enabled = v.U != null;
@@ -142,6 +144,7 @@ namespace Lea.Win.Test
             };
             v.Al += delegate { st.Text = "Alert: " + v.Am; };
             v.Fe += delegate { if (v.Le != null) st.Text = v.Le.Message; };
+            v.Xd += delegate { if (v.Xo != null && !v.Xo.Ok) st.Text = v.Xo.S + ": " + v.Xo.M; };
             v.Dr += delegate { Download(v.Du, v.Dn); };
             v.Gr += async delegate
             {
@@ -168,6 +171,7 @@ namespace Lea.Win.Test
             Controls.Add(top);
             PerformLayout();
             split.Panel2MinSize = 280;
+            if (attach != null) attach(v);
 
             if (!String.IsNullOrWhiteSpace(start))
             {

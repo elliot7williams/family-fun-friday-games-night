@@ -62,8 +62,12 @@ namespace Lea.Script.Tests
                 // Allow cooperative limits to win even on a cold, CPU-capped CLR worker.
                 // The independent short hard-deadline test below still uses 25 ms.
                 script.Tm = 5000;
+                var cooperativeWarmup = script.Ex("function warm(n) { return n ? warm(n-1) : 0; } warm(16);");
+                Check(cooperativeWarmup.Ok, "cooperative function warmup: " + cooperativeWarmup.S + "; " + cooperativeWarmup.M);
                 var loop = script.Ex("while (true) {}");
                 Check(loop.S == "limit", "isolated infinite loop budget: " + loop.S + "; " + loop.M);
+                cooperativeWarmup = script.Ex("function warm(n) { return n ? warm(n-1) : 0; } warm(16);");
+                Check(cooperativeWarmup.Ok, "fresh-worker recursion warmup: " + cooperativeWarmup.S + "; " + cooperativeWarmup.M);
                 var recursion = script.Ex("function f() { return f(); } f();");
                 Check(recursion.S == "limit", "isolated recursion budget: " + recursion.S + "; " + recursion.M);
                 var calls = script.Ex("for (let i=0; i<300; i++) document.title;");
@@ -197,9 +201,9 @@ namespace Lea.Script.Tests
                 bytes[0] ^= 1;
                 Reject(() => Wire.Read(new MemoryStream(bytes)), "protocol magic rejected");
                 bytes[0] ^= 1;
-                bytes[4] = 2;
-                Reject(() => Wire.Read(new MemoryStream(bytes)), "protocol version rejected");
                 bytes[4] = 1;
+                Reject(() => Wire.Read(new MemoryStream(bytes)), "protocol version rejected");
+                bytes[4] = Wire.Version;
                 Array.Copy(BitConverter.GetBytes(Wire.MaxFrame + 1), 0, bytes, 8, 4);
                 Reject(() => Wire.Read(new MemoryStream(bytes.Take(12).ToArray())), "oversized frame rejected before payload read");
                 Reject(() => Wire.Read(new MemoryStream(new byte[5])), "truncated protocol header rejected");
@@ -228,11 +232,16 @@ namespace Lea.Script.Tests
             request = 256;
             call["r"] = 257;
             Reject(() => Wire.Step(call, 1, ref request), "parent request ceiling enforced independently");
-            var end = new Dictionary<string, object> { { "k", "end" }, { "i", 1 }, { "s", "unknown" }, { "m", "" } };
+            var end = new Dictionary<string, object> { { "k", "end" }, { "i", 1 }, { "s", "unknown" }, { "m", "" }, { "d", false } };
             Reject(() => Wire.Step(end, 1, ref request), "unknown worker result rejected");
             end["s"] = "ok";
             end["m"] = new string('x', 513);
             Reject(() => Wire.Step(end, 1, ref request), "worker message size bound");
+            end["m"] = "";
+            end["d"] = "false";
+            Reject(() => Wire.Step(end, 1, ref request), "worker cancellation flag is strictly boolean");
+            end.Remove("d");
+            Reject(() => Wire.Step(end, 1, ref request), "worker cancellation flag is required");
         }
 
         private static void Bridge(E engine, P page)
@@ -259,7 +268,7 @@ namespace Lea.Script.Tests
             var stream = new MemoryStream();
             var writer = new BinaryWriter(stream);
             var bytes = Encoding.UTF8.GetBytes(json);
-            writer.Write(0x5341454c); writer.Write(1); writer.Write(bytes.Length); writer.Write(bytes);
+            writer.Write(0x5341454c); writer.Write(Wire.Version); writer.Write(bytes.Length); writer.Write(bytes);
             stream.Position = 0;
             return stream;
         }

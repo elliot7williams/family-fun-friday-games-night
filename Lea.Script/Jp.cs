@@ -71,10 +71,21 @@ namespace Lea.Script
 
         public Task<Jr> ExA(string code)
         {
+            CheckContext();
+            return Run(code, true);
+        }
+
+        public Jr Ev(N target, string type)
+        { Ja.EventType(type); return Run(null, false, target, type).GetAwaiter().GetResult(); }
+
+        public Task<Jr> EvA(N target, string type)
+        { CheckContext(); Ja.EventType(type); return Run(null, true, target, type); }
+
+        private static void CheckContext()
+        {
             var context = SynchronizationContext.Current;
             if (context == null || context.GetType() == typeof(SynchronizationContext))
-                throw new InvalidOperationException("ExA requires an owning UI synchronization context.");
-            return Run(code, true);
+                throw new InvalidOperationException("Use an owning UI synchronization context for asynchronous scripting.");
         }
 
         public void St()
@@ -84,7 +95,7 @@ namespace Lea.Script
                 if (worker != null && worker.J != null) { KeepPeak(worker.J.Peak); worker.J.Dispose(); }
         }
 
-        private async Task<Jr> Run(string code, bool asynchronous)
+        private async Task<Jr> Run(string code, bool asynchronous, N target = null, string type = null)
         {
             CheckThread();
             if (disposed) throw new ObjectDisposedException("Jp");
@@ -93,7 +104,8 @@ namespace Lea.Script
             if (generation != engine.Jg) { Reset(); generation = engine.Jg; }
             if (!engine.Je) { Reset(); return Result("off", "Scripting is disabled."); }
             if (!Object.ReferenceEquals(engine.At, page)) { Reset(); return Result("stale", "The bound page is no longer active."); }
-            if (code == null || code.Length > 16 * 1024) return Result("code", "Code must be at most 16 KiB.");
+            if (type == null && (code == null || code.Length > 16 * 1024)) return Result("code", "Code must be at most 16 KiB.");
+            if (type != null && target != null && !engine.Jn(page, target)) return Result("node", "Event target is not connected to the bound page.");
             if (sequence == Int32.MaxValue) { Reset(); sequence = 0; }
             running = true;
             stopped = false;
@@ -106,7 +118,13 @@ namespace Lea.Script
                 var clock = Stopwatch.StartNew();
                 var id = ++sequence;
                 var endpoint = worker;
-                await Io(() => { Wire.Write(endpoint.I, new { k = "exec", i = id, c = code }); return true; }, clock, tm, asynchronous);
+                var path = type == null ? null : bridge.Path(target);
+                await Io(() =>
+                {
+                    if (type == null) Wire.Write(endpoint.I, new { k = "exec", i = id, c = code });
+                    else Wire.Write(endpoint.I, new { k = "event", i = id, t = type, p = path });
+                    return true;
+                }, clock, tm, asynchronous);
                 var request = 0;
                 while (true)
                 {
@@ -120,7 +138,7 @@ namespace Lea.Script
                         var status = Wire.Text(frame, "s", 8);
                         var message = Wire.Text(frame, "m", 512);
                         if (status != "ok") Reset();
-                        return Result(status, message);
+                        return Result(status, message, (bool)frame["d"]);
                     }
                     var value = bridge.Call((object[])frame["b"]);
                     if (clock.ElapsedMilliseconds >= tm) throw new TimeoutException();
@@ -208,8 +226,12 @@ namespace Lea.Script
                 if (Task.WaitAny(new Task[] { task }, remaining) < 0) throw new TimeoutException();
                 return task.GetAwaiter().GetResult();
             }
-            if (await Task.WhenAny(task, Task.Delay(remaining)) != task) throw new TimeoutException();
-            return await task;
+            using (var budget = new CancellationTokenSource())
+            {
+                if (await Task.WhenAny(task, Task.Delay(remaining, budget.Token)) != task) throw new TimeoutException();
+                budget.Cancel();
+                return await task;
+            }
         }
 
         private void CheckState()
@@ -236,8 +258,8 @@ namespace Lea.Script
             bridge.Reset();
         }
 
-        private Jr Result(string status, string message)
-        { return At = new Jr(status, bridge.Changes, message.Length <= 512 ? message : message.Substring(0, 512)); }
+        private Jr Result(string status, string message, bool prevented = false)
+        { return At = new Jr(status, bridge.Changes, message.Length <= 512 ? message : message.Substring(0, 512), prevented); }
         private void CheckThread()
         {
             if (Thread.CurrentThread.ManagedThreadId != thread)

@@ -14,7 +14,7 @@ language rules through a new handwritten parser.
 
 ## Visual Studio
 
-The three script projects are included in `../Lea.sln`. A host using this optional
+The script projects are included in `../Lea.sln`. A host using this optional
 module must target **.NET Framework 4.6.2 or later**; Firespider currently
 targets 4.6.1 and is not migrated or automatically opted in by this experiment.
 Add a project reference to `Lea.Script` and let NuGet restore its locked
@@ -45,7 +45,7 @@ in `Jr.N`; execution is not transactional.
 
 `Je=false` prevents execution. `E.Jg` changes whenever the host changes `Je`,
 so even disabling and re-enabling between calls discards the previous realm.
-Result statuses are `ok`, `off`, `code`, `js`, and `limit`. Messages are bounded
+Result statuses include `ok`, `off`, `code`, `node`, `js`, and `limit`. Messages are bounded
 to 512 UTF-16 units. Calling from another thread, using a disposed session,
 or passing a foreign page is a host programming error, not a script result.
 
@@ -142,9 +142,91 @@ replacement detaches removed nodes, removes obsolete retained fields, and
 rebuilds style/layout records. It works on elements without authored IDs and
 does not expand Lea `${variable}` templates in computed strings.
 
-This is an engine-model experiment. It is not wired into `Lea.Win.V` or
-Firespider's native layout invalidation and click routes yet. Browser-host
-integration must handle those routes before enabling scripts in the UI.
+## Native view integration
+
+`Lea.Script.Win` attaches the isolated runtime to `Lea.Win.V`; the view and core
+still do not reference Jint. Reference the adapter project from a .NET Framework
+4.6.2-or-later WinForms host, deploy the worker folder and output dependencies,
+and attach it before loading a page:
+
+```csharp
+Lea.Script.Win.W.On(view);
+await view.GoA("local-test.html");
+var result = await view.JsA("document.title = 'Lea ' + (2 + 3);");
+// W.Off(view) detaches it. View navigation/Stop/disposal retire sessions.
+```
+
+The adapter currently executes **local file/about documents only**, excluding
+UNC network files. HTTP/HTTPS
+documents return `origin` for inline, supplied, and event code without starting
+an interpreter; this is a temporary integration restriction, not modern-site
+support. External/module/async/defer loading is not implemented. The installed
+Firespider EXE remains on 4.6.1 without this adapter. Its eventual adoption needs
+framework migration and host-specific tests, not just DLL replacement.
+The optional third `W.On` argument sets the per-execution millisecond budget
+for each page session, clamped through `Jp.Tm`; its default remains 2,000 ms.
+
+At most eight classic inline blocks (empty, `text/javascript`, or
+`application/javascript` type, no `src`) are snapshotted in document order
+after parsing. Each is limited to 16 KiB; scanning stops at 8,192 nodes and
+skips template contents. This is not parser-blocking browser script execution.
+`DOMContentLoaded` runs after those blocks; the view dispatches window `load`
+after its image work finishes. `document.readyState` moves from `loading` to
+`interactive` to `complete`. Repeated page initialization/load requests do not
+repeat successful lifecycle handlers. A failed realm is reinitialized from the
+inline snapshot on its next call; prior DOM writes are not rolled back.
+
+The compact `Jx` provider interface exposes `ExA/EvA/PgA/St`; `Xr` carries
+`S/N/M/D/Ok`. A view's `Xf` factory binds the current page and permission
+generation. `JsA`, `Xe`, and `Xl` queue work; `Xs/Xt/Xn/Xo` expose the current
+provider, tail task, pending count, and result, and `Xd` reports completion.
+There are at most 32 queued executions and 32 native activations. Defaults and
+checkbox/radio preactivation are serialized along with event delivery. Factory
+reentry, revocation, navigation, Stop, detach, and disposal retire stale work;
+workers are stopped immediately and providers disposed exactly once after
+pending work settles. Old-page completions cannot repaint a replacement page.
+Host completion errors become `host` results without poisoning the queue.
+
+Computed writes use the view's existing invalidation, find, accessibility,
+alert, and navigation notification path. Script field values synchronize the
+native editor without generating another input event. Native text edits emit
+`input`, editing commits emit `change`, checkbox/radio/range/color/select actions
+emit `input` then `change`, and asynchronous form submission emits cancelable
+`submit` after validation. Synchronous `Sm` is still the legacy host route, and
+file selection/accessibility-only field edits are not yet event-complete.
+
+`E.Jb` defaults to true for the original bounded classic/literal fallback.
+Attaching an optional view factory sets it false, preventing duplicate classic
+autorun/onclick execution. Explicit `text/lea`, `application/lea`, and
+`data-lea` commands remain available. `E.Jn` checks connected-node ownership.
+
+## DOM events
+
+Both `Js.Ev` and `Jp.Ev/EvA` accept a parent-validated node plus one supported
+type: `click`, `input`, `change`, `submit`, `DOMContentLoaded`, or `load`.
+The 128-element ancestor path contains opaque handles, not script-supplied
+nodes. Protocol version 2 carries a strict boolean `Jr.D` cancellation result;
+older workers fail closed rather than mixing schemas.
+
+Element wrappers, document, and window support `addEventListener` and
+`removeEventListener`, capture/bubble ordering, callback objects, duplicate
+suppression, `once`, `passive`, and ordered DOM0/inline handler slots. A realm
+has at most 128 listener records, including active DOM0 handlers. `onclick`,
+`oninput`, `onchange`, `onsubmit`, and `onload` accept functions/null; authored
+handler bodies are lazily compiled. The limited inline scope does not implement
+HTML's legacy element/form name lookup or body-to-window handler forwarding.
+
+Events expose type, target, currentTarget, eventPhase, bubbles, cancelable,
+defaultPrevented, timeStamp, composedPath, preventDefault, stopPropagation,
+and stopImmediatePropagation. Click/submit cancellation suppresses the native
+default action; passive listeners cannot cancel. These synthesized events have
+`isTrusted=false`. Listener exceptions currently fail the dispatch and reset
+the realm, rather than reporting and continuing as standard browsers do.
+There is no Event constructor, public dispatchEvent, AbortSignal, shadow DOM,
+keyboard/focus/pointer event family, or general browser event loop yet.
+Behavior is guided by the [DOM event algorithms](https://dom.spec.whatwg.org/#interface-eventtarget)
+and [HTML event-handler model](https://html.spec.whatwg.org/multipage/webappapis.html#event-handlers),
+but this is a bounded subset, not conformance with those specifications.
 
 ## Budgets and security boundary
 
@@ -162,7 +244,7 @@ or hard cancellation in `Js`. Jint's own
 requires process isolation for untrusted scripts.
 
 Automatic remote-page scripts, external scripts, modules loaded from files or
-URLs, event listeners, timers, promises integrated with a browser event loop,
+URLs, additional DOM events, timers, promises integrated with a browser event loop,
 fetch/XHR, storage, location/navigation, DOM creation/removal, `innerHTML`, and
 the full CSSOM remain future integration work. General browser compatibility
 and production untrusted-site safety are not claimed by these tests.
@@ -177,11 +259,21 @@ dotnet build Lea.Script.Tests/Lea.Script.Tests.csproj -c Release --no-restore
 
 The test fixture deliberately uses `application/lea-test` so normal loading
 does not run it. The executable explicitly supplies its script to the session.
-Keep it separate from installed browser runtime files.
+`javascript-view.html` instead contains ordinary classic blocks and native
+event controls. `--events` and `--view` select focused checks; the full suite
+includes both. Keep these packages separate from installed browser files.
+Functional event/view fixtures use the supported 5,000 ms budget to avoid
+conflating cold CLR/IPC scheduling with event behavior. Strict cooperative-limit
+assertions are retained after function warmup; the independent 25 ms native
+regex deadline still verifies forcible termination. The separate browser smoke
+uses the unchanged 2,000 ms default. Cold runs under competing compilation have
+hit deadlines; these tests do not establish performance parity or a latency SLA.
 
-The Milestone 142 ten-file in-process package remains separate. Milestone 143
-adds an eight-file `ScriptWorker` folder and tests both transports; package it
-with `../Lea.Build/Pack-LeaScript.ps1`. Runtime/package byte counts are artifact
+The earlier 142/143 packages remain separate. Milestone 144 adds the native
+adapter and `Lea.Script.Browser.exe`; build its project and the test project,
+then package them with `../Lea.Build/Pack-LeaScript.ps1`. Extract the complete
+ZIP onto a local NTFS/ACL-capable volume before starting the browser EXE.
+Runtime/package byte counts are artifact
 measurements, not evidence that compression speeds up execution. The worker
 has a cold CLR/process startup cost; persistent successful sessions reuse it.
 Third-party redistribution notices are included in `licenses`.

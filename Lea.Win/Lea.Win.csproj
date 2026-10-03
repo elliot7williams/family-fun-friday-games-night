@@ -45,6 +45,7 @@
     <Compile Include="Pi.cs" />
     <Compile Include="Rp.cs" />
     <Compile Include="V.cs" />
+    <Compile Include="Xs.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="CopyLeaImageWorker" AfterTargets="Build">

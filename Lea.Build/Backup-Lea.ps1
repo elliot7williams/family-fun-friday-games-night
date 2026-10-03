@@ -9,7 +9,7 @@ $zip = Join-Path $Out ("Lea-source-$stamp.zip")
 $stage = Join-Path ([IO.Path]::GetTempPath()) ("Lea-source-$([Guid]::NewGuid().ToString('N'))")
 $names = @(
     'assets', 'Lea', 'Lea.Bench', 'Lea.Build', 'Lea.Core', 'Lea.Engine', 'Lea.Firespider', 'Lea.Image',
-    'Lea.Micro', 'Lea.Script', 'Lea.Script.Tests', 'Lea.Script.Worker', 'Lea.Tests', 'Lea.Win', 'Lea.Win.Test', 'LeaBrowser',
+    'Lea.Micro', 'Lea.Script', 'Lea.Script.Browser', 'Lea.Script.Tests', 'Lea.Script.Win', 'Lea.Script.Worker', 'Lea.Tests', 'Lea.Win', 'Lea.Win.Test', 'LeaBrowser',
     'LeaForge', 'LeaPlus'
 )
 

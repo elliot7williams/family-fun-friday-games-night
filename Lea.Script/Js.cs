@@ -16,6 +16,7 @@ namespace Lea.Script
         private readonly int thread;
         private readonly Ja bridge;
         private Jint.Engine vm;
+        private Jint.Native.JsValue dispatch;
         private bool disposed;
         private bool running;
         private long generation;
@@ -35,7 +36,12 @@ namespace Lea.Script
 
         public Jr At { get; private set; }
 
-        public Jr Ex(string code)
+        public Jr Ex(string code) { return Run(code, null, null); }
+
+        public Jr Ev(N target, string type)
+        { Ja.EventType(type); return Run(null, target, type); }
+
+        private Jr Run(string code, N target, string type)
         {
             CheckThread();
             if (disposed) throw new ObjectDisposedException("Js");
@@ -44,13 +50,16 @@ namespace Lea.Script
             if (generation != engine.Jg) { Reset(); generation = engine.Jg; }
             if (!engine.Je) { Reset(); return Result("off", "Scripting is disabled."); }
             engine.Q(page, "body");
-            if (code == null || code.Length > 16 * 1024) return Result("code", "Code must be at most 16 KiB.");
+            if (type == null && (code == null || code.Length > 16 * 1024)) return Result("code", "Code must be at most 16 KiB.");
+            if (type != null && target != null && !engine.Jn(page, target)) return Result("node", "Event target is not connected to the bound page.");
             running = true;
             try
             {
                 if (vm == null) Start();
-                vm.Execute(code);
-                return Result("ok", "");
+                if (type == null) { vm.Execute(code); return Result("ok", ""); }
+                var result = vm.Invoke(dispatch, Jint.Native.JsValue.Undefined,
+                    new[] { (Jint.Native.JsValue)type, Codec.Value(vm, bridge.Path(target)) });
+                return Result("ok", "", result.AsBoolean());
             }
             catch (Exception error) when (error is JavaScriptException || error is JintException ||
                 error is Acornima.ParseErrorException || error is TimeoutException ||
@@ -80,13 +89,13 @@ namespace Lea.Script
             });
             vm.SetValue("__lea", new ClrFunction(vm, "__lea", (_, args) =>
                 Codec.Value(vm, bridge.Call(Codec.Arguments(args)))));
-            vm.Execute(bootstrap);
+            dispatch = vm.Evaluate(bootstrap);
             bridge.Begin();
         }
 
-        private Jr Result(string status, string message)
-        { return At = new Jr(status, bridge.Changes, message); }
-        private void Reset() { vm = null; bridge.Reset(); }
+        private Jr Result(string status, string message, bool prevented = false)
+        { return At = new Jr(status, bridge.Changes, message, prevented); }
+        private void Reset() { vm = null; dispatch = null; bridge.Reset(); }
         private void CheckThread()
         {
             if (Thread.CurrentThread.ManagedThreadId != thread)

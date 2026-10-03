@@ -18,6 +18,19 @@ namespace Lea.Script.Tests
             {
                 var root = args.Length == 0 ? Directory.GetCurrentDirectory() : Path.GetFullPath(args[0]);
                 var fixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-runtime.html");
+                var viewFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-view.html");
+                if (args.Length > 1 && args[1] == "--events")
+                {
+                    Events.Run(viewFixture);
+                    Console.WriteLine("PASS Lea.Script events: " + checks + " checks.");
+                    return 0;
+                }
+                if (args.Length > 1 && args[1] == "--view")
+                {
+                    View.Run(viewFixture, args.Length > 2 ? args[2] : null);
+                    Console.WriteLine("PASS Lea.Script native view: " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--ui")
                 {
                     Worker.Ui(fixture);
@@ -91,6 +104,8 @@ namespace Lea.Script.Tests
                 try { disposed.Ex("1;"); throw new Exception("disposed session accepted code"); }
                 catch (ObjectDisposedException) { Check(true, "disposed session rejected"); }
                 Worker.Run(fixture);
+                Events.Run(viewFixture);
+                View.Run(viewFixture);
                 Console.WriteLine("PASS Lea.Script: " + checks + " checks; JavaScript, isolated worker, and typed DOM.");
                 return 0;
             }

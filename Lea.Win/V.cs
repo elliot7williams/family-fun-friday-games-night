@@ -20,7 +20,7 @@ using Lea.Engine;
 namespace Lea.Win
 {
     // V is Lea's small, one-surface WinForms view.
-    public sealed class V : Control
+    public sealed partial class V : Control
     {
         private readonly E e = new E();
         private readonly List<Hit> hits = new List<Hit>();
@@ -114,6 +114,7 @@ namespace Lea.Win
         private Font editFont;
         private S editStyle;
         private string editStart = "";
+        private bool editUserChanged;
         private bool editLock;
         private ContextMenuStrip choices;
         private N hover;
@@ -260,7 +261,7 @@ namespace Lea.Win
         public string Q { get { return At == null ? "" : At.Q; } }
         public bool CanBk { get { return e.CanBk; } }
         public bool CanFw { get { return e.CanFw; } }
-        public bool Busy { get { return loadOwner != null || e.Busy || picBusy; } }
+        public bool Busy { get { return loadOwner != null || e.Busy || picBusy || Xn > 0 || activationPending > 0; } }
         public bool Cn { get { return !closed && loadOwner == null && !e.Busy; } }
         public long Ib { get { return picSize; } }
         public long Im
@@ -613,6 +614,7 @@ namespace Lea.Win
         {
             CheckIdle();
             if (clear) ClearFailure();
+            if (clear) RetireScript();
             try { return load(); }
             catch (Er error) { LoadFailed(error, retry); throw; }
         }
@@ -626,6 +628,7 @@ namespace Lea.Win
         private object StartLoad()
         {
             CheckIdle();
+            RetireScript();
             var owner = new object();
             loadOwner = owner;
             try { Cursor = Cursors.WaitCursor; CheckOpen(); }
@@ -677,10 +680,15 @@ namespace Lea.Win
                 if (closed) return page;
                 var stoppedPictures = picStop;
                 Show(page, false);
+                var scriptEpoch = activationEpoch;
+                if (scriptFactory != null && At == page) await Xl();
+                if (closed || At != page) return page;
                 picStop |= stoppedPictures;
                 if (closed) return page;
                 await PicsA(page);
                 if (closed) return page;
+                if (scriptFactory != null && At == page && activationEpoch == scriptEpoch) await Xe(null, "load");
+                if (closed || At != page) return page;
                 Dirty();
                 QueueFragment(page);
                 ApplyPendingFragment();
@@ -702,6 +710,8 @@ namespace Lea.Win
         public void St()
         {
             if (closed) return;
+            RetireScript();
+            if (At != null) { Dirty(); Invalidate(); }
             picStop = true;
             e.St();
             CancelPics();
@@ -927,6 +937,7 @@ namespace Lea.Win
         private P Show(P page, bool done, int preserveScroll = -1)
         {
             if (closed) return page;
+            if (scriptBinding != null && scriptBinding.Page != page) RetireScript();
             if (picPage != null && picPage != page) CancelPics();
             TrimPics(PicSources(page), preserveScroll < 0);
             ClearFailure();
@@ -954,6 +965,8 @@ namespace Lea.Win
             NotifyAccessibility(AccessibleEvents.Reorder);
             Alerts(page);
             var address = page == null ? null : page.U;
+            if (!closed && done && scriptFactory != null && page != null)
+            { ShownScripts(page, address); return page; }
             if (!closed && done && Done != null) Done(this, EventArgs.Empty);
             if (!closed && done && loadOwner == null && At == page && (page == null || page.U == address)) GoRequest(page);
             return page;
@@ -1294,6 +1307,7 @@ namespace Lea.Win
             var previous = e.Je;
             e.Je = value;
             if (previous == e.Je) return;
+            RetireScript();
             Dirty();
             QueueFragment(At);
             Invalidate();
@@ -5959,22 +5973,23 @@ namespace Lea.Win
         protected override async void OnMouseClick(MouseEventArgs e)
         {
             base.OnMouseClick(e);
-            var hit = HitAt(e.Location);
-            if (hit == null)
-            {
-                var box = BoxAt(e.Location);
-                var target = box == null ? null : FocusAt(e.Location, box.El);
-                EndEdit(false);
-                if (target != null)
-                {
-                    Focus();
-                    SetFocus(target.El, target.Sl);
-                }
-                else SetFocus(null);
-                return;
-            }
             try
             {
+                var hit = HitAt(e.Location);
+                if (hit == null)
+                {
+                    var box = BoxAt(e.Location);
+                    var target = box == null ? null : FocusAt(e.Location, box.El);
+                    if (box != null && await ScriptClick(box.El)) return;
+                    EndEdit(false);
+                    if (target != null)
+                    {
+                        Focus();
+                        SetFocus(target.El, target.Sl);
+                    }
+                    else SetFocus(null);
+                    return;
+                }
                 if (hit.B != null && hit.B.B != null && hit.B.B.I != null) await FieldClickA(hit.B, e.Location);
                 else if (hit.U != null)
                 {
@@ -5984,6 +5999,7 @@ namespace Lea.Win
                 }
                 else if (hit.B != null && hit.B.B != null && hit.B.B.K == "summary")
                 {
+                    if (await ScriptClick(hit.El)) return;
                     EndEdit(false);
                     Focus();
                     SetFocus(hit.El);
@@ -5991,6 +6007,7 @@ namespace Lea.Win
                 }
                 else if (hit.A != null)
                 {
+                    if (await ScriptClick(hit.El)) return;
                     EndEdit(false);
                     var target = FocusAt(e.Location, hit.El);
                     if (target != null)
@@ -6082,8 +6099,7 @@ namespace Lea.Win
             index = index < 0 ? (back ? targets.Count - 1 : 0) : (index + (back ? -1 : 1) + targets.Count) % targets.Count;
             if (edit != null)
             {
-                edit = null;
-                ed.Visible = false;
+                EndEdit(false);
             }
             var target = targets[index];
             Focus();
@@ -6102,7 +6118,7 @@ namespace Lea.Win
                 await ActivateLinkA(target.U, target.El);
                 return 1;
             }
-            if (DisclosureSummary(target.El) != null) return Ds(target.El);
+            if (DisclosureSummary(target.El) != null) return await ScriptClick(target.El) ? 1 : Ds(target.El);
             var field = target.B == null || target.B.B == null ? null : target.B.B.I;
             if (field == null || field.Ds) return 0;
             var rect = FocusBounds(target);
@@ -6118,8 +6134,7 @@ namespace Lea.Win
             ForgetEdit();
             if (edit != null)
             {
-                edit = null;
-                ed.Visible = false;
+                EndEdit(false);
             }
             Focus();
             SetFocus(target.T.El, target.T.Sl);
@@ -6129,8 +6144,12 @@ namespace Lea.Win
         }
 
         private async Task ActivateLinkA(Uri url, N element)
+        { await Activation(() => ActivateLinkCoreA(url, element), element); }
+
+        private async Task ActivateLinkCoreA(Uri url, N element)
         {
             if (url == null) return;
+            if (await ScriptClick(element)) return;
             element = LinkElement(element);
             var before = goRequests;
             Ck(ClickElement(element));
@@ -6523,9 +6542,39 @@ namespace Lea.Win
         }
 
         private async Task FieldClickA(Bx box, Point point)
+        { await Activation(() => FieldClickCoreA(box, point), box.B.I.El); }
+
+        private async Task FieldClickCoreA(Bx box, Point point)
         {
             var field = box.B.I;
             if (field == null || field.Ds) return;
+            var page = At;
+            var beforeChecked = field.C;
+            Dictionary<Fi, bool> radioState = null;
+            var preactivated = scriptFactory != null && (field.K == "checkbox" || field.K == "radio");
+            if (preactivated)
+            {
+                if (field.K == "checkbox") field.C = !field.C;
+                else
+                {
+                    radioState = new Dictionary<Fi, bool>();
+                    foreach (var item in page.Fs)
+                        if (item.K == "radio" && Object.ReferenceEquals(item.F, field.F) && item.N == field.N)
+                        { radioState.Add(item, item.C); item.C = item == field; }
+                }
+                Restyle();
+            }
+            if (await ScriptClick(field.El))
+            {
+                if (!closed && At == page && page.Fs.Contains(field) && preactivated)
+                {
+                    field.C = beforeChecked;
+                    if (radioState != null) foreach (var item in radioState) if (page.Fs.Contains(item.Key)) item.Key.C = item.Value;
+                    Restyle();
+                }
+                return;
+            }
+            if (closed || At != page || !page.Fs.Contains(field) || field.Ds) return;
             if (CanEdit(field))
             {
                 StartEdit(field);
@@ -6543,13 +6592,13 @@ namespace Lea.Win
             var restyle = false;
             if (field.K == "checkbox")
             {
-                field.C = !field.C;
+                if (!preactivated) field.C = !field.C;
                 restyle = ClearValidity(field);
                 OnEdited();
             }
             else if (field.K == "radio")
             {
-                foreach (var item in At.Fs)
+                if (!preactivated) foreach (var item in At.Fs)
                     if (item.K == "radio" && Object.ReferenceEquals(item.F, field.F) && item.N == field.N)
                     {
                         item.C = false;
@@ -6566,6 +6615,7 @@ namespace Lea.Win
             else if (field.K == "submit") await SmA(field);
             else if (field.K == "button" && Sb != null) Sb(this, EventArgs.Empty);
             if (restyle) Restyle(); else Invalidate();
+            if ((field.K == "checkbox" || field.K == "radio") && field.C != beforeChecked) await FieldEvents(field);
         }
 
         private static bool CanEdit(Fi field)
@@ -6615,10 +6665,12 @@ namespace Lea.Win
             var raw = low + (high - low) * (decimal)ratio;
             var steps = Math.Round((raw - low) / step, 0, MidpointRounding.AwayFromZero);
             var value = Math.Max(low, Math.Min(high, low + steps * step));
+            var previous = field.V;
             field.V = value.ToString(CultureInfo.InvariantCulture);
             var restyle = ClearValidity(field);
             OnEdited();
             if (restyle) Restyle(); else Invalidate();
+            if (field.V != previous) ScriptFields(field);
         }
 
         private void ChooseColor(Fi field)
@@ -6628,10 +6680,12 @@ namespace Lea.Win
                 dialog.FullOpen = true;
                 dialog.Color = CssColor(field.V, Color.Black);
                 if (dialog.ShowDialog(FindForm()) != DialogResult.OK) return;
+                var previous = field.V;
                 field.V = String.Format(CultureInfo.InvariantCulture, "#{0:X2}{1:X2}{2:X2}", dialog.Color.R, dialog.Color.G, dialog.Color.B);
                 var restyle = ClearValidity(field);
                 OnEdited();
                 if (restyle) Restyle(); else Invalidate();
+                if (field.V != previous) ScriptFields(field);
             }
         }
 
@@ -6666,11 +6720,14 @@ namespace Lea.Win
         private void Choose(Fi field, int index)
         {
             if (field == null || index < 0 || index >= field.Os.Count || field.Os[index].Ds) return;
+            if (At == null || !At.Fs.Contains(field)) return;
+            var previous = field.V;
             field.Si = index;
             field.V = field.Os[index].V;
             var restyle = ClearValidity(field);
             OnEdited();
             if (restyle) Restyle(); else Invalidate();
+            if (field.V != previous) ScriptFields(field);
         }
 
         private void CloseChoices()
@@ -6703,6 +6760,7 @@ namespace Lea.Win
             edit = field;
             SetFocus(field.El);
             editStart = field.V;
+            editUserChanged = false;
             editLock = true;
             ed.Multiline = field.K == "textarea";
             ed.AcceptsReturn = ed.Multiline;
@@ -6746,12 +6804,16 @@ namespace Lea.Win
         {
             if (!retain) ForgetEdit();
             if (edit == null) return;
+            var committed = edit;
+            var changed = editUserChanged && !restore && At != null && At.Fs.Contains(committed);
+            editUserChanged = false;
             if (retain) heldEdit = edit;
             if (restore) edit.V = editStart;
             edit = null;
             ed.Visible = false;
             SetFocus(null);
             Invalidate();
+            if (changed) ScriptEvent(committed.El, "change");
         }
 
         private void EditChanged(object sender, EventArgs args)
@@ -6759,10 +6821,12 @@ namespace Lea.Win
             if (editLock || edit == null) return;
             if (!editReplay) editRedo = false;
             edit.V = ed.Text;
+            editUserChanged = true;
             var restyle = ClearValidity(edit);
             OnEdited();
             NotifyAccessibility(AccessibleEvents.ValueChange);
             if (restyle) Restyle(); else Invalidate();
+            if (edit != null) ScriptEvent(edit.El, "input");
         }
 
         private async void EditKeyDown(object sender, KeyEventArgs args)
@@ -6905,6 +6969,9 @@ namespace Lea.Win
             EndEdit(false);
             if (button == null || (!button.Nv && !Vf(button))) return At;
             if (!ValidForm(button)) return At;
+            var page = At;
+            if (await ScriptDefault(button.F, "submit")) return At;
+            if (closed || At != page || !ValidForm(button)) return At;
             var data = FormData(button);
             var multipart = button.M == "post" && button.En == "m" && CanPost(button.U) ? MultipartData(button) : null;
             if (Sb != null) Sb(this, EventArgs.Empty);
@@ -6917,7 +6984,7 @@ namespace Lea.Win
 
         private bool ValidForm(Fi button)
         {
-            return At != null && button != null && button.F != null && button.U != null && (button.M == "get" || button.M == "post");
+            return At != null && button != null && At.Fs.Contains(button) && button.F != null && button.U != null && (button.M == "get" || button.M == "post");
         }
 
         public bool Vf(Fi button)
@@ -9064,6 +9131,9 @@ namespace Lea.Win
             if (disposing && !closed)
             {
                 closed = true;
+                RetireScript();
+                scriptFactory = null;
+                Xd = null;
                 ClearFailure();
                 Fe = null;
                 heldEdit = null;

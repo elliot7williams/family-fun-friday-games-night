@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using Jint;
+using Jint.Native;
 using Jint.Runtime;
 using Jint.Runtime.Interop;
 using Lea.Script;
@@ -48,23 +49,37 @@ namespace Lea.Script.Worker
                             throw new InvalidDataException("Invalid script bridge reply.");
                         return Codec.Value(vm, reply["v"]);
                     }));
+                    JsValue dispatch;
                     using (var stream = typeof(Program).Assembly.GetManifestResourceStream("Lea.Script.Dom.js"))
-                    using (var reader = new StreamReader(stream)) vm.Execute(reader.ReadToEnd());
+                    using (var reader = new StreamReader(stream)) dispatch = vm.Evaluate(reader.ReadToEnd());
                     Wire.Write(output, new { k = "hello", g = guards, n = network, f = file ? 1 : 0 });
                     while (true)
                     {
                         var frame = Wire.Read(input);
-                        Wire.Fields(frame, "k", "i", "c");
-                        if (Wire.Text(frame, "k", 8) != "exec") return 3;
+                        var kind = Wire.Text(frame, "k", 8);
+                        if (kind == "exec") Wire.Fields(frame, "k", "i", "c");
+                        else if (kind == "event") Wire.Fields(frame, "k", "i", "t", "p");
+                        else return 3;
                         var next = Wire.Number(frame, "i");
                         if (next <= id) return 3;
                         id = next;
                         request = 0;
-                        var code = Wire.Text(frame, "c", 16 * 1024);
                         try
                         {
-                            vm.Execute(code);
-                            Wire.Write(output, new { k = "end", i = id, s = "ok", m = "" });
+                            var prevented = false;
+                            if (kind == "exec") vm.Execute(Wire.Text(frame, "c", 16 * 1024));
+                            else
+                            {
+                                var type = Wire.Text(frame, "t", 32);
+                                if (type != "click" && type != "input" && type != "change" && type != "submit" && type != "DOMContentLoaded" && type != "load")
+                                    throw new InvalidDataException("Unsupported event type.");
+                                var path = frame["p"] as object[];
+                                if (path == null || path.Length > 128) throw new InvalidDataException("Invalid event path.");
+                                foreach (var key in path)
+                                    if (!(key is int) || (int)key < 0 || (int)key >= 512) throw new InvalidDataException("Invalid event handle.");
+                                prevented = vm.Invoke(dispatch, JsValue.Undefined, new[] { (JsValue)type, Codec.Value(vm, path) }).AsBoolean();
+                            }
+                            Wire.Write(output, new { k = "end", i = id, s = "ok", m = "", d = prevented });
                         }
                         catch (Exception error) when (error is JavaScriptException || error is JintException ||
                             error is Acornima.ParseErrorException || error is TimeoutException || error is InvalidDataException)
@@ -74,7 +89,7 @@ namespace Lea.Script.Worker
                                 error is InvalidDataException;
                             var message = limited ? "Script budget exceeded: " + error.GetType().Name + "." : error.Message;
                             Wire.Write(output, new { k = "end", i = id, s = limited ? "limit" : "js",
-                                m = message.Length <= 512 ? message : message.Substring(0, 512) });
+                                m = message.Length <= 512 ? message : message.Substring(0, 512), d = false });
                             return 0;
                         }
                     }
