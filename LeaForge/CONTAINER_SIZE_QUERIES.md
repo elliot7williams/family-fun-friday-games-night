@@ -62,6 +62,11 @@ fractional digits, mixed-unit chains, and unitless zero share every existing
 comparison form without runtime decimal parsing. See
 `CONTAINER_QUERY_LENGTHS.md` for exact ranges and boundaries.
 
+Milestone 140 adds `vw`/`vh`/`vmin`/`vmax` and
+`cqw`/`cqh`/`cqi`/`cqb`/`cqmin`/`cqmax` thresholds with fixed integer
+comparisons. Live viewport and selected-container ancestor changes reevaluate
+the same compiled conditions. See `CONTAINER_QUERY_VIEWPORT.md`.
+
 Milestone 138 reuses the same atomic measurements for bounded `cqw`, `cqh`,
 `cqi`, `cqb`, `cqmin`, and `cqmax` dimensions. Unit axes select ancestors
 independently and fall back to the client viewport when no eligible container
@@ -88,6 +93,7 @@ the body itself is a container.
 - 256 measured containers per page snapshot
 - `0..8192` pixels per reported axis and pixel query value
 - `0..100` em/rem per font-relative query value
+- `0..100` per viewport- or container-relative query value
 - up to two query-length fractional digits
 - three automatic WinForms feedback passes
 - four nested conditional/container levels
@@ -103,9 +109,8 @@ definite heights are the dependable boundary for block-axis queries.
 
 ## Deliberately Unsupported
 
-Viewport- and container-relative query lengths, scroll-state queries, vertical
-writing modes, query CSSOM, and full intrinsic containment remain outside this
-milestone.
+Dynamic viewport unit families, scroll-state queries, vertical writing modes,
+query CSSOM, and full intrinsic containment remain outside this subset.
 Container units outside bounded dimension properties remain unsupported.
 General-property style
 queries and typed custom properties also remain outside the style-query subset.

@@ -1618,7 +1618,7 @@ namespace Lea.Engine
             var active = MediaRules(all, vw, vh, dp, th, rm, pc, je ? 'e' : 'n', pdt,
                 pt, hv ? 'h' : 'n', ap, ah ? 'h' : 'n');
             var current = page.R as List<R>;
-            if (SameRules(current, active)) return;
+            if (SameRules(current, active) && !ContainerViewportSensitive(active)) return;
             var fields = new Dictionary<N, Fi>();
             foreach (var field in page.Fs) if (field.El != null) fields[field.El] = field;
             page.R = active;
@@ -1643,7 +1643,25 @@ namespace Lea.Engine
             return true;
         }
 
-        private static void Rebuild(P p, List<R> rules, IDictionary<N, Fi> fields)
+        private static bool ContainerViewportSensitive(IList<R> rules)
+        {
+            if (rules == null) return false;
+            foreach (var rule in rules)
+                foreach (var query in rule.Kqs)
+                    if (ContainerViewportSensitive(query.X)) return true;
+            return false;
+        }
+
+        private static bool ContainerViewportSensitive(Kx expression)
+        {
+            if (expression == null) return false;
+            if (expression.U != '\0' && expression.U != 'p' && expression.U != 'e' && expression.U != 'r') return true;
+            foreach (var child in expression.C)
+                if (ContainerViewportSensitive(child)) return true;
+            return false;
+        }
+
+        private void Rebuild(P p, List<R> rules, IDictionary<N, Fi> fields)
         {
             p.Ls.Clear();
             p.Axs.Clear();
@@ -1678,7 +1696,7 @@ namespace Lea.Engine
             BuildAccessibility(p, body, rules);
         }
 
-        private static void BuildAccessibility(P page, N body, List<R> rules)
+        private void BuildAccessibility(P page, N body, List<R> rules)
         {
             var data = new Axc(page);
             IndexAccessibility(page.D, data);
@@ -1713,7 +1731,7 @@ namespace Lea.Engine
             foreach (var child in node.C) IndexAccessibility(child, data);
         }
 
-        private static void AddAccessibility(Axc data, N node, S inherited, List<R> rules, Ax parent, bool suppressText)
+        private void AddAccessibility(Axc data, N node, S inherited, List<R> rules, Ax parent, bool suppressText)
         {
             if (node == null || data.P.Axs.Count == MaxAccessibilityNodes) return;
             if (node.K == "#text")
@@ -3002,7 +3020,7 @@ namespace Lea.Engine
             }
             const string feature = "width|height|inline-size|block-size";
             const string number = "(?:0|[1-9][0-9]{0,3})(?:\\.[0-9]{1,2})?";
-            const string unit = "px|em|rem";
+            const string unit = "px|em|rem|vw|vh|vmin|vmax|cqw|cqh|cqi|cqb|cqmin|cqmax";
             var chain = Regex.Match(source, "^(?<an>" + number + ")(?<au>" + unit + ")?\\s*(?<ao><=|>=|<|>)\\s*(?<k>" + feature + ")\\s*(?<bo><=|>=|<|>)\\s*(?<bn>" + number + ")(?<bu>" + unit + ")?$", RegexOptions.IgnoreCase);
             if (chain.Success)
             {
@@ -3079,18 +3097,28 @@ namespace Lea.Engine
             if (suffix.Length == 0 || suffix == "px") code = 'p';
             else if (suffix == "em") code = 'e';
             else if (suffix == "rem") code = 'r';
+            else if (suffix == "vw") code = 'w';
+            else if (suffix == "vh") code = 'h';
+            else if (suffix == "vmin") code = 'n';
+            else if (suffix == "vmax") code = 'x';
+            else if (suffix == "cqw") code = 'q';
+            else if (suffix == "cqh") code = 't';
+            else if (suffix == "cqi") code = 'i';
+            else if (suffix == "cqb") code = 'b';
+            else if (suffix == "cqmin") code = 'm';
+            else if (suffix == "cqmax") code = 'a';
             else return false;
             if (number > (code == 'p' ? MaxViewport : 100)) return false;
             value = Decimal.ToInt32(number * 100M);
             return true;
         }
 
-        private static bool ContainerOn(S inherited, Kq[] queries)
+        private bool ContainerOn(S inherited, Kq[] queries)
         {
             return ContainerOn(inherited == null ? null : inherited.Sq, queries);
         }
 
-        private static bool ContainerOn(Scq chain, Kq[] queries)
+        private bool ContainerOn(Scq chain, Kq[] queries)
         {
             if (queries == null || queries.Length == 0) return true;
             foreach (var query in queries)
@@ -3122,7 +3150,7 @@ namespace Lea.Engine
             return result;
         }
 
-        private static bool ContainerExpression(Scq container, Kx expression)
+        private bool ContainerExpression(Scq container, Kx expression)
         {
             if (container == null || container.S == null || expression == null) return false;
             if (expression.K == 'n') return !ContainerExpression(container, expression.C[0]);
@@ -3162,14 +3190,13 @@ namespace Lea.Engine
             {
                 if (container.N == null || !container.N.Cv) return false;
                 var dimension = expression.K == 'w' ? container.N.Cw : container.N.Ch;
-                var expected = ContainerExpected(container, expression);
-                if (expected < 0) return false;
-                var measured = (long)dimension * 100L;
-                if (expression.N == "=") return measured == expected;
-                if (expression.N == ">") return measured > expected;
-                if (expression.N == ">=") return measured >= expected;
-                if (expression.N == "<") return measured < expected;
-                return expression.N == "<=" && measured <= expected;
+                int comparison;
+                if (!ContainerLengthComparison(container, expression, dimension, out comparison)) return false;
+                if (expression.N == "=") return comparison == 0;
+                if (expression.N == ">") return comparison > 0;
+                if (expression.N == ">=") return comparison >= 0;
+                if (expression.N == "<") return comparison < 0;
+                return expression.N == "<=" && comparison <= 0;
             }
             string actual;
             if (container.S.Vr == null || !container.S.Vr.TryGetValue(expression.N, out actual)) return false;
@@ -3179,13 +3206,66 @@ namespace Lea.Engine
                 actualValue.Trim().Equals(expectedValue.Trim(), StringComparison.Ordinal);
         }
 
-        private static long ContainerExpected(Scq container, Kx expression)
+        private bool ContainerLengthComparison(Scq container, Kx expression, int dimension, out int comparison)
         {
-            if (expression.U == 'p') return expression.L;
-            if (expression.U == 'e') return (long)expression.L * ContainerFont(container == null ? null : container.S);
-            if (expression.U != 'r') return -1;
-            while (container != null && container.Up != null) container = container.Up;
-            return (long)expression.L * ContainerFont(container == null ? null : container.S);
+            comparison = 0;
+            long measured;
+            long expected;
+            if (expression.U == 'p')
+            {
+                measured = (long)dimension * 100L;
+                expected = expression.L;
+            }
+            else if (expression.U == 'e' || expression.U == 'r')
+            {
+                var font = container;
+                if (expression.U == 'r') while (font != null && font.Up != null) font = font.Up;
+                measured = (long)dimension * 100L;
+                expected = (long)expression.L * ContainerFont(font == null ? null : font.S);
+            }
+            else
+            {
+                int basis;
+                if (!ContainerLengthBasis(container, expression.U, out basis)) return false;
+                measured = (long)dimension * 10000L;
+                expected = (long)expression.L * basis;
+            }
+            comparison = measured.CompareTo(expected);
+            return true;
+        }
+
+        private bool ContainerLengthBasis(Scq container, char unit, out int basis)
+        {
+            basis = 0;
+            if (unit == 'w') basis = vw;
+            else if (unit == 'h') basis = vh;
+            else if (unit == 'n') basis = Math.Min(vw, vh);
+            else if (unit == 'x') basis = Math.Max(vw, vh);
+            else
+            {
+                var inline = ContainerQueryAxis(container, false, vw);
+                var block = ContainerQueryAxis(container, true, vh);
+                if (unit == 'q' || unit == 'i') basis = inline;
+                else if (unit == 't' || unit == 'b') basis = block;
+                else if (unit == 'm') basis = Math.Min(inline, block);
+                else if (unit == 'a') basis = Math.Max(inline, block);
+                else return false;
+            }
+            return true;
+        }
+
+        private static int ContainerQueryAxis(Scq container, bool block, int fallback)
+        {
+            for (var current = container == null ? null : container.Up; current != null; current = current.Up)
+            {
+                if (current.N == null || !current.N.Cv || current.S == null) continue;
+                if (block)
+                {
+                    if (current.S.Ct == "s") return current.N.Ch;
+                }
+                else if (current.S.Ct == "i" || current.S.Ct == "s") return current.N.Cw;
+            }
+            return Math.Max(1, Math.Min(MaxViewport, fallback));
         }
 
         private static int ContainerFont(S style)
@@ -5158,7 +5238,7 @@ namespace Lea.Engine
             return node.K == "input" || node.K == "textarea";
         }
 
-        private static S Style(N node, S inherited, List<R> rules)
+        private S Style(N node, S inherited, List<R> rules)
         {
             var style = inherited == null ? new S() : inherited.Inherit();
             var matched = new List<R>();
@@ -5188,29 +5268,29 @@ namespace Lea.Engine
             return style;
         }
 
-        private static S MarkerStyle(N node, S inherited, List<R> rules)
+        private S MarkerStyle(N node, S inherited, List<R> rules)
         {
             var quoteDepth = 0;
             return MarkerStyle(node, inherited, rules, ref quoteDepth);
         }
 
-        private static S MarkerStyle(N node, S inherited, List<R> rules, ref int quoteDepth)
+        private S MarkerStyle(N node, S inherited, List<R> rules, ref int quoteDepth)
         {
             return PseudoStyle(node, inherited, rules, 'm', MarkerDefaults(node), ref quoteDepth);
         }
 
-        private static S GeneratedStyle(N node, S inherited, List<R> rules, char pseudo)
+        private S GeneratedStyle(N node, S inherited, List<R> rules, char pseudo)
         {
             var quoteDepth = 0;
             return GeneratedStyle(node, inherited, rules, pseudo, ref quoteDepth);
         }
 
-        private static S GeneratedStyle(N node, S inherited, List<R> rules, char pseudo, ref int quoteDepth)
+        private S GeneratedStyle(N node, S inherited, List<R> rules, char pseudo, ref int quoteDepth)
         {
             return PseudoStyle(node, inherited, rules, pseudo, NoDeclarations, ref quoteDepth);
         }
 
-        private static S PseudoStyle(N node, S inherited, List<R> rules, char pseudo, Pd[] defaults, ref int quoteDepth)
+        private S PseudoStyle(N node, S inherited, List<R> rules, char pseudo, Pd[] defaults, ref int quoteDepth)
         {
             var style = inherited == null ? new S() : inherited.Inherit();
             var quoteBase = quoteDepth;
@@ -9926,7 +10006,7 @@ namespace Lea.Engine
             return quote == '\0' && parentheses == 0;
         }
 
-        private static void Blocks(P page, N node, Uri baseUrl, List<R> rules, S inherited)
+        private void Blocks(P page, N node, Uri baseUrl, List<R> rules, S inherited)
         {
             if (node == null) return;
             var kind = node.K;
@@ -10013,7 +10093,7 @@ namespace Lea.Engine
             foreach (var child in node.C) Blocks(page, child, baseUrl, rules, style);
         }
 
-        private static void AddPicture(P page, N picture, Uri baseUrl, List<R> rules, S inherited)
+        private void AddPicture(P page, N picture, Uri baseUrl, List<R> rules, S inherited)
         {
             N image = null;
             foreach (var child in picture.C) if (child.K == "img") { image = child; break; }
@@ -10033,14 +10113,14 @@ namespace Lea.Engine
             if (source != null) page.Bs.Add(ImageBlock(page, image, source, style));
         }
 
-        private static void AddSvg(P page, N svg, Uri baseUrl, List<R> rules, S style)
+        private void AddSvg(P page, N svg, Uri baseUrl, List<R> rules, S style)
         {
             var model = SvgModel(page, svg, baseUrl, rules, style);
             if (model == null || model.Ss.Count == 0) return;
             page.Bs.Add(new B { K = "svg", X = SvgLabel(svg), S = style, Vg = model, El = svg });
         }
 
-        private static Vg SvgModel(P page, N svg, Uri baseUrl, List<R> rules, S style)
+        private Vg SvgModel(P page, N svg, Uri baseUrl, List<R> rules, S style)
         {
             var model = new Vg();
             var view = SvgNumbers(svg.Av("viewbox"), 4);
@@ -10085,7 +10165,7 @@ namespace Lea.Engine
             return model;
         }
 
-        private static void SvgWalk(P page, N node, Uri baseUrl, List<R> rules, S inherited, Sv parent, Vg model, Sx sources, ISet<string> usingIds, int depth, int useDepth, Uri activeLink, N linkElement)
+        private void SvgWalk(P page, N node, Uri baseUrl, List<R> rules, S inherited, Sv parent, Vg model, Sx sources, ISet<string> usingIds, int depth, int useDepth, Uri activeLink, N linkElement)
         {
             if (node == null || node.K == "#text" || depth > MaxSvgDepth || model.Ss.Count == MaxSvgShapes) return;
             if (node.K == "script" || node.K == "style" || node.K == "defs" || node.A.ContainsKey("hidden")) return;
@@ -10121,7 +10201,7 @@ namespace Lea.Engine
             }
         }
 
-        private static void SvgUse(P page, N use, Uri baseUrl, List<R> rules, S css, Sv paint, Vg model, Sx sources, ISet<string> usingIds, int depth, int useDepth, Uri activeLink, N linkElement)
+        private void SvgUse(P page, N use, Uri baseUrl, List<R> rules, S css, Sv paint, Vg model, Sx sources, ISet<string> usingIds, int depth, int useDepth, Uri activeLink, N linkElement)
         {
             var id = SvgUseId(use);
             N target;
@@ -10271,7 +10351,7 @@ namespace Lea.Engine
                 kind == "text" || kind == "path" || kind == "g" || kind == "symbol" || kind == "use" || kind == "a";
         }
 
-        private static void SvgClips(List<R> rules, S inherited, Vg model, Sx sources)
+        private void SvgClips(List<R> rules, S inherited, Vg model, Sx sources)
         {
             foreach (var node in sources.Os)
             {
@@ -10281,7 +10361,7 @@ namespace Lea.Engine
             }
         }
 
-        private static Vc SvgClip(N node, List<R> rules, S inherited, Vg model, Sx sources)
+        private Vc SvgClip(N node, List<R> rules, S inherited, Vg model, Sx sources)
         {
             var units = node.Av("clippathunits").Trim().ToLowerInvariant();
             if (units.Length > 0 && units != "userspaceonuse" && units != "objectboundingbox") return null;
@@ -10301,7 +10381,7 @@ namespace Lea.Engine
             return clip.Ss.Count > 0 ? clip : null;
         }
 
-        private static void SvgClipWalk(N node, List<R> rules, S inherited, Sv parent, Vg model, Sx sources, ISet<string> usingIds, Vc clip, int depth, int useDepth)
+        private void SvgClipWalk(N node, List<R> rules, S inherited, Sv parent, Vg model, Sx sources, ISet<string> usingIds, Vc clip, int depth, int useDepth)
         {
             if (node == null || node.K == "#text" || depth > MaxSvgDepth || clip.Ss.Count == MaxSvgClipShapes) return;
             if (node.K == "script" || node.K == "style" || node.K == "defs" || node.A.ContainsKey("hidden")) return;
@@ -10332,7 +10412,7 @@ namespace Lea.Engine
             }
         }
 
-        private static void SvgClipUse(N use, List<R> rules, S css, Sv paint, Vg model, Sx sources, ISet<string> usingIds, Vc clip, int depth, int useDepth)
+        private void SvgClipUse(N use, List<R> rules, S css, Sv paint, Vg model, Sx sources, ISet<string> usingIds, Vc clip, int depth, int useDepth)
         {
             var id = SvgUseId(use);
             N target;
@@ -10372,7 +10452,7 @@ namespace Lea.Engine
             return null;
         }
 
-        private static void SvgGradients(N svg, List<R> rules, S inherited, Vg model)
+        private void SvgGradients(N svg, List<R> rules, S inherited, Vg model)
         {
             var nodes = new List<N>();
             SvgGradientNodes(svg, false, 0, nodes);
@@ -10405,7 +10485,7 @@ namespace Lea.Engine
             }
         }
 
-        private static Vd SvgGradient(N node, IDictionary<string, N> sources, IDictionary<string, Vd> built, ISet<string> resolving, List<R> rules, S inherited, Vg model, int depth)
+        private Vd SvgGradient(N node, IDictionary<string, N> sources, IDictionary<string, Vd> built, ISet<string> resolving, List<R> rules, S inherited, Vg model, int depth)
         {
             var id = node.Av("id");
             Vd cached;
@@ -10536,7 +10616,7 @@ namespace Lea.Engine
             return axis != 'r' || value > 0D;
         }
 
-        private static bool SvgGradientStops(N node, List<R> rules, S inherited, out bool authored, out List<Vt> result)
+        private bool SvgGradientStops(N node, List<R> rules, S inherited, out bool authored, out List<Vt> result)
         {
             authored = false;
             result = new List<Vt>();
@@ -10634,7 +10714,7 @@ namespace Lea.Engine
             return null;
         }
 
-        private static Sv SvgPaint(N node, Sv inherited, S css, List<R> rules, bool root)
+        private Sv SvgPaint(N node, Sv inherited, S css, List<R> rules, bool root)
         {
             var paint = inherited.Copy();
             double[] transform = null;
@@ -11430,13 +11510,13 @@ namespace Lea.Engine
             return kind == "output" || kind == "data" || kind == "time" || kind == "ins" || kind == "del";
         }
 
-        private static void AddValueBlock(P page, N node, Uri baseUrl, List<R> rules, S style)
+        private void AddValueBlock(P page, N node, Uri baseUrl, List<R> rules, S style)
         {
             var block = ValueBlock(page, node, baseUrl, rules, style);
             if (block.X.Length > 0 || block.Is.Count > 0 || LayoutContext(style)) page.Bs.Add(block);
         }
 
-        private static B ValueBlock(P page, N node, Uri baseUrl, List<R> rules, S style)
+        private B ValueBlock(P page, N node, Uri baseUrl, List<R> rules, S style)
         {
             var text = TextValue(RawText(node), style);
             var model = ValueModel(page, node, text, baseUrl);
@@ -11677,7 +11757,7 @@ namespace Lea.Engine
             return !String.IsNullOrEmpty(block.Mk) || block.S.Li != null;
         }
 
-        private static bool MarkCounters(N root, List<R> rules, bool inline, bool prior)
+        private bool MarkCounters(N root, List<R> rules, bool inline, bool prior)
         {
             var active = HasCounterProperties(rules, inline);
             if (!active && !prior) return false;
@@ -11724,7 +11804,7 @@ namespace Lea.Engine
             foreach (var child in node.C) ClearCounters(child);
         }
 
-        private static void CounterWalk(N node, S inherited, List<R> rules, ref N previous, ref int quoteDepth)
+        private void CounterWalk(N node, S inherited, List<R> rules, ref N previous, ref int quoteDepth)
         {
             var source = PreviousElement(node) ?? node.Up;
             var counters = CounterInherited(CounterState(source), CounterState(previous));
@@ -12025,7 +12105,7 @@ namespace Lea.Engine
             return result.ToString();
         }
 
-        private static void AddNestedBlocks(P page, N node, Uri baseUrl, List<R> rules, S inherited)
+        private void AddNestedBlocks(P page, N node, Uri baseUrl, List<R> rules, S inherited)
         {
             foreach (var child in node.C)
             {
@@ -12046,7 +12126,7 @@ namespace Lea.Engine
             return false;
         }
 
-        private static void AddBlockInlines(P page, B block, N node, Uri baseUrl, List<R> rules, S style, Uri activeLink, string kind, Dv value = null)
+        private void AddBlockInlines(P page, B block, N node, Uri baseUrl, List<R> rules, S style, Uri activeLink, string kind, Dv value = null)
         {
             var before = GeneratedRunStyle(node, style, rules, 'b');
             var after = GeneratedRunStyle(node, style, rules, 'a');
@@ -12060,7 +12140,7 @@ namespace Lea.Engine
             block.X = InlineText(block);
         }
 
-        private static S GeneratedRunStyle(N node, S inherited, List<R> rules, char pseudo)
+        private S GeneratedRunStyle(N node, S inherited, List<R> rules, char pseudo)
         {
             if (node == null || !GeneratedHost(node.K)) return null;
             var cached = pseudo == 'b' ? node.Gb : node.Ga;
@@ -12093,7 +12173,7 @@ namespace Lea.Engine
             return style != null && (!String.IsNullOrEmpty(style.Mc) || !String.IsNullOrEmpty(style.Ma) || style.Mf != null && style.Mf.Count > 0);
         }
 
-        private static void AddPageGeneratedBlock(P page, N node, List<R> rules, S inherited, char pseudo)
+        private void AddPageGeneratedBlock(P page, N node, List<R> rules, S inherited, char pseudo)
         {
             var style = GeneratedRunStyle(node, inherited, rules, pseudo);
             if (!GeneratedContentPresent(style)) return;
@@ -12104,7 +12184,7 @@ namespace Lea.Engine
             if (block.X.Length > 0 || block.Is.Count > 0) page.Bs.Add(block);
         }
 
-        private static void AddInline(P page, B block, N node, Uri baseUrl, List<R> rules, S inherited, Uri activeLink, string inheritedKind, Dv inheritedValue = null)
+        private void AddInline(P page, B block, N node, Uri baseUrl, List<R> rules, S inherited, Uri activeLink, string inheritedKind, Dv inheritedValue = null)
         {
             if (node.K == "#text")
             {
@@ -12245,7 +12325,7 @@ namespace Lea.Engine
             return lines ? text.ToString() : text.ToString().Trim();
         }
 
-        private static void AddTable(P page, N node, Uri baseUrl, List<R> rules, S style)
+        private void AddTable(P page, N node, Uri baseUrl, List<R> rules, S style)
         {
             var table = new Tb();
             foreach (var child in node.C)
@@ -12256,7 +12336,7 @@ namespace Lea.Engine
             if (table.Rs.Count > 0) page.Bs.Add(new B { K = "table", X = table.Cp, S = style, Tb = table, El = node });
         }
 
-        private static void AddTableRows(P page, Tb table, N node, Uri baseUrl, List<R> rules, S inherited)
+        private void AddTableRows(P page, Tb table, N node, Uri baseUrl, List<R> rules, S inherited)
         {
             if (node.K == "table") return;
             var style = Style(node, inherited, rules);
@@ -12301,7 +12381,7 @@ namespace Lea.Engine
             foreach (var child in node.C) AddTableRows(page, table, child, baseUrl, rules, style);
         }
 
-        private static void AddCellBlocks(P page, Tc cell, N node, Uri baseUrl, List<R> rules, S inherited, string fallback)
+        private void AddCellBlocks(P page, Tc cell, N node, Uri baseUrl, List<R> rules, S inherited, string fallback)
         {
             foreach (var child in node.C)
             {
@@ -12376,7 +12456,7 @@ namespace Lea.Engine
             }
         }
 
-        private static void AddCellGeneratedBlock(Tc cell, N node, List<R> rules, S inherited, string kind, char pseudo)
+        private void AddCellGeneratedBlock(Tc cell, N node, List<R> rules, S inherited, string kind, char pseudo)
         {
             var style = GeneratedRunStyle(node, inherited, rules, pseudo);
             if (!GeneratedContentPresent(style)) return;

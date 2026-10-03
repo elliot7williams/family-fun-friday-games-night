@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lea Viewport and Container Query Lengths</title>
+  <style>
+    .outer { container: outer / size; width: 500px; height: 300px; }
+    .outer.large { width: 600px; height: 400px; }
+    .inner { container: inner / inline-size; width: 320px; height: 120px; }
+    .probe { display: none; width: 100px; height: 20px; }
+    #viewport-field, #ancestor-field { width: 100px; }
+
+    @container inner (width > 35vw) { #vw { display: block; } #viewport-field { width: 220px; } }
+    @container inner (width > 50vh) { #vh { display: block; } }
+    @container inner (width > 50vmin) { #vmin { display: block; } }
+    @container inner (width: 40vmax) { #vmax { display: block; } }
+    @container inner (35vw < width <= 55vmin) { #viewport-chain { display: block; } }
+    @container inner (width > 39.99vmax) { #viewport-decimal { display: block; } }
+    @container inner (width > 40.01vmax) { #false-viewport-decimal { display: block; } }
+    @container outer (height > 45vh) { #viewport-height { display: block; } }
+    @container outer (width > 60cqw) { #fallback-cqw { display: block; } }
+    @container outer (width > 80cqmin) { #fallback-cqmin { display: block; } }
+
+    @container inner (width > 60cqw) { #cqw { display: block; } #ancestor-field { width: 230px; } }
+    @container inner (width > 100cqh) { #cqh { display: block; } }
+    @container inner (width > 60cqi) { #cqi { display: block; } }
+    @container inner (width > 100cqb) { #cqb { display: block; } }
+    @container inner (width > 100cqmin) { #cqmin { display: block; } }
+    @container inner (width > 60cqmax) { #cqmax { display: block; } }
+    @container inner (55cqw < width <= 55vmin) { #mixed-chain { display: block; } }
+    @container inner (width > 63.99cqw) { #ancestor-decimal { display: block; } }
+    @container inner (width > 64.01cqw) { #false-ancestor-decimal { display: block; } }
+    @container inner (width > 70cqw) { #false-ancestor { display: block; } }
+    @container inner (height > 1cqh) { #wrong-axis { display: block; } }
+    @container inner (width > 100.01cqw) { #invalid-limit { display: block; } }
+    @container inner (width > 1.001vw) { #invalid-precision { display: block; } }
+    @container inner (width > 1svw) { #invalid-unit { display: block; } }
+    @container inner (width > calc(30vw + 1px)) { #invalid-calc { display: block; } }
+  </style>
+</head>
+<body>
+  <section id="outer" class="outer">
+    <p id="fallback-cqw" class="probe">Viewport fallback width</p>
+    <p id="fallback-cqmin" class="probe">Viewport fallback minimum</p>
+    <p id="viewport-height" class="probe">Viewport height</p>
+    <section id="inner" class="inner">
+      <p id="vw" class="probe">Viewport width</p>
+      <p id="vh" class="probe">Viewport height</p>
+      <p id="vmin" class="probe">Viewport minimum</p>
+      <p id="vmax" class="probe">Viewport maximum</p>
+      <p id="viewport-chain" class="probe">Viewport chain</p>
+      <p id="viewport-decimal" class="probe">Viewport decimal boundary</p>
+      <p id="false-viewport-decimal" class="probe">False viewport decimal boundary</p>
+      <p id="cqw" class="probe">Container width</p>
+      <p id="cqh" class="probe">Container height</p>
+      <p id="cqi" class="probe">Container inline</p>
+      <p id="cqb" class="probe">Container block</p>
+      <p id="cqmin" class="probe">Container minimum</p>
+      <p id="cqmax" class="probe">Container maximum</p>
+      <p id="mixed-chain" class="probe">Mixed chain</p>
+      <p id="ancestor-decimal" class="probe">Ancestor decimal boundary</p>
+      <p id="false-ancestor-decimal" class="probe">False ancestor decimal boundary</p>
+      <p id="false-ancestor" class="probe">False ancestor threshold</p>
+      <p id="wrong-axis" class="probe">Wrong axis</p>
+      <p id="invalid-limit" class="probe">Invalid limit</p>
+      <p id="invalid-precision" class="probe">Invalid precision</p>
+      <p id="invalid-unit" class="probe">Invalid unit</p>
+      <p id="invalid-calc" class="probe">Invalid calculation</p>
+      <input id="viewport-field" value="Viewport query field">
+      <input id="ancestor-field" value="Ancestor query field">
+    </section>
+  </section>
+  <button id="large-outer" type="button" data-lea="ac('outer','large')">Large outer container</button>
+  <button id="small-outer" type="button" data-lea="rc('outer','large')">Small outer container</button>
+</body>
+</html>

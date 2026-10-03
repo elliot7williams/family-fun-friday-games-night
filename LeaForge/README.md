@@ -74,11 +74,12 @@ LeaForge is where we can grow the more full-featured browser.
   nested media/supports/layers, retained rebuilds, and diagnostics; compact
   `S.Ct` plus atomic `E.Cz` measurements add nearest/named width, height,
   reduced-integer aspect-ratio, and portrait/landscape size queries with
-  automatic bounded WinForms feedback; fixed-hundredth `px`/`em`/`rem`
-  thresholds use selected-container and root font bases; scroll-state queries
-  remain unsupported; see `CONTAINER_STYLE_QUERIES.md`,
+   automatic bounded WinForms feedback; fixed-hundredth `px`/`em`/`rem`
+   thresholds use selected-container and root font bases, while bounded
+   `vw`/`vh`/`vmin`/`vmax` and `cq*` thresholds use live viewport and ancestor
+   measurements; scroll-state queries remain unsupported; see `CONTAINER_STYLE_QUERIES.md`,
   `CONTAINER_SIZE_QUERIES.md`, `CONTAINER_RATIO_ORIENTATION.md`, and
-  `CONTAINER_QUERY_LENGTHS.md`
+   `CONTAINER_QUERY_LENGTHS.md` plus `CONTAINER_QUERY_VIEWPORT.md`
 - bounded container-relative width/height dimensions through compact unit codes
   7..12 for `cqw`/`cqh`/`cqi`/`cqb`/`cqmin`/`cqmax`, independent nearest-axis
   selection, viewport fallback, calculated/size-function values, explicit

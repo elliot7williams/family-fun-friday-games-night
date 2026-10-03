@@ -84,9 +84,9 @@ over-limit values are rejected atomically, preserving the earlier declaration.
 ## Deliberately Unsupported
 
 Container units in margins, padding, borders, insets, transforms, typography,
-grid tracks, gaps, and container-query thresholds remain outside this slice.
-Bounded `em`/`rem` query thresholds are documented separately in
-`CONTAINER_QUERY_LENGTHS.md`.
+grid tracks, and gaps remain outside this slice. Bounded query thresholds are
+documented in `CONTAINER_QUERY_LENGTHS.md` and
+`CONTAINER_QUERY_VIEWPORT.md`.
 Vertical writing modes, named-unit selection, dynamic viewport unit families,
 general CSS Typed OM, and complete intrinsic containment are also unsupported.
 

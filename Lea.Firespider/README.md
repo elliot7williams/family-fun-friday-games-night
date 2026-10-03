@@ -73,7 +73,8 @@ smoke covers ratio/orientation diagnostics, script-driven landscape/portrait
 relayout, and retained field identity/value. Firespider adds no containment
 parser or layout state. Fixed-hundredth `px`/`em`/`rem` query thresholds use
 the selected container and root computed font sizes, including live host sheet
-and class rebuilds with retained fields. Bounded
+and class rebuilds with retained fields. Bounded viewport and container query
+lengths also follow host resizing and measured ancestor changes. Bounded
 `cqw`/`cqh`/`cqi`/`cqb`/`cqmin`/`cqmax`
 dimensions now resolve through those same measured boxes, including independent
 axis selection, viewport fallback, and wide/narrow host relayout with retained
@@ -81,7 +82,8 @@ fields. Scroll-state queries remain outside this subset. See
 `LeaForge/CONTAINER_STYLE_QUERIES.md` and
 `LeaForge/CONTAINER_SIZE_QUERIES.md` plus
 `LeaForge/CONTAINER_RATIO_ORIENTATION.md` and
-`LeaForge/CONTAINER_QUERY_LENGTHS.md` plus `LeaForge/CONTAINER_UNITS.md`.
+`LeaForge/CONTAINER_QUERY_LENGTHS.md`, `LeaForge/CONTAINER_QUERY_VIEWPORT.md`,
+and `LeaForge/CONTAINER_UNITS.md`.
 
 Initial fragments now stay aligned while first paint, host sizing, and decoded
 intrinsic images settle. `V.Fa/Fj/Fy` expose the retained anchor, placement

@@ -811,10 +811,12 @@ automatically from actual retained content rectangles with a three-pass
 ceiling. Width/height/logical-size, reduced-integer aspect-ratio, and
 portrait/landscape features share named/nearest ancestor selection and bounded
 style-query logic. Query thresholds accept fixed-hundredth `px`, selected-
-container `em`, and root `rem` values through compact `p/e/r` codes; hosts do
-not provide font callbacks. See `CONTAINER_STYLE_QUERIES.md`,
+container `em`, and root `rem` values through compact `p/e/r` codes. Bounded
+`vw`/`vh`/`vmin`/`vmax` and `cqw`/`cqh`/`cqi`/`cqb`/`cqmin`/`cqmax` thresholds
+use the engine viewport and the query container's nearest eligible ancestors;
+hosts do not provide font or unit callbacks. See `CONTAINER_STYLE_QUERIES.md`,
 `CONTAINER_SIZE_QUERIES.md`, `CONTAINER_RATIO_ORIENTATION.md`, and
-`CONTAINER_QUERY_LENGTHS.md`.
+`CONTAINER_QUERY_LENGTHS.md` plus `CONTAINER_QUERY_VIEWPORT.md`.
 Container-relative dimensions reuse those measurements without a host-side
 API: unit codes 7..12 represent `cqw`, `cqh`, `cqi`, `cqb`, `cqmin`, and
 `cqmax`. Inline and block bases select their nearest eligible ancestors

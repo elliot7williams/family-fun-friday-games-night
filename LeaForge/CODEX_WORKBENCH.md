@@ -17,6 +17,21 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
+Milestone 140 adds bounded viewport and container-relative size-query
+thresholds to the compact `Kx` compiler. `vw`/`vh`/`vmin`/`vmax` use the live
+engine viewport; `cqw`/`cqh`/`cqi`/`cqb`/`cqmin`/`cqmax` use eligible ancestors
+of the selected query container, falling back to the viewport. Integer
+cross-products preserve two-decimal boundaries and `E.Vz` now reevaluates
+these conditions when media rule selection stays the same. Focused,
+neighboring, full source/staged core and edit, matching compiled Firespider
+host, all 42 Boot, and all six real EXE startup suites pass. All 136
+compatibility probes pass over 131 fixtures. Three-round medians are 993.128
+ms startup, 8.628 ms load, and 42.283 ms paint; retained memory is 73.1
+KiB/page and required runtime files are 697.0 KiB with a 286.6 KiB GZip
+estimate. Runtime 240 is packaged separately as
+`F:\Lea-runtime-240-ready_2026-10-02_23-45-12.zip`; installed runtime 157
+stays unchanged. See `CONTAINER_QUERY_VIEWPORT.md`.
+
 Milestone 139 adds fixed-hundredth `px`, selected-container `em`, and root
 `rem` thresholds to the compact `Kx` size-query tree. One-character `p/e/r`
 codes support up to two fractional digits, unitless zero, every existing

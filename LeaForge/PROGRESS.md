@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **139**
+Post-1.0 hardening milestones completed: **140**
 
 Broader lightweight-browser readiness: **about 65%**. This is a practical
 project estimate, not a standards conformance score. Full Chrome/Safari-class
@@ -33,6 +33,27 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded classic viewport and container-relative size-query thresholds
+  to the compact `Kx` tree: `vw`/`vh`/`vmin`/`vmax` and
+  `cqw`/`cqh`/`cqi`/`cqb`/`cqmin`/`cqmax`. Integer cross-products preserve
+  two-decimal boundaries without runtime floating point. Each `cq*` basis
+  resolves from the selected query container's nearest eligible ancestor per
+  axis, with viewport fallback. `E.Vz` now reevaluates active container rules
+  even when the media rule list is unchanged, while retained fields and
+  measurements survive. A dedicated fixture covers all units, mixed chains,
+  malformed limits, independent engine viewports, dynamic ancestor sizes,
+  exact native geometry, and the compiled Firespider host. Focused,
+  neighboring, full source/staged core and edit, matching compiled host, all
+  42 Boot, and all six EXE startup suites pass. All 136 compatibility probes
+  pass over 131 fixtures. Three-round diagnostic medians are 993.128 ms clean
+  start, 8.628 ms local load, and 42.283 ms layout/paint. Retained managed
+  memory is 38,303.4 KiB for 524 pages, or 73.1 KiB/page. Required runtime
+  files are 697.0 KiB with a 286.6 KiB GZip estimate. Runtime 240 is packaged
+  separately as `F:\Lea-runtime-240-ready_2026-10-02_23-45-12.zip`; installed
+  runtime 157 remains unchanged. Dynamic viewport unit families, vertical
+  writing, scroll-state queries, and complete intrinsic containment remain
+  future work. See `CONTAINER_QUERY_VIEWPORT.md`.
 
 - Added bounded font-relative size-container query thresholds to the existing
   compact `Kx` tree. Pixel, selected-container `em`, and root `rem` values use

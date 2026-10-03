@@ -354,6 +354,23 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
+Milestone 140 adds bounded `vw`/`vh`/`vmin`/`vmax` and
+`cqw`/`cqh`/`cqi`/`cqb`/`cqmin`/`cqmax` size-query thresholds. The selected
+query container supplies the computed container-unit basis through its nearest
+eligible ancestors, with viewport fallback. Fixed integer cross-products
+retain two-decimal precision, and viewport changes trigger retained style
+rebuilds even when media selection is unchanged. Focused, neighboring, full
+source/staged core and edit, matching compiled Firespider host, all 42 Boot,
+and all six real EXE startup suites pass. All 136 compatibility probes pass
+over 131 fixtures. Three-round diagnostic medians are 993.128 ms startup,
+8.628 ms load, and 42.283 ms paint; retained memory is 73.1 KiB/page and
+required files are 697.0 KiB with a 286.6 KiB GZip estimate. Runtime 240 is
+packaged separately as `F:\Lea-runtime-240-ready_2026-10-02_23-45-12.zip`
+while installed runtime 157 stays unchanged. See
+`CONTAINER_QUERY_VIEWPORT.md`. Dynamic viewport unit families, vertical
+writing, scroll-state queries, complete intrinsic containment, arbitrary
+CSSOM, and general JavaScript remain future work.
+
 Milestone 139 adds bounded `px`, selected-container `em`, and root `rem`
 thresholds to the existing size-container query compiler. `Kx.L/U` store fixed
 hundredths and compact `p/e/r` codes; up to two fractional digits, unitless

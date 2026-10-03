@@ -277,6 +277,10 @@ retained fields, and automatic bounded WinForms relayout.
 thresholds, selected-container and root font bases, decimals, unitless zero,
 all comparison forms, dynamic fonts, diagnostics, malformed bounds, native
 sheets, retained fields, and exact WinForms geometry.
+`--container-query-viewport` isolates bounded `vw`/`vh`/`vmin`/`vmax` and
+`cqw`/`cqh`/`cqi`/`cqb`/`cqmin`/`cqmax` query thresholds, viewport fallback,
+mixed and fractional ranges, live viewport and ancestor changes, independent
+engine instances, retained fields, and exact WinForms geometry.
 `--container-units` isolates compact `cqw`/`cqh`/`cqi`/`cqb`/`cqmin`/`cqmax`
 dimension codes, independent nearest inline/block ancestor selection, viewport
 fallback, calculations and size functions, custom properties, computed

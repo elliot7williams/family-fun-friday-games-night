@@ -226,6 +226,11 @@ namespace Lea.Tests
                     ContainerQueryLengthSmoke(Path.Combine(pages, "container-query-lengths.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--container-query-viewport")
+                {
+                    ContainerQueryViewportSmoke(Path.Combine(pages, "container-query-viewport.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--container-units")
                 {
                     ContainerUnitSmoke(Path.Combine(pages, "container-units.html"));
@@ -1664,6 +1669,7 @@ namespace Lea.Tests
                 ContainerSizeSmoke(Path.Combine(pages, "container-size.html"));
                 ContainerFeatureSmoke(Path.Combine(pages, "container-features.html"));
                 ContainerQueryLengthSmoke(Path.Combine(pages, "container-query-lengths.html"));
+                ContainerQueryViewportSmoke(Path.Combine(pages, "container-query-viewport.html"));
                 ContainerUnitSmoke(Path.Combine(pages, "container-units.html"));
                 LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
                 HslColorSmoke(Path.Combine(pages, "hsl-colors.html"));
@@ -10750,6 +10756,110 @@ namespace Lea.Tests
                 Eq(1, view.Sd("relative-root-font"), "WinForms large root font sheet remove");
             }
             Console.WriteLine("Lea relative container query length smoke passed: fixed hundredth px/em/rem terms, container/root font bases, decimal ranges, unitless zero, diagnostics, native sheets, retained fields, and exact WinForms geometry.");
+        }
+
+        private static void ContainerQueryViewportSmoke(string path)
+        {
+            var engine = new E();
+            engine.Vz(800, 600);
+            var page = engine.Go(path);
+            var outer = ById(page.D, "outer");
+            var inner = ById(page.D, "inner");
+            var viewportField = FieldById(page, "viewport-field");
+            var ancestorField = FieldById(page, "ancestor-field");
+            viewportField.V = "Retained viewport query value";
+            ancestorField.V = "Retained ancestor query value";
+            Ok(!HasBlock(page, "vw") && !HasBlock(page, "cqw"), "viewport and container queries wait for measurements");
+
+            Eq(1, engine.Cz(page, new List<Cz> { new Cz(outer, 500, 300), new Cz(inner, 320, 120) }),
+                "viewport and ancestor measurement snapshot");
+            Ok(HasBlock(page, "vw") && HasBlock(page, "vh") && HasBlock(page, "vmin") &&
+                HasBlock(page, "vmax") && HasBlock(page, "viewport-chain") && HasBlock(page, "viewport-height") &&
+                HasBlock(page, "fallback-cqw") && HasBlock(page, "fallback-cqmin") &&
+                HasBlock(page, "cqw") && HasBlock(page, "cqh") && HasBlock(page, "cqi") &&
+                HasBlock(page, "cqb") && HasBlock(page, "cqmin") && HasBlock(page, "cqmax") &&
+                HasBlock(page, "mixed-chain") && HasBlock(page, "viewport-decimal") &&
+                HasBlock(page, "ancestor-decimal"), "viewport and ancestor unit bases");
+            Ok(!HasBlock(page, "false-ancestor") && !HasBlock(page, "wrong-axis") &&
+                !HasBlock(page, "false-viewport-decimal") && !HasBlock(page, "false-ancestor-decimal") &&
+                !HasBlock(page, "invalid-limit") && !HasBlock(page, "invalid-precision") &&
+                !HasBlock(page, "invalid-unit") && !HasBlock(page, "invalid-calc"),
+                "false, ineligible, and unsupported query lengths stay inactive");
+            Eq(220, viewportField.S.W, "viewport query field width");
+            Eq(230, ancestorField.S.W, "ancestor query field width");
+            var diagnostics = engine.Dg(page);
+            Ok(Has(diagnostics.Cs, "@c(inner:(width>35vw))") &&
+                Has(diagnostics.Cs, "@c(inner:(width>60cqw))") &&
+                Has(diagnostics.Cs, "@c(inner:(55cqw<width<=55vmin))"),
+                "viewport and ancestor units survive compact diagnostics");
+
+            engine.Vz(1000, 800);
+            Ok(!HasBlock(page, "vw") && !HasBlock(page, "vh") && !HasBlock(page, "vmin") &&
+                !HasBlock(page, "vmax") && !HasBlock(page, "viewport-chain") &&
+                !HasBlock(page, "viewport-height") && !HasBlock(page, "fallback-cqw") &&
+                !HasBlock(page, "fallback-cqmin") && HasBlock(page, "cqw") &&
+                HasBlock(page, "mixed-chain") && viewportField.S.W == 100 && ancestorField.S.W == 230,
+                "viewport resize reevaluates matching container rules without changing media rules");
+            Ok(Object.ReferenceEquals(viewportField, FieldById(page, "viewport-field")) &&
+                Object.ReferenceEquals(ancestorField, FieldById(page, "ancestor-field")) &&
+                viewportField.V == "Retained viewport query value" &&
+                ancestorField.V == "Retained ancestor query value",
+                "viewport rebuild retains live fields");
+
+            var second = new E();
+            second.Vz(800, 600);
+            var secondPage = second.Go(path);
+            Eq(1, second.Cz(secondPage, new List<Cz> {
+                new Cz(ById(secondPage.D, "outer"), 500, 300),
+                new Cz(ById(secondPage.D, "inner"), 320, 120) }),
+                "independent engine measurement snapshot");
+            Ok(HasBlock(secondPage, "vw") && !HasBlock(page, "vw"),
+                "different engine instances keep independent viewports");
+
+            engine.Vz(800, 600);
+            Eq(1, engine.Cz(page, new List<Cz> { new Cz(outer, 600, 400), new Cz(inner, 320, 120) }),
+                "large ancestor measurement snapshot");
+            Ok(HasBlock(page, "vw") && !HasBlock(page, "cqw") && !HasBlock(page, "cqh") &&
+                !HasBlock(page, "cqi") && !HasBlock(page, "cqb") && !HasBlock(page, "cqmin") &&
+                !HasBlock(page, "cqmax") && !HasBlock(page, "mixed-chain") &&
+                ancestorField.S.W == 100, "ancestor size changes query units independently of viewport units");
+            Eq(1, engine.Cz(page, new List<Cz> { new Cz(outer, 400, 200), new Cz(inner, 320, 120) }),
+                "small ancestor measurement snapshot");
+            Ok(HasBlock(page, "cqw") && HasBlock(page, "cqh") && HasBlock(page, "cqmin") &&
+                HasBlock(page, "false-ancestor") && ancestorField.S.W == 230,
+                "small ancestor restores container-relative thresholds");
+
+            using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual,
+                Location = new Point(-30000, -30000), ClientSize = new Size(800, 600) })
+            using (var view = new V { Dock = DockStyle.Fill })
+            {
+                form.Controls.Add(view);
+                form.Show();
+                view.Go(path);
+                Paint(view);
+                Eq(220, BlockRect(view, BlockById(view.At, "viewport-field")).Width,
+                    "WinForms viewport query geometry");
+                Eq(230, BlockRect(view, BlockById(view.At, "ancestor-field")).Width,
+                    "WinForms ancestor query geometry");
+                var liveViewport = FieldById(view.At, "viewport-field");
+                liveViewport.V = "Retained view viewport query value";
+                Eq(1, view.Ck(ById(view.At.D, "large-outer")), "WinForms large ancestor command");
+                Paint(view);
+                Eq(100, BlockRect(view, BlockById(view.At, "ancestor-field")).Width,
+                    "WinForms large ancestor query geometry");
+                Eq(1, view.Ck(ById(view.At.D, "small-outer")), "WinForms small ancestor command");
+                Paint(view);
+                Eq(230, BlockRect(view, BlockById(view.At, "ancestor-field")).Width,
+                    "WinForms ancestor query restoration");
+                form.ClientSize = new Size(1000, 800);
+                Paint(view);
+                Eq(100, BlockRect(view, BlockById(view.At, "viewport-field")).Width,
+                    "WinForms viewport query resize geometry");
+                Ok(Object.ReferenceEquals(liveViewport, FieldById(view.At, "viewport-field")) &&
+                    liveViewport.V == "Retained view viewport query value",
+                    "WinForms viewport query rebuild retains field");
+            }
+            Console.WriteLine("Lea viewport/container query length smoke passed: vw/vh/vmin/vmax and cqw/cqh/cqi/cqb/cqmin/cqmax bases, viewport fallback, mixed chains, independent engines, retained fields, and WinForms geometry.");
         }
 
         private static void MediaFeatureSmoke(string path)

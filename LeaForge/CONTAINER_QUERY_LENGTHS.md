@@ -65,8 +65,9 @@ host ownership through those rebuilds.
 - existing 256-container snapshot and three-feedback-pass ceilings
 
 Negative values, exponent notation, more than two fractional digits, nonzero
-unitless values, calculations, viewport units, container-relative units,
-font-metric units such as `ch`, and over-limit values remain unsupported.
+unitless values, calculations, font-metric units such as `ch`, and over-limit
+values remain unsupported. Bounded viewport and container-relative query
+thresholds are documented in `CONTAINER_QUERY_VIEWPORT.md`.
 Malformed rules stay inactive and do not partly enter the cascade.
 
 The selected-container font basis follows CSS Containment Module Level 3:

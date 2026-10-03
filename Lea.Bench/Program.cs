@@ -113,7 +113,7 @@ namespace Lea.Bench
             {
                 "index.html", "recovery.html", "html-tokens.html", "selectors.html", "selector-functions.html", "selector-arithmetic.html", "selector-filtered-position.html", "selector-relational.html", "layout.html",
                 "tables.html", "forms.html", "editing.html", "retained-data.html", "stylesheets.html", "load-lifecycle.html", "image-loading.html", "image-preflight.html", "input-loading.html", "cache-identity.html", "events-vars.html", "dom-bridge.html", "display-navigation.html", "calculated-widths.html", "calculated-heights.html", "viewport-units.html", "font-relative-units.html", "size-functions.html", "logical-sizing-insets.html", "logical-box-model.html", "logical-borders.html", "direction-logical.html", "direction-layout.html", "direction-inline.html", "sticky-positioning.html", "responsive-media.html", "media-queries.html", "media-features.html", "media-aspect-ratio.html", "media-ranges.html", "media-resolution.html", "media-color-scheme.html", "media-reduced-motion.html", "media-reduced-data.html", "media-contrast.html", "media-scripting.html", "supports-queries.html", "css-supports-script.html", "match-media-script.html", "media-modifiers.html", "media-interaction.html", "cascade-layers.html", "cascade-layer-limits.html", "hsl-colors.html", "hwb-colors.html", "lab-colors.html", "predefined-colors.html", "wide-gamut-colors.html", "oklab-colors.html", "color-mix.html", "custom-properties.html", "important-cascade.html",
-                "container-style.html", "container-size.html", "container-features.html", "container-query-lengths.html", "container-units.html",
+                "container-style.html", "container-size.html", "container-features.html", "container-query-lengths.html", "container-query-viewport.html", "container-units.html",
                 "direction-overflow.html", "stacking-contexts.html", "external.html", "base-url.html", "class-commands.html",
                 "go-command.html", "lists.html", "list-style.html", "list-position.html", "list-image.html", "marker.html", "marker-content.html", "marker-counters.html", "css-counters.html", "generated-content.html", "generated-quotes.html", "generated-alt.html", "generated-images.html", "disclosure.html", "fragments.html", "fragment-stability.html", "gauges.html",
                 "values.html", "time-edits.html", "image-maps.html", "keyboard-focus.html",
@@ -2325,6 +2325,50 @@ namespace Lea.Bench
                         "automatic container-font query geometry changed");
                 }
                 return "fixed-hundredth px/em/rem size-query terms, selected-container and root font bases, decimal ranges, unitless zero, diagnostics, native sheets, retained fields, and exact WinForms feedback";
+            });
+            AddProbe(probes, "Viewport and container query lengths", delegate
+            {
+                var path = Path.Combine(folder, "container-query-viewport.html");
+                var engine = new E();
+                engine.Vz(800, 600);
+                var page = engine.Go(path);
+                var outer = ById(page.D, "outer");
+                var inner = ById(page.D, "inner");
+                var field = page.Fs.Single(item => item.El != null && item.El.Av("id") == "viewport-field");
+                field.V = "Retained benchmark viewport query value";
+                Need(engine.Cz(page, new List<Cz> { new Cz(outer, 500, 300), new Cz(inner, 320, 120) }) == 1 &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "vw") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "vmax") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "cqw") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "cqmin") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "fallback-cqw") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "invalid-unit") &&
+                    field.S.W == 220, "viewport/container query bases changed");
+                engine.Vz(1000, 800);
+                Need(!page.Bs.Any(item => item.El != null && item.El.Av("id") == "vw") &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "fallback-cqw") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "cqw") &&
+                    field.S.W == 100 && Object.ReferenceEquals(field, page.Fs.Single(item => item.El != null && item.El.Av("id") == "viewport-field")) &&
+                    field.V == "Retained benchmark viewport query value", "viewport query rebuild changed");
+                engine.Vz(800, 600);
+                Need(engine.Cz(page, new List<Cz> { new Cz(outer, 600, 400), new Cz(inner, 320, 120) }) == 1 &&
+                    !page.Bs.Any(item => item.El != null && item.El.Av("id") == "cqw") &&
+                    page.Bs.Any(item => item.El != null && item.El.Av("id") == "vw"),
+                    "ancestor query rebuild changed");
+                using (var view = NewView())
+                {
+                    view.Size = new Size(800, 600);
+                    view.Go(path);
+                    using (var image = Draw(view))
+                        Need(BlockContent(view, "viewport-field").Width == 220 &&
+                            BlockContent(view, "ancestor-field").Width == 230,
+                            "native viewport and ancestor query geometry changed");
+                    view.Ck(ById(view.At.D, "large-outer"));
+                    using (var image = Draw(view)) { }
+                    Need(BlockContent(view, "ancestor-field").Width == 100,
+                        "native ancestor query resize changed");
+                }
+                return "bounded vw/vh/vmin/vmax and cqw/cqh/cqi/cqb/cqmin/cqmax size-query terms, viewport fallback, mixed chains, independent live bases, retained fields, and native geometry";
             });
             AddProbe(probes, "Container relative units", delegate
             {
