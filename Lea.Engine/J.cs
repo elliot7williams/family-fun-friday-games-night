@@ -41,6 +41,46 @@ namespace Lea.Engine
             return Run(page, code, ref left, 0);
         }
 
+        internal static bool Put(P page, N target, string command, string value)
+        {
+            if (target == null)
+            {
+                if (command == "t" && value.Length <= 256) { page.T = value; return true; }
+                if (command == "a" && value.Length <= 512 && page.Ms.Count < MaxAlerts)
+                { page.Ms.Add(value); return true; }
+                return false;
+            }
+            if (command == "tx")
+            {
+                if (!TextTarget(target.K) || value.Length > 512 ||
+                    target.C.Count == 0 && page.N >= 8192) return false;
+                foreach (var child in target.C) child.Up = null;
+                target.C.Clear();
+                if (value.Length > 0) target.C.Add(new N("#text") { X = value, Up = target });
+                return true;
+            }
+            if (command == "vl") return SetValue(page, target, value);
+            if (command == "ck") return SetChecked(page, target, value);
+            if (command == "ac" || command == "rc" || command == "tc")
+            {
+                var name = ClassName(value);
+                return ClassTarget(target.K) && name.Length > 0 && SetClass(target, name, command);
+            }
+            if (!ClassTarget(target.K)) return false;
+            string parsed;
+            if (command == "fg" || command == "bg")
+                return Color(value, out parsed) && SetStyle(target, command == "fg" ? "color" : "background-color", parsed);
+            if (command == "wd") return E.Wd(value, out parsed) && SetStyle(target, "width", parsed);
+            if (command == "ht") return E.Ht(value, out parsed) && SetStyle(target, "height", parsed);
+            if (command == "dp") return Display(value, out parsed) && SetStyle(target, "display", parsed);
+            if (command == "fs")
+            {
+                int size;
+                return Size(value, out size) && SetStyle(target, "font-size", size.ToString() + "px");
+            }
+            return false;
+        }
+
         private static int Run(P page, string code, ref int left, int depth)
         {
             if (page == null || String.IsNullOrWhiteSpace(code) || code.Length > MaxCode || left < 1) return 0;

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net462</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Jint" Version="4.16.4" />
+    <ProjectReference Include="..\Lea.Engine\Lea.Engine.csproj" />
+    <EmbeddedResource Include="Dom.js" />
+  </ItemGroup>
+</Project>

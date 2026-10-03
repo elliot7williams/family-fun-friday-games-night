@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **141**
+Post-1.0 hardening milestones completed: **142**
 
 Broader lightweight-browser readiness: **about 65%**. This is a practical
 project estimate, not a standards conformance score. Full Chrome/Safari-class
@@ -33,6 +33,24 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added the optional `Lea.Script` trusted-script experiment and its Visual
+  Studio project, using pinned Jint 4.16.4 rather than a handwritten JavaScript
+  interpreter. Computed expressions, functions, loops, arrays, JSON, and
+  template strings can update engine-owned DOM records through typed `E.Jv`
+  mutations. Those values are never parsed as Lea code or interpolated;
+  connected-node ownership, live retained fields, subtree detachment, host
+  permission generations through `E.Jg`, thread affinity, bounded execution,
+  and fresh realms after failure are tested. The 40-check executable, full
+  core suite, native editing, locked restore, and solution build pass. The
+  complete optional test runtime is about 3.57 MiB with a 1.35 MiB per-file
+  GZip estimate. The core has no Jint/Acornima assembly reference. The test
+  package is `F:\Lea-js-142-experiment_2026-10-03_05-33-17.zip`; the installed
+  browser is unchanged. This is not automatic remote-page execution, a
+  complete DOM, or an OS sandbox. Process isolation and native browser-host
+  event/layout integration remain the next scripting work. Broader readiness
+  stays about 65%; this experiment does not prove modern-site compatibility.
+  See `../Lea.Script/README.md`.
 
 - Added bounded two-term `calc()` thresholds to size-container queries. The
   compact `Kx` tree holds two fixed-hundredth length/unit pairs; integer

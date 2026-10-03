@@ -42,6 +42,12 @@ Compile items for those files. Keep all three runtime files from the same build.
 
 ## Development reference
 
+The optional `../Lea.Script` project evaluates normal JavaScript with a small
+typed DOM bridge. It requires a 4.6.2-or-later host, uses explicit trusted-code
+`Js.Ex` calls, and is not wired into `Lea.Win.V` or installed Firespider yet.
+Keep this dependency out of the base build unless intentionally selected.
+See `../Lea.Script/README.md` for embedding, budgets, and required security work.
+
 During development, add the Lea engine project to the same solution and use a
 Project Reference. This gives the browser project source-level debugging and
 lets both projects evolve together.

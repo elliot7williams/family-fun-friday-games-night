@@ -17,6 +17,15 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
+Milestone 142 starts the optional real JavaScript path in `Lea.Script`.
+Computed values reach engine-owned nodes through typed `E.Jv` commands without
+generated code, IDs, or Lea variable expansion. Jint 4.16.4 and Acornima 1.7.0
+are locked dependencies of this optional project only. The 40-check runner,
+full core/edit tests, locked restore, and solution build pass. The next step
+is process-isolated execution and the native host bridge before automatic
+untrusted-page scripts or event callbacks. Installed Firespider is unchanged,
+and broader readiness remains about 65%. See `../Lea.Script/README.md`.
+
 Milestone 141 adds bounded two-term `calc()` size-container thresholds using
 the compact `Kx` tree. Mixed pixel, font, viewport, and ancestor-container
 terms retain two-decimal boundaries through integer evaluation. Focused,

@@ -451,3 +451,11 @@ pending-load replacement, deferred sources, sticky privacy, and owner-close
 cancellation. `-Case split-limits` covers comparison/source-list byte and count
 ceilings. `LEA_SPLIT_SHOTS` optionally names an output folder for desktop and
 small-window screenshots. See `LeaForge/SPLIT_VIEW.md` for unsupported routes.
+
+## Optional JavaScript Experiment
+
+`Lea.Script` and `Lea.Script.Tests` are separate .NET Framework 4.6.2 projects
+in `Lea.sln`. Build `Lea.Script.Tests` in Release and run its executable with
+the repository root as its argument. This explicitly runs trusted test code;
+it does not enable scripts in the installed browser. See
+`../Lea.Script/README.md` for locked restore and embedding commands.

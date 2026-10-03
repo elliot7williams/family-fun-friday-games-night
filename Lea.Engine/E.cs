@@ -155,6 +155,7 @@ namespace Lea.Engine
         private char ap = 'f';
         private bool ah = true;
         private bool je = true;
+        private long jg;
         private Stream download;
         private bool stopped;
         private CancellationTokenSource inputBudget;
@@ -311,9 +312,11 @@ namespace Lea.Engine
             {
                 if (je == value) return;
                 je = value;
+                jg++;
                 ApplyViewport(At);
             }
         }
+        public long Jg { get { return jg; } }
         public bool Pv
         {
             get { return web.Pv; }
@@ -541,6 +544,37 @@ namespace Lea.Engine
             foreach (var field in page.Fs) if (field.El != null) fields[field.El] = field;
             Rebuild(page, rules, fields);
             return count;
+        }
+
+        // Jv applies one literal, typed value without parsing code or expanding variables.
+        public int Jv(P page, N element, string command, string value)
+        {
+            QueryPage(page);
+            if (!je || value == null || value.Length > 1024 ||
+                element != null && !Connected(page.D, element)) return 0;
+            var rules = page.R as List<R>;
+            if (rules == null || !J.Put(page, element, command, value)) return 0;
+            page.Jc = (int)Math.Min(Int32.MaxValue, (long)page.Jc + 1);
+            var fields = new Dictionary<N, Fi>();
+            foreach (var field in page.Fs)
+                if (field.El != null && Connected(page.D, field.El)) fields[field.El] = field;
+            foreach (var node in new List<N>(page.Fr.Keys))
+                if (!Connected(page.D, node)) page.Fr.Remove(node);
+            if (page.Hn != null && !Connected(page.D, page.Hn)) page.Hn = null;
+            if (page.Fc != null && !Connected(page.D, page.Fc)) page.Fc = null;
+            if (page.Kq != null && !Connected(page.D, page.Kq)) page.Kq = null;
+            Rebuild(page, rules, fields);
+            return 1;
+        }
+
+        private static bool Connected(N root, N node)
+        {
+            for (var current = node; current != null; current = current.Up)
+            {
+                if (Object.ReferenceEquals(current, root)) return true;
+                if (current.Up == null || !current.Up.C.Contains(current)) return false;
+            }
+            return false;
         }
 
         // Su reports whether this Lea build accepts a bounded CSS condition.

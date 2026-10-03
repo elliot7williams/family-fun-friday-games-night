@@ -233,6 +233,13 @@ members remain inert.
 has a short alias, a fixed limit, and a local fixture. A full
 JavaScript runtime can remain a separate comparison project.
 
+The optional `Lea.Script` project now starts that real-runtime integration
+using pinned Jint and a typed, ownership-checked `E.Jv` DOM bridge. It is an
+explicit trusted-script experiment, not automatic website execution. The next
+required steps are an isolated worker with hard process limits, a host RPC
+bridge, page lifecycle ownership, native layout invalidation, and event-loop
+integration before external scripts are enabled. See `../Lea.Script/README.md`.
+
 ## 7. Browser shell
 
 - Tabs and per-tab history.
@@ -353,6 +360,17 @@ Support three simple Visual Studio paths:
 - A versioned API smoke test catches accidental alias or interface changes.
 
 ## Current next milestone
+
+Milestone 142 adds the opt-in real JavaScript experiment, compact `Js.Ex`
+sessions and `Jr` results, and typed `E.Jv` mutations with permission generation
+`Jg`. Its 40 checks cover computed DOM updates, identity, retained fields,
+detachment, ownership, permission revocation, failure recovery, statement/
+allocation/array/recursion/host-call limits, and thread/session boundaries.
+Full core and native-edit suites, locked NuGet restore, and solution build
+pass. Jint remains outside the required core runtime. This does not yet enable
+untrusted scripts or integrate with Firespider's native event/layout routes;
+those are the next required steps, not optional completion criteria. See
+`../Lea.Script/README.md`.
 
 Milestone 141 adds bounded two-term `calc()` size-container thresholds with
 `+` or `-` across supported pixel, font, classic viewport, and container

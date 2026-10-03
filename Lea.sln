@@ -26,6 +26,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lea.Bench", "Lea.Bench\Lea.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lea.Image", "Lea.Image\Lea.Image.csproj", "{A4D0B8B2-3B79-4DA6-A5D6-000000000006}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lea.Script", "Lea.Script\Lea.Script.csproj", "{B7CAC8A8-8875-4495-9EDD-A3DA3D034EA6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lea.Script.Tests", "Lea.Script.Tests\Lea.Script.Tests.csproj", "{70AB87BE-5554-4582-8718-F35F3EB94C63}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -80,5 +84,13 @@ Global
 		{A4D0B8B2-3B79-4DA6-A5D6-000000000006}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A4D0B8B2-3B79-4DA6-A5D6-000000000006}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A4D0B8B2-3B79-4DA6-A5D6-000000000006}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7CAC8A8-8875-4495-9EDD-A3DA3D034EA6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7CAC8A8-8875-4495-9EDD-A3DA3D034EA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7CAC8A8-8875-4495-9EDD-A3DA3D034EA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7CAC8A8-8875-4495-9EDD-A3DA3D034EA6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70AB87BE-5554-4582-8718-F35F3EB94C63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70AB87BE-5554-4582-8718-F35F3EB94C63}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70AB87BE-5554-4582-8718-F35F3EB94C63}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70AB87BE-5554-4582-8718-F35F3EB94C63}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
