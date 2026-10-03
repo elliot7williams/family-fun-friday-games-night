@@ -2,7 +2,7 @@
 
 Scoped Lea 1.0 baseline completion: **100%**
 
-Post-1.0 hardening milestones completed: **144**
+Post-1.0 hardening milestones completed: **145**
 
 Broader lightweight-browser readiness: **about 65%**. This is a practical
 project estimate, not a standards conformance score. Full Chrome/Safari-class
@@ -33,6 +33,25 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added a reproducible separate .NET Framework 4.8 Firespider host/source
+  candidate with optional isolated scripting in regular/resumed tabs and both
+  split panes. Script-free pages remain dormant; explicit code and authored
+  handlers initialize on demand, with template inertness and event/node
+  validation retained. Live workers protect pure JavaScript state from automatic
+  hibernation. Bounded status errors, native `about:blank`, and split comparison
+  idle refresh are verified. The original installed browser/source are unchanged.
+  All 305 script checks pass from source and the extracted standalone ZIP;
+  full core, all 43 enabled-host Boot cases and all six actual-EXE startup
+  scenarios pass. The small variant builds without interpreter dependencies
+  and passes clean/split/hibernate/lazy-all cases; its full matrix is not
+  repeated. All five runtime/host-source/standalone archives pass inventory,
+  hash and length audits, and the extracted host source rebuilds independently.
+  The enabled runtime ZIP is 3,678,689 bytes; the small ZIP is 1,101,676 bytes.
+  Remote/external scripts, general event-loop and broader DOM/site compatibility,
+  and removal of the explicit legacy fallback remain work. Broader readiness
+  stays about 65%. See `FIRESPIDER_SCRIPT_HOST.md` and
+  `../Lea.Firespider/CANDIDATE.md` for artifacts, build instructions and limits.
 
 - Added optional native WinForms JavaScript integration, six bounded DOM event
   types, capture/bubble ordering, cancellation, inline/DOM0 handlers, and a

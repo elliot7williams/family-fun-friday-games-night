@@ -1,4 +1,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="'$(LeaScriptEnabled)' == 'true'">
+    <DefineConstants>$(DefineConstants),LEA_SCRIPT=True</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Accessibility" />
     <Reference Include="UIAutomationProvider" />
@@ -20,8 +23,24 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup Condition="'$(LeaScriptEnabled)' == 'true'">
+    <Reference Include="Lea.Script.Win">
+      <HintPath>$(MSBuildThisFileDirectory)Lea.Script.Win.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <LeaScriptFiles Include="$(MSBuildThisFileDirectory)Lea.Script.dll;$(MSBuildThisFileDirectory)Jint.dll;$(MSBuildThisFileDirectory)Acornima.dll;$(MSBuildThisFileDirectory)System.Memory.dll;$(MSBuildThisFileDirectory)System.Buffers.dll;$(MSBuildThisFileDirectory)System.Numerics.Vectors.dll;$(MSBuildThisFileDirectory)System.Runtime.CompilerServices.Unsafe.dll" />
+    <LeaScriptWorker Include="$(MSBuildThisFileDirectory)ScriptWorker\*" />
+  </ItemGroup>
+  <Target Name="CheckLeaScriptFramework" BeforeTargets="ResolveReferences" Condition="'$(LeaScriptEnabled)' == 'true'">
+    <Error Condition="'$(TargetFrameworkVersion)' != 'v4.6.2' And '$(TargetFrameworkVersion)' != 'v4.7' And '$(TargetFrameworkVersion)' != 'v4.7.1' And '$(TargetFrameworkVersion)' != 'v4.7.2' And '$(TargetFrameworkVersion)' != 'v4.8' And '$(TargetFrameworkVersion)' != 'v4.8.1'"
+           Text="Optional Lea scripting requires .NET Framework 4.6.2 or later. Rebuild a separate migrated host candidate first." />
+  </Target>
   <Target Name="CopyLeaImageWorker" AfterTargets="Build">
     <Copy SourceFiles="$(MSBuildThisFileDirectory)Lea.Image.exe"
           DestinationFiles="$(TargetDir)Lea.Image.exe" SkipUnchangedFiles="true" />
+  </Target>
+  <Target Name="CopyLeaScriptRuntime" AfterTargets="Build" Condition="'$(LeaScriptEnabled)' == 'true'">
+    <Copy SourceFiles="@(LeaScriptFiles)" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(LeaScriptWorker)" DestinationFolder="$(TargetDir)ScriptWorker" SkipUnchangedFiles="true" />
   </Target>
 </Project>

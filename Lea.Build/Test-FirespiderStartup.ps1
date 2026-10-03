@@ -81,6 +81,12 @@ foreach ($case in $cases) {
             foreach ($name in @('Firespider Internet 19.exe', 'Firespider Internet 19.exe.config', 'Lea.Engine.dll', 'Lea.Win.dll', 'Lea.Image.exe')) {
                 Copy-Item -LiteralPath (Join-Path $rootPath $name) -Destination $runtime
             }
+            if (Test-Path -LiteralPath (Join-Path $rootPath 'Lea.Script.Win.dll')) {
+                foreach ($name in @('Lea.Script.Win.dll', 'Lea.Script.dll', 'Jint.dll', 'Acornima.dll', 'System.Memory.dll', 'System.Buffers.dll', 'System.Numerics.Vectors.dll', 'System.Runtime.CompilerServices.Unsafe.dll')) {
+                    Copy-Item -LiteralPath (Join-Path $rootPath $name) -Destination $runtime
+                }
+                Copy-Item -LiteralPath (Join-Path $rootPath 'ScriptWorker') -Destination $runtime -Recurse
+            }
             $exe = Join-Path $runtime 'Firespider Internet 19.exe'
             $runRoot = $runtime
             $xml = New-Object Xml.XmlDocument

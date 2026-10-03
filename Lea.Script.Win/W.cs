@@ -9,14 +9,18 @@ namespace Lea.Script.Win
 {
     public sealed class W : Jx
     {
+        private readonly E engine;
         private readonly P page;
         private bool loaded;
         private bool complete;
         private bool loadRequested;
+        private bool dormant;
+        private bool demanded;
         public Jp At { get; private set; }
 
         private W(E engine, P page, string directory, int milliseconds)
         {
+            this.engine = engine;
             this.page = page;
             At = directory == null ? new Jp(engine, page) : new Jp(engine, page, directory);
             At.Tm = milliseconds;
@@ -39,6 +43,7 @@ namespace Lea.Script.Win
         public async Task<Xr> ExA(string code)
         {
             if (!Local) return new Xr("origin", 0, "Automatic and supplied scripts in this adapter are local-document only.");
+            demanded = true;
             var start = await PgA();
             if (!start.Ok) return start;
             var result = await At.ExA(code);
@@ -48,11 +53,15 @@ namespace Lea.Script.Win
 
         public async Task<Xr> EvA(N target, string type)
         {
+            if (type != "click" && type != "input" && type != "change" && type != "submit" && type != "DOMContentLoaded" && type != "load")
+                return new Xr("event", 0, "Unsupported event type.");
+            if (target != null && !engine.Jn(page, target)) return new Xr("node", 0, "Event target is not connected to this page.");
             if (!Local) return new Xr("origin", 0, "Remote event execution is disabled.");
             var load = target == null && type == "load";
             if (load) loadRequested = true;
             var start = await PgA();
             if (!start.Ok) return start;
+            if (dormant && !demanded) return start;
             if (load && complete) return start;
             var result = await At.EvA(target, type);
             if (!result.Ok) { loaded = false; complete = false; }
@@ -63,10 +72,12 @@ namespace Lea.Script.Win
         public async Task<Xr> PgA()
         {
             if (!Local) return new Xr("origin", 0, "Remote inline scripts are disabled.");
-            if (loaded) return new Xr("ok", 0, "");
+            if (loaded || dormant && !demanded) return new Xr("ok", 0, "");
             loaded = true;
+            dormant = false;
             complete = false;
             var count = 0;
+            var handlers = false;
             var scripts = new List<string>();
             var nodes = new Stack<N>();
             nodes.Push(page.D);
@@ -75,6 +86,9 @@ namespace Lea.Script.Win
             {
                 var node = nodes.Pop();
                 if (++scanned > 8192) { loaded = false; return new Xr("limit", 0, "Inline script scan exceeded its node limit."); }
+                if (node.K == "template") continue;
+                if (!handlers) handlers = node.Av("onclick").Length > 0 || node.Av("oninput").Length > 0 ||
+                    node.Av("onchange").Length > 0 || node.Av("onsubmit").Length > 0 || node.Av("onload").Length > 0;
                 if (node.K == "script" && node.Av("src").Length == 0)
                 {
                     var type = node.Av("type").Trim().ToLowerInvariant();
@@ -87,9 +101,10 @@ namespace Lea.Script.Win
                         scripts.Add(code.ToString());
                     }
                 }
-                if (node.K == "template") continue;
                 for (var i = node.C.Count - 1; i >= 0; i--) nodes.Push(node.C[i]);
             }
+            if (scripts.Count == 0 && !handlers && !demanded)
+            { loaded = false; dormant = true; return new Xr("ok", 0, ""); }
             foreach (var code in scripts)
             {
                 var result = await At.ExA(code);

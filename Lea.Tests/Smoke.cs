@@ -41,6 +41,7 @@ namespace Lea.Tests
                 if (args.Length > 1 && args[1] == "--pics") { CheckPictureLimits(root); return 0; }
                 if (args.Length > 1 && args[1] == "--input") { CheckInputLimits(root); return 0; }
                 if (args.Length > 1 && args[1] == "--cache") { CheckCacheIdentity(); return 0; }
+                if (args.Length > 1 && args[1] == "--blank") { CheckBlank(); return 0; }
                 if (args.Length > 1 && args[1] == "--direction-overflow")
                 {
                     DirectionOverflowSmoke(Path.Combine(pages, "direction-overflow.html"));
@@ -302,6 +303,7 @@ namespace Lea.Tests
                 CheckInputLimits(root);
                 CheckCacheIdentity();
                 CheckNavigationGuard(root);
+                CheckBlank();
                 CheckLoadFailures(root);
                 CheckRetainedData(root);
                 CheckDisposal(root);
@@ -15934,6 +15936,26 @@ namespace Lea.Tests
                     "; editing=" + (editing == null ? "null" : editing.El.Av("id")) + "; held=" + (held == null ? "null" : held.El.Av("id")) +
                     "; field=" + field.V + "; text=" + editor.Text + "; clipboard=" + clipboard + "; native=" + native.Text);
             }
+        }
+
+        private static void CheckBlank()
+        {
+            var engine = new E();
+            var page = engine.Go("about:blank");
+            Eq("about:blank", page.U.AbsoluteUri, "internal blank document URL");
+            Eq("", page.H, "internal blank document has empty source");
+            Eq(0, page.Fs.Count, "internal blank document has no fields");
+            Eq(0, engine.Cc, "internal blank document bypasses HTTP cache");
+            page = Complete(engine.GoA("about:blank?empty#part"), "asynchronous blank document");
+            Eq("about:blank?empty#part", page.U.AbsoluteUri, "blank document preserves query and fragment");
+            Eq("", page.H, "asynchronous blank document has empty source");
+            Eq("about:blank?empty#part", Complete(engine.RlA(), "blank document reload").U.AbsoluteUri, "blank document reload preserves URL");
+            Eq(0, engine.Cc, "blank reload does not populate HTTP cache");
+            Fails(delegate { engine.Go("about:not-blank"); }, "unsupported about document remains rejected");
+            Fails(delegate { engine.Go("about://example.invalid/blank"); }, "host-bearing about address remains rejected");
+            engine.Ng = delegate { return false; };
+            Eq("blocked", Fails(delegate { engine.Go("about:blank"); }, "blank navigation policy").K, "blank document still obeys navigation policy");
+            Console.WriteLine("PASS internal blank: synchronous/asynchronous load, empty source, query/fragment, reload, no HTTP cache, unsupported URLs and navigation policy");
         }
 
         private static void CheckNavigationGuard(string root)

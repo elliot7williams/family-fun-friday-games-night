@@ -14,6 +14,7 @@ using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Lea.Win;
 
@@ -26,6 +27,29 @@ namespace Lea.Firespider
 
         [STAThread]
         private static int Main(string[] args)
+        {
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+            var previous = SynchronizationContext.Current;
+            var exit = 1;
+            using (var context = new ApplicationContext())
+            using (var timer = new System.Windows.Forms.Timer { Interval = 5 })
+            using (var synchronization = new WindowsFormsSynchronizationContext())
+            {
+                timer.Tick += (sender, eventArgs) =>
+                {
+                    timer.Stop();
+                    try { exit = Run(args); }
+                    catch (Exception error) { Console.Error.WriteLine(error); }
+                    finally { context.ExitThread(); }
+                };
+                SynchronizationContext.SetSynchronizationContext(synchronization);
+                try { timer.Start(); Application.Run(context); }
+                finally { SynchronizationContext.SetSynchronizationContext(previous); }
+            }
+            return exit;
+        }
+
+        private static int Run(string[] args)
         {
             var root = Path.GetFullPath(args.Length > 0 ? args[0] : AppDomain.CurrentDomain.BaseDirectory);
             var mode = (args.Length > 1 ? args[1] : "clean").ToLowerInvariant();
@@ -44,8 +68,7 @@ namespace Lea.Firespider
             var forms = new List<Form>();
             try
             {
-                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch", "domains", "domain-private", "split", "split-life", "split-limits", "edit", "paste", "policy", "policy-start", "failures", "failure-start", "hibernate", "hibernate-start", "style-start", "styles", "load-life", "pictures", "decode", "input", "cache" }.Contains(mode), "unknown boot case: " + mode);
-                Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+                Check(new[] { "clean", "lea", "legacy", "recovery", "private", "second", "limit", "invalid", "slow", "locked", "menus", "commands", "navigation", "links", "suspend", "groups", "lazy", "lazy-background", "lazy-all", "bulk", "windows", "watch", "domains", "domain-private", "split", "split-life", "split-limits", "edit", "paste", "policy", "policy-start", "failures", "failure-start", "hibernate", "hibernate-start", "style-start", "styles", "load-life", "pictures", "decode", "input", "cache", "script" }.Contains(mode), "unknown boot case: " + mode);
                 Application.ThreadException += (sender, error) =>
                 {
                     UiErrors.Add(error.Exception);
@@ -293,6 +316,7 @@ namespace Lea.Firespider
                     Check(tabs.SelectedTab.Controls[0] is WebBrowser, "explicit legacy fallback was lost");
                 }
                 if (mode == "commands") CheckCommands(form, settings, page);
+                if (mode == "script") CheckScript(form, settings, page, root);
                 if (mode == "navigation") CheckNavigation(form, settings, page);
                 if (mode == "links") CheckLinks(form, settings, page);
                 if (mode == "suspend") CheckSuspension(form, settings, page);
@@ -1531,6 +1555,135 @@ namespace Lea.Firespider
             using (var stale = new ToolStripMenuItem { Tag = first }) Call(form, "q25", stale, EventArgs.Empty);
             Check(tabs.SelectedTab == legacy, "stale tab-list entry changed selection");
             Console.WriteLine("PASS navigation: both mixed-engine left-close menus, private history, stable counts, and stale tab selection");
+        }
+
+        private static void CheckScript(Form form, ApplicationSettingsBase settings, string page, string root)
+        {
+            var work = CheckScriptCore(form, settings, page, root);
+            var until = DateTime.UtcNow.AddSeconds(50);
+            while (!work.IsCompleted && DateTime.UtcNow < until) { Application.DoEvents(); Thread.Sleep(5); }
+            Check(work.IsCompleted, "scripted host case deadline exceeded");
+            work.GetAwaiter().GetResult();
+        }
+
+        private static async Task CheckScriptCore(Form form, ApplicationSettingsBase settings, string page, string root)
+        {
+            var target = form.GetType().Assembly.GetCustomAttributes(typeof(System.Runtime.Versioning.TargetFrameworkAttribute), false)
+                .Cast<System.Runtime.Versioning.TargetFrameworkAttribute>().Single().FrameworkName;
+            Check(target == ".NETFramework,Version=v4.8", "separate host did not migrate its target framework");
+            var tabs = Member<TabControl>(form, "k");
+            var view = (V)tabs.SelectedTab.Controls[0];
+            Check(view.Xf != null && ScriptPid(view) == 0 && (bool)Call(form, "qleaHibernateEligible", view), "script-free host starts dormant and remains eligible for hibernation");
+            await ScriptCode(view, "var retainedState=41;");
+            var pid = ScriptPid(view);
+            Check(pid > 0 && !(bool)Call(form, "qleaHibernateEligible", view) && view.At.Jc == 0, "live pure-JavaScript state must not be automatically discarded");
+            var fixture = new Uri(Path.Combine(root, "LeaForge", "test-pages", "javascript-view.html")).AbsoluteUri;
+            settings["bs"] = new StringCollection();
+            settings["cfEnabled"] = "";
+            Call(form, "q1", fixture);
+            WaitLea(tabs);
+            Check(ScriptExited(pid) && view.T == "Lea ready" && view.Xo.Ok, "host navigation retires dormant-demanded realm and waits for inline lifecycle");
+            var runtime = Member<object>(view.Xs, "At");
+            Check((bool)runtime.GetType().GetProperty("Ac").GetValue(runtime, null) &&
+                (bool)runtime.GetType().GetProperty("Ne").GetValue(runtime, null), "host worker lacks isolation or has a loopback exemption");
+            await ScriptActivate(view, "counter");
+            Check(view.T == "Lea 1" && Member<Label>(form, "su").Text.IndexOf("script:", StringComparison.Ordinal) < 0,
+                "host native click did not update DOM/title or raised script status");
+            view.Sc(-view.Sy);
+            ScriptPicture(form, "main");
+            var document = view.At;
+            await ScriptActivate(view, "blocked");
+            Check(view.At == document, "host event cancellation did not suppress link navigation");
+            var failure = view.JsA("document.title='Partial host write';throw new Error('expected host failure');");
+            await failure;
+            Call(form, "qleaTick", form, EventArgs.Empty);
+            Check(failure.Result.S == "js" && view.T == "Partial host write" && Member<Label>(form, "su").Text.StartsWith("Lea script:", StringComparison.Ordinal),
+                "host script error escaped or lost bounded status/partial writes");
+            await ScriptCode(view, "if(count!==0||document.readyState!=='complete')throw new Error('fresh host realm');");
+            Call(form, "q1", fixture);
+            WaitLea(tabs);
+            Call(form, "qleaNew", fixture + "#second");
+            WaitLea(tabs);
+            Call(form, "qleaSplit");
+            var split = Application.OpenForms.Cast<Form>().Single(window => window.GetType().Name == "SplitBrowserForm");
+            var splitPids = new List<int>();
+            try
+            {
+                Wait(() => Member<V>(split, "leftBrowser") != null && Member<V>(split, "rightBrowser") != null &&
+                    !Member<V>(split, "leftBrowser").Busy && !Member<V>(split, "rightBrowser").Busy, "scripted split pane loads");
+                var left = Member<V>(split, "leftBrowser");
+                var right = Member<V>(split, "rightBrowser");
+                splitPids.Add(ScriptPid(left)); splitPids.Add(ScriptPid(right));
+                Check(splitPids.All(value => value > 0) && splitPids[0] != splitPids[1] && !splitPids.Contains(ScriptPid(view)),
+                    "split panes do not have independent isolated sessions");
+                Member<CheckBox>(split, "syncScroll").Checked = false;
+                await ScriptActivate(left, "counter");
+                Check(left.T == "Lea 1" && right.T == "Lea ready" && view.T == "Lea ready", "split script state leaked between panes or source tabs");
+                Wait(() => Member<Button>(split, "differenceButton").Enabled, "split comparison remains disabled after script completion with scroll sync off");
+                left.Sc(-left.Sy); right.Sc(-right.Sy);
+                ScriptPicture(split, "split");
+                var rightFailure = right.JsA("throw new Error('expected split failure');");
+                await rightFailure;
+                Check(rightFailure.Result.S == "js" && Member<Label>(split, "status").Text.StartsWith("Right script:", StringComparison.Ordinal) && left.T == "Lea 1",
+                    "split script failure escaped or changed another pane");
+                await ScriptCode(right, "if(count!==0)throw new Error('split recovery');");
+                splitPids.Add(ScriptPid(right));
+            }
+            finally { split.Close(); split.Dispose(); }
+            Wait(() => splitPids.All(ScriptExited), "split script workers remain after window disposal");
+            var selected = tabs.SelectedTab;
+            pid = ScriptPid((V)selected.Controls[0]);
+            Call(form, "qleaClose", selected);
+            Wait(() => ScriptExited(pid), "closed tab script worker remains");
+            using (var remote = new LoopbackSite { Html = "<title>Remote host</title><script>document.title='Unsafe';</script><button id=remote onclick=\"document.title='Unsafe'\">Remote</button>" })
+            {
+                Call(form, "q1", remote.Url);
+                WaitLea(tabs);
+                Check(view.T == "Remote host" && view.Xo.S == "origin" && ScriptPid(view) == 0, "host remote page unexpectedly executed or started a worker");
+                await ScriptActivate(view, "remote");
+                var denied = view.JsA("document.title='Unsafe';");
+                await denied;
+                Check(denied.Result.S == "origin" && view.T == "Remote host" && ScriptPid(view) == 0, "remote host event/supplied code bypassed origin gate");
+            }
+            Check(!UiErrors.Any() && !Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module =>
+                module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)), "script integration raised UI errors or loaded MSHTML");
+            Console.WriteLine("PASS script host: net48, dormant loading, state retention, inline lifecycle, native events/defaults, error status/recovery, split isolation/disposal, tab cleanup, and remote-origin refusal");
+        }
+
+        private static void ScriptPicture(Form form, string name)
+        {
+            using (var image = new Bitmap(form.Width, form.Height))
+            {
+                form.DrawToBitmap(image, new Rectangle(Point.Empty, form.Size));
+                image.Save(Path.Combine(Path.GetTempPath(), "Lea-145-firespider-" + name + ".png"), System.Drawing.Imaging.ImageFormat.Png);
+            }
+        }
+
+        private static int ScriptPid(V view)
+        {
+            if (view.Xs == null) return 0;
+            var runtime = Member<object>(view.Xs, "At");
+            return (int)runtime.GetType().GetProperty("Pid").GetValue(runtime, null);
+        }
+
+        private static bool ScriptExited(int pid)
+        {
+            if (pid <= 0) return true;
+            try { using (var process = Process.GetProcessById(pid)) return process.HasExited; }
+            catch (ArgumentException) { return true; }
+        }
+
+        private static async Task ScriptCode(V view, string code)
+        {
+            var result = await view.JsA(code);
+            Check(result.Ok, "host supplied script: " + result.S + "; " + result.M + "; code=" + code.Substring(0, Math.Min(code.Length, 80)));
+        }
+
+        private static async Task ScriptActivate(V view, string id)
+        {
+            for (var index = 0; index <= view.Kn && (view.Ke == null || view.Ke.Av("id") != id); index++) view.Kf();
+            Check(view.Ke != null && view.Ke.Av("id") == id, "host native focus: " + id);
+            await view.Ka();
         }
 
         private static void CheckLinks(Form form, ApplicationSettingsBase settings, string page)

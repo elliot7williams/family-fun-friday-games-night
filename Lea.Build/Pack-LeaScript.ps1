@@ -6,8 +6,8 @@ $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $outPath = [IO.Path]::GetFullPath($Out)
 $stamp = Get-Date -Format 'yyyy-MM-dd_HH-mm-ss'
-$stage = Join-Path $outPath "Lea-js-144-browser_$stamp"
-$zip = Join-Path $outPath "Lea-js-144-native_$stamp.zip"
+$stage = Join-Path $outPath "Lea-js-145-browser_$stamp"
+$zip = Join-Path $outPath "Lea-js-145-native_$stamp.zip"
 $runtime = Join-Path $root 'Lea.Script.Browser\bin\Release\net462'
 $tests = Join-Path $root 'Lea.Script.Tests\bin\Release\net462'
 $names = @('Lea.Script.Browser.exe', 'Lea.Script.Browser.exe.config', 'Lea.Engine.dll',
@@ -52,7 +52,7 @@ $files = @(Get-ChildItem -LiteralPath $stage -File -Recurse | Sort-Object FullNa
     [ordered]@{ path=$_.FullName.Substring($stage.Length + 1).Replace('\', '/'); bytes=$_.Length;
         sha256=(Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash }
 })
-[ordered]@{ milestone=144; kind='native-script-browser'; framework='net462'; files=$files } |
+[ordered]@{ milestone=145; kind='native-script-browser'; framework='net462'; files=$files } |
     ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $stage 'manifest.json') -Encoding UTF8
 Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $zip -CompressionLevel Optimal
 [pscustomobject]@{ Package=$zip; Bytes=(Get-Item -LiteralPath $zip).Length;

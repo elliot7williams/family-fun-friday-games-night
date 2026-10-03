@@ -311,6 +311,10 @@ Partial Class j
 
     Private Function qleaHibernateEligible(ByVal host As Global.Lea.Win.V) As Boolean
         If host Is Nothing OrElse host.IsDisposed OrElse host.Pv OrElse host.Busy OrElse host.At Is Nothing OrElse host.Le IsNot Nothing Then Return False
+#If LEA_SCRIPT Then
+        Dim runner = TryCast(host.Xs, Global.Lea.Script.Win.W)
+        If runner IsNot Nothing AndAlso runner.At.Pid > 0 Then Return False
+#End If
         If host.U Is Nothing OrElse qleaSessionTarget(host.U.AbsoluteUri) = "" OrElse qfeature6domainexcepted(host.U) Then Return False
         If host.Ud OrElse host.Sn > 0 OrElse host.Kc > 0 OrElse host.CanBk OrElse host.CanFw OrElse host.Sy <> 0 OrElse host.At.Jc > 0 OrElse host.Ke IsNot Nothing Then Return False
         If host.Qa("details,audio,video,[contenteditable]").Count > 0 Then Return False
@@ -607,6 +611,7 @@ Partial Class j
         host.Dock = DockStyle.Fill
         If tab.Tag Is Nothing Then tab.Tag = "lea"
         tab.Controls.Add(host)
+        qleaScriptAttach(host)
         host.Ng = Function(address As Uri) As Boolean
                       Dim initial As Uri = approved
                       approved = Nothing
@@ -634,6 +639,20 @@ Partial Class j
         host.ContextMenuStrip = closeMenu
         Return host
     End Function
+
+    Friend Sub qleaScriptAttach(ByVal host As Global.Lea.Win.V)
+#If LEA_SCRIPT Then
+        Global.Lea.Script.Win.W.On(host, Nothing, 5000)
+        AddHandler host.Xd, AddressOf qleaScriptDone
+#End If
+    End Sub
+
+    Private Sub qleaScriptDone(ByVal sender As Object, ByVal e As EventArgs)
+        Dim host = TryCast(sender, Global.Lea.Win.V)
+        If IsDisposed OrElse host Is Nothing OrElse host.IsDisposed OrElse host IsNot qleaAt() Then Return
+        su.Visible = True
+        su.Text = qleaStatus(host)
+    End Sub
 
     Private Function qleaSuspend(ByVal tab As TabPage) As Boolean
         If tab Is Nothing OrElse tab.IsDisposed OrElse qleaPaused.ContainsKey(tab) OrElse Not qalltabs().Contains(tab) Then Return False
@@ -957,6 +976,9 @@ Partial Class j
     Private Function qleaStatus(ByVal host As Global.Lea.Win.V) As String
         If host.Busy Then Return "Lea loading"
         If host.Le IsNot Nothing Then Return "Lea: " & qleaDomainLine(host.Le.Message, 256)
+        If host.Xo IsNot Nothing AndAlso Not host.Xo.Ok AndAlso host.Xo.S <> "origin" Then
+            Return "Lea script: " & qleaDomainLine(host.Xo.S & " - " & host.Xo.M, 256)
+        End If
         Return "Lea ready"
     End Function
 

@@ -30,7 +30,7 @@ try {
         -not ($parts | Where-Object { $excludedFolders -contains $_ }) -and
         -not $leaf.StartsWith('._', [StringComparison]::Ordinal) -and
         $leaf -ne '.DS_Store' -and
-        $excludedExtensions -notcontains $file.Extension.ToLowerInvariant()
+        ($excludedExtensions -notcontains $file.Extension.ToLowerInvariant() -or $relative -eq 'My Project\app.manifest')
     } | ForEach-Object {
         $relative = $_.FullName.Substring($root.Length).TrimStart('\')
         $target = Join-Path $stage $relative

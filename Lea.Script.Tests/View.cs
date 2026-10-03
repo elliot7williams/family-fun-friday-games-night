@@ -128,8 +128,11 @@ namespace Lea.Script.Tests
                 await Task.Delay(20);
                 await view.GoA(Path.Combine(Path.GetDirectoryName(fixture), "javascript-runtime.html"));
                 stopped = await running;
-                Check(!stopped.Ok && Exited(pid) && view.At != page && view.T == "Lea JavaScript runtime experiment" && view.Xo.Ok, "native navigation cancels old-page worker and loads new realm without running nonclassic script types");
+                Check(!stopped.Ok && Exited(pid) && view.At != page && view.T == "Lea JavaScript runtime experiment" && view.Xo.Ok, "native navigation cancels old-page worker without running nonclassic script types");
                 runtime = (W)view.Xs;
+                Check(runtime.At.Pid == 0, "script-free page initialization leaves interpreter dormant");
+                await Code(view, "if(document.readyState!=='complete')throw new Error('dormant lifecycle');document.title='Demanded';");
+                Check(view.T == "Demanded" && runtime.At.Pid > 0, "supplied code initializes dormant page and completed lifecycle on demand");
                 pid = runtime.At.Pid;
                 using (var remote = new Remote())
                 {
@@ -143,6 +146,29 @@ namespace Lea.Script.Tests
                     await Activate(view, "remote");
                     Check(view.T == "Remote Lea" && ((W)view.Xs).At.Pid == 0, "remote click cannot fall back to literal onclick execution");
                 }
+                await view.GoA("about:blank");
+                runtime = (W)view.Xs;
+                await view.Xe(null, "click");
+                Check(runtime.At.Pid == 0 && view.Xo.Ok, "script-free native events do not start a worker");
+                Check((await view.Xe(null, "unknown")).S == "event" && runtime.At.Pid == 0, "dormant runtime still rejects unsupported event types");
+                var otherEngine = new E();
+                var foreignPage = otherEngine.Go("about:blank");
+                Check((await view.Xe(foreignPage.D, "click")).S == "node" && runtime.At.Pid == 0, "dormant runtime still rejects foreign event targets");
+                await Code(view, "if(document.readyState!=='complete')throw new Error('blank lifecycle');");
+                Check(runtime.At.Pid > 0, "dormant about document can opt into supplied JavaScript");
+                var authored = Path.Combine(Path.GetTempPath(), "lea-view-authored-" + Guid.NewGuid().ToString("N") + ".html");
+                try
+                {
+                    File.WriteAllText(authored, "<title>Handler page</title><button id=only onclick=\"document.title='Handler only';\">Run</button>");
+                    await view.GoA(authored);
+                    Check(((W)view.Xs).At.Pid > 0, "authored handler without a classic block initializes the optional realm");
+                    await Activate(view, "only");
+                    Check(view.T == "Handler only", "handler-only document executes native click");
+                    File.WriteAllText(authored, "<title>Template page</title><template><script>document.title='Unexpected';</script><button onclick=\"document.title='Unexpected'\">Hidden</button></template><p>Plain page</p>");
+                    await view.GoA(authored);
+                    Check(view.T == "Template page" && ((W)view.Xs).At.Pid == 0, "inert template scripts and handlers do not start a worker");
+                }
+                finally { File.Delete(authored); }
                 await view.GoA(fixture);
                 runtime = (W)view.Xs;
                 pid = runtime.At.Pid;

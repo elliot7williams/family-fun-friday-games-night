@@ -1412,6 +1412,8 @@ namespace Lea.Engine
 
         private Ld Fetch(Uri url, bool fresh = false, int limit = MaxHtml)
         {
+            var blank = Blank(url);
+            if (blank != null) return Track("GET", new Ld(blank, false), "blank");
             Cr reply;
             Cr stale = null;
             var diskHit = false;
@@ -1446,6 +1448,8 @@ namespace Lea.Engine
         private async Task<Ld> FetchA(Uri url, bool fresh = false, int limit = MaxHtml)
         {
             CheckStop();
+            var blank = Blank(url);
+            if (blank != null) return Track("GET", new Ld(blank, false), "blank");
             Cr reply;
             Cr stale = null;
             var diskHit = false;
@@ -1484,6 +1488,12 @@ namespace Lea.Engine
                 return Track("GET", new Ld(reply, notModified), notModified ? staleDisk ? "disk304" : "304" : "net");
             }
             finally { web.Va("", ""); }
+        }
+
+        private static Cr Blank(Uri url)
+        {
+            if (url.Scheme != "about" || url.AbsolutePath != "blank" || url.Host.Length != 0 || url.UserInfo.Length != 0) return null;
+            return new Cr(url, "", 200, "text/html", "", "utf-8", 0, true, DateTime.MinValue, "", "");
         }
 
         private void BeginInput()

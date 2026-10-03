@@ -165,6 +165,20 @@ Firespider EXE remains on 4.6.1 without this adapter. Its eventual adoption need
 framework migration and host-specific tests, not just DLL replacement.
 The optional third `W.On` argument sets the per-execution millisecond budget
 for each page session, clamped through `Jp.Tm`; its default remains 2,000 ms.
+Milestone 145 keeps script-free pages dormant: no worker is started unless a
+classic inline block, supported authored handler, or supplied `JsA` code needs
+one. Template contents are inert. Deferred supplied code establishes the ready
+and already-requested load lifecycle before execution. Dormant event requests
+still validate their type and connected-node ownership.
+
+`../Lea.Build/Build-FirespiderCandidate.ps1` builds a separate .NET Framework
+4.8 Firespider source/runtime candidate from the live project plus the clean
+adapter sources. `LeaScriptEnabled=true` attaches this optional module to
+normal tabs and split panes. The candidate uses a documented 5,000 ms ceiling,
+protects live workers from automatic hibernation, and reports bounded errors
+in its status bars. `-NoScript` builds the separate small-engine variant.
+Neither path installs over the live browser. The installed .NET Framework
+4.6.1 host remains unchanged; copying these DLLs alone is not a migration.
 
 At most eight classic inline blocks (empty, `text/javascript`, or
 `application/javascript` type, no `src`) are snapshotted in document order

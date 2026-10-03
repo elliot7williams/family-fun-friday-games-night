@@ -153,6 +153,7 @@ Friend Class SplitBrowserForm
         qrelease(If(left, leftBrowser, rightBrowser))
         Dim view As New Global.Lea.Win.V With {.Dock = DockStyle.Fill, .Pv = choice.Pv OrElse ownerForm.qleaSplitPrivate()}
         view.AccessibleName = If(left, "Left Lea page", "Right Lea page")
+        ownerForm.qleaScriptAttach(view)
         view.Ng = Function(address) qallow(view, address)
         AddHandler view.Done, AddressOf qdone
         AddHandler view.Changed, AddressOf qstate
@@ -160,6 +161,7 @@ Friend Class SplitBrowserForm
         AddHandler view.Gr, AddressOf qgo
         AddHandler view.Dr, AddressOf qdownload
         AddHandler view.Fe, AddressOf qfailed
+        AddHandler view.Xd, AddressOf qscript
         If left Then
             leftBrowser = view
             split.Panel1.Controls.Add(view)
@@ -203,7 +205,18 @@ Friend Class SplitBrowserForm
         status.Text = "Lea ready"
         If leftBrowser IsNot Nothing AndAlso leftBrowser.Le IsNot Nothing Then qfailed(leftBrowser, EventArgs.Empty)
         If rightBrowser IsNot Nothing AndAlso rightBrowser.Le IsNot Nothing Then qfailed(rightBrowser, EventArgs.Empty)
+        qscript(leftBrowser, EventArgs.Empty)
+        qscript(rightBrowser, EventArgs.Empty)
         qstate(sender, e)
+    End Sub
+
+    Private Sub qscript(ByVal sender As Object, ByVal e As EventArgs)
+        Dim view = TryCast(sender, Global.Lea.Win.V)
+        If closed OrElse view Is Nothing OrElse view.IsDisposed OrElse view.Xo Is Nothing Then Return
+        If view IsNot leftBrowser AndAlso view IsNot rightBrowser Then Return
+        If Not view.Xo.Ok AndAlso view.Xo.S <> "origin" Then
+            status.Text = If(view Is leftBrowser, "Left script: ", "Right script: ") & qline(view.Xo.S & " - " & view.Xo.M, 256)
+        End If
     End Sub
 
     Private Sub qfailed(ByVal sender As Object, ByVal e As EventArgs)
@@ -253,7 +266,9 @@ Friend Class SplitBrowserForm
     End Sub
 
     Private Sub qsynctick(ByVal sender As Object, ByVal e As EventArgs)
-        If closed OrElse Not syncScroll.Checked OrElse leftBrowser Is Nothing OrElse rightBrowser Is Nothing Then Return
+        If closed Then Return
+        qstate(sender, e)
+        If Not syncScroll.Checked OrElse leftBrowser Is Nothing OrElse rightBrowser Is Nothing Then Return
         If leftBrowser.Busy OrElse rightBrowser.Busy OrElse leftBrowser.At Is Nothing OrElse rightBrowser.At Is Nothing Then Return
         If leftBrowser.Sy <> lastLeftY Then
             rightBrowser.Sc(leftBrowser.Sy - rightBrowser.Sy)

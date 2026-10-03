@@ -1,5 +1,10 @@
 # Lea Firespider Adapter
 
+Milestone 145 provides a separate .NET Framework 4.8 source/runtime candidate
+with optional isolated scripting in regular tabs and both split panes. See
+[candidate build and test instructions](CANDIDATE.md). It does not overwrite
+the installed browser or remove the explicit legacy fallback.
+
 `FirespiderLea.vb` is a reversible experimental integration for the VB.NET
 Firespider host. Firespider's normal **New Lea Tab** command and `Ctrl+T` now
 create `Lea.Win.V`; **New Legacy Tab** (`Ctrl+Alt+L`) deliberately uses the
