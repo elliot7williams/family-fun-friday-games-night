@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **140**
+Post-1.0 hardening milestones completed: **141**
 
 Broader lightweight-browser readiness: **about 65%**. This is a practical
 project estimate, not a standards conformance score. Full Chrome/Safari-class
@@ -33,6 +33,27 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added bounded two-term `calc()` thresholds to size-container queries. The
+  compact `Kx` tree holds two fixed-hundredth length/unit pairs; integer
+  evaluation combines pixel, font, viewport, and ancestor-container bases
+  without runtime parsing or floating point. Legacy, direct, reversed, exact,
+  and chained forms share the path. A dedicated fixture covers decimal
+  boundaries, signed results at zero width, invalid unitless arithmetic,
+  malformed syntax, live viewport/font/container changes, retained fields,
+  diagnostics, and WinForms geometry. The focused, neighboring, full
+  core/edit, 137/137 benchmark probes over 132 fixtures, compiled Firespider
+  host, all 42 Boot, and all six real EXE startup checks pass. Three-round
+  diagnostic medians are 805.772 ms clean start, 9.116 ms local load, and
+  39.128 ms layout/paint. Retained memory is 38,521.5 KiB for 528 pages, or
+  73.0 KiB/page. Required runtime files are 700.5 KiB with a 286.9 KiB GZip
+  estimate. Runtime 241 is packaged separately as
+  `F:\Lea-runtime-241-ready_2026-10-03_00-49-07.zip`; installed runtime 157
+  remains unchanged. This is a bounded CSS arithmetic subset, not general
+  `calc()` or full-web compatibility. See `CALCULATED_CONTAINER_QUERIES.md`.
+  The boot edit harness now retries empty clipboard reads briefly and checks
+  each toolbar command separately; ten consecutive edit runs and the full
+  Boot matrix pass after reproducing transient read contention.
 
 - Added bounded classic viewport and container-relative size-query thresholds
   to the compact `Kx` tree: `vw`/`vh`/`vmin`/`vmax` and

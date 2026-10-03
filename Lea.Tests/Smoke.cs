@@ -231,6 +231,11 @@ namespace Lea.Tests
                     ContainerQueryViewportSmoke(Path.Combine(pages, "container-query-viewport.html"));
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--container-query-calc")
+                {
+                    ContainerQueryCalcSmoke(Path.Combine(pages, "container-query-calc.html"));
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--container-units")
                 {
                     ContainerUnitSmoke(Path.Combine(pages, "container-units.html"));
@@ -1670,6 +1675,7 @@ namespace Lea.Tests
                 ContainerFeatureSmoke(Path.Combine(pages, "container-features.html"));
                 ContainerQueryLengthSmoke(Path.Combine(pages, "container-query-lengths.html"));
                 ContainerQueryViewportSmoke(Path.Combine(pages, "container-query-viewport.html"));
+                ContainerQueryCalcSmoke(Path.Combine(pages, "container-query-calc.html"));
                 ContainerUnitSmoke(Path.Combine(pages, "container-units.html"));
                 LayerSmoke(Path.Combine(pages, "cascade-layers.html"), Path.Combine(pages, "cascade-layer-limits.html"));
                 HslColorSmoke(Path.Combine(pages, "hsl-colors.html"));
@@ -10860,6 +10866,77 @@ namespace Lea.Tests
                     "WinForms viewport query rebuild retains field");
             }
             Console.WriteLine("Lea viewport/container query length smoke passed: vw/vh/vmin/vmax and cqw/cqh/cqi/cqb/cqmin/cqmax bases, viewport fallback, mixed chains, independent engines, retained fields, and WinForms geometry.");
+        }
+
+        private static void ContainerQueryCalcSmoke(string path)
+        {
+            var engine = new E();
+            engine.Vz(800, 600);
+            var page = engine.Go(path);
+            var outer = ById(page.D, "outer");
+            var inner = ById(page.D, "inner");
+            var field = FieldById(page, "field");
+            field.V = "Retained calculated query value";
+            Ok(!HasBlock(page, "relative-plus"), "calculated query waits for measurements");
+            Eq(1, engine.Cz(page, new List<Cz> { new Cz(outer, 500, 300), new Cz(inner, 320, 120) }),
+                "calculated query measurement snapshot");
+            foreach (var id in new[] { "relative-plus", "relative-minus", "exact", "legacy", "reversed",
+                "chain", "block-basis", "root-font", "decimal-true", "negative-greater" })
+                Ok(HasBlock(page, id), "calculated query activates " + id);
+            foreach (var id in new[] { "decimal-false", "viewport-false", "ancestor-false", "invalid-spacing",
+                "invalid-precision", "invalid-limit", "invalid-product", "invalid-unit", "invalid-unitless", "negative-equal" })
+                Ok(!HasBlock(page, id), "false or malformed calculation stays inactive: " + id);
+            Eq(240, field.S.W, "calculated query field width");
+            Ok(Has(engine.Dg(page).Cs, "@c(inner:(width>calc(50cqw+60px)))") &&
+                Has(engine.Dg(page).Cs, "@c(inner:(calc(239.99px+10vw)<width<=calc(25vh+170px)))"),
+                "calculated conditions reach diagnostics");
+
+            engine.Vz(1000, 800);
+            Ok(!HasBlock(page, "chain") && HasBlock(page, "relative-plus") && field.S.W == 240,
+                "viewport rebuild changes calculated chain without changing ancestor condition");
+            engine.Vz(800, 600);
+            Eq(1, engine.Cz(page, new List<Cz> { new Cz(outer, 600, 400), new Cz(inner, 320, 120) }),
+                "large calculated ancestor snapshot");
+            Ok(!HasBlock(page, "relative-plus") && !HasBlock(page, "relative-minus") &&
+                !HasBlock(page, "exact") && !HasBlock(page, "legacy") &&
+                !HasBlock(page, "block-basis") && HasBlock(page, "reversed") &&
+                field.S.W == 100, "ancestor rebuild changes both calculated terms");
+            Eq(1, engine.Cz(page, new List<Cz> { new Cz(outer, 500, 300), new Cz(inner, 320, 120) }),
+                "small calculated ancestor snapshot");
+            Eq(1, engine.Ss(page, "query-calc-root", "html{font-size:24px}"), "calculated root font sheet");
+            Ok(!HasBlock(page, "root-font") && HasBlock(page, "relative-plus"),
+                "root font changes calculated rem threshold independently");
+            Eq(1, engine.Sd(page, "query-calc-root"), "calculated root font sheet removal");
+            Ok(HasBlock(page, "root-font") && Object.ReferenceEquals(field, FieldById(page, "field")) &&
+                field.V == "Retained calculated query value", "calculated rebuild retains field and value");
+            Eq(1, engine.Cz(page, new List<Cz> { new Cz(outer, 500, 300), new Cz(inner, 0, 120) }),
+                "zero-width calculated query snapshot");
+            Ok(HasBlock(page, "negative-greater") && !HasBlock(page, "negative-equal"),
+                "negative calculated thresholds preserve signed comparison at zero width");
+
+            using (var form = new Form { Opacity = 0, ShowInTaskbar = false, StartPosition = FormStartPosition.Manual,
+                Location = new Point(-30000, -30000), ClientSize = new Size(800, 600) })
+            using (var view = new V { Dock = DockStyle.Fill })
+            {
+                form.Controls.Add(view);
+                form.Show();
+                view.Go(path);
+                Paint(view);
+                Eq(240, BlockRect(view, BlockById(view.At, "field")).Width, "WinForms calculated query geometry");
+                var liveField = FieldById(view.At, "field");
+                liveField.V = "Retained native calculation";
+                Eq(1, view.Ck(ById(view.At.D, "large-outer")), "WinForms large ancestor command");
+                Paint(view);
+                Eq(100, BlockRect(view, BlockById(view.At, "field")).Width, "WinForms large calculated query geometry");
+                Eq(1, view.Ck(ById(view.At.D, "small-outer")), "WinForms small ancestor command");
+                Paint(view);
+                Eq(240, BlockRect(view, BlockById(view.At, "field")).Width, "WinForms restored calculated query geometry");
+                form.ClientSize = new Size(1000, 800);
+                Paint(view);
+                Ok(!HasBlock(view.At, "chain") && Object.ReferenceEquals(liveField, FieldById(view.At, "field")) &&
+                    liveField.V == "Retained native calculation", "WinForms viewport reflow retains calculated query field");
+            }
+            Console.WriteLine("Lea calculated container query smoke passed: two-term mixed-unit arithmetic, decimal boundaries, all comparison forms, live viewport/font/ancestor changes, malformed guards, retained fields, and WinForms geometry.");
         }
 
         private static void MediaFeatureSmoke(string path)

@@ -166,6 +166,9 @@ navigation 25 times. `--clip` isolates the held-clipboard regression; `--paste`
 checks supplied text and field bounds without accessing the clipboard.
 `--cache` isolates exact path/query cache identity, fragment sharing, validators,
 linked CSS, and persistent restart behavior.
+`--container-query-calc` isolates bounded two-term calculated size-query
+thresholds, mixed units, live bases, malformed guards, retained fields, and
+WinForms geometry.
 `--direction-overflow` isolates horizontal LTR/RTL ellipsis and read-only range
 geometry without running the rest of the suite.
 `--text-indent` isolates bounded inherited pixel/percentage indentation,

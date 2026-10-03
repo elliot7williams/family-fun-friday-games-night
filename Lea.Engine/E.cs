@@ -1655,10 +1655,15 @@ namespace Lea.Engine
         private static bool ContainerViewportSensitive(Kx expression)
         {
             if (expression == null) return false;
-            if (expression.U != '\0' && expression.U != 'p' && expression.U != 'e' && expression.U != 'r') return true;
+            if (ContainerViewportUnit(expression.U) || ContainerViewportUnit(expression.T)) return true;
             foreach (var child in expression.C)
                 if (ContainerViewportSensitive(child)) return true;
             return false;
+        }
+
+        private static bool ContainerViewportUnit(char unit)
+        {
+            return unit != '\0' && unit != 'p' && unit != 'e' && unit != 'r';
         }
 
         private void Rebuild(P p, List<R> rules, IDictionary<N, Fi> fields)
@@ -3021,55 +3026,68 @@ namespace Lea.Engine
             const string feature = "width|height|inline-size|block-size";
             const string number = "(?:0|[1-9][0-9]{0,3})(?:\\.[0-9]{1,2})?";
             const string unit = "px|em|rem|vw|vh|vmin|vmax|cqw|cqh|cqi|cqb|cqmin|cqmax";
-            var chain = Regex.Match(source, "^(?<an>" + number + ")(?<au>" + unit + ")?\\s*(?<ao><=|>=|<|>)\\s*(?<k>" + feature + ")\\s*(?<bo><=|>=|<|>)\\s*(?<bn>" + number + ")(?<bu>" + unit + ")?$", RegexOptions.IgnoreCase);
+            const string atom = number + "(?:" + unit + ")?";
+            const string calcTerm = number + "(?:" + unit + ")";
+            const string length = "(?:" + atom + "|calc\\(\\s*" + calcTerm + "\\s+[+-]\\s+" + calcTerm + "\\s*\\))";
+            var chain = Regex.Match(source, "^(?<a>" + length + ")\\s*(?<ao><=|>=|<|>)\\s*(?<k>" + feature + ")\\s*(?<bo><=|>=|<|>)\\s*(?<b>" + length + ")$", RegexOptions.IgnoreCase);
             if (chain.Success)
             {
                 int left;
                 int right;
+                int leftOffset;
+                int rightOffset;
                 char leftUnit;
                 char rightUnit;
+                char leftOffsetUnit;
+                char rightOffsetUnit;
                 var leftOperator = chain.Groups["ao"].Value;
                 var rightOperator = chain.Groups["bo"].Value;
-                if (!ContainerTerm(chain.Groups["an"].Value, chain.Groups["au"].Value, out left, out leftUnit) ||
-                    !ContainerTerm(chain.Groups["bn"].Value, chain.Groups["bu"].Value, out right, out rightUnit) ||
+                if (!ContainerLength(chain.Groups["a"].Value, out left, out leftUnit, out leftOffset, out leftOffsetUnit) ||
+                    !ContainerLength(chain.Groups["b"].Value, out right, out rightUnit, out rightOffset, out rightOffsetUnit) ||
                     leftOperator[0] != rightOperator[0]) return false;
                 var axis = ContainerAxis(chain.Groups["k"].Value);
                 result = new Kx('a', new[]
                 {
-                    new Kx(axis, MediaInverse(leftOperator), left, leftUnit),
-                    new Kx(axis, rightOperator, right, rightUnit)
+                    new Kx(axis, MediaInverse(leftOperator), left, leftUnit, leftOffset, leftOffsetUnit),
+                    new Kx(axis, rightOperator, right, rightUnit, rightOffset, rightOffsetUnit)
                 });
                 terms = 2;
                 return true;
             }
-            var legacy = Regex.Match(source, "^(?<k>min-|max-)?(?<f>" + feature + ")\\s*:\\s*(?<n>" + number + ")(?<u>" + unit + ")?$", RegexOptions.IgnoreCase);
+            var legacy = Regex.Match(source, "^(?<k>min-|max-)?(?<f>" + feature + ")\\s*:\\s*(?<v>" + length + ")$", RegexOptions.IgnoreCase);
             if (legacy.Success)
             {
                 int value;
+                int offset;
                 char valueUnit;
-                if (!ContainerTerm(legacy.Groups["n"].Value, legacy.Groups["u"].Value, out value, out valueUnit)) return false;
+                char offsetUnit;
+                if (!ContainerLength(legacy.Groups["v"].Value, out value, out valueUnit, out offset, out offsetUnit)) return false;
                 var prefix = legacy.Groups["k"].Value.ToLowerInvariant();
-                result = new Kx(ContainerAxis(legacy.Groups["f"].Value), prefix == "min-" ? ">=" : prefix == "max-" ? "<=" : "=", value, valueUnit);
+                result = new Kx(ContainerAxis(legacy.Groups["f"].Value), prefix == "min-" ? ">=" : prefix == "max-" ? "<=" : "=", value, valueUnit, offset, offsetUnit);
                 terms = 1;
                 return true;
             }
-            var direct = Regex.Match(source, "^(?<k>" + feature + ")\\s*(?<o><=|>=|=|<|>)\\s*(?<n>" + number + ")(?<u>" + unit + ")?$", RegexOptions.IgnoreCase);
+            var direct = Regex.Match(source, "^(?<k>" + feature + ")\\s*(?<o><=|>=|=|<|>)\\s*(?<v>" + length + ")$", RegexOptions.IgnoreCase);
             if (direct.Success)
             {
                 int value;
+                int offset;
                 char valueUnit;
-                if (!ContainerTerm(direct.Groups["n"].Value, direct.Groups["u"].Value, out value, out valueUnit)) return false;
-                result = new Kx(ContainerAxis(direct.Groups["k"].Value), direct.Groups["o"].Value, value, valueUnit);
+                char offsetUnit;
+                if (!ContainerLength(direct.Groups["v"].Value, out value, out valueUnit, out offset, out offsetUnit)) return false;
+                result = new Kx(ContainerAxis(direct.Groups["k"].Value), direct.Groups["o"].Value, value, valueUnit, offset, offsetUnit);
                 terms = 1;
                 return true;
             }
-            var reversed = Regex.Match(source, "^(?<n>" + number + ")(?<u>" + unit + ")?\\s*(?<o><=|>=|=|<|>)\\s*(?<k>" + feature + ")$", RegexOptions.IgnoreCase);
+            var reversed = Regex.Match(source, "^(?<v>" + length + ")\\s*(?<o><=|>=|=|<|>)\\s*(?<k>" + feature + ")$", RegexOptions.IgnoreCase);
             if (reversed.Success)
             {
                 int value;
+                int offset;
                 char valueUnit;
-                if (!ContainerTerm(reversed.Groups["n"].Value, reversed.Groups["u"].Value, out value, out valueUnit)) return false;
-                result = new Kx(ContainerAxis(reversed.Groups["k"].Value), MediaInverse(reversed.Groups["o"].Value), value, valueUnit);
+                char offsetUnit;
+                if (!ContainerLength(reversed.Groups["v"].Value, out value, out valueUnit, out offset, out offsetUnit)) return false;
+                result = new Kx(ContainerAxis(reversed.Groups["k"].Value), MediaInverse(reversed.Groups["o"].Value), value, valueUnit, offset, offsetUnit);
                 terms = 1;
                 return true;
             }
@@ -3084,6 +3102,24 @@ namespace Lea.Engine
         {
             var value = (feature ?? "").ToLowerInvariant();
             return value == "height" || value == "block-size" ? 'h' : 'w';
+        }
+
+        private static bool ContainerLength(string source, out int value, out char unit, out int offset, out char offsetUnit)
+        {
+            value = 0;
+            unit = '\0';
+            offset = 0;
+            offsetUnit = '\0';
+            const string number = "(?:0|[1-9][0-9]{0,3})(?:\\.[0-9]{1,2})?";
+            const string suffix = "px|em|rem|vw|vh|vmin|vmax|cqw|cqh|cqi|cqb|cqmin|cqmax";
+            var atom = Regex.Match(source, "^(?<n>" + number + ")(?<u>" + suffix + ")?$", RegexOptions.IgnoreCase);
+            if (atom.Success) return ContainerTerm(atom.Groups["n"].Value, atom.Groups["u"].Value, out value, out unit);
+            var calculated = Regex.Match(source, "^calc\\(\\s*(?<an>" + number + ")(?<au>" + suffix + ")\\s+(?<o>[+-])\\s+(?<bn>" + number + ")(?<bu>" + suffix + ")\\s*\\)$", RegexOptions.IgnoreCase);
+            if (!calculated.Success ||
+                !ContainerTerm(calculated.Groups["an"].Value, calculated.Groups["au"].Value, out value, out unit) ||
+                !ContainerTerm(calculated.Groups["bn"].Value, calculated.Groups["bu"].Value, out offset, out offsetUnit)) return false;
+            if (calculated.Groups["o"].Value == "-") offset = -offset;
+            return true;
         }
 
         private static bool ContainerTerm(string source, string unit, out int value, out char code)
@@ -3209,28 +3245,34 @@ namespace Lea.Engine
         private bool ContainerLengthComparison(Scq container, Kx expression, int dimension, out int comparison)
         {
             comparison = 0;
-            long measured;
             long expected;
-            if (expression.U == 'p')
+            if (!ContainerLengthValue(container, expression.L, expression.U, out expected)) return false;
+            if (expression.T != '\0')
             {
-                measured = (long)dimension * 100L;
-                expected = expression.L;
+                long offset;
+                if (!ContainerLengthValue(container, Math.Abs(expression.O), expression.T, out offset)) return false;
+                expected += expression.O < 0 ? -offset : offset;
             }
-            else if (expression.U == 'e' || expression.U == 'r')
+            comparison = ((long)dimension * 10000L).CompareTo(expected);
+            return true;
+        }
+
+        private bool ContainerLengthValue(Scq container, int value, char unit, out long pixels)
+        {
+            pixels = 0;
+            if (unit == 'p') pixels = (long)value * 100L;
+            else if (unit == 'e' || unit == 'r')
             {
                 var font = container;
-                if (expression.U == 'r') while (font != null && font.Up != null) font = font.Up;
-                measured = (long)dimension * 100L;
-                expected = (long)expression.L * ContainerFont(font == null ? null : font.S);
+                if (unit == 'r') while (font != null && font.Up != null) font = font.Up;
+                pixels = (long)value * ContainerFont(font == null ? null : font.S) * 100L;
             }
             else
             {
                 int basis;
-                if (!ContainerLengthBasis(container, expression.U, out basis)) return false;
-                measured = (long)dimension * 10000L;
-                expected = (long)expression.L * basis;
+                if (!ContainerLengthBasis(container, unit, out basis)) return false;
+                pixels = (long)value * basis;
             }
-            comparison = measured.CompareTo(expected);
             return true;
         }
 
@@ -13336,6 +13378,8 @@ namespace Lea.Engine
             public readonly Kx[] C;
             public readonly int L;
             public readonly char U;
+            public readonly int O;
+            public readonly char T;
 
             public Kx(string name, string value)
             {
@@ -13365,6 +13409,13 @@ namespace Lea.Engine
                 C = new Kx[0];
                 L = value;
                 U = unit;
+            }
+
+            public Kx(char axis, string operation, int value, char unit, int offset, char offsetUnit)
+                : this(axis, operation, value, unit)
+            {
+                O = offset;
+                T = offsetUnit;
             }
 
             public Kx(char feature, string value)

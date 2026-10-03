@@ -826,7 +826,7 @@ namespace Lea.Firespider
                 Application.DoEvents();
                 Member<ToolStripItem>(form, "CO").PerformClick();
                 menu.HideDropDown();
-                Check(Clipboard.GetText() == "field" && field.V == "Lea field text", "real Edit menu lost field selection");
+                Check(ClipboardText() == "field" && field.V == "Lea field text", "real Edit menu lost field selection");
                 Member<ToolStripItem>(form, "CU").PerformClick();
                 Check(field.V == "Lea  text", "host Cut did not edit Lea");
                 Member<ToolStripItem>(form, "U").PerformClick();
@@ -841,7 +841,7 @@ namespace Lea.Firespider
                 Member<ToolStripItem>(form, "D").PerformClick();
                 Check(field.V == "", "host Delete did not clear selected field");
                 Member<ToolStripItem>(form, "U").PerformClick();
-                Check(field.V == "host replacement" && Clipboard.GetText() == "host replacement", "host Delete lost undo or changed the clipboard");
+                Check(field.V == "host replacement" && ClipboardText() == "host replacement", "host Delete lost undo or changed the clipboard");
                 Member<ToolStripItem>(form, "RD").PerformClick();
                 Check(field.V == "", "host Delete redo failed");
                 editor.Text = "page field stays";
@@ -851,9 +851,17 @@ namespace Lea.Firespider
                 {
                     Member<ToolStripComboBox>(form, chrome).ComboBox.Focus();
                     menu.ShowDropDown();
-                    foreach (var name in names) Member<ToolStripItem>(form, name).PerformClick();
+                    foreach (var name in names)
+                    {
+                        Member<ToolStripItem>(form, name).PerformClick();
+                        var toolbarClipboard = ClipboardText();
+                        Check(toolbarClipboard == "toolbar clipboard", "toolbar command changed clipboard: chrome=" + chrome + "; command=" + name +
+                            "; toolbarFocus=" + Member<ToolStripComboBox>(form, chrome).ComboBox.ContainsFocus +
+                            "; editorVisible=" + editor.Visible + "; hostStatus='" + Member<Label>(form, "su").Text +
+                            "'; clipboard='" + toolbarClipboard + "'");
+                    }
                     menu.HideDropDown();
-                    var afterToolbar = Clipboard.GetText();
+                    var afterToolbar = ClipboardText();
                     Check(field.V == "page field stays" && afterToolbar == "toolbar clipboard",
                         "toolbar focus edit state: chrome=" + chrome + "; retained=" + (field.V == "page field stays") +
                         "; clipboardUnchanged=" + (afterToolbar == "toolbar clipboard") + "; clipboardLength=" + afterToolbar.Length +
@@ -872,13 +880,15 @@ namespace Lea.Firespider
                 ((ToolStripDropDownItem)copy.OwnerItem).ShowDropDown();
                 copy.Select();
                 hover.Invoke(Member<ToolStripItem>(form, "CO"), new object[] { EventArgs.Empty });
-                Check(Clipboard.GetText() == "unchanged", "hover editing ran while disabled");
+                var disabledHoverClipboard = ClipboardText();
+                Check(disabledHoverClipboard == "unchanged", "hover editing ran while disabled: clipboard='" + disabledHoverClipboard +
+                    "'; enabled=" + copy.Enabled + "; setting=" + settings["t"] + "; selection=" + editor.SelectionLength);
                 settings["t"] = "e";
                 var hoverCopied = false;
                 for (var attempt = 0; attempt < 3 && !hoverCopied; attempt++)
                 {
                     hover.Invoke(Member<ToolStripItem>(form, "CO"), new object[] { EventArgs.Empty });
-                    hoverCopied = Clipboard.GetText() == "hover selection";
+                    hoverCopied = ClipboardText() == "hover selection";
                     if (!hoverCopied) { Application.DoEvents(); Thread.Sleep(20); }
                 }
                 Check(hoverCopied, "enabled hover Copy ignored Lea editor: enabled=" + copy.Enabled + "; available=" + view.Ce("cp") + "; selection=" + editor.SelectionLength + "; matching=" + (field.V == editor.Text));
@@ -890,10 +900,10 @@ namespace Lea.Firespider
                     "password edit setup: retained=" + (secret.V == "private value") + "; kind=" + secret.K +
                     "; copy=" + view.Ce("cp") + "; cut=" + view.Ce("cu"));
                 Clipboard.SetText("protected clipboard marker");
-                Check(Clipboard.GetText() == "protected clipboard marker", "password clipboard marker was not established");
+                Check(ClipboardText() == "protected clipboard marker", "password clipboard marker was not established");
                 Member<ToolStripItem>(form, "CO").PerformClick();
                 Member<ToolStripItem>(form, "CU").PerformClick();
-                var afterProtected = Clipboard.GetText();
+                var afterProtected = ClipboardText();
                 Check(secret.V == "private value" && afterProtected == "protected clipboard marker",
                     "password Copy/Cut state: retained=" + (secret.V == "private value") +
                     "; clipboardUnchanged=" + (afterProtected == "protected clipboard marker") +
@@ -913,7 +923,7 @@ namespace Lea.Firespider
                 Wait(() => legacy.Document != null && legacy.ReadyState == WebBrowserReadyState.Complete, "explicit legacy edit page");
                 Member<ToolStripItem>(form, "SA").PerformClick();
                 Member<ToolStripItem>(form, "CO").PerformClick();
-                Check(Clipboard.GetText().Contains("Lea"), "explicit legacy Copy fallback was lost");
+                Check(ClipboardText().Contains("Lea"), "explicit legacy Copy fallback was lost");
                 foreach (TabPage tab in tabs.TabPages.Cast<TabPage>().ToArray()) { tabs.TabPages.Remove(tab); tab.Dispose(); }
                 foreach (var name in names) Member<ToolStripItem>(form, name).PerformClick();
                 Check(tabs.TabCount == 0, "empty-window editing created a tab");
@@ -924,6 +934,21 @@ namespace Lea.Firespider
                 if (original == null) Clipboard.Clear(); else Clipboard.SetDataObject(clipboard, true);
             }
             Console.WriteLine("PASS edit: real menu/hover dispatch, selection, undo/redo, clipboard, readonly/password, paused/empty tabs, and explicit legacy fallback");
+        }
+
+        private static string ClipboardText()
+        {
+            for (var attempt = 0; attempt < 5; attempt++)
+            {
+                try
+                {
+                    var value = Clipboard.GetText();
+                    if (value.Length > 0) return value;
+                }
+                catch (System.Runtime.InteropServices.ExternalException) { }
+                Thread.Sleep(20);
+            }
+            return Clipboard.GetText();
         }
 
         [System.Runtime.InteropServices.DllImport("user32.dll", EntryPoint = "OpenClipboard", ExactSpelling = true)]

@@ -42,11 +42,13 @@ values, and host ownership remain retained.
 - 256 measured containers and 3 WinForms feedback passes
 - horizontal writing mode only; `cqi` maps to width and `cqb` to height
 
-Negative values, exponent notation, `calc()` in query thresholds, `sv*`,
+Negative atomic values, exponent notation, `sv*`,
 `lv*`, and `dv*` viewport families, font-metric units such as `ch`, and values
 above these limits remain unsupported. Lea's fixed desktop viewport is the
 fallback where the CSS specification calls for the small viewport. Full
 intrinsic containment and vertical writing remain future work.
+Bounded two-term `calc()` thresholds are documented in
+`CALCULATED_CONTAINER_QUERIES.md`.
 
 The unit bases follow [CSS Values and Units Level 4](https://www.w3.org/TR/css-values-4/#viewport-relative-lengths)
 and [CSS Containment Level 3](https://www.w3.org/TR/css-contain-3/#container-lengths).

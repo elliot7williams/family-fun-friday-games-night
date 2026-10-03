@@ -354,6 +354,22 @@ Support three simple Visual Studio paths:
 
 ## Current next milestone
 
+Milestone 141 adds bounded two-term `calc()` size-container thresholds with
+`+` or `-` across supported pixel, font, classic viewport, and container
+units. Compiled fixed-hundredth pairs use integer arithmetic during matching;
+legacy, direct, reversed, exact, and chained comparisons share the existing
+container selection and WinForms feedback paths. Focused, neighboring, full
+core/edit, compiled Firespider host, all 42 Boot, and all six direct EXE
+startup checks pass. All 137 compatibility probes pass over 132 fixtures.
+Three-round medians are 805.772 ms startup, 9.116 ms load, and 39.128 ms
+paint; retained memory is 73.0 KiB/page and required runtime files are
+700.5 KiB with a 286.9 KiB GZip estimate. Runtime 241 is packaged separately
+as `F:\Lea-runtime-241-ready_2026-10-03_00-49-07.zip` while installed runtime
+157 stays unchanged. See `CALCULATED_CONTAINER_QUERIES.md`. General CSS
+arithmetic, dynamic viewport families, vertical writing, scroll-state queries,
+complete intrinsic containment, arbitrary CSSOM, and general JavaScript
+remain future work.
+
 Milestone 140 adds bounded `vw`/`vh`/`vmin`/`vmax` and
 `cqw`/`cqh`/`cqi`/`cqb`/`cqmin`/`cqmax` size-query thresholds. The selected
 query container supplies the computed container-unit basis through its nearest

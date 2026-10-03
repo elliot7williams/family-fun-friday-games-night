@@ -75,6 +75,10 @@ parser or layout state. Fixed-hundredth `px`/`em`/`rem` query thresholds use
 the selected container and root computed font sizes, including live host sheet
 and class rebuilds with retained fields. Bounded viewport and container query
 lengths also follow host resizing and measured ancestor changes. Bounded
+two-term `calc()` size-query thresholds combine those live bases without host
+parser or layout changes; the compiled smoke checks ancestor and viewport
+rebuilds, retained fields, and exact geometry. See
+`LeaForge/CALCULATED_CONTAINER_QUERIES.md`. Bounded
 `cqw`/`cqh`/`cqi`/`cqb`/`cqmin`/`cqmax`
 dimensions now resolve through those same measured boxes, including independent
 axis selection, viewport fallback, and wide/narrow host relayout with retained

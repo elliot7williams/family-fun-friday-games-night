@@ -17,6 +17,17 @@ Build Lea into a more complete, self-owned browser engine while keeping the tiny
 
 ## Next Build Targets
 
+Milestone 141 adds bounded two-term `calc()` size-container thresholds using
+the compact `Kx` tree. Mixed pixel, font, viewport, and ancestor-container
+terms retain two-decimal boundaries through integer evaluation. Focused,
+neighboring, full core/edit, 137/137 compatibility probes over 132 fixtures,
+the compiled Firespider host, all 42 Boot, and all six direct EXE startup
+checks pass. Three-round medians are 805.772 ms startup, 9.116 ms load, and
+39.128 ms paint; retained memory is 73.0 KiB/page and required runtime files
+are 700.5 KiB with a 286.9 KiB GZip estimate. Runtime 241 is packaged as
+`F:\Lea-runtime-241-ready_2026-10-03_00-49-07.zip`; installed runtime 157
+stays unchanged. See `CALCULATED_CONTAINER_QUERIES.md`.
+
 Milestone 140 adds bounded viewport and container-relative size-query
 thresholds to the compact `Kx` compiler. `vw`/`vh`/`vmin`/`vmax` use the live
 engine viewport; `cqw`/`cqh`/`cqi`/`cqb`/`cqmin`/`cqmax` use eligible ancestors

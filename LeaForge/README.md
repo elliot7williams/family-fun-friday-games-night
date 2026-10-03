@@ -12,6 +12,9 @@ LeaForge is where we can grow the more full-featured browser.
 
 ## Current Features
 
+- bounded two-term `calc()` thresholds in CSS size-container queries, with
+  integer pixel/font/viewport/container resolution and live host feedback; see
+  `CALCULATED_CONTAINER_QUERIES.md`
 - bounded PNG/JPEG/GIF/BMP/ICO preflight, zero-capability AppContainer
   `Lea.Image.exe` decoding with an identity-scoped executable ACL, verified
   restricted low-integrity token, suspended Job prebinding, explicit inherited

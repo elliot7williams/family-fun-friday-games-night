@@ -19,6 +19,9 @@ reports unsupported Lea preview without creating a legacy renderer; see
 `../Lea.Engine` targets .NET Framework 4.6.1 and exposes `E`, `P`, and the short
 Lea API. `../Lea.Win` provides the custom `V` WinForms view, and
 `../Lea.Win.Test` is its isolated test browser.
+Size-container query thresholds, including bounded two-term `calc()`, are
+engine-owned; the host only supplies measured content boxes. See
+`CALCULATED_CONTAINER_QUERIES.md` for accepted syntax and limits.
 
 The current Firespider target expects this layout relative to the VB project:
 
