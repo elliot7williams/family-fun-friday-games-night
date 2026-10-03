@@ -13,7 +13,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace Lea.Win
 {
-    // Rp launches one restricted image worker and owns its exact inherited pipes.
+    // Rp launches one restricted worker and owns its exact inherited pipes.
     internal sealed class Rp : IDisposable
     {
         private const uint Inherit = 0x00000001;
@@ -45,10 +45,13 @@ namespace Lea.Win
         public bool C { get; private set; }
         public bool N { get; private set; }
         public bool F { get; private set; }
+        public bool B { get; private set; }
+        public string Sid { get; private set; }
         public bool Ready { get; set; }
         public int G { get; set; }
 
         private Stream error;
+        private Action release;
         private readonly object errorGate = new object();
         private readonly StringBuilder errorText = new StringBuilder();
 
@@ -118,6 +121,12 @@ namespace Lea.Win
 
         public static Rp Open(string path, string args, string directory, long memory, int cpu)
         {
+            return Open(path, args, directory, memory, cpu, ContainerName, new[] { path }, false);
+        }
+
+        internal static Rp Open(string path, string args, string directory, long memory, int cpu,
+            string profile, IList<string> files, bool temporaryProfile)
+        {
             IntPtr attributes = IntPtr.Zero;
             IntPtr handles = IntPtr.Zero;
             IntPtr mitigation = IntPtr.Zero;
@@ -136,10 +145,20 @@ namespace Lea.Win
             FileStream output = null;
             FileStream errors = null;
             Jb job = null;
+            SecurityIdentifier identity = null;
             try
             {
-                appSid = ContainerSid();
-                var fileAcl = GrantFile(path, appSid);
+                if (temporaryProfile)
+                    foreach (var file in files)
+                        if (!HasPersistentAcls(file) || GetDriveType(Path.GetPathRoot(Path.GetFullPath(file))) == 4)
+                            throw new NotSupportedException("Worker isolation requires an ACL-capable local volume.");
+                appSid = ContainerSid(profile);
+                identity = new SecurityIdentifier(appSid);
+                if (temporaryProfile && !NoLoopback(appSid))
+                    throw new InvalidOperationException("Script-worker AppContainer has a loopback exemption.");
+                var fileAcl = true;
+                foreach (var file in files) fileAcl &= GrantFile(file, appSid);
+                if (!fileAcl) throw new InvalidOperationException("Worker file access was not applied.");
 
                 var security = new SecurityAttributes { Length = Marshal.SizeOf(typeof(SecurityAttributes)), Inherit = true };
                 Pipe(ref security, out childInput, out parentInput, true);
@@ -206,7 +225,11 @@ namespace Lea.Win
                 if (ResumeThread(info.Thread) == UInt32.MaxValue) throw Error("Lea could not resume its bounded image worker.");
                 Close(ref info.Thread);
                 Close(ref info.Process);
-                return new Rp(process, input, output, errors, job, restricted, low, true, noCapabilities, fileAcl);
+                var worker = new Rp(process, input, output, errors, job, restricted, low, true, noCapabilities, fileAcl);
+                worker.Sid = identity.Value;
+                worker.B = temporaryProfile;
+                if (temporaryProfile) worker.release = () => Release(profile, files, identity);
+                return worker;
             }
             catch
             {
@@ -216,6 +239,7 @@ namespace Lea.Win
                 if (input != null) input.Dispose();
                 if (output != null) output.Dispose();
                 if (errors != null) errors.Dispose();
+                if (temporaryProfile && identity != null) Release(profile, files, identity);
                 throw;
             }
             finally
@@ -238,16 +262,36 @@ namespace Lea.Win
 
         public void Dispose()
         {
+            // Kill first so a blocked reader on an inherited pipe can finish.
+            if (J != null) J.Dispose();
             if (I != null) try { I.Dispose(); } catch (IOException) { }
             if (O != null) try { O.Dispose(); } catch (IOException) { }
             if (error != null) try { error.Dispose(); } catch (IOException) { }
-            if (J != null) J.Dispose();
+            if (P != null) try { P.WaitForExit(1000); } catch (InvalidOperationException) { }
             if (P != null) P.Dispose();
             I = null;
             O = null;
             error = null;
             J = null;
             P = null;
+            var cleanup = release;
+            release = null;
+            if (cleanup != null) cleanup();
+        }
+
+        private static void Release(string profile, IList<string> files, SecurityIdentifier identity)
+        {
+            foreach (var file in files)
+                try
+                {
+                    var security = System.IO.File.GetAccessControl(file, AccessControlSections.Access);
+                    security.RemoveAccessRuleSpecific(new FileSystemAccessRule(identity,
+                        FileSystemRights.ReadAndExecute, AccessControlType.Allow));
+                    System.IO.File.SetAccessControl(file, security);
+                }
+                catch (IOException) { }
+                catch (UnauthorizedAccessException) { }
+            DeleteAppContainerProfile(profile);
         }
 
         private void Drain(Stream stream)
@@ -369,6 +413,35 @@ namespace Lea.Win
             return false;
         }
 
+        private static bool NoLoopback(IntPtr expectedSid)
+        {
+            uint count;
+            IntPtr items;
+            var code = NetworkIsolationGetAppContainerConfig(out count, out items);
+            try
+            {
+                if (code != 0) throw new Win32Exception((int)code, "Lea could not inspect loopback exemptions.");
+                var size = Marshal.SizeOf(typeof(SidAttribute));
+                for (var index = 0; index < count; index++)
+                {
+                    var item = Marshal.PtrToStructure<SidAttribute>(IntPtr.Add(items, index * size));
+                    if (EqualSid(item.Sid, expectedSid)) return false;
+                }
+                return true;
+            }
+            finally
+            {
+                if (items != IntPtr.Zero)
+                {
+                    var heap = GetProcessHeap();
+                    var size = Marshal.SizeOf(typeof(SidAttribute));
+                    for (var index = 0; index < count; index++)
+                        HeapFree(heap, 0, Marshal.PtrToStructure<SidAttribute>(IntPtr.Add(items, index * size)).Sid);
+                    HeapFree(heap, 0, items);
+                }
+            }
+        }
+
         private static bool HasPersistentAcls(string path)
         {
             try
@@ -402,15 +475,15 @@ namespace Lea.Win
             return policy;
         }
 
-        private static IntPtr ContainerSid()
+        private static IntPtr ContainerSid(string name)
         {
             IntPtr sid;
-            var result = CreateAppContainerProfile(ContainerName, ContainerName, ContainerName,
+            var result = CreateAppContainerProfile(name, name, name,
                 IntPtr.Zero, 0, out sid);
             if (result == 0) return sid;
             if (result == AlreadyExists)
             {
-                result = DeriveAppContainerSidFromAppContainerName(ContainerName, out sid);
+                result = DeriveAppContainerSidFromAppContainerName(name, out sid);
                 if (result == 0) return sid;
             }
             Marshal.ThrowExceptionForHR(result);
@@ -498,6 +571,9 @@ namespace Lea.Win
         [DllImport("userenv.dll", CharSet = CharSet.Unicode)]
         private static extern int CreateAppContainerProfile(string name, string displayName, string description,
             IntPtr capabilities, uint capabilityCount, out IntPtr sid);
+
+        [DllImport("userenv.dll", CharSet = CharSet.Unicode)]
+        private static extern int DeleteAppContainerProfile(string name);
         [DllImport("advapi32.dll")] private static extern IntPtr FreeSid(IntPtr sid);
         [DllImport("advapi32.dll")] [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool EqualSid(IntPtr first, IntPtr second);
@@ -521,6 +597,13 @@ namespace Lea.Win
         private static extern bool GetVolumeInformation(string root, StringBuilder volumeName, uint volumeNameSize,
             out uint serial, out uint maximumComponentLength, out uint fileSystemFlags,
             StringBuilder fileSystemName, uint fileSystemNameSize);
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+        private static extern uint GetDriveType(string root);
+        [DllImport("Firewallapi.dll")]
+        private static extern uint NetworkIsolationGetAppContainerConfig(out uint count, out IntPtr sids);
+        [DllImport("kernel32.dll")] private static extern IntPtr GetProcessHeap();
+        [DllImport("kernel32.dll")] [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool HeapFree(IntPtr heap, uint flags, IntPtr memory);
         [DllImport("kernel32.dll")] [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool TerminateProcess(IntPtr process, uint exitCode);
         [DllImport("kernel32.dll")] [return: MarshalAs(UnmanagedType.Bool)]

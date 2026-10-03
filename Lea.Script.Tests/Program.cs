@@ -11,12 +11,19 @@ namespace Lea.Script.Tests
     {
         private static int checks;
 
+        [STAThread]
         private static int Main(string[] args)
         {
             try
             {
                 var root = args.Length == 0 ? Directory.GetCurrentDirectory() : Path.GetFullPath(args[0]);
                 var fixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-runtime.html");
+                if (args.Length > 1 && args[1] == "--ui")
+                {
+                    Worker.Ui(fixture);
+                    Console.WriteLine("PASS Lea.Script UI: " + checks + " checks.");
+                    return 0;
+                }
                 var engine = new E();
                 var page = engine.Go(fixture);
                 var field = page.Fs.Single(item => item.El.Av("id") == "field");
@@ -83,7 +90,8 @@ namespace Lea.Script.Tests
                 disposed.Dispose();
                 try { disposed.Ex("1;"); throw new Exception("disposed session accepted code"); }
                 catch (ObjectDisposedException) { Check(true, "disposed session rejected"); }
-                Console.WriteLine("PASS Lea.Script: " + checks + " checks; real JavaScript and typed DOM experiment.");
+                Worker.Run(fixture);
+                Console.WriteLine("PASS Lea.Script: " + checks + " checks; JavaScript, isolated worker, and typed DOM.");
                 return 0;
             }
             catch (Exception error)
@@ -93,7 +101,7 @@ namespace Lea.Script.Tests
             }
         }
 
-        private static void Check(bool condition, string name)
+        internal static void Check(bool condition, string name)
         {
             if (!condition) throw new InvalidOperationException("FAIL " + name);
             checks++;

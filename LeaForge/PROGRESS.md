@@ -2,7 +2,7 @@
 
 Current completion: **100%**
 
-Post-1.0 hardening milestones completed: **142**
+Post-1.0 hardening milestones completed: **143**
 
 Broader lightweight-browser readiness: **about 65%**. This is a practical
 project estimate, not a standards conformance score. Full Chrome/Safari-class
@@ -33,6 +33,28 @@ modern web platform.
 - Update this file after every completed engine milestone.
 
 ## Completed post-1.0 hardening
+
+- Added `Jp`, a process-isolated optional JavaScript session with three-character
+  `ExA` asynchronous execution and `St` cancellation. A unique temporary
+  zero-capability AppContainer, exact-file read/execute ACLs and runtime leases,
+  suspended token/ASLR verification, one-process 128 MiB memory Job, 25% CPU
+  rate, mitigation checks, no-loopback-exemption query and positive-control
+  network/file probes precede execution. Versioned bounded JSON pipes carry
+  only primitive capabilities; the parent retains DOM ownership, permission
+  generation, active-page checks and independent request/value limits.
+  All 117 checks pass, covering malformed frames/IDs/handles, computed DOM,
+  realms, detached nodes, typed limits, cancellation, hard native-regex deadline,
+  oversized native allocation, fresh-process recovery, ACL cleanup, and UI
+  timer responsiveness. Locked restore, solution build, full core and focused
+  image-worker regressions and all six separate Firespider EXE startup cases
+  pass. The 33-file test ZIP is 2,686,336 bytes; its 18 runtime files total
+  7,122,034 bytes. FAT32 runtime launch fails closed; the extracted NTFS package
+  passes the full suite. The shared launcher still has no interpreter
+  dependency. This is not yet native browser-host event/layout integration or
+  automatic remote scripting; the installed browser is unchanged. Broader
+  readiness stays about 65%. See `../Lea.Script/README.md`; the reproducible
+  separate test package is produced by `../Lea.Build/Pack-LeaScript.ps1`.
+  See `ISOLATED_JAVASCRIPT.md` for verified package paths, hashes and limitations.
 
 - Added the optional `Lea.Script` trusted-script experiment and its Visual
   Studio project, using pinned Jint 4.16.4 rather than a handwritten JavaScript

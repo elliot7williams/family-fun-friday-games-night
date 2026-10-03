@@ -7,6 +7,14 @@
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="System.Windows.Forms" />
     <ProjectReference Include="..\Lea.Script\Lea.Script.csproj" />
+    <ProjectReference Include="..\Lea.Script.Worker\Lea.Script.Worker.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
+  <Target Name="CopyScriptWorker" AfterTargets="Build">
+    <ItemGroup>
+      <WorkerFiles Include="..\Lea.Script.Worker\bin\$(Configuration)\net462\*.dll;..\Lea.Script.Worker\bin\$(Configuration)\net462\*.exe;..\Lea.Script.Worker\bin\$(Configuration)\net462\*.exe.config" />
+    </ItemGroup>
+    <Copy SourceFiles="@(WorkerFiles)" DestinationFolder="$(TargetDir)ScriptWorker" SkipUnchangedFiles="true" />
+  </Target>
 </Project>

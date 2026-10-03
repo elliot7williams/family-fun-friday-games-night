@@ -1,29 +1,23 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading;
 using Jint;
-using Jint.Native;
 using Jint.Runtime;
 using Jint.Runtime.Interop;
 using Lea.Engine;
 
 namespace Lea.Script
 {
-    // Trusted-script experiment. Do not enable automatic website execution here.
+    // Trusted in-process option. Use Jp for the isolated worker experiment.
     public sealed class Js : IDisposable
     {
         private readonly E engine;
         private readonly P page;
         private readonly int thread;
-        private readonly List<N> nodes = new List<N>();
-        private readonly Dictionary<N, int> keys = new Dictionary<N, int>();
+        private readonly Ja bridge;
         private Jint.Engine vm;
         private bool disposed;
         private bool running;
-        private int calls;
-        private int changes;
         private long generation;
         private static readonly string bootstrap = LoadBootstrap();
 
@@ -34,6 +28,7 @@ namespace Lea.Script
             engine.Q(page, "body");
             this.engine = engine;
             this.page = page;
+            bridge = new Ja(engine, page);
             thread = Thread.CurrentThread.ManagedThreadId;
             generation = engine.Jg;
         }
@@ -45,8 +40,7 @@ namespace Lea.Script
             CheckThread();
             if (disposed) throw new ObjectDisposedException("Js");
             if (running) throw new InvalidOperationException("A Lea script is already running.");
-            changes = 0;
-            calls = 0;
+            bridge.Begin();
             if (generation != engine.Jg) { Reset(); generation = engine.Jg; }
             if (!engine.Je) { Reset(); return Result("off", "Scripting is disabled."); }
             engine.Q(page, "body");
@@ -59,9 +53,10 @@ namespace Lea.Script
                 return Result("ok", "");
             }
             catch (Exception error) when (error is JavaScriptException || error is JintException ||
-                error is Acornima.ParseErrorException || error is TimeoutException || error is BridgeLimitException)
+                error is Acornima.ParseErrorException || error is TimeoutException ||
+                error is Ja.LimitException || error is InvalidDataException)
             {
-                var limited = error is TimeoutException || error is BridgeLimitException ||
+                var limited = error is TimeoutException || error is Ja.LimitException ||
                     error is StatementsCountOverflowException || error is MemoryLimitExceededException ||
                     error is RecursionDepthOverflowException;
                 Reset();
@@ -83,102 +78,15 @@ namespace Lea.Script
                 options.Interop.AllowGetType = false;
                 options.Interop.AllowWrite = false;
             });
-            vm.SetValue("__lea", new ClrFunction(vm, "__lea", (_, args) => Bridge(args)));
+            vm.SetValue("__lea", new ClrFunction(vm, "__lea", (_, args) =>
+                Codec.Value(vm, bridge.Call(Codec.Arguments(args)))));
             vm.Execute(bootstrap);
-            calls = 0;
-        }
-
-        private JsValue Bridge(JsValue[] args)
-        {
-            if (++calls > 256) throw new BridgeLimitException();
-            if (!engine.Je) throw new BridgeLimitException();
-            var operation = Arg(args, 0);
-            if (operation == "id") return Key(engine.Id(page, Arg(args, 1)));
-            if (operation == "q") return Key(engine.Q(page, Arg(args, 1)));
-            if (operation == "qa")
-            {
-                var found = engine.Qa(page, Arg(args, 1));
-                var values = new JsValue[found.Count];
-                for (var index = 0; index < values.Length; index++) values[index] = Key(found[index]);
-                return new JsArray(vm, values);
-            }
-            if (operation == "t") return page.T ?? "";
-            if (operation == "put")
-            {
-                var node = Node(args, 1);
-                var count = engine.Jv(page, node, Arg(args, 2), Arg(args, 3));
-                changes += count;
-                return count == 1;
-            }
-            var target = Node(args, 1);
-            if (target == null) return JsValue.Null;
-            if (operation == "tag") return target.K.ToUpperInvariant();
-            if (operation == "attr")
-            {
-                string value;
-                return target.A.TryGetValue(Arg(args, 2), out value) ? (JsValue)value : JsValue.Null;
-            }
-            if (operation == "text")
-            {
-                var text = new StringBuilder();
-                Text(target, text);
-                return text.ToString();
-            }
-            if (operation == "value" || operation == "checked")
-            {
-                foreach (var field in page.Fs)
-                    if (Object.ReferenceEquals(field.El, target))
-                        return operation == "value" ? (JsValue)field.V : (JsValue)field.C;
-                return operation == "value" ? (JsValue)target.Av("value") : (JsValue)false;
-            }
-            return JsValue.Undefined;
-        }
-
-        private JsValue Key(N node)
-        {
-            if (node == null) return JsValue.Null;
-            int key;
-            if (!keys.TryGetValue(node, out key))
-            {
-                if (nodes.Count == 512) throw new BridgeLimitException();
-                key = nodes.Count;
-                nodes.Add(node);
-                keys.Add(node, key);
-            }
-            return key;
-        }
-
-        private N Node(JsValue[] args, int index)
-        {
-            if (index >= args.Length || args[index].IsNull()) return null;
-            if (!args[index].IsNumber()) throw new BridgeLimitException();
-            var number = args[index].AsNumber();
-            if (number < 0 || number >= nodes.Count || number != Math.Truncate(number)) throw new BridgeLimitException();
-            return nodes[(int)number];
-        }
-
-        private static string Arg(JsValue[] args, int index)
-        {
-            if (index >= args.Length || !args[index].IsString()) throw new BridgeLimitException();
-            var value = args[index].AsString();
-            if (value.Length > 1024) throw new BridgeLimitException();
-            return value;
-        }
-
-        private static void Text(N node, StringBuilder text)
-        {
-            if (node.K == "#text")
-            {
-                if (text.Length + node.X.Length > 16 * 1024) throw new BridgeLimitException();
-                text.Append(node.X);
-            }
-            else foreach (var child in node.C) Text(child, text);
+            bridge.Begin();
         }
 
         private Jr Result(string status, string message)
-        { return At = new Jr(status, changes, message); }
-
-        private void Reset() { vm = null; nodes.Clear(); keys.Clear(); }
+        { return At = new Jr(status, bridge.Changes, message); }
+        private void Reset() { vm = null; bridge.Reset(); }
         private void CheckThread()
         {
             if (Thread.CurrentThread.ManagedThreadId != thread)
@@ -198,7 +106,5 @@ namespace Lea.Script
             using (var source = typeof(Js).Assembly.GetManifestResourceStream("Lea.Script.Dom.js"))
             using (var reader = new StreamReader(source)) return reader.ReadToEnd();
         }
-
-        private sealed class BridgeLimitException : Exception { }
     }
 }

@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net462</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Jint" Version="4.16.4" />
+    <Reference Include="System.Web.Extensions" />
+    <Compile Include="..\Lea.Script\Wire.cs" Link="Wire.cs" />
+    <Compile Include="..\Lea.Script\Codec.cs" Link="Codec.cs" />
+    <Compile Include="..\Lea.Image\Mg.cs" Link="Mg.cs" />
+    <EmbeddedResource Include="..\Lea.Script\Dom.js" Link="Dom.js" LogicalName="Lea.Script.Dom.js" />
+  </ItemGroup>
+</Project>

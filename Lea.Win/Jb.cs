@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace Lea.Win
 {
-    // Jb owns the native Job Object that bounds one Lea image worker.
+    // Jb owns the native Job Object that bounds one Lea worker.
     internal sealed class Jb : IDisposable
     {
         private const uint ActiveProcess = 0x00000008;
@@ -34,6 +34,12 @@ namespace Lea.Win
                 limits.ProcessMemoryLimit = new UIntPtr((ulong)memory);
                 if (!SetInformationJobObject(value, 9, ref limits, (uint)Marshal.SizeOf(typeof(ExtendedLimits))))
                     throw Error("Lea could not limit the image-worker job.");
+                var verified = new ExtendedLimits();
+                if (!QueryInformationJobObject(value, 9, ref verified,
+                    (uint)Marshal.SizeOf(typeof(ExtendedLimits)), IntPtr.Zero) ||
+                    (verified.Basic.LimitFlags & limits.Basic.LimitFlags) != limits.Basic.LimitFlags ||
+                    verified.Basic.ActiveProcessLimit != 1 || verified.ProcessMemoryLimit.ToUInt64() != (ulong)memory)
+                    throw new InvalidOperationException("Worker process and memory limits were not applied.");
                 var cpuLimit = new CpuLimits { ControlFlags = CpuEnable | CpuHardCap, CpuRate = (uint)cpu };
                 if (!SetCpuInformation(value, 15, ref cpuLimit, (uint)Marshal.SizeOf(typeof(CpuLimits))))
                     throw Error("Lea could not limit image-worker CPU rate.");

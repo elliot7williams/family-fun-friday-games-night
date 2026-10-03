@@ -30,6 +30,13 @@ The cleaner source projects are still:
 
 ## Source Backups
 
+`Pack-LeaScript.ps1` packages the separate optional scripting experiment after
+a Release build of `Lea.Script.Tests`. It includes the test EXE, exact locked
+runtime dependencies, the isolated `ScriptWorker`, fixture, notices, README,
+and a SHA-256 manifest. It never modifies the installed Firespider runtime.
+The test executable is not a replacement browser build. Run it with the
+package folder as its first argument; `--ui` runs just the asynchronous checks.
+
 Run `Backup-Lea.ps1` to create a dated, source-only ZIP in the Documents
 `Lea Source Backups` folder. Git and GitHub remain the main version history;
 the ZIP is an additional local copy without `bin`, `obj`, or `dist` files.

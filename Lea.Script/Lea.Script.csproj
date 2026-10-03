@@ -8,5 +8,8 @@
     <PackageReference Include="Jint" Version="4.16.4" />
     <ProjectReference Include="..\Lea.Engine\Lea.Engine.csproj" />
     <EmbeddedResource Include="Dom.js" />
+    <Compile Include="..\Lea.Win\Rp.cs" Link="Isolation\Rp.cs" />
+    <Compile Include="..\Lea.Win\Jb.cs" Link="Isolation\Jb.cs" />
+    <Reference Include="System.Web.Extensions" />
   </ItemGroup>
 </Project>
