@@ -61,84 +61,115 @@ namespace Lea.Win
             long reserve, long limit, Func<long> hostMemory,
             Action<int, bool, bool, bool, bool, bool, bool, bool, bool, bool, int, int> started,
             Action<long, long, long, long, bool> admission,
-            Action<long, long, long, long> measured, Action killed)
+            Action<long, long, long, long> measured, Action killed, Action<string> diagnostics)
         {
             return Task.Factory.StartNew(() => Read(data, path, args, token, reserve, limit, hostMemory,
-                started, admission, measured, killed),
-                CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
+                started, admission, measured, killed, diagnostics),
+                token, TaskCreationOptions.None, TaskScheduler.Default);
         }
 
         private static Image Read(byte[] data, string path, string args, CancellationToken token,
             long reserve, long limit, Func<long> hostMemory,
             Action<int, bool, bool, bool, bool, bool, bool, bool, bool, bool, int, int> started,
             Action<long, long, long, long, bool> admission,
-            Action<long, long, long, long> measured, Action killed)
+            Action<long, long, long, long> measured, Action killed, Action<string> diagnostics)
         {
-            one.Wait(token);
             Rp current = null;
+            var held = false;
+            var processId = 0;
+            var phase = "queue";
+            var result = "ok";
+            var kind = "";
+            var clock = Stopwatch.StartNew();
+            var steps = diagnostics == null ? null : new StringBuilder();
+            Action<string> mark = value =>
+            {
+                phase = value;
+                if (steps != null) steps.Append(value).Append('=').Append(clock.ElapsedMilliseconds).Append(';');
+            };
             try
             {
+                mark("queue");
+                one.Wait(token);
+                held = true;
                 token.ThrowIfCancellationRequested();
+                mark("launch");
                 current = Open(path, args);
+                var process = current.P;
+                var job = current.J;
+                processId = process.Id;
+                var reader = output;
+                var writer = input;
                 using (token.Register(() =>
                 {
                     if (Stop(current) && killed != null) killed();
                 }))
                 {
+                    token.ThrowIfCancellationRequested();
                     if (!current.Ready)
                     {
-                        var hello = output.ReadInt32();
-                        var guards = output.ReadInt32();
+                        mark("hello");
+                        var hello = reader.ReadInt32();
+                        var guards = reader.ReadInt32();
                         if (hello != Hello || (guards & RequiredGuards) != RequiredGuards)
                             throw new InvalidDataException("Image worker hardening handshake is invalid.");
                         current.G = guards;
                         current.Ready = true;
                     }
                     token.ThrowIfCancellationRequested();
+                    mark("host");
                     var host = Host(hostMemory);
-                    var memory = Private(current.P);
-                    var peak = current.J == null ? 0 : current.J.Peak;
+                    token.ThrowIfCancellationRequested();
+                    mark("admission");
+                    var memory = Private(process);
+                    var peak = job == null ? 0 : job.Peak;
                     var combined = Total(host, Math.Max(memory, peak), reserve);
                     var admitted = host > 0 && memory > 0 && peak > 0 && reserve > 0 && limit > 0 && combined <= limit;
                     if (admission != null) admission(host, memory, peak, combined, admitted);
                     if (!admitted)
                         throw new InvalidDataException("Image decode exceeds Lea's combined host/helper memory limit.");
                     token.ThrowIfCancellationRequested();
-                    if (started != null) started(current.P.Id, current.J != null, current.R, current.L,
+                    mark("start");
+                    if (started != null) started(processId, job != null, current.R, current.L,
                         current.S, current.A, current.M, current.C, current.N, current.F,
-                        current.J == null ? 0 : current.J.C, current.G);
-                    input.Write(data.Length);
-                    input.Write(data);
-                    input.Flush();
-                    var magic = output.ReadInt32();
-                    var status = output.ReadByte();
+                        job == null ? 0 : job.C, current.G);
+                    token.ThrowIfCancellationRequested();
+                    mark("request");
+                    writer.Write(data.Length);
+                    writer.Write(data);
+                    writer.Flush();
+                    mark("response");
+                    var magic = reader.ReadInt32();
+                    var status = reader.ReadByte();
                     if (magic != Magic) throw new InvalidDataException("Image worker protocol marker is invalid.");
                     if (status == 0)
                     {
-                        var length = output.ReadInt32();
+                        var length = reader.ReadInt32();
                         if (length < 0 || length > 1024) throw new InvalidDataException("Image worker error is invalid.");
-                        throw new InvalidDataException(Encoding.UTF8.GetString(Bytes(output, length)));
+                        throw new InvalidDataException(Encoding.UTF8.GetString(Bytes(reader, length)));
                     }
                     if (status != 1) throw new InvalidDataException("Image worker response kind is invalid.");
-                    var width = output.ReadInt32();
-                    var height = output.ReadInt32();
-                    var lengthPixels = output.ReadInt32();
+                    var width = reader.ReadInt32();
+                    var height = reader.ReadInt32();
+                    var lengthPixels = reader.ReadInt32();
                     var pixels = (long)width * height;
                     if (width < 1 || height < 1 || width > Pi.Axis || height > Pi.Axis || pixels > Pi.Pixels ||
                         lengthPixels != pixels * 4)
                         throw new InvalidDataException("Image worker dimensions exceed Lea's protocol limit.");
-                    var bytes = Bytes(output, lengthPixels);
+                    var bytes = Bytes(reader, lengthPixels);
                     token.ThrowIfCancellationRequested();
+                    mark("bitmap");
                     var image = Bitmap(width, height, bytes);
                     try
                     {
                         token.ThrowIfCancellationRequested();
                         host = Host(hostMemory);
-                        memory = Private(current.P);
-                        peak = current.J == null ? 0 : current.J.Peak;
+                        memory = Private(process);
+                        peak = job == null ? 0 : job.Peak;
                         combined = Total(host, Math.Max(memory, peak), 0);
                         if (measured != null) measured(host, memory, peak, combined);
                         token.ThrowIfCancellationRequested();
+                        mark("done");
                         return image;
                     }
                     catch
@@ -148,12 +179,31 @@ namespace Lea.Win
                     }
                 }
             }
-            catch
+            catch (Exception error)
             {
+                result = token.IsCancellationRequested ? "cancel" : "error";
+                kind = error.GetType().Name;
+                if (kind.Length > 80) kind = kind.Substring(0, 80);
                 if (current != null) Stop(current);
+                token.ThrowIfCancellationRequested();
                 throw;
             }
-            finally { one.Release(); }
+            finally
+            {
+                if (diagnostics != null)
+                {
+                    // Diagnostic consumers cannot change decoder results or gate cleanup.
+                    try
+                    {
+                        var text = "phase=" + phase + "; result=" + result + "; worker=" + processId +
+                            "; wall=" + clock.ElapsedMilliseconds + "; ready=" + (current != null && current.Ready ? "1" : "0") +
+                            "; kind=" + kind + "; steps=" + steps;
+                        diagnostics(text.Length <= 512 ? text : text.Substring(0, 512));
+                    }
+                    catch (Exception) { }
+                }
+                if (held) one.Release();
+            }
         }
 
         private static Rp Open(string path, string args)

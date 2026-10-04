@@ -143,6 +143,23 @@ The live host remains unchanged; cold-start reliability and broader DOM/site
 support are unfinished. Readiness stays about 65% and milestone 146 stays in
 progress. See `CLASS_TOKENS.md` for measurements, artifacts and failure records.
 
+Native-image follow-up reproduces and fixes a cancellation callback race that
+returned a faulted task with `NullReferenceException`. Local operation references,
+matching task tokens and acquired-only semaphore cleanup provide typed
+cancellation and fresh-worker recovery. Read-only `Idg` retains a bounded
+512-character phase report, with explicit timing boundaries and pre-start
+retention. Final focused and complete core suites pass; all 713 source and fresh
+standalone scripting checks pass. Separate v13 passes all 43 host and six EXE
+startup cases. Three archives pass inventory/length/hash/snapshot/extraction
+audits; extracted and independently rebuilt host-source scripting cases pass
+with 19 verified dependencies and 348 fixture/license files. Full host/startup
+matrices are not repeated on those extractions/rebuild. The required bundle
+grows 1,024 bytes to 743,936 without a new dependency or relaxed budgets.
+Failed handshake-observer setups are retained separately from the reproduced
+production bug. Earlier intermittent startup failures remain unexplained and
+the installed host is untouched. Readiness stays about 65%; milestone 146
+remains in progress. See `IMAGE_STARTUP.md` for contracts, evidence and artifacts.
+
 - Added a reproducible separate .NET Framework 4.8 Firespider host/source
   candidate with optional isolated scripting in regular/resumed tabs and both
   split panes. Script-free pages remain dormant; explicit code and authored

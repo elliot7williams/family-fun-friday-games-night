@@ -22,8 +22,13 @@ read and quick to write.
   AppContainer identity, zero capability set (including no network capability),
   and exact identity-scoped read/execute helper-file ACL. `Icl` configures the
   combined host/helper ceiling; `Ihm/Icm/Iad` report the last host-private
-  sample, conservative combined admission signal, and whether it passed. See
-  `PICTURE_LIMITS.md`, `IMAGE_PREFLIGHT.md`, and `IMAGE_ISOLATION.md`.
+  sample, conservative combined admission signal, and whether it passed.
+  Read-only `Idg` returns the last completed decoder-delegate report, bounded
+  to 512 characters; it is initially empty and omits URLs, paths and image
+  content. Its clock excludes fetch/preflight and task scheduling, and a task
+  canceled before its delegate starts leaves the previous report intact. See
+  `PICTURE_LIMITS.md`, `IMAGE_PREFLIGHT.md`, `IMAGE_ISOLATION.md`, and
+  `IMAGE_STARTUP.md`.
 - `V.Ce(code)` queries native field editing and `V.Ec(code)` runs it: `cp`, `cu`,
   `pa`, `sa`, `de`, `un`, and `re`. Commands are host-only, protect read-only and
   password fields, retain a menu-blurred editor, and return 0 without mutation

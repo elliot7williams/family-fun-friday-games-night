@@ -81,6 +81,7 @@ namespace Lea.Win
         private int picVersion;
         private long picSize;
         private int picNative;
+        private string picDecodeDiagnostic = "";
         private int picWorker;
         private int picKilled;
         private int picJob;
@@ -272,6 +273,7 @@ namespace Lea.Win
         public long It { get { lock (picMemoryGate) return picMemoryTotal; } }
         public int Ip { get { return Pi.Pixels; } }
         public int In { get { return Interlocked.CompareExchange(ref picNative, 0, 0); } }
+        public string Idg { get { return Interlocked.CompareExchange(ref picDecodeDiagnostic, null, null); } }
         public string Ie { get { return Di.P(picWorkerPath); } set { picWorkerPath = value; } }
         public bool Ii { get { return File.Exists(Ie); } }
         public int Iw { get { return Interlocked.CompareExchange(ref picWorker, 0, 0); } }
@@ -5739,7 +5741,8 @@ namespace Lea.Win
                     Interlocked.Exchange(ref picCombinedMemory,
                         Math.Max(Interlocked.Read(ref picCombinedMemory), combined));
                 },
-                () => Interlocked.Increment(ref picKilled));
+                () => Interlocked.Increment(ref picKilled),
+                report => Interlocked.Exchange(ref picDecodeDiagnostic, report));
         }
 
         private long PictureHostMemory()

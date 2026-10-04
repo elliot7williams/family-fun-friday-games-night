@@ -69,6 +69,20 @@ admission; focused pictures and the complete rerun pass without explaining the
 failure. Startup reliability remains work and the installed host is unchanged.
 See [class-token measurements and artifact hashes](../LeaForge/CLASS_TOKENS.md).
 
+The `Lea-146-image-v13` candidate fixes a reproduced image-worker cancellation
+race and adds read-only bounded `Idg` phase diagnostics. Matching cancellation
+tokens, owned-worker cleanup, blocked handshake/queue cancellation and native
+pre-start report/worker retention pass focused and complete core checks.
+All 713 source and fresh-standalone scripting checks pass, as do all 43 host
+and six actual-EXE startup scenarios. Three ZIPs pass inventory/length/hash/
+current-snapshot/extraction audits. Extracted and independently rebuilt
+host-source scripting cases pass with 19 verified dependency records and 348
+fixture/license files; full matrices are not repeated on extractions/rebuild.
+The required bundle grows 1,024 bytes to 743,936 without new dependencies or
+changed limits. Earlier intermittent startup failures remain unexplained;
+the live host is unchanged and this is still an experimental candidate.
+See [image cancellation contracts and archive hashes](../LeaForge/IMAGE_STARTUP.md).
+
 ## Build
 
 Build the current Lea solution in Release, then:

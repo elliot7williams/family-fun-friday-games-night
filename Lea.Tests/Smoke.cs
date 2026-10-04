@@ -39,6 +39,7 @@ namespace Lea.Tests
                 if (args.Length > 1 && args[1] == "--sheets") { CheckSheets(root); return 0; }
                 if (args.Length > 1 && args[1] == "--loads") { CheckLoadLifecycle(root); return 0; }
                 if (args.Length > 1 && args[1] == "--pics") { CheckPictureLimits(root); return 0; }
+                if (args.Length > 1 && args[1] == "--image-cancel") { CheckImageCancellation(); return 0; }
                 if (args.Length > 1 && args[1] == "--input") { CheckInputLimits(root); return 0; }
                 if (args.Length > 1 && args[1] == "--cache") { CheckCacheIdentity(); return 0; }
                 if (args.Length > 1 && args[1] == "--blank") { CheckBlank(); return 0; }
@@ -302,6 +303,7 @@ namespace Lea.Tests
                 CheckSheets(root);
                 CheckLoadLifecycle(root);
                 CheckPictureLimits(root);
+                CheckImageCancellation();
                 CheckInputLimits(root);
                 CheckCacheIdentity();
                 CheckNavigationGuard(root);
@@ -14186,7 +14188,7 @@ namespace Lea.Tests
                 typeof(V).GetProperty("Icr") != null && typeof(V).GetProperty("Img") != null && typeof(V).GetProperty("Ipk") != null &&
                 typeof(V).GetProperty("Iac") != null && typeof(V).GetProperty("Ind") != null && typeof(V).GetProperty("Ial") != null &&
                 typeof(V).GetProperty("Icl") != null && typeof(V).GetProperty("Ihm") != null &&
-                typeof(V).GetProperty("Icm") != null && typeof(V).GetProperty("Iad") != null,
+                typeof(V).GetProperty("Icm") != null && typeof(V).GetProperty("Iad") != null && typeof(V).GetProperty("Idg") != null,
                 "job-bounded picture decoder and compact worker aliases are available");
             using (var aliases = new V())
                 Ok(aliases.Ip == 8 * 1024 * 1024 && aliases.Im == 128L * 1024 * 1024 && aliases.It == 0 &&
@@ -14194,7 +14196,7 @@ namespace Lea.Tests
                     !aliases.Ij && aliases.Ih == 192L * 1024 * 1024 && aliases.Ipm == 0 && !aliases.Irt && !aliases.Ili &&
                     !aliases.Isp && !aliases.Ihl && !aliases.Ias && !aliases.Icp && aliases.Icr == 2500 &&
                     aliases.Img == 0 && aliases.Ipk == 0 && !aliases.Iac && !aliases.Ind && !aliases.Ial &&
-                    aliases.Icl == 384L * 1024 * 1024 && aliases.Ihm == 0 && aliases.Icm == 0 && !aliases.Iad,
+                    aliases.Icl == 384L * 1024 * 1024 && aliases.Ihm == 0 && aliases.Icm == 0 && !aliases.Iad && aliases.Idg == "",
                     "compact picture preflight, process-memory, decoder, and job aliases");
             var formats = new Dictionary<string, byte[]>
             {
@@ -14229,7 +14231,7 @@ namespace Lea.Tests
                         "; Isp=" + view.Isp + "; Ihl=" + view.Ihl + "; Ias=" + view.Ias + "; Icp=" + view.Icp +
                         "; Icr=" + view.Icr + "; Img=" + view.Img + "; Ipm=" + view.Ipm + "; Ipk=" + view.Ipk +
                         "; Iac=" + view.Iac + "; Ind=" + view.Ind + "; Ial=" + view.Ial + "; Iad=" + view.Iad +
-                        "; Ihm=" + view.Ihm + "; Icm=" + view.Icm + "; Icl=" + view.Icl);
+                        "; Ihm=" + view.Ihm + "; Icm=" + view.Icm + "; Icl=" + view.Icl + "; Idg=" + view.Idg);
                     formatWorkers.Add(view.Iw);
                     if (!securityChecked)
                     {
@@ -14341,7 +14343,7 @@ namespace Lea.Tests
                     "; Ic=" + view.Ic + "; If=" + view.If + "; In=" + view.In + "; Iw=" + view.Iw + "; Ij=" + view.Ij +
                     "; Irt=" + view.Irt + "; Ili=" + view.Ili + "; Isp=" + view.Isp + "; Ihl=" + view.Ihl +
                     "; Ias=" + view.Ias + "; Icp=" + view.Icp + "; Icr=" + view.Icr +
-                    "; Img=" + view.Img + "; Ipm=" + view.Ipm + "; Ipk=" + view.Ipk);
+                    "; Img=" + view.Img + "; Ipm=" + view.Ipm + "; Ipk=" + view.Ipk + "; Idg=" + view.Idg);
             }
             using (var server = new PictureServer("plain", PicturePng(3, 2, Color.SeaGreen)))
             using (var view = new V { Tm = 3000 })
@@ -14370,7 +14372,7 @@ namespace Lea.Tests
                     "; Ij=" + view.Ij + "; Irt=" + view.Irt + "; Ili=" + view.Ili + "; Isp=" + view.Isp +
                     "; Ihl=" + view.Ihl + "; Ias=" + view.Ias + "; Icp=" + view.Icp + "; Icr=" + view.Icr +
                     "; Img=" + view.Img + "; Ipm=" + view.Ipm + "; Ipk=" + view.Ipk + "; Iac=" + view.Iac +
-                    "; Ind=" + view.Ind + "; Ial=" + view.Ial + "; It=" + view.It);
+                    "; Ind=" + view.Ind + "; Ial=" + view.Ial + "; It=" + view.It + "; Idg=" + view.Idg);
             }
             var restartWorker = 0;
             using (var server = new PictureServer("plain", PicturePng(3, 2, Color.MediumSeaGreen)))
@@ -14729,6 +14731,176 @@ namespace Lea.Tests
                 "worker Job CPU policy can be inspected");
             Eq(5U, cpu.ControlFlags & 5U, "worker Job CPU hard-cap flags");
             Eq((uint)cpuRate, cpu.CpuRate, "worker Job CPU hard-cap rate");
+        }
+
+        private static void CheckImageCancellation()
+        {
+            var decoder = typeof(V).Assembly.GetType("Lea.Win.Di", true);
+            var read = decoder.GetMethod("Rd", BindingFlags.Static | BindingFlags.Public);
+            var workerField = decoder.GetField("worker", BindingFlags.Static | BindingFlags.NonPublic);
+            var gate = (SemaphoreSlim)decoder.GetField("one", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+            var waitCount = typeof(SemaphoreSlim).GetField("m_waitCount", BindingFlags.Instance | BindingFlags.NonPublic);
+            Ok(waitCount != null, "Framework semaphore waiter accounting is available for deterministic queue cancellation");
+            var pipePosition = typeof(FileStream).GetField("_pos", BindingFlags.Instance | BindingFlags.NonPublic);
+            Ok(pipePosition != null, "Framework pipe byte accounting is available for nonblocking handshake observation");
+            var data = PicturePng(3, 2, Color.SeaGreen);
+            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Lea.Image.exe");
+            foreach (var phase in new[] { "started", "host", "admission", "hello", "pre", "queue" })
+            using (var cancel = new CancellationTokenSource())
+            {
+                var processId = 0;
+                var killed = 0;
+                var report = "";
+                var handshake = "";
+                Process observation = null;
+                var canceledAt = 0L;
+                var clock = Stopwatch.StartNew();
+                Action stop = () =>
+                {
+                    var worker = workerField.GetValue(null);
+                    if (worker != null)
+                    {
+                        var process = (Process)worker.GetType().GetProperty("P").GetValue(worker, null);
+                        processId = process.Id;
+                        observation = Process.GetProcessById(processId);
+                        var handle = observation.Handle;
+                    }
+                    canceledAt = clock.ElapsedMilliseconds;
+                    cancel.Cancel();
+                };
+                Func<long> host = () =>
+                {
+                    if (phase == "host") stop();
+                    using (var process = Process.GetCurrentProcess()) return process.PrivateMemorySize64;
+                };
+                Action<int, bool, bool, bool, bool, bool, bool, bool, bool, bool, int, int> started =
+                    (process, bounded, restricted, low, suspended, handles, aslr, container, noNetwork, fileAcl, cpu, guards) =>
+                    {
+                        Ok(bounded && restricted && low && suspended && handles && aslr && container && noNetwork && fileAcl &&
+                            cpu == 2500 && (guards & 3) == 3, "image cancellation follows verified worker isolation");
+                        if (phase == "started") stop();
+                    };
+                Action<long, long, long, long, bool> admission = (hostBytes, memory, peak, combined, accepted) =>
+                {
+                    Ok(accepted && memory > 0 && peak > 0 && combined <= 384L * 1024 * 1024,
+                        "image cancellation reaches real bounded admission");
+                    if (phase == "admission") stop();
+                };
+                Task<Image> work = null;
+                var held = false;
+                try
+                {
+                    if (phase == "pre") stop();
+                    if (phase == "queue") { gate.Wait(); held = true; }
+                    var executable = phase == "hello" ? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Lea.Image.Handshake.exe") : path;
+                    var arguments = "--pipe";
+                    work = (Task<Image>)read.Invoke(null, new object[] { data, executable, arguments, cancel.Token,
+                        16384L, 384L * 1024 * 1024, host, started, admission, null,
+                        new Action(() => Interlocked.Increment(ref killed)), new Action<string>(value => report = value) });
+                    if (phase == "queue")
+                    {
+                        WaitFor(() => (int)waitCount.GetValue(gate) > 0, "image decoder is blocked on the held gate");
+                        stop();
+                    }
+                    if (phase == "hello")
+                    {
+                        WaitFor(() => work.IsCompleted || ImageHeaderConsumed(workerField, pipePosition, out handshake), "stalled image handshake header consumed");
+                        Ok(!work.IsCompleted && ImageHeaderConsumed(workerField, pipePosition, out handshake),
+                            "decoder is blocked inside an unverified handshake: status=" + work.Status + "; report=" + report);
+                        stop();
+                    }
+                    WaitFor(() => work.IsCompleted, "image cancellation completion: " + phase);
+                    Exception error = null;
+                    try { using (var image = work.GetAwaiter().GetResult()) { } }
+                    catch (Exception failure) { error = failure; }
+                    var cancellation = error as OperationCanceledException;
+                    Ok(work.IsCanceled && cancellation != null && cancellation.CancellationToken == cancel.Token &&
+                        clock.ElapsedMilliseconds - canceledAt < 2000,
+                        "image decoder cancellation " + phase + ": status=" + work.Status + "; error=" +
+                        (error == null ? "none" : error.GetType().FullName) + "; elapsed=" + (clock.ElapsedMilliseconds - canceledAt));
+                    var launched = phase != "pre" && phase != "queue";
+                    Ok(killed == (launched ? 1 : 0) && (!launched || processId > 0 && observation.HasExited) &&
+                        workerField.GetValue(null) == null, "image cancellation cleans its worker exactly once: " + phase);
+                    if (launched)
+                    {
+                        var expectedPhase = phase == "started" ? "start" : phase;
+                        Ok(report.Length <= 512 && report.Contains("phase=" + expectedPhase + "; result=cancel;") &&
+                            report.Contains("worker=" + processId + ";") && report.Contains("ready=" + (phase == "hello" ? "0" : "1") + ";"),
+                            "bounded image cancellation phase report: " + report);
+                    }
+                    if (phase == "queue")
+                        Ok(gate.CurrentCount == 0 && report.Length <= 512 &&
+                            report.StartsWith("phase=queue; result=cancel; worker=0;") && report.Contains("ready=0;"),
+                            "queued decode cancellation cannot release another owner's gate: " + report);
+                    Console.WriteLine("Image cancellation " + phase + ": " + (report.Length == 0 ? "delegate skipped" : report));
+                }
+                finally
+                {
+                    if (!cancel.IsCancellationRequested) cancel.Cancel();
+                    if (held) gate.Release();
+                    if (work != null && !work.IsCompleted) WaitFor(() => work.IsCompleted, "image cancellation final cleanup");
+                    if (observation != null) observation.Dispose();
+                    if (phase == "hello") Console.WriteLine("Handshake cleanup: " + report + "; observation=" + handshake);
+                }
+            }
+            Eq(1, gate.CurrentCount, "image cancellation releases serialized decoder gate");
+            var diagnosticCalls = 0;
+            var diagnosticFailure = (Task<Image>)read.Invoke(null, new object[] { data, path, "--pipe", CancellationToken.None,
+                16384L, 384L * 1024 * 1024, new Func<long>(() =>
+                {
+                    using (var process = Process.GetCurrentProcess()) return process.PrivateMemorySize64;
+                }), null, null, null, null, new Action<string>(value =>
+                {
+                    Interlocked.Increment(ref diagnosticCalls);
+                    throw new InvalidOperationException("Diagnostic consumer failure.");
+                }) });
+            WaitFor(() => diagnosticFailure.IsCompleted, "image diagnostic callback failure completion");
+            using (var image = diagnosticFailure.GetAwaiter().GetResult())
+                Ok(image.Width == 3 && image.Height == 2 && diagnosticCalls == 1 && gate.CurrentCount == 1,
+                    "diagnostic consumer failure cannot fail decoding or retain the decoder gate");
+            using (var server = new PictureServer("plain", data))
+            using (var view = new V())
+            {
+                var work = view.GoA(server.U);
+                WaitFor(() => work.IsCompleted, "image cancellation fresh-worker recovery");
+                work.GetAwaiter().GetResult();
+                Ok(view.Ic == 1 && view.If == 0 && view.In == 1 && view.Iad && view.Ik == 0 &&
+                    view.It == view.Ib && view.Ib == 24, "image decoder recovers normally after canceled admission");
+                Ok(view.Idg.Length <= 512 && view.Idg.StartsWith("phase=done; result=ok;") &&
+                    view.Idg.Contains("worker=" + view.Iw + ";") && view.Idg.Contains("ready=1;"),
+                    "native compact image diagnostic reports successful recovery: " + view.Idg);
+                Console.WriteLine("Image recovery: " + view.Idg);
+                var priorReport = view.Idg;
+                var priorWorker = workerField.GetValue(null);
+                using (var cancel = new CancellationTokenSource())
+                {
+                    cancel.Cancel();
+                    var decode = typeof(V).GetMethod("DecodePicture", BindingFlags.Instance | BindingFlags.NonPublic);
+                    var skipped = (Task<Image>)decode.Invoke(view, new object[] { data, 16384L, cancel.Token });
+                    WaitFor(() => skipped.IsCompleted, "native pre-canceled image scheduling");
+                    OperationCanceledException error = null;
+                    try { using (var image = skipped.GetAwaiter().GetResult()) { } }
+                    catch (OperationCanceledException failure) { error = failure; }
+                    var process = (Process)priorWorker.GetType().GetProperty("P").GetValue(priorWorker, null);
+                    Ok(skipped.IsCanceled && error != null && error.CancellationToken == cancel.Token &&
+                        view.Idg == priorReport && Object.ReferenceEquals(priorWorker, workerField.GetValue(null)) &&
+                        !process.HasExited && gate.CurrentCount == 1,
+                        "pre-canceled native scheduling preserves the prior diagnostic and reusable worker");
+                }
+            }
+            Console.WriteLine("Lea image cancellation smoke passed: blocked handshake/queue, admission/start callbacks, pre-cancel, typed canceled tasks, diagnostics, cleanup, and fresh-worker recovery.");
+        }
+
+        private static bool ImageHeaderConsumed(FieldInfo workerField, FieldInfo pipePosition, out string diagnostic)
+        {
+            var worker = workerField.GetValue(null);
+            diagnostic = "no worker";
+            if (worker == null) return false;
+            var errors = (string)worker.GetType().GetProperty("E").GetValue(worker, null);
+            var pipe = (FileStream)worker.GetType().GetProperty("O").GetValue(worker, null);
+            var read = (long)pipePosition.GetValue(pipe);
+            diagnostic = "read=" + read + "; stderr=" + errors;
+            return read >= 4 && errors.Contains("image-stall header flushed");
         }
 
         private static IntPtr NativeTokenInfo(IntPtr token, int kind)

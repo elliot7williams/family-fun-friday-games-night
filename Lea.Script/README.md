@@ -396,6 +396,11 @@ fetch/XHR, storage, location/navigation, DOM creation/removal, `innerHTML`, and
 the full CSSOM remain future integration work. General browser compatibility
 and production untrusted-site safety are not claimed by these tests.
 
+Native `V.Idg` separately reports the last completed image-decoder delegate,
+bounded to 512 characters without URLs, paths or image content. It is not the
+script worker's `Sd` report or whole-navigation timing. Pre-start cancellation
+retains the previous value; see [image cancellation and timing boundaries](../LeaForge/IMAGE_STARTUP.md).
+
 ## Verify
 
 ```powershell

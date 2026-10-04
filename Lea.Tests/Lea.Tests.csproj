@@ -44,4 +44,10 @@
     <Copy SourceFiles="..\Lea.Image\bin\$(Configuration)\Lea.Image.exe"
           DestinationFiles="$(TargetDir)Lea.Image.exe" SkipUnchangedFiles="true" />
   </Target>
+  <Target Name="BuildImageHandshakeProbe" AfterTargets="Build"
+          Inputs="$(MSBuildProjectDirectory)\ImageHandshake.cs;$(MSBuildProjectFullPath)"
+          Outputs="$(TargetDir)Lea.Image.Handshake.exe">
+    <Csc Sources="ImageHandshake.cs" References="@(ReferencePath)"
+         OutputAssembly="$(TargetDir)Lea.Image.Handshake.exe" TargetType="Exe" Optimize="true" />
+  </Target>
 </Project>
