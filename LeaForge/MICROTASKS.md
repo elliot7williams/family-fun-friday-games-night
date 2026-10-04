@@ -6,6 +6,11 @@ Promise/async continuations and `queueMicrotask` now participate in Lea's
 bounded script/event completion. This is progress toward a browser event loop,
 not a completed general-purpose web engine.
 
+The later [startup follow-up](STARTUP_DIAGNOSTICS.md) records scheduling,
+cancellation and file-permission improvements, final v7 verification, and the
+unresolved intermittent deadline. The v4 archives listed below remain retained
+historical artifacts, not the latest candidate or a finished installed update.
+
 ## Implementation
 
 A regression reproduced native event completion before its queued Promise

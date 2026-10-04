@@ -1,7 +1,6 @@
 using System;
+using System.Diagnostics;
 using System.IO;
-using System.Net;
-using System.Net.Sockets;
 using Jint;
 using Jint.Native;
 using Jint.Runtime;
@@ -17,44 +16,57 @@ namespace Lea.Script.Worker
             if (args.Length != 1 || args[0] != "--pipe") return 2;
             try
             {
+                var trace = Environment.GetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE") == "1";
+                var clock = Stopwatch.StartNew();
+                Trace("entry", clock, trace);
                 var guards = Lea.Image.Mg.Apply();
+                Trace("guards", clock, trace);
                 using (var input = Console.OpenStandardInput())
                 using (var output = Console.OpenStandardOutput())
                 {
                     var init = Wire.Read(input);
                     Wire.Fields(init, "k", "p", "f");
                     if (Wire.Text(init, "k", 8) != "init") return 3;
-                    var network = NetworkDenied(Wire.Number(init, "p"));
+                    Trace("init", clock, trace);
                     var file = FileDenied(Wire.Text(init, "f", 1024));
                     var id = 0;
                     var request = 0;
-                    var vm = new Jint.Engine(options =>
-                    {
-                        options.MaxStatements(20000).LimitMemory(8 * 1024 * 1024)
-                            .TimeoutInterval(TimeSpan.FromSeconds(5)).LimitRecursion(64)
-                            .RegexTimeoutInterval(TimeSpan.FromMilliseconds(100)).MaxArraySize(65536);
-                        options.Constraints.StackOverflowGuard = true;
-                        options.Interop.Enabled = false;
-                        options.Interop.AllowGetType = false;
-                        options.Interop.AllowWrite = false;
-                    });
-                    vm.SetValue("__lea", new ClrFunction(vm, "__lea", (_, values) =>
-                    {
-                        if (++request > 256) throw new InvalidDataException("Script host-call budget exceeded.");
-                        Wire.Write(output, new { k = "call", i = id, r = request, b = Codec.Arguments(values) });
-                        var reply = Wire.Read(input);
-                        Wire.Fields(reply, "k", "i", "r", "v");
-                        if (Wire.Text(reply, "k", 8) != "reply" || Wire.Number(reply, "i") != id ||
-                            Wire.Number(reply, "r") != request || !reply.ContainsKey("v"))
-                            throw new InvalidDataException("Invalid script bridge reply.");
-                        return Codec.Value(vm, reply["v"]);
-                    }));
-                    vm.SetValue("__jobs", new ClrFunction(vm, "__jobs", (_, values) =>
-                    { vm.Advanced.ProcessTasks(); return JsValue.Undefined; }));
+                    Jint.Engine vm;
                     JsValue dispatch;
-                    using (var stream = typeof(Program).Assembly.GetManifestResourceStream("Lea.Script.Dom.js"))
-                    using (var reader = new StreamReader(stream)) dispatch = vm.Evaluate(reader.ReadToEnd());
-                    Wire.Write(output, new { k = "hello", g = guards, n = network, f = file ? 1 : 0 });
+                    // Only trusted bootstrap overlaps the denial probe; page frames follow the verified hello.
+                    using (var probe = new NetworkProbe(Wire.Number(init, "p")))
+                    {
+                        vm = new Jint.Engine(options =>
+                        {
+                            options.MaxStatements(20000).LimitMemory(8 * 1024 * 1024)
+                                .TimeoutInterval(TimeSpan.FromSeconds(5)).LimitRecursion(64)
+                                .RegexTimeoutInterval(TimeSpan.FromMilliseconds(100)).MaxArraySize(65536);
+                            options.Constraints.StackOverflowGuard = true;
+                            options.Interop.Enabled = false;
+                            options.Interop.AllowGetType = false;
+                            options.Interop.AllowWrite = false;
+                        });
+                        Trace("vm", clock, trace);
+                        vm.SetValue("__lea", new ClrFunction(vm, "__lea", (_, values) =>
+                        {
+                            if (++request > 256) throw new InvalidDataException("Script host-call budget exceeded.");
+                            Wire.Write(output, new { k = "call", i = id, r = request, b = Codec.Arguments(values) });
+                            var reply = Wire.Read(input);
+                            Wire.Fields(reply, "k", "i", "r", "v");
+                            if (Wire.Text(reply, "k", 8) != "reply" || Wire.Number(reply, "i") != id ||
+                                Wire.Number(reply, "r") != request || !reply.ContainsKey("v"))
+                                throw new InvalidDataException("Invalid script bridge reply.");
+                            return Codec.Value(vm, reply["v"]);
+                        }));
+                        vm.SetValue("__jobs", new ClrFunction(vm, "__jobs", (_, values) =>
+                        { vm.Advanced.ProcessTasks(); return JsValue.Undefined; }));
+                        using (var stream = typeof(Program).Assembly.GetManifestResourceStream("Lea.Script.Dom.js"))
+                        using (var reader = new StreamReader(stream)) dispatch = vm.Evaluate(reader.ReadToEnd());
+                        Trace("dom", clock, trace);
+                        var network = probe.Denied();
+                        Trace("probes", clock, trace);
+                        Wire.Write(output, new { k = "hello", g = guards, n = network, f = file ? 1 : 0 });
+                    }
                     while (true)
                     {
                         var frame = Wire.Read(input);
@@ -108,28 +120,12 @@ namespace Lea.Script.Worker
             }
         }
 
-        private static int NetworkDenied(int port)
+        private static void Trace(string stage, Stopwatch clock, bool enabled)
         {
-            if (port < 1 || port > 65535) return 0;
-            using (var client = new TcpClient())
-            {
-                try
-                {
-                    var connect = client.BeginConnect(IPAddress.Loopback, port, null, null);
-                    using (var wait = connect.AsyncWaitHandle)
-                    {
-                        // WFP can silently drop a denied connection rather than return AccessDenied.
-                        // The parent independently verifies no exemptions and a working listener.
-                        if (!wait.WaitOne(500)) return 2;
-                        client.EndConnect(connect);
-                        return 0;
-                    }
-                }
-                catch (SocketException error)
-                {
-                    return error.SocketErrorCode == SocketError.AccessDenied ? 1 : 0;
-                }
-            }
+            if (!enabled) return;
+            using (var process = Process.GetCurrentProcess())
+                Console.Error.WriteLine("startup " + stage + ": wall=" + clock.ElapsedMilliseconds +
+                    "; cpu=" + (long)process.TotalProcessorTime.TotalMilliseconds + " ms");
         }
 
         private static bool FileDenied(string path)

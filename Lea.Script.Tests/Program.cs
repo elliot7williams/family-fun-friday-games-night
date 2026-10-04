@@ -19,6 +19,12 @@ namespace Lea.Script.Tests
                 var root = args.Length == 0 ? Directory.GetCurrentDirectory() : Path.GetFullPath(args[0]);
                 var fixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-runtime.html");
                 var viewFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-view.html");
+                if (args.Length > 1 && args[1] == "--startup")
+                {
+                    Startup.Run(fixture);
+                    Console.WriteLine("PASS Lea.Script startup: " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--worker")
                 {
                     Worker.Run(fixture);
@@ -115,6 +121,7 @@ namespace Lea.Script.Tests
                 disposed.Dispose();
                 try { disposed.Ex("1;"); throw new Exception("disposed session accepted code"); }
                 catch (ObjectDisposedException) { Check(true, "disposed session rejected"); }
+                Startup.Run(fixture);
                 Worker.Run(fixture);
                 Events.Run(viewFixture);
                 Microtasks.Run(viewFixture);

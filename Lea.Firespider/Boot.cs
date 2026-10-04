@@ -1568,6 +1568,8 @@ namespace Lea.Firespider
 
         private static async Task CheckScriptCore(Form form, ApplicationSettingsBase settings, string page, string root)
         {
+            var fixturePath = Path.Combine(root, "LeaForge", "test-pages", "javascript-view.html");
+            Check(File.Exists(fixturePath), "host scripting fixture is missing: " + fixturePath);
             var target = form.GetType().Assembly.GetCustomAttributes(typeof(System.Runtime.Versioning.TargetFrameworkAttribute), false)
                 .Cast<System.Runtime.Versioning.TargetFrameworkAttribute>().Single().FrameworkName;
             Check(target == ".NETFramework,Version=v4.8", "separate host did not migrate its target framework");
@@ -1579,12 +1581,14 @@ namespace Lea.Firespider
             Console.WriteLine("Script host first demand: " + scriptClock.ElapsedMilliseconds + " ms");
             var pid = ScriptPid(view);
             Check(pid > 0 && !(bool)Call(form, "qleaHibernateEligible", view) && view.At.Jc == 0, "live pure-JavaScript state must not be automatically discarded");
-            var fixture = new Uri(Path.Combine(root, "LeaForge", "test-pages", "javascript-view.html")).AbsoluteUri;
+            var fixture = new Uri(fixturePath).AbsoluteUri;
             settings["bs"] = new StringCollection();
             settings["cfEnabled"] = "";
             Call(form, "q1", fixture);
             WaitLea(tabs);
-            Check(ScriptExited(pid) && view.T == "Lea ready" && view.Xo.Ok, "host navigation retires dormant-demanded realm and waits for inline lifecycle");
+            var navigationReady = ScriptExited(pid) && view.T == "Lea ready" && view.Xo != null && view.Xo.Ok;
+            if (!navigationReady) Console.WriteLine("Script navigation: old pid=" + pid + "; old exited=" + ScriptExited(pid) + "; " + ScriptState(view));
+            Check(navigationReady, "host navigation retires dormant-demanded realm and waits for inline lifecycle");
             var runtime = Member<object>(view.Xs, "At");
             Check((bool)runtime.GetType().GetProperty("Ac").GetValue(runtime, null) &&
                 (bool)runtime.GetType().GetProperty("Ne").GetValue(runtime, null), "host worker lacks isolation or has a loopback exemption");
@@ -1622,9 +1626,7 @@ namespace Lea.Firespider
                     foreach (var name in new[] { "leftBrowser", "rightBrowser" })
                     {
                         var pane = Member<V>(split, name);
-                        Console.WriteLine("Script split " + name + ": " + (pane == null ? "missing" :
-                            "busy=" + pane.Busy + "; pid=" + ScriptPid(pane) + "; result=" +
-                            (pane.Xo == null ? "pending" : pane.Xo.S + "; " + pane.Xo.M)));
+                        Console.WriteLine("Script split " + name + ": " + ScriptState(pane));
                     }
                     throw;
                 }
@@ -1691,9 +1693,26 @@ namespace Lea.Firespider
             catch (ArgumentException) { return true; }
         }
 
+        private static string ScriptState(V view)
+        {
+            if (view == null) return "missing";
+            var title = view.T ?? "";
+            var state = "busy=" + view.Busy + "; title=" + title.Substring(0, Math.Min(title.Length, 128)) +
+                "; pid=" + ScriptPid(view) + "; result=" + (view.Xo == null ? "pending" : view.Xo.S + "; " + view.Xo.M);
+            if (view.Xs != null)
+            {
+                var runtime = Member<object>(view.Xs, "At");
+                var diagnostics = runtime.GetType().GetProperty("Sd");
+                if (diagnostics != null) state += "; " + diagnostics.GetValue(runtime, null);
+            }
+            return state;
+        }
+
         private static async Task ScriptCode(V view, string code)
         {
             var result = await view.JsA(code);
+            if (!result.Ok || Environment.GetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE") == "1")
+                Console.WriteLine("Script host: " + ScriptState(view));
             Check(result.Ok, "host supplied script: " + result.S + "; " + result.M + "; code=" + code.Substring(0, Math.Min(code.Length, 80)));
         }
 

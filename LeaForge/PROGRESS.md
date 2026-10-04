@@ -36,12 +36,32 @@ modern web platform.
 
 Milestone 146 is in progress: bounded native-event Promise checkpoints and
 `queueMicrotask` pass all 386 source and extracted-native-package checks.
-The separate candidate passes 43 host and six actual-EXE startup cases; however,
-the extracted Firespider scripting case still fails a startup deadline. Do not
+The earlier separate candidate passes 43 host and six actual-EXE startup cases;
+however, its extracted Firespider scripting case still fails a startup deadline. Do not
 count this as a finished cold-start/release milestone or install over the live
 browser. Workflow options now have 15 one/two-letter aliases, and drive-root
 packaging is repaired. Five audited experimental archives and buildable host
 source are retained. See `MICROTASKS.md` for evidence and remaining gates.
+
+Startup follow-up adds bounded `Sd` phase/CPU diagnostics, overlaps the network
+denial probe with trusted initialization, and moves asynchronous native launch
+off the UI thread without changing budgets or isolation. A no-owner-pump Stop
+regression is reproduced and fixed, and shared-file permission changes are
+coordinated across concurrent launches and exact-SID cleanup. The final suite
+passes 450 source checks, including 64 startup/permission cases; full core, all 43
+v7 host cases and six actual-EXE startup scenarios pass. The small variant
+passes clean/split/decode/hibernate/lazy-all checks, not its full matrix.
+An earlier follow-up full run reproduced a startup timeout. The first extracted
+standalone suite also failed recovery after cancellation without a typed result;
+that cause remains unknown. The improved diagnostic assertion passes 84 focused
+worker checks and all 450 checks in a newly packaged/extracted runtime. These
+passes do not explain the earlier failure or prove stable cold-start readiness.
+The v7 extracted runtime scripting case passes; its host-source ZIP independently
+rebuilds and passes the scripting case after supplying manifest-verified harness
+fixtures. A missing-fixture preflight and richer Boot failure diagnostics prevent
+that setup error from masquerading as a worker/lifecycle failure.
+Milestone 146 remains in progress and broader readiness stays about 65%.
+See `STARTUP_DIAGNOSTICS.md` for observations and current verification scope.
 
 - Added a reproducible separate .NET Framework 4.8 Firespider host/source
   candidate with optional isolated scripting in regular/resumed tabs and both

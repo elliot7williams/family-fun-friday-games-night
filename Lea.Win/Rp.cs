@@ -8,6 +8,7 @@ using System.Security.AccessControl;
 using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Win32.SafeHandles;
 
@@ -284,10 +285,7 @@ namespace Lea.Win
             foreach (var file in files)
                 try
                 {
-                    var security = System.IO.File.GetAccessControl(file, AccessControlSections.Access);
-                    security.RemoveAccessRuleSpecific(new FileSystemAccessRule(identity,
-                        FileSystemRights.ReadAndExecute, AccessControlType.Allow));
-                    System.IO.File.SetAccessControl(file, security);
+                    FileAccessRule(file, identity, false);
                 }
                 catch (IOException) { }
                 catch (UnauthorizedAccessException) { }
@@ -397,20 +395,47 @@ namespace Lea.Win
         }
 
         private static bool GrantFile(string path, IntPtr appSid)
+        { return FileAccessRule(path, new SecurityIdentifier(appSid), true); }
+
+        internal static bool FileAccessRule(string path, SecurityIdentifier identity, bool grant)
         {
-            var identity = new SecurityIdentifier(appSid);
-            var rights = FileSystemRights.ReadAndExecute;
-            var security = System.IO.File.GetAccessControl(path, AccessControlSections.Access);
-            foreach (FileSystemAccessRule rule in security.GetAccessRules(true, true, typeof(SecurityIdentifier)))
-                if (identity.Equals(rule.IdentityReference) && rule.AccessControlType == AccessControlType.Allow &&
-                    (rule.FileSystemRights & rights) == rights) return true;
-            security.AddAccessRule(new FileSystemAccessRule(identity, rights, AccessControlType.Allow));
-            System.IO.File.SetAccessControl(path, security);
-            security = System.IO.File.GetAccessControl(path, AccessControlSections.Access);
-            foreach (FileSystemAccessRule rule in security.GetAccessRules(true, true, typeof(SecurityIdentifier)))
-                if (identity.Equals(rule.IdentityReference) && rule.AccessControlType == AccessControlType.Allow &&
-                    (rule.FileSystemRights & rights) == rights) return true;
-            return false;
+            string name;
+            using (var sha = SHA256.Create())
+                name = "Global\\Lea.FileAcl." + BitConverter.ToString(sha.ComputeHash(
+                    Encoding.UTF8.GetBytes(Path.GetFullPath(path).ToUpperInvariant()))).Replace("-", "");
+            // Coordinate read/modify/write across tabs, linked launcher assemblies, and host processes.
+            Mutex mutex;
+            try { mutex = new Mutex(false, name); }
+            catch (WaitHandleCannotBeOpenedException error)
+            { throw new IOException("Worker permission synchronization is unavailable.", error); }
+            using (mutex)
+            {
+                var held = false;
+                try
+                {
+                    try { held = mutex.WaitOne(1000); }
+                    catch (AbandonedMutexException) { held = true; }
+                    if (!held) throw new IOException("Worker file permission update is busy.");
+                    var rights = FileSystemRights.ReadAndExecute;
+                    var security = System.IO.File.GetAccessControl(path, AccessControlSections.Access);
+                    if (grant)
+                    {
+                        foreach (FileSystemAccessRule rule in security.GetAccessRules(true, true, typeof(SecurityIdentifier)))
+                            if (identity.Equals(rule.IdentityReference) && rule.AccessControlType == AccessControlType.Allow &&
+                                (rule.FileSystemRights & rights) == rights) return true;
+                        security.AddAccessRule(new FileSystemAccessRule(identity, rights, AccessControlType.Allow));
+                    }
+                    else security.RemoveAccessRuleSpecific(new FileSystemAccessRule(identity, rights, AccessControlType.Allow));
+                    System.IO.File.SetAccessControl(path, security);
+                    if (!grant) return true;
+                    security = System.IO.File.GetAccessControl(path, AccessControlSections.Access);
+                    foreach (FileSystemAccessRule rule in security.GetAccessRules(true, true, typeof(SecurityIdentifier)))
+                        if (identity.Equals(rule.IdentityReference) && rule.AccessControlType == AccessControlType.Allow &&
+                            (rule.FileSystemRights & rights) == rights) return true;
+                    return false;
+                }
+                finally { if (held) mutex.ReleaseMutex(); }
+            }
         }
 
         private static bool NoLoopback(IntPtr expectedSid)

@@ -65,11 +65,16 @@ var result = await jp.ExA("document.title = 'Computed ' + (3 + 4);");
 // On navigation/shutdown: jp.St(); await any active ExA task; jp.Dispose();
 ```
 
-`Ex` is the synchronous test/host option. `ExA` awaits pipe I/O and services
-DOM requests on the captured UI thread; it requires an owning synchronization
-context. Startup file validation and native setup, and individual parent DOM
-callbacks, are still synchronous. `St` may be called from another thread;
+`Ex` is the synchronous test/host option. `ExA` runs native process setup on a
+dedicated background thread, awaits pipe I/O, and services DOM requests on the
+captured UI thread; it requires an owning synchronization context. Startup
+file validation, parent DOM callbacks, and teardown are still synchronous.
+Native OS launch itself cannot be interrupted: the session retains its file
+leases and running state until launch returns, then checks cancellation,
+permission generation, and page ownership before continuing. `St` may be called from another thread;
 it closes the native Job to terminate the worker without mutating the DOM.
+The launch thread publishes that Job under the same lock used by Stop and
+closes it for a pending Stop without waiting for an owner-context continuation.
 Do not dispose a session until its active execution task has completed.
 Concurrent execution is rejected. Success preserves the worker realm; errors,
 permission generations, navigation to another page, and disposal discard it.
@@ -84,6 +89,10 @@ the session is live. Local ACL-capable storage is required; network volumes,
 missing files and reparse-point paths fail closed. There is no unconfined or
 in-process fallback. Exact session ACLs and the profile are removed on cleanup
 on a best-effort basis, including startup failures.
+File ACL read/modify/write operations share a path-keyed named mutex across
+launcher assemblies and host processes. Grant and exact-SID cleanup use the
+same critical section; another live session's rule is preserved. Lock waits
+are bounded to one second and unavailable synchronization fails closed.
 
 The parent checks Windows' loopback-exemption list for the session SID.
 Startup also proves an unrestricted parent connection to a real listener,
@@ -92,17 +101,28 @@ host-only canary. Windows may silently drop the connection: `Np=2` means
 the 500 ms probe did not connect; `Np=1` means explicit AccessDenied. A probe
 timeout alone is not treated as proof: zero capabilities, no exemption, the
 positive control, and no pending listener connection are all required.
+The denial connection now runs while the worker initializes its trusted VM
+and DOM bootstrap. Its result is still required before `hello`; the parent
+does not send any page code until it verifies the complete handshake. A
+connection that succeeds during this overlap returns failure, even after the
+500 ms observation window has elapsed.
 See Microsoft's [AppContainer documentation](https://learn.microsoft.com/en-us/windows/win32/secauthz/implementing-an-appcontainer)
 and [loopback configuration API](https://learn.microsoft.com/en-us/windows/win32/api/networkisolation/nf-networkisolation-networkisolationgetappcontainerconfig).
 
 The compact diagnostics are `Pid/Sid`, `Ac` (verified token/startup), `Ne`
 (no loopback exemption), `Nd/Np` (controlled network probe), `Fd` (canary denial),
 `Mg` (worker mitigation mask, required 15), and `Mp` (recorded Job peak).
+`Sd` retains a 512-character startup report: phase, native launch, parent
+positive-control probe, total startup wall time, and child CPU time in ms.
+Warm calls leave that report unchanged. Optional `LEA_SCRIPT_STARTUP_TRACE=1`
+adds worker entry/guards/init/VM/DOM/probe checkpoints to its bounded stderr;
+no diagnostic function is exposed to page code. File-validation failures
+before native launch leave `Sd` empty. See `../LeaForge/STARTUP_DIAGNOSTICS.md`.
 `Mm` is 128 MiB; `Cp` is a 2,500/10,000 Job CPU hard-cap rate, with one allowed
 process and kill-on-close. `Tm` is the parent's execution/I/O budget, default
 2,000 ms and clamped to 25..5,000 ms. Startup handshake has a separate 5,000 ms
 budget. Timeout messages identify startup versus execution without changing
-the status or budget. Teardown/ACL cleanup and a running parent callback can extend the total
+the status or budget. Native OS launch, teardown/ACL cleanup and a running parent callback can extend the total
 call duration; the host callback itself cannot be forcibly preempted.
 
 Worker Jint limits match `Js` below except its cooperative timeout is five

@@ -9,8 +9,15 @@ Milestone 146 finishes native-event Promise checkpoints and adds bounded
 `queueMicrotask` support to that optional module. The current builder emits
 146 manifests; the packer retains support for archived 145 manifests. See
 [microtask verification and limits](../LeaForge/MICROTASKS.md).
-The 146 archives remain experimental: build-folder host/startup checks pass,
-but a fresh extracted host still hits a script-worker startup deadline. Do not
+The 146 archives remain experimental: an earlier fresh extracted host hits a
+script-worker startup deadline. The v7 follow-up adds asynchronous native
+launch, Stop-safe handoff, coordinated file ACLs and bounded diagnostics; all
+450 source scripting, 43 host and six actual-EXE startup checks pass. A first
+standalone extraction still fails cancellation recovery without a typed result;
+an updated diagnostic test package passes all 450 checks. The v7 host-source ZIP
+independently rebuilds and passes the scripting case with manifest-verified
+harness fixtures. These passes do not explain the intermittent failure or
+establish cold-start stability. See [startup evidence](../LeaForge/STARTUP_DIAGNOSTICS.md). Do not
 install them as a finished replacement for the preserved live browser.
 
 ## Build

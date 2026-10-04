@@ -66,6 +66,7 @@ namespace Lea.Script
         public bool Fd { get; private set; }
         public int Mg { get; private set; }
         public long Mp { get { return Interlocked.Read(ref peak); } }
+        public string Sd { get; private set; } = "";
 
         public Jr Ex(string code) { return Run(code, false).GetAwaiter().GetResult(); }
 
@@ -165,6 +166,7 @@ namespace Lea.Script
 
         private async Task Start(bool asynchronous)
         {
+            Sd = "";
             Ac = Nd = Ne = Fd = false;
             Np = 0;
             Mg = 0;
@@ -183,35 +185,74 @@ namespace Lea.Script
                 files.Add(path);
             }
             var clock = Stopwatch.StartNew();
-            var endpoint = Rp.Open(files[0], "--pipe", directory, Mm, Cp, profile, files, true);
-            lock (gate) worker = endpoint;
-            Ac = endpoint.C && endpoint.N && endpoint.R && endpoint.L && endpoint.S && endpoint.M;
-            Sid = endpoint.Sid;
-            Ne = endpoint.B;
-            var canary = Path.Combine(Path.GetTempPath(), "lea-script-canary-" + Guid.NewGuid().ToString("N") + ".txt");
-            var listener = new TcpListener(IPAddress.Loopback, 0);
+            var phase = "launch";
+            long launched = 0, probed = 0;
+            Rp endpoint = null;
             try
             {
-                File.WriteAllText(canary, Guid.NewGuid().ToString("N"));
-                listener.Start(1);
-                var port = ((IPEndPoint)listener.LocalEndpoint).Port;
-                using (var control = new TcpClient())
+                // Keep leases and session ownership until native launch returns, even if Stop arrives meanwhile.
+                if (asynchronous)
+                    endpoint = await Task.Factory.StartNew(() => Launch(files),
+                        CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+                else endpoint = Launch(files);
+                launched = clock.ElapsedMilliseconds;
+                CheckState();
+                Ac = endpoint.C && endpoint.N && endpoint.R && endpoint.L && endpoint.S && endpoint.M;
+                Sid = endpoint.Sid;
+                Ne = endpoint.B;
+                var canary = Path.Combine(Path.GetTempPath(), "lea-script-canary-" + Guid.NewGuid().ToString("N") + ".txt");
+                var listener = new TcpListener(IPAddress.Loopback, 0);
+                phase = "probe";
+                try
                 {
-                    await Io(() => { control.Connect(IPAddress.Loopback, port); return true; }, clock, 5000, asynchronous);
-                    using (await Io(() => listener.AcceptTcpClient(), clock, 5000, asynchronous)) { }
+                    File.WriteAllText(canary, Guid.NewGuid().ToString("N"));
+                    listener.Start(1);
+                    var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+                    using (var control = new TcpClient())
+                    {
+                        await Io(() => { control.Connect(IPAddress.Loopback, port); return true; }, clock, 5000, asynchronous);
+                        using (await Io(() => listener.AcceptTcpClient(), clock, 5000, asynchronous)) { }
+                    }
+                    probed = clock.ElapsedMilliseconds;
+                    phase = "hello";
+                    await Io(() => { Wire.Write(endpoint.I, new { k = "init", p = port, f = canary }); return true; }, clock, 5000, asynchronous);
+                    var hello = await Io(() => Wire.Read(endpoint.O), clock, 5000, asynchronous);
+                    Wire.Fields(hello, "k", "g", "n", "f");
+                    if (Wire.Text(hello, "k", 8) != "hello") throw new InvalidDataException("Missing worker handshake.");
+                    Mg = Wire.Number(hello, "g");
+                    Np = Wire.Number(hello, "n");
+                    Nd = Ne && (Np == 1 || Np == 2) && !listener.Pending();
+                    Fd = Wire.Number(hello, "f") == 1;
+                    if (!Ac || Mg != 15 || !Nd || !Fd) throw new InvalidDataException("Worker isolation checks failed: token=" +
+                        Ac + ", mitigations=" + Mg + ", network=" + Nd + ", file=" + Fd + ".");
+                    phase = "ready";
                 }
-                await Io(() => { Wire.Write(endpoint.I, new { k = "init", p = port, f = canary }); return true; }, clock, 5000, asynchronous);
-                var hello = await Io(() => Wire.Read(endpoint.O), clock, 5000, asynchronous);
-                Wire.Fields(hello, "k", "g", "n", "f");
-                if (Wire.Text(hello, "k", 8) != "hello") throw new InvalidDataException("Missing worker handshake.");
-                Mg = Wire.Number(hello, "g");
-                Np = Wire.Number(hello, "n");
-                Nd = Ne && (Np == 1 || Np == 2) && !listener.Pending();
-                Fd = Wire.Number(hello, "f") == 1;
-                if (!Ac || Mg != 15 || !Nd || !Fd) throw new InvalidDataException("Worker isolation checks failed: token=" +
-                    Ac + ", mitigations=" + Mg + ", network=" + Nd + ", file=" + Fd + ".");
+                finally { listener.Stop(); File.Delete(canary); }
             }
-            finally { listener.Stop(); File.Delete(canary); }
+            finally
+            {
+                long cpu = 0;
+                if (endpoint != null)
+                    try { cpu = (long)endpoint.P.TotalProcessorTime.TotalMilliseconds; }
+                    catch (InvalidOperationException) { }
+                    catch (Win32Exception) { }
+                var report = "phase=" + phase + "; launch=" + launched + "; probe=" +
+                    Math.Max(0, probed - launched) + "; wall=" + clock.ElapsedMilliseconds + "; cpu=" + cpu + " ms";
+                if (endpoint != null && endpoint.E.Length != 0) report += "; " + endpoint.E;
+                Sd = report.Length <= 512 ? report : report.Substring(0, 512);
+            }
+        }
+
+        private Rp Launch(List<string> files)
+        {
+            var endpoint = Rp.Open(files[0], "--pipe", directory, Mm, Cp, profile, files, true);
+            lock (gate)
+            {
+                worker = endpoint;
+                // Stop must retire a just-created child even while the owner context is not pumping.
+                if (stopped) { KeepPeak(endpoint.J.Peak); endpoint.J.Dispose(); }
+            }
+            return endpoint;
         }
 
         private async Task<T> Io<T>(Func<T> action, Stopwatch clock, int limit, bool asynchronous)

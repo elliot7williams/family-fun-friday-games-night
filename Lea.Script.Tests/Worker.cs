@@ -29,7 +29,7 @@ namespace Lea.Script.Tests
             using (var script = new Jp(engine, page))
             {
                 var execution = script.Ex(engine.Q(page, "script").C[0].X);
-                Check(execution.Ok && execution.N == 6, "isolated computed script: " + execution.S + "; " + execution.M);
+                Check(execution.Ok && execution.N == 6, "isolated computed script: " + execution.S + "; " + execution.M + "; " + script.Sd);
                 pid = script.Pid;
                 sid = script.Sid;
                 Check(pid != 0 && pid != Process.GetCurrentProcess().Id, "script runs outside the browser process");
@@ -115,7 +115,8 @@ namespace Lea.Script.Tests
                 var stopped = script.Ex("/(a+)+$/.test('a'.repeat(120) + '!');");
                 stop.GetAwaiter().GetResult();
                 Check(stopped.S == "cancel" && Exited(pid), "thread-safe cancellation terminates worker");
-                Check(script.Ex("1;").Ok, "recovery after cancellation");
+                var recovery = script.Ex("1;");
+                Check(recovery.Ok, "recovery after cancellation: " + recovery.S + "; " + recovery.M + "; " + script.Sd);
                 Check(script.Mp > 0 && script.Mp <= script.Mm, "recorded worker Job peak: " + script.Mp + " bytes");
                 sid = script.Sid;
                 pid = script.Pid;
