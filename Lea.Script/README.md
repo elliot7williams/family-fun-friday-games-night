@@ -202,19 +202,35 @@ objects, reflection types, file handles, or network clients:
   bounded selector implementation. `querySelectorAll` returns an Array snapshot,
   not a standards-complete NodeList. Invalid/unsupported selectors currently
   follow Lea's empty-result behavior, not browser `SyntaxError` behavior.
-- Stable element wrapper identity, `tagName`, `getAttribute`, and `textContent`.
+- Stable element wrapper identity, `tagName`, `getAttribute`, `hasAttribute`,
+  `textContent`, and live writable `id`/`className` strings.
 - Mutable field `value` and `checked`, with Lea's existing field constraints.
 - Single-token `classList.add/remove/toggle/contains` (no varargs or force flag).
 - Write-only `style.color/backgroundColor/width/height/display/fontSize`.
 - A bounded queued `alert`, plus `window` as the global object.
 
 The core `E.Jv(page, node, alias, value)` path applies literal typed values,
-not generated code. It supports `t/a`, `tx/vl/ck`, `ac/rc/tc`, and
+not generated code. It supports `t/a`, `tx/vl/ck`, `id/cn`, `ac/rc/tc`, and
 `fg/bg/wd/ht/dp/fs`. It checks host permission, page and connected-node
 ownership, value limits, and the existing style/field validation. Text
 replacement detaches removed nodes, removes obsolete retained fields, and
 rebuilds style/layout records. It works on elements without authored IDs and
 does not expand Lea `${variable}` templates in computed strings.
+
+`id` and `cn` replace the ID and raw class attributes of connected Lea elements,
+including root/nonpainted elements, up to 512 UTF-16 units per value. Empty
+strings leave present empty attributes; missing `getAttribute` is `null` while
+`hasAttribute` distinguishes presence. Writes retain node/wrapper/field identity
+and rebuild selector, style, layout and accessible-label state. The optional
+bridge uses a captured string converter for DOM writes and attribute names;
+direct Symbols throw before a host call, while `null`/`undefined` ID/class writes
+become strings. Text content retains its existing null-to-empty special case.
+No generic `setAttribute`, URL mutation or DOM creation capability is added.
+The existing case-insensitive ID/class matching and bounded single-token
+classList operations remain limitations; SVG animated class names and complete
+IDL/prototype/namespace behavior are not implemented. These two aliases are
+typed `E.Jv` mutations, not new statements in the literal Lea command language.
+See [attribute implementation and tests](../LeaForge/ATTRIBUTES.md).
 
 ## Native view integration
 

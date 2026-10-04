@@ -454,6 +454,14 @@ style, rebuild, focus, and 32-command limits remain unchanged. `innerHTML`,
 selectors, computed IDs or values, event registration, loops, expressions, and
 unknown properties or methods remain inert. See `DOM_BRIDGE.md`.
 
+The separate typed `E.Jv(page, element, alias, value)` path also accepts `id`
+(replace ID) and `cn` (replace raw class name), bounded to 512 UTF-16 units.
+These are not statements in the literal command parser above. The optional
+`Lea.Script` module maps writable `element.id`/`element.className` to them and
+adds `hasAttribute`; it keeps the interpreter out of the required core runtime.
+Values are literal, empty attributes stay present, and connected-node ownership
+and scripting permission are required. See `ATTRIBUTES.md` for limits/tests.
+
 `GoA` and `RlA` are the asynchronous forms used by browser windows. `St` cancels
 an active network request. `Tm` is the per-request network deadline in
 milliseconds. It defaults to 15,000 and clamps to 100 through 60,000 on both

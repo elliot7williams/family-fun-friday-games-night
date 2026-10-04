@@ -122,8 +122,12 @@
             state.inline[type] = { code, callback: new Function('event', code) };
         return state.inline[type].callback;
     }
+    function str(value) {
+        if (typeof value === 'symbol') throw new TypeError('A DOM string cannot be a Symbol');
+        return stringify(value);
+    }
     function put(key, name, value) {
-        if (!call('put', key, name, String(value))) throw new TypeError('Unsupported Lea mutation');
+        if (!call('put', key, name, str(value))) throw new TypeError('Unsupported Lea mutation');
     }
     function wrap(key) {
         if (key === null) return null;
@@ -138,11 +142,14 @@
         }
         Object.defineProperties(node, {
             tagName: { get() { return call('tag', key); } },
+            id: { get() { return call('attr', key, 'id') || ''; }, set(value) { put(key, 'id', value); } },
+            className: { get() { return call('attr', key, 'class') || ''; }, set(value) { put(key, 'cn', value); } },
             textContent: { get() { return call('text', key); }, set(value) { put(key, 'tx', value === null ? '' : value); } },
             value: { get() { return call('value', key); }, set(value) { put(key, 'vl', value); } },
             checked: { get() { return call('checked', key); }, set(value) { put(key, 'ck', value ? '1' : '0'); } },
             style: { value: style },
-            getAttribute: { value(name) { return call('attr', key, String(name)); } },
+            getAttribute: { value(name) { return call('attr', key, str(name)); } },
+            hasAttribute: { value(name) { return call('attr', key, str(name)) !== null; } },
             classList: { value: Object.freeze({
                 add(name) { put(key, 'ac', name); },
                 remove(name) { put(key, 'rc', name); },

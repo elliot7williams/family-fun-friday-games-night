@@ -42,6 +42,7 @@ namespace Lea.Tests
                 if (args.Length > 1 && args[1] == "--input") { CheckInputLimits(root); return 0; }
                 if (args.Length > 1 && args[1] == "--cache") { CheckCacheIdentity(); return 0; }
                 if (args.Length > 1 && args[1] == "--blank") { CheckBlank(); return 0; }
+                if (args.Length > 1 && args[1] == "--attributes") { CheckAttributes(); return 0; }
                 if (args.Length > 1 && args[1] == "--direction-overflow")
                 {
                     DirectionOverflowSmoke(Path.Combine(pages, "direction-overflow.html"));
@@ -304,6 +305,7 @@ namespace Lea.Tests
                 CheckCacheIdentity();
                 CheckNavigationGuard(root);
                 CheckBlank();
+                CheckAttributes();
                 CheckLoadFailures(root);
                 CheckRetainedData(root);
                 CheckDisposal(root);
@@ -15936,6 +15938,68 @@ namespace Lea.Tests
                     "; editing=" + (editing == null ? "null" : editing.El.Av("id")) + "; held=" + (held == null ? "null" : held.El.Av("id")) +
                     "; field=" + field.V + "; text=" + editor.Text + "; clipboard=" + clipboard + "; native=" + native.Text);
             }
+        }
+
+        private static void CheckAttributes()
+        {
+            var engine = new E();
+            var page = engine.Go(Path.Combine(pages, "javascript-attributes.html"));
+            var target = engine.Id(page, "target");
+            Eq(1, engine.Jv(page, target, "id", "renamed"), "typed id alias");
+            Eq(1, engine.Jv(page, target, "cn", "active"), "typed className alias");
+            Ok(engine.Id(page, "target") == null && engine.Id(page, "renamed") == target && engine.Q(page, ".active") == target,
+                "metadata mutation updates ID and selector lookup");
+            var painted = false;
+            foreach (var block in page.Bs)
+                if (block.El == target)
+                {
+                    painted = true;
+                    Eq("#168477", block.S.F, "class replacement rebuilds computed color");
+                    Eq(190, block.S.W, "ID removal rebuilds width specificity");
+                }
+            Ok(painted, "metadata mutation retains painted element");
+            var raw = "  active\tactive\nextra\f${literal} ";
+            Eq(1, engine.Jv(page, target, "cn", raw), "raw class replacement");
+            Eq(raw, target.Av("class"), "raw classes are not normalized or interpolated");
+            Eq(1, engine.Jv(page, target, "id", "${literal}"), "literal ID replacement");
+            Eq("${literal}", target.Av("id"), "ID value is not command code");
+            Eq(1, engine.Jv(page, target, "id", ""), "empty ID assignment");
+            Eq(1, engine.Jv(page, target, "cn", ""), "empty class assignment");
+            Ok(target.A.ContainsKey("id") && target.A.ContainsKey("class"), "empty assignments preserve attribute presence");
+            Eq(1, engine.Jv(page, target, "id", new string('x', 512)), "ID exact length bound");
+            Eq(1, engine.Jv(page, target, "cn", new string('y', 512)), "class exact length bound");
+            var count = page.Jc;
+            Eq(0, engine.Jv(page, target, "id", new string('x', 513)), "oversized ID rejected");
+            Eq(0, engine.Jv(page, target, "cn", new string('y', 513)), "oversized classes rejected");
+            Eq(count, page.Jc, "rejected metadata does not increment mutations");
+            Eq(512, target.Av("id").Length, "rejected ID retains old value");
+            Eq(512, target.Av("class").Length, "rejected classes retain old value");
+            Eq(0, engine.Jv(page, target, "id", null), "null literal rejected before conversion");
+            Eq(0, engine.Jv(page, null, "id", "root"), "null target has no element metadata");
+            Eq(0, engine.Jv(page, page.D, "cn", "document"), "document metadata rejected");
+            Eq(0, engine.Jv(page, target.C[0], "id", "text"), "text-node metadata rejected");
+            var other = new E();
+            var foreign = other.Go(Path.Combine(pages, "javascript-attributes.html"));
+            Eq(0, engine.Jv(page, other.Id(foreign, "target"), "cn", "foreign"), "foreign-node metadata rejected");
+            var root = engine.Q(page, "html");
+            Eq(1, engine.Jv(page, root, "id", "root"), "root element ID reflection");
+            Eq(1, engine.Jv(page, engine.Q(page, "head"), "cn", "head"), "nonpainted element class reflection");
+            var node = engine.Id(page, "field");
+            Fi field = null;
+            foreach (var item in page.Fs) if (item.El == node) field = item;
+            Eq(1, engine.Jv(page, node, "vl", "edited"), "metadata field value setup");
+            Eq(1, engine.Jv(page, node, "id", "field-new"), "field ID reflection");
+            Eq(1, engine.Jv(page, node, "cn", "active"), "field class reflection");
+            Ok(page.Fs.Contains(field) && field.V == "edited", "metadata rebuild retains field object and edited value");
+            var labeled = false;
+            foreach (var item in page.Axs) if (item.El == node && item.N == "Updated label") labeled = true;
+            Ok(labeled, "ID reflection updates accessible label references");
+            var child = engine.Id(page, "child");
+            Eq(1, engine.Jv(page, engine.Id(page, "parent"), "tx", "replacement"), "detached metadata setup");
+            Eq(0, engine.Jv(page, child, "id", "detached"), "detached element mutation rejected");
+            engine.Je = false;
+            Eq(0, engine.Jv(page, target, "cn", "denied"), "metadata respects scripting permission");
+            Console.WriteLine("Lea attribute smoke passed: id/cn, literal values, bounds, selectors/styles, retained fields/accessibility, and ownership/permission gates.");
         }
 
         private static void CheckBlank()

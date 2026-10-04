@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -20,6 +21,16 @@ namespace Lea.Script.Tests
     {
         internal static void Run(string fixture, string output = null)
         {
+            Pump(async () => { await Native(fixture, output); await Queue(fixture); });
+        }
+
+        internal static void Attributes(string fixture, string output = null)
+        {
+            Pump(() => Lea.Script.Tests.Attributes.Native(fixture, output));
+        }
+
+        private static void Pump(Func<Task> work)
+        {
             var previous = SynchronizationContext.Current;
             Exception failure = null;
             using (var context = new ApplicationContext())
@@ -30,7 +41,7 @@ namespace Lea.Script.Tests
                 {
                     if (started) return;
                     started = true;
-                    try { await Native(fixture, output); await Queue(fixture); }
+                    try { await work(); }
                     catch (Exception error) { failure = error; }
                     finally { timer.Stop(); context.ExitThread(); }
                 };
@@ -39,7 +50,7 @@ namespace Lea.Script.Tests
                 Application.Run(context);
             }
             SynchronizationContext.SetSynchronizationContext(previous);
-            if (failure != null) throw failure;
+            if (failure != null) ExceptionDispatchInfo.Capture(failure).Throw();
         }
 
         private static async Task Native(string fixture, string output)
@@ -236,7 +247,7 @@ namespace Lea.Script.Tests
 
         private static async Task Code(V view, string code)
         { var result = await view.JsA(code); Check(result.Ok, "native supplied script: " + result.S + "; " + result.M); }
-        private static async Task Activate(V view, string id)
+        internal static async Task Activate(V view, string id)
         {
             for (var i = 0; i <= view.Kn; i++)
             {
@@ -247,7 +258,7 @@ namespace Lea.Script.Tests
         }
         private static string Text(N node) { return node.K == "#text" ? node.X : String.Concat(node.C.Select(Text)); }
         private static bool Exited(int pid) { try { using (var process = Process.GetProcessById(pid)) return process.WaitForExit(2000); } catch (ArgumentException) { return true; } }
-        private static void Paint(V view, string output)
+        internal static void Paint(V view, string output)
         {
             view.Sc(-view.Sy);
             using (var bitmap = new Bitmap(view.Width, view.Height))

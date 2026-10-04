@@ -45,6 +45,7 @@ Copy-Item -LiteralPath (Join-Path $root 'Lea.Script\README.md') -Destination $st
 Copy-Item -LiteralPath (Join-Path $root 'Lea.Script\licenses') -Destination $stage -Recurse
 Copy-Item -LiteralPath (Join-Path $root 'LeaForge\test-pages\javascript-runtime.html') -Destination (Join-Path $stage 'LeaForge\test-pages')
 Copy-Item -LiteralPath (Join-Path $root 'LeaForge\test-pages\javascript-view.html') -Destination (Join-Path $stage 'LeaForge\test-pages')
+Copy-Item -LiteralPath (Join-Path $root 'LeaForge\test-pages\javascript-attributes.html') -Destination (Join-Path $stage 'LeaForge\test-pages')
 New-Item -ItemType Directory -Path (Join-Path $stage 'assets') | Out-Null
 Copy-Item -LiteralPath (Join-Path $root 'assets\lea.ico') -Destination (Join-Path $stage 'assets')
 

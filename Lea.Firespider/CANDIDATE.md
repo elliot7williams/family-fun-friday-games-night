@@ -45,6 +45,17 @@ unresolved; the full 43-case host matrix, extracted packages and independent
 source rebuild are not verified for v10. No new release ZIP is published.
 See [tracing evidence and limits](../LeaForge/STARTUP_TRACE.md).
 
+The `Lea-146-attributes-v11` candidate adds live ID/class metadata through bounded
+typed `id/cn` mutations and optional `hasAttribute`. All 703 source scripting and
+complete core regressions pass. This candidate passes all 43 host and six actual
+EXE startup cases. Three audited experimental archives are retained; a fresh
+standalone extraction passes all 703 checks, and the extracted host plus an
+independent rebuild of the host-source ZIP pass their scripting cases. The latter
+uses 348 manifest-verified fixture/license files from the runtime package for the
+harness. Full host/startup matrices are not repeated on those extractions/rebuild.
+Earlier cold-start failures remain unexplained, and the live host stays untouched.
+See [attribute evidence and package hashes](../LeaForge/ATTRIBUTES.md).
+
 ## Build
 
 Build the current Lea solution in Release, then:
@@ -150,7 +161,8 @@ independence/disposal, tab cleanup and remote-origin refusal. It uses a real
 WinForms message loop, as does the rest of the Boot harness. The EXE startup
 runner copies optional runtime files into its isolated lazy-restore scenarios
 as well. The scripted case also checks that split-view comparison controls
-return to idle even with synchronized scrolling disabled.
+return to idle even with synchronized scrolling disabled, and checks live ID/class
+reflection with retained node identity and present empty attributes.
 
 See `../LeaForge/FIRESPIDER_SCRIPT_HOST.md` for the final verified artifacts
 and results. Do not infer success for that matrix from a build alone.

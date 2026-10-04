@@ -1601,6 +1601,10 @@ namespace Lea.Firespider
             Check(view.T == "Host timers" && view.Xo != null && view.Xo.Ok &&
                 view.Id("result").C[0].X == "a,micro,b", "host timer tasks and Promise checkpoint: " + ScriptState(view));
             await ScriptCode(view, "document.title='Lea 1';document.getElementById('result').textContent='1';");
+            var attributeNode = view.Id("result");
+            await ScriptCode(view, "var reflected=document.getElementById('result');reflected.id='host-result';reflected.className='host-active';if(document.getElementById('result')!==null||document.querySelector('.host-active')!==reflected||!reflected.hasAttribute('class'))throw new Error('host attributes');");
+            Check(view.Id("host-result") == attributeNode, "host attribute writes replaced the node");
+            await ScriptCode(view, "reflected.id='result';reflected.className='';if(!reflected.hasAttribute('class')||reflected.getAttribute('class')!=='')throw new Error('host empty class');");
             view.Sc(-view.Sy);
             ScriptPicture(form, "main");
             var document = view.At;
@@ -1673,7 +1677,7 @@ namespace Lea.Firespider
             }
             Check(!UiErrors.Any() && !Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module =>
                 module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)), "script integration raised UI errors or loaded MSHTML");
-            Console.WriteLine("PASS script host: net48, dormant loading, state retention, inline lifecycle, native events/defaults, bounded timers, error status/recovery, split isolation/disposal, tab cleanup, and remote-origin refusal");
+            Console.WriteLine("PASS script host: net48, dormant loading, state retention, inline lifecycle, native events/defaults, bounded timers, live attributes, error status/recovery, split isolation/disposal, tab cleanup, and remote-origin refusal");
         }
 
         private static void ScriptPicture(Form form, string name)

@@ -107,6 +107,24 @@ measurement, not a speed claim. No deadline/isolation setting or required-core
 dependency changes. No release ZIP is published, the installed host stays
 unchanged, and broader readiness remains about 65%. See `STARTUP_TRACE.md`.
 
+Live attribute follow-up adds writable optional `id`/`className`, presence-aware
+`hasAttribute`, and literal 512-unit typed core aliases `id/cn`. Root/nonpainted
+elements are supported; node/wrapper/field/editor identity and edited values
+survive selector/style/layout/accessibility rebuilds. Shared DOM writes and
+attribute-name conversion capture String and reject direct Symbols before a
+host call. Empty attributes stay present. No generic attributes, URL writers,
+new core dependency or protocol change is added. The complete core suite and all
+703 scripting checks pass; all 703 also pass from a fresh standalone ZIP.
+Separate v11 passes all 43 host and six actual-EXE startup cases. Three archives
+pass inventory/length/hash audits; the extracted host and independently rebuilt
+host-source ZIP pass their scripting cases with verified harness fixtures.
+Native 940/420-pixel screenshots are inspected. Identified test setup failures
+are corrected, while an earlier trusted-script budget failure remains unexplained.
+The required bundle stays 742,400 bytes; the optional worker grows 512 bytes.
+The installed host is unchanged. Cold-start reliability, broader DOM/site support,
+remote-origin policy and Lea-only integration remain work; readiness stays about
+65% and milestone 146 remains in progress. See `ATTRIBUTES.md`.
+
 - Added a reproducible separate .NET Framework 4.8 Firespider host/source
   candidate with optional isolated scripting in regular/resumed tabs and both
   split panes. Script-free pages remain dormant; explicit code and authored

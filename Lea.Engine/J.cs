@@ -52,6 +52,12 @@ namespace Lea.Engine
                 { page.Ms.Add(value); return true; }
                 return false;
             }
+            if (command == "id" || command == "cn")
+            {
+                if (target.K.Length == 0 || target.K[0] == '#' || value.Length > MaxClassText) return false;
+                target.A[command == "id" ? "id" : "class"] = value;
+                return true;
+            }
             if (command == "tx")
             {
                 if (!TextTarget(target.K) || value.Length > 512 ||
