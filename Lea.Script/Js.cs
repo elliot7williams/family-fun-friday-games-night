@@ -56,7 +56,12 @@ namespace Lea.Script
             try
             {
                 if (vm == null) Start();
-                if (type == null) { vm.Execute(code); return Result("ok", ""); }
+                if (type == null)
+                {
+                    vm.Execute(code);
+                    vm.Invoke(dispatch, Jint.Native.JsValue.Undefined, new[] { (Jint.Native.JsValue)"mt", Codec.Value(vm, new object[0]) });
+                    return Result("ok", "");
+                }
                 var result = vm.Invoke(dispatch, Jint.Native.JsValue.Undefined,
                     new[] { (Jint.Native.JsValue)type, Codec.Value(vm, bridge.Path(target)) });
                 return Result("ok", "", result.AsBoolean());
@@ -89,6 +94,8 @@ namespace Lea.Script
             });
             vm.SetValue("__lea", new ClrFunction(vm, "__lea", (_, args) =>
                 Codec.Value(vm, bridge.Call(Codec.Arguments(args)))));
+            vm.SetValue("__jobs", new ClrFunction(vm, "__jobs", (_, args) =>
+            { vm.Advanced.ProcessTasks(); return Jint.Native.JsValue.Undefined; }));
             dispatch = vm.Evaluate(bootstrap);
             bridge.Begin();
         }

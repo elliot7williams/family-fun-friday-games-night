@@ -34,6 +34,15 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Milestone 146 is in progress: bounded native-event Promise checkpoints and
+`queueMicrotask` pass all 386 source and extracted-native-package checks.
+The separate candidate passes 43 host and six actual-EXE startup cases; however,
+the extracted Firespider scripting case still fails a startup deadline. Do not
+count this as a finished cold-start/release milestone or install over the live
+browser. Workflow options now have 15 one/two-letter aliases, and drive-root
+packaging is repaired. Five audited experimental archives and buildable host
+source are retained. See `MICROTASKS.md` for evidence and remaining gates.
+
 - Added a reproducible separate .NET Framework 4.8 Firespider host/source
   candidate with optional isolated scripting in regular/resumed tabs and both
   split panes. Script-free pages remain dormant; explicit code and authored
@@ -2241,14 +2250,20 @@ modern web platform.
 
 ## Next gains
 
+- Diagnose the fresh-path isolated script-worker startup deadline with
+  launch/handshake timing evidence. Passing warm/source suites do not prove it
+  is resolved; retain the current deadlines and native protections while measuring.
 - Add a native-safe non-empty visible-range bridge outside the .NET Framework
   managed provider array boundary; retain the stable empty fallback until range
   handles survive both in-process and external MTA clients.
-- Migrate and rebuild the Firespider host deliberately before adopting the
-  optional .NET Framework 4.6.2 scripting adapter; finish split-view routing and
-  rerun the complete host matrix without replacing the installed build first.
-- Expand the bounded HTML/CSS and DOM subsets, browser event-loop semantics,
-  origin/network policies and compatibility tests. Keep remote scripting
-  disabled until those boundaries are implemented and tested.
+- Validate the separate .NET Framework 4.8 candidate before adopting it in the
+  live project. Keep original source, a rollback build and the installed browser
+  intact; remaining legacy-only commands still need Lea implementations.
+- Extend the bounded event loop beyond native-turn microtasks with timers,
+  animation frames and error/rejection notification, then expand DOM operations
+  and real-site compatibility coverage.
+- Implement document-origin and resource/network policy before enabling remote
+  or external scripts. Local scripting tests do not prove safe internet-page
+  execution; keep that gate closed until the boundaries are tested.
 - Measure cold/warm script and page-loading costs in controlled runs. Keep the
   JavaScript module optional and do not equate compressed size with runtime speed.

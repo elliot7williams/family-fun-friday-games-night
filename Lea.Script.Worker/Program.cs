@@ -49,6 +49,8 @@ namespace Lea.Script.Worker
                             throw new InvalidDataException("Invalid script bridge reply.");
                         return Codec.Value(vm, reply["v"]);
                     }));
+                    vm.SetValue("__jobs", new ClrFunction(vm, "__jobs", (_, values) =>
+                    { vm.Advanced.ProcessTasks(); return JsValue.Undefined; }));
                     JsValue dispatch;
                     using (var stream = typeof(Program).Assembly.GetManifestResourceStream("Lea.Script.Dom.js"))
                     using (var reader = new StreamReader(stream)) dispatch = vm.Evaluate(reader.ReadToEnd());
@@ -67,7 +69,11 @@ namespace Lea.Script.Worker
                         try
                         {
                             var prevented = false;
-                            if (kind == "exec") vm.Execute(Wire.Text(frame, "c", 16 * 1024));
+                            if (kind == "exec")
+                            {
+                                vm.Execute(Wire.Text(frame, "c", 16 * 1024));
+                                vm.Invoke(dispatch, JsValue.Undefined, new[] { (JsValue)"mt", Codec.Value(vm, new object[0]) });
+                            }
                             else
                             {
                                 var type = Wire.Text(frame, "t", 32);

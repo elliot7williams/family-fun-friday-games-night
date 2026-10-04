@@ -5,6 +5,14 @@ over `L:\Firespider Internet` or make Lea a complete modern-web engine. The
 clean adapters here remain the source of record; the live host has unrelated
 in-progress changes that must be retained.
 
+Milestone 146 finishes native-event Promise checkpoints and adds bounded
+`queueMicrotask` support to that optional module. The current builder emits
+146 manifests; the packer retains support for archived 145 manifests. See
+[microtask verification and limits](../LeaForge/MICROTASKS.md).
+The 146 archives remain experimental: build-folder host/startup checks pass,
+but a fresh extracted host still hits a script-worker startup deadline. Do not
+install them as a finished replacement for the preserved live browser.
+
 ## Build
 
 Build the current Lea solution in Release, then:

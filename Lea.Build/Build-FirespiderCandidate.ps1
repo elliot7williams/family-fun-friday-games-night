@@ -1,14 +1,14 @@
 param(
-    [string]$Source = 'L:\Firespider Internet',
-    [string]$Out = '',
-    [switch]$NoScript
+    [Alias('s')][string]$Source = 'L:\Firespider Internet',
+    [Alias('o')][string]$Out = '',
+    [Alias('ns')][switch]$NoScript
 )
 
 $ErrorActionPreference = 'Stop'
 $repo = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $sourceRoot = (Resolve-Path -LiteralPath $Source).Path.TrimEnd('\')
 $stamp = Get-Date -Format 'yyyy-MM-dd_HH-mm-ss'
-if ($Out -eq '') { $Out = Join-Path ([IO.Path]::GetTempPath()) "Lea-Firespider-145-$stamp" }
+if ($Out -eq '') { $Out = Join-Path ([IO.Path]::GetTempPath()) "Lea-Firespider-146-$stamp" }
 $stage = [IO.Path]::GetFullPath($Out).TrimEnd('\')
 if (Test-Path -LiteralPath $stage) { throw "Candidate folder already exists: $stage" }
 if ($stage.StartsWith($sourceRoot + '\', [StringComparison]::OrdinalIgnoreCase) -or $stage -eq $sourceRoot) {
@@ -160,6 +160,6 @@ if (-not $NoScript) {
 }
 $overlays = @(Get-ChildItem -LiteralPath $lea -File -Recurse; Get-Item -LiteralPath (Join-Path $stage 'FirespiderLea.vb'), (Join-Path $stage 'FirespiderSplit.vb'), (Join-Path $stage $projectName), (Join-Path $stage 'app.config')) |
     ForEach-Object { [ordered]@{ path=$_.FullName.Substring($stage.Length + 1).Replace('\', '/'); bytes=$_.Length; sha256=(Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash } }
-[ordered]@{ milestone=145; source=$sourceRoot; framework='net48'; optionalScript=(-not $NoScript); removedUnusedCom=$removed; frameworkProvided=$provided; inputs=@($copied.Values | Sort-Object { $_.path }); overlays=@($overlays) } |
+[ordered]@{ milestone=146; source=$sourceRoot; framework='net48'; optionalScript=(-not $NoScript); removedUnusedCom=$removed; frameworkProvided=$provided; inputs=@($copied.Values | Sort-Object { $_.path }); overlays=@($overlays) } |
     ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $stage 'source-manifest.json') -Encoding UTF8
 [pscustomobject]@{ Candidate=$stage; Runtime=$output; EXE=$exe; SHA256=(Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash; SourceFiles=$copied.Count; OptionalScript=(-not $NoScript) } | Format-List

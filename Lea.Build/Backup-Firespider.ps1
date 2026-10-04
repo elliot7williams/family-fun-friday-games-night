@@ -1,6 +1,6 @@
 param(
-    [string]$Source = 'L:\Firespider Internet',
-    [string]$Out = (Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Firespider Source Backups')
+    [Alias('s')][string]$Source = 'L:\Firespider Internet',
+    [Alias('o')][string]$Out = (Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Firespider Source Backups')
 )
 
 $ErrorActionPreference = 'Stop'

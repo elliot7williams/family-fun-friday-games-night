@@ -1,8 +1,8 @@
 param(
-    [string]$Root = 'L:\Firespider Internet',
+    [Alias('r')][string]$Root = 'L:\Firespider Internet',
     [ValidateSet('clean', 'restored', 'locked', 'oversized', 'lazy-background', 'lazy-all', 'all')]
-    [string]$Scenario = 'all',
-    [ValidateRange(3, 60)][int]$Seconds = 8
+    [Alias('s')][string]$Scenario = 'all',
+    [Alias('t')][ValidateRange(3, 60)][int]$Seconds = 8
 )
 
 # Run with Windows PowerShell -STA for the .NET Framework UI Automation client.

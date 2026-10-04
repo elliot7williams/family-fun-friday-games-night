@@ -49,6 +49,17 @@ and buildable host-source ZIPs, with per-file SHA-256 manifests. The host
 snapshot includes its Lea dependency binaries for offline Visual Studio
 builds; `Backup-Lea.ps1` supplies the complete Lea source separately.
 
+Current candidate/runtime manifests are milestone 146, including optional
+microtask checkpoints. The candidate packer also accepts preserved milestone
+145 source manifests and derives the archive milestone from the snapshot.
+
+Build/backup options accept `-s` (source) and `-o` (output); the candidate
+builder also accepts `-ns` (no optional script module). The candidate packer
+accepts `-c` (candidate) and `-o`; the standalone packer and Lea backup accept
+`-o`. Boot checks accept `-r` (root), `-c` (case), and `-p` (profile). EXE startup
+checks accept `-r`, `-s` (scenario), and `-t` (seconds). These parameter aliases
+do not alter global PowerShell aliases or remove the descriptive options.
+
 Run `Backup-Lea.ps1` to create a dated, source-only ZIP in the Documents
 `Lea Source Backups` folder. Git and GitHub remain the main version history;
 the ZIP is an additional local copy without `bin`, `obj`, or `dist` files.

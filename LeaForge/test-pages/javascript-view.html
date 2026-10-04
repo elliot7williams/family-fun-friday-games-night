@@ -22,15 +22,19 @@ button, input { margin: 4px; }
 <div id="inline" onclick="document.title += 'A'; return false;">Inline handler</div>
 <script type="text/lea">ac('alias','literal');</script>
 <script>
-var starts = 1, count = 0, inputs = 0, changes = 0;
+var starts = 0, count = 0, inputs = 0, changes = 0;
+queueMicrotask(function () { starts = 1; });
 document.getElementById('counter').addEventListener('click', function () {
   count++;
-  document.getElementById('result').textContent = String(count);
-  document.title = 'Lea ' + count;
+  queueMicrotask(function () {
+    document.getElementById('result').textContent = String(count);
+    document.title = 'Lea ' + count;
+  });
 });
 document.getElementById('field').addEventListener('input', function () {
   inputs++;
-  document.getElementById('echo').textContent = this.value;
+  var value = this.value;
+  Promise.resolve().then(function () { document.getElementById('echo').textContent = value; });
 });
 document.getElementById('field').addEventListener('change', function () { changes++; });
 document.getElementById('check').addEventListener('click', function () {
@@ -51,9 +55,9 @@ document.getElementById('form').addEventListener('submit', function (event) {
   document.getElementById('submitted').textContent = 'Hello ' + document.getElementById('name').value;
 });
 document.addEventListener('DOMContentLoaded', function () {
-  document.getElementById('events').textContent = 'Ready:' + document.readyState;
+  queueMicrotask(function () { document.getElementById('events').textContent = 'Ready:' + document.readyState; });
 });
-window.addEventListener('load', function () { document.title = 'Lea ready'; });
+window.addEventListener('load', function () { Promise.resolve().then(function () { document.title = 'Lea ready'; }); });
 </script>
 <script>var second = starts + 1;</script>
 </body></html>

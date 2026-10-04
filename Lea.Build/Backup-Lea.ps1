@@ -1,5 +1,5 @@
 param(
-    [string]$Out = (Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Lea Source Backups')
+    [Alias('o')][string]$Out = (Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Lea Source Backups')
 )
 
 $ErrorActionPreference = 'Stop'

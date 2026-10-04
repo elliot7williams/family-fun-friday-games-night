@@ -101,7 +101,8 @@ The compact diagnostics are `Pid/Sid`, `Ac` (verified token/startup), `Ne`
 `Mm` is 128 MiB; `Cp` is a 2,500/10,000 Job CPU hard-cap rate, with one allowed
 process and kill-on-close. `Tm` is the parent's execution/I/O budget, default
 2,000 ms and clamped to 25..5,000 ms. Startup handshake has a separate 5,000 ms
-budget. Teardown/ACL cleanup and a running parent callback can extend the total
+budget. Timeout messages identify startup versus execution without changing
+the status or budget. Teardown/ACL cleanup and a running parent callback can extend the total
 call duration; the host callback itself cannot be forcibly preempted.
 
 Worker Jint limits match `Js` below except its cooperative timeout is five
@@ -213,6 +214,42 @@ file selection/accessibility-only field edits are not yet event-complete.
 Attaching an optional view factory sets it false, preventing duplicate classic
 autorun/onclick execution. Explicit `text/lea`, `application/lea`, and
 `data-lea` commands remain available. `E.Jn` checks connected-node ownership.
+
+## Microtasks
+
+Milestone 146 adds `queueMicrotask(callback)` and finishes Jint's pending
+Promise jobs at native event completion. Deferred DOM writes are included in
+the result's mutation count and synchronized with native painting/editors
+before the view reports completion. Inline blocks each finish their own
+checkpoint before the next block; ready/load events use the same path.
+
+The private scheduler uses Jint's native async/await continuation queue, not a
+second Promise implementation. It performs no public Promise/Reflect helper
+lookup during bootstrap and remains usable when page code replaces those helpers.
+FIFO/nested ordering, `async`/`await` event continuations, handled rejections,
+callback `this`/arguments and hidden host helpers are tested. Native events
+finish propagation and clear event phase/current target before one checkpoint.
+Their synchronous cancellation result is captured before deferred callbacks.
+This bounded dispatch-turn behavior is not the HTML algorithm's complete
+per-callback cleanup/event-loop model.
+
+At most 128 `queueMicrotask` admissions are allowed per `Ex`/`Ev` execution,
+including recursive admissions; each also consumes a shared bridge call.
+Native Promise jobs retain the interpreter's execution/memory constraints,
+and the isolated parent's deadline remains authoritative. The checkpoint
+runs inside the dispatch invocation so those jobs cannot run without its
+constraints. No new required core/view dependency or long host alias is added.
+
+An uncaught `queueMicrotask` callback records its first error while later
+queued jobs drain. The call then reports `js`, preserves completed DOM writes
+and discards the realm, following Lea's existing failure policy. Synchronous
+script/event failure discards queued work without running it. Permission,
+navigation, Stop and disposal still retire the isolated session. Timers,
+animation-frame scheduling, `error`/unhandled-rejection notifications,
+external scripts and a general browser event loop remain unfinished.
+
+See the [HTML microtask API](https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#microtask-queuing)
+and the pinned [Jint task-processing API](https://github.com/sebastienros/jint/blob/v4.16.4/Jint/Engine.Advanced.cs).
 
 ## DOM events
 

@@ -80,6 +80,9 @@ namespace Lea.Script.Tests
                 Check(Text(view.Id("echo")) == "Elliot", "native text input updates computed DOM");
                 await Code(view, "if(inputs!==1)throw new Error('input count');document.getElementById('field').value='script value';");
                 Check(editor.Text == "script value" && page.Fs.Single(item => item.El.Av("id") == "field").V == "script value", "script field mutation synchronizes native editor");
+                await Code(view, "queueMicrotask(function(){document.getElementById('field').value='microtask value';});");
+                Check(editor.Text == "microtask value" && page.Fs.Single(item => item.El.Av("id") == "field").V == "microtask value" && view.Xo.N == 1,
+                    "microtask field writes synchronize retained native editor before completion");
                 view.Kf();
                 await view.Xt;
                 await Code(view, "if(inputs!==1||changes!==1)throw new Error('input feedback or missing commit');");

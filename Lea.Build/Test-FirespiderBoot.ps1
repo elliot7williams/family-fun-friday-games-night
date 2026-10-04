@@ -1,8 +1,8 @@
 param(
-    [string]$Root = 'L:\Firespider Internet',
+    [Alias('r')][string]$Root = 'L:\Firespider Internet',
     [ValidateSet('all', 'clean', 'lea', 'legacy', 'recovery', 'private', 'second', 'limit', 'invalid', 'slow', 'locked', 'menus', 'commands', 'navigation', 'links', 'suspend', 'groups', 'lazy', 'lazy-background', 'lazy-all', 'bulk', 'windows', 'watch', 'domains', 'domain-private', 'split', 'split-life', 'split-limits', 'edit', 'paste', 'policy', 'policy-start', 'failures', 'failure-start', 'hibernate', 'hibernate-start', 'style-start', 'styles', 'load-life', 'pictures', 'decode', 'input', 'cache', 'script')]
-    [string]$Case = 'all',
-    [switch]$Profile
+    [Alias('c')][string]$Case = 'all',
+    [Alias('p')][switch]$Profile
 )
 
 $ErrorActionPreference = 'Stop'

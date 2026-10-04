@@ -1574,7 +1574,9 @@ namespace Lea.Firespider
             var tabs = Member<TabControl>(form, "k");
             var view = (V)tabs.SelectedTab.Controls[0];
             Check(view.Xf != null && ScriptPid(view) == 0 && (bool)Call(form, "qleaHibernateEligible", view), "script-free host starts dormant and remains eligible for hibernation");
+            var scriptClock = Stopwatch.StartNew();
             await ScriptCode(view, "var retainedState=41;");
+            Console.WriteLine("Script host first demand: " + scriptClock.ElapsedMilliseconds + " ms");
             var pid = ScriptPid(view);
             Check(pid > 0 && !(bool)Call(form, "qleaHibernateEligible", view) && view.At.Jc == 0, "live pure-JavaScript state must not be automatically discarded");
             var fixture = new Uri(Path.Combine(root, "LeaForge", "test-pages", "javascript-view.html")).AbsoluteUri;
@@ -1609,8 +1611,24 @@ namespace Lea.Firespider
             var splitPids = new List<int>();
             try
             {
-                Wait(() => Member<V>(split, "leftBrowser") != null && Member<V>(split, "rightBrowser") != null &&
-                    !Member<V>(split, "leftBrowser").Busy && !Member<V>(split, "rightBrowser").Busy, "scripted split pane loads");
+                scriptClock.Restart();
+                try
+                {
+                    Wait(() => Member<V>(split, "leftBrowser") != null && Member<V>(split, "rightBrowser") != null &&
+                        !Member<V>(split, "leftBrowser").Busy && !Member<V>(split, "rightBrowser").Busy, "scripted split pane loads");
+                }
+                catch
+                {
+                    foreach (var name in new[] { "leftBrowser", "rightBrowser" })
+                    {
+                        var pane = Member<V>(split, name);
+                        Console.WriteLine("Script split " + name + ": " + (pane == null ? "missing" :
+                            "busy=" + pane.Busy + "; pid=" + ScriptPid(pane) + "; result=" +
+                            (pane.Xo == null ? "pending" : pane.Xo.S + "; " + pane.Xo.M)));
+                    }
+                    throw;
+                }
+                Console.WriteLine("Script host split load wait: " + scriptClock.ElapsedMilliseconds + " ms");
                 var left = Member<V>(split, "leftBrowser");
                 var right = Member<V>(split, "rightBrowser");
                 splitPids.Add(ScriptPid(left)); splitPids.Add(ScriptPid(right));

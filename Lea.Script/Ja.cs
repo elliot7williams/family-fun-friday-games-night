@@ -15,9 +15,10 @@ namespace Lea.Script
         private readonly Dictionary<N, int> keys = new Dictionary<N, int>();
         internal int Calls { get; private set; }
         internal int Changes { get; private set; }
+        private int microtasks;
 
         internal Ja(E engine, P page) { this.engine = engine; this.page = page; }
-        internal void Begin() { Calls = 0; Changes = 0; }
+        internal void Begin() { Calls = 0; Changes = 0; microtasks = 0; }
         internal void Reset() { nodes.Clear(); keys.Clear(); }
 
         internal object[] Path(N target)
@@ -44,6 +45,11 @@ namespace Lea.Script
             if (++Calls > 256 || !engine.Je) throw new LimitException();
             if (args == null || args.Length < 1 || args.Length > 4) throw new InvalidDataException("Invalid bridge arguments.");
             var operation = Arg(args, 0);
+            if (operation == "qm" && args.Length == 1)
+            {
+                if (++microtasks > 128) throw new LimitException();
+                return null;
+            }
             if (operation == "id" && args.Length == 2) return Key(engine.Id(page, Arg(args, 1)));
             if (operation == "q" && args.Length == 2) return Key(engine.Q(page, Arg(args, 1)));
             if (operation == "qa" && args.Length == 2)

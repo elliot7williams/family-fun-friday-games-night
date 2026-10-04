@@ -1,5 +1,22 @@
-(function (call) {
+(function (call, checkpoint) {
     'use strict';
+    let failed = false, failure;
+    function microtaskErrors() {
+        if (!failed) return;
+        const error = failure;
+        failed = false;
+        failure = undefined;
+        throw error;
+    }
+    Object.defineProperty(globalThis, 'queueMicrotask', { value: function queueMicrotask(callback) {
+        if (typeof callback !== 'function') throw new TypeError('A microtask callback is required');
+        call('qm');
+        (async function () {
+            await 0;
+            try { callback(); }
+            catch (error) { if (!failed) { failed = true; failure = error; } }
+        })();
+    } });
     const cache = new Map();
     const targets = new WeakMap();
     const types = new Set(['click', 'input', 'change', 'submit', 'DOMContentLoaded', 'load']);
@@ -119,8 +136,10 @@
     eventTarget(document);
     eventTarget(globalThis);
     delete globalThis.__lea;
+    delete globalThis.__jobs;
     // The dispatcher is returned to the interpreter host, never installed on the global object.
     return function dispatch(type, keys) {
+        if (type === 'mt') { microtaskErrors(); return false; }
         if (!types.has(type) || keys.length > 128) throw new TypeError('Invalid Lea event');
         if (type === 'DOMContentLoaded') ready = 'interactive';
         if (type === 'load') ready = 'complete';
@@ -170,7 +189,11 @@
             }
             phase = 3;
             if (bubbles) for (let i = 1; i < route.length && !stopped; i++) invoke(route[i], false);
-            return prevented;
         } finally { current = null; phase = 0; passive = false; }
+        const canceled = prevented;
+        // Drain Jint's queue while this invocation's constraints are still active.
+        checkpoint();
+        microtaskErrors();
+        return canceled;
     };
-})(__lea);
+})(__lea, __jobs);

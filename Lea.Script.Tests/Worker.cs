@@ -49,7 +49,8 @@ namespace Lea.Script.Tests
                 catch (IOException) { Check(true, "worker binaries locked during execution"); }
                 using (var other = new Jp(engine, page))
                 {
-                    Check(other.Ex("if (typeof privateState !== 'undefined') throw new Error('session leak');").Ok && other.Sid != sid, "independent session SID and realm");
+                    var separate = other.Ex("if (typeof privateState !== 'undefined') throw new Error('session leak');");
+                    Check(separate.Ok && other.Sid != sid, "independent session SID and realm: " + separate.S + "; " + separate.M);
                     Check(script.Ex("if (privateState !== 37) throw new Error('other session');").Ok && script.Pid == pid, "one session does not reset another");
                 }
                 var child = engine.Id(page, "child");
@@ -88,9 +89,18 @@ namespace Lea.Script.Tests
                 script.Tm = 25;
                 var watch = Stopwatch.StartNew();
                 var timeout = script.Ex("/(a+)+$/.test('a'.repeat(120) + '!');");
-                Check(timeout.S == "timeout" && watch.ElapsedMilliseconds < 2000 && script.Pid == 0 && Exited(pid), "parent deadline kills native regex: " + timeout.S + "; " + watch.ElapsedMilliseconds + " ms");
+                Check(timeout.S == "timeout" && timeout.M == "Worker execution deadline exceeded." && watch.ElapsedMilliseconds < 2000 && script.Pid == 0 && Exited(pid), "parent deadline kills native regex: " + timeout.S + "; " + timeout.M + "; " + watch.ElapsedMilliseconds + " ms");
                 script.Tm = 2000;
                 Check(script.Ex("document.title='recovered';").Ok, "recovery after hard worker kill");
+                Check(script.Ex("queueMicrotask(function(){});").Ok, "microtask hard-deadline warmup");
+                pid = script.Pid;
+                script.Tm = 25;
+                watch.Restart();
+                timeout = script.Ex("queueMicrotask(function(){/(a+)+$/.test('a'.repeat(120)+'!');document.title='late microtask';});");
+                Check(timeout.S == "timeout" && timeout.M == "Worker execution deadline exceeded." && watch.ElapsedMilliseconds < 2000 && script.Pid == 0 && Exited(pid) && page.T == "recovered",
+                    "parent deadline also kills native work inside microtask: " + timeout.S);
+                script.Tm = 2000;
+                Check(script.Ex("document.title='recovered';").Ok, "fresh worker after microtask hard deadline");
                 pid = script.Pid;
                 var pressure = script.Ex("'x'.repeat(100000000);");
                 Check(!pressure.Ok && script.Pid == 0 && Exited(pid), "oversized native allocation cannot take down parent: " + pressure.S);

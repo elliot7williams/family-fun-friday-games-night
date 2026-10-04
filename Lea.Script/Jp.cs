@@ -156,7 +156,7 @@ namespace Lea.Script
                     !started ? "setup" : error is InvalidDataException ? "protocol" : "worker" : state.Status;
                 var details = worker == null ? "" : worker.E;
                 Reset();
-                return Result(status, status == "timeout" ? "Worker deadline exceeded." :
+                return Result(status, status == "timeout" ? "Worker " + (started ? "execution" : "startup") + " deadline exceeded." :
                     status == "cancel" ? "Worker execution stopped." : error.Message +
                     (details.Length == 0 ? "" : " " + details));
             }
