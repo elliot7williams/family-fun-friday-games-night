@@ -154,11 +154,11 @@
                 add(name) { put(key, 'ac', name); },
                 remove(name) { put(key, 'rc', name); },
                 toggle(name) {
-                    const before = (call('attr', key, 'class') || '').split(/\s+/).includes(String(name));
+                    const before = (call('attr', key, 'class') || '').split(/[ \t\n\f\r]+/).includes(String(name));
                     put(key, 'tc', name);
                     return !before;
                 },
-                contains(name) { return (call('attr', key, 'class') || '').split(/\s+/).includes(String(name)); }
+                contains(name) { return (call('attr', key, 'class') || '').split(/[ \t\n\f\r]+/).includes(String(name)); }
             }) }
         });
         eventTarget(node);

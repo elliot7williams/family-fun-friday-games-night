@@ -4730,6 +4730,45 @@ namespace Lea.Engine
             return value == ' ' || value == '\t' || value == '\n' || value == '\f' || value == '\r';
         }
 
+        internal static bool NextWord(string source, ref int cursor, out int start, out int length)
+        {
+            while (cursor < source.Length && AsciiWhite(source[cursor])) cursor++;
+            start = cursor;
+            while (cursor < source.Length && !AsciiWhite(source[cursor])) cursor++;
+            length = cursor - start;
+            return length > 0;
+        }
+
+        private static bool MatchWord(string source, string wanted)
+        {
+            if (String.IsNullOrEmpty(source) || wanted.Length == 0) return false;
+            int start;
+            int length;
+            var cursor = 0;
+            while (NextWord(source, ref cursor, out start, out length))
+                if (length == wanted.Length && String.Compare(source, start, wanted, 0, length, StringComparison.OrdinalIgnoreCase) == 0)
+                    return true;
+            return false;
+        }
+
+        private static bool MatchClasses(string source, string[] wanted)
+        {
+            if (String.IsNullOrEmpty(source)) return false;
+            if (wanted.Length <= 8)
+            {
+                foreach (var value in wanted) if (!MatchWord(source, value)) return false;
+                return true;
+            }
+            // Dense compounds retain hashing without a per-node cache or fixed-width match mask.
+            var classes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            int start;
+            int length;
+            var cursor = 0;
+            while (NextWord(source, ref cursor, out start, out length)) classes.Add(source.Substring(start, length));
+            foreach (var value in wanted) if (!classes.Contains(value)) return false;
+            return true;
+        }
+
         private static N FindName(N node, string name)
         {
             if (node == null) return null;
@@ -5113,11 +5152,7 @@ namespace Lea.Engine
         {
             if (selector.T.Length > 0 && selector.T != "*" && node.K != selector.T) return false;
             foreach (var id in selector.I) if (!node.Av("id").Equals(id, StringComparison.OrdinalIgnoreCase)) return false;
-            if (selector.C.Length > 0)
-            {
-                var classes = new HashSet<string>((node.Av("class") ?? "").Split(new char[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries), StringComparer.OrdinalIgnoreCase);
-                foreach (var value in selector.C) if (!classes.Contains(value)) return false;
-            }
+            if (selector.C.Length > 0 && !MatchClasses(node.Av("class"), selector.C)) return false;
             foreach (var attr in selector.A) if (!MatchAttribute(node, attr)) return false;
             foreach (var pseudo in selector.Ps) if (!MatchPseudo(node, pseudo)) return false;
             return true;
@@ -5133,11 +5168,7 @@ namespace Lea.Engine
             if (attr.O == "$=") return actual.EndsWith(attr.V, StringComparison.OrdinalIgnoreCase);
             if (attr.O == "*=") return actual.IndexOf(attr.V, StringComparison.OrdinalIgnoreCase) >= 0;
             if (attr.O == "|=") return actual.Equals(attr.V, StringComparison.OrdinalIgnoreCase) || actual.StartsWith(attr.V + "-", StringComparison.OrdinalIgnoreCase);
-            if (attr.O == "~=")
-            {
-                foreach (var value in actual.Split(new char[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
-                    if (value.Equals(attr.V, StringComparison.OrdinalIgnoreCase)) return true;
-            }
+            if (attr.O == "~=") return MatchWord(actual, attr.V);
             return false;
         }
 

@@ -56,6 +56,19 @@ harness. Full host/startup matrices are not repeated on those extractions/rebuil
 Earlier cold-start failures remain unexplained, and the live host stays untouched.
 See [attribute evidence and package hashes](../LeaForge/ATTRIBUTES.md).
 
+The `Lea-146-class-v12` follow-up shares ASCII class/word token scanning,
+including form feed, and reduces small-compound query allocation without a
+retained cache or new dependency. Complete core and all 713 source/extracted
+standalone scripting checks pass. Separate v12 passes all 43 host and six EXE
+startup cases. Three ZIPs pass inventory/length/hash/current-snapshot/extraction
+audits; extracted and independently rebuilt host-source scripting cases pass
+with 19 verified dependency records and 348 copied fixture/license files.
+The full matrices are not repeated on those extractions/rebuild. The required
+bundle grows 512 bytes to 742,912. A first source core run fails delayed-decoder
+admission; focused pictures and the complete rerun pass without explaining the
+failure. Startup reliability remains work and the installed host is unchanged.
+See [class-token measurements and artifact hashes](../LeaForge/CLASS_TOKENS.md).
+
 ## Build
 
 Build the current Lea solution in Release, then:

@@ -462,6 +462,12 @@ adds `hasAttribute`; it keeps the interpreter out of the required core runtime.
 Values are literal, empty attributes stay present, and connected-node ownership
 and scripting permission are required. See `ATTRIBUTES.md` for limits/tests.
 
+Core class/word selectors and `ac/rc/tc` share ASCII token separators: space,
+tab, line feed, form feed and carriage return. Optional classList membership
+uses these separators too; NBSP/vertical tab do not separate tokens. Existing
+case and mutation bounds remain, and raw `cn` values are not normalized.
+See `CLASS_TOKENS.md` for the allocation measurements and compatibility limits.
+
 `GoA` and `RlA` are the asynchronous forms used by browser windows. `St` cancels
 an active network request. `Tm` is the per-request network deadline in
 milliseconds. It defaults to 15,000 and clamps to 100 through 60,000 on both

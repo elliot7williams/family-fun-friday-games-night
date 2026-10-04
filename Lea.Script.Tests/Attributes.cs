@@ -58,6 +58,10 @@ namespace Lea.Script.Tests
                     "metadata writes retain node, field, editor and user text");
                 Check(field.S.W == 190 && editor.Width != oldWidth && editor.Width == view.Ab(view.Ax(field.El)).Width - 2,
                     "class replacement reflows active editor bounds");
+                await Code(@"field.className='active\fnative';if(document.querySelector('input.native')!==field)throw new Error('native form-feed selector');");
+                Check(field.S.W == 190 && editor.Visible && editor.Text == "Elliot", "ASCII token style keeps active editor layout and text");
+                await Code("field.classList.remove('native');if(field.className!=='active')throw new Error('native class removal');");
+                Check(field.S.W == 190 && page.Fs.Contains(field), "class token removal retains native field and style");
                 Check(accessible.Name == "Updated label" && view.Ao.GetFocused().Name == "Updated label",
                     "retained and fresh native accessible objects follow renamed label association");
                 editor.Text = "Again";
@@ -95,6 +99,9 @@ namespace Lea.Script.Tests
             Check(block.S.F == "#168477" && block.S.W == 190, "ID removal and class replacement rebuild the CSS cascade");
             Code(@"target.className='  active\tactive\nextra\f';if(target.className!=='  active\tactive\nextra\f'||target.getAttribute('CLASS')!==target.className||!target.classList.contains('extra'))throw new Error('raw class');");
             Check(target.Av("class") == "  active\tactive\nextra\f", "class reflection preserves raw whitespace and duplicate tokens");
+            Code("if(document.querySelector('.extra')!==target||document.querySelector('[class~=extra]')!==target)throw new Error('form-feed selectors');");
+            Code("target.classList.remove('extra');if(target.classList.contains('extra')||target.className.includes('extra'))throw new Error('form-feed removal');");
+            Code(@"target.className='active\u00a0extra';if(target.classList.contains('active')||document.querySelector('.active')===target)throw new Error('NBSP token');target.className='active\vextra';if(target.classList.contains('active'))throw new Error('VT token');target.className='active';");
             Code("target.classList.add('later');if(!target.className.includes('later'))throw new Error('live className');target.classList.remove('later');");
             Code("target.id='';target.className='';if(!target.hasAttribute('id')||!target.hasAttribute('class')||target.id!==''||target.className!==''||target.getAttribute('id')!==''||target.getAttribute('class')!=='')throw new Error('empty attributes');");
             Check(target.A.ContainsKey("id") && target.A.ContainsKey("class") && engine.Id(page, "renamed") == null, "empty reflected attributes remain present");

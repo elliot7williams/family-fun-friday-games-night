@@ -43,6 +43,7 @@ namespace Lea.Tests
                 if (args.Length > 1 && args[1] == "--cache") { CheckCacheIdentity(); return 0; }
                 if (args.Length > 1 && args[1] == "--blank") { CheckBlank(); return 0; }
                 if (args.Length > 1 && args[1] == "--attributes") { CheckAttributes(); return 0; }
+                if (args.Length > 1 && args[1] == "--tokens") { CheckClassTokens(); return 0; }
                 if (args.Length > 1 && args[1] == "--direction-overflow")
                 {
                     DirectionOverflowSmoke(Path.Combine(pages, "direction-overflow.html"));
@@ -306,6 +307,7 @@ namespace Lea.Tests
                 CheckNavigationGuard(root);
                 CheckBlank();
                 CheckAttributes();
+                CheckClassTokens();
                 CheckLoadFailures(root);
                 CheckRetainedData(root);
                 CheckDisposal(root);
@@ -15938,6 +15940,51 @@ namespace Lea.Tests
                     "; editing=" + (editing == null ? "null" : editing.El.Av("id")) + "; held=" + (held == null ? "null" : held.El.Av("id")) +
                     "; field=" + field.V + "; text=" + editor.Text + "; clipboard=" + clipboard + "; native=" + native.Text);
             }
+        }
+
+        private static void CheckClassTokens()
+        {
+            var engine = new E();
+            var page = engine.Go(Path.Combine(pages, "javascript-attributes.html"));
+            var target = engine.Id(page, "target");
+            Eq(1, engine.Jv(page, target, "id", "renamed"), "token target ID setup");
+            foreach (var separator in new[] { '\f', ' ', '\t', '\r', '\n' })
+            {
+                Eq(1, engine.Jv(page, target, "cn", "active" + separator + "extra"), "ASCII class separator setup");
+                Ok(engine.Q(page, ".active.extra") == target && engine.Q(page, "[class~='extra']") == target,
+                    "ASCII class and word selectors: " + (int)separator);
+                Eq(1, engine.Jv(page, target, "rc", "extra"), "ASCII separated class removal");
+                Eq("active", target.Av("class"), "class mutation shares ASCII tokenization");
+                Eq(1, engine.Jv(page, target, "tc", "extra"), "ASCII token toggle addition");
+                Ok(engine.Q(page, ".active.extra") == target, "toggled class selector");
+            }
+            foreach (var separator in new[] { '\v', '\u00a0', '\u2003', '\u2028' })
+            {
+                Eq(1, engine.Jv(page, target, "cn", "active" + separator + "extra"), "nonseparator class setup");
+                Ok(engine.Q(page, ".active") != target && engine.Q(page, "[class~='extra']") != target,
+                    "non-ASCII whitespace is not a token separator: " + (int)separator);
+            }
+            Eq(1, engine.Jv(page, target, "cn", " prefix active ACTIVE extra suffix "), "whole-token setup");
+            Ok(engine.Q(page, ".active.extra") == target && engine.Q(page, ".act") == null &&
+                engine.Q(page, "[class~='active extra']") == null && engine.Q(page, "[class~='']") == null,
+                "whole-token, compound, duplicate, and empty word matching");
+            var many = new StringBuilder();
+            for (var index = 0; index < 70; index++) many.Append(".active");
+            Ok(engine.Q(page, many.ToString()) == target, "long repeated compound retains matching semantics");
+            var unique = new StringBuilder();
+            var selector = new StringBuilder();
+            for (var index = 0; index < 70; index++) { unique.Append("c" + index + (index % 2 == 0 ? "\f" : " ")); selector.Append(".c" + index); }
+            Eq(1, engine.Jv(page, target, "cn", unique.ToString()), "long distinct class setup");
+            Ok(engine.Q(page, selector.ToString()) == target && engine.Q(page, selector + ".missing") == null,
+                "long distinct compounds do not overflow token matching state");
+            foreach (var count in new[] { 1, 8, 9, 32, 64, 70 })
+            {
+                var prefix = new StringBuilder();
+                for (var index = 0; index < count; index++) prefix.Append(".c" + index);
+                Ok(engine.Q(page, prefix.ToString()) == target && engine.Q(page, prefix + ".missing") == null,
+                    "direct/hash boundary, ASCII separators, and missing words: " + count);
+            }
+            Console.WriteLine("Lea class token smoke passed: ASCII separators, whole words, compounds, mutation parity, and long selector bounds.");
         }
 
         private static void CheckAttributes()

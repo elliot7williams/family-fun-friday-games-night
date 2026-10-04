@@ -31,6 +31,7 @@ namespace Lea.Bench
                 var options = Options.Read(args);
                 var root = FindRoot(options.Root);
                 if (options.StartupOnly) return StartupOnly(root);
+                if (options.ClassOnly) return ClassMatch.Run(options.Iterations);
                 var output = Path.GetFullPath(options.Output ?? Path.Combine(root, "LeaForge", "COMPATIBILITY_PERFORMANCE.md"));
                 var fixtures = FixturePaths(root);
 
@@ -6583,6 +6584,7 @@ namespace Lea.Bench
             public string Browser;
             public int Iterations = 15;
             public bool StartupOnly;
+            public bool ClassOnly;
 
             public static Options Read(string[] args)
             {
@@ -6591,6 +6593,7 @@ namespace Lea.Bench
                 {
                     var key = args[i].ToLowerInvariant();
                     if (key == "-s") options.StartupOnly = true;
+                    else if (key == "-c") options.ClassOnly = true;
                     else if (key == "-r" && i + 1 < args.Length) options.Root = args[++i];
                     else if (key == "-o" && i + 1 < args.Length) options.Output = args[++i];
                     else if (key == "-b" && i + 1 < args.Length) options.Browser = args[++i];

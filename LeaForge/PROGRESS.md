@@ -125,6 +125,24 @@ The installed host is unchanged. Cold-start reliability, broader DOM/site suppor
 remote-origin policy and Lea-only integration remain work; readiness stays about
 65% and milestone 146 remains in progress. See `ATTRIBUTES.md`.
 
+Class-token follow-up fixes reproduced form-feed selector/removal disagreement
+and NBSP/vertical-tab splitting in optional script membership. Shared ASCII
+word scanning removes temporary token sets for small core compounds; dense
+compounds retain hashing without a per-node cache. Six controlled alternating
+benchmark runs show about 90% lower common class-query allocation and 8.6% lower
+class-write allocation on the 256-row fixture, not a browser-wide speed claim.
+Focused core/83 scripting checks, the complete core rerun and all 713 scripting
+checks pass; all 713 also pass from a fresh standalone ZIP. Separate v12 passes
+all 43 host and six actual-EXE startup cases. Three archives pass inventory,
+length/hash/current-snapshot/extraction checks; the extracted and independently
+rebuilt host-source scripting cases pass with verified dependencies/fixtures.
+The first core run fails delayed-decoder admission despite cleanup; isolated
+picture checks and the full rerun pass, without an established cause or relaxed
+budgets. The required bundle grows 512 bytes to 742,912 with no new dependency.
+The live host remains unchanged; cold-start reliability and broader DOM/site
+support are unfinished. Readiness stays about 65% and milestone 146 stays in
+progress. See `CLASS_TOKENS.md` for measurements, artifacts and failure records.
+
 - Added a reproducible separate .NET Framework 4.8 Firespider host/source
   candidate with optional isolated scripting in regular/resumed tabs and both
   split panes. Script-free pages remain dormant; explicit code and authored

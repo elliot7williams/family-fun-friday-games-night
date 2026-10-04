@@ -232,6 +232,13 @@ IDL/prototype/namespace behavior are not implemented. These two aliases are
 typed `E.Jv` mutations, not new statements in the literal Lea command language.
 See [attribute implementation and tests](../LeaForge/ATTRIBUTES.md).
 
+Class selectors, word-attribute selectors, and bounded class mutations split
+on ASCII whitespace, including form feed but not NBSP or vertical tab. Script
+membership uses the same separators; its case sensitivity and other existing
+DOMTokenList limitations are unchanged. Small core compounds avoid transient
+token sets, while dense compounds retain hashing. See
+[class-token scope and measurements](../LeaForge/CLASS_TOKENS.md).
+
 ## Native view integration
 
 `Lea.Script.Win` attaches the isolated runtime to `Lea.Win.V`; the view and core

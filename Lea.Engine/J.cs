@@ -1289,8 +1289,15 @@ namespace Lea.Engine
         {
             var source = target.Av("class");
             if (source.Length > MaxClassText) return false;
-            var values = new List<string>(source.Split(new char[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries));
-            if (values.Count > MaxClasses) return false;
+            var values = new List<string>();
+            int start;
+            int length;
+            var cursor = 0;
+            while (E.NextWord(source, ref cursor, out start, out length))
+            {
+                if (values.Count == MaxClasses) return false;
+                values.Add(source.Substring(start, length));
+            }
             var found = false;
             for (var i = 0; i < values.Count; i++)
                 if (values[i].Equals(name, StringComparison.OrdinalIgnoreCase)) { found = true; break; }
