@@ -15,11 +15,12 @@ namespace Lea.Script
         private readonly Dictionary<N, int> keys = new Dictionary<N, int>();
         internal int Calls { get; private set; }
         internal int Changes { get; private set; }
+        internal Tq Timers { get; private set; } = new Tq();
         private int microtasks;
 
         internal Ja(E engine, P page) { this.engine = engine; this.page = page; }
         internal void Begin() { Calls = 0; Changes = 0; microtasks = 0; }
-        internal void Reset() { nodes.Clear(); keys.Clear(); }
+        internal void Reset() { nodes.Clear(); keys.Clear(); Timers.Reset(); }
 
         internal object[] Path(N target)
         {
@@ -50,6 +51,19 @@ namespace Lea.Script
                 if (++microtasks > 128) throw new LimitException();
                 return null;
             }
+            if (operation == "ts" && args.Length == 3)
+            {
+                if (!(args[1] is int) || (int)args[1] < 0 || !(args[2] is int) || (int)args[2] < 0 || (int)args[2] > 1)
+                    throw new InvalidDataException("Invalid timer arguments.");
+                return Timers.Ts((int)args[1], (int)args[2] == 1);
+            }
+            if (operation == "tc" && args.Length == 2)
+            {
+                if (!(args[1] is int) || (int)args[1] < 0) throw new InvalidDataException("Invalid timer handle.");
+                Timers.Tc((int)args[1]);
+                return null;
+            }
+            if (operation == "te" && args.Length == 1) { Timers.End(); return null; }
             if (operation == "id" && args.Length == 2) return Key(engine.Id(page, Arg(args, 1)));
             if (operation == "q" && args.Length == 2) return Key(engine.Q(page, Arg(args, 1)));
             if (operation == "qa" && args.Length == 2)

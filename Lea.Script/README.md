@@ -49,6 +49,50 @@ Result statuses include `ok`, `off`, `code`, `node`, `js`, and `limit`. Messages
 to 512 UTF-16 units. Calling from another thread, using a disposed session,
 or passing a foreign page is a host programming error, not a script result.
 
+## Timers
+
+The optional realm exposes `setTimeout`, `setInterval`, `clearTimeout`, and
+`clearInterval`. Function callbacks retain argument identity and receive the
+realm's window as `this` (ordinary JavaScript bound-function rules still apply).
+Callbacks execute as separate tasks, each followed by a bounded Promise/
+`queueMicrotask` checkpoint. Timeout and interval IDs share one map; either
+clear method can cancel either kind, including from a callback or microtask.
+Delays use signed 32-bit conversion and negative clamping. Synchronous timer
+nesting above five applies a four-ms minimum; microtasks do not inherit that
+timer-task nesting. A repeating timer is rearmed after its callback, before
+the checkpoint, without an overdue catch-up burst.
+
+Compact embedding aliases on `Js` and `Jp`:
+
+| Alias | Meaning |
+| --- | --- |
+| `Td` | Milliseconds until the next eligible timer; `-1` for none/ineligible |
+| `Tn` | Number of retained timer records, including a currently firing timer |
+| `Tk` | Execute at most one due timer synchronously; idle calls do not start a VM |
+| `TkA` | `Jp`'s owning-UI-context asynchronous timer task |
+
+Plain sessions need their host to call `Tk`/`TkA` on the owning thread after
+waiting for `Td`; do not spin-poll or synchronously block a UI waiting for it.
+`Lea.Script.Win.W.On(view)` provides automatic dispatch through the native
+view's existing bounded script queue. The optional `Lea.Win.Jt` provider
+interface supplies `Td`/`TkA` without an interpreter dependency in Lea.Win.
+One lazy WinForms timer drives all records in a binding; waiting timers do not
+make the view busy. Navigation, Stop, permission revocation, detach and disposal
+retire the binding and its timer pump. A failed realm drops all timer records,
+preserving mutations completed before the failure, as with other script calls.
+
+Each realm permits 64 active timers and 64 callback arguments per timer; string
+handler code is limited to 16 KiB. Function references, argument objects and
+code strings stay inside the interpreter; only IDs/delays cross the parent
+bridge. String handlers use captured indirect-eval semantics (global `var`,
+eval-scoped `let`/`const`), not full HTML classic-script declaration/fetch/CSP/
+Trusted Types behavior. Native hard deadlines and cooperative/memory/host-call
+budgets remain active for every timer task. Timer accuracy, background throttling,
+animation frames, a full browser event loop and error-event reporting remain work.
+Automatic/supplied HTTP/HTTPS/UNC scripting stays disabled in the Win adapter.
+Worker protocol version is now **3**; replace parent and worker binaries together.
+Version-2 worker frames fail closed. See the source notes in `LeaForge/TIMERS.md`.
+
 ## Isolated worker
 
 `Jp` binds the **currently active** page and its owning thread. The same DOM
@@ -315,7 +359,7 @@ or hard cancellation in `Js`. Jint's own
 requires process isolation for untrusted scripts.
 
 Automatic remote-page scripts, external scripts, modules loaded from files or
-URLs, additional DOM events, timers, promises integrated with a browser event loop,
+URLs, additional DOM events, animation frames, the full browser event loop,
 fetch/XHR, storage, location/navigation, DOM creation/removal, `innerHTML`, and
 the full CSSOM remain future integration work. General browser compatibility
 and production untrusted-site safety are not claimed by these tests.
@@ -331,8 +375,8 @@ dotnet build Lea.Script.Tests/Lea.Script.Tests.csproj -c Release --no-restore
 The test fixture deliberately uses `application/lea-test` so normal loading
 does not run it. The executable explicitly supplies its script to the session.
 `javascript-view.html` instead contains ordinary classic blocks and native
-event controls. `--events` and `--view` select focused checks; the full suite
-includes both. Keep these packages separate from installed browser files.
+event controls. `--events`, `--timers` and `--view` select focused checks; the full
+suite includes all three. Keep these packages separate from installed browser files.
 Functional event/view fixtures use the supported 5,000 ms budget to avoid
 conflating cold CLR/IPC scheduling with event behavior. Strict cooperative-limit
 assertions are retained after function warmup; the independent 25 ms native

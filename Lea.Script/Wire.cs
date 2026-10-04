@@ -10,7 +10,7 @@ namespace Lea.Script
     {
         private const int Magic = 0x5341454c;
         internal const int MaxFrame = 128 * 1024;
-        internal const int Version = 2;
+        internal const int Version = 3;
         private static readonly Encoding Utf8 = new UTF8Encoding(false, true);
 
         internal static void Write(Stream stream, object value)

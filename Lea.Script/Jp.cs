@@ -67,8 +67,12 @@ namespace Lea.Script
         public int Mg { get; private set; }
         public long Mp { get { return Interlocked.Read(ref peak); } }
         public string Sd { get; private set; } = "";
+        public int Td { get { CheckThread(); return disposed || stopped || !engine.Je || generation != engine.Jg || engine.At != page ? -1 : bridge.Timers.Td; } }
+        public int Tn { get { CheckThread(); return bridge.Timers.N; } }
 
         public Jr Ex(string code) { return Run(code, false).GetAwaiter().GetResult(); }
+        public Jr Tk() { return Run(null, false, timer: true).GetAwaiter().GetResult(); }
+        public Task<Jr> TkA() { CheckContext(); return Run(null, true, timer: true); }
 
         public Task<Jr> ExA(string code)
         {
@@ -96,7 +100,7 @@ namespace Lea.Script
                 if (worker != null && worker.J != null) { KeepPeak(worker.J.Peak); worker.J.Dispose(); }
         }
 
-        private async Task<Jr> Run(string code, bool asynchronous, N target = null, string type = null)
+        private async Task<Jr> Run(string code, bool asynchronous, N target = null, string type = null, bool timer = false)
         {
             CheckThread();
             if (disposed) throw new ObjectDisposedException("Jp");
@@ -105,9 +109,12 @@ namespace Lea.Script
             if (generation != engine.Jg) { Reset(); generation = engine.Jg; }
             if (!engine.Je) { Reset(); return Result("off", "Scripting is disabled."); }
             if (!Object.ReferenceEquals(engine.At, page)) { Reset(); return Result("stale", "The bound page is no longer active."); }
-            if (type == null && (code == null || code.Length > 16 * 1024)) return Result("code", "Code must be at most 16 KiB.");
+            if (timer && stopped) { Reset(); return Result("cancel", "Worker execution stopped."); }
+            if (!timer && type == null && (code == null || code.Length > 16 * 1024)) return Result("code", "Code must be at most 16 KiB.");
             if (type != null && target != null && !engine.Jn(page, target)) return Result("node", "Event target is not connected to the bound page.");
             if (sequence == Int32.MaxValue) { Reset(); sequence = 0; }
+            var token = timer ? bridge.Timers.Take() : 0;
+            if (timer && token == 0) return Result("ok", "");
             running = true;
             stopped = false;
             var started = false;
@@ -122,7 +129,8 @@ namespace Lea.Script
                 var path = type == null ? null : bridge.Path(target);
                 await Io(() =>
                 {
-                    if (type == null) Wire.Write(endpoint.I, new { k = "exec", i = id, c = code });
+                    if (timer) Wire.Write(endpoint.I, new { k = "timer", i = id, t = token });
+                    else if (type == null) Wire.Write(endpoint.I, new { k = "exec", i = id, c = code });
                     else Wire.Write(endpoint.I, new { k = "event", i = id, t = type, p = path });
                     return true;
                 }, clock, tm, asynchronous);
@@ -161,7 +169,7 @@ namespace Lea.Script
                     status == "cancel" ? "Worker execution stopped." : error.Message +
                     (details.Length == 0 ? "" : " " + details));
             }
-            finally { running = false; }
+            finally { if (timer) bridge.Timers.End(); running = false; }
         }
 
         private async Task Start(bool asynchronous)

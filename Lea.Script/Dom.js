@@ -17,6 +17,33 @@
             catch (error) { if (!failed) { failed = true; failure = error; } }
         })();
     } });
+    const realm = globalThis, apply = Reflect.apply, evaluate = eval, stringify = String;
+    const timers = new Map(), getTimer = Map.prototype.get, putTimer = Map.prototype.set, deleteTimer = Map.prototype.delete;
+    function schedule(handler, timeout, repeat, supplied) {
+        if (supplied.length === 0) throw new TypeError('A timer handler is required');
+        if (typeof handler === 'symbol') throw new TypeError('A timer handler cannot be a Symbol');
+        const callback = typeof handler === 'function' ? handler : stringify(handler);
+        if (typeof callback === 'string' && callback.length > 16384) throw new RangeError('Lea timer code limit');
+        if (supplied.length > 66) throw new RangeError('Lea timer argument limit');
+        const delay = timeout | 0;
+        const args = [];
+        for (let i = 2; i < supplied.length; i++) args[i - 2] = supplied[i];
+        const id = call('ts', delay < 0 ? 0 : delay, repeat ? 1 : 0);
+        apply(putTimer, timers, [id, { callback, args, repeat }]);
+        return id;
+    }
+    function clear(id) {
+        id = id | 0;
+        if (id <= 0) return;
+        call('tc', id);
+        apply(deleteTimer, timers, [id]);
+    }
+    Object.defineProperties(globalThis, {
+        setTimeout: { value: function setTimeout(handler, timeout = 0) { return schedule(handler, timeout, false, arguments); }, writable: true, configurable: true, enumerable: true },
+        setInterval: { value: function setInterval(handler, timeout = 0) { return schedule(handler, timeout, true, arguments); }, writable: true, configurable: true, enumerable: true },
+        clearTimeout: { value: function clearTimeout(id = 0) { clear(id); }, writable: true, configurable: true, enumerable: true },
+        clearInterval: { value: function clearInterval(id = 0) { clear(id); }, writable: true, configurable: true, enumerable: true }
+    });
     const cache = new Map();
     const targets = new WeakMap();
     const types = new Set(['click', 'input', 'change', 'submit', 'DOMContentLoaded', 'load']);
@@ -140,6 +167,21 @@
     // The dispatcher is returned to the interpreter host, never installed on the global object.
     return function dispatch(type, keys) {
         if (type === 'mt') { microtaskErrors(); return false; }
+        if (type === 'tm') {
+            if (keys.length !== 1) throw new TypeError('Invalid Lea timer');
+            const timer = apply(getTimer, timers, [keys[0]]);
+            if (!timer) return false;
+            if (!timer.repeat) apply(deleteTimer, timers, [keys[0]]);
+            try {
+                if (typeof timer.callback === 'function') apply(timer.callback, realm, timer.args);
+                else evaluate(timer.callback);
+            } catch (error) { if (!failed) { failed = true; failure = error; } }
+            // A Promise continuation is a microtask, not a nested timer task.
+            call('te');
+            checkpoint();
+            microtaskErrors();
+            return false;
+        }
         if (!types.has(type) || keys.length > 128) throw new TypeError('Invalid Lea event');
         if (type === 'DOMContentLoaded') ready = 'interactive';
         if (type === 'load') ready = 'complete';

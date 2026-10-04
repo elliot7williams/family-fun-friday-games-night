@@ -35,13 +35,16 @@ namespace Lea.Script
         }
 
         public Jr At { get; private set; }
+        public int Td { get { CheckThread(); return disposed || !engine.Je || generation != engine.Jg || engine.At != page ? -1 : bridge.Timers.Td; } }
+        public int Tn { get { CheckThread(); return bridge.Timers.N; } }
 
         public Jr Ex(string code) { return Run(code, null, null); }
+        public Jr Tk() { return Run(null, null, null, true); }
 
         public Jr Ev(N target, string type)
         { Ja.EventType(type); return Run(null, target, type); }
 
-        private Jr Run(string code, N target, string type)
+        private Jr Run(string code, N target, string type, bool timer = false)
         {
             CheckThread();
             if (disposed) throw new ObjectDisposedException("Js");
@@ -49,13 +52,22 @@ namespace Lea.Script
             bridge.Begin();
             if (generation != engine.Jg) { Reset(); generation = engine.Jg; }
             if (!engine.Je) { Reset(); return Result("off", "Scripting is disabled."); }
+            if (timer && engine.At != page) { Reset(); return Result("stale", "The bound page is no longer active."); }
             engine.Q(page, "body");
-            if (type == null && (code == null || code.Length > 16 * 1024)) return Result("code", "Code must be at most 16 KiB.");
+            if (!timer && type == null && (code == null || code.Length > 16 * 1024)) return Result("code", "Code must be at most 16 KiB.");
             if (type != null && target != null && !engine.Jn(page, target)) return Result("node", "Event target is not connected to the bound page.");
+            var token = timer ? bridge.Timers.Take() : 0;
+            if (timer && token == 0) return Result("ok", "");
             running = true;
             try
             {
                 if (vm == null) Start();
+                if (timer)
+                {
+                    vm.Invoke(dispatch, Jint.Native.JsValue.Undefined,
+                        new[] { (Jint.Native.JsValue)"tm", Codec.Value(vm, new object[] { token }) });
+                    return Result("ok", "");
+                }
                 if (type == null)
                 {
                     vm.Execute(code);
@@ -77,7 +89,7 @@ namespace Lea.Script
                 var message = limited ? "Script budget exceeded." : error.Message;
                 return Result(limited ? "limit" : "js", message.Length <= 512 ? message : message.Substring(0, 512));
             }
-            finally { running = false; }
+            finally { if (timer) bridge.Timers.End(); running = false; }
         }
 
         private void Start()

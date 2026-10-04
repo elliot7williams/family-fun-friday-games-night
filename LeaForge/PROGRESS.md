@@ -63,6 +63,20 @@ that setup error from masquerading as a worker/lifecycle failure.
 Milestone 146 remains in progress and broader readiness stays about 65%.
 See `STARTUP_DIAGNOSTICS.md` for observations and current verification scope.
 
+The experimental timer follow-up adds bounded timeout/interval tasks through
+compact `Td/Tn/Tk/TkA` aliases and automatic `W.On` native dispatch. A coercion
+regression is reproduced and fixed. Full source passes all 616 checks, including
+165 timer checks after two added viewport assertions; core also passes.
+The new timer build's fresh-package gates are not verified, and the compiled v8
+candidate fails its first scripting gate
+at the existing hello/startup deadline; a traced diagnostic run fails too, before
+DOM bootstrap completion. Earlier v7 host passes do not apply to v8. The failure
+logs are retained, and the installed host remains untouched. The required bundle
+grows by 1,536 bytes to 742,400 with
+no interpreter dependency. Full classic-string-script scope/CSP, animation
+frames, general event-loop/error semantics and remote-origin policy remain work.
+Broader readiness stays about 65%. See `TIMERS.md` for scope and evidence.
+
 - Added a reproducible separate .NET Framework 4.8 Firespider host/source
   candidate with optional isolated scripting in regular/resumed tabs and both
   split panes. Script-free pages remain dormant; explicit code and authored
@@ -2279,8 +2293,8 @@ See `STARTUP_DIAGNOSTICS.md` for observations and current verification scope.
 - Validate the separate .NET Framework 4.8 candidate before adopting it in the
   live project. Keep original source, a rollback build and the installed browser
   intact; remaining legacy-only commands still need Lea implementations.
-- Extend the bounded event loop beyond native-turn microtasks with timers,
-  animation frames and error/rejection notification, then expand DOM operations
+- Extend the bounded timer and microtask implementation with full classic-string
+  semantics, animation frames and error/rejection notification, then expand DOM operations
   and real-site compatibility coverage.
 - Implement document-origin and resource/network policy before enabling remote
   or external scripts. Local scripting tests do not prove safe internet-page

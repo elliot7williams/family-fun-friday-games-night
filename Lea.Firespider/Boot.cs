@@ -1595,6 +1595,12 @@ namespace Lea.Firespider
             await ScriptActivate(view, "counter");
             Check(view.T == "Lea 1" && Member<Label>(form, "su").Text.IndexOf("script:", StringComparison.Ordinal) < 0,
                 "host native click did not update DOM/title or raised script status");
+            await ScriptCode(view, "var hostTimers=[];setTimeout(function(){hostTimers.push('a');Promise.resolve().then(function(){hostTimers.push('micro');});});setTimeout(function(){hostTimers.push('b');document.getElementById('result').textContent=hostTimers.join(',');document.title='Host timers';});");
+            var timerClock = Stopwatch.StartNew();
+            while ((view.T != "Host timers" || view.Xn != 0) && timerClock.ElapsedMilliseconds < 5000) await Task.Delay(5);
+            Check(view.T == "Host timers" && view.Xo != null && view.Xo.Ok &&
+                view.Id("result").C[0].X == "a,micro,b", "host timer tasks and Promise checkpoint: " + ScriptState(view));
+            await ScriptCode(view, "document.title='Lea 1';document.getElementById('result').textContent='1';");
             view.Sc(-view.Sy);
             ScriptPicture(form, "main");
             var document = view.At;
@@ -1667,7 +1673,7 @@ namespace Lea.Firespider
             }
             Check(!UiErrors.Any() && !Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module =>
                 module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)), "script integration raised UI errors or loaded MSHTML");
-            Console.WriteLine("PASS script host: net48, dormant loading, state retention, inline lifecycle, native events/defaults, error status/recovery, split isolation/disposal, tab cleanup, and remote-origin refusal");
+            Console.WriteLine("PASS script host: net48, dormant loading, state retention, inline lifecycle, native events/defaults, bounded timers, error status/recovery, split isolation/disposal, tab cleanup, and remote-origin refusal");
         }
 
         private static void ScriptPicture(Form form, string name)

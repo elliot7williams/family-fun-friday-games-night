@@ -214,6 +214,8 @@ namespace Lea.Script.Tests
                 bytes[0] ^= 1;
                 bytes[4] = 1;
                 Reject(() => Wire.Read(new MemoryStream(bytes)), "protocol version rejected");
+                bytes[4] = 2;
+                Reject(() => Wire.Read(new MemoryStream(bytes)), "pre-timer worker protocol version rejected");
                 bytes[4] = Wire.Version;
                 Array.Copy(BitConverter.GetBytes(Wire.MaxFrame + 1), 0, bytes, 8, 4);
                 Reject(() => Wire.Read(new MemoryStream(bytes.Take(12).ToArray())), "oversized frame rejected before payload read");

@@ -7,7 +7,7 @@ using Lea.Win;
 
 namespace Lea.Script.Win
 {
-    public sealed class W : Jx
+    public sealed class W : Jx, Jt
     {
         private readonly E engine;
         private readonly P page;
@@ -17,6 +17,15 @@ namespace Lea.Script.Win
         private bool dormant;
         private bool demanded;
         public Jp At { get; private set; }
+        public int Td { get { return Local ? At.Td : -1; } }
+
+        public async Task<Xr> TkA()
+        {
+            if (!Local) return new Xr("origin", 0, "Remote timer execution is disabled.");
+            var result = await At.TkA();
+            if (!result.Ok) { loaded = false; complete = false; }
+            return Convert(result, 0);
+        }
 
         private W(E engine, P page, string directory, int milliseconds)
         {

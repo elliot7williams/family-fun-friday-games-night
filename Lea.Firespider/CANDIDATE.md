@@ -20,6 +20,16 @@ harness fixtures. These passes do not explain the intermittent failure or
 establish cold-start stability. See [startup evidence](../LeaForge/STARTUP_DIAGNOSTICS.md). Do not
 install them as a finished replacement for the preserved live browser.
 
+The separate `Lea-146-timers-v8` follow-up compiles with bounded timeout/interval
+support and worker protocol version 3; parent and worker must be upgraded together.
+Its first scripting gate fails before the timer assertion, with a hello-phase
+startup timeout (5,026 ms wall, 1,640 ms CPU). A traced diagnostic run also fails
+(5,020 ms wall, 765 ms CPU), reporting VM initialization but not DOM completion.
+This narrows the observed phase, not the cause. The v8 full host/startup matrices,
+extracted runtime and independent host-source rebuild are not verified. Do not
+transfer v7's passing gates to this build or install it over the live browser.
+See [timer implementation and evidence](../LeaForge/TIMERS.md).
+
 ## Build
 
 Build the current Lea solution in Release, then:

@@ -37,6 +37,12 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script microtasks: " + checks + " checks.");
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--timers")
+                {
+                    Timers.Run(viewFixture);
+                    Console.WriteLine("PASS Lea.Script timers: " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--events")
                 {
                     Events.Run(viewFixture);
@@ -125,6 +131,7 @@ namespace Lea.Script.Tests
                 Worker.Run(fixture);
                 Events.Run(viewFixture);
                 Microtasks.Run(viewFixture);
+                Timers.Run(viewFixture);
                 View.Run(viewFixture);
                 Console.WriteLine("PASS Lea.Script: " + checks + " checks; JavaScript, isolated worker, and typed DOM.");
                 return 0;

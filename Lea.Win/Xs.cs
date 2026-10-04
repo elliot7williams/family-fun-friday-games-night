@@ -13,6 +13,12 @@ namespace Lea.Win
         void St();
     }
 
+    public interface Jt
+    {
+        int Td { get; }
+        Task<Xr> TkA();
+    }
+
     public sealed class Xr
     {
         public Xr(string status, int count, string message, bool prevented = false)
@@ -95,6 +101,7 @@ namespace Lea.Win
             }
             var binding = scriptBinding;
             if (binding.Pending == 32) return Task.FromResult(new Xr("busy", 0, "Script event queue is full."));
+            if (binding.Timer != null) binding.Timer.Stop();
             binding.Pending++;
             var previous = binding.Tail;
             var completion = new TaskCompletionSource<Xr>();
@@ -135,6 +142,37 @@ namespace Lea.Win
             {
                 binding.Pending--;
                 if (binding.Retired && binding.Pending == 0) DisposeScript(binding);
+                else if (binding.Pending == 0) ArmScriptTimer(binding);
+            }
+        }
+
+        private void ArmScriptTimer(Xb binding)
+        {
+            if (!CurrentScript(binding)) return;
+            var timed = binding.Runner as Jt;
+            if (timed == null) return;
+            try
+            {
+                var delay = timed.Td;
+                if (delay < 0) { if (binding.Timer != null) binding.Timer.Stop(); return; }
+                if (binding.Timer == null)
+                {
+                    binding.Timer = new System.Windows.Forms.Timer();
+                    binding.Timer.Tick += async (sender, args) =>
+                    {
+                        if (binding.Timer != null) binding.Timer.Stop();
+                        if (!CurrentScript(binding)) { if (scriptBinding == binding) RetireScript(); return; }
+                        try { await QueueScript(runner => ((Jt)runner).TkA()); }
+                        catch (Exception error) { if (CurrentScript(binding)) Xo = new Xr("host", 0, error.Message); }
+                    };
+                }
+                binding.Timer.Interval = Math.Max(1, delay);
+                binding.Timer.Start();
+            }
+            catch (Exception error)
+            {
+                if (binding.Timer != null) binding.Timer.Stop();
+                if (CurrentScript(binding)) Xo = new Xr("host", 0, error.Message);
             }
         }
 
@@ -152,6 +190,7 @@ namespace Lea.Win
             Xo = null;
             if (binding == null) return;
             binding.Retired = true;
+            if (binding.Timer != null) { binding.Timer.Dispose(); binding.Timer = null; }
             binding.Runner.St();
             if (binding.Pending == 0) DisposeScript(binding);
         }
@@ -282,6 +321,7 @@ namespace Lea.Win
             internal int Pending;
             internal bool Retired;
             internal bool Disposed;
+            internal System.Windows.Forms.Timer Timer;
             internal Xb(P page, long generation, Jx runner) { Page = page; Generation = generation; Runner = runner; }
         }
     }

@@ -72,6 +72,7 @@ namespace Lea.Script.Worker
                         var frame = Wire.Read(input);
                         var kind = Wire.Text(frame, "k", 8);
                         if (kind == "exec") Wire.Fields(frame, "k", "i", "c");
+                        else if (kind == "timer") Wire.Fields(frame, "k", "i", "t");
                         else if (kind == "event") Wire.Fields(frame, "k", "i", "t", "p");
                         else return 3;
                         var next = Wire.Number(frame, "i");
@@ -85,6 +86,12 @@ namespace Lea.Script.Worker
                             {
                                 vm.Execute(Wire.Text(frame, "c", 16 * 1024));
                                 vm.Invoke(dispatch, JsValue.Undefined, new[] { (JsValue)"mt", Codec.Value(vm, new object[0]) });
+                            }
+                            else if (kind == "timer")
+                            {
+                                var timer = Wire.Number(frame, "t");
+                                if (timer < 1) throw new InvalidDataException("Invalid timer handle.");
+                                vm.Invoke(dispatch, JsValue.Undefined, new[] { (JsValue)"tm", Codec.Value(vm, new object[] { timer }) });
                             }
                             else
                             {
