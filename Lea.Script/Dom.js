@@ -46,10 +46,15 @@
     });
     const cache = new Map();
     const targets = new WeakMap();
-    const types = new Set(['click', 'input', 'change', 'submit', 'DOMContentLoaded', 'load']);
+    const handlerTypes = ['click', 'input', 'change', 'submit', 'load'];
+    function eventType(type) {
+        return type === 'click' || type === 'input' || type === 'change' || type === 'submit' ||
+            type === 'DOMContentLoaded' || type === 'load';
+    }
     let listenerCount = 0;
     let ready = 'loading';
     const styles = { color: 'fg', backgroundColor: 'bg', width: 'wd', height: 'ht', display: 'dp', fontSize: 'fs' };
+    const styleNames = Object.keys(styles);
     function capture(options) { return typeof options === 'boolean' ? options : !!(options && options.capture); }
     function remove(state, listener) {
         if (listener.removed) return;
@@ -63,7 +68,7 @@
         Object.defineProperties(node, {
             addEventListener: { value(type, callback, options) {
                 type = String(type);
-                if (!types.has(type)) throw new TypeError('Unsupported Lea event');
+                if (!eventType(type)) throw new TypeError('Unsupported Lea event');
                 if (callback === null || callback === undefined) return;
                 if (typeof callback !== 'function' && typeof callback !== 'object') throw new TypeError('Invalid listener');
                 if (options && options.signal) throw new TypeError('AbortSignal is not supported');
@@ -80,14 +85,17 @@
                     if (item.type === String(type) && item.callback === callback && item.capture === cap) remove(state, item);
             } }
         });
-        for (const type of ['click', 'input', 'change', 'submit', 'load']) Object.defineProperty(node, 'on' + type, {
-            get() { return syncHandler(node, state, type); },
-            set(value) {
-                syncHandler(node, state, type);
-                state.properties[type] = typeof value === 'function' ? value : null;
-                syncHandler(node, state, type);
-            }
-        });
+        for (let i = 0; i < handlerTypes.length; i++) {
+            const type = handlerTypes[i];
+            Object.defineProperty(node, 'on' + type, {
+                get() { return syncHandler(node, state, type); },
+                set(value) {
+                    syncHandler(node, state, type);
+                    state.properties[type] = typeof value === 'function' ? value : null;
+                    syncHandler(node, state, type);
+                }
+            });
+        }
     }
     function syncHandler(node, state, type) {
         const callback = handler(node, state, type);
@@ -122,9 +130,12 @@
         if (cache.has(key)) return cache.get(key);
         const node = {};
         const style = {};
-        for (const name of Object.keys(styles)) Object.defineProperty(style, name, {
-            set(value) { put(key, styles[name], value); }, enumerable: true
-        });
+        for (let i = 0; i < styleNames.length; i++) {
+            const name = styleNames[i];
+            Object.defineProperty(style, name, {
+                set(value) { put(key, styles[name], value); }, enumerable: true
+            });
+        }
         Object.defineProperties(node, {
             tagName: { get() { return call('tag', key); } },
             textContent: { get() { return call('text', key); }, set(value) { put(key, 'tx', value === null ? '' : value); } },
@@ -182,7 +193,7 @@
             microtaskErrors();
             return false;
         }
-        if (!types.has(type) || keys.length > 128) throw new TypeError('Invalid Lea event');
+        if (!eventType(type) || keys.length > 128) throw new TypeError('Invalid Lea event');
         if (type === 'DOMContentLoaded') ready = 'interactive';
         if (type === 'load') ready = 'complete';
         const route = keys.map(wrap);

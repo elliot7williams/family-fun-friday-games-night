@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.AccessControl;
+using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Threading;
 using System.Windows.Forms;
@@ -16,6 +17,63 @@ namespace Lea.Script.Tests
 {
     internal static class Startup
     {
+        internal static void Compare(string fixture, string baseline)
+        {
+            baseline = Path.GetFullPath(baseline);
+            var current = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ScriptWorker");
+            var names = Directory.GetFiles(current).Select(Path.GetFileName).OrderBy(name => name).ToArray();
+            Check(names.SequenceEqual(Directory.GetFiles(baseline).Select(Path.GetFileName).OrderBy(name => name)),
+                "bootstrap comparison runtime inventories match");
+            foreach (var name in names.Where(name => name != "Lea.Script.Worker.exe"))
+                Check(Digest(Path.Combine(current, name)) == Digest(Path.Combine(baseline, name)),
+                    "bootstrap comparison dependency matches: " + name);
+            Console.WriteLine("Bootstrap baseline worker: " + Digest(Path.Combine(baseline, "Lea.Script.Worker.exe")));
+            Console.WriteLine("Bootstrap current worker: " + Digest(Path.Combine(current, "Lea.Script.Worker.exe")));
+            var trace = Environment.GetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE");
+            try
+            {
+                Environment.SetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE", null);
+                for (var pair = 0; pair < 3; pair++)
+                    foreach (var source in pair % 2 == 0 ? new[] { baseline, current } : new[] { current, baseline })
+                    {
+                        var directory = Path.Combine(Path.GetTempPath(), "Lea-bootstrap-compare-" + Guid.NewGuid().ToString("N"));
+                        Directory.CreateDirectory(directory);
+                        var files = names.Select(name => Path.Combine(directory, name)).ToArray();
+                        foreach (var file in files) File.Copy(Path.Combine(source, Path.GetFileName(file)), file);
+                        var engine = new E();
+                        var page = engine.Go(fixture);
+                        var script = new Jp(engine, page, directory);
+                        string sid = null;
+                        int pid = 0;
+                        try
+                        {
+                            var result = script.Ex("document.title='bootstrap comparison';");
+                            Console.WriteLine("Bootstrap " + (source == baseline ? "baseline" : "current") + " pair=" + pair + ": " +
+                                result.S + "; " + result.M + "; " + script.Sd + "; runtime=" + directory);
+                            Check(result.Ok && page.T == "bootstrap comparison" && result.N == 1,
+                                "bootstrap comparison first execution: " + pair + "; " + result.S + "; " + result.M);
+                            Check(script.Ac && script.Ne && script.Nd && script.Fd && script.Mg == 15 &&
+                                script.Cp == 2500 && script.Mm == 128L * 1024 * 1024 && script.Tm == 2000,
+                                "bootstrap comparison preserves isolation and defaults");
+                            sid = script.Sid;
+                            pid = script.Pid;
+                        }
+                        finally { script.Dispose(); }
+                        Console.WriteLine("Bootstrap native peak: " + script.Mp + " bytes");
+                        Check(Exited(pid) && files.All(file => !HasSid(file, sid)), "bootstrap comparison retires worker and exact ACLs");
+                        foreach (var file in files) File.Delete(file);
+                        Directory.Delete(directory, false);
+                    }
+            }
+            finally { Environment.SetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE", trace); }
+        }
+
+        private static string Digest(string path)
+        {
+            using (var stream = File.OpenRead(path))
+            using (var sha = SHA256.Create()) return BitConverter.ToString(sha.ComputeHash(stream)).Replace("-", "");
+        }
+
         internal static void Run(string fixture)
         {
             Permissions.Run();
@@ -52,7 +110,7 @@ namespace Lea.Script.Tests
                     var page = engine.Go(fixture);
                     string sid;
                     int pid;
-                    Environment.SetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE", index == 1 ? "1" : null);
+                    Environment.SetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE", trace == "1" || index == 1 ? "1" : null);
                     using (var script = new Jp(engine, page, directory))
                     {
                         Check(script.Tm == 2000 && script.Cp == 2500 && script.Mm == 128L * 1024 * 1024,
@@ -74,7 +132,7 @@ namespace Lea.Script.Tests
                     foreach (var file in files) File.Delete(file);
                     Directory.Delete(directory, false);
                 }
-                Environment.SetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE", null);
+                Environment.SetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE", trace == "1" ? "1" : null);
                 Ui(fixture, "run");
                 Ui(fixture, "off");
                 Ui(fixture, "cancel");

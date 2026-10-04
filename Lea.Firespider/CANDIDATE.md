@@ -30,6 +30,13 @@ extracted runtime and independent host-source rebuild are not verified. Do not
 transfer v7's passing gates to this build or install it over the live browser.
 See [timer implementation and evidence](../LeaForge/TIMERS.md).
 
+The `Lea-146-bootstrap-v9` candidate simplifies fixed-list DOM setup and adds
+opt-in parsing/initialization diagnostics. Its scripting case and six actual-EXE
+startup scenarios pass, but normal complete source runs still fail fresh-worker
+startup in microtask tests. Its full 43-case host matrix, extracted packages and
+independent host-source rebuild are not verified, and no release ZIP is published
+from that failed source gate. See [bootstrap evidence](../LeaForge/BOOTSTRAP.md).
+
 ## Build
 
 Build the current Lea solution in Release, then:

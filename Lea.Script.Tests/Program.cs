@@ -19,6 +19,13 @@ namespace Lea.Script.Tests
                 var root = args.Length == 0 ? Directory.GetCurrentDirectory() : Path.GetFullPath(args[0]);
                 var fixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-runtime.html");
                 var viewFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-view.html");
+                if (args.Length > 1 && args[1] == "--bootstrap")
+                {
+                    if (args.Length != 3) throw new ArgumentException("Supply one baseline ScriptWorker directory for --bootstrap.");
+                    Startup.Compare(fixture, args[2]);
+                    Console.WriteLine("PASS Lea.Script bootstrap comparison: " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--startup")
                 {
                     Startup.Run(fixture);

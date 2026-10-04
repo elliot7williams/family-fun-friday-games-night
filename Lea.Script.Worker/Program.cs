@@ -29,6 +29,7 @@ namespace Lea.Script.Worker
                     if (Wire.Text(init, "k", 8) != "init") return 3;
                     Trace("init", clock, trace);
                     var file = FileDenied(Wire.Text(init, "f", 1024));
+                    Trace("canary", clock, trace);
                     var id = 0;
                     var request = 0;
                     Jint.Engine vm;
@@ -36,6 +37,7 @@ namespace Lea.Script.Worker
                     // Only trusted bootstrap overlaps the denial probe; page frames follow the verified hello.
                     using (var probe = new NetworkProbe(Wire.Number(init, "p")))
                     {
+                        Trace("network", clock, trace);
                         vm = new Jint.Engine(options =>
                         {
                             options.MaxStatements(20000).LimitMemory(8 * 1024 * 1024)
@@ -60,8 +62,22 @@ namespace Lea.Script.Worker
                         }));
                         vm.SetValue("__jobs", new ClrFunction(vm, "__jobs", (_, values) =>
                         { vm.Advanced.ProcessTasks(); return JsValue.Undefined; }));
+                        Trace("bridge", clock, trace);
+                        string source;
                         using (var stream = typeof(Program).Assembly.GetManifestResourceStream("Lea.Script.Dom.js"))
-                        using (var reader = new StreamReader(stream)) dispatch = vm.Evaluate(reader.ReadToEnd());
+                        using (var reader = new StreamReader(stream)) source = reader.ReadToEnd();
+                        Trace("source", clock, trace);
+                        if (trace)
+                        {
+                            // Prepared scripts have independent regex defaults; keep this diagnostic path bounded too.
+                            var bootstrap = Jint.Engine.PrepareScript(source, null, false,
+                                new ScriptPreparationOptions { StaticAnalysis = false,
+                                    ParsingOptions = new ScriptParsingOptions {
+                                        CompileRegex = false, RegexTimeout = TimeSpan.FromMilliseconds(100) } });
+                            Trace("parse", clock, trace);
+                            dispatch = vm.Evaluate(bootstrap);
+                        }
+                        else dispatch = vm.Evaluate(source);
                         Trace("dom", clock, trace);
                         var network = probe.Denied();
                         Trace("probes", clock, trace);

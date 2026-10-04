@@ -14,13 +14,19 @@ namespace Lea.Script.Tests
                 Suite(engine, page, script.Ex, script.Ev, "in-process");
             page = engine.Go(fixture);
             using (var script = new Jp(engine, page) { Tm = 5000 })
-                Suite(engine, page, script.Ex, script.Ev, "isolated");
+                Suite(engine, page, script.Ex, script.Ev, "isolated", () => script.Sd);
         }
 
-        private static void Suite(E engine, P page, Func<string, Jr> ex, Func<N, string, Jr> ev, string mode)
+        private static void Suite(E engine, P page, Func<string, Jr> ex, Func<N, string, Jr> ev, string mode, Func<string> diagnostics = null)
         {
             void Check(bool condition, string name) { Program.Check(condition, mode + " microtasks: " + name); }
-            void Code(string code) { var result = ex(code); Check(result.Ok, "code: " + result.S + "; " + result.M); }
+            void Code(string code)
+            {
+                var result = ex(code);
+                var details = result.Ok ? "" : "; " + (diagnostics == null ? "" : diagnostics()) + "; code=" +
+                    code.Substring(0, Math.Min(256, code.Length));
+                Check(result.Ok, "code: " + result.S + "; " + result.M + details);
+            }
             var target = engine.Id(page, "counter");
             Code("var target=document.getElementById('counter');target.onclick=function(){Promise.resolve().then(function(){document.title='Event microtask';});};");
             var eventResult = ev(target, "click");

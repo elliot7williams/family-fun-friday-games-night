@@ -77,6 +77,21 @@ no interpreter dependency. Full classic-string-script scope/CSP, animation
 frames, general event-loop/error semantics and remote-origin policy remain work.
 Broader readiness stays about 65%. See `TIMERS.md` for scope and evidence.
 
+Bootstrap follow-up replaces eager fixed-list Set/iterator machinery and fixes
+a reproduced wrapper failure caused by a page-modified array iterator. All 136
+focused event, 64 traced startup, 76 traced microtask, 165 timer and 58 native-view
+checks pass. A six-launch comparison passes 26 checks and samples about 1.3 MiB
+lower median native worker peak, not a demonstrated startup speed improvement.
+Concurrent initialization is rejected after a diagnostic timeout. Initialization
+remains sequential, with improved opt-in phases and bounded failure diagnostics.
+The expected full count is 624, but normal full runs still fail fresh-worker
+startup in microtask tests (latest: 5,052 ms wall / 453 ms CPU). No timeout or
+isolation limit is relaxed. Release/cold-start readiness remains unproven and
+broader readiness stays about 65%. Separate v9 compiles and passes its scripting
+case and six actual-EXE startup scenarios, not the full 43-case host matrix.
+No new release ZIP is published from the failed full source gate, and the
+installed host remains unchanged. See `BOOTSTRAP.md` for retained evidence.
+
 - Added a reproducible separate .NET Framework 4.8 Firespider host/source
   candidate with optional isolated scripting in regular/resumed tabs and both
   split panes. Script-free pages remain dormant; explicit code and authored

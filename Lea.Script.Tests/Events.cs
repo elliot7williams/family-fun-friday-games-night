@@ -12,7 +12,7 @@ namespace Lea.Script.Tests
             var page = engine.Go(fixture);
             using (var script = new Js(engine, page)) Suite(engine, page, script.Ex, script.Ev, "in-process");
             page = engine.Go(fixture);
-            using (var script = new Jp(engine, page) { Tm = 5000 }) Suite(engine, page, script.Ex, script.Ev, "isolated");
+            using (var script = new Jp(engine, page) { Tm = 5000 }) Suite(engine, page, script.Ex, script.Ev, "isolated", () => script.Sd);
             var target = engine.Id(page, "alias");
             Check(engine.Jn(page, target) && !engine.Jn(page, null), "connected node predicate");
             var other = new E();
@@ -29,11 +29,37 @@ namespace Lea.Script.Tests
             Check(engine.Ck(page, alias) == 1 && page.T == "classic", "classic command fallback remains opt-in");
         }
 
-        private static void Suite(E engine, P page, Func<string, Jr> ex, Func<N, string, Jr> ev, string mode)
+        private static void Suite(E engine, P page, Func<string, Jr> ex, Func<N, string, Jr> ev, string mode, Func<string> diagnostics = null)
         {
             var target = engine.Id(page, "target");
-            void Code(string code) { var result = ex(code); Check(result.Ok, mode + " event setup: " + result.S + "; " + result.M); }
+            void Code(string code)
+            {
+                var result = ex(code);
+                var details = result.Ok ? "" : "; " + (diagnostics == null ? "" : diagnostics()) + "; code=" +
+                    code.Substring(0, Math.Min(256, code.Length));
+                Check(result.Ok, mode + " event setup: " + result.S + "; " + result.M + details);
+            }
             Jr Fire(string type = "click", N node = null) { var result = ev(node ?? target, type); Check(result.Ok, mode + " event dispatch: " + result.S + "; " + result.M); return result; }
+            Code(@"var originalIterator=Array.prototype[Symbol.iterator];
+Array.prototype[Symbol.iterator]=function(){throw new Error('private list used page iterator');};
+try {
+  var earlyNode=document.getElementById('target');
+  var descriptor=Object.getOwnPropertyDescriptor(earlyNode,'onclick');
+  if(earlyNode.tagName!=='SPAN'||!descriptor||typeof descriptor.get!=='function'||typeof descriptor.set!=='function')throw new Error('private node setup');
+  document.title='Private lists';
+} finally { Array.prototype[Symbol.iterator]=originalIterator; }");
+            Check(page.T == "Private lists", mode + " private node/style lists do not consult page array iterator");
+            Code(@"var originalHas=Set.prototype.has, callback=function(){};
+try {
+  Set.prototype.has=function(){return true;};
+  var rejected=false;
+  try{window.addEventListener('invented',callback);}catch(error){rejected=error instanceof TypeError;}
+  if(!rejected)throw new Error('event type bypass');
+  Set.prototype.has=function(){return false;};
+  window.addEventListener('click',callback);
+  document.title='Private event types';
+} finally { Set.prototype.has=originalHas; window.removeEventListener('click',callback); }");
+            Check(page.T == "Private event types", mode + " private event whitelist does not consult page Set helpers");
             Code(@"var target = document.getElementById('target'), outer = document.getElementById('outer');
 var trace = [], saved, listeners = [];
 function add(node, name, capture) {

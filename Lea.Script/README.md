@@ -159,9 +159,14 @@ The compact diagnostics are `Pid/Sid`, `Ac` (verified token/startup), `Ne`
 `Sd` retains a 512-character startup report: phase, native launch, parent
 positive-control probe, total startup wall time, and child CPU time in ms.
 Warm calls leave that report unchanged. Optional `LEA_SCRIPT_STARTUP_TRACE=1`
-adds worker entry/guards/init/VM/DOM/probe checkpoints to its bounded stderr;
-no diagnostic function is exposed to page code. File-validation failures
+adds worker entry/guards/init/canary/network/VM/bridge/source/parse/DOM/probe checkpoints to its
+bounded stderr. Only this diagnostic path separates parsing through a parse-only
+prepared script with an explicit 100 ms regex timeout; normal startup retains
+the VM's regular string parser. Bootstrap initialization remains sequential.
+No diagnostic function is exposed to page code. File-validation failures
 before native launch leave `Sd` empty. See `../LeaForge/STARTUP_DIAGNOSTICS.md`.
+The fixed-list bootstrap follow-up and rejected concurrency experiment are
+recorded in `../LeaForge/BOOTSTRAP.md`; full-suite cold-start failures remain open.
 `Mm` is 128 MiB; `Cp` is a 2,500/10,000 Job CPU hard-cap rate, with one allowed
 process and kill-on-close. `Tm` is the parent's execution/I/O budget, default
 2,000 ms and clamped to 25..5,000 ms. Startup handshake has a separate 5,000 ms
