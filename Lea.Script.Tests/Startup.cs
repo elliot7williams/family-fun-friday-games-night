@@ -122,6 +122,9 @@ namespace Lea.Script.Tests
                             "fresh-path isolation checks precede page code: " + index);
                         Check(script.Sd.StartsWith("phase=ready;", StringComparison.Ordinal) && script.Sd.Length <= 512,
                             "bounded startup diagnostics retained: " + index);
+                        Check(script.Sd.Contains("startup evaluate: wall=") == (trace == "1" || index == 1) &&
+                            !script.Sd.Contains("startup parse:"), "tracing observes the production bootstrap path: " + index);
+                        Check(script.Sd.Contains("startup entry"), "compact startup phase retained without requiring timing trace: " + index);
                         var diagnostics = script.Sd;
                         Check(script.Ex("1;").Ok && script.Sd == diagnostics, "warm execution does not replace startup report: " + index);
                         sid = script.Sid;

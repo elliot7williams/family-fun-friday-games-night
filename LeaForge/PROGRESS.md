@@ -92,6 +92,21 @@ case and six actual-EXE startup scenarios, not the full 43-case host matrix.
 No new release ZIP is published from the failed full source gate, and the
 installed host remains unchanged. See `BOOTSTRAP.md` for retained evidence.
 
+Production-path tracing follow-up removes the diagnostic-only prepared parser.
+Both modes now evaluate the same bootstrap source, with compact phase markers
+retained even without timing enabled. Missing-phase and parser-path regressions
+are reproduced before the fixes. Microtask status assertions and worker warmups
+now retain typed failure/startup diagnostics. All 70 focused startup checks and
+the final 630-check normal full suite pass. Earlier runs in this round fail a
+microtask status assertion, a fresh-worker startup deadline, and an in-process
+computed-script budget; their logs remain, with no inferred common cause.
+Separate v10 compiles and passes its scripting case and six actual-EXE startup
+scenarios, not the complete 43-case host matrix or extracted-package/source
+rebuild gates. The worker EXE is 512 bytes smaller than v9; that is a binary-size
+measurement, not a speed claim. No deadline/isolation setting or required-core
+dependency changes. No release ZIP is published, the installed host stays
+unchanged, and broader readiness remains about 65%. See `STARTUP_TRACE.md`.
+
 - Added a reproducible separate .NET Framework 4.8 Firespider host/source
   candidate with optional isolated scripting in regular/resumed tabs and both
   split panes. Script-free pages remain dormant; explicit code and authored

@@ -64,11 +64,11 @@ namespace Lea.Script.Tests
                 // The independent short hard-deadline test below still uses 25 ms.
                 script.Tm = 5000;
                 var cooperativeWarmup = script.Ex("function warm(n) { return n ? warm(n-1) : 0; } warm(16);");
-                Check(cooperativeWarmup.Ok, "cooperative function warmup: " + cooperativeWarmup.S + "; " + cooperativeWarmup.M);
+                Check(cooperativeWarmup.Ok, "cooperative function warmup: " + cooperativeWarmup.S + "; " + cooperativeWarmup.M + "; " + script.Sd);
                 var loop = script.Ex("while (true) {}");
                 Check(loop.S == "limit", "isolated infinite loop budget: " + loop.S + "; " + loop.M);
                 cooperativeWarmup = script.Ex("function warm(n) { return n ? warm(n-1) : 0; } warm(16);");
-                Check(cooperativeWarmup.Ok, "fresh-worker recursion warmup: " + cooperativeWarmup.S + "; " + cooperativeWarmup.M);
+                Check(cooperativeWarmup.Ok, "fresh-worker recursion warmup: " + cooperativeWarmup.S + "; " + cooperativeWarmup.M + "; " + script.Sd);
                 var recursion = script.Ex("function f() { return f(); } f();");
                 Check(recursion.S == "limit", "isolated recursion budget: " + recursion.S + "; " + recursion.M);
                 var calls = script.Ex("for (let i=0; i<300; i++) document.title;");
@@ -155,7 +155,7 @@ namespace Lea.Script.Tests
             using (var script = new Jp(engine, page))
             {
                 var warmup = script.Ex("1;");
-                Check(warmup.Ok, "async worker warmup: " + warmup.S + "; " + warmup.M);
+                Check(warmup.Ok, "async worker warmup: " + warmup.S + "; " + warmup.M + "; " + script.Sd);
                 var ticks = 0;
                 var started = false;
                 var revoke = false;

@@ -4,6 +4,11 @@ Experimental follow-up to the bounded timers work. Broader readiness remains
 about 65%, not a standards score. Intermittent isolated-worker startup remains
 unresolved; successful samples do not explain earlier failed launches.
 
+The later [production-path tracing follow-up](STARTUP_TRACE.md) removes this
+round's diagnostic-only prepared parser and retains compact markers by default.
+The parse-split observations below describe their original worker builds, not
+the current tracing implementation.
+
 ## Implementation
 
 The shared DOM bootstrap no longer constructs a Set for its six supported event

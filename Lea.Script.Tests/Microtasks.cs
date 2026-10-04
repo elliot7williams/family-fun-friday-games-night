@@ -20,17 +20,28 @@ namespace Lea.Script.Tests
         private static void Suite(E engine, P page, Func<string, Jr> ex, Func<N, string, Jr> ev, string mode, Func<string> diagnostics = null)
         {
             void Check(bool condition, string name) { Program.Check(condition, mode + " microtasks: " + name); }
+            void Assert(bool condition, Jr result, string name, string code = null)
+            {
+                var details = condition ? "" : "; actual=" + result.S + "; " + result.M + "; " +
+                    (diagnostics == null ? "" : diagnostics()) + (code == null ? "" : "; code=" +
+                    code.Substring(0, Math.Min(256, code.Length)));
+                Check(condition, name + details);
+            }
             void Code(string code)
             {
                 var result = ex(code);
-                var details = result.Ok ? "" : "; " + (diagnostics == null ? "" : diagnostics()) + "; code=" +
-                    code.Substring(0, Math.Min(256, code.Length));
-                Check(result.Ok, "code: " + result.S + "; " + result.M + details);
+                Assert(result.Ok, result, "code: " + result.S + "; " + result.M, code);
+            }
+            void Status(string code, string expected, string name)
+            {
+                var result = ex(code);
+                Assert(result.S == expected, result, name, code);
             }
             var target = engine.Id(page, "counter");
             Code("var target=document.getElementById('counter');target.onclick=function(){Promise.resolve().then(function(){document.title='Event microtask';});};");
             var eventResult = ev(target, "click");
-            Check(eventResult.Ok && eventResult.N == 1 && page.T == "Event microtask", "native event checkpoint includes Promise DOM writes");
+            Assert(eventResult.Ok && eventResult.N == 1 && page.T == "Event microtask", eventResult,
+                "native event checkpoint includes Promise DOM writes");
 
             Code(@"var nativePromise=Promise,nativeThen=Promise.prototype.then,nativeResolve=Promise.resolve,nativeApply=Reflect.apply;
 Promise=undefined;nativePromise.resolve=undefined;nativePromise.prototype.then=undefined;Reflect.apply=undefined;
@@ -47,13 +58,15 @@ if(returned!==undefined||queueMicrotask.name!=='queueMicrotask'||queueMicrotask.
 
             Code("target.onclick=function(e){Promise.resolve().then(function(){if(e.eventPhase!==0||e.currentTarget!==null||e.composedPath().length!==0)throw new Error('cleanup');e.preventDefault();document.title='Late cancellation';});};");
             eventResult = ev(target, "click");
-            Check(eventResult.Ok && !eventResult.D && page.T == "Late cancellation", "event cleanup precedes checkpoint and late cancellation cannot change dispatch result");
+            Assert(eventResult.Ok && !eventResult.D && page.T == "Late cancellation", eventResult,
+                "event cleanup precedes checkpoint and late cancellation cannot change dispatch result");
             Code("target.onclick=function(e){e.preventDefault();queueMicrotask(function(){document.title='Canceled checkpoint';});};");
             eventResult = ev(target, "click");
-            Check(eventResult.Ok && eventResult.D && page.T == "Canceled checkpoint", "synchronous cancellation survives checkpoint");
+            Assert(eventResult.Ok && eventResult.D && page.T == "Canceled checkpoint", eventResult, "synchronous cancellation survives checkpoint");
             Code("target.onclick=async function(){await Promise.resolve();document.title='Awaited event';};");
             eventResult = ev(target, "click");
-            Check(eventResult.Ok && eventResult.N == 1 && page.T == "Awaited event", "async event continuation completes in native turn");
+            Assert(eventResult.Ok && eventResult.N == 1 && page.T == "Awaited event", eventResult,
+                "async event continuation completes in native turn");
             Code("Promise.resolve().then(function(){throw new Error('caught');}).catch(function(e){document.title=e.message;});");
             Check(page.T == "caught", "handled Promise rejection uses Jint semantics");
             Code("var invalid=[undefined,null,{},'code',0,{handleEvent:function(){}}],rejected=0;for(var value of invalid){try{queueMicrotask(value);}catch(e){if(!(e instanceof TypeError))throw e;rejected++;}}if(rejected!==6)throw new Error('validation');");
@@ -61,27 +74,29 @@ if(returned!==undefined||queueMicrotask.name!=='queueMicrotask'||queueMicrotask.
             Check(page.T == "Captured scheduler", "scheduler does not depend on a replaced public Promise binding");
 
             var failure = ex("var oldRealm=17;queueMicrotask(function(){document.title='Partial microtask';throw new Error('expected');});queueMicrotask(function(){document.getElementById('result').textContent='Following job';});");
-            Check(failure.S == "js" && failure.N == 2 && page.T == "Partial microtask" && engine.Id(page, "result").C[0].X == "Following job",
+            Assert(failure.S == "js" && failure.N == 2 && page.T == "Partial microtask" && engine.Id(page, "result").C[0].X == "Following job", failure,
                 "uncaught callback reports failure after draining following jobs and retains completed writes");
             Code("if(typeof oldRealm!=='undefined')throw new Error('realm');document.title='Fresh microtasks';");
             Code("var target=document.getElementById('counter');target.onclick=function(){queueMicrotask(function(){document.title='Event partial';throw new Error('first callback');});queueMicrotask(function(){throw new Error('second callback');});queueMicrotask(function(){document.getElementById('result').textContent='Event following';});};");
             failure = ev(target, "click");
-            Check(failure.S == "js" && failure.N == 2 && failure.M.Contains("first callback") && page.T == "Event partial" && engine.Id(page, "result").C[0].X == "Event following",
+            Assert(failure.S == "js" && failure.N == 2 && failure.M.Contains("first callback") && page.T == "Event partial" && engine.Id(page, "result").C[0].X == "Event following", failure,
                 "native uncaught callback failure drains later jobs and reports first error");
             Code("var discarded=0;var target=document.getElementById('counter');target.onclick=function(){queueMicrotask(function(){discarded++;document.title='Unexpected job';});throw new Error('synchronous event');};");
-            Check(ev(target, "click").S == "js" && page.T == "Event partial", "synchronous event failure discards queued realm before checkpoint");
+            failure = ev(target, "click");
+            Assert(failure.S == "js" && page.T == "Event partial", failure, "synchronous event failure discards queued realm before checkpoint");
             Code("if(typeof discarded!=='undefined')throw new Error('queued realm survived');");
             failure = ex("queueMicrotask(function(){throw null;});");
-            Check(failure.S == "js" && failure.M.Length <= 512, "non-Error thrown values are bounded failures");
+            Assert(failure.S == "js" && failure.M.Length <= 512, failure, "non-Error thrown values are bounded failures");
             Code("var admitted=0;for(var i=0;i<128;i++)queueMicrotask(function(){admitted++;});");
             Code("if(admitted!==128)throw new Error('count');for(var i=0;i<128;i++)queueMicrotask(function(){admitted++;});");
             Code("if(admitted!==256)throw new Error('reset');");
-            Check(ex("for(var i=0;i<129;i++)queueMicrotask(function(){});").S == "limit", "128-job admission limit and per-turn reset");
-            Check(ex("function spin(){queueMicrotask(spin);}queueMicrotask(spin);").S == "limit", "recursive queueMicrotask cannot bypass admission budget");
+            Status("for(var i=0;i<129;i++)queueMicrotask(function(){});", "limit", "128-job admission limit and per-turn reset");
+            Status("function spin(){queueMicrotask(spin);}queueMicrotask(spin);", "limit", "recursive queueMicrotask cannot bypass admission budget");
             Code("function warm(){Promise.resolve().then(function(){});}warm();");
-            Check(ex("function spin(){Promise.resolve().then(spin);}spin();").S == "limit", "recursive Promise jobs cannot bypass execution constraints");
+            Status("function spin(){Promise.resolve().then(spin);}spin();", "limit", "recursive Promise jobs cannot bypass execution constraints");
             Code("var target=document.getElementById('counter');target.onclick=function(){for(var i=0;i<50;i++)Promise.resolve().then(function(){for(var j=0;j<1000;j++){var n=j;}});};");
-            Check(ev(target, "click").S == "limit", "event checkpoint enforces aggregate job execution budget");
+            failure = ev(target, "click");
+            Assert(failure.S == "limit", failure, "event checkpoint enforces aggregate job execution budget");
             Code("var settle;new Promise(function(resolve){settle=resolve;}).then(function(){document.title='Stale promise';});");
             engine.Je = false;
             engine.Je = true;

@@ -67,17 +67,9 @@ namespace Lea.Script.Worker
                         using (var stream = typeof(Program).Assembly.GetManifestResourceStream("Lea.Script.Dom.js"))
                         using (var reader = new StreamReader(stream)) source = reader.ReadToEnd();
                         Trace("source", clock, trace);
-                        if (trace)
-                        {
-                            // Prepared scripts have independent regex defaults; keep this diagnostic path bounded too.
-                            var bootstrap = Jint.Engine.PrepareScript(source, null, false,
-                                new ScriptPreparationOptions { StaticAnalysis = false,
-                                    ParsingOptions = new ScriptParsingOptions {
-                                        CompileRegex = false, RegexTimeout = TimeSpan.FromMilliseconds(100) } });
-                            Trace("parse", clock, trace);
-                            dispatch = vm.Evaluate(bootstrap);
-                        }
-                        else dispatch = vm.Evaluate(source);
+                        // Tracing observes the production parser instead of selecting a different bootstrap path.
+                        Trace("evaluate", clock, trace);
+                        dispatch = vm.Evaluate(source);
                         Trace("dom", clock, trace);
                         var network = probe.Denied();
                         Trace("probes", clock, trace);
@@ -145,7 +137,7 @@ namespace Lea.Script.Worker
 
         private static void Trace(string stage, Stopwatch clock, bool enabled)
         {
-            if (!enabled) return;
+            if (!enabled) { Console.Error.WriteLine("startup " + stage); return; }
             using (var process = Process.GetCurrentProcess())
                 Console.Error.WriteLine("startup " + stage + ": wall=" + clock.ElapsedMilliseconds +
                     "; cpu=" + (long)process.TotalProcessorTime.TotalMilliseconds + " ms");

@@ -37,6 +37,14 @@ startup in microtask tests. Its full 43-case host matrix, extracted packages and
 independent host-source rebuild are not verified, and no release ZIP is published
 from that failed source gate. See [bootstrap evidence](../LeaForge/BOOTSTRAP.md).
 
+The `Lea-146-trace-v10` diagnostic candidate uses the production parser in both
+trace modes and retains compact startup markers without timing enabled. Its
+scripting case and six actual-EXE startup scenarios pass, as does the final
+630-check normal source suite. Earlier failures in the same round remain
+unresolved; the full 43-case host matrix, extracted packages and independent
+source rebuild are not verified for v10. No new release ZIP is published.
+See [tracing evidence and limits](../LeaForge/STARTUP_TRACE.md).
+
 ## Build
 
 Build the current Lea solution in Release, then:
