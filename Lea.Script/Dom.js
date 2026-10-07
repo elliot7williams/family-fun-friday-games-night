@@ -123,16 +123,234 @@
         return state.inline[type].callback;
     }
     function str(value) {
-        if (typeof value === 'symbol') throw new TypeError('A DOM string cannot be a Symbol');
+        if (typeof value === 'symbol') throw new listError('A DOM string cannot be a Symbol');
         return stringify(value);
     }
+    const listStates = new WeakMap(), getState = WeakMap.prototype.get, setState = WeakMap.prototype.set;
+    const makeObject = Object.create, define = Object.defineProperty;
+    const reflectGet = Reflect.get, reflectSet = Reflect.set, reflectHas = Reflect.has;
+    const reflectKeys = Reflect.ownKeys, reflectDescriptor = Reflect.getOwnPropertyDescriptor;
+    const reflectDefine = Reflect.defineProperty, reflectDelete = Reflect.deleteProperty;
+    const sliceString = String.prototype.slice, codeAt = String.prototype.charCodeAt;
+    const arrayKeys = Array.prototype.keys, arrayValues = Array.prototype.values;
+    const arrayEntries = Array.prototype.entries, arrayForEach = Array.prototype.forEach, arrayIndexOf = Array.prototype.indexOf;
+    const ListProxy = Proxy, listError = TypeError, NativeError = Error, construct = Reflect.construct;
+    // Jint 4.16.4's native formatter supplies the prototype as the accessor receiver.
+    define(NativeError.prototype, 'toString', { value: function toString() {
+        if (this === null || typeof this !== 'object' && typeof this !== 'function') throw new listError('Illegal Error receiver');
+        let name = this.name;
+        name = name === undefined ? 'Error' : str(name);
+        let message = this.message;
+        message = message === undefined ? '' : str(message);
+        return name === '' ? message : message === '' ? name : name + ': ' + message;
+    }, writable: true, configurable: true });
+    const exceptions = new WeakMap();
+    const exceptionNames = ['IndexSizeError', '', 'HierarchyRequestError', 'WrongDocumentError', 'InvalidCharacterError', '', 'NoModificationAllowedError',
+        'NotFoundError', 'NotSupportedError', 'InUseAttributeError', 'InvalidStateError', 'SyntaxError', 'InvalidModificationError', 'NamespaceError',
+        'InvalidAccessError', '', 'TypeMismatchError', 'SecurityError', 'NetworkError', 'AbortError', 'URLMismatchError', 'QuotaExceededError',
+        'TimeoutError', 'InvalidNodeTypeError', 'DataCloneError'];
+    function exceptionState(value) {
+        const state = apply(getState, exceptions, [value]);
+        if (!state) throw new listError('Illegal DOMException receiver');
+        return state;
+    }
+    function DOMException(message = '', name = 'Error') {
+        if (!new.target) throw new listError('DOMException requires new');
+        message = str(message);
+        name = str(name);
+        const value = construct(NativeError, [], new.target);
+        apply(setState, exceptions, [value, { message, name }]);
+        return value;
+    }
+    DOMException.prototype = {
+        __proto__: NativeError.prototype,
+        get name() { return exceptionState(this).name; },
+        get message() { return exceptionState(this).message; },
+        get code() {
+            const name = exceptionState(this).name;
+            for (let i = 0; i < exceptionNames.length; i++) if (exceptionNames[i] && exceptionNames[i] === name) return i + 1;
+            return 0;
+        }
+    };
+    define(DOMException, 'prototype', { writable: false });
+    define(DOMException.prototype, 'constructor', { value: DOMException, writable: true, configurable: true });
+    const exceptionConstants = {
+        INDEX_SIZE_ERR: { value: 1, enumerable: true }, DOMSTRING_SIZE_ERR: { value: 2, enumerable: true },
+        HIERARCHY_REQUEST_ERR: { value: 3, enumerable: true }, WRONG_DOCUMENT_ERR: { value: 4, enumerable: true },
+        INVALID_CHARACTER_ERR: { value: 5, enumerable: true }, NO_DATA_ALLOWED_ERR: { value: 6, enumerable: true },
+        NO_MODIFICATION_ALLOWED_ERR: { value: 7, enumerable: true }, NOT_FOUND_ERR: { value: 8, enumerable: true },
+        NOT_SUPPORTED_ERR: { value: 9, enumerable: true }, INUSE_ATTRIBUTE_ERR: { value: 10, enumerable: true },
+        INVALID_STATE_ERR: { value: 11, enumerable: true }, SYNTAX_ERR: { value: 12, enumerable: true },
+        INVALID_MODIFICATION_ERR: { value: 13, enumerable: true }, NAMESPACE_ERR: { value: 14, enumerable: true },
+        INVALID_ACCESS_ERR: { value: 15, enumerable: true }, VALIDATION_ERR: { value: 16, enumerable: true },
+        TYPE_MISMATCH_ERR: { value: 17, enumerable: true }, SECURITY_ERR: { value: 18, enumerable: true },
+        NETWORK_ERR: { value: 19, enumerable: true }, ABORT_ERR: { value: 20, enumerable: true },
+        URL_MISMATCH_ERR: { value: 21, enumerable: true }, QUOTA_EXCEEDED_ERR: { value: 22, enumerable: true },
+        TIMEOUT_ERR: { value: 23, enumerable: true }, INVALID_NODE_TYPE_ERR: { value: 24, enumerable: true },
+        DATA_CLONE_ERR: { value: 25, enumerable: true }
+    };
+    Object.defineProperties(DOMException, exceptionConstants);
+    Object.defineProperties(DOMException.prototype, exceptionConstants);
+    define(DOMException.prototype, Symbol.toStringTag, { value: 'DOMException', configurable: true });
+    define(globalThis, 'DOMException', { value: DOMException, writable: true, configurable: true, enumerable: true });
+    function DOMTokenList() { throw new listError('Illegal constructor'); }
+    function listState(receiver, supplied, required = 0) {
+        const state = apply(getState, listStates, [receiver]);
+        if (state === undefined) throw new listError('Illegal DOMTokenList receiver');
+        if (supplied && supplied.length < required) throw new listError('A DOMTokenList argument is required');
+        return state;
+    }
+    function space(code) { return code === 32 || code === 9 || code === 10 || code === 12 || code === 13; }
+    function position(values, word) {
+        return apply(arrayIndexOf, values, [word]);
+    }
+    function words(source) {
+        const values = [];
+        let start = -1;
+        for (let i = 0; i <= source.length; i++) {
+            if (i === source.length || space(apply(codeAt, source, [i]))) {
+                if (start >= 0) {
+                    const word = apply(sliceString, source, [start, i]);
+                    if (position(values, word) < 0) values[values.length] = word;
+                    start = -1;
+                }
+            } else if (start < 0) start = i;
+        }
+        return values;
+    }
+    function listData(state) {
+        const raw = call('attr', state, 'class');
+        return { raw, values: words(raw || '') };
+    }
+    function validWord(word) {
+        if (word.length === 0) throw new DOMException('A class token is empty', 'SyntaxError');
+        for (let i = 0; i < word.length; i++)
+            if (space(apply(codeAt, word, [i]))) throw new DOMException('A class token contains ASCII whitespace', 'InvalidCharacterError');
+    }
+    function listArguments(supplied) {
+        const values = [];
+        for (let i = 0; i < supplied.length; i++) values[i] = str(supplied[i]);
+        for (let i = 0; i < values.length; i++) validWord(values[i]);
+        return values;
+    }
+    function writeList(state, data) {
+        if (data.raw === null && data.values.length === 0) return;
+        let text = '';
+        for (let i = 0; i < data.values.length; i++) text += (i ? ' ' : '') + data.values[i];
+        put(state, 'cn', text);
+    }
+    DOMTokenList.prototype = {
+        get length() { return listData(listState(this)).values.length; },
+        get value() { return call('attr', listState(this), 'class') || ''; },
+        set value(value) { put(listState(this), 'cn', value); },
+        item(index) { const state = listState(this, arguments, 1); index = index >>> 0; const values = listData(state).values; return index < values.length ? values[index] : null; },
+        contains(token) { const state = listState(this, arguments, 1); token = str(token); return position(listData(state).values, token) >= 0; },
+        add() {
+            const state = listState(this), supplied = listArguments(arguments), data = listData(state);
+            for (let i = 0; i < supplied.length; i++) if (position(data.values, supplied[i]) < 0) data.values[data.values.length] = supplied[i];
+            writeList(state, data);
+        },
+        remove() {
+            const state = listState(this), supplied = listArguments(arguments), data = listData(state), remaining = [];
+            for (let i = 0; i < data.values.length; i++)
+                if (position(supplied, data.values[i]) < 0) remaining[remaining.length] = data.values[i];
+            data.values = remaining;
+            writeList(state, data);
+        },
+        toggle(token, force = undefined) {
+            const state = listState(this, arguments, 1);
+            token = str(token);
+            validWord(token);
+            const data = listData(state), found = position(data.values, token);
+            const add = force === undefined ? found < 0 : !!force;
+            if ((found >= 0) === add) return add;
+            if (add) data.values[data.values.length] = token;
+            else {
+                for (let i = found; i < data.values.length - 1; i++) data.values[i] = data.values[i + 1];
+                data.values.length--;
+            }
+            writeList(state, data);
+            return add;
+        },
+        replace(token, newToken) {
+            const state = listState(this, arguments, 2);
+            token = str(token);
+            newToken = str(newToken);
+            if (token.length === 0 || newToken.length === 0) throw new DOMException('A class token is empty', 'SyntaxError');
+            validWord(token);
+            validWord(newToken);
+            const data = listData(state), old = position(data.values, token), next = position(data.values, newToken);
+            if (old < 0) return false;
+            const remaining = [];
+            for (let i = 0; i < data.values.length; i++) {
+                if (i === old) { if (next < 0 || old <= next) remaining[remaining.length] = newToken; }
+                else if (i !== next || next < old) remaining[remaining.length] = data.values[i];
+            }
+            data.values = remaining;
+            writeList(state, data);
+            return true;
+        },
+        supports(token) { listState(this, arguments, 1); str(token); throw new listError('Class has no supported-token vocabulary'); },
+        toString() { return call('attr', listState(this), 'class') || ''; },
+        keys: arrayKeys, values: arrayValues, entries: arrayEntries, forEach: arrayForEach
+    };
+    const listPrototype = DOMTokenList.prototype;
+    define(listPrototype, 'constructor', { value: DOMTokenList, writable: true, configurable: true });
+    define(DOMTokenList, 'prototype', { writable: false });
+    define(listPrototype, Symbol.iterator, { value: arrayValues, writable: true, configurable: true });
+    define(listPrototype, Symbol.toStringTag, { value: 'DOMTokenList', configurable: true });
+    define(globalThis, 'DOMTokenList', { value: DOMTokenList, writable: true, configurable: true, enumerable: true });
+    function listIndex(name) {
+        if (typeof name !== 'string' || name.length === 0) return -1;
+        const number = name >>> 0;
+        return number !== 4294967295 && stringify(number) === name ? number : -1;
+    }
+    function makeList(key) {
+        const target = makeObject(listPrototype);
+        const proxy = new ListProxy(target, {
+            get(target, name, receiver) {
+                const index = listIndex(name);
+                if (index >= 0) {
+                    const values = listData(key).values;
+                    if (index < values.length) return values[index];
+                }
+                return reflectGet(target, name, receiver);
+            },
+            has(target, name) { const index = listIndex(name); return index >= 0 && index < listData(key).values.length || reflectHas(target, name); },
+            getOwnPropertyDescriptor(target, name) {
+                const index = listIndex(name);
+                if (index >= 0) {
+                    const values = listData(key).values;
+                    if (index < values.length) return { value: values[index], writable: false, enumerable: true, configurable: true };
+                }
+                return reflectDescriptor(target, name);
+            },
+            ownKeys(target) {
+                const keys = [], size = listData(key).values.length, extra = reflectKeys(target);
+                for (let i = 0; i < size; i++) keys[keys.length] = stringify(i);
+                for (let i = 0; i < extra.length; i++) keys[keys.length] = extra[i];
+                return keys;
+            },
+            set(target, name, value, receiver) {
+                const index = listIndex(name);
+                if (index >= 0 && index < listData(key).values.length) return false;
+                return reflectSet(target, name, value, receiver);
+            },
+            defineProperty(target, name, descriptor) { return listIndex(name) < 0 && reflectDefine(target, name, descriptor); },
+            deleteProperty(target, name) { const index = listIndex(name); return !(index >= 0 && index < listData(key).values.length) && reflectDelete(target, name); },
+            preventExtensions() { return false; }
+        });
+        apply(setState, listStates, [proxy, key]);
+        return proxy;
+    }
     function put(key, name, value) {
-        if (!call('put', key, name, str(value))) throw new TypeError('Unsupported Lea mutation');
+        if (!call('put', key, name, str(value))) throw new listError('Unsupported Lea mutation');
     }
     function wrap(key) {
         if (key === null) return null;
         if (cache.has(key)) return cache.get(key);
         const node = {};
+        let classTokens;
         const style = {};
         for (let i = 0; i < styleNames.length; i++) {
             const name = styleNames[i];
@@ -150,16 +368,10 @@
             style: { value: style },
             getAttribute: { value(name) { return call('attr', key, str(name)); } },
             hasAttribute: { value(name) { return call('attr', key, str(name)) !== null; } },
-            classList: { value: Object.freeze({
-                add(name) { put(key, 'ac', name); },
-                remove(name) { put(key, 'rc', name); },
-                toggle(name) {
-                    const before = (call('attr', key, 'class') || '').split(/[ \t\n\f\r]+/).includes(String(name));
-                    put(key, 'tc', name);
-                    return !before;
-                },
-                contains(name) { return (call('attr', key, 'class') || '').split(/[ \t\n\f\r]+/).includes(String(name)); }
-            }) }
+            classList: {
+                get() { if (!classTokens) classTokens = makeList(key); return classTokens; },
+                set(value) { if (!classTokens) classTokens = makeList(key); classTokens.value = value; }
+            }
         });
         eventTarget(node);
         cache.set(key, node);

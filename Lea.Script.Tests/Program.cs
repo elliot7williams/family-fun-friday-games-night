@@ -20,6 +20,37 @@ namespace Lea.Script.Tests
                 var fixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-runtime.html");
                 var viewFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-view.html");
                 var attributeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-attributes.html");
+                if (args.Length > 1 && args[1] == "--class-profile")
+                {
+                    ClassLists.Profile(args.Length > 2 ? args[2] : null);
+                    return 0;
+                }
+                if (args.Length > 1 && args[1] == "--class-start")
+                {
+                    ClassLists.Bootstrap(attributeFixture);
+                    return 0;
+                }
+                if (args.Length > 1 && args[1] == "--classes-view")
+                {
+                    View.ClassLists(attributeFixture, args.Length > 2 ? args[2] : null);
+                    Console.WriteLine("PASS Lea.Script native classList: " + checks + " checks.");
+                    return 0;
+                }
+                if (args.Length > 1 && (args[1] == "--classes" || args[1] == "--classes-warm"))
+                {
+                    var warm = args[1] == "--classes-warm";
+                    if (warm)
+                    {
+                        Console.WriteLine("Diagnostic warm functional run; not a cold-start release gate.");
+                        try { ClassLists.Bootstrap(attributeFixture); }
+                        catch (System.Reflection.TargetInvocationException error) when (error.InnerException is TimeoutException)
+                        { Console.WriteLine("Cold bootstrap timeout retained; continuing warm functional diagnostics."); }
+                    }
+                    ClassLists.Run(attributeFixture);
+                    View.ClassLists(attributeFixture, args.Length > 2 ? args[2] : null);
+                    Console.WriteLine("PASS Lea.Script classList" + (warm ? " warm diagnostics" : "") + ": " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--attributes-view")
                 {
                     View.Attributes(attributeFixture, args.Length > 2 ? args[2] : null);
@@ -153,6 +184,8 @@ namespace Lea.Script.Tests
                 Events.Run(viewFixture);
                 Attributes.Run(attributeFixture);
                 View.Attributes(attributeFixture);
+                ClassLists.Run(attributeFixture);
+                View.ClassLists(attributeFixture);
                 Microtasks.Run(viewFixture);
                 Timers.Run(viewFixture);
                 View.Run(viewFixture);

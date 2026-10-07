@@ -160,6 +160,21 @@ production bug. Earlier intermittent startup failures remain unexplained and
 the installed host is untouched. Readiness stays about 65%; milestone 146
 remains in progress. See `IMAGE_STARTUP.md` for contracts, evidence and artifacts.
 
+Live class-list work is in progress, not a new release. The optional interpreter
+adds ordered case-sensitive token operations, live indices and native array
+iteration, setter forwarding, branded DOM exceptions, and a narrow native-error
+formatter compatibility fix through existing `cn`, without changing protocol,
+core aliases, deadlines or isolation. Reproduced empty-membership, replacement
+validation-order, premature-forwarding and inherited-error-receiver failures
+have focused regression coverage. All 47 in-process and five separate native-view
+checks pass, as does the complete core suite, but the normal full scripting suite
+fails cold initialization and a fresh isolated
+worker exceeds the existing hello deadline. Compilation is not a release gate.
+No new runtime ZIP or Firespider candidate is published from these failures;
+v13 and the installed browser stay intact. Readiness remains about 65% and
+milestone 146 remains in progress. See `CLASS_LISTS.md` for exact verification
+scope, diagnostics and remaining work.
+
 - Added a reproducible separate .NET Framework 4.8 Firespider host/source
   candidate with optional isolated scripting in regular/resumed tabs and both
   split panes. Script-free pages remain dormant; explicit code and authored

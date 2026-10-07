@@ -10,6 +10,11 @@ The earlier projects stay small:
 
 LeaForge is where we can grow the more full-featured browser.
 
+Development note: the expanded live `classList`/`DOMException` work is not a
+new release. Cold interpreter initialization and isolated-worker startup still
+fail existing deadlines. The installed browser and verified v13 candidate stay
+unchanged. See [CLASS_LISTS.md](CLASS_LISTS.md) for scope and retained evidence.
+
 ## Current Features
 
 - bounded two-term `calc()` thresholds in CSS size-container queries, with

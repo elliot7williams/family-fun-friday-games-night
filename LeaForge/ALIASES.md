@@ -469,9 +469,17 @@ and scripting permission are required. See `ATTRIBUTES.md` for limits/tests.
 
 Core class/word selectors and `ac/rc/tc` share ASCII token separators: space,
 tab, line feed, form feed and carriage return. Optional classList membership
-uses these separators too; NBSP/vertical tab do not separate tokens. Existing
-case and mutation bounds remain, and raw `cn` values are not normalized.
+uses these separators too; NBSP/vertical tab do not separate tokens. Core case
+and mutation bounds remain, and raw `cn` values are not normalized.
 See `CLASS_TOKENS.md` for the allocation measurements and compatibility limits.
+
+The in-progress optional interpreter adds live case-sensitive variadic
+`classList.add/remove`, forced `toggle`, `replace`, indexed/iterable access,
+raw `value`, and setter forwarding through existing `cn`; it adds no core alias
+or protocol version. Its 512-unit write ceiling and bridge/execution limits
+remain. This differs from the unchanged case-insensitive literal `ac/rc/tc`
+commands and core selector behavior. Startup release gates still fail; see
+`CLASS_LISTS.md` before using this experimental source.
 
 `GoA` and `RlA` are the asynchronous forms used by browser windows. `St` cancels
 an active network request. `Tm` is the per-request network deadline in
