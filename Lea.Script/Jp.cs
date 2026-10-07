@@ -22,6 +22,7 @@ namespace Lea.Script
         private readonly Ja bridge;
         private readonly int thread;
         private readonly string directory;
+        private readonly Func<IList<string>, Rp> createWorker;
         private readonly string profile = "Lea.Script." + Guid.NewGuid().ToString("N");
         private readonly object gate = new object();
         private readonly List<FileStream> leases = new List<FileStream>();
@@ -51,6 +52,12 @@ namespace Lea.Script
             bridge = new Ja(engine, page);
             thread = Thread.CurrentThread.ManagedThreadId;
             generation = engine.Jg;
+        }
+
+        internal Jp(E engine, P page, string workerDirectory, Func<IList<string>, Rp> createWorker)
+            : this(engine, page, workerDirectory)
+        {
+            this.createWorker = createWorker ?? throw new ArgumentNullException("createWorker");
         }
 
         public Jr At { get; private set; }
@@ -256,7 +263,7 @@ namespace Lea.Script
 
         private Rp Launch(List<string> files)
         {
-            var endpoint = Rp.Open(files[0], "--pipe", directory, Mm, Cp, profile, files, true);
+            var endpoint = createWorker == null ? Rp.Open(files[0], "--pipe", directory, Mm, Cp, profile, files, true) : createWorker(files);
             lock (gate)
             {
                 worker = endpoint;

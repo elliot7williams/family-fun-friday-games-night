@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Security.AccessControl;
 using System.Security.Cryptography;
 using System.Security.Principal;
@@ -13,11 +14,136 @@ using System.Windows.Forms;
 using Lea.Engine;
 using Lea.Script;
 using Lea.Script.Worker;
+using Lea.Win;
 
 namespace Lea.Script.Tests
 {
     internal static class Startup
     {
+        internal static void ProfileErrors()
+        {
+            foreach (var assembly in new[] { typeof(Jp).Assembly, typeof(V).Assembly })
+            {
+                var method = assembly.GetType("Lea.Win.Rp", true).GetMethod("ProfileResult", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+                ProfileErrors((Action<int>)Delegate.CreateDelegate(typeof(Action<int>), method), assembly.GetName().Name);
+            }
+        }
+
+        private static void ProfileErrors(Action<int> report, string owner)
+        {
+            report(0);
+            Check(true, owner + ": successful profile HRESULT remains successful");
+            foreach (var code in new[] { unchecked((int)0x80070070), unchecked((int)0x80004005) })
+            {
+                IOException failure = null;
+                try { report(code); }
+                catch (IOException error) { failure = error; }
+                var native = failure == null ? null : failure.InnerException as COMException;
+                Check(native != null && native.ErrorCode == code, owner + ": profile COM failure becomes I/O with original HRESULT: " + code.ToString("X8"));
+                Check(failure != null && native != null && failure.Message.Contains("0x" + code.ToString("X8")) && failure.Message.Contains(native.Message),
+                    owner + ": profile I/O report retains native code and description: " + code.ToString("X8"));
+            }
+            try { report(unchecked((int)0x80070005)); throw new Exception("Access denial was ignored"); }
+            catch (UnauthorizedAccessException) { Check(true, owner + ": profile access denial keeps its typed exception"); }
+            try { report(unchecked((int)0x80070057)); throw new Exception("Invalid argument was ignored"); }
+            catch (ArgumentException) { Check(true, owner + ": profile invalid argument keeps its typed exception"); }
+            try { report(unchecked((int)0x8007000E)); throw new Exception("Native memory failure was ignored"); }
+            catch (OutOfMemoryException) { Check(true, owner + ": critical profile memory failure is not hidden as I/O"); }
+        }
+
+        // Opt-in evidence for an already disk-full machine; never fills a drive to create the failure.
+        internal static void Unavailable(string fixture)
+        {
+            UnavailableCore(fixture, false).GetAwaiter().GetResult();
+            View.Pump(() => UnavailableCore(fixture, true));
+            View.Pump(() => UnavailableView(fixture));
+        }
+
+        internal static void LaunchFailures(string fixture)
+        {
+            UnavailableCore(fixture, false, true).GetAwaiter().GetResult();
+            View.Pump(() => UnavailableCore(fixture, true, true));
+            View.Pump(() => UnavailableView(fixture, true));
+        }
+
+        private static async Task UnavailableCore(string fixture, bool asynchronous, bool simulated = false)
+        {
+            var engine = new E();
+            var page = engine.Go(fixture);
+            var title = page.T;
+            var runtime = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ScriptWorker");
+            var files = Directory.GetFiles(runtime).OrderBy(file => file).ToArray();
+            var rules = files.Select(ProfileRules).ToArray();
+            var launches = 0;
+            using (var script = simulated ? new Jp(engine, page, runtime, supplied =>
+                {
+                    launches++;
+                    if (supplied.Count != 8) throw new Exception("Unexpected worker file list");
+                    Rp.ProfileResult(unchecked((int)0x80070070));
+                    throw new Exception("Profile failure was ignored");
+                }) : new Jp(engine, page))
+                for (var attempt = 0; attempt < 2; attempt++)
+                {
+                    var result = asynchronous ? await script.ExA("document.title='must not run';") : script.Ex("document.title='must not run';");
+                    var label = "simulated=" + simulated + "; async=" + asynchronous + "; attempt=" + attempt;
+                    Console.WriteLine("Unavailable worker " + label + ": " + result.S + "; " + result.M);
+                    Check(result.S == "setup" && result.M.Contains("0x80070070") && result.M.Contains("phase=launch;") && result.M.Length <= 512,
+                        "disk-full launch returns bounded setup diagnostics: " + label);
+                    Check(result.N == 0 && page.T == title && script.Pid == 0 && !script.Ac && !script.Ne && !script.Nd && !script.Fd,
+                        "unavailable isolation cannot execute page code or fall back: " + label);
+                    var leases = (System.Collections.ICollection)typeof(Jp).GetField("leases", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(script);
+                    var running = (bool)typeof(Jp).GetField("running", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(script);
+                    Check(leases.Count == 0 && !running && (!simulated || launches == attempt + 1) && files.Select(ProfileRules).SequenceEqual(rules),
+                        "failed launch releases leases, clears running state and preserves ACLs: " + label);
+                }
+        }
+
+        private static string ProfileRules(string path)
+        { return File.GetAccessControl(path, AccessControlSections.Access).GetSecurityDescriptorSddlForm(AccessControlSections.Access); }
+
+        private static async Task UnavailableView(string fixture, bool simulated = false)
+        {
+            var errors = 0;
+            ThreadExceptionEventHandler failed = (sender, args) => errors++;
+            Application.ThreadException += failed;
+            try
+            {
+                using (var form = new Form { ClientSize = new System.Drawing.Size(940, 820), ShowInTaskbar = false, StartPosition = FormStartPosition.Manual, Location = new System.Drawing.Point(-20000, -20000) })
+                using (var view = new V { Dock = DockStyle.Fill })
+                {
+                    form.Controls.Add(view);
+                    Lea.Script.Win.W.On(view);
+                    form.Show();
+                    var page = await view.GoA(fixture);
+                    var title = page.T;
+                    Check(view.Xo != null && view.Xo.Ok && !view.Busy,
+                        "script-free page remains usable when worker isolation is unavailable");
+                    if (simulated)
+                    {
+                        var adapter = (Lea.Script.Win.W)view.Xs;
+                        var engine = (E)typeof(Lea.Script.Win.W).GetField("engine", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(adapter);
+                        adapter.At.Dispose();
+                        var replacement = new Jp(engine, page, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ScriptWorker"), supplied =>
+                        {
+                            Rp.ProfileResult(unchecked((int)0x80070070));
+                            throw new Exception("Profile failure was ignored");
+                        });
+                        typeof(Lea.Script.Win.W).GetProperty("At").SetValue(adapter, replacement, null);
+                    }
+                    for (var attempt = 0; attempt < 2; attempt++)
+                    {
+                        var result = await view.JsA("document.title='must not run';");
+                        Check(result.S == "setup" && result.M.Contains("0x80070070") && result.M.Length <= 512,
+                            "native view receives typed disk-full status: " + attempt);
+                        Check(view.At == page && view.T == title && view.Xn == 0 && !view.Busy && errors == 0,
+                            "native view remains idle without late writes or UI exception: " + attempt);
+                    }
+                    View.Paint(view, null);
+                }
+            }
+            finally { Application.ThreadException -= failed; }
+        }
+
         internal static void Compare(string fixture, string baseline)
         {
             baseline = Path.GetFullPath(baseline);
@@ -130,6 +256,8 @@ namespace Lea.Script.Tests
 
         internal static void Run(string fixture)
         {
+            ProfileErrors();
+            LaunchFailures(fixture);
             Permissions.Run();
             BlockedIo(fixture);
             ParseMarker(fixture);

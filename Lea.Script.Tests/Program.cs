@@ -103,6 +103,24 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script startup phase: " + checks + " checks.");
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--startup-errors")
+                {
+                    Startup.ProfileErrors();
+                    Console.WriteLine("PASS Lea.Script profile errors: " + checks + " checks.");
+                    return 0;
+                }
+                if (args.Length > 1 && args[1] == "--startup-unavailable")
+                {
+                    Startup.Unavailable(fixture);
+                    Console.WriteLine("PASS Lea.Script unavailable worker: " + checks + " checks.");
+                    return 0;
+                }
+                if (args.Length > 1 && args[1] == "--startup-faults")
+                {
+                    Startup.LaunchFailures(fixture);
+                    Console.WriteLine("PASS Lea.Script launch failures: " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--startup-off")
                 {
                     Startup.Ui(fixture, "off");

@@ -511,8 +511,18 @@ namespace Lea.Win
                 result = DeriveAppContainerSidFromAppContainerName(name, out sid);
                 if (result == 0) return sid;
             }
-            Marshal.ThrowExceptionForHR(result);
+            ProfileResult(result);
             throw new InvalidOperationException("Lea could not create its image-worker AppContainer profile.");
+        }
+
+        internal static void ProfileResult(int result)
+        {
+            try { Marshal.ThrowExceptionForHR(result); }
+            catch (COMException error)
+            {
+                throw new IOException("Lea could not create its worker AppContainer profile (0x" +
+                    result.ToString("X8") + "). " + error.Message, error);
+            }
         }
 
         private static void Close(ref IntPtr handle)

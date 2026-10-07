@@ -181,6 +181,12 @@ owner context every 50 ms without restarting the original I/O deadline. Native
 launch still retains ownership until the OS call returns. See
 `../LeaForge/STARTUP_IO.md` for the reproduced lifecycle defect, focused fixes,
 and still-failing full startup gates.
+Otherwise-unmapped native AppContainer profile COM failures now become typed
+I/O setup failures, retaining their HRESULT and description. Existing mapped
+exception types, including critical memory failures, are preserved. See
+`../LeaForge/PROFILE_FAILURES.md` for deterministic error/cleanup regressions and
+the separately verified real disk-full/native-view failure gate. The fix handles
+that setup error; it does not free storage or make the worker available there.
 `Mm` is 128 MiB; `Cp` is a 2,500/10,000 Job CPU hard-cap rate, with one allowed
 process and kill-on-close. `Tm` is the parent's execution/I/O budget, default
 2,000 ms and clamped to 25..5,000 ms. Startup handshake has a separate 5,000 ms

@@ -34,6 +34,19 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Native-profile follow-up reproduces an unhandled disk-full COM exception during
+worker setup and normalizes otherwise-unmapped profile failures to I/O errors,
+retaining native HRESULTs while preserving mapped exception types. All 16
+cross-launcher HRESULT checks and 18 deterministic sync/async cleanup and native
+view checks pass, as does the full core/image suite. The first actual disk-full
+probe loses its premise when free space reappears and is not counted as a pass.
+A new probe after an audit again reports zero C: space passes all 18 real
+disk-full/native-view checks; the fix handles that failure without freeing space.
+An earlier full scripting run still fails fresh-worker startup; the
+final current run passes all 968 checks. Both results are retained, and this
+does not establish cold-start stability or a complete current release pass.
+Broader readiness stays about 65%. See `PROFILE_FAILURES.md` for scope and logs.
+
 Profiler/workspace follow-up reproduces an exit-0 diagnostic despite failed
 samples and fixes aggregate failure reporting, with eight deterministic checks
 and a post-parse timestamp. The same eight checks pass without source-project
