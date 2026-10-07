@@ -217,7 +217,7 @@ namespace Lea.Script.Tests
                 .Any(rule => rule.IdentityReference.Value == sid);
         }
 
-        private static void StopWithoutPump(string fixture)
+        internal static void StopWithoutPump(string fixture)
         {
             var engine = new E();
             var page = engine.Go(fixture);
@@ -244,7 +244,12 @@ namespace Lea.Script.Tests
                         Check(killed, "Stop during launch kills child without an owner continuation: pid=" + pid);
                         Check(result.S == "cancel" && result.N == 0 && page.T == title && script.Pid == 0,
                             "no-pump startup cancellation completes without writes: " + result.S);
+                        var failedMessage = result.M;
+                        Check(failedMessage.Contains("phase=launch;") && failedMessage.Length <= 512,
+                            "startup failure snapshots bounded phase diagnostics: " + failedMessage);
                         Check(script.Ex("1;").Ok, "recovery after unpublished-launch cancellation");
+                        Check(result.M == failedMessage && script.Sd.StartsWith("phase=ready;", StringComparison.Ordinal),
+                            "startup failure result retains its report after a new successful start");
                     }
                     catch (Exception error) { failure = error; }
                     finally { context.ExitThread(); }

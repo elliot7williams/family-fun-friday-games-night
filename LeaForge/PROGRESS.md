@@ -192,6 +192,34 @@ Earlier intermittent failures remain unexplained. Readiness stays
 about 65% and milestone 146 stays open. See `BOOTSTRAP_SCOPES.md` for the measured
 comparison, privacy boundaries and current artifact verification.
 
+Element selector work adds compact read-only `N.Mt/Cl` aliases and standard
+JavaScript `matches/closest` names, reusing the shared bounded compiler without
+a second parser or query-collection truncation. All 55 focused script/native
+checks, all 895 source scripting checks before the startup-result diagnostic
+follow-up, and the complete core suite pass,
+including inclusive nearest ancestors, receiver/conversion checks, detached
+subtrees, existing mutation/permission gates, live fields and recovery.
+Page-replaced WeakMap registration and inherited handle setters are reproduced
+and fixed. An earlier full-run worker setup failure remains unexplained; the
+improved assertion retains typed diagnostics on future failures. A separate v15
+host run completes 27 cases then fails a Windows clipboard write; its scripting
+case passes the new selector assertions but fails split-pane worker startup.
+Startup results now snapshot bounded phase diagnostics before later lifecycle
+attempts can replace `Sd`; five focused cancellation/recovery checks pass.
+The full rerun after this diagnostic change fails isolated startup during
+bootstrap evaluation (5,040 ms wall / 906 ms child CPU), so the planned 897-check
+suite is not a completed pass, although it reaches and passes the new startup
+and selector coverage before a later fresh-worker failure. A separate focused
+rerun also fails first isolated startup; an explicitly observed diagnostic run
+passes all 55 selector checks without identifying a cause. Separate v16 passes
+its scripting case with opt-in phase timing and six actual-EXE startup scenarios,
+not a new full host matrix or a release ZIP. Readiness observations reach
+15,835 ms; this is not a speed improvement or an explanation of the failed
+normal runs. The required bundle stays 743,936 bytes, and the optional worker
+grows 1,024 bytes, without a speed claim. `:scope`, pseudo-elements, escapes and complete browser selector
+semantics remain unsupported. Readiness stays about 65% and milestone 146 stays
+open. See `ELEMENT_SELECTORS.md` for contracts, tests and verification scope.
+
 - Added a reproducible separate .NET Framework 4.8 Firespider host/source
   candidate with optional isolated scripting in regular/resumed tabs and both
   split panes. Script-free pages remain dormant; explicit code and authored

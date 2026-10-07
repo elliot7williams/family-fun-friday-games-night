@@ -45,6 +45,7 @@ namespace Lea.Tests
                 if (args.Length > 1 && args[1] == "--blank") { CheckBlank(); return 0; }
                 if (args.Length > 1 && args[1] == "--attributes") { CheckAttributes(); return 0; }
                 if (args.Length > 1 && args[1] == "--tokens") { CheckClassTokens(); return 0; }
+                if (args.Length > 1 && args[1] == "--select") { CheckNodeSelectors(); return 0; }
                 if (args.Length > 1 && args[1] == "--direction-overflow")
                 {
                     DirectionOverflowSmoke(Path.Combine(pages, "direction-overflow.html"));
@@ -310,6 +311,7 @@ namespace Lea.Tests
                 CheckBlank();
                 CheckAttributes();
                 CheckClassTokens();
+                CheckNodeSelectors();
                 CheckLoadFailures(root);
                 CheckRetainedData(root);
                 CheckDisposal(root);
@@ -16112,6 +16114,54 @@ namespace Lea.Tests
                     "; editing=" + (editing == null ? "null" : editing.El.Av("id")) + "; held=" + (held == null ? "null" : held.El.Av("id")) +
                     "; field=" + field.V + "; text=" + editor.Text + "; clipboard=" + clipboard + "; native=" + native.Text);
             }
+        }
+
+        private static void CheckNodeSelectors()
+        {
+            var engine = new E();
+            var page = engine.Go(Path.Combine(pages, "javascript-selectors.html"));
+            var child = engine.Id(page, "child");
+            var parent = engine.Id(page, "parent");
+            var action = engine.Id(page, "action");
+            Ok(child.Mt("span#child") && child.Mt("body div > section button > span") && !child.Mt("section"), "node Mt uses the shared compound/relationship matcher");
+            Ok(child.Cl("span") == child && child.Cl("button") == action && child.Cl("section") == parent && child.Cl(".missing") == null, "node Cl checks self then nearest ancestors");
+            Ok(child.Cl("body,section") == parent && child.Cl("section,body") == parent, "node Cl ignores selector-list order when selecting nearest ancestor");
+            Ok(parent.Mt("section:has(> button > span)") && child.Mt(":is(span,div):not(.missing)") && child.Mt("span:first-child:nth-last-child(1)"), "node selectors reuse relational/functional/structural parsing");
+            Ok(!page.D.Mt("*") && page.D.Cl("*") == null && !child.C[0].Mt("*") && child.C[0].Cl("*") == null, "node aliases do not treat documents or text as elements");
+            var count = page.Jc;
+            child.A["class"] = "live";
+            Ok(child.Mt(".live") && child.Cl(".live") == child && page.Jc == count, "node selector reads observe current attributes without mutation accounting");
+            foreach (var query in new[] { "", "[", "span >", "span,", "span,,div", ":unknown", ":scope", new string('x', 1025), null })
+            {
+                var rejected = false;
+                try { child.Mt(query); } catch (FormatException) { rejected = true; }
+                Ok(rejected, "node Mt rejects unsupported/malformed/oversized selectors");
+                rejected = false;
+                try { child.Cl(query); } catch (FormatException) { rejected = true; }
+                Ok(rejected, "node Cl rejects unsupported/malformed/oversized selectors");
+            }
+            Ok(child.Mt("#child" + new string(' ', 1018)), "node matching accepts exactly 1024 raw selector units");
+            Eq(1, engine.Jv(page, engine.Id(page, "tree"), "tx", "replacement"), "detached selector subtree setup");
+            Ok(child.Mt("button > span") && child.Cl("section") == parent && child.Cl("div") == null && child.Cl("body") == null,
+                "detached node queries retain internal ancestry and stop at the removed subtree root");
+            Eq(0, engine.Jv(page, child, "id", "forbidden"), "detached querying does not grant mutation ownership");
+            engine.Je = false;
+            Ok(child.Mt("span") && child.Cl("button") == action, "trusted host read aliases do not execute page scripts");
+            var file = Path.Combine(Path.GetTempPath(), "lea-selector-many-" + Guid.NewGuid().ToString("N") + ".html");
+            try
+            {
+                var html = new StringBuilder("<!doctype html><html><body><div id='wrap'>");
+                for (var index = 0; index < 300; index++) html.Append("<span id='n" + index + "'></span>");
+                html.Append("</div></body></html>");
+                File.WriteAllText(file, html.ToString());
+                var many = engine.Go(file);
+                var last = engine.Id(many, "n299");
+                Eq(256, engine.Qa(many, "span").Count, "existing query collection ceiling retained");
+                Ok(last.Mt("span:nth-child(300)") && last.Cl("span") == last && last.Cl("div") == engine.Id(many, "wrap"),
+                    "node matching is not implemented through the truncated query result list");
+            }
+            finally { if (File.Exists(file)) File.Delete(file); }
+            Console.WriteLine("Lea node selector smoke passed: compact Mt/Cl, shared bounded parsing, nearest inclusive ancestors, live and detached trees, invalid selectors, and query-cap independence.");
         }
 
         private static void CheckClassTokens()

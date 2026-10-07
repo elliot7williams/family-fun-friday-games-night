@@ -39,6 +39,10 @@ namespace Lea.Engine
             string value;
             return A.TryGetValue(name, out value) ? value : "";
         }
+
+        // Mt/Cl read this node's live tree, including a retained detached subtree.
+        public bool Mt(string query) { return E.MatchNode(this, query, false) != null; }
+        public N Cl(string query) { return E.MatchNode(this, query, true); }
     }
 
     internal sealed class Cn

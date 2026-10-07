@@ -20,6 +20,14 @@ namespace Lea.Script.Tests
                 var fixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-runtime.html");
                 var viewFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-view.html");
                 var attributeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-attributes.html");
+                var selectorFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-selectors.html");
+                if (args.Length > 1 && args[1] == "--select")
+                {
+                    Selectors.Run(selectorFixture);
+                    View.Selectors(selectorFixture, args.Length > 2 ? args[2] : null);
+                    Console.WriteLine("PASS Lea.Script selectors: " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--scope")
                 {
                     BootstrapScopes.Run(attributeFixture);
@@ -75,6 +83,12 @@ namespace Lea.Script.Tests
                     if (args.Length != 3) throw new ArgumentException("Supply one baseline ScriptWorker directory for --bootstrap.");
                     Startup.Compare(fixture, args[2]);
                     Console.WriteLine("PASS Lea.Script bootstrap comparison: " + checks + " checks.");
+                    return 0;
+                }
+                if (args.Length > 1 && args[1] == "--startup-stop")
+                {
+                    Startup.StopWithoutPump(fixture);
+                    Console.WriteLine("PASS Lea.Script startup stop: " + checks + " checks.");
                     return 0;
                 }
                 if (args.Length > 1 && args[1] == "--startup")
@@ -187,6 +201,8 @@ namespace Lea.Script.Tests
                 catch (ObjectDisposedException) { Check(true, "disposed session rejected"); }
                 Startup.Run(fixture);
                 BootstrapScopes.Run(attributeFixture);
+                Selectors.Run(selectorFixture);
+                View.Selectors(selectorFixture);
                 Worker.Run(fixture);
                 Events.Run(viewFixture);
                 Attributes.Run(attributeFixture);

@@ -34,6 +34,11 @@ namespace Lea.Script.Tests
             Pump(() => Lea.Script.Tests.ClassLists.Native(fixture, output));
         }
 
+        internal static void Selectors(string fixture, string output = null)
+        {
+            Pump(() => Lea.Script.Tests.Selectors.Native(fixture, output));
+        }
+
         private static void Pump(Func<Task> work)
         {
             var previous = SynchronizationContext.Current;

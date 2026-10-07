@@ -1604,6 +1604,9 @@ namespace Lea.Firespider
             var attributeNode = view.Id("result");
             await ScriptCode(view, "var reflected=document.getElementById('result');reflected.id='host-result';reflected.className='host-active';if(document.getElementById('result')!==null||document.querySelector('.host-active')!==reflected||!reflected.hasAttribute('class'))throw new Error('host attributes');");
             Check(view.Id("host-result") == attributeNode, "host attribute writes replaced the node");
+            await ScriptCode(view, "if(!reflected.matches('#host-result.host-active')||reflected.closest('#host-result')!==reflected||reflected.closest('body')!==document.body)throw new Error('host element selectors');");
+            Check(attributeNode.Mt("#host-result.host-active") && attributeNode.Cl("#host-result") == attributeNode,
+                "host compact node selectors failed");
             await ScriptCode(view, "reflected.id='result';reflected.className='';if(!reflected.hasAttribute('class')||reflected.getAttribute('class')!=='')throw new Error('host empty class');");
             view.Sc(-view.Sy);
             ScriptPicture(form, "main");
@@ -1677,7 +1680,7 @@ namespace Lea.Firespider
             }
             Check(!UiErrors.Any() && !Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module =>
                 module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)), "script integration raised UI errors or loaded MSHTML");
-            Console.WriteLine("PASS script host: net48, dormant loading, state retention, inline lifecycle, native events/defaults, bounded timers, live attributes, error status/recovery, split isolation/disposal, tab cleanup, and remote-origin refusal");
+            Console.WriteLine("PASS script host: net48, dormant loading, state retention, inline lifecycle, native events/defaults, bounded timers, live attributes/selectors, error status/recovery, split isolation/disposal, tab cleanup, and remote-origin refusal");
         }
 
         private static void ScriptPicture(Form form, string name)

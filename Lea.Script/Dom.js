@@ -63,9 +63,9 @@
         state.listeners.splice(state.listeners.indexOf(listener), 1);
         listenerCount--;
     }
-    function eventTarget(node) {
-        const state = { listeners: [], properties: Object.create(null), inline: Object.create(null), handlers: Object.create(null) };
-        targets.set(node, state);
+    function eventTarget(node, key) {
+        const state = { key, listeners: [], properties: Object.create(null), inline: Object.create(null), handlers: Object.create(null) };
+        apply(setState, targets, [node, state]);
         Object.defineProperties(node, {
             addEventListener: { value(type, callback, options) {
                 type = String(type);
@@ -347,6 +347,16 @@
     function put(key, name, value) {
         if (!call('put', key, name, str(value))) throw new listError('Unsupported Lea mutation');
     }
+    function select(receiver, supplied, ancestors) {
+        const state = apply(getState, targets, [receiver]);
+        if (!state || typeof state.key !== 'number') throw new listError('Illegal Element receiver');
+        if (supplied.length === 0) throw new listError('A selector is required');
+        const selector = str(supplied[0]);
+        if (selector.length > 1024) throw new DOMException('Lea selector limit', 'SyntaxError');
+        const result = call(ancestors ? 'cl' : 'mt', state.key, selector);
+        if (ancestors ? result === -1 : result === null) throw new DOMException('Invalid or unsupported Lea selector', 'SyntaxError');
+        return ancestors ? wrap(result) : result;
+    }
     function wrap(key) {
         if (key === null) return null;
         if (cache.has(key)) return cache.get(key);
@@ -369,12 +379,14 @@
             style: { value: style },
             getAttribute: { value(name) { return call('attr', key, str(name)); } },
             hasAttribute: { value(name) { return call('attr', key, str(name)) !== null; } },
+            matches: { value(selector) { return select(this, arguments, false); } },
+            closest: { value(selector) { return select(this, arguments, true); } },
             classList: {
                 get() { if (!classTokens) classTokens = makeList(key); return classTokens; },
                 set(value) { if (!classTokens) classTokens = makeList(key); classTokens.value = value; }
             }
         });
-        eventTarget(node);
+        eventTarget(node, key);
         cache.set(key, node);
         return node;
     }

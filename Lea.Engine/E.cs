@@ -4676,6 +4676,16 @@ namespace Lea.Engine
             return true;
         }
 
+        internal static N MatchNode(N node, string query, bool ancestors)
+        {
+            var rules = query == null || query.Length > MaxQueryLength ? null : QueryRules(query);
+            if (rules == null) throw new FormatException("Invalid or unsupported Lea selector.");
+            if (node.K.Length == 0 || node.K[0] == '#') return null;
+            for (var depth = 0; node != null && depth < MaxHtmlDepth; depth++, node = ancestors ? node.Up : null)
+                if (ElementMatch(node, rules)) return node;
+            return null;
+        }
+
         private static R[] QueryRules(string query)
         {
             var source = (query ?? "").Trim();

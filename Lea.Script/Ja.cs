@@ -81,6 +81,13 @@ namespace Lea.Script
                 return count == 1;
             }
             var target = Node(args, 1);
+            if ((operation == "mt" || operation == "cl") && args.Length == 3)
+            {
+                if (target == null) throw new InvalidDataException("An element handle is required.");
+                var selector = Arg(args, 2);
+                try { return operation == "mt" ? (object)target.Mt(selector) : Key(target.Cl(selector)); }
+                catch (FormatException) { return operation == "mt" ? null : (object)(-1); }
+            }
             if (operation == "tag" && args.Length == 2) return target == null ? null : target.K.ToUpperInvariant();
             if (operation == "attr" && args.Length == 3)
             {

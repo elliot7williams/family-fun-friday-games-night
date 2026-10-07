@@ -127,7 +127,8 @@ namespace Lea.Script.Tests
                 Check(bad.Ex("1;").S == "setup" && bad.Pid == 0, "missing worker fails closed without in-process fallback");
             using (var abandoned = new Jp(engine, page))
             {
-                Check(abandoned.Ex("1;").Ok, "active-page test setup");
+                var setup = abandoned.Ex("1;");
+                Check(setup.Ok, "active-page test setup: " + setup.S + "; " + setup.M + "; " + abandoned.Sd);
                 pid = abandoned.Pid;
                 engine.Go(fixture);
                 Check(abandoned.Ex("document.title='abandoned';").S == "stale" && Exited(pid) && page.T == "memory recovered", "navigation invalidates bound worker page");

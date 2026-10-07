@@ -40,6 +40,13 @@ read and quick to write.
   redirects or resource requests. Firespider installs it on ordinary and split
   tabs. See `NAVIGATION_POLICY.md` and `SPLIT_VIEW.md` for its callback contract.
 - Page values use one or two letters: `U`, `T`, `H`, `Q`, `D`, `N`, `Bs`, and `Ls`.
+- `N.Mt(selector)` tests an element; `N.Cl(selector)` returns its nearest
+  matching inclusive ancestor or null. Both reuse the bounded query compiler,
+  read live or retained detached trees, and throw `FormatException` for invalid
+  or unsupported selectors. These host reads do not execute scripts or grant
+  mutation ownership. The optional JavaScript names are `matches/closest`;
+  script permission, handle and bridge-call limits still apply. See
+  `ELEMENT_SELECTORS.md` for selector and compatibility boundaries.
 - `Dp` is display density in dots per inch. `E.Dp` and explicit `V.Dp` writes
   clamp to 1..960; `P.Dp` stores the value used by the page and `G.Dp` reports
   it. WinForms `V` follows the live monitor DPI until a host sets an explicit

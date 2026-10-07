@@ -164,10 +164,13 @@ namespace Lea.Script
                     error is TimeoutException ? "timeout" : error is Ja.LimitException ? "limit" :
                     !started ? "setup" : error is InvalidDataException ? "protocol" : "worker" : state.Status;
                 var details = worker == null ? "" : worker.E;
-                Reset();
-                return Result(status, status == "timeout" ? "Worker " + (started ? "execution" : "startup") + " deadline exceeded." :
+                var message = status == "timeout" ? "Worker " + (started ? "execution" : "startup") + " deadline exceeded." :
                     status == "cancel" ? "Worker execution stopped." : error.Message +
-                    (details.Length == 0 ? "" : " " + details));
+                    (details.Length == 0 ? "" : " " + details);
+                // A later lifecycle attempt can replace Sd before the host inspects this failure.
+                if (!started && Sd.Length != 0) message += " " + Sd;
+                Reset();
+                return Result(status, message);
             }
             finally { if (timer) bridge.Timers.End(); running = false; }
         }

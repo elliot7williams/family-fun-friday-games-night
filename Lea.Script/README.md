@@ -158,7 +158,10 @@ The compact diagnostics are `Pid/Sid`, `Ac` (verified token/startup), `Ne`
 `Mg` (worker mitigation mask, required 15), and `Mp` (recorded Job peak).
 `Sd` retains a 512-character startup report: phase, native launch, parent
 positive-control probe, total startup wall time, and child CPU time in ms.
-Warm calls leave that report unchanged. The worker sends compact
+Warm calls leave that report unchanged. A startup failure also snapshots the
+report into its bounded `Jr.M` message, so a later lifecycle/recovery start cannot
+erase the failed attempt's evidence. Execution-failure messages are unchanged.
+The worker sends compact
 entry/guards/init/canary/network/VM/bridge/source/evaluate/DOM/probe markers to
 bounded stderr even without timing enabled. Optional `LEA_SCRIPT_STARTUP_TRACE=1`
 adds wall/CPU measurements to those markers. Traced and untraced startup both use the VM's regular string
@@ -205,6 +208,15 @@ objects, reflection types, file handles, or network clients:
 - Stable element wrapper identity, `tagName`, `getAttribute`, `hasAttribute`,
   `textContent`, and live writable `id`/`className` strings.
 - Mutable field `value` and `checked`, with Lea's existing field constraints.
+- Element `matches(selector)` and inclusive nearest-ancestor `closest(selector)`
+  reuse the bounded selector compiler. Methods brand-check their actual receiver
+  before converting the required argument, retain wrapper identity, and can read
+  detached subtrees without enabling detached writes. Invalid, unsupported or
+  over-limit selectors throw a branded `SyntaxError` DOMException; valid misses
+  return false/null. Core `N.Mt/Cl` aliases provide trusted host reads. The
+  existing case-insensitive selector rules remain; `:scope`, pseudo-elements,
+  escaping and complete browser selector semantics are not added. See
+  [element selector contracts and tests](../LeaForge/ELEMENT_SELECTORS.md).
 - Stable live `classList` with variadic `add/remove`, forced `toggle`, ordered
   `replace`, `contains/item`, raw `value`, readonly indices and native iteration.
 - Write-only `style.color/backgroundColor/width/height/display/fontSize`.

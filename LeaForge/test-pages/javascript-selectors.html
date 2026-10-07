@@ -1,0 +1,26 @@
+<!doctype html>
+<html><head><title>Lea element selectors</title><style>
+body { margin: 24px; color: #25282b; background: #ffffff; font-family: Segoe UI; }
+h1 { font-size: 24px; }
+.panel { padding: 12px; border: 1px solid #168477; }
+button { background: #168477; color: #ffffff; padding: 8px; }
+input { width: 190px; }
+.active { color: #b84235; }
+</style></head><body>
+<h1><img src="../../assets/lea.ico" width="32" height="32" alt="Lea"> Lea</h1>
+<div id="tree" class="outer"><section id="parent" class="panel">
+<button id="action" class="action"><span id="child">Choose Lea</span></button>
+<label for="field">Name</label><input id="field" value="Lea"><input id="flag" type="checkbox" disabled>
+<p id="echo">Ready</p>
+</section></div>
+<p id="target">Outside</p>
+<script>
+document.body.addEventListener('click', function(event) {
+    var action = event.target.closest('button.action');
+    if (action && action.matches('#action')) document.getElementById('echo').textContent = 'Chosen';
+});
+document.getElementById('field').addEventListener('input', function() {
+    document.title = this.closest('.panel').id + '|' + this.value;
+});
+</script>
+</body></html>
