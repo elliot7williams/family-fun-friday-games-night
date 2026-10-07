@@ -34,6 +34,17 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Profiler/workspace follow-up reproduces an exit-0 diagnostic despite failed
+samples and fixes aggregate failure reporting, with eight deterministic checks
+and a post-parse timestamp. The same eight checks pass without source-project
+files in a runtime-style folder. A separate NTFS source checkout and tool cache
+allow development while C: is full; the original source/install remain intact.
+The full source suite passes all 934 checks from this checkout. The actual
+instrumented cold profile still times out before a successful warm sample, now
+correctly returning failure. No production code or new release changes, earlier
+host failures remain open, and broader readiness stays about 65%.
+See `WORKSPACE_RECOVERY.md` for evidence and recovery requirements.
+
 Current startup-I/O follow-up reproduces delayed/incorrect permission-off
 results and fixes owner-state observation during blocked asynchronous I/O,
 preserving the original deadline outcome. All 16 controlled producer checks,

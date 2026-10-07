@@ -39,6 +39,12 @@ namespace Lea.Script.Tests
                     ClassLists.Profile(args.Length > 2 ? args[2] : null);
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--profile-contract")
+                {
+                    ClassLists.ProfileContract(fixture);
+                    Console.WriteLine("PASS Lea.Script profile contract: " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--class-start")
                 {
                     ClassLists.Bootstrap(attributeFixture);
@@ -224,6 +230,7 @@ namespace Lea.Script.Tests
                 try { disposed.Ex("1;"); throw new Exception("disposed session accepted code"); }
                 catch (ObjectDisposedException) { Check(true, "disposed session rejected"); }
                 Startup.Run(fixture);
+                ClassLists.ProfileContract(fixture);
                 BootstrapScopes.Run(attributeFixture);
                 Selectors.Run(selectorFixture);
                 View.Selectors(selectorFixture);

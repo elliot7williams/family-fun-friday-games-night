@@ -30,6 +30,12 @@ namespace Lea.Script.Tests
                     throw new InvalidOperationException("Ambiguous bootstrap trace point: " + stages[i]);
                 source = source.Replace(stages[i], "    __mark('" + i + "');\n" + stages[i]);
             }
+            ProfileSamples(sample => source);
+        }
+
+        private static void ProfileSamples(Func<int, string> source)
+        {
+            var failures = 0;
             for (var sample = 0; sample < 2; sample++)
             {
                 var clock = System.Diagnostics.Stopwatch.StartNew();
@@ -38,7 +44,7 @@ namespace Lea.Script.Tests
                     var cpu = process.TotalProcessorTime;
                     var records = new System.Collections.Generic.List<string>();
                     // Diagnostic-only instrumentation; the unmodified Start probe remains the production-path gate.
-                    var vm = new Jint.Engine(options =>
+                    using (var vm = new Jint.Engine(options =>
                     {
                         options.MaxStatements(20000).LimitMemory(8 * 1024 * 1024)
                             .TimeoutInterval(TimeSpan.FromSeconds(1)).LimitRecursion(64)
@@ -47,22 +53,75 @@ namespace Lea.Script.Tests
                         options.Interop.Enabled = false;
                         options.Interop.AllowGetType = false;
                         options.Interop.AllowWrite = false;
-                    });
-                    vm.SetValue("__mark", new Jint.Runtime.Interop.ClrFunction(vm, "__mark", (_, args) =>
+                    }))
                     {
-                        records.Add("stage=" + args[0].AsString() + "; wall=" + clock.ElapsedMilliseconds + "; cpu=" + (long)(process.TotalProcessorTime - cpu).TotalMilliseconds);
-                        return Jint.Native.JsValue.Undefined;
-                    }));
-                    vm.SetValue("__lea", Jint.Native.JsValue.Undefined);
-                    vm.SetValue("__jobs", Jint.Native.JsValue.Undefined);
-                    records.Add("VM ready; wall=" + clock.ElapsedMilliseconds + "; cpu=" + (long)(process.TotalProcessorTime - cpu).TotalMilliseconds);
-                    string outcome;
-                    try { vm.Evaluate(source); outcome = "completed"; }
-                    catch (Exception error) { outcome = error.ToString(); }
-                    Console.WriteLine("Profile sample=" + sample + "; wall=" + clock.ElapsedMilliseconds + "; cpu=" + (long)(process.TotalProcessorTime - cpu).TotalMilliseconds);
-                    foreach (var record in records) Console.WriteLine(record);
-                    Console.WriteLine(outcome);
+                        vm.SetValue("__mark", new Jint.Runtime.Interop.ClrFunction(vm, "__mark", (_, args) =>
+                        {
+                            records.Add("stage=" + args[0].AsString() + "; wall=" + clock.ElapsedMilliseconds + "; cpu=" + (long)(process.TotalProcessorTime - cpu).TotalMilliseconds);
+                            return Jint.Native.JsValue.Undefined;
+                        }));
+                        vm.SetValue("__lea", Jint.Native.JsValue.Undefined);
+                        vm.SetValue("__jobs", Jint.Native.JsValue.Undefined);
+                        records.Add("VM ready; wall=" + clock.ElapsedMilliseconds + "; cpu=" + (long)(process.TotalProcessorTime - cpu).TotalMilliseconds);
+                        Jint.Runtime.Debugger.DebugHandler.BeforeEvaluateEventHandler parsed = (sender, ast) =>
+                            records.Add("parsed; wall=" + clock.ElapsedMilliseconds + "; cpu=" + (long)(process.TotalProcessorTime - cpu).TotalMilliseconds);
+                        vm.Debugger.BeforeEvaluate += parsed;
+                        string outcome;
+                        try { vm.Evaluate(source(sample)); outcome = "completed"; }
+                        catch (Exception error) { failures++; outcome = error.ToString(); }
+                        finally { vm.Debugger.BeforeEvaluate -= parsed; }
+                        Console.WriteLine("Profile sample=" + sample + "; wall=" + clock.ElapsedMilliseconds + "; cpu=" + (long)(process.TotalProcessorTime - cpu).TotalMilliseconds);
+                        foreach (var record in records) Console.WriteLine(record);
+                        Console.WriteLine(outcome);
+                    }
                 }
+            }
+            if (failures != 0) throw new InvalidOperationException("Bootstrap profiling failed in " + failures + " of 2 samples.");
+        }
+
+        internal static void ProfileContract(string invalidSource)
+        {
+            InvalidOperationException failure;
+            var report = ProfileReport(() => Profile(invalidSource), out failure);
+            Program.Check(failure != null && failure.Message == "Bootstrap profiling failed in 2 of 2 samples.",
+                "profile parse failures cannot report success");
+            Program.Check(report.Contains("Profile sample=0;") && report.Contains("Profile sample=1;") && report.Contains("Jint.Runtime.JavaScriptException: Unexpected token"),
+                "profile retains both failed sample reports");
+            Program.Check(!report.Contains("parsed; wall=") && !report.Contains("completed"),
+                "profile does not label invalid syntax as parsed or completed");
+
+            report = ProfileReport(() => ProfileSamples(sample => sample == 0 ? "throw new Error('deliberate profile sample failure');" : "1;"), out failure);
+            var lines = report.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+            Program.Check(failure != null && failure.Message == "Bootstrap profiling failed in 1 of 2 samples.",
+                "a completed warm profile sample cannot hide the first failure");
+            Program.Check(lines.Count(line => line == "completed") == 1 && report.Contains("deliberate profile sample failure"),
+                "mixed profile retains failure and successful completion");
+            Program.Check(lines.Count(line => line.StartsWith("parsed; wall=", StringComparison.Ordinal)) == 2,
+                "runtime failure and success both retain their post-parse boundary");
+
+            report = ProfileReport(() => ProfileSamples(sample => "1;"), out failure);
+            lines = report.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+            Program.Check(failure == null && lines.Count(line => line == "completed") == 2,
+                "two completed profile samples still report success");
+            Program.Check(lines.Count(line => line.StartsWith("parsed; wall=", StringComparison.Ordinal)) == 2 &&
+                report.Contains("Profile sample=0;") && report.Contains("Profile sample=1;"),
+                "successful profile retains both sample and post-parse records");
+        }
+
+        private static string ProfileReport(Action run, out InvalidOperationException failure)
+        {
+            var previous = Console.Out;
+            using (var output = new System.IO.StringWriter())
+            {
+                failure = null;
+                try
+                {
+                    Console.SetOut(output);
+                    try { run(); }
+                    catch (InvalidOperationException error) { failure = error; }
+                }
+                finally { Console.SetOut(previous); }
+                return output.ToString();
             }
         }
 

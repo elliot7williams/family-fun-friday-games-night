@@ -18,6 +18,12 @@ browser and earlier verified archives stay unchanged; v17 is a separate
 experimental build. See [STARTUP_IO.md](STARTUP_IO.md) for evidence and remaining
 gates, and [CLASS_LISTS.md](CLASS_LISTS.md) for the expanded DOM subset.
 
+Active development is in `L:/Lea Development` while the system drive is full.
+The full 934-check source suite passes there, and bootstrap profiling now
+correctly fails if any sample failed. The original checkout and installed host
+remain intact; this is not a cold-start fix. See
+[WORKSPACE_RECOVERY.md](WORKSPACE_RECOVERY.md) for verification boundaries.
+
 ## Current Features
 
 - bounded two-term `calc()` thresholds in CSS size-container queries, with
