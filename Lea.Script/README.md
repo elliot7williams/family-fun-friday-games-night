@@ -167,9 +167,14 @@ The compact diagnostics are `Pid/Sid`, `Ac` (verified token/startup), `Ne`
 `Mg` (worker mitigation mask, required 15), and `Mp` (recorded Job peak).
 `Sd` retains a 512-character startup report: phase, native launch, parent
 positive-control probe, total startup wall time, and child CPU time in ms.
-Warm calls leave that report unchanged. A startup failure also snapshots the
-report into its bounded `Jr.M` message, so a later lifecycle/recovery start cannot
-erase the failed attempt's evidence. Execution-failure messages are unchanged.
+When captured worker details overflow the remaining space, it keeps their newest
+portion and marks omitted earlier text. The launcher's stderr capture is still
+bounded separately. Warm calls leave that report unchanged. A startup failure
+also includes startup details in its bounded `Jr.M` message, so a later
+lifecycle/recovery start cannot erase that message. `Jr.M` retains its own
+512-character limit and need not contain the entire `Sd`. Execution-failure
+messages are unchanged. See [STARTUP_REPORT_TAIL.md](../LeaForge/STARTUP_REPORT_TAIL.md)
+for the regression, native checks, and remaining cold-start failures.
 The worker sends compact
 entry/guards/init/canary/network/VM/bridge/source/evaluate/parsed/DOM/probe markers to
 bounded stderr even without timing enabled. Optional `LEA_SCRIPT_STARTUP_TRACE=1`

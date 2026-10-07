@@ -34,6 +34,16 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Startup reports now retain parent timings and the newest captured child detail
+within the existing 512-character bound. Seven new formatter checks, eight
+native phase checks, and 31 current dispatcher/I/O checks pass. Separate v21
+builds and passes all six actual-EXE startup scenarios without MSHTML or checked
+startup dialogs, but its timed scripting case still fails cold bootstrap.
+The expanded 1,047-check source run also fails isolated tree startup; the prior
+1,040-check pass remains historical, not a new full pass. Installed files stay
+unchanged, no current release is verified, and readiness stays about 65%.
+See `STARTUP_REPORT_TAIL.md` for exact binaries, preserved failures, and scope.
+
 Parent I/O now reuses one bounded background dispatcher per active public
 execution and retires it between executions while preserving successful
 worker realms. The old thread-per-operation regression and an idle-thread

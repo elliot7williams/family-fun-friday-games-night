@@ -209,6 +209,30 @@ namespace Lea.Script.Tests
             using (var sha = SHA256.Create()) return BitConverter.ToString(sha.ComputeHash(stream)).Replace("-", "");
         }
 
+        internal static void Report()
+        {
+            var method = typeof(Jp).GetMethod("StartupReport", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+            var format = (Func<string, string, string>)Delegate.CreateDelegate(typeof(Func<string, string, string>), method);
+            const string header = "phase=hello; launch=191; probe=75; wall=5005; cpu=765 ms";
+            Check(format(header, "") == header, "startup report preserves a header without worker diagnostics");
+            Check(format(header, "startup parsed") == header + "; startup parsed", "startup report preserves a short complete trace");
+            var exact = new string('x', 512 - header.Length - 2);
+            Check(format(header, exact) == header + "; " + exact, "startup report retains an exactly fitting trace without a truncation marker");
+            const string latest = "startup probes: wall=4815; cpu=750 ms\n";
+            var trace = String.Concat(Enumerable.Repeat("startup evaluate: wall=1948; cpu=250 ms\n", 14)) + latest;
+            var report = format(header, trace);
+            Check(report.Length == 512 && report.StartsWith(header + "; ", StringComparison.Ordinal), "startup report preserves the parent header within the existing 512-character bound");
+            Check(report.EndsWith(latest, StringComparison.Ordinal) && report.Contains("..."), "startup report retains the latest captured worker phase and marks omitted earlier text");
+            Check(Enumerable.Range(507, 6).All(length =>
+            {
+                var prefix = new string('h', length);
+                var bounded = format(prefix, "worker trace ending");
+                return bounded.Length <= 512 && bounded.StartsWith(prefix, StringComparison.Ordinal) &&
+                    (length >= 510 ? bounded == prefix : bounded.EndsWith("g", StringComparison.Ordinal));
+            }), "startup report handles tiny diagnostic space without an incomplete separator or overflow");
+            Check(format(new string('h', 600), latest) == new string('h', 512), "startup report bounds an oversized parent header defensively");
+        }
+
         internal static void ParseMarker(string fixture)
         {
             var options = new Jint.Options();
@@ -256,6 +280,7 @@ namespace Lea.Script.Tests
 
         internal static void Run(string fixture)
         {
+            Report();
             ProfileErrors();
             LaunchFailures(fixture);
             Permissions.Run();

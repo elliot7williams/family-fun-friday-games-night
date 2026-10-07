@@ -131,6 +131,12 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script startup phase: " + checks + " checks.");
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--startup-report")
+                {
+                    Startup.Report();
+                    Console.WriteLine("PASS Lea.Script startup report: " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--startup-errors")
                 {
                     Startup.ProfileErrors();

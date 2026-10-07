@@ -54,6 +54,14 @@ lower warm dispatch overhead, not a general browser or cold-start speed claim.
 Separate v19 does not include this change; no new host release is verified.
 See [IO_DISPATCH.md](IO_DISPATCH.md) for measurements and release boundaries.
 
+The current startup report also preserves the newest captured worker detail
+when its fixed budget requires truncation. Seven formatter, eight native phase,
+and 31 dispatcher checks pass. Separate v21 passes all six ordinary EXE startup
+scenarios, but its timed scripting case still fails cold bootstrap. The expanded
+1,047-check source run fails isolated tree startup too; the earlier 1,040-check
+full pass is not transferred to this build. No new browser is installed or
+released. See [STARTUP_REPORT_TAIL.md](STARTUP_REPORT_TAIL.md).
+
 ## Current Features
 
 - bounded per-execution parent script I/O dispatch with no owned idle dispatcher

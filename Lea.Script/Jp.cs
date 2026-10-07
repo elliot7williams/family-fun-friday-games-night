@@ -258,9 +258,21 @@ namespace Lea.Script
                     catch (Win32Exception) { }
                 var report = "phase=" + phase + "; launch=" + launched + "; probe=" +
                     Math.Max(0, probed - launched) + "; wall=" + clock.ElapsedMilliseconds + "; cpu=" + cpu + " ms";
-                if (endpoint != null && endpoint.E.Length != 0) report += "; " + endpoint.E;
-                Sd = report.Length <= 512 ? report : report.Substring(0, 512);
+                Sd = StartupReport(report, endpoint == null ? "" : endpoint.E);
             }
+        }
+
+        private static string StartupReport(string report, string diagnostics)
+        {
+            if (report.Length >= 512) return report.Substring(0, 512);
+            var available = 512 - report.Length - 2;
+            if (diagnostics.Length == 0 || available < 1) return report;
+            if (diagnostics.Length > available)
+            {
+                var marker = available > 3 ? "..." : "";
+                diagnostics = marker + diagnostics.Substring(diagnostics.Length - available + marker.Length);
+            }
+            return report + "; " + diagnostics;
         }
 
         private Rp Launch(List<string> files)
