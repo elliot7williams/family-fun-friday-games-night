@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -27,6 +28,7 @@ namespace Lea.Script
         private readonly object gate = new object();
         private readonly List<FileStream> leases = new List<FileStream>();
         private Rp worker;
+        private IoQueue io;
         private long generation;
         private long peak;
         private int sequence;
@@ -179,7 +181,7 @@ namespace Lea.Script
                 Reset();
                 return Result(status, message);
             }
-            finally { if (timer) bridge.Timers.End(); running = false; }
+            finally { if (timer) bridge.Timers.End(); StopIo(); running = false; }
         }
 
         private async Task Start(bool asynchronous)
@@ -279,7 +281,7 @@ namespace Lea.Script
             CheckState();
             var remaining = limit - (int)clock.ElapsedMilliseconds;
             if (remaining < 1) throw new TimeoutException();
-            var task = Task.Factory.StartNew(action, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            var task = (io ?? (io = new IoQueue())).Invoke(action);
             var observed = task.ContinueWith(failed => { var error = failed.Exception; }, CancellationToken.None,
                 TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
             if (!asynchronous)
@@ -324,8 +326,16 @@ namespace Lea.Script
             while (Interlocked.CompareExchange(ref peak, value, prior) != prior);
         }
 
+        private void StopIo()
+        {
+            var pending = io;
+            io = null;
+            if (pending != null) pending.Stop();
+        }
+
         private void Reset()
         {
+            StopIo();
             Rp endpoint;
             lock (gate) { endpoint = worker; worker = null; }
             if (endpoint != null) { KeepPeak(endpoint.J.Peak); endpoint.Dispose(); }
@@ -352,5 +362,51 @@ namespace Lea.Script
 
         private sealed class StateException : Exception
         { internal readonly string Status; internal StateException(string status) : base("Worker session state changed.") { Status = status; } }
+
+        private sealed class IoQueue
+        {
+            private readonly BlockingCollection<Action> actions = new BlockingCollection<Action>(1);
+            private readonly object gate = new object();
+            private bool retired;
+
+            internal IoQueue()
+            {
+                var thread = new Thread(Consume) { IsBackground = true, Name = "Lea script I/O" };
+                try { thread.Start(); }
+                catch { actions.Dispose(); throw; }
+            }
+
+            internal Task<T> Invoke<T>(Func<T> action)
+            {
+                var completion = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
+                lock (gate)
+                {
+                    if (retired) throw new ObjectDisposedException("IoQueue");
+                    if (!actions.TryAdd(() =>
+                    {
+                        try { completion.SetResult(action()); }
+                        catch (Exception error) { completion.SetException(error); }
+                    })) throw new InvalidOperationException("A worker I/O operation is already queued.");
+                }
+                return completion.Task;
+            }
+
+            internal void Stop()
+            {
+                lock (gate)
+                {
+                    if (retired) return;
+                    retired = true;
+                    actions.CompleteAdding();
+                }
+            }
+
+            private void Consume()
+            {
+                try { foreach (var action in actions.GetConsumingEnumerable()) action(); }
+                // Disposal cannot race the owner finishing CompleteAdding.
+                finally { lock (gate) actions.Dispose(); }
+            }
+        }
     }
 }

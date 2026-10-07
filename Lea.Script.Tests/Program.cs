@@ -22,6 +22,19 @@ namespace Lea.Script.Tests
                 var attributeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-attributes.html");
                 var selectorFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-selectors.html");
                 var treeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-tree.html");
+                if (args.Length > 1 && args[1] == "--io-dispatch")
+                {
+                    ParentIo.Run(fixture);
+                    Startup.BlockedIo(fixture);
+                    Console.WriteLine("PASS Lea.Script parent I/O: " + checks + " checks.");
+                    return 0;
+                }
+                if (args.Length > 1 && args[1] == "--io-bench")
+                {
+                    ParentIo.Bench(fixture);
+                    Console.WriteLine("PASS Lea.Script parent I/O benchmark completed.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--tree-view")
                 {
                     View.Tree(treeFixture, args.Length > 2 ? args[2] : null);

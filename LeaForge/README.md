@@ -19,7 +19,7 @@ experimental build. See [STARTUP_IO.md](STARTUP_IO.md) for evidence and remainin
 gates, and [CLASS_LISTS.md](CLASS_LISTS.md) for the expanded DOM subset.
 
 Active development remains in the recovery checkout `L:/Lea Development`.
-The latest completed full source run passes 1,021 checks there, and bootstrap profiling now
+The latest completed full source run passes 1,040 checks there, and bootstrap profiling now
 correctly fails if any sample failed. The original checkout and installed host
 remain intact; this is not a cold-start fix. See
 [WORKSPACE_RECOVERY.md](WORKSPACE_RECOVERY.md) for verification boundaries.
@@ -46,8 +46,19 @@ worker startup still times out, so the planned 1,023-check suite and a complete
 corrected 43-case host run remain unpassed. See
 [HOST_TREE_NAVIGATION.md](HOST_TREE_NAVIGATION.md). No new release is installed.
 
+The current source and standalone runtime also reuse one bounded parent I/O
+dispatcher per active script execution, retiring it between executions without
+discarding a successful worker realm. Final focused, native-worker, and full
+runs pass 31, 87, and 1,040 checks. Local read-only scripting benchmarks show
+lower warm dispatch overhead, not a general browser or cold-start speed claim.
+Separate v19 does not include this change; no new host release is verified.
+See [IO_DISPATCH.md](IO_DISPATCH.md) for measurements and release boundaries.
+
 ## Current Features
 
+- bounded per-execution parent script I/O dispatch with no owned idle dispatcher
+  between executions, unchanged deadlines, and preserved worker realms; see
+  `IO_DISPATCH.md`
 - bounded two-term `calc()` thresholds in CSS size-container queries, with
   integer pixel/font/viewport/container resolution and live host feedback; see
   `CALCULATED_CONTAINER_QUERIES.md`

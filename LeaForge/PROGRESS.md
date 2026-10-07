@@ -34,6 +34,18 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Parent I/O now reuses one bounded background dispatcher per active public
+execution and retires it between executions while preserving successful
+worker realms. The old thread-per-operation regression and an idle-thread
+prototype regression are retained. Final focused and native-worker runs pass
+31 and 87 checks, and the full current-source run passes all 1,040 checks.
+Two opposite-order local pairs show 45-52% lower warm overhead for a specific
+32-title-read workload, not whole-browser speed or memory improvements. Cold
+startup is not consistently faster. Source and standalone builds pass, but no
+new Firespider release is verified or installed; milestone 146 remains open.
+Broader readiness stays about 65%. See `IO_DISPATCH.md` for exact measurements,
+binary sizes, exclusions, and remaining gates.
+
 Separate v19 carries tree navigation into Firespider and passes all six EXE
 startup scenarios and 42 non-script host cases. The new script assertion first
 misidentifies the last body element; the corrected script case passes separately

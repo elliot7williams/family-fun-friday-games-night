@@ -32,6 +32,8 @@ namespace Lea.Script.Tests
                 Check(execution.Ok && execution.N == 6, "isolated computed script: " + execution.S + "; " + execution.M + "; " + script.Sd);
                 pid = script.Pid;
                 sid = script.Sid;
+                Check(typeof(Jp).GetField("io", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(script) == null,
+                    "completed native execution retains no owned parent I/O dispatcher");
                 Check(pid != 0 && pid != Process.GetCurrentProcess().Id, "script runs outside the browser process");
                 Check(script.Ac && script.Ne && script.Nd && script.Fd && script.Mg == 15,
                     "AppContainer, no loopback exemption, controlled network/file probes, and mitigations: network=" + script.Np);
@@ -39,6 +41,8 @@ namespace Lea.Script.Tests
                 Check(page.T == "Lea 7" && result.C[0].X == "Total: 7" && field.V == "{\"total\":7}", "worker DOM and retained fields");
                 Check(script.Ex("if (result !== document.querySelector('#result')) throw new Error('identity'); var privateState = 37; document.querySelector('.item').textContent = 'worker';").Ok, "worker stable wrappers and anonymous-node writes");
                 Check(script.Ex("if (privateState !== 37 || document.querySelector('.item').textContent !== 'worker') throw new Error('state'); document.title = '${literal}; computed ' + (2 + 3);").Ok && page.T == "${literal}; computed 5", "worker persistent state and literal values");
+                Check(script.Pid == pid && typeof(Jp).GetField("io", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(script) == null,
+                    "later native execution retains its realm without an idle parent I/O dispatcher");
                 Check(script.Ex("if (typeof System !== 'undefined' || typeof __lea !== 'undefined' || typeof fetch !== 'undefined' || typeof document.GetType !== 'undefined') throw new Error('capability');").Ok, "worker exposes no CLR or network API");
                 var runtime = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ScriptWorker");
                 var files = Directory.GetFiles(runtime);

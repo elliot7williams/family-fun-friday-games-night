@@ -259,6 +259,7 @@ namespace Lea.Script.Tests
             ProfileErrors();
             LaunchFailures(fixture);
             Permissions.Run();
+            ParentIo.Run(fixture);
             BlockedIo(fixture);
             ParseMarker(fixture);
             foreach (var port in new[] { 0, 65536 })

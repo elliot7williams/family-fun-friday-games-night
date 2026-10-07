@@ -124,6 +124,15 @@ Concurrent execution is rejected. Success preserves the worker realm; errors,
 permission generations, navigation to another page, and disposal discard it.
 Completed mutations are retained, not rolled back.
 
+Parent pipe I/O reuses one dedicated background dispatcher during each active
+public execution, with at most one waiting action behind the active action.
+Completion, reset, and disposal retire it without joining a blocked producer
+on the owner thread. Success can preserve the worker realm without owning an
+idle dispatcher between executions. Absolute deadlines and owner-state checks
+are unchanged; the shared thread pool does not run this blocking pipe work.
+See [IO_DISPATCH.md](../LeaForge/IO_DISPATCH.md) for focused/full verification,
+local warm-workload measurements, and cold-start/release limitations.
+
 Each session uses a unique temporary AppContainer profile. The shared native
 launcher creates the worker suspended, verifies its expected SID, zero
 capabilities, low integrity, stripped privileges, startup ASLR and Job limits,
