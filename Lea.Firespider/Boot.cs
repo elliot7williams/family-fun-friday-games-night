@@ -28,6 +28,11 @@ namespace Lea.Firespider
         [STAThread]
         private static int Main(string[] args)
         {
+            if (args.Length == 1 && args[0] == "--clipboard-contract")
+            {
+                try { ClipboardContract(); return 0; }
+                catch (Exception error) { Console.Error.WriteLine(error); return 1; }
+            }
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
             var previous = SynchronizationContext.Current;
             var exit = 1;
@@ -382,7 +387,7 @@ namespace Lea.Firespider
             }
             catch (Exception error)
             {
-                Console.Error.WriteLine("FAIL Lea boot " + mode + ": " + error.GetBaseException());
+                Console.Error.WriteLine("FAIL Lea boot " + mode + ": " + error);
                 foreach (var form in forms)
                     if (!form.IsDisposed && form.GetType().GetField("su", Members) != null)
                         Console.Error.WriteLine("Host status: " + Member<Label>(form, "su").Text);
@@ -828,13 +833,10 @@ namespace Lea.Firespider
         private static void CheckEdit(Form form, ApplicationSettingsBase settings, string page)
         {
             var names = new[] { "CO", "CU", "PA", "SA", "D", "U", "RD" };
-            foreach (var name in names) Member<ToolStripItem>(form, name).PerformClick();
-            var original = Clipboard.GetDataObject();
-            var clipboard = new DataObject();
-            if (original != null)
-                foreach (var format in original.GetFormats(false)) clipboard.SetData(format, false, original.GetData(format, false));
-            try
+            var clipboard = SnapshotClipboard("edit");
+            WithClipboardCleanup(delegate
             {
+                foreach (var name in names) Member<ToolStripItem>(form, name).PerformClick();
                 var tabs = Member<TabControl>(form, "k");
                 var first = tabs.SelectedTab;
                 var view = (V)first.Controls[0];
@@ -858,7 +860,7 @@ namespace Lea.Firespider
                 Member<ToolStripItem>(form, "RD").PerformClick();
                 Check(field.V == "Lea  text", "host Redo did not replay Lea edit");
                 Member<ToolStripItem>(form, "SA").PerformClick();
-                Clipboard.SetText("host replacement");
+                FixtureClipboard("edit.paste", "host replacement");
                 Member<ToolStripItem>(form, "PA").PerformClick();
                 Check(field.V == "host replacement", "host Paste did not replace selected field");
                 Member<ToolStripItem>(form, "SA").PerformClick();
@@ -870,7 +872,7 @@ namespace Lea.Firespider
                 Check(field.V == "", "host Delete redo failed");
                 editor.Text = "page field stays";
                 editor.SelectAll();
-                Clipboard.SetText("toolbar clipboard");
+                FixtureClipboard("edit.toolbar", "toolbar clipboard");
                 foreach (var chrome in new[] { "c", "x" })
                 {
                     Member<ToolStripComboBox>(form, chrome).ComboBox.Focus();
@@ -882,7 +884,7 @@ namespace Lea.Firespider
                         Check(toolbarClipboard == "toolbar clipboard", "toolbar command changed clipboard: chrome=" + chrome + "; command=" + name +
                             "; toolbarFocus=" + Member<ToolStripComboBox>(form, chrome).ComboBox.ContainsFocus +
                             "; editorVisible=" + editor.Visible + "; hostStatus='" + Member<Label>(form, "su").Text +
-                            "'; clipboard='" + toolbarClipboard + "'");
+                            "'; clipboardLength=" + toolbarClipboard.Length);
                     }
                     menu.HideDropDown();
                     var afterToolbar = ClipboardText();
@@ -896,7 +898,7 @@ namespace Lea.Firespider
                 editor.Text = "hover selection";
                 editor.SelectAll();
                 Check(view.Ce("cp"), "hover fixture has no selected native field: " + editor.Visible + "/" + editor.SelectionLength + "/" + (field.V == editor.Text));
-                Clipboard.SetText("unchanged");
+                FixtureClipboard("edit.hover-disabled", "unchanged");
                 // ToolStrip raises MouseHover in HandleMouseHover, not OnMouseHover.
                 var hover = typeof(ToolStripItem).GetMethod("HandleMouseHover", Members);
                 var copy = Member<ToolStripItem>(form, "CO");
@@ -905,8 +907,8 @@ namespace Lea.Firespider
                 copy.Select();
                 hover.Invoke(Member<ToolStripItem>(form, "CO"), new object[] { EventArgs.Empty });
                 var disabledHoverClipboard = ClipboardText();
-                Check(disabledHoverClipboard == "unchanged", "hover editing ran while disabled: clipboard='" + disabledHoverClipboard +
-                    "'; enabled=" + copy.Enabled + "; setting=" + settings["t"] + "; selection=" + editor.SelectionLength);
+                Check(disabledHoverClipboard == "unchanged", "hover editing ran while disabled: clipboardLength=" + disabledHoverClipboard.Length +
+                    "; enabled=" + copy.Enabled + "; setting=" + settings["t"] + "; selection=" + editor.SelectionLength);
                 settings["t"] = "e";
                 var hoverCopied = false;
                 for (var attempt = 0; attempt < 3 && !hoverCopied; attempt++)
@@ -923,7 +925,7 @@ namespace Lea.Firespider
                 Check(secret.V == "private value" && !view.Ce("cp") && !view.Ce("cu"),
                     "password edit setup: retained=" + (secret.V == "private value") + "; kind=" + secret.K +
                     "; copy=" + view.Ce("cp") + "; cut=" + view.Ce("cu"));
-                Clipboard.SetText("protected clipboard marker");
+                FixtureClipboard("edit.password", "protected clipboard marker");
                 Check(ClipboardText() == "protected clipboard marker", "password clipboard marker was not established");
                 Member<ToolStripItem>(form, "CO").PerformClick();
                 Member<ToolStripItem>(form, "CU").PerformClick();
@@ -951,12 +953,10 @@ namespace Lea.Firespider
                 foreach (TabPage tab in tabs.TabPages.Cast<TabPage>().ToArray()) { tabs.TabPages.Remove(tab); tab.Dispose(); }
                 foreach (var name in names) Member<ToolStripItem>(form, name).PerformClick();
                 Check(tabs.TabCount == 0, "empty-window editing created a tab");
-            }
-            finally
+            }, delegate
             {
-                settings["t"] = "";
-                if (original == null) Clipboard.Clear(); else Clipboard.SetDataObject(clipboard, true);
-            }
+                WithClipboardCleanup(delegate { settings["t"] = ""; }, delegate { RestoreClipboard("edit", clipboard); });
+            });
             Console.WriteLine("PASS edit: real menu/hover dispatch, selection, undo/redo, clipboard, readonly/password, paused/empty tabs, and explicit legacy fallback");
         }
 
@@ -972,7 +972,128 @@ namespace Lea.Firespider
                 catch (System.Runtime.InteropServices.ExternalException) { }
                 Thread.Sleep(20);
             }
-            return Clipboard.GetText();
+            return ClipboardPhase("edit.read", delegate { return Clipboard.GetText(); });
+        }
+
+        private static DataObject SnapshotClipboard(string test)
+        {
+            return ClipboardPhase(test + ".snapshot", delegate
+            {
+                var original = Clipboard.GetDataObject();
+                if (original == null) return null;
+                var snapshot = new DataObject();
+                foreach (var format in original.GetFormats(false)) snapshot.SetData(format, false, original.GetData(format, false));
+                return snapshot;
+            });
+        }
+
+        private static void FixtureClipboard(string phase, string value)
+        { ClipboardPhase(phase, delegate { Clipboard.SetText(value); }); }
+
+        private static void RestoreClipboard(string test, DataObject snapshot)
+        {
+            ClipboardPhase(test + ".restore", delegate
+            {
+                if (snapshot == null) Clipboard.Clear(); else Clipboard.SetDataObject(snapshot, true);
+            });
+        }
+
+        private static void ClipboardPhase(string phase, Action operation)
+        { ClipboardPhase(phase, delegate { operation(); return 0; }); }
+
+        private static T ClipboardPhase<T>(string phase, Func<T> operation)
+        {
+            try { return operation(); }
+            catch (System.Runtime.InteropServices.ExternalException error)
+            {
+                throw new InvalidOperationException("Clipboard fixture phase '" + phase + "' failed (0x" +
+                    error.ErrorCode.ToString("X8") + ").", error);
+            }
+        }
+
+        private static void WithClipboardCleanup(Action operation, Action cleanup)
+        {
+            Exception failure = null;
+            try { operation(); }
+            catch (Exception error) { failure = error; throw; }
+            finally
+            {
+                try { cleanup(); }
+                catch (Exception error)
+                {
+                    if (failure != null)
+                        throw new AggregateException("Clipboard test and restoration failed.", failure, error);
+                    throw;
+                }
+            }
+        }
+
+        private static Exception ClipboardFailure(Action operation)
+        {
+            try { operation(); return null; }
+            catch (Exception error) { return error; }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ClipboardContractThrow(Exception error) { throw error; }
+
+        private static void ClipboardContract()
+        {
+            var checks = 0;
+            Action<bool, string> verify = delegate(bool condition, string name)
+            { Check(condition, name); checks++; Console.WriteLine("PASS clipboard contract: " + name); };
+            var order = "";
+            WithClipboardCleanup(delegate { order += "body"; }, delegate { order += ":cleanup"; });
+            verify(order == "body:cleanup", "success runs cleanup after the body");
+            var body = new InvalidOperationException("clipboard body marker");
+            var restore = new System.Runtime.InteropServices.ExternalException("clipboard restore marker", unchecked((int)0x800401D0));
+            var cleaned = 0;
+            var failure = ClipboardFailure(delegate
+            {
+                WithClipboardCleanup(delegate { ClipboardContractThrow(body); }, delegate { cleaned++; });
+            });
+            verify(Object.ReferenceEquals(failure, body), "body-only failure retains original exception");
+            verify(cleaned == 1 && failure.StackTrace.Contains("ClipboardContractThrow"), "body-only failure retains stack and cleans once");
+            failure = ClipboardFailure(delegate
+            {
+                WithClipboardCleanup(delegate { }, delegate { ClipboardContractThrow(restore); });
+            });
+            verify(Object.ReferenceEquals(failure, restore), "cleanup-only failure remains a failure");
+            verify(failure.StackTrace.Contains("ClipboardContractThrow"), "cleanup-only failure retains original stack");
+            cleaned = 0;
+            failure = ClipboardFailure(delegate
+            {
+                WithClipboardCleanup(delegate { ClipboardContractThrow(body); }, delegate { cleaned++; ClipboardContractThrow(restore); });
+            });
+            var both = failure as AggregateException;
+            verify(both != null && both.InnerExceptions.Count == 2 && Object.ReferenceEquals(both.InnerExceptions[0], body) &&
+                Object.ReferenceEquals(both.InnerExceptions[1], restore), "cleanup cannot replace the primary test failure");
+            verify(cleaned == 1 && both.InnerExceptions.All(error => error.StackTrace.Contains("ClipboardContractThrow")), "both failures retain stacks without retrying cleanup");
+            var report = both.ToString();
+            verify(report.Contains(body.Message) && report.Contains(restore.Message), "printable failure retains both reports");
+            var reset = new InvalidOperationException("clipboard settings reset marker");
+            failure = ClipboardFailure(delegate
+            {
+                WithClipboardCleanup(delegate { ClipboardContractThrow(body); }, delegate
+                {
+                    WithClipboardCleanup(delegate { ClipboardContractThrow(reset); }, delegate { ClipboardContractThrow(restore); });
+                });
+            });
+            both = failure as AggregateException;
+            verify(both != null && both.Flatten().InnerExceptions.SequenceEqual(new Exception[] { body, reset, restore }), "nested cleanup preserves settings and restore failures");
+            var calls = 0;
+            failure = ClipboardFailure(delegate
+            {
+                ClipboardPhase("contract.restore", delegate { calls++; ClipboardContractThrow(restore); });
+            });
+            verify(failure is InvalidOperationException && Object.ReferenceEquals(failure.InnerException, restore), "phase reporting retains native failure");
+            verify(failure.Message.Contains("contract.restore") && failure.Message.Contains("0x800401D0"), "phase reporting retains location and HRESULT");
+            verify(calls == 1, "phase reporting does not add retries");
+            failure = ClipboardFailure(delegate { ClipboardPhase("contract.body", delegate { ClipboardContractThrow(body); }); });
+            verify(Object.ReferenceEquals(failure, body), "phase reporting does not reclassify ordinary test errors");
+            var token = new object();
+            verify(Object.ReferenceEquals(ClipboardPhase("contract.snapshot", delegate { return token; }), token), "successful snapshot result is preserved");
+            Console.WriteLine("PASS Lea clipboard contract: " + checks + " checks; no clipboard access.");
         }
 
         [System.Runtime.InteropServices.DllImport("user32.dll", EntryPoint = "OpenClipboard", ExactSpelling = true)]
@@ -986,13 +1107,10 @@ namespace Lea.Firespider
 
         private static void CheckPaste(Form form, ApplicationSettingsBase settings, string page)
         {
-            settings["t"] = "";
-            var original = Clipboard.GetDataObject();
-            var clipboard = new DataObject();
-            if (original != null)
-                foreach (var format in original.GetFormats(false)) clipboard.SetData(format, false, original.GetData(format, false));
-            try
+            var clipboard = SnapshotClipboard("paste");
+            WithClipboardCleanup(delegate
             {
+                settings["t"] = "";
                 var tabs = Member<TabControl>(form, "k");
                 var view = (V)tabs.SelectedTab.Controls[0];
                 view.Go(Path.Combine(Path.GetDirectoryName(new Uri(page).LocalPath), "..", "test-pages", "editing.html"));
@@ -1049,15 +1167,14 @@ namespace Lea.Firespider
                     }
                 }
                 editor.SelectAll();
-                Clipboard.SetText("Host paste resumed");
+                FixtureClipboard("paste.recovery", "Host paste resumed");
                 Member<ToolStripItem>(form, "PA").PerformClick();
                 Check(field.V == "Host paste resumed", "host paste failed after clipboard release");
                 start.Invoke(view, new object[] { view.At.Fs.First(item => item.El.Av("id") == "readonly") });
                 Member<ToolStripItem>(form, "PA").PerformClick();
                 Check(view.At.Fs.First(item => item.El.Av("id") == "readonly").V == "Read only", "host paste changed readonly field");
                 Check(UiErrors.Count == 0 && !Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module => module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)), "guarded host paste raised a popup or loaded MSHTML");
-            }
-            finally { if (original == null) Clipboard.Clear(); else Clipboard.SetDataObject(clipboard, true); }
+            }, delegate { RestoreClipboard("paste", clipboard); });
             Console.WriteLine("PASS paste: locked clipboard through real menu/native/keyboard routes, retained text and undo, status, recovery, Pa, and readonly protection");
         }
 

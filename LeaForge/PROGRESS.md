@@ -34,6 +34,17 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Clipboard-fixture follow-up reproduces cleanup masking an original test error
+and preserves both errors, stacks, phase, and HRESULT without changing runtime
+clipboard retries. All 14 deterministic harness checks pass and now run before
+host cases. Separate v18 builds and passes input/dependency audit, all six actual
+EXE startup scenarios, and the complete paste case. Both edit runs pass their
+editing assertions but fail settings restoration on full C:, so they are not
+host-case passes. Scripting still times out after `startup parsed`, and also
+reports a settings-save failure. The full 43-case host/package gates remain
+open; the installed host is unchanged. Broader readiness stays about 65%. See
+`CLIPBOARD_FIXTURES.md` for preserved failures and exact verification scope.
+
 Native-profile follow-up reproduces an unhandled disk-full COM exception during
 worker setup and normalizes otherwise-unmapped profile failures to I/O errors,
 retaining native HRESULTs while preserving mapped exception types. All 16

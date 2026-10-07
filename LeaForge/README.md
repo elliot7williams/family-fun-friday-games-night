@@ -19,10 +19,17 @@ experimental build. See [STARTUP_IO.md](STARTUP_IO.md) for evidence and remainin
 gates, and [CLASS_LISTS.md](CLASS_LISTS.md) for the expanded DOM subset.
 
 Active development is in `L:/Lea Development` while the system drive is full.
-The full 934-check source suite passes there, and bootstrap profiling now
+The latest full source run passes 968 checks there, and bootstrap profiling now
 correctly fails if any sample failed. The original checkout and installed host
 remain intact; this is not a cold-start fix. See
 [WORKSPACE_RECOVERY.md](WORKSPACE_RECOVERY.md) for verification boundaries.
+
+The current separate v18 candidate passes all six actual-EXE startup scenarios
+and the paste case. Its edit assertions pass, but settings restoration fails on
+full C:; scripting still times out during bootstrap. Clipboard fixture errors
+now retain both test/restoration failures and their phases, with 14 deterministic
+checks before host cases. No current full host/package pass or installed-browser
+replacement is claimed. See [CLIPBOARD_FIXTURES.md](CLIPBOARD_FIXTURES.md).
 
 ## Current Features
 

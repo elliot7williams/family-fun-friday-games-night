@@ -15,6 +15,12 @@ $source = Join-Path $PSScriptRoot '..\Lea.Firespider\Boot.cs'
 $exe = Join-Path $rootPath 'Lea.Firespider.Boot.exe'
 & $compiler /nologo /target:exe "/out:$exe" /reference:System.dll /reference:System.Core.dll /reference:System.Drawing.dll /reference:System.Windows.Forms.dll /reference:System.Configuration.dll "/reference:$rootPath\Lea.Win.dll" "/reference:$rootPath\Lea.Engine.dll" $source
 if ($LASTEXITCODE -ne 0) { throw 'Firespider boot smoke compilation failed' }
+$contract = @(& $exe --clipboard-contract)
+$contract
+if ($LASTEXITCODE -ne 0) { throw 'Clipboard fixture contract failed' }
+if (@($contract | Where-Object { $_ -eq 'PASS Lea clipboard contract: 14 checks; no clipboard access.' }).Count -ne 1) {
+    throw 'Clipboard fixture contract exited without completing'
+}
 $cases = if ($Case -eq 'all') { @('clean', 'lea', 'legacy', 'recovery', 'private', 'second', 'limit', 'invalid', 'slow', 'locked', 'menus', 'commands', 'navigation', 'links', 'suspend', 'groups', 'lazy', 'lazy-background', 'lazy-all', 'bulk', 'windows', 'watch', 'domains', 'domain-private', 'split', 'split-life', 'split-limits', 'edit', 'paste', 'policy', 'policy-start', 'failures', 'failure-start', 'hibernate', 'hibernate-start', 'style-start', 'styles', 'load-life', 'pictures', 'decode', 'input', 'cache') } else { @($Case) }
 if ($Case -eq 'all' -and (Test-Path -LiteralPath (Join-Path $rootPath 'Lea.Script.Win.dll'))) { $cases += 'script' }
 foreach ($name in $cases) {
