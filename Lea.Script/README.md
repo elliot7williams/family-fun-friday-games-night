@@ -205,7 +205,8 @@ objects, reflection types, file handles, or network clients:
 - Stable element wrapper identity, `tagName`, `getAttribute`, `hasAttribute`,
   `textContent`, and live writable `id`/`className` strings.
 - Mutable field `value` and `checked`, with Lea's existing field constraints.
-- Single-token `classList.add/remove/toggle/contains` (no varargs or force flag).
+- Stable live `classList` with variadic `add/remove`, forced `toggle`, ordered
+  `replace`, `contains/item`, raw `value`, readonly indices and native iteration.
 - Write-only `style.color/backgroundColor/width/height/display/fontSize`.
 - A bounded queued `alert`, plus `window` as the global object.
 
@@ -226,18 +227,22 @@ bridge uses a captured string converter for DOM writes and attribute names;
 direct Symbols throw before a host call, while `null`/`undefined` ID/class writes
 become strings. Text content retains its existing null-to-empty special case.
 No generic `setAttribute`, URL mutation or DOM creation capability is added.
-The existing case-insensitive ID/class matching and bounded single-token
-classList operations remain limitations; SVG animated class names and complete
-IDL/prototype/namespace behavior are not implemented. These two aliases are
+The existing case-insensitive core ID/class selector matching remains a
+limitation; script `classList` operations are case-sensitive. SVG animated class
+names and complete IDL/prototype/namespace behavior are not implemented. These
+two aliases are
 typed `E.Jv` mutations, not new statements in the literal Lea command language.
 See [attribute implementation and tests](../LeaForge/ATTRIBUTES.md).
 
 Class selectors, word-attribute selectors, and bounded class mutations split
 on ASCII whitespace, including form feed but not NBSP or vertical tab. Script
-membership uses the same separators; its case sensitivity and other existing
-DOMTokenList limitations are unchanged. Small core compounds avoid transient
+membership uses the same separators with ordered unique tokens and branded DOM
+exceptions. Bulk writes retain the existing 512-unit `cn` ceiling, captured
+intrinsics and field identity. Small core compounds avoid transient
 token sets, while dense compounds retain hashing. See
 [class-token scope and measurements](../LeaForge/CLASS_TOKENS.md).
+See [live class-list scope and tests](../LeaForge/CLASS_LISTS.md) for the optional
+interface and its remaining compatibility boundaries.
 
 ## Native view integration
 

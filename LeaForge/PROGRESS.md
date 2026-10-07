@@ -160,8 +160,8 @@ production bug. Earlier intermittent startup failures remain unexplained and
 the installed host is untouched. Readiness stays about 65%; milestone 146
 remains in progress. See `IMAGE_STARTUP.md` for contracts, evidence and artifacts.
 
-Live class-list work is in progress, not a new release. The optional interpreter
-adds ordered case-sensitive token operations, live indices and native array
+The initial live class-list round was unfinished, not a new release. The optional
+interpreter adds ordered case-sensitive token operations, live indices and native array
 iteration, setter forwarding, branded DOM exceptions, and a narrow native-error
 formatter compatibility fix through existing `cn`, without changing protocol,
 core aliases, deadlines or isolation. Reproduced empty-membership, replacement
@@ -174,6 +174,23 @@ No new runtime ZIP or Firespider candidate is published from these failures;
 v13 and the installed browser stay intact. Readiness remains about 65% and
 milestone 146 remains in progress. See `CLASS_LISTS.md` for exact verification
 scope, diagnostics and remaining work.
+
+The private-block bootstrap follow-up removes the immediately invoked setup
+function without exposing its helpers or changing budgets, protocol or native
+protections. All 28 new scope checks, 99 normal class-list checks, 70 focused
+startup checks, the full 840-check scripting suite and the complete core suite
+pass. Six alternating fresh-path baseline/current launches pass all 27 checks,
+including isolation and exact ACL retirement; their overlapping timings do not
+demonstrate a speed gain. A separate v14 Firespider candidate compiles from 67
+host inputs and passes all 43 host cases plus six actual-EXE startup scenarios.
+The freshly extracted standalone passes all 840 script checks. The extracted
+host runtime passes its scripting case, as does an independently rebuilt
+Framework 4.8 host from the source ZIP, with all 19 dependencies and 348 fixtures
+verified. Three separate archives have exact inventory and payload-hash audits;
+these extraction/rebuild gates do not repeat the full 43-case/six-EXE matrices.
+Earlier intermittent failures remain unexplained. Readiness stays
+about 65% and milestone 146 stays open. See `BOOTSTRAP_SCOPES.md` for the measured
+comparison, privacy boundaries and current artifact verification.
 
 - Added a reproducible separate .NET Framework 4.8 Firespider host/source
   candidate with optional isolated scripting in regular/resumed tabs and both

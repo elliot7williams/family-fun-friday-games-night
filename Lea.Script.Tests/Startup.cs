@@ -30,6 +30,7 @@ namespace Lea.Script.Tests
             Console.WriteLine("Bootstrap baseline worker: " + Digest(Path.Combine(baseline, "Lea.Script.Worker.exe")));
             Console.WriteLine("Bootstrap current worker: " + Digest(Path.Combine(current, "Lea.Script.Worker.exe")));
             var trace = Environment.GetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE");
+            var passed = true;
             try
             {
                 Environment.SetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE", null);
@@ -50,7 +51,13 @@ namespace Lea.Script.Tests
                             var result = script.Ex("document.title='bootstrap comparison';");
                             Console.WriteLine("Bootstrap " + (source == baseline ? "baseline" : "current") + " pair=" + pair + ": " +
                                 result.S + "; " + result.M + "; " + script.Sd + "; runtime=" + directory);
-                            Check(result.Ok && page.T == "bootstrap comparison" && result.N == 1,
+                            if (!result.Ok || page.T != "bootstrap comparison" || result.N != 1)
+                            {
+                                passed = false;
+                                Console.WriteLine("Retaining failed comparison runtime: " + directory);
+                                continue;
+                            }
+                            Check(true,
                                 "bootstrap comparison first execution: " + pair + "; " + result.S + "; " + result.M);
                             Check(script.Ac && script.Ne && script.Nd && script.Fd && script.Mg == 15 &&
                                 script.Cp == 2500 && script.Mm == 128L * 1024 * 1024 && script.Tm == 2000,
@@ -64,6 +71,7 @@ namespace Lea.Script.Tests
                         foreach (var file in files) File.Delete(file);
                         Directory.Delete(directory, false);
                     }
+                Check(passed, "bootstrap comparison all six launches pass without retries");
             }
             finally { Environment.SetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE", trace); }
         }

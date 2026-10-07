@@ -1,9 +1,15 @@
 # Live Class Lists (In Progress)
 
-This is experimental source work, not a verified browser release. Broader
-readiness remains about 65%; milestone 146 remains open. The last verified
-candidate remains v13. Its passes do not apply to these changed script binaries.
-The installed Firespider browser is not replaced.
+This initial round is experimental source work, not a verified browser release.
+Broader readiness remains about 65%; milestone 146 remains open. At the end of
+this round the last verified candidate was v13; its passes did not apply to the
+changed script binaries. The installed Firespider browser is not replaced.
+
+The later [private-block bootstrap follow-up](BOOTSTRAP_SCOPES.md) passes all 99
+normal class-list checks and the full 840-check source scripting suite, including
+the formatter regressions. The failures below describe the preceding `f415f734`
+build and remain retained; they are not the outcome of that later source run.
+Fresh package/host verification is recorded separately in the follow-up.
 
 ## Behavior
 
@@ -84,10 +90,11 @@ Logs are retained under `dist/Bench/Lea-146-classlists-wip-evidence`.
 - `Lea-classlist-solution-build.log` compiles with zero errors and 18 existing
   prototype warnings. The script test project compiles without warnings.
 
-The public Error formatter change still needs the complete scripting regression
-suite; passing focused checks does not establish that broader compatibility.
-No host/startup matrix, extracted runtime suite or independent host-source rebuild
-is run for this unfinished variant. No new candidate or release ZIP is produced.
+At the end of this initial round the public Error formatter change still needed
+the complete scripting regression suite; passing focused checks did not establish
+that broader compatibility. No host/startup matrix, extracted runtime suite or
+independent host-source rebuild was run for that variant, and no new candidate
+or release ZIP was produced. The follow-up linked above records later gates.
 
 Bootstrap tracing distinguishes cold and warm behavior but is not a speed
 benchmark or release gate. A previous-bootstrap comparison completes at
@@ -120,11 +127,12 @@ pass. `--class-profile` runs instrumented setup twice, reports exceptions, and
 returns zero even when a diagnostic sample fails. Neither bypass belongs in the
 browser, normal `--classes` check, or normal full-suite release gate.
 
-Next: reduce cold bootstrap work while preserving observable interface
-descriptors, captured intrinsics, execution budgets and isolation. Then repeat
-normal source, native-view, host/startup, extraction and source-rebuild gates
-before creating a new candidate. Source backups and Git retain the unfinished
-implementation independently of release archives.
+The planned follow-up was to reduce cold bootstrap work while preserving
+observable interface descriptors, captured intrinsics, execution budgets and
+isolation, then repeat source, native-view, host/startup, extraction and
+source-rebuild gates. `BOOTSTRAP_SCOPES.md` records those later results without
+claiming the intermittent startup issue is resolved. Source backups and Git
+retain the implementation independently of release archives.
 
 ## References
 

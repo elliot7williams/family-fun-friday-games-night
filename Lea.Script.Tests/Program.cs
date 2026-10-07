@@ -20,6 +20,12 @@ namespace Lea.Script.Tests
                 var fixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-runtime.html");
                 var viewFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-view.html");
                 var attributeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-attributes.html");
+                if (args.Length > 1 && args[1] == "--scope")
+                {
+                    BootstrapScopes.Run(attributeFixture);
+                    Console.WriteLine("PASS Lea.Script bootstrap scopes: " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--class-profile")
                 {
                     ClassLists.Profile(args.Length > 2 ? args[2] : null);
@@ -180,6 +186,7 @@ namespace Lea.Script.Tests
                 try { disposed.Ex("1;"); throw new Exception("disposed session accepted code"); }
                 catch (ObjectDisposedException) { Check(true, "disposed session rejected"); }
                 Startup.Run(fixture);
+                BootstrapScopes.Run(attributeFixture);
                 Worker.Run(fixture);
                 Events.Run(viewFixture);
                 Attributes.Run(attributeFixture);

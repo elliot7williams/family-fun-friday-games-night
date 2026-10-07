@@ -21,7 +21,7 @@ namespace Lea.Script.Tests
             var stages = new[] { "    let failed =", "    const realm =", "    const exceptions =", "    function DOMException(", "    DOMException.prototype =", "    const exceptionConstants =",
                 "    Object.defineProperties(DOMException,", "    Object.defineProperties(DOMException.prototype, exceptionConstants)", "    define(DOMException.prototype, Symbol.toStringTag",
                 "    function DOMTokenList()", "    DOMTokenList.prototype =", "    const listPrototype =", "    define(listPrototype, Symbol.iterator", "    const document =",
-                "    eventTarget(document);", "    delete globalThis.__lea;", "    return function dispatch(" };
+                "    eventTarget(document);", "    delete globalThis.__lea;", "    (function dispatch(" };
             for (var i = 0; i < stages.Length; i++)
             {
                 Console.WriteLine("Trace point=" + i + "; " + stages[i].Trim());

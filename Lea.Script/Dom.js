@@ -1,5 +1,6 @@
-(function (call, checkpoint) {
-    'use strict';
+'use strict';
+{
+    const call = __lea, checkpoint = __jobs;
     let failed = false, failure;
     function microtaskErrors() {
         if (!failed) return;
@@ -395,7 +396,7 @@
     delete globalThis.__lea;
     delete globalThis.__jobs;
     // The dispatcher is returned to the interpreter host, never installed on the global object.
-    return function dispatch(type, keys) {
+    (function dispatch(type, keys) {
         if (type === 'mt') { microtaskErrors(); return false; }
         if (type === 'tm') {
             if (keys.length !== 1) throw new TypeError('Invalid Lea timer');
@@ -467,5 +468,5 @@
         checkpoint();
         microtaskErrors();
         return canceled;
-    };
-})(__lea, __jobs);
+    });
+}
