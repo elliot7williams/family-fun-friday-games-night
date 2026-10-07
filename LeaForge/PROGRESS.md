@@ -34,6 +34,17 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Separate v19 carries tree navigation into Firespider and passes all six EXE
+startup scenarios and 42 non-script host cases. The new script assertion first
+misidentifies the last body element; the corrected script case passes separately
+and verifies all six properties without page mutation. New title/style/script
+coverage passes in both transports. A focused recovery still times out after
+`startup probes`; a distinct expanded full run passes all 55 tree checks but
+later times out during class-list startup, so there is no 1,023-check full pass
+or complete corrected 43-case host run. Source builds succeed, all failures are
+retained, and installed files remain unchanged. Broader readiness stays about
+65%. See `HOST_TREE_NAVIGATION.md` for verification and release boundaries.
+
 Live element-tree navigation adds six read-only element properties and document
 child endpoints/count through private two-letter bridge commands, with shared
 getter functions, identity, detached-subtree reads, and bounded list scans.

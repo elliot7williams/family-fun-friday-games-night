@@ -19,12 +19,12 @@ experimental build. See [STARTUP_IO.md](STARTUP_IO.md) for evidence and remainin
 gates, and [CLASS_LISTS.md](CLASS_LISTS.md) for the expanded DOM subset.
 
 Active development remains in the recovery checkout `L:/Lea Development`.
-The latest full source run passes 1,021 checks there, and bootstrap profiling now
+The latest completed full source run passes 1,021 checks there, and bootstrap profiling now
 correctly fails if any sample failed. The original checkout and installed host
 remain intact; this is not a cold-start fix. See
 [WORKSPACE_RECOVERY.md](WORKSPACE_RECOVERY.md) for verification boundaries.
 
-The current separate v18 candidate passes all six actual-EXE startup scenarios
+The earlier separate v18 candidate passes all six actual-EXE startup scenarios
 and the paste case. Its edit assertions pass, but settings restoration fails on
 full C:; scripting still times out during bootstrap. Clipboard fixture errors
 now retain both test/restoration failures and their phases, with 14 deterministic
@@ -37,6 +37,14 @@ focused checks and the 1,021-check full suite pass; earlier startup/profile
 failures remain retained. The full pass follows observed C: storage recovery,
 not a proven startup fix. This feature is not in the earlier v18 host candidate.
 See [TREE_NAVIGATION.md](TREE_NAVIGATION.md) for scope and remaining release gates.
+
+Separate v19 now includes tree navigation and passes six EXE startup scenarios
+and 42 non-script host cases. Its corrected script case passes separately;
+the initial full host run fails an incorrect new fixture expectation. Expanded
+source tests pass all 55 tree checks within a later incomplete full run, but
+worker startup still times out, so the planned 1,023-check suite and a complete
+corrected 43-case host run remain unpassed. See
+[HOST_TREE_NAVIGATION.md](HOST_TREE_NAVIGATION.md). No new release is installed.
 
 ## Current Features
 

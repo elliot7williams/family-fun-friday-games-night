@@ -81,8 +81,10 @@ the pre-feature baseline. No dependency or required renderer feature is added.
 
 The installed EXE/Engine/Win remain unchanged. The earlier v18 host candidate
 does not contain this feature, and its passes do not transfer to a new host
-build. No new Firespider candidate, release ZIP, extracted-package or archived
-host-source rebuild gate is claimed. Broader readiness stays about 65%.
+build. The source checkpoint above predates the separate v19 candidate and
+expanded tests documented in [HOST_TREE_NAVIGATION.md](HOST_TREE_NAVIGATION.md).
+No verified new release ZIP, extracted-package or archived host-source rebuild
+gate is claimed. Broader readiness stays about 65%.
 Cold-start stability, complete current host/package verification, document
 origin/resource policy, DOM creation/removal, node collections, and wider web
 compatibility remain work. Short aliases and compression are not speed proof.

@@ -1724,6 +1724,11 @@ namespace Lea.Firespider
             await ScriptCode(view, "if(!reflected.matches('#host-result.host-active')||reflected.closest('#host-result')!==reflected||reflected.closest('body')!==document.body)throw new Error('host element selectors');");
             Check(attributeNode.Mt("#host-result.host-active") && attributeNode.Cl("#host-result") == attributeNode,
                 "host compact node selectors failed");
+            var treePage = view.At;
+            var treeChanges = treePage.Jc;
+            await ScriptCode(view, "var hostBody=document.body,hostCounter=document.getElementById('counter');if(reflected.parentElement!==hostBody)throw new Error('host tree parent');if(reflected.previousElementSibling!==hostCounter||hostCounter.nextElementSibling!==reflected)throw new Error('host tree siblings');if(hostBody.firstElementChild.tagName!=='HEADER'||hostBody.lastElementChild.tagName!=='SCRIPT')throw new Error('host tree endpoints');if(hostBody.childElementCount<1||document.firstElementChild!==document.documentElement||document.lastElementChild!==document.documentElement||document.childElementCount!==1||document.documentElement.parentElement!==null)throw new Error('host tree document');");
+            Check(view.At == treePage && treePage.Jc == treeChanges && view.Id("host-result") == attributeNode,
+                "host tree reads changed the page or node identity");
             await ScriptCode(view, "reflected.id='result';reflected.className='';if(!reflected.hasAttribute('class')||reflected.getAttribute('class')!=='')throw new Error('host empty class');");
             view.Sc(-view.Sy);
             ScriptPicture(form, "main");
@@ -1797,7 +1802,7 @@ namespace Lea.Firespider
             }
             Check(!UiErrors.Any() && !Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module =>
                 module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)), "script integration raised UI errors or loaded MSHTML");
-            Console.WriteLine("PASS script host: net48, dormant loading, state retention, inline lifecycle, native events/defaults, bounded timers, live attributes/selectors, error status/recovery, split isolation/disposal, tab cleanup, and remote-origin refusal");
+            Console.WriteLine("PASS script host: net48, dormant loading, state retention, inline lifecycle, native events/defaults, bounded timers, live attributes/selectors/tree navigation, error status/recovery, split isolation/disposal, tab cleanup, and remote-origin refusal");
         }
 
         private static void ScriptPicture(Form form, string name)
