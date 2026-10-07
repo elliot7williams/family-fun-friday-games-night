@@ -10,10 +10,13 @@ The earlier projects stay small:
 
 LeaForge is where we can grow the more full-featured browser.
 
-Development note: the expanded live `classList`/`DOMException` work is not a
-new release. Cold interpreter initialization and isolated-worker startup still
-fail existing deadlines. The installed browser and verified v13 candidate stay
-unchanged. See [CLASS_LISTS.md](CLASS_LISTS.md) for scope and retained evidence.
+Development note: this is not a new stable release. Blocked asynchronous worker
+I/O now observes scripting revocation/navigation promptly without restarting
+its deadline, and a one-shot post-parse marker narrows startup diagnostics.
+Cold interpreter/worker startup still fails existing deadlines. The installed
+browser and earlier verified archives stay unchanged; v17 is a separate
+experimental build. See [STARTUP_IO.md](STARTUP_IO.md) for evidence and remaining
+gates, and [CLASS_LISTS.md](CLASS_LISTS.md) for the expanded DOM subset.
 
 ## Current Features
 

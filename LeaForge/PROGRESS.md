@@ -34,6 +34,20 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Current startup-I/O follow-up reproduces delayed/incorrect permission-off
+results and fixes owner-state observation during blocked asynchronous I/O,
+preserving the original deadline outcome. All 16 controlled producer checks,
+four native off and four native stale checks pass; eight post-parse marker checks
+also pass. A one-shot callback observes the production parser path without
+stepping mode or a new page API. The full source run still fails fresh-worker
+selector recovery after the post-parse hook, and separate worker/UI runs stop
+before completing their gates. Separate v17 compiles and passes six ordinary
+actual-EXE startup scenarios, but its NTFS scripting host gate still fails the
+worker startup deadline; that is not full scripting or release verification.
+No new release ZIP or live replacement is published, and broader readiness
+stays about 65%. See `STARTUP_IO.md` for retained failures, native-volume setup
+requirements, and the full verification boundary.
+
 Milestone 146 is in progress: bounded native-event Promise checkpoints and
 `queueMicrotask` pass all 386 source and extracted-native-package checks.
 The earlier separate candidate passes 43 host and six actual-EXE startup cases;

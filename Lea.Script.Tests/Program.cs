@@ -91,6 +91,30 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script startup stop: " + checks + " checks.");
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--startup-phase")
+                {
+                    Startup.ParseMarker(fixture);
+                    Console.WriteLine("PASS Lea.Script startup phase: " + checks + " checks.");
+                    return 0;
+                }
+                if (args.Length > 1 && args[1] == "--startup-off")
+                {
+                    Startup.Ui(fixture, "off");
+                    Console.WriteLine("PASS Lea.Script startup off: " + checks + " checks.");
+                    return 0;
+                }
+                if (args.Length > 1 && args[1] == "--startup-stale")
+                {
+                    Startup.Ui(fixture, "stale");
+                    Console.WriteLine("PASS Lea.Script startup stale: " + checks + " checks.");
+                    return 0;
+                }
+                if (args.Length > 1 && args[1] == "--startup-io")
+                {
+                    Startup.BlockedIo(fixture);
+                    Console.WriteLine("PASS Lea.Script startup I/O: " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--startup")
                 {
                     Startup.Run(fixture);

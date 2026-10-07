@@ -268,6 +268,8 @@ namespace Lea.Script
 
         private async Task<T> Io<T>(Func<T> action, Stopwatch clock, int limit, bool asynchronous)
         {
+            CheckThread();
+            CheckState();
             var remaining = limit - (int)clock.ElapsedMilliseconds;
             if (remaining < 1) throw new TimeoutException();
             var task = Task.Factory.StartNew(action, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
@@ -275,14 +277,29 @@ namespace Lea.Script
                 TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
             if (!asynchronous)
             {
-                if (Task.WaitAny(new Task[] { task }, remaining) < 0) throw new TimeoutException();
+                var completed = Task.WaitAny(new Task[] { task }, remaining);
+                CheckState();
+                if (completed < 0) throw new TimeoutException();
                 return task.GetAwaiter().GetResult();
             }
             using (var budget = new CancellationTokenSource())
             {
-                if (await Task.WhenAny(task, Task.Delay(remaining, budget.Token)) != task) throw new TimeoutException();
-                budget.Cancel();
-                return await task;
+                try
+                {
+                    var completed = Task.WhenAny(task, Task.Delay(remaining, budget.Token));
+                    while (!completed.IsCompleted)
+                    {
+                        CheckThread();
+                        CheckState();
+                        // Revocation must retire a blocked worker without waiting for its I/O deadline.
+                        await Task.WhenAny(completed, Task.Delay(50, budget.Token));
+                    }
+                    CheckThread();
+                    CheckState();
+                    if (await completed != task) throw new TimeoutException();
+                    return await task;
+                }
+                finally { budget.Cancel(); }
             }
         }
 

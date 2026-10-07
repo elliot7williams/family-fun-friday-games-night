@@ -84,7 +84,8 @@ namespace Lea.Script.Tests
                 engine.Je = false;
                 Check(script.Ex("document.title='off';").S == "off" && script.At.N == 0 && page.T == "partial", "disabled worker execution and clean result");
                 engine.Je = true;
-                Check(script.Ex("1;").Ok, "worker warmup for hard deadline");
+                var deadlineWarmup = script.Ex("1;");
+                Check(deadlineWarmup.Ok, "worker warmup for hard deadline: " + deadlineWarmup.S + "; " + deadlineWarmup.M + "; " + script.Sd);
                 pid = script.Pid;
                 script.Tm = 25;
                 var watch = Stopwatch.StartNew();

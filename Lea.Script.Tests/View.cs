@@ -39,7 +39,7 @@ namespace Lea.Script.Tests
             Pump(() => Lea.Script.Tests.Selectors.Native(fixture, output));
         }
 
-        private static void Pump(Func<Task> work)
+        internal static void Pump(Func<Task> work)
         {
             var previous = SynchronizationContext.Current;
             Exception failure = null;

@@ -8,6 +8,7 @@ using System.Security.AccessControl;
 using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Lea.Engine;
 using Lea.Script;
@@ -82,9 +83,56 @@ namespace Lea.Script.Tests
             using (var sha = SHA256.Create()) return BitConverter.ToString(sha.ComputeHash(stream)).Replace("-", "");
         }
 
+        internal static void ParseMarker(string fixture)
+        {
+            var options = new Jint.Options();
+            using (var vm = new Jint.Engine(options))
+            {
+                var calls = 0;
+                Jint.Runtime.Debugger.DebugHandler.BeforeEvaluateEventHandler parsed = (sender, ast) => calls++;
+                vm.Debugger.BeforeEvaluate += parsed;
+                vm.Evaluate("1;");
+                Check(calls == 1 && !options.Debugger.Enabled, "parsed AST callback works without stepping mode");
+                vm.Debugger.BeforeEvaluate -= parsed;
+                vm.Evaluate("2;");
+                Check(calls == 1, "parsed AST callback is removed before subsequent page evaluation");
+            }
+            var previous = Environment.GetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE");
+            try
+            {
+                foreach (var timing in new[] { false, true })
+                {
+                    Environment.SetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE", timing ? "1" : null);
+                    var engine = new E();
+                    var page = engine.Go(fixture);
+                    using (var script = new Jp(engine, page))
+                    {
+                        var result = script.Ex("1;");
+                        Check(result.Ok && script.Ac && script.Ne && script.Nd && script.Fd && script.Mg == 15,
+                            "phase worker preserves verified isolation: timing=" + timing + "; " + result.S + "; " + result.M + "; " + script.Sd);
+                        var report = script.Sd;
+                        const string marker = "startup parsed";
+                        Check(report.Contains(marker) && report.IndexOf(marker, StringComparison.Ordinal) == report.LastIndexOf(marker, StringComparison.Ordinal) &&
+                            report.Length <= 512 && script.Tm == 2000 && script.Cp == 2500 && script.Mm == 128L * 1024 * 1024,
+                            "one bounded post-parse marker with unchanged defaults: timing=" + timing + "; " + report);
+                        var warm = script.Ex("1;");
+                        Thread.Sleep(50);
+                        var endpoint = warm.Ok ? typeof(Jp).GetField("worker", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(script) : null;
+                        var stderr = endpoint == null ? "" : (string)endpoint.GetType().GetProperty("E").GetValue(endpoint, null);
+                        Check(warm.Ok && script.Sd == report && stderr.Contains(marker) &&
+                            stderr.IndexOf(marker, StringComparison.Ordinal) == stderr.LastIndexOf(marker, StringComparison.Ordinal),
+                            "page evaluation retains the report without another startup marker: timing=" + timing + "; " + warm.S + "; " + warm.M);
+                    }
+                }
+            }
+            finally { Environment.SetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE", previous); }
+        }
+
         internal static void Run(string fixture)
         {
             Permissions.Run();
+            BlockedIo(fixture);
+            ParseMarker(fixture);
             foreach (var port in new[] { 0, 65536 })
                 using (var probe = new NetworkProbe(port))
                     Check(probe.Denied() == 0, "invalid probe port fails closed: " + port);
@@ -146,6 +194,7 @@ namespace Lea.Script.Tests
                 Environment.SetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE", trace == "1" ? "1" : null);
                 Ui(fixture, "run");
                 Ui(fixture, "off");
+                Ui(fixture, "stale");
                 Ui(fixture, "cancel");
                 Ui(fixture, "off-launch");
                 Ui(fixture, "cancel-launch");
@@ -154,7 +203,68 @@ namespace Lea.Script.Tests
             finally { Environment.SetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE", trace); }
         }
 
-        private static void Ui(string fixture, string mode)
+        internal static void BlockedIo(string fixture)
+        {
+            foreach (var mode in new[] { "off", "stale", "deadline", "late" })
+                View.Pump(() => BlockedIoCore(fixture, mode));
+        }
+
+        private static async Task BlockedIoCore(string fixture, string mode)
+        {
+            // A producer barrier tests the parent wait independently of native startup timing.
+            var engine = new E();
+            var page = engine.Go(fixture);
+            using (var entered = new ManualResetEvent(false))
+            using (var release = new ManualResetEvent(false))
+            using (var exited = new ManualResetEvent(false))
+            using (var script = new Jp(engine, page))
+            {
+                Func<bool> action = () =>
+                {
+                    try { entered.Set(); release.WaitOne(); return true; }
+                    finally { exited.Set(); }
+                };
+                var method = typeof(Jp).GetMethod("Io", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                    .MakeGenericMethod(typeof(bool));
+                var clock = Stopwatch.StartNew();
+                var pending = (Task<bool>)method.Invoke(script, new object[] { action, clock, mode == "off" || mode == "stale" ? 5000 : 100, true });
+                var retired = false;
+                Task late = null;
+                try
+                {
+                    while (!entered.WaitOne(0) && clock.ElapsedMilliseconds < 1000) await Task.Delay(5);
+                    Check(entered.WaitOne(0), "controlled I/O action is blocked: " + mode);
+                    var observation = Stopwatch.StartNew();
+                    if (mode == "off") engine.Je = false;
+                    else if (mode == "stale") engine.Go(fixture);
+                    else if (mode == "late")
+                    {
+                        late = Task.Factory.StartNew(() => { Thread.Sleep(150); release.Set(); },
+                            CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+                        // The deadline must keep winning after late I/O finishes during an owner pause.
+                        Thread.Sleep(250);
+                        if (!exited.WaitOne(1500)) throw new InvalidOperationException("Late I/O producer did not finish during the owner pause.");
+                    }
+                    Exception failure = null;
+                    try { await pending; }
+                    catch (Exception error) { failure = error; }
+                    var state = failure == null ? null : failure.GetType().GetField("Status", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+                    Check(mode == "off" || mode == "stale" ? state != null && (string)state.GetValue(failure) == mode : failure is TimeoutException,
+                        "blocked I/O preserves state/deadline result: " + mode + "; " + (failure == null ? "success" : failure.GetType().Name));
+                    Check(observation.ElapsedMilliseconds < (mode == "late" ? 3000 : 1000),
+                        "blocked I/O observation is bounded: " + mode + "; " + observation.ElapsedMilliseconds + " ms");
+                }
+                finally
+                {
+                    release.Set();
+                    retired = exited.WaitOne(2000);
+                    if (late != null) await late;
+                }
+                Check(retired && script.Pid == 0, "controlled I/O action retires without a worker leak: " + mode);
+            }
+        }
+
+        internal static void Ui(string fixture, string mode)
         {
             var engine = new E();
             var page = engine.Go(fixture);
@@ -170,7 +280,7 @@ namespace Lea.Script.Tests
                 var ticks = 0;
                 var launchTicks = 0;
                 var watch = Stopwatch.StartNew();
-                long last = 0, gap = 0;
+                long last = 0, gap = 0, changedAt = 0;
                 timer.Tick += async (sender, args) =>
                 {
                     ticks++;
@@ -182,7 +292,9 @@ namespace Lea.Script.Tests
                         if (!changed && mode != "run" && (script.Pid != 0 || mode.EndsWith("-launch", StringComparison.Ordinal)))
                         {
                             changed = true;
-                            if (mode.StartsWith("off", StringComparison.Ordinal)) engine.Je = false;
+                            changedAt = watch.ElapsedMilliseconds;
+                            if (mode == "stale") engine.Go(fixture);
+                            else if (mode.StartsWith("off", StringComparison.Ordinal)) engine.Je = false;
                             else script.St();
                         }
                         return;
@@ -193,11 +305,14 @@ namespace Lea.Script.Tests
                         var result = await script.ExA("document.title='startup executed';");
                         Console.WriteLine("UI startup " + mode + ": " + result.S + "; launch ticks=" + launchTicks + "; max tick gap=" + gap + " ms; " + script.Sd);
                         Check(ticks > 1, "first asynchronous startup yields to UI: " + mode);
-                        var expected = mode.StartsWith("off", StringComparison.Ordinal) ? "off" : "cancel";
+                        var expected = mode.StartsWith("off", StringComparison.Ordinal) ? "off" : mode == "stale" ? "stale" : "cancel";
                         Check(mode == "run" ? result.Ok && page.T == "startup executed" :
                             changed && result.S == expected && result.N == 0 && page.T == title && script.Pid == 0,
                             "startup permission/cancellation gate: " + mode + "; " + result.S);
                         Check(script.Tm == 2000 && script.Sd.Length <= 512, "startup keeps defaults and report bound: " + mode);
+                        if (mode == "off" || mode == "stale") Check(watch.ElapsedMilliseconds - changedAt < 1000,
+                            "published worker invalidation completes before handshake deadline: mode=" + mode + "; " +
+                            (watch.ElapsedMilliseconds - changedAt) + " ms");
                     }
                     catch (Exception error) { failure = error; }
                     finally { timer.Stop(); context.ExitThread(); }

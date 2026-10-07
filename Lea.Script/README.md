@@ -162,18 +162,25 @@ Warm calls leave that report unchanged. A startup failure also snapshots the
 report into its bounded `Jr.M` message, so a later lifecycle/recovery start cannot
 erase the failed attempt's evidence. Execution-failure messages are unchanged.
 The worker sends compact
-entry/guards/init/canary/network/VM/bridge/source/evaluate/DOM/probe markers to
+entry/guards/init/canary/network/VM/bridge/source/evaluate/parsed/DOM/probe markers to
 bounded stderr even without timing enabled. Optional `LEA_SCRIPT_STARTUP_TRACE=1`
 adds wall/CPU measurements to those markers. Traced and untraced startup both use the VM's regular string
 parser and the same regex limits; tracing no longer substitutes a prepared
-script. The evaluate-to-DOM region includes parsing and execution, not separate
-phase measurements. Bootstrap initialization remains sequential.
+script. A one-shot post-parse evaluation hook records `parsed` without debugger
+stepping and is removed before page execution. The pre-hook interval includes
+parser and entry/JIT costs; an absent marker is not a parser stack trace.
+Bootstrap initialization remains sequential.
 No diagnostic function is exposed to page code. File-validation failures
 before native launch leave `Sd` empty. See `../LeaForge/STARTUP_DIAGNOSTICS.md`.
 The fixed-list bootstrap follow-up and rejected concurrency experiment are
 recorded in `../LeaForge/BOOTSTRAP.md`; full-suite cold-start failures remain open.
 See `../LeaForge/STARTUP_TRACE.md` for production-path tracing, compact markers,
 and the latest passing and failing gates.
+Asynchronous worker I/O also observes permission/navigation/Stop state on its
+owner context every 50 ms without restarting the original I/O deadline. Native
+launch still retains ownership until the OS call returns. See
+`../LeaForge/STARTUP_IO.md` for the reproduced lifecycle defect, focused fixes,
+and still-failing full startup gates.
 `Mm` is 128 MiB; `Cp` is a 2,500/10,000 Job CPU hard-cap rate, with one allowed
 process and kill-on-close. `Tm` is the parent's execution/I/O budget, default
 2,000 ms and clamped to 25..5,000 ms. Startup handshake has a separate 5,000 ms

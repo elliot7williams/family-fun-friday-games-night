@@ -69,7 +69,11 @@ namespace Lea.Script.Worker
                         Trace("source", clock, trace);
                         // Tracing observes the production parser instead of selecting a different bootstrap path.
                         Trace("evaluate", clock, trace);
-                        dispatch = vm.Evaluate(source);
+                        Jint.Runtime.Debugger.DebugHandler.BeforeEvaluateEventHandler parsed =
+                            (sender, ast) => Trace("parsed", clock, trace);
+                        vm.Debugger.BeforeEvaluate += parsed;
+                        try { dispatch = vm.Evaluate(source); }
+                        finally { vm.Debugger.BeforeEvaluate -= parsed; }
                         Trace("dom", clock, trace);
                         var network = probe.Denied();
                         Trace("probes", clock, trace);
