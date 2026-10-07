@@ -18,8 +18,8 @@ browser and earlier verified archives stay unchanged; v17 is a separate
 experimental build. See [STARTUP_IO.md](STARTUP_IO.md) for evidence and remaining
 gates, and [CLASS_LISTS.md](CLASS_LISTS.md) for the expanded DOM subset.
 
-Active development is in `L:/Lea Development` while the system drive is full.
-The latest full source run passes 968 checks there, and bootstrap profiling now
+Active development remains in the recovery checkout `L:/Lea Development`.
+The latest full source run passes 1,021 checks there, and bootstrap profiling now
 correctly fails if any sample failed. The original checkout and installed host
 remain intact; this is not a cold-start fix. See
 [WORKSPACE_RECOVERY.md](WORKSPACE_RECOVERY.md) for verification boundaries.
@@ -30,6 +30,13 @@ full C:; scripting still times out during bootstrap. Clipboard fixture errors
 now retain both test/restoration failures and their phases, with 14 deterministic
 checks before host cases. No current full host/package pass or installed-browser
 replacement is claimed. See [CLIPBOARD_FIXTURES.md](CLIPBOARD_FIXTURES.md).
+
+The newer source and standalone build add live element parent/child/sibling
+navigation, with six shared getters and two-letter bridge commands. All 53
+focused checks and the 1,021-check full suite pass; earlier startup/profile
+failures remain retained. The full pass follows observed C: storage recovery,
+not a proven startup fix. This feature is not in the earlier v18 host candidate.
+See [TREE_NAVIGATION.md](TREE_NAVIGATION.md) for scope and remaining release gates.
 
 ## Current Features
 

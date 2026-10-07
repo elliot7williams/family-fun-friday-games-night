@@ -81,6 +81,9 @@ namespace Lea.Script
                 return count == 1;
             }
             var target = Node(args, 1);
+            if (args.Length == 2 && (operation == "pe" || operation == "fc" || operation == "lc" ||
+                operation == "ps" || operation == "ns" || operation == "cc"))
+                return Relative(target ?? page.D, operation);
             if ((operation == "mt" || operation == "cl") && args.Length == 3)
             {
                 if (target == null) throw new InvalidDataException("An element handle is required.");
@@ -112,6 +115,36 @@ namespace Lea.Script
             }
             throw new InvalidDataException("Unsupported bridge operation.");
         }
+
+        private object Relative(N target, string operation)
+        {
+            if (operation == "pe") return Key(Element(target.Up) ? target.Up : null);
+            var siblings = operation == "ps" || operation == "ns";
+            if (siblings && target.Up == null) return null;
+            var children = siblings ? target.Up.C : target.C;
+            var visits = 0;
+            var count = 0;
+            N previous = null;
+            var found = false;
+            foreach (var child in children)
+            {
+                if (++visits > 8192) throw new LimitException();
+                if (siblings && Object.ReferenceEquals(child, target))
+                {
+                    if (operation == "ps") return Key(previous);
+                    found = true;
+                    continue;
+                }
+                if (!Element(child)) continue;
+                if (operation == "fc" || operation == "ns" && found) return Key(child);
+                previous = child;
+                count++;
+            }
+            return operation == "cc" ? (object)count : operation == "lc" ? Key(previous) : null;
+        }
+
+        private static bool Element(N node)
+        { return node != null && !node.K.StartsWith("#", StringComparison.Ordinal); }
 
         private object Key(N node)
         {

@@ -34,6 +34,17 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Live element-tree navigation adds six read-only element properties and document
+child endpoints/count through private two-letter bridge commands, with shared
+getter functions, identity, detached-subtree reads, and bounded list scans.
+All 53 trusted/isolated/native checks and 28 privacy checks pass; desktop/narrow
+captures are inspected. The first full run still times out after `startup
+parsed`, and cold profiling also fails. After an external storage recovery from
+zero to about 1 GB free C: space, a distinct normal full run passes all 1,021
+checks. Earlier failures remain; no cold-start cause/fix or current host/package
+pass is claimed. The installed browser is unchanged and broader readiness stays
+about 65%. See `TREE_NAVIGATION.md` for verification and size boundaries.
+
 Clipboard-fixture follow-up reproduces cleanup masking an original test error
 and preserves both errors, stacks, phase, and HRESULT without changing runtime
 clipboard retries. All 14 deterministic harness checks pass and now run before

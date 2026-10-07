@@ -221,6 +221,12 @@ objects, reflection types, file handles, or network clients:
 - Stable element wrapper identity, `tagName`, `getAttribute`, `hasAttribute`,
   `textContent`, and live writable `id`/`className` strings.
 - Mutable field `value` and `checked`, with Lea's existing field constraints.
+- Read-only element `parentElement`, `firstElementChild`, `lastElementChild`,
+  `previousElementSibling`, `nextElementSibling`, and `childElementCount`;
+  document child endpoints/count; live text-skipping navigation and stable
+  detached-subtree identity without detached writes. Six shared getters use
+  private two-letter bridge commands and an 8,192-visit ceiling. See
+  [tree navigation contracts and tests](../LeaForge/TREE_NAVIGATION.md).
 - Element `matches(selector)` and inclusive nearest-ancestor `closest(selector)`
   reuse the bounded selector compiler. Methods brand-check their actual receiver
   before converting the required argument, retain wrapper identity, and can read

@@ -21,6 +21,21 @@ namespace Lea.Script.Tests
                 var viewFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-view.html");
                 var attributeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-attributes.html");
                 var selectorFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-selectors.html");
+                var treeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-tree.html");
+                if (args.Length > 1 && args[1] == "--tree-view")
+                {
+                    View.Tree(treeFixture, args.Length > 2 ? args[2] : null);
+                    Console.WriteLine("PASS Lea.Script native tree: " + checks + " checks.");
+                    return 0;
+                }
+                if (args.Length > 1 && (args[1] == "--tree" || args[1] == "--tree-trusted"))
+                {
+                    var trustedOnly = args[1] == "--tree-trusted";
+                    Tree.Run(treeFixture, trustedOnly);
+                    if (!trustedOnly) View.Tree(treeFixture, args.Length > 2 ? args[2] : null);
+                    Console.WriteLine("PASS Lea.Script tree" + (trustedOnly ? " trusted-only diagnostics" : "") + ": " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--select")
                 {
                     Selectors.Run(selectorFixture);
@@ -252,6 +267,8 @@ namespace Lea.Script.Tests
                 BootstrapScopes.Run(attributeFixture);
                 Selectors.Run(selectorFixture);
                 View.Selectors(selectorFixture);
+                Tree.Run(treeFixture);
+                View.Tree(treeFixture);
                 Worker.Run(fixture);
                 Events.Run(viewFixture);
                 Attributes.Run(attributeFixture);

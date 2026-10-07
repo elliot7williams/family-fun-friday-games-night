@@ -1,0 +1,27 @@
+<!doctype html>
+<html><head><title>Lea tree navigation</title><style>
+body { margin: 24px; color: #25282b; background: #ffffff; font-family: Segoe UI; }
+h1 { font-size: 24px; }
+section { padding: 12px; border: 1px solid #168477; }
+button { background: #168477; color: #ffffff; padding: 8px; }
+input { width: 190px; }
+</style></head><body>
+<h1><img src="../../assets/lea.ico" width="32" height="32" alt="Lea"> Lea</h1>
+<div id="tree"><section id="panel">
+<button id="action"><span id="child">Choose Lea</span></button>
+Text between elements.
+<!-- This comment is not an element. -->
+<input id="field" value="Lea">
+<p id="echo">Ready</p>
+</section></div>
+<script>
+var panel = document.getElementById('panel');
+panel.firstElementChild.addEventListener('click', function() {
+    this.nextElementSibling.value = 'Lea tree';
+    this.parentElement.lastElementChild.textContent = 'Selected';
+});
+document.getElementById('field').addEventListener('input', function() {
+    document.title = this.parentElement.id + '|' + this.parentElement.childElementCount + '|' + this.value;
+});
+</script>
+</body></html>

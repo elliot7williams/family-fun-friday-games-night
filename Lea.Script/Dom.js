@@ -357,6 +357,21 @@
         if (ancestors ? result === -1 : result === null) throw new DOMException('Invalid or unsupported Lea selector', 'SyntaxError');
         return ancestors ? wrap(result) : result;
     }
+    function relative(receiver, operation) {
+        if (receiver === document && operation !== 'ps' && operation !== 'ns') return call(operation, null);
+        const state = apply(getState, targets, [receiver]);
+        if (!state || typeof state.key !== 'number') throw new listError('Illegal tree navigation receiver');
+        return call(operation, state.key);
+    }
+    const treeProperties = {
+        __proto__: null,
+        parentElement: { __proto__: null, get() { return wrap(relative(this, 'pe')); }, enumerable: true, configurable: true },
+        firstElementChild: { __proto__: null, get() { return wrap(relative(this, 'fc')); }, enumerable: true, configurable: true },
+        lastElementChild: { __proto__: null, get() { return wrap(relative(this, 'lc')); }, enumerable: true, configurable: true },
+        previousElementSibling: { __proto__: null, get() { return wrap(relative(this, 'ps')); }, enumerable: true, configurable: true },
+        nextElementSibling: { __proto__: null, get() { return wrap(relative(this, 'ns')); }, enumerable: true, configurable: true },
+        childElementCount: { __proto__: null, get() { return relative(this, 'cc'); }, enumerable: true, configurable: true }
+    };
     function wrap(key) {
         if (key === null) return null;
         if (cache.has(key)) return cache.get(key);
@@ -369,6 +384,7 @@
                 set(value) { put(key, styles[name], value); }, enumerable: true
             });
         }
+        Object.defineProperties(node, treeProperties);
         Object.defineProperties(node, {
             tagName: { get() { return call('tag', key); } },
             id: { get() { return call('attr', key, 'id') || ''; }, set(value) { put(key, 'id', value); } },
@@ -392,6 +408,9 @@
     }
     const document = {};
     Object.defineProperties(document, {
+        firstElementChild: treeProperties.firstElementChild,
+        lastElementChild: treeProperties.lastElementChild,
+        childElementCount: treeProperties.childElementCount,
         readyState: { get() { return ready; } },
         title: { get() { return call('t'); }, set(value) { put(null, 't', value); } },
         body: { get() { return wrap(call('q', 'body')); } },
