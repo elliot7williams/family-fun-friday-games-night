@@ -10,7 +10,16 @@ The earlier projects stay small:
 
 LeaForge is where we can grow the more full-featured browser.
 
-Latest verification: the opt-in native worker observer passes all 60 checks
+Latest host checkpoint: separate v24 passes all 43 candidate host cases and
+six actual-EXE startup scenarios, including new real-click callback coverage
+with an identical-harness old-worker negative control. Both archives pass
+integrity audits, but their fresh runtime extraction fails first-demand worker
+startup after 42 non-script cases. The archived source builds independently;
+further runtime gates are held. The packages are not verified releases and
+installed Firespider stays untouched. See
+[HOST_LISTENER_CALLS.md](HOST_LISTENER_CALLS.md).
+
+Preceding source verification: the opt-in native worker observer passes all 60 checks
 and captures 266 samples across eight workers. A separate ordinary full source
 run, without observation or timing trace, passes all 1,261 checks through the
 same final test executable. No timeout is reproduced; measured observer

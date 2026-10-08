@@ -1728,9 +1728,35 @@ if(hostOptionReads.join(',')!=='capture,once,passive,signal')throw Error('host n
 var hostOptionSentinel={},hostOptionError;
 try{document.body.addEventListener('click',hostOptionRejected,{capture:true,get once(){throw hostOptionSentinel;}});}catch(error){hostOptionError=error;}
 if(hostOptionError!==hostOptionSentinel)throw Error('host option getter error');");
+            await ScriptCode(view, @"var hostCallTarget=document.getElementById('counter'),hostCallTrace=[],hostCallReads=0,hostObjectReads=0,hostCallEvent;
+function hostCallFunction(event){
+  if(this!==hostCallTarget||event.currentTarget!==this||event.target!==this||arguments.length!==1||event.eventPhase!==2)throw Error('host function receiver');
+  hostCallTrace.push('function');
+}
+Object.defineProperty(hostCallFunction,'call',{get(){hostCallReads++;throw Error('host own call getter reached');}});
+hostCallTarget.addEventListener('click',hostCallFunction,{once:true});
+var hostCallObject={get handleEvent(){
+  hostObjectReads++;if(this!==hostCallObject)throw Error('host object getter receiver');
+  var callback=function(event){if(this!==hostCallObject||event.currentTarget!==hostCallTarget||arguments.length!==1)throw Error('host object receiver');hostCallTrace.push('object');return false;};
+  callback.call=null;return callback;
+}};
+hostCallTarget.addEventListener('click',hostCallObject,{once:true});
+if(hostObjectReads)throw Error('host eager object operation');
+var hostCallProperty=function(event){if(this!==hostCallTarget||event.currentTarget!==this||arguments.length!==1)throw Error('host property receiver');hostCallEvent=event;hostCallTrace.push('property');return false;};
+Object.defineProperty(hostCallProperty,'call',{get(){hostCallReads++;throw Error('host property call getter reached');}});
+hostCallTarget.onclick=hostCallProperty;
+var savedHostCall=Function.prototype.call,savedHostOwn=Object.prototype.hasOwnProperty,savedHostApply=Reflect.apply;
+Function.prototype.call=function(){throw Error('host public Function.call reached');};
+Object.prototype.hasOwnProperty=function(){throw Error('host public ownership helper reached');};
+Reflect.apply=function(){throw Error('host public Reflect.apply reached');};");
             await ScriptActivate(view, "counter");
+            Check(view.Xo != null && view.Xo.Ok, "host callback dispatch: " + ScriptState(view));
+            await ScriptCode(view, @"Function.prototype.call=savedHostCall;Object.prototype.hasOwnProperty=savedHostOwn;Reflect.apply=savedHostApply;
+if(hostCallReads!==0||hostObjectReads!==1||hostCallTrace.join(',')!=='function,object,property'||!hostCallEvent.defaultPrevented||hostCallEvent.currentTarget!==null||hostCallEvent.eventPhase!==0||hostCallTarget.onclick!==hostCallProperty)throw Error('host captured callback invocation');
+hostCallTarget.onclick=null;");
             Check(view.T == "Lea 1" && Member<Label>(form, "su").Text.IndexOf("script:", StringComparison.Ordinal) < 0,
                 "host native click did not update DOM/title or raised script status");
+            Console.WriteLine("PASS script host callbacks: native keyboard click, function/object/DOM0 receivers, deferred operation, captured intrinsics, cancellation, and restored event state");
             await ScriptCode(view, "if(hostOptionPhases.join(',')!=='1'||hostOptionOnce!==1||hostOptionFailed!==0)throw Error('host converted capture or atomic registration');document.body.removeEventListener('click',hostOptionCapture,1);");
             await ScriptCode(view, "var hostTimers=[];setTimeout(function(){hostTimers.push('a');Promise.resolve().then(function(){hostTimers.push('micro');});});setTimeout(function(){hostTimers.push('b');document.getElementById('result').textContent=hostTimers.join(',');document.title='Host timers';});");
             var timerClock = Stopwatch.StartNew();
@@ -1823,7 +1849,7 @@ if(hostOptionError!==hostOptionSentinel)throw Error('host option getter error');
             }
             Check(!UiErrors.Any() && !Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module =>
                 module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)), "script integration raised UI errors or loaded MSHTML");
-            Console.WriteLine("PASS script host: net48, dormant loading, state retention, inline lifecycle, native events/defaults and option conversion, bounded timers, live attributes/selectors/tree navigation, error status/recovery, split isolation/disposal, tab cleanup, and remote-origin refusal");
+            Console.WriteLine("PASS script host: net48, dormant loading, state retention, inline lifecycle, native events/defaults, option conversion and captured callbacks, bounded timers, live attributes/selectors/tree navigation, error status/recovery, split isolation/disposal, tab cleanup, and remote-origin refusal");
         }
 
         private static void ScriptPicture(Form form, string name)

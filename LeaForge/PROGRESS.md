@@ -34,6 +34,18 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Separate v24 now carries captured callback invocation into Firespider. An
+identical-harness old-worker negative control reproduces the callback bug and
+the current-worker positive control passes. The candidate passes all 43 host
+cases and six actual-EXE startup scenarios. Both ZIPs pass byte/stream/extraction
+audits, but the fresh runtime extraction passes only 42 non-script cases before
+first-demand worker startup times out at 5,013 ms wall/484 ms CPU, with
+`evaluate` last captured. Its six actual-EXE scenarios and independent-runtime
+tests are held. The archived host source compiles independently without
+changing any of its 104 files or 19 runtime dependencies. Packages are retained
+but not verified releases; installed files stay unchanged, milestone 146 stays
+open, and readiness stays about 65%. See `HOST_LISTENER_CALLS.md`.
+
 The opt-in native startup observer passes the existing recovery flow plus its
 own retirement/data checks: 60 checks, 266 samples across eight owned workers,
 and inspected desktop/narrow paint captures. Four CLI guards and a controlled
