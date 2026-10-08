@@ -12,6 +12,13 @@ with Acornima 1.7.0 and framework support libraries pinned in
 arrays, objects, JSON, and template strings. It does not implement those
 language rules through a new handwritten parser.
 
+The readable `Dom.js` bootstrap is kept in source. Both runtimes embed the same
+generated `Dom.compact.js` under the original resource name, without identifier
+mangling or decompression. Ordinary builds reject stale source/output hashes.
+See [the generator instructions](../Lea.Build/Bootstrap/README.md) for editing
+and regeneration. Compact function source text and source positions differ
+from the readable version; this does not change the public alias API.
+
 ## Visual Studio
 
 The script projects are included in `../Lea.sln`. A host using this optional

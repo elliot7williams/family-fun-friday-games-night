@@ -64,6 +64,10 @@ released. See [STARTUP_REPORT_TAIL.md](STARTUP_REPORT_TAIL.md).
 
 ## Current Features
 
+- an experimental compact scripting bootstrap generated from retained readable
+  source, with AST round trips and build-time stale-file guards; resource size
+  is 28.3% lower, not whole-engine size or a proven speedup. Full startup and
+  release gates remain open; see `COMPACT_BOOTSTRAP.md`
 - bounded per-execution parent script I/O dispatch with no owned idle dispatcher
   between executions, unchanged deadlines, and preserved worker realms; see
   `IO_DISPATCH.md`

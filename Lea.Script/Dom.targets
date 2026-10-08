@@ -1,0 +1,20 @@
+<Project>
+  <PropertyGroup>
+    <LeaDomDirectory>$(MSBuildThisFileDirectory)</LeaDomDirectory>
+  </PropertyGroup>
+  <Import Project="$(LeaDomDirectory)Dom.g.props" Condition="Exists('$(LeaDomDirectory)Dom.g.props')" />
+  <Target Name="ValidateLeaBootstrap" BeforeTargets="PrepareResources">
+    <Error Condition="'$(LeaDomSourceHash)' == '' Or '$(LeaDomCompactHash)' == ''"
+           Text="Missing Lea bootstrap hashes. Run Lea.Build/Bootstrap with --write and the repository directory." />
+    <GetFileHash Files="$(LeaDomDirectory)Dom.js" Algorithm="SHA256">
+      <Output TaskParameter="Items" ItemName="_LeaDomSource" />
+    </GetFileHash>
+    <GetFileHash Files="$(LeaDomDirectory)Dom.compact.js" Algorithm="SHA256">
+      <Output TaskParameter="Items" ItemName="_LeaDomCompact" />
+    </GetFileHash>
+    <Error Condition="'%(_LeaDomSource.FileHash)' != '$(LeaDomSourceHash)'"
+           Text="Lea bootstrap source changed. Run Lea.Build/Bootstrap with --write, then --check, and review the generated files." />
+    <Error Condition="'%(_LeaDomCompact.FileHash)' != '$(LeaDomCompactHash)'"
+           Text="Lea bootstrap source or compact file changed. Run Lea.Build/Bootstrap with --write, then --check, and review the generated files." />
+  </Target>
+</Project>

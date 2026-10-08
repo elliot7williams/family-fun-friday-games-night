@@ -18,16 +18,17 @@ namespace Lea.Script.Tests
             var source = sourceFile == null
                 ? (string)typeof(Js).GetField("bootstrap", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).GetValue(null)
                 : System.IO.File.ReadAllText(sourceFile);
-            var stages = new[] { "    let failed =", "    const realm =", "    const exceptions =", "    function DOMException(", "    DOMException.prototype =", "    const exceptionConstants =",
+            Console.WriteLine(sourceFile == null ? "Embedded bootstrap: VM/parse/completion timing only; no statement-stage markers." : "Explicit source: readable statement-stage instrumentation where anchors match.");
+            var stages = sourceFile == null ? new string[0] : new[] { "    let failed =", "    const realm =", "    const exceptions =", "    function DOMException(", "    DOMException.prototype =", "    const exceptionConstants =",
                 "    Object.defineProperties(DOMException,", "    Object.defineProperties(DOMException.prototype, exceptionConstants)", "    define(DOMException.prototype, Symbol.toStringTag",
                 "    function DOMTokenList()", "    DOMTokenList.prototype =", "    const listPrototype =", "    define(listPrototype, Symbol.iterator", "    const document =",
                 "    eventTarget(document);", "    delete globalThis.__lea;", "    (function dispatch(" };
             for (var i = 0; i < stages.Length; i++)
             {
-                Console.WriteLine("Trace point=" + i + "; " + stages[i].Trim());
                 if (source.IndexOf(stages[i], StringComparison.Ordinal) < 0) continue;
                 if (source.IndexOf(stages[i], StringComparison.Ordinal) != source.LastIndexOf(stages[i], StringComparison.Ordinal))
                     throw new InvalidOperationException("Ambiguous bootstrap trace point: " + stages[i]);
+                Console.WriteLine("Trace point=" + i + "; " + stages[i].Trim());
                 source = source.Replace(stages[i], "    __mark('" + i + "');\n" + stages[i]);
             }
             ProfileSamples(sample => source);

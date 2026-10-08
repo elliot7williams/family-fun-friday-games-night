@@ -2,6 +2,11 @@
 
 These files are fallback build sources for machines that have the old Windows C# compiler but do not have the modern .NET SDK.
 
+`Bootstrap` is a separate developer-only .NET 8 generator for the optional
+JavaScript module's compact embedded resource. Ordinary runtime builds use
+the committed generated output and stock MSBuild hash checks; they do not
+require running this tool. See [Bootstrap/README.md](Bootstrap/README.md).
+
 The compiled test executables go in:
 
 ```text
@@ -33,7 +38,10 @@ The cleaner source projects are still:
 `Pack-LeaScript.ps1` packages the separate optional scripting experiment after
 a Release build of `Lea.Script.Browser` and `Lea.Script.Tests`. It includes
 both EXEs, exact locked runtime dependencies, the isolated `ScriptWorker`, fixtures, notices, README,
-and a SHA-256 manifest. It never modifies the installed Firespider runtime.
+and a SHA-256 manifest. The package also includes the tree fixture and readable/
+compact bootstrap test assets, outside the embedded runtime payloads, so its
+test EXE can run the same asset checks as the source suite.
+It never modifies the installed Firespider runtime.
 The test browser is separate from the installed Firespider build. Run the test EXE with the
 package folder as its first argument; `--ui` runs just the asynchronous checks.
 
@@ -63,6 +71,7 @@ do not alter global PowerShell aliases or remove the descriptive options.
 Run `Backup-Lea.ps1` to create a dated, source-only ZIP in the Documents
 `Lea Source Backups` folder. Git and GitHub remain the main version history;
 the ZIP is an additional local copy without `bin`, `obj`, or `dist` files.
+It includes `.gitattributes` to retain the bootstrap's reproducible line endings.
 
 Run `Backup-Firespider.ps1` to create the matching source-only host ZIP from
 `L:\Firespider Internet` in the Documents `Firespider Source Backups` folder.

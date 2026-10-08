@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net8.0": {
+      "Acornima.Extras": {
+        "type": "Direct",
+        "requested": "[1.7.0, )",
+        "resolved": "1.7.0",
+        "contentHash": "lEp6OUPKmiSp+iCHcxFTLTJUTk6O+YxUdP3WB3nxuS1jRJ4PJLOTDlBSRkG3h2tjTB5dE30Hlra6dwvcoq2NNg==",
+        "dependencies": {
+          "Acornima": "1.7.0"
+        }
+      },
+      "Acornima": {
+        "type": "Transitive",
+        "resolved": "1.7.0",
+        "contentHash": "a2I4O4qkuAdB0oSaGz6/k0n/bXxMbGcLBra5dNTTVSLmTwM7uORA8ebpOrNMmDfFWOMwvuaRL6gPprRV4HTV0w=="
+      }
+    }
+  }
+}

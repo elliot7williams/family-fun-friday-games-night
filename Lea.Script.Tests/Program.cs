@@ -22,6 +22,18 @@ namespace Lea.Script.Tests
                 var attributeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-attributes.html");
                 var selectorFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-selectors.html");
                 var treeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-tree.html");
+                if (args.Length > 1 && args[1] == "--bootstrap-assets")
+                {
+                    BootstrapAssets.Run(root);
+                    Console.WriteLine("PASS Lea.Script bootstrap assets: " + checks + " checks.");
+                    return 0;
+                }
+                if (args.Length > 1 && args[1] == "--runtime-load")
+                {
+                    Loader.Run(fixture);
+                    Console.WriteLine("Lea.Script runtime loader diagnostic completed.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--io-dispatch")
                 {
                     ParentIo.Run(fixture);
@@ -215,6 +227,7 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script UI: " + checks + " checks.");
                     return 0;
                 }
+                BootstrapAssets.Run(root);
                 var engine = new E();
                 var page = engine.Go(fixture);
                 var field = page.Fs.Single(item => item.El.Av("id") == "field");

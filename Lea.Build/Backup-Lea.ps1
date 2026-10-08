@@ -32,6 +32,7 @@ try {
     }
 
     Copy-Item -LiteralPath (Join-Path $root 'Lea.sln') -Destination $stage
+    Copy-Item -LiteralPath (Join-Path $root '.gitattributes') -Destination $stage
     Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $zip -CompressionLevel Optimal
     Get-Item -LiteralPath $zip
 }

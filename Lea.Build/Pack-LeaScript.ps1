@@ -36,6 +36,7 @@ foreach ($name in $names | Where-Object { $_.EndsWith('.dll') -or $_ -eq 'Lea.Im
 if (Test-Path -LiteralPath $stage) { throw "Package stage already exists: $stage" }
 New-Item -ItemType Directory -Path (Join-Path $stage 'ScriptWorker') | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $stage 'LeaForge\test-pages') | Out-Null
+New-Item -ItemType Directory -Path (Join-Path $stage 'Lea.Script') | Out-Null
 foreach ($name in $names) { Copy-Item -LiteralPath (Join-Path $runtime $name) -Destination $stage }
 foreach ($name in @('Lea.Script.Tests.exe', 'Lea.Script.Tests.exe.config')) { Copy-Item -LiteralPath (Join-Path $tests $name) -Destination $stage }
 foreach ($name in $workerNames) {
@@ -47,6 +48,10 @@ Copy-Item -LiteralPath (Join-Path $root 'LeaForge\test-pages\javascript-runtime.
 Copy-Item -LiteralPath (Join-Path $root 'LeaForge\test-pages\javascript-view.html') -Destination (Join-Path $stage 'LeaForge\test-pages')
 Copy-Item -LiteralPath (Join-Path $root 'LeaForge\test-pages\javascript-attributes.html') -Destination (Join-Path $stage 'LeaForge\test-pages')
 Copy-Item -LiteralPath (Join-Path $root 'LeaForge\test-pages\javascript-selectors.html') -Destination (Join-Path $stage 'LeaForge\test-pages')
+Copy-Item -LiteralPath (Join-Path $root 'LeaForge\test-pages\javascript-tree.html') -Destination (Join-Path $stage 'LeaForge\test-pages')
+foreach ($name in @('Dom.js', 'Dom.compact.js', 'Dom.g.props')) {
+    Copy-Item -LiteralPath (Join-Path $root "Lea.Script\$name") -Destination (Join-Path $stage 'Lea.Script')
+}
 New-Item -ItemType Directory -Path (Join-Path $stage 'assets') | Out-Null
 Copy-Item -LiteralPath (Join-Path $root 'assets\lea.ico') -Destination (Join-Path $stage 'assets')
 

@@ -34,6 +34,16 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+The current experimental bootstrap is generated from unchanged readable source,
+with matching parsed structure, reproducible output, and build-time stale-file
+guards. Its resource is 28.3% smaller and each scripting PE is 8 KiB smaller.
+Six fresh-worker launches and focused resource/privacy/tree/class-list/event/
+microtask checks pass, but the planned 1,051-check full run still times out at
+isolated tree startup. Separate timer runs fail the same first script-budget
+check on compact and preserved readable builds. This is not a startup fix,
+new completed hardening milestone, or release; readiness stays about 65%.
+See `COMPACT_BOOTSTRAP.md` for sizes, diagnostics, preserved failures, and scope.
+
 Startup reports now retain parent timings and the newest captured child detail
 within the existing 512-character bound. Seven new formatter checks, eight
 native phase checks, and 31 current dispatcher/I/O checks pass. Separate v21
