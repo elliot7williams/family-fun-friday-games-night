@@ -10,13 +10,15 @@ The earlier projects stay small:
 
 LeaForge is where we can grow the more full-featured browser.
 
-Development note: this is not a new stable release. Blocked asynchronous worker
-I/O now observes scripting revocation/navigation promptly without restarting
-its deadline, and a one-shot post-parse marker narrows startup diagnostics.
-Cold interpreter/worker startup still fails existing deadlines. The installed
-browser and earlier verified archives stay unchanged; v17 is a separate
-experimental build. See [STARTUP_IO.md](STARTUP_IO.md) for evidence and remaining
-gates, and [CLASS_LISTS.md](CLASS_LISTS.md) for the expanded DOM subset.
+Development note: separate v22 and its fresh runtime extraction each pass all
+43 Firespider host cases and six actual-EXE startup scenarios. Its archived host
+source rebuilds independently and passes scripting plus six EXE startup cases.
+This is a verified test candidate, not a stable release or proof of a fix for
+the retained intermittent cold-worker startup failures. The installed browser
+stays unchanged; milestone 146 is open and broader readiness is about 65%.
+See [HOST_EVENT_OPTIONS.md](HOST_EVENT_OPTIONS.md) for artifacts and boundaries.
+The checkpoint notes below preserve earlier results rather than transferring
+later passes to those historical builds.
 
 Active development remains in the recovery checkout `L:/Lea Development`.
 The earlier recovery-checkpoint full source run passes 1,040 checks there, and bootstrap profiling now
@@ -67,9 +69,11 @@ released. See [STARTUP_REPORT_TAIL.md](STARTUP_REPORT_TAIL.md).
 - Correct listener argument conversion for the supported JavaScript event subset:
   primitive capture, ordered dictionary reads, duplicate/null conversion, and
   failed-conversion safety. All 75 new checks, complete 1,157-check source/package
-  runs, and the separate browser EXE smoke pass. This is not proof of an
-  intermittent startup fix or a new Firespider
-  release. See `EVENT_OPTIONS.md`.
+  runs, and the separate browser EXE smoke pass at the source checkpoint. Separate
+  v22 now passes complete candidate/extracted Firespider host and EXE startup
+  matrices, with native option-conversion regression checks and an independently
+  verified host-source rebuild. This is not proof of an intermittent startup fix
+  or an installed replacement. See `EVENT_OPTIONS.md` and `HOST_EVENT_OPTIONS.md`.
 
 - trusted scripting budget reports with bounded host-phase and exception-type
   detail, unchanged limits, and tested cleanup/recovery. The initial 1,082-check

@@ -52,8 +52,12 @@ embedding aliases and private bridge commands are unchanged.
 
 This full pass does not explain the intermittent startup failure preserved at the
 preceding checkpoint. No cold-cache experiment or startup speedup is claimed.
-The test package is separate from Firespider; no current Firespider candidate or
-full host-matrix pass is claimed.
+The original test package is separate from Firespider. Subsequent v22 verification
+passes complete 43-case host and six-scenario EXE startup runs on both the copied
+candidate and fresh runtime extraction, plus the independently rebuilt archived
+host's script and six EXE startup cases. Native host checks cover the conversion
+behavior; see [HOST_EVENT_OPTIONS.md](HOST_EVENT_OPTIONS.md). No installed-browser
+replacement or intermittent startup fix is claimed.
 
 ## Size And Provenance
 

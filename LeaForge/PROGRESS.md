@@ -34,6 +34,18 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Separate v22 now carries the current event-options runtime into Firespider.
+The candidate and fresh runtime extraction each pass all 43 host cases and all
+six actual-EXE startup scenarios. The independently archived host source builds
+without changed inputs, retains all 19 runtime dependencies, and passes its
+complete script case plus all six EXE startup scenarios. New host assertions
+cover native capture/removal, ordered/null/duplicate conversion, and atomic
+registration failure. Both archives pass source/stream/extraction hash audits.
+This verifies a separate test candidate, not a cold-start fix or installed
+replacement. Milestone 146 remains open and broader readiness stays about 65%.
+See `HOST_EVENT_OPTIONS.md`. Earlier checkpoint notes below retain their original
+results; subsequent passes do not erase those failures.
+
 Event-listener argument conversion now handles primitive capture options,
 single ordered dictionary/type reads, required arguments and callback validation,
 duplicate/null conversion, and atomic registration failure. All 75 new checks

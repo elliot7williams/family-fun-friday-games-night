@@ -1709,9 +1709,29 @@ namespace Lea.Firespider
             var runtime = Member<object>(view.Xs, "At");
             Check((bool)runtime.GetType().GetProperty("Ac").GetValue(runtime, null) &&
                 (bool)runtime.GetType().GetProperty("Ne").GetValue(runtime, null), "host worker lacks isolation or has a loopback exemption");
+            await ScriptCode(view, @"var hostOptionReads=[],hostOptionPhases=[],hostOptionOnce=0,hostOptionFailed=0;
+function hostOptionCapture(event){hostOptionPhases.push(event.eventPhase);}
+function hostOptionSingle(){hostOptionOnce++;}
+function hostOptionRejected(){hostOptionFailed++;}
+var hostOptionType={toString(){hostOptionReads.push('type');return 'click';}};
+var hostOptionFields=new Proxy({}, {get(target,key){hostOptionReads.push(key);return key==='signal'?undefined:key==='capture';}});
+document.body.addEventListener(hostOptionType,hostOptionCapture,hostOptionFields);
+if(hostOptionReads.join(',')!=='type,capture,once,passive,signal')throw Error('host add conversion order');
+hostOptionReads=[];document.body.removeEventListener(hostOptionType,hostOptionCapture,hostOptionFields);
+if(hostOptionReads.join(',')!=='type,capture')throw Error('host remove conversion order');
+document.body.addEventListener('click',hostOptionCapture,1);
+document.body.addEventListener('click',hostOptionSingle,{capture:true,once:true});
+hostOptionReads=[];document.body.addEventListener('click',hostOptionSingle,hostOptionFields);
+if(hostOptionReads.join(',')!=='capture,once,passive,signal')throw Error('host duplicate conversion');
+hostOptionReads=[];document.body.addEventListener('click',null,hostOptionFields);
+if(hostOptionReads.join(',')!=='capture,once,passive,signal')throw Error('host null conversion');
+var hostOptionSentinel={},hostOptionError;
+try{document.body.addEventListener('click',hostOptionRejected,{capture:true,get once(){throw hostOptionSentinel;}});}catch(error){hostOptionError=error;}
+if(hostOptionError!==hostOptionSentinel)throw Error('host option getter error');");
             await ScriptActivate(view, "counter");
             Check(view.T == "Lea 1" && Member<Label>(form, "su").Text.IndexOf("script:", StringComparison.Ordinal) < 0,
                 "host native click did not update DOM/title or raised script status");
+            await ScriptCode(view, "if(hostOptionPhases.join(',')!=='1'||hostOptionOnce!==1||hostOptionFailed!==0)throw Error('host converted capture or atomic registration');document.body.removeEventListener('click',hostOptionCapture,1);");
             await ScriptCode(view, "var hostTimers=[];setTimeout(function(){hostTimers.push('a');Promise.resolve().then(function(){hostTimers.push('micro');});});setTimeout(function(){hostTimers.push('b');document.getElementById('result').textContent=hostTimers.join(',');document.title='Host timers';});");
             var timerClock = Stopwatch.StartNew();
             while ((view.T != "Host timers" || view.Xn != 0) && timerClock.ElapsedMilliseconds < 5000) await Task.Delay(5);
@@ -1735,6 +1755,7 @@ namespace Lea.Firespider
             var document = view.At;
             await ScriptActivate(view, "blocked");
             Check(view.At == document, "host event cancellation did not suppress link navigation");
+            await ScriptCode(view, "if(hostOptionPhases.join(',')!=='1'||hostOptionOnce!==1||hostOptionFailed!==0)throw Error('host converted removal or duplicate once retention');");
             var failure = view.JsA("document.title='Partial host write';throw new Error('expected host failure');");
             await failure;
             Call(form, "qleaTick", form, EventArgs.Empty);
@@ -1802,7 +1823,7 @@ namespace Lea.Firespider
             }
             Check(!UiErrors.Any() && !Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module =>
                 module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)), "script integration raised UI errors or loaded MSHTML");
-            Console.WriteLine("PASS script host: net48, dormant loading, state retention, inline lifecycle, native events/defaults, bounded timers, live attributes/selectors/tree navigation, error status/recovery, split isolation/disposal, tab cleanup, and remote-origin refusal");
+            Console.WriteLine("PASS script host: net48, dormant loading, state retention, inline lifecycle, native events/defaults and option conversion, bounded timers, live attributes/selectors/tree navigation, error status/recovery, split isolation/disposal, tab cleanup, and remote-origin refusal");
         }
 
         private static void ScriptPicture(Form form, string name)
