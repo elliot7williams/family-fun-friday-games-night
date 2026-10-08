@@ -34,6 +34,20 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+The opt-in native startup observer passes the existing recovery flow plus its
+own retirement/data checks: 60 checks, 266 samples across eight owned workers,
+and inspected desktop/narrow paint captures. Four CLI guards and a controlled
+fixture-failure preservation check pass. A separate ordinary full source run
+without observation or timing trace now passes all 1,261 checks through the
+same final test executable. All 19 production dependencies remain unchanged.
+No timeout is reproduced; sampling has substantial measured overhead and does
+not establish a startup fix or speedup. Earlier failures remain preserved, no
+new release or host candidate is produced, milestone 146 stays open, and
+readiness stays about 65%. See `STARTUP_OBSERVE.md`.
+
+The checkpoint entries below retain their original results; a later pass does
+not reclassify an earlier failed run.
+
 A diagnostic-only alternating volume comparison verifies identical runtimes and
 passes all six final launches/25 checks, plus four CLI guards and the existing
 90 listener checks. Startup ranges overlap on removable NTFS L: and fixed NTFS

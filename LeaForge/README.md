@@ -10,7 +10,16 @@ The earlier projects stay small:
 
 LeaForge is where we can grow the more full-featured browser.
 
-Startup investigation: a diagnostic-only alternating L:/C: comparison passes
+Latest verification: the opt-in native worker observer passes all 60 checks
+and captures 266 samples across eight workers. A separate ordinary full source
+run, without observation or timing trace, passes all 1,261 checks through the
+same final test executable. No timeout is reproduced; measured observer
+overhead prevents treating its run as a speed benchmark. Production files and
+installed Firespider stay unchanged. Startup reliability remains unresolved;
+no new release or host candidate is made. See
+[STARTUP_OBSERVE.md](STARTUP_OBSERVE.md).
+
+Previous startup investigation: a diagnostic-only alternating L:/C: comparison passes
 all six final launches and 25 checks with identical runtime bytes and unchanged
 limits. Startup ranges overlap; relocation is not a demonstrated timeout fix.
 Earlier ACL-audit aborts are retained. No production binary changes or new
@@ -18,8 +27,9 @@ release are made. See [STARTUP_VOLUMES.md](STARTUP_VOLUMES.md).
 
 Development note: event callbacks now use captured intrinsic invocation, with
 all 90 focused trusted/isolated/native checks and the SDK-output browser smoke
-passing. Both complete source runs still fail worker startup before the new
-group. Release packaging and a new host candidate are held; the v23 host below
+passing. At that checkpoint, both complete source runs failed worker startup
+before the new group. Release packaging and a new host candidate were held;
+the v23 host below
 retains the preceding bootstrap. See [LISTENER_CALLS.md](LISTENER_CALLS.md).
 
 Previous host checkpoint: separate v23's second complete attempt and fresh runtime

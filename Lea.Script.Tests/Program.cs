@@ -22,6 +22,13 @@ namespace Lea.Script.Tests
                 var attributeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-attributes.html");
                 var selectorFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-selectors.html");
                 var treeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-tree.html");
+                if (args.Length > 1 && args[1] == "--startup-observe")
+                {
+                    if (args.Length != 3) throw new ArgumentException("Supply a new JSON report path for --startup-observe.");
+                    StartupObserve.Run(viewFixture, args[2]);
+                    Console.WriteLine("PASS Lea.Script native observation: " + checks + " checks; instrumented diagnostic only.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--startup-volumes")
                 {
                     if (args.Length != 4) throw new ArgumentException("Supply an existing alternate-volume staging root and a new JSON report path for --startup-volumes.");
