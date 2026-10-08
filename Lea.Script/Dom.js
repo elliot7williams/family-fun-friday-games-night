@@ -187,21 +187,13 @@
     };
     define(DOMException, 'prototype', { writable: false });
     define(DOMException.prototype, 'constructor', { value: DOMException, writable: true, configurable: true });
-    const exceptionConstants = {
-        INDEX_SIZE_ERR: { value: 1, enumerable: true }, DOMSTRING_SIZE_ERR: { value: 2, enumerable: true },
-        HIERARCHY_REQUEST_ERR: { value: 3, enumerable: true }, WRONG_DOCUMENT_ERR: { value: 4, enumerable: true },
-        INVALID_CHARACTER_ERR: { value: 5, enumerable: true }, NO_DATA_ALLOWED_ERR: { value: 6, enumerable: true },
-        NO_MODIFICATION_ALLOWED_ERR: { value: 7, enumerable: true }, NOT_FOUND_ERR: { value: 8, enumerable: true },
-        NOT_SUPPORTED_ERR: { value: 9, enumerable: true }, INUSE_ATTRIBUTE_ERR: { value: 10, enumerable: true },
-        INVALID_STATE_ERR: { value: 11, enumerable: true }, SYNTAX_ERR: { value: 12, enumerable: true },
-        INVALID_MODIFICATION_ERR: { value: 13, enumerable: true }, NAMESPACE_ERR: { value: 14, enumerable: true },
-        INVALID_ACCESS_ERR: { value: 15, enumerable: true }, VALIDATION_ERR: { value: 16, enumerable: true },
-        TYPE_MISMATCH_ERR: { value: 17, enumerable: true }, SECURITY_ERR: { value: 18, enumerable: true },
-        NETWORK_ERR: { value: 19, enumerable: true }, ABORT_ERR: { value: 20, enumerable: true },
-        URL_MISMATCH_ERR: { value: 21, enumerable: true }, QUOTA_EXCEEDED_ERR: { value: 22, enumerable: true },
-        TIMEOUT_ERR: { value: 23, enumerable: true }, INVALID_NODE_TYPE_ERR: { value: 24, enumerable: true },
-        DATA_CLONE_ERR: { value: 25, enumerable: true }
-    };
+    const exceptionKeys = ['INDEX_SIZE_ERR', 'DOMSTRING_SIZE_ERR', 'HIERARCHY_REQUEST_ERR', 'WRONG_DOCUMENT_ERR',
+        'INVALID_CHARACTER_ERR', 'NO_DATA_ALLOWED_ERR', 'NO_MODIFICATION_ALLOWED_ERR', 'NOT_FOUND_ERR',
+        'NOT_SUPPORTED_ERR', 'INUSE_ATTRIBUTE_ERR', 'INVALID_STATE_ERR', 'SYNTAX_ERR', 'INVALID_MODIFICATION_ERR',
+        'NAMESPACE_ERR', 'INVALID_ACCESS_ERR', 'VALIDATION_ERR', 'TYPE_MISMATCH_ERR', 'SECURITY_ERR', 'NETWORK_ERR',
+        'ABORT_ERR', 'URL_MISMATCH_ERR', 'QUOTA_EXCEEDED_ERR', 'TIMEOUT_ERR', 'INVALID_NODE_TYPE_ERR', 'DATA_CLONE_ERR'];
+    const exceptionConstants = makeObject(null);
+    for (let i = 0; i < exceptionKeys.length; i++) exceptionConstants[exceptionKeys[i]] = { value: i + 1, enumerable: true };
     Object.defineProperties(DOMException, exceptionConstants);
     Object.defineProperties(DOMException.prototype, exceptionConstants);
     define(DOMException.prototype, Symbol.toStringTag, { value: 'DOMException', configurable: true });

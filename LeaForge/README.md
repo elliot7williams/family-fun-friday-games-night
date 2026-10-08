@@ -10,7 +10,16 @@ The earlier projects stay small:
 
 LeaForge is where we can grow the more full-featured browser.
 
-Latest diagnostic checkpoint: one shared, opt-in worker observer now serves
+Latest source checkpoint: the DOM exception constants use one private name
+table and bounded descriptor loop. The compact bootstrap shrinks by 475 bytes;
+each scripting PE shrinks by 512 bytes. All 105 focused checks, 1,267 full-source
+checks, six fresh-worker launches/27 comparison checks, and the standalone
+browser EXE smoke pass. Startup ranges overlap, so no speedup or intermittent
+timeout fix is claimed. No new Firespider candidate or installed replacement
+is produced; readiness stays about 65%. See
+[COMPACT_EXCEPTION_TABLE.md](COMPACT_EXCEPTION_TABLE.md).
+
+Previous diagnostic checkpoint: one shared, opt-in worker observer now serves
 the native-view and Firespider harnesses, with cheap 125 ms counters and thread
 snapshots paced at least one second apart. Native recovery passes 60 checks;
 14 input/output guards and two controlled failure-preservation checks pass.

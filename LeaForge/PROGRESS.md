@@ -34,6 +34,20 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+The shared bootstrap now builds all 25 DOM exception constant descriptors from
+one private ordered name table. Public values, ownership, order and readonly
+descriptors are preserved by expanded tests. The compact resource is 475 bytes
+smaller; parent/worker PEs each shrink by 512 bytes. Generator checks and all
+four resource checks pass. Focused class-list/exception/native checks pass 105;
+the complete source suite passes 1,267 checks through the final test executable.
+Six planned fresh-worker launches pass all 27 comparison checks with unchanged
+isolation/defaults and exact cleanup. The standalone browser EXE builds and
+passes its smoke with the same 19 runtime files. Startup ranges overlap, so no
+speedup or timeout fix is proved. The other 17 production files, original host
+source and installed browser stay unchanged. No new Firespider candidate or
+release ZIP is produced; milestone 146 remains open and readiness stays about
+65%. See `COMPACT_EXCEPTION_TABLE.md`.
+
 The test-only startup observer is now shared with Firespider. Cheap 125 ms
 counter reads retain bounded identity checks; expensive thread snapshots are
 paced at least one second apart for each PID/creation identity. Native recovery
