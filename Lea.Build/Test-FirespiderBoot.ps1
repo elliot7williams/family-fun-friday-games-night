@@ -3,11 +3,15 @@ param(
     [ValidateSet('all', 'clean', 'lea', 'legacy', 'recovery', 'private', 'second', 'limit', 'invalid', 'slow', 'locked', 'menus', 'commands', 'navigation', 'links', 'suspend', 'groups', 'lazy', 'lazy-background', 'lazy-all', 'bulk', 'windows', 'watch', 'domains', 'domain-private', 'split', 'split-life', 'split-limits', 'edit', 'paste', 'policy', 'policy-start', 'failures', 'failure-start', 'hibernate', 'hibernate-start', 'style-start', 'styles', 'load-life', 'pictures', 'decode', 'input', 'cache', 'script')]
     [Alias('c')][string]$Case = 'all',
     [Alias('p')][switch]$Profile,
-    [Alias('obs')][string]$Observe = ''
+    [Alias('obs')][string]$Observe = '',
+    [ValidateSet('demand', 'script')][Alias('os')][string]$ObserveScope = 'demand'
 )
 
 $ErrorActionPreference = 'Stop'
 $Case = $Case.ToLowerInvariant()
+if ($Observe -eq '' -and $PSBoundParameters.ContainsKey('ObserveScope')) {
+    throw 'An observation scope requires a report path.'
+}
 if ($Observe -ne '') {
     if ($Case -notin @('script', 'all')) { throw 'Observation is supported only for the script case or the complete matrix.' }
     $Observe = [IO.Path]::GetFullPath($Observe)
@@ -33,6 +37,12 @@ if ($LASTEXITCODE -ne 0) { throw 'Clipboard fixture contract failed' }
 if (@($contract | Where-Object { $_ -eq 'PASS Lea clipboard contract: 14 checks; no clipboard access.' }).Count -ne 1) {
     throw 'Clipboard fixture contract exited without completing'
 }
+$observationContract = @(& $exe --observation-contract)
+$observationContract
+if ($LASTEXITCODE -ne 0) { throw 'Observation fixture contract failed' }
+if (@($observationContract | Where-Object { $_ -eq 'PASS Lea observation contract: 12 checks; no browser workers or clipboard access.' }).Count -ne 1) {
+    throw 'Observation fixture contract exited without completing'
+}
 $cases = if ($Case -eq 'all') { @('clean', 'lea', 'legacy', 'recovery', 'private', 'second', 'limit', 'invalid', 'slow', 'locked', 'menus', 'commands', 'navigation', 'links', 'suspend', 'groups', 'lazy', 'lazy-background', 'lazy-all', 'bulk', 'windows', 'watch', 'domains', 'domain-private', 'split', 'split-life', 'split-limits', 'edit', 'paste', 'policy', 'policy-start', 'failures', 'failure-start', 'hibernate', 'hibernate-start', 'style-start', 'styles', 'load-life', 'pictures', 'decode', 'input', 'cache') } else { @($Case) }
 if ($Case -eq 'all' -and (Test-Path -LiteralPath (Join-Path $rootPath 'Lea.Script.Win.dll'))) { $cases += 'script' }
 foreach ($name in $cases) {
@@ -42,7 +52,10 @@ foreach ($name in $cases) {
     try {
         if ($Profile) { $env:LEA_FIRESPIDER_PROFILE = '1' }
         $arguments = @($rootArgument, $name)
-        if ($Observe -ne '' -and $name -eq 'script') { $arguments += '"' + $Observe + '"' }
+        if ($Observe -ne '' -and $name -eq 'script') {
+            $arguments += '"' + $Observe + '"'
+            if ($ObserveScope -eq 'script') { $arguments += 'script' }
+        }
         $process = Start-Process -FilePath $exe -WorkingDirectory $rootPath -ArgumentList $arguments -WindowStyle Hidden -PassThru -RedirectStandardOutput "$log.out" -RedirectStandardError "$log.err"
         # Keep the native handle so Windows PowerShell can read the exit code.
         $null = $process.Handle

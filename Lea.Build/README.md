@@ -68,6 +68,16 @@ accepts `-c` (candidate) and `-o`; the standalone packer and Lea backup accept
 checks accept `-r`, `-s` (scenario), and `-t` (seconds). These parameter aliases
 do not alter global PowerShell aliases or remove the descriptive options.
 
+Boot checks also accept `-Observe` / `-obs` for an opt-in worker report and
+`-ObserveScope` / `-os` with `demand` (default) or `script`. Observation requires
+the `script` or `all` case and a new report filename in an existing directory.
+Whole-script scope rotates across up to four native views, retaining the shared
+sampler's queue, memory and thread-pacing bounds. It covers the existing script
+flow, not later settings restoration or the complete host matrix. Ordinary
+host cases do not enable it. The wrapper verifies 12 deterministic observation
+contracts as well as its existing 14 clipboard contracts before host cases.
+See `../LeaForge/SCRIPT_FLOW_OBSERVE.md` for usage, results and limitations.
+
 Run `Backup-Lea.ps1` to create a dated, source-only ZIP in the Documents
 `Lea Source Backups` folder. Git and GitHub remain the main version history;
 the ZIP is an additional local copy without `bin`, `obj`, or `dist` files.

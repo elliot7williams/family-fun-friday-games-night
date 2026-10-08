@@ -34,6 +34,17 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+The host observer gains optional whole-script scope, retaining first-demand
+scope as default. An initial passing flow reveals competing-request starvation;
+final fair rotation passes the script case and captures eight workers with
+227 samples, 58 paced thread snapshots and zero dropped requests/samples.
+Twelve reporting/scheduling contracts, 14 argument guards, three controlled
+failures and the ordinary unobserved clean case pass. Reporting cannot replace
+an original host error. Production bytes, shared sampler, original source and
+installed Firespider are unchanged. No timeout is captured, new release or full
+host-matrix pass is claimed. Milestone 146 remains open and broader readiness
+stays about 65%. See `SCRIPT_FLOW_OBSERVE.md`.
+
 Separate v26 integrates the current compact exception table into Firespider.
 The candidate compiles with all 19 tested production dependencies and passes
 42 non-script host cases. New checks pass for all 25 constant descriptors in

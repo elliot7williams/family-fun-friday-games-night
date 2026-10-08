@@ -26,6 +26,7 @@ namespace Lea.Firespider
         private const BindingFlags Members = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
         private static readonly List<Exception> UiErrors = new List<Exception>();
         private static string scriptObservation;
+        private static bool observeScriptFlow;
 
         [STAThread]
         private static int Main(string[] args)
@@ -33,6 +34,11 @@ namespace Lea.Firespider
             if (args.Length == 1 && args[0] == "--clipboard-contract")
             {
                 try { ClipboardContract(); return 0; }
+                catch (Exception error) { Console.Error.WriteLine(error); return 1; }
+            }
+            if (args.Length == 1 && args[0] == "--observation-contract")
+            {
+                try { ObservationContract(); return 0; }
                 catch (Exception error) { Console.Error.WriteLine(error); return 1; }
             }
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
@@ -60,9 +66,12 @@ namespace Lea.Firespider
         {
             var root = Path.GetFullPath(args.Length > 0 ? args[0] : AppDomain.CurrentDomain.BaseDirectory);
             var mode = (args.Length > 1 ? args[1] : "clean").ToLowerInvariant();
-            if (args.Length > 3 || (args.Length == 3 && mode != "script"))
+            if (args.Length > 4 || (args.Length >= 3 && mode != "script"))
                 throw new ArgumentException("An observation report is supported only for the script case.");
-            scriptObservation = args.Length == 3 ? WorkerObservation.ValidateReport(args[2]) : null;
+            if (args.Length == 4 && args[3] != "demand" && args[3] != "script")
+                throw new ArgumentException("Unknown script observation scope.");
+            scriptObservation = args.Length >= 3 ? WorkerObservation.ValidateReport(args[2]) : null;
+            observeScriptFlow = args.Length == 4 && args[3] == "script";
             var session = Path.Combine(Path.GetTempPath(), "lea-boot-" + Guid.NewGuid().ToString("N") + ".txt");
             var log = session + ".log";
             var oldSession = Environment.GetEnvironmentVariable("LEA_FIRESPIDER_SESSION");
@@ -1679,13 +1688,129 @@ namespace Lea.Firespider
             Console.WriteLine("PASS navigation: both mixed-engine left-close menus, private history, stable counts, and stale tab selection");
         }
 
+        private static void ObservationContract()
+        {
+            var previousReport = scriptObservation;
+            var previousTrace = Environment.GetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE");
+            var previousError = Console.Error;
+            var existing = Path.Combine(Path.GetTempPath(), "lea-observe-contract-" + Guid.NewGuid().ToString("N") + ".json");
+            var fresh = existing + ".fresh";
+            var expected = new InvalidOperationException("expected original observation failure");
+            try
+            {
+                File.WriteAllText(existing, "sentinel");
+                scriptObservation = existing;
+                Environment.SetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE", "contract-original");
+                using (var output = new StringWriter())
+                {
+                    Console.SetError(output);
+                    var observation = new WorkerObservation(() => new V[0]);
+                    observation.Start();
+                    Exception caught = null;
+                    try
+                    {
+                        try { throw expected; }
+                        finally { FinishScriptObservation(observation, "firespider-script-flow", expected); }
+                    }
+                    catch (Exception error) { caught = error; }
+                    Check(Object.ReferenceEquals(caught, expected), "observation reporting replaced the original failure");
+                    Check(output.ToString().Contains("OBSERVATION ERROR; original host failure retained:"), "reporting error was hidden");
+                    Check(File.ReadAllText(existing) == "sentinel", "observation overwrote an existing report");
+                    Check(Environment.GetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE") == "contract-original", "failed reporting leaked the trace setting");
+                }
+                Console.SetError(previousError);
+                var successful = new WorkerObservation(() => new V[0]);
+                successful.Start();
+                Exception reportFailure = null;
+                try { FinishScriptObservation(successful, "firespider-script-flow", null); }
+                catch (Exception error) { reportFailure = error; }
+                Check(reportFailure is IOException, "successful flow hid an observation output failure");
+                Check(Environment.GetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE") == "contract-original", "successful flow leaked the trace setting");
+
+                scriptObservation = fresh;
+                var failed = new WorkerObservation(() => new V[0]);
+                failed.Start();
+                FinishScriptObservation(failed, "firespider-script-flow", expected);
+                var report = new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<Dictionary<string, object>>(File.ReadAllText(fresh));
+                Check(!(bool)report["flowPassed"] && (string)report["kind"] == "firespider-script-flow", "failed flow report was marked successful or lost its scope");
+                Check((bool)report["samplerRetired"] && ((string)report["exception"]).Contains(expected.Message), "failed flow report lost retirement or the original exception");
+                Check(Environment.GetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE") == "contract-original", "failed flow leaked the trace setting");
+                var next = 0;
+                Check(String.Join(",", Enumerable.Range(0, 8).Select(index => ScriptObservationIndex(4, ref next))) == "0,1,2,3,0,1,2,3",
+                    "script observation starves a competing view");
+                next = 3;
+                Check(ScriptObservationIndex(1, ref next) == 0 && next == 0, "script observation lost a view after disposal");
+                Check(ScriptObservationIndex(0, ref next) == -1 && next == 0, "empty script observation advanced its cursor");
+                Console.WriteLine("PASS Lea observation contract: 12 checks; no browser workers or clipboard access.");
+            }
+            finally
+            {
+                Console.SetError(previousError);
+                scriptObservation = previousReport;
+                Environment.SetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE", previousTrace);
+                if (File.Exists(existing)) File.Delete(existing);
+                if (File.Exists(fresh)) File.Delete(fresh);
+            }
+        }
+
         private static void CheckScript(Form form, ApplicationSettingsBase settings, string page, string root)
         {
-            var work = CheckScriptCore(form, settings, page, root);
-            var until = DateTime.UtcNow.AddSeconds(50);
-            while (!work.IsCompleted && DateTime.UtcNow < until) { Application.DoEvents(); Thread.Sleep(5); }
-            Check(work.IsCompleted, "scripted host case deadline exceeded");
-            work.GetAwaiter().GetResult();
+            WorkerObservation observation = null;
+            Exception failure = null;
+            try
+            {
+                if (observeScriptFlow)
+                {
+                    var nextView = 0;
+                    observation = new WorkerObservation(() =>
+                    {
+                        var views = Application.OpenForms.Cast<Form>().SelectMany(ScriptControls).OfType<V>()
+                            .Where(view => !view.IsDisposed).Take(4).ToArray();
+                        var index = ScriptObservationIndex(views.Length, ref nextView);
+                        return index < 0 ? views : new[] { views[index] };
+                    });
+                    observation.Start();
+                }
+                var work = CheckScriptCore(form, settings, page, root);
+                var until = DateTime.UtcNow.AddSeconds(50);
+                while (!work.IsCompleted && DateTime.UtcNow < until) { Application.DoEvents(); Thread.Sleep(5); }
+                Check(work.IsCompleted, "scripted host case deadline exceeded");
+                work.GetAwaiter().GetResult();
+            }
+            catch (Exception error) { failure = error; throw; }
+            finally { FinishScriptObservation(observation, "firespider-script-flow", failure); }
+        }
+
+        private static IEnumerable<Control> ScriptControls(Control parent)
+        {
+            yield return parent;
+            foreach (Control child in parent.Controls)
+                foreach (var nested in ScriptControls(child)) yield return nested;
+        }
+
+        private static int ScriptObservationIndex(int count, ref int next)
+        {
+            if (count == 0) return -1;
+            var index = next % count;
+            next = (index + 1) % count;
+            return index;
+        }
+
+        private static void FinishScriptObservation(WorkerObservation observation, string kind, Exception failure)
+        {
+            if (observation == null) return;
+            try
+            {
+                var retired = observation.Stop();
+                observation.Save(scriptObservation, kind, failure);
+                if (failure == null) Check(retired && observation.HasCounters && observation.HasThreads,
+                    "host observation did not retire or capture worker data: " + kind);
+            }
+            catch (Exception error)
+            {
+                if (failure == null) throw;
+                Console.Error.WriteLine("OBSERVATION ERROR; original host failure retained: " + error);
+            }
         }
 
         private static async Task CheckScriptCore(Form form, ApplicationSettingsBase settings, string page, string root)
@@ -1703,7 +1828,7 @@ namespace Lea.Firespider
             Exception demandFailure = null;
             try
             {
-                if (scriptObservation != null)
+                if (scriptObservation != null && !observeScriptFlow)
                 {
                     observation = new WorkerObservation(() => new[] { view });
                     observation.Start();
@@ -1713,13 +1838,7 @@ namespace Lea.Firespider
             }
             finally
             {
-                if (observation != null)
-                {
-                    var retired = observation.Stop();
-                    observation.Save(scriptObservation, "firespider-first-demand", demandFailure);
-                    if (demandFailure == null) Check(retired && observation.HasCounters && observation.HasThreads,
-                        "host first-demand observation did not retire or capture worker data");
-                }
+                FinishScriptObservation(observation, "firespider-first-demand", demandFailure);
             }
             Console.WriteLine("Script host first demand: " + scriptClock.ElapsedMilliseconds + " ms");
             var pid = ScriptPid(view);

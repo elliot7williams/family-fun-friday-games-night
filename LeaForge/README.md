@@ -10,7 +10,15 @@ The earlier projects stay small:
 
 LeaForge is where we can grow the more full-featured browser.
 
-Latest host checkpoint: separate v26 carries the compact exception table into
+Latest diagnostic checkpoint: optional whole-script observation now follows
+navigation, error recovery and split panes. Fair rotation captures eight
+workers with no dropped requests/samples; the script case passes. Twelve
+reporting/scheduling contracts, 14 argument guards, three controlled failures
+and the ordinary clean case pass. No timeout is captured or fixed; production
+bytes and installed Firespider are unchanged, and readiness remains about 65%.
+See [SCRIPT_FLOW_OBSERVE.md](SCRIPT_FLOW_OBSERVE.md).
+
+Previous host checkpoint: separate v26 carries the compact exception table into
 Firespider and passes all 42 non-script cases plus both new realm/descriptor
 checks. Its script case later fails isolated-worker startup after an intentional
 script error; the first-demand observer does not cover that failed launch.
