@@ -34,6 +34,16 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+A diagnostic-only alternating volume comparison verifies identical runtimes and
+passes all six final launches/25 checks, plus four CLI guards and the existing
+90 listener checks. Startup ranges overlap on removable NTFS L: and fixed NTFS
+C:, so relocation is not a demonstrated timeout fix. Two earlier ACL-audit
+aborts are retained; the final fixture normalizes only inheritance bookkeeping
+before exact restoration checks. All 19 production dependencies stay unchanged.
+The earlier full-suite failures remain unpassed; no release or host candidate is
+produced, milestone 146 stays open, and readiness stays about 65%.
+See `STARTUP_VOLUMES.md` for measurements and diagnostic limitations.
+
 Event callbacks now use captured intrinsic invocation and handler ownership,
 without page-visible `.call` lookup. All 90 focused trusted/isolated/native
 checks and the SDK-output browser EXE smoke pass. Both complete source runs

@@ -10,6 +10,7 @@ using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web.Script.Serialization;
 using System.Windows.Forms;
 using Lea.Engine;
 using Lea.Script;
@@ -142,6 +143,130 @@ namespace Lea.Script.Tests
                 }
             }
             finally { Application.ThreadException -= failed; }
+        }
+
+        internal static void Volumes(string fixture, string alternateRoot, string reportPath)
+        {
+            var roots = new[] { Path.GetFullPath(Path.GetTempPath()), Path.GetFullPath(alternateRoot) };
+            if (String.Equals(Path.GetPathRoot(roots[0]), Path.GetPathRoot(roots[1]), StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException("The staging roots must be on different volumes.", "alternateRoot");
+            foreach (var root in roots)
+            {
+                if (!Directory.Exists(root)) throw new ArgumentException("Staging roots must already exist.");
+                var drive = new DriveInfo(Path.GetPathRoot(root));
+                if (!drive.IsReady || drive.DriveType != DriveType.Fixed && drive.DriveType != DriveType.Removable)
+                    throw new ArgumentException("Staging roots must be on ready local volumes.");
+                for (var folder = new DirectoryInfo(root); folder != null; folder = folder.Parent)
+                    if ((folder.Attributes & FileAttributes.ReparsePoint) != 0)
+                        throw new ArgumentException("Staging roots must not use reparse points.");
+            }
+            reportPath = Path.GetFullPath(reportPath);
+            if (File.Exists(reportPath)) throw new ArgumentException("The diagnostic report must not already exist.", "reportPath");
+            var source = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ScriptWorker");
+            var names = Directory.GetFiles(source).Select(Path.GetFileName).OrderBy(name => name).ToArray();
+            if (names.Length != 8) throw new InvalidDataException("Expected exactly eight worker runtime files.");
+            var hashes = names.ToDictionary(name => name, name => Digest(Path.Combine(source, name)));
+            var bytes = names.Sum(name => new FileInfo(Path.Combine(source, name)).Length);
+            var records = new System.Collections.Generic.List<object>();
+            var trace = Environment.GetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE");
+            var passed = true;
+            Console.WriteLine("Alternating three volume pairs; identical workers; original limits; no retries; fresh copied paths are not cold OS/CLR caches.");
+            try
+            {
+                Environment.SetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE", "1");
+                for (var pair = 0; pair < 3; pair++)
+                    foreach (var root in pair % 2 == 0 ? roots : roots.Reverse())
+                    {
+                        var drive = new DriveInfo(Path.GetPathRoot(root));
+                        var free = drive.AvailableFreeSpace;
+                        var reserve = String.Equals(drive.Name.TrimEnd('\\'), Environment.GetEnvironmentVariable("SystemDrive"), StringComparison.OrdinalIgnoreCase)
+                            ? 64L * 1024 * 1024 : 32L * 1024 * 1024;
+                        if (free < reserve + bytes) throw new IOException("Insufficient free space for bounded volume staging: " + drive.Name);
+                        var directory = Path.Combine(root, "Lea-startup-volume-" + Guid.NewGuid().ToString("N"));
+                        Directory.CreateDirectory(directory);
+                        var files = names.Select(name => Path.Combine(directory, name)).ToArray();
+                        var copy = Stopwatch.StartNew();
+                        foreach (var file in files) File.Copy(Path.Combine(source, Path.GetFileName(file)), file);
+                        var copyMs = copy.ElapsedMilliseconds;
+                        Check(files.All(file => Digest(file) == hashes[Path.GetFileName(file)]), "volume runtime bytes match: pair=" + pair + "; " + drive.Name);
+                        var normalized = files.Count(NormalizeVolumeAcl);
+                        var rules = files.Select(ProfileRules).ToArray();
+                        var engine = new E { Jb = false };
+                        var page = engine.Go(fixture);
+                        var title = page.T;
+                        var script = new Jp(engine, page, directory);
+                        Jr result;
+                        var clock = Stopwatch.StartNew();
+                        var pid = 0;
+                        bool isolation;
+                        string diagnostics;
+                        try
+                        {
+                            Check(script.Tm == 2000 && script.Cp == 2500 && script.Mm == 128L * 1024 * 1024,
+                                "volume diagnostic preserves limits: pair=" + pair + "; " + drive.Name);
+                            result = script.Ex("document.title='volume diagnostic';");
+                            diagnostics = script.Sd;
+                            pid = script.Pid;
+                            isolation = script.Ac && script.Ne && script.Nd && script.Fd && script.Mg == 15;
+                        }
+                        finally { script.Dispose(); }
+                        var wall = clock.ElapsedMilliseconds;
+                        var restored = files.Select(ProfileRules).SequenceEqual(rules);
+                        records.Add(new { pair, volume = drive.Name, type = drive.DriveType.ToString(), fileSystem = drive.DriveFormat,
+                            freeBefore = free, runtimeBytes = bytes, directory, copyMs, aclNormalizationCount = normalized, callAndDisposeMs = wall,
+                            status = result.S, message = result.M, changes = result.N, startup = diagnostics,
+                            startupReady = diagnostics.StartsWith("phase=ready;", StringComparison.Ordinal),
+                            isolationVerified = isolation, exactAclsRestored = restored,
+                            successfulChildExitVerified = pid != 0 && Exited(pid), peakBytes = script.Mp });
+                        Console.WriteLine("Volume pair=" + pair + "; " + drive.Name + "; " + drive.DriveType + "; copy=" + copyMs +
+                            " ms; status=" + result.S + "; " + result.M + "; " + diagnostics);
+                        Check(restored && script.Pid == 0, "volume diagnostic releases exact ACLs and session ownership: pair=" + pair + "; " + drive.Name);
+                        if (!result.Ok)
+                        {
+                            passed = false;
+                            if (!diagnostics.StartsWith("phase=ready;", StringComparison.Ordinal))
+                                Check(result.N == 0 && page.T == title, "failed volume startup cannot execute supplied page code: pair=" + pair + "; " + drive.Name);
+                            Console.WriteLine("Retaining failed volume runtime: " + directory);
+                            continue;
+                        }
+                        Check(isolation && result.N == 1 && page.T == "volume diagnostic" && Exited(pid),
+                            "volume launch verifies isolation, first mutation and child retirement: pair=" + pair + "; " + drive.Name);
+                        // Delete only this diagnostic's known files; failed runtimes remain available.
+                        foreach (var file in files) File.Delete(file);
+                        Directory.Delete(directory, false);
+                    }
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE", trace);
+                var audit = new { kind = "startup-volume-diagnostic", roots, source, hashes, records,
+                    plannedSamples = 6, allLaunchesPassed = passed && records.Count == 6, startupBudgetMs = 5000,
+                    executionDefaultMs = 2000, memoryBytes = 128L * 1024 * 1024, cpuRate = 2500,
+                    retries = 0, timingTrace = true, coldCacheControlled = false, productionRuntimeModified = false };
+                File.WriteAllText(reportPath, new JavaScriptSerializer { MaxJsonLength = 128 * 1024, RecursionLimit = 16 }.Serialize(audit));
+            }
+            Check(passed && records.Count == 6, "volume diagnostic all six launches pass without retries");
+        }
+
+        private static bool NormalizeVolumeAcl(string path)
+        {
+            var security = File.GetAccessControl(path, AccessControlSections.Access);
+            var original = security.GetSecurityDescriptorSddlForm(AccessControlSections.Access);
+            security.SetSecurityDescriptorSddlForm(original, AccessControlSections.Access);
+            File.SetAccessControl(path, security);
+            var normalized = ProfileRules(path);
+            var before = new RawSecurityDescriptor(original);
+            var after = new RawSecurityDescriptor(normalized);
+            if (before.DiscretionaryAcl == null || after.DiscretionaryAcl == null)
+                throw new InvalidDataException("Volume diagnostic requires a non-null file DACL.");
+            var oldAcl = new byte[before.DiscretionaryAcl.BinaryLength];
+            var newAcl = new byte[after.DiscretionaryAcl.BinaryLength];
+            before.DiscretionaryAcl.GetBinaryForm(oldAcl, 0);
+            after.DiscretionaryAcl.GetBinaryForm(newAcl, 0);
+            if (!oldAcl.SequenceEqual(newAcl) ||
+                ((before.ControlFlags ^ after.ControlFlags) & ~ControlFlags.DiscretionaryAclAutoInherited) != 0)
+                throw new InvalidDataException("Volume ACL normalization changed permissions or other control flags.");
+            return original != normalized;
         }
 
         internal static void Compare(string fixture, string baseline)

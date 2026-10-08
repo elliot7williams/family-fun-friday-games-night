@@ -22,6 +22,13 @@ namespace Lea.Script.Tests
                 var attributeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-attributes.html");
                 var selectorFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-selectors.html");
                 var treeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-tree.html");
+                if (args.Length > 1 && args[1] == "--startup-volumes")
+                {
+                    if (args.Length != 4) throw new ArgumentException("Supply an existing alternate-volume staging root and a new JSON report path for --startup-volumes.");
+                    Startup.Volumes(fixture, args[2], args[3]);
+                    Console.WriteLine("PASS Lea.Script startup volume diagnostic: " + checks + " checks; not a cold-cache benchmark.");
+                    return 0;
+                }
                 if (args.Length > 1 && (args[1] == "--listener-calls" || args[1] == "--listener-calls-trusted"))
                 {
                     ListenerCalls.Run(viewFixture, args[1] == "--listener-calls-trusted", args.Length > 2 ? args[2] : null);

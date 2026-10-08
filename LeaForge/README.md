@@ -10,6 +10,12 @@ The earlier projects stay small:
 
 LeaForge is where we can grow the more full-featured browser.
 
+Startup investigation: a diagnostic-only alternating L:/C: comparison passes
+all six final launches and 25 checks with identical runtime bytes and unchanged
+limits. Startup ranges overlap; relocation is not a demonstrated timeout fix.
+Earlier ACL-audit aborts are retained. No production binary changes or new
+release are made. See [STARTUP_VOLUMES.md](STARTUP_VOLUMES.md).
+
 Development note: event callbacks now use captured intrinsic invocation, with
 all 90 focused trusted/isolated/native checks and the SDK-output browser smoke
 passing. Both complete source runs still fail worker startup before the new
