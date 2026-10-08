@@ -1,5 +1,10 @@
 # Firespider Worker Entry Candidate
 
+This records the initial v23 attempt at checkpoint `c62e63e`. Subsequent
+candidate, extracted-package, and archived-source gates are recorded separately
+in [HOST_WORKER_VERIFICATION.md](HOST_WORKER_VERIFICATION.md); the failure below
+is retained unchanged.
+
 Separate v23 builds the latest guarded-entry worker into the copied .NET
 Framework 4.8 Firespider project. The build and input audits pass, but its host
 matrix is incomplete after a disk-full failure. It is not an installed

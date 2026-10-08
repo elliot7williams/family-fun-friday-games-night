@@ -34,7 +34,16 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
-Separate v23 builds the latest guarded-entry worker into Firespider with all
+Separate v23's second complete host attempt and its freshly extracted runtime
+each pass all 43 cases and all six actual-EXE startup scenarios. The archived
+host source builds independently without changed inputs, retains all 19 runtime
+dependencies, and passes scripting plus all six startup scenarios. Both ZIPs
+pass candidate/stream/extraction audits. The initial v23 disk-full restoration
+failure is retained; these later passes do not establish a cold-start fix or
+speedup. Installed files stay unchanged, milestone 146 stays open, and readiness
+stays about 65%. See `HOST_WORKER_VERIFICATION.md`.
+
+The initial separate v23 attempt builds the guarded-entry worker into Firespider with all
 67 original inputs, 25 overlays, four integration files, and 19 runtime
 dependencies audited. Seven host cases complete, but the next case exits 1
 while restoring settings because C: runs out of space; its earlier assertion
@@ -52,8 +61,9 @@ Complete source and extracted standalone-package runs each pass 1,171 checks;
 the actual standalone EXE smoke passes too. PE size remains 44,032 bytes and
 the other 18 runtime dependencies are unchanged. A six-sample paired comparison
 still fails one preserved old-worker launch before VM readiness, so no cold-start
-fix or general speedup is claimed. No current Firespider build is verified for
-this worker; installed files stay unchanged. Milestone 146 remains open and
+fix or general speedup is claimed. At that worker-entry checkpoint, no current
+Firespider build was verified for this worker; installed files stayed unchanged.
+Milestone 146 remains open and
 broader readiness stays about 65%. See `WORKER_ENTRY.md`.
 
 Separate v22 now carries the current event-options runtime into Firespider.
