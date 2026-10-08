@@ -64,6 +64,9 @@ released. See [STARTUP_REPORT_TAIL.md](STARTUP_REPORT_TAIL.md).
 
 ## Current Features
 
+- trusted scripting budget reports with bounded host-phase and exception-type
+  detail, unchanged limits, and tested cleanup/recovery; the full current run
+  still fails fresh-worker startup. See `BUDGET_PHASES.md`
 - an experimental compact scripting bootstrap generated from retained readable
   source, with AST round trips and build-time stale-file guards; resource size
   is 28.3% lower, not whole-engine size or a proven speedup. Full startup and

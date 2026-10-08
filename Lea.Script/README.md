@@ -56,6 +56,15 @@ Result statuses include `ok`, `off`, `code`, `node`, `js`, and `limit`. Messages
 to 512 UTF-16 units. Calling from another thread, using a disposed session,
 or passing a foreign page is a host programming error, not a script result.
 
+Trusted `Js` budget errors keep the `Script budget exceeded.` prefix and add
+bounded `phase` and exception-type `reason` fields. Phases are `bootstrap`,
+`script`, `checkpoint`, `timer`, and `event`. They identify the host boundary,
+not a precise JavaScript source location: Jint can drain Promise/microtask work
+inside `Execute`, and timer/event dispatch also includes its follow-up jobs.
+The original limits, result status, reset behavior, and ordinary JavaScript
+error text are unchanged. Native `Jp` startup still has its separate `Sd`
+worker report. See `../LeaForge/BUDGET_PHASES.md` for tests and open failures.
+
 ## Timers
 
 The optional realm exposes `setTimeout`, `setInterval`, `clearTimeout`, and

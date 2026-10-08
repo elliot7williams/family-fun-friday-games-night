@@ -34,6 +34,14 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Trusted budget errors now retain their prefix and add bounded host-phase and
+exception-type detail, with the original limits and reset semantics. All 31
+new phase checks, 28 privacy checks, and 165 ordinary timer checks pass. The
+expanded 1,082-check full run still fails its second fresh-path worker startup,
+before the new group is reached; no full pass, cold-start fix, or new release
+is claimed. Broader readiness stays about 65%, with milestone 146 open.
+See `BUDGET_PHASES.md` for real versus synthetic faults and retained failures.
+
 The current experimental bootstrap is generated from unchanged readable source,
 with matching parsed structure, reproducible output, and build-time stale-file
 guards. Its resource is 28.3% smaller and each scripting PE is 8 KiB smaller.

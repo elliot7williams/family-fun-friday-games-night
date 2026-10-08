@@ -15,6 +15,7 @@ namespace Lea.Script
         private readonly P page;
         private readonly int thread;
         private readonly Ja bridge;
+        private readonly Func<Action<Options>, Jint.Engine> factory;
         private Jint.Engine vm;
         private Jint.Native.JsValue dispatch;
         private bool disposed;
@@ -22,13 +23,16 @@ namespace Lea.Script
         private long generation;
         private static readonly string bootstrap = LoadBootstrap();
 
-        public Js(E engine, P page)
+        public Js(E engine, P page) : this(engine, page, null) { }
+
+        internal Js(E engine, P page, Func<Action<Options>, Jint.Engine> factory)
         {
             if (engine == null) throw new ArgumentNullException("engine");
             if (page == null) throw new ArgumentNullException("page");
             engine.Q(page, "body");
             this.engine = engine;
             this.page = page;
+            this.factory = factory;
             bridge = new Ja(engine, page);
             thread = Thread.CurrentThread.ManagedThreadId;
             generation = engine.Jg;
@@ -59,21 +63,26 @@ namespace Lea.Script
             var token = timer ? bridge.Timers.Take() : 0;
             if (timer && token == 0) return Result("ok", "");
             running = true;
+            var phase = "bootstrap";
             try
             {
                 if (vm == null) Start();
                 if (timer)
                 {
+                    phase = "timer";
                     vm.Invoke(dispatch, Jint.Native.JsValue.Undefined,
                         new[] { (Jint.Native.JsValue)"tm", Codec.Value(vm, new object[] { token }) });
                     return Result("ok", "");
                 }
                 if (type == null)
                 {
+                    phase = "script";
                     vm.Execute(code);
+                    phase = "checkpoint";
                     vm.Invoke(dispatch, Jint.Native.JsValue.Undefined, new[] { (Jint.Native.JsValue)"mt", Codec.Value(vm, new object[0]) });
                     return Result("ok", "");
                 }
+                phase = "event";
                 var result = vm.Invoke(dispatch, Jint.Native.JsValue.Undefined,
                     new[] { (Jint.Native.JsValue)type, Codec.Value(vm, bridge.Path(target)) });
                 return Result("ok", "", result.AsBoolean());
@@ -86,7 +95,7 @@ namespace Lea.Script
                     error is StatementsCountOverflowException || error is MemoryLimitExceededException ||
                     error is RecursionDepthOverflowException;
                 Reset();
-                var message = limited ? "Script budget exceeded." : error.Message;
+                var message = limited ? "Script budget exceeded. phase=" + phase + "; reason=" + error.GetType().Name : error.Message;
                 return Result(limited ? "limit" : "js", message.Length <= 512 ? message : message.Substring(0, 512));
             }
             finally { if (timer) bridge.Timers.End(); running = false; }
@@ -94,7 +103,7 @@ namespace Lea.Script
 
         private void Start()
         {
-            vm = new Jint.Engine(options =>
+            Action<Options> configure = options =>
             {
                 options.MaxStatements(20000).LimitMemory(8 * 1024 * 1024)
                     .TimeoutInterval(TimeSpan.FromSeconds(1)).LimitRecursion(64)
@@ -103,7 +112,8 @@ namespace Lea.Script
                 options.Interop.Enabled = false;
                 options.Interop.AllowGetType = false;
                 options.Interop.AllowWrite = false;
-            });
+            };
+            vm = factory == null ? new Jint.Engine(configure) : factory(configure);
             vm.SetValue("__lea", new ClrFunction(vm, "__lea", (_, args) =>
                 Codec.Value(vm, bridge.Call(Codec.Arguments(args)))));
             vm.SetValue("__jobs", new ClrFunction(vm, "__jobs", (_, args) =>

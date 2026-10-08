@@ -16,6 +16,13 @@ namespace Lea.Script.Tests
 {
     internal static class Timers
     {
+        internal const string FirstScript = @"if(setTimeout.length!==1||setInterval.length!==1||clearTimeout.length!==0||clearInterval.length!==0)throw new Error('IDL arity');
+var trace=['sync'],argument={value:37};
+var one=setTimeout(function(value){'use strict';if(this!==window||value!==argument)throw new Error('callback identity');trace.push('one');queueMicrotask(function(){trace.push('job');document.title=trace.join(',');});},-1,argument);
+var two=setTimeout(function(){trace.push('two');document.title=trace.join(',');});
+Promise.resolve().then(function(){trace.push('micro');});document.title='deferred';
+if(!Number.isInteger(one)||one<=0||two===one)throw new Error('handle');";
+
         internal static void Run(string fixture)
         {
             Scheduler();
@@ -85,12 +92,7 @@ namespace Lea.Script.Tests
             void Assert(bool condition, string name) { Check(condition, mode + " timers: " + name); }
             void Code(string code) { var result = ex(code); Assert(result.Ok, "code: " + result.S + "; " + result.M + "; " + diagnostics()); }
             Jr Tick() { var result = tick(); Assert(result.Ok, "task: " + result.S + "; " + result.M + "; " + diagnostics()); return result; }
-            Code(@"if(setTimeout.length!==1||setInterval.length!==1||clearTimeout.length!==0||clearInterval.length!==0)throw new Error('IDL arity');
-var trace=['sync'],argument={value:37};
-var one=setTimeout(function(value){'use strict';if(this!==window||value!==argument)throw new Error('callback identity');trace.push('one');queueMicrotask(function(){trace.push('job');document.title=trace.join(',');});},-1,argument);
-var two=setTimeout(function(){trace.push('two');document.title=trace.join(',');});
-Promise.resolve().then(function(){trace.push('micro');});document.title='deferred';
-if(!Number.isInteger(one)||one<=0||two===one)throw new Error('handle');");
+            Code(FirstScript);
             Assert(count() == 2 && delay() == 0 && page.T == "deferred", "timers are deferred until a distinct native task");
             var task = Tick();
             Assert(task.N == 1 && page.T == "sync,micro,one,job" && count() == 1, "callback arguments/this and microtask checkpoint precede next timer");
