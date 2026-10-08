@@ -200,6 +200,12 @@ script. A one-shot post-parse evaluation hook records `parsed` without debugger
 stepping and is removed before page execution. The pre-hook interval includes
 parser and entry/JIT costs; an absent marker is not a parser stack trace.
 Bootstrap initialization remains sequential.
+Worker argument validation no longer requires interpreter binding. A private
+non-inlined runtime method keeps that work inside the entry exception handler,
+after mitigation setup and the entry clock. Missing interpreter dependencies
+can therefore produce a handled worker failure instead of escaping before the
+entry handler starts. This is not a fix for the intermittent startup deadline;
+see [WORKER_ENTRY.md](../LeaForge/WORKER_ENTRY.md) for the reproduced fault and scope.
 No diagnostic function is exposed to page code. File-validation failures
 before native launch leave `Sd` empty. See `../LeaForge/STARTUP_DIAGNOSTICS.md`.
 The fixed-list bootstrap follow-up and rejected concurrency experiment are

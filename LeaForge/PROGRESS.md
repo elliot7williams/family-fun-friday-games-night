@@ -34,6 +34,17 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Worker entry now separates argument validation/mitigation setup from interpreter
+binding with a private non-inlined runtime boundary. A reproduced missing-Jint
+failure no longer escapes before the entry handler, and all 14 new checks pass.
+Complete source and extracted standalone-package runs each pass 1,171 checks;
+the actual standalone EXE smoke passes too. PE size remains 44,032 bytes and
+the other 18 runtime dependencies are unchanged. A six-sample paired comparison
+still fails one preserved old-worker launch before VM readiness, so no cold-start
+fix or general speedup is claimed. No current Firespider build is verified for
+this worker; installed files stay unchanged. Milestone 146 remains open and
+broader readiness stays about 65%. See `WORKER_ENTRY.md`.
+
 Separate v22 now carries the current event-options runtime into Firespider.
 The candidate and fresh runtime extraction each pass all 43 host cases and all
 six actual-EXE startup scenarios. The independently archived host source builds

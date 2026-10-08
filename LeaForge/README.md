@@ -10,13 +10,17 @@ The earlier projects stay small:
 
 LeaForge is where we can grow the more full-featured browser.
 
-Development note: separate v22 and its fresh runtime extraction each pass all
-43 Firespider host cases and six actual-EXE startup scenarios. Its archived host
-source rebuilds independently and passes scripting plus six EXE startup cases.
-This is a verified test candidate, not a stable release or proof of a fix for
-the retained intermittent cold-worker startup failures. The installed browser
-stays unchanged; milestone 146 is open and broader readiness is about 65%.
-See [HOST_EVENT_OPTIONS.md](HOST_EVENT_OPTIONS.md) for artifacts and boundaries.
+Development note: the latest worker separates its guarded entry from interpreter
+binding, fixing a reproduced missing-dependency entry failure. All 14 new checks,
+full 1,171-check source/package runs, and the standalone EXE smoke pass. A paired
+comparison still fails one preserved old-worker startup, so the intermittent
+deadline remains unresolved. See [WORKER_ENTRY.md](WORKER_ENTRY.md).
+Separate v22 remains the preceding verified Firespider candidate with its old
+worker: 43 host cases and six EXE startup scenarios pass on its candidate and
+extraction, with an independently verified source rebuild. Those passes do not
+transfer to the latest worker. See [HOST_EVENT_OPTIONS.md](HOST_EVENT_OPTIONS.md).
+The installed browser stays unchanged; milestone 146 is open and broader
+readiness is about 65%.
 The checkpoint notes below preserve earlier results rather than transferring
 later passes to those historical builds.
 
@@ -65,6 +69,11 @@ full pass is not transferred to this build. No new browser is installed or
 released. See [STARTUP_REPORT_TAIL.md](STARTUP_REPORT_TAIL.md).
 
 ## Current Features
+
+- A guarded worker entry boundary, argument validation without interpreter
+  dependencies, and handled post-mitigation binding failures. Fourteen regressions
+  and complete 1,171-check source/package runs pass without changing runtime
+  budgets or aliases. See `WORKER_ENTRY.md` for retained startup failures.
 
 - Correct listener argument conversion for the supported JavaScript event subset:
   primitive capture, ordered dictionary reads, duplicate/null conversion, and
