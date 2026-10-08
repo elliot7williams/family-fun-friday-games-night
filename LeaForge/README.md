@@ -10,7 +10,13 @@ The earlier projects stay small:
 
 LeaForge is where we can grow the more full-featured browser.
 
-Development note: separate v23's second complete attempt and fresh runtime
+Development note: event callbacks now use captured intrinsic invocation, with
+all 90 focused trusted/isolated/native checks and the SDK-output browser smoke
+passing. Both complete source runs still fail worker startup before the new
+group. Release packaging and a new host candidate are held; the v23 host below
+retains the preceding bootstrap. See [LISTENER_CALLS.md](LISTENER_CALLS.md).
+
+Previous host checkpoint: separate v23's second complete attempt and fresh runtime
 extraction each pass all 43 host cases and six actual-EXE startup scenarios.
 Its archived source builds independently and passes scripting plus six startup
 scenarios. Both archives pass input/stream/extraction audits. The initial
@@ -76,6 +82,11 @@ full pass is not transferred to this build. No new browser is installed or
 released. See [STARTUP_REPORT_TAIL.md](STARTUP_REPORT_TAIL.md).
 
 ## Current Features
+
+- Captured intrinsic event-callback invocation, live object-listener operation
+  lookup, and handler ownership unaffected by public `.call` replacement.
+  All 90 focused checks pass; full-suite startup remains unresolved. See
+  `LISTENER_CALLS.md` for verification and adoption limits.
 
 - A guarded worker entry boundary, argument validation without interpreter
   dependencies, and handled post-mitigation binding failures. Fourteen regressions

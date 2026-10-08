@@ -22,6 +22,12 @@ namespace Lea.Script.Tests
                 var attributeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-attributes.html");
                 var selectorFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-selectors.html");
                 var treeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-tree.html");
+                if (args.Length > 1 && (args[1] == "--listener-calls" || args[1] == "--listener-calls-trusted"))
+                {
+                    ListenerCalls.Run(viewFixture, args[1] == "--listener-calls-trusted", args.Length > 2 ? args[2] : null);
+                    Console.WriteLine("PASS Lea.Script listener calls: " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--worker-entry")
                 {
                     WorkerEntry.Run();
@@ -336,6 +342,7 @@ namespace Lea.Script.Tests
                 View.Run(viewFixture);
                 BudgetPhases.Run(viewFixture);
                 EventOptions.Run(viewFixture);
+                ListenerCalls.Run(viewFixture);
                 // Keep this worker-file probe after the existing startup and execution gates.
                 WorkerEntry.Run();
                 Console.WriteLine("PASS Lea.Script: " + checks + " checks; JavaScript, isolated worker, and typed DOM.");

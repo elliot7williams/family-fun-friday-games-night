@@ -5,6 +5,11 @@ over `L:\Firespider Internet` or make Lea a complete modern-web engine. The
 clean adapters here remain the source of record; the live host has unrelated
 in-progress changes that must be retained.
 
+The newer source-only listener-invocation change passes 90 focused checks and
+the SDK-output browser smoke, but complete source runs still fail worker startup.
+No new host candidate or release package is produced for it; v23 below retains
+the preceding bootstrap. See [listener verification](../LeaForge/LISTENER_CALLS.md).
+
 Latest host checkpoint: separate v23's second complete attempt and fresh runtime
 extraction each pass all 43 host cases and six actual-EXE startup scenarios.
 Its archived source builds independently and passes scripting plus six startup

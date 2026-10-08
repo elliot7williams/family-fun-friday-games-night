@@ -19,6 +19,7 @@
         })();
     } });
     const realm = globalThis, apply = Reflect.apply, evaluate = eval, stringify = String;
+    const owns = Object.prototype.hasOwnProperty;
     const timers = new Map(), getTimer = Map.prototype.get, putTimer = Map.prototype.set, deleteTimer = Map.prototype.delete;
     function schedule(handler, timeout, repeat, supplied) {
         if (supplied.length === 0) throw new TypeError('A timer handler is required');
@@ -125,7 +126,7 @@
         return callback;
     }
     function handler(node, state, type) {
-        if (Object.prototype.hasOwnProperty.call(state.properties, type)) return state.properties[type];
+        if (apply(owns, state.properties, [type])) return state.properties[type];
         if (typeof node.getAttribute !== 'function') return null;
         const code = node.getAttribute('on' + type);
         if (!code) return null;
@@ -487,9 +488,9 @@
                 passive = item.passive;
                 if (item.handler) {
                     const callback = handler(node, state, type);
-                    if (callback && callback.call(node, event) === false && cancelable) prevented = true;
-                } else if (typeof item.callback === 'function') item.callback.call(node, event);
-                else item.callback.handleEvent.call(item.callback, event);
+                    if (callback && apply(callback, node, [event]) === false && cancelable) prevented = true;
+                } else if (typeof item.callback === 'function') apply(item.callback, node, [event]);
+                else apply(item.callback.handleEvent, item.callback, [event]);
                 passive = false;
                 if (immediate) return;
             }

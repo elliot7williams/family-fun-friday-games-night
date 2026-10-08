@@ -34,6 +34,15 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Event callbacks now use captured intrinsic invocation and handler ownership,
+without page-visible `.call` lookup. All 90 focused trusted/isolated/native
+checks and the SDK-output browser EXE smoke pass. Both complete source runs
+still fail worker startup before reaching the new group: isolated tree recovery
+and later native-view recovery. Release packaging and a new host candidate are
+held; earlier v23 passes do not transfer to these new bootstrap bytes. Installed
+files stay unchanged, milestone 146 stays open, and readiness stays about 65%.
+See `LISTENER_CALLS.md` for red/green coverage and retained failures.
+
 Separate v23's second complete host attempt and its freshly extracted runtime
 each pass all 43 cases and all six actual-EXE startup scenarios. The archived
 host source builds independently without changed inputs, retains all 19 runtime

@@ -421,6 +421,14 @@ and the pinned [Jint task-processing API](https://github.com/sebastienros/jint/b
 
 ## DOM events
 
+Listener invocation uses captured intrinsic helpers, not a callback's public
+`.call` property. Function and DOM0 handlers retain the current-target receiver;
+object listeners resolve `handleEvent` once at dispatch and use the object as
+receiver. Page replacement of public invocation/ownership helpers does not
+redirect this path. All 90 focused checks and the SDK-output browser smoke pass,
+but complete source runs still time out before the new group. See
+[LISTENER_CALLS.md](../LeaForge/LISTENER_CALLS.md) for preserved failures and scope.
+
 Listener arguments use DOM-string and boolean/dictionary conversion for the
 supported event subset. Truthy primitive capture options work for addition and
 removal; object/function dictionaries read `capture`, `once`, `passive`, then
