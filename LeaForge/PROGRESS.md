@@ -34,6 +34,16 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Event-listener argument conversion now handles primitive capture options,
+single ordered dictionary/type reads, required arguments and callback validation,
+duplicate/null conversion, and atomic registration failure. All 75 new checks
+and complete 1,157-check source and extracted-package runs pass, including native
+keyboard and desktop/narrow pixel checks. The separate browser EXE passes its
+actual smoke launch too. Runtime limits, aliases, and remote-script gates
+are unchanged. This does not establish a fix for the earlier intermittent
+startup failure or a new Firespider release; milestone 146 remains open and
+broader readiness stays about 65%. See `EVENT_OPTIONS.md`.
+
 Trusted budget errors now retain their prefix and add bounded host-phase and
 exception-type detail, with the original limits and reset semantics. All 31
 new phase checks, 28 privacy checks, and 165 ordinary timer checks pass. The

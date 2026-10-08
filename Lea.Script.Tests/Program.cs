@@ -22,6 +22,12 @@ namespace Lea.Script.Tests
                 var attributeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-attributes.html");
                 var selectorFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-selectors.html");
                 var treeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-tree.html");
+                if (args.Length > 1 && args[1] == "--event-options")
+                {
+                    EventOptions.Run(viewFixture);
+                    Console.WriteLine("PASS Lea.Script event options: " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--budget-phases")
                 {
                     BudgetPhases.Run(viewFixture);
@@ -323,6 +329,7 @@ namespace Lea.Script.Tests
                 Timers.Run(viewFixture);
                 View.Run(viewFixture);
                 BudgetPhases.Run(viewFixture);
+                EventOptions.Run(viewFixture);
                 Console.WriteLine("PASS Lea.Script: " + checks + " checks; JavaScript, isolated worker, and typed DOM.");
                 return 0;
             }

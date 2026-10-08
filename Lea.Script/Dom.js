@@ -56,7 +56,9 @@
     let ready = 'loading';
     const styles = { color: 'fg', backgroundColor: 'bg', width: 'wd', height: 'ht', display: 'dp', fontSize: 'fs' };
     const styleNames = Object.keys(styles);
-    function capture(options) { return typeof options === 'boolean' ? options : !!(options && options.capture); }
+    function eventOptions(options) {
+        return options !== null && (typeof options === 'object' || typeof options === 'function') ? options : null;
+    }
     function remove(state, listener) {
         if (listener.removed) return;
         listener.removed = true;
@@ -67,23 +69,32 @@
         const state = { key, listeners: [], properties: Object.create(null), inline: Object.create(null), handlers: Object.create(null) };
         apply(setState, targets, [node, state]);
         Object.defineProperties(node, {
-            addEventListener: { value(type, callback, options) {
-                type = String(type);
-                if (!eventType(type)) throw new TypeError('Unsupported Lea event');
+            addEventListener: { value: function addEventListener(type, callback, options = undefined) {
+                if (arguments.length < 2) throw new listError('An event type and listener are required');
+                type = str(type);
+                if (callback !== null && callback !== undefined && typeof callback !== 'function' && typeof callback !== 'object')
+                    throw new listError('Invalid listener');
+                const fields = eventOptions(options);
+                const cap = fields ? !!fields.capture : !!options;
+                const once = !!(fields && fields.once), passive = !!(fields && fields.passive);
+                if (fields && fields.signal !== undefined) throw new listError('AbortSignal is not supported');
+                if (!eventType(type)) throw new listError('Unsupported Lea event');
                 if (callback === null || callback === undefined) return;
-                if (typeof callback !== 'function' && typeof callback !== 'object') throw new TypeError('Invalid listener');
-                if (options && options.signal) throw new TypeError('AbortSignal is not supported');
                 syncHandler(node, state, type);
-                const cap = capture(options);
                 if (state.listeners.some(item => item.type === type && item.callback === callback && item.capture === cap)) return;
                 if (listenerCount === 128) throw new RangeError('Lea listener limit');
-                state.listeners.push({ type, callback, capture: cap, once: !!(options && options.once), passive: !!(options && options.passive), removed: false });
+                state.listeners.push({ type, callback, capture: cap, once, passive, removed: false });
                 listenerCount++;
             } },
-            removeEventListener: { value(type, callback, options) {
-                const cap = capture(options);
+            removeEventListener: { value: function removeEventListener(type, callback, options = undefined) {
+                if (arguments.length < 2) throw new listError('An event type and listener are required');
+                type = str(type);
+                if (callback !== null && callback !== undefined && typeof callback !== 'function' && typeof callback !== 'object')
+                    throw new listError('Invalid listener');
+                const fields = eventOptions(options);
+                const cap = fields ? !!fields.capture : !!options;
                 for (const item of state.listeners.slice())
-                    if (item.type === String(type) && item.callback === callback && item.capture === cap) remove(state, item);
+                    if (item.type === type && item.callback === callback && item.capture === cap) remove(state, item);
             } }
         });
         for (let i = 0; i < handlerTypes.length; i++) {

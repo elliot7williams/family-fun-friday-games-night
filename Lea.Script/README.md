@@ -415,6 +415,15 @@ and the pinned [Jint task-processing API](https://github.com/sebastienros/jint/b
 
 ## DOM events
 
+Listener arguments use DOM-string and boolean/dictionary conversion for the
+supported event subset. Truthy primitive capture options work for addition and
+removal; object/function dictionaries read `capture`, `once`, `passive`, then
+`signal`, while removal reads only `capture`. Conversion also occurs for duplicate
+and null callbacks, before list mutation. Both methods require two arguments and
+retain captured conversion helpers. Any non-undefined signal is rejected because
+AbortSignal is not supported. See `../LeaForge/EVENT_OPTIONS.md` for the reproduced
+regression, verification, and remaining conformance limits.
+
 Both `Js.Ev` and `Jp.Ev/EvA` accept a parent-validated node plus one supported
 type: `click`, `input`, `change`, `submit`, `DOMContentLoaded`, or `load`.
 The 128-element ancestor path contains opaque handles, not script-supplied

@@ -19,7 +19,7 @@ experimental build. See [STARTUP_IO.md](STARTUP_IO.md) for evidence and remainin
 gates, and [CLASS_LISTS.md](CLASS_LISTS.md) for the expanded DOM subset.
 
 Active development remains in the recovery checkout `L:/Lea Development`.
-The latest completed full source run passes 1,040 checks there, and bootstrap profiling now
+The earlier recovery-checkpoint full source run passes 1,040 checks there, and bootstrap profiling now
 correctly fails if any sample failed. The original checkout and installed host
 remain intact; this is not a cold-start fix. See
 [WORKSPACE_RECOVERY.md](WORKSPACE_RECOVERY.md) for verification boundaries.
@@ -64,9 +64,16 @@ released. See [STARTUP_REPORT_TAIL.md](STARTUP_REPORT_TAIL.md).
 
 ## Current Features
 
+- Correct listener argument conversion for the supported JavaScript event subset:
+  primitive capture, ordered dictionary reads, duplicate/null conversion, and
+  failed-conversion safety. All 75 new checks, complete 1,157-check source/package
+  runs, and the separate browser EXE smoke pass. This is not proof of an
+  intermittent startup fix or a new Firespider
+  release. See `EVENT_OPTIONS.md`.
+
 - trusted scripting budget reports with bounded host-phase and exception-type
-  detail, unchanged limits, and tested cleanup/recovery; the full current run
-  still fails fresh-worker startup. See `BUDGET_PHASES.md`
+  detail, unchanged limits, and tested cleanup/recovery. The initial 1,082-check
+  run failed fresh-worker startup; see `BUDGET_PHASES.md` for that retained result
 - an experimental compact scripting bootstrap generated from retained readable
   source, with AST round trips and build-time stale-file guards; resource size
   is 28.3% lower, not whole-engine size or a proven speedup. Full startup and
