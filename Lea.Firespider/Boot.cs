@@ -17,6 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Lea.Win;
+using Lea.Diagnostics;
 
 namespace Lea.Firespider
 {
@@ -24,6 +25,7 @@ namespace Lea.Firespider
     {
         private const BindingFlags Members = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
         private static readonly List<Exception> UiErrors = new List<Exception>();
+        private static string scriptObservation;
 
         [STAThread]
         private static int Main(string[] args)
@@ -58,6 +60,9 @@ namespace Lea.Firespider
         {
             var root = Path.GetFullPath(args.Length > 0 ? args[0] : AppDomain.CurrentDomain.BaseDirectory);
             var mode = (args.Length > 1 ? args[1] : "clean").ToLowerInvariant();
+            if (args.Length > 3 || (args.Length == 3 && mode != "script"))
+                throw new ArgumentException("An observation report is supported only for the script case.");
+            scriptObservation = args.Length == 3 ? WorkerObservation.ValidateReport(args[2]) : null;
             var session = Path.Combine(Path.GetTempPath(), "lea-boot-" + Guid.NewGuid().ToString("N") + ".txt");
             var log = session + ".log";
             var oldSession = Environment.GetEnvironmentVariable("LEA_FIRESPIDER_SESSION");
@@ -1694,7 +1699,28 @@ namespace Lea.Firespider
             var view = (V)tabs.SelectedTab.Controls[0];
             Check(view.Xf != null && ScriptPid(view) == 0 && (bool)Call(form, "qleaHibernateEligible", view), "script-free host starts dormant and remains eligible for hibernation");
             var scriptClock = Stopwatch.StartNew();
-            await ScriptCode(view, "var retainedState=41;");
+            WorkerObservation observation = null;
+            Exception demandFailure = null;
+            try
+            {
+                if (scriptObservation != null)
+                {
+                    observation = new WorkerObservation(() => new[] { view });
+                    observation.Start();
+                }
+                try { await ScriptCode(view, "var retainedState=41;"); }
+                catch (Exception error) { demandFailure = error; throw; }
+            }
+            finally
+            {
+                if (observation != null)
+                {
+                    var retired = observation.Stop();
+                    observation.Save(scriptObservation, "firespider-first-demand", demandFailure);
+                    if (demandFailure == null) Check(retired && observation.HasCounters && observation.HasThreads,
+                        "host first-demand observation did not retire or capture worker data");
+                }
+            }
             Console.WriteLine("Script host first demand: " + scriptClock.ElapsedMilliseconds + " ms");
             var pid = ScriptPid(view);
             Check(pid > 0 && !(bool)Call(form, "qleaHibernateEligible", view) && view.At.Jc == 0, "live pure-JavaScript state must not be automatically discarded");

@@ -10,7 +10,16 @@ The earlier projects stay small:
 
 LeaForge is where we can grow the more full-featured browser.
 
-Latest host checkpoint: separate v24 passes all 43 candidate host cases and
+Latest diagnostic checkpoint: one shared, opt-in worker observer now serves
+the native-view and Firespider harnesses, with cheap 125 ms counters and thread
+snapshots paced at least one second apart. Native recovery passes 60 checks;
+14 input/output guards and two controlled failure-preservation checks pass.
+A fresh diagnostic copy passes all 43 host cases with only its first script
+demand observed. This does not erase the preceding extraction timeout or prove
+a startup fix. Production binaries and installed Firespider stay unchanged;
+readiness remains about 65%. See [DEMAND_OBSERVE.md](DEMAND_OBSERVE.md).
+
+Previous host checkpoint: separate v24 passes all 43 candidate host cases and
 six actual-EXE startup scenarios, including new real-click callback coverage
 with an identical-harness old-worker negative control. Both archives pass
 integrity audits, but their fresh runtime extraction fails first-demand worker

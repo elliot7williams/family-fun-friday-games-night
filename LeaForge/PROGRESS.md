@@ -34,6 +34,20 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+The test-only startup observer is now shared with Firespider. Cheap 125 ms
+counter reads retain bounded identity checks; expensive thread snapshots are
+paced at least one second apart for each PID/creation identity. Native recovery
+passes 60 checks with 197 valid samples across eight workers. Fourteen CLI/path
+guards, native/host controlled failure preservation, and the ordinary unobserved
+clean case pass. A fresh diagnostic runtime copy passes all 43 host cases with
+34 samples during its first script demand. Parent readiness takes 4,132 ms;
+no actual timeout is captured. An external post-run reporting typo is retained
+and corrected against the same saved outputs without repeating the tests.
+All 19 production files and installed Firespider remain unchanged. The earlier
+1,261-check full source pass is historical, not a new full-suite run through
+this changed harness. No new release is produced; milestone 146 remains open
+and readiness stays about 65%. See `DEMAND_OBSERVE.md`.
+
 Separate v24 now carries captured callback invocation into Firespider. An
 identical-harness old-worker negative control reproduces the callback bug and
 the current-worker positive control passes. The candidate passes all 43 host
