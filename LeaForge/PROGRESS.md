@@ -34,6 +34,17 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Separate v26 integrates the current compact exception table into Firespider.
+The candidate compiles with all 19 tested production dependencies and passes
+42 non-script host cases. New checks pass for all 25 constant descriptors in
+both the first-demand and inline-navigation realms, and the callback regression
+passes. The script case then fails during a fresh worker launch after its
+intentional script-error fixture: 5,037 ms wall against the unchanged 5,000 ms
+budget. The observer covers only the successful first demand, not that timeout.
+No retry, deadline increase, new release package or installed replacement is
+made. Further release gates are held; milestone 146 stays open and broader
+readiness stays about 65%. See `HOST_EXCEPTION_TABLE.md`.
+
 The shared bootstrap now builds all 25 DOM exception constant descriptors from
 one private ordered name table. Public values, ownership, order and readonly
 descriptors are preserved by expanded tests. The compact resource is 475 bytes

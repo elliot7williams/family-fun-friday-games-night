@@ -1724,6 +1724,7 @@ namespace Lea.Firespider
             Console.WriteLine("Script host first demand: " + scriptClock.ElapsedMilliseconds + " ms");
             var pid = ScriptPid(view);
             Check(pid > 0 && !(bool)Call(form, "qleaHibernateEligible", view) && view.At.Jc == 0, "live pure-JavaScript state must not be automatically discarded");
+            await ScriptExceptionConstants(view, "first demand");
             var fixture = new Uri(fixturePath).AbsoluteUri;
             settings["bs"] = new StringCollection();
             settings["cfEnabled"] = "";
@@ -1735,6 +1736,7 @@ namespace Lea.Firespider
             var runtime = Member<object>(view.Xs, "At");
             Check((bool)runtime.GetType().GetProperty("Ac").GetValue(runtime, null) &&
                 (bool)runtime.GetType().GetProperty("Ne").GetValue(runtime, null), "host worker lacks isolation or has a loopback exemption");
+            await ScriptExceptionConstants(view, "inline navigation");
             await ScriptCode(view, @"var hostOptionReads=[],hostOptionPhases=[],hostOptionOnce=0,hostOptionFailed=0;
 function hostOptionCapture(event){hostOptionPhases.push(event.eventPhase);}
 function hostOptionSingle(){hostOptionOnce++;}
@@ -1922,6 +1924,32 @@ hostCallTarget.onclick=null;");
             if (!result.Ok || Environment.GetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE") == "1")
                 Console.WriteLine("Script host: " + ScriptState(view));
             Check(result.Ok, "host supplied script: " + result.S + "; " + result.M + "; code=" + code.Substring(0, Math.Min(code.Length, 80)));
+        }
+
+        private static async Task ScriptExceptionConstants(V view, string stage)
+        {
+            var pid = ScriptPid(view);
+            var result = await view.JsA(@"(function(){
+const names=['INDEX_SIZE_ERR','DOMSTRING_SIZE_ERR','HIERARCHY_REQUEST_ERR','WRONG_DOCUMENT_ERR',
+'INVALID_CHARACTER_ERR','NO_DATA_ALLOWED_ERR','NO_MODIFICATION_ALLOWED_ERR','NOT_FOUND_ERR',
+'NOT_SUPPORTED_ERR','INUSE_ATTRIBUTE_ERR','INVALID_STATE_ERR','SYNTAX_ERR','INVALID_MODIFICATION_ERR',
+'NAMESPACE_ERR','INVALID_ACCESS_ERR','VALIDATION_ERR','TYPE_MISMATCH_ERR','SECURITY_ERR','NETWORK_ERR',
+'ABORT_ERR','URL_MISMATCH_ERR','QUOTA_EXCEEDED_ERR','TIMEOUT_ERR','INVALID_NODE_TYPE_ERR','DATA_CLONE_ERR'];
+if(Object.keys(DOMException).join('|')!==names.join('|')||
+Object.keys(DOMException.prototype).join('|')!==['name','message','code'].concat(names).join('|'))throw Error('host exception constant order');
+for(let i=0;i<names.length;i++)for(const owner of [DOMException,DOMException.prototype]){
+  const name=names[i],descriptor=Object.getOwnPropertyDescriptor(owner,name);
+  if(!Object.hasOwn(owner,name)||descriptor.value!==i+1||descriptor.writable||descriptor.configurable||!descriptor.enumerable)throw Error('host exception descriptor');
+  if(Reflect.set(owner,name,0)||Reflect.deleteProperty(owner,name)||Reflect.defineProperty(owner,name,{value:0}))throw Error('host exception constant mutation');
+  if(owner[name]!==i+1)throw Error('host exception constant changed');
+}
+const error=new DOMException('host','SyntaxError');
+if(!(error instanceof Error)||!(error instanceof DOMException)||error.code!==12||error.message!=='host'||error.name!=='SyntaxError')throw Error('host exception branding');
+}());");
+            if (!result.Ok) Console.WriteLine("Script exception constants: " + ScriptState(view));
+            Check(result.Ok && result.N == 0 && ScriptPid(view) == pid,
+                "host exception constants failed or changed realm/bridge state: " + stage + "; " + result.S + "; " + result.M);
+            Console.WriteLine("PASS script host exception constants: " + stage + "; all 25 ordered own readonly values; no bridge calls or realm replacement");
         }
 
         private static async Task ScriptActivate(V view, string id)

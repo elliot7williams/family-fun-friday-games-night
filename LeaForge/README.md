@@ -10,7 +10,15 @@ The earlier projects stay small:
 
 LeaForge is where we can grow the more full-featured browser.
 
-Latest source checkpoint: the DOM exception constants use one private name
+Latest host checkpoint: separate v26 carries the compact exception table into
+Firespider and passes all 42 non-script cases plus both new realm/descriptor
+checks. Its script case later fails isolated-worker startup after an intentional
+script error; the first-demand observer does not cover that failed launch.
+The matrix is not passed, no retry is made, and further release gates are held.
+Installed Firespider stays untouched, milestone 146 stays open, and broader
+readiness remains about 65%. See [HOST_EXCEPTION_TABLE.md](HOST_EXCEPTION_TABLE.md).
+
+Previous source checkpoint: the DOM exception constants use one private name
 table and bounded descriptor loop. The compact bootstrap shrinks by 475 bytes;
 each scripting PE shrinks by 512 bytes. All 105 focused checks, 1,267 full-source
 checks, six fresh-worker launches/27 comparison checks, and the standalone
