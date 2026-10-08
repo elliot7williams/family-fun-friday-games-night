@@ -10,7 +10,12 @@ The earlier projects stay small:
 
 LeaForge is where we can grow the more full-featured browser.
 
-Development note: the latest worker separates its guarded entry from interpreter
+Development note: separate v23 compiles the latest worker into Firespider and
+passes its source/runtime input audits. Its host matrix stops after seven
+complete cases when C: runs out of space during test settings restoration.
+The scripted host and six actual-EXE startup gates are not verified; no v23
+release ZIP is published. See [HOST_WORKER_ENTRY.md](HOST_WORKER_ENTRY.md).
+The latest worker separates its guarded entry from interpreter
 binding, fixing a reproduced missing-dependency entry failure. All 14 new checks,
 full 1,171-check source/package runs, and the standalone EXE smoke pass. A paired
 comparison still fails one preserved old-worker startup, so the intermittent

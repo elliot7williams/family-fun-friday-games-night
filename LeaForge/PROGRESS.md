@@ -34,6 +34,17 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Separate v23 builds the latest guarded-entry worker into Firespider with all
+67 original inputs, 25 overlays, four integration files, and 19 runtime
+dependencies audited. Seven host cases complete, but the next case exits 1
+while restoring settings because C: runs out of space; its earlier assertion
+marker is not counted as a pass. The script case is not reached and the six
+actual-EXE startup scenarios are not run. The failed log, copied source, and
+runtime are preserved without publishing a release ZIP or changing installed
+files. This does not explain the earlier five-second startup timeouts.
+Milestone 146 remains open and readiness stays about 65%.
+See `HOST_WORKER_ENTRY.md` for the failed gate and remaining verification.
+
 Worker entry now separates argument validation/mitigation setup from interpreter
 binding with a private non-inlined runtime boundary. A reproduced missing-Jint
 failure no longer escapes before the entry handler, and all 14 new checks pass.

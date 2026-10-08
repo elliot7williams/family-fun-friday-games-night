@@ -5,6 +5,13 @@ over `L:\Firespider Internet` or make Lea a complete modern-web engine. The
 clean adapters here remain the source of record; the live host has unrelated
 in-progress changes that must be retained.
 
+Latest host checkpoint: separate v23 compiles with the guarded-entry worker and
+passes source/runtime input audits. Its matrix completes seven cases before
+test settings restoration fails because C: is full. The script case and six
+actual-EXE startup scenarios are unverified, no v23 release ZIP is published,
+and installed files remain untouched. See
+[worker-entry host evidence](../LeaForge/HOST_WORKER_ENTRY.md).
+
 Milestone 146 finishes native-event Promise checkpoints and adds bounded
 `queueMicrotask` support to that optional module. The current builder emits
 146 manifests; the packer retains support for archived 145 manifests. See
