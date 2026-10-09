@@ -34,6 +34,18 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+The `-bp` test diagnostic compares direct evaluation, parse-only preparation
+and analyzed preparation using the actual embedded bootstrap and explicit
+prepared-parser regex limits. Six final planned fresh-process samples pass
+18 grouped checks; three invalid-input/report guards pass. Timings overlap,
+so no production startup change is adopted. The ordinary scripting suite
+completes all 1,391 checks once with the final tool and exact preceding runtime.
+An outer summary-text mismatch is retained; an attached handle verifies the
+same process exits zero with the genuine summary, without a rerun. The 19
+production files match in eight roots; installed Firespider is unchanged.
+Milestone 146 remains open and broader readiness stays about 65%. See
+`BOOTSTRAP_PREPARATION.md`.
+
 Separate v31 integrates the exact tested event-constructor dependencies into
 Firespider. With the identical final host and harness, the preceding runtime
 fails its intended constructor-prototype assertion after successful startup;

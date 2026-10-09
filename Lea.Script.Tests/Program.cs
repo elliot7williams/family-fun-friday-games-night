@@ -22,6 +22,13 @@ namespace Lea.Script.Tests
                 var attributeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-attributes.html");
                 var selectorFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-selectors.html");
                 var treeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-tree.html");
+                if (args.Length > 1 && (args[1] == "--bootstrap-preparation" || args[1] == "-bp"))
+                {
+                    if (args.Length != 4) throw new ArgumentException("Supply a strategy and new JSON report path for --bootstrap-preparation.");
+                    BootstrapPreparation.Run(args[2], args[3]);
+                    Console.WriteLine("PASS Lea.Script bootstrap preparation diagnostic: " + checks + " checks; not a native startup gate.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--startup-observe")
                 {
                     if (args.Length != 3) throw new ArgumentException("Supply a new JSON report path for --startup-observe.");

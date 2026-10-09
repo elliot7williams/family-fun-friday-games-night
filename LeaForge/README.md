@@ -10,6 +10,16 @@ The earlier projects stay small:
 
 LeaForge is where we can grow the more full-featured browser.
 
+Latest diagnostic checkpoint: `-bp` compares direct, parsed and analyzed
+bootstrap initialization with identical embedded bytes. All six final planned
+samples/18 grouped checks and three input guards pass; timings overlap, so no
+production optimization is adopted. The ordinary scripting suite completes
+1,391 checks once with the final tool and exact preceding production. Its outer
+summary-text mismatch is preserved and corrected through the same live process
+handle, without rerunning. No browser release or startup fix is claimed;
+milestone 146 stays open and readiness stays about 65%. See
+[BOOTSTRAP_PREPARATION.md](BOOTSTRAP_PREPARATION.md).
+
 Latest host checkpoint: separate v31 integrates the exact tested event-constructor
 dependencies. The same final host/harness rejects the preceding runtime at its
 constructor-prototype assertion, then the current runtime passes all 43 ordinary
