@@ -40,6 +40,12 @@ namespace Lea.Script.Tests
                 var run = assembly.EntryPoint.DeclaringType.GetMethod("Run", BindingFlags.Static | BindingFlags.NonPublic);
                 Program.Check(run != null && (run.GetMethodImplementationFlags() & MethodImplAttributes.NoInlining) != 0,
                     "worker interpreter has a non-inlined startup boundary");
+                var frames = assembly.GetTypes().SelectMany(type => type.GetMethods(
+                    BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic))
+                    .SingleOrDefault(method => method.Name.StartsWith("<Run>g__Frames|", StringComparison.Ordinal));
+                Program.Check(frames != null && frames.ReturnType == typeof(int) &&
+                    (frames.GetMethodImplementationFlags() & MethodImplAttributes.NoInlining) != 0,
+                    "worker page processing has a non-inlined post-handshake boundary");
                 Program.Check(assembly.EntryPoint.GetMethodBody().LocalVariables.All(variable =>
                     variable.LocalType.Namespace == "System" || variable.LocalType.Namespace == "System.Diagnostics"),
                     "worker entry locals do not require interpreter or closure types");

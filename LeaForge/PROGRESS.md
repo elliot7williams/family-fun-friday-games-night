@@ -34,6 +34,18 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+The worker's page-frame loop now has a non-inlined post-handshake boundary,
+without changing its captured protocol state or any protection/deadline. All
+15 worker-entry, 27 alternating native comparison and 1,747 ordinary unobserved
+scripting checks pass. Four planned previous/candidate/candidate/previous
+observed Firespider script cases and the actual standalone browser EXE smoke
+pass; fresh candidate captures are inspected. Only the worker changes among
+19 production records, with unchanged PE and required bundle sizes. Timings
+overlap and both versions pass, so no speedup, intermittent-startup fix or new
+release is claimed. Original inputs/installed binaries and earlier failures
+remain preserved. Milestone 146 stays open; readiness remains about 65%. See
+`DEFERRED_WORKER_FRAMES.md`.
+
 Direct selector startup observation now samples synchronous worker sessions
 without UI pumping, pairing PID and phase under the lifecycle lock. All 19
 contracts, six guards, two controlled failures, 26 observed selector and 60

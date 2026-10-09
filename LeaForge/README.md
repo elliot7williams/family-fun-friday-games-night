@@ -1,5 +1,14 @@
 # LeaForge
 
+Latest startup change: the worker page-frame loop has a separate non-inlined
+post-handshake boundary. All 15 worker-entry, 27 native comparison and 1,747
+ordinary scripting checks pass, along with four matched observed Firespider
+script cases and the actual standalone browser lifecycle smoke. Only the worker
+changes; production sizes and protections stay unchanged. Timings overlap and
+both versions pass, so the earlier intermittent startup failure is not declared
+fixed. No release is claimed; milestone 146 stays open and readiness remains
+about 65%. See [DEFERRED_WORKER_FRAMES.md](DEFERRED_WORKER_FRAMES.md).
+
 Latest diagnostic: `-so` / `--selector-observe` extends the existing sampler to
 direct synchronous worker sessions. Contract, guard, controlled failure,
 selector and native-view checks pass, together with all 1,746 ordinary unobserved

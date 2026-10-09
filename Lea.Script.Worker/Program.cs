@@ -93,55 +93,62 @@ namespace Lea.Script.Worker
                     Trace("probes", clock, trace);
                     Wire.Write(output, new { k = "hello", g = guards, n = network, f = file ? 1 : 0 });
                 }
-                while (true)
+                return Frames();
+
+                // Page-only code is translated after the guarded startup handshake.
+                [MethodImpl(MethodImplOptions.NoInlining)]
+                int Frames()
                 {
-                    var frame = Wire.Read(input);
-                    var kind = Wire.Text(frame, "k", 8);
-                    if (kind == "exec") Wire.Fields(frame, "k", "i", "c");
-                    else if (kind == "timer") Wire.Fields(frame, "k", "i", "t");
-                    else if (kind == "event") Wire.Fields(frame, "k", "i", "t", "p");
-                    else return 3;
-                    var next = Wire.Number(frame, "i");
-                    if (next <= id) return 3;
-                    id = next;
-                    request = 0;
-                    try
+                    while (true)
                     {
-                        var prevented = false;
-                        if (kind == "exec")
+                        var frame = Wire.Read(input);
+                        var kind = Wire.Text(frame, "k", 8);
+                        if (kind == "exec") Wire.Fields(frame, "k", "i", "c");
+                        else if (kind == "timer") Wire.Fields(frame, "k", "i", "t");
+                        else if (kind == "event") Wire.Fields(frame, "k", "i", "t", "p");
+                        else return 3;
+                        var next = Wire.Number(frame, "i");
+                        if (next <= id) return 3;
+                        id = next;
+                        request = 0;
+                        try
                         {
-                            vm.Execute(Wire.Text(frame, "c", 16 * 1024));
-                            vm.Invoke(dispatch, JsValue.Undefined, new[] { (JsValue)"mt", Codec.Value(vm, new object[0]) });
+                            var prevented = false;
+                            if (kind == "exec")
+                            {
+                                vm.Execute(Wire.Text(frame, "c", 16 * 1024));
+                                vm.Invoke(dispatch, JsValue.Undefined, new[] { (JsValue)"mt", Codec.Value(vm, new object[0]) });
+                            }
+                            else if (kind == "timer")
+                            {
+                                var timer = Wire.Number(frame, "t");
+                                if (timer < 1) throw new InvalidDataException("Invalid timer handle.");
+                                vm.Invoke(dispatch, JsValue.Undefined, new[] { (JsValue)"tm", Codec.Value(vm, new object[] { timer }) });
+                            }
+                            else
+                            {
+                                var type = Wire.Text(frame, "t", 32);
+                                if (type != "click" && type != "input" && type != "change" && type != "submit" && type != "DOMContentLoaded" && type != "load")
+                                    throw new InvalidDataException("Unsupported event type.");
+                                var path = frame["p"] as object[];
+                                if (path == null || path.Length > 128) throw new InvalidDataException("Invalid event path.");
+                                foreach (var key in path)
+                                    if (!(key is int) || (int)key < 0 || (int)key >= 512) throw new InvalidDataException("Invalid event handle.");
+                                prevented = vm.Invoke(dispatch, JsValue.Undefined, new[] { (JsValue)type, Codec.Value(vm, path) }).AsBoolean();
+                            }
+                            Wire.Write(output, new { k = "end", i = id, s = "ok", m = "", d = prevented });
                         }
-                        else if (kind == "timer")
+                        catch (Exception error) when (error is JavaScriptException || error is JintException ||
+                            error is Acornima.ParseErrorException || error is TimeoutException || error is InvalidDataException)
                         {
-                            var timer = Wire.Number(frame, "t");
-                            if (timer < 1) throw new InvalidDataException("Invalid timer handle.");
-                            vm.Invoke(dispatch, JsValue.Undefined, new[] { (JsValue)"tm", Codec.Value(vm, new object[] { timer }) });
+                            var limited = error is TimeoutException || error is StatementsCountOverflowException ||
+                                error is MemoryLimitExceededException || error is RecursionDepthOverflowException ||
+                                error is InvalidDataException;
+                            var message = limited ? "Script budget exceeded: " + error.GetType().Name + "." : error.Message;
+                            Wire.Write(output, new { k = "end", i = id, s = limited ? "limit" : "js",
+                                m = message.Length <= 512 ? message : message.Substring(0, 512), d = false });
+                            return 0;
                         }
-                        else
-                        {
-                            var type = Wire.Text(frame, "t", 32);
-                            if (type != "click" && type != "input" && type != "change" && type != "submit" && type != "DOMContentLoaded" && type != "load")
-                                throw new InvalidDataException("Unsupported event type.");
-                            var path = frame["p"] as object[];
-                            if (path == null || path.Length > 128) throw new InvalidDataException("Invalid event path.");
-                            foreach (var key in path)
-                                if (!(key is int) || (int)key < 0 || (int)key >= 512) throw new InvalidDataException("Invalid event handle.");
-                            prevented = vm.Invoke(dispatch, JsValue.Undefined, new[] { (JsValue)type, Codec.Value(vm, path) }).AsBoolean();
-                        }
-                        Wire.Write(output, new { k = "end", i = id, s = "ok", m = "", d = prevented });
-                    }
-                    catch (Exception error) when (error is JavaScriptException || error is JintException ||
-                        error is Acornima.ParseErrorException || error is TimeoutException || error is InvalidDataException)
-                    {
-                        var limited = error is TimeoutException || error is StatementsCountOverflowException ||
-                            error is MemoryLimitExceededException || error is RecursionDepthOverflowException ||
-                            error is InvalidDataException;
-                        var message = limited ? "Script budget exceeded: " + error.GetType().Name + "." : error.Message;
-                        Wire.Write(output, new { k = "end", i = id, s = limited ? "limit" : "js",
-                            m = message.Length <= 512 ? message : message.Substring(0, 512), d = false });
-                        return 0;
                     }
                 }
             }
