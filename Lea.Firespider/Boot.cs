@@ -2096,6 +2096,14 @@ if(!(error instanceof Error)||!(error instanceof DOMException)||error.code!==12|
             var result = await view.JsA(@"(function(){
 const body=document.body,add=body.addEventListener,remove=body.removeEventListener;
 let reads=0;const type={toString(){reads++;return 'click';}},options={get capture(){reads++;return false;}};
+function nonConstructor(method){
+  if(Object.hasOwn(method,'prototype'))throw Error('host event constructor prototype');
+  let error;try{Reflect.construct(String,[type],method);}catch(value){error=value;}
+  if(!(error instanceof TypeError))throw Error('host event constructor newTarget');
+  error=undefined;try{new method(type,null);}catch(value){error=value;}
+  if(!(error instanceof TypeError))throw Error('host event constructor target');
+}
+for(const method of [add,remove]){nonConstructor(method);nonConstructor(method.bind(body));}
 for(const receiver of [{},[],1,true,'text',1n,Symbol('receiver'),Object.create(body),new Proxy(body,{get(){throw Error('host proxy property read');}})]){
   for(const method of [add,remove]){
     let error;try{Reflect.apply(method,receiver,[type,null,options]);}catch(value){error=value;}
@@ -2109,16 +2117,18 @@ for(const node of [body,document,window])for(const name of ['addEventListener','
 }
 for(const name of ['onclick','oninput','onchange','onsubmit','onload']){
   const descriptor=Object.getOwnPropertyDescriptor(body,name);
+  nonConstructor(descriptor.get);nonConstructor(descriptor.set);
   for(const node of [document,window]){
     const other=Object.getOwnPropertyDescriptor(node,name);
     if(descriptor.get!==other.get||descriptor.set!==other.set||other.enumerable||other.configurable||other.get.length!==0||other.set.length!==1)throw Error('shared host event accessor metadata');
   }
 }
+if(reads)throw Error('host event constructor conversion');
 }());");
             if (!result.Ok) Console.WriteLine("Script event receivers: " + ScriptState(view));
             Check(result.Ok && result.N == 0 && ScriptPid(view) == pid,
                 "host event receiver checks failed or changed document/realm state: " + stage + "; " + result.S + "; " + result.M);
-            Console.WriteLine("PASS script host event receivers: " + stage + "; shared method/accessor metadata, invalid receiver ordering, no document mutations or realm replacement");
+            Console.WriteLine("PASS script host event receivers: " + stage + "; shared non-constructible methods/accessors and bound methods, invalid receiver ordering, no argument conversion, document mutations or realm replacement");
         }
 
         private static async Task ScriptElementReceivers(V view, string stage)

@@ -34,6 +34,18 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Separate v31 integrates the exact tested event-constructor dependencies into
+Firespider. With the identical final host and harness, the preceding runtime
+fails its intended constructor-prototype assertion after successful startup;
+the current runtime then passes all 43 ordinary host cases and six actual-EXE
+startup scenarios. New constructor checks cover shared event methods, bound
+methods and handler accessors in both script realms, without conversion,
+document mutations or realm replacement. Fresh script captures are inspected;
+all 19 production files match in six roots. Original host inputs and installed
+binaries are unchanged. No package, independent rebuild gate, full source-suite
+rerun, speedup or intermittent startup fix is claimed. Milestone 146 remains
+open and broader readiness stays about 65%. See `HOST_EVENT_CONSTRUCTORS.md`.
+
 Shared event operations now use non-constructible method syntax without changing
 names, arity, receiver checks, descriptors or listener behavior. The identical
 final isolated test binary rejects the old runtime's constructor prototype and

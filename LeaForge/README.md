@@ -10,7 +10,16 @@ The earlier projects stay small:
 
 LeaForge is where we can grow the more full-featured browser.
 
-Latest source checkpoint: shared event operations are now non-constructible
+Latest host checkpoint: separate v31 integrates the exact tested event-constructor
+dependencies. The same final host/harness rejects the preceding runtime at its
+constructor-prototype assertion, then the current runtime passes all 43 ordinary
+host cases and six actual-EXE startup scenarios. Both script realms check methods,
+bound methods and handler accessors; fresh main/split captures are inspected.
+Installed Firespider stays untouched. No startup fix, package, independent rebuild
+gate or new full source-suite run is claimed. Milestone 146 stays open and broader
+readiness stays about 65%. See [HOST_EVENT_CONSTRUCTORS.md](HOST_EVENT_CONSTRUCTORS.md).
+
+Preceding source checkpoint: shared event operations are now non-constructible
 methods, retaining their receiver semantics and descriptors. The identical final
 isolated harness rejects the preceding runtime at its constructor-prototype
 assertion and passes all 25 checks on the current runtime. The ordinary scripting
