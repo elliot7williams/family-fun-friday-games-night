@@ -34,6 +34,17 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Separate v30 integrates the exact Element receiver dependencies into Firespider.
+Harness A passes 42 non-script cases and the new checks, then fails script
+recovery because its fixture input was left renamed. Corrected harness B
+restores the fixture and passes the complete script case; the identical final
+harness rejects the old runtime at its expected first-demand Element assertion.
+All six actual-EXE startup scenarios pass. The failure, both harnesses, source
+and tested runtime are retained. No single final 43-case matrix pass, startup
+fix, new package, full-source rerun or installed replacement is claimed.
+Milestone 146 remains open and broader readiness stays about 65%. See
+`HOST_ELEMENT_RECEIVERS.md`.
+
 Element attribute methods and class-list accessors now resolve their actual
 receiver, rejecting fake/proxy/nullish receivers before argument conversion.
 Four per-element function copies become shared per-realm methods/accessors

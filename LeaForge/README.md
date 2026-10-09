@@ -10,7 +10,17 @@ The earlier projects stay small:
 
 LeaForge is where we can grow the more full-featured browser.
 
-Latest source checkpoint: attribute methods and class-list accessors now use
+Latest host checkpoint: separate v30 carries the verified Element receiver
+runtime into Firespider. The first harness passes 42 non-script cases, then
+fails later script recovery because its field fixture was left renamed. The
+corrected final harness passes the complete script case; an identical-harness
+old-runtime control fails at the expected Element receiver assertion. All six
+actual-EXE startup scenarios pass. No final single 43-case matrix pass, startup
+fix, release package or installed replacement is claimed. Milestone 146 stays
+open and readiness stays about 65%. See
+[HOST_ELEMENT_RECEIVERS.md](HOST_ELEMENT_RECEIVERS.md).
+
+Previous source checkpoint: attribute methods and class-list accessors now use
 their receiving element, with shared per-realm functions and private per-element
 token caches. All 43 focused and 1,385 full-source checks pass on final revision
 B, together with the standalone browser EXE smoke. Earlier revision A startup

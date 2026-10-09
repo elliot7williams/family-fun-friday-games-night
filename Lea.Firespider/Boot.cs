@@ -1845,6 +1845,7 @@ namespace Lea.Firespider
             Check(pid > 0 && !(bool)Call(form, "qleaHibernateEligible", view) && view.At.Jc == 0, "live pure-JavaScript state must not be automatically discarded");
             await ScriptExceptionConstants(view, "first demand");
             await ScriptEventReceivers(view, "first demand");
+            await ScriptElementReceivers(view, "first demand");
             var fixture = new Uri(fixturePath).AbsoluteUri;
             settings["bs"] = new StringCollection();
             settings["cfEnabled"] = "";
@@ -1858,6 +1859,7 @@ namespace Lea.Firespider
                 (bool)runtime.GetType().GetProperty("Ne").GetValue(runtime, null), "host worker lacks isolation or has a loopback exemption");
             await ScriptExceptionConstants(view, "inline navigation");
             await ScriptEventReceivers(view, "inline navigation");
+            await ScriptElementReceivers(view, "inline navigation");
             await ScriptCode(view, @"var hostOptionReads=[],hostOptionPhases=[],hostOptionOnce=0,hostOptionFailed=0;
 function hostOptionCapture(event){hostOptionPhases.push(event.eventPhase);}
 function hostOptionSingle(){hostOptionOnce++;}
@@ -1939,6 +1941,7 @@ if(hostCallTarget.onclick!==null||document.onclick!==null)throw Error('host borr
             Check(view.At == treePage && treePage.Jc == treeChanges && view.Id("host-result") == attributeNode,
                 "host tree reads changed the page or node identity");
             await ScriptCode(view, "reflected.id='result';reflected.className='';if(!reflected.hasAttribute('class')||reflected.getAttribute('class')!=='')throw new Error('host empty class');");
+            await ScriptElementField(view);
             view.Sc(-view.Sy);
             ScriptPicture(form, "main");
             var document = view.At;
@@ -2116,6 +2119,72 @@ for(const name of ['onclick','oninput','onchange','onsubmit','onload']){
             Check(result.Ok && result.N == 0 && ScriptPid(view) == pid,
                 "host event receiver checks failed or changed document/realm state: " + stage + "; " + result.S + "; " + result.M);
             Console.WriteLine("PASS script host event receivers: " + stage + "; shared method/accessor metadata, invalid receiver ordering, no document mutations or realm replacement");
+        }
+
+        private static async Task ScriptElementReceivers(V view, string stage)
+        {
+            var pid = ScriptPid(view);
+            var result = await view.JsA(@"(function(){
+const body=document.body,root=document.documentElement;
+const get=body.getAttribute,has=body.hasAttribute,classes=Object.getOwnPropertyDescriptor(body,'classList');
+let reads=0;const name={toString(){reads++;return 'id';}};
+function rejects(action){let error;try{action();}catch(value){error=value;}if(!(error instanceof TypeError))throw Error('host element receiver rejection');}
+for(const receiver of [null,undefined,document,window,{},[],1,true,'text',1n,Symbol('receiver'),Object.create(body),new Proxy(body,{get(){throw Error('host element proxy read');}})]){
+  for(const method of [get,has])rejects(()=>Reflect.apply(method,receiver,[name]));
+  rejects(()=>Reflect.apply(classes.get,receiver,[]));rejects(()=>Reflect.apply(classes.set,receiver,[name]));
+}
+if(reads)throw Error('host element conversion before receiver check');
+for(const method of [get,has]){
+  rejects(()=>Reflect.apply(method,body,[]));rejects(()=>Reflect.apply(method,body,[Symbol('name')]));
+  rejects(()=>Reflect.construct(Object,[],method));
+}
+for(const key of ['getAttribute','hasAttribute']){
+  const descriptor=Object.getOwnPropertyDescriptor(body,key),other=Object.getOwnPropertyDescriptor(root,key);
+  if(descriptor.value!==other.value||descriptor.value.name!==key||descriptor.value.length!==1||Object.hasOwn(descriptor.value,'prototype')||descriptor.writable||descriptor.enumerable||descriptor.configurable)throw Error('shared host element method metadata');
+}
+const other=Object.getOwnPropertyDescriptor(root,'classList');
+if(classes.get!==other.get||classes.set!==other.set||classes.get.length!==0||classes.set.length!==1||classes.enumerable||classes.configurable)throw Error('shared host element accessor metadata');
+if(Reflect.apply(classes.get,root,[])!==root.classList||Reflect.apply(classes.get,body,[])!==body.classList||root.classList===body.classList)throw Error('host element token identity');
+}());");
+            if (!result.Ok) Console.WriteLine("Script element receivers: " + ScriptState(view));
+            Check(result.Ok && result.N == 0 && ScriptPid(view) == pid,
+                "host element receiver checks failed or changed document/realm state: " + stage + "; " + result.S + "; " + result.M);
+            Console.WriteLine("PASS script host element receivers: " + stage + "; shared non-constructible methods/accessors, invalid receiver ordering, stable token lists, no document mutations or realm replacement");
+        }
+
+        private static async Task ScriptElementField(V view)
+        {
+            await ScriptActivate(view, "field");
+            var page = view.At;
+            var field = page.Fs.Single(item => item.El.Av("id") == "field");
+            var editor = Member<TextBox>(view, "ed");
+            var focused = view.Ao.GetFocused();
+            Check(editor.Visible && focused != null, "host Element field did not expose a focused native editor");
+            var label = focused.Name;
+            var pid = ScriptPid(view);
+            editor.Text = "Elliot";
+            await view.Xt;
+            var result = await view.JsA(@"(function(){
+const source=document.getElementById('counter'),field=document.getElementById('field');
+const classes=Object.getOwnPropertyDescriptor(source,'classList'),tokens=Reflect.apply(classes.get,field,[]);
+Reflect.apply(classes.set,field,['host-field']);field.id='field-host';
+if(Reflect.apply(source.getAttribute,field,['id'])!=='field-host'||!Reflect.apply(source.hasAttribute,field,['value'])||tokens!==field.classList||tokens.value!=='host-field'||source.className!=='')throw Error('host borrowed field access');
+}());");
+            if (!result.Ok) Console.WriteLine("Script borrowed field: " + ScriptState(view));
+            Check(result.Ok && result.N == 2 && ScriptPid(view) == pid && view.At == page &&
+                view.Id("field-host") == field.El && page.Fs.Contains(field) && field.V == "Elliot" &&
+                editor.Visible && editor.Text == "Elliot" && Member<TextBox>(view, "ed") == editor,
+                "host borrowed Element writes lost the edited field or changed realm: " + result.S + "; " + result.M);
+            Check(view.Ao.GetFocused() != null && view.Ao.GetFocused().Name == label,
+                "host borrowed Element writes lost accessible focus or label");
+            // Later recovery reruns authored scripts, which require the fixture's original IDs.
+            var cleanup = await view.JsA(@"(function(){const field=document.getElementById('field-host');
+field.id='field';field.className='';
+if(field.getAttribute('id')!=='field'||field.classList.value!=='')throw Error('host field fixture cleanup');}());");
+            Check(cleanup.Ok && cleanup.N == 2 && ScriptPid(view) == pid && view.Id("field") == field.El &&
+                field.V == "Elliot" && editor.Visible && editor.Text == "Elliot" && Member<TextBox>(view, "ed") == editor,
+                "host borrowed Element fixture cleanup failed: " + cleanup.S + "; " + cleanup.M);
+            Console.WriteLine("PASS script host element field: borrowed class setter and attribute reads, two mutations, retained editor/value/focus/label, unchanged realm, and fixture ID/class restored");
         }
 
         private static async Task ScriptActivate(V view, string id)
