@@ -125,11 +125,20 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script tree" + (trustedOnly ? " trusted-only diagnostics" : "") + ": " + checks + " checks.");
                     return 0;
                 }
-                if (args.Length > 1 && (args[1] == "--selector-startup" || args[1] == "-ss"))
+                if (args.Length > 1 && (args[1] == "--selector-startup" || args[1] == "-ss" ||
+                    args[1] == "--selector-observe" || args[1] == "-so"))
                 {
-                    if (args.Length < 3 || args.Length > 4) throw new ArgumentException("Supply a new report path and optional worker directory for --selector-startup.");
-                    Selectors.Startup(selectorFixture, args[2], args.Length == 4 ? args[3] : null);
+                    if (args.Length < 3 || args.Length > 4) throw new ArgumentException("Supply a new report path and optional worker directory for " + args[1] + ".");
+                    Selectors.Startup(selectorFixture, args[2], args.Length == 4 ? args[3] : null,
+                        args[1] == "--selector-observe" || args[1] == "-so");
                     Console.WriteLine("PASS Lea.Script selector startup observation: " + checks + " checks; not a full scripting gate.");
+                    return 0;
+                }
+                if (args.Length > 1 && args[1] == "--selector-observation-contract")
+                {
+                    if (args.Length != 2) throw new ArgumentException("No extra arguments are accepted for --selector-observation-contract.");
+                    SelectorObservation.Contract();
+                    Console.WriteLine("PASS Lea.Script selector observation contract: " + checks + " checks; no browser workers.");
                     return 0;
                 }
                 if (args.Length > 1 && args[1] == "--select")
@@ -311,6 +320,7 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script UI: " + checks + " checks.");
                     return 0;
                 }
+                SelectorObservation.Contract();
                 BootstrapAssets.Run(root);
                 var engine = new E();
                 var page = engine.Go(fixture);

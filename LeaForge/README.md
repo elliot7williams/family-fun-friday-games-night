@@ -1,5 +1,15 @@
 # LeaForge
 
+Latest diagnostic: `-so` / `--selector-observe` extends the existing sampler to
+direct synchronous worker sessions. Contract, guard, controlled failure,
+selector and native-view checks pass, together with all 1,746 ordinary unobserved
+scripting checks. A separate observed Firespider script
+case captures two split-worker startup timeouts after parsing; its failed
+result and counter/thread data are retained without retry. Production bytes,
+limits and the installed browser stay unchanged. No startup fix or release is
+claimed; milestone 146 remains open and readiness stays about 65%. See
+[SELECTOR_WORKER_OBSERVATION.md](SELECTOR_WORKER_OBSERVATION.md).
+
 Latest reliability change: live readonly attributes now synchronize the retained
 native editor through JavaScript and compact `V.Sa/Da` aliases. Final source
 verification passes 336 focused and 1,727 full scripting checks, full native
@@ -37,7 +47,7 @@ The earlier projects stay small:
 
 LeaForge is where we can grow the more full-featured browser.
 
-Latest diagnostic checkpoint: `-bp` compares direct, parsed and analyzed
+Preceding diagnostic checkpoint: `-bp` compares direct, parsed and analyzed
 bootstrap initialization with identical embedded bytes. All six final planned
 samples/18 grouped checks and three input guards pass; timings overlap, so no
 production optimization is adopted. The ordinary scripting suite completes

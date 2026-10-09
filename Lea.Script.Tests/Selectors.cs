@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.ExceptionServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 using System.Windows.Forms;
@@ -26,15 +28,19 @@ namespace Lea.Script.Tests
                 Suite(engine, page, script.Ex, "isolated", () => script.Sd);
         }
 
-        internal static void Startup(string fixture, string reportPath, string directory = null)
+        internal static void Startup(string fixture, string reportPath, string directory = null, bool observe = false)
         {
             reportPath = Lea.Diagnostics.WorkerObservation.ValidateReport(reportPath);
+            var samplePath = observe ? Lea.Diagnostics.WorkerObservation.ValidateReport(reportPath + ".samples.json") : null;
             directory = Path.GetFullPath(directory ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ScriptWorker"));
             var previous = Environment.GetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE");
             var records = new List<object>();
             var clock = Stopwatch.StartNew();
             Exception failure = null;
             long peak = 0;
+            Jp active = null;
+            var probe = observe ? new Lea.Diagnostics.WorkerObservation(() => Volatile.Read(ref active), directory) : null;
+            var retired = false;
             try
             {
                 Environment.SetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE", "1");
@@ -42,6 +48,8 @@ namespace Lea.Script.Tests
                 var page = engine.Go(fixture);
                 using (var script = new Jp(engine, page, directory) { Tm = 5000 })
                 {
+                    Volatile.Write(ref active, script);
+                    if (probe != null) probe.Start();
                     try
                     {
                         Jr Execute(string code)
@@ -59,24 +67,56 @@ namespace Lea.Script.Tests
                         }
                         Suite(engine, page, Execute, "isolated", () => script.Sd);
                     }
-                    finally { peak = script.Mp; }
+                    finally { peak = script.Mp; Volatile.Write(ref active, null); }
                 }
             }
-            catch (Exception error) { failure = error; throw; }
+            catch (Exception error) { failure = error; }
             finally
             {
-                Environment.SetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE", previous);
-                var text = failure == null ? null : failure.ToString();
-                var report = new { kind = "selector-limit-startup-observation", passed = failure == null,
-                    error = text == null || text.Length <= 8192 ? text : text.Substring(0, 8192),
-                    workerDirectory = directory, calls = records, elapsedMs = clock.ElapsedMilliseconds, peakBytes = peak,
-                    startupBudgetMs = 5000, executionBudgetMs = 5000, cpuRate = 2500,
-                    memoryBytes = 128L * 1024 * 1024, timingTrace = true, productionLimitsChanged = false,
-                    coldCacheControlled = false, retries = 0, fullScriptingGate = false };
+                try { if (probe != null) retired = probe.Stop(); }
+                catch (Exception error)
+                {
+                    if (failure == null) failure = error;
+                    else Console.Error.WriteLine("OBSERVATION ERROR; original selector failure retained: " + error);
+                }
+                finally { Environment.SetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE", previous); }
+            }
+            if (failure == null && probe != null)
+                try
+                {
+                    Program.Check(retired, "selector observation sampler retires after synchronous worker recovery");
+                    Program.Check(probe.HasCounters && probe.HasThreads, "selector observation captures owned worker counters and threads");
+                }
+                catch (Exception error) { failure = error; }
+            var text = failure == null ? null : failure.ToString();
+            var report = new { kind = "selector-limit-startup-observation", passed = failure == null,
+                error = text == null || text.Length <= 8192 ? text : text.Substring(0, 8192),
+                workerDirectory = directory, calls = records, elapsedMs = clock.ElapsedMilliseconds, peakBytes = peak,
+                startupBudgetMs = 5000, executionBudgetMs = 5000, cpuRate = 2500,
+                memoryBytes = 128L * 1024 * 1024, timingTrace = true, productionLimitsChanged = false,
+                nativeSampling = observe, samplePath, samplerRetired = retired,
+                coldCacheControlled = false, retries = 0, fullScriptingGate = false };
+            Exception outputFailure = null;
+            try
+            {
                 using (var stream = new FileStream(reportPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                 using (var writer = new StreamWriter(stream, new System.Text.UTF8Encoding(false)))
                     writer.Write(new JavaScriptSerializer { MaxJsonLength = 2 * 1024 * 1024 }.Serialize(report));
             }
+            catch (Exception error) { outputFailure = error; }
+            if (probe != null)
+                try { probe.Save(samplePath, "selector-worker-session", failure); }
+                catch (Exception error)
+                {
+                    if (outputFailure == null) outputFailure = error;
+                    else Console.Error.WriteLine("OBSERVATION ERROR; earlier report failure retained: " + error);
+                }
+            if (failure != null)
+            {
+                if (outputFailure != null) Console.Error.WriteLine("OBSERVATION ERROR; original selector failure retained: " + outputFailure);
+                ExceptionDispatchInfo.Capture(failure).Throw();
+            }
+            if (outputFailure != null) ExceptionDispatchInfo.Capture(outputFailure).Throw();
         }
 
         private static void Suite(E engine, P page, Func<string, Jr> ex, string mode, Func<string> diagnostics = null)

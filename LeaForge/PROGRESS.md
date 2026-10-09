@@ -34,6 +34,18 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Direct selector startup observation now samples synchronous worker sessions
+without UI pumping, pairing PID and phase under the lifecycle lock. All 19
+contracts, six guards, two controlled failures, 26 observed selector and 60
+native-view checks pass; the ordinary unobserved suite passes all 1,746 checks
+once with the same final test binary. The unchanged v33 host's observed script case instead
+captures two split-worker startup timeouts after parsed, before completed DOM
+bootstrap, with counters/threads retained and no drops/errors. That failed gate
+is not retried or replaced by narrower passes. Production bytes and guards stay
+unchanged; no speedup, startup fix or new browser release is claimed. Milestone
+146 remains open and broader readiness stays about 65%. See
+`SELECTOR_WORKER_OBSERVATION.md`.
+
 Live readonly attribute changes now reach the retained native textbox through
 both script and compact aliases. The preceding runtime independently fails with
 `model=True; native=False`; placement-only revision A fails the immediate alias

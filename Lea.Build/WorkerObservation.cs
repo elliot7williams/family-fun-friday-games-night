@@ -30,6 +30,7 @@ namespace Lea.Diagnostics
         }
 
         private readonly Func<IEnumerable<V>> views;
+        private readonly Func<object> session;
         private readonly BlockingCollection<Request> pending = new BlockingCollection<Request>(1);
         private readonly Queue<Shot> samples = new Queue<Shot>();
         private readonly List<string> errors = new List<string>();
@@ -52,6 +53,14 @@ namespace Lea.Diagnostics
             timer.Tick += Tick;
         }
 
+        internal WorkerObservation(Func<object> session, string workerDirectory)
+            : this(() => new V[0])
+        {
+            if (session == null) throw new ArgumentNullException("session");
+            this.session = session;
+            workerPath = Path.GetFullPath(Path.Combine(workerDirectory, "Lea.Script.Worker.exe"));
+        }
+
         internal static string ValidateReport(string path)
         {
             path = Path.GetFullPath(path);
@@ -69,7 +78,7 @@ namespace Lea.Diagnostics
             clock.Start();
             consumer.Start();
             started = true;
-            timer.Start();
+            if (session == null) timer.Start();
         }
 
         internal bool Stop()
@@ -97,7 +106,8 @@ namespace Lea.Diagnostics
             var report = new { format = 2, kind, flowPassed = failure == null,
                 exception = Limit(exception, 8192), exceptionTruncated = exception.Length > 8192,
                 intervalMs = 125, threadIntervalMs = 1000, sampleCapacity = 512, threadCapacity = 16,
-                workerPacingCapacity = 32, viewCapacity = 4, samplerRetired = retired,
+                workerPacingCapacity = 32, viewCapacity = session == null ? 4 : 0,
+                sessionCapacity = session == null ? 0 : 1, samplerRetired = retired,
                 droppedRequests, droppedSamples, observerErrors = errors.ToArray(), elapsedMs = clock.ElapsedMilliseconds,
                 samples = Samples(), worker = workerPath, parentPid, timingTrace = true, startupBudgetMs = 5000,
                 coldCacheControlled = false, productionRuntimeModified = false };
@@ -122,40 +132,75 @@ namespace Lea.Diagnostics
                 {
                     var adapter = view.Xs;
                     if (adapter == null || adapter.GetType().FullName != "Lea.Script.Win.W") continue;
-                    var at = adapter.GetType().GetProperty("At").GetValue(adapter, null);
-                    var pid = (int)at.GetType().GetProperty("Pid").GetValue(at, null);
-                    if (pid == 0) continue;
-                    var field = at.GetType().GetField("worker", BindingFlags.Instance | BindingFlags.NonPublic);
-                    if (field == null) throw new InvalidOperationException("Worker observation endpoint contract changed.");
-                    var endpoint = field.GetValue(at);
-                    var text = endpoint == null ? "" : ((string)endpoint.GetType().GetProperty("E").GetValue(endpoint, null)).TrimEnd('\r', '\n');
-                    var index = text.LastIndexOf('\n');
-                    var phase = index < 0 ? text : text.Substring(index + 1);
-                    if (!pending.TryAdd(new Request { Pid = pid, QueuedMs = clock.ElapsedMilliseconds, Phase = Limit(phase, 160) }))
+                    var request = Capture(adapter.GetType().GetProperty("At").GetValue(adapter, null));
+                    if (request != null && !pending.TryAdd(request))
                         Interlocked.Increment(ref droppedRequests);
                 }
             }
             catch (Exception error)
             {
                 if (!Expected(error)) throw;
-                lock (gate) if (errors.Count < 32) errors.Add(Limit(error.GetType().Name + ": " + error.Message, 256));
+                RecordError(error);
             }
+        }
+
+        private Request Capture(object at)
+        {
+            if (at == null) return null;
+            var type = at.GetType();
+            var field = type.GetField("worker", BindingFlags.Instance | BindingFlags.NonPublic);
+            var sync = type.GetField("gate", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (field == null || sync == null) throw new InvalidOperationException("Worker observation endpoint contract changed.");
+            // A background session poll must pair the PID with the same endpoint's phase.
+            lock (sync.GetValue(at))
+            {
+                var endpoint = field.GetValue(at);
+                if (endpoint == null) return null;
+                var pid = (int)type.GetProperty("Pid").GetValue(at, null);
+                if (pid == 0) return null;
+                var text = ((string)endpoint.GetType().GetProperty("E").GetValue(endpoint, null)).TrimEnd('\r', '\n');
+                var index = text.LastIndexOf('\n');
+                return new Request { Pid = pid, QueuedMs = clock.ElapsedMilliseconds,
+                    Phase = Limit(index < 0 ? text : text.Substring(index + 1), 160) };
+            }
+        }
+
+        private void RecordError(Exception error)
+        {
+            lock (gate) if (errors.Count < 32) errors.Add(Limit(error.GetType().Name + ": " + error.Message, 256));
         }
 
         private void Consume()
         {
-            foreach (var request in pending.GetConsumingEnumerable())
+            if (session == null)
             {
-                var shot = new Shot { Pid = request.Pid, QueuedMs = request.QueuedMs, Phase = request.Phase, ObservedMs = clock.ElapsedMilliseconds };
-                var duration = Stopwatch.StartNew();
-                try { Read(shot); }
-                catch (Exception error) { if (!Expected(error)) throw; shot.Error = Limit(error.GetType().Name + ": " + error.Message, 256); }
-                shot.SamplingMs = duration.ElapsedMilliseconds;
-                lock (gate)
+                foreach (var request in pending.GetConsumingEnumerable()) Sample(request);
+                return;
+            }
+            while (!pending.IsCompleted)
+            {
+                try
                 {
-                    if (samples.Count == 512) { samples.Dequeue(); droppedSamples++; }
-                    samples.Enqueue(shot);
+                    var request = Capture(session());
+                    if (request != null) Sample(request);
                 }
+                catch (Exception error) { if (!Expected(error)) throw; RecordError(error); }
+                Request unused;
+                pending.TryTake(out unused, 125);
+            }
+        }
+
+        private void Sample(Request request)
+        {
+            var shot = new Shot { Pid = request.Pid, QueuedMs = request.QueuedMs, Phase = request.Phase, ObservedMs = clock.ElapsedMilliseconds };
+            var duration = Stopwatch.StartNew();
+            try { Read(shot); }
+            catch (Exception error) { if (!Expected(error)) throw; shot.Error = Limit(error.GetType().Name + ": " + error.Message, 256); }
+            shot.SamplingMs = duration.ElapsedMilliseconds;
+            lock (gate)
+            {
+                if (samples.Count == 512) { samples.Dequeue(); droppedSamples++; }
+                samples.Enqueue(shot);
             }
         }
 
