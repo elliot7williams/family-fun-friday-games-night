@@ -166,6 +166,21 @@ namespace Lea.Script.Tests
                 editor.Text = "Again";
                 await view.Xt;
                 Check(view.Id("echo").C[0].X == "ready|Again", "input events read changed attributes on retained wrapper");
+                editor.Select(1, 3);
+                var canUndo = editor.CanUndo;
+                await Code("field.setAttribute('readonly','');");
+                Check(field.Ro && editor.ReadOnly && editor.Visible && editor.Text == "Again" && editor.SelectionStart == 1 &&
+                    editor.SelectionLength == 3 && editor.CanUndo == canUndo && view.Controls.OfType<TextBox>().Single() == editor,
+                    "live readonly reaches the retained editor without changing text, selection or undo; model=" + field.Ro + "; native=" + editor.ReadOnly);
+                await Code("field.removeAttribute('readonly');");
+                Check(!field.Ro && !editor.ReadOnly && editor.Text == "Again" && editor.SelectionStart == 1 &&
+                    editor.SelectionLength == 3 && editor.CanUndo == canUndo,
+                    "live readonly removal restores editing without losing selection or undo");
+                Check(view.Sa(field.El, "readonly", "false") == 1 && field.Ro && editor.ReadOnly && editor.Text == "Again",
+                    "compact readonly write updates the active native editor with presence semantics");
+                Check(view.Da(field.El, "readonly") == 1 && !field.Ro && !editor.ReadOnly && editor.Text == "Again" &&
+                    editor.SelectionStart == 1 && editor.SelectionLength == 3 && editor.CanUndo == canUndo,
+                    "compact readonly removal restores the same native editor state");
                 await Code("field.setAttribute('onclick',\"document.title='Attribute handler';\");");
                 await View.Activate(view, "field");
                 Check(view.T == "Attribute handler", "local inline handler follows newly written attribute");

@@ -5,12 +5,26 @@ over `L:\Firespider Internet` or make Lea a complete modern-web engine. The
 clean adapters here remain the source of record; the live host has unrelated
 in-progress changes that must be retained.
 
-The newer source-only listener-invocation change passes 90 focused checks and
+Latest host checkpoint: separate v33 integrates bounded attribute writers,
+captured name validation and live native readonly synchronization. It passes
+all 43 ordinary host cases once with the same final harness retained from the
+failed v32, plus three intended old-runtime controls. All six actual-EXE startup
+scenarios also pass, including deferred-tab resume. The current source passes
+336 focused and 1,727 full scripting checks, full native `--core`, native
+editing/clipboard and the actual standalone browser lifecycle. Fresh captures
+are inspected. Only the Win DLL changes from the preceding source checkpoint;
+the required bundle is 745,984 bytes. Original source/installed files are not
+modified. No release package, independent rebuild gate, cold-start reliability
+fix or speedup is claimed. Broader readiness stays about 65%. See
+[live readonly verification](../LeaForge/LIVE_READONLY.md) and
+[attribute host verification](../LeaForge/HOST_ATTRIBUTE_EDITS.md).
+
+An earlier source-only listener-invocation change passes 90 focused checks and
 the SDK-output browser smoke, but complete source runs still fail worker startup.
 No new host candidate or release package is produced for it; v23 below retains
 the preceding bootstrap. See [listener verification](../LeaForge/LISTENER_CALLS.md).
 
-Latest host checkpoint: separate v23's second complete attempt and fresh runtime
+Earlier host checkpoint: separate v23's second complete attempt and fresh runtime
 extraction each pass all 43 host cases and six actual-EXE startup scenarios.
 Its archived source builds independently and passes scripting plus six startup
 scenarios. The initial disk-full restoration failure is retained; these later

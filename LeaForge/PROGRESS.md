@@ -34,6 +34,22 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Live readonly attribute changes now reach the retained native textbox through
+both script and compact aliases. The preceding runtime independently fails with
+`model=True; native=False`; placement-only revision A fails the immediate alias
+check. Final revision B passes all 336 focused and 1,727 full scripting checks,
+full native `--core`, native editing/clipboard and the actual standalone browser
+lifecycle. Separate v32's 42-case host failure stays preserved; corrected v33
+passes all 43 ordinary host cases with the identical final harness and three
+intended old-runtime negative controls, plus all six actual-EXE startup scenarios.
+The policy-blocked zero-case helper attempt is retained separately. Fresh
+host/browser captures are inspected.
+Only the Win DLL grows 512 bytes; the required bundle is 745,984 bytes. Original
+host/installed files and protection limits stay unchanged. No new release,
+general speedup or intermittent worker-startup fix is claimed. Milestone 146
+stays open; broader readiness stays about 65%. See `LIVE_READONLY.md` and
+`HOST_ATTRIBUTE_EDITS.md`.
+
 Attribute name validation now uses private captured string operations instead
 of page-mutable regex methods. The exact preceding runtime fails the new
 poisoned-intrinsic regression; the rebuilt runtime passes all 330 focused,

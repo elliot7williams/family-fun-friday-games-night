@@ -876,6 +876,7 @@ namespace Lea.Win
             QueueFragment(At);
             if (!ApplyCommandFocus(At)) KeepValidFocus();
             ApplyPendingFragment();
+            if (edit != null && ed.ReadOnly != edit.Ro) ed.ReadOnly = edit.Ro;
             OnChanged();
             if (closed) return count;
             Invalidate();
@@ -6888,6 +6889,7 @@ namespace Lea.Win
         private void PlaceEditor()
         {
             if (edit == null) return;
+            if (ed.ReadOnly != edit.Ro) ed.ReadOnly = edit.Ro;
             foreach (var box in boxes)
             {
                 if (box.B == null || box.B.I != edit) continue;

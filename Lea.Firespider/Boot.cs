@@ -1846,6 +1846,7 @@ namespace Lea.Firespider
             await ScriptExceptionConstants(view, "first demand");
             await ScriptEventReceivers(view, "first demand");
             await ScriptElementReceivers(view, "first demand");
+            await ScriptAttributeMethods(view, "first demand");
             var fixture = new Uri(fixturePath).AbsoluteUri;
             settings["bs"] = new StringCollection();
             settings["cfEnabled"] = "";
@@ -1860,6 +1861,7 @@ namespace Lea.Firespider
             await ScriptExceptionConstants(view, "inline navigation");
             await ScriptEventReceivers(view, "inline navigation");
             await ScriptElementReceivers(view, "inline navigation");
+            await ScriptAttributeMethods(view, "inline navigation");
             await ScriptCode(view, @"var hostOptionReads=[],hostOptionPhases=[],hostOptionOnce=0,hostOptionFailed=0;
 function hostOptionCapture(event){hostOptionPhases.push(event.eventPhase);}
 function hostOptionSingle(){hostOptionOnce++;}
@@ -1942,6 +1944,7 @@ if(hostCallTarget.onclick!==null||document.onclick!==null)throw Error('host borr
                 "host tree reads changed the page or node identity");
             await ScriptCode(view, "reflected.id='result';reflected.className='';if(!reflected.hasAttribute('class')||reflected.getAttribute('class')!=='')throw new Error('host empty class');");
             await ScriptElementField(view);
+            await ScriptAttributeField(form, view);
             view.Sc(-view.Sy);
             ScriptPicture(form, "main");
             var document = view.At;
@@ -2015,7 +2018,7 @@ if(hostCallTarget.onclick!==null||document.onclick!==null)throw Error('host borr
             }
             Check(!UiErrors.Any() && !Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module =>
                 module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)), "script integration raised UI errors or loaded MSHTML");
-            Console.WriteLine("PASS script host: net48, dormant loading, state retention, inline lifecycle, native events/defaults, option conversion, receiver bindings and captured callbacks, bounded timers, live attributes/selectors/tree navigation, error status/recovery, split isolation/disposal, tab cleanup, and remote-origin refusal");
+            Console.WriteLine("PASS script host: net48, dormant loading, state retention, inline lifecycle, native events/defaults, option conversion, receiver bindings and captured callbacks, bounded timers, live attributes/selectors/tree navigation, captured attribute writers and compact field edits, error status/recovery, split isolation/disposal, tab cleanup, and remote-origin refusal");
         }
 
         private static void ScriptPicture(Form form, string name)
@@ -2160,6 +2163,90 @@ if(Reflect.apply(classes.get,root,[])!==root.classList||Reflect.apply(classes.ge
             Check(result.Ok && result.N == 0 && ScriptPid(view) == pid,
                 "host element receiver checks failed or changed document/realm state: " + stage + "; " + result.S + "; " + result.M);
             Console.WriteLine("PASS script host element receivers: " + stage + "; shared non-constructible methods/accessors, invalid receiver ordering, stable token lists, no document mutations or realm replacement");
+        }
+
+        private static async Task ScriptAttributeMethods(V view, string stage)
+        {
+            var page = view.At;
+            var pid = ScriptPid(view);
+            var changes = page.Jc;
+            var result = await view.JsA(@"(function(){
+const body=document.body,root=document.documentElement;
+if(typeof body.setAttribute!=='function'||typeof body.removeAttribute!=='function')throw Error('host generic attribute methods');
+const set=body.setAttribute,remove=body.removeAttribute;let conversions=0;
+const name={toString(){conversions++;return 'data-host-attribute';}},value={toString(){conversions++;return 'literal';}};
+function rejects(action){let error;try{action();}catch(value){error=value;}if(!(error instanceof TypeError))throw Error('host attribute rejection');}
+for(const receiver of [null,undefined,document,window,{},Object.create(body),new Proxy(body,{get(){throw Error('host attribute proxy read');}})]){
+  rejects(()=>Reflect.apply(set,receiver,[name,value]));rejects(()=>Reflect.apply(remove,receiver,[name]));
+}
+for(const key of ['setAttribute','removeAttribute']){
+  const method=body[key],descriptor=Object.getOwnPropertyDescriptor(body,key);
+  if(method!==root[key]||method.name!==key||method.length!==(key==='setAttribute'?2:1)||Object.hasOwn(method,'prototype')||descriptor.writable||descriptor.enumerable||descriptor.configurable)throw Error('host attribute metadata');
+  rejects(()=>Reflect.construct(Object,[],method));rejects(()=>Reflect.apply(method,body,[]));
+}
+rejects(()=>Reflect.apply(set,body,[name]));rejects(()=>Reflect.apply(set,body,[Symbol(),value]));
+rejects(()=>Reflect.apply(remove,body,[Symbol()]));
+if(conversions)throw Error('host attribute conversion before admission');
+if(Reflect.apply(set,body,[name,value])!==undefined||conversions!==2||body.getAttribute('data-host-attribute')!=='literal')throw Error('host attribute literal conversion');
+Reflect.apply(remove,body,['data-host-attribute']);Reflect.apply(remove,body,['data-host-attribute']);
+const oldTest=RegExp.prototype.test,oldExec=RegExp.prototype.exec,oldIndex=String.prototype.indexOf,oldSlice=String.prototype.slice;
+let intercepted=0,invalid=0,converted=0;
+function poison(){intercepted++;throw Error('poisoned host attribute validator');}
+RegExp.prototype.test=RegExp.prototype.exec=String.prototype.indexOf=String.prototype.slice=poison;
+try{
+  body.setAttribute('data-host-captured','${literal}; not a command');body.removeAttribute('data-host-captured');
+  for(const key of ['', 'a b','a\tb','a\nb','a\rb','a\fb','a\0b','a/b','a=b','a>b']){
+    let error;try{body.setAttribute(key,{toString(){converted++;return 'v';}});}catch(value){error=value;}
+    if(!(error instanceof DOMException)||error.name!=='InvalidCharacterError'||error.code!==5)throw Error('host attribute syntax');invalid++;
+  }
+  if(intercepted||invalid!==10||converted!==10)throw Error('host captured attribute admission');
+}finally{RegExp.prototype.test=oldTest;RegExp.prototype.exec=oldExec;String.prototype.indexOf=oldIndex;String.prototype.slice=oldSlice;}
+rejects(()=>body.setAttribute('n'.repeat(65),'v'));rejects(()=>body.setAttribute('data-host-bound','v'.repeat(1025)));
+if(body.hasAttribute('data-host-attribute')||body.hasAttribute('data-host-captured')||body.hasAttribute('data-host-bound'))throw Error('host attribute atomicity');
+}());");
+            if (!result.Ok) Console.WriteLine("Script attribute methods: " + ScriptState(view));
+            Check(result.Ok && result.N == 4 && view.At == page && page.Jc == changes + 4 && ScriptPid(view) == pid,
+                "host attribute method checks failed or changed realm: " + stage + "; " + result.S + "; " + result.M);
+            Console.WriteLine("PASS script host attribute methods: " + stage + "; shared non-constructible writers, receiver/conversion ordering, captured validation, bounds, four mutations and no realm replacement");
+        }
+
+        private static async Task ScriptAttributeField(Form form, V view)
+        {
+            await ScriptActivate(view, "field");
+            var page = view.At;
+            var field = page.Fs.Single(item => item.El.Av("id") == "field");
+            var editor = Member<TextBox>(view, "ed");
+            var accessible = view.Ao.GetFocused();
+            var label = accessible == null ? null : accessible.Name;
+            var width = editor.Width;
+            var pid = ScriptPid(view);
+            var result = await view.JsA(@"(function(){const field=document.getElementById('field');
+field.setAttribute('data-host-state','ready');field.setAttribute('aria-label','Host attribute field');
+field.setAttribute('style','width:220px');field.setAttribute('readonly','');field.setAttribute('value','Host default');
+if(field.getAttribute('data-host-state')!=='ready'||field.value!=='Elliot')throw Error('host attribute field state');}());");
+            if (!result.Ok) Console.WriteLine("Script attribute field: " + ScriptState(view));
+            Check(result.Ok && result.N == 5 && view.At == page && ScriptPid(view) == pid && page.Fs.Contains(field) &&
+                field.V == "Elliot" && field.D == "Host default" && field.Ro && field.S.W == 220 &&
+                editor.Visible && editor.ReadOnly && editor.Text == "Elliot" && editor.Width != width &&
+                Member<TextBox>(view, "ed") == editor && accessible != null && accessible.Name == "Host attribute field" &&
+                view.Ao.GetFocused() != null && view.Ao.GetFocused().Name == "Host attribute field",
+                "host attribute field edits lost editor/value/default/readonly/style/accessibility state: " + result.S + "; " + result.M);
+            Check(view.Sa(field.El, "data-host-native", "${literal}; not a command") == 1 &&
+                field.El.Av("data-host-native") == "${literal}; not a command" && view.Da(field.El, "data-host-missing") == 0 &&
+                view.Da(field.El, "data-host-native") == 1 && view.Da(null, "x") == -1 &&
+                view.Sa(field.El, "required", "false") == 1 && field.Rq && view.Da(field.El, "required") == 1 && !field.Rq &&
+                field.V == "Elliot" && Member<TextBox>(view, "ed") == editor && ScriptPid(view) == pid,
+                "host compact attribute writers failed literal/missing/invalid/boolean semantics or changed editor/realm");
+            ScriptPicture(form, "attributes");
+            var cleanup = await view.JsA(@"(function(){const field=document.getElementById('field');
+field.removeAttribute('data-host-state');field.removeAttribute('aria-label');field.removeAttribute('style');field.removeAttribute('readonly');
+field.setAttribute('value','Lea');}());");
+            Check(cleanup.Ok && cleanup.N == 5 && view.At == page && ScriptPid(view) == pid && page.Fs.Contains(field) &&
+                field.V == "Elliot" && field.D == "Lea" && !field.Ro && !field.Rq && editor.Visible && !editor.ReadOnly &&
+                editor.Text == "Elliot" && editor.Width == width && Member<TextBox>(view, "ed") == editor &&
+                accessible.Name == label && !field.El.A.ContainsKey("data-host-state") && !field.El.A.ContainsKey("data-host-native"),
+                "host attribute fixture cleanup lost original metadata or edited native field: " + cleanup.S + "; " + cleanup.M);
+            Console.WriteLine("PASS script host attribute field: generic writes/removals, literal Sa/Da aliases, presence booleans, retained editor/text/default/focus/accessibility, live width, five-write cleanup and unchanged realm");
         }
 
         private static async Task ScriptElementField(V view)

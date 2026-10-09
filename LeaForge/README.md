@@ -1,6 +1,19 @@
 # LeaForge
 
-Latest reliability change: immediate rejection of an invalid image-handshake
+Latest reliability change: live readonly attributes now synchronize the retained
+native editor through JavaScript and compact `V.Sa/Da` aliases. Final source
+verification passes 336 focused and 1,727 full scripting checks, full native
+`--core`, editing/clipboard and the actual standalone browser EXE lifecycle.
+Separate v33 passes all 43 ordinary host cases with the exact retained final
+harness and three intended old-runtime negative controls, plus six actual-EXE
+startup scenarios. The failed v32 and
+placement-only source revision remain preserved. Only the Win DLL grows 512
+bytes; the required bundle is 745,984 bytes. No installed replacement, new
+release, startup-timeout fix or speedup is claimed. Milestone 146 stays open;
+readiness remains about 65%. See [LIVE_READONLY.md](LIVE_READONLY.md) and
+[HOST_ATTRIBUTE_EDITS.md](HOST_ATTRIBUTE_EDITS.md).
+
+Preceding reliability change: immediate rejection of an invalid image-handshake
 prefix, with separate bounded `hello/guards` diagnostics. Focused and final full
 `--core` checks pass, as does the actual standalone browser EXE lifecycle check.
 The complete scripting gate fails during isolated selector-limit recovery at
@@ -34,7 +47,7 @@ handle, without rerunning. No browser release or startup fix is claimed;
 milestone 146 stays open and readiness stays about 65%. See
 [BOOTSTRAP_PREPARATION.md](BOOTSTRAP_PREPARATION.md).
 
-Latest host checkpoint: separate v31 integrates the exact tested event-constructor
+Preceding host checkpoint: separate v31 integrates the exact tested event-constructor
 dependencies. The same final host/harness rejects the preceding runtime at its
 constructor-prototype assertion, then the current runtime passes all 43 ordinary
 host cases and six actual-EXE startup scenarios. Both script realms check methods,
