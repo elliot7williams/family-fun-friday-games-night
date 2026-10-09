@@ -10,7 +10,17 @@ The earlier projects stay small:
 
 LeaForge is where we can grow the more full-featured browser.
 
-Latest host checkpoint: separate v30 carries the verified Element receiver
+Latest package checkpoint: the corrected v30 candidate and fresh runtime
+extraction each pass all 43 host cases with the exact same checksum-verified
+harness. The extraction also passes six actual-EXE startup scenarios. Both ZIPs
+pass integrity/extraction checks and the archived host source builds unchanged,
+but its independent runtime fails first-demand worker startup at 5,012 ms
+against the unchanged 5,000 ms deadline. Its later runtime gates are held; no
+retry, verified release, startup fix or installed replacement is claimed.
+Milestone 146 stays open and readiness stays about 65%. See
+[HOST_PACKAGE_ELEMENT_RECEIVERS.md](HOST_PACKAGE_ELEMENT_RECEIVERS.md).
+
+Previous host checkpoint: separate v30 carries the verified Element receiver
 runtime into Firespider. The first harness passes 42 non-script cases, then
 fails later script recovery because its field fixture was left renamed. The
 corrected final harness passes the complete script case; an identical-harness

@@ -34,6 +34,17 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Corrected v30 candidate and freshly extracted runtime each pass all 43 host
+cases using the same checksum-verified harness; extraction also passes all six
+actual-EXE startup scenarios. Both archives pass exact integrity/extraction
+checks, and the archived host source compiles with all 104 inputs unchanged.
+Its independent native runtime then fails first-demand script-worker startup:
+5,012 ms wall/781 ms CPU against the unchanged 5,000 ms deadline, before any
+Element assertions. The failure is preserved, no retry is made, and its later
+runtime gates are held. No verified release, new full engine source-suite pass,
+startup fix or installed replacement is claimed. Milestone 146 remains open
+and broader readiness stays about 65%. See `HOST_PACKAGE_ELEMENT_RECEIVERS.md`.
+
 Separate v30 integrates the exact Element receiver dependencies into Firespider.
 Harness A passes 42 non-script cases and the new checks, then fails script
 recovery because its fixture input was left renamed. Corrected harness B

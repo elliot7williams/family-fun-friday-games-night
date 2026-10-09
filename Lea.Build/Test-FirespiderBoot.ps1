@@ -4,7 +4,8 @@ param(
     [Alias('c')][string]$Case = 'all',
     [Alias('p')][switch]$Profile,
     [Alias('obs')][string]$Observe = '',
-    [ValidateSet('demand', 'script')][Alias('os')][string]$ObserveScope = 'demand'
+    [ValidateSet('demand', 'script')][Alias('os')][string]$ObserveScope = 'demand',
+    [ValidatePattern('^[A-Fa-f0-9]{64}$')][Alias('hh')][string]$HarnessSHA256
 )
 
 $ErrorActionPreference = 'Stop'
@@ -25,12 +26,19 @@ if ($Observe -ne '' -and -not (Test-Path -LiteralPath (Join-Path $rootPath 'Lea.
 }
 # Double trailing backslashes before the closing native argument quote.
 $rootArgument = '"' + $rootPath + ('\' * ($rootPath.Length - $rootPath.TrimEnd('\').Length)) + '"'
-$compiler = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
-$source = Join-Path $PSScriptRoot '..\Lea.Firespider\Boot.cs'
-$observation = Join-Path $PSScriptRoot 'WorkerObservation.cs'
 $exe = Join-Path $rootPath 'Lea.Firespider.Boot.exe'
-& $compiler /nologo /target:exe "/out:$exe" /reference:System.dll /reference:System.Core.dll /reference:System.Drawing.dll /reference:System.Windows.Forms.dll /reference:System.Configuration.dll /reference:System.Web.Extensions.dll "/reference:$rootPath\Lea.Win.dll" "/reference:$rootPath\Lea.Engine.dll" $source $observation
-if ($LASTEXITCODE -ne 0) { throw 'Firespider boot smoke compilation failed' }
+if ($PSBoundParameters.ContainsKey('HarnessSHA256')) {
+    if (-not (Test-Path -LiteralPath $exe -PathType Leaf)) { throw 'The checksum-verified boot harness is missing.' }
+    if ((Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash -ne $HarnessSHA256) {
+        throw 'The existing boot harness does not match its required SHA256.'
+    }
+} else {
+    $compiler = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
+    $source = Join-Path $PSScriptRoot '..\Lea.Firespider\Boot.cs'
+    $observation = Join-Path $PSScriptRoot 'WorkerObservation.cs'
+    & $compiler /nologo /target:exe "/out:$exe" /reference:System.dll /reference:System.Core.dll /reference:System.Drawing.dll /reference:System.Windows.Forms.dll /reference:System.Configuration.dll /reference:System.Web.Extensions.dll "/reference:$rootPath\Lea.Win.dll" "/reference:$rootPath\Lea.Engine.dll" $source $observation
+    if ($LASTEXITCODE -ne 0) { throw 'Firespider boot smoke compilation failed' }
+}
 $contract = @(& $exe --clipboard-contract)
 $contract
 if ($LASTEXITCODE -ne 0) { throw 'Clipboard fixture contract failed' }
