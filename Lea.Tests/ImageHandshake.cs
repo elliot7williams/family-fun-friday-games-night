@@ -7,13 +7,14 @@ namespace Lea.Tests
 {
     internal static class ImageHandshake
     {
-        private static void Main()
+        private static void Main(string[] args)
         {
             using (var writer = new BinaryWriter(Console.OpenStandardOutput(), Encoding.UTF8))
             {
-                writer.Write(0x3241454c);
+                var invalid = Array.IndexOf(args, "--invalid-hello") >= 0;
+                writer.Write(invalid ? 0x3141454c : 0x3241454c);
                 writer.Flush();
-                Console.Error.WriteLine("image-stall header flushed");
+                Console.Error.WriteLine(invalid ? "image-invalid header flushed" : "image-stall header flushed");
                 Thread.Sleep(60000);
             }
         }

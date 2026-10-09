@@ -34,6 +34,21 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+The native decoder now rejects a malformed first handshake word before waiting
+for guards. A genuine preceding-runtime observation proves the invalid word was
+consumed while decoding stayed blocked; the new regression fails there, then
+passes with the fix. Valid partial-handshake cancellation has separate bounded
+`hello/guards` timing, and the test observer tolerates concurrent retirement.
+Focused and final rebuilt full `--core` suites pass; the standalone browser EXE
+lifecycle check passes. The full scripting run instead reproduces a fresh-worker
+startup timeout during isolated selector-limit recovery at 5,017ms, after
+`startup evaluate`. It is retained without a retry, and no passing full scripting
+gate is claimed for this runtime. The earlier storage/handshake failures and an
+invalid blocking diagnostic remain recorded. Only the Win DLL changes among 19
+production records; required binary size stays 745,472 bytes. No deadline,
+protection, installed host, startup fix or speed claim changes. Milestone 146
+stays open and broader readiness stays about 65%. See `IMAGE_HELLO.md`.
+
 Added generic bounded literal attribute editing through compact `E.Sa/Ra` and
 `V.Sa/Da`, plus optional JavaScript `setAttribute/removeAttribute`. Parent-side
 name/count/text limits, ownership and permission admission, disclosure state,
@@ -2810,7 +2825,11 @@ open. See `ELEMENT_SELECTORS.md` for contracts, tests and verification scope.
 
 - Diagnose the restored-storage native image-cancellation handshake failure.
   A working ordinary CLR helper is not a passing AppContainer gate; preserve
-  the failed full core run and existing limits while measuring the native path.
+  the failed run and existing limits while measuring the native path. Later
+  native passes and prefix-validation work do not explain that earlier delay.
+- Diagnose isolated selector-limit recovery startup at `startup evaluate`.
+  The updated runtime's complete scripting gate fails at 5,017ms; retain the
+  failed gate, exact dependency records and current five-second startup limit.
 - Diagnose the fresh-path isolated script-worker startup deadline with
   launch/handshake timing evidence. Passing warm/source suites do not prove it
   is resolved; retain the current deadlines and native protections while measuring.

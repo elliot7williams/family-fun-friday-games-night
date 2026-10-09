@@ -1,14 +1,18 @@
 # LeaForge
 
-Latest engine capability: generic bounded attribute edits through `E.Sa/Ra`,
-`V.Sa/Da` and JavaScript `setAttribute/removeAttribute`. The focused 322 checks,
-full 1,713-check scripting suite and standalone EXE lifecycle gate pass. The
-broader native core regression remains incomplete: its first run hits a full
-C: disk; after storage is restored, the unchanged suite fails an image-worker
-handshake observation. Three storage-light model checks pass. No installed
-Firespider replacement, startup
-fix or speedup is claimed. Readiness remains about 65%; see
-[ATTRIBUTE_EDITS.md](ATTRIBUTE_EDITS.md).
+Latest reliability change: immediate rejection of an invalid image-handshake
+prefix, with separate bounded `hello/guards` diagnostics. Focused and final full
+`--core` checks pass, as does the actual standalone browser EXE lifecycle check.
+The complete scripting gate fails during isolated selector-limit recovery at
+the unchanged startup deadline (5,017ms); that failure is retained without a
+retry. No stable release, installed Firespider replacement, startup-delay fix or
+speedup is claimed. Readiness remains about 65%; see [IMAGE_HELLO.md](IMAGE_HELLO.md).
+
+Generic bounded attribute edits through `E.Sa/Ra`, `V.Sa/Da` and JavaScript
+`setAttribute/removeAttribute` remain available. Their preceding checkpoint
+passed 322 focused and 1,713 full scripting checks. Its initial disk-full and
+later image-handshake failures are retained in [ATTRIBUTE_EDITS.md](ATTRIBUTE_EDITS.md),
+not replaced by narrower or later passing checks.
 
 LeaForge is a new, bigger browser-engine experiment for Lea.
 

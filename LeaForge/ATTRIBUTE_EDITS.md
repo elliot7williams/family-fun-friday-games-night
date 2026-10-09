@@ -1,5 +1,11 @@
 # Literal Attribute Editing
 
+Later decoder prefix validation and current verification are recorded in
+`IMAGE_HELLO.md`. Its native core and standalone EXE checks pass, but its complete
+scripting gate hits an isolated-worker startup timeout. The results below are
+the preceding attribute-edit checkpoint, not proof of a passing full scripting
+gate for that later runtime.
+
 Lea now has generic bounded attribute writers, rather than only ID/class
 reflection. This is an engine capability, not a startup-timeout fix or a claim
 of full browser DOM conformance. Milestone 146 remains open; broader readiness

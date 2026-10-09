@@ -1,5 +1,10 @@
 # Native Image Cancellation and Diagnostics
 
+Later prefix-validation work is recorded in `IMAGE_HELLO.md`: a malformed first
+word is rejected before waiting on guards, and the bounded diagnostic now has
+a separate `guards` phase. The results below describe the earlier checkpoint;
+they do not clear later intermittent startup failures.
+
 Milestone 146 remains in progress. This follow-up fixes a reproduced native
 image-decoder cancellation race and adds a compact diagnostic, not a different
 renderer, a larger timeout, or a demonstrated browser-wide speed improvement.

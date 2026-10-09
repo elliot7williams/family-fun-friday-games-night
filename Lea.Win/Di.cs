@@ -110,8 +110,11 @@ namespace Lea.Win
                     {
                         mark("hello");
                         var hello = reader.ReadInt32();
+                        if (hello != Hello)
+                            throw new InvalidDataException("Image worker hardening handshake is invalid.");
+                        mark("guards");
                         var guards = reader.ReadInt32();
-                        if (hello != Hello || (guards & RequiredGuards) != RequiredGuards)
+                        if ((guards & RequiredGuards) != RequiredGuards)
                             throw new InvalidDataException("Image worker hardening handshake is invalid.");
                         current.G = guards;
                         current.Ready = true;

@@ -14747,6 +14747,7 @@ namespace Lea.Tests
             Ok(pipePosition != null, "Framework pipe byte accounting is available for nonblocking handshake observation");
             var data = PicturePng(3, 2, Color.SeaGreen);
             var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Lea.Image.exe");
+            CheckImageHelloRejection(read, workerField, gate, data);
             foreach (var phase in new[] { "started", "host", "admission", "hello", "pre", "queue" })
             using (var cancel = new CancellationTokenSource())
             {
@@ -14825,10 +14826,13 @@ namespace Lea.Tests
                         workerField.GetValue(null) == null, "image cancellation cleans its worker exactly once: " + phase);
                     if (launched)
                     {
-                        var expectedPhase = phase == "started" ? "start" : phase;
+                        var expectedPhase = phase == "started" ? "start" : phase == "hello" ? "guards" : phase;
                         Ok(report.Length <= 512 && report.Contains("phase=" + expectedPhase + "; result=cancel;") &&
                             report.Contains("worker=" + processId + ";") && report.Contains("ready=" + (phase == "hello" ? "0" : "1") + ";"),
                             "bounded image cancellation phase report: " + report);
+                        if (phase == "hello")
+                            Ok(report.Contains("hello=") && report.Contains("guards="),
+                                "partial handshake distinguishes the consumed prefix from missing guards: " + report);
                     }
                     if (phase == "queue")
                         Ok(gate.CurrentCount == 0 && report.Length <= 512 &&
@@ -14893,6 +14897,46 @@ namespace Lea.Tests
             Console.WriteLine("Lea image cancellation smoke passed: blocked handshake/queue, admission/start callbacks, pre-cancel, typed canceled tasks, diagnostics, cleanup, and fresh-worker recovery.");
         }
 
+        private static void CheckImageHelloRejection(MethodInfo read, FieldInfo workerField, SemaphoreSlim gate, byte[] data)
+        {
+            using (var cancel = new CancellationTokenSource())
+            {
+                var report = "";
+                var started = 0;
+                Task<Image> work = null;
+                try
+                {
+                    work = (Task<Image>)read.Invoke(null, new object[] { data,
+                        Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Lea.Image.Handshake.exe"),
+                        "--invalid-hello", cancel.Token, 16384L, 384L * 1024 * 1024,
+                        new Func<long>(() => { using (var host = Process.GetCurrentProcess()) return host.PrivateMemorySize64; }),
+                        new Action<int, bool, bool, bool, bool, bool, bool, bool, bool, bool, int, int>(
+                            (process, bounded, restricted, low, suspended, handles, aslr, container, noNetwork, fileAcl, cpu, guards) =>
+                                Interlocked.Increment(ref started)),
+                        null, null, null, new Action<string>(value => report = value) });
+                    WaitFor(() => work.IsCompleted, "malformed first handshake word rejects without waiting for guards");
+                    InvalidDataException error = null;
+                    try { using (var image = work.GetAwaiter().GetResult()) { } }
+                    catch (InvalidDataException failure) { error = failure; }
+                    Ok(work.IsFaulted && error != null && error.Message == "Image worker hardening handshake is invalid." &&
+                        !cancel.IsCancellationRequested && started == 0 && workerField.GetValue(null) == null && gate.CurrentCount == 1,
+                        "malformed first word faults before admission and releases its worker and permit");
+                    Ok(report.Length <= 512 && report.StartsWith("phase=hello; result=error;") &&
+                        report.Contains("ready=0;") && report.Contains("kind=InvalidDataException;") && !report.Contains("guards="),
+                        "malformed first word has a bounded first-word failure report: " + report);
+                }
+                finally
+                {
+                    var observation = "completed";
+                    if (work != null && !work.IsCompleted)
+                        ImageHeaderConsumed(workerField, typeof(FileStream).GetField("_pos", BindingFlags.Instance | BindingFlags.NonPublic), out observation);
+                    cancel.Cancel();
+                    if (work != null && !work.IsCompleted) WaitFor(() => work.IsCompleted, "malformed handshake final cleanup");
+                    Console.WriteLine("Image malformed hello: " + report + "; observation=" + observation);
+                }
+            }
+        }
+
         private static bool ImageHeaderConsumed(FieldInfo workerField, FieldInfo pipePosition, out string diagnostic)
         {
             var worker = workerField.GetValue(null);
@@ -14900,6 +14944,7 @@ namespace Lea.Tests
             if (worker == null) return false;
             var errors = (string)worker.GetType().GetProperty("E").GetValue(worker, null);
             var pipe = (FileStream)worker.GetType().GetProperty("O").GetValue(worker, null);
+            if (pipe == null) { diagnostic = "worker retired"; return false; }
             var read = (long)pipePosition.GetValue(pipe);
             diagnostic = "read=" + read + "; stderr=" + errors;
             return read >= 4 && errors.Contains("image-stall header flushed");
