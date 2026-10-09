@@ -66,49 +66,61 @@
         state.listeners.splice(state.listeners.indexOf(listener), 1);
         listenerCount--;
     }
+    function eventState(receiver) {
+        const state = apply(getState, targets, [receiver === null || receiver === undefined ? realm : receiver]);
+        if (!state) throw new listError('Illegal EventTarget receiver');
+        return state;
+    }
+    const eventProperties = {
+        __proto__: null,
+        addEventListener: { __proto__: null, value: function addEventListener(type, callback, options = undefined) {
+            const state = eventState(this);
+            if (arguments.length < 2) throw new listError('An event type and listener are required');
+            type = str(type);
+            if (callback !== null && callback !== undefined && typeof callback !== 'function' && typeof callback !== 'object')
+                throw new listError('Invalid listener');
+            const fields = eventOptions(options);
+            const cap = fields ? !!fields.capture : !!options;
+            const once = !!(fields && fields.once), passive = !!(fields && fields.passive);
+            if (fields && fields.signal !== undefined) throw new listError('AbortSignal is not supported');
+            if (!eventType(type)) throw new listError('Unsupported Lea event');
+            if (callback === null || callback === undefined) return;
+            syncHandler(state.node, state, type);
+            if (state.listeners.some(item => item.type === type && item.callback === callback && item.capture === cap)) return;
+            if (listenerCount === 128) throw new RangeError('Lea listener limit');
+            state.listeners.push({ type, callback, capture: cap, once, passive, removed: false });
+            listenerCount++;
+        } },
+        removeEventListener: { __proto__: null, value: function removeEventListener(type, callback, options = undefined) {
+            const state = eventState(this);
+            if (arguments.length < 2) throw new listError('An event type and listener are required');
+            type = str(type);
+            if (callback !== null && callback !== undefined && typeof callback !== 'function' && typeof callback !== 'object')
+                throw new listError('Invalid listener');
+            const fields = eventOptions(options);
+            const cap = fields ? !!fields.capture : !!options;
+            for (const item of state.listeners.slice())
+                if (item.type === type && item.callback === callback && item.capture === cap) remove(state, item);
+        } }
+    };
+    const defineEvents = Object.defineProperties;
+    for (let i = 0; i < handlerTypes.length; i++) {
+        const type = handlerTypes[i];
+        eventProperties['on' + type] = {
+            __proto__: null,
+            get() { const state = eventState(this); return syncHandler(state.node, state, type); },
+            set(value) {
+                const state = eventState(this);
+                syncHandler(state.node, state, type);
+                state.properties[type] = typeof value === 'function' ? value : null;
+                syncHandler(state.node, state, type);
+            }
+        };
+    }
     function eventTarget(node, key) {
-        const state = { key, listeners: [], properties: Object.create(null), inline: Object.create(null), handlers: Object.create(null) };
+        const state = { node, key, listeners: [], properties: Object.create(null), inline: Object.create(null), handlers: Object.create(null) };
         apply(setState, targets, [node, state]);
-        Object.defineProperties(node, {
-            addEventListener: { value: function addEventListener(type, callback, options = undefined) {
-                if (arguments.length < 2) throw new listError('An event type and listener are required');
-                type = str(type);
-                if (callback !== null && callback !== undefined && typeof callback !== 'function' && typeof callback !== 'object')
-                    throw new listError('Invalid listener');
-                const fields = eventOptions(options);
-                const cap = fields ? !!fields.capture : !!options;
-                const once = !!(fields && fields.once), passive = !!(fields && fields.passive);
-                if (fields && fields.signal !== undefined) throw new listError('AbortSignal is not supported');
-                if (!eventType(type)) throw new listError('Unsupported Lea event');
-                if (callback === null || callback === undefined) return;
-                syncHandler(node, state, type);
-                if (state.listeners.some(item => item.type === type && item.callback === callback && item.capture === cap)) return;
-                if (listenerCount === 128) throw new RangeError('Lea listener limit');
-                state.listeners.push({ type, callback, capture: cap, once, passive, removed: false });
-                listenerCount++;
-            } },
-            removeEventListener: { value: function removeEventListener(type, callback, options = undefined) {
-                if (arguments.length < 2) throw new listError('An event type and listener are required');
-                type = str(type);
-                if (callback !== null && callback !== undefined && typeof callback !== 'function' && typeof callback !== 'object')
-                    throw new listError('Invalid listener');
-                const fields = eventOptions(options);
-                const cap = fields ? !!fields.capture : !!options;
-                for (const item of state.listeners.slice())
-                    if (item.type === type && item.callback === callback && item.capture === cap) remove(state, item);
-            } }
-        });
-        for (let i = 0; i < handlerTypes.length; i++) {
-            const type = handlerTypes[i];
-            Object.defineProperty(node, 'on' + type, {
-                get() { return syncHandler(node, state, type); },
-                set(value) {
-                    syncHandler(node, state, type);
-                    state.properties[type] = typeof value === 'function' ? value : null;
-                    syncHandler(node, state, type);
-                }
-            });
-        }
+        defineEvents(node, eventProperties);
     }
     function syncHandler(node, state, type) {
         const callback = handler(node, state, type);
@@ -472,7 +484,7 @@
         });
         function invoke(node, cap) {
             current = node;
-            const state = targets.get(node);
+            const state = eventState(node);
             syncHandler(node, state, type);
             for (const item of state.listeners.slice()) {
                 if (item.removed || item.type !== type || item.capture !== cap) continue;

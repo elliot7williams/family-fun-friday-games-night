@@ -10,7 +10,17 @@ The earlier projects stay small:
 
 LeaForge is where we can grow the more full-featured browser.
 
-Latest diagnostic checkpoint: optional whole-script observation now follows
+Latest source checkpoint: event methods and handler accessors now bind to the
+receiving target, sharing their functions across targets while retaining the
+existing bounded event API. All 75 focused and 1,342 full-source checks, six
+fresh-worker launches/27 comparison checks, and the actual test-browser EXE
+smoke pass. The old-runtime control times out in trusted bootstrap before its
+receiver assertion and is inconclusive. The compact resource grows 458 bytes;
+no size reduction, general speedup, or startup fix is claimed. Installed
+Firespider is unchanged, milestone 146 remains open, and readiness stays about
+65%. See [EVENT_RECEIVERS.md](EVENT_RECEIVERS.md).
+
+Previous diagnostic checkpoint: optional whole-script observation now follows
 navigation, error recovery and split panes. Fair rotation captures eight
 workers with no dropped requests/samples; the script case passes. Twelve
 reporting/scheduling contracts, 14 argument guards, three controlled failures

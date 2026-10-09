@@ -48,6 +48,12 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script worker entry: " + checks + " checks.");
                     return 0;
                 }
+                if (args.Length > 1 && (args[1] == "--event-receivers" || args[1] == "--event-receivers-trusted"))
+                {
+                    EventReceivers.Run(viewFixture, args[1] == "--event-receivers-trusted", args.Length > 2 ? args[2] : null);
+                    Console.WriteLine("PASS Lea.Script event receivers: " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--event-options")
                 {
                     EventOptions.Run(viewFixture);
@@ -356,6 +362,7 @@ namespace Lea.Script.Tests
                 View.Run(viewFixture);
                 BudgetPhases.Run(viewFixture);
                 EventOptions.Run(viewFixture);
+                EventReceivers.Run(viewFixture);
                 ListenerCalls.Run(viewFixture);
                 // Keep this worker-file probe after the existing startup and execution gates.
                 WorkerEntry.Run();

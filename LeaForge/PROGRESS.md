@@ -34,6 +34,19 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Event methods and the five handler accessors now resolve their receiving
+target through captured private state lookup. Shared per-realm functions
+replace per-target copies while retaining existing own-property attributes,
+event options and limits. All 75 focused checks, 1,342 ordinary full-source
+checks, six fresh-worker launches/27 comparison checks and the actual browser
+EXE smoke pass. The preceding-runtime negative control instead times out in
+trusted bootstrap before testing receivers; it is inconclusive and retained.
+The compact bootstrap grows 458 bytes, and three production files change
+(including a dependency-rebuilt adapter with unchanged source/method bodies).
+No size reduction, general speedup, native startup fix, new Firespider host
+candidate, release or installed replacement is claimed. Milestone 146 remains
+open and broader readiness stays about 65%. See `EVENT_RECEIVERS.md`.
+
 The host observer gains optional whole-script scope, retaining first-demand
 scope as default. An initial passing flow reveals competing-request starvation;
 final fair rotation passes the script case and captures eight workers with
