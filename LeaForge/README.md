@@ -10,7 +10,16 @@ The earlier projects stay small:
 
 LeaForge is where we can grow the more full-featured browser.
 
-Latest source checkpoint: event methods and handler accessors now bind to the
+Latest host checkpoint: separate v28 integrates the tested event receiver
+bindings and passes all 43 host cases, with only scripting observed, plus all
+six actual-EXE startup scenarios. Both new realm checks and borrowed native
+dispatch pass. The identical-harness preceding-runtime control fails at the
+expected invalid-receiver assertion. Whole-script observation captures eight
+workers with no loss/errors, but no timeout occurs or is fixed. No new release
+package or installed replacement is made; readiness remains about 65%.
+See [HOST_EVENT_RECEIVERS.md](HOST_EVENT_RECEIVERS.md).
+
+Previous source checkpoint: event methods and handler accessors now bind to the
 receiving target, sharing their functions across targets while retaining the
 existing bounded event API. All 75 focused and 1,342 full-source checks, six
 fresh-worker launches/27 comparison checks, and the actual test-browser EXE

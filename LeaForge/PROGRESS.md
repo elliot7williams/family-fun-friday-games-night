@@ -34,6 +34,18 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Separate v28 integrates the tested event receiver bindings into the net48 host.
+All 43 host cases pass with only the script case observed; both new realm
+receiver checks, borrowed native dispatch, error recovery and split disposal
+pass. The exact same harness rejects the preceding runtime at its expected
+invalid-receiver assertion, not a startup timeout. All six actual-EXE startup
+scenarios also pass. Whole-script observation captures eight workers, 239
+samples and 55 thread snapshots without loss/errors; no actual timeout is
+captured or resolved. Production dependencies, original host source and the
+installed browser remain unchanged. No release package, fresh package or
+independent-source gate is claimed. Milestone 146 stays open and broader
+readiness stays about 65%. See `HOST_EVENT_RECEIVERS.md`.
+
 Event methods and the five handler accessors now resolve their receiving
 target through captured private state lookup. Shared per-realm functions
 replace per-target copies while retaining existing own-property attributes,

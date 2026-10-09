@@ -1844,6 +1844,7 @@ namespace Lea.Firespider
             var pid = ScriptPid(view);
             Check(pid > 0 && !(bool)Call(form, "qleaHibernateEligible", view) && view.At.Jc == 0, "live pure-JavaScript state must not be automatically discarded");
             await ScriptExceptionConstants(view, "first demand");
+            await ScriptEventReceivers(view, "first demand");
             var fixture = new Uri(fixturePath).AbsoluteUri;
             settings["bs"] = new StringCollection();
             settings["cfEnabled"] = "";
@@ -1856,6 +1857,7 @@ namespace Lea.Firespider
             Check((bool)runtime.GetType().GetProperty("Ac").GetValue(runtime, null) &&
                 (bool)runtime.GetType().GetProperty("Ne").GetValue(runtime, null), "host worker lacks isolation or has a loopback exemption");
             await ScriptExceptionConstants(view, "inline navigation");
+            await ScriptEventReceivers(view, "inline navigation");
             await ScriptCode(view, @"var hostOptionReads=[],hostOptionPhases=[],hostOptionOnce=0,hostOptionFailed=0;
 function hostOptionCapture(event){hostOptionPhases.push(event.eventPhase);}
 function hostOptionSingle(){hostOptionOnce++;}
@@ -1881,17 +1883,28 @@ function hostCallFunction(event){
   hostCallTrace.push('function');
 }
 Object.defineProperty(hostCallFunction,'call',{get(){hostCallReads++;throw Error('host own call getter reached');}});
-hostCallTarget.addEventListener('click',hostCallFunction,{once:true});
+Reflect.apply(document.addEventListener,hostCallTarget,['click',hostCallFunction,{once:true}]);
 var hostCallObject={get handleEvent(){
   hostObjectReads++;if(this!==hostCallObject)throw Error('host object getter receiver');
   var callback=function(event){if(this!==hostCallObject||event.currentTarget!==hostCallTarget||arguments.length!==1)throw Error('host object receiver');hostCallTrace.push('object');return false;};
   callback.call=null;return callback;
 }};
-hostCallTarget.addEventListener('click',hostCallObject,{once:true});
+Reflect.apply(window.addEventListener,hostCallTarget,['click',hostCallObject,{once:true}]);
 if(hostObjectReads)throw Error('host eager object operation');
 var hostCallProperty=function(event){if(this!==hostCallTarget||event.currentTarget!==this||arguments.length!==1)throw Error('host property receiver');hostCallEvent=event;hostCallTrace.push('property');return false;};
 Object.defineProperty(hostCallProperty,'call',{get(){hostCallReads++;throw Error('host property call getter reached');}});
-hostCallTarget.onclick=hostCallProperty;
+var hostCallDescriptor=Object.getOwnPropertyDescriptor(document,'onclick');
+Reflect.apply(hostCallDescriptor.set,hostCallTarget,[hostCallProperty]);
+if(Reflect.apply(hostCallDescriptor.get,hostCallTarget,[])!==hostCallProperty||document.onclick!==null)throw Error('host borrowed handler state');
+function hostReceiverRemoved(){throw Error('host borrowed removal failed');}
+Reflect.apply(document.addEventListener,hostCallTarget,['click',hostReceiverRemoved,true]);
+Reflect.apply(window.removeEventListener,hostCallTarget,['click',hostReceiverRemoved,true]);
+var hostReceiverTrace=[];
+function hostReceiverWindow(event){if(this!==window||event.currentTarget!==window||event.target!==hostCallTarget||event.eventPhase!==3)throw Error('host global event receiver');hostReceiverTrace.push('null');}
+Reflect.apply(hostCallTarget.addEventListener,null,['click',hostReceiverWindow,{once:true}]);
+var hostReceiverDetached=hostCallTarget.addEventListener;
+hostReceiverDetached('click',function(event){if(this!==window||event.currentTarget!==window)throw Error('host detached event receiver');hostReceiverTrace.push('detached');},{once:true});
+Reflect.apply(hostCallTarget.addEventListener,undefined,['click',function(event){if(this!==window||event.currentTarget!==window)throw Error('host undefined event receiver');hostReceiverTrace.push('undefined');},{once:true}]);
 var savedHostCall=Function.prototype.call,savedHostOwn=Object.prototype.hasOwnProperty,savedHostApply=Reflect.apply;
 Function.prototype.call=function(){throw Error('host public Function.call reached');};
 Object.prototype.hasOwnProperty=function(){throw Error('host public ownership helper reached');};
@@ -1900,10 +1913,13 @@ Reflect.apply=function(){throw Error('host public Reflect.apply reached');};");
             Check(view.Xo != null && view.Xo.Ok, "host callback dispatch: " + ScriptState(view));
             await ScriptCode(view, @"Function.prototype.call=savedHostCall;Object.prototype.hasOwnProperty=savedHostOwn;Reflect.apply=savedHostApply;
 if(hostCallReads!==0||hostObjectReads!==1||hostCallTrace.join(',')!=='function,object,property'||!hostCallEvent.defaultPrevented||hostCallEvent.currentTarget!==null||hostCallEvent.eventPhase!==0||hostCallTarget.onclick!==hostCallProperty)throw Error('host captured callback invocation');
-hostCallTarget.onclick=null;");
+if(hostReceiverTrace.join(',')!=='null,detached,undefined')throw Error('host global event receiver order');
+Reflect.apply(hostCallDescriptor.set,hostCallTarget,[null]);
+if(hostCallTarget.onclick!==null||document.onclick!==null)throw Error('host borrowed handler cleanup');");
             Check(view.T == "Lea 1" && Member<Label>(form, "su").Text.IndexOf("script:", StringComparison.Ordinal) < 0,
                 "host native click did not update DOM/title or raised script status");
             Console.WriteLine("PASS script host callbacks: native keyboard click, function/object/DOM0 receivers, deferred operation, captured intrinsics, cancellation, and restored event state");
+            Console.WriteLine("PASS script host event receiver dispatch: borrowed add/remove and handler accessors, nullish/detached window binding, native keyboard click, and cleanup");
             await ScriptCode(view, "if(hostOptionPhases.join(',')!=='1'||hostOptionOnce!==1||hostOptionFailed!==0)throw Error('host converted capture or atomic registration');document.body.removeEventListener('click',hostOptionCapture,1);");
             await ScriptCode(view, "var hostTimers=[];setTimeout(function(){hostTimers.push('a');Promise.resolve().then(function(){hostTimers.push('micro');});});setTimeout(function(){hostTimers.push('b');document.getElementById('result').textContent=hostTimers.join(',');document.title='Host timers';});");
             var timerClock = Stopwatch.StartNew();
@@ -1996,7 +2012,7 @@ hostCallTarget.onclick=null;");
             }
             Check(!UiErrors.Any() && !Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Any(module =>
                 module.ModuleName.Equals("mshtml.dll", StringComparison.OrdinalIgnoreCase)), "script integration raised UI errors or loaded MSHTML");
-            Console.WriteLine("PASS script host: net48, dormant loading, state retention, inline lifecycle, native events/defaults, option conversion and captured callbacks, bounded timers, live attributes/selectors/tree navigation, error status/recovery, split isolation/disposal, tab cleanup, and remote-origin refusal");
+            Console.WriteLine("PASS script host: net48, dormant loading, state retention, inline lifecycle, native events/defaults, option conversion, receiver bindings and captured callbacks, bounded timers, live attributes/selectors/tree navigation, error status/recovery, split isolation/disposal, tab cleanup, and remote-origin refusal");
         }
 
         private static void ScriptPicture(Form form, string name)
@@ -2069,6 +2085,37 @@ if(!(error instanceof Error)||!(error instanceof DOMException)||error.code!==12|
             Check(result.Ok && result.N == 0 && ScriptPid(view) == pid,
                 "host exception constants failed or changed realm/bridge state: " + stage + "; " + result.S + "; " + result.M);
             Console.WriteLine("PASS script host exception constants: " + stage + "; all 25 ordered own readonly values; no bridge calls or realm replacement");
+        }
+
+        private static async Task ScriptEventReceivers(V view, string stage)
+        {
+            var pid = ScriptPid(view);
+            var result = await view.JsA(@"(function(){
+const body=document.body,add=body.addEventListener,remove=body.removeEventListener;
+let reads=0;const type={toString(){reads++;return 'click';}},options={get capture(){reads++;return false;}};
+for(const receiver of [{},[],1,true,'text',1n,Symbol('receiver'),Object.create(body),new Proxy(body,{get(){throw Error('host proxy property read');}})]){
+  for(const method of [add,remove]){
+    let error;try{Reflect.apply(method,receiver,[type,null,options]);}catch(value){error=value;}
+    if(!(error instanceof TypeError))throw Error('host event receiver rejection');
+  }
+}
+if(reads)throw Error('host receiver validation after conversion');
+for(const node of [body,document,window])for(const name of ['addEventListener','removeEventListener']){
+  const descriptor=Object.getOwnPropertyDescriptor(node,name);
+  if(node[name]!==window[name]||descriptor.value.name!==name||descriptor.value.length!==2||descriptor.writable||descriptor.enumerable||descriptor.configurable)throw Error('shared host event method metadata');
+}
+for(const name of ['onclick','oninput','onchange','onsubmit','onload']){
+  const descriptor=Object.getOwnPropertyDescriptor(body,name);
+  for(const node of [document,window]){
+    const other=Object.getOwnPropertyDescriptor(node,name);
+    if(descriptor.get!==other.get||descriptor.set!==other.set||other.enumerable||other.configurable||other.get.length!==0||other.set.length!==1)throw Error('shared host event accessor metadata');
+  }
+}
+}());");
+            if (!result.Ok) Console.WriteLine("Script event receivers: " + ScriptState(view));
+            Check(result.Ok && result.N == 0 && ScriptPid(view) == pid,
+                "host event receiver checks failed or changed document/realm state: " + stage + "; " + result.S + "; " + result.M);
+            Console.WriteLine("PASS script host event receivers: " + stage + "; shared method/accessor metadata, invalid receiver ordering, no document mutations or realm replacement");
         }
 
         private static async Task ScriptActivate(V view, string id)
