@@ -160,7 +160,7 @@
     const reflectGet = Reflect.get, reflectSet = Reflect.set, reflectHas = Reflect.has;
     const reflectKeys = Reflect.ownKeys, reflectDescriptor = Reflect.getOwnPropertyDescriptor;
     const reflectDefine = Reflect.defineProperty, reflectDelete = Reflect.deleteProperty;
-    const sliceString = String.prototype.slice, codeAt = String.prototype.charCodeAt;
+    const sliceString = String.prototype.slice, codeAt = String.prototype.charCodeAt, indexString = String.prototype.indexOf;
     const arrayKeys = Array.prototype.keys, arrayValues = Array.prototype.values;
     const arrayEntries = Array.prototype.entries, arrayForEach = Array.prototype.forEach, arrayIndexOf = Array.prototype.indexOf;
     const ListProxy = Proxy, listError = TypeError, NativeError = Error, construct = Reflect.construct;
@@ -398,6 +398,7 @@
         if (supplied && supplied.length < required) throw new listError('An attribute argument is required');
         return state;
     }
+    const attributeSeparators = '\t\n\f\r \0/=>';
     const elementMethods = {
         __proto__: null,
         getAttribute(name) {
@@ -412,7 +413,10 @@
             const state = elementState(this, arguments, 2);
             name = str(name);
             value = str(value);
-            if (name.length === 0 || /[\t\n\f\r \0/=>]/.test(name)) throw new DOMException('Invalid attribute name', 'InvalidCharacterError');
+            let invalid = name.length === 0;
+            for (let i = 0; i < attributeSeparators.length && !invalid; i++)
+                invalid = apply(indexString, name, [apply(sliceString, attributeSeparators, [i, i + 1])]) !== -1;
+            if (invalid) throw new DOMException('Invalid attribute name', 'InvalidCharacterError');
             if (name.length > 64 || value.length > 1024 || !call('sa', state.key, name, value)) throw new listError('Lea attribute mutation limit or invalid target');
         },
         removeAttribute(name) {

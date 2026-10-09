@@ -1,5 +1,9 @@
 # Literal Attribute Editing
 
+The later captured name validator and its separate evidence are documented in
+`ATTRIBUTE_NAME_CAPTURES.md`. It fixes page replacement of the regex validator
+without changing the bounded attribute API described here.
+
 Later decoder prefix validation and current verification are recorded in
 `IMAGE_HELLO.md`. Its native core and standalone EXE checks pass, but its complete
 scripting gate hits an isolated-worker startup timeout. The results below are

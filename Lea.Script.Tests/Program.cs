@@ -125,6 +125,13 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script tree" + (trustedOnly ? " trusted-only diagnostics" : "") + ": " + checks + " checks.");
                     return 0;
                 }
+                if (args.Length > 1 && (args[1] == "--selector-startup" || args[1] == "-ss"))
+                {
+                    if (args.Length < 3 || args.Length > 4) throw new ArgumentException("Supply a new report path and optional worker directory for --selector-startup.");
+                    Selectors.Startup(selectorFixture, args[2], args.Length == 4 ? args[3] : null);
+                    Console.WriteLine("PASS Lea.Script selector startup observation: " + checks + " checks; not a full scripting gate.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--select")
                 {
                     Selectors.Run(selectorFixture);

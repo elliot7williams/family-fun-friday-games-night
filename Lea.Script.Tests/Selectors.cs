@@ -1,7 +1,11 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web.Script.Serialization;
 using System.Windows.Forms;
 using Lea.Engine;
 using Lea.Script;
@@ -20,6 +24,59 @@ namespace Lea.Script.Tests
             page = engine.Go(fixture);
             using (var script = new Jp(engine, page) { Tm = 5000 })
                 Suite(engine, page, script.Ex, "isolated", () => script.Sd);
+        }
+
+        internal static void Startup(string fixture, string reportPath, string directory = null)
+        {
+            reportPath = Lea.Diagnostics.WorkerObservation.ValidateReport(reportPath);
+            directory = Path.GetFullPath(directory ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ScriptWorker"));
+            var previous = Environment.GetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE");
+            var records = new List<object>();
+            var clock = Stopwatch.StartNew();
+            Exception failure = null;
+            long peak = 0;
+            try
+            {
+                Environment.SetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE", "1");
+                var engine = new E { Jb = false };
+                var page = engine.Go(fixture);
+                using (var script = new Jp(engine, page, directory) { Tm = 5000 })
+                {
+                    try
+                    {
+                        Jr Execute(string code)
+                        {
+                            var beforePid = script.Pid;
+                            var before = clock.ElapsedMilliseconds;
+                            var result = script.Ex(code);
+                            records.Add(new { index = records.Count, beganMs = before,
+                                elapsedMs = clock.ElapsedMilliseconds - before, sourceCharacters = code.Length,
+                                beforePid, afterPid = script.Pid, status = result.S, changes = result.N,
+                                message = result.M, startup = script.Sd, isolated = script.Ac,
+                                noLoopbackExemption = script.Ne, networkDenied = script.Nd, fileDenied = script.Fd,
+                                guards = script.Mg, peakBytes = script.Mp });
+                            return result;
+                        }
+                        Suite(engine, page, Execute, "isolated", () => script.Sd);
+                    }
+                    finally { peak = script.Mp; }
+                }
+            }
+            catch (Exception error) { failure = error; throw; }
+            finally
+            {
+                Environment.SetEnvironmentVariable("LEA_SCRIPT_STARTUP_TRACE", previous);
+                var text = failure == null ? null : failure.ToString();
+                var report = new { kind = "selector-limit-startup-observation", passed = failure == null,
+                    error = text == null || text.Length <= 8192 ? text : text.Substring(0, 8192),
+                    workerDirectory = directory, calls = records, elapsedMs = clock.ElapsedMilliseconds, peakBytes = peak,
+                    startupBudgetMs = 5000, executionBudgetMs = 5000, cpuRate = 2500,
+                    memoryBytes = 128L * 1024 * 1024, timingTrace = true, productionLimitsChanged = false,
+                    coldCacheControlled = false, retries = 0, fullScriptingGate = false };
+                using (var stream = new FileStream(reportPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                using (var writer = new StreamWriter(stream, new System.Text.UTF8Encoding(false)))
+                    writer.Write(new JavaScriptSerializer { MaxJsonLength = 2 * 1024 * 1024 }.Serialize(report));
+            }
         }
 
         private static void Suite(E engine, P page, Func<string, Jr> ex, string mode, Func<string> diagnostics = null)

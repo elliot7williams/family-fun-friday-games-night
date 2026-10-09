@@ -34,6 +34,20 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Attribute name validation now uses private captured string operations instead
+of page-mutable regex methods. The exact preceding runtime fails the new
+poisoned-intrinsic regression; the rebuilt runtime passes all 330 focused,
+28 scope and four resource checks, then the full ordinary 1,721-check scripting
+suite once. The actual standalone browser EXE lifecycle and inspected capture
+pass. Four predeclared previous/current/current/previous selector-recovery
+observations also pass, with overlapping timings and unchanged native guards.
+Only the Script DLL and worker change among 19 production records; each grows
+512 bytes. No speedup, cold-start reliability fix, native-core rerun or new
+Firespider release is claimed. The earlier 5,017-ms scripting failure remains
+preserved; live host source and installed files are unchanged. Milestone 146
+stays open and broader readiness stays about 65%. See
+`ATTRIBUTE_NAME_CAPTURES.md`.
+
 The native decoder now rejects a malformed first handshake word before waiting
 for guards. A genuine preceding-runtime observation proves the invalid word was
 consumed while decoding stayed blocked; the new regression fails there, then
