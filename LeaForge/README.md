@@ -10,7 +10,16 @@ The earlier projects stay small:
 
 LeaForge is where we can grow the more full-featured browser.
 
-Latest host checkpoint: separate v28 integrates the tested event receiver
+Latest package checkpoint: v28's freshly extracted runtime passes all 43 host
+cases and six actual-EXE startup scenarios without startup observation or timing
+trace. The archived host source builds independently and passes the complete
+script case plus six startup scenarios; all source inputs and 19 production
+dependencies match their audits. Both ZIPs pass manifest/stream/extraction
+checks. These are experimental test packages, not a startup-timeout fix or an
+installed replacement; readiness remains about 65%. See
+[HOST_PACKAGE_RECEIVERS.md](HOST_PACKAGE_RECEIVERS.md).
+
+Previous host checkpoint: separate v28 integrates the tested event receiver
 bindings and passes all 43 host cases, with only scripting observed, plus all
 six actual-EXE startup scenarios. Both new realm checks and borrowed native
 dispatch pass. The identical-harness preceding-runtime control fails at the

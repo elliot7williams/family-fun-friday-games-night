@@ -34,6 +34,16 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Fresh v28 runtime and host-source ZIPs pass exact input/manifest/stream/extraction
+audits. The extracted runtime passes all 43 ordinary host cases and six actual
+EXE startup scenarios. The archived source independently compiles without
+changing any of its 104 files, then passes the complete script case and six
+startup scenarios. All 19 production files match in six roots; post-test runtime
+copies, captures and full source are preserved. These are experimental package
+verification results, not a new full source-suite run, general speedup, native
+startup-timeout fix or installed replacement. Milestone 146 remains open and
+broader readiness stays about 65%. See `HOST_PACKAGE_RECEIVERS.md`.
+
 Separate v28 integrates the tested event receiver bindings into the net48 host.
 All 43 host cases pass with only the script case observed; both new realm
 receiver checks, borrowed native dispatch, error recovery and split disposal
