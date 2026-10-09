@@ -103,7 +103,20 @@ Evidence is retained separately under
   Diagnostic archival cleanup is rejected before execution; no candidate or
   user file is removed. Separate storage-light `--attributes`, `--tokens` and
   `--select` model checks pass. They do not replace the incomplete full native
-  core regression. Free C: storage and rerun that gate before release adoption.
+  core regression.
+- After the user restores over 3 GB of C: space, the identical core EXE and
+  Engine/Win/image dependencies are used in a separately recorded full core
+  attempt with fresh NTFS scratch. Paste, stylesheet, load and picture-limit
+  checks pass; CheckImageCancellation then fails at `stalled image handshake
+  header consumed`. Finally cleanup reports `phase=hello; result=cancel`,
+  `ready=0`, roughly 3,030ms wall, pipe read count zero and empty stderr. These
+  observations do not identify the cause. A separate ordinary CLR launch of
+  the exact 4,608-byte helper produces the expected four-byte header and marker,
+  then is explicitly terminated because its design sleeps for 60 seconds.
+  That unsandboxed diagnostic does not replace the failed native gate. No
+  engine/test/worker limit is changed and no successful full core run is claimed.
+  Evidence is separate in `H:\Lea Evidence\Lea-146-attribute-edits-core-2026-10-09`;
+  the earlier sealed evidence and storage failure remain unchanged.
 
 Focused commands:
 

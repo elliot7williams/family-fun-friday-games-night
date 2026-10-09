@@ -41,8 +41,11 @@ selector/style/field/accessibility rebuilds and shared non-constructible methods
 are verified by 322 focused checks. The full ordinary scripting suite passes
 1,713 checks; the standalone EXE lifecycle gate passes. Earlier native fixture,
 alias-collision and premature GUI-wrapper failures are retained. The broader
-core regression stops on a full C: disk; three storage-light model commands pass
-but do not replace that incomplete gate. No new Firespider release, installed
+core regression first stops on a full C: disk; three storage-light model commands
+pass. After storage is restored, the same core EXE/dependencies pass early checks
+then fail the stalled image-handshake observation. The exact helper works in a
+separate ordinary CLR diagnostic, not proof of native success. Both failures
+remain; the full core gate is incomplete. No new Firespider release, installed
 replacement, startup-timeout fix or speedup is claimed. Milestone 146 stays open
 and broader readiness stays about 65%. See `ATTRIBUTE_EDITS.md`.
 
@@ -2805,6 +2808,9 @@ open. See `ELEMENT_SELECTORS.md` for contracts, tests and verification scope.
 
 ## Next gains
 
+- Diagnose the restored-storage native image-cancellation handshake failure.
+  A working ordinary CLR helper is not a passing AppContainer gate; preserve
+  the failed full core run and existing limits while measuring the native path.
 - Diagnose the fresh-path isolated script-worker startup deadline with
   launch/handshake timing evidence. Passing warm/source suites do not prove it
   is resolved; retain the current deadlines and native protections while measuring.
