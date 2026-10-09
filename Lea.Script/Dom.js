@@ -71,9 +71,8 @@
         if (!state) throw new listError('Illegal EventTarget receiver');
         return state;
     }
-    const eventProperties = {
-        __proto__: null,
-        addEventListener: { __proto__: null, value: function addEventListener(type, callback, options = undefined) {
+    const eventMethods = {
+        addEventListener(type, callback, options = undefined) {
             const state = eventState(this);
             if (arguments.length < 2) throw new listError('An event type and listener are required');
             type = str(type);
@@ -90,8 +89,8 @@
             if (listenerCount === 128) throw new RangeError('Lea listener limit');
             state.listeners.push({ type, callback, capture: cap, once, passive, removed: false });
             listenerCount++;
-        } },
-        removeEventListener: { __proto__: null, value: function removeEventListener(type, callback, options = undefined) {
+        },
+        removeEventListener(type, callback, options = undefined) {
             const state = eventState(this);
             if (arguments.length < 2) throw new listError('An event type and listener are required');
             type = str(type);
@@ -101,7 +100,12 @@
             const cap = fields ? !!fields.capture : !!options;
             for (const item of state.listeners.slice())
                 if (item.type === type && item.callback === callback && item.capture === cap) remove(state, item);
-        } }
+        }
+    };
+    const eventProperties = {
+        __proto__: null,
+        addEventListener: { __proto__: null, value: eventMethods.addEventListener },
+        removeEventListener: { __proto__: null, value: eventMethods.removeEventListener }
     };
     const defineEvents = Object.defineProperties;
     for (let i = 0; i < handlerTypes.length; i++) {

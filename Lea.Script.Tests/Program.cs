@@ -48,9 +48,9 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script worker entry: " + checks + " checks.");
                     return 0;
                 }
-                if (args.Length > 1 && (args[1] == "--event-receivers" || args[1] == "--event-receivers-trusted"))
+                if (args.Length > 1 && (args[1] == "--event-receivers" || args[1] == "--event-receivers-trusted" || args[1] == "--event-receivers-isolated"))
                 {
-                    EventReceivers.Run(viewFixture, args[1] == "--event-receivers-trusted", args.Length > 2 ? args[2] : null);
+                    EventReceivers.Run(viewFixture, args[1] == "--event-receivers-trusted", args.Length > 2 ? args[2] : null, args[1] == "--event-receivers-isolated");
                     Console.WriteLine("PASS Lea.Script event receivers: " + checks + " checks.");
                     return 0;
                 }

@@ -11,18 +11,20 @@ namespace Lea.Script.Tests
 {
     internal static class EventReceivers
     {
-        internal static void Run(string fixture, bool trustedOnly = false, string output = null)
+        internal static void Run(string fixture, bool trustedOnly = false, string output = null, bool isolatedOnly = false)
         {
             var engine = new E { Jb = false };
             var page = engine.Go(fixture);
             var target = engine.Id(page, "target");
-            using (var script = new Js(engine, page))
-                Suite(code => Task.FromResult(script.Ex(code)), () => Task.FromResult(script.Ev(target, "click")), "trusted").GetAwaiter().GetResult();
+            if (!isolatedOnly)
+                using (var script = new Js(engine, page))
+                    Suite(code => Task.FromResult(script.Ex(code)), () => Task.FromResult(script.Ev(target, "click")), "trusted").GetAwaiter().GetResult();
             if (trustedOnly) return;
             page = engine.Go(fixture);
             target = engine.Id(page, "target");
             using (var script = new Jp(engine, page) { Tm = 5000 })
                 Suite(code => Task.FromResult(script.Ex(code)), () => Task.FromResult(script.Ev(target, "click")), "isolated").GetAwaiter().GetResult();
+            if (isolatedOnly) return;
             View.Pump(() => Native(fixture, output));
         }
 
@@ -39,6 +41,28 @@ namespace Lea.Script.Tests
                 var result = await fire();
                 Program.Check(result.Ok && result.D == prevented, mode + " event receivers: dispatch/cancellation; " + result.S + "; " + result.M);
             }
+
+            var constructors = await Code(@"var receiverConstructorCalls=0,receiverConstructorReads=0;
+var receiverConstructorType={toString(){receiverConstructorReads++;return 'click';}};
+function receiverConstructorCallback(){receiverConstructorCalls++;}
+function receiverNonConstructor(method){
+  if(Object.hasOwn(method,'prototype'))throw Error('event operation constructor prototype');
+  var error;try{Reflect.construct(String,[receiverConstructorType],method);}catch(value){error=value;}
+  if(!(error instanceof TypeError))throw Error('event operation newTarget');
+  error=undefined;try{new method(receiverConstructorType,receiverConstructorCallback);}catch(value){error=value;}
+  if(!(error instanceof TypeError))throw Error('event operation constructor target');
+}
+for(var name of ['addEventListener','removeEventListener']){
+  var method=window[name];receiverNonConstructor(method);
+  receiverNonConstructor(method.bind(document));
+}
+for(var name of ['onclick','oninput','onchange','onsubmit','onload']){
+  var descriptor=Object.getOwnPropertyDescriptor(document,name);
+  receiverNonConstructor(descriptor.get);receiverNonConstructor(descriptor.set);
+}
+if(receiverConstructorCalls||receiverConstructorReads)throw Error('event constructor argument conversion');",
+                "shared methods and handler accessors are non-constructible, including bound methods, before conversion or callbacks");
+            Program.Check(constructors.N == 0, mode + " event receivers: constructor rejection does not mutate the document");
 
             await Code(@"var receiverTarget=document.getElementById('target'),receiverOuter=document.getElementById('outer'),receiverTrace=[];
 var receiverAdd=receiverOuter.addEventListener,receiverRemove=window.removeEventListener;

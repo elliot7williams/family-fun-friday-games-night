@@ -10,7 +10,18 @@ The earlier projects stay small:
 
 LeaForge is where we can grow the more full-featured browser.
 
-Latest package checkpoint: the corrected v30 candidate and fresh runtime
+Latest source checkpoint: shared event operations are now non-constructible
+methods, retaining their receiver semantics and descriptors. The identical final
+isolated harness rejects the preceding runtime at its constructor-prototype
+assertion and passes all 25 checks on the current runtime. The ordinary scripting
+suite passes all 1,391 checks; the rebuilt standalone browser EXE smoke passes.
+Compact bootstrap grows 66 bytes, with no speedup or startup fix claimed.
+A separate unchanged-runtime observation passes but captures no timeout; the
+earlier independent release failure remains failed. No new Firespider host
+candidate or installed replacement is made. Milestone 146 stays open and
+readiness stays about 65%. See [EVENT_CONSTRUCTORS.md](EVENT_CONSTRUCTORS.md).
+
+Previous package checkpoint: the corrected v30 candidate and fresh runtime
 extraction each pass all 43 host cases with the exact same checksum-verified
 harness. The extraction also passes six actual-EXE startup scenarios. Both ZIPs
 pass integrity/extraction checks and the archived host source builds unchanged,

@@ -34,6 +34,19 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Shared event operations now use non-constructible method syntax without changing
+names, arity, receiver checks, descriptors or listener behavior. The identical
+final isolated test binary rejects the old runtime's constructor prototype and
+passes all 25 checks on the updated runtime. All 1,391 ordinary scripting-suite
+checks and the rebuilt standalone browser EXE smoke pass. Generator and four
+compiled-resource checks pass; compact bytes grow 66 and the worker PE grows
+512, with no speed or memory improvement claimed. A separate observed attempt
+on the unchanged independent host passes with eight workers/208 samples/44
+thread snapshots, but captures no timeout and cannot replace its ordinary
+failed release gate. No startup fix, new Firespider candidate, host release or
+installed replacement is claimed. Milestone 146 remains open and broader
+readiness stays about 65%. See `EVENT_CONSTRUCTORS.md`.
+
 Corrected v30 candidate and freshly extracted runtime each pass all 43 host
 cases using the same checksum-verified harness; extraction also passes all six
 actual-EXE startup scenarios. Both archives pass exact integrity/extraction
