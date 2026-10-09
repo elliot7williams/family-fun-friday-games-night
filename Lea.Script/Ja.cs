@@ -80,6 +80,19 @@ namespace Lea.Script
                 Changes += count;
                 return count == 1;
             }
+            if (operation == "sa" && args.Length == 4)
+            {
+                var count = engine.Sa(page, Node(args, 1), Arg(args, 2), Arg(args, 3));
+                Changes += count;
+                return count == 1;
+            }
+            if (operation == "ra" && args.Length == 3)
+            {
+                var count = engine.Ra(page, Node(args, 1), Arg(args, 2));
+                if (count < 0) return false;
+                Changes += count;
+                return true;
+            }
             var target = Node(args, 1);
             if (args.Length == 2 && (operation == "pe" || operation == "fc" || operation == "lc" ||
                 operation == "ps" || operation == "ns" || operation == "cc"))

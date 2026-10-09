@@ -20,6 +20,7 @@ namespace Lea.Script.Tests
                 var fixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-runtime.html");
                 var viewFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-view.html");
                 var attributeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-attributes.html");
+                var attributeEditFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-attribute-edits.html");
                 var selectorFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-selectors.html");
                 var treeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-tree.html");
                 if (args.Length > 1 && (args[1] == "--bootstrap-preparation" || args[1] == "-bp"))
@@ -172,6 +173,19 @@ namespace Lea.Script.Tests
                     ClassLists.Run(attributeFixture);
                     View.ClassLists(attributeFixture, args.Length > 2 ? args[2] : null);
                     Console.WriteLine("PASS Lea.Script classList" + (warm ? " warm diagnostics" : "") + ": " + checks + " checks.");
+                    return 0;
+                }
+                if (args.Length > 1 && (args[1] == "--attribute-edits" || args[1] == "-ae"))
+                {
+                    AttributeEdits.Run(attributeEditFixture);
+                    View.AttributeEdits(attributeEditFixture, args.Length > 2 ? args[2] : null);
+                    Console.WriteLine("PASS Lea.Script attribute edits: " + checks + " checks.");
+                    return 0;
+                }
+                if (args.Length > 1 && args[1] == "--attribute-edits-view")
+                {
+                    View.AttributeEdits(attributeEditFixture, args.Length > 2 ? args[2] : null);
+                    Console.WriteLine("PASS Lea.Script native attribute edits: " + checks + " checks.");
                     return 0;
                 }
                 if (args.Length > 1 && args[1] == "--attributes-view")
@@ -368,6 +382,8 @@ namespace Lea.Script.Tests
                 Events.Run(viewFixture);
                 Attributes.Run(attributeFixture);
                 View.Attributes(attributeFixture);
+                AttributeEdits.Run(attributeEditFixture);
+                View.AttributeEdits(attributeEditFixture);
                 ClassLists.Run(attributeFixture);
                 View.ClassLists(attributeFixture);
                 Microtasks.Run(viewFixture);

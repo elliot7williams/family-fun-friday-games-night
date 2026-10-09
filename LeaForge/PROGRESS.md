@@ -34,6 +34,18 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Added generic bounded literal attribute editing through compact `E.Sa/Ra` and
+`V.Sa/Da`, plus optional JavaScript `setAttribute/removeAttribute`. Parent-side
+name/count/text limits, ownership and permission admission, disclosure state,
+selector/style/field/accessibility rebuilds and shared non-constructible methods
+are verified by 322 focused checks. The full ordinary scripting suite passes
+1,713 checks; the standalone EXE lifecycle gate passes. Earlier native fixture,
+alias-collision and premature GUI-wrapper failures are retained. The broader
+core regression stops on a full C: disk; three storage-light model commands pass
+but do not replace that incomplete gate. No new Firespider release, installed
+replacement, startup-timeout fix or speedup is claimed. Milestone 146 stays open
+and broader readiness stays about 65%. See `ATTRIBUTE_EDITS.md`.
+
 The `-bp` test diagnostic compares direct evaluation, parse-only preparation
 and analyzed preparation using the actual embedded bootstrap and explicit
 prepared-parser regex limits. Six final planned fresh-process samples pass

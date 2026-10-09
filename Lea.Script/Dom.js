@@ -392,10 +392,10 @@
         nextElementSibling: { __proto__: null, get() { return wrap(relative(this, 'ns')); }, enumerable: true, configurable: true },
         childElementCount: { __proto__: null, get() { return relative(this, 'cc'); }, enumerable: true, configurable: true }
     };
-    function elementState(receiver, supplied) {
+    function elementState(receiver, supplied, required = 1) {
         const state = apply(getState, targets, [receiver]);
         if (!state || typeof state.key !== 'number') throw new listError('Illegal Element receiver');
-        if (supplied && supplied.length === 0) throw new listError('An attribute name is required');
+        if (supplied && supplied.length < required) throw new listError('An attribute argument is required');
         return state;
     }
     const elementMethods = {
@@ -407,12 +407,26 @@
         hasAttribute(name) {
             const state = elementState(this, arguments);
             return call('attr', state.key, str(name)) !== null;
+        },
+        setAttribute(name, value) {
+            const state = elementState(this, arguments, 2);
+            name = str(name);
+            value = str(value);
+            if (name.length === 0 || /[\t\n\f\r \0/=>]/.test(name)) throw new DOMException('Invalid attribute name', 'InvalidCharacterError');
+            if (name.length > 64 || value.length > 1024 || !call('sa', state.key, name, value)) throw new listError('Lea attribute mutation limit or invalid target');
+        },
+        removeAttribute(name) {
+            const state = elementState(this, arguments);
+            name = str(name);
+            if (name.length > 1024 || !call('ra', state.key, name)) throw new listError('Lea attribute mutation limit or invalid target');
         }
     };
     const elementProperties = {
         __proto__: null,
         getAttribute: { __proto__: null, value: elementMethods.getAttribute },
         hasAttribute: { __proto__: null, value: elementMethods.hasAttribute },
+        setAttribute: { __proto__: null, value: elementMethods.setAttribute },
+        removeAttribute: { __proto__: null, value: elementMethods.removeAttribute },
         classList: { __proto__: null,
             get() { const state = elementState(this); if (!state.classTokens) state.classTokens = makeList(state.key); return state.classTokens; },
             set(value) { const state = elementState(this); if (!state.classTokens) state.classTokens = makeList(state.key); state.classTokens.value = value; }
@@ -440,6 +454,8 @@
             style: { value: style },
             getAttribute: elementProperties.getAttribute,
             hasAttribute: elementProperties.hasAttribute,
+            setAttribute: elementProperties.setAttribute,
+            removeAttribute: elementProperties.removeAttribute,
             matches: { value(selector) { return select(this, arguments, false); } },
             closest: { value(selector) { return select(this, arguments, true); } },
             classList: elementProperties.classList

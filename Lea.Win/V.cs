@@ -735,6 +735,18 @@ namespace Lea.Win
             return Commands(e.Js(At, code));
         }
 
+        public int Sa(N element, string name, string value)
+        {
+            return closed || At == null ? 0 : Commands(e.Sa(At, element, name, value));
+        }
+
+        public int Da(N element, string name)
+        {
+            if (closed || At == null) return -1;
+            var count = e.Ra(At, element, name);
+            return count <= 0 ? count : Commands(count);
+        }
+
         public bool Su(string condition) { return e.Su(condition); }
         public bool Su(string property, string value) { return e.Su(property, value); }
         public bool Mq(string query) { return e.Mq(query); }

@@ -301,7 +301,12 @@ and rebuild selector, style, layout and accessible-label state. The optional
 bridge uses a captured string converter for DOM writes and attribute names;
 direct Symbols throw before a host call, while `null`/`undefined` ID/class writes
 become strings. Text content retains its existing null-to-empty special case.
-No generic `setAttribute`, URL mutation or DOM creation capability is added.
+The original ID/class reflection change did not add generic attribute writers;
+the later `Sa/Ra` core and `Sa/Da` view aliases now provide bounded literal
+`setAttribute`/`removeAttribute` support. These refresh current renderer
+projections, but do not enable external scripts, reload head stylesheets, or
+implement complete resource/form transition semantics. See
+[attribute editing](../LeaForge/ATTRIBUTE_EDITS.md).
 The existing case-insensitive core ID/class selector matching remains a
 limitation; script `classList` operations are case-sensitive. SVG animated class
 names and complete IDL/prototype/namespace behavior are not implemented. These

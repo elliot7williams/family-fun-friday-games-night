@@ -29,6 +29,11 @@ namespace Lea.Script.Tests
             Pump(() => Lea.Script.Tests.Attributes.Native(fixture, output));
         }
 
+        internal static void AttributeEdits(string fixture, string output = null)
+        {
+            Pump(() => Lea.Script.Tests.AttributeEdits.Native(fixture, output));
+        }
+
         internal static void ClassLists(string fixture, string output = null)
         {
             Pump(() => Lea.Script.Tests.ClassLists.Native(fixture, output));

@@ -1,5 +1,13 @@
 # LeaForge
 
+Latest engine capability: generic bounded attribute edits through `E.Sa/Ra`,
+`V.Sa/Da` and JavaScript `setAttribute/removeAttribute`. The focused 322 checks,
+full 1,713-check scripting suite and standalone EXE lifecycle gate pass. The
+broader native core regression remains incomplete because C: is full; three
+storage-light model checks pass. No installed Firespider replacement, startup
+fix or speedup is claimed. Readiness remains about 65%; see
+[ATTRIBUTE_EDITS.md](ATTRIBUTE_EDITS.md).
+
 LeaForge is a new, bigger browser-engine experiment for Lea.
 
 The earlier projects stay small:

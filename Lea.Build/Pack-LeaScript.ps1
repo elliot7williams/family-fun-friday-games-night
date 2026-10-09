@@ -47,6 +47,7 @@ Copy-Item -LiteralPath (Join-Path $root 'Lea.Script\licenses') -Destination $sta
 Copy-Item -LiteralPath (Join-Path $root 'LeaForge\test-pages\javascript-runtime.html') -Destination (Join-Path $stage 'LeaForge\test-pages')
 Copy-Item -LiteralPath (Join-Path $root 'LeaForge\test-pages\javascript-view.html') -Destination (Join-Path $stage 'LeaForge\test-pages')
 Copy-Item -LiteralPath (Join-Path $root 'LeaForge\test-pages\javascript-attributes.html') -Destination (Join-Path $stage 'LeaForge\test-pages')
+Copy-Item -LiteralPath (Join-Path $root 'LeaForge\test-pages\javascript-attribute-edits.html') -Destination (Join-Path $stage 'LeaForge\test-pages')
 Copy-Item -LiteralPath (Join-Path $root 'LeaForge\test-pages\javascript-selectors.html') -Destination (Join-Path $stage 'LeaForge\test-pages')
 Copy-Item -LiteralPath (Join-Path $root 'LeaForge\test-pages\javascript-tree.html') -Destination (Join-Path $stage 'LeaForge\test-pages')
 foreach ($name in @('Dom.js', 'Dom.compact.js', 'Dom.g.props')) {

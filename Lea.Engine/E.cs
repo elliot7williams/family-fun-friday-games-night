@@ -564,6 +564,69 @@ namespace Lea.Engine
                 element != null && !Connected(page.D, element)) return 0;
             var rules = page.R as List<R>;
             if (rules == null || !J.Put(page, element, command, value)) return 0;
+            MutationChanged(page, rules);
+            return 1;
+        }
+
+        // Sa accepts one literal attribute; Ra returns -1 for denial, 0 for absent, 1 for removed.
+        public int Sa(P page, N element, string name, string value)
+        {
+            QueryPage(page);
+            if (!AttributeTarget(page, element) || !AttributeName(name) || value == null || value.Length > 1024) return 0;
+            name = LowerAttributeName(name);
+            if ((name == "id" || name == "class") && value.Length > 512 ||
+                element.A.Count > MaxHtmlAttributes || !element.A.ContainsKey(name) && element.A.Count == MaxHtmlAttributes) return 0;
+            var text = name.Length + value.Length;
+            foreach (var attribute in element.A)
+                if (!String.Equals(attribute.Key, name, StringComparison.OrdinalIgnoreCase))
+                    text += attribute.Key.Length + (attribute.Value == null ? 0 : attribute.Value.Length);
+            if (text > MaxHtmlAttributeText) return 0;
+            element.A[name] = value;
+            if (element.K == "details" && name == "open") element.Op = true;
+            MutationChanged(page, (List<R>)page.R);
+            return 1;
+        }
+
+        public int Ra(P page, N element, string name)
+        {
+            QueryPage(page);
+            if (!AttributeTarget(page, element) || name == null || name.Length > 1024) return -1;
+            name = LowerAttributeName(name);
+            if (!element.A.Remove(name)) return 0;
+            if (element.K == "details" && name == "open") element.Op = false;
+            MutationChanged(page, (List<R>)page.R);
+            return 1;
+        }
+
+        private bool AttributeTarget(P page, N element)
+        {
+            return je && element != null && !element.K.StartsWith("#", StringComparison.Ordinal) &&
+                page.R is List<R> && Connected(page.D, element);
+        }
+
+        private static bool AttributeName(string name)
+        {
+            if (name == null || name.Length == 0 || name.Length > MaxHtmlName) return false;
+            foreach (var value in name)
+                if (value == ' ' || value == '\t' || value == '\n' || value == '\r' || value == '\f' ||
+                    value == '\0' || value == '/' || value == '=' || value == '>') return false;
+            return true;
+        }
+
+        private static string LowerAttributeName(string name)
+        {
+            char[] lowered = null;
+            for (var index = 0; index < name.Length; index++)
+                if (name[index] >= 'A' && name[index] <= 'Z')
+                {
+                    if (lowered == null) lowered = name.ToCharArray();
+                    lowered[index] = (char)(name[index] + ('a' - 'A'));
+                }
+            return lowered == null ? name : new string(lowered);
+        }
+
+        private void MutationChanged(P page, List<R> rules)
+        {
             page.Jc = (int)Math.Min(Int32.MaxValue, (long)page.Jc + 1);
             var fields = new Dictionary<N, Fi>();
             foreach (var field in page.Fs)
@@ -574,7 +637,6 @@ namespace Lea.Engine
             if (page.Fc != null && !Connected(page.D, page.Fc)) page.Fc = null;
             if (page.Kq != null && !Connected(page.D, page.Kq)) page.Kq = null;
             Rebuild(page, rules, fields);
-            return 1;
         }
 
         private static bool Connected(N root, N node)
