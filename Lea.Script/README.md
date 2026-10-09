@@ -277,6 +277,14 @@ objects, reflection types, file handles, or network clients:
 - Write-only `style.color/backgroundColor/width/height/display/fontSize`.
 - A bounded queued `alert`, plus `window` as the global object.
 
+`getAttribute`, `hasAttribute` and the `classList` accessors use their actual
+receiving Lea element, including borrowed calls. Invalid receivers throw before
+argument conversion. Attribute methods require one name and remain
+non-constructible; the shared class accessors retain a separate stable live
+token list per element. Existing own-property attributes are unchanged, not a
+complete Element prototype implementation. See
+[receiver contracts and tests](../LeaForge/ELEMENT_RECEIVERS.md).
+
 The core `E.Jv(page, node, alias, value)` path applies literal typed values,
 not generated code. It supports `t/a`, `tx/vl/ck`, `id/cn`, `ac/rc/tc`, and
 `fg/bg/wd/ht/dp/fs`. It checks host permission, page and connected-node

@@ -118,7 +118,7 @@
         };
     }
     function eventTarget(node, key) {
-        const state = { node, key, listeners: [], properties: Object.create(null), inline: Object.create(null), handlers: Object.create(null) };
+        const state = { node, key, classTokens: null, listeners: [], properties: Object.create(null), inline: Object.create(null), handlers: Object.create(null) };
         apply(setState, targets, [node, state]);
         defineEvents(node, eventProperties);
     }
@@ -388,11 +388,36 @@
         nextElementSibling: { __proto__: null, get() { return wrap(relative(this, 'ns')); }, enumerable: true, configurable: true },
         childElementCount: { __proto__: null, get() { return relative(this, 'cc'); }, enumerable: true, configurable: true }
     };
+    function elementState(receiver, supplied) {
+        const state = apply(getState, targets, [receiver]);
+        if (!state || typeof state.key !== 'number') throw new listError('Illegal Element receiver');
+        if (supplied && supplied.length === 0) throw new listError('An attribute name is required');
+        return state;
+    }
+    const elementMethods = {
+        __proto__: null,
+        getAttribute(name) {
+            const state = elementState(this, arguments);
+            return call('attr', state.key, str(name));
+        },
+        hasAttribute(name) {
+            const state = elementState(this, arguments);
+            return call('attr', state.key, str(name)) !== null;
+        }
+    };
+    const elementProperties = {
+        __proto__: null,
+        getAttribute: { __proto__: null, value: elementMethods.getAttribute },
+        hasAttribute: { __proto__: null, value: elementMethods.hasAttribute },
+        classList: { __proto__: null,
+            get() { const state = elementState(this); if (!state.classTokens) state.classTokens = makeList(state.key); return state.classTokens; },
+            set(value) { const state = elementState(this); if (!state.classTokens) state.classTokens = makeList(state.key); state.classTokens.value = value; }
+        }
+    };
     function wrap(key) {
         if (key === null) return null;
         if (cache.has(key)) return cache.get(key);
         const node = {};
-        let classTokens;
         const style = {};
         for (let i = 0; i < styleNames.length; i++) {
             const name = styleNames[i];
@@ -409,14 +434,11 @@
             value: { get() { return call('value', key); }, set(value) { put(key, 'vl', value); } },
             checked: { get() { return call('checked', key); }, set(value) { put(key, 'ck', value ? '1' : '0'); } },
             style: { value: style },
-            getAttribute: { value(name) { return call('attr', key, str(name)); } },
-            hasAttribute: { value(name) { return call('attr', key, str(name)) !== null; } },
+            getAttribute: elementProperties.getAttribute,
+            hasAttribute: elementProperties.hasAttribute,
             matches: { value(selector) { return select(this, arguments, false); } },
             closest: { value(selector) { return select(this, arguments, true); } },
-            classList: {
-                get() { if (!classTokens) classTokens = makeList(key); return classTokens; },
-                set(value) { if (!classTokens) classTokens = makeList(key); classTokens.value = value; }
-            }
+            classList: elementProperties.classList
         });
         eventTarget(node, key);
         cache.set(key, node);

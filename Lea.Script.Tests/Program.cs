@@ -54,6 +54,12 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script event receivers: " + checks + " checks.");
                     return 0;
                 }
+                if (args.Length > 1 && (args[1] == "--element-receivers" || args[1] == "--element-receivers-isolated"))
+                {
+                    ElementReceivers.Run(attributeFixture, args[1] == "--element-receivers-isolated", args.Length > 2 ? args[2] : null);
+                    Console.WriteLine("PASS Lea.Script element receivers: " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--event-options")
                 {
                     EventOptions.Run(viewFixture);
@@ -287,7 +293,7 @@ namespace Lea.Script.Tests
                     Check(page.T == "Lea JavaScript runtime experiment", "page scripts stay opt-in");
                     var code = engine.Q(page, "script").C[0].X;
                     var execution = script.Ex(code);
-                    Check(execution.Ok && execution.N == 6, "computed script: " + execution.S);
+                    Check(execution.Ok && execution.N == 6, "computed script: " + execution.S + "; " + execution.M);
                     Check(page.T == "Lea 7" && result.C[0].X == "Total: 7", "template strings and computed DOM values");
                     Check(result.Av("class") == "active" && result.Av("style").Contains("140px"), "class and width mutation");
                     Check(Object.ReferenceEquals(field, page.Fs.Single(item => item.El.Av("id") == "field")) && field.V == "{\"total\":7}", "retained field and JSON");
@@ -363,6 +369,7 @@ namespace Lea.Script.Tests
                 BudgetPhases.Run(viewFixture);
                 EventOptions.Run(viewFixture);
                 EventReceivers.Run(viewFixture);
+                ElementReceivers.Run(attributeFixture);
                 ListenerCalls.Run(viewFixture);
                 // Keep this worker-file probe after the existing startup and execution gates.
                 WorkerEntry.Run();

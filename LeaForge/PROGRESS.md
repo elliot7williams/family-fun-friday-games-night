@@ -34,6 +34,18 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Element attribute methods and class-list accessors now resolve their actual
+receiver, rejecting fake/proxy/nullish receivers before argument conversion.
+Four per-element function copies become shared per-realm methods/accessors
+with private per-element token caches and preserved non-constructor semantics.
+Final revision B passes all 43 focused checks, 1,385 ordinary full-source checks
+and the actual standalone browser EXE smoke. Revision A's trusted startup
+failures, the old-runtime borrowed-read failure and corrected external summary
+verifiers are retained. The compact resource grows 811 bytes; no measured speed
+or memory improvement, native startup fix, new host candidate, package or
+installed replacement is claimed. Milestone 146 remains open and broader
+readiness stays about 65%. See `ELEMENT_RECEIVERS.md`.
+
 Fresh v28 runtime and host-source ZIPs pass exact input/manifest/stream/extraction
 audits. The extracted runtime passes all 43 ordinary host cases and six actual
 EXE startup scenarios. The archived source independently compiles without

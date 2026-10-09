@@ -10,7 +10,16 @@ The earlier projects stay small:
 
 LeaForge is where we can grow the more full-featured browser.
 
-Latest package checkpoint: v28's freshly extracted runtime passes all 43 host
+Latest source checkpoint: attribute methods and class-list accessors now use
+their receiving element, with shared per-realm functions and private per-element
+token caches. All 43 focused and 1,385 full-source checks pass on final revision
+B, together with the standalone browser EXE smoke. Earlier revision A startup
+failures and the isolated old-runtime receiver failure are retained. Compact
+bytes grow 811; no speedup or startup fix is claimed. No new host candidate or
+installed replacement is made; milestone 146 remains open and readiness stays
+about 65%. See [ELEMENT_RECEIVERS.md](ELEMENT_RECEIVERS.md).
+
+Previous package checkpoint: v28's freshly extracted runtime passes all 43 host
 cases and six actual-EXE startup scenarios without startup observation or timing
 trace. The archived host source builds independently and passes the complete
 script case plus six startup scenarios; all source inputs and 19 production
