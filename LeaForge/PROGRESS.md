@@ -34,6 +34,20 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+A standalone bounded CLR stack diagnostic now validates controlled worker
+identity before capture. The original snapshot prototype and final suspended
+mode each pass eight controlled contracts. Native snapshot creation fails
+with quota error 1816 while its observed flow passes 26 checks. The distinct
+suspended-mode attempt captures 14 frames, including CLR comparer creation
+inside Jint global-declaration initialization during trusted bootstrap; its
+instrumented native flow then times out at 5,022 ms / CPU 484 ms after parsed.
+All 33 samples match the captured PID and creation time, with no observer
+errors or drops, and all owned processes retire. This debugger-perturbed stack
+is a concrete lead, not a cause or speedup claim. All 19 production records
+and the test executable remain byte-identical, so the prior failed broad and
+Firespider gates still apply. No new release or milestone completion is
+claimed; readiness stays about 65%. See `../Lea.Build/StartupStacks/README.md`.
+
 Both script startup methods now bind their already-created bridge functions
 directly through the JsValue overload, avoiding the generic CLR-conversion
 entry point. Compiled-method contracts reject both preceding methods and pass

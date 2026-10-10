@@ -1,5 +1,15 @@
 # LeaForge
 
+Latest startup investigation: a standalone identity-checked CLR stack tool
+captures 14 frames from an instrumented native startup, showing comparer
+creation inside Jint's trusted-bootstrap declaration setup. Its final eight
+controlled contracts pass, but that debugger-perturbed native flow still
+times out. The preceding snapshot request's quota failure and separate 26-check
+native flow pass remain preserved. No production bytes change and earlier
+failed broad/host gates still apply. No root cause, speedup or new release is
+claimed; readiness stays about 65%. See
+[startup call stacks](../Lea.Build/StartupStacks/README.md).
+
 Latest startup simplification: both script runtimes bind already-created bridge
 functions directly as JsValue instead of taking the generic CLR conversion
 route. Compiled-method contracts reject the preceding calls and verify the new
