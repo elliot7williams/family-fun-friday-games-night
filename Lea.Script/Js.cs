@@ -22,6 +22,19 @@ namespace Lea.Script
         private bool running;
         private long generation;
         private static readonly string bootstrap = LoadBootstrap();
+        private static readonly ScriptPreparationOptions preparation = new ScriptPreparationOptions
+        {
+            StaticAnalysis = true,
+            FoldConstants = false,
+            ParsingOptions = new ScriptParsingOptions
+            {
+                CompileRegex = false,
+                RegexTimeout = TimeSpan.FromMilliseconds(100)
+            }
+        };
+        // Share only the fixed trusted syntax tree, never a realm or page script.
+        private static readonly Lazy<Prepared<Acornima.Ast.Script>> prepared =
+            new Lazy<Prepared<Acornima.Ast.Script>>(() => Jint.Engine.PrepareScript(bootstrap, options: preparation));
 
         public Js(E engine, P page) : this(engine, page, null) { }
 
@@ -109,7 +122,7 @@ namespace Lea.Script
                 Codec.Value(vm, bridge.Call(Codec.Arguments(args)))));
             vm.SetValue("__jobs", (Jint.Native.JsValue)new ClrFunction(vm, "__jobs", (_, args) =>
             { vm.Advanced.ProcessTasks(); return Jint.Native.JsValue.Undefined; }));
-            dispatch = vm.Evaluate(bootstrap);
+            dispatch = vm.Evaluate(prepared.Value);
             bridge.Begin();
         }
 

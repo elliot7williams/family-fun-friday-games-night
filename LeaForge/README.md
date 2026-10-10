@@ -1,5 +1,16 @@
 # LeaForge
 
+Latest trusted-runtime optimization: `Js` lazily shares a prepared syntax
+tree for its fixed bootstrap without sharing realms or caching page scripts.
+Five contracts, 14 isolation/reset/concurrency/collection, 14 options, four
+resource, 36 combined scope and seven native recovery checks pass. A previous
+Script DLL is rejected by the same cache contract. Both fresh first-call
+samples pass, but the broad suite stops after 180 assertions at native
+startup. Browser and copied Firespider script checks pass, not the full host
+matrix. Worker bytes and all limits remain unchanged; no speedup, native
+startup fix or release is claimed. Readiness stays about 65%. See
+[trusted bootstrap cache](TRUSTED_BOOTSTRAP_CACHE.md).
+
 Latest native scripting diagnostic: short `Jp.Ed` reports retain parent command
 phases, elapsed wall time and child CPU delta separately from startup `Sd`.
 Eight contracts, 71 controlled and seven real-worker checks pass; the same API

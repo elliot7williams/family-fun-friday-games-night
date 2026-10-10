@@ -34,6 +34,21 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Trusted `Js` now lazily shares only its prepared bootstrap syntax tree across
+independent realms. Five compiled-cache, 14 isolation/reset/concurrency/GC,
+14 options, four asset, 36 combined scope and seven native recovery checks
+pass. The same cache contract rejects the previous Script DLL. Both fresh
+default first-call samples pass; one pair does not establish a speedup.
+The broad suite fails after 180 assertions at timing-enabled native startup,
+wall 5,016 ms / CPU 250 ms, last checkpoint evaluate. No failed gate is retried.
+Standalone browser and copied Firespider script checks pass; four captures
+are inspected, not a full host matrix or installed-startup verification.
+Only candidate Script DLL changes, by 512 bytes; worker bytes, guards,
+budgets and required 749,056-byte bundle stay unchanged. Normal and original
+host files stay unchanged. Source backup and all failures are retained.
+No native startup fix, speedup or release is claimed; milestone 146 stays
+open and readiness stays about 65%. See `TRUSTED_BOOTSTRAP_CACHE.md`.
+
 Native workers gain opt-in build alias `Be=1` for constrained intrinsic eval;
 default `Be=0` retains ordinary script evaluation and trusted `Js` is unchanged.
 The identical embedded bootstrap and all native guards/budgets are preserved.

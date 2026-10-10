@@ -1,5 +1,9 @@
 # Experimental Native Bootstrap Entry
 
+This is the retained native-entry checkpoint. Subsequent
+[trusted bootstrap cache work](TRUSTED_BOOTSTRAP_CACHE.md) changes only `Js`;
+the native worker described here remains byte-identical in that candidate.
+
 Milestone 146 stays open. Broader browser readiness remains about 65%.
 This checkpoint adds a real native-worker alternative, not a startup fix,
 default adoption, speedup or release.

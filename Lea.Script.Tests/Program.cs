@@ -87,6 +87,16 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script bootstrap entry: " + checks + " checks; compiled contract only.");
                     return 0;
                 }
+                if (args.Length > 1 && args[1].StartsWith("--bootstrap-cache", StringComparison.Ordinal))
+                {
+                    if (args.Length != 2) throw new ArgumentException("No extra arguments are accepted for bootstrap cache checks.");
+                    if (args[1] == "--bootstrap-cache-contract") BootstrapCache.Contract();
+                    else if (args[1] == "--bootstrap-cache-cold") BootstrapCache.Cold(fixture);
+                    else if (args[1] == "--bootstrap-cache") BootstrapCache.Run(attributeFixture);
+                    else throw new ArgumentException("Unknown bootstrap cache diagnostic.");
+                    Console.WriteLine("PASS Lea.Script bootstrap cache: " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--startup-observe")
                 {
                     if (args.Length != 3) throw new ArgumentException("Supply a new JSON report path for --startup-observe.");
