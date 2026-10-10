@@ -8,6 +8,12 @@ using Jint.Runtime;
 using Jint.Runtime.Interop;
 using Lea.Script;
 
+#if LEA_INDIRECT_BOOTSTRAP
+[assembly: System.Reflection.AssemblyMetadata("Lea.BootstrapEntry", "indirect")]
+#else
+[assembly: System.Reflection.AssemblyMetadata("Lea.BootstrapEntry", "direct")]
+#endif
+
 namespace Lea.Script.Worker
 {
     internal static class Program
@@ -77,11 +83,16 @@ namespace Lea.Script.Worker
                     Trace("source", clock, trace);
                     // Tracing observes the production parser instead of selecting a different bootstrap path.
                     Trace("evaluate", clock, trace);
+#if LEA_INDIRECT_BOOTSTRAP
+                    dispatch = vm.Invoke(vm.Intrinsics.Eval, JsValue.Undefined, new[] { (JsValue)source });
+                    Trace("eval-end", clock, trace);
+#else
                     Jint.Runtime.Debugger.DebugHandler.BeforeEvaluateEventHandler parsed =
                         (sender, ast) => Trace("parsed", clock, trace);
                     vm.Debugger.BeforeEvaluate += parsed;
                     try { dispatch = vm.Evaluate(source); }
                     finally { vm.Debugger.BeforeEvaluate -= parsed; }
+#endif
                     Trace("dom", clock, trace);
                     var network = probe.Denied();
                     Trace("probes", clock, trace);

@@ -80,6 +80,13 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script bootstrap preparation diagnostic: " + checks + " checks; not a native startup gate.");
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--bootstrap-entry-contract")
+                {
+                    if (args.Length > 3) throw new ArgumentException("Supply at most one worker executable for --bootstrap-entry-contract.");
+                    BootstrapEntry.Contract(args.Length == 3 ? args[2] : null);
+                    Console.WriteLine("PASS Lea.Script bootstrap entry: " + checks + " checks; compiled contract only.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--startup-observe")
                 {
                     if (args.Length != 3) throw new ArgumentException("Supply a new JSON report path for --startup-observe.");
@@ -486,6 +493,7 @@ namespace Lea.Script.Tests
                 DocumentOrigins.Run(true);
                 View.Pump(() => DocumentOrigins.Native(null));
                 VmOptions.Run();
+                BootstrapEntry.Contract();
                 ExecutionReports.Run(fixture);
                 Console.WriteLine("PASS Lea.Script: " + checks + " checks; JavaScript, isolated worker, and typed DOM.");
                 return 0;

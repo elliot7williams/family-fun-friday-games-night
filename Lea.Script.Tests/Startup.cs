@@ -438,16 +438,17 @@ namespace Lea.Script.Tests
                         Check(result.Ok && script.Ac && script.Ne && script.Nd && script.Fd && script.Mg == 15,
                             "phase worker preserves verified isolation: timing=" + timing + "; " + result.S + "; " + result.M + "; " + script.Sd);
                         var report = script.Sd;
-                        const string marker = "startup parsed";
+                        var marker = BootstrapEntry.Kind() == "indirect" ? "startup eval-end" : "startup parsed";
                         Check(report.Contains(marker) && report.IndexOf(marker, StringComparison.Ordinal) == report.LastIndexOf(marker, StringComparison.Ordinal) &&
                             report.Length <= 512 && script.Tm == 2000 && script.Cp == 2500 && script.Mm == 128L * 1024 * 1024,
-                            "one bounded post-parse marker with unchanged defaults: timing=" + timing + "; " + report);
+                            "one bounded compiled-entry checkpoint with unchanged defaults: timing=" + timing + "; " + report);
                         var warm = script.Ex("1;");
                         Thread.Sleep(50);
                         var endpoint = warm.Ok ? typeof(Jp).GetField("worker", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(script) : null;
                         var stderr = endpoint == null ? "" : (string)endpoint.GetType().GetProperty("E").GetValue(endpoint, null);
                         Check(warm.Ok && script.Sd == report && stderr.Contains(marker) &&
-                            stderr.IndexOf(marker, StringComparison.Ordinal) == stderr.LastIndexOf(marker, StringComparison.Ordinal),
+                            stderr.IndexOf(marker, StringComparison.Ordinal) == stderr.LastIndexOf(marker, StringComparison.Ordinal) &&
+                            !stderr.Contains(marker == "startup parsed" ? "startup eval-end" : "startup parsed"),
                             "page evaluation retains the report without another startup marker: timing=" + timing + "; " + warm.S + "; " + warm.M);
                         var drain = Stopwatch.StartNew();
                         while (endpoint != null && !stderr.Contains("startup ready") && drain.ElapsedMilliseconds < 1000)
@@ -527,8 +528,8 @@ namespace Lea.Script.Tests
                             "bounded startup diagnostics retained: " + index);
                         Check(script.Sd.Contains("startup evaluate: wall=") == (trace == "1" || index == 1) &&
                             !script.Sd.Contains("startup parse:"), "tracing observes the production bootstrap path: " + index);
-                        Check(script.Sd.Contains("startup entry") || script.Sd.Contains("startup parsed"),
-                            "bounded startup trace retains an entry or post-parse checkpoint without requiring timing: " + index);
+                        Check(script.Sd.Contains("startup entry") || script.Sd.Contains(BootstrapEntry.Kind() == "indirect" ? "startup eval-end" : "startup parsed"),
+                            "bounded startup trace retains an entry or compiled-entry checkpoint without requiring timing: " + index);
                         var diagnostics = script.Sd;
                         Check(script.Ex("1;").Ok && script.Sd == diagnostics, "warm execution does not replace startup report: " + index);
                         sid = script.Sid;

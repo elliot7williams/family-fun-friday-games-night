@@ -34,6 +34,23 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Native workers gain opt-in build alias `Be=1` for constrained intrinsic eval;
+default `Be=0` retains ordinary script evaluation and trusted `Js` is unchanged.
+The identical embedded bootstrap and all native guards/budgets are preserved.
+Eight compiled-entry, 14 options and four resource checks pass, as do 27
+paired-launch, 12 checkpoint, 19 isolated-scope and seven deadline/recovery
+checks. Invalid build settings and an old-metadata control reject safely;
+valid modes and exact compiler-symbol boundaries pass validation checks.
+The combined scope gate fails before native work in trusted startup; the broad
+suite fails after 24 assertions at the same unchanged one-second bootstrap.
+Those failures and the test-helper build/contract/path repairs are retained;
+no native failure is retried. Standalone browser and copied Firespider script
+checks pass, with four inspected captures; the full host matrix is not rerun.
+Only the candidate worker EXE changes, remaining 47,104 bytes. Normal outputs
+and installed files stay unchanged. No adoption, speedup, startup fix or release
+is claimed; milestone 146 stays open and readiness stays about 65%. See
+`NATIVE_BOOTSTRAP_ENTRY.md`.
+
 The bootstrap preparation diagnostic adds test-only `-bp indirect`, invoking
 the intrinsic eval through Jint's normal constrained entry. Each of four
 fresh-process modes passes four checks, including private helper isolation;

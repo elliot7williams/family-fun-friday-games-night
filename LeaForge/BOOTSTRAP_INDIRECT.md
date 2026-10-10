@@ -3,6 +3,10 @@
 Milestone 146 stays open. Broader browser readiness remains about 65%.
 This is a test-only experiment, not a production startup fix or release.
 
+A subsequent [native worker experiment](NATIVE_BOOTSTRAP_ENTRY.md) adds
+opt-in `Be=1` and real isolated-worker evidence. The observations below remain
+the preceding test-only checkpoint; default production entry is unchanged.
+
 ## Entry And Scope
 
 The existing bootstrap diagnostic accepts `indirect` as its fourth strategy:

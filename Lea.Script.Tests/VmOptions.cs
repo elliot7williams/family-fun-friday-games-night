@@ -85,7 +85,7 @@ namespace Lea.Script.Tests
             Program.Check(constructors.Length == 1 && constructors[0].GetParameters().Select(item => item.ParameterType).SequenceEqual(new[] { typeof(Options) }),
                 label + " compiled startup calls the explicit Options constructor, not a callback adapter");
         }
-        private static IEnumerable<MethodBase> Calls(MethodInfo method)
+        internal static IEnumerable<MethodBase> Calls(MethodInfo method)
         {
             var codes = typeof(OpCodes).GetFields(BindingFlags.Public | BindingFlags.Static).Where(item => item.FieldType == typeof(OpCode))
                 .Select(item => (OpCode)item.GetValue(null)).ToDictionary(item => unchecked((ushort)item.Value));

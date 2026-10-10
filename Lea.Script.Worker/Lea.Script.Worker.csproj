@@ -6,6 +6,8 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <W32 Condition="'$(W32)' == ''">0</W32>
+    <Be Condition="'$(Be)' == ''">0</Be>
+    <DefineConstants Condition="'$(Be)' == '1'">$(DefineConstants);LEA_INDIRECT_BOOTSTRAP</DefineConstants>
     <PlatformTarget Condition="'$(W32)' == '1' And '$(PlatformTarget)' == ''">AnyCPU</PlatformTarget>
     <Prefer32Bit Condition="'$(W32)' == '1'">true</Prefer32Bit>
   </PropertyGroup>
@@ -19,6 +21,14 @@
     <EmbeddedResource Include="..\Lea.Script\Dom.compact.js" Link="Dom.js" LogicalName="Lea.Script.Dom.js" />
   </ItemGroup>
   <Import Project="..\Lea.Script\Dom.targets" />
+  <Target Name="ValidateLeaBootstrapEntry" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(Be)' != '0' And '$(Be)' != '1'"
+           Text="Be must be 0 (normal) or 1 (experimental indirect bootstrap)." />
+    <Error Condition="'$(Be)' == '0' And $([System.Text.RegularExpressions.Regex]::IsMatch('$(DefineConstants)', '(^|[;,\s])LEA_INDIRECT_BOOTSTRAP($|[;,\s])'))"
+           Text="LEA_INDIRECT_BOOTSTRAP requires Be=1; do not override the bootstrap symbol directly." />
+    <Error Condition="'$(Be)' == '1' And !$([System.Text.RegularExpressions.Regex]::IsMatch('$(DefineConstants)', '(^|[;,\s])LEA_INDIRECT_BOOTSTRAP($|[;,\s])'))"
+           Text="Be=1 requires LEA_INDIRECT_BOOTSTRAP; do not replace DefineConstants globally." />
+  </Target>
   <Target Name="ValidateLeaWorkerBitness" BeforeTargets="PrepareForBuild">
     <Error Condition="'$(W32)' != '0' And '$(W32)' != '1'"
            Text="W32 must be 0 (normal) or 1 (experimental 32-bit preference)." />
