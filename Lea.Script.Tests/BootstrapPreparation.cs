@@ -17,8 +17,8 @@ namespace Lea.Script.Tests
     {
         internal static void Run(string strategy, string reportPath)
         {
-            if (strategy != "direct" && strategy != "parsed" && strategy != "analyzed")
-                throw new ArgumentException("Use direct, parsed or analyzed preparation.");
+            if (strategy != "direct" && strategy != "parsed" && strategy != "analyzed" && strategy != "indirect")
+                throw new ArgumentException("Use direct, parsed, analyzed or indirect preparation.");
             reportPath = Path.GetFullPath(reportPath);
             if (File.Exists(reportPath) || !Directory.Exists(Path.GetDirectoryName(reportPath)))
                 throw new ArgumentException("Supply a new report path in an existing directory.");
@@ -72,7 +72,7 @@ namespace Lea.Script.Tests
                         vm.SetValue("__jobs", new ClrFunction(vm, "__jobs", (_, values) => JsValue.Undefined));
                         Mark("vm");
                         var prepared = default(Prepared<Acornima.Ast.Script>);
-                        if (strategy != "direct")
+                        if (strategy == "parsed" || strategy == "analyzed")
                             prepared = Jint.Engine.PrepareScript(source, options:
                                 new ScriptPreparationOptions
                                 {
@@ -91,11 +91,18 @@ namespace Lea.Script.Tests
                         };
                         vm.Debugger.BeforeEvaluate += parsed;
                         JsValue dispatch;
-                        try { dispatch = strategy == "direct" ? vm.Evaluate(source) : vm.Evaluate(prepared); }
+                        try
+                        {
+                            dispatch = strategy == "indirect"
+                                ? vm.Invoke(vm.Intrinsics.Eval, JsValue.Undefined, new[] { (JsValue)source })
+                                : strategy == "direct" ? vm.Evaluate(source) : vm.Evaluate(prepared);
+                        }
                         finally { vm.Debugger.BeforeEvaluate -= parsed; }
                         Mark("complete");
                         Program.Check(dispatch is Function, "preparation returns the private dispatcher: " + strategy);
-                        Program.Check(calls == 0 && parsedCount == 1, "preparation has no host calls and one evaluation: " + strategy);
+                        // Jint does not emit BeforeEvaluate for its indirect-eval entry.
+                        Program.Check(calls == 0 && parsedCount == (strategy == "indirect" ? 0 : 1),
+                            "preparation has no host calls and the expected script-evaluation callbacks: " + strategy);
                         var probe = vm.Evaluate(@"(function(){
 if(window!==globalThis||typeof document!=='object'||'__lea' in globalThis||'__jobs' in globalThis)throw Error('bootstrap globals');
 const global=Object.getOwnPropertyDescriptor(globalThis,'document');
@@ -112,6 +119,14 @@ return true;
 }());");
                         Program.Check(probe.AsBoolean() && calls == 0,
                             "preparation preserves bridge-free globals, descriptors and non-constructible event methods: " + strategy);
+                        var scopes = vm.Evaluate(@"(function(){
+for(const name of ['call','checkpoint','realm','evaluate','timers','cache','targets','wrap','listStates','dispatch']){
+  if(name in globalThis||eval('typeof '+name)!=='undefined'||Function('return typeof '+name)()!=='undefined')throw Error('private binding '+name);
+}
+return true;
+}());");
+                        Program.Check(scopes.AsBoolean() && calls == 0,
+                            "preparation keeps captured helpers private to the bootstrap: " + strategy);
                         Mark("validated");
                     }
                 }
@@ -124,12 +139,15 @@ return true;
                         kind = "bootstrap-preparation-clr-diagnostic", strategy,
                         sourceBytes = bytes.Length, sourceSHA256 = digest,
                         passed = failure == null, error = failure == null ? null : failure.ToString(),
-                        hostCalls = calls, bootstrapEvaluations = parsedCount, stages,
+                        hostCalls = calls, bootstrapEvaluations = parsedCount, scriptEvaluationCallbacks = parsedCount, stages,
+                        entry = strategy == "indirect" ? "Engine.Invoke(Intrinsics.Eval)" : "Engine.Evaluate",
+                        callbackNotEmittedForIndirectEval = strategy == "indirect",
                         interpreterBudgetMs = 5000, statements = 20000, allocationBytes = 8 * 1024 * 1024,
                         recursion = 64, regexBudgetMs = 100, arraySize = 65536, clrInterop = false,
-                        preparationRegexBudgetMs = strategy == "direct" ? (int?)null : 100,
-                        preparationRegexMode = strategy == "direct" ? null : "interpreted",
-                        nativeStartupGate = false, coldCacheBenchmark = false, retries = 0
+                        preparationRegexBudgetMs = strategy == "parsed" || strategy == "analyzed" ? (int?)100 : null,
+                        preparationRegexMode = strategy == "parsed" || strategy == "analyzed" ? "interpreted" : null,
+                        nativeStartupGate = false, coldCacheBenchmark = false, retries = 0,
+                        productionRuntimeChanged = false, speedupClaim = false
                     };
                     var json = new JavaScriptSerializer().Serialize(report);
                     using (var stream = new FileStream(reportPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))

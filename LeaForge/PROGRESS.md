@@ -34,6 +34,16 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+The bootstrap preparation diagnostic adds test-only `-bp indirect`, invoking
+the intrinsic eval through Jint's normal constrained entry. Each of four
+fresh-process modes passes four checks, including private helper isolation;
+14 options checks, four resource checks and three rejection controls pass.
+All 19 runtime files stay byte-identical to the execution-report candidate.
+Native startup, the broad suite and host/browser gates are not rerun for this
+test-only change. The previous broad failure after 175 assertions is retained.
+No alternate entry is adopted, no speedup or release is claimed, milestone 146
+stays open and readiness remains about 65%. See `BOOTSTRAP_INDIRECT.md`.
+
 Native scripting gains short `Jp.Ed` execution reports, distinct from `Sd`.
 Parent phases, wall time, CPU delta and bounded newest stderr are captured
 before retirement; successful and valid worker error messages stay unchanged.

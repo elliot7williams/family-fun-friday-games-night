@@ -34,6 +34,13 @@ callback constructor. The six-launch comparison and broad scripting gate
 still fail overall; this is not a startup fix or speedup. See
 [EXPLICIT_OPTIONS.md](../LeaForge/EXPLICIT_OPTIONS.md).
 
+The test-only `-bp indirect` bootstrap diagnostic invokes the pinned intrinsic
+eval through Jint's constrained entry, using the identical embedded source.
+Four entry modes pass their bridge-privacy and descriptor checks, but native
+startup has not been validated for this alternative. Production still uses
+`Engine.Evaluate`; there is no startup fix or speedup claim. See
+[BOOTSTRAP_INDIRECT.md](../LeaForge/BOOTSTRAP_INDIRECT.md).
+
 ## Visual Studio
 
 The script projects are included in `../Lea.sln`. A host using this optional
