@@ -1,5 +1,13 @@
 # LeaForge
 
+Latest storage-resumed checks: the unchanged runtime passes the renderer smoke
+and all eight native-view load-failure/recovery checks. The ordinary scripting
+suite instead stops after 1,380 assertions at another isolated startup timeout,
+with about 606 MiB still free on C:. Each gate runs once, sequentially, without
+an external debugger or startup observer. No startup fix, speedup or release
+is claimed; prior failures remain retained and readiness stays about 65%. See
+[storage revalidation](STORAGE_REVALIDATION.md).
+
 Latest startup investigation: a standalone identity-checked CLR stack tool
 captures 14 frames from an instrumented native startup, showing comparer
 creation inside Jint's trusted-bootstrap declaration setup. Its final eight

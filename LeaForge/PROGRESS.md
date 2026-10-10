@@ -34,6 +34,17 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+A storage-resumed revalidation keeps every production byte and test executable
+unchanged. With about 606 MiB still free on C:, the ordinary scripting suite
+stops after 1,380 passing assertions at a 5,011-ms / 703-ms CPU native startup
+timeout, after parsed. The separate renderer smoke and all eight native-view
+load-failure/recovery checks pass. Each gate runs once, sequentially, without
+an external debugger or startup observer. The failed broad gate and earlier
+Firespider failures remain retained; protections, original host inputs and
+installed binaries stay unchanged. No startup fix, speedup, release or new
+milestone completion is claimed. Readiness remains about 65%. See
+`STORAGE_REVALIDATION.md`.
+
 A standalone bounded CLR stack diagnostic now validates controlled worker
 identity before capture. The original snapshot prototype and final suspended
 mode each pass eight controlled contracts. Native snapshot creation fails
