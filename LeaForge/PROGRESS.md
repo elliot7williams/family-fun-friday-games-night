@@ -34,6 +34,19 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Private DOM wrapper caching, document lookup conversion/mapping and new-wrapper
+construction now use captured intrinsics. The exact preceding runtime fails
+the new Map-poisoning regression; the identical final test binary passes all
+36 scope and four resource checks on the fix. The full ordinary scripting run
+instead stops after 1,328 passing assertions on a fresh timer-recovery worker
+startup timeout at 5,018ms, last stage VM creation. That failed 1,755-check gate
+is retained without retry, not replaced by the passing standalone browser or
+independent observed Firespider script case. Fresh captures are inspected.
+Only Script DLL/worker bytes change, with unchanged binary sizes and protections.
+Original inputs/installed files stay unchanged; no startup fix, speedup or stable
+release is claimed. Milestone 146 stays open; readiness remains about 65%. See
+`DOM_WRAPPER_CAPTURES.md`.
+
 The worker's page-frame loop now has a non-inlined post-handshake boundary,
 without changing its captured protocol state or any protection/deadline. All
 15 worker-entry, 27 alternating native comparison and 1,747 ordinary unobserved

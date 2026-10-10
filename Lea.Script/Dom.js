@@ -122,7 +122,7 @@
         };
     }
     function eventTarget(node, key) {
-        const state = { node, key, classTokens: null, listeners: [], properties: Object.create(null), inline: Object.create(null), handlers: Object.create(null) };
+        const state = { node, key, classTokens: null, listeners: [], properties: makeObject(null), inline: makeObject(null), handlers: makeObject(null) };
         apply(setState, targets, [node, state]);
         defineEvents(node, eventProperties);
     }
@@ -162,7 +162,7 @@
     const reflectDefine = Reflect.defineProperty, reflectDelete = Reflect.deleteProperty;
     const sliceString = String.prototype.slice, codeAt = String.prototype.charCodeAt, indexString = String.prototype.indexOf;
     const arrayKeys = Array.prototype.keys, arrayValues = Array.prototype.values;
-    const arrayEntries = Array.prototype.entries, arrayForEach = Array.prototype.forEach, arrayIndexOf = Array.prototype.indexOf;
+    const arrayEntries = Array.prototype.entries, arrayForEach = Array.prototype.forEach, arrayIndexOf = Array.prototype.indexOf, arrayMap = Array.prototype.map;
     const ListProxy = Proxy, listError = TypeError, NativeError = Error, construct = Reflect.construct;
     // Jint 4.16.4's native formatter supplies the prototype as the accessor receiver.
     define(NativeError.prototype, 'toString', { value: function toString() {
@@ -438,17 +438,18 @@
     };
     function wrap(key) {
         if (key === null) return null;
-        if (cache.has(key)) return cache.get(key);
+        const cached = apply(getTimer, cache, [key]);
+        if (cached) return cached;
         const node = {};
         const style = {};
         for (let i = 0; i < styleNames.length; i++) {
             const name = styleNames[i];
-            Object.defineProperty(style, name, {
+            define(style, name, {
                 set(value) { put(key, styles[name], value); }, enumerable: true
             });
         }
-        Object.defineProperties(node, treeProperties);
-        Object.defineProperties(node, {
+        defineEvents(node, treeProperties);
+        defineEvents(node, {
             tagName: { get() { return call('tag', key); } },
             id: { get() { return call('attr', key, 'id') || ''; }, set(value) { put(key, 'id', value); } },
             className: { get() { return call('attr', key, 'class') || ''; }, set(value) { put(key, 'cn', value); } },
@@ -465,7 +466,7 @@
             classList: elementProperties.classList
         });
         eventTarget(node, key);
-        cache.set(key, node);
+        apply(putTimer, cache, [key, node]);
         return node;
     }
     const document = {};
@@ -477,9 +478,9 @@
         title: { get() { return call('t'); }, set(value) { put(null, 't', value); } },
         body: { get() { return wrap(call('q', 'body')); } },
         documentElement: { get() { return wrap(call('q', 'html')); } },
-        getElementById: { value(id) { return wrap(call('id', String(id))); } },
-        querySelector: { value(selector) { return wrap(call('q', String(selector))); } },
-        querySelectorAll: { value(selector) { return call('qa', String(selector)).map(wrap); } }
+        getElementById: { value(id) { return wrap(call('id', stringify(id))); } },
+        querySelector: { value(selector) { return wrap(call('q', stringify(selector))); } },
+        querySelectorAll: { value(selector) { return apply(arrayMap, call('qa', stringify(selector)), [wrap]); } }
     });
     Object.defineProperty(globalThis, 'document', { value: document });
     Object.defineProperty(globalThis, 'window', { value: globalThis });

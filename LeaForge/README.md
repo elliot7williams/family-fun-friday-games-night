@@ -1,6 +1,16 @@
 # LeaForge
 
-Latest startup change: the worker page-frame loop has a separate non-inlined
+Latest scripting change: private wrapper/cache and lookup operations capture
+their intrinsics instead of invoking page overrides. The preceding runtime
+fails the new regression; all 36 scope and four resource checks pass on the fix
+with the same test binary. The full ordinary gate fails on a 5,018-ms native
+startup timeout during timer recovery and is retained without retry. Independent
+browser/Firespider script checks pass, but do not replace the failed gate.
+Binary sizes, protections and installed files stay unchanged. No stable release
+or startup fix is claimed; readiness stays about 65%. See
+[DOM_WRAPPER_CAPTURES.md](DOM_WRAPPER_CAPTURES.md).
+
+Preceding startup change: the worker page-frame loop has a separate non-inlined
 post-handshake boundary. All 15 worker-entry, 27 native comparison and 1,747
 ordinary scripting checks pass, along with four matched observed Firespider
 script cases and the actual standalone browser lifecycle smoke. Only the worker
