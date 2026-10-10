@@ -1,0 +1,20 @@
+<!doctype html>
+<html><head><title>Lea load state</title><style>
+body { font-family: Segoe UI; color: #23272b; background: white; margin: 24px; }
+header { display: flex; align-items: center; gap: 12px; border-bottom: 2px solid #168477; padding-bottom: 12px; }
+h1 { font-size: 28px; margin: 0; }
+h2 { font-size: 18px; margin-top: 22px; }
+#attempts { color: #b84235; font-size: 24px; }
+input { width: 360px; height: 36px; background: #edf3f4; color: #23272b; }
+</style></head><body>
+<header><img src="../../assets/lea.ico" width="40" height="40" alt="Lea"><h1>Lea</h1></header>
+<h2>Attempts</h2><p id="attempts">0</p>
+<h2>Document</h2><label>Name <input id="field" value="Elliot"></label>
+<script>
+var attempts = document.getElementById('attempts');
+var prior = Number(attempts.textContent);
+attempts.textContent = String(prior + 1);
+document.title = 'Lea load ' + (prior + 1);
+if (prior === 0) throw new Error('Initial failure');
+</script>
+</body></html>

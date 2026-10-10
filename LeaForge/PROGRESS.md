@@ -34,6 +34,20 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Both native view navigation paths now retain failed initial script results and
+skip automatic load dispatch, avoiding implicit realm replacement and block
+replay. Rendering, image isolation, Done and explicit recovery remain intact.
+The identical-binary old-runtime control reproduces the defect; all 208 focused
+checks, the renderer smoke and separate copied Firespider script case pass.
+The ordinary 2,084-check suite stops after 445 assertions at a 5,012ms / 31ms
+CPU startup timeout during fresh-worker recursion warmup, last checkpoint VM.
+That failed broad gate is retained without retry and not replaced by narrower
+passes. Four fresh captures are inspected. Only Win bytes change, with unchanged
+316,416-byte DLL and 747,520-byte required bundle. Protections, original host
+inputs and installed files stay unchanged. No startup-timeout fix, speedup or
+release is claimed; milestone 146 stays open and readiness remains about 65%.
+See `LOAD_FAILURE_GATE.md`.
+
 Bounded startup failure messages now reserve their error prefix and parent
 summary before retaining the newest worker trace, avoiding a second truncation.
 Parent init/read/validation and worker hello-write entry/completion are distinct.

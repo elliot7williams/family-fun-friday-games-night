@@ -390,10 +390,16 @@ At most eight classic inline blocks (empty, `text/javascript`, or
 after parsing. Each is limited to 16 KiB; scanning stops at 8,192 nodes and
 skips template contents. This is not parser-blocking browser script execution.
 `DOMContentLoaded` runs after those blocks; the view dispatches window `load`
-after its image work finishes. `document.readyState` moves from `loading` to
+after its image work finishes, only if initial script execution succeeded.
+Both synchronous and asynchronous view navigation retain a failed initial
+result, finish image/rendering work and become idle without automatically
+replaying the inline blocks through `load`. Explicit `Xl()` or supplied `JsA()`
+recovery remains available; a host can dispatch `Xe(null, "load")` after a
+successful retry. See [LOAD_FAILURE_GATE.md](../LeaForge/LOAD_FAILURE_GATE.md).
+`document.readyState` moves from `loading` to
 `interactive` to `complete`. Repeated page initialization/load requests do not
 repeat successful lifecycle handlers. A failed realm is reinitialized from the
-inline snapshot on its next call; prior DOM writes are not rolled back.
+inline snapshot on its next explicit call; prior DOM writes are not rolled back.
 
 The compact `Jx` provider interface exposes `ExA/EvA/PgA/St`; `Xr` carries
 `S/N/M/D/Ok`. A view's `Xf` factory binds the current page and permission

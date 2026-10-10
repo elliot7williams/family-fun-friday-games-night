@@ -24,6 +24,19 @@ namespace Lea.Script.Tests
                 var selectorFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-selectors.html");
                 var treeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-tree.html");
                 var subtreeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-subtree.html");
+                var loadFailureFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-load-failure.html");
+                if (args.Length > 1 && (args[1] == "--load-failures" || args[1] == "-lf"))
+                {
+                    LoadFailures.Controlled(loadFailureFixture);
+                    Console.WriteLine("PASS Lea.Script load failures: " + checks + " checks.");
+                    return 0;
+                }
+                if (args.Length > 1 && (args[1] == "--load-failure-native" || args[1] == "-ln"))
+                {
+                    View.Pump(() => LoadFailures.Native(loadFailureFixture, args.Length > 2 ? args[2] : null));
+                    Console.WriteLine("PASS Lea.Script native load failure: " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && (args[1] == "--subtree-aliases" || args[1] == "--subtree-trusted" || args[1] == "--subtree-isolated" || args[1] == "--subtree-view"))
                 {
                     if (args[1] == "--subtree-view") View.Pump(() => SubtreeQueries.Native(subtreeFixture, args.Length > 2 ? args[2] : null));
@@ -438,6 +451,8 @@ namespace Lea.Script.Tests
                 SubtreeQueries.Run(selectorFixture, "aliases");
                 SubtreeQueries.Run(selectorFixture, "trusted");
                 SubtreeQueries.Run(selectorFixture, "isolated");
+                LoadFailures.Controlled(loadFailureFixture);
+                View.Pump(() => LoadFailures.Native(loadFailureFixture, null));
                 Console.WriteLine("PASS Lea.Script: " + checks + " checks; JavaScript, isolated worker, and typed DOM.");
                 return 0;
             }

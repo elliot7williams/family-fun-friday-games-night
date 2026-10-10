@@ -1,6 +1,17 @@
 # LeaForge
 
-Latest startup diagnostic correction: bounded failure messages retain their
+Latest lifecycle fix: native view navigation no longer dispatches automatic
+`load` after failed initial scripts, preventing implicit realm replacement,
+inline-block replay and loss of the initial failure. The identical-binary
+old-runtime control reproduces the defect; all 200 controlled and eight native
+checks pass, as do the renderer smoke and separate copied Firespider script
+case. The ordinary suite instead stops after 445 checks at another fresh-worker
+startup timeout; that failed gate is retained without retry. Four fresh captures
+are inspected. Required bundle size stays 747,520 bytes. No startup-timeout fix,
+speedup or release is claimed; readiness remains about 65%. See
+[LOAD_FAILURE_GATE.md](LOAD_FAILURE_GATE.md).
+
+Preceding startup diagnostic correction: bounded failure messages retain their
 parent summary and newest worker trace without a second prefix truncation.
 Parent init/read/verification and worker hello-write entry/completion now have
 distinct checkpoints. Both old-runtime controls reproduce the defects; all 67

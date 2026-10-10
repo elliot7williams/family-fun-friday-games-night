@@ -241,11 +241,11 @@ namespace Lea.Win
             try
             {
                 var epoch = activationEpoch;
-                await Xl();
+                var scripts = await Xl();
                 if (closed || At != page || page.U != address) return;
                 await PicsA(page);
                 if (closed || At != page || page.U != address) return;
-                if (scriptFactory != null && epoch == activationEpoch) await Xe(null, "load");
+                if (scripts.Ok && scriptFactory != null && epoch == activationEpoch) await Xe(null, "load");
                 if (closed || At != page || page.U != address) return;
                 if (Done != null) Done(this, EventArgs.Empty);
                 if (!closed && At == page && loadOwner == null) GoRequest(page);

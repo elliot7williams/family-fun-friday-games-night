@@ -683,13 +683,14 @@ namespace Lea.Win
                 var stoppedPictures = picStop;
                 Show(page, false);
                 var scriptEpoch = activationEpoch;
-                if (scriptFactory != null && At == page) await Xl();
+                var scripts = scriptFactory != null && At == page ? await Xl() : null;
                 if (closed || At != page) return page;
                 picStop |= stoppedPictures;
                 if (closed) return page;
                 await PicsA(page);
                 if (closed) return page;
-                if (scriptFactory != null && At == page && activationEpoch == scriptEpoch) await Xe(null, "load");
+                if (scripts != null && scripts.Ok && scriptFactory != null && At == page && activationEpoch == scriptEpoch)
+                    await Xe(null, "load");
                 if (closed || At != page) return page;
                 Dirty();
                 QueueFragment(page);
