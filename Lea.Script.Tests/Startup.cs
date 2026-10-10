@@ -62,9 +62,39 @@ namespace Lea.Script.Tests
 
         internal static void LaunchFailures(string fixture)
         {
+            OversizedFailure(fixture, false).GetAwaiter().GetResult();
+            View.Pump(() => OversizedFailure(fixture, true));
             UnavailableCore(fixture, false, true).GetAwaiter().GetResult();
             View.Pump(() => UnavailableCore(fixture, true, true));
             View.Pump(() => UnavailableView(fixture, true));
+        }
+
+        private static async Task OversizedFailure(string fixture, bool asynchronous)
+        {
+            var engine = new E();
+            var page = engine.Go(fixture);
+            var title = page.T;
+            var runtime = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ScriptWorker");
+            var files = Directory.GetFiles(runtime).OrderBy(file => file).ToArray();
+            var rules = files.Select(ProfileRules).ToArray();
+            var launches = 0;
+            using (var script = new Jp(engine, page, runtime, supplied =>
+            {
+                launches++;
+                throw new IOException(new string('e', 700));
+            }))
+            {
+                var result = asynchronous ? await script.ExA("document.title='must not run';") : script.Ex("document.title='must not run';");
+                Check(result.S == "setup" && result.M.Length <= 512 &&
+                    result.M.StartsWith(new string('e', 125) + "... phase=launch;", StringComparison.Ordinal),
+                    "oversized startup failure retains launch summary: async=" + asynchronous + "; " + result.M);
+                Check(result.N == 0 && page.T == title && script.Pid == 0 && !script.Ac && !script.Ne && !script.Nd && !script.Fd &&
+                    script.Tm == 2000 && script.Cp == 2500 && script.Mm == 128L * 1024 * 1024,
+                    "oversized startup failure cannot execute page code or alter isolation defaults: async=" + asynchronous);
+                var leases = (System.Collections.ICollection)typeof(Jp).GetField("leases", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(script);
+                Check(launches == 1 && leases.Count == 0 && files.Select(ProfileRules).SequenceEqual(rules),
+                    "oversized startup failure releases leases and leaves runtime ACLs unchanged after one launch: async=" + asynchronous);
+            }
         }
 
         private static async Task UnavailableCore(string fixture, bool asynchronous, bool simulated = false)
@@ -356,6 +386,26 @@ namespace Lea.Script.Tests
                     (length >= 510 ? bounded == prefix : bounded.EndsWith("g", StringComparison.Ordinal));
             }), "startup report handles tiny diagnostic space without an incomplete separator or overflow");
             Check(format(new string('h', 600), latest) == new string('h', 512), "startup report bounds an oversized parent header defensively");
+            var failureMethod = typeof(Jp).GetMethod("StartupFailure", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+            Check(failureMethod != null, "startup failure formatter is present");
+            var failure = (Func<string, string, string, string>)Delegate.CreateDelegate(typeof(Func<string, string, string, string>), failureMethod);
+            const string message = "Worker startup deadline exceeded.";
+            Check(failure(message, header, "startup ready") == message + " " + header + "; startup ready",
+                "startup failure keeps its error, parent summary and short worker trace together");
+            Check(failure(message, header, "") == message + " " + header,
+                "startup failure without worker diagnostics retains its error and parent summary");
+            var boundedFailure = failure(message, header, trace);
+            Check(boundedFailure.Length == 512 && boundedFailure.StartsWith(message + " " + header + "; ", StringComparison.Ordinal),
+                "startup failure reserves space for the error and parent summary within the final result bound");
+            Check(boundedFailure.EndsWith(latest, StringComparison.Ordinal) && boundedFailure.Contains("..."),
+                "startup failure retains the newest trace instead of truncating it a second time");
+            var oversized = failure(new string('e', 700), header, trace);
+            Check(oversized.Length == 512 && oversized.StartsWith(new string('e', 125) + "... " + header + "; ", StringComparison.Ordinal) &&
+                oversized.EndsWith(latest, StringComparison.Ordinal), "oversized startup errors cannot crowd out the parent summary or newest worker trace");
+            Check(failure(new string('e', 128), header, "") == new string('e', 128) + " " + header,
+                "startup error text exactly at its reserved bound is not marked as truncated");
+            Check(failure(new string('e', 129), header, "") == new string('e', 125) + "... " + header,
+                "startup error text over its reserved bound marks the omitted suffix");
         }
 
         internal static void ParseMarker(string fixture)
@@ -397,6 +447,22 @@ namespace Lea.Script.Tests
                         Check(warm.Ok && script.Sd == report && stderr.Contains(marker) &&
                             stderr.IndexOf(marker, StringComparison.Ordinal) == stderr.LastIndexOf(marker, StringComparison.Ordinal),
                             "page evaluation retains the report without another startup marker: timing=" + timing + "; " + warm.S + "; " + warm.M);
+                        var drain = Stopwatch.StartNew();
+                        while (endpoint != null && !stderr.Contains("startup ready") && drain.ElapsedMilliseconds < 1000)
+                        {
+                            Thread.Sleep(5);
+                            stderr = (string)endpoint.GetType().GetProperty("E").GetValue(endpoint, null);
+                        }
+                        var probes = stderr.IndexOf("startup probes", StringComparison.Ordinal);
+                        var hello = stderr.IndexOf("startup hello", StringComparison.Ordinal);
+                        var ready = stderr.IndexOf("startup ready", StringComparison.Ordinal);
+                        Check(probes >= 0 && hello > probes && ready > hello &&
+                            hello == stderr.LastIndexOf("startup hello", StringComparison.Ordinal) &&
+                            ready == stderr.LastIndexOf("startup ready", StringComparison.Ordinal),
+                            "worker records one hello-write entry and completion after the denial probes: timing=" + timing + "; " + stderr);
+                        Check(report.StartsWith("phase=ready;", StringComparison.Ordinal) && warm.Ok &&
+                            script.Ac && script.Ne && script.Nd && script.Fd && script.Mg == 15,
+                            "parent ready phase follows the verified handshake before page execution: timing=" + timing);
                     }
                 }
             }
@@ -459,7 +525,8 @@ namespace Lea.Script.Tests
                             "bounded startup diagnostics retained: " + index);
                         Check(script.Sd.Contains("startup evaluate: wall=") == (trace == "1" || index == 1) &&
                             !script.Sd.Contains("startup parse:"), "tracing observes the production bootstrap path: " + index);
-                        Check(script.Sd.Contains("startup entry"), "compact startup phase retained without requiring timing trace: " + index);
+                        Check(script.Sd.Contains("startup entry") || script.Sd.Contains("startup parsed"),
+                            "bounded startup trace retains an entry or post-parse checkpoint without requiring timing: " + index);
                         var diagnostics = script.Sd;
                         Check(script.Ex("1;").Ok && script.Sd == diagnostics, "warm execution does not replace startup report: " + index);
                         sid = script.Sid;

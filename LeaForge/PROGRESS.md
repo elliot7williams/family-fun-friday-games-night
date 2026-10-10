@@ -34,6 +34,19 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Bounded startup failure messages now reserve their error prefix and parent
+summary before retaining the newest worker trace, avoiding a second truncation.
+Parent init/read/validation and worker hello-write entry/completion are distinct.
+Both identical-binary old-runtime controls fail as intended; all 67 focused
+checks, 1,876 ordinary scripting checks and the renderer smoke pass. The single
+observed Firespider script case fails scripted split-pane loading with retained
+5,020/5,077ms startup timeouts and complete parsed checkpoints. That failed
+gate stays preserved without retry; two fresh pre-failure captures are inspected.
+Only two runtime records change, with unchanged required bundle size 747,520.
+No startup fix, speedup or release is claimed; protections and original host
+inputs/installed files remain unchanged. Milestone 146 stays open and readiness
+remains about 65%. See `HANDSHAKE_REPORTS.md`.
+
 Element descendant queries now use native `N.Q/Qa` aliases and optional
 JavaScript `querySelector/querySelectorAll`, reusing the bounded compiler.
 Both identical-binary old-runtime controls fail as intended; all 74 focused

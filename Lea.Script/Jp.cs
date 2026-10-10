@@ -29,6 +29,8 @@ namespace Lea.Script
         private readonly List<FileStream> leases = new List<FileStream>();
         private Rp worker;
         private IoQueue io;
+        private string startupSummary = "";
+        private string startupDiagnostics = "";
         private long generation;
         private long peak;
         private int sequence;
@@ -172,12 +174,12 @@ namespace Lea.Script
                 var status = state == null ? stopped ? "cancel" :
                     error is TimeoutException ? "timeout" : error is Ja.LimitException ? "limit" :
                     !started ? "setup" : error is InvalidDataException ? "protocol" : "worker" : state.Status;
-                var details = worker == null ? "" : worker.E;
+                var details = !started || worker == null ? "" : worker.E;
                 var message = status == "timeout" ? "Worker " + (started ? "execution" : "startup") + " deadline exceeded." :
                     status == "cancel" ? "Worker execution stopped." : error.Message +
                     (details.Length == 0 ? "" : " " + details);
                 // A later lifecycle attempt can replace Sd before the host inspects this failure.
-                if (!started && Sd.Length != 0) message += " " + Sd;
+                if (!started && Sd.Length != 0) message = StartupFailure(message, startupSummary, startupDiagnostics);
                 Reset();
                 return Result(status, message);
             }
@@ -187,6 +189,7 @@ namespace Lea.Script
         private async Task Start(bool asynchronous)
         {
             Sd = "";
+            startupSummary = startupDiagnostics = "";
             Ac = Nd = Ne = Fd = false;
             Np = 0;
             Mg = 0;
@@ -234,9 +237,11 @@ namespace Lea.Script
                         using (await Io(() => listener.AcceptTcpClient(), clock, 5000, asynchronous)) { }
                     }
                     probed = clock.ElapsedMilliseconds;
-                    phase = "hello";
+                    phase = "init";
                     await Io(() => { Wire.Write(endpoint.I, new { k = "init", p = port, f = canary }); return true; }, clock, 5000, asynchronous);
+                    phase = "hello";
                     var hello = await Io(() => Wire.Read(endpoint.O), clock, 5000, asynchronous);
+                    phase = "verify";
                     Wire.Fields(hello, "k", "g", "n", "f");
                     if (Wire.Text(hello, "k", 8) != "hello") throw new InvalidDataException("Missing worker handshake.");
                     Mg = Wire.Number(hello, "g");
@@ -252,11 +257,18 @@ namespace Lea.Script
             finally
             {
                 var cpu = endpoint == null ? (long?)null : endpoint.Ct;
-                var report = "phase=" + phase + "; launch=" + launched + "; probe=" +
+                startupSummary = "phase=" + phase + "; launch=" + launched + "; probe=" +
                     Math.Max(0, probed - launched) + "; wall=" + clock.ElapsedMilliseconds + "; cpu=" +
                     (cpu.HasValue ? cpu.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) + " ms" : "unavailable");
-                Sd = StartupReport(report, endpoint == null ? "" : endpoint.E);
+                startupDiagnostics = endpoint == null ? "" : endpoint.E;
+                Sd = StartupReport(startupSummary, startupDiagnostics);
             }
+        }
+
+        private static string StartupFailure(string message, string summary, string diagnostics)
+        {
+            if (message.Length > 128) message = message.Substring(0, 125) + "...";
+            return StartupReport(message + " " + summary, diagnostics);
         }
 
         private static string StartupReport(string report, string diagnostics)

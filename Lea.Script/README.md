@@ -192,11 +192,16 @@ launcher regressions and the retained startup failures.
 Warm calls leave that report unchanged. A startup failure
 also includes startup details in its bounded `Jr.M` message, so a later
 lifecycle/recovery start cannot erase that message. `Jr.M` retains its own
-512-character limit and need not contain the entire `Sd`. Execution-failure
-messages are unchanged. See [STARTUP_REPORT_TAIL.md](../LeaForge/STARTUP_REPORT_TAIL.md)
-for the regression, native checks, and remaining cold-start failures.
+512-character limit and need not contain the entire `Sd`. Startup errors reserve
+at most 128 characters for the error text, marking longer text with `...`, then
+retain the parent summary and newest captured worker trace within that final
+bound. This avoids a second prefix truncation that could remove the newest
+checkpoint. Execution-failure messages are unchanged. See
+[HANDSHAKE_REPORTS.md](../LeaForge/HANDSHAKE_REPORTS.md) for the regression and
+remaining cold-start failures, and [STARTUP_REPORT_TAIL.md](../LeaForge/STARTUP_REPORT_TAIL.md)
+for the earlier report contract.
 The worker sends compact
-entry/guards/init/canary/network/VM/bridge/source/evaluate/parsed/DOM/probe markers to
+entry/guards/init/canary/network/VM/bridge/source/evaluate/parsed/DOM/probes/hello/ready markers to
 bounded stderr even without timing enabled. Optional `LEA_SCRIPT_STARTUP_TRACE=1`
 adds wall/CPU measurements to those markers. Traced and untraced startup both use the VM's regular string
 parser and the same regex limits; tracing no longer substitutes a prepared
@@ -204,6 +209,11 @@ script. A one-shot post-parse evaluation hook records `parsed` without debugger
 stepping and is removed before page execution. The pre-hook interval includes
 parser and entry/JIT costs; an absent marker is not a parser stack trace.
 Bootstrap initialization remains sequential.
+Worker `hello` precedes the outbound handshake write; worker `ready` follows
+its flush. Parent `init/hello/verify/ready` distinguish initial-frame write,
+read/decode, isolation validation and successful admission. Worker `ready` alone
+does not establish parent admission, and the separate stderr drain can lag the
+protocol read. Neither these checkpoints nor source compression prove speed.
 Worker argument validation no longer requires interpreter binding. A private
 non-inlined runtime method keeps that work inside the entry exception handler,
 after mitigation setup and the entry clock. Missing interpreter dependencies

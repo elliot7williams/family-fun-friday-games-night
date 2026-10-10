@@ -1,5 +1,15 @@
 # LeaForge
 
+Latest startup diagnostic correction: bounded failure messages retain their
+parent summary and newest worker trace without a second prefix truncation.
+Parent init/read/verification and worker hello-write entry/completion now have
+distinct checkpoints. Both old-runtime controls reproduce the defects; all 67
+focused checks, 1,876 ordinary scripting checks and the renderer smoke pass.
+The single observed Firespider script case instead fails split-pane loading
+with two retained startup timeouts after parsed. Fresh main/attribute captures
+are inspected. No intermittent-startup fix, speedup or release is claimed;
+readiness remains about 65%. See [HANDSHAKE_REPORTS.md](HANDSHAKE_REPORTS.md).
+
 Latest browser functionality: elements gain descendant `querySelector` and
 `querySelectorAll`, with native `N.Q/Qa` aliases. The same final test binary
 fails on the preceding runtime, then passes 74 focused checks and four native
@@ -10,7 +20,7 @@ DOM bootstrap. Both failed gates and fresh captures are preserved. Required
 bundle size is 747,520 bytes. No startup fix, speedup or new release is claimed;
 readiness remains about 65%. See [SUBTREE_QUERIES.md](SUBTREE_QUERIES.md).
 
-Latest diagnostic correction: both linked launchers retain the newest bounded
+Preceding diagnostic correction: both linked launchers retain the newest bounded
 worker stderr instead of its prefix, decoding UTF-8 across fragmented reads.
 All 12 regressions pass; the identical test binary fails on the old runtime.
 The candidate passes all 1,784 ordinary scripting checks, the renderer smoke

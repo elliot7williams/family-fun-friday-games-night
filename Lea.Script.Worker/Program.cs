@@ -91,7 +91,9 @@ namespace Lea.Script.Worker
                     Trace("dom", clock, trace);
                     var network = probe.Denied();
                     Trace("probes", clock, trace);
+                    Trace("hello", clock, trace);
                     Wire.Write(output, new { k = "hello", g = guards, n = network, f = file ? 1 : 0 });
+                    Trace("ready", clock, trace);
                 }
                 return Frames();
 
