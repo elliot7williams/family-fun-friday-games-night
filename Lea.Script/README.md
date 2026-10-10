@@ -19,6 +19,12 @@ See [the generator instructions](../Lea.Build/Bootstrap/README.md) for editing
 and regeneration. Compact function source text and source positions differ
 from the readable version; this does not change the public alias API.
 
+Startup binds its two already-created bridge functions directly as `JsValue`,
+avoiding Jint's generic CLR-conversion overload in both runtimes. The compiled
+call contract is checked with `Lea.Build/Test-ScriptBridgeBindings.ps1`.
+This does not establish a startup-timeout fix or speedup. See
+[DIRECT_BRIDGE_VALUES.md](../LeaForge/DIRECT_BRIDGE_VALUES.md).
+
 ## Visual Studio
 
 The script projects are included in `../Lea.sln`. A host using this optional

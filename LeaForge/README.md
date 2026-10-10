@@ -1,5 +1,16 @@
 # LeaForge
 
+Latest startup simplification: both script runtimes bind already-created bridge
+functions directly as JsValue instead of taking the generic CLR conversion
+route. Compiled-method contracts reject the preceding calls and verify the new
+ones. All 48 focused runtime checks and the renderer smoke pass. The ordinary
+suite fails after 468 assertions at a fresh worker timeout; the copied observed
+Firespider script case also fails, after parsed, before any host capture. Both
+failures are retained without retry. Renderer/host intervals overlap; no timing
+comparison, startup fix, speedup or release is claimed. Required bundle remains
+747,520 bytes and readiness remains about 65%. See
+[DIRECT_BRIDGE_VALUES.md](DIRECT_BRIDGE_VALUES.md).
+
 Latest lifecycle fix: native view navigation no longer dispatches automatic
 `load` after failed initial scripts, preventing implicit realm replacement,
 inline-block replay and loss of the initial failure. The identical-binary

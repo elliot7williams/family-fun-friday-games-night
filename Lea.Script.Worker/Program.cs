@@ -63,7 +63,7 @@ namespace Lea.Script.Worker
                         options.Interop.AllowWrite = false;
                     });
                     Trace("vm", clock, trace);
-                    vm.SetValue("__lea", new ClrFunction(vm, "__lea", (_, values) =>
+                    vm.SetValue("__lea", (JsValue)new ClrFunction(vm, "__lea", (_, values) =>
                     {
                         if (++request > 256) throw new InvalidDataException("Script host-call budget exceeded.");
                         Wire.Write(output, new { k = "call", i = id, r = request, b = Codec.Arguments(values) });
@@ -74,7 +74,7 @@ namespace Lea.Script.Worker
                             throw new InvalidDataException("Invalid script bridge reply.");
                         return Codec.Value(vm, reply["v"]);
                     }));
-                    vm.SetValue("__jobs", new ClrFunction(vm, "__jobs", (_, values) =>
+                    vm.SetValue("__jobs", (JsValue)new ClrFunction(vm, "__jobs", (_, values) =>
                     { vm.Advanced.ProcessTasks(); return JsValue.Undefined; }));
                     Trace("bridge", clock, trace);
                     string source;

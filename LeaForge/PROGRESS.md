@@ -34,6 +34,21 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Both script startup methods now bind their already-created bridge functions
+directly through the JsValue overload, avoiding the generic CLR-conversion
+entry point. Compiled-method contracts reject both preceding methods and pass
+on the candidate; all 48 focused runtime checks and the renderer smoke pass.
+The ordinary 2,084-check attempt instead stops after 468 passing assertions at
+a fresh active-page worker timeout, wall 5,015 ms, last checkpoint VM. The
+separate observed copied Firespider script case fails before any host capture,
+wall 5,018 ms / CPU 625 ms, after parsed. Both failed gates remain retained
+without retry. Renderer and host intervals overlap, so that host observation is
+not a controlled timing comparison. Only Script/worker bytes change, with
+unchanged sizes and required bundle 747,520 bytes. Protections and original
+host/installed files stay unchanged. No startup fix, speedup or new release is
+claimed; milestone 146 remains open and readiness stays about 65%. See
+`DIRECT_BRIDGE_VALUES.md`.
+
 Both native view navigation paths now retain failed initial script results and
 skip automatic load dispatch, avoiding implicit realm replacement and block
 replay. Rendering, image isolation, Done and explicit recovery remain intact.

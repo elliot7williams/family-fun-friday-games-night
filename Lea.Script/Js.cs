@@ -114,9 +114,9 @@ namespace Lea.Script
                 options.Interop.AllowWrite = false;
             };
             vm = factory == null ? new Jint.Engine(configure) : factory(configure);
-            vm.SetValue("__lea", new ClrFunction(vm, "__lea", (_, args) =>
+            vm.SetValue("__lea", (Jint.Native.JsValue)new ClrFunction(vm, "__lea", (_, args) =>
                 Codec.Value(vm, bridge.Call(Codec.Arguments(args)))));
-            vm.SetValue("__jobs", new ClrFunction(vm, "__jobs", (_, args) =>
+            vm.SetValue("__jobs", (Jint.Native.JsValue)new ClrFunction(vm, "__jobs", (_, args) =>
             { vm.Advanced.ProcessTasks(); return Jint.Native.JsValue.Undefined; }));
             dispatch = vm.Evaluate(bootstrap);
             bridge.Begin();
