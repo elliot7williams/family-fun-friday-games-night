@@ -1,5 +1,13 @@
 # LeaForge
 
+Latest lightweight build option: `W32=1` selects an experimental 32-bit-preferred
+script worker while leaving normal builds unchanged. Seven build contracts,
+27 paired checks, four resource and eight native recovery checks pass. The
+samples show about 30.7 versus 17.4 MiB Job peak process memory; actual browser
+and copied Firespider script smokes pass. The broad suite still fails after
+328 assertions at fresh startup, so this is opt-in, not a default adoption or
+startup fix. Readiness stays about 65%. See [worker bitness](WORKER_BITNESS.md).
+
 Latest storage-resumed checks: the unchanged runtime passes the renderer smoke
 and all eight native-view load-failure/recovery checks. The ordinary scripting
 suite instead stops after 1,380 assertions at another isolated startup timeout,

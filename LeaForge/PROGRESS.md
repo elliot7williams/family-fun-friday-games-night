@@ -34,6 +34,19 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+An opt-in `W32=1` worker build alias now selects 32-bit preference without
+changing the normal build. All seven final build contracts pass, including
+byte-identical normal/candidate outputs and four invalid-setting rejections.
+Three matched startup/first-command pairs pass 27 checks and show about
+30.7 versus 17.4 MiB Job peak process memory. Four resource and eight native
+recovery checks pass, as do the actual browser smoke and one copied Firespider
+script case. The declared broad suite instead fails after 328 assertions at
+a 5,015-ms startup timeout before parsed; a wrapper-scope accidental extra run
+is stopped and excluded, not substituted. Original inputs, installed files
+and every normal production byte remain unchanged. The compressed candidate
+is experimental; no default adoption, startup fix, release or new milestone
+completion is claimed. Readiness stays about 65%. See `WORKER_BITNESS.md`.
+
 A storage-resumed revalidation keeps every production byte and test executable
 unchanged. With about 606 MiB still free on C:, the ordinary scripting suite
 stops after 1,380 passing assertions at a 5,011-ms / 703-ms CPU native startup
