@@ -80,6 +80,14 @@ The original limits, result status, reset behavior, and ordinary JavaScript
 error text are unchanged. Native `Jp` startup still has its separate `Sd`
 worker report. See `../LeaForge/BUDGET_PHASES.md` for tests and open failures.
 
+Native `Jp.Ed` separately retains the latest parent command phase, wall time
+and measured child CPU delta. Parent timeout/transport/protocol/state failures
+snapshot a bounded execution summary in `Jr.M` before retiring the worker;
+success and valid worker error messages remain unchanged. Both reports stay
+within 512 characters. No budgets or isolation protections change. See
+[execution reports](../LeaForge/EXECUTION_REPORTS.md), including the distinction
+between measured CPU milliseconds and `Cp`'s 2,500-basis-point CPU-rate cap.
+
 ## Timers
 
 The optional realm exposes `setTimeout`, `setInterval`, `clearTimeout`, and

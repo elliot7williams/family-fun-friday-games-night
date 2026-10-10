@@ -31,6 +31,15 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script VM options: " + checks + " checks.");
                     return 0;
                 }
+                if (args.Length > 1 && args[1].StartsWith("--execution-report", StringComparison.Ordinal))
+                {
+                    if (args[1] == "--execution-report-contract") ExecutionReports.Contract();
+                    else if (args[1] == "--execution-report") ExecutionReports.Run(fixture);
+                    else if (args[1] == "--execution-report-native") ExecutionReports.Native(fixture);
+                    else throw new ArgumentException("Unknown execution report diagnostic.");
+                    Console.WriteLine("PASS Lea.Script execution report: " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--origin-probe")
                 {
                     DocumentOrigins.Probe();
@@ -477,6 +486,7 @@ namespace Lea.Script.Tests
                 DocumentOrigins.Run(true);
                 View.Pump(() => DocumentOrigins.Native(null));
                 VmOptions.Run();
+                ExecutionReports.Run(fixture);
                 Console.WriteLine("PASS Lea.Script: " + checks + " checks; JavaScript, isolated worker, and typed DOM.");
                 return 0;
             }

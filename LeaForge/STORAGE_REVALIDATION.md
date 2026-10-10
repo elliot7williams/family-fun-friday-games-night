@@ -47,7 +47,7 @@ memory pressure, other storage latency or scheduling effects.
 
 The native regression produces an inspected, nonblank 940x700 capture with
 `Lea load 1`, one initial attempt, the Lea icon and the retained `Elliot` field.
-It verifies the existing 2,000-ms default page budget, 2,500-ms CPU budget,
+It verifies the existing 2,000-ms default page budget, 2,500-basis-point CPU-rate cap,
 128-MiB memory limit, AppContainer/network/file protections and mitigation mask
 15. Explicit recovery obtains a fresh realm and disposal retires it. This
 narrow pass does not replace the failed broad gate or the earlier failed

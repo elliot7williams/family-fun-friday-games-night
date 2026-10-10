@@ -34,6 +34,23 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Native scripting gains short `Jp.Ed` execution reports, distinct from `Sd`.
+Parent phases, wall time, CPU delta and bounded newest stderr are captured
+before retirement; successful and valid worker error messages stay unchanged.
+Eight contracts, 71 controlled transport checks and seven real-worker deadline/
+recovery checks pass. The identical API contract rejects the preceding Script
+assembly. An unchanged-runtime cancellation precursor passes five checks,
+without replacing its earlier broad failure. Four resource and 14 options
+checks pass; the new broad suite fails after 175 assertions at fresh startup,
+wall 5,021 ms / CPU 343 ms, last worker checkpoint VM. No retry is made.
+`Cp=2500` is clarified as a 25% CPU-rate cap, not a CPU-time duration; the policy
+itself is unchanged. Only the candidate Script DLL changes, by 1,024 bytes;
+the required bundle stays 749,056 bytes. Standalone browser and copied
+Firespider script checks pass; the full host matrix is not rerun. Four captures
+are inspected. Normal/installed files are unchanged.
+No startup fix, speedup, release or milestone completion is claimed; readiness
+remains about 65%. See `EXECUTION_REPORTS.md`.
+
 Both script runtimes now use fresh explicit interpreter options from shared
 two-letter `Vo.Of/At` helpers. All 14 options/compiled-constructor checks pass;
 the same constructor assertion rejects the preceding Script assembly. Four

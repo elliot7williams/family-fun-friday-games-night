@@ -710,7 +710,10 @@ namespace Lea.Script.Tests
                         var failedMessage = result.M;
                         Check(failedMessage.Contains("phase=launch;") && failedMessage.Length <= 512,
                             "startup failure snapshots bounded phase diagnostics: " + failedMessage);
-                        Check(script.Ex("1;").Ok, "recovery after unpublished-launch cancellation");
+                        var recovery = script.Ex("1;");
+                        Console.WriteLine("Unpublished-launch recovery: " + recovery.S + "; changes=" + recovery.N +
+                            "; " + recovery.M + "; " + script.Sd);
+                        Check(recovery.Ok, "recovery after unpublished-launch cancellation: " + recovery.S + "; " + recovery.M);
                         Check(result.M == failedMessage && script.Sd.StartsWith("phase=ready;", StringComparison.Ordinal),
                             "startup failure result retains its report after a new successful start");
                     }

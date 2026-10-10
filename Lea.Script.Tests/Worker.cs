@@ -94,7 +94,8 @@ namespace Lea.Script.Tests
                 script.Tm = 25;
                 var watch = Stopwatch.StartNew();
                 var timeout = script.Ex("/(a+)+$/.test('a'.repeat(120) + '!');");
-                Check(timeout.S == "timeout" && timeout.M == "Worker execution deadline exceeded." && watch.ElapsedMilliseconds < 2000 && script.Pid == 0 && Exited(pid), "parent deadline kills native regex: " + timeout.S + "; " + timeout.M + "; " + watch.ElapsedMilliseconds + " ms");
+                Check(timeout.S == "timeout" && timeout.M.StartsWith("Worker execution deadline exceeded. phase=", StringComparison.Ordinal) && timeout.M.Length <= 512 &&
+                    script.Ed.StartsWith("phase=", StringComparison.Ordinal) && watch.ElapsedMilliseconds < 2000 && script.Pid == 0 && Exited(pid), "parent deadline kills native regex: " + timeout.S + "; " + timeout.M + "; " + watch.ElapsedMilliseconds + " ms");
                 script.Tm = 2000;
                 Check(script.Ex("document.title='recovered';").Ok, "recovery after hard worker kill");
                 Check(script.Ex("queueMicrotask(function(){});").Ok, "microtask hard-deadline warmup");
@@ -102,7 +103,8 @@ namespace Lea.Script.Tests
                 script.Tm = 25;
                 watch.Restart();
                 timeout = script.Ex("queueMicrotask(function(){/(a+)+$/.test('a'.repeat(120)+'!');document.title='late microtask';});");
-                Check(timeout.S == "timeout" && timeout.M == "Worker execution deadline exceeded." && watch.ElapsedMilliseconds < 2000 && script.Pid == 0 && Exited(pid) && page.T == "recovered",
+                Check(timeout.S == "timeout" && timeout.M.StartsWith("Worker execution deadline exceeded. phase=", StringComparison.Ordinal) && timeout.M.Length <= 512 &&
+                    script.Ed.StartsWith("phase=", StringComparison.Ordinal) && watch.ElapsedMilliseconds < 2000 && script.Pid == 0 && Exited(pid) && page.T == "recovered",
                     "parent deadline also kills native work inside microtask: " + timeout.S);
                 script.Tm = 2000;
                 Check(script.Ex("document.title='recovered';").Ok, "fresh worker after microtask hard deadline");

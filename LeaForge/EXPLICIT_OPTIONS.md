@@ -22,7 +22,7 @@ Handshake validation and deferred page-frame dispatch are unchanged.
 | Adapter page execution default | 2,000 ms |
 | Statements / allocation / recursion | 20,000 / 8 MiB / 64 |
 | Regular expressions / array size | 100 ms / 65,536 |
-| Job process memory / CPU | 128 MiB / 2,500 ms |
+| Job process memory / CPU rate | 128 MiB / 2,500 basis points (25%) |
 
 Stack guarding remains enabled. CLR interop, `GetType` and CLR writes remain
 disabled. The zero-capability restricted AppContainer, native mitigation mask,

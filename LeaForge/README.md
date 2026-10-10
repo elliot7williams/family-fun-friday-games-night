@@ -1,5 +1,17 @@
 # LeaForge
 
+Latest native scripting diagnostic: short `Jp.Ed` reports retain parent command
+phases, elapsed wall time and child CPU delta separately from startup `Sd`.
+Eight contracts, 71 controlled and seven real-worker checks pass; the same API
+contract rejects the preceding runtime. A single unchanged-runtime cancellation
+case also passes, without clearing its earlier broad failure. The new broad
+suite stops after 175 assertions at another fresh-worker startup timeout.
+Standalone browser and copied Firespider script checks pass, not a full host
+matrix or installed-startup verification.
+CPU-rate units are clarified without changing the 25% cap. No startup fix,
+speedup, release or default adoption is claimed; readiness remains about 65%.
+See [execution reports](EXECUTION_REPORTS.md).
+
 Latest startup simplification: both script runtimes use fresh explicit options
 through shared two-letter `Vo.Of/At` helpers. Fourteen configuration/compiled-call
 checks, four resource checks and eight native recovery checks pass. The same

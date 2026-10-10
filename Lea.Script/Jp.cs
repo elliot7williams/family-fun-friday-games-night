@@ -67,6 +67,7 @@ namespace Lea.Script
         public Jr At { get; private set; }
         public int Tm { get { return tm; } set { tm = Math.Max(25, Math.Min(5000, value)); } }
         public long Mm { get { return 128L * 1024 * 1024; } }
+        // Native Job CPU rate in basis points, not milliseconds.
         public int Cp { get { return 2500; } }
         public int Pid { get { lock (gate) return worker == null ? 0 : worker.P.Id; } }
         public string Sid { get; private set; }
@@ -78,6 +79,7 @@ namespace Lea.Script
         public int Mg { get; private set; }
         public long Mp { get { return Interlocked.Read(ref peak); } }
         public string Sd { get; private set; } = "";
+        public string Ed { get; private set; } = "";
         public int Td { get { CheckThread(); return disposed || stopped || !engine.Je || generation != engine.Jg || engine.At != page ? -1 : bridge.Timers.Td; } }
         public int Tn { get { CheckThread(); return bridge.Timers.N; } }
 
@@ -116,6 +118,7 @@ namespace Lea.Script
             CheckThread();
             if (disposed) throw new ObjectDisposedException("Jp");
             if (running) throw new InvalidOperationException("A Lea worker script is already running.");
+            Ed = "";
             bridge.Begin();
             if (generation != engine.Jg) { Reset(); generation = engine.Jg; }
             if (!engine.Je) { Reset(); return Result("off", "Scripting is disabled."); }
@@ -129,14 +132,20 @@ namespace Lea.Script
             running = true;
             stopped = false;
             var started = false;
+            Stopwatch execution = null;
+            Rp endpoint = null;
+            long? cpu = null;
+            var phase = "send";
             try
             {
                 if (worker == null) await Start(asynchronous);
                 started = true;
                 CheckState();
                 var clock = Stopwatch.StartNew();
+                execution = clock;
                 var id = ++sequence;
-                var endpoint = worker;
+                endpoint = worker;
+                cpu = endpoint.Ct;
                 var path = type == null ? null : bridge.Path(target);
                 await Io(() =>
                 {
@@ -148,20 +157,25 @@ namespace Lea.Script
                 var request = 0;
                 while (true)
                 {
+                    phase = "read";
                     var frame = await Io(() => Wire.Read(endpoint.O), clock, tm, asynchronous);
                     CheckThread();
                     CheckState();
                     if (clock.ElapsedMilliseconds >= tm) throw new TimeoutException();
+                    phase = "verify";
                     var kind = Wire.Step(frame, id, ref request);
                     if (kind == "end")
                     {
                         var status = Wire.Text(frame, "s", 8);
                         var message = Wire.Text(frame, "m", 512);
+                        Ed = StartupReport(ExecutionSummary("done", clock, endpoint.Ct, cpu), endpoint.E);
                         if (status != "ok") Reset();
                         return Result(status, message, (bool)frame["d"]);
                     }
+                    phase = "bridge";
                     var value = bridge.Call((object[])frame["b"]);
                     if (clock.ElapsedMilliseconds >= tm) throw new TimeoutException();
+                    phase = "reply";
                     await Io(() => { Wire.Write(endpoint.I, new { k = "reply", i = id, r = request, v = value }); return true; }, clock, tm, asynchronous);
                 }
             }
@@ -176,10 +190,17 @@ namespace Lea.Script
                     !started ? "setup" : error is InvalidDataException ? "protocol" : "worker" : state.Status;
                 var details = !started || worker == null ? "" : worker.E;
                 var message = status == "timeout" ? "Worker " + (started ? "execution" : "startup") + " deadline exceeded." :
-                    status == "cancel" ? "Worker execution stopped." : error.Message +
-                    (details.Length == 0 ? "" : " " + details);
+                    status == "cancel" ? "Worker execution stopped." : error.Message;
                 // A later lifecycle attempt can replace Sd before the host inspects this failure.
-                if (!started && Sd.Length != 0) message = StartupFailure(message, startupSummary, startupDiagnostics);
+                if (execution != null)
+                {
+                    var summary = ExecutionSummary(phase, execution, endpoint.Ct, cpu);
+                    var diagnostics = endpoint.E;
+                    Ed = StartupReport(summary, diagnostics);
+                    message = StartupFailure(message, summary, diagnostics);
+                }
+                else if (!started && Sd.Length != 0) message = StartupFailure(message, startupSummary, startupDiagnostics);
+                else if (status != "timeout" && status != "cancel" && details.Length != 0) message += " " + details;
                 Reset();
                 return Result(status, message);
             }
@@ -269,6 +290,14 @@ namespace Lea.Script
         {
             if (message.Length > 128) message = message.Substring(0, 125) + "...";
             return StartupReport(message + " " + summary, diagnostics);
+        }
+
+        private static string ExecutionSummary(string phase, Stopwatch clock, long? current, long? baseline)
+        {
+            var delta = current.HasValue && baseline.HasValue && current.Value >= baseline.Value ?
+                (long?)(current.Value - baseline.Value) : null;
+            return "phase=" + phase + "; wall=" + clock.ElapsedMilliseconds + "; cpu=" +
+                (delta.HasValue ? delta.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) + " ms" : "unavailable");
         }
 
         private static string StartupReport(string report, string diagnostics)

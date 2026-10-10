@@ -107,7 +107,7 @@ not reverified or claimed fixed. All five fresh captures are inspected.
 Evidence: `H:\Lea Evidence\Lea-146-document-origins-2026-10-10`.
 All normal production outputs and the original Firespider source/installed
 binaries are preserved. Startup remains 5 seconds, adapter execution 2
-seconds, worker CPU 2,500 ms and Job memory 128 MiB. No startup fix, speedup,
+seconds, worker Job CPU rate 2,500 basis points (25%) and Job memory 128 MiB. No startup fix, speedup,
 default adoption, release or milestone completion is claimed. Broader
 readiness remains about 65%, an estimate rather than conformance coverage.
 
