@@ -254,7 +254,7 @@ The bridge exposes JavaScript objects and primitive values, never Lea's CLR
 objects, reflection types, file handles, or network clients:
 
 - `document.title`, `body`, and `documentElement`.
-- `getElementById`, `querySelector`, and `querySelectorAll`, using Lea's existing
+- Document `getElementById`, `querySelector`, and `querySelectorAll`, using Lea's existing
   bounded selector implementation. `querySelectorAll` returns an Array snapshot,
   not a standards-complete NodeList. Invalid/unsupported selectors currently
   follow Lea's empty-result behavior, not browser `SyntaxError` behavior.
@@ -276,6 +276,15 @@ objects, reflection types, file handles, or network clients:
   existing case-insensitive selector rules remain; `:scope`, pseudo-elements,
   escaping and complete browser selector semantics are not added. See
   [element selector contracts and tests](../LeaForge/ELEMENT_SELECTORS.md).
+- Element `querySelector/querySelectorAll` search descendants only, excluding
+  their receiver. Matching can use ancestors outside that search subtree.
+  Methods brand-check before argument conversion, retain wrapper identity and
+  static Array snapshots, and throw a branded `SyntaxError` DOMException for
+  invalid/unsupported selectors. Results use the existing 256-result ceiling;
+  traversal is bounded to 8,192 visits and 128 depth. Detached reads grant no
+  write capability. The short native aliases are `N.Q/Qa`. Existing selector
+  limitations, including unsupported `:scope`, remain. See
+  [subtree query contracts and tests](../LeaForge/SUBTREE_QUERIES.md).
 - Stable live `classList` with variadic `add/remove`, forced `toggle`, ordered
   `replace`, `contains/item`, raw `value`, readonly indices and native iteration.
 - Write-only `style.color/backgroundColor/width/height/display/fontSize`.

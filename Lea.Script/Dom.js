@@ -399,8 +399,18 @@
         return state;
     }
     const attributeSeparators = '\t\n\f\r \0/=>';
+    function query(receiver, supplied, all) {
+        const state = elementState(receiver, supplied);
+        const selector = str(supplied[0]);
+        if (selector.length > 1024) throw new DOMException('Lea selector limit', 'SyntaxError');
+        const result = call(all ? 'qa' : 'q', state.key, selector);
+        if (all ? result === null : result === -1) throw new DOMException('Invalid or unsupported Lea selector', 'SyntaxError');
+        return all ? apply(arrayMap, result, [wrap]) : wrap(result);
+    }
     const elementMethods = {
         __proto__: null,
+        querySelector(selector) { return query(this, arguments, false); },
+        querySelectorAll(selector) { return query(this, arguments, true); },
         getAttribute(name) {
             const state = elementState(this, arguments);
             return call('attr', state.key, str(name));
@@ -427,6 +437,8 @@
     };
     const elementProperties = {
         __proto__: null,
+        querySelector: { __proto__: null, value: elementMethods.querySelector },
+        querySelectorAll: { __proto__: null, value: elementMethods.querySelectorAll },
         getAttribute: { __proto__: null, value: elementMethods.getAttribute },
         hasAttribute: { __proto__: null, value: elementMethods.hasAttribute },
         setAttribute: { __proto__: null, value: elementMethods.setAttribute },
@@ -457,6 +469,8 @@
             value: { get() { return call('value', key); }, set(value) { put(key, 'vl', value); } },
             checked: { get() { return call('checked', key); }, set(value) { put(key, 'ck', value ? '1' : '0'); } },
             style: { value: style },
+            querySelector: elementProperties.querySelector,
+            querySelectorAll: elementProperties.querySelectorAll,
             getAttribute: elementProperties.getAttribute,
             hasAttribute: elementProperties.hasAttribute,
             setAttribute: elementProperties.setAttribute,

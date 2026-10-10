@@ -94,6 +94,20 @@ namespace Lea.Script
                 return true;
             }
             var target = Node(args, 1);
+            if ((operation == "q" || operation == "qa") && args.Length == 3)
+            {
+                if (target == null) throw new InvalidDataException("An element handle is required.");
+                var selector = Arg(args, 2);
+                try
+                {
+                    if (operation == "q") return Key(target.Q(selector));
+                    var found = target.Qa(selector);
+                    var result = new object[found.Count];
+                    for (var index = 0; index < result.Length; index++) result[index] = Key(found[index]);
+                    return result;
+                }
+                catch (FormatException) { return operation == "q" ? (object)(-1) : null; }
+            }
             if (args.Length == 2 && (operation == "pe" || operation == "fc" || operation == "lc" ||
                 operation == "ps" || operation == "ns" || operation == "cc"))
                 return Relative(target ?? page.D, operation);

@@ -47,6 +47,12 @@ read and quick to write.
   mutation ownership. The optional JavaScript names are `matches/closest`;
   script permission, handle and bridge-call limits still apply. See
   `ELEMENT_SELECTORS.md` for selector and compatibility boundaries.
+- `N.Q(selector)` returns the first matching descendant, excluding the node
+  itself. `N.Qa(selector)` returns a read-only static snapshot of at most 256
+  matching descendants in tree order. Both read live or retained detached trees
+  without script execution or mutation ownership. Invalid/unsupported selectors
+  and traversal-limit violations throw `FormatException`. Optional JavaScript
+  names are element `querySelector/querySelectorAll`; see `SUBTREE_QUERIES.md`.
 - `Dp` is display density in dots per inch. `E.Dp` and explicit `V.Dp` writes
   clamp to 1..960; `P.Dp` stores the value used by the page and `G.Dp` reports
   it. WinForms `V` follows the live monitor DPI until a host sets an explicit

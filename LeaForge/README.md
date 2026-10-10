@@ -1,5 +1,15 @@
 # LeaForge
 
+Latest browser functionality: elements gain descendant `querySelector` and
+`querySelectorAll`, with native `N.Q/Qa` aliases. The same final test binary
+fails on the preceding runtime, then passes 74 focused checks and four native
+view checks on the addition. Renderer and actual standalone-browser smokes
+pass. The broad scripting run instead fails after 161 checks at native startup;
+the observed Firespider case fails later during split recovery, after completed
+DOM bootstrap. Both failed gates and fresh captures are preserved. Required
+bundle size is 747,520 bytes. No startup fix, speedup or new release is claimed;
+readiness remains about 65%. See [SUBTREE_QUERIES.md](SUBTREE_QUERIES.md).
+
 Latest diagnostic correction: both linked launchers retain the newest bounded
 worker stderr instead of its prefix, decoding UTF-8 across fragmented reads.
 All 12 regressions pass; the identical test binary fails on the old runtime.

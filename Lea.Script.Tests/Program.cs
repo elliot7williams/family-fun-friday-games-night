@@ -23,6 +23,14 @@ namespace Lea.Script.Tests
                 var attributeEditFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-attribute-edits.html");
                 var selectorFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-selectors.html");
                 var treeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-tree.html");
+                var subtreeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-subtree.html");
+                if (args.Length > 1 && (args[1] == "--subtree-aliases" || args[1] == "--subtree-trusted" || args[1] == "--subtree-isolated" || args[1] == "--subtree-view"))
+                {
+                    if (args[1] == "--subtree-view") View.Pump(() => SubtreeQueries.Native(subtreeFixture, args.Length > 2 ? args[2] : null));
+                    else SubtreeQueries.Run(selectorFixture, args[1].Substring("--subtree-".Length));
+                    Console.WriteLine("PASS Lea.Script subtree " + args[1].Substring("--subtree-".Length) + ": " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && (args[1] == "--bootstrap-preparation" || args[1] == "-bp"))
                 {
                     if (args.Length != 4) throw new ArgumentException("Supply a strategy and new JSON report path for --bootstrap-preparation.");
@@ -427,6 +435,9 @@ namespace Lea.Script.Tests
                 WorkerEntry.Run();
                 NativeCpu.Run(fixture);
                 WorkerStderr.Run();
+                SubtreeQueries.Run(selectorFixture, "aliases");
+                SubtreeQueries.Run(selectorFixture, "trusted");
+                SubtreeQueries.Run(selectorFixture, "isolated");
                 Console.WriteLine("PASS Lea.Script: " + checks + " checks; JavaScript, isolated worker, and typed DOM.");
                 return 0;
             }

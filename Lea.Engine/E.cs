@@ -4748,6 +4748,33 @@ namespace Lea.Engine
             return null;
         }
 
+        internal static N QueryNode(N node, string query, List<N> found)
+        {
+            var rules = query == null || query.Length > MaxQueryLength ? null : QueryRules(query);
+            if (rules == null) throw new FormatException("Invalid or unsupported Lea selector.");
+            var visits = 0;
+            return QueryNodeWalk(node, node, rules, found, ref visits, 0);
+        }
+
+        private static N QueryNodeWalk(N node, N root, R[] rules, List<N> found, ref int visits, int depth)
+        {
+            if (node == null) return null;
+            if (++visits > MaxHtmlNodes || depth > MaxHtmlDepth)
+                throw new FormatException("Lea subtree query exceeds tree limits.");
+            if (!Object.ReferenceEquals(node, root) && ElementMatch(node, rules))
+            {
+                if (found == null) return node;
+                found.Add(node);
+            }
+            foreach (var child in node.C)
+            {
+                if (found != null && found.Count == MaxQueryResults) return null;
+                var match = QueryNodeWalk(child, root, rules, found, ref visits, depth + 1);
+                if (match != null) return match;
+            }
+            return null;
+        }
+
         private static R[] QueryRules(string query)
         {
             var source = (query ?? "").Trim();

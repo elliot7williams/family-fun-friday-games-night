@@ -34,6 +34,20 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Element descendant queries now use native `N.Q/Qa` aliases and optional
+JavaScript `querySelector/querySelectorAll`, reusing the bounded compiler.
+Both identical-binary old-runtime controls fail as intended; all 74 focused
+and four native-view checks pass. Required renderer and standalone browser
+EXE smokes pass. The ordinary 1,858-check suite stops after 161 existing checks
+on a 5,010ms / 437ms CPU startup timeout, last recorded stage evaluate. The
+observed Firespider script case fails later at split recovery, wall 5,008ms /
+CPU 640ms, after a completed DOM-bootstrap checkpoint. Both failed gates
+remain retained without retry; five fresh captures are inspected. Only three
+production records change; required bundle size grows 1,024 bytes to 747,520.
+Short aliases, ownership, security protections and deadlines stay intact.
+No startup fix, speedup or release is claimed. Milestone 146 stays open and
+readiness remains about 65%. See `SUBTREE_QUERIES.md`.
+
 Both linked launchers now keep the newest bounded worker stderr and decode
 UTF-8 across fragmented reads. The identical final test binary fails on the
 preceding runtime; all 12 regressions pass on the fix. The single candidate
