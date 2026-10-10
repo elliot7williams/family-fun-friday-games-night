@@ -498,6 +498,17 @@
     });
     Object.defineProperty(globalThis, 'document', { value: document });
     Object.defineProperty(globalThis, 'window', { value: globalThis });
+    define(globalThis, 'origin', {
+        get() {
+            if (this !== realm && this !== null && this !== undefined) throw new TypeError('Invalid Lea window');
+            return call('og');
+        },
+        set(value) {
+            if (this !== realm && this !== null && this !== undefined) throw new TypeError('Invalid Lea window');
+            define(realm, 'origin', { value, writable: true, configurable: true, enumerable: true });
+        },
+        configurable: true, enumerable: true
+    });
     Object.defineProperty(globalThis, 'alert', { value(value) { put(null, 'a', value); } });
     eventTarget(document);
     eventTarget(globalThis);

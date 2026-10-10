@@ -43,6 +43,7 @@ namespace Lea.Tests
                 if (args.Length > 1 && args[1] == "--input") { CheckInputLimits(root); return 0; }
                 if (args.Length > 1 && args[1] == "--cache") { CheckCacheIdentity(); return 0; }
                 if (args.Length > 1 && args[1] == "--blank") { CheckBlank(); return 0; }
+                if (args.Length > 1 && args[1] == "--origins") { Origins.Run(task => Complete(task, "origin redirect")); return 0; }
                 if (args.Length > 1 && args[1] == "--attributes") { CheckAttributes(); return 0; }
                 if (args.Length > 1 && args[1] == "--tokens") { CheckClassTokens(); return 0; }
                 if (args.Length > 1 && args[1] == "--select") { CheckNodeSelectors(); return 0; }
@@ -309,6 +310,7 @@ namespace Lea.Tests
                 CheckCacheIdentity();
                 CheckNavigationGuard(root);
                 CheckBlank();
+                Origins.Run(task => Complete(task, "origin redirect"));
                 CheckAttributes();
                 CheckClassTokens();
                 CheckNodeSelectors();

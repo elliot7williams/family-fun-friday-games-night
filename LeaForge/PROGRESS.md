@@ -34,6 +34,23 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+A document-origin foundation adds immutable `P.Og` and short `Of/Eq/Tx/Op/Lc`
+APIs, final-response tuple authority and identity-based opaque origins.
+Fragment/history/style changes retain identity; reloads create new documents.
+The optional `origin` accessor uses the parent-owned `og` bridge and cannot
+alter adapter eligibility. The first candidate passes 39 core checks, 30
+isolated/adapter checks, four resource checks and the accessor probe. A test-only
+completion repair yields a passing corrected full renderer gate, with all
+19 candidate runtime files unchanged. The standalone browser smoke and one
+copied Firespider script case pass; the complete host matrix is not reverified.
+The broad scripting suite fails after 198 assertions at 5,012-ms fresh startup;
+the trusted-only gate and old-runtime negative control time out. The latter
+control is inconclusive and their helper overlap is disclosed. All failures
+remain retained; no startup fix, remote/external script enablement, default
+adoption, release or milestone completion is claimed. Normal production bytes
+and the original Firespider stay unchanged. Readiness remains about 65%.
+See `DOCUMENT_ORIGINS.md`.
+
 An opt-in `W32=1` worker build alias now selects 32-bit preference without
 changing the normal build. All seven final build contracts pass, including
 byte-identical normal/candidate outputs and four invalid-setting rejections.

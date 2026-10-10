@@ -74,6 +74,7 @@ namespace Lea.Script
                 return result;
             }
             if (operation == "t" && args.Length == 1) return page.T ?? "";
+            if (operation == "og" && args.Length == 1) return page.Og.Tx;
             if (operation == "put" && args.Length == 4)
             {
                 var count = engine.Jv(page, Node(args, 1), Arg(args, 2), Arg(args, 3));

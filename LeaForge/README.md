@@ -1,5 +1,17 @@
 # LeaForge
 
+Latest engine foundation: documents now retain immutable `P.Og` origins with
+two-letter `Of/Eq/Tx/Op/Lc` APIs. Redirects, `<base>`, fragments, history and
+reload identity are tested; optional `window.origin` cannot change host policy.
+All 39 focused core and 30 isolated/adapter checks pass, as do the corrected
+renderer smoke, four bootstrap resource checks and standalone browser smoke.
+One copied Firespider script case also passes; the complete host matrix is not
+reverified.
+The broad scripting gate fails after 198 assertions at fresh startup, and the
+trusted-only gate times out. Remote/external scripting stays closed; no default
+adoption or startup fix is claimed. Readiness remains about 65%. See
+[document origins](DOCUMENT_ORIGINS.md).
+
 Latest lightweight build option: `W32=1` selects an experimental 32-bit-preferred
 script worker while leaving normal builds unchanged. Seven build contracts,
 27 paired checks, four resource and eight native recovery checks pass. The

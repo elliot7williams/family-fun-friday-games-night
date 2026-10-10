@@ -367,8 +367,13 @@ var result = await view.JsA("document.title = 'Lea ' + (2 + 3);");
 // W.Off(view) detaches it. View navigation/Stop/disposal retire sessions.
 ```
 
-The adapter currently executes **local file/about documents only**, excluding
-UNC network files. HTTP/HTTPS
+The adapter currently executes **local file/standalone about:blank documents only**,
+excluding UNC network files. Eligibility is captured in immutable `P.Og.Lc`
+from the final document URL, independently of authored `<base>` or page-visible
+`window.origin` replacements. `origin` reads the serialized document origin
+through the parent-owned `og` operation; opaque documents return `"null"` without
+sharing authority. See [document origins](../LeaForge/DOCUMENT_ORIGINS.md).
+HTTP/HTTPS
 documents return `origin` for inline, supplied, and event code without starting
 an interpreter; this is a temporary integration restriction, not modern-site
 support. External/module/async/defer loading is not implemented. The installed

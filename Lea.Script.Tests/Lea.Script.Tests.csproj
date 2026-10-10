@@ -13,6 +13,7 @@
     <Reference Include="System.Web.Extensions" />
     <Compile Include="..\Lea.Script.Worker\NetworkProbe.cs" Link="NetworkProbe.cs" />
     <Compile Include="..\Lea.Build\WorkerObservation.cs" Link="WorkerObservation.cs" />
+    <Compile Include="..\Lea.Tests\Origins.cs" Link="Origins.cs" />
     <ProjectReference Include="..\Lea.Script.Win\Lea.Script.Win.csproj" />
     <ProjectReference Include="..\Lea.Script\Lea.Script.csproj" />
     <ProjectReference Include="..\Lea.Script.Worker\Lea.Script.Worker.csproj" ReferenceOutputAssembly="false" />

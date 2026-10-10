@@ -47,7 +47,7 @@ namespace Lea.Script.Win
             view.Xf = null;
         }
 
-        private bool Local { get { return page.U != null && (page.U.IsFile && !page.U.IsUnc || page.U.Scheme == "about"); } }
+        private bool Local { get { return page.Og.Lc; } }
 
         public async Task<Xr> ExA(string code)
         {

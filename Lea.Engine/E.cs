@@ -1660,7 +1660,7 @@ namespace Lea.Engine
         private static P Page(Ld load)
         {
             var reply = load.R;
-            var p = new P();
+            var p = new P(reply.U);
             p.U = reply.U;
             p.Q = Query(reply.U);
             p.H = reply.H;

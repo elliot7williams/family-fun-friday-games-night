@@ -25,6 +25,20 @@ namespace Lea.Script.Tests
                 var treeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-tree.html");
                 var subtreeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-subtree.html");
                 var loadFailureFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-load-failure.html");
+                if (args.Length > 1 && args[1] == "--origin-probe")
+                {
+                    DocumentOrigins.Probe();
+                    Console.WriteLine("PASS Lea.Script origin accessor probe: " + checks + " checks.");
+                    return 0;
+                }
+                if (args.Length > 1 && (args[1] == "--origins-trusted" || args[1] == "--origins-isolated"))
+                {
+                    var isolated = args[1] == "--origins-isolated";
+                    DocumentOrigins.Run(isolated);
+                    if (isolated) View.Pump(() => DocumentOrigins.Native(args.Length > 2 ? args[2] : null));
+                    Console.WriteLine("PASS Lea.Script document origins " + (isolated ? "isolated" : "trusted") + ": " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && (args[1] == "--load-failures" || args[1] == "-lf"))
                 {
                     LoadFailures.Controlled(loadFailureFixture);
@@ -453,6 +467,9 @@ namespace Lea.Script.Tests
                 SubtreeQueries.Run(selectorFixture, "isolated");
                 LoadFailures.Controlled(loadFailureFixture);
                 View.Pump(() => LoadFailures.Native(loadFailureFixture, null));
+                DocumentOrigins.Run(false);
+                DocumentOrigins.Run(true);
+                View.Pump(() => DocumentOrigins.Native(null));
                 Console.WriteLine("PASS Lea.Script: " + checks + " checks; JavaScript, isolated worker, and typed DOM.");
                 return 0;
             }

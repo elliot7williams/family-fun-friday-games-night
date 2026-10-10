@@ -5,8 +5,9 @@ namespace Lea.Engine
 {
     public sealed class P
     {
-        internal P()
+        internal P(Uri url)
         {
+            Og = Lea.Engine.Og.Of(url);
             Ls = new List<Ln>();
             Axs = new List<Ax>();
             Bs = new List<B>();
@@ -20,6 +21,7 @@ namespace Lea.Engine
         }
 
         public Uri U { get; internal set; }
+        public Og Og { get; private set; }
         public Uri Bu { get; internal set; }
         public string T { get; internal set; }
         public string H { get; internal set; }
