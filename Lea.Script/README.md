@@ -184,8 +184,12 @@ The compact diagnostics are `Pid/Sid`, `Ac` (verified token/startup), `Ne`
 `Sd` retains a 512-character startup report: phase, native launch, parent
 positive-control probe, total startup wall time, and child CPU time in ms.
 When captured worker details overflow the remaining space, it keeps their newest
-portion and marks omitted earlier text. The launcher's stderr capture is still
-bounded separately. Warm calls leave that report unchanged. A startup failure
+portion and marks omitted earlier text. The launcher's stderr capture retains
+the newest 1,024 UTF-16 code units, with incremental UTF-8 decoding across pipe
+reads. Earlier text is discarded; this is not a complete log. See
+[WORKER_STDERR_TAIL.md](../LeaForge/WORKER_STDERR_TAIL.md) for both linked
+launcher regressions and the retained startup failures.
+Warm calls leave that report unchanged. A startup failure
 also includes startup details in its bounded `Jr.M` message, so a later
 lifecycle/recovery start cannot erase that message. `Jr.M` retains its own
 512-character limit and need not contain the entire `Sd`. Execution-failure

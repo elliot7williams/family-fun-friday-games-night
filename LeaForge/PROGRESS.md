@@ -34,6 +34,19 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Both linked launchers now keep the newest bounded worker stderr and decode
+UTF-8 across fragmented reads. The identical final test binary fails on the
+preceding runtime; all 12 regressions pass on the fix. The single candidate
+run passes all 1,784 ordinary scripting checks, along with the renderer smoke,
+standalone browser EXE smoke and focused CPU/report/resource checks. The
+separate Firespider script case fails after parsed at wall 5,045ms / CPU 734ms;
+the baseline broad run also fails after 406 assertions at wall 5,049ms / CPU
+671ms. Both failures remain retained without retry or cause claims. Two DLLs
+change, with unchanged binary sizes and the 746,496-byte required bundle.
+Protections, original host inputs and installed files stay unchanged.
+Milestone 146 stays open; readiness remains about 65%. No startup fix,
+speedup or new release is claimed. See `WORKER_STDERR_TAIL.md`.
+
 Native startup CPU reporting now uses a retained exact process handle through
 the internal Ct alias. Unavailable counters no longer masquerade as zero.
 The final identical-binary old-runtime control reproduces the defect, and

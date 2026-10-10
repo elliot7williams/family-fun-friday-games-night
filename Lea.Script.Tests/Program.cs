@@ -62,6 +62,12 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script native CPU lifetime: " + checks + " checks.");
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--worker-stderr")
+                {
+                    WorkerStderr.Run();
+                    Console.WriteLine("PASS Lea.Script worker stderr: " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && (args[1] == "--event-receivers" || args[1] == "--event-receivers-trusted" || args[1] == "--event-receivers-isolated"))
                 {
                     EventReceivers.Run(viewFixture, args[1] == "--event-receivers-trusted", args.Length > 2 ? args[2] : null, args[1] == "--event-receivers-isolated");
@@ -420,6 +426,7 @@ namespace Lea.Script.Tests
                 // Keep this worker-file probe after the existing startup and execution gates.
                 WorkerEntry.Run();
                 NativeCpu.Run(fixture);
+                WorkerStderr.Run();
                 Console.WriteLine("PASS Lea.Script: " + checks + " checks; JavaScript, isolated worker, and typed DOM.");
                 return 0;
             }

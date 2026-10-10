@@ -319,14 +319,20 @@ namespace Lea.Win
 
         private void Drain(Stream stream)
         {
-            var buffer = new byte[1024];
+            var buffer = new char[1024];
             try
             {
-                int count;
-                while ((count = stream.Read(buffer, 0, buffer.Length)) > 0)
-                    lock (errorGate)
-                        if (errorText.Length < 1024)
-                            errorText.Append(Encoding.UTF8.GetString(buffer, 0, Math.Min(count, 1024 - errorText.Length)));
+                using (var reader = new StreamReader(stream, new UTF8Encoding(false), false, 1024, true))
+                {
+                    int count;
+                    while ((count = reader.Read(buffer, 0, buffer.Length)) > 0)
+                        lock (errorGate)
+                        {
+                            var remove = errorText.Length + count - buffer.Length;
+                            if (remove > 0) errorText.Remove(0, remove);
+                            errorText.Append(buffer, 0, count);
+                        }
+                }
             }
             catch (IOException) { }
             catch (ObjectDisposedException) { }

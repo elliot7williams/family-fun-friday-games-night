@@ -1,6 +1,17 @@
 # LeaForge
 
-Latest diagnostic correction: startup CPU readings survive exact worker exit
+Latest diagnostic correction: both linked launchers retain the newest bounded
+worker stderr instead of its prefix, decoding UTF-8 across fragmented reads.
+All 12 regressions pass; the identical test binary fails on the old runtime.
+The candidate passes all 1,784 ordinary scripting checks, the renderer smoke
+and the standalone browser EXE smoke. The separately copied Firespider script
+case instead fails at startup after parsed, with wall 5,045ms and CPU 734ms.
+That failure and an earlier baseline timeout remain preserved without retry.
+Binary sizes and protections stay unchanged; no startup fix, speedup or release
+is claimed. Readiness remains about 65%. See
+[WORKER_STDERR_TAIL.md](WORKER_STDERR_TAIL.md).
+
+Preceding diagnostic correction: startup CPU readings survive exact worker exit
 and managed Process disposal through a retained native handle. Missing readings
 say unavailable, not zero. The final old-runtime control and 17 focused checks
 prove the reporting change; seven report and 18 launch-failure checks pass.
