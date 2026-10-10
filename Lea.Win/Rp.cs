@@ -52,11 +52,29 @@ namespace Lea.Win
         public int G { get; set; }
 
         private Stream error;
+        private SafeProcessHandle processHandle;
         private Action release;
         private readonly object errorGate = new object();
         private readonly StringBuilder errorText = new StringBuilder();
 
         public string E { get { lock (errorGate) return errorText.ToString(); } }
+
+        internal long? Ct
+        {
+            get
+            {
+                var handle = processHandle;
+                if (handle == null || handle.IsClosed || handle.IsInvalid) return null;
+                long created, exited, kernel, user;
+                try
+                {
+                    if (!GetProcessTimes(handle, out created, out exited, out kernel, out user) ||
+                        kernel < 0 || user < 0 || kernel > Int64.MaxValue - user) return null;
+                    return (kernel + user) / TimeSpan.TicksPerMillisecond;
+                }
+                catch (ObjectDisposedException) { return null; }
+            }
+        }
 
         private Rp(Process process, Stream input, Stream output, Stream errors, Jb job, bool restricted,
             bool low, bool container, bool noCapabilities, bool fileAcl)
@@ -142,6 +160,7 @@ namespace Lea.Win
             var info = new ProcessInfo();
             var created = false;
             Process process = null;
+            SafeProcessHandle retained = null;
             FileStream input = null;
             FileStream output = null;
             FileStream errors = null;
@@ -225,8 +244,11 @@ namespace Lea.Win
                 process = Process.GetProcessById(info.ProcessId);
                 if (ResumeThread(info.Thread) == UInt32.MaxValue) throw Error("Lea could not resume its bounded image worker.");
                 Close(ref info.Thread);
-                Close(ref info.Process);
+                // Retain the exact native identity for counters even after the child exits.
+                retained = new SafeProcessHandle(info.Process, true);
+                info.Process = IntPtr.Zero;
                 var worker = new Rp(process, input, output, errors, job, restricted, low, true, noCapabilities, fileAcl);
+                worker.processHandle = retained;
                 worker.Sid = identity.Value;
                 worker.B = temporaryProfile;
                 if (temporaryProfile) worker.release = () => Release(profile, files, identity);
@@ -237,6 +259,7 @@ namespace Lea.Win
                 if (job != null) job.Dispose();
                 else if (created && info.Process != IntPtr.Zero) TerminateProcess(info.Process, 1);
                 if (process != null) process.Dispose();
+                if (retained != null) retained.Dispose();
                 if (input != null) input.Dispose();
                 if (output != null) output.Dispose();
                 if (errors != null) errors.Dispose();
@@ -270,6 +293,8 @@ namespace Lea.Win
             if (error != null) try { error.Dispose(); } catch (IOException) { }
             if (P != null) try { P.WaitForExit(1000); } catch (InvalidOperationException) { }
             if (P != null) P.Dispose();
+            if (processHandle != null) processHandle.Dispose();
+            processHandle = null;
             I = null;
             O = null;
             error = null;
@@ -641,6 +666,9 @@ namespace Lea.Win
         private static extern bool HeapFree(IntPtr heap, uint flags, IntPtr memory);
         [DllImport("kernel32.dll")] [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool TerminateProcess(IntPtr process, uint exitCode);
+        [DllImport("kernel32.dll")] [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool GetProcessTimes(SafeProcessHandle process, out long created, out long exited,
+            out long kernel, out long user);
         [DllImport("kernel32.dll")] [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool CloseHandle(IntPtr value);
     }

@@ -251,13 +251,10 @@ namespace Lea.Script
             }
             finally
             {
-                long cpu = 0;
-                if (endpoint != null)
-                    try { cpu = (long)endpoint.P.TotalProcessorTime.TotalMilliseconds; }
-                    catch (InvalidOperationException) { }
-                    catch (Win32Exception) { }
+                var cpu = endpoint == null ? (long?)null : endpoint.Ct;
                 var report = "phase=" + phase + "; launch=" + launched + "; probe=" +
-                    Math.Max(0, probed - launched) + "; wall=" + clock.ElapsedMilliseconds + "; cpu=" + cpu + " ms";
+                    Math.Max(0, probed - launched) + "; wall=" + clock.ElapsedMilliseconds + "; cpu=" +
+                    (cpu.HasValue ? cpu.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) + " ms" : "unavailable");
                 Sd = StartupReport(report, endpoint == null ? "" : endpoint.E);
             }
         }

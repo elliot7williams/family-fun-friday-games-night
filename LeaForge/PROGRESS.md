@@ -34,6 +34,21 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Native startup CPU reporting now uses a retained exact process handle through
+the internal Ct alias. Unavailable counters no longer masquerade as zero.
+The final identical-binary old-runtime control reproduces the defect, and
+17 focused lifetime checks pass across both linked launchers. Seven report
+and 18 launch-failure checks pass. The single broad run passes all 1,755 old
+checks plus eight new assertions, then fails the new CPU fixture's second-worker
+counter/exit assertion. That failure remains unresolved and retained; separate
+successful observations do not replace it. Final tests add raw counter logging
+without changing assertions or limits. Two DLLs grow by 512 bytes each; required
+bundle size is 746,496 bytes. The required renderer smoke, standalone browser
+EXE smoke and one separately copied Firespider script case pass; fresh captures
+are inspected. No speedup, startup fix or new release is claimed.
+Milestone 146 stays open; readiness remains about 65%. See
+`NATIVE_CPU_LIFETIME.md`.
+
 Private DOM wrapper caching, document lookup conversion/mapping and new-wrapper
 construction now use captured intrinsics. The exact preceding runtime fails
 the new Map-poisoning regression; the identical final test binary passes all

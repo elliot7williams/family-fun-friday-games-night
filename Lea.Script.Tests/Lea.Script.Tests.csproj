@@ -7,6 +7,7 @@
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="NativeCpuWorker.cs" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Web.Extensions" />
@@ -22,5 +23,11 @@
     </ItemGroup>
     <Copy SourceFiles="@(WorkerFiles)" DestinationFolder="$(TargetDir)ScriptWorker" SkipUnchangedFiles="true" />
     <Copy SourceFiles="..\Lea.Image\bin\$(Configuration)\Lea.Image.exe" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="true" />
+  </Target>
+  <Target Name="BuildNativeCpuProbe" AfterTargets="Build"
+          Inputs="$(MSBuildProjectDirectory)\NativeCpuWorker.cs;$(MSBuildProjectDirectory)\..\Lea.Image\Mg.cs;$(MSBuildProjectFullPath)"
+          Outputs="$(TargetDir)Lea.NativeCpu.Worker.exe">
+    <Csc Sources="NativeCpuWorker.cs;..\Lea.Image\Mg.cs" References="@(ReferencePath)"
+         OutputAssembly="$(TargetDir)Lea.NativeCpu.Worker.exe" TargetType="Exe" Optimize="true" />
   </Target>
 </Project>

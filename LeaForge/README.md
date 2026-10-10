@@ -1,5 +1,15 @@
 # LeaForge
 
+Latest diagnostic correction: startup CPU readings survive exact worker exit
+and managed Process disposal through a retained native handle. Missing readings
+say unavailable, not zero. The final old-runtime control and 17 focused checks
+prove the reporting change; seven report and 18 launch-failure checks pass.
+The broad run passes all 1,755 existing checks, then fails the new CPU fixture.
+Its failed gate stays retained and unresolved; final test source adds raw
+counter logging without weakening assertions. Required bundle size is now
+746,496 bytes. No speedup, native-startup fix or release is claimed; readiness
+remains about 65%. See [NATIVE_CPU_LIFETIME.md](NATIVE_CPU_LIFETIME.md).
+
 Latest scripting change: private wrapper/cache and lookup operations capture
 their intrinsics instead of invoking page overrides. The preceding runtime
 fails the new regression; all 36 scope and four resource checks pass on the fix
