@@ -25,6 +25,15 @@ call contract is checked with `Lea.Build/Test-ScriptBridgeBindings.ps1`.
 This does not establish a startup-timeout fix or speedup. See
 [DIRECT_BRIDGE_VALUES.md](../LeaForge/DIRECT_BRIDGE_VALUES.md).
 
+Both production startup paths use fresh explicit Jint options from the linked
+two-letter `Vo.Of/At` helpers, preserving the existing interpreter budgets,
+stack guard and disabled CLR access. Worker diagnostics distinguish `options`
+and `configured` from VM construction. Fourteen configuration/compiled-call
+checks pass, and the identical compiled-call assertion rejects the preceding
+callback constructor. The six-launch comparison and broad scripting gate
+still fail overall; this is not a startup fix or speedup. See
+[EXPLICIT_OPTIONS.md](../LeaForge/EXPLICIT_OPTIONS.md).
+
 ## Visual Studio
 
 The script projects are included in `../Lea.sln`. A host using this optional

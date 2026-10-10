@@ -52,16 +52,10 @@ namespace Lea.Script.Worker
                 using (var probe = new NetworkProbe(Wire.Number(init, "p")))
                 {
                     Trace("network", clock, trace);
-                    vm = new Jint.Engine(options =>
-                    {
-                        options.MaxStatements(20000).LimitMemory(8 * 1024 * 1024)
-                            .TimeoutInterval(TimeSpan.FromSeconds(5)).LimitRecursion(64)
-                            .RegexTimeoutInterval(TimeSpan.FromMilliseconds(100)).MaxArraySize(65536);
-                        options.Constraints.StackOverflowGuard = true;
-                        options.Interop.Enabled = false;
-                        options.Interop.AllowGetType = false;
-                        options.Interop.AllowWrite = false;
-                    });
+                    Trace("options", clock, trace);
+                    var options = Vo.Of(5000);
+                    Trace("configured", clock, trace);
+                    vm = new Jint.Engine(options);
                     Trace("vm", clock, trace);
                     vm.SetValue("__lea", (JsValue)new ClrFunction(vm, "__lea", (_, values) =>
                     {

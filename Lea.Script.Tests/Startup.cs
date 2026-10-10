@@ -303,8 +303,10 @@ namespace Lea.Script.Tests
         {
             baseline = Path.GetFullPath(baseline);
             var current = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ScriptWorker");
-            var names = Directory.GetFiles(current).Select(Path.GetFileName).OrderBy(name => name).ToArray();
-            Check(names.SequenceEqual(Directory.GetFiles(baseline).Select(Path.GetFileName).OrderBy(name => name)),
+            // Symbols are not among Jp's leased runtime inputs and differ after recompilation.
+            Func<string, bool> runtimeFile = name => !name.Equals("Lea.Script.Worker.pdb", StringComparison.OrdinalIgnoreCase);
+            var names = Directory.GetFiles(current).Select(Path.GetFileName).Where(runtimeFile).OrderBy(name => name).ToArray();
+            Check(names.SequenceEqual(Directory.GetFiles(baseline).Select(Path.GetFileName).Where(runtimeFile).OrderBy(name => name)),
                 "bootstrap comparison runtime inventories match");
             foreach (var name in names.Where(name => name != "Lea.Script.Worker.exe"))
                 Check(Digest(Path.Combine(current, name)) == Digest(Path.Combine(baseline, name)),

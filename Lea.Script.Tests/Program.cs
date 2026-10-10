@@ -25,6 +25,12 @@ namespace Lea.Script.Tests
                 var treeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-tree.html");
                 var subtreeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-subtree.html");
                 var loadFailureFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-load-failure.html");
+                if (args.Length > 1 && args[1] == "--vm-options")
+                {
+                    VmOptions.Run();
+                    Console.WriteLine("PASS Lea.Script VM options: " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--origin-probe")
                 {
                     DocumentOrigins.Probe();
@@ -470,6 +476,7 @@ namespace Lea.Script.Tests
                 DocumentOrigins.Run(false);
                 DocumentOrigins.Run(true);
                 View.Pump(() => DocumentOrigins.Native(null));
+                VmOptions.Run();
                 Console.WriteLine("PASS Lea.Script: " + checks + " checks; JavaScript, isolated worker, and typed DOM.");
                 return 0;
             }

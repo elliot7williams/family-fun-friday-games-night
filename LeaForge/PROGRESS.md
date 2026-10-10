@@ -34,6 +34,23 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Both script runtimes now use fresh explicit interpreter options from shared
+two-letter `Vo.Of/At` helpers. All 14 options/compiled-constructor checks pass;
+the same constructor assertion rejects the preceding Script assembly. Four
+resource and eight native recovery checks pass. The corrected six-launch
+comparison fails overall because one baseline launch times out, despite three
+candidate passes; no speedup is claimed. After a proof-only deployment repair
+removes an unleased symbol file, the unchanged candidate runtime's broad suite
+fails after 236 assertions at recovery following unpublished-launch cancellation.
+The initial symbol inventory/deployment failures are retained separately; native
+ACL assertions are not weakened. Only Script/worker runtime bytes change, and
+the required bundle remains 749,056 bytes. The complete renderer smoke,
+standalone browser and one copied Firespider script case pass; the full host
+matrix and installed EXE startup are not reverified. Five captures are inspected.
+Normal outputs and original host
+files stay unchanged. No release, startup fix or milestone completion is
+claimed; readiness stays about 65%. See `EXPLICIT_OPTIONS.md`.
+
 A document-origin foundation adds immutable `P.Og` and short `Of/Eq/Tx/Op/Lc`
 APIs, final-response tuple authority and identity-based opaque origins.
 Fragment/history/style changes retain identity; reloads create new documents.

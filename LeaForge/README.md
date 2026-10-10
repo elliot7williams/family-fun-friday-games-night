@@ -1,5 +1,17 @@
 # LeaForge
 
+Latest startup simplification: both script runtimes use fresh explicit options
+through shared two-letter `Vo.Of/At` helpers. Fourteen configuration/compiled-call
+checks, four resource checks and eight native recovery checks pass. The same
+compiled-call assertion rejects the preceding callback constructor. The paired
+comparison and broad script suite still fail overall; the latter stops after
+236 assertions at cancelled-launch recovery. The renderer smoke, standalone
+browser and one copied Firespider script case pass, not the full host matrix.
+Failed gates and proof-only symbol staging repairs are retained.
+No speedup, startup fix, default adoption
+or release is claimed; readiness stays about 65%. See
+[explicit interpreter options](EXPLICIT_OPTIONS.md).
+
 Latest engine foundation: documents now retain immutable `P.Og` origins with
 two-letter `Of/Eq/Tx/Op/Lc` APIs. Redirects, `<base>`, fragments, history and
 reload identity are tested; optional `window.origin` cannot change host policy.

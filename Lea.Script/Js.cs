@@ -103,17 +103,8 @@ namespace Lea.Script
 
         private void Start()
         {
-            Action<Options> configure = options =>
-            {
-                options.MaxStatements(20000).LimitMemory(8 * 1024 * 1024)
-                    .TimeoutInterval(TimeSpan.FromSeconds(1)).LimitRecursion(64)
-                    .RegexTimeoutInterval(TimeSpan.FromMilliseconds(100)).MaxArraySize(65536);
-                options.Constraints.StackOverflowGuard = true;
-                options.Interop.Enabled = false;
-                options.Interop.AllowGetType = false;
-                options.Interop.AllowWrite = false;
-            };
-            vm = factory == null ? new Jint.Engine(configure) : factory(configure);
+            vm = factory == null ? new Jint.Engine(Vo.Of(1000)) :
+                factory(options => Vo.At(options, 1000));
             vm.SetValue("__lea", (Jint.Native.JsValue)new ClrFunction(vm, "__lea", (_, args) =>
                 Codec.Value(vm, bridge.Call(Codec.Arguments(args)))));
             vm.SetValue("__jobs", (Jint.Native.JsValue)new ClrFunction(vm, "__jobs", (_, args) =>
