@@ -34,6 +34,22 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Current milestone 146 remains open. Shared `Vo.Of/At` now makes page realms
+nonblocking in both trusted and isolated execution: valid `Atomics.wait()`
+throws `TypeError`, while atomic operations and `waitAsync` wakeups remain.
+The old finite control blocks for 330 ms; the patched control rejects the wait.
+Core/trusted/isolated/native guard suites pass 9/15/16/9 assertions; options
+pass 16, clocks 97, timers 165 and worker 87. Native paint and browser smoke
+pass. A startup trace fails after 9 checks, with VM construction returned but
+the exact later blocking operation unknown. One full run fails after 2,375
+checks at the unchanged Lea.Win native CPU fixture: helper exit 3, total CPU
+140 ms, not the helper loop's delta. All failures are retained and all budgets
+are unchanged. Only two optional runtime hashes change, with zero binary size
+growth; the required renderer and other 17 runtime entries stay frozen.
+Original Firespider and normal outputs are untouched. No startup fix, general
+speedup or stable release is claimed; readiness stays about 65%. See
+[nonblocking page agents](NONBLOCKING_AGENTS.md).
+
 Current milestone 146 remains open. Optional `Nw/To` aliases and
 `performance.now()/timeOrigin/toJSON()` share the parent-owned animation clock,
 coarsened to whole milliseconds. Core/trusted/isolated/native clock suites pass

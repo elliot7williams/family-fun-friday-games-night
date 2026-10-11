@@ -21,6 +21,8 @@ namespace Lea.Script
                 .TimeoutInterval(TimeSpan.FromMilliseconds(milliseconds)).LimitRecursion(64)
                 .RegexTimeoutInterval(TimeSpan.FromMilliseconds(100)).MaxArraySize(65536);
             options.Constraints.StackOverflowGuard = true;
+            // These are window agents, including pages hosted in the isolated OS process.
+            options.AgentCanSuspend = false;
             options.Interop.Enabled = false;
             options.Interop.AllowGetType = false;
             options.Interop.AllowWrite = false;

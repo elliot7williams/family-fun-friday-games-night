@@ -31,9 +31,10 @@ namespace Lea.Script.Tests
                     old.Interop.AllowWrite = false;
                     legacy = Snapshot(old);
                 })) { }
-                Program.Check(Snapshot(options) == legacy, "explicit VM options match every configured scalar and constraint field: " + milliseconds);
+                Program.Check(Snapshot(options) == legacy, "explicit VM options preserve preexisting scalar and constraint fields: " + milliseconds);
                 Program.Check(options.Constraints.StackOverflowGuard && !options.Interop.Enabled && !options.Interop.AllowGetType && !options.Interop.AllowWrite,
                     "explicit VM options preserve stack and CLR restrictions: " + milliseconds);
+                Program.Check(!options.AgentCanSuspend, "window VM options forbid blocking atomic waits: " + milliseconds);
                 var other = Vo.Of(milliseconds);
                 Program.Check(!ReferenceEquals(options, other) && !ReferenceEquals(options.Constraints, other.Constraints) && !ReferenceEquals(options.Interop, other.Interop),
                     "explicit VM options are fresh per realm: " + milliseconds);

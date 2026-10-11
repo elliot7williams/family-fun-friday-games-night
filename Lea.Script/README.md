@@ -12,7 +12,15 @@ with Acornima 1.7.0 and framework support libraries pinned in
 arrays, objects, JSON, and template strings. It does not implement those
 language rules through a new handwritten parser.
 
-The latest optional runtime adds the parent-owned `Nw/To` clock described
+The latest optional runtime makes page agents nonblocking through `Vo.Of/At`.
+Its 49 focused guard checks, timer/worker checks and separate browser smoke
+pass with no binary size growth. The current full suite expects 2,815 but
+fails after 2,375 at the native CPU-lifetime fixture; startup tracing also
+times out after VM construction returned. Exact causes remain unknown and
+no startup fix or release is claimed. See
+[nonblocking page agents](../LeaForge/NONBLOCKING_AGENTS.md).
+
+The preceding optional runtime adds the parent-owned `Nw/To` clock described
 below. Its 97 focused clock checks and one full 2,764-check run pass, as does
 the separate browser smoke. Other focused startup/bootstrap failures remain
 open; the full pass does not establish a startup fix or stable release. Only
@@ -126,6 +134,15 @@ within 512 characters. No budgets or isolation protections change. See
 between measured CPU milliseconds and `Cp`'s 2,500-basis-point CPU-rate cap.
 
 ## Clock
+
+Page realms are now nonblocking agents in both execution modes. Valid
+`Atomics.wait()` calls throw `TypeError` instead of suspending the page thread;
+ordinary atomic operations and nonblocking `Atomics.waitAsync()` remain.
+The shared `Vo.Of/At` configuration supplies this policy without new public
+host aliases. Caught errors allow microtasks/timers/frames to continue;
+uncaught errors follow normal fresh-realm recovery. This does not implement
+Web Workers or fix the separate pre-page startup timeouts. See
+[nonblocking page agents](../LeaForge/NONBLOCKING_AGENTS.md).
 
 `performance.now()`, read-only `performance.timeOrigin`, and
 `performance.toJSON()` use the parent-owned monotonic animation clock. Host

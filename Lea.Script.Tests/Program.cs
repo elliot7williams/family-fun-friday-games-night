@@ -32,6 +32,15 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script VM options: " + checks + " checks.");
                     return 0;
                 }
+                if (args.Length > 1 && (args[1] == "--agent-waits" || args[1] == "-aw"))
+                {
+                    if (args.Length < 3 || args.Length > 4 || args.Length == 4 && args[2] != "native")
+                        throw new ArgumentException("Supply only an agent wait mode and optional native capture prefix.");
+                    if (args[2] == "native") View.Pump(() => AgentWait.Native(viewFixture, args.Length == 4 ? args[3] : null));
+                    else AgentWait.Run(viewFixture, args[2]);
+                    Console.WriteLine("PASS Lea.Script agent waits " + args[2] + ": " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1].StartsWith("--execution-report", StringComparison.Ordinal))
                 {
                     if (args[1] == "--execution-report-contract") ExecutionReports.Contract();
@@ -582,6 +591,10 @@ namespace Lea.Script.Tests
                 Clock.Run(viewFixture, "trusted");
                 Clock.Run(viewFixture, "isolated");
                 View.Pump(() => Clock.Native(viewFixture, null));
+                AgentWait.Run(viewFixture, "core");
+                AgentWait.Run(viewFixture, "trusted");
+                AgentWait.Run(viewFixture, "isolated");
+                View.Pump(() => AgentWait.Native(viewFixture, null));
                 View.Run(viewFixture);
                 BudgetPhases.Run(viewFixture);
                 EventOptions.Run(viewFixture);

@@ -27,6 +27,11 @@ Three other focused suites still time out during bootstrap/startup; the full
 pass does not close those failures. The required renderer is unchanged, no
 speedup or release is claimed, and broader readiness stays about 65%. See
 [performance clock](PERFORMANCE_CLOCK.md).
+Page realms now reject blocking atomic waits through the existing `Vo.Of/At`
+configuration without binary size growth; 49 focused agent checks pass.
+Nonblocking operations and async wakeups remain. Startup and native CPU-lifetime
+failures still block a release claim; readiness stays about 65%. See
+[nonblocking page agents](NONBLOCKING_AGENTS.md).
 
 Core public vocabulary:
 
