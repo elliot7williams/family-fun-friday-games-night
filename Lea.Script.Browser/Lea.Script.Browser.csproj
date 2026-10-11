@@ -17,6 +17,7 @@
     <Compile Include="..\Lea.Win.Test\Test.cs" Link="TestWindow.cs" />
     <None Include="..\LeaForge\test-pages\javascript-view.html" Link="LeaForge\test-pages\javascript-view.html" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\LeaForge\test-pages\javascript-runtime.html" Link="LeaForge\test-pages\javascript-runtime.html" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\LeaForge\test-pages\javascript-animation.html" Link="LeaForge\test-pages\javascript-animation.html" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\LeaForge\test-pages\javascript-attribute-edits.html" Link="LeaForge\test-pages\javascript-attribute-edits.html" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\assets\lea.ico" Link="assets\lea.ico" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>

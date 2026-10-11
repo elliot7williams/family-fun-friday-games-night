@@ -54,14 +54,17 @@ namespace Lea.Script
         public Jr At { get; private set; }
         public int Td { get { CheckThread(); return disposed || !engine.Je || generation != engine.Jg || engine.At != page ? -1 : bridge.Timers.Td; } }
         public int Tn { get { CheckThread(); return bridge.Timers.N; } }
+        public int Rd { get { CheckThread(); return disposed || !engine.Je || generation != engine.Jg || engine.At != page ? -1 : bridge.Frames.Rd; } }
+        public int Rn { get { CheckThread(); return bridge.Frames.N; } }
 
         public Jr Ex(string code) { return Run(code, null, null); }
         public Jr Tk() { return Run(null, null, null, true); }
+        public Jr Rf() { return Run(null, null, null, frame: true); }
 
         public Jr Ev(N target, string type)
         { Ja.EventType(type); return Run(null, target, type); }
 
-        private Jr Run(string code, N target, string type, bool timer = false)
+        private Jr Run(string code, N target, string type, bool timer = false, bool frame = false)
         {
             CheckThread();
             if (disposed) throw new ObjectDisposedException("Js");
@@ -69,17 +72,26 @@ namespace Lea.Script
             bridge.Begin();
             if (generation != engine.Jg) { Reset(); generation = engine.Jg; }
             if (!engine.Je) { Reset(); return Result("off", "Scripting is disabled."); }
-            if (timer && engine.At != page) { Reset(); return Result("stale", "The bound page is no longer active."); }
+            if ((timer || frame) && engine.At != page) { Reset(); return Result("stale", "The bound page is no longer active."); }
             engine.Q(page, "body");
-            if (!timer && type == null && (code == null || code.Length > 16 * 1024)) return Result("code", "Code must be at most 16 KiB.");
+            if (!timer && !frame && type == null && (code == null || code.Length > 16 * 1024)) return Result("code", "Code must be at most 16 KiB.");
             if (type != null && target != null && !engine.Jn(page, target)) return Result("node", "Event target is not connected to the bound page.");
             var token = timer ? bridge.Timers.Take() : 0;
             if (timer && token == 0) return Result("ok", "");
+            var callbacks = frame ? bridge.Frames.Take() : null;
+            if (frame && callbacks == null) return Result("ok", "");
             running = true;
             var phase = "bootstrap";
             try
             {
                 if (vm == null) Start();
+                if (frame)
+                {
+                    phase = "frame";
+                    vm.Invoke(dispatch, Jint.Native.JsValue.Undefined,
+                        new[] { (Jint.Native.JsValue)"rf", Codec.Value(vm, callbacks), (Jint.Native.JsValue)bridge.Frames.Time });
+                    return Result("ok", "");
+                }
                 if (timer)
                 {
                     phase = "timer";
@@ -111,7 +123,7 @@ namespace Lea.Script
                 var message = limited ? "Script budget exceeded. phase=" + phase + "; reason=" + error.GetType().Name : error.Message;
                 return Result(limited ? "limit" : "js", message.Length <= 512 ? message : message.Substring(0, 512));
             }
-            finally { if (timer) bridge.Timers.End(); running = false; }
+            finally { if (timer) bridge.Timers.End(); if (frame) bridge.Frames.End(); running = false; }
         }
 
         private void Start()

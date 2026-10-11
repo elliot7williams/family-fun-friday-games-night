@@ -144,6 +144,31 @@ namespace Lea.Script
             return (int)value;
         }
 
+        internal static double Time(Dictionary<string, object> frame)
+        {
+            object value;
+            if (!frame.TryGetValue("t", out value) || !(value is int || value is long || value is double || value is decimal))
+                throw new InvalidDataException("Invalid frame timestamp.");
+            var time = Convert.ToDouble(value);
+            if (Double.IsNaN(time) || Double.IsInfinity(time) || time < 0 || time > 9007199254740991)
+                throw new InvalidDataException("Invalid frame timestamp.");
+            return time;
+        }
+
+        internal static object[] Rk(Dictionary<string, object> frame)
+        {
+            object value;
+            var keys = frame.TryGetValue("p", out value) ? value as object[] : null;
+            if (keys == null || keys.Length < 1 || keys.Length > 64) throw new InvalidDataException("Invalid frame callbacks.");
+            var previous = 0;
+            foreach (var key in keys)
+            {
+                if (!(key is int) || (int)key <= previous) throw new InvalidDataException("Invalid frame handle order.");
+                previous = (int)key;
+            }
+            return keys;
+        }
+
         private static JavaScriptSerializer Serializer()
         { return new JavaScriptSerializer { MaxJsonLength = MaxFrame, RecursionLimit = 8 }; }
 

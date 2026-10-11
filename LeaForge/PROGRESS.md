@@ -34,6 +34,23 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Current milestone 146 remains open. Animation-frame callbacks add compact
+`Rf/Rd/Rn` and native `RfA`, with a parent-owned 64-handle queue, ordered
+snapshots, shared monotonic timestamps, per-callback microtasks and cancellation.
+Hidden controls pause frames while timers continue; permission changes and
+failure/navigation/disposal retire the queue. Scheduler/trusted/isolated/native
+gates pass 60/26/27/14 assertions. Existing timer/worker/startup/wire/assets and
+complete renderer checks pass. A fresh animation browser passes Start/Pause;
+capture pixels confirm width 40 -> 89 after three callbacks. Full scripting
+regression fails after 565 assertions during fresh-worker recovery after a
+microtask hard deadline, before the new frame suite; expected completion is
+2,651. The assertion omits returned status/phase, so cause is unestablished.
+Earlier failures are not resolved. Required bytes rise 512 to 749,568; all
+runtime growth is 7,680 with
+no new dependency. Host pacing is not monitor-vsync. Readiness remains about
+65%, with no speedup, startup fix, installed replacement or stable release
+claim. See [animation frames](ANIMATION_FRAMES.md).
+
 Current milestone 146 remains open. Private packed frames use one bounded
 buffer and one stream write/flush, while two-letter `Hi/Hr` prepare the actual
 worker hello outcomes during the existing trusted probe. Wire version, guards
@@ -3252,9 +3269,9 @@ open. See `ELEMENT_SELECTORS.md` for contracts, tests and verification scope.
 - Validate the separate .NET Framework 4.8 candidate before adopting it in the
   live project. Keep original source, a rollback build and the installed browser
   intact; remaining legacy-only commands still need Lea implementations.
-- Extend the bounded timer and microtask implementation with full classic-string
-  semantics, animation frames and error/rejection notification, then expand DOM operations
-  and real-site compatibility coverage.
+- Extend bounded timers/microtasks/frames with full document-timeline timestamps,
+  display-aligned pacing and error/rejection notification, then expand DOM
+  operations and real-site compatibility coverage.
 - Implement document-origin and resource/network policy before enabling remote
   or external scripts. Local scripting tests do not prove safe internet-page
   execution; keep that gate closed until the boundaries are tested.

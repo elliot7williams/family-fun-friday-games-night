@@ -82,10 +82,14 @@ namespace Lea.Script
         public string Ed { get; private set; } = "";
         public int Td { get { CheckThread(); return disposed || stopped || !engine.Je || generation != engine.Jg || engine.At != page ? -1 : bridge.Timers.Td; } }
         public int Tn { get { CheckThread(); return bridge.Timers.N; } }
+        public int Rd { get { CheckThread(); return disposed || stopped || !engine.Je || generation != engine.Jg || engine.At != page ? -1 : bridge.Frames.Rd; } }
+        public int Rn { get { CheckThread(); return bridge.Frames.N; } }
 
         public Jr Ex(string code) { return Run(code, false).GetAwaiter().GetResult(); }
         public Jr Tk() { return Run(null, false, timer: true).GetAwaiter().GetResult(); }
         public Task<Jr> TkA() { CheckContext(); return Run(null, true, timer: true); }
+        public Jr Rf() { return Run(null, false, render: true).GetAwaiter().GetResult(); }
+        public Task<Jr> RfA() { CheckContext(); return Run(null, true, render: true); }
 
         public Task<Jr> ExA(string code)
         {
@@ -113,7 +117,7 @@ namespace Lea.Script
                 if (worker != null && worker.J != null) { KeepPeak(worker.J.Peak); worker.J.Dispose(); }
         }
 
-        private async Task<Jr> Run(string code, bool asynchronous, N target = null, string type = null, bool timer = false)
+        private async Task<Jr> Run(string code, bool asynchronous, N target = null, string type = null, bool timer = false, bool render = false)
         {
             CheckThread();
             if (disposed) throw new ObjectDisposedException("Jp");
@@ -123,12 +127,14 @@ namespace Lea.Script
             if (generation != engine.Jg) { Reset(); generation = engine.Jg; }
             if (!engine.Je) { Reset(); return Result("off", "Scripting is disabled."); }
             if (!Object.ReferenceEquals(engine.At, page)) { Reset(); return Result("stale", "The bound page is no longer active."); }
-            if (timer && stopped) { Reset(); return Result("cancel", "Worker execution stopped."); }
-            if (!timer && type == null && (code == null || code.Length > 16 * 1024)) return Result("code", "Code must be at most 16 KiB.");
+            if ((timer || render) && stopped) { Reset(); return Result("cancel", "Worker execution stopped."); }
+            if (!timer && !render && type == null && (code == null || code.Length > 16 * 1024)) return Result("code", "Code must be at most 16 KiB.");
             if (type != null && target != null && !engine.Jn(page, target)) return Result("node", "Event target is not connected to the bound page.");
             if (sequence == Int32.MaxValue) { Reset(); sequence = 0; }
             var token = timer ? bridge.Timers.Take() : 0;
             if (timer && token == 0) return Result("ok", "");
+            var callbacks = render ? bridge.Frames.Take() : null;
+            if (render && callbacks == null) return Result("ok", "");
             running = true;
             stopped = false;
             var started = false;
@@ -149,7 +155,8 @@ namespace Lea.Script
                 var path = type == null ? null : bridge.Path(target);
                 await Io(() =>
                 {
-                    if (timer) Wire.Write(endpoint.I, Wire.Of("k", "timer", "i", id, "t", token));
+                    if (render) Wire.Write(endpoint.I, Wire.Of("k", "frame", "i", id, "t", bridge.Frames.Time, "p", callbacks));
+                    else if (timer) Wire.Write(endpoint.I, Wire.Of("k", "timer", "i", id, "t", token));
                     else if (type == null) Wire.Write(endpoint.I, Wire.Of("k", "exec", "i", id, "c", code));
                     else Wire.Write(endpoint.I, Wire.Of("k", "event", "i", id, "t", type, "p", path));
                     return true;
@@ -204,7 +211,7 @@ namespace Lea.Script
                 Reset();
                 return Result(status, message);
             }
-            finally { if (timer) bridge.Timers.End(); StopIo(); running = false; }
+            finally { if (timer) bridge.Timers.End(); if (render) bridge.Frames.End(); StopIo(); running = false; }
         }
 
         private async Task Start(bool asynchronous)

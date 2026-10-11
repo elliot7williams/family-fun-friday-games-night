@@ -1,5 +1,17 @@
 # LeaForge
 
+Latest engine feature adds animation-frame callbacks with short `Rf/Rd/Rn`
+host aliases, ordered batches, shared monotonic timestamps, cancellation and
+hidden-view suspension. The 60/26/27/14 scheduler/trusted/isolated/native checks
+pass, as do existing timer, worker, startup, wire, assets and renderer gates.
+A fresh animation browser passes Start/Pause, with inspected/pixel-verified
+growth from 40 to 89 pixels. Full regression fails after 565 assertions during
+fresh-worker recovery following a hard microtask deadline, before the frame
+suite; its status/phase are not recorded. Prior failures remain open. Required
+bytes are 749,568, with no new dependency or monitor-vsync/speedup
+claim. Readiness stays about 65%; installed Firespider remains unchanged. See
+[animation frames](ANIMATION_FRAMES.md).
+
 Latest transport work packs each frame into one bounded buffer and stream
 write, with short private `Hi/Hr` helpers preparing actual startup outcomes
 during the trusted probe. Both wire aliases pass 186 assertions, and native

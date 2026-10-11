@@ -49,6 +49,27 @@ __jobs('declarations');
         clearInterval: { value: function clearInterval(id = 0) { clear(id); }, writable: true, configurable: true, enumerable: true }
     });
     const cache = new Map();
+    const frames = new Map();
+    function frameWindow(receiver) {
+        if (receiver !== realm && receiver !== null && receiver !== undefined) throw new TypeError('Invalid Lea window');
+    }
+    Object.defineProperties(globalThis, {
+        requestAnimationFrame: { value: function requestAnimationFrame(callback) {
+            frameWindow(this);
+            if (typeof callback !== 'function') throw new TypeError('A frame callback is required');
+            const id = call('rs');
+            apply(putTimer, frames, [id, callback]);
+            return id;
+        }, writable: true, configurable: true, enumerable: true },
+        cancelAnimationFrame: { value: function cancelAnimationFrame(handle) {
+            frameWindow(this);
+            if (arguments.length === 0) throw new TypeError('A frame handle is required');
+            const id = handle >>> 0;
+            if (id === 0 || id > 2147483647) return;
+            call('rc', id);
+            apply(deleteTimer, frames, [id]);
+        }, writable: true, configurable: true, enumerable: true }
+    });
     const targets = new WeakMap();
     const handlerTypes = ['click', 'input', 'change', 'submit', 'load'];
     function eventType(type) {
@@ -527,8 +548,21 @@ __jobs('declarations');
     delete globalThis.__lea;
     delete globalThis.__jobs;
     // The dispatcher is returned to the interpreter host, never installed on the global object.
-    (function dispatch(type, keys) {
+    (function dispatch(type, keys, time) {
         if (type === 'mt') { microtaskErrors(); return false; }
+        if (type === 'rf') {
+            for (let i = 0; i < keys.length; i++) {
+                const id = keys[i], callback = apply(getTimer, frames, [id]);
+                if (!callback) continue;
+                apply(deleteTimer, frames, [id]);
+                call('re', id);
+                try { apply(callback, realm, [time]); }
+                catch (error) { if (!failed) { failed = true; failure = error; } }
+                checkpoint();
+            }
+            microtaskErrors();
+            return false;
+        }
         if (type === 'tm') {
             if (keys.length !== 1) throw new TypeError('Invalid Lea timer');
             const timer = apply(getTimer, timers, [keys[0]]);

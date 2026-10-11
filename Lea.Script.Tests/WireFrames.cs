@@ -14,7 +14,7 @@ namespace Lea.Script.Tests
         internal static void Run()
         {
             var worker = Assembly.LoadFrom(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ScriptWorker", "Lea.Script.Worker.exe"));
-            Sample(typeof(Jp).Assembly, "Lea.Script.Jp", 5);
+            Sample(typeof(Jp).Assembly, "Lea.Script.Jp", 6);
             Sample(worker, "Lea.Script.Worker.Program", 3);
         }
 
@@ -62,6 +62,7 @@ namespace Lea.Script.Tests
                 Tuple.Create((object)new { k = "hello", g = 15, n = 2, f = 1 }, new object[] { "k", "hello", "g", 15, "n", 2, "f", 1 }),
                 Tuple.Create((object)new { k = "exec", i = 17, c = text }, new object[] { "k", "exec", "i", 17, "c", text }),
                 Tuple.Create((object)new { k = "timer", i = 18, t = 1 }, new object[] { "k", "timer", "i", 18, "t", 1 }),
+                Tuple.Create((object)new { k = "frame", i = 18, t = 16.25, p = new object[] { 1, 2 } }, new object[] { "k", "frame", "i", 18, "t", 16.25, "p", new object[] { 1, 2 } }),
                 Tuple.Create((object)new { k = "event", i = 19, t = "click", p = new object[] { 1, 2 } }, new object[] { "k", "event", "i", 19, "t", "click", "p", new object[] { 1, 2 } }),
                 Tuple.Create((object)new { k = "call", i = 20, r = 1, b = new object[] { "put", null, "t", text } }, new object[] { "k", "call", "i", 20, "r", 1, "b", new object[] { "put", null, "t", text } }),
                 Tuple.Create((object)new { k = "reply", i = 20, r = 1, v = (object)null }, new object[] { "k", "reply", "i", 20, "r", 1, "v", null }),

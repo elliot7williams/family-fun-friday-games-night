@@ -144,6 +144,7 @@ namespace Lea.Script.Worker
                         var kind = Wire.Text(frame, "k", 8);
                         if (kind == "exec") Wire.Fields(frame, "k", "i", "c");
                         else if (kind == "timer") Wire.Fields(frame, "k", "i", "t");
+                        else if (kind == "frame") Wire.Fields(frame, "k", "i", "t", "p");
                         else if (kind == "event") Wire.Fields(frame, "k", "i", "t", "p");
                         else return 3;
                         var next = Wire.Number(frame, "i");
@@ -159,6 +160,12 @@ namespace Lea.Script.Worker
                                 vm.Execute(Wire.Text(frame, "c", 16 * 1024));
                                 Frame("tasks", id, request, clock, trace);
                                 vm.Invoke(dispatch, JsValue.Undefined, new[] { (JsValue)"mt", Codec.Value(vm, new object[0]) });
+                            }
+                            else if (kind == "frame")
+                            {
+                                var callbacks = Wire.Rk(frame);
+                                vm.Invoke(dispatch, JsValue.Undefined,
+                                    new[] { (JsValue)"rf", Codec.Value(vm, callbacks), (JsValue)Wire.Time(frame) });
                             }
                             else if (kind == "timer")
                             {

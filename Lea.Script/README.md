@@ -108,6 +108,18 @@ between measured CPU milliseconds and `Cp`'s 2,500-basis-point CPU-rate cap.
 
 ## Timers
 
+`requestAnimationFrame` and `cancelAnimationFrame` are now available in both
+realms. Compact host `Rf/Rd/Rn` dispatches a due batch, reports its delay and
+counts pending callbacks; native `RfA` is asynchronous. `W.On(view)` supplies
+the frame-capable adapter and automatically dispatches batches before repaint,
+pausing hidden-view frames without pausing ordinary timers. Callbacks share a
+monotonic session timestamp, keep registration order, drain per-callback
+microtasks and defer newly requested callbacks. The parent admits at most 64;
+existing failure/revocation/navigation/disposal behavior and budgets remain.
+Host pacing uses a 16-ms interval, not monitor-vsync or a frame-rate guarantee.
+See [animation frames](../LeaForge/ANIMATION_FRAMES.md) for verification and
+remaining document-timeline/error-reporting and release limitations.
+
 The optional realm exposes `setTimeout`, `setInterval`, `clearTimeout`, and
 `clearInterval`. Function callbacks retain argument identity and receive the
 realm's window as `this` (ordinary JavaScript bound-function rules still apply).

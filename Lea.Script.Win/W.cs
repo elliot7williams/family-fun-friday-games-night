@@ -7,7 +7,7 @@ using Lea.Win;
 
 namespace Lea.Script.Win
 {
-    public sealed class W : Jx, Jt
+    public sealed class W : Jx, Jt, Jf
     {
         private readonly E engine;
         private readonly P page;
@@ -18,6 +18,15 @@ namespace Lea.Script.Win
         private bool demanded;
         public Jp At { get; private set; }
         public int Td { get { return Local ? At.Td : -1; } }
+        public int Rd { get { return Local ? At.Rd : -1; } }
+
+        public async Task<Xr> RfA()
+        {
+            if (!Local) return new Xr("origin", 0, "Remote frame execution is disabled.");
+            var result = await At.RfA();
+            if (!result.Ok) { loaded = false; complete = false; }
+            return Convert(result, 0);
+        }
 
         public async Task<Xr> TkA()
         {

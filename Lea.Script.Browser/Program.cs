@@ -46,6 +46,33 @@ namespace Lea.Script.Browser
                                 await view.Ka();
                                 var runtime = (W)view.Xs;
                                 if (view.T != "Lea 1" || view.Id("result").C[0].X != "1" || !runtime.At.Ac) throw new InvalidOperationException("Native browser click failed.");
+                                var frames = 0;
+                                if (view.Id("frame-start") != null)
+                                {
+                                    if (report != null)
+                                        using (var before = new Bitmap(window.ClientSize.Width, window.ClientSize.Height))
+                                        {
+                                            window.DrawToBitmap(before, new Rectangle(Point.Empty, before.Size));
+                                            before.Save(report + ".before.png", System.Drawing.Imaging.ImageFormat.Png);
+                                        }
+                                    for (var i = 0; i <= view.Kn && (view.Ke == null || view.Ke.Av("id") != "frame-start"); i++) view.Kf();
+                                    await view.Ka();
+                                    var clock = System.Diagnostics.Stopwatch.StartNew();
+                                    while (clock.ElapsedMilliseconds < 5000)
+                                    {
+                                        Int32.TryParse(view.Id("frames").C[0].X, out frames);
+                                        if (frames >= 3 && runtime.At.Rn > 0 && view.Xn == 0) break;
+                                        await Task.Delay(10);
+                                    }
+                                    if (frames < 3 || runtime.At.Rn == 0) throw new InvalidOperationException("Browser animation did not advance.");
+                                    for (var i = 0; i <= view.Kn && (view.Ke == null || view.Ke.Av("id") != "frame-stop"); i++) view.Kf();
+                                    await view.Ka();
+                                    if (runtime.At.Rn != 0) throw new InvalidOperationException("Browser animation did not pause.");
+                                    var paused = view.Id("frames").C[0].X;
+                                    Int32.TryParse(paused, out frames);
+                                    await Task.Delay(80);
+                                    if (view.Id("frames").C[0].X != paused) throw new InvalidOperationException("Paused animation changed.");
+                                }
                                 view.Sc(-view.Sy);
                                 if (report != null)
                                 {
@@ -56,6 +83,8 @@ namespace Lea.Script.Browser
                                     }
                                     File.WriteAllText(report, new JavaScriptSerializer().Serialize(new {
                                         ok = true, title = view.T, nodes = view.At.N, pid = runtime.At.Pid,
+                                        frames, frameCallbacks = runtime.At.Rn,
+                                        frameStyle = view.Id("bar") == null ? "" : view.Id("bar").Av("style"),
                                         isolated = runtime.At.Ac, noLoopbackExemption = runtime.At.Ne,
                                         memoryLimit = runtime.At.Mm, modules = System.Diagnostics.Process.GetCurrentProcess().Modules.Cast<System.Diagnostics.ProcessModule>().Select(module => module.ModuleName).ToArray()
                                     }));
@@ -78,6 +107,6 @@ namespace Lea.Script.Browser
         }
 
         private static string DefaultPage()
-        { return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "LeaForge", "test-pages", "javascript-view.html"); }
+        { return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "LeaForge", "test-pages", "javascript-animation.html"); }
     }
 }

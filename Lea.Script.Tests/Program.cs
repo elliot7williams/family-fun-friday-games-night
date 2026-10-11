@@ -441,6 +441,15 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script timers: " + checks + " checks.");
                     return 0;
                 }
+                if (args.Length > 1 && (args[1] == "--animation-frames" || args[1] == "-rf"))
+                {
+                    if (args.Length < 3 || args.Length > 4 || args.Length == 4 && args[2] != "native")
+                        throw new ArgumentException("Supply only a frame test mode and optional native capture prefix.");
+                    if (args[2] == "native") View.Pump(() => Frames.Native(viewFixture, args.Length == 4 ? args[3] : null));
+                    else Frames.Run(viewFixture, args[2]);
+                    Console.WriteLine("PASS Lea.Script animation frames " + args[2] + ": " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--events")
                 {
                     Events.Run(viewFixture);
@@ -549,6 +558,10 @@ namespace Lea.Script.Tests
                 View.ClassLists(attributeFixture);
                 Microtasks.Run(viewFixture);
                 Timers.Run(viewFixture);
+                Frames.Run(viewFixture, "scheduler");
+                Frames.Run(viewFixture, "trusted");
+                Frames.Run(viewFixture, "isolated");
+                View.Pump(() => Frames.Native(viewFixture, null));
                 View.Run(viewFixture);
                 BudgetPhases.Run(viewFixture);
                 EventOptions.Run(viewFixture);

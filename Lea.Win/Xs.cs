@@ -19,6 +19,12 @@ namespace Lea.Win
         Task<Xr> TkA();
     }
 
+    public interface Jf
+    {
+        int Rd { get; }
+        Task<Xr> RfA();
+    }
+
     public sealed class Xr
     {
         public Xr(string status, int count, string message, bool prevented = false)
@@ -150,10 +156,13 @@ namespace Lea.Win
         {
             if (!CurrentScript(binding)) return;
             var timed = binding.Runner as Jt;
-            if (timed == null) return;
+            var framed = binding.Runner as Jf;
+            if (timed == null && framed == null) return;
             try
             {
-                var delay = timed.Td;
+                var delay = timed == null ? -1 : timed.Td;
+                var frameDelay = framed == null || !Visible ? -1 : framed.Rd;
+                if (frameDelay >= 0 && (delay < 0 || frameDelay < delay)) delay = frameDelay;
                 if (delay < 0) { if (binding.Timer != null) binding.Timer.Stop(); return; }
                 if (binding.Timer == null)
                 {
@@ -162,7 +171,16 @@ namespace Lea.Win
                     {
                         if (binding.Timer != null) binding.Timer.Stop();
                         if (!CurrentScript(binding)) { if (scriptBinding == binding) RetireScript(); return; }
-                        try { await QueueScript(runner => ((Jt)runner).TkA()); }
+                        try
+                        {
+                            await QueueScript(runner =>
+                            {
+                                var frame = runner as Jf;
+                                if (Visible && frame != null && frame.Rd == 0) return frame.RfA();
+                                var timer = runner as Jt;
+                                return timer != null && timer.Td == 0 ? timer.TkA() : Task.FromResult(new Xr("ok", 0, ""));
+                            });
+                        }
                         catch (Exception error) { if (CurrentScript(binding)) Xo = new Xr("host", 0, error.Message); }
                     };
                 }
@@ -174,6 +192,12 @@ namespace Lea.Win
                 if (binding.Timer != null) binding.Timer.Stop();
                 if (CurrentScript(binding)) Xo = new Xr("host", 0, error.Message);
             }
+        }
+
+        protected override void OnVisibleChanged(EventArgs e)
+        {
+            base.OnVisibleChanged(e);
+            if (scriptBinding != null && scriptBinding.Pending == 0) ArmScriptTimer(scriptBinding);
         }
 
         private bool CurrentScript(Xb binding)

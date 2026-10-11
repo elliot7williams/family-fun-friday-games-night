@@ -16,11 +16,12 @@ namespace Lea.Script
         internal int Calls { get; private set; }
         internal int Changes { get; private set; }
         internal Tq Timers { get; private set; } = new Tq();
+        internal Fq Frames { get; private set; } = new Fq();
         private int microtasks;
 
         internal Ja(E engine, P page) { this.engine = engine; this.page = page; }
         internal void Begin() { Calls = 0; Changes = 0; microtasks = 0; }
-        internal void Reset() { nodes.Clear(); keys.Clear(); Timers.Reset(); }
+        internal void Reset() { nodes.Clear(); keys.Clear(); Timers.Reset(); Frames.Reset(); }
 
         internal object[] Path(N target)
         {
@@ -64,6 +65,13 @@ namespace Lea.Script
                 return null;
             }
             if (operation == "te" && args.Length == 1) { Timers.End(); return null; }
+            if (operation == "rs" && args.Length == 1) return Frames.Rs();
+            if ((operation == "rc" || operation == "re") && args.Length == 2)
+            {
+                if (!(args[1] is int) || (int)args[1] < 0) throw new InvalidDataException("Invalid frame handle.");
+                Frames.Rc((int)args[1]);
+                return null;
+            }
             if (operation == "id" && args.Length == 2) return Key(engine.Id(page, Arg(args, 1)));
             if (operation == "q" && args.Length == 2) return Key(engine.Q(page, Arg(args, 1)));
             if (operation == "qa" && args.Length == 2)
