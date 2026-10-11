@@ -34,6 +34,20 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Current milestone 146 remains open. Controlled EOF diagnostics distinguish
+WAIT_FAILED/WAIT_TIMEOUT and retain native CPU/exit readings; optional test
+alias `-ce` uses bounded phase bytes, without tracing normal runs. Quiet
+lifetime checks pass 17; the corrected probe passes 33 including held-worker
+cleanup through both linked launchers, and rejects the preceding helper.
+The initial probe validation failure is preserved with its in-process pipe
+control and separately compiled correction. All 19 production runtime files
+stay unchanged. One final quiet full run fails after 714 assertions during
+isolated event-realm recovery, at the unchanged five-second startup deadline
+after `startup evaluate`, before the CPU lifetime tests. Earlier EOF/startup
+failures remain unexplained. No startup fix, speedup, installed replacement or
+stable release is claimed; readiness stays about 65%. See
+[controlled worker EOF diagnostics](CPU_EOF_DIAGNOSTICS.md).
+
 Current milestone 146 remains open. Connected element deletion adds compact
 `E.De/V.De` and private `de`, plus familiar `element.remove()`, preserving
 surviving form/editor state and detached read identity while refreshing paint,

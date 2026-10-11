@@ -1,5 +1,14 @@
 # LeaForge
 
+Latest diagnostic hardening: controlled EOF tests now distinguish native wait
+errors from timeouts and record independent CPU/exit values. Test-only `-ce`
+passes 33 phase/fault/cleanup checks through both launchers; quiet lifetime
+checks pass 17. All 19 production runtime files stay unchanged. The final broad
+run fails after 714 assertions during isolated event recovery at bootstrap
+evaluation, before CPU lifetime checks. Previous failures remain open and
+preserved; no startup fix, speedup or stable release is claimed. Readiness stays
+about 65%. See [worker EOF diagnostics](CPU_EOF_DIAGNOSTICS.md).
+
 Latest engine feature: connected element removal uses two-letter `E.De/V.De`
 and private `de`, with familiar JavaScript `element.remove()`. Form/focus and
 paint/accessibility cleanup preserve surviving editor selection and detached

@@ -159,6 +159,13 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script native CPU lifetime: " + checks + " checks.");
                     return 0;
                 }
+                if (args.Length > 1 && (args[1] == "--cpu-eof" || args[1] == "-ce"))
+                {
+                    if (args.Length != 2) throw new ArgumentException("No extra arguments are accepted for CPU EOF checks.");
+                    NativeCpu.Trace(fixture);
+                    Console.WriteLine("PASS Lea.Script CPU EOF: " + checks + " checks; controlled test helpers only.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--worker-stderr")
                 {
                     WorkerStderr.Run();
