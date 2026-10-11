@@ -12,9 +12,19 @@ namespace Lea.Script
         private int next;
         private double due;
 
-        internal Fq() : this(Clock()) { }
-        internal Fq(Func<double> now) { this.now = now; }
+        internal Fq() : this(Clock(), (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds) { }
+        internal Fq(Func<double> now) : this(now, 0) { }
+        internal Fq(Func<double> now, double origin)
+        {
+            if (now == null) throw new ArgumentNullException("now");
+            if (Double.IsNaN(origin) || Double.IsInfinity(origin) || Math.Abs(origin) > 9007199254740991d)
+                throw new ArgumentOutOfRangeException("origin");
+            this.now = now;
+            To = Math.Floor(origin);
+        }
         internal int N { get { return pending.Count; } }
+        internal double Nw { get { return Math.Floor(now()); } }
+        internal double To { get; private set; }
         internal double Time { get; private set; }
         internal int Rd { get { return N == 0 ? -1 : (int)Math.Min(Int32.MaxValue, Math.Ceiling(Math.Max(0, due - now()))); } }
 
@@ -33,7 +43,7 @@ namespace Lea.Script
             if (batch != null) throw new InvalidOperationException("An animation frame is already active.");
             var time = now();
             if (N == 0 || time < due) return null;
-            Time = time;
+            Time = Math.Floor(time);
             due = time + 16;
             var keys = new List<int>(pending);
             keys.Sort();

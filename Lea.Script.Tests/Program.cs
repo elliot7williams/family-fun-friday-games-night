@@ -457,6 +457,15 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script animation frames " + args[2] + ": " + checks + " checks.");
                     return 0;
                 }
+                if (args.Length > 1 && (args[1] == "--performance-clock" || args[1] == "-cl"))
+                {
+                    if (args.Length < 3 || args.Length > 4 || args.Length == 4 && args[2] != "native")
+                        throw new ArgumentException("Supply only a clock test mode and optional native capture prefix.");
+                    if (args[2] == "native") View.Pump(() => Clock.Native(viewFixture, args.Length == 4 ? args[3] : null));
+                    else Clock.Run(viewFixture, args[2]);
+                    Console.WriteLine("PASS Lea.Script performance clock " + args[2] + ": " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--events")
                 {
                     Events.Run(viewFixture);
@@ -569,6 +578,10 @@ namespace Lea.Script.Tests
                 Frames.Run(viewFixture, "trusted");
                 Frames.Run(viewFixture, "isolated");
                 View.Pump(() => Frames.Native(viewFixture, null));
+                Clock.Run(viewFixture, "core");
+                Clock.Run(viewFixture, "trusted");
+                Clock.Run(viewFixture, "isolated");
+                View.Pump(() => Clock.Native(viewFixture, null));
                 View.Run(viewFixture);
                 BudgetPhases.Run(viewFixture);
                 EventOptions.Run(viewFixture);

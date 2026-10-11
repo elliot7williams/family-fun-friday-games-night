@@ -20,6 +20,13 @@ about 65% and milestone 146 stays open. See [hard recovery](HARD_RECOVERY.md).
 Targeted `-m/-p/-n` observation now captures paired-worker parser stacks, with
 exact completion/exit checks; a passing observed run does not resolve the old
 startup timeout. See [paired startup observation](PAIRED_STARTUP_STACKS.md).
+The optional parent-owned clock adds read-only `Nw/To` aliases and whole-ms
+`performance.now()/timeOrigin/toJSON()`, sharing animation timestamps. All 97
+focused clock checks, the browser smoke and one full 2,764-check run pass.
+Three other focused suites still time out during bootstrap/startup; the full
+pass does not close those failures. The required renderer is unchanged, no
+speedup or release is claimed, and broader readiness stays about 65%. See
+[performance clock](PERFORMANCE_CLOCK.md).
 
 Core public vocabulary:
 

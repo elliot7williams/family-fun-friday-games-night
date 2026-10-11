@@ -56,6 +56,8 @@ namespace Lea.Script
         public int Tn { get { CheckThread(); return bridge.Timers.N; } }
         public int Rd { get { CheckThread(); return disposed || !engine.Je || generation != engine.Jg || engine.At != page ? -1 : bridge.Frames.Rd; } }
         public int Rn { get { CheckThread(); return bridge.Frames.N; } }
+        public double Nw { get { CheckThread(); if (disposed) throw new ObjectDisposedException("Js"); return bridge.Frames.Nw; } }
+        public double To { get { CheckThread(); if (disposed) throw new ObjectDisposedException("Js"); return bridge.Frames.To; } }
 
         public Jr Ex(string code) { return Run(code, null, null); }
         public Jr Tk() { return Run(null, null, null, true); }

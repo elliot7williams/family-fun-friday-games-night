@@ -12,6 +12,13 @@ with Acornima 1.7.0 and framework support libraries pinned in
 arrays, objects, JSON, and template strings. It does not implement those
 language rules through a new handwritten parser.
 
+The latest optional runtime adds the parent-owned `Nw/To` clock described
+below. Its 97 focused clock checks and one full 2,764-check run pass, as does
+the separate browser smoke. Other focused startup/bootstrap failures remain
+open; the full pass does not establish a startup fix or stable release. Only
+the scripting DLL and worker change, by 4 KiB combined; the required renderer
+is unchanged. See [performance clock](../LeaForge/PERFORMANCE_CLOCK.md).
+
 Test-only two-letter `-hr` now snapshots hard-deadline replacement results and
 `Sd/Ed`, pins old process identities and verifies exact cleanup; 18 native
 recovery and 7 native execution-report assertions pass. The existing worker
@@ -117,6 +124,26 @@ success and valid worker error messages remain unchanged. Both reports stay
 within 512 characters. No budgets or isolation protections change. See
 [execution reports](../LeaForge/EXECUTION_REPORTS.md), including the distinction
 between measured CPU milliseconds and `Cp`'s 2,500-basis-point CPU-rate cap.
+
+## Clock
+
+`performance.now()`, read-only `performance.timeOrigin`, and
+`performance.toJSON()` use the parent-owned monotonic animation clock. Host
+`Js.Nw/Jp.Nw` returns elapsed milliseconds and `Js.To/Jp.To` returns its fixed
+epoch origin. All page timestamps, including animation-frame timestamps, are
+rounded down to whole milliseconds. These read-only aliases neither create an
+interpreter nor launch a worker; owner-thread and disposal checks still apply.
+Clock metadata survives a failed realm or disabled scripting within that host
+session, while page execution still requires scripting permission.
+
+This is a bounded clock subset, not a complete Performance interface. Its
+origin is the bound host session, not standards-complete navigation timing.
+EventTarget inheritance, performance entries, marks/measures, observers,
+worker-global clocks and cross-origin isolation are not implemented. Clock
+bridge reads consume the existing 256-call budget. Precision coarsening is
+not a claim of immunity from timing attacks. See
+[performance clock](../LeaForge/PERFORMANCE_CLOCK.md) for verification and
+remaining startup/release limitations.
 
 ## Timers
 

@@ -69,9 +69,14 @@ namespace Lea.Script.Browser
                                     await view.Ka();
                                     if (runtime.At.Rn != 0) throw new InvalidOperationException("Browser animation did not pause.");
                                     var paused = view.Id("frames").C[0].X;
+                                    var elapsed = view.Id("elapsed") == null ? "" : view.Id("elapsed").C[0].X;
+                                    if (elapsed.Length != 0 && (!elapsed.EndsWith(" ms", StringComparison.Ordinal) ||
+                                        !Int32.TryParse(elapsed.Substring(0, elapsed.Length - 3), out var milliseconds) || milliseconds < 0))
+                                        throw new InvalidOperationException("Browser animation clock is invalid.");
                                     Int32.TryParse(paused, out frames);
                                     await Task.Delay(80);
                                     if (view.Id("frames").C[0].X != paused) throw new InvalidOperationException("Paused animation changed.");
+                                    if (elapsed.Length != 0 && view.Id("elapsed").C[0].X != elapsed) throw new InvalidOperationException("Paused animation clock changed.");
                                 }
                                 view.Sc(-view.Sy);
                                 if (report != null)
@@ -85,6 +90,8 @@ namespace Lea.Script.Browser
                                         ok = true, title = view.T, nodes = view.At.N, pid = runtime.At.Pid,
                                         frames, frameCallbacks = runtime.At.Rn,
                                         frameStyle = view.Id("bar") == null ? "" : view.Id("bar").Av("style"),
+                                        elapsed = view.Id("elapsed") == null ? "" : view.Id("elapsed").C[0].X,
+                                        clockNow = runtime.At.Nw, timeOrigin = runtime.At.To,
                                         isolated = runtime.At.Ac, noLoopbackExemption = runtime.At.Ne,
                                         memoryLimit = runtime.At.Mm, modules = System.Diagnostics.Process.GetCurrentProcess().Modules.Cast<System.Diagnostics.ProcessModule>().Select(module => module.ModuleName).ToArray()
                                     }));

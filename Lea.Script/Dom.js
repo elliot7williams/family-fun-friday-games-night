@@ -188,6 +188,33 @@ __jobs('declarations');
     const arrayKeys = Array.prototype.keys, arrayValues = Array.prototype.values;
     const arrayEntries = Array.prototype.entries, arrayForEach = Array.prototype.forEach, arrayIndexOf = Array.prototype.indexOf, arrayMap = Array.prototype.map;
     const ListProxy = Proxy, listError = TypeError, NativeError = Error, construct = Reflect.construct;
+    function Performance() { throw new listError('Illegal constructor'); }
+    const timing = makeObject(Performance.prototype);
+    function timingReceiver(value) {
+        if (value !== timing) throw new listError('Illegal Performance receiver');
+    }
+    define(Performance, 'prototype', { writable: false });
+    define(Performance.prototype, 'now', { value: function now() {
+        timingReceiver(this);
+        return call('nw');
+    }, writable: true, enumerable: true, configurable: true });
+    define(Performance.prototype, 'timeOrigin', { get() {
+        timingReceiver(this);
+        return call('to');
+    }, enumerable: true, configurable: true });
+    define(Performance.prototype, 'toJSON', { value: function toJSON() {
+        timingReceiver(this);
+        return { timeOrigin: call('to') };
+    }, writable: true, enumerable: true, configurable: true });
+    define(Performance.prototype, Symbol.toStringTag, { value: 'Performance', configurable: true });
+    define(realm, 'Performance', { value: Performance, writable: true, configurable: true });
+    define(realm, 'performance', { get() {
+        frameWindow(this);
+        return timing;
+    }, set(value) {
+        frameWindow(this);
+        define(realm, 'performance', { value, writable: true, enumerable: true, configurable: true });
+    }, enumerable: true, configurable: true });
     // Jint 4.16.4's native formatter supplies the prototype as the accessor receiver.
     define(NativeError.prototype, 'toString', { value: function toString() {
         if (this === null || typeof this !== 'object' && typeof this !== 'function') throw new listError('Illegal Error receiver');

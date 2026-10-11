@@ -66,6 +66,8 @@ namespace Lea.Script.Tests
                 Tuple.Create((object)new { k = "event", i = 19, t = "click", p = new object[] { 1, 2 } }, new object[] { "k", "event", "i", 19, "t", "click", "p", new object[] { 1, 2 } }),
                 Tuple.Create((object)new { k = "call", i = 20, r = 1, b = new object[] { "put", null, "t", text } }, new object[] { "k", "call", "i", 20, "r", 1, "b", new object[] { "put", null, "t", text } }),
                 Tuple.Create((object)new { k = "reply", i = 20, r = 1, v = (object)null }, new object[] { "k", "reply", "i", 20, "r", 1, "v", null }),
+                Tuple.Create((object)new { k = "reply", i = 20, r = 1, v = 16.25 }, new object[] { "k", "reply", "i", 20, "r", 1, "v", 16.25 }),
+                Tuple.Create((object)new { k = "reply", i = 20, r = 1, v = 1791750000000L }, new object[] { "k", "reply", "i", 20, "r", 1, "v", 1791750000000L }),
                 Tuple.Create((object)new { k = "end", i = 20, s = "ok", m = "", d = true }, new object[] { "k", "end", "i", 20, "s", "ok", "m", "", "d", true }),
                 Tuple.Create((object)new { k = "end", i = 21, s = "limit", m = text, d = false }, new object[] { "k", "end", "i", 21, "s", "limit", "m", text, "d", false })
             };

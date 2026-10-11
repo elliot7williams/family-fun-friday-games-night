@@ -34,6 +34,13 @@ namespace Lea.Script
             if (value is string) return (string)value;
             if (value is int) return (int)value;
             if (value is bool) return (bool)value;
+            if (value is long || value is double || value is decimal)
+            {
+                var number = Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture);
+                if (Double.IsNaN(number) || Double.IsInfinity(number) || Math.Abs(number) > 9007199254740991d)
+                    throw new InvalidDataException("Invalid bridge response number.");
+                return (JsValue)number;
+            }
             var array = value as object[];
             if (array == null || array.Length > 256) throw new InvalidDataException("Invalid bridge response.");
             var items = new JsValue[array.Length];

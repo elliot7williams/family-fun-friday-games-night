@@ -43,7 +43,7 @@ namespace Lea.Script.Tests
             Check(queue.Rd == 1 && queue.Take() == null, "frame delay rounds up and cannot execute early");
             now = 16.25;
             var keys = queue.Take();
-            Check(keys.Length == 2 && (int)keys[0] == first && (int)keys[1] == peer && queue.Time == now, "frame snapshot preserves registration order and one timestamp");
+            Check(keys.Length == 2 && (int)keys[0] == first && (int)keys[1] == peer && queue.Time == Math.Floor(now), "frame snapshot preserves registration order and one coarsened timestamp");
             try { queue.Take(); throw new Exception("Concurrent frame accepted"); }
             catch (InvalidOperationException) { Check(true, "frame batches cannot overlap"); }
             queue.Rc(first); queue.Rc(peer);
@@ -52,7 +52,7 @@ namespace Lea.Script.Tests
             Check(queue.N == 1 && queue.Rd == 16 && queue.Take() == null, "new callback survives batch retirement but waits for next opportunity");
             now = 32.25;
             keys = queue.Take();
-            Check(keys.Length == 1 && (int)keys[0] == nested && queue.Time == now, "subsequent frame uses increasing monotonic time");
+            Check(keys.Length == 1 && (int)keys[0] == nested && queue.Time == Math.Floor(now), "subsequent frame uses increasing coarsened monotonic time");
             queue.End();
             Check(queue.N == 0 && queue.Rd == -1, "frame callbacks are one shot");
             for (var i = 0; i < 64; i++) queue.Rs();

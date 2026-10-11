@@ -14,6 +14,7 @@ button { margin: 4px; }
 <h2>Animation</h2><div id="track"><div id="bar"></div></div>
 <button id="frame-start" type="button">Start</button><button id="frame-stop" type="button">Pause</button>
 <p id="frames">0</p>
+<p id="elapsed">0 ms</p>
 <h2>Counter</h2><button id="counter" type="button">Add</button><span id="result">0</span>
 <script>
 (function () {
@@ -25,6 +26,7 @@ button { margin: 4px; }
     var width = 40 + Math.round(280 * (phase < 1000 ? phase : 2000 - phase) / 1000);
     bar.style.width = width + 'px';
     document.getElementById('frames').textContent = String(++frames);
+    document.getElementById('elapsed').textContent = String(Math.round(performance.now() - first)) + ' ms';
     pending = requestAnimationFrame(draw);
   }
   document.getElementById('frame-start').addEventListener('click', function () {

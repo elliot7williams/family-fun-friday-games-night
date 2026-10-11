@@ -34,6 +34,23 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Current milestone 146 remains open. Optional `Nw/To` aliases and
+`performance.now()/timeOrigin/toJSON()` share the parent-owned animation clock,
+coarsened to whole milliseconds. Core/trusted/isolated/native clock suites pass
+57/14/16/10 assertions; compiled wire replies pass 210. The separate browser
+compiles and passes Start/Pause/counter/elapsed-time smoke, with captures showing
+the bar grow from 40 to 87 pixels. One full regression passes all 2,764 checks
+with actual exit zero and no observer or opt-in trace. This does not erase the
+focused trusted-frame bootstrap failure before assertions, timer startup
+failure after 133, or worker warmup startup failure after 51. Exact causes
+remain unestablished; all failed attempts are retained and guards are unchanged.
+Initial generator/helper and missing-import failures are separately preserved.
+Only two optional runtime entries grow by 4,096 bytes total; the other 17 and
+749,568-byte required renderer stay unchanged. Full Performance/navigation
+timing semantics remain unsupported. Original Firespider and normal outputs
+are untouched. No speedup, startup fix or stable release is claimed; readiness
+stays about 65%. See [performance clock](PERFORMANCE_CLOCK.md).
+
 Current milestone 146 remains open. Optional observer aliases `-m/-p/-n` select
 the existing worker gate and newest paired worker, reject ambiguous timestamps,
 and require an exact expected footer. Its stale full count is corrected to

@@ -65,6 +65,8 @@ namespace Lea.Script
                 return null;
             }
             if (operation == "te" && args.Length == 1) { Timers.End(); return null; }
+            if (operation == "nw" && args.Length == 1) return Frames.Nw;
+            if (operation == "to" && args.Length == 1) return Frames.To;
             if (operation == "rs" && args.Length == 1) return Frames.Rs();
             if ((operation == "rc" || operation == "re") && args.Length == 2)
             {
