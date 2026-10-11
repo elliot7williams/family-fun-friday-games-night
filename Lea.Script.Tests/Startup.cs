@@ -439,9 +439,10 @@ namespace Lea.Script.Tests
                             "phase worker preserves verified isolation: timing=" + timing + "; " + result.S + "; " + result.M + "; " + script.Sd);
                         var report = script.Sd;
                         var marker = BootstrapEntry.Kind() == "indirect" ? "startup eval-end" : "startup parsed";
-                        Check(report.Contains(marker) && report.IndexOf(marker, StringComparison.Ordinal) == report.LastIndexOf(marker, StringComparison.Ordinal) &&
+                        const string finalCheckpoint = "startup document";
+                        Check(report.Contains(finalCheckpoint) && report.IndexOf(finalCheckpoint, StringComparison.Ordinal) == report.LastIndexOf(finalCheckpoint, StringComparison.Ordinal) &&
                             report.Length <= 512 && script.Tm == 2000 && script.Cp == 2500 && script.Mm == 128L * 1024 * 1024,
-                            "one bounded compiled-entry checkpoint with unchanged defaults: timing=" + timing + "; " + report);
+                            "one bounded final bootstrap checkpoint with unchanged defaults: timing=" + timing + "; " + report);
                         var warm = script.Ex("1;");
                         Thread.Sleep(50);
                         var endpoint = warm.Ok ? typeof(Jp).GetField("worker", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(script) : null;
@@ -470,6 +471,17 @@ namespace Lea.Script.Tests
                         Check(BootstrapEntry.Kind() == "prepared" ? prepare >= 0 && prepared > prepare && evaluate > prepared && parsed > evaluate :
                             prepare < 0 && prepared < 0,
                             "preparation checkpoints match the compiled entry before constrained evaluation: timing=" + timing + "; " + stderr);
+                        var ordered = true;
+                        var prior = BootstrapEntry.Kind() == "indirect" ? evaluate : parsed;
+                        foreach (var stage in new[] { "declarations", "scope", "events", "interfaces", "elements", "document" })
+                        {
+                            var text = "startup " + stage + (timing ? ":" : Environment.NewLine);
+                            var at = stderr.IndexOf(text, StringComparison.Ordinal);
+                            ordered &= at > prior && at == stderr.LastIndexOf(text, StringComparison.Ordinal);
+                            prior = at;
+                        }
+                        Check(ordered && stderr.IndexOf("startup dom", StringComparison.Ordinal) > prior,
+                            "six private bootstrap checkpoints finish once before DOM/hello and never repeat for page code: timing=" + timing + "; " + stderr);
                         Check(report.StartsWith("phase=ready;", StringComparison.Ordinal) && warm.Ok &&
                             script.Ac && script.Ne && script.Nd && script.Fd && script.Mg == 15,
                             "parent ready phase follows the verified handshake before page execution: timing=" + timing);
@@ -533,10 +545,10 @@ namespace Lea.Script.Tests
                             "fresh-path isolation checks precede page code: " + index);
                         Check(script.Sd.StartsWith("phase=ready;", StringComparison.Ordinal) && script.Sd.Length <= 512,
                             "bounded startup diagnostics retained: " + index);
-                        Check(script.Sd.Contains("startup evaluate: wall=") == (trace == "1" || index == 1) &&
+                        Check(script.Sd.Contains("startup document: wall=") == (trace == "1" || index == 1) &&
                             !script.Sd.Contains("startup parse:"), "tracing observes the production bootstrap path: " + index);
-                        Check(script.Sd.Contains("startup entry") || script.Sd.Contains(BootstrapEntry.Kind() == "indirect" ? "startup eval-end" : "startup parsed"),
-                            "bounded startup trace retains an entry or compiled-entry checkpoint without requiring timing: " + index);
+                        Check(script.Sd.Contains("startup document"),
+                            "bounded startup tail retains the completed bootstrap checkpoint without requiring timing: " + index);
                         var diagnostics = script.Sd;
                         Check(script.Ex("1;").Ok && script.Sd == diagnostics, "warm execution does not replace startup report: " + index);
                         sid = script.Sid;

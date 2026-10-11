@@ -76,8 +76,14 @@ namespace Lea.Script.Worker
                             throw new InvalidDataException("Invalid script bridge reply.");
                         return Codec.Value(vm, reply["v"]);
                     }));
+                    var markers = new Bm();
                     vm.SetValue("__jobs", (JsValue)new ClrFunction(vm, "__jobs", (_, values) =>
-                    { vm.Advanced.ProcessTasks(); return JsValue.Undefined; }));
+                    {
+                        var stage = markers.Of(values);
+                        if (stage == null) vm.Advanced.ProcessTasks();
+                        else Trace(stage, clock, trace);
+                        return JsValue.Undefined;
+                    }));
                     Trace("bridge", clock, trace);
                     string source;
                     using (var stream = typeof(Program).Assembly.GetManifestResourceStream("Lea.Script.Dom.js"))
@@ -107,6 +113,7 @@ namespace Lea.Script.Worker
                     }
                     finally { vm.Debugger.BeforeEvaluate -= parsed; }
 #endif
+                    markers.End();
                     Trace("dom", clock, trace);
                     var network = probe.Denied();
                     Trace("probes", clock, trace);

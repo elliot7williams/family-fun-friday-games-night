@@ -1,5 +1,9 @@
 # Experimental Prepared Native Bootstrap
 
+Subsequent [private checkpoint work](BOOTSTRAP_MARKERS.md) preserves this
+prepared-mode evidence and adds six ordered bootstrap stages. This page's
+passing broad run and failed host are historical, not the new candidate's gates.
+
 Milestone 146 remains open. Broader browser readiness stays about 65%.
 This adds a constrained native-worker alternative and a smaller verified
 distribution, not a default adoption, native startup fix or release.

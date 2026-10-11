@@ -116,13 +116,15 @@ namespace Lea.Script
 
         private void Start()
         {
+            var markers = new Bm();
             vm = factory == null ? new Jint.Engine(Vo.Of(1000)) :
                 factory(options => Vo.At(options, 1000));
             vm.SetValue("__lea", (Jint.Native.JsValue)new ClrFunction(vm, "__lea", (_, args) =>
                 Codec.Value(vm, bridge.Call(Codec.Arguments(args)))));
             vm.SetValue("__jobs", (Jint.Native.JsValue)new ClrFunction(vm, "__jobs", (_, args) =>
-            { vm.Advanced.ProcessTasks(); return Jint.Native.JsValue.Undefined; }));
+            { if (markers.Of(args) == null) vm.Advanced.ProcessTasks(); return Jint.Native.JsValue.Undefined; }));
             dispatch = vm.Evaluate(prepared.Value);
+            markers.End();
             bridge.Begin();
         }
 

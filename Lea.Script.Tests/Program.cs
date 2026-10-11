@@ -80,6 +80,13 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script bootstrap preparation diagnostic: " + checks + " checks; not a native startup gate.");
                     return 0;
                 }
+                if (args.Length > 1 && (args[1] == "--bootstrap-markers-contract" || args[1] == "-bm"))
+                {
+                    if (args.Length != 2) throw new ArgumentException("No extra arguments are accepted for bootstrap marker checks.");
+                    BootstrapMarkers.Contract();
+                    Console.WriteLine("PASS Lea.Script bootstrap markers: " + checks + " checks; compiled contract only.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--bootstrap-entry-contract")
                 {
                     if (args.Length > 3) throw new ArgumentException("Supply at most one worker executable for --bootstrap-entry-contract.");
@@ -408,6 +415,7 @@ namespace Lea.Script.Tests
                 }
                 SelectorObservation.Contract();
                 BootstrapAssets.Run(root);
+                BootstrapMarkers.Contract();
                 var engine = new E();
                 var page = engine.Go(fixture);
                 var field = page.Fs.Single(item => item.El.Av("id") == "field");

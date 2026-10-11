@@ -102,7 +102,7 @@ namespace Lea.Script.Tests
                         Program.Check(dispatch is Function, "preparation returns the private dispatcher: " + strategy);
                         // Jint does not emit BeforeEvaluate for its indirect-eval entry.
                         Program.Check(calls == 0 && parsedCount == (strategy == "indirect" ? 0 : 1),
-                            "preparation has no host calls and the expected script-evaluation callbacks: " + strategy);
+                            "preparation has no DOM bridge calls and the expected script-evaluation callbacks: " + strategy);
                         var probe = vm.Evaluate(@"(function(){
 if(window!==globalThis||typeof document!=='object'||'__lea' in globalThis||'__jobs' in globalThis)throw Error('bootstrap globals');
 const global=Object.getOwnPropertyDescriptor(globalThis,'document');

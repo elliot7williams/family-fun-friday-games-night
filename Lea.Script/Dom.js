@@ -1,6 +1,8 @@
 'use strict';
+__jobs('declarations');
 {
     const call = __lea, checkpoint = __jobs;
+    checkpoint('scope');
     let failed = false, failure;
     function microtaskErrors() {
         if (!failed) return;
@@ -155,6 +157,7 @@
         if (typeof value === 'symbol') throw new listError('A DOM string cannot be a Symbol');
         return stringify(value);
     }
+    checkpoint('events');
     const listStates = new WeakMap(), getState = WeakMap.prototype.get, setState = WeakMap.prototype.set;
     const makeObject = Object.create, define = Object.defineProperty;
     const reflectGet = Reflect.get, reflectSet = Reflect.set, reflectHas = Reflect.has;
@@ -321,6 +324,7 @@
     define(listPrototype, Symbol.iterator, { value: arrayValues, writable: true, configurable: true });
     define(listPrototype, Symbol.toStringTag, { value: 'DOMTokenList', configurable: true });
     define(globalThis, 'DOMTokenList', { value: DOMTokenList, writable: true, configurable: true, enumerable: true });
+    checkpoint('interfaces');
     function listIndex(name) {
         if (typeof name !== 'string' || name.length === 0) return -1;
         const number = name >>> 0;
@@ -483,6 +487,7 @@
         apply(putTimer, cache, [key, node]);
         return node;
     }
+    checkpoint('elements');
     const document = {};
     Object.defineProperties(document, {
         firstElementChild: treeProperties.firstElementChild,
@@ -512,6 +517,7 @@
     Object.defineProperty(globalThis, 'alert', { value(value) { put(null, 'a', value); } });
     eventTarget(document);
     eventTarget(globalThis);
+    checkpoint('document');
     delete globalThis.__lea;
     delete globalThis.__jobs;
     // The dispatcher is returned to the interpreter host, never installed on the global object.

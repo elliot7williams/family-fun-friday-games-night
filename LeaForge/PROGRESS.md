@@ -34,6 +34,22 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Shared private `Bm` enforces six one-shot bootstrap checkpoints without a new
+page callback. Its 42 compiled checks, both CLI spellings, old-runtime and
+argument negative controls, six prepared entry, 14 options, four assets, 14
+cache, 16 native phase, 36 scope and seven recovery checks pass. Default `Be=0`
+compiles and passes four entry plus 16 phase checks. The standalone browser and
+all 43 copied-host cases pass with four inspected captures. The one broad run
+instead fails after 1,392 assertions in fresh timer recovery: bootstrap/hello
+completed at 2,213 ms / CPU 187 ms, then execution `phase=read` times out at
+5,003 ms / CPU 0 ms. No failed runtime test is retried. Two setup compile
+failures and final pre-test tool freeze are preserved. Script/worker each grow
+1,024 bytes; required bytes and all guards, normal outputs, original inputs
+and installed files stay unchanged. The verified 24-file ZIP is 2,900,319 bytes
+from 8,271,100 raw bytes. Default stays `Be=0`; no speedup, installed startup
+fix, complete scripting pass or release is claimed. Milestone 146 stays open
+and readiness stays about 65%. See `BOOTSTRAP_MARKERS.md`.
+
 Native workers gain opt-in `Be=2` for explicit preparation of the fixed
 bootstrap before constrained evaluation. All three modes compile, and 14
 entry, 13 build-guard, 14 options, four asset, 14 trusted-cache, 27 paired-launch,

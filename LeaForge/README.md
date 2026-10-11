@@ -1,5 +1,15 @@
 # LeaForge
 
+Latest initialization hardening: six private ordered bootstrap checkpoints
+separate global declarations, scope and DOM setup, with a one-shot `Bm`
+sequencer and test alias `-bm`. The browser and all 43 copied-host cases pass;
+the default native control passes its phase checks. The broad scripting run
+still fails after 1,392 assertions while awaiting an execution reply after
+completed hello, and is retained without retry. A verified 2.90-MB experimental
+ZIP is available. Default stays `Be=0`, required bytes and original/normal
+files stay unchanged, and readiness stays about 65%. See
+[private bootstrap checkpoints](BOOTSTRAP_MARKERS.md).
+
 Latest native bootstrap alternative: opt-in `Be=2` prepares the fixed asset
 before constrained evaluation, leaving `Be=0` as default. The broad scripting
 executable passes 2,226 checks with actual exit zero, confirmed by an exact

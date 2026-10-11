@@ -62,7 +62,7 @@ namespace Lea.Script.Tests
                             return Jint.Native.JsValue.Undefined;
                         }));
                         vm.SetValue("__lea", Jint.Native.JsValue.Undefined);
-                        vm.SetValue("__jobs", Jint.Native.JsValue.Undefined);
+                        vm.SetValue("__jobs", new Jint.Runtime.Interop.ClrFunction(vm, "__jobs", (_, args) => Jint.Native.JsValue.Undefined));
                         records.Add("VM ready; wall=" + clock.ElapsedMilliseconds + "; cpu=" + (long)(process.TotalProcessorTime - cpu).TotalMilliseconds);
                         Jint.Runtime.Debugger.DebugHandler.BeforeEvaluateEventHandler parsed = (sender, ast) =>
                             records.Add("parsed; wall=" + clock.ElapsedMilliseconds + "; cpu=" + (long)(process.TotalProcessorTime - cpu).TotalMilliseconds);

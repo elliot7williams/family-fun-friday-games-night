@@ -18,6 +18,7 @@
     <Compile Include="..\Lea.Script\Wire.cs" Link="Wire.cs" />
     <Compile Include="..\Lea.Script\Codec.cs" Link="Codec.cs" />
     <Compile Include="..\Lea.Script\Vo.cs" Link="Vo.cs" />
+    <Compile Include="..\Lea.Script\Bm.cs" Link="Bm.cs" />
     <Compile Include="..\Lea.Image\Mg.cs" Link="Mg.cs" />
     <EmbeddedResource Include="..\Lea.Script\Dom.compact.js" Link="Dom.js" LogicalName="Lea.Script.Dom.js" />
   </ItemGroup>
