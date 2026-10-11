@@ -94,6 +94,13 @@ namespace Lea.Script
                 Changes += count;
                 return true;
             }
+            if (operation == "de" && args.Length == 2)
+            {
+                var element = Node(args, 1);
+                if (!Element(element)) throw new InvalidDataException("An element handle is required.");
+                Changes += engine.De(page, element);
+                return null;
+            }
             var target = Node(args, 1);
             if ((operation == "q" || operation == "qa") && args.Length == 3)
             {

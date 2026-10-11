@@ -598,6 +598,19 @@ namespace Lea.Engine
             return 1;
         }
 
+        // De detaches one connected element; its retained subtree keeps internal links.
+        public int De(P page, N element)
+        {
+            QueryPage(page);
+            if (!AttributeTarget(page, element) || element.Up == null) return 0;
+            var parent = element.Up;
+            if (!parent.C.Remove(element)) return 0;
+            element.Up = null;
+            ClearState(element);
+            MutationChanged(page, (List<R>)page.R);
+            return 1;
+        }
+
         private bool AttributeTarget(P page, N element)
         {
             return je && element != null && !element.K.StartsWith("#", StringComparison.Ordinal) &&
@@ -633,8 +646,15 @@ namespace Lea.Engine
                 if (field.El != null && Connected(page.D, field.El)) fields[field.El] = field;
             foreach (var node in new List<N>(page.Fr.Keys))
                 if (!Connected(page.D, node)) page.Fr.Remove(node);
-            if (page.Hn != null && !Connected(page.D, page.Hn)) page.Hn = null;
-            if (page.Fc != null && !Connected(page.D, page.Fc)) page.Fc = null;
+            var stateChanged = false;
+            if (page.Hn != null && !Connected(page.D, page.Hn)) { page.Hn = null; stateChanged = true; }
+            if (page.Fc != null && !Connected(page.D, page.Fc)) { page.Fc = null; stateChanged = true; }
+            if (stateChanged)
+            {
+                ClearState(page.D);
+                for (var node = page.Hn; node != null; node = node.Up) node.Hv = true;
+                if (page.Fc != null) page.Fc.Fc = true;
+            }
             if (page.Kq != null && !Connected(page.D, page.Kq)) page.Kq = null;
             Rebuild(page, rules, fields);
         }

@@ -437,6 +437,10 @@ __jobs('declarations');
             const state = elementState(this, arguments);
             name = str(name);
             if (name.length > 1024 || !call('ra', state.key, name)) throw new listError('Lea attribute mutation limit or invalid target');
+        },
+        remove() {
+            const state = elementState(this);
+            call('de', state.key);
         }
     };
     const elementProperties = {
@@ -447,6 +451,7 @@ __jobs('declarations');
         hasAttribute: { __proto__: null, value: elementMethods.hasAttribute },
         setAttribute: { __proto__: null, value: elementMethods.setAttribute },
         removeAttribute: { __proto__: null, value: elementMethods.removeAttribute },
+        remove: { __proto__: null, value: elementMethods.remove },
         classList: { __proto__: null,
             get() { const state = elementState(this); if (!state.classTokens) state.classTokens = makeList(state.key); return state.classTokens; },
             set(value) { const state = elementState(this); if (!state.classTokens) state.classTokens = makeList(state.key); state.classTokens.value = value; }
@@ -479,6 +484,7 @@ __jobs('declarations');
             hasAttribute: elementProperties.hasAttribute,
             setAttribute: elementProperties.setAttribute,
             removeAttribute: elementProperties.removeAttribute,
+            remove: elementProperties.remove,
             matches: { value(selector) { return select(this, arguments, false); } },
             closest: { value(selector) { return select(this, arguments, true); } },
             classList: elementProperties.classList

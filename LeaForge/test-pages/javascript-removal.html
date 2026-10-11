@@ -1,0 +1,23 @@
+<!doctype html>
+<html><head><title>Lea element removal</title><style>
+body { margin: 24px; color: #25282b; background: #ffffff; font-family: Segoe UI; }
+h1 { font-size: 24px; }
+section { margin-bottom: 12px; padding: 12px; border: 1px solid #168477; }
+button { background: #168477; color: #ffffff; padding: 8px; }
+input { width: 190px; }
+#keep:only-child { color: #b42454; }
+</style></head><body>
+<h1><img src="../../assets/lea.ico" width="32" height="32" alt="Lea"> Lea</h1>
+<div id="parent">
+<section id="drop"><span id="child">Temporary</span><input id="removed-field" value="Temporary"></section>
+<section id="keep"><input id="field" value="Lea"></section>
+</div>
+<button id="action">Remove</button>
+<p id="echo">Ready</p>
+<script>
+document.getElementById('action').addEventListener('click', function() {
+    document.getElementById('drop').remove();
+    document.getElementById('echo').textContent = 'Removed';
+});
+</script>
+</body></html>

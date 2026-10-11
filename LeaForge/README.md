@@ -1,5 +1,16 @@
 # LeaForge
 
+Latest engine feature: connected element removal uses two-letter `E.De/V.De`
+and private `de`, with familiar JavaScript `element.remove()`. Form/focus and
+paint/accessibility cleanup preserve surviving editor selection and detached
+read identity. Core, trusted, production isolated worker and native view checks
+pass, as does the complete renderer regression. Detached hover/focus cleanup is
+fixed. The final broader scripting run fails after 1,980 assertions waiting for
+a controlled EOF worker to exit; its cause remains open. The required bundle
+stays 749,056 bytes. Earlier failures are retained; installed Firespider is
+unchanged. Readiness stays about 65%. See
+[element removal](ELEMENT_REMOVAL.md).
+
 Latest actual-EXE check: separate Firespider build selection uses compact `-r`
 with hashed inputs and post-build/package checks. All 10 input and three package
 contracts pass, and the fresh candidate passes six actual-EXE startup scenarios

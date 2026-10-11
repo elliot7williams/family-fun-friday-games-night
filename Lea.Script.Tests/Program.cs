@@ -24,6 +24,7 @@ namespace Lea.Script.Tests
                 var selectorFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-selectors.html");
                 var treeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-tree.html");
                 var subtreeFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-subtree.html");
+                var removalFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-removal.html");
                 var loadFailureFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-load-failure.html");
                 if (args.Length > 1 && args[1] == "--vm-options")
                 {
@@ -223,6 +224,15 @@ namespace Lea.Script.Tests
                 {
                     View.Tree(treeFixture, args.Length > 2 ? args[2] : null);
                     Console.WriteLine("PASS Lea.Script native tree: " + checks + " checks.");
+                    return 0;
+                }
+                if (args.Length > 1 && (args[1] == "--removal-core" || args[1] == "--removal-trusted" || args[1] == "--removal-isolated" || args[1] == "--removal-view" || args[1] == "-de"))
+                {
+                    var mode = args[1] == "-de" ? "core" : args[1].Substring("--removal-".Length);
+                    if (args.Length > (mode == "view" ? 3 : 2)) throw new ArgumentException("Supply only a fixture root and removal mode, plus an optional capture prefix for view mode.");
+                    if (mode == "view") View.Pump(() => Removal.Native(removalFixture, args.Length == 3 ? args[2] : null));
+                    else Removal.Run(removalFixture, mode);
+                    Console.WriteLine("PASS Lea.Script removal " + mode + ": " + checks + " checks.");
                     return 0;
                 }
                 if (args.Length > 1 && (args[1] == "--tree" || args[1] == "--tree-trusted"))
@@ -504,6 +514,10 @@ namespace Lea.Script.Tests
                 View.Selectors(selectorFixture);
                 Tree.Run(treeFixture);
                 View.Tree(treeFixture);
+                Removal.Run(removalFixture, "core");
+                Removal.Run(removalFixture, "trusted");
+                Removal.Run(removalFixture, "isolated");
+                View.Pump(() => Removal.Native(removalFixture, null));
                 Worker.Run(fixture);
                 Events.Run(viewFixture);
                 Attributes.Run(attributeFixture);

@@ -302,6 +302,11 @@ objects, reflection types, file handles, or network clients:
   follow Lea's empty-result behavior, not browser `SyntaxError` behavior.
 - Stable element wrapper identity, `tagName`, `getAttribute`, `hasAttribute`,
   `textContent`, and live writable `id`/`className` strings.
+- Connected `element.remove()` through private `de` and native `E.De/V.De`
+  aliases. Deletion refreshes selectors, paint/accessibility and form/focus state
+  while retaining surviving field/editor identity and detached-subtree reads.
+  Detached writes, creation/insertion and full mutation lifecycle remain
+  unsupported. See [removal scope and verification](../LeaForge/ELEMENT_REMOVAL.md).
 - Mutable field `value` and `checked`, with Lea's existing field constraints.
 - Read-only element `parentElement`, `firstElementChild`, `lastElementChild`,
   `previousElementSibling`, `nextElementSibling`, and `childElementCount`;
@@ -560,7 +565,7 @@ requires process isolation for untrusted scripts.
 
 Automatic remote-page scripts, external scripts, modules loaded from files or
 URLs, additional DOM events, animation frames, the full browser event loop,
-fetch/XHR, storage, location/navigation, DOM creation/removal, `innerHTML`, and
+fetch/XHR, storage, location/navigation, DOM creation/insertion/general detached editing, `innerHTML`, and
 the full CSSOM remain future integration work. General browser compatibility
 and production untrusted-site safety are not claimed by these tests.
 

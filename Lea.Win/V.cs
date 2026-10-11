@@ -748,6 +748,11 @@ namespace Lea.Win
             return count <= 0 ? count : Commands(count);
         }
 
+        public int De(N element)
+        {
+            return closed || At == null ? 0 : Commands(e.De(At, element));
+        }
+
         public bool Su(string condition) { return e.Su(condition); }
         public bool Su(string property, string value) { return e.Su(property, value); }
         public bool Mq(string query) { return e.Mq(query); }

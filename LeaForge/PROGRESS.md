@@ -34,6 +34,21 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Current milestone 146 remains open. Connected element deletion adds compact
+`E.De/V.De` and private `de`, plus familiar `element.remove()`, preserving
+surviving form/editor state and detached read identity while refreshing paint,
+accessibility, selectors and focus. Detached hover/focus and obsolete ancestor
+hover are cleared while unrelated connected focus is retained. Final core/alias
+(18 each), trusted/isolated (16 each), native view (11) and complete renderer
+checks pass. The final broader scripting run fails after 1,980 assertions in
+controlled EOF worker retirement, before its expected 2,418-check completion;
+the cause remains open. The required bundle stays 749,056 bytes. Initial
+assertion/recognizer failures and the preceding 2,415-check success are retained
+without relabeling; the real state fix changes Engine bytes and receives fresh
+gates. No native gate is retried for the same runtime. No current Firespider host matrix/startup rerun, installed replacement,
+stable release, speedup or resolved-intermittence claim is made. Readiness stays
+about 65%. See [connected element removal](ELEMENT_REMOVAL.md).
+
 Current milestone 146 remains open. The separate Firespider candidate builder
 can select a frozen runtime with `-r`, recording and checking 20 inputs before
 and after compilation. Packaging rejects changed runtime files. All 10 input
