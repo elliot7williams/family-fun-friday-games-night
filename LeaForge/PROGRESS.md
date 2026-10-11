@@ -34,6 +34,23 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Native workers gain opt-in `Be=2` for explicit preparation of the fixed
+bootstrap before constrained evaluation. All three modes compile, and 14
+entry, 13 build-guard, 14 options, four asset, 14 trusted-cache, 27 paired-launch,
+14 checkpoint, 36 scope and seven native recovery checks pass. The full
+scripting executable passes 2,226 checks with exit zero; an exact-summary
+repair confirms that same run after the initial wrapper's prefix collision.
+The renderer and standalone browser pass, with two inspected captures. The
+full copied host instead passes 42 cases then fails first-demand scripting,
+wall 5,022 ms / CPU 765 ms, after preparation and the parsed callback. No
+failed host case is retried. Missing DLLs in temporary stages are recorded;
+identical bytes are deployed in a new persistent NTFS folder. The verified
+24-file runtime ZIP is 2,899,390 bytes from 8,269,052 raw bytes. Only candidate
+worker EXE changes, by 1,024 bytes; all guards/budgets, original files and normal
+outputs stay unchanged. Default stays `Be=0`; no startup fix, speedup or release
+is claimed. Milestone 146 stays open and readiness stays about 65%. See
+`NATIVE_PREPARED_BOOTSTRAP.md`.
+
 Trusted `Js` now lazily shares only its prepared bootstrap syntax tree across
 independent realms. Five compiled-cache, 14 isolation/reset/concurrency/GC,
 14 options, four asset, 36 combined scope and seven native recovery checks

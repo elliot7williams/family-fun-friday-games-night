@@ -1,5 +1,16 @@
 # LeaForge
 
+Latest native bootstrap alternative: opt-in `Be=2` prepares the fixed asset
+before constrained evaluation, leaving `Be=0` as default. The broad scripting
+executable passes 2,226 checks with actual exit zero, confirmed by an exact
+completion repair without rerun. All six paired native launches, focused
+gates, full renderer and standalone browser pass. The copied host matrix
+passes 42 cases but fails first-demand scripting after the prepared AST
+callback. That timeout remains retained without retry. A persistent test
+build and verified 2.90-MB runtime ZIP are available; original/normal files
+stay unchanged. No speedup, startup fix or release is claimed; readiness
+stays about 65%. See [prepared native bootstrap](NATIVE_PREPARED_BOOTSTRAP.md).
+
 Latest trusted-runtime optimization: `Js` lazily shares a prepared syntax
 tree for its fixed bootstrap without sharing realms or caching page scripts.
 Five contracts, 14 isolation/reset/concurrency/collection, 14 options, four

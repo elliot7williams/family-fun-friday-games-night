@@ -463,6 +463,13 @@ namespace Lea.Script.Tests
                             hello == stderr.LastIndexOf("startup hello", StringComparison.Ordinal) &&
                             ready == stderr.LastIndexOf("startup ready", StringComparison.Ordinal),
                             "worker records one hello-write entry and completion after the denial probes: timing=" + timing + "; " + stderr);
+                        var prepare = stderr.IndexOf("startup prepare" + (timing ? ":" : Environment.NewLine), StringComparison.Ordinal);
+                        var prepared = stderr.IndexOf("startup prepared" + (timing ? ":" : Environment.NewLine), StringComparison.Ordinal);
+                        var evaluate = stderr.IndexOf("startup evaluate", StringComparison.Ordinal);
+                        var parsed = stderr.IndexOf("startup parsed", StringComparison.Ordinal);
+                        Check(BootstrapEntry.Kind() == "prepared" ? prepare >= 0 && prepared > prepare && evaluate > prepared && parsed > evaluate :
+                            prepare < 0 && prepared < 0,
+                            "preparation checkpoints match the compiled entry before constrained evaluation: timing=" + timing + "; " + stderr);
                         Check(report.StartsWith("phase=ready;", StringComparison.Ordinal) && warm.Ok &&
                             script.Ac && script.Ne && script.Nd && script.Fd && script.Mg == 15,
                             "parent ready phase follows the verified handshake before page execution: timing=" + timing);

@@ -1,5 +1,10 @@
 # Trusted Bootstrap Cache
 
+This retains the trusted-cache checkpoint. Subsequent
+[native preparation work](NATIVE_PREPARED_BOOTSTRAP.md) keeps this Script DLL
+unchanged and moves test delivery to a persistent folder after temporary
+dependency files disappear.
+
 Milestone 146 remains open. Broader browser readiness stays about 65%, an
 engineering estimate rather than a web-platform conformance score. This is a
 trusted-runtime optimization with focused isolation evidence, not a native

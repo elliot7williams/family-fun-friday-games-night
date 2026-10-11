@@ -87,6 +87,13 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script bootstrap entry: " + checks + " checks; compiled contract only.");
                     return 0;
                 }
+                if (args.Length > 1 && args[1] == "--bootstrap-prepared-contract")
+                {
+                    if (args.Length > 3) throw new ArgumentException("Supply at most one worker executable for --bootstrap-prepared-contract.");
+                    BootstrapEntry.PreparedContract(args.Length == 3 ? args[2] : null);
+                    Console.WriteLine("PASS Lea.Script bootstrap prepared: " + checks + " checks; compiled contract only.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1].StartsWith("--bootstrap-cache", StringComparison.Ordinal))
                 {
                     if (args.Length != 2) throw new ArgumentException("No extra arguments are accepted for bootstrap cache checks.");

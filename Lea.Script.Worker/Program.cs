@@ -8,7 +8,9 @@ using Jint.Runtime;
 using Jint.Runtime.Interop;
 using Lea.Script;
 
-#if LEA_INDIRECT_BOOTSTRAP
+#if LEA_PREPARED_BOOTSTRAP
+[assembly: System.Reflection.AssemblyMetadata("Lea.BootstrapEntry", "prepared")]
+#elif LEA_INDIRECT_BOOTSTRAP
 [assembly: System.Reflection.AssemblyMetadata("Lea.BootstrapEntry", "indirect")]
 #else
 [assembly: System.Reflection.AssemblyMetadata("Lea.BootstrapEntry", "direct")]
@@ -81,6 +83,11 @@ namespace Lea.Script.Worker
                     using (var stream = typeof(Program).Assembly.GetManifestResourceStream("Lea.Script.Dom.js"))
                     using (var reader = new StreamReader(stream)) source = reader.ReadToEnd();
                     Trace("source", clock, trace);
+#if LEA_PREPARED_BOOTSTRAP
+                    Trace("prepare", clock, trace);
+                    var bootstrap = Jint.Engine.PrepareScript(source, options: Preparation());
+                    Trace("prepared", clock, trace);
+#endif
                     // Tracing observes the production parser instead of selecting a different bootstrap path.
                     Trace("evaluate", clock, trace);
 #if LEA_INDIRECT_BOOTSTRAP
@@ -90,7 +97,14 @@ namespace Lea.Script.Worker
                     Jint.Runtime.Debugger.DebugHandler.BeforeEvaluateEventHandler parsed =
                         (sender, ast) => Trace("parsed", clock, trace);
                     vm.Debugger.BeforeEvaluate += parsed;
-                    try { dispatch = vm.Evaluate(source); }
+                    try
+                    {
+#if LEA_PREPARED_BOOTSTRAP
+                        dispatch = vm.Evaluate(bootstrap);
+#else
+                        dispatch = vm.Evaluate(source);
+#endif
+                    }
                     finally { vm.Debugger.BeforeEvaluate -= parsed; }
 #endif
                     Trace("dom", clock, trace);
@@ -160,6 +174,22 @@ namespace Lea.Script.Worker
                 }
             }
         }
+
+#if LEA_PREPARED_BOOTSTRAP
+        private static ScriptPreparationOptions Preparation()
+        {
+            return new ScriptPreparationOptions
+            {
+                StaticAnalysis = true,
+                FoldConstants = false,
+                ParsingOptions = new ScriptParsingOptions
+                {
+                    CompileRegex = false,
+                    RegexTimeout = TimeSpan.FromMilliseconds(100)
+                }
+            };
+        }
+#endif
 
         private static void Trace(string stage, Stopwatch clock, bool enabled)
         {
