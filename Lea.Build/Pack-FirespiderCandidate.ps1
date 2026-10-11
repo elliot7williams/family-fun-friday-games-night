@@ -22,6 +22,14 @@ foreach ($item in $sourceFiles.Values) {
         throw "Snapshot input changed: $($item.path)"
     }
 }
+foreach ($item in @($source.runtimeInputs)) {
+    if ($null -eq $item -or $item.path -eq 'Lea.Script.Browser.exe.config') { continue }
+    $path = [IO.Path]::GetFullPath((Join-Path $runtime $item.path))
+    if (-not $path.StartsWith($runtime + '\', [StringComparison]::OrdinalIgnoreCase)) { throw "Runtime path escapes candidate: $($item.path)" }
+    if ((Get-Item -LiteralPath $path).Length -ne $item.bytes -or (Get-FileHash -LiteralPath $path).Hash -ne $item.sha256) {
+        throw "Compiled runtime differs from selected input: $($item.path)"
+    }
+}
 $sourceFiles['source-manifest.json'] = @{ path='source-manifest.json'; bytes=(Get-Item -LiteralPath $manifestPath).Length; sha256=(Get-FileHash -LiteralPath $manifestPath).Hash }
 $sourceEntries = @($sourceFiles.Values | ForEach-Object {
     [pscustomobject]@{ path=$_.path; full=(Join-Path $root $_.path) }

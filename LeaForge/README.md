@@ -1,5 +1,13 @@
 # LeaForge
 
+Latest actual-EXE check: separate Firespider build selection uses compact `-r`
+with hashed inputs and post-build/package checks. All 10 input and three package
+contracts pass, and the fresh candidate passes six actual-EXE startup scenarios
+once without dialogs or MSHTML. Engine files are unchanged from the preceding
+tested dictionary-frame runtime; the original installation remains untouched.
+No universal startup fix or speedup is claimed. Readiness stays about 65%. See
+[Firespider runtime selection](FIRESPIDER_RUNTIME_SELECTION.md).
+
 Latest size reduction: compact private `Wire.Of` replaces nine anonymous frame
 writes with dictionaries using the existing JSON serializer. Script and worker
 binaries shrink by 7,680 bytes combined; the wire format and guards are unchanged.

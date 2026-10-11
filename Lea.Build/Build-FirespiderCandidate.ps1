@@ -1,7 +1,8 @@
 param(
     [Alias('s')][string]$Source = 'L:\Firespider Internet',
     [Alias('o')][string]$Out = '',
-    [Alias('ns')][switch]$NoScript
+    [Alias('ns')][switch]$NoScript,
+    [Alias('r')][string]$Runtime = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -19,7 +20,12 @@ $projectPath = Join-Path $sourceRoot $projectName
 [xml]$project = Get-Content -LiteralPath $projectPath -Raw
 $ns = New-Object Xml.XmlNamespaceManager($project.NameTable)
 $ns.AddNamespace('m', $project.DocumentElement.NamespaceURI)
-$runtime = Join-Path $repo 'Lea.Script.Browser\bin\Release\net462'
+if ($Runtime -eq '') { $Runtime = Join-Path $repo 'Lea.Script.Browser\bin\Release\net462' }
+$runtimeRoot = (Resolve-Path -LiteralPath $Runtime).Path.TrimEnd('\')
+if (-not (Test-Path -LiteralPath $runtimeRoot -PathType Container)) { throw 'Runtime must be a folder.' }
+if ($stage.StartsWith($runtimeRoot + '\', [StringComparison]::OrdinalIgnoreCase) -or $stage -eq $runtimeRoot) {
+    throw 'Candidate output must be separate from the runtime input folder.'
+}
 $coreFiles = @('Lea.Engine.dll', 'Lea.Win.dll', 'Lea.Image.exe')
 $obsolete = @('AxInterop.DIRECTORSHOCKWAVELib', 'AxInterop.ShockwaveFlashObjects',
     'Interop.DIRECTORSHOCKWAVELib', 'Interop.ShockwaveFlashObjects', 'Interop.SWDIRLib',
@@ -28,12 +34,22 @@ $scriptFiles = @('Lea.Script.Win.dll', 'Lea.Script.dll', 'Jint.dll', 'Acornima.d
     'System.Memory.dll', 'System.Buffers.dll', 'System.Numerics.Vectors.dll', 'System.Runtime.CompilerServices.Unsafe.dll')
 $workerFiles = @('Lea.Script.Worker.exe', 'Lea.Script.Worker.exe.config', 'Jint.dll', 'Acornima.dll',
     'System.Memory.dll', 'System.Buffers.dll', 'System.Numerics.Vectors.dll', 'System.Runtime.CompilerServices.Unsafe.dll')
-foreach ($name in $coreFiles + $(if ($NoScript) { @() } else { $scriptFiles })) {
-    if (-not (Test-Path -LiteralPath (Join-Path $runtime $name) -PathType Leaf)) { throw "Build Lea.Script.Browser Release first; missing $name" }
-}
+$runtimeNames = @($coreFiles)
 if (-not $NoScript) {
-    foreach ($name in $workerFiles) {
-        if (-not (Test-Path -LiteralPath (Join-Path $runtime "ScriptWorker\$name") -PathType Leaf)) { throw "Missing worker file: $name" }
+    $runtimeNames += $scriptFiles
+    $runtimeNames += @($workerFiles | ForEach-Object { "ScriptWorker/$_" })
+    $runtimeNames += 'Lea.Script.Browser.exe.config'
+}
+$runtimeInputs = @(foreach ($name in $runtimeNames) {
+    $path = Join-Path $runtimeRoot $name
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "Missing runtime input: $name" }
+    [ordered]@{ path=$name; bytes=(Get-Item -LiteralPath $path).Length; sha256=(Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash }
+})
+function Check-RuntimeFile([string]$root, $item) {
+    $path = Join-Path $root $item.path
+    if ((Get-Item -LiteralPath $path).Length -ne $item.bytes -or
+        (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -ne $item.sha256) {
+        throw "Runtime input changed: $($item.path)"
     }
 }
 $compiler = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe'
@@ -113,12 +129,12 @@ foreach ($name in @('FirespiderLea.targets', 'start.html')) {
     Copy-Item -LiteralPath (Join-Path $repo "Lea.Firespider\$name") -Destination $lea
 }
 foreach ($name in $coreFiles + $(if ($NoScript) { @() } else { $scriptFiles })) {
-    Copy-Item -LiteralPath (Join-Path $runtime $name) -Destination $lea
+    Copy-Item -LiteralPath (Join-Path $runtimeRoot $name) -Destination $lea
 }
 if (-not $NoScript) {
     New-Item -ItemType Directory -Path (Join-Path $lea 'ScriptWorker') | Out-Null
     foreach ($name in $workerFiles) {
-        Copy-Item -LiteralPath (Join-Path $runtime "ScriptWorker\$name") -Destination (Join-Path $lea 'ScriptWorker')
+        Copy-Item -LiteralPath (Join-Path $runtimeRoot "ScriptWorker\$name") -Destination (Join-Path $lea 'ScriptWorker')
     }
 }
 $output = Join-Path $stage 'runtime'
@@ -128,7 +144,7 @@ $supported = $config.SelectSingleNode('/configuration/startup/supportedRuntime')
 if ($null -eq $supported) { throw 'Candidate configuration has no supported runtime entry.' }
 $supported.SetAttribute('sku', '.NETFramework,Version=v4.8')
 if (-not $NoScript) {
-    [xml]$bindings = Get-Content -LiteralPath (Join-Path $runtime 'Lea.Script.Browser.exe.config') -Raw
+    [xml]$bindings = Get-Content -LiteralPath (Join-Path $runtimeRoot 'Lea.Script.Browser.exe.config') -Raw
     $bindingNs = New-Object Xml.XmlNamespaceManager($bindings.NameTable)
     $bindingNs.AddNamespace('a', 'urn:schemas-microsoft-com:asm.v1')
     $configNs = New-Object Xml.XmlNamespaceManager($config.NameTable)
@@ -146,9 +162,20 @@ if (-not $NoScript) {
     }
 }
 $config.Save((Join-Path $stage 'app.config'))
+foreach ($item in $runtimeInputs) {
+    Check-RuntimeFile $runtimeRoot $item
+    if ($item.path -ne 'Lea.Script.Browser.exe.config') { Check-RuntimeFile $lea $item }
+}
 # Override the copied project only. Its original live target and outputs are untouched.
 & $compiler (Join-Path $stage $projectName) /nologo /tv:4.0 /t:Rebuild /verbosity:minimal "/p:Configuration=Release;TargetFrameworkVersion=v4.8;LeaScriptEnabled=$enabled;OutputPath=$output\;GenerateManifests=false;AutoGenerateBindingRedirects=true"
 if ($LASTEXITCODE -ne 0) { throw "Candidate build failed; preserved inputs: $stage" }
+foreach ($item in $runtimeInputs) {
+    Check-RuntimeFile $runtimeRoot $item
+    if ($item.path -ne 'Lea.Script.Browser.exe.config') {
+        Check-RuntimeFile $lea $item
+        Check-RuntimeFile $output $item
+    }
+}
 $exe = Join-Path $output 'Firespider Internet 19.exe'
 Copy-Item -LiteralPath (Join-Path $repo 'LeaForge\test-pages') -Destination (Join-Path $output 'test-pages') -Recurse
 New-Item -ItemType Directory -Path (Join-Path $output 'LeaForge') | Out-Null
@@ -160,6 +187,6 @@ if (-not $NoScript) {
 }
 $overlays = @(Get-ChildItem -LiteralPath $lea -File -Recurse; Get-Item -LiteralPath (Join-Path $stage 'FirespiderLea.vb'), (Join-Path $stage 'FirespiderSplit.vb'), (Join-Path $stage $projectName), (Join-Path $stage 'app.config')) |
     ForEach-Object { [ordered]@{ path=$_.FullName.Substring($stage.Length + 1).Replace('\', '/'); bytes=$_.Length; sha256=(Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash } }
-[ordered]@{ milestone=146; source=$sourceRoot; framework='net48'; optionalScript=(-not $NoScript); removedUnusedCom=$removed; frameworkProvided=$provided; inputs=@($copied.Values | Sort-Object { $_.path }); overlays=@($overlays) } |
+[ordered]@{ milestone=146; source=$sourceRoot; framework='net48'; optionalScript=(-not $NoScript); runtimeSource=$runtimeRoot; runtimeInputs=$runtimeInputs; removedUnusedCom=$removed; frameworkProvided=$provided; inputs=@($copied.Values | Sort-Object { $_.path }); overlays=@($overlays) } |
     ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $stage 'source-manifest.json') -Encoding UTF8
 [pscustomobject]@{ Candidate=$stage; Runtime=$output; EXE=$exe; SHA256=(Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash; SourceFiles=$copied.Count; OptionalScript=(-not $NoScript) } | Format-List

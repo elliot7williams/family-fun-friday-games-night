@@ -34,6 +34,16 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Current milestone 146 remains open. The separate Firespider candidate builder
+can select a frozen runtime with `-r`, recording and checking 20 inputs before
+and after compilation. Packaging rejects changed runtime files. All 10 input
+and three package contracts pass; a fresh .NET 4.8 EXE passes six startup scenarios
+once without dialogs or MSHTML, including deferred-tab resume. Entry-verified
+runtime/host-source ZIPs and a separate complete source backup preserve the build.
+Original installation and normal outputs remain unchanged; no independent
+archive rebuild, stable release, speedup or universal startup fix is claimed.
+Readiness stays about 65%. See [runtime selection](FIRESPIDER_RUNTIME_SELECTION.md).
+
 Current milestone 146 remains open. Private `Wire.Of` gives the nine outgoing
 frames one compact dictionary path, removing generated anonymous types and
 7,680 PE bytes. Both runtimes pass the 88 transport/limit checks, CLI aliases

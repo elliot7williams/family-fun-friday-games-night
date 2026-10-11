@@ -5,7 +5,18 @@ over `L:\Firespider Internet` or make Lea a complete modern-web engine. The
 clean adapters here remain the source of record; the live host has unrelated
 in-progress changes that must be retained.
 
-Latest host checkpoint: separate v33 integrates bounded attribute writers,
+Latest actual-EXE checkpoint selects the frozen dictionary-frame runtime using
+the new `-Runtime`/`-r` build option, with 20 hashed inputs and post-build/package
+runtime verification. All 10 input and three package rejection contracts pass;
+a fresh separate .NET 4.8 host compiles and passes the six actual-EXE startup
+scenarios once, including deferred-tab resume, without MSHTML or startup dialogs.
+The runtime and host-source ZIPs are entry-verified and the complete Lea source
+is backed up separately. Original installation and normal outputs are unchanged.
+No independent archive rebuild, universal startup fix, speedup or stable release
+is claimed. Readiness stays about 65%. See
+[runtime selection](../LeaForge/FIRESPIDER_RUNTIME_SELECTION.md).
+
+Earlier host checkpoint: separate v33 integrates bounded attribute writers,
 captured name validation and live native readonly synchronization. It passes
 all 43 ordinary host cases once with the same final harness retained from the
 failed v32, plus three intended old-runtime controls. All six actual-EXE startup
