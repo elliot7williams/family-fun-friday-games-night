@@ -137,6 +137,13 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script worker entry: " + checks + " checks.");
                     return 0;
                 }
+                if (args.Length > 1 && (args[1] == "--frame-progress" || args[1] == "-fp"))
+                {
+                    if (args.Length != 2) throw new ArgumentException("No extra arguments are accepted for frame progress checks.");
+                    FrameProgress.Run(fixture);
+                    Console.WriteLine("PASS Lea.Script frame progress: " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--native-cpu")
                 {
                     NativeCpu.Run(fixture);
@@ -507,6 +514,7 @@ namespace Lea.Script.Tests
                 ListenerCalls.Run(viewFixture);
                 // Keep this worker-file probe after the existing startup and execution gates.
                 WorkerEntry.Run();
+                FrameProgress.Run(fixture);
                 NativeCpu.Run(fixture);
                 WorkerStderr.Run();
                 SubtreeQueries.Run(selectorFixture, "aliases");

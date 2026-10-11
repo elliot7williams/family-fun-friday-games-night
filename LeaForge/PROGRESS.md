@@ -34,6 +34,17 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Current milestone 146 remains open. Probe disposal now precedes hello, keeping
+trusted cleanup inside the unchanged five-second startup budget. Opt-in private
+command progress and short `-fp` checks distinguish loop entry, frame receipt,
+bridge replies and completion. All 23 recovery checks pass, along with the default
+control, existing focused guards and standalone browser. The broad run fails
+after 1,417 assertions at engine construction; the copied host passes 42 cases but
+fails scripting startup after probe cleanup. Both failures are retained without
+retry; older passing runs/captures are not substituted. The original installed
+host remains untouched and its startup fix is not verified. Readiness remains
+about 65%. See [probe cleanup and command progress](FRAME_READINESS.md).
+
 Shared private `Bm` enforces six one-shot bootstrap checkpoints without a new
 page callback. Its 42 compiled checks, both CLI spellings, old-runtime and
 argument negative controls, six prepared entry, 14 options, four assets, 14

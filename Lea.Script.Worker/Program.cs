@@ -56,6 +56,7 @@ namespace Lea.Script.Worker
                 var request = 0;
                 Jint.Engine vm;
                 JsValue dispatch;
+                int network;
                 // Only trusted bootstrap overlaps the denial probe; page frames follow the verified hello.
                 using (var probe = new NetworkProbe(Wire.Number(init, "p")))
                 {
@@ -68,12 +69,14 @@ namespace Lea.Script.Worker
                     vm.SetValue("__lea", (JsValue)new ClrFunction(vm, "__lea", (_, values) =>
                     {
                         if (++request > 256) throw new InvalidDataException("Script host-call budget exceeded.");
+                        Frame("call", id, request, clock, trace);
                         Wire.Write(output, new { k = "call", i = id, r = request, b = Codec.Arguments(values) });
                         var reply = Wire.Read(input);
                         Wire.Fields(reply, "k", "i", "r", "v");
                         if (Wire.Text(reply, "k", 8) != "reply" || Wire.Number(reply, "i") != id ||
                             Wire.Number(reply, "r") != request || !reply.ContainsKey("v"))
                             throw new InvalidDataException("Invalid script bridge reply.");
+                        Frame("reply", id, request, clock, trace);
                         return Codec.Value(vm, reply["v"]);
                     }));
                     var markers = new Bm();
@@ -115,20 +118,25 @@ namespace Lea.Script.Worker
 #endif
                     markers.End();
                     Trace("dom", clock, trace);
-                    var network = probe.Denied();
+                    network = probe.Denied();
                     Trace("probes", clock, trace);
-                    Trace("hello", clock, trace);
-                    Wire.Write(output, new { k = "hello", g = guards, n = network, f = file ? 1 : 0 });
-                    Trace("ready", clock, trace);
                 }
+                // Complete trusted probe cleanup before announcing readiness for page frames.
+                Trace("closed", clock, trace);
+                Trace("hello", clock, trace);
+                Wire.Write(output, new { k = "hello", g = guards, n = network, f = file ? 1 : 0 });
+                Trace("ready", clock, trace);
+                Frame("invoke", id, 0, clock, trace);
                 return Frames();
 
                 // Page-only code is translated after the guarded startup handshake.
                 [MethodImpl(MethodImplOptions.NoInlining)]
                 int Frames()
                 {
+                    Frame("enter", id, 0, clock, trace);
                     while (true)
                     {
+                        Frame("read", id, 0, clock, trace);
                         var frame = Wire.Read(input);
                         var kind = Wire.Text(frame, "k", 8);
                         if (kind == "exec") Wire.Fields(frame, "k", "i", "c");
@@ -139,12 +147,14 @@ namespace Lea.Script.Worker
                         if (next <= id) return 3;
                         id = next;
                         request = 0;
+                        Frame(kind, id, 0, clock, trace);
                         try
                         {
                             var prevented = false;
                             if (kind == "exec")
                             {
                                 vm.Execute(Wire.Text(frame, "c", 16 * 1024));
+                                Frame("tasks", id, request, clock, trace);
                                 vm.Invoke(dispatch, JsValue.Undefined, new[] { (JsValue)"mt", Codec.Value(vm, new object[0]) });
                             }
                             else if (kind == "timer")
@@ -164,6 +174,7 @@ namespace Lea.Script.Worker
                                     if (!(key is int) || (int)key < 0 || (int)key >= 512) throw new InvalidDataException("Invalid event handle.");
                                 prevented = vm.Invoke(dispatch, JsValue.Undefined, new[] { (JsValue)type, Codec.Value(vm, path) }).AsBoolean();
                             }
+                            Frame("end", id, request, clock, trace);
                             Wire.Write(output, new { k = "end", i = id, s = "ok", m = "", d = prevented });
                         }
                         catch (Exception error) when (error is JavaScriptException || error is JintException ||
@@ -173,6 +184,7 @@ namespace Lea.Script.Worker
                                 error is MemoryLimitExceededException || error is RecursionDepthOverflowException ||
                                 error is InvalidDataException;
                             var message = limited ? "Script budget exceeded: " + error.GetType().Name + "." : error.Message;
+                            Frame("error", id, request, clock, trace);
                             Wire.Write(output, new { k = "end", i = id, s = limited ? "limit" : "js",
                                 m = message.Length <= 512 ? message : message.Substring(0, 512), d = false });
                             return 0;
@@ -197,6 +209,12 @@ namespace Lea.Script.Worker
             };
         }
 #endif
+
+        private static void Frame(string stage, int id, int request, Stopwatch clock, bool enabled)
+        {
+            if (!enabled || ((stage == "call" || stage == "reply") && request > 4 && request != 256)) return;
+            Console.Error.WriteLine("frame " + stage + ": i=" + id + "; r=" + request + "; wall=" + clock.ElapsedMilliseconds + " ms");
+        }
 
         private static void Trace(string stage, Stopwatch clock, bool enabled)
         {

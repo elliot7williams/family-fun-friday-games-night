@@ -458,9 +458,10 @@ namespace Lea.Script.Tests
                             stderr = (string)endpoint.GetType().GetProperty("E").GetValue(endpoint, null);
                         }
                         var probes = stderr.IndexOf("startup probes", StringComparison.Ordinal);
+                        var closed = stderr.IndexOf("startup closed", StringComparison.Ordinal);
                         var hello = stderr.IndexOf("startup hello", StringComparison.Ordinal);
                         var ready = stderr.IndexOf("startup ready", StringComparison.Ordinal);
-                        Check(probes >= 0 && hello > probes && ready > hello &&
+                        Check(probes >= 0 && closed > probes && hello > closed && ready > hello &&
                             hello == stderr.LastIndexOf("startup hello", StringComparison.Ordinal) &&
                             ready == stderr.LastIndexOf("startup ready", StringComparison.Ordinal),
                             "worker records one hello-write entry and completion after the denial probes: timing=" + timing + "; " + stderr);

@@ -1,5 +1,9 @@
 # Private Bootstrap Checkpoints
 
+Historical checkpoint: the follow-up [probe cleanup and command progress](FRAME_READINESS.md)
+adds command boundaries and moves trusted probe disposal before hello. Its new
+failures and results are recorded separately; the evidence below is unchanged.
+
 Milestone 146 stays open; broader readiness remains about 65%, an engineering
 estimate rather than a conformance result. This checkpoint improves startup
 evidence and verifies a complete copied host, not an installed startup fix or

@@ -1,5 +1,15 @@
 # LeaForge
 
+Latest readiness hardening: trusted network-probe disposal now finishes before
+hello, inside the existing startup deadline. Opt-in command progress distinguishes
+native loop entry, receipt, bridge replies and completion without page payloads;
+normal browsing emits no frame trace. The 23 native recovery checks and default
+control pass, as does the standalone browser. The broad suite fails after 1,417
+assertions during worker construction; the copied host passes 42 cases then fails
+its scripting startup. Both failures are retained without retry. The original
+installed EXE remains untouched, default stays `Be=0`, and readiness stays about
+65%. See [probe cleanup and command progress](FRAME_READINESS.md).
+
 Latest initialization hardening: six private ordered bootstrap checkpoints
 separate global declarations, scope and DOM setup, with a one-shot `Bm`
 sequencer and test alias `-bm`. The browser and all 43 copied-host cases pass;
