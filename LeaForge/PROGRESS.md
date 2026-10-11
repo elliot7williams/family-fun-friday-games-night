@@ -34,6 +34,20 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Current milestone 146 remains open. Private packed frames use one bounded
+buffer and one stream write/flush, while two-letter `Hi/Hr` prepare the actual
+worker hello outcomes during the existing trusted probe. Wire version, guards
+and deadlines are unchanged. Both wire aliases pass 186 assertions; native
+startup/worker/recovery checks pass 16/87/25. The final broad run fails after
+2,073 assertions: a controlled EOF CPU helper exits 3 with 78 ms CPU before
+its 100-ms target; the cause remains unestablished. Raw footer-recognition
+failure and earlier native failures are retained. A fresh separate test browser
+compiles and passes its isolated startup/JavaScript-click smoke; its capture is
+inspected. Installed Firespider and historical outputs stay unchanged.
+Optional binaries grow by 1,536 bytes; required bytes remain 749,056. No startup
+fix, stable release, speedup or completion increase is claimed. Readiness stays
+about 65%. See [packed handshake](PACKED_HANDSHAKE.md).
+
 Current milestone 146 remains open. Unsupported passive ClrMD reads are
 explicitly corrected, a PSS quota rejection is preserved without relaxing
 guards, and the separate final reader uses supported suspension/finally

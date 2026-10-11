@@ -57,10 +57,13 @@ namespace Lea.Script.Worker
                 Jint.Engine vm;
                 JsValue dispatch;
                 int network;
+                Wire.H hello;
                 // Only trusted bootstrap overlaps the denial probe; page frames follow the verified hello.
                 using (var probe = new NetworkProbe(Wire.Number(init, "p")))
                 {
                     Trace("network", clock, trace);
+                    hello = Wire.Hi(guards, file);
+                    Trace("wire", clock, trace);
                     Trace("options", clock, trace);
                     var options = Vo.Of(5000);
                     Trace("configured", clock, trace);
@@ -124,7 +127,7 @@ namespace Lea.Script.Worker
                 // Complete trusted probe cleanup before announcing readiness for page frames.
                 Trace("closed", clock, trace);
                 Trace("hello", clock, trace);
-                Wire.Write(output, Wire.Of("k", "hello", "g", guards, "n", network, "f", file ? 1 : 0));
+                Wire.Hr(output, hello, network);
                 Trace("ready", clock, trace);
                 Frame("invoke", id, 0, clock, trace);
                 return Frames();

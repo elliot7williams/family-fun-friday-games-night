@@ -25,6 +25,15 @@ call contract is checked with `Lea.Build/Test-ScriptBridgeBindings.ps1`.
 This does not establish a startup-timeout fix or speedup. See
 [DIRECT_BRIDGE_VALUES.md](../LeaForge/DIRECT_BRIDGE_VALUES.md).
 
+Private wire writes now encode the unchanged version-three header and JSON
+into one bounded buffer and stream write/flush. Two-letter `Hi/Hr` prepare
+three actual hello outcomes during the trusted denial probe and send only
+after verification and cleanup. Limits, guards and default `Be=0` are unchanged.
+The 186 compiled transport checks and focused native gates pass, but the full
+regression fails after 2,073 assertions at a controlled helper's CPU/exit
+contract. Optional binaries grow by 1,536 bytes; no speedup or startup fix is
+claimed. See [packed handshake](../LeaForge/PACKED_HANDSHAKE.md).
+
 Both production startup paths use fresh explicit Jint options from the linked
 two-letter `Vo.Of/At` helpers, preserving the existing interpreter budgets,
 stack guard and disabled CLR access. Worker diagnostics distinguish `options`

@@ -31,17 +31,55 @@ namespace Lea.Script
 
         internal static void Write(Stream stream, object value)
         {
-            byte[] bytes;
-            try { bytes = Utf8.GetBytes(Serializer().Serialize(value)); }
+            Send(stream, Pack(value));
+        }
+
+        internal sealed class H
+        {
+            private readonly byte[][] packets = new byte[3][];
+
+            internal H(int guards, bool file)
+            {
+                if (guards < 0 || guards > 15) throw new ArgumentOutOfRangeException("guards");
+                for (var network = 0; network < packets.Length; network++)
+                    packets[network] = Pack(Of("k", "hello", "g", guards, "n", network, "f", file ? 1 : 0));
+            }
+
+            internal void Sr(Stream stream, int network)
+            {
+                if (network < 0 || network >= packets.Length) throw new InvalidDataException("Invalid hello network result.");
+                Send(stream, packets[network]);
+            }
+        }
+
+        internal static H Hi(int guards, bool file) { return new H(guards, file); }
+        internal static void Hr(Stream stream, H hello, int network)
+        {
+            if (hello == null) throw new ArgumentNullException("hello");
+            hello.Sr(stream, network);
+        }
+
+        private static byte[] Pack(object value)
+        {
+            try
+            {
+                var json = Serializer().Serialize(value);
+                var length = Utf8.GetByteCount(json);
+                if (length > MaxFrame) throw new InvalidDataException("Script frame is too large.");
+                var packet = new byte[12 + length];
+                Put(packet, 0, Magic);
+                Put(packet, 4, Version);
+                Put(packet, 8, length);
+                Utf8.GetBytes(json, 0, json.Length, packet, 12);
+                return packet;
+            }
             catch (Exception error) when (error is ArgumentException || error is InvalidOperationException)
             { throw new InvalidDataException("Invalid outgoing script frame.", error); }
-            if (bytes.Length > MaxFrame) throw new InvalidDataException("Script frame is too large.");
-            var header = new byte[12];
-            Put(header, 0, Magic);
-            Put(header, 4, Version);
-            Put(header, 8, bytes.Length);
-            stream.Write(header, 0, header.Length);
-            stream.Write(bytes, 0, bytes.Length);
+        }
+
+        private static void Send(Stream stream, byte[] packet)
+        {
+            stream.Write(packet, 0, packet.Length);
             stream.Flush();
         }
 

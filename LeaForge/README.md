@@ -1,5 +1,16 @@
 # LeaForge
 
+Latest transport work packs each frame into one bounded buffer and stream
+write, with short private `Hi/Hr` helpers preparing actual startup outcomes
+during the trusted probe. Both wire aliases pass 186 assertions, and native
+startup/worker/recovery checks pass 16/87/25. The full run still fails after
+2,073 assertions at a controlled CPU helper's exit/CPU contract. Its failure
+and earlier startup failures are preserved without retries or relaxed guards.
+A fresh separate test browser compiles and passes its startup/click smoke;
+its capture is inspected. Required bytes remain 749,056 and
+installed Firespider is unchanged. This is not a measured speedup or stable
+release; readiness stays about 65%. See [packed handshake](PACKED_HANDSHAKE.md).
+
 Latest startup diagnosis corrects unsupported passive stack reads, uses a
 separate supported suspended reader, and adds short observation aliases with
 verified temporary-runtime coverage. Four labeled full observations still
