@@ -144,6 +144,14 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script frame progress: " + checks + " checks.");
                     return 0;
                 }
+                if (args.Length > 1 && (args[1] == "--wire-frames" || args[1] == "-wf"))
+                {
+                    if (args.Length != 2) throw new ArgumentException("No extra arguments are accepted for wire frame checks.");
+                    WireFrames.Run();
+                    Worker.Protocol();
+                    Console.WriteLine("PASS Lea.Script wire frames: " + checks + " checks; compiled transport only.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "--native-cpu")
                 {
                     NativeCpu.Run(fixture);
@@ -514,6 +522,7 @@ namespace Lea.Script.Tests
                 ListenerCalls.Run(viewFixture);
                 // Keep this worker-file probe after the existing startup and execution gates.
                 WorkerEntry.Run();
+                WireFrames.Run();
                 FrameProgress.Run(fixture);
                 NativeCpu.Run(fixture);
                 WorkerStderr.Run();

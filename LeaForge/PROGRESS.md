@@ -34,6 +34,16 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Current milestone 146 remains open. Private `Wire.Of` gives the nine outgoing
+frames one compact dictionary path, removing generated anonymous types and
+7,680 PE bytes. Both runtimes pass the 88 transport/limit checks, CLI aliases
+and independently rejected preceding parent/worker controls. Existing focused
+guards, the default control, full 2,357-check suite, standalone browser and all
+43 copied-host cases pass once; four fresh captures are inspected. Earlier
+failures are retained, the installed host remains untouched and its startup
+fix is not verified. No speedup or resolved-intermittence claim is made.
+Readiness stays about 65%. See [dictionary wire frames](DICTIONARY_WIRE_FRAMES.md).
+
 Current milestone 146 remains open. Probe disposal now precedes hello, keeping
 trusted cleanup inside the unchanged five-second startup budget. Opt-in private
 command progress and short `-fp` checks distinguish loop entry, frame receipt,

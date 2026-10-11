@@ -13,6 +13,22 @@ namespace Lea.Script
         internal const int Version = 3;
         private static readonly Encoding Utf8 = new UTF8Encoding(false, true);
 
+        internal static Dictionary<string, object> Of(params object[] fields)
+        {
+            if (fields == null) throw new ArgumentNullException("fields");
+            if (fields.Length < 2 || fields.Length > 16 || fields.Length % 2 != 0)
+                throw new ArgumentException("A script frame requires one to eight key/value pairs.", "fields");
+            var frame = new Dictionary<string, object>(fields.Length / 2, StringComparer.Ordinal);
+            for (var index = 0; index < fields.Length; index += 2)
+            {
+                var key = fields[index] as string;
+                if (key == null || key.Length != 1 || "kignfrbvsmdtpc".IndexOf(key[0]) < 0 || frame.ContainsKey(key))
+                    throw new ArgumentException("Invalid or duplicate script frame key.", "fields");
+                frame.Add(key, fields[index + 1]);
+            }
+            return frame;
+        }
+
         internal static void Write(Stream stream, object value)
         {
             byte[] bytes;

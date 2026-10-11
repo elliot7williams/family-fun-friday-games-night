@@ -1,5 +1,9 @@
 # Probe Cleanup And Command Progress
 
+Historical checkpoint: [dictionary wire frames](DICTIONARY_WIRE_FRAMES.md) records
+the follow-up size reduction and separately passing new gates. The failed runs
+and results below remain preserved and are not rerun or reclassified.
+
 Milestone 146 remains open. Broader browser readiness stays about 65%, an
 engineering estimate, not a standards conformance score or a release claim.
 

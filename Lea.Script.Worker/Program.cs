@@ -70,7 +70,7 @@ namespace Lea.Script.Worker
                     {
                         if (++request > 256) throw new InvalidDataException("Script host-call budget exceeded.");
                         Frame("call", id, request, clock, trace);
-                        Wire.Write(output, new { k = "call", i = id, r = request, b = Codec.Arguments(values) });
+                        Wire.Write(output, Wire.Of("k", "call", "i", id, "r", request, "b", Codec.Arguments(values)));
                         var reply = Wire.Read(input);
                         Wire.Fields(reply, "k", "i", "r", "v");
                         if (Wire.Text(reply, "k", 8) != "reply" || Wire.Number(reply, "i") != id ||
@@ -124,7 +124,7 @@ namespace Lea.Script.Worker
                 // Complete trusted probe cleanup before announcing readiness for page frames.
                 Trace("closed", clock, trace);
                 Trace("hello", clock, trace);
-                Wire.Write(output, new { k = "hello", g = guards, n = network, f = file ? 1 : 0 });
+                Wire.Write(output, Wire.Of("k", "hello", "g", guards, "n", network, "f", file ? 1 : 0));
                 Trace("ready", clock, trace);
                 Frame("invoke", id, 0, clock, trace);
                 return Frames();
@@ -175,7 +175,7 @@ namespace Lea.Script.Worker
                                 prevented = vm.Invoke(dispatch, JsValue.Undefined, new[] { (JsValue)type, Codec.Value(vm, path) }).AsBoolean();
                             }
                             Frame("end", id, request, clock, trace);
-                            Wire.Write(output, new { k = "end", i = id, s = "ok", m = "", d = prevented });
+                            Wire.Write(output, Wire.Of("k", "end", "i", id, "s", "ok", "m", "", "d", prevented));
                         }
                         catch (Exception error) when (error is JavaScriptException || error is JintException ||
                             error is Acornima.ParseErrorException || error is TimeoutException || error is InvalidDataException)
@@ -185,8 +185,8 @@ namespace Lea.Script.Worker
                                 error is InvalidDataException;
                             var message = limited ? "Script budget exceeded: " + error.GetType().Name + "." : error.Message;
                             Frame("error", id, request, clock, trace);
-                            Wire.Write(output, new { k = "end", i = id, s = limited ? "limit" : "js",
-                                m = message.Length <= 512 ? message : message.Substring(0, 512), d = false });
+                            Wire.Write(output, Wire.Of("k", "end", "i", id, "s", limited ? "limit" : "js",
+                                "m", message.Length <= 512 ? message : message.Substring(0, 512), "d", false));
                             return 0;
                         }
                     }

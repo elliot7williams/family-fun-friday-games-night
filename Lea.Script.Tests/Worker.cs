@@ -207,7 +207,7 @@ namespace Lea.Script.Tests
             if (failure != null) throw failure;
         }
 
-        private static void Protocol()
+        internal static void Protocol()
         {
             using (var stream = new MemoryStream())
             {

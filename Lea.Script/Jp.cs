@@ -149,9 +149,9 @@ namespace Lea.Script
                 var path = type == null ? null : bridge.Path(target);
                 await Io(() =>
                 {
-                    if (timer) Wire.Write(endpoint.I, new { k = "timer", i = id, t = token });
-                    else if (type == null) Wire.Write(endpoint.I, new { k = "exec", i = id, c = code });
-                    else Wire.Write(endpoint.I, new { k = "event", i = id, t = type, p = path });
+                    if (timer) Wire.Write(endpoint.I, Wire.Of("k", "timer", "i", id, "t", token));
+                    else if (type == null) Wire.Write(endpoint.I, Wire.Of("k", "exec", "i", id, "c", code));
+                    else Wire.Write(endpoint.I, Wire.Of("k", "event", "i", id, "t", type, "p", path));
                     return true;
                 }, clock, tm, asynchronous);
                 var request = 0;
@@ -176,7 +176,7 @@ namespace Lea.Script
                     var value = bridge.Call((object[])frame["b"]);
                     if (clock.ElapsedMilliseconds >= tm) throw new TimeoutException();
                     phase = "reply";
-                    await Io(() => { Wire.Write(endpoint.I, new { k = "reply", i = id, r = request, v = value }); return true; }, clock, tm, asynchronous);
+                    await Io(() => { Wire.Write(endpoint.I, Wire.Of("k", "reply", "i", id, "r", request, "v", value)); return true; }, clock, tm, asynchronous);
                 }
             }
             catch (Exception error) when (error is IOException || error is InvalidDataException || error is Win32Exception ||
@@ -259,7 +259,7 @@ namespace Lea.Script
                     }
                     probed = clock.ElapsedMilliseconds;
                     phase = "init";
-                    await Io(() => { Wire.Write(endpoint.I, new { k = "init", p = port, f = canary }); return true; }, clock, 5000, asynchronous);
+                    await Io(() => { Wire.Write(endpoint.I, Wire.Of("k", "init", "p", port, "f", canary)); return true; }, clock, 5000, asynchronous);
                     phase = "hello";
                     var hello = await Io(() => Wire.Read(endpoint.O), clock, 5000, asynchronous);
                     phase = "verify";

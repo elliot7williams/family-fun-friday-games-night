@@ -1,5 +1,15 @@
 # LeaForge
 
+Latest size reduction: compact private `Wire.Of` replaces nine anonymous frame
+writes with dictionaries using the existing JSON serializer. Script and worker
+binaries shrink by 7,680 bytes combined; the wire format and guards are unchanged.
+The 88 transport checks, both aliases, independent old-parent/worker negative
+controls, default control, full 2,357-check suite, standalone browser and all 43
+copied Firespider cases pass. Four fresh captures are inspected. Earlier failures
+remain preserved, the installed EXE is untouched, and no speedup or startup-fix
+claim is made. Default stays `Be=0`, readiness about 65%. See
+[dictionary wire frames](DICTIONARY_WIRE_FRAMES.md).
+
 Latest readiness hardening: trusted network-probe disposal now finishes before
 hello, inside the existing startup deadline. Opt-in command progress distinguishes
 native loop entry, receipt, bridge replies and completion without page payloads;
