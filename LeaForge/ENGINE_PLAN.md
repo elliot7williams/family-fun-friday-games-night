@@ -32,6 +32,11 @@ configuration without binary size growth; 49 focused agent checks pass.
 Nonblocking operations and async wakeups remain. Startup and native CPU-lifetime
 failures still block a release claim; readiness stays about 65%. See
 [nonblocking page agents](NONBLOCKING_AGENTS.md).
+Test-only CPU delta reports now distinguish bounded loop work from startup
+and total process CPU. Focused CPU/EOF/startup checks pass, but one full run
+fails in trusted bootstrap before reaching the CPU fixture. All production
+runtime bytes and limits remain unchanged. Release reliability is still open;
+readiness stays about 65%. See [CPU delta diagnostics](CPU_DELTA_DIAGNOSTICS.md).
 
 Core public vocabulary:
 

@@ -1,5 +1,10 @@
 # Controlled worker EOF diagnostics
 
+Later test-only [CPU delta diagnostics](CPU_DELTA_DIAGNOSTICS.md) add start/end,
+wall and spin-count reports without changing the work target or deadlines.
+Current focused lifetime/EOF counts are 25/41, including eight report controls;
+the results below describe the earlier checkpoint, not current release status.
+
 Milestone 146 remains open; broader readiness stays about **65%**. This change
 improves test evidence for the unresolved worker-exit timeout, not Lea's
 production startup path. All 19 production runtime records, including the

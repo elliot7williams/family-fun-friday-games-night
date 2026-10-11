@@ -34,6 +34,19 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Current milestone 146 remains open. The controlled test helper now reports CPU
+at loop start/end, wall time and spin count after its result is decided, so
+loop work is not confused with startup or total CPU. Quiet lifetime and traced
+EOF gates pass 25/41 checks; startup phases pass 16. Three traced helpers record
+109.375 ms loop CPU with 125..171 ms total CPU. Eight report controls raise the
+expected full count to 2,823; observer count/footer controls pass separately.
+One actual full run fails after 66 checks in trusted bootstrap before reaching
+the CPU fixture, with exact cause unknown and no retry. The unchanged browser
+passes its lifecycle/isolation smoke; captures show 40..90 pixel animation.
+All 19 production runtime files and protected Firespider/normal outputs remain
+unchanged. No startup fix, speedup or stable release is claimed; readiness
+stays about 65%. See [CPU delta diagnostics](CPU_DELTA_DIAGNOSTICS.md).
+
 Current milestone 146 remains open. Shared `Vo.Of/At` now makes page realms
 nonblocking in both trusted and isolated execution: valid `Atomics.wait()`
 throws `TypeError`, while atomic operations and `waitAsync` wakeups remain.

@@ -18,6 +18,7 @@ namespace Lea.Script.Tests
     {
         internal static void Run(string fixture, bool trace = false)
         {
+            Diagnostics();
             var directory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ScriptWorker");
             var helper = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Lea.NativeCpu.Worker.exe");
             var files = new[] { helper };
@@ -74,6 +75,35 @@ namespace Lea.Script.Tests
                 finally { worker.Dispose(); }
                 Program.Check(files.Select(Rules).SequenceEqual(rules), assembly.GetName().Name + ": native CPU worker file grants retire");
             }
+        }
+
+        private static void Diagnostics()
+        {
+            var complete = CpuDelta.Report("complete", 400000, 1500000, 210, 8);
+            Program.Check(complete == "CPU work: result=complete; startTicks=400000; finishTicks=1500000; deltaTicks=1100000; wallMs=210; spins=8; targetTicks=1000000; wallLimitMs=3000",
+                "CPU delta: completed report separates the loop from startup CPU");
+            var timeout = CpuDelta.Report("timeout", 500000, 1400000, 3000, 17);
+            Program.Check(timeout.Contains("result=timeout") && timeout.Contains("deltaTicks=900000") && timeout.Contains("wallMs=3000") && timeout.Contains("spins=17"),
+                "CPU delta: synthetic timeout retains a below-target loop despite positive total CPU");
+            Program.Check(CpuDelta.Report("timeout", 0, 0, 3000, 0).Contains("deltaTicks=0;"),
+                "CPU delta: a real zero reading remains zero");
+            Program.Check(CpuDelta.Report("timeout", -1, 4, 3000, 0).Contains("deltaTicks=unavailable;"),
+                "CPU delta: invalid initial counter is not fabricated zero");
+            Program.Check(CpuDelta.Report("timeout", 4, 3, 3000, 0).Contains("deltaTicks=unavailable;"),
+                "CPU delta: decreasing counter is not unsigned or negative CPU work");
+            Program.Check(CpuDelta.Report("complete", 0, Int64.MaxValue, Int64.MaxValue, Int64.MaxValue).Length < 512 &&
+                CpuDelta.Report("timeout", Int64.MinValue, Int64.MaxValue, 3000, 0).Length < 512,
+                "CPU delta: extreme numeric reports remain bounded without subtraction overflow");
+            Program.Check(CpuDelta.Report("complete", 400000, 1400000, 3000, 8).Contains("deltaTicks=1000000;"),
+                "CPU delta: exact 100 ms threshold is retained");
+            var previous = System.Threading.Thread.CurrentThread.CurrentCulture;
+            try
+            {
+                System.Threading.Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("fr-FR");
+                Program.Check(CpuDelta.Report("complete", 400000, 1500000, 210, 8) == complete,
+                    "CPU delta: report numbers are culture independent");
+            }
+            finally { System.Threading.Thread.CurrentThread.CurrentCulture = previous; }
         }
 
         internal static void Trace(string fixture)

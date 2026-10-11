@@ -19,13 +19,21 @@ namespace Lea.Script.Tests
                 using (var input = Console.OpenStandardInput()) Mark(output, input.ReadByte() == -1 ? 'e' : 'd');
                 using (var process = Process.GetCurrentProcess())
                 {
-                    var start = process.TotalProcessorTime;
+                    var start = process.TotalProcessorTime.Ticks;
                     var clock = Stopwatch.StartNew();
-                    while ((process.TotalProcessorTime - start).TotalMilliseconds < 100)
+                    long current, spins = 0;
+                    while ((current = process.TotalProcessorTime.Ticks) - start < 1000000)
                     {
-                        if (clock.ElapsedMilliseconds >= 3000) return 3;
+                        if (clock.ElapsedMilliseconds >= 3000)
+                        {
+                            Console.Error.WriteLine(CpuDelta.Report("timeout", start, current, clock.ElapsedMilliseconds, spins));
+                            return 3;
+                        }
                         Thread.SpinWait(10000);
+                        spins++;
                     }
+                    if (output != null)
+                        Console.Error.WriteLine(CpuDelta.Report("complete", start, current, clock.ElapsedMilliseconds, spins));
                 }
                 Mark(output, 'c');
                 if (args.Length == 2) { Mark(output, 'h'); Thread.Sleep(Timeout.Infinite); }

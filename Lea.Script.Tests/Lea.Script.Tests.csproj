@@ -26,9 +26,9 @@
     <Copy SourceFiles="..\Lea.Image\bin\$(Configuration)\Lea.Image.exe" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="true" />
   </Target>
   <Target Name="BuildNativeCpuProbe" AfterTargets="Build"
-          Inputs="$(MSBuildProjectDirectory)\NativeCpuWorker.cs;$(MSBuildProjectDirectory)\..\Lea.Image\Mg.cs;$(MSBuildProjectFullPath)"
+          Inputs="$(MSBuildProjectDirectory)\NativeCpuWorker.cs;$(MSBuildProjectDirectory)\CpuDelta.cs;$(MSBuildProjectDirectory)\..\Lea.Image\Mg.cs;$(MSBuildProjectFullPath)"
           Outputs="$(TargetDir)Lea.NativeCpu.Worker.exe">
-    <Csc Sources="NativeCpuWorker.cs;..\Lea.Image\Mg.cs" References="@(ReferencePath)"
+    <Csc Sources="NativeCpuWorker.cs;CpuDelta.cs;..\Lea.Image\Mg.cs" References="@(ReferencePath)"
          OutputAssembly="$(TargetDir)Lea.NativeCpu.Worker.exe" TargetType="Exe" Optimize="true" />
   </Target>
 </Project>
