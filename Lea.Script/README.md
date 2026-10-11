@@ -19,6 +19,10 @@ regression fails after 45 assertions on a second worker's startup, before its
 recovery cases. No broad rerun follows that failure, and the previous full
 565-assertion failure remains unresolved. All production runtime bytes are
 unchanged. See [hard recovery](../LeaForge/HARD_RECOVERY.md).
+Optional `Observe.ps1 -m worker -p` now targets the newer of paired workers and
+uses exact footer/exit checks. One observed worker run passes 87 assertions and
+captures its parser stack; the old startup failure remains unresolved and no
+production runtime changes. See [paired observation](../LeaForge/PAIRED_STARTUP_STACKS.md).
 
 The readable `Dom.js` bootstrap is kept in source. Both runtimes embed the same
 generated `Dom.compact.js` under the original resource name, without identifier

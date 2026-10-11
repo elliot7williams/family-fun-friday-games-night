@@ -17,6 +17,9 @@ Reliability work currently takes priority over a release claim. Test-only `-hr`
 captures hard-worker recovery and cleanup without enlarging the runtime; a
 separate second-worker startup failure remains unresolved. Readiness stays
 about 65% and milestone 146 stays open. See [hard recovery](HARD_RECOVERY.md).
+Targeted `-m/-p/-n` observation now captures paired-worker parser stacks, with
+exact completion/exit checks; a passing observed run does not resolve the old
+startup timeout. See [paired startup observation](PAIRED_STARTUP_STACKS.md).
 
 Core public vocabulary:
 

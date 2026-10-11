@@ -34,6 +34,19 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Current milestone 146 remains open. Optional observer aliases `-m/-p/-n` select
+the existing worker gate and newest paired worker, reject ambiguous timestamps,
+and require an exact expected footer. Its stale full count is corrected to
+2,651 and explicit success exit propagation is fixed. Eight eligibility and
+final wrapper controls pass; initial evidence-helper argument binding and
+positive-control exit failures remain preserved. One observed native worker
+run passes 87 assertions and captures the second worker's verified parser
+stack with attachment disposal. The preceding 45-assertion startup failure and
+565-assertion broad failure are not reproduced or reclassified; no broad run
+is attempted. All 19 runtime records remain unchanged and no speedup, startup
+fix or release is claimed. Readiness stays about 65%. See
+[paired startup observation](PAIRED_STARTUP_STACKS.md).
+
 Current milestone 146 remains open. Test-only two-letter `-hr` records six
 hard-deadline/replacement calls, separate `Sd/Ed` reports, pinned old process
 identity and exact ACL/read-lease/I/O cleanup. The native recovery sequence

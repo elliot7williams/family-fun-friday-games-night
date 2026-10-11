@@ -50,3 +50,24 @@ non-reparse directories and retained read leases are required before inspection.
 
 See [observed full-suite diagnostics](../../LeaForge/OBSERVED_FULL_STACKS.md) and
 the historical [event recovery diagnostics](../../LeaForge/EVENT_STACKS.md).
+
+## Targeted Worker Mode
+
+`Observe.ps1 -m worker` runs the existing isolated-worker regression, expecting
+its exact 87-check footer. `-p` selects only the newest worker when two or more
+matching owned children are enumerated; timestamp ties produce no selection.
+It is valid only in worker mode. `-n` overrides the expected count for another
+compiled test revision. Default full mode now expects the current 2,651 checks,
+not the obsolete 2,418. Test exit zero plus exactly one correct footer are
+required; the script explicitly returns zero/one to its PowerShell caller.
+
+Worker mode records `worker.log/worker.err` and the enumeration cohort with each
+snapshot. The inspector still pins and verifies the selected native identity.
+Cohort enumeration is not proof that peers survive throughout the capture.
+All runtime hash/lease, attachment, capacity and watchdog protections remain.
+
+The final wrapper/eligibility controls and one observed worker run pass. That
+run captures the newer worker's parser stack and passes 87 assertions, but it
+does not reproduce or resolve the preceding startup failure. Initial helper
+argument binding and positive-control exit propagation failures are retained
+separately. See [paired startup observation](../../LeaForge/PAIRED_STARTUP_STACKS.md).

@@ -4,6 +4,9 @@ param(
     [Parameter(Mandatory)][Alias('i')][string]$Inspector,
     [Parameter(Mandatory)][Alias('o')][string]$Out,
     [Alias('w')][string]$WorkerStageRoot,
+    [ValidateSet('full','worker')][Alias('m')][string]$Mode = 'full',
+    [Alias('p')][switch]$PairedWorker,
+    [ValidateRange(1,100000)][Alias('n')][int]$ExpectedAssertions,
     [ValidateRange(500,3000)][Alias('s')][int]$SampleAfterMs = 2000
 )
 
@@ -20,6 +23,11 @@ if ((Split-Path $Test -Leaf) -ne 'Lea.Script.Tests.exe' -or
     -not (Test-Path -LiteralPath $Inspector -PathType Leaf) -or
     -not (Test-Path -LiteralPath $FixtureRoot -PathType Container) -or
     (Test-Path -LiteralPath $Out)) { throw 'Supply the test/inspector executables, fixture root and a new output directory.' }
+if ($PairedWorker -and $Mode -ne 'worker') { throw 'Paired-worker sampling requires worker mode.' }
+if (-not $ExpectedAssertions) { $ExpectedAssertions = if ($Mode -eq 'worker') { 87 } else { 2651 } }
+$stem = if ($Mode -eq 'worker') { 'worker' } else { 'full' }
+$arguments = '"'+$FixtureRoot+'"'+$(if ($Mode -eq 'worker') { ' --worker' } else { '' })
+$completion = if ($Mode -eq 'worker') { 'PASS Lea.Script worker: '+$ExpectedAssertions+' checks.' } else { 'PASS Lea.Script: '+$ExpectedAssertions+' checks; JavaScript, isolated worker, and typed DOM.' }
 $workerPath = Join-Path (Split-Path $Test) 'ScriptWorker\Lea.Script.Worker.exe'
 if (-not (Test-Path -LiteralPath $workerPath -PathType Leaf)) { throw 'Worker runtime is missing.' }
 if ($WorkerStageRoot) {
@@ -38,6 +46,14 @@ function Save($name,$value) {
     try { $stream.Write($bytes,0,$bytes.Length) } finally { $stream.Dispose() }
 }
 function Hash($path) { (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash }
+function Eligible($children, [bool]$paired) {
+    $candidates = @($children)
+    if (-not $paired) { return $candidates }
+    if ($candidates.Count -lt 2) { return }
+    $ordered = @($candidates | Sort-Object CreationDate -Descending)
+    if ($ordered[0].CreationDate -eq $ordered[1].CreationDate) { return }
+    return $ordered[0]
+}
 Save 'plan.json' ([pscustomobject]@{
     test=$Test; testSHA256=(Hash $Test); inspector=$Inspector; inspectorSHA256=(Hash $Inspector)
     worker=$workerPath; workerSHA256=(Hash $workerPath); sampleAfterMs=$SampleAfterMs
@@ -45,7 +61,8 @@ Save 'plan.json' ([pscustomobject]@{
     startupBudgetMs=5000; externalObserver=$true; externalStartupTrace=$false; fixtureMayEnableTrace=$true; attempts=1
     ageBasis='Enumerated UTC creation time; exact native identity is verified by the inspector.'
     workerStageRoot=$WorkerStageRoot; workerRuntimeHashes=$runtimeHashes
-    retries=0; expectedAssertions=2418; releaseVerified=$false
+    retries=0; mode=$Mode; pairedWorkerOnly=[bool]$PairedWorker; expectedAssertions=$ExpectedAssertions
+    expectedCompletion=$completion; testLog=$stem+'.log'; testError=$stem+'.err'; releaseVerified=$false
 })
 Copy-Item -LiteralPath $PSCommandPath -Destination (Join-Path $Out 'Observe.ps1')
 $priorTrace = $env:LEA_SCRIPT_STARTUP_TRACE
@@ -58,7 +75,7 @@ $timedOut = $false
 $exitCode = $null
 $clock = [Diagnostics.Stopwatch]::StartNew()
 try {
-    $process = Start-Process -FilePath $Test -ArgumentList ('"'+$FixtureRoot+'"') -WorkingDirectory $FixtureRoot -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $Out 'full.log') -RedirectStandardError (Join-Path $Out 'full.err')
+    $process = Start-Process -FilePath $Test -ArgumentList $arguments -WorkingDirectory $FixtureRoot -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $Out ($stem+'.log')) -RedirectStandardError (Join-Path $Out ($stem+'.err'))
     $handle = $process.Handle
     while (-not $process.HasExited -and $clock.ElapsedMilliseconds -lt 600000) {
         if ($shots.Count -lt 32) {
@@ -67,7 +84,8 @@ try {
                 $path -and (Split-Path $path -Leaf) -eq 'Lea.Script.Worker.exe' -and
                     ($path -eq $workerPath -or ($WorkerStageRoot -and $path.StartsWith($WorkerStageRoot+'\',[StringComparison]::OrdinalIgnoreCase)))
             })
-            foreach ($child in $children) {
+            $eligible = @(Eligible $children ([bool]$PairedWorker))
+            foreach ($child in $eligible) {
                 $key = [string]$child.ProcessId+':'+$child.CreationDate.ToUniversalTime().Ticks
                 if (-not $seen.ContainsKey($key)) { $seen[$key] = @{beganMs=$clock.ElapsedMilliseconds; sampled=$false} }
                 $age = ([DateTime]::UtcNow-$child.CreationDate.ToUniversalTime()).TotalMilliseconds
@@ -77,7 +95,7 @@ try {
                 $reader = $null
                 $name = 'stack-'+$shots.Count
                 $report = Join-Path $Out ($name+'.json')
-                $record = [ordered]@{pid=[int]$child.ProcessId; parentPid=$process.Id; worker=$child.ExecutablePath; runtimeVerified=$false; createdUtcTicks=$null; enumeratedUtcTicks=$child.CreationDate.ToUniversalTime().Ticks; observedMs=$clock.ElapsedMilliseconds; enumeratedAgeMs=$age; ageSinceFirstSeenMs=$clock.ElapsedMilliseconds-$seen[$key].beganMs; lastAssertions=@(Get-Content -LiteralPath (Join-Path $Out 'full.log') -Tail 4); actualExitCode=$null; timedOut=$false; error=$null; report=$report; elapsedMs=0}
+                $record = [ordered]@{pid=[int]$child.ProcessId; parentPid=$process.Id; worker=$child.ExecutablePath; runtimeVerified=$false; createdUtcTicks=$null; enumeratedUtcTicks=$child.CreationDate.ToUniversalTime().Ticks; observedMs=$clock.ElapsedMilliseconds; enumeratedAgeMs=$age; ageSinceFirstSeenMs=$clock.ElapsedMilliseconds-$seen[$key].beganMs; cohortAtEnumeration=@($children | ForEach-Object {[pscustomobject]@{pid=[int]$_.ProcessId; createdUtcTicks=$_.CreationDate.ToUniversalTime().Ticks; worker=$_.ExecutablePath}}); lastAssertions=@(Get-Content -LiteralPath (Join-Path $Out ($stem+'.log')) -Tail 4); actualExitCode=$null; timedOut=$false; error=$null; report=$report; elapsedMs=0}
                 $sampleClock = [Diagnostics.Stopwatch]::StartNew()
                 $leases = [Collections.Generic.List[IO.FileStream]]::new()
                 try {
@@ -127,16 +145,17 @@ finally {
     }
     $env:LEA_SCRIPT_STARTUP_TRACE = $priorTrace
 }
-$lines = @(Get-Content -LiteralPath (Join-Path $Out 'full.log') -ErrorAction SilentlyContinue)
-$completion = 'PASS Lea.Script: 2418 checks; JavaScript, isolated worker, and typed DOM.'
+$lines = @(Get-Content -LiteralPath (Join-Path $Out ($stem+'.log')) -ErrorAction SilentlyContinue)
 $passed = $exitCode -eq 0 -and -not $timedOut -and -not $driverError -and @($lines | Where-Object {$_ -eq $completion}).Count -eq 1
 $result = [pscustomobject]@{
     actualExitCode=$exitCode; timedOut=$timedOut; driverError=$driverError; passed=$passed
     passingAssertions=@($lines | Where-Object {$_ -match '^PASS ' -and $_ -ne $completion}).Count
     elapsedMs=$clock.ElapsedMilliseconds; snapshots=$shots.ToArray(); observedWorkers=$seen.Count
     snapshotCapacityReached=($shots.Count -eq 32); externalObserver=$true; externalStartupTrace=$false; fixtureMayEnableTrace=$true
+    mode=$Mode; pairedWorkerOnly=[bool]$PairedWorker; expectedAssertions=$ExpectedAssertions; expectedCompletion=$completion
     attempts=1; retries=0; startupFixClaim=$false; releaseVerified=$false
 }
 Save 'result.json' $result
 $result | Select-Object actualExitCode,timedOut,passed,passingAssertions,elapsedMs,observedWorkers,snapshotCapacityReached | ConvertTo-Json
 if (-not $passed) { exit 1 }
+exit 0
