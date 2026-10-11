@@ -34,6 +34,18 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Current milestone 146 remains open. Test-only `-er` exercises six listener
+overflow/recovery cycles, passing 25 assertions without an observer. The
+separate .NET 8 ClrMD inspector reads a guarded initialization-wait worker
+without suspension/dumps/production dependencies and rejects wrong identities.
+The observed recovery flow also passes 25; two attempted stack reads fail on
+retiring workers, so no real stall is captured. Initial report-read race and
+control observer-flag mistakes are explicitly retained/corrected in the audit.
+All 19 runtime records remain unchanged; the preceding 714-assertion broad
+startup failure is not rerun or reclassified. No startup fix, speedup, host
+replacement or stable release is claimed. Readiness stays about 65%. See
+[event recovery stack diagnostics](EVENT_STACKS.md).
+
 Current milestone 146 remains open. Controlled EOF diagnostics distinguish
 WAIT_FAILED/WAIT_TIMEOUT and retain native CPU/exit readings; optional test
 alias `-ce` uses bounded phase bytes, without tracing normal runs. Quiet

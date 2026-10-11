@@ -159,6 +159,20 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script native CPU lifetime: " + checks + " checks.");
                     return 0;
                 }
+                if (args.Length > 1 && (args[1] == "--event-recovery" || args[1] == "-er"))
+                {
+                    if (args.Length != 3) throw new ArgumentException("Supply only a fixture root, event-recovery mode and a new report path.");
+                    EventRecovery.Run(viewFixture, args[2]);
+                    Console.WriteLine("PASS Lea.Script event recovery: " + checks + " checks; six controlled cycles.");
+                    return 0;
+                }
+                if (args.Length > 1 && args[1] == "-st")
+                {
+                    if (args.Length != 3) throw new ArgumentException("Supply only a fixture root, stack-target mode and a new report path.");
+                    StackTarget.Run(args[2]);
+                    Console.WriteLine("PASS Lea.Script stack target: " + checks + " checks; controlled init wait only.");
+                    return 0;
+                }
                 if (args.Length > 1 && (args[1] == "--cpu-eof" || args[1] == "-ce"))
                 {
                     if (args.Length != 2) throw new ArgumentException("No extra arguments are accepted for CPU EOF checks.");

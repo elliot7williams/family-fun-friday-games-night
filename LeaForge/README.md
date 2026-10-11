@@ -1,5 +1,13 @@
 # LeaForge
 
+Latest reliability work: compact `-er` runs six controlled event-recovery
+cycles and passes 25 checks quietly. A separate passive managed-stack inspector
+reads the real guarded worker's initialization wait, without engine dependencies,
+suspension or dumps. The observed recovery run also passes 25, but its two stack
+reads fail as workers retire; no real stall is captured. All 19 runtime records
+stay unchanged. Prior broad startup failures remain unresolved; readiness stays
+about 65%. See [event recovery stacks](EVENT_STACKS.md).
+
 Latest diagnostic hardening: controlled EOF tests now distinguish native wait
 errors from timeouts and record independent CPU/exit values. Test-only `-ce`
 passes 33 phase/fault/cleanup checks through both launchers; quiet lifetime
