@@ -26,6 +26,11 @@ internal static class Program
         var frames = new List<object>();
         string? error = null;
         var identityVerified = false;
+        var captureAttempted = false;
+        var attachmentCreated = false;
+        var attachmentDisposed = false;
+        var captureMs = 0L;
+        var mainThreadFrames = 0;
         try
         {
             using var handle = OpenProcess(0x00101010, false, pid);
@@ -44,29 +49,40 @@ internal static class Program
                 throw new InvalidOperationException("PID, parent, creation time, image or live process identity differs.");
             identityVerified = true;
 
-            // No suspension, dumps, locals or symbol-server lookup; the DAC is from this Windows installation.
-            using var target = DataTarget.AttachToProcess(pid, suspend: false);
-            var info = target.ClrVersions.Single();
-            var framework = target.DataReader.PointerSize == 8 ? "Framework64" : "Framework";
-            var dac = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Microsoft.NET", framework, "v4.0.30319", "mscordacwks.dll");
-            using var runtime = info.CreateRuntime(dac);
-            foreach (var thread in runtime.Threads.Take(16))
+            // ClrMD requires a stopped target; disposal releases its suspension.
+            DataTarget attachment;
+            var capture = Stopwatch.StartNew();
+            captureAttempted = true;
+            try { attachment = DataTarget.AttachToProcess(pid, suspend: true); attachmentCreated = true; }
+            finally { captureMs = capture.ElapsedMilliseconds; }
+            try
             {
-                var stack = thread.EnumerateStackTrace().Take(64).Select(frame => new
+                attachment.FileLocator = null;
+                var info = attachment.ClrVersions.Single();
+                var framework = attachment.DataReader.PointerSize == 8 ? "Framework64" : "Framework";
+                var dac = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Microsoft.NET", framework, "v4.0.30319", "mscordacwks.dll");
+                using var runtime = info.CreateRuntime(dac);
+                foreach (var thread in runtime.Threads.Take(16))
                 {
-                    kind = frame.Kind.ToString(), ip = frame.InstructionPointer, sp = frame.StackPointer,
-                    method = Limit(frame.Method?.Signature ?? frame.ToString() ?? "", 256)
-                }).ToArray();
-                frames.Add(new { osThreadId = thread.OSThreadId, managedThreadId = thread.ManagedThreadId,
-                    alive = thread.IsAlive, gcMode = thread.GCMode.ToString(), stack });
+                    var stack = thread.EnumerateStackTrace(includeContext: false, maxFrames: 64).Select(frame => new
+                    {
+                        kind = frame.Kind.ToString(), ip = frame.InstructionPointer, sp = frame.StackPointer,
+                        method = Limit(frame.Method?.Signature ?? frame.ToString() ?? "", 256)
+                    }).ToArray();
+                    if (thread.ManagedThreadId == 1)
+                        mainThreadFrames += stack.Count(frame => frame.kind == "ManagedMethod" && frame.method.Length != 0);
+                    frames.Add(new { osThreadId = thread.OSThreadId, managedThreadId = thread.ManagedThreadId,
+                        alive = thread.IsAlive, gcMode = thread.GCMode.ToString(), stack });
+                }
+                if (mainThreadFrames == 0) throw new InvalidOperationException("No named main-thread managed frames available; inspection does not locate bootstrap.");
             }
-            if (frames.Count == 0) throw new InvalidOperationException("No managed thread snapshots available.");
-            if (WaitForSingleObject(handle, 0) != 0x102) throw new InvalidOperationException("Worker exited during the live snapshot.");
+            finally { attachment.Dispose(); attachmentDisposed = true; }
         }
         catch (Exception failure) { error = Limit(failure.GetType().Name + ": " + failure.Message, 1024); }
-        var report = new { kind = "owned-lea-worker-managed-stacks", pid, parentPid = parent,
+        var report = new { kind = "owned-lea-worker-managed-stopped-stack", pid, parentPid = parent,
             createdUtcTicks = created, worker = Path.GetFullPath(args[3]), identityVerified,
-            suspended = false, dumpWritten = false, symbolServerUsed = false,
+            inspectionMode = "suspended-live-process", captureAttempted, attachmentCreated, attachmentDisposed, captureMs,
+            targetTemporarilyPaused = attachmentCreated, mainThreadFrames, dumpWritten = false, symbolServerUsed = false,
             consistentSnapshotClaim = false, elapsedMs = clock.ElapsedMilliseconds,
             maxThreads = 16, maxFramesPerThread = 64, error, threads = frames };
         using (var output = new FileStream(args[4], FileMode.CreateNew, FileAccess.Write, FileShare.Read))

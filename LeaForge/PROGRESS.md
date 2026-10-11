@@ -34,6 +34,18 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Current milestone 146 remains open. Unsupported passive ClrMD reads are
+explicitly corrected, a PSS quota rejection is preserved without relaxing
+guards, and the separate final reader uses supported suspension/finally
+disposal with no symbol locator. Its init-wait, identity and argument controls
+pass. Short observation aliases add birth-based sampling and byte-verified
+temporary runtime coverage. Four differently labeled observed full runs fail
+after 217/217/236/244 assertions; captured early parser/property-setup paths do
+not establish the late timeout cause. The previous quiet 714-assertion failure
+remains unresolved. All 19 production runtime records and installed/normal
+outputs are unchanged. No speedup, startup fix or stable release is claimed;
+readiness stays about 65%. See [observed full stacks](OBSERVED_FULL_STACKS.md).
+
 Current milestone 146 remains open. Test-only `-er` exercises six listener
 overflow/recovery cycles, passing 25 assertions without an observer. The
 separate .NET 8 ClrMD inspector reads a guarded initialization-wait worker

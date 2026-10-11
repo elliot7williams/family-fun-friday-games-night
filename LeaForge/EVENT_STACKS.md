@@ -1,5 +1,11 @@
 # Event recovery and managed stacks
 
+Correction: the passive ClrMD attachment described below is unsupported by the
+library for a running target, not a reliable managed-stack observation mode.
+These historical records are retained, but do not establish a startup cause.
+The current optional tool uses supported suspended inspection; see
+[observed full-suite diagnostics](OBSERVED_FULL_STACKS.md).
+
 Milestone 146 remains open; broader readiness stays about **65%**. The prior
 quiet full-suite failure after 714 assertions, at the five-second isolated
 bootstrap deadline after startup evaluate, remains unexplained. This change

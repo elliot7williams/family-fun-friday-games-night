@@ -1,5 +1,13 @@
 # LeaForge
 
+Latest startup diagnosis corrects unsupported passive stack reads, uses a
+separate supported suspended reader, and adds short observation aliases with
+verified temporary-runtime coverage. Four labeled full observations still
+fail (217/217/236/244 checks); early parser/property-setup stacks do not establish
+the timeout cause. Final diagnostic controls pass; all production runtime bytes
+stay unchanged. Readiness remains about 65%. See
+[observed full-suite stacks](OBSERVED_FULL_STACKS.md).
+
 Latest reliability work: compact `-er` runs six controlled event-recovery
 cycles and passes 25 checks quietly. A separate passive managed-stack inspector
 reads the real guarded worker's initialization wait, without engine dependencies,
