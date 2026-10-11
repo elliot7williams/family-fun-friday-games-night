@@ -12,6 +12,14 @@ with Acornima 1.7.0 and framework support libraries pinned in
 arrays, objects, JSON, and template strings. It does not implement those
 language rules through a new handwritten parser.
 
+Test-only two-letter `-hr` now snapshots hard-deadline replacement results and
+`Sd/Ed`, pins old process identities and verifies exact cleanup; 18 native
+recovery and 7 native execution-report assertions pass. The existing worker
+regression fails after 45 assertions on a second worker's startup, before its
+recovery cases. No broad rerun follows that failure, and the previous full
+565-assertion failure remains unresolved. All production runtime bytes are
+unchanged. See [hard recovery](../LeaForge/HARD_RECOVERY.md).
+
 The readable `Dom.js` bootstrap is kept in source. Both runtimes embed the same
 generated `Dom.compact.js` under the original resource name, without identifier
 mangling or decompression. Ordinary builds reject stale source/output hashes.

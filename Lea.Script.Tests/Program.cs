@@ -166,6 +166,13 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script event recovery: " + checks + " checks; six controlled cycles.");
                     return 0;
                 }
+                if (args.Length > 1 && (args[1] == "--hard-recovery" || args[1] == "-hr"))
+                {
+                    if (args.Length != 3) throw new ArgumentException("Supply only a fixture root, hard-recovery mode and a new report path.");
+                    HardRecovery.Run(fixture, args[2]);
+                    Console.WriteLine("PASS Lea.Script hard recovery: " + checks + " checks; no retries.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1] == "-st")
                 {
                     if (args.Length != 3) throw new ArgumentException("Supply only a fixture root, stack-target mode and a new report path.");

@@ -13,6 +13,11 @@ pleasant to code against, starts quickly, and grows through small tested steps.
 - Track startup time, page load time, memory use, executable size, and compressed size.
 - Keep every new feature optional when it would make the base engine much larger.
 
+Reliability work currently takes priority over a release claim. Test-only `-hr`
+captures hard-worker recovery and cleanup without enlarging the runtime; a
+separate second-worker startup failure remains unresolved. Readiness stays
+about 65% and milestone 146 stays open. See [hard recovery](HARD_RECOVERY.md).
+
 Core public vocabulary:
 
 ```text

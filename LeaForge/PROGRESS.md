@@ -34,6 +34,20 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Current milestone 146 remains open. Test-only two-letter `-hr` records six
+hard-deadline/replacement calls, separate `Sd/Ed` reports, pinned old process
+identity and exact ACL/read-lease/I/O cleanup. The native recovery sequence
+passes 18 assertions and existing native report checks pass 7. Argument,
+existing-report and missing-worker failure-report controls pass. The existing
+worker regression fails after 45 assertions while starting a second independent
+worker: parent phase `hello`, wall 5,012 ms, CPU 31 ms, last recorded marker
+`startup configured`. Cause remains unestablished. The planned broad rerun is
+not started after this focused failure, and the preceding 565-assertion failure
+is not reclassified. Main recovery assertions now retain status/phase details.
+All 19 production runtime records and protected Firespider/normal outputs stay
+unchanged. Readiness remains about 65%, with no speedup, startup fix, installed
+replacement or stable release claim. See [hard recovery](HARD_RECOVERY.md).
+
 Current milestone 146 remains open. Animation-frame callbacks add compact
 `Rf/Rd/Rn` and native `RfA`, with a parent-owned 64-handle queue, ordered
 snapshots, shared monotonic timestamps, per-callback microtasks and cancellation.

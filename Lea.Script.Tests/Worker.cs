@@ -97,8 +97,10 @@ namespace Lea.Script.Tests
                 Check(timeout.S == "timeout" && timeout.M.StartsWith("Worker execution deadline exceeded. phase=", StringComparison.Ordinal) && timeout.M.Length <= 512 &&
                     script.Ed.StartsWith("phase=", StringComparison.Ordinal) && watch.ElapsedMilliseconds < 2000 && script.Pid == 0 && Exited(pid), "parent deadline kills native regex: " + timeout.S + "; " + timeout.M + "; " + watch.ElapsedMilliseconds + " ms");
                 script.Tm = 2000;
-                Check(script.Ex("document.title='recovered';").Ok, "recovery after hard worker kill");
-                Check(script.Ex("queueMicrotask(function(){});").Ok, "microtask hard-deadline warmup");
+                var hardRecovery = script.Ex("document.title='recovered';");
+                Check(hardRecovery.Ok, "recovery after hard worker kill: " + HardRecovery.Detail(script, hardRecovery));
+                var microtaskWarmup = script.Ex("queueMicrotask(function(){});");
+                Check(microtaskWarmup.Ok, "microtask hard-deadline warmup: " + HardRecovery.Detail(script, microtaskWarmup));
                 pid = script.Pid;
                 script.Tm = 25;
                 watch.Restart();
@@ -107,11 +109,13 @@ namespace Lea.Script.Tests
                     script.Ed.StartsWith("phase=", StringComparison.Ordinal) && watch.ElapsedMilliseconds < 2000 && script.Pid == 0 && Exited(pid) && page.T == "recovered",
                     "parent deadline also kills native work inside microtask: " + timeout.S);
                 script.Tm = 2000;
-                Check(script.Ex("document.title='recovered';").Ok, "fresh worker after microtask hard deadline");
+                hardRecovery = script.Ex("document.title='recovered';");
+                Check(hardRecovery.Ok, "fresh worker after microtask hard deadline: " + HardRecovery.Detail(script, hardRecovery));
                 pid = script.Pid;
                 var pressure = script.Ex("'x'.repeat(100000000);");
                 Check(!pressure.Ok && script.Pid == 0 && Exited(pid), "oversized native allocation cannot take down parent: " + pressure.S);
-                Check(script.Ex("document.title='memory recovered';").Ok && page.T == "memory recovered", "recovery after memory pressure");
+                var memoryRecovery = script.Ex("document.title='memory recovered';");
+                Check(memoryRecovery.Ok && page.T == "memory recovered", "recovery after memory pressure: " + HardRecovery.Detail(script, memoryRecovery));
                 Exception crossThread = null;
                 var thread = new Thread(() => { try { script.Ex("1;"); } catch (Exception error) { crossThread = error; } });
                 thread.Start();
