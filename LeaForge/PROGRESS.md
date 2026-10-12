@@ -34,6 +34,19 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Current milestone 146 remains open. Fresh runtime/host-source archive extraction
+verifies all 388/104 files, and the archived VB project independently builds
+without changing its inputs or any of the 19 engine dependencies. The extracted
+runtime passes 42 host cases but fails the split-script title assertion; exact
+pane states and cause are unknown, and no extraction retry is made. The harness
+now checks successful inline readiness before clicking and reports all three
+view states on failure. Test-only `-sc` controls pass three checks through both
+aliases. The independent build passes all 43 host cases with that stronger
+harness; both outputs pass six actual-EXE startup scenarios. Original wrapper
+quoting failure and native failure are retained. No runtime fix, speedup or
+release is claimed, and original/installed outputs stay untouched. Readiness
+stays about 65%. See [archive verification](FIRESPIDER_ARCHIVE_CHECKS.md).
+
 Current milestone 146 remains open. A fresh separate Firespider Internet 19
 candidate now uses the frozen lazy-style runtime with ordinary `Be=0`, built
 from 67 copied host inputs and 20 verified runtime/configuration inputs.

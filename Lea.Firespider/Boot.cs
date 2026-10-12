@@ -41,6 +41,11 @@ namespace Lea.Firespider
                 try { ObservationContract(); return 0; }
                 catch (Exception error) { Console.Error.WriteLine(error); return 1; }
             }
+            if (args.Length == 1 && (args[0] == "--split-contract" || args[0] == "-sc"))
+            {
+                try { ScriptSplitContract(); return 0; }
+                catch (Exception error) { Console.Error.WriteLine(error); return 1; }
+            }
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
             var previous = SynchronizationContext.Current;
             var exit = 1;
@@ -1987,9 +1992,13 @@ if(hostCallTarget.onclick!==null||document.onclick!==null)throw Error('host borr
                 splitPids.Add(ScriptPid(left)); splitPids.Add(ScriptPid(right));
                 Check(splitPids.All(value => value > 0) && splitPids[0] != splitPids[1] && !splitPids.Contains(ScriptPid(view)),
                     "split panes do not have independent isolated sessions");
+                CheckScriptSplit(left.T == "Lea ready" && right.T == "Lea ready" && view.T == "Lea ready" &&
+                    left.Xo != null && left.Xo.Ok && right.Xo != null && right.Xo.Ok && view.Xo != null && view.Xo.Ok,
+                    "ready", left, right, view);
                 Member<CheckBox>(split, "syncScroll").Checked = false;
                 await ScriptActivate(left, "counter");
-                Check(left.T == "Lea 1" && right.T == "Lea ready" && view.T == "Lea ready", "split script state leaked between panes or source tabs");
+                CheckScriptSplit(left.T == "Lea 1" && right.T == "Lea ready" && view.T == "Lea ready",
+                    "activation", left, right, view);
                 Wait(() => Member<Button>(split, "differenceButton").Enabled, "split comparison remains disabled after script completion with scroll sync off");
                 left.Sc(-left.Sy); right.Sc(-right.Sy);
                 ScriptPicture(split, "split");
@@ -2028,6 +2037,27 @@ if(hostCallTarget.onclick!==null||document.onclick!==null)throw Error('host borr
                 form.DrawToBitmap(image, new Rectangle(Point.Empty, form.Size));
                 image.Save(Path.Combine(Path.GetTempPath(), "Lea-145-firespider-" + name + ".png"), System.Drawing.Imaging.ImageFormat.Png);
             }
+        }
+
+        private static void CheckScriptSplit(bool passed, string stage, V left, V right, V source)
+        {
+            if (passed) return;
+            Check(false, "split script " + stage + "; left: " + ScriptState(left) +
+                "; right: " + ScriptState(right) + "; source: " + ScriptState(source));
+        }
+
+        private static void ScriptSplitContract()
+        {
+            CheckScriptSplit(true, null, null, null, null);
+            foreach (var stage in new[] { "ready", "activation" })
+            {
+                InvalidOperationException failure = null;
+                try { CheckScriptSplit(false, stage, null, null, null); }
+                catch (InvalidOperationException error) { failure = error; }
+                Check(failure != null && failure.Message == "split script " + stage +
+                    "; left: missing; right: missing; source: missing", "split diagnostic contract: " + stage);
+            }
+            Console.WriteLine("PASS Lea split contract: 3 checks; no views or browser workers.");
         }
 
         private static int ScriptPid(V view)

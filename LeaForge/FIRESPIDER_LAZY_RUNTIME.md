@@ -5,6 +5,9 @@ fresh, separate Firespider Internet 19 candidate using the frozen runtime from
 [lazy element styles](LAZY_STYLES.md), including ordinary worker mode `Be=0`.
 It supersedes the older dictionary-frame candidate for this test checkpoint,
 not the installed browser. No engine implementation changes are made here.
+The subsequent [archive checks](FIRESPIDER_ARCHIVE_CHECKS.md) retain a failed
+extraction split-script assertion and a passing independent rebuilt-host matrix.
+Results below describe this preceding candidate, not a universal startup fix.
 
 ## Build And Runtime
 
@@ -77,7 +80,9 @@ Complete Lea backups remain under `H:\Lea Source Backups`, with the exact
 archive inventory/hash in this checkpoint's `source-backup.json`. Compression
 reduces storage/delivery size; it does not by itself make execution faster.
 
-Fresh archive-extraction tests, an independent host-source rebuild, repeated
-cold-start reliability, and modern-web compatibility remain release work.
+Fresh archive-extraction tests and an independent host-source rebuild are now
+recorded in [archive checks](FIRESPIDER_ARCHIVE_CHECKS.md), with one unresolved
+extraction failure. Repeated cold-start reliability and modern-web compatibility
+remain release work.
 The actual candidate is experimental, not an installed replacement or a stable
 release. This verification does not add new public aliases or widen limits.

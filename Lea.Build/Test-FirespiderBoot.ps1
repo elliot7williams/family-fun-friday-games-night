@@ -51,6 +51,12 @@ if ($LASTEXITCODE -ne 0) { throw 'Observation fixture contract failed' }
 if (@($observationContract | Where-Object { $_ -eq 'PASS Lea observation contract: 12 checks; no browser workers or clipboard access.' }).Count -ne 1) {
     throw 'Observation fixture contract exited without completing'
 }
+$splitContract = @(& $exe --split-contract)
+$splitContract
+if ($LASTEXITCODE -ne 0) { throw 'Split diagnostic contract failed' }
+if (@($splitContract | Where-Object { $_ -eq 'PASS Lea split contract: 3 checks; no views or browser workers.' }).Count -ne 1) {
+    throw 'Split diagnostic contract exited without completing'
+}
 $cases = if ($Case -eq 'all') { @('clean', 'lea', 'legacy', 'recovery', 'private', 'second', 'limit', 'invalid', 'slow', 'locked', 'menus', 'commands', 'navigation', 'links', 'suspend', 'groups', 'lazy', 'lazy-background', 'lazy-all', 'bulk', 'windows', 'watch', 'domains', 'domain-private', 'split', 'split-life', 'split-limits', 'edit', 'paste', 'policy', 'policy-start', 'failures', 'failure-start', 'hibernate', 'hibernate-start', 'style-start', 'styles', 'load-life', 'pictures', 'decode', 'input', 'cache') } else { @($Case) }
 if ($Case -eq 'all' -and (Test-Path -LiteralPath (Join-Path $rootPath 'Lea.Script.Win.dll'))) { $cases += 'script' }
 foreach ($name in $cases) {

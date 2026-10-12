@@ -54,9 +54,15 @@ Prior failures and Firespider release verification remain open. See
 A separate Firespider candidate now verifies that frozen lazy-style runtime
 under ordinary `Be=0`: all 43 host cases and six actual-EXE startup scenarios
 pass, with entry-verified runtime/host-source ZIPs and a full Lea source backup.
-The installed browser remains untouched. Independent archive rebuilds and
+The installed browser remains untouched. Archive verification and
 repeated cold-start reliability still remain release gates; readiness stays
 about 65%. See [Firespider lazy-style runtime](FIRESPIDER_LAZY_RUNTIME.md).
+The fresh archive follow-up independently rebuilds the VB host with unchanged
+engine dependencies. The extraction matrix fails its split-script title check;
+the rebuilt host passes all 43 cases with stronger readiness/failure diagnostics.
+Both actual-EXE startup matrices pass, but the first failure remains unexplained.
+Release verification is still false, with no engine mode/budget changes. See
+[archive verification](FIRESPIDER_ARCHIVE_CHECKS.md).
 
 Core public vocabulary:
 

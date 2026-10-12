@@ -13,6 +13,12 @@ Lea source is backed up separately. The original installation remains unchanged.
 Readiness stays about 65%; this is still experimental, without an independent
 archive rebuild or established cold-start fix. See
 [latest host verification](../LeaForge/FIRESPIDER_LAZY_RUNTIME.md).
+Its archive follow-up verifies fresh ZIP extractions and independently compiles
+the archived host. The extraction passes 42 cases but fails the split scripting
+assertion; the rebuild passes all 43 with stronger readiness/state diagnostics.
+Both outputs pass six actual-EXE startup scenarios. The first failure is retained
+and unexplained, so release verification remains false. See
+[archive checks](../LeaForge/FIRESPIDER_ARCHIVE_CHECKS.md).
 
 Earlier actual-EXE checkpoint selects the frozen dictionary-frame runtime using
 the new `-Runtime`/`-r` build option, with 20 hashed inputs and post-build/package
@@ -238,6 +244,11 @@ runner copies optional runtime files into its isolated lazy-restore scenarios
 as well. The scripted case also checks that split-view comparison controls
 return to idle even with synchronized scrolling disabled, and checks live ID/class
 reflection with retained node identity and present empty attributes.
+The runner also requires three test-only split-diagnostic controls, exposed by
+the harness as `--split-contract` or `-sc`, before launching host cases. They
+create no views/workers. A hash-selected harness must be compiled from the current
+source; older harnesses do not include this contract. Split scripting now checks
+successful inline readiness and reports each view's state on assertion failure.
 
 See `../LeaForge/FIRESPIDER_SCRIPT_HOST.md` for the final verified artifacts
 and results. Do not infer success for that matrix from a build alone.
