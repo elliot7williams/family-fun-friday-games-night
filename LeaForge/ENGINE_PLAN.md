@@ -83,6 +83,12 @@ The ordinary browser smoke passes separately; neither failure is erased.
 Only the worker grows 512 bytes, with unchanged limits and renderer. Readiness
 stays about 65% and milestone 146 remains open. See
 [worker hook checkpoints](DEBUGGER_CHECKPOINTS.md).
+A fresh ACL control now proves a metadata-only test-baseline difference, and
+CPU fixtures initialize that metadata before strict cleanup snapshots. Nine
+baseline controls, native CPU 25 and held-worker/EOF 41 pass without changing
+any runtime bytes or permissions. Worker/full startup failures remain open;
+readiness stays about 65%. The full test total rises to 3,019, not a release
+claim. See [exact CPU ACL baselines](CPU_ACL_BASELINE.md).
 
 Core public vocabulary:
 

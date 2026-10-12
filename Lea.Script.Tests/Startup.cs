@@ -279,25 +279,7 @@ namespace Lea.Script.Tests
         }
 
         private static bool NormalizeVolumeAcl(string path)
-        {
-            var security = File.GetAccessControl(path, AccessControlSections.Access);
-            var original = security.GetSecurityDescriptorSddlForm(AccessControlSections.Access);
-            security.SetSecurityDescriptorSddlForm(original, AccessControlSections.Access);
-            File.SetAccessControl(path, security);
-            var normalized = ProfileRules(path);
-            var before = new RawSecurityDescriptor(original);
-            var after = new RawSecurityDescriptor(normalized);
-            if (before.DiscretionaryAcl == null || after.DiscretionaryAcl == null)
-                throw new InvalidDataException("Volume diagnostic requires a non-null file DACL.");
-            var oldAcl = new byte[before.DiscretionaryAcl.BinaryLength];
-            var newAcl = new byte[after.DiscretionaryAcl.BinaryLength];
-            before.DiscretionaryAcl.GetBinaryForm(oldAcl, 0);
-            after.DiscretionaryAcl.GetBinaryForm(newAcl, 0);
-            if (!oldAcl.SequenceEqual(newAcl) ||
-                ((before.ControlFlags ^ after.ControlFlags) & ~ControlFlags.DiscretionaryAclAutoInherited) != 0)
-                throw new InvalidDataException("Volume ACL normalization changed permissions or other control flags.");
-            return original != normalized;
-        }
+        { return AclBaseline.Initialize(path); }
 
         internal static void Compare(string fixture, string baseline)
         {

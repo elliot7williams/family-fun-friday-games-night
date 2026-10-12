@@ -202,6 +202,13 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script native CPU lifetime: " + checks + " checks.");
                     return 0;
                 }
+                if (args.Length > 1 && (args[1] == "--acl-baseline" || args[1] == "-ab"))
+                {
+                    if (args.Length != 2) throw new ArgumentException("No extra arguments are accepted for ACL baseline checks.");
+                    AclBaseline.Contract();
+                    Console.WriteLine("PASS Lea.Script ACL baseline: " + checks + " checks; no worker launch.");
+                    return 0;
+                }
                 if (args.Length > 1 && (args[1] == "--event-recovery" || args[1] == "-er"))
                 {
                     if (args.Length != 3) throw new ArgumentException("Supply only a fixture root, event-recovery mode and a new report path.");
@@ -528,6 +535,7 @@ namespace Lea.Script.Tests
                     return 0;
                 }
                 SelectorObservation.Contract();
+                AclBaseline.Contract();
                 BootstrapAssets.Run(root);
                 BootstrapMarkers.Contract();
                 var engine = new E();

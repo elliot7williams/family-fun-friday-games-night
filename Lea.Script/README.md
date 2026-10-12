@@ -12,7 +12,14 @@ with Acornima 1.7.0 and framework support libraries pinned in
 arrays, objects, JSON, and template strings. It does not implement those
 language rules through a new handwritten parser.
 
-The latest worker adds fixed hook-setup checkpoints and test-only `-sh`
+The latest test hardening initializes CPU-helper inheritance metadata before
+strict ACL snapshots, rejecting any permission change and recording original
+and restored descriptors on cleanup failure. Nine baseline contracts, native
+CPU 25 and held-worker/EOF 41 pass. All runtime bytes and limits stay unchanged;
+worker/full startup timeouts still block a release. The current full test
+total is 3,019. See [exact ACL baselines](../LeaForge/CPU_ACL_BASELINE.md).
+
+The preceding worker adds fixed hook-setup checkpoints and test-only `-sh`
 contracts without changing permissions, limits or evaluation. Native startup
 16, worker 87 and the browser smoke pass, but a full run still times out after
 parsing and the `scope` checkpoint. A separate native CPU test fails exact ACL

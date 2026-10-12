@@ -34,6 +34,20 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Current milestone 146 remains open. A fresh independent control captures the
+CPU helper's before/after ACL and proves unchanged permission bytes with only
+the Windows auto-inherited metadata bit changing. The test now initializes
+that metadata before taking its baseline and keeps exact cleanup comparisons;
+future mismatches log both descriptors. Nine positive/negative baseline checks,
+native CPU 25 and held-worker/EOF 41 pass, with all 19 runtime entries unchanged.
+Native startup 16 also passes. Worker regression still fails after 76 assertions
+at hello (`elements`, wall 5,018 ms), and the full run fails after 361 at hello
+(`scope`, wall 5,032 ms), both after parsing. Failures are retained without
+retry, and old ACL failures lacking original descriptors are not reclassified.
+The full total is now 3,019; four observer footer controls pass. No runtime
+release, startup fix or speedup is claimed; readiness remains about 65%. See
+[exact CPU ACL baselines](CPU_ACL_BASELINE.md).
+
 Current milestone 146 remains open. Two fixed worker checkpoints now separate
 debugger-hook setup from evaluation without changing execution, permissions or
 limits. Eight compiled/controlled checks pass through both test-only `-sh`

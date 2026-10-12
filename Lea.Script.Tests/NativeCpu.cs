@@ -22,6 +22,8 @@ namespace Lea.Script.Tests
             var directory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ScriptWorker");
             var helper = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Lea.NativeCpu.Worker.exe");
             var files = new[] { helper };
+            // Establish Windows inheritance metadata before capturing the exact cleanup baseline.
+            Console.WriteLine("CPU ACL baseline: initialized=" + AclBaseline.Initialize(helper));
             var rules = files.Select(Rules).ToArray();
             var engine = new E();
             var page = engine.Go(fixture);
@@ -43,7 +45,7 @@ namespace Lea.Script.Tests
                     script.Sd.Length <= 512 && script.Tm == 2000 && script.Cp == 2500 && script.Mm == 134217728,
                     "controlled exited worker cannot execute page code or change limits");
             }
-            Program.Check(files.Select(Rules).SequenceEqual(rules), "exited startup worker retires its exact file grants");
+            CheckRules(files, rules, "exited startup worker retires its exact file grants");
 
             using (var script = new Jp(engine, page, directory, supplied => { throw new IOException("controlled missing worker"); }))
             {
@@ -73,7 +75,7 @@ namespace Lea.Script.Tests
                         assembly.GetName().Name + ": disposed CPU handle is unavailable and repeated cleanup is harmless");
                 }
                 finally { worker.Dispose(); }
-                Program.Check(files.Select(Rules).SequenceEqual(rules), assembly.GetName().Name + ": native CPU worker file grants retire");
+                CheckRules(files, rules, assembly.GetName().Name + ": native CPU worker file grants retire");
             }
         }
 
@@ -167,7 +169,7 @@ namespace Lea.Script.Tests
                     Program.Check(WaitForSingleObject(watch, 1000) == 0,
                         owner + ": held-worker disposal retires the independently watched exact child");
                 }
-                Program.Check(files.Select(Rules).SequenceEqual(rules), owner + ": held-worker file grants retire");
+                CheckRules(files, rules, owner + ": held-worker file grants retire");
             }
         }
 
@@ -245,6 +247,15 @@ namespace Lea.Script.Tests
 
         private static string Rules(string path)
         { return File.GetAccessControl(path, AccessControlSections.Access).GetSecurityDescriptorSddlForm(AccessControlSections.Access); }
+
+        private static void CheckRules(string[] files, string[] before, string name)
+        {
+            var after = files.Select(Rules).ToArray();
+            for (var index = 0; index < files.Length; index++)
+                if (before[index] != after[index])
+                    Console.WriteLine("CPU ACL cleanup mismatch: file=" + files[index] + "; before=" + before[index] + "; after=" + after[index]);
+            Program.Check(after.SequenceEqual(before), name);
+        }
 
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern SafeProcessHandle OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inherit, int pid);
