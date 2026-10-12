@@ -19,6 +19,11 @@ assertion; the rebuild passes all 43 with stronger readiness/state diagnostics.
 Both outputs pass six actual-EXE startup scenarios. The first failure is retained
 and unexplained, so release verification remains false. See
 [archive checks](../LeaForge/FIRESPIDER_ARCHIVE_CHECKS.md).
+Three subsequent fresh-process scripting samples pass against the exact archived
+EXE with current diagnostics; the earlier split failure is still unexplained.
+The public runner also passes its ordinary automatic compilation path and
+provides short `-co` for compilation without browser launch. See
+[process sampling](../LeaForge/FIRESPIDER_PROCESS_SAMPLES.md).
 
 Earlier actual-EXE checkpoint selects the frozen dictionary-frame runtime using
 the new `-Runtime`/`-r` build option, with 20 hashed inputs and post-build/package
@@ -226,6 +231,16 @@ the [HTML about:blank URL matching definition](https://html.spec.whatwg.org/mult
 for this internal document path, not the full inherited-origin/iframe model.
 
 ## Verify
+
+To compile the current boot harness without running browser cases:
+
+```powershell
+.\Lea.Build\Test-FirespiderBoot.ps1 -r 'C:\path\candidate\runtime' -co
+```
+
+`-CompileOnly` is the long spelling. Case, profile, observation and checksum
+selectors cannot be combined with this action. The existing framework compiler
+is retained; no additional SDK is needed for this entry path.
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -STA -File .\Lea.Build\Test-FirespiderBoot.ps1 -Root 'C:\path\candidate\runtime' -Case all

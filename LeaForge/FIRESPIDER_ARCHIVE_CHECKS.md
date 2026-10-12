@@ -4,6 +4,9 @@ Milestone 146 remains open; broader readiness stays about **65%**. The frozen
 lazy-style engine now has fresh ZIP-extraction and independent archived-host
 build evidence. The result is mixed, not a verified release or a startup fix.
 The preceding [candidate checkpoint](FIRESPIDER_LAZY_RUNTIME.md) remains intact.
+Subsequent [fixed process samples](FIRESPIDER_PROCESS_SAMPLES.md) pass three
+focused native scripting cases against the archived EXE, but do not reproduce
+or resolve the failure retained below.
 
 ## Archive And Build Integrity
 

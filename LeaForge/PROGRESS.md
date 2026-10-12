@@ -34,6 +34,18 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Current milestone 146 remains open. Three predeclared fresh-process scripting
+samples against the exact archived EXE pass with the current split diagnostics,
+unchanged `Be=0` and limits, and no remaining owned workers. They do not reproduce
+or explain the preceding extraction failure. Public test-only `-co` now compiles
+the boot harness without launching browser cases; all eight option/input/alias
+controls pass, and a fresh ordinary compile-and-run scripting case also passes.
+The installed framework compiler actually supports the current source; the
+initial contrary hypothesis and its wrapper failure are retained, not used to
+justify an unnecessary toolchain switch. All 19 engine entries and original
+outputs stay unchanged. Readiness remains about 65%, without a speedup, startup
+fix or release claim. See [process sampling](FIRESPIDER_PROCESS_SAMPLES.md).
+
 Current milestone 146 remains open. Fresh runtime/host-source archive extraction
 verifies all 388/104 files, and the archived VB project independently builds
 without changing its inputs or any of the 19 engine dependencies. The extracted

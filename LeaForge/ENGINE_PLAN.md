@@ -63,6 +63,12 @@ the rebuilt host passes all 43 cases with stronger readiness/failure diagnostics
 Both actual-EXE startup matrices pass, but the first failure remains unexplained.
 Release verification is still false, with no engine mode/budget changes. See
 [archive verification](FIRESPIDER_ARCHIVE_CHECKS.md).
+Three declared fresh-process scripting samples now pass against the exact
+archived EXE, without resolving the earlier split-title failure. Test-only
+`-co` provides a compile-only boot-harness check; eight controls and ordinary
+automatic compile/run scripting pass. The existing framework compiler remains
+in use, with no production byte changes. Release reliability remains open. See
+[process sampling](FIRESPIDER_PROCESS_SAMPLES.md).
 
 Core public vocabulary:
 

@@ -5,11 +5,15 @@ param(
     [Alias('p')][switch]$Profile,
     [Alias('obs')][string]$Observe = '',
     [ValidateSet('demand', 'script')][Alias('os')][string]$ObserveScope = 'demand',
-    [ValidatePattern('^[A-Fa-f0-9]{64}$')][Alias('hh')][string]$HarnessSHA256
+    [ValidatePattern('^[A-Fa-f0-9]{64}$')][Alias('hh')][string]$HarnessSHA256,
+    [Alias('co')][switch]$CompileOnly
 )
 
 $ErrorActionPreference = 'Stop'
 $Case = $Case.ToLowerInvariant()
+if ($CompileOnly -and @('Case', 'Profile', 'Observe', 'ObserveScope', 'HarnessSHA256').Where({ $PSBoundParameters.ContainsKey($_) }).Count -gt 0) {
+    throw 'CompileOnly cannot be combined with case, profile, observation, or harness-checksum options.'
+}
 if ($Observe -eq '' -and $PSBoundParameters.ContainsKey('ObserveScope')) {
     throw 'An observation scope requires a report path.'
 }
@@ -38,6 +42,10 @@ if ($PSBoundParameters.ContainsKey('HarnessSHA256')) {
     $observation = Join-Path $PSScriptRoot 'WorkerObservation.cs'
     & $compiler /nologo /target:exe "/out:$exe" /reference:System.dll /reference:System.Core.dll /reference:System.Drawing.dll /reference:System.Windows.Forms.dll /reference:System.Configuration.dll /reference:System.Web.Extensions.dll "/reference:$rootPath\Lea.Win.dll" "/reference:$rootPath\Lea.Engine.dll" $source $observation
     if ($LASTEXITCODE -ne 0) { throw 'Firespider boot smoke compilation failed' }
+}
+if ($CompileOnly) {
+    'PASS Lea boot compile: no browser launched.'
+    return
 }
 $contract = @(& $exe --clipboard-contract)
 $contract
