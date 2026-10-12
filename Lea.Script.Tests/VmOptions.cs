@@ -87,16 +87,22 @@ namespace Lea.Script.Tests
                 label + " compiled startup calls the explicit Options constructor, not a callback adapter");
         }
         internal static IEnumerable<MethodBase> Calls(MethodInfo method)
+        { return Tokens(method).Select(item => item.Value).OfType<MethodBase>(); }
+
+        internal static IEnumerable<KeyValuePair<int, object>> Tokens(MethodInfo method)
         {
             var codes = typeof(OpCodes).GetFields(BindingFlags.Public | BindingFlags.Static).Where(item => item.FieldType == typeof(OpCode))
                 .Select(item => (OpCode)item.GetValue(null)).ToDictionary(item => unchecked((ushort)item.Value));
             var il = method.GetMethodBody().GetILAsByteArray();
             for (var offset = 0; offset < il.Length;)
             {
+                var start = offset;
                 var value = (ushort)il[offset++]; if (value == 0xfe) value = (ushort)(0xfe00 | il[offset++]);
                 var code = codes[value];
                 if (code.OperandType == OperandType.InlineMethod)
-                    yield return method.Module.ResolveMethod(BitConverter.ToInt32(il, offset));
+                    yield return new KeyValuePair<int, object>(start, method.Module.ResolveMethod(BitConverter.ToInt32(il, offset)));
+                else if (code.OperandType == OperandType.InlineString)
+                    yield return new KeyValuePair<int, object>(start, method.Module.ResolveString(BitConverter.ToInt32(il, offset)));
                 switch (code.OperandType)
                 {
                     case OperandType.InlineNone: break;

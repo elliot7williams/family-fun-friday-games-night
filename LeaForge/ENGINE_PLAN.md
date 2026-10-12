@@ -75,6 +75,14 @@ ancestry semantics through the private `co` bridge. The 65 new checks, full
 growth. A standalone browser smoke still times out in startup; the failure is
 retained and no release ZIP is made. Reliability and broader compatibility
 remain open. See [node containment](NODE_CONTAINS.md).
+Fixed worker `debugger/subscribed` checkpoints now distinguish hook setup from
+evaluation. Eight compiled/controlled contracts, native startup and worker
+checks pass, but the full run still fails hello startup after parsing and the
+`scope` checkpoint. Native CPU cleanup also fails exact ACL restoration.
+The ordinary browser smoke passes separately; neither failure is erased.
+Only the worker grows 512 bytes, with unchanged limits and renderer. Readiness
+stays about 65% and milestone 146 remains open. See
+[worker hook checkpoints](DEBUGGER_CHECKPOINTS.md).
 
 Core public vocabulary:
 

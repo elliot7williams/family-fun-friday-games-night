@@ -469,8 +469,14 @@ namespace Lea.Script.Tests
                         var prepared = stderr.IndexOf("startup prepared" + (timing ? ":" : Environment.NewLine), StringComparison.Ordinal);
                         var evaluate = stderr.IndexOf("startup evaluate", StringComparison.Ordinal);
                         var parsed = stderr.IndexOf("startup parsed", StringComparison.Ordinal);
-                        Check(BootstrapEntry.Kind() == "prepared" ? prepare >= 0 && prepared > prepare && evaluate > prepared && parsed > evaluate :
-                            prepare < 0 && prepared < 0,
+                        var debugger = stderr.IndexOf("startup debugger", StringComparison.Ordinal);
+                        var subscribed = stderr.IndexOf("startup subscribed", StringComparison.Ordinal);
+                        var hooks = BootstrapEntry.Kind() == "indirect" ? debugger < 0 && subscribed < 0 :
+                            debugger > evaluate && subscribed > debugger && parsed > subscribed &&
+                            debugger == stderr.LastIndexOf("startup debugger", StringComparison.Ordinal) &&
+                            subscribed == stderr.LastIndexOf("startup subscribed", StringComparison.Ordinal);
+                        Check(hooks && (BootstrapEntry.Kind() == "prepared" ? prepare >= 0 && prepared > prepare && evaluate > prepared && parsed > evaluate :
+                            prepare < 0 && prepared < 0),
                             "preparation checkpoints match the compiled entry before constrained evaluation: timing=" + timing + "; " + stderr);
                         var ordered = true;
                         var prior = BootstrapEntry.Kind() == "indirect" ? evaluate : parsed;

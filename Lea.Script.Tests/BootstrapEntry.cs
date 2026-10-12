@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -59,6 +60,61 @@ namespace Lea.Script.Tests
         {
             path = path == null ? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ScriptWorker", "Lea.Script.Worker.exe") : Path.GetFullPath(path);
             return Assembly.LoadFrom(path);
+        }
+
+        internal static void Checkpoints(string path = null)
+        {
+            var assembly = Worker(path);
+            var kind = Kind(path);
+            Program.Check(kind == "direct", "startup hooks contract selects the ordinary direct worker");
+            var run = assembly.EntryPoint.DeclaringType.GetMethod("Run", BindingFlags.Static | BindingFlags.NonPublic);
+            var tokens = VmOptions.Tokens(run).ToArray();
+            var trace = run.DeclaringType.GetMethod("Trace", BindingFlags.Static | BindingFlags.NonPublic);
+            var markers = Enumerable.Range(1, tokens.Length - 1)
+                .Where(index => Equals(tokens[index].Value, trace) && tokens[index - 1].Value is string).ToArray();
+            foreach (var stage in new[] { "evaluate", "debugger", "subscribed" })
+                Program.Check(markers.Count(index => (string)tokens[index - 1].Value == stage) == 1,
+                    "worker contains exactly one fixed startup checkpoint: " + stage);
+            var calls = tokens.Select((token, index) => token.Value is MethodBase ?
+                (Equals(token.Value, trace) && index > 0 && tokens[index - 1].Value is string ?
+                    "trace:" + tokens[index - 1].Value : ((MethodBase)token.Value).DeclaringType.FullName + "." + ((MethodBase)token.Value).Name) : null)
+                .Where(value => value != null).ToArray();
+            var evaluate = Array.IndexOf(calls, "trace:evaluate");
+            var start = Array.IndexOf(calls, "trace:debugger");
+            var handler = "Jint.Runtime.Debugger.DebugHandler.";
+            Program.Check(evaluate >= 0 && start > evaluate && calls.Skip(start).Take(7).SequenceEqual(new[]
+                { "trace:debugger", "Jint.Engine.get_Debugger", handler + "add_BeforeEvaluate",
+                    "trace:subscribed", "Jint.Engine.Evaluate", "Jint.Engine.get_Debugger", handler + "remove_BeforeEvaluate" }),
+                "compiled worker brackets hook setup before evaluation without changing the call path");
+            var remove = tokens.Where(token => token.Value is MethodBase && ((MethodBase)token.Value).Name == "remove_BeforeEvaluate").ToArray();
+            Program.Check(remove.Length == 1 && run.GetMethodBody().ExceptionHandlingClauses.Any(clause =>
+                clause.Flags == ExceptionHandlingClauseOptions.Finally && remove[0].Key >= clause.HandlerOffset &&
+                remove[0].Key < clause.HandlerOffset + clause.HandlerLength), "parsed hook removal remains in a finally block");
+            var previous = Console.Error;
+            using (var output = new StringWriter())
+            {
+                try
+                {
+                    Console.SetError(output);
+                    trace.Invoke(null, new object[] { "debugger", Stopwatch.StartNew(), false });
+                    trace.Invoke(null, new object[] { "subscribed", Stopwatch.StartNew(), false });
+                }
+                finally { Console.SetError(previous); }
+                Program.Check(output.ToString() == "startup debugger" + Environment.NewLine + "startup subscribed" + Environment.NewLine,
+                    "ordinary checkpoints contain no timings, page data or variable labels");
+            }
+            var failureMethod = typeof(Lea.Script.Jp).GetMethod("StartupFailure", BindingFlags.Static | BindingFlags.NonPublic);
+            var failure = (Func<string, string, string, string>)Delegate.CreateDelegate(typeof(Func<string, string, string, string>), failureMethod);
+            const string message = "Worker startup deadline exceeded.";
+            const string header = "phase=hello; launch=191; probe=75; wall=5005; cpu=765 ms";
+            var prefix = String.Concat(Enumerable.Repeat("startup evaluate\n", 40));
+            Program.Check(new[] { "debugger", "subscribed" }.All(stage =>
+            {
+                var tail = "startup " + stage + "\n";
+                var report = failure(message, header, prefix + tail);
+                return report.Length == 512 && report.StartsWith(message + " " + header + "; ", StringComparison.Ordinal) &&
+                    report.Contains("...") && report.EndsWith(tail, StringComparison.Ordinal);
+            }), "bounded startup failures preserve the last hook checkpoint and parent summary");
         }
     }
 }

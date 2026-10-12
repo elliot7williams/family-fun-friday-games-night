@@ -12,7 +12,14 @@ with Acornima 1.7.0 and framework support libraries pinned in
 arrays, objects, JSON, and template strings. It does not implement those
 language rules through a new handwritten parser.
 
-The latest runtime adds native `N.Co` and shared `contains()` for supported
+The latest worker adds fixed hook-setup checkpoints and test-only `-sh`
+contracts without changing permissions, limits or evaluation. Native startup
+16, worker 87 and the browser smoke pass, but a full run still times out after
+parsing and the `scope` checkpoint. A separate native CPU test fails exact ACL
+restoration. Only the worker grows 512 bytes; no startup fix or runtime release
+is claimed. See [hook checkpoints](../LeaForge/DEBUGGER_CHECKPOINTS.md).
+
+The preceding runtime adds native `N.Co` and shared `contains()` for supported
 element/document wrappers, with private state, bounded ancestry and unchanged
 mutation/sandbox limits. All 65 focused checks, the complete 3,010-check script
 suite and renderer smoke pass. A separate browser smoke still fails native

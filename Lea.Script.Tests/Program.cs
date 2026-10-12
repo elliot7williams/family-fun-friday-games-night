@@ -138,6 +138,13 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script bootstrap prepared: " + checks + " checks; compiled contract only.");
                     return 0;
                 }
+                if (args.Length > 1 && (args[1] == "--startup-hooks" || args[1] == "-sh"))
+                {
+                    if (args.Length > 3) throw new ArgumentException("Supply at most one worker executable for startup hook checks.");
+                    BootstrapEntry.Checkpoints(args.Length == 3 ? args[2] : null);
+                    Console.WriteLine("PASS Lea.Script startup hooks: " + checks + " checks; compiled and controlled only.");
+                    return 0;
+                }
                 if (args.Length > 1 && args[1].StartsWith("--bootstrap-cache", StringComparison.Ordinal))
                 {
                     if (args.Length != 2) throw new ArgumentException("No extra arguments are accepted for bootstrap cache checks.");

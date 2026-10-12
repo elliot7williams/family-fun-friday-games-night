@@ -34,6 +34,20 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Current milestone 146 remains open. Two fixed worker checkpoints now separate
+debugger-hook setup from evaluation without changing execution, permissions or
+limits. Eight compiled/controlled checks pass through both test-only `-sh`
+spellings; the preceding worker is correctly rejected. Native startup 16,
+worker 87 and the ordinary browser smoke pass. The full scripting run fails
+after 472 assertions at hello startup, with parsing completed and the last
+checkpoint `scope` (wall 5,021 ms, CPU 437 ms). Native CPU lifetime separately
+fails exact ACL restoration after 12 assertions; its original ACL was not
+recorded, so the cause is not classified. Both failures are retained without
+retry. Only the worker grows, by 512 bytes; 18 other runtime entries and
+original/installed outputs stay unchanged. No new runtime release ZIP is
+published. Broader readiness stays about 65%, with no startup fix or speedup
+claim. See [worker hook checkpoints](DEBUGGER_CHECKPOINTS.md).
+
 Current milestone 146 remains open. Compact `N.Co` and shared JavaScript
 `contains()` now provide bounded inclusive ancestry for supported nodes, using
 private receiver state and the parent-owned `co` bridge. All 65 new checks,

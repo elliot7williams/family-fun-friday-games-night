@@ -108,7 +108,9 @@ namespace Lea.Script.Worker
 #else
                     Jint.Runtime.Debugger.DebugHandler.BeforeEvaluateEventHandler parsed =
                         (sender, ast) => Trace("parsed", clock, trace);
+                    Trace("debugger", clock, trace);
                     vm.Debugger.BeforeEvaluate += parsed;
+                    Trace("subscribed", clock, trace);
                     try
                     {
 #if LEA_PREPARED_BOOTSTRAP

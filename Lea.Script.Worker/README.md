@@ -1,5 +1,12 @@
 # Lea Script Worker
 
+The ordinary worker now records fixed `debugger` and `subscribed` startup
+checkpoints around parsed-hook setup, before evaluation. Limits, permissions,
+evaluation and finally cleanup are unchanged. Test-only `-sh` verifies eight
+compiled/controlled contracts; native startup-phase checks also verify ordering.
+This does not establish a startup fix or speedup. See
+[hook checkpoints](../LeaForge/DEBUGGER_CHECKPOINTS.md).
+
 The normal worker build is unchanged. `W32` is an optional, three-character
 MSBuild alias for the experimental 32-bit-preferred worker:
 
