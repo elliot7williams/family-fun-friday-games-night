@@ -1,0 +1,10 @@
+{
+  "name": "lea-short-bootstrap-experiment",
+  "private": true,
+  "version": "1.0.0",
+  "dependencies": {
+    "acorn": "8.15.0",
+    "eslint-scope": "8.4.0",
+    "terser": "5.46.1"
+  }
+}
