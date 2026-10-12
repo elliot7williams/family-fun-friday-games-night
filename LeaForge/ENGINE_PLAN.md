@@ -89,6 +89,12 @@ baseline controls, native CPU 25 and held-worker/EOF 41 pass without changing
 any runtime bytes or permissions. Worker/full startup failures remain open;
 readiness stays about 65%. The full test total rises to 3,019, not a release
 claim. See [exact CPU ACL baselines](CPU_ACL_BASELINE.md).
+Event arrays and maps now initialize only on demand, with zero containers for
+18 untouched targets in a controlled allocation diagnostic. All 86 focused
+checks and the browser smoke pass without binary size growth. Event-options
+and full timed startup still fail, so production deadlines, release status
+and readiness stay unchanged. The full test total is 3,105. See
+[lazy event storage](LAZY_EVENTS.md).
 
 Core public vocabulary:
 

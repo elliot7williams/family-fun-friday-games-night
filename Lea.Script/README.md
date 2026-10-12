@@ -12,7 +12,15 @@ with Acornima 1.7.0 and framework support libraries pinned in
 arrays, objects, JSON, and template strings. It does not implement those
 language rules through a new handwritten parser.
 
-The latest test hardening initializes CPU-helper inheritance metadata before
+The latest runtime initializes listener arrays and handler maps only on demand.
+A controlled diagnostic observes zero containers for 18 untouched targets;
+all 86 focused checks and the ordinary browser smoke pass. Public event
+semantics, permissions and budgets remain, with no binary size growth.
+Event-options and full timed startup still fail, so this is not a startup fix,
+general speedup or release. The full test total is 3,105. See
+[lazy event storage](../LeaForge/LAZY_EVENTS.md).
+
+The preceding test hardening initializes CPU-helper inheritance metadata before
 strict ACL snapshots, rejecting any permission change and recording original
 and restored descriptors on cleanup failure. Nine baseline contracts, native
 CPU 25 and held-worker/EOF 41 pass. All runtime bytes and limits stay unchanged;

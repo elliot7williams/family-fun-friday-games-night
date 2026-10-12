@@ -49,6 +49,15 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script lazy styles " + args[2] + ": " + checks + " checks.");
                     return 0;
                 }
+                if (args.Length > 1 && (args[1] == "--lazy-events" || args[1] == "-le"))
+                {
+                    if (args.Length < 3 || args.Length > 4 || args.Length == 4 && args[2] != "native")
+                        throw new ArgumentException("Supply only a lazy-event mode and optional native capture prefix.");
+                    if (args[2] == "native") View.Pump(() => LazyEvents.Native(Path.Combine(root, "LeaForge", "test-pages", "javascript-lazy-events.html"), args.Length == 4 ? args[3] : null));
+                    else LazyEvents.Run(Path.Combine(root, "LeaForge", "test-pages", "javascript-lazy-styles.html"), args[2]);
+                    Console.WriteLine("PASS Lea.Script lazy events " + args[2] + ": " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && (args[1] == "--contains" || args[1] == "-ct"))
                 {
                     if (args.Length < 3 || args.Length > 4 || args.Length == 4 && args[2] != "native")
@@ -665,6 +674,10 @@ namespace Lea.Script.Tests
                 LazyStyles.Run(lazyStyleFixture, "core");
                 LazyStyles.Run(lazyStyleFixture, "trusted");
                 LazyStyles.Run(lazyStyleFixture, "isolated");
+                LazyEvents.Run(lazyStyleFixture, "core");
+                LazyEvents.Run(lazyStyleFixture, "trusted");
+                LazyEvents.Run(lazyStyleFixture, "isolated");
+                View.Pump(() => LazyEvents.Native(Path.Combine(root, "LeaForge", "test-pages", "javascript-lazy-events.html"), null));
                 View.Pump(() => LazyStyles.Native(lazyStyleFixture, null));
                 var containsFixtureFull = Path.Combine(root, "LeaForge", "test-pages", "javascript-contains.html");
                 Contains.Run(containsFixtureFull, "aliases");

@@ -34,6 +34,20 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Current milestone 146 remains open. Event targets now allocate their listener
+array and three handler maps only when needed. A controlled diagnostic observes
+zero containers for 18 untouched targets, versus source-derived 72 before.
+All 86 focused checks pass, as do event/receiver/callback/privacy/worker gates
+and the ordinary browser smoke. Both optional binaries and the required
+renderer stay the same size; 17 other runtime entries are frozen. Initial
+one-second diagnostic timeout and a test-variable collision are retained;
+allocation observation is now separate from unchanged production startup
+gates. Event-options still times out before any assertion, and the full run
+fails after 233 assertions at timed hello startup (wall 5,011 ms, last marker
+parsed). No retry, startup fix, general speedup or runtime release is claimed.
+The full test total is 3,105; broader readiness remains about 65%. See
+[lazy event storage](LAZY_EVENTS.md).
+
 Current milestone 146 remains open. A fresh independent control captures the
 CPU helper's before/after ACL and proves unchanged permission bytes with only
 the Windows auto-inherited metadata bit changing. The test now initializes

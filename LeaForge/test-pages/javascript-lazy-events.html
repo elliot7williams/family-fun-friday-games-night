@@ -1,0 +1,19 @@
+<!doctype html>
+<html><head><title>Lazy events</title><style>
+body { margin: 24px; font-family: Segoe UI; color: #23272b; background: #fff; }
+header { display: flex; align-items: center; gap: 12px; border-bottom: 2px solid #168477; padding-bottom: 12px; }
+h1 { margin: 0; font-size: 28px; } h2 { font-size: 18px; }
+button { margin: 0 8px 12px 0; padding: 8px 16px; background: #e9edf2; border: 1px solid #89949f; }
+input { width: 240px; padding: 8px; border: 1px solid #89949f; }
+#result { color: #168477; font-size: 22px; }
+</style></head><body>
+<header><img src="../../assets/lea.ico" width="40" height="40" alt="Lea"><h1>Lea</h1></header>
+<h2>Events</h2>
+<button id="add">Add</button><button id="handler">DOM0</button>
+<button id="inline" onclick="document.title='Inline';document.getElementById('result').textContent='Inline';return false;">Inline</button>
+<p id="result">Ready</p><p><input id="field" value="Lea" aria-label="Name"></p>
+<script>
+var count=0;
+document.getElementById('add').addEventListener('click',function(){count++;document.title='Count '+count;document.getElementById('result').textContent='Count '+count;});
+document.getElementById('handler').onclick=function(){document.title='DOM0';document.getElementById('result').textContent='DOM0';};
+</script></body></html>

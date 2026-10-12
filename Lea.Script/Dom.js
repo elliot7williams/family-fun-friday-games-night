@@ -108,9 +108,9 @@ __jobs('declarations');
             if (!eventType(type)) throw new listError('Unsupported Lea event');
             if (callback === null || callback === undefined) return;
             syncHandler(state.node, state, type);
-            if (state.listeners.some(item => item.type === type && item.callback === callback && item.capture === cap)) return;
+            if (state.listeners && state.listeners.some(item => item.type === type && item.callback === callback && item.capture === cap)) return;
             if (listenerCount === 128) throw new RangeError('Lea listener limit');
-            state.listeners.push({ type, callback, capture: cap, once, passive, removed: false });
+            (state.listeners || (state.listeners = [])).push({ type, callback, capture: cap, once, passive, removed: false });
             listenerCount++;
         },
         removeEventListener(type, callback, options = undefined) {
@@ -121,6 +121,7 @@ __jobs('declarations');
                 throw new listError('Invalid listener');
             const fields = eventOptions(options);
             const cap = fields ? !!fields.capture : !!options;
+            if (!state.listeners) return;
             for (const item of state.listeners.slice())
                 if (item.type === type && item.callback === callback && item.capture === cap) remove(state, item);
         }
@@ -139,24 +140,24 @@ __jobs('declarations');
             set(value) {
                 const state = eventState(this);
                 syncHandler(state.node, state, type);
-                state.properties[type] = typeof value === 'function' ? value : null;
+                (state.properties || (state.properties = makeObject(null)))[type] = typeof value === 'function' ? value : null;
                 syncHandler(state.node, state, type);
             }
         };
     }
     function eventTarget(node, key) {
-        const state = { node, key, classTokens: null, style: null, listeners: [], properties: makeObject(null), inline: makeObject(null), handlers: makeObject(null) };
+        const state = { node, key, classTokens: null, style: null, listeners: null, properties: null, inline: null, handlers: null };
         apply(setState, targets, [node, state]);
         defineEvents(node, eventProperties);
     }
     function syncHandler(node, state, type) {
         const callback = handler(node, state, type);
-        const slot = state.handlers[type];
+        const slot = state.handlers && state.handlers[type];
         if (callback && !slot) {
             if (listenerCount === 128) throw new RangeError('Lea listener limit');
             const item = { type, capture: false, handler: true, removed: false };
-            state.handlers[type] = item;
-            state.listeners.push(item);
+            (state.handlers || (state.handlers = makeObject(null)))[type] = item;
+            (state.listeners || (state.listeners = [])).push(item);
             listenerCount++;
         } else if (!callback && slot) {
             remove(state, slot);
@@ -165,13 +166,16 @@ __jobs('declarations');
         return callback;
     }
     function handler(node, state, type) {
-        if (apply(owns, state.properties, [type])) return state.properties[type];
+        if (state.properties && apply(owns, state.properties, [type])) return state.properties[type];
         if (typeof node.getAttribute !== 'function') return null;
         const code = node.getAttribute('on' + type);
         if (!code) return null;
         if (code.length > 16384) throw new RangeError('Lea inline handler limit');
-        if (!state.inline[type] || state.inline[type].code !== code)
-            state.inline[type] = { code, callback: new Function('event', code) };
+        const cached = state.inline && state.inline[type];
+        if (!cached || cached.code !== code) {
+            const callback = new Function('event', code);
+            (state.inline || (state.inline = makeObject(null)))[type] = { code, callback };
+        }
         return state.inline[type].callback;
     }
     function str(value) {
@@ -653,6 +657,7 @@ __jobs('declarations');
             current = node;
             const state = eventState(node);
             syncHandler(node, state, type);
+            if (!state.listeners) return;
             for (const item of state.listeners.slice()) {
                 if (item.removed || item.type !== type || item.capture !== cap) continue;
                 if (item.once) remove(state, item);
