@@ -12,7 +12,16 @@ with Acornima 1.7.0 and framework support libraries pinned in
 arrays, objects, JSON, and template strings. It does not implement those
 language rules through a new handwritten parser.
 
-The latest optional runtime makes page agents nonblocking through `Vo.Of/At`.
+The latest optional runtime creates element styles lazily: wrapping 16 elements
+without style reads creates no style objects/setters, compared with 16/96 in
+the preceding runtime. The six write-only properties and normal bound setters
+remain; the element's own style binding is now a read-only same-object accessor.
+All 72 focused style checks, worker 87, startup 16 and one full 2,945-check run
+pass. Parent Script grows 512 bytes; worker PE size and the required renderer
+are unchanged. Earlier intermittent failures and Firespider release gates
+remain open. See [lazy element styles](../LeaForge/LAZY_STYLES.md).
+
+An earlier optional runtime makes page agents nonblocking through `Vo.Of/At`.
 Its 49 focused guard checks, timer/worker checks and separate browser smoke
 pass with no binary size growth. The current full suite expects 2,815 but
 fails after 2,375 at the native CPU-lifetime fixture; startup tracing also

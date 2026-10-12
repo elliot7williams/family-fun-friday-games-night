@@ -44,6 +44,13 @@ gates still fail. A separate ACL conversion control explains a possible text
 comparison pitfall, without erasing the failed native record. Reliability and
 release verification remain open, with readiness about 65%. See
 [trusted startup stages](TRUSTED_STARTUP_STAGES.md).
+Element wrappers now create their six-property style facade only on first read.
+The normal setter behavior stays bound, while the own style property becomes a
+read-only same-object accessor. Seventy-two focused checks and one full 2,945
+run pass, with the required renderer unchanged. This reduces unnecessary
+per-element allocations; it does not prove a startup fix or general speedup.
+Prior failures and Firespider release verification remain open. See
+[lazy element styles](LAZY_STYLES.md).
 
 Core public vocabulary:
 

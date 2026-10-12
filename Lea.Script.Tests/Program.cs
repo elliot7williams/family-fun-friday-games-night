@@ -39,6 +39,16 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script startup stages: " + checks + " checks; controlled trusted faults only.");
                     return 0;
                 }
+                if (args.Length > 1 && (args[1] == "--lazy-styles" || args[1] == "-ls"))
+                {
+                    if (args.Length < 3 || args.Length > 4 || args.Length == 4 && args[2] != "native")
+                        throw new ArgumentException("Supply only a lazy-style mode and optional native capture prefix.");
+                    var styleFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-lazy-styles.html");
+                    if (args[2] == "native") View.Pump(() => LazyStyles.Native(styleFixture, args.Length == 4 ? args[3] : null));
+                    else LazyStyles.Run(styleFixture, args[2]);
+                    Console.WriteLine("PASS Lea.Script lazy styles " + args[2] + ": " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && (args[1] == "--agent-waits" || args[1] == "-aw"))
                 {
                     if (args.Length < 3 || args.Length > 4 || args.Length == 4 && args[2] != "native")
@@ -626,6 +636,11 @@ namespace Lea.Script.Tests
                 BootstrapEntry.Contract();
                 ExecutionReports.Run(fixture);
                 BootstrapStages.Run(fixture);
+                var lazyStyleFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-lazy-styles.html");
+                LazyStyles.Run(lazyStyleFixture, "core");
+                LazyStyles.Run(lazyStyleFixture, "trusted");
+                LazyStyles.Run(lazyStyleFixture, "isolated");
+                View.Pump(() => LazyStyles.Native(lazyStyleFixture, null));
                 Console.WriteLine("PASS Lea.Script: " + checks + " checks; JavaScript, isolated worker, and typed DOM.");
                 return 0;
             }

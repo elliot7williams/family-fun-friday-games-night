@@ -34,6 +34,23 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Current milestone 146 remains open. Element wrapping now defers the six-property
+style facade until first access, using private cached state and a read-only
+same-object getter. Normal aliases, bound setters, limits and isolation remain.
+The identical old-runtime control records 16 objects/96 setter definitions for
+16 unstyled wrappers; the candidate records zero, then only 4/24 for four used
+styles. All 72 new core/trusted/isolated/native checks pass, as do privacy 36,
+worker 87, startup 16 and one full **2,945-check** run with actual exit zero.
+Native 940/420 captures are nonblank and visually checked; the standalone browser
+passes counter/animation/pause/isolation smoke with a verified compressed package.
+A generator-wrapper
+argument failure is retained; explicit generator calls and all builds pass.
+Only parent Script/worker hashes change; parent PE grows 512 bytes and worker
+size is unchanged. The other 17 runtime entries and required renderer stay
+frozen. This is an allocation improvement, not a proven general speedup or
+intermittent-startup fix; prior failures and Firespider release gates remain
+open. Readiness stays about 65%. See [lazy element styles](LAZY_STYLES.md).
+
 Current milestone 146 remains open. Trusted bootstrap budget errors now append
 the last setup/verified-checkpoint stage, clear it on reset/success, and retain
 existing error prefixes, public aliases and limits. Fifty controlled stage

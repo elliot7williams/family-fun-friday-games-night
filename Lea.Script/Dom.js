@@ -145,7 +145,7 @@ __jobs('declarations');
         };
     }
     function eventTarget(node, key) {
-        const state = { node, key, classTokens: null, listeners: [], properties: makeObject(null), inline: makeObject(null), handlers: makeObject(null) };
+        const state = { node, key, classTokens: null, style: null, listeners: [], properties: makeObject(null), inline: makeObject(null), handlers: makeObject(null) };
         apply(setState, targets, [node, state]);
         defineEvents(node, eventProperties);
     }
@@ -500,16 +500,15 @@ __jobs('declarations');
         setAttribute: { __proto__: null, value: elementMethods.setAttribute },
         removeAttribute: { __proto__: null, value: elementMethods.removeAttribute },
         remove: { __proto__: null, value: elementMethods.remove },
+        style: { __proto__: null,
+            get() { const state = elementState(this); if (!state.style) state.style = makeStyle(state.key); return state.style; }
+        },
         classList: { __proto__: null,
             get() { const state = elementState(this); if (!state.classTokens) state.classTokens = makeList(state.key); return state.classTokens; },
             set(value) { const state = elementState(this); if (!state.classTokens) state.classTokens = makeList(state.key); state.classTokens.value = value; }
         }
     };
-    function wrap(key) {
-        if (key === null) return null;
-        const cached = apply(getTimer, cache, [key]);
-        if (cached) return cached;
-        const node = {};
+    function makeStyle(key) {
         const style = {};
         for (let i = 0; i < styleNames.length; i++) {
             const name = styleNames[i];
@@ -517,6 +516,13 @@ __jobs('declarations');
                 set(value) { put(key, styles[name], value); }, enumerable: true
             });
         }
+        return style;
+    }
+    function wrap(key) {
+        if (key === null) return null;
+        const cached = apply(getTimer, cache, [key]);
+        if (cached) return cached;
+        const node = {};
         defineEvents(node, treeProperties);
         defineEvents(node, {
             tagName: { get() { return call('tag', key); } },
@@ -525,7 +531,7 @@ __jobs('declarations');
             textContent: { get() { return call('text', key); }, set(value) { put(key, 'tx', value === null ? '' : value); } },
             value: { get() { return call('value', key); }, set(value) { put(key, 'vl', value); } },
             checked: { get() { return call('checked', key); }, set(value) { put(key, 'ck', value ? '1' : '0'); } },
-            style: { value: style },
+            style: elementProperties.style,
             querySelector: elementProperties.querySelector,
             querySelectorAll: elementProperties.querySelectorAll,
             getAttribute: elementProperties.getAttribute,
