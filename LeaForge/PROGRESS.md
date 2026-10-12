@@ -34,6 +34,22 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Current milestone 146 remains open. Trusted bootstrap budget errors now append
+the last setup/verified-checkpoint stage, clear it on reset/success, and retain
+existing error prefixes, public aliases and limits. Fifty controlled stage
+checks pass on the final binary; the identical old-DLL control rejects missing
+stage metadata. Real-deadline checks pass 31 and record `stage=events` in their
+intentional delay case; ordinary first-call/cache/options contracts also pass.
+The initial too-specific deadline assertion and repaired test inputs remain.
+Native CPU/worker/startup gates fail after 12/59/9 checks, and one full run
+fails after 282 at native startup recovery; no failure is retried or erased.
+A separate ACL control shows exact DACL restoration can change Windows' `AI`
+metadata flag; it does not reclassify the failed CPU comparison. Browser smoke
+and captures pass. Only the parent Script DLL changes, with zero PE size growth;
+the other 18 runtime entries and protected Firespider/normal outputs are frozen.
+No startup fix, speedup or release is claimed; readiness stays about 65%. See
+[trusted startup stages](TRUSTED_STARTUP_STAGES.md).
+
 Current milestone 146 remains open. The controlled test helper now reports CPU
 at loop start/end, wall time and spin count after its result is decided, so
 loop work is not confused with startup or total CPU. Quiet lifetime and traced

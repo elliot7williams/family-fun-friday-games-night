@@ -57,7 +57,7 @@ namespace Lea.Script.Tests
                 "trusted and worker assemblies contain the same options configuration");
         }
 
-        private static string Snapshot(Options options)
+        internal static string Snapshot(Options options)
         {
             var text = new List<string>();
             foreach (var pair in new[] { Tuple.Create("constraints", (object)options.Constraints), Tuple.Create("interop", (object)options.Interop) })

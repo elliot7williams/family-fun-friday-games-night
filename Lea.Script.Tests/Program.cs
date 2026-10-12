@@ -32,6 +32,13 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script VM options: " + checks + " checks.");
                     return 0;
                 }
+                if (args.Length > 1 && (args[1] == "--startup-stages" || args[1] == "-sg"))
+                {
+                    if (args.Length != 2) throw new ArgumentException("No extra arguments are accepted for startup stage checks.");
+                    BootstrapStages.Run(fixture);
+                    Console.WriteLine("PASS Lea.Script startup stages: " + checks + " checks; controlled trusted faults only.");
+                    return 0;
+                }
                 if (args.Length > 1 && (args[1] == "--agent-waits" || args[1] == "-aw"))
                 {
                     if (args.Length < 3 || args.Length > 4 || args.Length == 4 && args[2] != "native")
@@ -618,6 +625,7 @@ namespace Lea.Script.Tests
                 VmOptions.Run();
                 BootstrapEntry.Contract();
                 ExecutionReports.Run(fixture);
+                BootstrapStages.Run(fixture);
                 Console.WriteLine("PASS Lea.Script: " + checks + " checks; JavaScript, isolated worker, and typed DOM.");
                 return 0;
             }

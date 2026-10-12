@@ -26,8 +26,11 @@ namespace Lea.Script.Tests
                 {
                     var result = script.Ex("for(var i=0;i<100;i++){};document.title='must not run';");
                     var phase = target == 1 ? "bootstrap" : "script";
-                    Check(result.S == "limit" && result.M == "Script budget exceeded. phase=" + phase + "; reason=TimeoutException",
-                        "real deadline identifies " + phase + " and TimeoutException");
+                    var expected = "Script budget exceeded. phase=" + phase + "; reason=TimeoutException";
+                    var stages = new[] { "evaluate", "declarations", "scope", "events", "interfaces", "elements", "document" };
+                    var reported = target == 1 ? Array.Exists(stages, stage => result.M == expected + "; stage=" + stage) : result.M == expected;
+                    Check(result.S == "limit" && reported,
+                        "real deadline identifies " + phase + " and TimeoutException; observed=" + result.M);
                     Check(result.N == 0 && page.T != "must not run", "expired " + phase + " cannot report page writes");
                     Retired(script, "deadline " + phase);
                     Check(script.Ex("if(typeof i!=='undefined')throw Error('old realm');document.title='recovered';").Ok && page.T == "recovered",

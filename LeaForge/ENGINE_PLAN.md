@@ -37,6 +37,13 @@ and total process CPU. Focused CPU/EOF/startup checks pass, but one full run
 fails in trusted bootstrap before reaching the CPU fixture. All production
 runtime bytes and limits remain unchanged. Release reliability is still open;
 readiness stays about 65%. See [CPU delta diagnostics](CPU_DELTA_DIAGNOSTICS.md).
+Trusted startup failures now include the last setup/checkpoint stage without
+changing public aliases, limits, bootstrap assets or worker bytes. Controlled
+stage and trusted deadline/cache checks pass; native recovery/startup and full
+gates still fail. A separate ACL conversion control explains a possible text
+comparison pitfall, without erasing the failed native record. Reliability and
+release verification remain open, with readiness about 65%. See
+[trusted startup stages](TRUSTED_STARTUP_STAGES.md).
 
 Core public vocabulary:
 

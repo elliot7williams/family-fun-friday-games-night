@@ -1,5 +1,9 @@
 # Trusted budget phases
 
+Later [trusted startup stages](TRUSTED_STARTUP_STAGES.md) append a bounded last
+setup/checkpoint field to bootstrap budget errors only. The original host
+phase/reason prefix and all deadlines remain; the results below are historical.
+
 This checkpoint improves trusted `Js` failure diagnostics. It is not a fix
 for intermittent native-worker startup, a new verified Firespider release,
 or a completed milestone 146. Broader readiness remains about 65%.

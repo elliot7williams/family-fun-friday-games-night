@@ -20,6 +20,7 @@ namespace Lea.Script
         private Jint.Native.JsValue dispatch;
         private bool disposed;
         private bool running;
+        private string startupStage;
         private long generation;
         private static readonly string bootstrap = LoadBootstrap();
         private static readonly ScriptPreparationOptions preparation = new ScriptPreparationOptions
@@ -121,8 +122,10 @@ namespace Lea.Script
                 var limited = error is TimeoutException || error is Ja.LimitException ||
                     error is StatementsCountOverflowException || error is MemoryLimitExceededException ||
                     error is RecursionDepthOverflowException;
+                var stage = phase == "bootstrap" ? startupStage : null;
                 Reset();
                 var message = limited ? "Script budget exceeded. phase=" + phase + "; reason=" + error.GetType().Name : error.Message;
+                if (limited && stage != null) message += "; stage=" + stage;
                 return Result(limited ? "limit" : "js", message.Length <= 512 ? message : message.Substring(0, 512));
             }
             finally { if (timer) bridge.Timers.End(); if (frame) bridge.Frames.End(); running = false; }
@@ -131,20 +134,34 @@ namespace Lea.Script
         private void Start()
         {
             var markers = new Bm();
-            vm = factory == null ? new Jint.Engine(Vo.Of(1000)) :
-                factory(options => Vo.At(options, 1000));
+            startupStage = "configure";
+            var options = factory == null ? Vo.Of(1000) : null;
+            startupStage = factory == null ? "vm" : "factory";
+            vm = factory == null ? new Jint.Engine(options) :
+                factory(settings => Vo.At(settings, 1000));
+            startupStage = "bridge";
             vm.SetValue("__lea", (Jint.Native.JsValue)new ClrFunction(vm, "__lea", (_, args) =>
                 Codec.Value(vm, bridge.Call(Codec.Arguments(args)))));
             vm.SetValue("__jobs", (Jint.Native.JsValue)new ClrFunction(vm, "__jobs", (_, args) =>
-            { if (markers.Of(args) == null) vm.Advanced.ProcessTasks(); return Jint.Native.JsValue.Undefined; }));
-            dispatch = vm.Evaluate(prepared.Value);
+            {
+                var stage = markers.Of(args);
+                if (stage == null) vm.Advanced.ProcessTasks();
+                else startupStage = stage;
+                return Jint.Native.JsValue.Undefined;
+            }));
+            startupStage = "prepare";
+            var syntax = prepared.Value;
+            startupStage = "evaluate";
+            dispatch = vm.Evaluate(syntax);
+            startupStage = "checkpoints";
             markers.End();
             bridge.Begin();
+            startupStage = null;
         }
 
         private Jr Result(string status, string message, bool prevented = false)
         { return At = new Jr(status, bridge.Changes, message, prevented); }
-        private void Reset() { vm = null; dispatch = null; bridge.Reset(); }
+        private void Reset() { vm = null; dispatch = null; startupStage = null; bridge.Reset(); }
         private void CheckThread()
         {
             if (Thread.CurrentThread.ManagedThreadId != thread)
