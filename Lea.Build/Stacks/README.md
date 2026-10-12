@@ -57,8 +57,9 @@ the historical [event recovery diagnostics](../../LeaForge/EVENT_STACKS.md).
 its exact 87-check footer. `-p` selects only the newest worker when two or more
 matching owned children are enumerated; timestamp ties produce no selection.
 It is valid only in worker mode. `-n` overrides the expected count for another
-compiled test revision. Default full mode now expects 2,945 checks, including
-clock, numeric-reply, nonblocking-agent, CPU-delta, startup-stage and 72 lazy-style checks.
+compiled test revision. Default full mode now expects 3,010 checks, including
+clock, numeric-reply, nonblocking-agent, CPU-delta, startup-stage, 72 lazy-style
+and 65 node-containment checks.
 Test exit zero plus exactly one correct footer are
 required; the script explicitly returns zero/one to its PowerShell caller.
 

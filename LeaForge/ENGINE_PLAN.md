@@ -69,6 +69,12 @@ archived EXE, without resolving the earlier split-title failure. Test-only
 automatic compile/run scripting pass. The existing framework compiler remains
 in use, with no production byte changes. Release reliability remains open. See
 [process sampling](FIRESPIDER_PROCESS_SAMPLES.md).
+Native `N.Co` and the standard `contains()` spelling now share bounded, read-only
+ancestry semantics through the private `co` bridge. The 65 new checks, full
+3,010-check scripting run and renderer smoke pass, with no required-bundle size
+growth. A standalone browser smoke still times out in startup; the failure is
+retained and no release ZIP is made. Reliability and broader compatibility
+remain open. See [node containment](NODE_CONTAINS.md).
 
 Core public vocabulary:
 

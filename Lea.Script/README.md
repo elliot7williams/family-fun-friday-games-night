@@ -12,7 +12,15 @@ with Acornima 1.7.0 and framework support libraries pinned in
 arrays, objects, JSON, and template strings. It does not implement those
 language rules through a new handwritten parser.
 
-The latest optional runtime creates element styles lazily: wrapping 16 elements
+The latest runtime adds native `N.Co` and shared `contains()` for supported
+element/document wrappers, with private state, bounded ancestry and unchanged
+mutation/sandbox limits. All 65 focused checks, the complete 3,010-check script
+suite and renderer smoke pass. A separate browser smoke still fails native
+startup, so no new release ZIP is made and earlier failures remain unresolved.
+The required bundle is unchanged in size; optional parent/worker grow 1 KiB
+combined. See [node containment](../LeaForge/NODE_CONTAINS.md).
+
+The preceding optional runtime creates element styles lazily: wrapping 16 elements
 without style reads creates no style objects/setters, compared with 16/96 in
 the preceding runtime. The six write-only properties and normal bound setters
 remain; the element's own style binding is now a read-only same-object accessor.

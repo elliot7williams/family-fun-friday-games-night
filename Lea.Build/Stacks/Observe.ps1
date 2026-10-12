@@ -24,7 +24,7 @@ if ((Split-Path $Test -Leaf) -ne 'Lea.Script.Tests.exe' -or
     -not (Test-Path -LiteralPath $FixtureRoot -PathType Container) -or
     (Test-Path -LiteralPath $Out)) { throw 'Supply the test/inspector executables, fixture root and a new output directory.' }
 if ($PairedWorker -and $Mode -ne 'worker') { throw 'Paired-worker sampling requires worker mode.' }
-if (-not $ExpectedAssertions) { $ExpectedAssertions = if ($Mode -eq 'worker') { 87 } else { 2945 } }
+if (-not $ExpectedAssertions) { $ExpectedAssertions = if ($Mode -eq 'worker') { 87 } else { 3010 } }
 $stem = if ($Mode -eq 'worker') { 'worker' } else { 'full' }
 $arguments = '"'+$FixtureRoot+'"'+$(if ($Mode -eq 'worker') { ' --worker' } else { '' })
 $completion = if ($Mode -eq 'worker') { 'PASS Lea.Script worker: '+$ExpectedAssertions+' checks.' } else { 'PASS Lea.Script: '+$ExpectedAssertions+' checks; JavaScript, isolated worker, and typed DOM.' }

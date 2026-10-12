@@ -49,6 +49,16 @@ namespace Lea.Script.Tests
                     Console.WriteLine("PASS Lea.Script lazy styles " + args[2] + ": " + checks + " checks.");
                     return 0;
                 }
+                if (args.Length > 1 && (args[1] == "--contains" || args[1] == "-ct"))
+                {
+                    if (args.Length < 3 || args.Length > 4 || args.Length == 4 && args[2] != "native")
+                        throw new ArgumentException("Supply only a contains mode and optional native capture prefix.");
+                    var containsFixture = Path.Combine(root, "LeaForge", "test-pages", "javascript-contains.html");
+                    if (args[2] == "native") View.Pump(() => Contains.Native(containsFixture, args.Length == 4 ? args[3] : null));
+                    else Contains.Run(containsFixture, args[2]);
+                    Console.WriteLine("PASS Lea.Script contains " + args[2] + ": " + checks + " checks.");
+                    return 0;
+                }
                 if (args.Length > 1 && (args[1] == "--agent-waits" || args[1] == "-aw"))
                 {
                     if (args.Length < 3 || args.Length > 4 || args.Length == 4 && args[2] != "native")
@@ -641,6 +651,11 @@ namespace Lea.Script.Tests
                 LazyStyles.Run(lazyStyleFixture, "trusted");
                 LazyStyles.Run(lazyStyleFixture, "isolated");
                 View.Pump(() => LazyStyles.Native(lazyStyleFixture, null));
+                var containsFixtureFull = Path.Combine(root, "LeaForge", "test-pages", "javascript-contains.html");
+                Contains.Run(containsFixtureFull, "aliases");
+                Contains.Run(containsFixtureFull, "trusted");
+                Contains.Run(containsFixtureFull, "isolated");
+                View.Pump(() => Contains.Native(containsFixtureFull, null));
                 Console.WriteLine("PASS Lea.Script: " + checks + " checks; JavaScript, isolated worker, and typed DOM.");
                 return 0;
             }

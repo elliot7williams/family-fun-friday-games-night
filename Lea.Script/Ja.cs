@@ -129,6 +129,11 @@ namespace Lea.Script
             if (args.Length == 2 && (operation == "pe" || operation == "fc" || operation == "lc" ||
                 operation == "ps" || operation == "ns" || operation == "cc"))
                 return Relative(target ?? page.D, operation);
+            if (operation == "co" && args.Length == 3)
+            {
+                try { return (target ?? page.D).Co(Node(args, 2) ?? page.D); }
+                catch (FormatException) { throw new LimitException(); }
+            }
             if ((operation == "mt" || operation == "cl") && args.Length == 3)
             {
                 if (target == null) throw new InvalidDataException("An element handle is required.");

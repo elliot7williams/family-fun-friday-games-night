@@ -34,6 +34,19 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Current milestone 146 remains open. Compact `N.Co` and shared JavaScript
+`contains()` now provide bounded inclusive ancestry for supported nodes, using
+private receiver state and the parent-owned `co` bridge. All 65 new checks,
+existing tree/privacy/worker/startup gates, full renderer smoke and one full
+3,010-check scripting run pass. Native 940/420 captures are visually checked.
+The initial test-helper compile failure is retained and repaired with a pinned
+process handle. A standalone browser smoke still fails startup: phase hello,
+wall 5,010 ms, CPU 328 ms, last marker evaluation; exact cause is unknown and no
+retry occurs. No new browser ZIP or release is published. The required bundle
+does not grow; optional parent/worker grow 1,024 bytes combined and all other
+runtime entries stay frozen. Readiness remains about 65%, with no startup fix
+or speedup claim. See [node containment](NODE_CONTAINS.md).
+
 Current milestone 146 remains open. Three predeclared fresh-process scripting
 samples against the exact archived EXE pass with the current split diagnostics,
 unchanged `Be=0` and limits, and no remaining owned workers. They do not reproduce

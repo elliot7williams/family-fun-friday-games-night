@@ -4776,6 +4776,16 @@ namespace Lea.Engine
             return QueryNodeWalk(node, node, rules, found, ref visits, 0);
         }
 
+        internal static bool ContainsNode(N root, N node)
+        {
+            for (var depth = 0; node != null; depth++, node = node.Up)
+            {
+                if (depth > MaxHtmlDepth) throw new FormatException("Lea node ancestry exceeds tree limits.");
+                if (Object.ReferenceEquals(root, node)) return true;
+            }
+            return false;
+        }
+
         private static N QueryNodeWalk(N node, N root, R[] rules, List<N> found, ref int visits, int depth)
         {
             if (node == null) return null;

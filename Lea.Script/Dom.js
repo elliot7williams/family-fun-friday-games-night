@@ -444,6 +444,20 @@ __jobs('declarations');
         nextElementSibling: { __proto__: null, get() { return wrap(relative(this, 'ns')); }, enumerable: true, configurable: true },
         childElementCount: { __proto__: null, get() { return relative(this, 'cc'); }, enumerable: true, configurable: true }
     };
+    function nodeKey(receiver) {
+        if (receiver === document) return null;
+        return elementState(receiver).key;
+    }
+    const nodeMethods = {
+        __proto__: null,
+        contains(other) {
+            const key = nodeKey(this);
+            if (arguments.length === 0) throw new listError('A node argument is required');
+            if (other === null || other === undefined) return false;
+            return call('co', key, nodeKey(other));
+        }
+    };
+    const nodeProperties = { __proto__: null, contains: { __proto__: null, value: nodeMethods.contains } };
     function elementState(receiver, supplied, required = 1) {
         const state = apply(getState, targets, [receiver]);
         if (!state || typeof state.key !== 'number') throw new listError('Illegal Element receiver');
@@ -524,6 +538,7 @@ __jobs('declarations');
         if (cached) return cached;
         const node = {};
         defineEvents(node, treeProperties);
+        defineEvents(node, nodeProperties);
         defineEvents(node, {
             tagName: { get() { return call('tag', key); } },
             id: { get() { return call('attr', key, 'id') || ''; }, set(value) { put(key, 'id', value); } },
@@ -550,6 +565,7 @@ __jobs('declarations');
     checkpoint('elements');
     const document = {};
     Object.defineProperties(document, {
+        contains: nodeProperties.contains,
         firstElementChild: treeProperties.firstElementChild,
         lastElementChild: treeProperties.lastElementChild,
         childElementCount: treeProperties.childElementCount,

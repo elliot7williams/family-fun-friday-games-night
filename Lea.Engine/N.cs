@@ -43,6 +43,7 @@ namespace Lea.Engine
         // Mt/Cl read this node's live tree, including a retained detached subtree.
         public bool Mt(string query) { return E.MatchNode(this, query, false) != null; }
         public N Cl(string query) { return E.MatchNode(this, query, true); }
+        public bool Co(N node) { return E.ContainsNode(this, node); }
 
         // Q/Qa search descendants, never this node; Qa is a bounded static snapshot.
         public N Q(string query) { return E.QueryNode(this, query, null); }
