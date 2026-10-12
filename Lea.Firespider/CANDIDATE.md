@@ -5,7 +5,16 @@ over `L:\Firespider Internet` or make Lea a complete modern-web engine. The
 clean adapters here remain the source of record; the live host has unrelated
 in-progress changes that must be retained.
 
-Latest actual-EXE checkpoint selects the frozen dictionary-frame runtime using
+Latest actual-EXE checkpoint selects the frozen lazy-style runtime under ordinary
+`Be=0`. A fresh separate .NET 4.8 host passes all 43 host cases and six startup
+scenarios once, including native scripting, recovery, split isolation and lazy
+resume. Input/package contracts pass; both ZIPs are entry-verified and complete
+Lea source is backed up separately. The original installation remains unchanged.
+Readiness stays about 65%; this is still experimental, without an independent
+archive rebuild or established cold-start fix. See
+[latest host verification](../LeaForge/FIRESPIDER_LAZY_RUNTIME.md).
+
+Earlier actual-EXE checkpoint selects the frozen dictionary-frame runtime using
 the new `-Runtime`/`-r` build option, with 20 hashed inputs and post-build/package
 runtime verification. All 10 input and three package rejection contracts pass;
 a fresh separate .NET 4.8 host compiles and passes the six actual-EXE startup

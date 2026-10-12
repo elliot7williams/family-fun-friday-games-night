@@ -1,5 +1,9 @@
 # Firespider runtime selection
 
+The newer ordinary-`Be=0` candidate and complete host matrix are recorded in
+[Firespider lazy-style runtime](FIRESPIDER_LAZY_RUNTIME.md). Results below remain
+historical evidence for the dictionary-frame selection, not that newer build.
+
 Milestone 146 remains open; broader readiness stays about **65%**. This checkpoint
 builds a fresh separate Firespider Internet 19 EXE with the frozen, previously
 tested dictionary-frame runtime. It does not rebuild, migrate or overwrite the

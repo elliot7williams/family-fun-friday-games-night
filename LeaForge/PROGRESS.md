@@ -34,6 +34,19 @@ modern web platform.
 
 ## Completed post-1.0 hardening
 
+Current milestone 146 remains open. A fresh separate Firespider Internet 19
+candidate now uses the frozen lazy-style runtime with ordinary `Be=0`, built
+from 67 copied host inputs and 20 verified runtime/configuration inputs.
+All 43 host cases and six actual-EXE startup scenarios pass once, including
+native scripting, split isolation, recovery and deferred-tab resume. Input
+contracts pass 10; package rejection contracts pass three. Both runtime and
+host-source ZIPs are entry-verified, with complete Lea source backed up
+separately. Original/installed files, normal outputs and all 19 selected runtime
+hashes stay unchanged. The preceding 2,945-check full engine pass is not rerun
+here. No extracted-archive rebuild, intermittent-startup fix, speedup or stable
+release is claimed. Readiness stays about 65%. See
+[Firespider lazy-style runtime](FIRESPIDER_LAZY_RUNTIME.md).
+
 Current milestone 146 remains open. Element wrapping now defers the six-property
 style facade until first access, using private cached state and a read-only
 same-object getter. Normal aliases, bound setters, limits and isolation remain.

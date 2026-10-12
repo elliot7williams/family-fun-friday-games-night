@@ -51,6 +51,12 @@ run pass, with the required renderer unchanged. This reduces unnecessary
 per-element allocations; it does not prove a startup fix or general speedup.
 Prior failures and Firespider release verification remain open. See
 [lazy element styles](LAZY_STYLES.md).
+A separate Firespider candidate now verifies that frozen lazy-style runtime
+under ordinary `Be=0`: all 43 host cases and six actual-EXE startup scenarios
+pass, with entry-verified runtime/host-source ZIPs and a full Lea source backup.
+The installed browser remains untouched. Independent archive rebuilds and
+repeated cold-start reliability still remain release gates; readiness stays
+about 65%. See [Firespider lazy-style runtime](FIRESPIDER_LAZY_RUNTIME.md).
 
 Core public vocabulary:
 
