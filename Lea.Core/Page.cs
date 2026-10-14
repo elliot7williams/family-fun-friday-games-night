@@ -7,4 +7,5 @@ public sealed class Page
     public required string Title { get; init; }
     public required string Text { get; init; }
     public required List<Link> Links { get; init; }
+    public required HtmlNode Document { get; init; }
 }
