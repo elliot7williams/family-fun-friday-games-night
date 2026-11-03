@@ -1,0 +1,12 @@
+/nologo
+/noconfig
+/nostdlib+
+/target:exe
+/langversion:12.0
+/optimize+
+/deterministic+
+/out:"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\continuity-evidence\private-binding-trusted-v1\runtime\Lea.PrivateDom.Tests.exe"
+"C:\Users\Elliot\Documents\Family Fun Friday Games Night copy\Lea.Tests\DomRegressionMain.cs"
+/reference:"C:/Program Files (x86)/Reference Assemblies/Microsoft/Framework/.NETFramework/v4.8/mscorlib.dll"
+/reference:"C:/Program Files (x86)/Reference Assemblies/Microsoft/Framework/.NETFramework/v4.8/System.dll"
+/reference:"C:/Program Files (x86)/Reference Assemblies/Microsoft/Framework/.NETFramework/v4.8/System.Core.dll"

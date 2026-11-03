@@ -1,0 +1,2 @@
+LEA_ALL_STARTUP_TRACE enabled
+LEA_ALL_STARTUP_TRACE restored=true

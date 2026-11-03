@@ -1,0 +1,254 @@
+{
+  "hostAdopted": false,
+  "nativeViewPassed": true,
+  "fullSuiteQualified": false,
+  "domChecks": 262,
+  "candidateOnly": true,
+  "schedulingChecks": 171,
+  "files": [
+    {
+      "sha256": "462E3AB28401751E058D764FAE1E98F6FAA559CE3BAB6889A78C2204A1556421",
+      "path": "workspace/PROJECT_CONTEXT.md"
+    },
+    {
+      "sha256": "A2DA10ED378B2FBCA2695BA1F3CCFA4F04CEEFBB79413F61BAC6F83B8F897894",
+      "path": "workspace/LeaForge/PROGRESS.md"
+    },
+    {
+      "sha256": "DA892C3CC77535EA8217B1B517DBFDB72CEE70949BBC593280648B42B930BFF9",
+      "path": "workspace/LeaForge/PRIVATE_BINDINGS.md"
+    },
+    {
+      "sha256": "1AD263B442D61211F966A0AE65366E52ED0D66F6F226C03221F0BFCABCC7A7FD",
+      "path": "workspace/Lea.Build/Prepare-PrivateBindingDom.ps1"
+    },
+    {
+      "sha256": "DE85762B4688C599DB0DE8B26DEE3912A1C418CC9C0FD0BC309A0CCB52F89DFE",
+      "path": "workspace/Lea.Build/Test-PrivateBindingSharedDom-v1.generated.ps1"
+    },
+    {
+      "sha256": "EF207D693EBCEF99AFE30D796EA3FA89B7FA7782E12D1A8BFF803814852BA289",
+      "path": "workspace/Lea.Build/Test-PrivateBindingSharedScheduling.ps1"
+    },
+    {
+      "sha256": "4D1C3B7DB349858EC927295B089ECE8EAE882ABF5DCAA2F82EA3E0FD276C9A58",
+      "path": "workspace/Lea.Build/Prepare-PrivateBindingNative.ps1"
+    },
+    {
+      "sha256": "B72D9E372D19AB274896BBD94D37EE7C1738DBE60B9B59082B1BD65FDAB3FC0A",
+      "path": "workspace/Lea.Build/Test-PrivateBindingSharedNative-v1.generated.ps1"
+    },
+    {
+      "sha256": "4B439563AAC0C59DAEC8389FFB1C98AAAF4508791D553A8DD1EC8E672662C824",
+      "path": "workspace/Lea.Build/Audit-PrivateBindingRegressions.ps1"
+    },
+    {
+      "sha256": "8B27A747D5DEBD798D713B56D2A9D86A44B4587E14377456A2BC5CF98490B526",
+      "path": "workspace/Lea.Tests/PrivateBindingSchedulingMain.cs"
+    },
+    {
+      "sha256": "B6F9B190C6CE045E0592B13B39990B53068805E5F67A9CF3811A07F573F404CB",
+      "path": "workspace/Lea.Tests/SchedulingRegressionMain.cs"
+    },
+    {
+      "sha256": "59A0525B2418F211085AF431B3ACE903DD06DB063177F491791FA729B971924B",
+      "path": "workspace/Lea.Tests/IsolatedSchedulingRegressionMain.cs"
+    },
+    {
+      "sha256": "D5E35A79657911DC284AA6D1BEAA6ACE94961E72793DE4721D92BEAF8033FF8B",
+      "path": "workspace/Lea.Tests/DomRegressionMain.cs"
+    },
+    {
+      "sha256": "BBBF3D3842E9D827398BCF107E4F0DF6552FD90606FECE5BEA7A18C5B5263EC1",
+      "path": "workspace/Lea.Tests/IsConnectedNativeMain.cs"
+    },
+    {
+      "sha256": "2F83040C7C4D83AE4745891D0D962CAE127E65628ECA7EFCEC8FF5D3052515AF",
+      "path": "workspace/LeaForge/test-pages/is-connected-native.html"
+    },
+    {
+      "sha256": "6AF67D6EB9B0790038BC2D57DB72BD383588391E6B9CB1A13F1B6C6E20C3EFD3",
+      "path": "evidence/dom/compile-dom-driver.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/dom/compile-dom-driver.stderr.txt"
+    },
+    {
+      "sha256": "0B4CED6267D6217FC155BC3292523E7D68725882D6D0EDFACA0F359F1CF62FD7",
+      "path": "evidence/dom/compile-dom-driver.stdout.txt"
+    },
+    {
+      "sha256": "5622CA7769E6485213C3B6A6F5D58518BB9C4F686E640872957986514CBB4261",
+      "path": "evidence/dom/compile.rsp"
+    },
+    {
+      "sha256": "090D1D4055FD1D3FF225EF3ED91CB654B6FB1358C9DEB8D37EC9AC1AFA227B6C",
+      "path": "evidence/dom/original-Attributes.result.json"
+    },
+    {
+      "sha256": "E7EFDB3DB3ABCA5483BF4BE187D3CE3A897D301B153B3D5CAEDF068DEDFE35DE",
+      "path": "evidence/dom/original-Attributes.stderr.txt"
+    },
+    {
+      "sha256": "177BDA24F523C1AF942A9DE4CD603F9D26C8273F84DA93D554D906FB82970444",
+      "path": "evidence/dom/original-Attributes.stdout.txt"
+    },
+    {
+      "sha256": "F4068F1154FEE19C1F9655CA2ED79B891DB10D767EE6951354C75F61B00937F4",
+      "path": "evidence/dom/original-ClassLists.result.json"
+    },
+    {
+      "sha256": "E7EFDB3DB3ABCA5483BF4BE187D3CE3A897D301B153B3D5CAEDF068DEDFE35DE",
+      "path": "evidence/dom/original-ClassLists.stderr.txt"
+    },
+    {
+      "sha256": "84C03BAEA4396015E14FCA3D8F6186021B5B2630C287244A31301CFE7EED0C40",
+      "path": "evidence/dom/original-ClassLists.stdout.txt"
+    },
+    {
+      "sha256": "0A76BC345E5DE94187E39857C29A31D65441505987CD1D9E072B2CFFB6315D9E",
+      "path": "evidence/dom/original-Selectors.result.json"
+    },
+    {
+      "sha256": "E7EFDB3DB3ABCA5483BF4BE187D3CE3A897D301B153B3D5CAEDF068DEDFE35DE",
+      "path": "evidence/dom/original-Selectors.stderr.txt"
+    },
+    {
+      "sha256": "F0DBD668066F9DB6DF9E67B2326825B08A60B31BBD1FA2CD3CA1EEA68AD39387",
+      "path": "evidence/dom/original-Selectors.stdout.txt"
+    },
+    {
+      "sha256": "65D68F9DF76633743B130F1B0EF20953071B681773A6B849FF66F6998DAFAB0C",
+      "path": "evidence/dom/original-Tree.result.json"
+    },
+    {
+      "sha256": "E7EFDB3DB3ABCA5483BF4BE187D3CE3A897D301B153B3D5CAEDF068DEDFE35DE",
+      "path": "evidence/dom/original-Tree.stderr.txt"
+    },
+    {
+      "sha256": "A35FA2F9D91002C6E5A89EA08FE50E194B38E2FD09A5C6AA5C59E80D094AA389",
+      "path": "evidence/dom/original-Tree.stdout.txt"
+    },
+    {
+      "sha256": "246C2EDB4717DAE02F6CEA6E2A7D1975B6B3A08DF23ECB569B9922B1E832B836",
+      "path": "evidence/dom/result.json"
+    },
+    {
+      "sha256": "FCF1371CA754BB23508D37BE559A25B55EF26CDFA9FF0E7FEBF40DB50112D073",
+      "path": "evidence/scheduling/compile-scheduling-driver.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/scheduling/compile-scheduling-driver.stderr.txt"
+    },
+    {
+      "sha256": "0B4CED6267D6217FC155BC3292523E7D68725882D6D0EDFACA0F359F1CF62FD7",
+      "path": "evidence/scheduling/compile-scheduling-driver.stdout.txt"
+    },
+    {
+      "sha256": "7C0A1D3DC8E83B5BDCC641F72666A114A05020A1BAB45563073C3A1913112056",
+      "path": "evidence/scheduling/compile.rsp"
+    },
+    {
+      "sha256": "F5693267B2CE88F0C428E445452FBAA2DA25459852081CF5E35D2B1BA6ACD30E",
+      "path": "evidence/scheduling/isolated-Frames.result.json"
+    },
+    {
+      "sha256": "E7EFDB3DB3ABCA5483BF4BE187D3CE3A897D301B153B3D5CAEDF068DEDFE35DE",
+      "path": "evidence/scheduling/isolated-Frames.stderr.txt"
+    },
+    {
+      "sha256": "BE94BEA21FEDF1E205C437257CBA0795C4C6C65C3C35B76412FEF633757DA6DD",
+      "path": "evidence/scheduling/isolated-Frames.stdout.txt"
+    },
+    {
+      "sha256": "588EAE4CA9E673F4756350086F9D7EABBBA0FFC54D8353D45115BDAD07C5732C",
+      "path": "evidence/scheduling/isolated-Timers.result.json"
+    },
+    {
+      "sha256": "E7EFDB3DB3ABCA5483BF4BE187D3CE3A897D301B153B3D5CAEDF068DEDFE35DE",
+      "path": "evidence/scheduling/isolated-Timers.stderr.txt"
+    },
+    {
+      "sha256": "D91D4EBBF4FADF42FB6BCCB7F5E00FC7455B14CE894B99ED4880A3361AB53023",
+      "path": "evidence/scheduling/isolated-Timers.stdout.txt"
+    },
+    {
+      "sha256": "3015572627EA0427C896C52C2EB697C2CE2AEAE986B94119B17902F05286B4CC",
+      "path": "evidence/scheduling/result.json"
+    },
+    {
+      "sha256": "1B95F5224584991A2687869B64E2E36D026E0BC1826DB8667869E3BEF8BBA1AB",
+      "path": "evidence/scheduling/trusted-Frames.result.json"
+    },
+    {
+      "sha256": "E7EFDB3DB3ABCA5483BF4BE187D3CE3A897D301B153B3D5CAEDF068DEDFE35DE",
+      "path": "evidence/scheduling/trusted-Frames.stderr.txt"
+    },
+    {
+      "sha256": "1F85CB6D191594A0B42F499DC69A2B99CEB323BBDC13783BCA4548FE973974AB",
+      "path": "evidence/scheduling/trusted-Frames.stdout.txt"
+    },
+    {
+      "sha256": "372823FE71B22D9A862C45F9C15148B69383637BE5410E2148F859D68F242C05",
+      "path": "evidence/scheduling/trusted-Timers.result.json"
+    },
+    {
+      "sha256": "E7EFDB3DB3ABCA5483BF4BE187D3CE3A897D301B153B3D5CAEDF068DEDFE35DE",
+      "path": "evidence/scheduling/trusted-Timers.stderr.txt"
+    },
+    {
+      "sha256": "D4FB6C7B71A6133B0DC0625BBA3DE91BA0A53ACBE581806548F540D54640B51C",
+      "path": "evidence/scheduling/trusted-Timers.stdout.txt"
+    },
+    {
+      "sha256": "730FCB5B6C448DB9A7B260AAEB99A1372558B0F35574CA72EEC88CE9844BE524",
+      "path": "evidence/native/compile-native-driver.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/native/compile-native-driver.stderr.txt"
+    },
+    {
+      "sha256": "0B4CED6267D6217FC155BC3292523E7D68725882D6D0EDFACA0F359F1CF62FD7",
+      "path": "evidence/native/compile-native-driver.stdout.txt"
+    },
+    {
+      "sha256": "607AAE049A6859D7668BFE0C08028BF6B744B6808EA59BE231BADA74967B001C",
+      "path": "evidence/native/compile.rsp"
+    },
+    {
+      "sha256": "4DC001B462453C5B3A770B12B4B23F7C39F4F77A734C1BE5584D53FA03772149",
+      "path": "evidence/native/connected-desktop.png"
+    },
+    {
+      "sha256": "BE5B36B24F949044D075DB4DD247CD262DF3CFA7E39F79A0A1CE6A604E5ACC96",
+      "path": "evidence/native/detached-desktop.png"
+    },
+    {
+      "sha256": "71896DB66EC68674B60648F72F075F786CCE98D64D04880735062AD7177C1CA5",
+      "path": "evidence/native/detached-narrow.png"
+    },
+    {
+      "sha256": "B19D552626CADCFE52FA41BA683AE55DE0DD0EAD39117B47368F07EB79260368",
+      "path": "evidence/native/native-connectivity.result.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/native/native-connectivity.stderr.txt"
+    },
+    {
+      "sha256": "492877EA7258A5FC6378FEA433A04945114F38668A7261554237D2F29D36B418",
+      "path": "evidence/native/native-connectivity.stdout.txt"
+    },
+    {
+      "sha256": "746FE5992E89D2639E4D594D9681774DD289D91568360473704C753969E2620F",
+      "path": "evidence/native/result.json"
+    },
+    {
+      "sha256": "66442AD603A0B2D7D3B1045D89D9702640C2ACF6C69BFB5B19F37B13366E7239",
+      "path": "evidence/audit.json"
+    }
+  ]
+}

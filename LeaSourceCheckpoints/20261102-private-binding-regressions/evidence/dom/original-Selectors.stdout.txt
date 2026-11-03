@@ -1,0 +1,49 @@
+PASS in-process selectors: element selector methods and arity; first wrapper uses handle zero; ok; 
+PASS in-process selectors: self compound and relationship matching; ok; 
+PASS in-process selectors: inclusive nearest ancestor and null result; ok; 
+PASS in-process selectors: selector-list order does not override nearest ancestor order; ok; 
+PASS in-process selectors: functional relational structural and root selectors reuse the compiler; ok; 
+PASS in-process selectors: sibling relationships and form state; ok; 
+PASS in-process selectors: borrowed methods use the actual branded element receiver; ok; 
+PASS in-process selectors: invalid receivers fail before selector conversion; ok; 
+PASS in-process selectors: required argument and DOM string conversion; ok; 
+PASS in-process selectors: single conversion and captured intrinsic; ok; 
+PASS in-process selectors: private receiver registration and lookup survive map and prototype replacement; ok; 
+PASS in-process selectors: invalid and unsupported selectors throw branded SyntaxError; ok; 
+PASS in-process selectors: group part and raw 1024-unit selector bounds; ok; 
+PASS in-process selectors: selector methods are read only; ok; 
+PASS in-process selectors: reads do not mutate or rebuild the bound page
+PASS in-process selectors: subsequent calls observe live metadata; ok; 
+PASS in-process selectors: field matching retains edited values; ok; 
+PASS in-process selectors: matching preserves native field identity
+PASS in-process selectors: detached subtree retains internal ancestry without old document ancestors; ok; 
+PASS in-process selectors: detached reads do not grant mutation capability; ok; 
+PASS in-process selectors: caught syntax failures preserve the existing realm; ok; 
+PASS in-process selectors: existing bridge-call ceiling applies; limit
+PASS in-process selectors: bridge exhaustion resets the realm and permits recovery; ok; 
+PASS in-process selectors: permission revocation still gates reads
+PASS isolated selectors: element selector methods and arity; first wrapper uses handle zero; ok; 
+PASS isolated selectors: self compound and relationship matching; ok; 
+PASS isolated selectors: inclusive nearest ancestor and null result; ok; 
+PASS isolated selectors: selector-list order does not override nearest ancestor order; ok; 
+PASS isolated selectors: functional relational structural and root selectors reuse the compiler; ok; 
+PASS isolated selectors: sibling relationships and form state; ok; 
+PASS isolated selectors: borrowed methods use the actual branded element receiver; ok; 
+PASS isolated selectors: invalid receivers fail before selector conversion; ok; 
+PASS isolated selectors: required argument and DOM string conversion; ok; 
+PASS isolated selectors: single conversion and captured intrinsic; ok; 
+PASS isolated selectors: private receiver registration and lookup survive map and prototype replacement; ok; 
+PASS isolated selectors: invalid and unsupported selectors throw branded SyntaxError; ok; 
+PASS isolated selectors: group part and raw 1024-unit selector bounds; ok; 
+PASS isolated selectors: selector methods are read only; ok; 
+PASS isolated selectors: reads do not mutate or rebuild the bound page
+PASS isolated selectors: subsequent calls observe live metadata; ok; 
+PASS isolated selectors: field matching retains edited values; ok; 
+PASS isolated selectors: matching preserves native field identity
+PASS isolated selectors: detached subtree retains internal ancestry without old document ancestors; ok; 
+PASS isolated selectors: detached reads do not grant mutation capability; ok; 
+PASS isolated selectors: caught syntax failures preserve the existing realm; ok; 
+PASS isolated selectors: existing bridge-call ceiling applies; limit
+PASS isolated selectors: bridge exhaustion resets the realm and permits recovery; ok; 
+PASS isolated selectors: permission revocation still gates reads
+PASS Lea DOM regression Selectors: 48 checks.

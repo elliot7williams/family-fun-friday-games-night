@@ -1,0 +1,49 @@
+PASS in-process tree: six element navigation properties; first wrapper uses handle zero; ok; 
+PASS in-process tree: live parents and document root boundary; ok; 
+PASS in-process tree: child endpoints and counts skip whitespace text and comments; ok; 
+PASS in-process tree: adjacent element siblings skip interleaved text; ok; 
+PASS in-process tree: text-only and void elements have no element children; ok; 
+PASS in-process tree: document child endpoints and count retain element identity; ok; 
+PASS in-process tree: navigation includes non-rendered title style and script elements; ok; 
+PASS in-process tree: navigation properties are read only; ok; 
+PASS in-process tree: elements and document share one private getter set; ok; 
+PASS in-process tree: borrowed getters use the actual supported receiver; ok; 
+PASS in-process tree: unbranded receivers and document sibling getters are rejected; ok; 
+PASS in-process tree: private receiver lookup survives intrinsic replacement; ok; 
+PASS in-process tree: navigation is read only; ok; 
+PASS in-process tree: reads do not mutate or rebuild the page
+PASS in-process tree: navigation preserves edited form state; ok; 
+PASS in-process tree: native field model identity is retained
+PASS in-process tree: exact 8192-visit boundary accepts a host-supplied child list; ok; 
+PASS in-process tree: oversized host child list fails at the visit ceiling; limit
+PASS in-process tree: visit exhaustion resets and recovers the realm; ok; 
+PASS in-process tree: removed subtrees retain internal links without old ancestors; ok; 
+PASS in-process tree: detached navigation does not grant mutation capability; ok; 
+PASS in-process tree: existing bridge-call ceiling still applies; limit
+PASS in-process tree: bridge exhaustion resets the realm and permits recovery; ok; 
+PASS in-process tree: permission revocation gates navigation
+PASS isolated tree: six element navigation properties; first wrapper uses handle zero; ok; 
+PASS isolated tree: live parents and document root boundary; ok; 
+PASS isolated tree: child endpoints and counts skip whitespace text and comments; ok; 
+PASS isolated tree: adjacent element siblings skip interleaved text; ok; 
+PASS isolated tree: text-only and void elements have no element children; ok; 
+PASS isolated tree: document child endpoints and count retain element identity; ok; 
+PASS isolated tree: navigation includes non-rendered title style and script elements; ok; 
+PASS isolated tree: navigation properties are read only; ok; 
+PASS isolated tree: elements and document share one private getter set; ok; 
+PASS isolated tree: borrowed getters use the actual supported receiver; ok; 
+PASS isolated tree: unbranded receivers and document sibling getters are rejected; ok; 
+PASS isolated tree: private receiver lookup survives intrinsic replacement; ok; 
+PASS isolated tree: navigation is read only; ok; 
+PASS isolated tree: reads do not mutate or rebuild the page
+PASS isolated tree: navigation preserves edited form state; ok; 
+PASS isolated tree: native field model identity is retained
+PASS isolated tree: exact 8192-visit boundary accepts a host-supplied child list; ok; 
+PASS isolated tree: oversized host child list fails at the visit ceiling; limit
+PASS isolated tree: visit exhaustion resets and recovers the realm; ok; 
+PASS isolated tree: removed subtrees retain internal links without old ancestors; ok; 
+PASS isolated tree: detached navigation does not grant mutation capability; ok; 
+PASS isolated tree: existing bridge-call ceiling still applies; limit
+PASS isolated tree: bridge exhaustion resets the realm and permits recovery; ok; 
+PASS isolated tree: permission revocation gates navigation
+PASS Lea DOM regression Tree: 48 checks.

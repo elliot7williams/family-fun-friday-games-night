@@ -1,0 +1,60 @@
+PASS in-process timers: code: ok; ; 
+PASS in-process timers: timers are deferred until a distinct native task
+PASS in-process timers: task: ok; ; 
+PASS in-process timers: callback arguments/this and microtask checkpoint precede next timer
+PASS in-process timers: task: ok; ; 
+PASS in-process timers: timeout FIFO and one-shot retirement
+PASS in-process timers: code: ok; ; 
+PASS in-process timers: task: ok; ; 
+PASS in-process timers: clearTimeout and clearInterval share IDs and missing IDs are no-ops
+PASS in-process timers: code: ok; ; 
+PASS in-process timers: task: ok; ; 
+PASS in-process timers: task: ok; ; 
+PASS in-process timers: task: ok; ; 
+PASS in-process timers: interval persists in realm and cancels inside callback
+PASS in-process timers: code: ok; ; 
+PASS in-process timers: task: ok; ; 
+PASS in-process timers: callback can cancel another pending timer
+PASS in-process timers: code: ok; ; 
+PASS in-process timers: task: ok; ; 
+PASS in-process timers: task: ok; ; 
+PASS in-process timers: code: ok; ; 
+PASS in-process timers: string handlers compile in global scope after argument coercion
+PASS in-process timers: code: ok; ; 
+PASS in-process timers: task: ok; ; 
+PASS in-process timers: handler conversion uses string hint instead of valueOf
+PASS in-process timers: code: ok; ; 
+PASS in-process timers: task: ok; ; 
+PASS in-process timers: await can resume from a timer Promise in the same checkpoint
+PASS in-process timers: code: ok; ; 
+PASS in-process timers: task: ok; ; 
+PASS in-process timers: delay uses signed 32-bit conversion before negative clamp
+PASS in-process timers: code: ok; ; 
+PASS in-process timers: code: ok; ; 
+PASS in-process timers: task: ok; ; 
+PASS in-process timers: timer admission and dispatch use captured helpers
+PASS in-process timers: code: ok; ; 
+PASS in-process timers: task: ok; ; 
+PASS in-process timers: string compilation does not depend on replaced public eval
+PASS in-process timers: code: ok; ; 
+PASS in-process timers: task: ok; ; 
+PASS in-process timers: interval rearming precedes checkpoint and Promise can cancel it
+PASS in-process timers: code: ok; ; 
+PASS in-process timers: all admitted timer handles can be cleared in one turn
+PASS in-process timers: parent timer admission limit retires realm and metadata
+PASS in-process timers: code: ok; ; 
+PASS in-process timers: task: ok; ; 
+PASS in-process timers: callback argument list stays in realm and retains 64 entries
+PASS in-process timers: code: ok; ; 
+PASS in-process timers: code: ok; ; 
+PASS in-process timers: callback failure drains microtasks, retains writes, and discards peer timers
+PASS in-process timers: code: ok; ; 
+PASS in-process timers: timer callbacks retain cooperative execution budget
+PASS in-process timers: code: ok; ; 
+PASS in-process timers: string timer code retains cooperative execution budget
+PASS in-process timers: code: ok; ; 
+PASS in-process timers: task: ok; ; 
+PASS in-process timers: permission generation discards timers before execution
+PASS in-process timers: code: ok; ; 
+PASS in-process timers: navigation invalidates a bound timer realm
+PASS Lea scheduling Timers: 59 checks.

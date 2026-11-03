@@ -1,0 +1,1 @@
+PASS Lea isConnected native: inline lifecycle, real activation, field retention, detached editor cleanup, desktop/narrow render, guarded worker retirement.

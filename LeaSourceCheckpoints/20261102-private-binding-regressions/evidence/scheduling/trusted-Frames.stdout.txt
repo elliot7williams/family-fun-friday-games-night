@@ -1,0 +1,27 @@
+PASS trusted frames: code: ok; ; 
+PASS trusted frames: callbacks remain deferred until host rendering opportunity
+PASS trusted frames: batch: ok; ; 
+PASS trusted frames: FIFO, per-callback microtasks, shared timestamp and nested deferral
+PASS trusted frames: batch: ok; ; 
+PASS trusted frames: nested callback runs once in a later batch
+PASS trusted frames: code: ok; ; 
+PASS trusted frames: batch: ok; ; 
+PASS trusted frames: microtask cancels later callback in the same snapshot
+PASS trusted frames: code: ok; ; 
+PASS trusted frames: code: ok; ; 
+PASS trusted frames: unsigned-long cancellation conversion and idle no-op
+PASS trusted frames: code: ok; ; 
+PASS trusted frames: batch: ok; ; 
+PASS trusted frames: admission and dispatch retain captured helpers
+PASS trusted frames: code: ok; ; 
+PASS trusted frames: all admitted callbacks can be canceled
+PASS trusted frames: parent frame ceiling retires realm
+PASS trusted frames: code: ok; ; 
+PASS trusted frames: callback exception permits snapshot peers, retains writes, then retires realm
+PASS trusted frames: code: ok; ; 
+PASS trusted frames: frame callback retains cooperative budget
+PASS trusted frames: code: ok; ; 
+PASS trusted frames: permission generation invalidates frames before execution
+PASS trusted frames: code: ok; ; 
+PASS trusted frames: navigation invalidates frame realm
+PASS Lea scheduling Frames: 26 checks.

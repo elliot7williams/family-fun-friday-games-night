@@ -1,0 +1,67 @@
+PASS in-process attributes: code: ok; 
+PASS in-process attributes: code: ok; 
+PASS in-process attributes: renaming retains wrapper and node identity
+PASS in-process attributes: ID removal and class replacement rebuild the CSS cascade
+PASS in-process attributes: code: ok; 
+PASS in-process attributes: class reflection preserves raw whitespace and duplicate tokens
+PASS in-process attributes: code: ok; 
+PASS in-process attributes: code: ok; 
+PASS in-process attributes: code: ok; 
+PASS in-process attributes: code: ok; 
+PASS in-process attributes: code: ok; 
+PASS in-process attributes: empty reflected attributes remain present
+PASS in-process attributes: code: ok; 
+PASS in-process attributes: code: ok; 
+PASS in-process attributes: typed attribute values are not Lea commands or interpolated variables
+PASS in-process attributes: code: ok; 
+PASS in-process attributes: value conversion runs in the realm before literal parent mutation
+PASS in-process attributes: code: ok; 
+PASS in-process attributes: code: ok; 
+PASS in-process attributes: Symbol conversion fails before mutation
+PASS in-process attributes: code: ok; 
+PASS in-process attributes: code: ok; 
+PASS in-process attributes: oversized writes are atomic failures
+PASS in-process attributes: code: ok; 
+PASS in-process attributes: both reflected values accept the exact bound
+PASS in-process attributes: code: ok; 
+PASS in-process attributes: metadata applies to root and nonpainted elements
+PASS in-process attributes: code: ok; 
+PASS in-process attributes: native field identity and edited value survive metadata changes
+PASS in-process attributes: ID changes rebuild accessible label references
+PASS in-process attributes: code: ok; 
+PASS in-process attributes: code: ok; 
+PASS in-process attributes: permission revocation prevents attribute writes
+PASS isolated attributes: code: ok; 
+PASS isolated attributes: code: ok; 
+PASS isolated attributes: renaming retains wrapper and node identity
+PASS isolated attributes: ID removal and class replacement rebuild the CSS cascade
+PASS isolated attributes: code: ok; 
+PASS isolated attributes: class reflection preserves raw whitespace and duplicate tokens
+PASS isolated attributes: code: ok; 
+PASS isolated attributes: code: ok; 
+PASS isolated attributes: code: ok; 
+PASS isolated attributes: code: ok; 
+PASS isolated attributes: code: ok; 
+PASS isolated attributes: empty reflected attributes remain present
+PASS isolated attributes: code: ok; 
+PASS isolated attributes: code: ok; 
+PASS isolated attributes: typed attribute values are not Lea commands or interpolated variables
+PASS isolated attributes: code: ok; 
+PASS isolated attributes: value conversion runs in the realm before literal parent mutation
+PASS isolated attributes: code: ok; 
+PASS isolated attributes: code: ok; 
+PASS isolated attributes: Symbol conversion fails before mutation
+PASS isolated attributes: code: ok; 
+PASS isolated attributes: code: ok; 
+PASS isolated attributes: oversized writes are atomic failures
+PASS isolated attributes: code: ok; 
+PASS isolated attributes: both reflected values accept the exact bound
+PASS isolated attributes: code: ok; 
+PASS isolated attributes: metadata applies to root and nonpainted elements
+PASS isolated attributes: code: ok; 
+PASS isolated attributes: native field identity and edited value survive metadata changes
+PASS isolated attributes: ID changes rebuild accessible label references
+PASS isolated attributes: code: ok; 
+PASS isolated attributes: code: ok; 
+PASS isolated attributes: permission revocation prevents attribute writes
+PASS Lea DOM regression Attributes: 66 checks.

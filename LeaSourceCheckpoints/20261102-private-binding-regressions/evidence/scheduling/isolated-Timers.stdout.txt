@@ -1,0 +1,403 @@
+PASS isolated timers: code: ok; ; phase=ready; launch=154; probe=98; wall=1277; cpu=109 ms; native{volume=6;profile=48;loopback=53;grants=80;pipes=82;attributes=83;create=105;token=110;aslr-pipes=111;job=115;resume=126;return=129;}; ...startup document: wall=317; cpu=93 ms
+=319; cpu=93 ms
+startup probes: wall=651; cpu=93 ms
+startup closed: wall=652; cpu=93 ms
+startup hello: wall=653; cpu=93 ms
+startup ready: wall=653; cpu=93 ms
+frame invoke: i=0; r=0; wall=653 ms
+frame enter: i=0; r=0; wall=654 ms
+frame read: i=0; r=0; wall=654 ms
+
+PASS isolated timers: timers are deferred until a distinct native task
+PASS isolated timers: task: ok; ; phase=ready; launch=154; probe=98; wall=1277; cpu=109 ms; native{volume=6;profile=48;loopback=53;grants=80;pipes=82;attributes=83;create=105;token=110;aslr-pipes=111;job=115;resume=126;return=129;}; ...startup document: wall=317; cpu=93 ms
+=319; cpu=93 ms
+startup probes: wall=651; cpu=93 ms
+startup closed: wall=652; cpu=93 ms
+startup hello: wall=653; cpu=93 ms
+startup ready: wall=653; cpu=93 ms
+frame invoke: i=0; r=0; wall=653 ms
+frame enter: i=0; r=0; wall=654 ms
+frame read: i=0; r=0; wall=654 ms
+
+PASS isolated timers: callback arguments/this and microtask checkpoint precede next timer
+PASS isolated timers: task: ok; ; phase=ready; launch=154; probe=98; wall=1277; cpu=109 ms; native{volume=6;profile=48;loopback=53;grants=80;pipes=82;attributes=83;create=105;token=110;aslr-pipes=111;job=115;resume=126;return=129;}; ...startup document: wall=317; cpu=93 ms
+=319; cpu=93 ms
+startup probes: wall=651; cpu=93 ms
+startup closed: wall=652; cpu=93 ms
+startup hello: wall=653; cpu=93 ms
+startup ready: wall=653; cpu=93 ms
+frame invoke: i=0; r=0; wall=653 ms
+frame enter: i=0; r=0; wall=654 ms
+frame read: i=0; r=0; wall=654 ms
+
+PASS isolated timers: timeout FIFO and one-shot retirement
+PASS isolated timers: code: ok; ; phase=ready; launch=154; probe=98; wall=1277; cpu=109 ms; native{volume=6;profile=48;loopback=53;grants=80;pipes=82;attributes=83;create=105;token=110;aslr-pipes=111;job=115;resume=126;return=129;}; ...startup document: wall=317; cpu=93 ms
+=319; cpu=93 ms
+startup probes: wall=651; cpu=93 ms
+startup closed: wall=652; cpu=93 ms
+startup hello: wall=653; cpu=93 ms
+startup ready: wall=653; cpu=93 ms
+frame invoke: i=0; r=0; wall=653 ms
+frame enter: i=0; r=0; wall=654 ms
+frame read: i=0; r=0; wall=654 ms
+
+PASS isolated timers: task: ok; ; phase=ready; launch=154; probe=98; wall=1277; cpu=109 ms; native{volume=6;profile=48;loopback=53;grants=80;pipes=82;attributes=83;create=105;token=110;aslr-pipes=111;job=115;resume=126;return=129;}; ...startup document: wall=317; cpu=93 ms
+=319; cpu=93 ms
+startup probes: wall=651; cpu=93 ms
+startup closed: wall=652; cpu=93 ms
+startup hello: wall=653; cpu=93 ms
+startup ready: wall=653; cpu=93 ms
+frame invoke: i=0; r=0; wall=653 ms
+frame enter: i=0; r=0; wall=654 ms
+frame read: i=0; r=0; wall=654 ms
+
+PASS isolated timers: clearTimeout and clearInterval share IDs and missing IDs are no-ops
+PASS isolated timers: code: ok; ; phase=ready; launch=154; probe=98; wall=1277; cpu=109 ms; native{volume=6;profile=48;loopback=53;grants=80;pipes=82;attributes=83;create=105;token=110;aslr-pipes=111;job=115;resume=126;return=129;}; ...startup document: wall=317; cpu=93 ms
+=319; cpu=93 ms
+startup probes: wall=651; cpu=93 ms
+startup closed: wall=652; cpu=93 ms
+startup hello: wall=653; cpu=93 ms
+startup ready: wall=653; cpu=93 ms
+frame invoke: i=0; r=0; wall=653 ms
+frame enter: i=0; r=0; wall=654 ms
+frame read: i=0; r=0; wall=654 ms
+
+PASS isolated timers: task: ok; ; phase=ready; launch=154; probe=98; wall=1277; cpu=109 ms; native{volume=6;profile=48;loopback=53;grants=80;pipes=82;attributes=83;create=105;token=110;aslr-pipes=111;job=115;resume=126;return=129;}; ...startup document: wall=317; cpu=93 ms
+=319; cpu=93 ms
+startup probes: wall=651; cpu=93 ms
+startup closed: wall=652; cpu=93 ms
+startup hello: wall=653; cpu=93 ms
+startup ready: wall=653; cpu=93 ms
+frame invoke: i=0; r=0; wall=653 ms
+frame enter: i=0; r=0; wall=654 ms
+frame read: i=0; r=0; wall=654 ms
+
+PASS isolated timers: task: ok; ; phase=ready; launch=154; probe=98; wall=1277; cpu=109 ms; native{volume=6;profile=48;loopback=53;grants=80;pipes=82;attributes=83;create=105;token=110;aslr-pipes=111;job=115;resume=126;return=129;}; ...startup document: wall=317; cpu=93 ms
+=319; cpu=93 ms
+startup probes: wall=651; cpu=93 ms
+startup closed: wall=652; cpu=93 ms
+startup hello: wall=653; cpu=93 ms
+startup ready: wall=653; cpu=93 ms
+frame invoke: i=0; r=0; wall=653 ms
+frame enter: i=0; r=0; wall=654 ms
+frame read: i=0; r=0; wall=654 ms
+
+PASS isolated timers: task: ok; ; phase=ready; launch=154; probe=98; wall=1277; cpu=109 ms; native{volume=6;profile=48;loopback=53;grants=80;pipes=82;attributes=83;create=105;token=110;aslr-pipes=111;job=115;resume=126;return=129;}; ...startup document: wall=317; cpu=93 ms
+=319; cpu=93 ms
+startup probes: wall=651; cpu=93 ms
+startup closed: wall=652; cpu=93 ms
+startup hello: wall=653; cpu=93 ms
+startup ready: wall=653; cpu=93 ms
+frame invoke: i=0; r=0; wall=653 ms
+frame enter: i=0; r=0; wall=654 ms
+frame read: i=0; r=0; wall=654 ms
+
+PASS isolated timers: interval persists in realm and cancels inside callback
+PASS isolated timers: code: ok; ; phase=ready; launch=154; probe=98; wall=1277; cpu=109 ms; native{volume=6;profile=48;loopback=53;grants=80;pipes=82;attributes=83;create=105;token=110;aslr-pipes=111;job=115;resume=126;return=129;}; ...startup document: wall=317; cpu=93 ms
+=319; cpu=93 ms
+startup probes: wall=651; cpu=93 ms
+startup closed: wall=652; cpu=93 ms
+startup hello: wall=653; cpu=93 ms
+startup ready: wall=653; cpu=93 ms
+frame invoke: i=0; r=0; wall=653 ms
+frame enter: i=0; r=0; wall=654 ms
+frame read: i=0; r=0; wall=654 ms
+
+PASS isolated timers: task: ok; ; phase=ready; launch=154; probe=98; wall=1277; cpu=109 ms; native{volume=6;profile=48;loopback=53;grants=80;pipes=82;attributes=83;create=105;token=110;aslr-pipes=111;job=115;resume=126;return=129;}; ...startup document: wall=317; cpu=93 ms
+=319; cpu=93 ms
+startup probes: wall=651; cpu=93 ms
+startup closed: wall=652; cpu=93 ms
+startup hello: wall=653; cpu=93 ms
+startup ready: wall=653; cpu=93 ms
+frame invoke: i=0; r=0; wall=653 ms
+frame enter: i=0; r=0; wall=654 ms
+frame read: i=0; r=0; wall=654 ms
+
+PASS isolated timers: callback can cancel another pending timer
+PASS isolated timers: code: ok; ; phase=ready; launch=154; probe=98; wall=1277; cpu=109 ms; native{volume=6;profile=48;loopback=53;grants=80;pipes=82;attributes=83;create=105;token=110;aslr-pipes=111;job=115;resume=126;return=129;}; ...startup document: wall=317; cpu=93 ms
+=319; cpu=93 ms
+startup probes: wall=651; cpu=93 ms
+startup closed: wall=652; cpu=93 ms
+startup hello: wall=653; cpu=93 ms
+startup ready: wall=653; cpu=93 ms
+frame invoke: i=0; r=0; wall=653 ms
+frame enter: i=0; r=0; wall=654 ms
+frame read: i=0; r=0; wall=654 ms
+
+PASS isolated timers: task: ok; ; phase=ready; launch=154; probe=98; wall=1277; cpu=109 ms; native{volume=6;profile=48;loopback=53;grants=80;pipes=82;attributes=83;create=105;token=110;aslr-pipes=111;job=115;resume=126;return=129;}; ...startup document: wall=317; cpu=93 ms
+=319; cpu=93 ms
+startup probes: wall=651; cpu=93 ms
+startup closed: wall=652; cpu=93 ms
+startup hello: wall=653; cpu=93 ms
+startup ready: wall=653; cpu=93 ms
+frame invoke: i=0; r=0; wall=653 ms
+frame enter: i=0; r=0; wall=654 ms
+frame read: i=0; r=0; wall=654 ms
+
+PASS isolated timers: task: ok; ; phase=ready; launch=154; probe=98; wall=1277; cpu=109 ms; native{volume=6;profile=48;loopback=53;grants=80;pipes=82;attributes=83;create=105;token=110;aslr-pipes=111;job=115;resume=126;return=129;}; ...startup document: wall=317; cpu=93 ms
+=319; cpu=93 ms
+startup probes: wall=651; cpu=93 ms
+startup closed: wall=652; cpu=93 ms
+startup hello: wall=653; cpu=93 ms
+startup ready: wall=653; cpu=93 ms
+frame invoke: i=0; r=0; wall=653 ms
+frame enter: i=0; r=0; wall=654 ms
+frame read: i=0; r=0; wall=654 ms
+
+PASS isolated timers: code: ok; ; phase=ready; launch=154; probe=98; wall=1277; cpu=109 ms; native{volume=6;profile=48;loopback=53;grants=80;pipes=82;attributes=83;create=105;token=110;aslr-pipes=111;job=115;resume=126;return=129;}; ...startup document: wall=317; cpu=93 ms
+=319; cpu=93 ms
+startup probes: wall=651; cpu=93 ms
+startup closed: wall=652; cpu=93 ms
+startup hello: wall=653; cpu=93 ms
+startup ready: wall=653; cpu=93 ms
+frame invoke: i=0; r=0; wall=653 ms
+frame enter: i=0; r=0; wall=654 ms
+frame read: i=0; r=0; wall=654 ms
+
+PASS isolated timers: string handlers compile in global scope after argument coercion
+PASS isolated timers: code: ok; ; phase=ready; launch=154; probe=98; wall=1277; cpu=109 ms; native{volume=6;profile=48;loopback=53;grants=80;pipes=82;attributes=83;create=105;token=110;aslr-pipes=111;job=115;resume=126;return=129;}; ...startup document: wall=317; cpu=93 ms
+=319; cpu=93 ms
+startup probes: wall=651; cpu=93 ms
+startup closed: wall=652; cpu=93 ms
+startup hello: wall=653; cpu=93 ms
+startup ready: wall=653; cpu=93 ms
+frame invoke: i=0; r=0; wall=653 ms
+frame enter: i=0; r=0; wall=654 ms
+frame read: i=0; r=0; wall=654 ms
+
+PASS isolated timers: task: ok; ; phase=ready; launch=154; probe=98; wall=1277; cpu=109 ms; native{volume=6;profile=48;loopback=53;grants=80;pipes=82;attributes=83;create=105;token=110;aslr-pipes=111;job=115;resume=126;return=129;}; ...startup document: wall=317; cpu=93 ms
+=319; cpu=93 ms
+startup probes: wall=651; cpu=93 ms
+startup closed: wall=652; cpu=93 ms
+startup hello: wall=653; cpu=93 ms
+startup ready: wall=653; cpu=93 ms
+frame invoke: i=0; r=0; wall=653 ms
+frame enter: i=0; r=0; wall=654 ms
+frame read: i=0; r=0; wall=654 ms
+
+PASS isolated timers: handler conversion uses string hint instead of valueOf
+PASS isolated timers: code: ok; ; phase=ready; launch=154; probe=98; wall=1277; cpu=109 ms; native{volume=6;profile=48;loopback=53;grants=80;pipes=82;attributes=83;create=105;token=110;aslr-pipes=111;job=115;resume=126;return=129;}; ...startup document: wall=317; cpu=93 ms
+=319; cpu=93 ms
+startup probes: wall=651; cpu=93 ms
+startup closed: wall=652; cpu=93 ms
+startup hello: wall=653; cpu=93 ms
+startup ready: wall=653; cpu=93 ms
+frame invoke: i=0; r=0; wall=653 ms
+frame enter: i=0; r=0; wall=654 ms
+frame read: i=0; r=0; wall=654 ms
+
+PASS isolated timers: task: ok; ; phase=ready; launch=154; probe=98; wall=1277; cpu=109 ms; native{volume=6;profile=48;loopback=53;grants=80;pipes=82;attributes=83;create=105;token=110;aslr-pipes=111;job=115;resume=126;return=129;}; ...startup document: wall=317; cpu=93 ms
+=319; cpu=93 ms
+startup probes: wall=651; cpu=93 ms
+startup closed: wall=652; cpu=93 ms
+startup hello: wall=653; cpu=93 ms
+startup ready: wall=653; cpu=93 ms
+frame invoke: i=0; r=0; wall=653 ms
+frame enter: i=0; r=0; wall=654 ms
+frame read: i=0; r=0; wall=654 ms
+
+PASS isolated timers: await can resume from a timer Promise in the same checkpoint
+PASS isolated timers: code: ok; ; phase=ready; launch=154; probe=98; wall=1277; cpu=109 ms; native{volume=6;profile=48;loopback=53;grants=80;pipes=82;attributes=83;create=105;token=110;aslr-pipes=111;job=115;resume=126;return=129;}; ...startup document: wall=317; cpu=93 ms
+=319; cpu=93 ms
+startup probes: wall=651; cpu=93 ms
+startup closed: wall=652; cpu=93 ms
+startup hello: wall=653; cpu=93 ms
+startup ready: wall=653; cpu=93 ms
+frame invoke: i=0; r=0; wall=653 ms
+frame enter: i=0; r=0; wall=654 ms
+frame read: i=0; r=0; wall=654 ms
+
+PASS isolated timers: task: ok; ; phase=ready; launch=154; probe=98; wall=1277; cpu=109 ms; native{volume=6;profile=48;loopback=53;grants=80;pipes=82;attributes=83;create=105;token=110;aslr-pipes=111;job=115;resume=126;return=129;}; ...startup document: wall=317; cpu=93 ms
+=319; cpu=93 ms
+startup probes: wall=651; cpu=93 ms
+startup closed: wall=652; cpu=93 ms
+startup hello: wall=653; cpu=93 ms
+startup ready: wall=653; cpu=93 ms
+frame invoke: i=0; r=0; wall=653 ms
+frame enter: i=0; r=0; wall=654 ms
+frame read: i=0; r=0; wall=654 ms
+
+PASS isolated timers: delay uses signed 32-bit conversion before negative clamp
+PASS isolated timers: code: ok; ; phase=ready; launch=154; probe=98; wall=1277; cpu=109 ms; native{volume=6;profile=48;loopback=53;grants=80;pipes=82;attributes=83;create=105;token=110;aslr-pipes=111;job=115;resume=126;return=129;}; ...startup document: wall=317; cpu=93 ms
+=319; cpu=93 ms
+startup probes: wall=651; cpu=93 ms
+startup closed: wall=652; cpu=93 ms
+startup hello: wall=653; cpu=93 ms
+startup ready: wall=653; cpu=93 ms
+frame invoke: i=0; r=0; wall=653 ms
+frame enter: i=0; r=0; wall=654 ms
+frame read: i=0; r=0; wall=654 ms
+
+PASS isolated timers: code: ok; ; phase=ready; launch=154; probe=98; wall=1277; cpu=109 ms; native{volume=6;profile=48;loopback=53;grants=80;pipes=82;attributes=83;create=105;token=110;aslr-pipes=111;job=115;resume=126;return=129;}; ...startup document: wall=317; cpu=93 ms
+=319; cpu=93 ms
+startup probes: wall=651; cpu=93 ms
+startup closed: wall=652; cpu=93 ms
+startup hello: wall=653; cpu=93 ms
+startup ready: wall=653; cpu=93 ms
+frame invoke: i=0; r=0; wall=653 ms
+frame enter: i=0; r=0; wall=654 ms
+frame read: i=0; r=0; wall=654 ms
+
+PASS isolated timers: task: ok; ; phase=ready; launch=154; probe=98; wall=1277; cpu=109 ms; native{volume=6;profile=48;loopback=53;grants=80;pipes=82;attributes=83;create=105;token=110;aslr-pipes=111;job=115;resume=126;return=129;}; ...startup document: wall=317; cpu=93 ms
+=319; cpu=93 ms
+startup probes: wall=651; cpu=93 ms
+startup closed: wall=652; cpu=93 ms
+startup hello: wall=653; cpu=93 ms
+startup ready: wall=653; cpu=93 ms
+frame invoke: i=0; r=0; wall=653 ms
+frame enter: i=0; r=0; wall=654 ms
+frame read: i=0; r=0; wall=654 ms
+
+PASS isolated timers: timer admission and dispatch use captured helpers
+PASS isolated timers: code: ok; ; phase=ready; launch=154; probe=98; wall=1277; cpu=109 ms; native{volume=6;profile=48;loopback=53;grants=80;pipes=82;attributes=83;create=105;token=110;aslr-pipes=111;job=115;resume=126;return=129;}; ...startup document: wall=317; cpu=93 ms
+=319; cpu=93 ms
+startup probes: wall=651; cpu=93 ms
+startup closed: wall=652; cpu=93 ms
+startup hello: wall=653; cpu=93 ms
+startup ready: wall=653; cpu=93 ms
+frame invoke: i=0; r=0; wall=653 ms
+frame enter: i=0; r=0; wall=654 ms
+frame read: i=0; r=0; wall=654 ms
+
+PASS isolated timers: task: ok; ; phase=ready; launch=154; probe=98; wall=1277; cpu=109 ms; native{volume=6;profile=48;loopback=53;grants=80;pipes=82;attributes=83;create=105;token=110;aslr-pipes=111;job=115;resume=126;return=129;}; ...startup document: wall=317; cpu=93 ms
+=319; cpu=93 ms
+startup probes: wall=651; cpu=93 ms
+startup closed: wall=652; cpu=93 ms
+startup hello: wall=653; cpu=93 ms
+startup ready: wall=653; cpu=93 ms
+frame invoke: i=0; r=0; wall=653 ms
+frame enter: i=0; r=0; wall=654 ms
+frame read: i=0; r=0; wall=654 ms
+
+PASS isolated timers: string compilation does not depend on replaced public eval
+PASS isolated timers: code: ok; ; phase=ready; launch=154; probe=98; wall=1277; cpu=109 ms; native{volume=6;profile=48;loopback=53;grants=80;pipes=82;attributes=83;create=105;token=110;aslr-pipes=111;job=115;resume=126;return=129;}; ...startup document: wall=317; cpu=93 ms
+=319; cpu=93 ms
+startup probes: wall=651; cpu=93 ms
+startup closed: wall=652; cpu=93 ms
+startup hello: wall=653; cpu=93 ms
+startup ready: wall=653; cpu=93 ms
+frame invoke: i=0; r=0; wall=653 ms
+frame enter: i=0; r=0; wall=654 ms
+frame read: i=0; r=0; wall=654 ms
+
+PASS isolated timers: task: ok; ; phase=ready; launch=154; probe=98; wall=1277; cpu=109 ms; native{volume=6;profile=48;loopback=53;grants=80;pipes=82;attributes=83;create=105;token=110;aslr-pipes=111;job=115;resume=126;return=129;}; ...startup document: wall=317; cpu=93 ms
+=319; cpu=93 ms
+startup probes: wall=651; cpu=93 ms
+startup closed: wall=652; cpu=93 ms
+startup hello: wall=653; cpu=93 ms
+startup ready: wall=653; cpu=93 ms
+frame invoke: i=0; r=0; wall=653 ms
+frame enter: i=0; r=0; wall=654 ms
+frame read: i=0; r=0; wall=654 ms
+
+PASS isolated timers: interval rearming precedes checkpoint and Promise can cancel it
+PASS isolated timers: code: ok; ; phase=ready; launch=154; probe=98; wall=1277; cpu=109 ms; native{volume=6;profile=48;loopback=53;grants=80;pipes=82;attributes=83;create=105;token=110;aslr-pipes=111;job=115;resume=126;return=129;}; ...startup document: wall=317; cpu=93 ms
+=319; cpu=93 ms
+startup probes: wall=651; cpu=93 ms
+startup closed: wall=652; cpu=93 ms
+startup hello: wall=653; cpu=93 ms
+startup ready: wall=653; cpu=93 ms
+frame invoke: i=0; r=0; wall=653 ms
+frame enter: i=0; r=0; wall=654 ms
+frame read: i=0; r=0; wall=654 ms
+
+PASS isolated timers: all admitted timer handles can be cleared in one turn
+PASS isolated timers: parent timer admission limit retires realm and metadata
+PASS isolated timers: code: ok; ; phase=ready; launch=99; probe=34; wall=1328; cpu=187 ms; native{volume=1;profile=40;loopback=45;grants=56;pipes=56;attributes=56;create=70;token=70;aslr-pipes=70;job=70;resume=79;return=99;}; ...=156 ms
+startup events: wall=783; cpu=187 ms
+startup interfaces: wall=820; cpu=187 ms
+startup elements: wall=820; cpu=187 ms
+startup document: wall=829; cpu=187 ms
+startup dom: wall=830; cpu=187 ms
+startup probes: wall=831; cpu=187 ms
+startup closed: wall=841; cpu=187 ms
+startup hello: wall=842; cpu=187 ms
+
+PASS isolated timers: task: ok; ; phase=ready; launch=99; probe=34; wall=1328; cpu=187 ms; native{volume=1;profile=40;loopback=45;grants=56;pipes=56;attributes=56;create=70;token=70;aslr-pipes=70;job=70;resume=79;return=99;}; ...=156 ms
+startup events: wall=783; cpu=187 ms
+startup interfaces: wall=820; cpu=187 ms
+startup elements: wall=820; cpu=187 ms
+startup document: wall=829; cpu=187 ms
+startup dom: wall=830; cpu=187 ms
+startup probes: wall=831; cpu=187 ms
+startup closed: wall=841; cpu=187 ms
+startup hello: wall=842; cpu=187 ms
+
+PASS isolated timers: callback argument list stays in realm and retains 64 entries
+PASS isolated timers: code: ok; ; phase=ready; launch=99; probe=34; wall=1328; cpu=187 ms; native{volume=1;profile=40;loopback=45;grants=56;pipes=56;attributes=56;create=70;token=70;aslr-pipes=70;job=70;resume=79;return=99;}; ...=156 ms
+startup events: wall=783; cpu=187 ms
+startup interfaces: wall=820; cpu=187 ms
+startup elements: wall=820; cpu=187 ms
+startup document: wall=829; cpu=187 ms
+startup dom: wall=830; cpu=187 ms
+startup probes: wall=831; cpu=187 ms
+startup closed: wall=841; cpu=187 ms
+startup hello: wall=842; cpu=187 ms
+
+PASS isolated timers: code: ok; ; phase=ready; launch=99; probe=34; wall=1328; cpu=187 ms; native{volume=1;profile=40;loopback=45;grants=56;pipes=56;attributes=56;create=70;token=70;aslr-pipes=70;job=70;resume=79;return=99;}; ...=156 ms
+startup events: wall=783; cpu=187 ms
+startup interfaces: wall=820; cpu=187 ms
+startup elements: wall=820; cpu=187 ms
+startup document: wall=829; cpu=187 ms
+startup dom: wall=830; cpu=187 ms
+startup probes: wall=831; cpu=187 ms
+startup closed: wall=841; cpu=187 ms
+startup hello: wall=842; cpu=187 ms
+
+PASS isolated timers: callback failure drains microtasks, retains writes, and discards peer timers
+PASS isolated timers: code: ok; ; phase=ready; launch=122; probe=7; wall=1290; cpu=203 ms; native{volume=1;profile=55;loopback=58;grants=68;pipes=68;attributes=68;create=93;token=93;aslr-pipes=93;job=93;resume=101;return=122;}; ... cpu=187 ms
+startup elements: wall=762; cpu=187 ms
+startup document: wall=769; cpu=203 ms
+startup dom: wall=769; cpu=203 ms
+startup probes: wall=770; cpu=203 ms
+startup closed: wall=772; cpu=203 ms
+startup hello: wall=772; cpu=203 ms
+startup ready: wall=773; cpu=203 ms
+frame invoke: i=0; r=0; wall=773 ms
+
+PASS isolated timers: timer callbacks retain cooperative execution budget
+PASS isolated timers: code: ok; ; phase=ready; launch=191; probe=6; wall=1250; cpu=109 ms; native{volume=1;profile=34;loopback=35;grants=45;pipes=45;attributes=45;create=179;token=179;aslr-pipes=179;job=179;resume=187;return=191;}; ...ms
+startup events: wall=408; cpu=93 ms
+startup interfaces: wall=419; cpu=109 ms
+startup elements: wall=420; cpu=109 ms
+startup document: wall=425; cpu=109 ms
+startup dom: wall=426; cpu=109 ms
+startup probes: wall=698; cpu=109 ms
+startup closed: wall=701; cpu=109 ms
+startup hello: wall=701; cpu=109 ms
+
+PASS isolated timers: string timer code retains cooperative execution budget
+PASS isolated timers: code: ok; ; phase=ready; launch=138; probe=5; wall=1207; cpu=187 ms; native{volume=1;profile=38;loopback=39;grants=55;pipes=55;attributes=55;create=121;token=121;aslr-pipes=121;job=121;resume=129;return=138;}; ... cpu=187 ms
+startup document: wall=540; cpu=187 ms
+startup dom: wall=541; cpu=187 ms
+startup probes: wall=718; cpu=187 ms
+startup closed: wall=720; cpu=187 ms
+startup hello: wall=721; cpu=187 ms
+startup ready: wall=726; cpu=187 ms
+frame invoke: i=0; r=0; wall=726 ms
+frame enter: i=0; r=0; wall=726 ms
+
+PASS isolated timers: task: ok; ; phase=ready; launch=138; probe=5; wall=1207; cpu=187 ms; native{volume=1;profile=38;loopback=39;grants=55;pipes=55;attributes=55;create=121;token=121;aslr-pipes=121;job=121;resume=129;return=138;}; ... cpu=187 ms
+startup document: wall=540; cpu=187 ms
+startup dom: wall=541; cpu=187 ms
+startup probes: wall=718; cpu=187 ms
+startup closed: wall=720; cpu=187 ms
+startup hello: wall=721; cpu=187 ms
+startup ready: wall=726; cpu=187 ms
+frame invoke: i=0; r=0; wall=726 ms
+frame enter: i=0; r=0; wall=726 ms
+
+PASS isolated timers: permission generation discards timers before execution
+PASS isolated timers: code: ok; ; phase=ready; launch=130; probe=14; wall=1093; cpu=93 ms; native{volume=1;profile=32;loopback=42;grants=51;pipes=52;attributes=52;create=111;token=111;aslr-pipes=111;job=111;resume=119;return=124;}; ...startup document: wall=598; cpu=93 ms
+l=598; cpu=93 ms
+startup probes: wall=658; cpu=93 ms
+startup closed: wall=659; cpu=93 ms
+startup hello: wall=659; cpu=93 ms
+startup ready: wall=660; cpu=93 ms
+frame invoke: i=0; r=0; wall=660 ms
+frame enter: i=0; r=0; wall=660 ms
+frame read: i=0; r=0; wall=660 ms
+
+PASS isolated timers: navigation invalidates a bound timer realm
+LEA_SCHEDULING_GUARDS 21
+PASS Lea isolated scheduling Timers: 59 checks.

@@ -1,0 +1,189 @@
+{
+  "allTwelveOwnedRunsRetired": true,
+  "driverFilesAdded": 6,
+  "schedulingChecks": 171,
+  "original21Unchanged": true,
+  "nativeViewPassed": true,
+  "isolatedTimerGuardObservations": 21,
+  "copies": [
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\01-result.json",
+      "original": "I:/LeaBuildStorage/private-binding-shared-dom-20261102-v1/result.json",
+      "sha256": "246C2EDB4717DAE02F6CEA6E2A7D1975B6B3A08DF23ECB569B9922B1E832B836"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\02-result.json",
+      "original": "I:/LeaBuildStorage/private-binding-shared-scheduling-20261102-v1/result.json",
+      "sha256": "3015572627EA0427C896C52C2EB697C2CE2AEAE986B94119B17902F05286B4CC"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\03-result.json",
+      "original": "I:/LeaBuildStorage/private-binding-shared-native-20261102-v1/result.json",
+      "sha256": "746FE5992E89D2639E4D594D9681774DD289D91568360473704C753969E2620F"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\04-compile-dom-driver.stdout.txt",
+      "original": "I:\\LeaBuildStorage\\private-binding-shared-dom-20261102-v1\\compile-dom-driver.stdout.txt",
+      "sha256": "0B4CED6267D6217FC155BC3292523E7D68725882D6D0EDFACA0F359F1CF62FD7"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\05-compile-dom-driver.stderr.txt",
+      "original": "I:\\LeaBuildStorage\\private-binding-shared-dom-20261102-v1\\compile-dom-driver.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\06-original-Selectors.stdout.txt",
+      "original": "I:\\LeaBuildStorage\\private-binding-shared-dom-20261102-v1\\original-Selectors.stdout.txt",
+      "sha256": "F0DBD668066F9DB6DF9E67B2326825B08A60B31BBD1FA2CD3CA1EEA68AD39387"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\07-original-Selectors.stderr.txt",
+      "original": "I:\\LeaBuildStorage\\private-binding-shared-dom-20261102-v1\\original-Selectors.stderr.txt",
+      "sha256": "E7EFDB3DB3ABCA5483BF4BE187D3CE3A897D301B153B3D5CAEDF068DEDFE35DE"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\08-original-Tree.stdout.txt",
+      "original": "I:\\LeaBuildStorage\\private-binding-shared-dom-20261102-v1\\original-Tree.stdout.txt",
+      "sha256": "A35FA2F9D91002C6E5A89EA08FE50E194B38E2FD09A5C6AA5C59E80D094AA389"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\09-original-Tree.stderr.txt",
+      "original": "I:\\LeaBuildStorage\\private-binding-shared-dom-20261102-v1\\original-Tree.stderr.txt",
+      "sha256": "E7EFDB3DB3ABCA5483BF4BE187D3CE3A897D301B153B3D5CAEDF068DEDFE35DE"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\10-original-Attributes.stdout.txt",
+      "original": "I:\\LeaBuildStorage\\private-binding-shared-dom-20261102-v1\\original-Attributes.stdout.txt",
+      "sha256": "177BDA24F523C1AF942A9DE4CD603F9D26C8273F84DA93D554D906FB82970444"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\11-original-Attributes.stderr.txt",
+      "original": "I:\\LeaBuildStorage\\private-binding-shared-dom-20261102-v1\\original-Attributes.stderr.txt",
+      "sha256": "E7EFDB3DB3ABCA5483BF4BE187D3CE3A897D301B153B3D5CAEDF068DEDFE35DE"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\12-original-ClassLists.stdout.txt",
+      "original": "I:\\LeaBuildStorage\\private-binding-shared-dom-20261102-v1\\original-ClassLists.stdout.txt",
+      "sha256": "84C03BAEA4396015E14FCA3D8F6186021B5B2630C287244A31301CFE7EED0C40"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\13-original-ClassLists.stderr.txt",
+      "original": "I:\\LeaBuildStorage\\private-binding-shared-dom-20261102-v1\\original-ClassLists.stderr.txt",
+      "sha256": "E7EFDB3DB3ABCA5483BF4BE187D3CE3A897D301B153B3D5CAEDF068DEDFE35DE"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\14-compile-scheduling-driver.stdout.txt",
+      "original": "I:\\LeaBuildStorage\\private-binding-shared-scheduling-20261102-v1\\compile-scheduling-driver.stdout.txt",
+      "sha256": "0B4CED6267D6217FC155BC3292523E7D68725882D6D0EDFACA0F359F1CF62FD7"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\15-compile-scheduling-driver.stderr.txt",
+      "original": "I:\\LeaBuildStorage\\private-binding-shared-scheduling-20261102-v1\\compile-scheduling-driver.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\16-trusted-Timers.stdout.txt",
+      "original": "I:\\LeaBuildStorage\\private-binding-shared-scheduling-20261102-v1\\trusted-Timers.stdout.txt",
+      "sha256": "D4FB6C7B71A6133B0DC0625BBA3DE91BA0A53ACBE581806548F540D54640B51C"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\17-trusted-Timers.stderr.txt",
+      "original": "I:\\LeaBuildStorage\\private-binding-shared-scheduling-20261102-v1\\trusted-Timers.stderr.txt",
+      "sha256": "E7EFDB3DB3ABCA5483BF4BE187D3CE3A897D301B153B3D5CAEDF068DEDFE35DE"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\18-trusted-Frames.stdout.txt",
+      "original": "I:\\LeaBuildStorage\\private-binding-shared-scheduling-20261102-v1\\trusted-Frames.stdout.txt",
+      "sha256": "1F85CB6D191594A0B42F499DC69A2B99CEB323BBDC13783BCA4548FE973974AB"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\19-trusted-Frames.stderr.txt",
+      "original": "I:\\LeaBuildStorage\\private-binding-shared-scheduling-20261102-v1\\trusted-Frames.stderr.txt",
+      "sha256": "E7EFDB3DB3ABCA5483BF4BE187D3CE3A897D301B153B3D5CAEDF068DEDFE35DE"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\20-isolated-Timers.stdout.txt",
+      "original": "I:\\LeaBuildStorage\\private-binding-shared-scheduling-20261102-v1\\isolated-Timers.stdout.txt",
+      "sha256": "D91D4EBBF4FADF42FB6BCCB7F5E00FC7455B14CE894B99ED4880A3361AB53023"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\21-isolated-Timers.stderr.txt",
+      "original": "I:\\LeaBuildStorage\\private-binding-shared-scheduling-20261102-v1\\isolated-Timers.stderr.txt",
+      "sha256": "E7EFDB3DB3ABCA5483BF4BE187D3CE3A897D301B153B3D5CAEDF068DEDFE35DE"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\22-isolated-Frames.stdout.txt",
+      "original": "I:\\LeaBuildStorage\\private-binding-shared-scheduling-20261102-v1\\isolated-Frames.stdout.txt",
+      "sha256": "BE94BEA21FEDF1E205C437257CBA0795C4C6C65C3C35B76412FEF633757DA6DD"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\23-isolated-Frames.stderr.txt",
+      "original": "I:\\LeaBuildStorage\\private-binding-shared-scheduling-20261102-v1\\isolated-Frames.stderr.txt",
+      "sha256": "E7EFDB3DB3ABCA5483BF4BE187D3CE3A897D301B153B3D5CAEDF068DEDFE35DE"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\24-compile-native-driver.stdout.txt",
+      "original": "I:\\LeaBuildStorage\\private-binding-shared-native-20261102-v1\\compile-native-driver.stdout.txt",
+      "sha256": "0B4CED6267D6217FC155BC3292523E7D68725882D6D0EDFACA0F359F1CF62FD7"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\25-compile-native-driver.stderr.txt",
+      "original": "I:\\LeaBuildStorage\\private-binding-shared-native-20261102-v1\\compile-native-driver.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\26-native-connectivity.stdout.txt",
+      "original": "I:\\LeaBuildStorage\\private-binding-shared-native-20261102-v1\\native-connectivity.stdout.txt",
+      "sha256": "492877EA7258A5FC6378FEA433A04945114F38668A7261554237D2F29D36B418"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\27-native-connectivity.stderr.txt",
+      "original": "I:\\LeaBuildStorage\\private-binding-shared-native-20261102-v1\\native-connectivity.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\28-connected-desktop.png",
+      "original": "I:\\LeaBuildStorage\\private-binding-shared-native-20261102-v1\\connected-desktop.png",
+      "sha256": "4DC001B462453C5B3A770B12B4B23F7C39F4F77A734C1BE5584D53FA03772149"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\29-detached-desktop.png",
+      "original": "I:\\LeaBuildStorage\\private-binding-shared-native-20261102-v1\\detached-desktop.png",
+      "sha256": "BE5B36B24F949044D075DB4DD247CD262DF3CFA7E39F79A0A1CE6A604E5ACC96"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-regression-audit-20261102-v1\\30-detached-narrow.png",
+      "original": "I:\\LeaBuildStorage\\private-binding-shared-native-20261102-v1\\detached-narrow.png",
+      "sha256": "71896DB66EC68674B60648F72F075F786CCE98D64D04880735062AD7177C1CA5"
+    }
+  ],
+  "startupReliabilityProven": false,
+  "domChecks": 262,
+  "verified": true,
+  "images": [
+    {
+      "height": 700,
+      "matchesBaseline": true,
+      "name": "connected-desktop.png",
+      "width": 940,
+      "sha256": "4DC001B462453C5B3A770B12B4B23F7C39F4F77A734C1BE5584D53FA03772149"
+    },
+    {
+      "height": 700,
+      "matchesBaseline": true,
+      "name": "detached-desktop.png",
+      "width": 940,
+      "sha256": "BE5B36B24F949044D075DB4DD247CD262DF3CFA7E39F79A0A1CE6A604E5ACC96"
+    },
+    {
+      "height": 700,
+      "matchesBaseline": true,
+      "name": "detached-narrow.png",
+      "width": 420,
+      "sha256": "71896DB66EC68674B60648F72F075F786CCE98D64D04880735062AD7177C1CA5"
+    }
+  ],
+  "hostAdopted": false,
+  "runtimeFiles": 27,
+  "fullSuiteQualified": false
+}

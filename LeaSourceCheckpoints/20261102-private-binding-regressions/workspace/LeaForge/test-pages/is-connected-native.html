@@ -1,0 +1,24 @@
+<!doctype html>
+<html><head><title>Connectivity fixture</title><style>
+body { margin: 20px; color: #20242a; background: white; font-family: Segoe UI; }
+h1 { font-size: 26px; color: #176b58; }
+#result { padding: 12px; background: #dff2eb; font-size: 20px; }
+#group { padding: 12px; border: 1px solid #65717a; margin: 12px 0; }
+button, input { margin: 6px 0; }
+</style></head><body>
+<h1>Node connectivity</h1><p id="result">Connected</p>
+<div id="group"><span id="child">Retained child</span><p><input id="field" value="Original"></p></div>
+<button id="detach">Detach group</button>
+<script>
+var connectivityGroup = document.getElementById('group');
+var connectivityChild = document.getElementById('child');
+if (!document.isConnected || !connectivityGroup.isConnected || !connectivityChild.isConnected) throw Error('inline connectivity');
+document.title = 'Connectivity ready';
+document.getElementById('detach').addEventListener('click', function () {
+    connectivityGroup.remove();
+    if (connectivityGroup.isConnected || connectivityChild.isConnected || !document.isConnected) throw Error('detached connectivity');
+    if (!connectivityGroup.contains(connectivityChild)) throw Error('retained containment');
+    document.getElementById('result').textContent = 'Detached';
+    document.title = 'Connectivity detached';
+});
+</script></body></html>

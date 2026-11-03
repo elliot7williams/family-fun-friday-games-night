@@ -1,0 +1,154 @@
+PASS idle frame leaves native worker dormant
+PASS isolated frames: code: ok; ; phase=ready; launch=188; probe=114; wall=1317; cpu=109 ms; native{volume=5;profile=47;loopback=52;grants=90;pipes=93;attributes=93;create=117;token=127;aslr-pipes=128;job=136;resume=146;return=160;}; ...startup document: wall=329; cpu=109 ms
+pu=109 ms
+startup probes: wall=667; cpu=109 ms
+startup closed: wall=669; cpu=109 ms
+startup hello: wall=669; cpu=109 ms
+startup ready: wall=675; cpu=109 ms
+frame invoke: i=0; r=0; wall=676 ms
+frame enter: i=0; r=0; wall=676 ms
+frame read: i=0; r=0; wall=676 ms
+
+PASS isolated frames: callbacks remain deferred until host rendering opportunity
+PASS isolated frames: batch: ok; ; phase=ready; launch=188; probe=114; wall=1317; cpu=109 ms; native{volume=5;profile=47;loopback=52;grants=90;pipes=93;attributes=93;create=117;token=127;aslr-pipes=128;job=136;resume=146;return=160;}; ...startup document: wall=329; cpu=109 ms
+pu=109 ms
+startup probes: wall=667; cpu=109 ms
+startup closed: wall=669; cpu=109 ms
+startup hello: wall=669; cpu=109 ms
+startup ready: wall=675; cpu=109 ms
+frame invoke: i=0; r=0; wall=676 ms
+frame enter: i=0; r=0; wall=676 ms
+frame read: i=0; r=0; wall=676 ms
+
+PASS isolated frames: FIFO, per-callback microtasks, shared timestamp and nested deferral
+PASS isolated frames: batch: ok; ; phase=ready; launch=188; probe=114; wall=1317; cpu=109 ms; native{volume=5;profile=47;loopback=52;grants=90;pipes=93;attributes=93;create=117;token=127;aslr-pipes=128;job=136;resume=146;return=160;}; ...startup document: wall=329; cpu=109 ms
+pu=109 ms
+startup probes: wall=667; cpu=109 ms
+startup closed: wall=669; cpu=109 ms
+startup hello: wall=669; cpu=109 ms
+startup ready: wall=675; cpu=109 ms
+frame invoke: i=0; r=0; wall=676 ms
+frame enter: i=0; r=0; wall=676 ms
+frame read: i=0; r=0; wall=676 ms
+
+PASS isolated frames: nested callback runs once in a later batch
+PASS isolated frames: code: ok; ; phase=ready; launch=188; probe=114; wall=1317; cpu=109 ms; native{volume=5;profile=47;loopback=52;grants=90;pipes=93;attributes=93;create=117;token=127;aslr-pipes=128;job=136;resume=146;return=160;}; ...startup document: wall=329; cpu=109 ms
+pu=109 ms
+startup probes: wall=667; cpu=109 ms
+startup closed: wall=669; cpu=109 ms
+startup hello: wall=669; cpu=109 ms
+startup ready: wall=675; cpu=109 ms
+frame invoke: i=0; r=0; wall=676 ms
+frame enter: i=0; r=0; wall=676 ms
+frame read: i=0; r=0; wall=676 ms
+
+PASS isolated frames: batch: ok; ; phase=ready; launch=188; probe=114; wall=1317; cpu=109 ms; native{volume=5;profile=47;loopback=52;grants=90;pipes=93;attributes=93;create=117;token=127;aslr-pipes=128;job=136;resume=146;return=160;}; ...startup document: wall=329; cpu=109 ms
+pu=109 ms
+startup probes: wall=667; cpu=109 ms
+startup closed: wall=669; cpu=109 ms
+startup hello: wall=669; cpu=109 ms
+startup ready: wall=675; cpu=109 ms
+frame invoke: i=0; r=0; wall=676 ms
+frame enter: i=0; r=0; wall=676 ms
+frame read: i=0; r=0; wall=676 ms
+
+PASS isolated frames: microtask cancels later callback in the same snapshot
+PASS isolated frames: code: ok; ; phase=ready; launch=188; probe=114; wall=1317; cpu=109 ms; native{volume=5;profile=47;loopback=52;grants=90;pipes=93;attributes=93;create=117;token=127;aslr-pipes=128;job=136;resume=146;return=160;}; ...startup document: wall=329; cpu=109 ms
+pu=109 ms
+startup probes: wall=667; cpu=109 ms
+startup closed: wall=669; cpu=109 ms
+startup hello: wall=669; cpu=109 ms
+startup ready: wall=675; cpu=109 ms
+frame invoke: i=0; r=0; wall=676 ms
+frame enter: i=0; r=0; wall=676 ms
+frame read: i=0; r=0; wall=676 ms
+
+PASS isolated frames: code: ok; ; phase=ready; launch=188; probe=114; wall=1317; cpu=109 ms; native{volume=5;profile=47;loopback=52;grants=90;pipes=93;attributes=93;create=117;token=127;aslr-pipes=128;job=136;resume=146;return=160;}; ...startup document: wall=329; cpu=109 ms
+pu=109 ms
+startup probes: wall=667; cpu=109 ms
+startup closed: wall=669; cpu=109 ms
+startup hello: wall=669; cpu=109 ms
+startup ready: wall=675; cpu=109 ms
+frame invoke: i=0; r=0; wall=676 ms
+frame enter: i=0; r=0; wall=676 ms
+frame read: i=0; r=0; wall=676 ms
+
+PASS isolated frames: unsigned-long cancellation conversion and idle no-op
+PASS isolated frames: code: ok; ; phase=ready; launch=188; probe=114; wall=1317; cpu=109 ms; native{volume=5;profile=47;loopback=52;grants=90;pipes=93;attributes=93;create=117;token=127;aslr-pipes=128;job=136;resume=146;return=160;}; ...startup document: wall=329; cpu=109 ms
+pu=109 ms
+startup probes: wall=667; cpu=109 ms
+startup closed: wall=669; cpu=109 ms
+startup hello: wall=669; cpu=109 ms
+startup ready: wall=675; cpu=109 ms
+frame invoke: i=0; r=0; wall=676 ms
+frame enter: i=0; r=0; wall=676 ms
+frame read: i=0; r=0; wall=676 ms
+
+PASS isolated frames: batch: ok; ; phase=ready; launch=188; probe=114; wall=1317; cpu=109 ms; native{volume=5;profile=47;loopback=52;grants=90;pipes=93;attributes=93;create=117;token=127;aslr-pipes=128;job=136;resume=146;return=160;}; ...startup document: wall=329; cpu=109 ms
+pu=109 ms
+startup probes: wall=667; cpu=109 ms
+startup closed: wall=669; cpu=109 ms
+startup hello: wall=669; cpu=109 ms
+startup ready: wall=675; cpu=109 ms
+frame invoke: i=0; r=0; wall=676 ms
+frame enter: i=0; r=0; wall=676 ms
+frame read: i=0; r=0; wall=676 ms
+
+PASS isolated frames: admission and dispatch retain captured helpers
+PASS isolated frames: code: ok; ; phase=ready; launch=188; probe=114; wall=1317; cpu=109 ms; native{volume=5;profile=47;loopback=52;grants=90;pipes=93;attributes=93;create=117;token=127;aslr-pipes=128;job=136;resume=146;return=160;}; ...startup document: wall=329; cpu=109 ms
+pu=109 ms
+startup probes: wall=667; cpu=109 ms
+startup closed: wall=669; cpu=109 ms
+startup hello: wall=669; cpu=109 ms
+startup ready: wall=675; cpu=109 ms
+frame invoke: i=0; r=0; wall=676 ms
+frame enter: i=0; r=0; wall=676 ms
+frame read: i=0; r=0; wall=676 ms
+
+PASS isolated frames: all admitted callbacks can be canceled
+PASS isolated frames: parent frame ceiling retires realm
+PASS isolated frames: code: ok; ; phase=ready; launch=103; probe=6; wall=1025; cpu=109 ms; native{volume=1;profile=33;loopback=36;grants=45;pipes=45;attributes=45;create=90;token=90;aslr-pipes=90;job=90;resume=98;return=103;}; ...=329; cpu=109 ms
+startup document: wall=332; cpu=109 ms
+startup dom: wall=333; cpu=109 ms
+startup probes: wall=635; cpu=109 ms
+startup closed: wall=636; cpu=109 ms
+startup hello: wall=636; cpu=109 ms
+startup ready: wall=637; cpu=109 ms
+frame invoke: i=0; r=0; wall=637 ms
+frame enter: i=0; r=0; wall=637 ms
+
+PASS isolated frames: callback exception permits snapshot peers, retains writes, then retires realm
+PASS isolated frames: code: ok; ; phase=ready; launch=97; probe=5; wall=1268; cpu=31 ms; native{volume=1;profile=36;loopback=37;grants=49;pipes=49;attributes=49;create=86;token=86;aslr-pipes=86;job=87;resume=95;return=97;}; ...startup document: wall=466; cpu=31 ms
+dom: wall=467; cpu=31 ms
+startup probes: wall=760; cpu=31 ms
+startup closed: wall=761; cpu=31 ms
+startup hello: wall=762; cpu=31 ms
+startup ready: wall=762; cpu=31 ms
+frame invoke: i=0; r=0; wall=762 ms
+frame enter: i=0; r=0; wall=763 ms
+frame read: i=0; r=0; wall=763 ms
+
+PASS isolated frames: frame callback retains cooperative budget
+PASS isolated frames: code: ok; ; phase=ready; launch=104; probe=5; wall=1053; cpu=125 ms; native{volume=1;profile=33;loopback=35;grants=45;pipes=45;attributes=45;create=77;token=77;aslr-pipes=77;job=77;resume=100;return=104;}; ...125 ms
+startup interfaces: wall=337; cpu=125 ms
+startup elements: wall=337; cpu=125 ms
+startup document: wall=341; cpu=125 ms
+startup dom: wall=341; cpu=125 ms
+startup probes: wall=652; cpu=125 ms
+startup closed: wall=653; cpu=125 ms
+startup hello: wall=653; cpu=125 ms
+startup ready: wall=653; cpu=125 ms
+
+PASS isolated frames: permission generation invalidates frames before execution
+PASS isolated frames: code: ok; ; phase=ready; launch=95; probe=8; wall=1126; cpu=62 ms; native{volume=1;profile=32;loopback=34;grants=47;pipes=47;attributes=47;create=77;token=77;aslr-pipes=77;job=77;resume=85;return=95;}; ...all=351; cpu=62 ms
+startup interfaces: wall=360; cpu=62 ms
+startup elements: wall=360; cpu=62 ms
+startup document: wall=365; cpu=62 ms
+startup dom: wall=368; cpu=62 ms
+startup probes: wall=651; cpu=62 ms
+startup closed: wall=652; cpu=62 ms
+startup hello: wall=652; cpu=62 ms
+startup ready: wall=652; cpu=62 ms
+
+PASS isolated frames: navigation invalidates frame realm
+PASS Lea isolated scheduling Frames: 27 checks.
