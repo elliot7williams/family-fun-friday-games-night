@@ -1,0 +1,86 @@
+{
+  "sourceBytesSaved": 6293,
+  "runtimeQualified": false,
+  "fixedNativeProbesPassed": 4,
+  "metadataComparisons": 2,
+  "startupFixed": false,
+  "isolatedWorkerBuilt": false,
+  "performanceImprovementProven": false,
+  "verified": true,
+  "parentBytesSaved": 6144,
+  "copies": [
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-audit-20261102-v1\\01-source.json",
+      "original": "I:/LeaBuildStorage/private-binding-source-20261102-v1/source.json",
+      "sha256": "9CD78B418ED5CE1216123B7093CD0CB3593EF0D7812414FF4D35D718CC266BA2"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-audit-20261102-v1\\02-result.json",
+      "original": "I:/LeaBuildStorage/private-binding-build-20261102-v1/result.json",
+      "sha256": "D32732C0BF3B548DB649966100D4B074663E07544BC9C25A648A80D6723AB02C"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-audit-20261102-v1\\03-result.json",
+      "original": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-comparison-v1\\result.json",
+      "sha256": "2D4758CB6BCC81CB2DAE266A7BB55F07CA49D92E66182A47FA9FC19651899CF4"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-audit-20261102-v1\\04-node-behavior-v2.json",
+      "original": "I:/LeaBuildStorage/private-binding-source-20261102-v1/node-behavior-v2.json",
+      "sha256": "8FB7104353169CE8B74F3E22B7F98B89130B911856405D5F728A3075EA3E6316"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-audit-20261102-v1\\05-compile-connectivity-test.stdout.txt",
+      "original": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-comparison-v1\\compile-connectivity-test.stdout.txt",
+      "sha256": "0B4CED6267D6217FC155BC3292523E7D68725882D6D0EDFACA0F359F1CF62FD7"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-audit-20261102-v1\\06-compile-connectivity-test.stderr.txt",
+      "original": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-comparison-v1\\compile-connectivity-test.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-audit-20261102-v1\\07-bootstrap-1-baseline.stdout.txt",
+      "original": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-comparison-v1\\bootstrap-1-baseline.stdout.txt",
+      "sha256": "82610073D80848F011F052DA2901E6DFEBFF4E7AD3C20E79CE001114B937F940"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-audit-20261102-v1\\08-bootstrap-1-baseline.stderr.txt",
+      "original": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-comparison-v1\\bootstrap-1-baseline.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-audit-20261102-v1\\09-bootstrap-2-candidate.stdout.txt",
+      "original": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-comparison-v1\\bootstrap-2-candidate.stdout.txt",
+      "sha256": "9532F8B2E7483ECDC28D555E24102EF6FF8B564319B7207E0643644C4B589CB5"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-audit-20261102-v1\\10-bootstrap-2-candidate.stderr.txt",
+      "original": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-comparison-v1\\bootstrap-2-candidate.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-audit-20261102-v1\\11-bootstrap-3-candidate.stdout.txt",
+      "original": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-comparison-v1\\bootstrap-3-candidate.stdout.txt",
+      "sha256": "1BA59412752D8E4DB4B92BB8950D683AC0452C581098173DD2A288740261B1D8"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-audit-20261102-v1\\12-bootstrap-3-candidate.stderr.txt",
+      "original": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-comparison-v1\\bootstrap-3-candidate.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-audit-20261102-v1\\13-bootstrap-4-baseline.stdout.txt",
+      "original": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-comparison-v1\\bootstrap-4-baseline.stdout.txt",
+      "sha256": "0AF9D3A4AFA15F5F4E21EA1E11E13E8FB3FE8BB1B0EC1B6E21FDB8678CD00AE2"
+    },
+    {
+      "copy": "I:\\LeaBuildStorage\\private-binding-audit-20261102-v1\\14-bootstrap-4-baseline.stderr.txt",
+      "original": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-comparison-v1\\bootstrap-4-baseline.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    }
+  ],
+  "allSixOwnedRunsRetired": true,
+  "fullSemanticSuitePassed": false,
+  "nodeMockChecks": 312
+}

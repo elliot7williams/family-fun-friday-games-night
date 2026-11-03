@@ -1,0 +1,38 @@
+{
+  "passed": true,
+  "sourceProofSha256": "9CD78B418ED5CE1216123B7093CD0CB3593EF0D7812414FF4D35D718CC266BA2",
+  "testSha256": "E55F2C087C84FC6DD737EDA4A67369C3E2E1143396CB1262EF0E00F90798FF95",
+  "cases": [
+    {
+      "file": "Dom.js",
+      "kind": "original",
+      "checks": 78,
+      "eagerMaps": 3,
+      "finalMaps": 3
+    },
+    {
+      "file": "Dom.js",
+      "kind": "candidate",
+      "checks": 78,
+      "eagerMaps": 3,
+      "finalMaps": 3
+    },
+    {
+      "file": "Dom.compact.js",
+      "kind": "original",
+      "checks": 78,
+      "eagerMaps": 3,
+      "finalMaps": 3
+    },
+    {
+      "file": "Dom.compact.js",
+      "kind": "candidate",
+      "checks": 78,
+      "eagerMaps": 3,
+      "finalMaps": 3
+    }
+  ],
+  "checks": 312,
+  "apiMetadataComparisons": 2,
+  "scope": "Derived unchanged 312-check bootstrap mock suite with three eager maps in both variants, plus public descriptors/function names/arity equality. Node only; not Jint, sandbox, timing or release qualification."
+}

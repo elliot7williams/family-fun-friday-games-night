@@ -1,0 +1,26 @@
+[
+  {
+    "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\historical-stage-cleanup-source-20261028.zip",
+    "bytes": 285833,
+    "destination": "I:\\LeaBuildStorage\\minifier-reserve-source-zips-20261102-v1\\historical-stage-cleanup-source-20261028.zip",
+    "removed": true,
+    "sha256": "5761EE7AC86278C86495C064BBF9F11483D322C0FB42685675C6B47F7E273E5A",
+    "verified": true
+  },
+  {
+    "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\owned-launch-source-20261026.zip",
+    "bytes": 196490,
+    "destination": "I:\\LeaBuildStorage\\minifier-reserve-source-zips-20261102-v1\\owned-launch-source-20261026.zip",
+    "removed": true,
+    "sha256": "4EF808D53C3A87A84CF079A5E1530D40613C20567C5E88DF7DFEE22F02476B79",
+    "verified": true
+  },
+  {
+    "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\native-selection-delivery-source-20261027.zip",
+    "bytes": 190735,
+    "destination": "I:\\LeaBuildStorage\\minifier-reserve-source-zips-20261102-v1\\native-selection-delivery-source-20261027.zip",
+    "removed": true,
+    "sha256": "E1FF064D4A4C6B2F3066C7CD8BBF4B12D69CCE585CA1C43A86ACA622B613CEAA",
+    "verified": true
+  }
+]

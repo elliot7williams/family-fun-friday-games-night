@@ -1,0 +1,22 @@
+[
+  {
+    "sha256": "AF637AEB20CA0B3BF8E63B2563CF8B57D3D7771BED6DC0A5192797E6229D54FD",
+    "removed": true,
+    "verified": true,
+    "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+    "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-preservation\\Lea-hello-candidate-checkpoint-20261015-180152-529.zip",
+    "destination": "I:\\LeaBuildStorage\\minifier-checkpoint-zips-20261102-v1\\private-preservation\\Lea-hello-candidate-checkpoint-20261015-180152-529.zip",
+    "lastWriteUtc": "2026-10-15T18:01:56.2786586Z",
+    "bytes": 8233799
+  },
+  {
+    "sha256": "BA7DA0B3CE629D4321AACD57C176D98D587D7A258CC23B293F2AC6769DDBCB3B",
+    "removed": true,
+    "verified": true,
+    "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+    "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-preservation\\Lea-generator-checkpoint-20261017-214617-343-b89bfbf0.zip",
+    "destination": "I:\\LeaBuildStorage\\minifier-checkpoint-zips-20261102-v1\\private-preservation\\Lea-generator-checkpoint-20261017-214617-343-b89bfbf0.zip",
+    "lastWriteUtc": "2026-10-17T21:46:22.0017463Z",
+    "bytes": 1436611
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "name": "lea-bootstrap-build-tools",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Build-only deterministic private-binding minification; not shipped with Lea.",
+  "dependencies": {
+    "terser": "5.44.1"
+  }
+}
