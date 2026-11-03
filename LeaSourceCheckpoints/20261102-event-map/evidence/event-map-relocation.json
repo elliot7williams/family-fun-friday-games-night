@@ -1,0 +1,122 @@
+[
+  {
+    "bytes": 939072,
+    "sha256": "1BBBD417757F439BC7C6672AF2E79B61FC7501AEBAD9C082FCE63BFC5CA511BB",
+    "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\print-safety-source-20261028.zip",
+    "removed": true,
+    "verified": true,
+    "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+    "destination": "I:\\LeaBuildStorage\\event-map-source-zips-20261102-v1\\print-safety-source-20261028.zip",
+    "lastWriteUtc": "2026-10-28T10:27:29.3474708Z"
+  },
+  {
+    "bytes": 892605,
+    "sha256": "7932D42905E427ECEFFDDCC1931DD3DCE119BCFAD53D343125C7230F30F63D58",
+    "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\print-render-source-20261028.zip",
+    "removed": true,
+    "verified": true,
+    "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+    "destination": "I:\\LeaBuildStorage\\event-map-source-zips-20261102-v1\\print-render-source-20261028.zip",
+    "lastWriteUtc": "2026-10-28T09:15:10.8216876Z"
+  },
+  {
+    "bytes": 846571,
+    "sha256": "F673B9CDDD12F4152A7279EC9664444211A92C06188ED67892B0DA38B6E738B7",
+    "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\print-paginator-source-20261027.zip",
+    "removed": true,
+    "verified": true,
+    "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+    "destination": "I:\\LeaBuildStorage\\event-map-source-zips-20261102-v1\\print-paginator-source-20261027.zip",
+    "lastWriteUtc": "2026-10-27T12:01:01.2855566Z"
+  },
+  {
+    "bytes": 839180,
+    "sha256": "24DA08C674323ABA3161FFCDB652325157FE5EB201B37441BEAA99D39ECC8739",
+    "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\print-frame-source-20261027.zip",
+    "removed": true,
+    "verified": true,
+    "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+    "destination": "I:\\LeaBuildStorage\\event-map-source-zips-20261102-v1\\print-frame-source-20261027.zip",
+    "lastWriteUtc": "2026-10-27T05:42:28.4566662Z"
+  },
+  {
+    "bytes": 819228,
+    "sha256": "4EE65BA9517F4D1DA0A1ACE438ECC7D97CCD68DA69B3D9389998790B71E6F74C",
+    "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\owned-full-suite-source-20261026.zip",
+    "removed": true,
+    "verified": true,
+    "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+    "destination": "I:\\LeaBuildStorage\\event-map-source-zips-20261102-v1\\owned-full-suite-source-20261026.zip",
+    "lastWriteUtc": "2026-10-27T00:22:09.5070084Z"
+  },
+  {
+    "bytes": 811666,
+    "sha256": "326B4A7349F99ECB103E4F7371AC52F53BB562FD257FF03AC50202861279646A",
+    "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\tested-parser-source-v1.zip",
+    "removed": true,
+    "verified": true,
+    "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+    "destination": "I:\\LeaBuildStorage\\event-map-source-zips-20261102-v1\\tested-parser-source-v1.zip",
+    "lastWriteUtc": "2026-10-25T06:22:09.4337167Z"
+  },
+  {
+    "bytes": 787489,
+    "sha256": "DC5D1464FC77FC9A67A287DC230C5340F685E95B616A900D4A05E194A4C4602B",
+    "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\page-color-qualification-source-20261026.zip",
+    "removed": true,
+    "verified": true,
+    "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+    "destination": "I:\\LeaBuildStorage\\event-map-source-zips-20261102-v1\\page-color-qualification-source-20261026.zip",
+    "lastWriteUtc": "2026-10-27T00:59:56.21227Z"
+  },
+  {
+    "bytes": 784011,
+    "sha256": "3CEB637EBE8212886263C2C47CDBF25FD9A1280BAC0AB1109FC4842BB52F4349",
+    "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\decoder-queue-trace-source-v1.zip",
+    "removed": true,
+    "verified": true,
+    "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+    "destination": "I:\\LeaBuildStorage\\event-map-source-zips-20261102-v1\\decoder-queue-trace-source-v1.zip",
+    "lastWriteUtc": "2026-10-25T22:14:13.1124905Z"
+  },
+  {
+    "bytes": 717179,
+    "sha256": "B23E56B12FD4040659F0A19E831DB28B62879053122D337A436EE79FC85FD394",
+    "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\full-tree-startup-source-20261026.zip",
+    "removed": true,
+    "verified": true,
+    "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+    "destination": "I:\\LeaBuildStorage\\event-map-source-zips-20261102-v1\\full-tree-startup-source-20261026.zip",
+    "lastWriteUtc": "2026-10-26T19:15:06.0472231Z"
+  },
+  {
+    "bytes": 648755,
+    "sha256": "DC69766D830383A3A19E56D822B823DBF6741B47D9A48F7C1DE96E7B09220E6D",
+    "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\print-submission-source-20261028.zip",
+    "removed": true,
+    "verified": true,
+    "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+    "destination": "I:\\LeaBuildStorage\\event-map-source-zips-20261102-v1\\print-submission-source-20261028.zip",
+    "lastWriteUtc": "2026-10-28T09:07:30.9055327Z"
+  },
+  {
+    "bytes": 3358863,
+    "sha256": "1E6AA708C94F4D1E19B8EC832258F605E08310FEFAA646E01B12C894E27919F4",
+    "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\engine-recovery-2026-10-14\\prototype-inputs-20261015-180833-722\\Firespider-Lea-146-script-host-source_2026-10-14_15-36-41.zip",
+    "removed": true,
+    "verified": true,
+    "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+    "destination": "I:\\LeaBuildStorage\\event-map-source-zips-20261102-v1\\engine-recovery-2026-10-14\\prototype-inputs-20261015-180833-722\\Firespider-Lea-146-script-host-source_2026-10-14_15-36-41.zip",
+    "lastWriteUtc": "2026-10-15T18:08:55.5464806Z"
+  },
+  {
+    "bytes": 2050221,
+    "sha256": "A0BC1E7D2390C934408B4D281053F50ABB5E3925FF44A8F043FE5E1AE28A155E",
+    "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\engine-recovery-2026-10-14\\prototype-inputs-20261015-180833-722\\Lea-current-source-2026-10-14.zip",
+    "removed": true,
+    "verified": true,
+    "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)",
+    "destination": "I:\\LeaBuildStorage\\event-map-source-zips-20261102-v1\\engine-recovery-2026-10-14\\prototype-inputs-20261015-180833-722\\Lea-current-source-2026-10-14.zip",
+    "lastWriteUtc": "2026-10-15T18:08:48.6036803Z"
+  }
+]

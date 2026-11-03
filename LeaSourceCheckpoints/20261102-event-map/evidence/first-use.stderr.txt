@@ -1,0 +1,3 @@
+System.Exception: Cold first-use probe: limit; Script budget exceeded. phase=bootstrap; reason=TimeoutException; stage=elements
+   at EventMapTrustedMain.Require(Boolean value, String message)
+   at EventMapTrustedMain.Main(String[] args)

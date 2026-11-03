@@ -1,0 +1,37 @@
+{
+  "passed": true,
+  "sourceProofSha256": "FE6451DEA2C77AF80A4D43020D5F6CEE8B7EFE47C24C32AB61ABF070F4CFC0F3",
+  "testSha256": "5901882B932AA51C972A5655F6ADEC9D89AF3CD8FE7E3CD3FE6AAC47865A416B",
+  "checks": 320,
+  "cases": [
+    {
+      "file": "Dom.js",
+      "kind": "original",
+      "checks": 80,
+      "eagerMaps": 1,
+      "finalMaps": 3
+    },
+    {
+      "file": "Dom.js",
+      "kind": "candidate",
+      "checks": 80,
+      "eagerMaps": 0,
+      "finalMaps": 3
+    },
+    {
+      "file": "Dom.compact.js",
+      "kind": "original",
+      "checks": 80,
+      "eagerMaps": 1,
+      "finalMaps": 3
+    },
+    {
+      "file": "Dom.compact.js",
+      "kind": "candidate",
+      "checks": 80,
+      "eagerMaps": 0,
+      "finalMaps": 3
+    }
+  ],
+  "scope": "Node mock equivalence only: allocation counts, early invalid receivers/proxies, captured intrinsics, direct document/window events, element brands and event routing. Not Lea/Jint, timing, sandbox or release qualification."
+}

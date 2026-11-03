@@ -1,0 +1,28 @@
+{
+  "runtimeTested": false,
+  "hostPolicyChanged": false,
+  "verified": true,
+  "files": [
+    {
+      "originalSha256": "2F0E37F3EAAE4193505ABFB3E8C897D77A410DBF8B9443A42571875852F4C839",
+      "sha256": "7D57C6C533A0CA1C878A29ECA662560514E31724916C0B3F3D751EAF9C1BD4DE",
+      "path": "I:\\LeaBuildStorage\\event-map-source-20261102-v1\\Dom.js",
+      "name": "Dom.js",
+      "original": "I:\\LeaBuildStorage\\lazy-map-source-20261102-v1\\Dom.js",
+      "sdkOriginalSha256": "11848A226794CE5D0D51F5002A17D33411B31F4934050A9DBF6E621EFC158F3E"
+    },
+    {
+      "originalSha256": "DC892B2D4403193886EFD9E958BD11CA4A53033419FF074062EBBC4F5AE88E70",
+      "sha256": "F6A23C62BC1BB8A50C749917CA40446EA54DDC0948C4038CA3073C13E824C1E0",
+      "path": "I:\\LeaBuildStorage\\event-map-source-20261102-v1\\Dom.compact.js",
+      "name": "Dom.compact.js",
+      "original": "I:\\LeaBuildStorage\\lazy-map-source-20261102-v1\\Dom.compact.js",
+      "sdkOriginalSha256": "EC4B6513A77230C3B8439568CC3FED41B7712CA3779182D38076880DCC83BC8A"
+    }
+  ],
+  "inverseVerified": true,
+  "performanceImprovementProven": false,
+  "negativeControls": 12,
+  "scope": "Direct private window/document event state; allocate captured-constructor element WeakMap on first wrapped element. Preserve all branded lookups and event algorithms; no host or policy changes.",
+  "candidateOnly": true
+}

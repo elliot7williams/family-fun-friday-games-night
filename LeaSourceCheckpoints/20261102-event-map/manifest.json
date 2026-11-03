@@ -1,0 +1,99 @@
+{
+  "files": [
+    {
+      "path": "workspace/PROJECT_CONTEXT.md",
+      "sha256": "B5DF00D596B1CA6EA93BDCB69343CB2C3A029DA3FAB92E01C627E18EEAAD2BDE"
+    },
+    {
+      "path": "workspace/LeaForge/PROGRESS.md",
+      "sha256": "AE3AFB60238A285FAF531F9706C3915709798BD8F31E54EC5000E85762583F38"
+    },
+    {
+      "path": "workspace/LeaForge/EVENT_MAP.md",
+      "sha256": "71DF4DDD36B965893B4125C9CCFF51F2F9F99A657AC8D1C0A5681512DA1F34B5"
+    },
+    {
+      "path": "workspace/LeaForge/LAZY_MAPS.md",
+      "sha256": "AFD22D7AD3E894565289921F0A10B178C33259A04EE041FEAA3B2B43C0A52505"
+    },
+    {
+      "path": "workspace/Lea.Build/Prepare-EventMapCandidate.ps1",
+      "sha256": "C897A9C7FDE1B2495C110C4A8DA6665FF4ECFB6AC4A0680A7E421E9A9FE24A92"
+    },
+    {
+      "path": "workspace/Lea.Build/Prepare-EventMapBuild.ps1",
+      "sha256": "539EEB89151C2290900F76837605AEDB5470F4E006A0DEE70726AA1AF1D0D3EB"
+    },
+    {
+      "path": "workspace/Lea.Build/Prepare-EventMapTrusted.ps1",
+      "sha256": "86474F2B2C29D24BD449FD8F1A602AAF1B65757F19B0CF26B57675DD0C6EEB82"
+    },
+    {
+      "path": "workspace/Lea.Build/Audit-EventMapCandidate.ps1",
+      "sha256": "DD07F7FFC16D995119F2DDF271323046DB3D30713590DA42D1233D0590D0C817"
+    },
+    {
+      "path": "workspace/Lea.Build/Build-EventMap-v1.generated.ps1",
+      "sha256": "4C3C1D910DBB2E5FF039A71636BA2DF01F3302A7B84D594F1C408E01C8ED48E4"
+    },
+    {
+      "path": "workspace/Lea.Build/Test-EventMapTrusted-v1.generated.ps1",
+      "sha256": "83C24CD1C756BDA90D9A25575716C3A0873232C7040E8E10FBC55D0B624A3CE1"
+    },
+    {
+      "path": "workspace/Lea.Build/Relocate-OlderProjectZips-20261102.ps1",
+      "sha256": "4AD24BA01B8343F5BE0A0E863782632E279FF3B0F9D8EB65E2AC9028BB3C335E"
+    },
+    {
+      "path": "workspace/Lea.Tests/EventMapProjection.test.cjs",
+      "sha256": "5901882B932AA51C972A5655F6ADEC9D89AF3CD8FE7E3CD3FE6AAC47865A416B"
+    },
+    {
+      "path": "workspace/Lea.Tests/EventMapTrustedMain.cs",
+      "sha256": "48D227CCCCE888BBF0A9490FA3525B769775CDDFDDEC525F696B81B186CDE2FD"
+    },
+    {
+      "path": "candidate/Dom.js",
+      "sha256": "7D57C6C533A0CA1C878A29ECA662560514E31724916C0B3F3D751EAF9C1BD4DE"
+    },
+    {
+      "path": "candidate/Dom.compact.js",
+      "sha256": "F6A23C62BC1BB8A50C749917CA40446EA54DDC0948C4038CA3073C13E824C1E0"
+    },
+    {
+      "path": "candidate/source.json",
+      "sha256": "FE6451DEA2C77AF80A4D43020D5F6CEE8B7EFE47C24C32AB61ABF070F4CFC0F3"
+    },
+    {
+      "path": "candidate/node-event-test.json",
+      "sha256": "A5DE868B6A4B986927EAE8D333E552DA7BCE2CDD08806325EEE328639BE9A1BB"
+    },
+    {
+      "path": "evidence/build.json",
+      "sha256": "4EB46F1448E476A466B8DE01A179DF4EFDBA7DF8738DC5E00EE67878935F4202"
+    },
+    {
+      "path": "evidence/native.json",
+      "sha256": "D8D271F5B2BE4CCEAFD0859CAA53F8862ED2E962FD7F8551EF112EDDF6C980E8"
+    },
+    {
+      "path": "evidence/first-use.stderr.txt",
+      "sha256": "FDEDEAE4174A77B0D5114C240F67BD237E60A502835FA64408093E85E55CA782"
+    },
+    {
+      "path": "evidence/audit.json",
+      "sha256": "14A064575EC948D51B6AE7E4B13C0CC0F65CE8AF2D307C795E00D2A00A1D734F"
+    },
+    {
+      "path": "evidence/event-map-relocation.json",
+      "sha256": "7C300A3C5EAE200C7DEC2FBF683F32A35E1B278B573E7788268885A6790C71E2"
+    },
+    {
+      "path": "evidence/event-probe-relocation.json",
+      "sha256": "EFC3E79DABA982F41F0758940FAEB87B2B04E68B07DFDB6507493E5371EAFE7A"
+    }
+  ],
+  "nativeFirstUsePassed": false,
+  "release": false,
+  "candidateQualified": false
+}
