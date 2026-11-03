@@ -1,0 +1,227 @@
+{
+  "scope": "Changed source tools, generated helper sources and selected exact first full-run evidence; full source ZIP remains local",
+  "fullSuitePassed": false,
+  "verified": true,
+  "sourceCheckpoint": {
+    "archiveLocalOnly": true,
+    "sha256": "1C35415227869E4533E0D46A8BEF8908FC68CB1AD53AC4D0D2E5AFF5D12B58CC",
+    "version": 138,
+    "files": 1632
+  },
+  "replacementProbesExecuted": false,
+  "files": [
+    {
+      "bytes": 34381,
+      "path": "PROJECT_CONTEXT.md",
+      "sha256": "827F8F88616F7E2379086356269FD9F07CC16A2924E23A00F6B7B50C4731162A"
+    },
+    {
+      "bytes": 405060,
+      "path": "LeaForge/PROGRESS.md",
+      "sha256": "D538CB1A610F55F24CD51A468F9FEA2232D46C20A4534C03CABAF41246429F47"
+    },
+    {
+      "bytes": 14644,
+      "path": "LeaForge/PRIVATE_BINDINGS.md",
+      "sha256": "BD412DA241AB630185055A48599B1A93362D37F4D81F9AA3402732EB60B2CF0F"
+    },
+    {
+      "bytes": 60599,
+      "path": "LeaForge/STORAGE_CLEANUP.md",
+      "sha256": "031C7A6F62C62DA0EF029651E50719CC89659E3C3A2825E57B04185BF3F12199"
+    },
+    {
+      "bytes": 10449,
+      "path": "Lea.Build/Archive-HistoricalScriptDependencies.ps1",
+      "sha256": "73007560D8989D071783A87425A763B0981499D278D2622D1DC21A4DD0A76086"
+    },
+    {
+      "bytes": 2154,
+      "path": "Lea.Build/Audit-HistoricalDependencyArchives.ps1",
+      "sha256": "ACC993E9D7D4BC7AA9A2AED2A71F39C370ABE1533C7A06EC340E1857580C1465"
+    },
+    {
+      "bytes": 5554,
+      "path": "Lea.Build/Prepare-SdkEntryCoreSource.ps1",
+      "sha256": "AC695DA7AFFCF989CDDCDE67FA92D01B8E7AFC25E09B09338AC6676B59A1C65F"
+    },
+    {
+      "bytes": 7056,
+      "path": "Lea.Build/Build-SdkEntryCore.ps1",
+      "sha256": "A073AC4E119C95F04D335503F85BB08FB9B9F0F4A2A19F8AED5F61344F4BBFC0"
+    },
+    {
+      "bytes": 8262,
+      "path": "Lea.Build/Build-PrivateBindingFullEntry.ps1",
+      "sha256": "24F6399EBD3D278A351CAEE21DE506533B63CAC5D4E6342EEC664FFB093F1592"
+    },
+    {
+      "bytes": 5699,
+      "path": "Lea.Build/Assemble-PrivateBindingFullSuite.ps1",
+      "sha256": "50BBB69B9EBF2E63EFA842D6DB27E30160BE70AE0607F617F60E919FF5395E62"
+    },
+    {
+      "bytes": 9955,
+      "path": "Lea.Build/Build-SdkFullScript.ps1",
+      "sha256": "4FEF205F38B139C8ED53325BA9F589176D7F13FE1C8766C17E567A1F239D1863"
+    },
+    {
+      "bytes": 8317,
+      "path": "Lea.Build/Stage-SdkFullScriptRuntime.ps1",
+      "sha256": "BA009F873313A4C844D1ED84E72C9693710970C241E39FDF33E853232C2EB7F8"
+    },
+    {
+      "bytes": 5691,
+      "path": "Lea.Build/Audit-SdkFullScriptStaging.ps1",
+      "sha256": "E52D52E737640F6BF0AAABB9E8D2FB66053971667B18635425B18E19E4FB02B7"
+    },
+    {
+      "bytes": 11697,
+      "path": "Lea.Build/Test-OwnedSdkFullScript.ps1",
+      "sha256": "94220E2921FE204A8563A0C0A5C20B094BB4B80503D306F582747234EC1834FF"
+    },
+    {
+      "bytes": 5523,
+      "path": "Lea.Build/Prepare-SdkComponentProbeSources.ps1",
+      "sha256": "006BEABA2C8308FF4E9F83244E63F146E48540A2F813E8308F687A6165C0E121"
+    },
+    {
+      "bytes": 13249,
+      "path": "Lea.Build/Build-SdkComponentProbes.ps1",
+      "sha256": "2366A7251EE4DB2D15F720983D9E310A69FE5067FC1E90356A0D2074D429E289"
+    },
+    {
+      "bytes": 8877,
+      "path": "Lea.Build/Prepare-PrivateBindingFullSuite.ps1",
+      "sha256": "3447780B08FB68F4AF23DC894F811CD5AD51A79053FC03C6CB62A097C9D1F80E"
+    },
+    {
+      "bytes": 1070,
+      "path": "evidence/private-binding-entry-core-source-20261103-v1/source.json",
+      "sha256": "0CFA1F24D42988AE46735F20DFD80BEFE15DD795295F6B6F28E7538847DC18B3"
+    },
+    {
+      "bytes": 43131,
+      "path": "evidence/private-binding-entry-core-20261103-v1/result.json",
+      "sha256": "0DAB6A04AC52160F122D079AADAF86EE35208EDA632E7FA53624FB6273724F24"
+    },
+    {
+      "bytes": 80302,
+      "path": "evidence/private-binding-full-entry-20261103-v1/result.json",
+      "sha256": "7B707CFC694A9B989253DF946DE0C78EE41BB1A84464CFF28F13CEE9FD16C6B8"
+    },
+    {
+      "bytes": 173492,
+      "path": "evidence/private-binding-full-assembly-20261103-v1/assembly.json",
+      "sha256": "10B63C8986A847C61A692910CB417BD9AFE5EAD63CDF6C9E698AA462B22DED8F"
+    },
+    {
+      "bytes": 125999,
+      "path": "evidence/private-binding-full-compile-20261103-v1/result.json",
+      "sha256": "A42E1F8C4E47E8B1987D0B19D80BC561EB910178A0B020EEA633962D506FC01A"
+    },
+    {
+      "bytes": 4391,
+      "path": "evidence/private-binding-component-sources-20261103-v1/sources.json",
+      "sha256": "BE90716A9237699ED45E07EC69DC5CCC649E5F9E189C1E78C6C0EF325ABF436F"
+    },
+    {
+      "bytes": 214624,
+      "path": "evidence/private-binding-component-build-20261103-v1/result.json",
+      "sha256": "B8716FE70ECD152147F959A1253E63BAA421FAAF4FFBB4DF5F6A9044DC253633"
+    },
+    {
+      "bytes": 81382,
+      "path": "evidence/historical-script-dependencies-20261103-v5/result.json",
+      "sha256": "7C52EB25D750447AE87F6D00F97AF1D6013BE268FE83A4ADF494864812B325FC"
+    },
+    {
+      "bytes": 327,
+      "path": "evidence/historical-script-dependencies-20261103-v5/audit.json",
+      "sha256": "4C6A75E9EA3170F5495C170AFF120E9B2600D973A2841C8D2B7EA0B9174987BA"
+    },
+    {
+      "bytes": 119450,
+      "path": "evidence/historical-script-dependencies-20261103-v6/result.json",
+      "sha256": "8CCC51916DEA415017A5A4191D896F57262E35E5087AE9CF1037F7185DB9C6DF"
+    },
+    {
+      "bytes": 329,
+      "path": "evidence/historical-script-dependencies-20261103-v6/audit.json",
+      "sha256": "9E637A28FF694B0D5401D0BF0BEDA4B16717BDBD345BB65DA6FFE2FF43E70128"
+    },
+    {
+      "bytes": 122344,
+      "path": "evidence/full-suite-v1/result.json",
+      "sha256": "A51E900A4F9058AEA35234F948FE741B38A16C6214F9557CBABA7668FCD5BBF5"
+    },
+    {
+      "bytes": 1252,
+      "path": "evidence/full-suite-v1/full-script-timed.result.json",
+      "sha256": "1461AF8413452A992DA1D6B10161E91A46386F4140D23B27F0A2011F6E6CE549"
+    },
+    {
+      "bytes": 1049,
+      "path": "evidence/full-suite-v1/full-script-timed.stderr.txt",
+      "sha256": "9EE6246B83350464ACF06476F594A9237F21722F704AD999194350F33FA207AB"
+    },
+    {
+      "bytes": 2192,
+      "path": "evidence/full-suite-v1/full-script-timed.stdout.txt",
+      "sha256": "C0713B40C10CA7C09B0DC9C842A03DE52161A4A353BDE51BA6E1776CB3202D3F"
+    },
+    {
+      "bytes": 74536,
+      "path": "evidence/full-suite-stage-v1/staging.json",
+      "sha256": "755DFBC9A5871D6F5B238C2A0D79B00834BB7984550888279031A5B398637EFD"
+    },
+    {
+      "bytes": 802,
+      "path": "evidence/full-suite-stage-v1/staging-audit.json",
+      "sha256": "775B651FAC4FDF5074B19147CA0F53ED1133FDBB843758BB848E2AB6F29BFC37"
+    },
+    {
+      "bytes": 2711,
+      "path": "generated/component/markers/MarkerHost.cs",
+      "sha256": "8E3C85873BE8C6550D38BACD9B9DC5DC957FE59AE0195A1B72B143D100E666D4"
+    },
+    {
+      "bytes": 2718,
+      "path": "generated/component/frames/FrameProtocolHost.cs",
+      "sha256": "9837A4533FD0FC708803CEB3A9348F3C3AE71D29B49EBEDFF5E2BDD8DDA9E055"
+    },
+    {
+      "bytes": 2709,
+      "path": "generated/component/clock/ClockCodecHost.cs",
+      "sha256": "0FDEE72D6BC78BE54EAEDB52A8393F2B4C97F44B4EAC3DD10704E757CE88E1DA"
+    },
+    {
+      "bytes": 2861,
+      "path": "generated/component/wire/WireFramesHostV3.cs",
+      "sha256": "410C41ED42689ED8BAEFEB4603008FFF42AC8041ABE2FEA1103CCAFEA6529A79"
+    },
+    {
+      "bytes": 4890,
+      "path": "generated/component/bootstrap/BootstrapBundleHost.cs",
+      "sha256": "04FADD7DB2A966D18CB0974B3E6930AA1F9D3070899C4185D3B440E614C13F99"
+    },
+    {
+      "bytes": 6394,
+      "path": "generated/component/bootstrap/OptionsUnit.cs",
+      "sha256": "6490B69A4A5211CDAEED4C32CEB4925C060180C48FFF21733DF88C01A9DFC2A2"
+    },
+    {
+      "bytes": 8425,
+      "path": "generated/WorkerEntryCore.cs",
+      "sha256": "1D611927D0D2C5E158430EB6444B726A3CE925E24E392D6A06641F22CE222EF0"
+    },
+    {
+      "bytes": 10263,
+      "path": "generated/WorkerEntryNativeHost.cs",
+      "sha256": "28EF2916951EE0C5ABA9E30D39FF20549119898292AC2BDAF5FCFBA7D105EFB8"
+    }
+  ],
+  "replacementProbesCompiled": true,
+  "failedPhase": 2,
+  "hostAdopted": false
+}

@@ -1,0 +1,18 @@
+{
+  "stagingReceiptSha256": "755DFBC9A5871D6F5B238C2A0D79B00834BB7984550888279031A5B398637EFD",
+  "diagnosticOnly": false,
+  "pending": [
+    "owned launch preflight and unchanged ACL/byte checks",
+    "full300s/5s campaign"
+  ],
+  "testBinarySha256": "27D16D5C48CC9FE185D74D4FF5E22619BC9CA2E8F37A04DD195E5405D8A2465E",
+  "selectedFiles": 247,
+  "embeddedDirectory": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\private-binding-full-suite-v1\\runtime\\WorkerEntryFixture",
+  "uninstrumentedReplay": false,
+  "privateBindingPair": true,
+  "verified": true,
+  "embeddedFiles": 7,
+  "embeddedFixtureReadWithoutLoadingHost": true,
+  "runnerSha256": "E52D52E737640F6BF0AAABB9E8D2FB66053971667B18635425B18E19E4FB02B7",
+  "engineExecuted": false
+}

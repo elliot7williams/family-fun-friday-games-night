@@ -1,0 +1,12 @@
+LEA_ALL_STARTUP_TRACE enabled
+LEA_SUITE_PHASE 241 0 begin
+LEA_SUITE_PHASE 1313 0 end
+LEA_SUITE_PHASE 1313 1 begin
+LEA_SUITE_PHASE 1337 1 end
+LEA_SUITE_PHASE 1337 2 begin
+System.InvalidOperationException: Component probe failed: {"passed":false,"error":"System.IO.InvalidDataException: Component differs.\r\n   at Lea.Script.Tests.Program.Main(String[] args)","checks":[],"componentSha256":"E777E0CAE71D694BBA96E43E01BEED102B2B512B0B24B4ABE11AF2CDB3E7C2C6","sourceSuiteSha256":"E09D86773BA03C5B2A8D32174D719695E481F7B3418CE1ACC83FAE63FE75A12C","resourceBase64":null,"resourceNames":null,"bootstrapKind":null,"options":{},"componentOnly":true,"typedBootstrapContractChecksInvoked":true,"workerEntryPointExecuted":false,"pageCodeEvaluated":false,"nativeIsolationTest":false}
+
+   at Lea.Script.Tests.CoreProbeBridge.Run(String directory, String manifestHash, String selectedWorker, Action`2 check)
+   at Lea.Script.Tests.BootstrapAssets.Run(String root)
+   at Lea.Script.Tests.Program.Main(String[] args)
+LEA_ALL_STARTUP_TRACE restored=true

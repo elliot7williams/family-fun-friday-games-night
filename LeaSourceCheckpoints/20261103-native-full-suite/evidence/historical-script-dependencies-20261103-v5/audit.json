@@ -1,0 +1,8 @@
+{
+  "bytes": 337941504,
+  "archives": 6,
+  "verified": true,
+  "receiptSha256": "7C52EB25D750447AE87F6D00F97AF1D6013BE268FE83A4ADF494864812B325FC",
+  "scope": "Post-removal archive member readback, original receipt hashes, source absence, restore metadata presence; not engine runtime qualification",
+  "members": 84
+}

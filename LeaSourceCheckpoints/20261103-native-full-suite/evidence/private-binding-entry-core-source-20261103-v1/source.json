@@ -1,0 +1,21 @@
+{
+  "negativeControls": 3,
+  "source": "I:\\LeaBuildStorage\\private-binding-entry-core-source-20261103-v1\\WorkerEntryCore.cs",
+  "sourceProofSha256": "302C3003416F9095BA56C214FF6FD8B4F05A82F102CBAAF53B23DC3FAEE6E398",
+  "recipeSha256": "296F27F62411EDCAF2A3405B6E6F4853DD53C149A0118B0241881A39D4C87D60",
+  "verified": true,
+  "executed": false,
+  "pending": [
+    "compile companion with installed8.0.33 references",
+    "rebind seven-file fixture/resource/host and dispatcher",
+    "fresh full suite"
+  ],
+  "origin": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\bootstrap-descriptor-batches-v1\\paired-entry-source-v1\\WorkerEntryCore.cs",
+  "sha256": "1D611927D0D2C5E158430EB6444B726A3CE925E24E392D6A06641F22CE222EF0",
+  "originalSha256": "37789573C4977BA469AB2844BA64C84DF722F29CC814407094A177D1440DDFDD",
+  "inverseVerified": true,
+  "assertionsChanged": false,
+  "compiled": false,
+  "identityReplacements": 1,
+  "runnerSha256": "AC695DA7AFFCF989CDDCDE67FA92D01B8E7AFC25E09B09338AC6676B59A1C65F"
+}
