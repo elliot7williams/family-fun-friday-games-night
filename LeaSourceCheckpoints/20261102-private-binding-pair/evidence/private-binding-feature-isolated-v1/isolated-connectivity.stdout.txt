@@ -1,0 +1,1 @@
+PASS Lea isConnected isolated: nonmutating read, descriptors, brands, read-only, detached reads/write guard, revoked permission, cycle limit and recovery.

@@ -1,0 +1,3 @@
+  Determining projects to restore...
+  Restored I:\LeaBuildStorage\private-binding-worker-build-20261102-v1\source\Lea.Script.Worker\Lea.Script.Worker.csproj (in 341 ms).
+  Lea.Script.Worker -> I:\LeaBuildStorage\private-binding-worker-build-20261102-v1\source\worker-il\Release\Lea.Script.Worker.dll

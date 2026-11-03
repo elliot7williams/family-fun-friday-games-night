@@ -1,0 +1,2 @@
+Emitting R2R PE file: I:\LeaBuildStorage\private-binding-worker-build-20261102-v1\.lea-native-dad8207c10a74ca590e42f0406a4d77e\ScriptWorker\Lea.Script.Worker.dll
+LEA_NATIVE_BUILT

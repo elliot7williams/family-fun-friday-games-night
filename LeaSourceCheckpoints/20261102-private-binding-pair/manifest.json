@@ -1,0 +1,141 @@
+{
+  "files": [
+    {
+      "sha256": "A557C9CA2027C9AEF037BDB86A20240DEBD093671DCA5AD6E7DF654AC5A179DA",
+      "path": "workspace/PROJECT_CONTEXT.md"
+    },
+    {
+      "sha256": "E06F87BFDC0E2F02D4311645156C1BEB6E47972AB667BFC7EEEE388D9D34E90C",
+      "path": "workspace/LeaForge/PROGRESS.md"
+    },
+    {
+      "sha256": "5F3B3FD752B8E781C3D2A9D55F5782AB934AE8EB21629F3F4570C909CDF4905E",
+      "path": "workspace/LeaForge/PRIVATE_BINDINGS.md"
+    },
+    {
+      "sha256": "4445BDE5BA3A2E44D846CB140A81DBD1C66B1081AC06A9A2F2437BE1D3A927F3",
+      "path": "workspace/Lea.Tests/PrivateBindingTrustedMain.cs"
+    },
+    {
+      "sha256": "8AE71E18B5CDB42D43D61FFD912FA638FD018EB21DB7A85DDE6850806B9162F4",
+      "path": "workspace/Lea.Tests/IsConnectedMain.cs"
+    },
+    {
+      "sha256": "AE7B3FD5C013D83D2BFD3740890FD67E13BB8E46CA2C87DFC67B4011388623F6",
+      "path": "workspace/Lea.Tests/IsConnectedCases.js"
+    },
+    {
+      "sha256": "3F715D8AE3C706B391F05D44B690283FBFA4EC1D398396995DD5453CEA45DFDA",
+      "path": "workspace/Lea.Build/Prepare-PrivateBindingTrusted.ps1"
+    },
+    {
+      "sha256": "CF6EFFA020DB9A4D9DD8BC951C2A6CED4BB9B6A5AE90BF43AA92F693E87A42DE",
+      "path": "workspace/Lea.Build/Prepare-PrivateBindingWorker.ps1"
+    },
+    {
+      "sha256": "60C4E94B91FFF215091DDC537E6A3BF86A601E3392B7D5EF779B38532169CA62",
+      "path": "workspace/Lea.Build/Prepare-PrivateBindingIsolatedFeature.ps1"
+    },
+    {
+      "sha256": "C771A295FFC104AB6B2D3898C9130179DEB5864B34FE74FB0C16459ECBC14294",
+      "path": "workspace/Lea.Build/Test-PrivateBindingTrusted-v1.generated.ps1"
+    },
+    {
+      "sha256": "B3C5D9F0B3E2F187B05FBF74D6E6ABAB7B50CA26FFA8758741070A9094426046",
+      "path": "workspace/Lea.Build/Build-PrivateBindingWorker-v1.generated.ps1"
+    },
+    {
+      "sha256": "E01DF795E58E00B78FC5C153F7880CE4D569DA1D57BEB494E9A2161A33CD818D",
+      "path": "workspace/Lea.Build/Test-PrivateBindingIsolatedFeature-v1.generated.ps1"
+    },
+    {
+      "sha256": "671F96FCB5C1D911F0FB23B2442AF47E8DFD7592F51BBE377717C99FAB623807",
+      "path": "workspace/Lea.Build/Audit-PrivateBindingPair.ps1"
+    },
+    {
+      "sha256": "9C96BF14F7ECEDC08C5BE291B4475807469E047057593C165248AAF2EB70751E",
+      "path": "workspace/Lea.Build/Relocate-OlderProjectZips-20261102.ps1"
+    },
+    {
+      "sha256": "D62490714583EC7956AAFCE575579BF81F4EF8F9D1C1288A6C271B3930A43952",
+      "path": "evidence/trusted.json"
+    },
+    {
+      "sha256": "302C3003416F9095BA56C214FF6FD8B4F05A82F102CBAAF53B23DC3FAEE6E398",
+      "path": "evidence/worker-build.json"
+    },
+    {
+      "sha256": "8244E1A2816FF045B17445FE152CB49AD3AA0646097F443B7FAD2763010B70FD",
+      "path": "evidence/isolated.json"
+    },
+    {
+      "sha256": "7B6C3E676DC17ADA0C09FA0719594CF2087C1898A0C9DEF329103A82C645E972",
+      "path": "evidence/audit.json"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/private-binding-trusted-v1/compile-connectivity-test.stderr.txt"
+    },
+    {
+      "sha256": "0B4CED6267D6217FC155BC3292523E7D68725882D6D0EDFACA0F359F1CF62FD7",
+      "path": "evidence/private-binding-trusted-v1/compile-connectivity-test.stdout.txt"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/private-binding-trusted-v1/trusted-ClassLists.stderr.txt"
+    },
+    {
+      "sha256": "7EAB9F8FC880D9224FB366E9DF01757D93D3A7932F0664FD5E75275DCDA4B439",
+      "path": "evidence/private-binding-trusted-v1/trusted-ClassLists.stdout.txt"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/private-binding-trusted-v1/trusted-FirstUse.stderr.txt"
+    },
+    {
+      "sha256": "E273565E2EDA9793BF584AC946BE0EE4B926AD08EDB65FA4B1B6ED1974794F85",
+      "path": "evidence/private-binding-trusted-v1/trusted-FirstUse.stdout.txt"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/private-binding-feature-isolated-v1/compile-connectivity-test.stderr.txt"
+    },
+    {
+      "sha256": "0B4CED6267D6217FC155BC3292523E7D68725882D6D0EDFACA0F359F1CF62FD7",
+      "path": "evidence/private-binding-feature-isolated-v1/compile-connectivity-test.stdout.txt"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/private-binding-feature-isolated-v1/isolated-connectivity.stderr.txt"
+    },
+    {
+      "sha256": "220611252BAF0763A112848E0185A5CEF8DD415A85CDDE91F6869AB2CA7E1843",
+      "path": "evidence/private-binding-feature-isolated-v1/isolated-connectivity.stdout.txt"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/worker-build/build-private-binding-worker-il.stderr.txt"
+    },
+    {
+      "sha256": "46F09661A0536C26FC581AF53BAFAEA71758959E0D3C9B6D9C8C3E6C20283CF0",
+      "path": "evidence/worker-build/build-private-binding-worker-il.stdout.txt"
+    },
+    {
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+      "path": "evidence/worker-build/build-private-binding-worker-native.stderr.txt"
+    },
+    {
+      "sha256": "0A0C47AAC3B2D2597C35342C6C7C3A7BDA0393EB1E0C39F5225E20ED955E8036",
+      "path": "evidence/worker-build/build-private-binding-worker-native.stdout.txt"
+    },
+    {
+      "sha256": "3DC7AB224D043A353ACCF562EBC51691404ABED03034932FDE044B37F17F9FE7",
+      "path": "evidence/archive-relocation.json"
+    }
+  ],
+  "trustedChecks": 56,
+  "matchingIsolatedConnectivityPassed": true,
+  "browserAdopted": false,
+  "fullSuiteQualified": false,
+  "candidateOnly": true
+}

@@ -1,0 +1,51 @@
+PASS in-process classList: empty membership is false; ok; 
+PASS in-process classList: empty updates do not create an absent class; ok; 
+PASS in-process classList: absent updates do not rebuild
+PASS in-process classList: stable branded identity; ok; 
+PASS in-process classList: interface global and prototype descriptors; ok; 
+PASS in-process classList: standard method names arity and descriptors; ok; 
+PASS in-process classList: raw reflection and ordered unique ASCII words; ok; 
+PASS in-process classList: unsigned item conversion; ok; 
+PASS in-process classList: atomic variadic add and remove; ok; 
+PASS in-process classList: case-sensitive writes and membership; ok; 
+PASS in-process classList: toggle force and return values; ok; 
+PASS in-process classList: ordered-set replace and duplicate position; ok; 
+PASS in-process classList: update normalizes present attributes; ok; 
+PASS in-process classList: prepare no-op raw class; ok; 
+PASS in-process classList: forced toggle and missing replace preserve raw attributes; ok; 
+PASS in-process classList: forced no-op mutations do not rebuild
+PASS in-process classList: empty class remains present; ok; 
+PASS in-process classList: value setter and classList forwarding; ok; 
+PASS in-process classList: classList forwards without premature conversion to an overridden value setter; ok; 
+PASS in-process classList: non-ASCII whitespace and opaque tokens; ok; 
+PASS in-process classList: live iterator and completed-state stability; ok; 
+PASS in-process classList: keys entries and default iteration; ok; 
+PASS in-process classList: forEach snapshot length receiver and arguments; ok; 
+PASS in-process classList: live indexed descriptors and enumeration; ok; 
+PASS in-process classList: read-only virtual indices and extensibility; ok; 
+PASS in-process classList: invalid tokens fail atomically with DOM errors; ok; 
+PASS in-process classList: replace checks either empty argument before whitespace; ok; 
+PASS in-process classList: DOMException default construction and state; ok; 
+PASS in-process classList: DOMException native Error branding and prototype chain; ok; 
+PASS in-process classList: DOMException nullable DOM string conversion; ok; 
+PASS in-process classList: DOMException subclass construction and stringification; ok; 
+PASS in-process classList: Error stringification uses the original receiver and ordered DOM conversions; ok; 
+PASS in-process classList: DOMException standard and unassigned legacy codes; ok; 
+PASS in-process classList: DOMException constants readonly accessors and illegal receivers; ok; 
+PASS in-process classList: DOMException constants retain own-property order on both owners; ok; 
+PASS in-process classList: DOMException constants reject writes deletion and redefinition; ok; 
+PASS in-process exception constants require no document bridge calls
+PASS in-process classList: ASCII validation required arguments and unsupported vocabulary; ok; 
+PASS in-process classList: all conversions precede token validation and live reads; ok; 
+PASS in-process classList: Symbol conversion and illegal receivers; ok; 
+PASS in-process classList: existing 512-unit write bound is atomic; ok; 
+PASS in-process classList: 100 distinct tokens fit the existing source and execution budgets; ok; 
+PASS in-process classList: captured conversion and prototype-independent token operations; ok; 
+PASS in-process classList: null undefined and BigInt DOM strings; ok; 
+PASS in-process classList: native token lookup is captured before page prototype changes; ok; 
+PASS in-process classList: captured error constructors and private state survive global replacement; ok; 
+PASS in-process classList: retained fields after bulk mutations; ok; 
+PASS in-process classList: field identity value and CSS retained
+PASS in-process classList: detached mutation remains rejected; ok; 
+PASS in-process classList: permission gate
+PASS Lea private-binding trusted ClassLists: 50 checks.
