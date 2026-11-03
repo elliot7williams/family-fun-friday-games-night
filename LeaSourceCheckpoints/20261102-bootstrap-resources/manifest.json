@@ -1,0 +1,102 @@
+{
+  "files": [
+    {
+      "path": "workspace/PROJECT_CONTEXT.md",
+      "sha256": "5D80869F9AD8AA26C7050A15F7F46B11F1DDE56778697A96D92B1CDBF71D2AAB"
+    },
+    {
+      "path": "workspace/LeaForge/PROGRESS.md",
+      "sha256": "DAF56F96E84DA1BF764E1ACB9DC402916D56470D1DF786E3990DB21DC48F98B5"
+    },
+    {
+      "path": "workspace/LeaForge/BOOTSTRAP_RESOURCES.md",
+      "sha256": "43990725218FF6B69ECC9066E8A3DD03007A023D231BB57308DA6991F81562F4"
+    },
+    {
+      "path": "workspace/Lea.Build/BootstrapResourceCounters.cs",
+      "sha256": "2DDCDDD3A62231F1F3BA71BE9017F59AE7542123539FFEE22900F04E405C7C90"
+    },
+    {
+      "path": "workspace/Lea.Build/Prepare-ResourceBootstrapProfile.ps1",
+      "sha256": "EE7BFEFF9D833EBA1BC91D4BFF8020D8ABB33BB9088984031E80A3FB17C2610B"
+    },
+    {
+      "path": "workspace/Lea.Build/Prepare-ResourceBootstrapBuild.ps1",
+      "sha256": "BFAF80D0B88B1D90C7B61902272E167B12F4679E237A6439CB01B85BD12ED047"
+    },
+    {
+      "path": "workspace/Lea.Build/Prepare-ResourceBootstrapRun.ps1",
+      "sha256": "2316C6ED4CC0ABF0566079CBDF4DCFC2D99778BF8198292783A89742E97A6B98"
+    },
+    {
+      "path": "workspace/Lea.Build/Read-BootstrapResources.ps1",
+      "sha256": "6C61917A1A3C6D9E3629180613A2789D695026FAFF8EA5A210441A8ADAFC1064"
+    },
+    {
+      "path": "workspace/Lea.Build/Audit-ResourceBootstrapProfile.ps1",
+      "sha256": "B2C891385A6242A509E8707241093BFF27222E4C8CF50ED72A0A4452878C9975"
+    },
+    {
+      "path": "workspace/Lea.Build/Build-TrustedBootstrapProfile-v4.generated.ps1",
+      "sha256": "10A1729E4DFD8EB8BF8FFA06BFF7D703E117E3697F6701EE23605FA6D23D097D"
+    },
+    {
+      "path": "workspace/Lea.Build/Test-TrustedBootstrapProfile-v4.generated.ps1",
+      "sha256": "0FB476532A795EBAF192F0197A92C4B3C6D7BB0BA773C9A328F85C20F39BF68E"
+    },
+    {
+      "path": "workspace/Lea.Build/Relocate-OlderProjectZips-20261102.ps1",
+      "sha256": "59E948668B8F8A8D01576267E0FAE98339754470F31045600B2E2CC07C8CA00E"
+    },
+    {
+      "path": "workspace/Lea.Tests/BootstrapResources.test.ps1",
+      "sha256": "54404F9944EAB4B02BF74BDD1A3251F2495A99EA059A522834DC2F965C7AEE0D"
+    },
+    {
+      "path": "diagnostic-source/8.cs",
+      "sha256": "39F9E48E4E6693A03F2137DF08FD56D16D99677D7ECE29D12E1D9BFEEFB422E9"
+    },
+    {
+      "path": "diagnostic-source/2.cs",
+      "sha256": "33B31DA6DC118A9D9FADAEC02FA788492B05DD88F1BA54A667E7D0E7BD0A6C17"
+    },
+    {
+      "path": "diagnostic-source/Dom.compact.js",
+      "sha256": "637E61302C43CA90C559E3EC5FE2151FA8786A96F8B55E9619F32441BC842736"
+    },
+    {
+      "path": "diagnostic-source/source.json",
+      "sha256": "8A80C461B25495B17862096469E0CC17AC061947380CB59019C47CB8136F60EC"
+    },
+    {
+      "path": "evidence/build.json",
+      "sha256": "8849F3956D4BC6D6E97E444BFB6451C58102515F5EA8FE3B07B9DA19011FDEEE"
+    },
+    {
+      "path": "evidence/native.json",
+      "sha256": "2B084ABE6DD48B6C3B7D5AE7CA5EA4EEAFAD5C09CAAADD888E837D04854A59FA"
+    },
+    {
+      "path": "evidence/cold-trusted-profile.stdout.txt",
+      "sha256": "927F3A2D2E022DF3236A2E4F54AF462426DC83F5271952C594E57810DAE32B09"
+    },
+    {
+      "path": "evidence/cold-trusted-profile.stderr.txt",
+      "sha256": "D664A8F6B339712A887F657B153A697D7C9598E2A83C6619F9244AEAFBE9E7C4"
+    },
+    {
+      "path": "evidence/audit.json",
+      "sha256": "530C587CF9189DB537485F750D622096E52C2B39E1B16016D986E55DFB189D38"
+    },
+    {
+      "path": "evidence/resources.json",
+      "sha256": "A91CDCC677B213ACE8ED9CA214FDA27B85357653EE11F130C80FBE272D785E69"
+    },
+    {
+      "path": "evidence/relocation.json",
+      "sha256": "8D2E12456623A67BDE51EF1B742A8C46B1F8417D023CDEE2783819E70E942399"
+    }
+  ],
+  "startupFixed": false,
+  "diagnosticOnly": true
+}

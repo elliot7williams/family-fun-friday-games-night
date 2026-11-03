@@ -1,0 +1,36 @@
+{
+  "diagnosticOnly": true,
+  "resourceMarkerOrderVerified": true,
+  "budgetsChanged": false,
+  "files": [
+    {
+      "path": "I:\\LeaBuildStorage\\trusted-bootstrap-profile-source-20261102-v4\\8.cs",
+      "name": "8.cs",
+      "sha256": "39F9E48E4E6693A03F2137DF08FD56D16D99677D7ECE29D12E1D9BFEEFB422E9",
+      "originalSha256": "21792E7953FFEEDA20E6F151ACBC85B873B9BF4C0E5FEA9E01DCB46BF0BC2C9E"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\trusted-bootstrap-profile-source-20261102-v4\\2.cs",
+      "name": "2.cs",
+      "sha256": "33B31DA6DC118A9D9FADAEC02FA788492B05DD88F1BA54A667E7D0E7BD0A6C17",
+      "originalSha256": "1B311CF5C774D8A32B2543A45B7359C58E1643E952073CB2A7E00973DE05A9E9"
+    },
+    {
+      "path": "I:\\LeaBuildStorage\\trusted-bootstrap-profile-source-20261102-v4\\Dom.compact.js",
+      "name": "Dom.compact.js",
+      "sha256": "637E61302C43CA90C559E3EC5FE2151FA8786A96F8B55E9619F32441BC842736",
+      "originalSha256": "EC4B6513A77230C3B8439568CC3FED41B7712CA3779182D38076880DCC83BC8A"
+    }
+  ],
+  "criticalOperationsVerified": true,
+  "markerNegativeControls": 3,
+  "negativeControls": 6,
+  "pairShapeControls": 1,
+  "executed": false,
+  "inverseVerified": true,
+  "compiled": false,
+  "scope": "Diagnostic-only sequential thread/process CPU, process faults/I/O and thread cycles at existing buffered profile marks. Original trusted1000ms/bootstrap statements preserved; observer overhead, no hard-fault or disk-wait attribution.",
+  "verified": true,
+  "resourceCounters": true,
+  "telemetryNegativeControls": 3
+}
