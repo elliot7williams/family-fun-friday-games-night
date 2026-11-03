@@ -1,0 +1,74 @@
+{
+  "startupFixed": false,
+  "files": [
+    {
+      "path": "workspace/PROJECT_CONTEXT.md",
+      "sha256": "4BF01A0E18A5933865D38864E6FFC5A8F093D00EB0860FA348510BEB0A9DCC84"
+    },
+    {
+      "path": "workspace/LeaForge/PROGRESS.md",
+      "sha256": "4B04C98DB3C1E706C03C311D63C46C7E28A33CD82A0FE84DC49900D02DFA8F2E"
+    },
+    {
+      "path": "workspace/LeaForge/WORKING_SET_POLICY.md",
+      "sha256": "D44995A8555D41A394727C0A32C26B7DBEA2B65E11EA2D8A4B55DAFAA9D6643D"
+    },
+    {
+      "path": "workspace/Lea.Tests/WorkingSetPolicyMain.cs",
+      "sha256": "4C99E44691D2C3026E825FCC4641C35334F354AF487F28BA5045CE48E8E01321"
+    },
+    {
+      "path": "workspace/Lea.Tests/WorkingSetPolicy.test.ps1",
+      "sha256": "34FB58DA8BB8A0956C16E432670D1643561F4FDF591998C5AA83EEA3018A1219"
+    },
+    {
+      "path": "workspace/Lea.Build/Read-WorkingSetPolicy.ps1",
+      "sha256": "2274722474B29A1DBB1EE799B9159114034AC809BB267595F9308265E43AAD3A"
+    },
+    {
+      "path": "workspace/Lea.Build/Audit-WorkingSetPolicy.ps1",
+      "sha256": "CD1B2373F689169B543C0E0EDBB1B4F2C7B7FEF7984CD728516A1E92A4F23A8E"
+    },
+    {
+      "path": "workspace/Lea.Build/Prepare-WorkingSetPolicyRun.ps1",
+      "sha256": "7EDBFF2934E69D4D5DAF530A5A122F6724AC248D100D254D9B8573E2DA481E24"
+    },
+    {
+      "path": "workspace/Lea.Build/Test-WorkingSetPolicy-v1.generated.ps1",
+      "sha256": "EA8C6DAAB688CA4410D11EDEF492EF1893603BA77C183B0B0A6BEBC32AE71A1E"
+    },
+    {
+      "path": "workspace/Lea.Build/Relocate-OlderProjectZips-20261102.ps1",
+      "sha256": "8C565B6CB02C3752682736AC68082D118353DAB920291AB8094505724047FB4E"
+    },
+    {
+      "path": "evidence/native.json",
+      "sha256": "B753902B772FA3E106C59A7190BC935360030162AD38B9CCD16E1E333F987BF3"
+    },
+    {
+      "path": "evidence/cold-trusted-profile.stdout.txt",
+      "sha256": "3D0C61A03D48DEE724114CCAD309718DCCCFFBAED2A444F37CC4390041664EA0"
+    },
+    {
+      "path": "evidence/cold-trusted-profile.stderr.txt",
+      "sha256": "47355AB1723269777CA3AAD692024730E8265D0614388533A7EDF929667699CE"
+    },
+    {
+      "path": "evidence/audit.json",
+      "sha256": "C71EF1631A3D2C2BBFBD8AD985E049A17A230F9808485E5E04FB92323B462760"
+    },
+    {
+      "path": "evidence/policy.json",
+      "sha256": "9E483B57980B99870B5C74A3F7156667634A81BBBEDD13A7A8D296F60C0FAA5B"
+    },
+    {
+      "path": "evidence/resources.json",
+      "sha256": "821D0EF83291C04558A57D0132E04743338109B87EFB4FD895D227394E12C254"
+    },
+    {
+      "path": "evidence/relocation.json",
+      "sha256": "6569CF02E93196CC64579EB1658BD75F21B3E704D6348749719FD6A8C55C0BA7"
+    }
+  ],
+  "diagnosticOnly": true
+}

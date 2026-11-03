@@ -1,0 +1,38 @@
+LEA_TRUSTED_BOOT wallFrequency=10000000 cpuFrequency=10000000 enter wall=24792 cpu=0 gc0=0 gc1=0 gc2=0
+LEA_TRUSTED_BOOT wallFrequency=10000000 cpuFrequency=10000000 vm-begin wall=171976 cpu=0 gc0=0 gc1=0 gc2=0
+LEA_TRUSTED_BOOT wallFrequency=10000000 cpuFrequency=10000000 vm-end wall=2754855 cpu=625000 gc0=0 gc1=0 gc2=0
+LEA_TRUSTED_BOOT wallFrequency=10000000 cpuFrequency=10000000 prepare-begin wall=3657330 cpu=625000 gc0=0 gc1=0 gc2=0
+LEA_TRUSTED_BOOT wallFrequency=10000000 cpuFrequency=10000000 prepare-end wall=16199686 cpu=2656250 gc0=1 gc1=0 gc2=0
+LEA_TRUSTED_BOOT wallFrequency=10000000 cpuFrequency=10000000 evaluate-begin wall=16201083 cpu=2656250 gc0=1 gc1=0 gc2=0
+LEA_TRUSTED_BOOT wallFrequency=10000000 cpuFrequency=10000000 stage-declarations wall=18996674 cpu=3125000 gc0=1 gc1=0 gc2=0
+LEA_TRUSTED_BOOT wallFrequency=10000000 cpuFrequency=10000000 stage-scope wall=19987842 cpu=3125000 gc0=1 gc1=0 gc2=0
+LEA_TRUSTED_BOOT wallFrequency=10000000 cpuFrequency=10000000 stage-profile-microtask wall=21426317 cpu=3125000 gc0=1 gc1=0 gc2=0
+LEA_TRUSTED_BOOT wallFrequency=10000000 cpuFrequency=10000000 stage-profile-timers wall=22594942 cpu=3125000 gc0=1 gc1=0 gc2=0
+LEA_TRUSTED_BOOT wallFrequency=10000000 cpuFrequency=10000000 stage-profile-frames wall=22699883 cpu=3125000 gc0=1 gc1=0 gc2=0
+LEA_TRUSTED_BOOT wallFrequency=10000000 cpuFrequency=10000000 stage-profile-state wall=22985201 cpu=3125000 gc0=1 gc1=0 gc2=0
+LEA_TRUSTED_BOOT wallFrequency=10000000 cpuFrequency=10000000 stage-profile-handler-begin wall=23778544 cpu=3125000 gc0=1 gc1=0 gc2=0
+LEA_TRUSTED_BOOT wallFrequency=10000000 cpuFrequency=10000000 stage-profile-handler-end wall=24233108 cpu=3125000 gc0=1 gc1=0 gc2=0
+LEA_TRUSTED_BOOT wallFrequency=10000000 cpuFrequency=10000000 stage-events wall=24234903 cpu=3125000 gc0=1 gc1=0 gc2=0
+LEA_TRUSTED_BOOT wallFrequency=10000000 cpuFrequency=10000000 stage-interfaces wall=26219773 cpu=3437500 gc0=1 gc1=0 gc2=0
+LEA_TRUSTED_BOOT wallFrequency=10000000 cpuFrequency=10000000 stage-elements wall=26223226 cpu=3437500 gc0=1 gc1=0 gc2=0
+LEA_TRUSTED_BOOT wallFrequency=10000000 cpuFrequency=10000000 evaluate-end wall=27026732 cpu=3437500 gc0=1 gc1=0 gc2=0
+LEA_TRUSTED_BOOT wallFrequency=10000000 cpuFrequency=10000000 end wall=27028211 cpu=3437500 gc0=1 gc1=0 gc2=0
+LEA_BOOT_RESOURCE enter wall=25599 thread=1875000 process=1875000 faults=23165 read=58179 write=0 other=26660 cycles=2432437860 working=26497024 commit=19304448 tid=6224
+LEA_BOOT_RESOURCE vm-begin wall=172709 thread=1875000 process=1875000 faults=23288 read=58179 write=0 other=26660 cycles=2452419708 working=26550272 commit=19312640 tid=6224
+LEA_BOOT_RESOURCE vm-end wall=2755713 thread=2500000 process=2500000 faults=27206 read=58179 write=0 other=27192 cycles=2936286360 working=28454912 commit=20316160 tid=6224
+LEA_BOOT_RESOURCE prepare-begin wall=3658239 thread=2500000 process=2500000 faults=28699 read=58179 write=0 other=27192 cycles=3111304704 working=28753920 commit=20439040 tid=6224
+LEA_BOOT_RESOURCE prepare-end wall=16200607 thread=4531250 process=4531250 faults=49665 read=58179 write=0 other=27664 cycles=5495148456 working=31772672 commit=21995520 tid=6224
+LEA_BOOT_RESOURCE evaluate-begin wall=16201363 thread=4531250 process=4531250 faults=49665 read=58179 write=0 other=27664 cycles=5495286324 working=31772672 commit=21995520 tid=6224
+LEA_BOOT_RESOURCE stage-declarations wall=18997439 thread=5000000 process=5000000 faults=53960 read=58179 write=0 other=27664 cycles=6013671032 working=32342016 commit=22335488 tid=6224
+LEA_BOOT_RESOURCE stage-scope wall=19988768 thread=5000000 process=5000000 faults=55530 read=58179 write=0 other=27664 cycles=6214357624 working=32456704 commit=22392832 tid=6224
+LEA_BOOT_RESOURCE stage-profile-microtask wall=21427054 thread=5000000 process=5000000 faults=57785 read=58179 write=0 other=27664 cycles=6471651436 working=32563200 commit=22474752 tid=6224
+LEA_BOOT_RESOURCE stage-profile-timers wall=22595700 thread=5000000 process=5000000 faults=59747 read=58179 write=0 other=27664 cycles=6709930100 working=32817152 commit=22560768 tid=6224
+LEA_BOOT_RESOURCE stage-profile-frames wall=22700623 thread=5000000 process=5000000 faults=59857 read=58179 write=0 other=27664 cycles=6733352764 working=32845824 commit=22638592 tid=6224
+LEA_BOOT_RESOURCE stage-profile-state wall=22985906 thread=5000000 process=5000000 faults=60294 read=58179 write=0 other=27664 cycles=6796310748 working=32911360 commit=22667264 tid=6224
+LEA_BOOT_RESOURCE stage-profile-handler-begin wall=23779401 thread=5000000 process=5000000 faults=61741 read=58179 write=0 other=27664 cycles=6958704212 working=32985088 commit=22712320 tid=6224
+LEA_BOOT_RESOURCE stage-profile-handler-end wall=24234080 thread=5000000 process=5000000 faults=62414 read=58179 write=0 other=27664 cycles=7044455296 working=33017856 commit=22724608 tid=6224
+LEA_BOOT_RESOURCE stage-events wall=24235240 thread=5000000 process=5000000 faults=62414 read=58179 write=0 other=27664 cycles=7044679436 working=33017856 commit=22724608 tid=6224
+LEA_BOOT_RESOURCE stage-interfaces wall=26220689 thread=5312500 process=5312500 faults=66236 read=58179 write=0 other=27664 cycles=7460885948 working=33226752 commit=22892544 tid=6224
+LEA_BOOT_RESOURCE stage-elements wall=26223609 thread=5312500 process=5312500 faults=66242 read=58179 write=0 other=27664 cycles=7461513404 working=33251328 commit=22958080 tid=6224
+LEA_BOOT_RESOURCE evaluate-end wall=27027570 thread=5312500 process=5312500 faults=67619 read=58179 write=0 other=28100 cycles=7638325356 working=33693696 commit=23101440 tid=6224
+LEA_BOOT_RESOURCE end wall=27028526 thread=5312500 process=5312500 faults=67621 read=58179 write=0 other=28100 cycles=7638510416 working=33701888 commit=23101440 tid=6224

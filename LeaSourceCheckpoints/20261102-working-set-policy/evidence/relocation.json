@@ -1,0 +1,42 @@
+[
+  {
+    "lastWriteUtc": "2026-10-25T07:15:38.2032633Z",
+    "destination": "I:\\LeaBuildStorage\\working-set-source-zips-20261102-v1\\source-bundle-v1\\verified-extraction\\source-archives\\tested-interpreter-inputs-v1.zip",
+    "verified": true,
+    "bytes": 2502192,
+    "sha256": "E8F3D3CDF7F25589A8E7FDBFEEC15732C46310444147648C7F8DF0EF84F58E1C",
+    "removed": true,
+    "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\source-bundle-v1\\verified-extraction\\source-archives\\tested-interpreter-inputs-v1.zip",
+    "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)"
+  },
+  {
+    "lastWriteUtc": "2026-10-25T07:15:38.1567681Z",
+    "destination": "I:\\LeaBuildStorage\\working-set-source-zips-20261102-v1\\source-bundle-v1\\verified-extraction\\source-archives\\tested-parent-view-source-v1.zip",
+    "verified": true,
+    "bytes": 174897,
+    "sha256": "F6B770D3AB46AFC1FD6D9DF4D65CD272FA365D6494B9B647DD0DED77A5F12599",
+    "removed": true,
+    "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\source-bundle-v1\\verified-extraction\\source-archives\\tested-parent-view-source-v1.zip",
+    "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)"
+  },
+  {
+    "lastWriteUtc": "2026-10-25T07:15:38.1421308Z",
+    "destination": "I:\\LeaBuildStorage\\working-set-source-zips-20261102-v1\\source-bundle-v1\\verified-extraction\\source-archives\\tested-native-source-v1.zip",
+    "verified": true,
+    "bytes": 158392,
+    "sha256": "A5DAC85239EB06335323454696E7B8F9292859217934599989799E8752B8B158",
+    "removed": true,
+    "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\source-bundle-v1\\verified-extraction\\source-archives\\tested-native-source-v1.zip",
+    "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)"
+  },
+  {
+    "lastWriteUtc": "2026-10-25T07:15:38.1668968Z",
+    "destination": "I:\\LeaBuildStorage\\working-set-source-zips-20261102-v1\\source-bundle-v1\\verified-extraction\\source-archives\\tested-worker-source-v1.zip",
+    "verified": true,
+    "bytes": 92150,
+    "sha256": "25516AAAEDDEE8CF5FF058F343D8485F1AB8565C87FB546A7DC5F2A440863A79",
+    "removed": true,
+    "source": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\source-bundle-v1\\verified-extraction\\source-archives\\tested-worker-source-v1.zip",
+    "sddl": "O:S-1-5-21-1121733987-9215067-1562934020-1001G:S-1-5-21-1121733987-9215067-1562934020-513D:AI(A;ID;0x1301bf;;;S-1-5-21-2941570042-1074692754-3093518753-2814711250)(A;ID;0x1301bf;;;S-1-5-21-1121733987-9215067-1562934020-1005)(A;ID;0x1301bf;;;S-1-5-21-2909271803-834784934-2919633116-3486526619)(A;ID;FA;;;SY)(A;ID;FA;;;BA)(A;ID;FA;;;S-1-5-21-1121733987-9215067-1562934020-1001)(A;ID;FA;;;S-1-5-21-746556697-1605706931-1163802464-1001)"
+  }
+]

@@ -1,0 +1,23 @@
+{
+  "processId": 15800,
+  "unchanged": true,
+  "scope": "Two read-only samples of this owned process only; not outer job policy, continuous observation or proof of timeout causality.",
+  "verified": true,
+  "after": {
+    "pid": 15800,
+    "minimumBytes": 204800,
+    "maximumBytes": 1413120,
+    "flags": 10,
+    "hardMinimum": false,
+    "hardMaximum": false
+  },
+  "hardMaximumObserved": false,
+  "before": {
+    "pid": 15800,
+    "minimumBytes": 204800,
+    "maximumBytes": 1413120,
+    "flags": 10,
+    "hardMinimum": false,
+    "hardMaximum": false
+  }
+}

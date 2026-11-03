@@ -1,0 +1,40 @@
+{
+  "verified": true,
+  "causeEstablished": false,
+  "startupFixed": false,
+  "parserControls": 9,
+  "copies": [
+    {
+      "original": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\trusted-working-set-policy-v1\\result.json",
+      "copy": "I:\\LeaBuildStorage\\working-set-policy-audit-20261102-v2\\01-result.json",
+      "sha256": "B753902B772FA3E106C59A7190BC935360030162AD38B9CCD16E1E333F987BF3"
+    },
+    {
+      "original": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\trusted-working-set-policy-v1\\compile-connectivity-test.stdout.txt",
+      "copy": "I:\\LeaBuildStorage\\working-set-policy-audit-20261102-v2\\02-compile-connectivity-test.stdout.txt",
+      "sha256": "0B4CED6267D6217FC155BC3292523E7D68725882D6D0EDFACA0F359F1CF62FD7"
+    },
+    {
+      "original": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\trusted-working-set-policy-v1\\compile-connectivity-test.stderr.txt",
+      "copy": "I:\\LeaBuildStorage\\working-set-policy-audit-20261102-v2\\03-compile-connectivity-test.stderr.txt",
+      "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+    },
+    {
+      "original": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\trusted-working-set-policy-v1\\cold-trusted-profile.stdout.txt",
+      "copy": "I:\\LeaBuildStorage\\working-set-policy-audit-20261102-v2\\04-cold-trusted-profile.stdout.txt",
+      "sha256": "3D0C61A03D48DEE724114CCAD309718DCCCFFBAED2A444F37CC4390041664EA0"
+    },
+    {
+      "original": "C:\\Users\\Elliot\\Documents\\Family Fun Friday Games Night copy\\continuity-evidence\\trusted-working-set-policy-v1\\cold-trusted-profile.stderr.txt",
+      "copy": "I:\\LeaBuildStorage\\working-set-policy-audit-20261102-v2\\05-cold-trusted-profile.stderr.txt",
+      "sha256": "47355AB1723269777CA3AAD692024730E8265D0614388533A7EDF929667699CE"
+    }
+  ],
+  "ownedRunsRetired": 2,
+  "diagnosticOnly": true,
+  "hardMaximumObserved": false,
+  "priorTenFilesUnchanged": true,
+  "twoNewDriverFilesOnly": true,
+  "runtimeFiles": 12,
+  "policyUnchanged": true
+}
